@@ -1,0 +1,60 @@
+project: tradeclaw
+updated: 2026-03-21T07:18:00+08:00
+
+description: >
+  Open source self-hostable AI trading agent platform.
+  Public mode = limited. Admin = full.
+  Alpha Screener = SaaS product for users who don't want to self-host.
+  Goal: viral GitHub repo, thousands of stars.
+
+tasks:
+  - id: TC-001
+    title: Scaffold TradeClaw monorepo (Next.js + API + docs)
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-002
+    title: Write viral README.md with badges, demo GIF placeholder, feature list
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-003
+    title: Design public vs admin role system (limited public access)
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-004
+    title: Landing page (Next.js) — hero, features, deploy button, star CTA
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-005
+    title: GitHub Actions CI/CD pipeline
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-006
+    title: Docker Compose one-click deploy
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-007
+    title: Alpha Screener integration docs (SaaS upsell path)
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-008
+    title: CONTRIBUTING.md + issue templates + community files
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+next_actions:
+  - "pm-tradeclaw: Start TC-001 scaffold, then TC-002 README in parallel"

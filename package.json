@@ -1,0 +1,30 @@
+{
+  "name": "tradeclaw",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source AI trading agent platform. Self-hosted. Free forever.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspace=apps/web",
+    "lint": "npm run lint --workspace=apps/web",
+    "start": "npm run start --workspace=apps/web"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naimkatiman/tradeclaw.git"
+  },
+  "keywords": [
+    "trading",
+    "ai",
+    "signals",
+    "self-hosted",
+    "open-source",
+    "technical-analysis"
+  ],
+  "author": "Naim Katiman",
+  "license": "MIT"
+}
