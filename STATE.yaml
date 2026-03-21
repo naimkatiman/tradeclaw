@@ -1,10 +1,10 @@
 project: tradeclaw
-updated: 2026-03-21T07:18:00+08:00
+updated: 2026-03-21T20:00:00+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
   Public mode = limited. Admin = full.
-  Alpha Screener = SaaS product for users who don't want to self-host.
+  Alpha Screener = confirmed SaaS brand for users who don't want to self-host. Tradesmart name is dropped.
   Goal: viral GitHub repo, thousands of stars.
 
 tasks:
@@ -16,9 +16,9 @@ tasks:
 
   - id: TC-002
     title: Write viral README.md with badges, demo GIF placeholder, feature list
-    status: pending
-    owner: pm-tradeclaw
-    notes: ""
+    status: done
+    owner: zaky
+    notes: "Written 2026-03-21 by daily self-improvement cron. 200+ lines, full viral structure."
 
   - id: TC-003
     title: Design public vs admin role system (limited public access)
@@ -52,9 +52,9 @@ tasks:
 
   - id: TC-008
     title: CONTRIBUTING.md + issue templates + community files
-    status: pending
-    owner: pm-tradeclaw
-    notes: ""
+    status: done
+    owner: zaky
+    notes: "CONTRIBUTING.md written 2026-03-21 by daily self-improvement cron."
 
 next_actions:
-  - "pm-tradeclaw: Start TC-001 scaffold, then TC-002 README in parallel"
+  - "pm-tradeclaw: TC-002 and TC-008 done. Next: TC-006 Docker Compose, then TC-005 CI/CD"

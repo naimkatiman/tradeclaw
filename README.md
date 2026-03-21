@@ -1,0 +1,230 @@
+<div align="center">
+
+<img src="docs/assets/logo.png" alt="TradeClaw Logo" width="120" />
+
+# TradeClaw
+
+**Self-hosted AI trading signal platform. Runs on your machine. Free forever.**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Stars](https://img.shields.io/github/stars/naimkatiman/tradeclaw?style=social)](https://github.com/naimkatiman/tradeclaw/stargazers)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/naimkatiman/tradeclaw)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://typescriptlang.org)
+
+[**Live Demo**](https://tradeclaw.demo.alphascreen.io) · [**Alpha Screener (hosted)**](https://alphascreen.io) · [**Docs**](https://github.com/naimkatiman/tradeclaw/wiki) · [**Discord**](https://discord.gg/tradeclaw)
+
+<br/>
+
+<!-- Demo GIF placeholder — replace with real recording from demo script -->
+<img src="docs/assets/demo.gif" alt="TradeClaw Dashboard Demo" width="800" />
+
+</div>
+
+---
+
+## Why TradeClaw?
+
+Most trading dashboards are:
+- **Expensive** (Bloomberg, TradingView Pro — $$$)
+- **Cloud-locked** (your signals, their servers)
+- **Dumb** (no AI, no context, just charts)
+
+TradeClaw is different:
+
+| Feature | TradeClaw | TradingView | MT4 Platform |
+|---------|-----------|-------------|--------------|
+| AI-generated signals | ✅ | ❌ | ❌ |
+| Self-hosted | ✅ | ❌ | Partial |
+| Open source | ✅ | ❌ | ❌ |
+| Multi-asset (forex + crypto + metals) | ✅ | ✅ | Partial |
+| One-click Docker deploy | ✅ | ❌ | ❌ |
+| Free forever | ✅ | ❌ | ❌ |
+
+---
+
+## What It Does
+
+TradeClaw gives you AI-powered trading signals on **15 assets** across forex, crypto, and metals — with full technical analysis, risk management, and a clean dashboard you actually want to look at.
+
+### Supported Assets
+```
+Forex:   XAUUSD · XAGUSD · EURUSD · GBPUSD · USDJPY · AUDUSD
+Crypto:  BTCUSD · ETHUSD · XRPUSD · SOLUSD · ADAUSD
+Indices: US30 · NAS100 · SPX500 · GER40
+```
+
+### Signal Engine
+Every signal includes:
+- **Direction:** BUY / SELL with confidence score
+- **Entry zone** with Fibonacci precision
+- **TP1, TP2, TP3** (Fibonacci extension levels)
+- **Stop loss** (ATR-based, volatility-adjusted)
+- **Multi-timeframe alignment** (M15 → H1 → H4 → D1)
+
+### Technical Indicators
+RSI · MACD · EMA (9/21/50/200) · Bollinger Bands · Stochastic · Support/Resistance · Fibonacci Retracements
+
+### Everything Else
+- 📊 **Canvas-based charts** — fast, no Canvas library bloat
+- 📜 **Signal history** — 30-day lookback, searchable
+- 🏆 **Signal leaderboard** — ranked by accuracy
+- 📝 **Paper trading** — risk-free practice mode
+- 🔬 **Backtesting engine** — test strategies on historical data
+- 🤖 **Telegram bot** — signals pushed to your phone
+- 🔔 **Custom alerts** — price, indicator, or signal-based
+- 📱 **PWA** — installable, works offline
+
+---
+
+## Quick Start
+
+### Option 1: Docker (recommended)
+
+```bash
+docker run -d \
+  -p 3000:3000 \
+  -e ADMIN_SECRET=your-secret \
+  --name tradeclaw \
+  naimkatiman/tradeclaw:latest
+```
+
+Open [http://localhost:3000](http://localhost:3000). Done.
+
+### Option 2: Docker Compose
+
+```bash
+curl -O https://raw.githubusercontent.com/naimkatiman/tradeclaw/main/docker-compose.yml
+docker compose up -d
+```
+
+### Option 3: Manual
+
+```bash
+git clone https://github.com/naimkatiman/tradeclaw.git
+cd tradeclaw
+npm install
+cp .env.example .env.local
+# Edit .env.local with your settings
+npm run dev
+```
+
+Requirements: Node.js 20+, npm 10+
+
+---
+
+## Configuration
+
+```env
+# .env.local
+
+# Required
+ADMIN_SECRET=your-super-secret-key
+
+# Optional — Telegram bot for signal push notifications
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+
+# Optional — External price feeds (defaults to free APIs)
+COINMARKETCAP_API_KEY=
+ALPHA_VANTAGE_API_KEY=
+
+# Optional — Leverage and trading defaults
+DEFAULT_LEVERAGE=1000
+DEFAULT_CAPITAL=500
+```
+
+---
+
+## Architecture
+
+```
+tradeclaw/
+├── apps/
+│   └── web/              # Next.js 16 frontend + API routes
+│       ├── app/          # App router pages
+│       ├── components/   # UI components
+│       └── lib/          # Signal engine, indicators, utils
+├── packages/
+│   └── core/             # Shared types, signal logic, backtesting engine
+└── docs/                 # Documentation
+```
+
+**Stack:** Next.js 16 · TypeScript · Tailwind CSS v4 · Canvas API · Vercel/Railway-ready
+
+---
+
+## Self-host vs Cloud
+
+TradeClaw is **free and open source forever**.
+
+If you don't want to manage infrastructure, **[Alpha Screener](https://alphascreen.io)** is the hosted version — managed updates, cloud data feeds, team features.
+
+| | TradeClaw (self-host) | Alpha Screener (cloud) |
+|-|----------------------|------------------------|
+| Cost | Free | Paid |
+| Hosting | Your machine | Our servers |
+| Updates | Manual | Automatic |
+| Data feeds | Bring your own | Included |
+| Team access | Self-managed | Built-in |
+| Support | Community | Priority |
+
+---
+
+## Roadmap
+
+- [x] Signal engine (RSI, MACD, EMA, Bollinger, Stochastic, S/R, Fibonacci)
+- [x] Multi-timeframe analysis
+- [x] TP/SL engine
+- [x] Paper trading
+- [x] Backtesting
+- [x] Signal history & leaderboard
+- [x] Telegram bot integration
+- [x] Custom alerts
+- [x] PWA
+- [ ] Mobile app (React Native)
+- [ ] Strategy builder (visual)
+- [ ] Multi-broker connector (MT4/MT5)
+- [ ] Social signal sharing
+- [ ] AI explanation mode ("why this signal?")
+
+---
+
+## Contributing
+
+Pull requests welcome. For major changes, open an issue first.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+```bash
+# Development
+npm install
+npm run dev        # Start dev server on :3000
+npm run lint       # ESLint
+npm run build      # Production build
+```
+
+---
+
+## Community
+
+- **Discord:** [discord.gg/tradeclaw](https://discord.gg/tradeclaw)
+- **Reddit:** [r/tradeclaw](https://reddit.com/r/tradeclaw)
+- **Twitter/X:** [@tradeclaw_io](https://twitter.com/tradeclaw_io)
+- **Issues:** [GitHub Issues](https://github.com/naimkatiman/tradeclaw/issues)
+
+---
+
+## License
+
+MIT — use it, fork it, build on it. Just don't sell it as your own.
+
+---
+
+<div align="center">
+
+**If TradeClaw saved you money on trading tools, give it a ⭐**
+
+Made with 🦾 by [@naimkatiman](https://github.com/naimkatiman) · Powered by [Alpha Screener](https://alphascreen.io)
+
+</div>
