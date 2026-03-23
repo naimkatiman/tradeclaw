@@ -1,0 +1,71 @@
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_DB: ${DB_NAME:-tradeclaw}
+      POSTGRES_USER: ${DB_USER:-tradeclaw}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tradeclaw}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgres://${DB_USER:-tradeclaw}:${DB_PASSWORD:-changeme}@db:5432/${DB_NAME:-tradeclaw}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+      NEXTAUTH_SECRET: ${AUTH_SECRET:-generate-a-random-secret}
+      NEXTAUTH_URL: ${APP_URL:-http://localhost:3000}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  scanner:
+    build:
+      context: .
+      dockerfile: Dockerfile.scanner
+    environment:
+      DATABASE_URL: postgres://${DB_USER:-tradeclaw}:${DB_PASSWORD:-changeme}@db:5432/${DB_NAME:-tradeclaw}
+      REDIS_URL: redis://redis:6379
+      SCAN_INTERVAL: ${SCAN_INTERVAL:-60}
+      SCAN_INSTRUMENTS: ${SCAN_INSTRUMENTS:-all}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  redis_data:
