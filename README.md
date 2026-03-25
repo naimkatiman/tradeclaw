@@ -12,7 +12,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://typescriptlang.org)
 
-[**Live Demo**](https://tradeclaw.demo.alphascreen.io) · [**Alpha Screener (hosted)**](https://alphascreen.io) · [**Docs**](https://github.com/naimkatiman/tradeclaw/wiki) · [**Discord**](https://discord.gg/tradeclaw)
+[**🚀 Live Demo**](https://web-production-a5139.up.railway.app) · [**Dashboard**](https://web-production-a5139.up.railway.app/dashboard) · [**Alpha Screener (hosted)**](https://alphascreen.io) · [**Docs**](https://github.com/naimkatiman/tradeclaw/wiki) · [**Discord**](https://discord.gg/tradeclaw)
 
 <br/>
 
