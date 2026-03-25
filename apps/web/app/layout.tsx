@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SWRegister } from "./components/sw-register";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,9 +47,10 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "TradeClaw — Open-Source AI Trading Signals",
     description:
-      "Self-hosted AI trading signals for forex, crypto & metals. Free forever. ⭐ Star on GitHub.",
+      "Self-hosted AI trading signals for forex, crypto & metals. Free forever. Star on GitHub.",
     images: ["https://opengraph.githubassets.com/1/naimkatiman/tradeclaw"],
   },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -61,7 +63,8 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-[#0A0A0A] text-white">
+      <body className="min-h-full flex flex-col bg-[#050505] text-white grain-overlay">
+        <SWRegister />
         {children}
       </body>
     </html>

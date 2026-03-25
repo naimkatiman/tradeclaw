@@ -1,0 +1,31 @@
+{
+  "name": "tradeclaw-mobile",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~52.0.0",
+    "expo-router": "~4.0.0",
+    "expo-status-bar": "~2.0.0",
+    "react": "18.3.2",
+    "react-native": "0.76.5",
+    "@expo/vector-icons": "^14.0.4",
+    "expo-linking": "~7.0.4",
+    "expo-constants": "~17.0.3",
+    "expo-notifications": "~0.29.9",
+    "expo-splash-screen": "~0.29.18",
+    "expo-system-ui": "~4.0.6",
+    "react-native-safe-area-context": "4.12.0",
+    "react-native-screens": "~4.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~18.3.12",
+    "typescript": "^5.3.3"
+  }
+}

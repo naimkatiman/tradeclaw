@@ -1,0 +1,413 @@
+'use client';
+
+import { useState, useCallback } from 'react';
+
+type ConditionType = 'RSI' | 'MACD' | 'EMA_CROSS' | 'BB' | 'STOCH' | 'PRICE_ACTION';
+type ActionType = 'ENTRY_LONG' | 'ENTRY_SHORT' | 'EXIT' | 'ALERT';
+type Operator = '>' | '<' | '>=' | '<=' | 'crosses_above' | 'crosses_below';
+
+interface StrategyBlock {
+  id: string;
+  type: 'IF' | 'AND' | 'OR' | 'THEN';
+  condition?: {
+    indicator: ConditionType;
+    operator: Operator;
+    value: number;
+  };
+  action?: {
+    type: ActionType;
+    param?: number;
+  };
+}
+
+interface Strategy {
+  id: string;
+  name: string;
+  symbol: string;
+  timeframe: string;
+  blocks: StrategyBlock[];
+}
+
+const CONDITION_LABELS: Record<ConditionType, string> = {
+  RSI: 'RSI (14)',
+  MACD: 'MACD histogram',
+  EMA_CROSS: 'EMA 9 vs EMA 21',
+  BB: 'Price vs Bollinger Band',
+  STOCH: 'Stochastic %K',
+  PRICE_ACTION: 'Price change %',
+};
+
+const ACTION_LABELS: Record<ActionType, string> = {
+  ENTRY_LONG: 'Enter Long (BUY)',
+  ENTRY_SHORT: 'Enter Short (SELL)',
+  EXIT: 'Exit position',
+  ALERT: 'Send alert',
+};
+
+const OPERATOR_LABELS: Record<Operator, string> = {
+  '>': 'is above',
+  '<': 'is below',
+  '>=': 'is above or equal to',
+  '<=': 'is below or equal to',
+  'crosses_above': 'crosses above',
+  'crosses_below': 'crosses below',
+};
+
+const EXAMPLE_STRATEGIES: Strategy[] = [
+  {
+    id: 'rsi-oversold',
+    name: 'RSI Oversold Bounce',
+    symbol: 'XAUUSD',
+    timeframe: 'H1',
+    blocks: [
+      { id: 'b1', type: 'IF', condition: { indicator: 'RSI', operator: '<', value: 30 } },
+      { id: 'b2', type: 'AND', condition: { indicator: 'MACD', operator: '>', value: 0 } },
+      { id: 'b3', type: 'THEN', action: { type: 'ENTRY_LONG' } },
+    ],
+  },
+  {
+    id: 'ema-cross',
+    name: 'EMA Crossover',
+    symbol: 'EURUSD',
+    timeframe: 'H4',
+    blocks: [
+      { id: 'b1', type: 'IF', condition: { indicator: 'EMA_CROSS', operator: 'crosses_above', value: 0 } },
+      { id: 'b2', type: 'AND', condition: { indicator: 'RSI', operator: '>', value: 50 } },
+      { id: 'b3', type: 'THEN', action: { type: 'ENTRY_LONG' } },
+    ],
+  },
+];
+
+function uid() { return Math.random().toString(36).slice(2, 8); }
+
+function BlockCard({
+  block,
+  index,
+  onChange,
+  onDelete,
+  isFirst,
+}: {
+  block: StrategyBlock;
+  index: number;
+  onChange: (id: string, updates: Partial<StrategyBlock>) => void;
+  onDelete: (id: string) => void;
+  isFirst: boolean;
+}) {
+  const isAction = block.type === 'THEN';
+
+  return (
+    <div className="flex gap-3 items-start">
+      {/* Connector line */}
+      <div className="flex flex-col items-center pt-3 flex-shrink-0">
+        <div className={`w-8 text-center text-[9px] font-bold py-1 rounded border ${
+          block.type === 'IF' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' :
+          block.type === 'AND' ? 'text-purple-400 bg-purple-500/10 border-purple-500/20' :
+          block.type === 'OR' ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20' :
+          'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+        }`}>
+          {block.type}
+        </div>
+        {!isFirst && index < 10 && (
+          <div className="w-px h-3 bg-white/10 mt-1" />
+        )}
+      </div>
+
+      {/* Block body */}
+      <div className="flex-1 bg-white/[0.025] rounded-xl border border-white/8 p-3 flex items-center gap-2">
+        {!isAction && block.condition && (
+          <>
+            <select
+              value={block.condition.indicator}
+              onChange={e => onChange(block.id, { condition: { ...block.condition!, indicator: e.target.value as ConditionType } })}
+              className="bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-[10px] text-zinc-300 outline-none focus:border-emerald-500/30 flex-1"
+            >
+              {(Object.keys(CONDITION_LABELS) as ConditionType[]).map(k => (
+                <option key={k} value={k}>{CONDITION_LABELS[k]}</option>
+              ))}
+            </select>
+            <select
+              value={block.condition.operator}
+              onChange={e => onChange(block.id, { condition: { ...block.condition!, operator: e.target.value as Operator } })}
+              className="bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-[10px] text-zinc-300 outline-none focus:border-emerald-500/30 flex-1"
+            >
+              {(Object.keys(OPERATOR_LABELS) as Operator[]).map(k => (
+                <option key={k} value={k}>{OPERATOR_LABELS[k]}</option>
+              ))}
+            </select>
+            {block.condition.operator !== 'crosses_above' && block.condition.operator !== 'crosses_below' && (
+              <input
+                type="number"
+                value={block.condition.value}
+                onChange={e => onChange(block.id, { condition: { ...block.condition!, value: Number(e.target.value) } })}
+                className="w-16 bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-[10px] text-zinc-300 outline-none focus:border-emerald-500/30 font-mono"
+              />
+            )}
+          </>
+        )}
+        {isAction && block.action && (
+          <select
+            value={block.action.type}
+            onChange={e => onChange(block.id, { action: { ...block.action!, type: e.target.value as ActionType } })}
+            className="bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-[10px] text-zinc-300 outline-none focus:border-emerald-500/30 flex-1"
+          >
+            {(Object.keys(ACTION_LABELS) as ActionType[]).map(k => (
+              <option key={k} value={k}>{ACTION_LABELS[k]}</option>
+            ))}
+          </select>
+        )}
+        <button
+          onClick={() => onDelete(block.id)}
+          className="text-zinc-700 hover:text-red-400 text-sm px-1 transition-colors flex-shrink-0"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function StrategyPreview({ strategy }: { strategy: Strategy }) {
+  if (!strategy.blocks.length) return null;
+
+  const conditions = strategy.blocks.filter(b => b.type !== 'THEN');
+  const actions = strategy.blocks.filter(b => b.type === 'THEN');
+
+  const condStr = conditions.map(b => {
+    if (!b.condition) return '';
+    const op = OPERATOR_LABELS[b.condition.operator];
+    const val = b.condition.operator === 'crosses_above' || b.condition.operator === 'crosses_below' ? '' : ` ${b.condition.value}`;
+    return `${b.type === 'IF' ? '' : b.type + ' '}${CONDITION_LABELS[b.condition.indicator]} ${op}${val}`;
+  }).join(' ');
+
+  const actStr = actions.map(b => b.action ? ACTION_LABELS[b.action.type] : '').join(', ');
+
+  return (
+    <div className="bg-white/[0.02] rounded-xl p-3 border border-white/5 font-mono text-[10px] text-zinc-500 leading-relaxed">
+      <span className="text-zinc-600 font-semibold">Rule: </span>
+      {condStr && <span>{condStr} </span>}
+      {actStr && <><span className="text-zinc-600 font-semibold">→ </span><span className="text-emerald-400">{actStr}</span></>}
+    </div>
+  );
+}
+
+export default function StrategyBuilderPage() {
+  const [strategy, setStrategy] = useState<Strategy>({
+    id: uid(),
+    name: 'My Strategy',
+    symbol: 'XAUUSD',
+    timeframe: 'H1',
+    blocks: [
+      { id: uid(), type: 'IF', condition: { indicator: 'RSI', operator: '<', value: 30 } },
+      { id: uid(), type: 'THEN', action: { type: 'ENTRY_LONG' } },
+    ],
+  });
+  const [saved, setSaved] = useState(false);
+
+  const addBlock = useCallback((type: StrategyBlock['type']) => {
+    const block: StrategyBlock = type === 'THEN'
+      ? { id: uid(), type: 'THEN', action: { type: 'ENTRY_LONG' } }
+      : { id: uid(), type, condition: { indicator: 'RSI', operator: '<', value: 30 } };
+    setStrategy(s => {
+      // Insert THEN blocks at end; condition blocks before first THEN
+      const thenIdx = s.blocks.findIndex(b => b.type === 'THEN');
+      const blocks = [...s.blocks];
+      if (type === 'THEN' || thenIdx === -1) {
+        blocks.push(block);
+      } else {
+        blocks.splice(thenIdx, 0, block);
+      }
+      return { ...s, blocks };
+    });
+  }, []);
+
+  const onChange = useCallback((id: string, updates: Partial<StrategyBlock>) => {
+    setStrategy(s => ({ ...s, blocks: s.blocks.map(b => b.id === id ? { ...b, ...updates } : b) }));
+  }, []);
+
+  const onDelete = useCallback((id: string) => {
+    setStrategy(s => ({ ...s, blocks: s.blocks.filter(b => b.id !== id) }));
+  }, []);
+
+  const loadExample = (ex: Strategy) => {
+    setStrategy({ ...ex, id: uid(), blocks: ex.blocks.map(b => ({ ...b, id: uid() })) });
+  };
+
+  const saveStrategy = () => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('tc-strategies') || '[]') as Strategy[];
+      const exists = stored.findIndex(s => s.id === strategy.id);
+      if (exists >= 0) stored[exists] = strategy;
+      else stored.push(strategy);
+      localStorage.setItem('tc-strategies', JSON.stringify(stored));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch { /* ignore */ }
+  };
+
+  return (
+    <div className="min-h-[100dvh] bg-[#050505] text-white">
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-1">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="4" width="5" height="5" rx="1" fill="rgba(255,255,255,0.15)"/>
+              <rect x="9" y="4" width="5" height="5" rx="1" fill="rgba(16,185,129,0.4)"/>
+              <path d="M4.5 6.5H11.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeDasharray="2 2"/>
+              <rect x="2" y="11" width="5" height="3" rx="1" fill="rgba(16,185,129,0.2)"/>
+              <rect x="9" y="11" width="5" height="3" rx="1" fill="rgba(255,255,255,0.08)"/>
+            </svg>
+            <h1 className="text-sm font-semibold text-white tracking-tight">Strategy Builder</h1>
+          </div>
+          <p className="text-[11px] text-zinc-600">Visual IF/THEN rule editor — compose trading logic without code</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+          {/* Builder canvas */}
+          <div className="space-y-4">
+            {/* Strategy name + meta */}
+            <div className="glass-card rounded-2xl p-5">
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="col-span-3 sm:col-span-1">
+                  <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Strategy name</label>
+                  <input
+                    type="text"
+                    value={strategy.name}
+                    onChange={e => setStrategy(s => ({ ...s, name: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Symbol</label>
+                  <select
+                    value={strategy.symbol}
+                    onChange={e => setStrategy(s => ({ ...s, symbol: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30"
+                  >
+                    {['XAUUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD', 'USDJPY'].map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Timeframe</label>
+                  <select
+                    value={strategy.timeframe}
+                    onChange={e => setStrategy(s => ({ ...s, timeframe: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30"
+                  >
+                    {['M15', 'H1', 'H4', 'D1'].map(tf => <option key={tf} value={tf}>{tf}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Block list */}
+              <div className="space-y-2 mb-4">
+                {strategy.blocks.map((block, i) => (
+                  <BlockCard
+                    key={block.id}
+                    block={block}
+                    index={i}
+                    onChange={onChange}
+                    onDelete={onDelete}
+                    isFirst={i === 0}
+                  />
+                ))}
+                {strategy.blocks.length === 0 && (
+                  <div className="text-center py-6 text-xs text-zinc-700">Add blocks to build your strategy</div>
+                )}
+              </div>
+
+              {/* Add block buttons */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {(['IF', 'AND', 'OR', 'THEN'] as const).map(type => (
+                  <button
+                    key={type}
+                    onClick={() => addBlock(type)}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all hover:opacity-90 ${
+                      type === 'IF' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                      type === 'AND' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                      type === 'OR' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                      'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                    }`}
+                  >
+                    + {type}
+                  </button>
+                ))}
+              </div>
+
+              {/* Rule preview */}
+              <StrategyPreview strategy={strategy} />
+            </div>
+
+            {/* Save */}
+            <button
+              onClick={saveStrategy}
+              className={`w-full py-3 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.99] border ${
+                saved
+                  ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+                  : 'bg-emerald-500/15 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
+              }`}
+            >
+              {saved ? 'Strategy saved' : 'Save strategy'}
+            </button>
+          </div>
+
+          {/* Sidebar: examples */}
+          <div className="space-y-3">
+            <div className="glass-card rounded-2xl p-5">
+              <div className="text-xs font-semibold text-white tracking-tight mb-3">Example strategies</div>
+              <div className="space-y-2">
+                {EXAMPLE_STRATEGIES.map(ex => (
+                  <button
+                    key={ex.id}
+                    onClick={() => loadExample(ex)}
+                    className="w-full text-left px-3 py-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group"
+                  >
+                    <div className="text-xs font-semibold text-zinc-300 group-hover:text-white transition-colors mb-1">{ex.name}</div>
+                    <div className="text-[10px] text-zinc-600 font-mono">{ex.symbol} · {ex.timeframe} · {ex.blocks.length} blocks</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="glass-card rounded-2xl p-5">
+              <div className="text-xs font-semibold text-white tracking-tight mb-2">Block guide</div>
+              <div className="space-y-2">
+                {[
+                  { label: 'IF', color: 'text-blue-400', desc: 'Start condition' },
+                  { label: 'AND', color: 'text-purple-400', desc: 'All must be true' },
+                  { label: 'OR', color: 'text-yellow-400', desc: 'Any must be true' },
+                  { label: 'THEN', color: 'text-emerald-400', desc: 'Action to take' },
+                ].map(item => (
+                  <div key={item.label} className="flex items-center gap-2">
+                    <span className={`text-[9px] font-bold w-8 ${item.color}`}>{item.label}</span>
+                    <span className="text-[10px] text-zinc-600">{item.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="glass-card rounded-2xl p-5">
+              <div className="text-xs font-semibold text-white tracking-tight mb-2">Quick nav</div>
+              <div className="space-y-1">
+                {[
+                  { label: 'Backtesting', href: '/backtest' },
+                  { label: 'Paper Trading', href: '/paper-trading' },
+                  { label: 'Dashboard', href: '/dashboard' },
+                ].map(link => (
+                  <a key={link.href} href={link.href} className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors group">
+                    <span className="text-xs text-zinc-500 group-hover:text-zinc-300 transition-colors">{link.label}</span>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <path d="M3 2L7 5L3 8" stroke="rgba(255,255,255,0.4)" strokeWidth="1.2" strokeLinecap="round"/>
+                    </svg>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
