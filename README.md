@@ -79,37 +79,21 @@ RSI · MACD · EMA (9/21/50/200) · Bollinger Bands · Stochastic · Support/Res
 
 ## Quick Start
 
-### Option 1: Docker (recommended)
-
 ```bash
-docker run -d \
-  -p 3000:3000 \
-  -e ADMIN_SECRET=your-secret \
-  --name tradeclaw \
-  naimkatiman/tradeclaw:latest
-```
-
-Open [http://localhost:3000](http://localhost:3000). Done.
-
-### Option 2: Docker Compose
-
-```bash
-curl -O https://raw.githubusercontent.com/naimkatiman/tradeclaw/main/docker-compose.yml
+git clone https://github.com/naimkatiman/tradeclaw
+cp .env.example .env
 docker compose up -d
 ```
 
-### Option 3: Manual
+Open [http://localhost:3000](http://localhost:3000). That's it.
 
-```bash
-git clone https://github.com/naimkatiman/tradeclaw.git
-cd tradeclaw
-npm install
-cp .env.example .env.local
-# Edit .env.local with your settings
-npm run dev
-```
+---
 
-Requirements: Node.js 20+, npm 10+
+## One-Click Deploy
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/naimkatiman/tradeclaw)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/naimkatiman/tradeclaw)
 
 ---
 
