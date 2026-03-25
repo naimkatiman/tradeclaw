@@ -8,4 +8,4 @@ cmds = ["npm ci"]
 cmds = ["npm run build"]
 
 [start]
-cmd = "node apps/web/.next/standalone/apps/web/server.js"
+cmd = "cd apps/web && npm start"
