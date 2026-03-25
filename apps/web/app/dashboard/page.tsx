@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { PriceTicker } from '../components/price-ticker';
 
 interface TradingSignal {
   id: string;
@@ -231,24 +232,41 @@ export default function Dashboard() {
         </div>
       </nav>
 
+      {/* Live Price Ticker */}
+      <PriceTicker />
+
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Stats Bar */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-gray-900/60 border border-gray-800 rounded-lg p-3 text-center">
             <div className="text-2xl font-bold text-white">{signals.length}</div>
-            <div className="text-xs text-gray-500">Active Signals</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wider">Active Signals</div>
           </div>
           <div className="bg-gray-900/60 border border-gray-800 rounded-lg p-3 text-center">
-            <div className="text-2xl font-bold text-emerald-400">{buyCount}</div>
-            <div className="text-xs text-gray-500">Buy / <span className="text-red-400">{sellCount}</span> Sell</div>
+            <div className="text-2xl font-bold">
+              <span className="text-emerald-400">{buyCount}</span>
+              <span className="text-gray-600 text-lg mx-1">/</span>
+              <span className="text-red-400">{sellCount}</span>
+            </div>
+            <div className="text-xs text-gray-500 uppercase tracking-wider">Buy / Sell</div>
           </div>
           <div className="bg-gray-900/60 border border-gray-800 rounded-lg p-3 text-center">
             <div className="text-2xl font-bold text-white">{avgConfidence}%</div>
-            <div className="text-xs text-gray-500">Avg Confidence</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wider">Avg Confidence</div>
           </div>
-          <div className="bg-gray-900/60 border border-gray-800 rounded-lg p-3 text-center">
-            <div className="text-2xl font-bold text-yellow-400">{highConfidence}</div>
-            <div className="text-xs text-gray-500">High Conf (≥80%)</div>
+          <div className={`rounded-lg p-3 text-center border ${
+            buyCount > sellCount
+              ? 'bg-emerald-500/10 border-emerald-500/30'
+              : buyCount < sellCount
+              ? 'bg-red-500/10 border-red-500/30'
+              : 'bg-gray-900/60 border-gray-800'
+          }`}>
+            <div className={`text-2xl font-bold ${
+              buyCount > sellCount ? 'text-emerald-400' : buyCount < sellCount ? 'text-red-400' : 'text-gray-400'
+            }`}>
+              {buyCount > sellCount ? '▲ BULL' : buyCount < sellCount ? '▼ BEAR' : '◆ NEUTRAL'}
+            </div>
+            <div className="text-xs text-gray-500 uppercase tracking-wider">Market Bias</div>
           </div>
         </div>
 
