@@ -29,16 +29,25 @@ export const metadata: Metadata = {
   openGraph: {
     title: "TradeClaw — Stop Renting Your Trading Edge",
     description:
-      "Open-source AI trading signals. Self-hosted. Free forever.",
-    url: "https://tradeclaw.com",
+      "Open-source AI trading signals for forex, crypto & metals. Self-hosted. Free forever. Deploy in 5 min with Docker.",
+    url: "https://github.com/naimkatiman/tradeclaw",
     siteName: "TradeClaw",
     type: "website",
+    images: [
+      {
+        url: "https://opengraph.githubassets.com/1/naimkatiman/tradeclaw",
+        width: 1200,
+        height: 600,
+        alt: "TradeClaw — Open-Source AI Trading Signals",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "TradeClaw — Open-Source AI Trading Signals",
     description:
-      "Self-hosted AI trading signals for forex, crypto, and metals. Free forever.",
+      "Self-hosted AI trading signals for forex, crypto & metals. Free forever. ⭐ Star on GitHub.",
+    images: ["https://opengraph.githubassets.com/1/naimkatiman/tradeclaw"],
   },
 };
 

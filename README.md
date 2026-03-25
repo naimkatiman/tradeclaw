@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/logo.png" alt="TradeClaw Logo" width="120" />
+<img src="docs/assets/logo.svg" alt="TradeClaw Logo" width="120" />
 
 # TradeClaw
 
@@ -16,8 +16,10 @@
 
 <br/>
 
-<!-- Demo GIF placeholder — replace with real recording from demo script -->
-<img src="docs/assets/demo.gif" alt="TradeClaw Dashboard Demo" width="800" />
+<!-- Dashboard preview -->
+<img src="docs/assets/dashboard-preview.png" alt="TradeClaw Dashboard — AI Trading Signals" width="800" onerror="this.style.display='none'" />
+
+> **[→ Try the live demo](https://tradeclaw.demo.alphascreen.io)** • [Deploy your own in 5 min ↗](#quick-start)
 
 </div>
 
