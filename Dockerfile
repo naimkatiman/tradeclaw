@@ -1,6 +1,4 @@
 # TradeClaw — Production Dockerfile
-# Single-stage build to avoid layer cache issues
-
 FROM node:22-alpine
 WORKDIR /app
 
@@ -14,16 +12,13 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the Next.js app
+# Build
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-# Runtime settings
+# Runtime
 ENV NODE_ENV=production
-ENV HOSTNAME=0.0.0.0
-ENV PORT=3000
-
+ENV NEXT_TELEMETRY_DISABLED=1
 EXPOSE 3000
 
-WORKDIR /app/apps/web
-CMD ["node_modules/.bin/next", "start"]
+CMD ["sh", "-c", "cd /app/apps/web && PORT=${PORT:-3000} HOSTNAME=0.0.0.0 /app/node_modules/.bin/next start -p ${PORT:-3000}"]
