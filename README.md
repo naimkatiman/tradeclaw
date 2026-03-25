@@ -161,20 +161,29 @@ If you don't want to manage infrastructure, **[Alpha Screener](https://alphascre
 
 ## Roadmap
 
-- [x] Signal engine (RSI, MACD, EMA, Bollinger, Stochastic, S/R, Fibonacci)
-- [x] Multi-timeframe analysis
-- [x] TP/SL engine
-- [x] Paper trading
-- [x] Backtesting
-- [x] Signal history & leaderboard
-- [x] Telegram bot integration
-- [x] Custom alerts
-- [x] PWA
-- [ ] Mobile app (React Native)
-- [ ] Strategy builder (visual)
-- [ ] Multi-broker connector (MT4/MT5)
-- [ ] Social signal sharing
-- [ ] AI explanation mode ("why this signal?")
+| Status | Feature |
+|--------|---------|
+| ✅ | Signal engine (RSI, MACD, EMA, Bollinger, Stochastic, S/R, Fibonacci) |
+| ✅ | Multi-timeframe analysis (M5 → D1) |
+| ✅ | TP/SL engine with Fibonacci levels |
+| ✅ | Paper trading mode |
+| ✅ | Backtesting engine |
+| ✅ | Signal history + leaderboard |
+| ✅ | Telegram bot push notifications |
+| ✅ | Custom alerts |
+| ✅ | PWA (installable, offline) |
+| 🔄 | TradingView webhook receiver |
+| 📋 | Mobile app (React Native) |
+| 📋 | Strategy builder (visual drag-and-drop) |
+| 📋 | MT4/MT5 connector (MetaApi) |
+| 📋 | Social signal sharing |
+| 📋 | AI explanation mode ("why this signal?") |
+
+---
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=naimkatiman/tradeclaw,naimkatiman/tradeclaw-agent&type=Date)](https://star-history.com/#naimkatiman/tradeclaw&naimkatiman/tradeclaw-agent&Date)
 
 ---
 
