@@ -1,0 +1,30 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "node .next/standalone/server.js"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[[services]]
+name = "tradeclaw"
+
+  [services.variables]
+  NODE_ENV = "production"
+  NEXT_TELEMETRY_DISABLED = "1"
+  PORT = "3000"
+
+[[services]]
+name = "db"
+image = "timescale/timescaledb:latest-pg16"
+
+  [services.variables]
+  POSTGRES_DB = "tradeclaw"
+  POSTGRES_USER = "tradeclaw"
+
+[[services]]
+name = "redis"
+image = "redis:7-alpine"
