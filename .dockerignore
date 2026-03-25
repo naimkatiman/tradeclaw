@@ -1,0 +1,12 @@
+.git
+.gitignore
+node_modules
+apps/web/node_modules
+apps/web/.next
+**/node_modules
+**/.next
+*.md
+.env*
+!.env.example
+.github
+docs
