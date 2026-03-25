@@ -12,7 +12,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+# next.config.ts has output: "standalone" — required for production container
+RUN npm run build && ls apps/web/.next/standalone
 
 # Stage 3: Production
 FROM node:22-alpine AS production
