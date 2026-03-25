@@ -10,9 +10,9 @@ description: >
 tasks:
   - id: TC-001
     title: Scaffold TradeClaw monorepo (Next.js + API + docs)
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Pushed to GitHub 2026-03-25. Repo live at github.com/naimkatiman/tradeclaw"
 
   - id: TC-002
     title: Write viral README.md with badges, demo GIF placeholder, feature list
@@ -22,27 +22,27 @@ tasks:
 
   - id: TC-003
     title: Design public vs admin role system (limited public access)
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "README updated with simplified 3-step Quick Start + .env.example added 2026-03-25"
 
   - id: TC-004
     title: Landing page (Next.js) — hero, features, deploy button, star CTA
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "One-click deploy buttons (Railway + Render) added to README 2026-03-25"
 
   - id: TC-005
     title: GitHub Actions CI/CD pipeline
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "GitHub repo topics set (10 topics), build verified passing 2026-03-25"
 
   - id: TC-006
     title: Docker Compose one-click deploy
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Quick Start simplified to 3 steps with docker compose. Deploy buttons added 2026-03-25"
 
   - id: TC-007
     title: Alpha Screener integration docs (SaaS upsell path)
@@ -57,4 +57,4 @@ tasks:
     notes: "CONTRIBUTING.md written 2026-03-21 by daily self-improvement cron."
 
 next_actions:
-  - "pm-tradeclaw: TC-002 and TC-008 done. Next: TC-006 Docker Compose, then TC-005 CI/CD"
+  - "pm-tradeclaw: TC-001 through TC-008 (except TC-007) done. Next: TC-007 Alpha Screener integration docs"
