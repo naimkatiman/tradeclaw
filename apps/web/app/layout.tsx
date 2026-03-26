@@ -13,7 +13,32 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "TradeClaw",
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "All",
+    offers: {
+      "@type": "Offer",
+      price: 0,
+      priceCurrency: "USD",
+    },
+    description:
+      "Self-hosted AI trading signals for forex, crypto, and metals. Free forever. Deploy in 5 minutes with Docker.",
+    url: "https://tradeclaw.com",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "TradeClaw",
+    url: "https://github.com/naimkatiman/tradeclaw",
+  },
+];
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://tradeclaw.com"),
   title: "TradeClaw — Open-Source AI Trading Signals",
   description:
     "Self-hosted AI trading signals for forex, crypto, and metals. Free forever. Deploy in 5 minutes with Docker.",
@@ -26,6 +51,12 @@ export const metadata: Metadata = {
     "crypto signals",
     "algorithmic trading",
     "technical analysis",
+    "open source trading bot",
+    "AI trading signals github",
+    "self-hosted trading platform",
+    "forex bot open source",
+    "crypto trading signals free",
+    "algorithmic trading open source",
   ],
   openGraph: {
     title: "TradeClaw — Stop Renting Your Trading Edge",
@@ -36,9 +67,9 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://opengraph.githubassets.com/1/naimkatiman/tradeclaw",
+        url: "/api/og",
         width: 1200,
-        height: 600,
+        height: 630,
         alt: "TradeClaw — Open-Source AI Trading Signals",
       },
     ],
@@ -48,7 +79,7 @@ export const metadata: Metadata = {
     title: "TradeClaw — Open-Source AI Trading Signals",
     description:
       "Self-hosted AI trading signals for forex, crypto & metals. Free forever. Star on GitHub.",
-    images: ["https://opengraph.githubassets.com/1/naimkatiman/tradeclaw"],
+    images: ["/api/og"],
   },
   manifest: "/manifest.json",
 };
@@ -64,6 +95,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-[#050505] text-white grain-overlay">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <SWRegister />
         {children}
       </body>

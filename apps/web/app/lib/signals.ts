@@ -1,4 +1,9 @@
 // Shared signal generation logic — used by both API route and server-side pre-rendering
+// Now powered by real technical analysis from OHLCV data
+
+import { getMultiOHLCV } from './ohlcv';
+import { calculateAllIndicators } from './ta-engine';
+import { generateSignalsFromTA } from './signal-generator';
 
 // Signal types
 export interface TradingSignal {
@@ -15,6 +20,7 @@ export interface TradingSignal {
   timeframe: string;
   timestamp: string;
   status: 'active' | 'hit_tp1' | 'hit_tp2' | 'hit_tp3' | 'stopped' | 'expired';
+  source?: 'real' | 'fallback'; // New field to indicate signal source
 }
 
 export interface IndicatorSummary {
@@ -43,7 +49,7 @@ export const SYMBOLS = [
   { symbol: 'USDCHF', name: 'USD/CHF', pip: 0.0001, basePrice: 0.7922, volatility: 0.004 },
 ];
 
-export const TIMEFRAMES = ['M5', 'M15', 'H1', 'H4', 'D1'];
+export const TIMEFRAMES = ['M15', 'H1', 'H4', 'D1'];
 
 export function generateSignalId(): string {
   return `SIG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
@@ -52,6 +58,8 @@ export function generateSignalId(): string {
 export function clamp(val: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, val));
 }
+
+// ─── Fallback: Random signal generation (original code) ─────
 
 export function generateIndicators(price: number, direction: 'BUY' | 'SELL', volatility: number): IndicatorSummary {
   const rsiValue = direction === 'BUY'
@@ -109,11 +117,11 @@ export function generateSignal(symbolConfig: typeof SYMBOLS[0], livePrice?: numb
   const base = livePrice ?? symbolConfig.basePrice;
   const priceOffset = (Math.random() - 0.5) * symbolConfig.volatility * 2;
   const currentPrice = base + priceOffset;
-  const riskReward = 1.5 + Math.random() * 1.5; // 1.5:1 to 3:1
+  const riskReward = 1.5 + Math.random() * 1.5;
 
   const slDistance = symbolConfig.volatility * (0.3 + Math.random() * 0.4);
   const tp1Distance = slDistance * riskReward;
-  const tp2Distance = tp1Distance * 1.618; // Fibonacci extension
+  const tp2Distance = tp1Distance * 1.618;
   const tp3Distance = tp1Distance * 2.618;
 
   const entry = +currentPrice.toFixed(5);
@@ -130,7 +138,7 @@ export function generateSignal(symbolConfig: typeof SYMBOLS[0], livePrice?: numb
     ? +(entry + tp3Distance).toFixed(5)
     : +(entry - tp3Distance).toFixed(5);
 
-  const confidence = Math.floor(55 + Math.random() * 40); // 55-95
+  const confidence = Math.floor(55 + Math.random() * 40);
   const timeframe = TIMEFRAMES[Math.floor(Math.random() * TIMEFRAMES.length)];
 
   return {
@@ -147,8 +155,11 @@ export function generateSignal(symbolConfig: typeof SYMBOLS[0], livePrice?: numb
     timeframe,
     timestamp: new Date().toISOString(),
     status: 'active',
+    source: 'fallback',
   };
 }
+
+// ─── Live Price Fetching ─────────────────────────────────────
 
 async function fetchStooq(symbol: string): Promise<number | null> {
   try {
@@ -169,22 +180,16 @@ async function fetchStooq(symbol: string): Promise<number | null> {
 export async function getLivePrices(): Promise<Map<string, number>> {
   const map = new Map<string, number>();
 
-  // Fetch all sources in parallel
   const [cryptoResult, forexResult, xauResult, xagResult] = await Promise.allSettled([
-    // Crypto via CoinGecko
     fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,ripple,solana&vs_currencies=usd', {
       signal: AbortSignal.timeout(5000),
     }).then(r => r.ok ? r.json() as Promise<Record<string, {usd: number}>> : null),
-    // Forex via open.er-api.com
     fetch('https://open.er-api.com/v6/latest/USD', { signal: AbortSignal.timeout(5000) })
       .then(r => r.ok ? r.json() as Promise<{rates: Record<string, number>}> : null),
-    // Gold via stooq
     fetchStooq('XAUUSD'),
-    // Silver via stooq
     fetchStooq('XAGUSD'),
   ]);
 
-  // Crypto
   if (cryptoResult.status === 'fulfilled' && cryptoResult.value) {
     const data = cryptoResult.value;
     if (data.bitcoin?.usd) map.set('BTCUSD', data.bitcoin.usd);
@@ -193,7 +198,6 @@ export async function getLivePrices(): Promise<Map<string, number>> {
     if (data.solana?.usd) map.set('SOLUSD', data.solana.usd);
   }
 
-  // Forex
   if (forexResult.status === 'fulfilled' && forexResult.value) {
     const r = forexResult.value.rates || {};
     if (r.EUR) map.set('EURUSD', +(1 / r.EUR).toFixed(5));
@@ -205,15 +209,60 @@ export async function getLivePrices(): Promise<Map<string, number>> {
     if (r.CHF) map.set('USDCHF', +r.CHF.toFixed(5));
   }
 
-  // Metals via stooq
   if (xauResult.status === 'fulfilled' && xauResult.value) map.set('XAUUSD', xauResult.value);
   if (xagResult.status === 'fulfilled' && xagResult.value) map.set('XAGUSD', xagResult.value);
 
   return map;
 }
 
+// ─── Main Signal Generation (Real TA Engine) ─────────────────
+
+/**
+ * Generate signals using real technical analysis
+ * Falls back to random generation if TA engine fails
+ */
+async function generateRealSignals(
+  symbols: typeof SYMBOLS,
+  timeframe: string,
+): Promise<TradingSignal[]> {
+  const symbolNames = symbols.map(s => s.symbol);
+  
+  // Fetch OHLCV data for all symbols in parallel
+  const ohlcvData = await getMultiOHLCV(symbolNames, timeframe);
+  
+  const signals: TradingSignal[] = [];
+  
+  for (const sym of symbols) {
+    const data = ohlcvData.get(sym.symbol);
+    
+    if (!data || data.candles.length < 50) {
+      // Not enough data — fallback to random for this symbol
+      const livePrices = await getLivePrices();
+      const count = 1 + Math.floor(Math.random() * 2);
+      for (let i = 0; i < count; i++) {
+        signals.push(generateSignal(sym, livePrices.get(sym.symbol)));
+      }
+      continue;
+    }
+    
+    // Calculate indicators and generate signals
+    const indicators = calculateAllIndicators(data.candles);
+    const realSignals = generateSignalsFromTA(sym.symbol, indicators, timeframe);
+    
+    // Tag with source
+    for (const sig of realSignals) {
+      sig.source = data.source === 'synthetic' ? 'fallback' : 'real';
+    }
+    
+    signals.push(...realSignals);
+  }
+  
+  return signals;
+}
+
 /**
  * Main signal generation function — used by both API route and server components.
+ * Now uses real TA when possible, falls back to random when not.
  */
 export async function getSignals(params: {
   symbol?: string;
@@ -232,34 +281,58 @@ export async function getSignals(params: {
     }
   }
 
-  // Fetch live prices first
-  const livePrices = await getLivePrices();
+  // Determine timeframes to analyze
+  const timeframesToCheck = timeframeFilter
+    ? [timeframeFilter.toUpperCase()]
+    : ['H1', 'H4']; // Default: check H1 and H4
 
-  // Generate 1-3 signals per symbol
-  let signals: TradingSignal[] = [];
-  for (const sym of symbols) {
-    const count = 1 + Math.floor(Math.random() * 3);
-    const livePrice = livePrices.get(sym.symbol);
-    for (let i = 0; i < count; i++) {
-      signals.push(generateSignal(sym, livePrice));
+  let allSignals: TradingSignal[] = [];
+
+  try {
+    // Generate real TA signals for each timeframe
+    for (const tf of timeframesToCheck) {
+      const signals = await generateRealSignals(symbols, tf);
+      allSignals.push(...signals);
+    }
+    
+    // If no real signals generated, provide fallback signals
+    if (allSignals.length === 0) {
+      const livePrices = await getLivePrices();
+      for (const sym of symbols) {
+        const count = 1 + Math.floor(Math.random() * 2);
+        const livePrice = livePrices.get(sym.symbol);
+        for (let i = 0; i < count; i++) {
+          allSignals.push(generateSignal(sym, livePrice));
+        }
+      }
+    }
+  } catch {
+    // Complete fallback if TA engine crashes
+    const livePrices = await getLivePrices();
+    for (const sym of symbols) {
+      const count = 1 + Math.floor(Math.random() * 3);
+      const livePrice = livePrices.get(sym.symbol);
+      for (let i = 0; i < count; i++) {
+        allSignals.push(generateSignal(sym, livePrice));
+      }
     }
   }
 
   // Apply filters
   if (timeframeFilter) {
     const upper = timeframeFilter.toUpperCase();
-    signals = signals.filter(s => s.timeframe === upper);
+    allSignals = allSignals.filter(s => s.timeframe === upper);
   }
   if (directionFilter) {
     const upper = directionFilter.toUpperCase();
-    signals = signals.filter(s => s.direction === upper);
+    allSignals = allSignals.filter(s => s.direction === upper);
   }
   if (minConfidence > 0) {
-    signals = signals.filter(s => s.confidence >= minConfidence);
+    allSignals = allSignals.filter(s => s.confidence >= minConfidence);
   }
 
   // Sort by confidence descending
-  signals.sort((a, b) => b.confidence - a.confidence);
+  allSignals.sort((a, b) => b.confidence - a.confidence);
 
-  return signals;
+  return allSignals;
 }

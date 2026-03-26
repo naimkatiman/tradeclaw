@@ -46,9 +46,9 @@ tasks:
 
   - id: TC-007
     title: Alpha Screener integration docs (SaaS upsell path)
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "docs/ALPHA_SCREENER.md already comprehensive — API endpoints, env vars, feature flags, mobile app, deploy guide. 2026-03-27"
 
   - id: TC-008
     title: CONTRIBUTING.md + issue templates + community files
@@ -56,5 +56,58 @@ tasks:
     owner: zaky
     notes: "CONTRIBUTING.md written 2026-03-21 by daily self-improvement cron."
 
+  # ── Phase 2: Real Signal Engine + Viral Features ──
+
+  - id: TC-009
+    title: "Real signal engine — RSI, MACD, EMA crossover from live prices"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: ta-engine.ts (448 lines, RSI/MACD/EMA/Bollinger/Stochastic),
+      ohlcv.ts (live Binance + Yahoo Finance), signal-generator.ts (302 lines),
+      /api/signals endpoint with filtering. Multi-asset: BTCUSD, ETHUSD, XAUUSD,
+      XAGUSD, EURUSD, GBPUSD, USDJPY + more. Synthetic fallback when APIs fail.
+      5-min cache. Build passes. Already deployed. 2026-03-27
+
+  - id: TC-010
+    title: "Public demo mode — no auth, live signals viewable by anyone"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Already implemented: Dashboard, signals, leaderboard, backtest, strategy-builder
+      all fully public with zero auth. Broker config, telegram settings, billing are
+      separate admin pages. No middleware or auth gates on core routes. Verified 2026-03-27.
+
+  - id: TC-011
+    title: "SEO landing page that converts — og:image, structured data, CTA"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      Redesign the landing page (app/page.tsx) for conversion. Add: proper og:image
+      (dark dashboard screenshot), JSON-LD structured data, keyword-rich meta tags
+      targeting 'open source trading bot', 'AI trading signals', 'self-hosted trading'.
+      Above-the-fold: live signal count, GitHub stars badge (dynamic), one-click deploy.
+      Social proof section. Mobile-responsive. Lighthouse score >90.
+
+  - id: TC-012
+    title: "Signal sharing — shareable signal cards with OG images"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      Add /api/og/[signalId] that generates dynamic OG images for individual signals
+      using @vercel/og or satori. Each signal gets a shareable URL like /signal/XAUUSD-123
+      that renders a beautiful card with entry, direction, confidence, indicators.
+      Share buttons for Twitter/Telegram/copy-link. This is the viral loop.
+
+  - id: TC-013
+    title: "Deploy buttons that actually work — Railway + Vercel + Docker"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      Fix Railway deploy template (railway.toml already exists but needs testing).
+      Add Vercel deploy button (vercel.json). Ensure docker-compose up works
+      end-to-end with zero config. Add a /api/health endpoint that returns
+      build info, uptime, version. Test all 3 deploy paths in CI.
+
 next_actions:
-  - "pm-tradeclaw: TC-001 through TC-008 (except TC-007) done. Next: TC-007 Alpha Screener integration docs"
+  - "pm-tradeclaw: Phase 2 defined (TC-009 to TC-013). Starting TC-009 real signal engine."

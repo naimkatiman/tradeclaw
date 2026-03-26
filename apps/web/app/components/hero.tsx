@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { HeroStats } from './hero-stats';
 
 export function HeroSection() {
   return (
@@ -52,6 +53,9 @@ export function HeroSection() {
             </svg>
           </Link>
         </div>
+
+        {/* GitHub stars + signal count */}
+        <HeroStats />
 
         {/* Trust signals */}
         <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-zinc-600">

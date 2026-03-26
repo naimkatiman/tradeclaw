@@ -26,9 +26,18 @@ export async function GET(request: NextRequest) {
     minConfidence,
   });
 
+  // Count real vs fallback signals
+  const realCount = signals.filter(s => s.source === 'real').length;
+  const fallbackCount = signals.filter(s => s.source === 'fallback').length;
+
   return NextResponse.json({
     count: signals.length,
     timestamp: new Date().toISOString(),
+    engine: {
+      real: realCount,
+      fallback: fallbackCount,
+      version: '2.0.0', // TC-009: Real TA engine
+    },
     filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence },
     signals,
   });
