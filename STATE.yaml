@@ -181,17 +181,18 @@ tasks:
 
   - id: TC-019
     title: "Strategy builder — visual drag-and-drop indicator composer"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
     notes: >
-      /strategy-builder page. Visual composer where users combine indicators
-      (RSI, MACD, EMA, Bollinger) with conditions (crosses above/below, threshold)
-      to create custom strategies. Save strategies as JSON. Import/export.
-      Run saved strategies in backtest. No code required.
+      Enhanced: JSON export/import (download .json, file picker with validation),
+      Run Backtest button (base64 strategy in URL param, backtest auto-loads + auto-runs),
+      My Strategies library (localStorage, click to load, hover delete, max 20),
+      validation (requires IF + THEN blocks before save/export/backtest).
+      Build clean. Committed f222c127. 2026-03-27
 
   - id: TC-020
     title: "Webhook alerts — POST signal data to user-configured URLs"
-    status: pending
+    status: in_progress
     owner: pm-tradeclaw
     notes: >
       /settings/webhooks page. Add webhook URLs with optional secret for HMAC.
