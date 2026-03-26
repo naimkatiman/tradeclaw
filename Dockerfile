@@ -1,5 +1,7 @@
-# TradeClaw — Production Dockerfile
-FROM node:22-alpine
+# TradeClaw — Multi-stage Production Dockerfile
+
+# ── Stage 1: builder ──────────────────────────────────────────────────────────
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Install dependencies
@@ -12,7 +14,7 @@ RUN npm ci
 # Copy source
 COPY . .
 
-# Build (with standalone output enabled in next.config.ts)
+# Build (standalone output enabled in next.config.ts)
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
@@ -23,16 +25,20 @@ RUN ls /app/apps/web/.next/standalone/apps/web/server.js
 RUN cp -r /app/apps/web/public /app/apps/web/.next/standalone/apps/web/public && \
     cp -r /app/apps/web/.next/static /app/apps/web/.next/standalone/apps/web/.next/static
 
-# Create symlinks for both possible Railway start paths
-RUN mkdir -p /app/.next/standalone && \
-    ln -sf /app/apps/web/.next/standalone/apps/web/server.js /app/.next/standalone/server.js
+# ── Stage 2: production ───────────────────────────────────────────────────────
+FROM node:22-alpine AS production
 
-# Runtime
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
+WORKDIR /app
+
+# Copy standalone output from builder
+COPY --from=builder /app/apps/web/.next/standalone/apps/web ./
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 EXPOSE 3000
 
-# Railway startCommand override uses node /app/.next/standalone/server.js
-# Our symlink handles this path, and our CMD handles clean runs
-CMD ["sh", "-c", "PORT=${PORT:-3000} node /app/apps/web/.next/standalone/apps/web/server.js"]
+CMD ["sh", "-c", "PORT=${PORT:-3000} node server.js"]

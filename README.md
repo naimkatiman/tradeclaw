@@ -93,11 +93,13 @@ Open [http://localhost:3000](http://localhost:3000). That's it.
 
 ---
 
-## One-Click Deploy
+## Deploy
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/naimkatiman/tradeclaw)
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/naimkatiman/tradeclaw)
+| Platform | Button | Notes |
+|----------|--------|-------|
+| **Railway** | [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/naimkatiman/tradeclaw) | Includes Redis + TimescaleDB |
+| **Vercel** | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/naimkatiman/tradeclaw&root=apps/web) | Serverless, no DB included |
+| **Docker** | `docker compose up -d` | Full stack, self-hosted |
 
 ---
 

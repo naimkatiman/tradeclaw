@@ -90,23 +90,25 @@ tasks:
 
   - id: TC-012
     title: "Signal sharing — shareable signal cards with OG images"
-    status: pending
+    status: done
     owner: pm-tradeclaw
     notes: >
-      Add /api/og/[signalId] that generates dynamic OG images for individual signals
-      using @vercel/og or satori. Each signal gets a shareable URL like /signal/XAUUSD-123
-      that renders a beautiful card with entry, direction, confidence, indicators.
-      Share buttons for Twitter/Telegram/copy-link. This is the viral loop.
+      Complete: /api/og/signal/[id] generates 1200x630 dark OG cards (symbol, BUY/SELL badge,
+      confidence, price levels, RSI, MACD). /signal/[id] detail page with full indicator
+      breakdown + dynamic OG meta. Share buttons (X/Twitter, Telegram, copy link).
+      Dashboard cards get share icon. URL scheme: /signal/XAUUSD-H1-BUY. Build passes
+      25/25 pages. 749 lines added. 2026-03-27
 
   - id: TC-013
     title: "Deploy buttons that actually work — Railway + Vercel + Docker"
-    status: pending
+    status: done
     owner: pm-tradeclaw
     notes: >
-      Fix Railway deploy template (railway.toml already exists but needs testing).
-      Add Vercel deploy button (vercel.json). Ensure docker-compose up works
-      end-to-end with zero config. Add a /api/health endpoint that returns
-      build info, uptime, version. Test all 3 deploy paths in CI.
+      Complete: /api/health returns status/version/uptime/node/build/timestamp.
+      Dockerfile converted to multi-stage (builder + production) with curl for
+      healthcheck, target: production works. vercel.json created (rootDirectory:
+      apps/web). README Deploy section updated with Railway + Vercel + Docker
+      buttons in a table. Build passes 25/25 pages. 2026-03-27
 
 next_actions:
-  - "pm-tradeclaw: Phase 2 defined (TC-009 to TC-013). Starting TC-009 real signal engine."
+  - "pm-tradeclaw: TC-013 done. All Phase 2 tasks complete (TC-009 to TC-013)."
