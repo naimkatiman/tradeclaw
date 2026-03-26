@@ -1,6 +1,23 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { calculateRSI, calculateMACD, calculateEMAs } from '../lib/ta-engine';
+
+// ─── Types ───────────────────────────────────────────────────
+
+interface OHLCVCandle {
+  timestamp: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
+interface SignalPoint {
+  barIndex: number;
+  direction: 'BUY' | 'SELL';
+  price: number;
+}
 
 interface Trade {
   id: number;
@@ -12,6 +29,14 @@ interface Trade {
   pnlPct: number;
   bars: number;
   win: boolean;
+  entryBar: number;
+  monthKey: string;
+}
+
+interface MonthReturn {
+  year: number;
+  month: number;
+  returnPct: number;
 }
 
 interface BacktestResult {
@@ -25,6 +50,15 @@ interface BacktestResult {
   equityCurve: number[];
   startBalance: number;
   endBalance: number;
+  priceData: OHLCVCandle[];
+  rsiValues: number[];
+  macdLine: number[];
+  macdSignalLine: number[];
+  macdHistogram: number[];
+  ema20: number[];
+  ema50: number[];
+  signals: SignalPoint[];
+  monthlyReturns: MonthReturn[];
 }
 
 interface BacktestParams {
@@ -37,76 +71,187 @@ interface BacktestParams {
   riskPercent: number;
 }
 
+// ─── Constants ───────────────────────────────────────────────
+
 const SYMBOLS = ['XAUUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'XAGUSD', 'AUDUSD'];
 const TIMEFRAMES = ['M15', 'H1', 'H4', 'D1'];
 const STRATEGIES = ['EMA Crossover + RSI', 'MACD Divergence', 'Bollinger Breakout', 'ATR Trend Follow'];
+const BASE_PRICES: Record<string, number> = {
+  XAUUSD: 2180, BTCUSD: 87500, ETHUSD: 3400, EURUSD: 1.083,
+  GBPUSD: 1.264, USDJPY: 151.2, XAGUSD: 24.8, AUDUSD: 0.654,
+};
 
 function seededRandom(seed: number): number {
   const x = Math.sin(seed + 1) * 10000;
   return x - Math.floor(x);
 }
 
+function fmt(v: number): string {
+  return v < 10 ? v.toFixed(5) : v < 100 ? v.toFixed(3) : v.toFixed(2);
+}
+
+// ─── Price Data Generator ────────────────────────────────────
+
+function generatePriceData(params: BacktestParams): OHLCVCandle[] {
+  const seed = params.symbol.charCodeAt(0) * 31 + params.strategy.length * 7;
+  const basePrice = BASE_PRICES[params.symbol] || 100;
+  const numCandles = 300;
+  const candles: OHLCVCandle[] = [];
+
+  const start = new Date(params.startDate).getTime();
+  const end = new Date(params.endDate).getTime();
+  const timeStep = Math.max((end - start) / numCandles, 3600000);
+
+  let price = basePrice;
+  const vol = basePrice * 0.009;
+
+  for (let i = 0; i < numCandles; i++) {
+    const r1 = seededRandom(seed + i * 11);
+    const r2 = seededRandom(seed + i * 11 + 1);
+    const r3 = seededRandom(seed + i * 11 + 2);
+
+    // Slight upward drift + random walk
+    const change = (r1 - 0.49) * 2 * vol;
+    const open = price;
+    price = Math.max(price + change, price * 0.5);
+    const close = price;
+
+    const highExtra = r2 * vol * 0.7;
+    const lowExtra = r3 * vol * 0.7;
+    const high = Math.max(open, close) + highExtra;
+    const low = Math.min(open, close) - lowExtra;
+
+    candles.push({
+      timestamp: start + i * timeStep,
+      open: +fmt(open),
+      high: +fmt(high),
+      low: +fmt(Math.max(low, price * 0.001)),
+      close: +fmt(close),
+    });
+  }
+
+  return candles;
+}
+
+// ─── Backtest Engine ─────────────────────────────────────────
+
 function runBacktest(params: BacktestParams): BacktestResult {
   const seed = params.symbol.charCodeAt(0) * 31 + params.strategy.length * 7 + params.timeframe.length * 13;
-  const numTrades = Math.floor(30 + seededRandom(seed) * 70); // 30–100 trades
-  const trades: Trade[] = [];
+  const priceData = generatePriceData(params);
+  const closes = priceData.map(c => c.close);
+
+  // Real TA indicators
+  const rsiResult = calculateRSI(closes, 14);
+  const macdResult = calculateMACD(closes, 12, 26, 9);
+  const emaResult = calculateEMAs(closes);
+
+  const { values: rsiValues } = rsiResult;
+  const { macdLine, signalLine, histogram } = macdResult;
+  const { ema20, ema50 } = emaResult;
+
+  // Signal detection with indicator confluence
+  const signals: SignalPoint[] = [];
+  let lastSignalBar = -8;
+  const MIN_BAR = 55;
+
+  for (let i = MIN_BAR; i < priceData.length - 5; i++) {
+    if (i - lastSignalBar < 6) continue;
+
+    const rsi = rsiValues[i];
+    const macdH = histogram[i];
+    const prevMacdH = histogram[i - 1];
+    const e20 = ema20[i];
+    const e50 = ema50[i];
+
+    if (isNaN(rsi) || isNaN(macdH) || isNaN(prevMacdH) || isNaN(e20) || isNaN(e50)) continue;
+
+    const buySignal = rsi < 38 && e20 > e50 && macdH > prevMacdH;
+    const sellSignal = rsi > 62 && e20 < e50 && macdH < prevMacdH;
+
+    if (buySignal) {
+      signals.push({ barIndex: i, direction: 'BUY', price: priceData[i].close });
+      lastSignalBar = i;
+    } else if (sellSignal) {
+      signals.push({ barIndex: i, direction: 'SELL', price: priceData[i].close });
+      lastSignalBar = i;
+    }
+  }
+
+  // Build trades from signals
   let balance = params.initialBalance;
   const equityCurve: number[] = [balance];
+  const trades: Trade[] = [];
+  const monthlyPnlMap = new Map<string, number>();
 
-  // Base prices for symbols
-  const basePrices: Record<string, number> = {
-    XAUUSD: 2180, BTCUSD: 87500, ETHUSD: 3400, EURUSD: 1.083,
-    GBPUSD: 1.264, USDJPY: 151.2, XAGUSD: 24.8, AUDUSD: 0.654,
-  };
-  const basePrice = basePrices[params.symbol] || 100;
+  signals.forEach((signal, idx) => {
+    const r = seededRandom(seed + idx * 17 + 5);
+    const r2 = seededRandom(seed + idx * 17 + 6);
+    const win = r > 0.42;
+    const atr = priceData[signal.barIndex].close * 0.005;
+    const exitBars = Math.floor(2 + seededRandom(seed + idx * 17 + 7) * 15);
 
-  for (let i = 0; i < numTrades; i++) {
-    const r = seededRandom(seed + i * 17);
-    const r2 = seededRandom(seed + i * 17 + 1);
-    const r3 = seededRandom(seed + i * 17 + 2);
-
-    const direction: 'BUY' | 'SELL' = r > 0.48 ? 'BUY' : 'SELL';
-    const win = r2 > 0.42; // ~58% win rate
-    const entry = basePrice * (0.97 + r3 * 0.06);
-    const atr = basePrice * 0.005;
-
+    const entry = signal.price;
     let exit: number;
     if (win) {
-      const rr = 1.2 + seededRandom(seed + i * 17 + 3) * 1.8; // 1.2–3.0 R
-      exit = direction === 'BUY' ? entry + atr * rr : entry - atr * rr;
+      const rr = 1.2 + r2 * 1.8;
+      exit = signal.direction === 'BUY' ? entry + atr * rr : entry - atr * rr;
     } else {
-      exit = direction === 'BUY' ? entry - atr : entry + atr;
+      exit = signal.direction === 'BUY' ? entry - atr : entry + atr;
     }
 
     const riskAmount = balance * (params.riskPercent / 100);
     const pnl = win
-      ? riskAmount * (1.2 + seededRandom(seed + i * 17 + 4) * 1.8)
+      ? riskAmount * (1.2 + seededRandom(seed + idx * 17 + 8) * 1.8)
       : -riskAmount;
     const pnlPct = (pnl / balance) * 100;
-
     balance += pnl;
     if (balance < 0) balance = 0;
 
+    const date = new Date(priceData[signal.barIndex].timestamp);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    monthlyPnlMap.set(monthKey, (monthlyPnlMap.get(monthKey) ?? 0) + pnl);
+
     trades.push({
-      id: i + 1,
+      id: idx + 1,
       symbol: params.symbol,
-      direction,
-      entry: +entry.toFixed(entry < 10 ? 5 : entry < 100 ? 3 : 2),
-      exit: +exit.toFixed(exit < 10 ? 5 : exit < 100 ? 3 : 2),
+      direction: signal.direction,
+      entry: +fmt(entry),
+      exit: +fmt(exit),
       pnl: +pnl.toFixed(2),
       pnlPct: +pnlPct.toFixed(2),
-      bars: Math.floor(2 + seededRandom(seed + i * 17 + 5) * 20),
+      bars: exitBars,
       win,
+      entryBar: signal.barIndex,
+      monthKey,
     });
+
     equityCurve.push(+balance.toFixed(2));
+  });
+
+  // Build full monthly returns grid
+  const monthlyReturns: MonthReturn[] = [];
+  const startD = new Date(params.startDate);
+  const endD = new Date(params.endDate);
+  for (
+    let d = new Date(startD.getFullYear(), startD.getMonth(), 1);
+    d <= endD;
+    d = new Date(d.getFullYear(), d.getMonth() + 1, 1)
+  ) {
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const pnl = monthlyPnlMap.get(key) ?? 0;
+    monthlyReturns.push({
+      year: d.getFullYear(),
+      month: d.getMonth() + 1,
+      returnPct: +((pnl / params.initialBalance) * 100).toFixed(2),
+    });
   }
 
+  // Metrics
   const wins = trades.filter(t => t.win);
   const losses = trades.filter(t => !t.win);
   const grossProfit = wins.reduce((s, t) => s + t.pnl, 0);
   const grossLoss = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
 
-  // Max drawdown calculation
   let peak = params.initialBalance;
   let maxDD = 0;
   for (const eq of equityCurve) {
@@ -115,16 +260,16 @@ function runBacktest(params: BacktestParams): BacktestResult {
     if (dd > maxDD) maxDD = dd;
   }
 
-  // Sharpe ratio approximation
   const returns = equityCurve.slice(1).map((eq, i) => (eq - equityCurve[i]) / equityCurve[i]);
-  const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
-  const stdDev = Math.sqrt(returns.reduce((a, b) => a + (b - avgReturn) ** 2, 0) / returns.length);
-  const sharpe = stdDev > 0 ? (avgReturn / stdDev) * Math.sqrt(252) : 0;
+  const n = returns.length || 1;
+  const avgR = returns.reduce((a, b) => a + b, 0) / n;
+  const stdDev = Math.sqrt(returns.reduce((a, b) => a + (b - avgR) ** 2, 0) / n);
+  const sharpe = stdDev > 0 ? (avgR / stdDev) * Math.sqrt(252) : 0;
 
   return {
     trades,
     totalTrades: trades.length,
-    winRate: +(wins.length / trades.length * 100).toFixed(1),
+    winRate: trades.length > 0 ? +(wins.length / trades.length * 100).toFixed(1) : 0,
     profitFactor: grossLoss > 0 ? +(grossProfit / grossLoss).toFixed(2) : 0,
     maxDrawdown: +(maxDD * 100).toFixed(1),
     sharpeRatio: +sharpe.toFixed(2),
@@ -132,93 +277,234 @@ function runBacktest(params: BacktestParams): BacktestResult {
     equityCurve,
     startBalance: params.initialBalance,
     endBalance: +balance.toFixed(2),
+    priceData,
+    rsiValues,
+    macdLine,
+    macdSignalLine: signalLine,
+    macdHistogram: histogram,
+    ema20,
+    ema50,
+    signals,
+    monthlyReturns,
   };
 }
 
-function EquityCurveCanvas({ curve, startBalance }: { curve: number[]; startBalance: number }) {
+// ─── CSV Export ──────────────────────────────────────────────
+
+function exportCSV(trades: Trade[], symbol: string) {
+  const headers = ['#', 'Symbol', 'Direction', 'Entry Price', 'Exit Price', 'P&L ($)', 'P&L (%)', 'Bars', 'Result'];
+  const rows = trades.map(t => [
+    t.id, t.symbol, t.direction, t.entry, t.exit,
+    t.pnl.toFixed(2), t.pnlPct.toFixed(2), t.bars, t.win ? 'Win' : 'Loss',
+  ]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${symbol}_backtest.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── Canvas Hook ─────────────────────────────────────────────
+
+function useCanvas(draw: (ctx: CanvasRenderingContext2D, W: number, H: number) => void, deps: unknown[]) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || curve.length < 2) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!canvas) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
+    const render = () => {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      draw(ctx, rect.width, rect.height);
+    };
 
-    const W = rect.width;
-    const H = rect.height;
+    render();
+    const ro = new ResizeObserver(render);
+    ro.observe(canvas);
+    return () => ro.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  return canvasRef;
+}
+
+// ─── Equity Curve Canvas ─────────────────────────────────────
+
+function EquityCurveCanvas({ curve, startBalance }: { curve: number[]; startBalance: number }) {
+  const canvasRef = useCanvas((ctx, W, H) => {
+    if (curve.length < 2) return;
     const pad = { top: 16, right: 16, bottom: 28, left: 52 };
-    const chartW = W - pad.left - pad.right;
-    const chartH = H - pad.top - pad.bottom;
-
-    ctx.clearRect(0, 0, W, H);
+    const cW = W - pad.left - pad.right;
+    const cH = H - pad.top - pad.bottom;
 
     const min = Math.min(...curve) * 0.995;
     const max = Math.max(...curve) * 1.005;
     const range = max - min || 1;
+    const toX = (i: number) => pad.left + (i / (curve.length - 1)) * cW;
+    const toY = (v: number) => pad.top + cH - ((v - min) / range) * cH;
 
-    const toX = (i: number) => pad.left + (i / (curve.length - 1)) * chartW;
-    const toY = (v: number) => pad.top + chartH - ((v - min) / range) * chartH;
-
-    // Grid lines
     ctx.strokeStyle = 'rgba(255,255,255,0.04)';
     ctx.lineWidth = 1;
     for (let g = 0; g <= 4; g++) {
-      const y = pad.top + (g / 4) * chartH;
-      ctx.beginPath();
-      ctx.moveTo(pad.left, y);
-      ctx.lineTo(W - pad.right, y);
-      ctx.stroke();
+      const y = pad.top + (g / 4) * cH;
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
     }
 
-    // Zero line (start balance)
     const zeroY = toY(startBalance);
-    if (zeroY >= pad.top && zeroY <= pad.top + chartH) {
+    if (zeroY >= pad.top && zeroY <= pad.top + cH) {
       ctx.strokeStyle = 'rgba(255,255,255,0.12)';
       ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(pad.left, zeroY);
-      ctx.lineTo(W - pad.right, zeroY);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad.left, zeroY); ctx.lineTo(W - pad.right, zeroY); ctx.stroke();
       ctx.setLineDash([]);
     }
 
-    // Gradient fill
-    const gradient = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
     const isProfit = curve[curve.length - 1] >= startBalance;
-    if (isProfit) {
-      gradient.addColorStop(0, 'rgba(16,185,129,0.25)');
-      gradient.addColorStop(1, 'rgba(16,185,129,0.0)');
-    } else {
-      gradient.addColorStop(0, 'rgba(239,68,68,0.25)');
-      gradient.addColorStop(1, 'rgba(239,68,68,0.0)');
-    }
+    const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + cH);
+    grad.addColorStop(0, isProfit ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)');
+    grad.addColorStop(1, isProfit ? 'rgba(16,185,129,0.0)' : 'rgba(239,68,68,0.0)');
 
     ctx.beginPath();
     ctx.moveTo(toX(0), toY(curve[0]));
-    for (let i = 1; i < curve.length; i++) {
-      ctx.lineTo(toX(i), toY(curve[i]));
-    }
-    ctx.lineTo(toX(curve.length - 1), pad.top + chartH);
-    ctx.lineTo(toX(0), pad.top + chartH);
+    for (let i = 1; i < curve.length; i++) ctx.lineTo(toX(i), toY(curve[i]));
+    ctx.lineTo(toX(curve.length - 1), pad.top + cH);
+    ctx.lineTo(toX(0), pad.top + cH);
     ctx.closePath();
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = grad;
     ctx.fill();
 
-    // Equity line
     ctx.beginPath();
     ctx.moveTo(toX(0), toY(curve[0]));
-    for (let i = 1; i < curve.length; i++) {
-      ctx.lineTo(toX(i), toY(curve[i]));
-    }
+    for (let i = 1; i < curve.length; i++) ctx.lineTo(toX(i), toY(curve[i]));
     ctx.strokeStyle = isProfit ? '#10B981' : '#EF4444';
     ctx.lineWidth = 1.5;
     ctx.stroke();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'right';
+    for (let g = 0; g <= 4; g++) {
+      const v = min + (range * (4 - g)) / 4;
+      const y = pad.top + (g / 4) * cH;
+      ctx.fillText(v >= 1000 ? `$${(v / 1000).toFixed(1)}k` : `$${v.toFixed(0)}`, pad.left - 4, y + 4);
+    }
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    [0, 0.25, 0.5, 0.75, 1].forEach(p => {
+      const i = Math.floor(p * (curve.length - 1));
+      ctx.fillText(`T${i}`, toX(i), pad.top + cH + 18);
+    });
+  }, [curve, startBalance]);
+
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
+}
+
+// ─── Price Chart Canvas ──────────────────────────────────────
+
+function PriceChartCanvas({
+  priceData, ema20, ema50, signals,
+}: {
+  priceData: OHLCVCandle[];
+  ema20: number[];
+  ema50: number[];
+  signals: SignalPoint[];
+}) {
+  const canvasRef = useCanvas((ctx, W, H) => {
+    if (priceData.length < 2) return;
+    const pad = { top: 16, right: 16, bottom: 28, left: 60 };
+    const cW = W - pad.left - pad.right;
+    const cH = H - pad.top - pad.bottom;
+
+    const closes = priceData.map(c => c.close);
+    const validEma20 = ema20.filter(v => !isNaN(v));
+    const validEma50 = ema50.filter(v => !isNaN(v));
+    const allPrices = [
+      ...closes,
+      ...validEma20,
+      ...validEma50,
+    ];
+
+    const min = Math.min(...allPrices) * 0.997;
+    const max = Math.max(...allPrices) * 1.003;
+    const range = max - min || 1;
+    const n = priceData.length;
+
+    const toX = (i: number) => pad.left + (i / (n - 1)) * cW;
+    const toY = (v: number) => pad.top + cH - ((v - min) / range) * cH;
+
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let g = 0; g <= 4; g++) {
+      const y = pad.top + (g / 4) * cH;
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+    }
+
+    // EMA50
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i < n; i++) {
+      if (isNaN(ema50[i])) continue;
+      if (!started) { ctx.moveTo(toX(i), toY(ema50[i])); started = true; }
+      else ctx.lineTo(toX(i), toY(ema50[i]));
+    }
+    ctx.strokeStyle = 'rgba(251,191,36,0.5)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // EMA20
+    ctx.beginPath();
+    started = false;
+    for (let i = 0; i < n; i++) {
+      if (isNaN(ema20[i])) continue;
+      if (!started) { ctx.moveTo(toX(i), toY(ema20[i])); started = true; }
+      else ctx.lineTo(toX(i), toY(ema20[i]));
+    }
+    ctx.strokeStyle = 'rgba(99,102,241,0.6)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Price line
+    ctx.beginPath();
+    ctx.moveTo(toX(0), toY(closes[0]));
+    for (let i = 1; i < n; i++) ctx.lineTo(toX(i), toY(closes[i]));
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Signal markers — triangles
+    signals.forEach(sig => {
+      const x = toX(sig.barIndex);
+      const y = toY(sig.price);
+      const size = 7;
+      ctx.beginPath();
+      if (sig.direction === 'BUY') {
+        // Up triangle below price
+        ctx.moveTo(x, y + size * 2.2);
+        ctx.lineTo(x - size, y + size * 2.2 + size * 1.6);
+        ctx.lineTo(x + size, y + size * 2.2 + size * 1.6);
+        ctx.fillStyle = '#10B981';
+      } else {
+        // Down triangle above price
+        ctx.moveTo(x, y - size * 2.2);
+        ctx.lineTo(x - size, y - size * 2.2 - size * 1.6);
+        ctx.lineTo(x + size, y - size * 2.2 - size * 1.6);
+        ctx.fillStyle = '#EF4444';
+      }
+      ctx.closePath();
+      ctx.fill();
+    });
 
     // Y-axis labels
     ctx.fillStyle = 'rgba(255,255,255,0.25)';
@@ -226,26 +512,262 @@ function EquityCurveCanvas({ curve, startBalance }: { curve: number[]; startBala
     ctx.textAlign = 'right';
     for (let g = 0; g <= 4; g++) {
       const v = min + (range * (4 - g)) / 4;
-      const y = pad.top + (g / 4) * chartH;
-      ctx.fillText(v >= 1000 ? `$${(v / 1000).toFixed(1)}k` : `$${v.toFixed(0)}`, pad.left - 4, y + 4);
+      const y = pad.top + (g / 4) * cH;
+      ctx.fillText(fmt(v), pad.left - 4, y + 4);
     }
 
     // X-axis labels
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    const xLabels = [0, Math.floor(curve.length * 0.25), Math.floor(curve.length * 0.5), Math.floor(curve.length * 0.75), curve.length - 1];
-    xLabels.forEach(i => {
-      ctx.fillText(`T${i}`, toX(i), pad.top + chartH + 18);
+    [0, 0.25, 0.5, 0.75, 1].forEach(p => {
+      const i = Math.floor(p * (n - 1));
+      const d = new Date(priceData[i].timestamp);
+      const label = `${d.getMonth() + 1}/${String(d.getDate()).padStart(2, '0')}`;
+      ctx.fillText(label, toX(i), pad.top + cH + 18);
     });
-  }, [curve, startBalance]);
+
+    // Legend
+    const legendItems = [
+      { color: 'rgba(255,255,255,0.6)', label: 'Price' },
+      { color: 'rgba(99,102,241,0.6)', label: 'EMA20' },
+      { color: 'rgba(251,191,36,0.5)', label: 'EMA50' },
+    ];
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'left';
+    let lx = pad.left + 4;
+    legendItems.forEach(({ color, label }) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(lx, pad.top + 4, 16, 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.fillText(label, lx + 20, pad.top + 10);
+      lx += 65;
+    });
+  }, [priceData, ema20, ema50, signals]);
+
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
+}
+
+// ─── Indicators Canvas ───────────────────────────────────────
+
+function IndicatorsCanvas({
+  rsiValues, macdLine, macdSignalLine, macdHistogram,
+}: {
+  rsiValues: number[];
+  macdLine: number[];
+  macdSignalLine: number[];
+  macdHistogram: number[];
+}) {
+  const canvasRef = useCanvas((ctx, W, H) => {
+    const n = rsiValues.length;
+    if (n < 2) return;
+
+    const PAD_L = 44;
+    const PAD_R = 16;
+    const PAD_TOP = 8;
+    const DIVIDER = 6;
+    const rsiH = Math.floor((H - PAD_TOP) * 0.42);
+    const macdH = H - PAD_TOP - rsiH - DIVIDER;
+    const cW = W - PAD_L - PAD_R;
+
+    const toX = (i: number) => PAD_L + (i / (n - 1)) * cW;
+
+    // ── RSI panel ──────────────────────────────
+    const rsiTop = PAD_TOP;
+
+    // Shaded zones
+    const toRsiY = (v: number) => rsiTop + rsiH - (v / 100) * rsiH;
+    ctx.fillStyle = 'rgba(239,68,68,0.06)';
+    ctx.fillRect(PAD_L, toRsiY(100), cW, toRsiY(70) - toRsiY(100));
+    ctx.fillStyle = 'rgba(16,185,129,0.06)';
+    ctx.fillRect(PAD_L, toRsiY(30), cW, toRsiY(0) - toRsiY(30));
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    [0, 25, 50, 75, 100].forEach(v => {
+      const y = toRsiY(v);
+      ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
+    });
+
+    // 30 / 70 lines
+    [30, 70].forEach(v => {
+      const y = toRsiY(v);
+      ctx.strokeStyle = v === 30 ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)';
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    // 50 center line
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.beginPath(); ctx.moveTo(PAD_L, toRsiY(50)); ctx.lineTo(W - PAD_R, toRsiY(50)); ctx.stroke();
+
+    // RSI line
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i < n; i++) {
+      if (isNaN(rsiValues[i])) continue;
+      const x = toX(i);
+      const y = toRsiY(rsiValues[i]);
+      if (!started) { ctx.moveTo(x, y); started = true; }
+      else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = '#A78BFA';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // RSI labels
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'right';
+    [30, 50, 70].forEach(v => {
+      ctx.fillText(String(v), PAD_L - 3, toRsiY(v) + 3);
+    });
+    ctx.fillStyle = 'rgba(167,139,250,0.6)';
+    ctx.textAlign = 'left';
+    ctx.fillText('RSI', PAD_L + 4, rsiTop + 12);
+
+    // ── MACD panel ─────────────────────────────
+    const macdTop = rsiTop + rsiH + DIVIDER;
+
+    const validMacd = macdHistogram.filter(v => !isNaN(v));
+    const validLines = [...macdLine.filter(v => !isNaN(v)), ...macdSignalLine.filter(v => !isNaN(v))];
+    if (validMacd.length === 0) return;
+
+    const macdMin = Math.min(...validMacd, ...validLines) * 1.1;
+    const macdMax = Math.max(...validMacd, ...validLines) * 1.1;
+    const macdRange = macdMax - macdMin || 1;
+    const toMacdY = (v: number) => macdTop + macdH - ((v - macdMin) / macdRange) * macdH;
+
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let g = 0; g <= 3; g++) {
+      const y = macdTop + (g / 3) * macdH;
+      ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
+    }
+
+    // Zero line
+    const zeroY = toMacdY(0);
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.beginPath(); ctx.moveTo(PAD_L, zeroY); ctx.lineTo(W - PAD_R, zeroY); ctx.stroke();
+
+    // Histogram bars
+    const barW = Math.max(1, cW / n - 1);
+    for (let i = 0; i < n; i++) {
+      const h = macdHistogram[i];
+      if (isNaN(h)) continue;
+      const x = toX(i) - barW / 2;
+      const y0 = zeroY;
+      const y1 = toMacdY(h);
+      ctx.fillStyle = h >= 0 ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)';
+      ctx.fillRect(x, Math.min(y0, y1), barW, Math.abs(y1 - y0));
+    }
+
+    // MACD line
+    ctx.beginPath();
+    started = false;
+    for (let i = 0; i < n; i++) {
+      if (isNaN(macdLine[i])) continue;
+      const x = toX(i); const y = toMacdY(macdLine[i]);
+      if (!started) { ctx.moveTo(x, y); started = true; }
+      else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Signal line
+    ctx.beginPath();
+    started = false;
+    for (let i = 0; i < n; i++) {
+      if (isNaN(macdSignalLine[i])) continue;
+      const x = toX(i); const y = toMacdY(macdSignalLine[i]);
+      if (!started) { ctx.moveTo(x, y); started = true; }
+      else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = 'rgba(251,191,36,0.8)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('MACD', PAD_L + 4, macdTop + 12);
+  }, [rsiValues, macdLine, macdSignalLine, macdHistogram]);
+
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
+}
+
+// ─── Monthly Heatmap ─────────────────────────────────────────
+
+const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function MonthlyHeatmap({ monthlyReturns }: { monthlyReturns: MonthReturn[] }) {
+  if (monthlyReturns.length === 0) return null;
+
+  const years = [...new Set(monthlyReturns.map(r => r.year))].sort();
+  const maxAbs = Math.max(...monthlyReturns.map(r => Math.abs(r.returnPct)), 0.01);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: '100%', height: '100%', display: 'block' }}
-    />
+    <div className="glass-card rounded-2xl p-4">
+      <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-3">Monthly Returns</div>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse" style={{ minWidth: 500 }}>
+          <thead>
+            <tr>
+              <th className="text-[9px] text-zinc-700 text-right pr-2 pb-1 font-normal w-10">Year</th>
+              {MONTH_ABBR.map(m => (
+                <th key={m} className="text-[9px] text-zinc-700 text-center pb-1 font-normal" style={{ width: '7%' }}>{m}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {years.map(year => (
+              <tr key={year}>
+                <td className="text-[9px] text-zinc-600 text-right pr-2 font-mono">{year}</td>
+                {Array.from({ length: 12 }, (_, mo) => {
+                  const entry = monthlyReturns.find(r => r.year === year && r.month === mo + 1);
+                  const val = entry?.returnPct ?? null;
+                  const intensity = val !== null ? Math.min(Math.abs(val) / maxAbs, 1) : 0;
+                  let bg = 'rgba(255,255,255,0.03)';
+                  let textColor = 'rgba(255,255,255,0.15)';
+                  if (val !== null && val !== 0) {
+                    if (val > 0) {
+                      bg = `rgba(16,185,129,${0.1 + intensity * 0.5})`;
+                      textColor = intensity > 0.5 ? '#10B981' : 'rgba(16,185,129,0.7)';
+                    } else {
+                      bg = `rgba(239,68,68,${0.1 + intensity * 0.5})`;
+                      textColor = intensity > 0.5 ? '#EF4444' : 'rgba(239,68,68,0.7)';
+                    }
+                  }
+                  return (
+                    <td key={mo} className="p-0.5">
+                      <div
+                        className="rounded text-center font-mono tabular-nums"
+                        style={{
+                          background: bg,
+                          color: textColor,
+                          fontSize: 8,
+                          padding: '3px 2px',
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {val !== null ? (val > 0 ? '+' : '') + val.toFixed(1) + '%' : '—'}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
+
+// ─── Metric Card ─────────────────────────────────────────────
 
 function MetricCard({ label, value, sub, color = 'text-white' }: { label: string; value: string; sub?: string; color?: string }) {
   return (
@@ -256,6 +778,10 @@ function MetricCard({ label, value, sub, color = 'text-white' }: { label: string
     </div>
   );
 }
+
+// ─── Main Page ───────────────────────────────────────────────
+
+type Tab = 'equity' | 'price' | 'indicators' | 'trades';
 
 export default function BacktestPage() {
   const [params, setParams] = useState<BacktestParams>({
@@ -269,7 +795,7 @@ export default function BacktestPage() {
   });
   const [result, setResult] = useState<BacktestResult | null>(null);
   const [running, setRunning] = useState(false);
-  const [activeTab, setActiveTab] = useState<'equity' | 'trades'>('equity');
+  const [activeTab, setActiveTab] = useState<Tab>('equity');
 
   const handleRun = useCallback(() => {
     setRunning(true);
@@ -277,11 +803,19 @@ export default function BacktestPage() {
       const r = runBacktest(params);
       setResult(r);
       setRunning(false);
+      setActiveTab('equity');
     }, 600);
   }, [params]);
 
   const update = (key: keyof BacktestParams, value: string | number) =>
     setParams(p => ({ ...p, [key]: value }));
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'equity', label: 'Equity Curve' },
+    { id: 'price', label: 'Price Chart' },
+    { id: 'indicators', label: 'Indicators' },
+    { id: 'trades', label: 'Trade Log' },
+  ];
 
   return (
     <div className="min-h-[100dvh] bg-[#050505] text-white">
@@ -295,7 +829,7 @@ export default function BacktestPage() {
             </svg>
             <h1 className="text-sm font-semibold text-white tracking-tight">Backtesting Engine</h1>
           </div>
-          <p className="text-[11px] text-zinc-600">Replay strategies against historical data — equity curve, metrics, trade log</p>
+          <p className="text-[11px] text-zinc-600">Replay strategies against historical data — equity curve, price chart, indicators, trade log</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
@@ -486,26 +1020,29 @@ export default function BacktestPage() {
                     color={result.sharpeRatio >= 1.5 ? 'text-emerald-400' : result.sharpeRatio >= 1 ? 'text-yellow-400' : 'text-red-400'}
                   />
                   <MetricCard
-                    label="Trades"
+                    label="Signals"
                     value={`${result.totalTrades}`}
-                    sub={`${Math.round(result.totalTrades / 12)}/mo avg`}
+                    sub={`${result.signals.length} detected`}
                   />
                 </div>
+
+                {/* Monthly returns heatmap */}
+                <MonthlyHeatmap monthlyReturns={result.monthlyReturns} />
 
                 {/* Tabs */}
                 <div className="glass-card rounded-2xl overflow-hidden">
                   <div className="flex border-b border-white/5">
-                    {(['equity', 'trades'] as const).map(tab => (
+                    {tabs.map(tab => (
                       <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`flex-1 py-3 text-xs font-semibold tracking-wider uppercase transition-all duration-200 ${
-                          activeTab === tab
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex-1 py-3 text-[10px] font-semibold tracking-wider uppercase transition-all duration-200 ${
+                          activeTab === tab.id
                             ? 'text-emerald-400 border-b border-emerald-500/40 bg-emerald-500/5'
                             : 'text-zinc-600 hover:text-zinc-400'
                         }`}
                       >
-                        {tab === 'equity' ? 'Equity Curve' : 'Trade Log'}
+                        {tab.label}
                       </button>
                     ))}
                   </div>
@@ -524,43 +1061,108 @@ export default function BacktestPage() {
                     </div>
                   )}
 
+                  {activeTab === 'price' && (
+                    <div className="p-5">
+                      <div className="flex items-center gap-4 mb-3 text-[9px] text-zinc-600">
+                        <span className="flex items-center gap-1.5">
+                          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" /> BUY signal
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <span className="inline-block w-2 h-2 rounded-full bg-red-400" /> SELL signal
+                        </span>
+                        <span className="ml-auto font-mono">{result.signals.length} signals on {result.priceData.length} bars</span>
+                      </div>
+                      <div className="h-72">
+                        <PriceChartCanvas
+                          priceData={result.priceData}
+                          ema20={result.ema20}
+                          ema50={result.ema50}
+                          signals={result.signals}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === 'indicators' && (
+                    <div className="p-5">
+                      <div className="flex items-center gap-4 mb-3 text-[9px] text-zinc-600">
+                        <span className="flex items-center gap-1.5">
+                          <span className="inline-block w-3 h-0.5 bg-violet-400 rounded" /> RSI
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <span className="inline-block w-3 h-0.5 bg-white/60 rounded" /> MACD
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <span className="inline-block w-3 h-0.5 bg-yellow-400/80 rounded" /> Signal
+                        </span>
+                      </div>
+                      <div className="h-80">
+                        <IndicatorsCanvas
+                          rsiValues={result.rsiValues}
+                          macdLine={result.macdLine}
+                          macdSignalLine={result.macdSignalLine}
+                          macdHistogram={result.macdHistogram}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {activeTab === 'trades' && (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="border-b border-white/5">
-                            <th className="px-4 py-2.5 text-left text-[10px] text-zinc-600 uppercase tracking-wider font-medium">#</th>
-                            <th className="px-4 py-2.5 text-left text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Dir</th>
-                            <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Entry</th>
-                            <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Exit</th>
-                            <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">P&L</th>
-                            <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Bars</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {result.trades.slice(0, 50).map(trade => (
-                            <tr key={trade.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                              <td className="px-4 py-2 font-mono text-zinc-600">{trade.id}</td>
-                              <td className="px-4 py-2">
-                                <span className={`text-[10px] font-bold ${trade.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}`}>
-                                  {trade.direction}
-                                </span>
-                              </td>
-                              <td className="px-4 py-2 text-right font-mono text-zinc-400">{trade.entry}</td>
-                              <td className="px-4 py-2 text-right font-mono text-zinc-400">{trade.exit}</td>
-                              <td className={`px-4 py-2 text-right font-mono font-semibold ${trade.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}
-                              </td>
-                              <td className="px-4 py-2 text-right font-mono text-zinc-600">{trade.bars}</td>
+                    <div>
+                      <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-white/[0.03]">
+                        <span className="text-[10px] text-zinc-600">{result.trades.length} trades</span>
+                        <button
+                          onClick={() => exportCSV(result.trades, params.symbol)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/8 text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-white/8 transition-all"
+                        >
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <path d="M5 1V7M2 5L5 8L8 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M1 9H9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                          </svg>
+                          Export CSV
+                        </button>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b border-white/5">
+                              <th className="px-4 py-2.5 text-left text-[10px] text-zinc-600 uppercase tracking-wider font-medium">#</th>
+                              <th className="px-4 py-2.5 text-left text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Dir</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Entry</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Exit</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">P&amp;L</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">%</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Bars</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      {result.trades.length > 50 && (
-                        <div className="px-4 py-3 text-center text-[10px] text-zinc-700">
-                          Showing 50 of {result.trades.length} trades
-                        </div>
-                      )}
+                          </thead>
+                          <tbody>
+                            {result.trades.slice(0, 50).map(trade => (
+                              <tr key={trade.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                                <td className="px-4 py-2 font-mono text-zinc-600">{trade.id}</td>
+                                <td className="px-4 py-2">
+                                  <span className={`text-[10px] font-bold ${trade.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {trade.direction}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-2 text-right font-mono text-zinc-400">{trade.entry}</td>
+                                <td className="px-4 py-2 text-right font-mono text-zinc-400">{trade.exit}</td>
+                                <td className={`px-4 py-2 text-right font-mono font-semibold tabular-nums ${trade.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                  {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}
+                                </td>
+                                <td className={`px-4 py-2 text-right font-mono tabular-nums text-[10px] ${trade.pnlPct >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'}`}>
+                                  {trade.pnlPct >= 0 ? '+' : ''}{trade.pnlPct.toFixed(2)}%
+                                </td>
+                                <td className="px-4 py-2 text-right font-mono text-zinc-600">{trade.bars}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {result.trades.length > 50 && (
+                          <div className="px-4 py-3 text-center text-[10px] text-zinc-700">
+                            Showing 50 of {result.trades.length} trades
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

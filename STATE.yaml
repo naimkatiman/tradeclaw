@@ -151,16 +151,23 @@ tasks:
 
   - id: TC-017
     title: "Telegram bot for signal notifications"
-    status: pending
+    status: done
     owner: pm-tradeclaw
     notes: >
-      Telegram bot sending formatted signal alerts. Bot token via .env. Configurable
-      thresholds (confidence >80%, specific pairs). Rich formatting with entry/SL/TP.
-      /subscribe and /unsubscribe commands. Top requested feature for trading tools.
+      Complete: packages/telegram-bot/ (bot.ts raw-fetch TelegramBot class, formatter.ts
+      MarkdownV2 signal formatter, index.ts exports). apps/web/lib/telegram-subscribers.ts
+      file-based JSON storage (data/telegram-subscribers.json). 3 API routes:
+      POST /api/telegram/webhook (full bot commands: /start /subscribe /unsubscribe
+      /signals /pairs /settings /help), POST /api/telegram/send (manual signal send +
+      broadcast with per-subscriber filtering by pair + minConfidence, rate-limited at
+      30msg/s), GET /api/telegram/status (bot info + webhook state + subscriber count).
+      apps/web/app/telegram/page.tsx settings UI — status badge, subscriber count,
+      webhook config with curl snippet, test send, commands reference, API reference.
+      .env.example updated with TELEGRAM_BOT_TOKEN + TELEGRAM_WEBHOOK_URL. 2026-03-27
 
   - id: TC-018
     title: "Backtest visualization — chart signals on historical price data"
-    status: pending
+    status: in_progress
     owner: pm-tradeclaw
     notes: >
       /backtest page with interactive chart (lightweight-charts or recharts) showing
@@ -168,4 +175,4 @@ tasks:
       timeframe. Show P&L if signals were followed. Export CSV. Proves the engine works.
 
 next_actions:
-  - "pm-tradeclaw: TC-015 done. Next: TC-016 (SEO landing page redesign)."
+  - "pm-tradeclaw: TC-017 done. Next: TC-018 (backtest visualization)."
