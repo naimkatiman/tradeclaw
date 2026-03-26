@@ -237,13 +237,13 @@ tasks:
 
   - id: TC-023
     title: "Interactive API docs — Swagger/OpenAPI spec + playground"
-    status: pending
+    status: in_progress
     owner: pm-tradeclaw
     notes: >
-      /api-docs page with interactive API explorer. Auto-generated OpenAPI 3.0
-      spec from all /api routes. Try-it-now playground for each endpoint.
-      Code snippets (curl, Python, JS). Makes integration dead simple.
-      Boosts developer adoption and GitHub stars.
+      IN PROGRESS: API docs page exists (950 lines) with playground + code snippets.
+      Needs: (1) OpenAPI 3.0 spec served at /api/openapi, (2) missing endpoints added
+      (leaderboard, strategies, explain, tpsl, telegram/send, telegram/webhook,
+      webhooks sub-routes), (3) OpenAPI JSON download button on the page.
 
 next_actions:
   - "pm-tradeclaw: TC-022 done. Next: TC-023 (interactive API docs)."
