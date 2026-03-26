@@ -10,16 +10,16 @@ const SYMBOL_MAP: Record<string, string> = {
   cardano: 'ADAUSD',
 };
 
-// Fallback prices when APIs are unavailable
+// Fallback prices when APIs are unavailable — updated to current market values
 const FALLBACK_PRICES: Record<string, number> = {
-  BTCUSD: 87500,
-  ETHUSD: 3400,
-  XRPUSD: 0.62,
-  XAUUSD: 2180,
-  XAGUSD: 24.80,
-  EURUSD: 1.0830,
-  GBPUSD: 1.2640,
-  USDJPY: 151.20,
+  BTCUSD: 70944,
+  ETHUSD: 2154.94,
+  XRPUSD: 1.41,
+  XAUUSD: 3020,
+  XAGUSD: 33.50,
+  EURUSD: 1.1576,
+  GBPUSD: 1.3378,
+  USDJPY: 159.205,
 };
 
 function addNoise(price: number, pct = 0.002): number {
@@ -55,12 +55,12 @@ export async function GET() {
     const dailyNoise = (Math.sin(hourSeed * 0.5) * 0.003);
 
     const forexBase: Record<string, { price: number; change: number }> = {
-      XAUUSD: { price: 2180 + dailyNoise * 2180, change: +(dailyNoise * 100).toFixed(2) },
-      XAGUSD: { price: 24.80 + dailyNoise * 24.80, change: +(dailyNoise * 100).toFixed(2) },
-      EURUSD: { price: 1.0830 + dailyNoise * 1.0830, change: +(dailyNoise * 100).toFixed(2) },
-      GBPUSD: { price: 1.2640 + dailyNoise * 1.2640, change: +(dailyNoise * 100).toFixed(2) },
-      USDJPY: { price: 151.20 + dailyNoise * 151.20, change: +(dailyNoise * 100).toFixed(2) },
-      AUDUSD: { price: 0.6540 + dailyNoise * 0.6540, change: +(dailyNoise * 100).toFixed(2) },
+      XAUUSD: { price: 3020 + dailyNoise * 3020, change: +(dailyNoise * 100).toFixed(2) },
+      XAGUSD: { price: 33.50 + dailyNoise * 33.50, change: +(dailyNoise * 100).toFixed(2) },
+      EURUSD: { price: 1.1576 + dailyNoise * 1.1576, change: +(dailyNoise * 100).toFixed(2) },
+      GBPUSD: { price: 1.3378 + dailyNoise * 1.3378, change: +(dailyNoise * 100).toFixed(2) },
+      USDJPY: { price: 159.205 + dailyNoise * 159.205, change: +(dailyNoise * 100).toFixed(2) },
+      AUDUSD: { price: 0.6951 + dailyNoise * 0.6951, change: +(dailyNoise * 100).toFixed(2) },
     };
 
     for (const [symbol, data] of Object.entries(forexBase)) {
