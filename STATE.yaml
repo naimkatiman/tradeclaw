@@ -80,14 +80,13 @@ tasks:
 
   - id: TC-011
     title: "SEO landing page that converts — og:image, structured data, CTA"
-    status: pending
+    status: done
     owner: pm-tradeclaw
     notes: >
-      Redesign the landing page (app/page.tsx) for conversion. Add: proper og:image
-      (dark dashboard screenshot), JSON-LD structured data, keyword-rich meta tags
-      targeting 'open source trading bot', 'AI trading signals', 'self-hosted trading'.
-      Above-the-fold: live signal count, GitHub stars badge (dynamic), one-click deploy.
-      Social proof section. Mobile-responsive. Lighthouse score >90.
+      Complete: Dynamic OG image via @vercel/og (dark theme with signal cards),
+      JSON-LD structured data (SoftwareApplication + Organization), enhanced meta
+      keywords, hero-stats.tsx (live GitHub stars + signal count), sitemap.ts,
+      robots.ts, metadataBase. Build passes 25/25 pages. 2026-03-27
 
   - id: TC-012
     title: "Signal sharing — shareable signal cards with OG images"

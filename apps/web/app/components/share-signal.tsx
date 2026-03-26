@@ -246,10 +246,33 @@ export function ShareSignalModal({ signal, onClose }: ShareSignalProps) {
   };
 
   const handleCopyLink = async () => {
-    const deepLink = `${window.location.origin}/dashboard?signal=${encodeURIComponent(JSON.stringify({ symbol: signal.symbol, direction: signal.direction, confidence: signal.confidence, entry: signal.entry }))}`;
+    const signalPath = `/signal/${signal.symbol}-${signal.timeframe}-${signal.direction}`;
+    const deepLink = `${window.location.origin}${signalPath}`;
     await navigator.clipboard.writeText(deepLink);
     setStatus('copied');
     setTimeout(() => setStatus('idle'), 2000);
+  };
+
+  const getTwitterUrl = () => {
+    const fmtP = (n: number) => n >= 1000 ? n.toFixed(2) : n >= 1 ? n.toFixed(4) : n.toFixed(5);
+    const signalPath = `/signal/${signal.symbol}-${signal.timeframe}-${signal.direction}`;
+    const url = `${window.location.origin}${signalPath}`;
+    const text = [
+      `${signal.symbol} ${signal.direction} — ${signal.confidence}% confidence`,
+      signal.entry ? `Entry: ${fmtP(signal.entry)}` : '',
+      signal.sl ? `SL: ${fmtP(signal.sl)}` : '',
+      signal.tp1 ? `TP1: ${fmtP(signal.tp1)}` : '',
+      ``,
+      `Free AI trading signal via TradeClaw`,
+    ].filter(Boolean).join('\n');
+    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+  };
+
+  const getTelegramUrl = () => {
+    const signalPath = `/signal/${signal.symbol}-${signal.timeframe}-${signal.direction}`;
+    const url = `${window.location.origin}${signalPath}`;
+    const text = `${signal.symbol} ${signal.direction} ${signal.confidence}% confidence — TradeClaw AI Signal`;
+    return `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
   };
 
   return (
@@ -293,7 +316,7 @@ export function ShareSignalModal({ signal, onClose }: ShareSignalProps) {
 
         {/* Action buttons */}
         {rendered && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
             <button
               onClick={handleShare}
               className="py-2 rounded-xl text-xs font-semibold bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/25 transition-colors"
@@ -312,11 +335,33 @@ export function ShareSignalModal({ signal, onClose }: ShareSignalProps) {
             >
               {status === 'downloading' ? 'Saving...' : 'Download'}
             </button>
+          </div>
+        )}
+        {rendered && (
+          <div className="grid grid-cols-3 gap-2">
+            <a
+              href={getTwitterUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="py-2 rounded-xl text-xs font-semibold text-center transition-colors
+                bg-[#1d9bf0]/10 border border-[#1d9bf0]/20 text-[#1d9bf0] hover:bg-[#1d9bf0]/20"
+            >
+              Share on X
+            </a>
+            <a
+              href={getTelegramUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="py-2 rounded-xl text-xs font-semibold text-center transition-colors
+                bg-[#0088cc]/10 border border-[#0088cc]/20 text-[#0088cc] hover:bg-[#0088cc]/20"
+            >
+              Telegram
+            </a>
             <button
               onClick={handleCopyLink}
               className="py-2 rounded-xl text-xs font-semibold bg-white/5 border border-white/10 text-zinc-300 hover:border-white/20 transition-colors"
             >
-              Copy link
+              {status === 'copied' ? 'Copied!' : 'Copy link'}
             </button>
           </div>
         )}

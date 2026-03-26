@@ -47,6 +47,15 @@ function ConfidenceBar({ value }: { value: number }) {
 
 function SignalCard({ signal }: { signal: TradingSignal }) {
   const [expanded, setExpanded] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/signal/${signal.symbol}-${signal.timeframe}-${signal.direction}`;
+    await navigator.clipboard.writeText(url);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  };
 
   return (
     <article className="glass-card rounded-2xl p-5 cursor-pointer" onClick={() => setExpanded(!expanded)}>
@@ -59,11 +68,31 @@ function SignalCard({ signal }: { signal: TradingSignal }) {
           </div>
           <DirectionBadge direction={signal.direction} />
         </div>
-        <div className="text-right">
-          <div className={`text-sm font-bold font-mono tabular-nums ${
-            signal.confidence >= 80 ? 'text-emerald-400' : signal.confidence >= 65 ? 'text-yellow-400' : 'text-red-400'
-          }`}>{signal.confidence}%</div>
-          <div className="text-[10px] text-zinc-600 mt-0.5">confidence</div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleShare}
+            title="Copy signal link"
+            className="flex items-center justify-center w-7 h-7 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-all duration-200"
+          >
+            {shareCopied ? (
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                <path d="M2 8l4 4 8-8" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                <circle cx="12" cy="3" r="1.5" stroke="currentColor" strokeWidth="1.4" />
+                <circle cx="12" cy="13" r="1.5" stroke="currentColor" strokeWidth="1.4" />
+                <circle cx="4" cy="8" r="1.5" stroke="currentColor" strokeWidth="1.4" />
+                <path d="M10.5 3.8L5.5 7.2M5.5 8.8l5 3.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+          <div className="text-right">
+            <div className={`text-sm font-bold font-mono tabular-nums ${
+              signal.confidence >= 80 ? 'text-emerald-400' : signal.confidence >= 65 ? 'text-yellow-400' : 'text-red-400'
+            }`}>{signal.confidence}%</div>
+            <div className="text-[10px] text-zinc-600 mt-0.5">confidence</div>
+          </div>
         </div>
       </div>
 
