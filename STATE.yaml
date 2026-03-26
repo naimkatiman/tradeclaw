@@ -250,11 +250,14 @@ tasks:
 
   - id: TC-024
     title: "GitHub star growth — .github community files, issue templates, discussion config"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
     notes: >
-      IN PROGRESS: Adding .github community files, updating README badges/CTAs,
-      CHANGELOG.md. Goal: look like a thriving, well-maintained OSS project.
+      Complete: .github/ISSUE_TEMPLATE (bug_report.yml, feature_request.yml,
+      signal_question.yml, config.yml), PULL_REQUEST_TEMPLATE.md, FUNDING.yml,
+      CODEOWNERS. CHANGELOG.md with full history 0.1.0→0.4.0. README updated with
+      forks/issues/last-commit/OpenAPI badges, contributing section with issue links,
+      star history chart. Committed 66fd80b8. 2026-03-27
 
   - id: TC-025
     title: "AI signal explanation endpoint — natural language reasoning for signals"
@@ -299,4 +302,4 @@ tasks:
       This is the core feature of Alpha Screener — show it off in open source version.
 
 next_actions:
-  - "pm-tradeclaw: TC-023 done. Next: TC-024 (GitHub community files for star growth)."
+  - "pm-tradeclaw: TC-023 + TC-024 done. Next: TC-025 (AI signal explanation), TC-026 (mobile polish), TC-027 (price alerts), TC-028 (screener page)."
