@@ -1,3 +1,6 @@
 node_modules/
 .next/
 .env
+
+# Signal history data
+data/
