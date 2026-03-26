@@ -10,16 +10,16 @@ const SYMBOL_MAP: Record<string, string> = {
   cardano: 'ADAUSD',
 };
 
-// Fallback prices when APIs are unavailable — updated to current market values
+// Fallback prices when APIs are unavailable — updated Mar 2026
 const FALLBACK_PRICES: Record<string, number> = {
-  BTCUSD: 70944,
-  ETHUSD: 2154.94,
-  XRPUSD: 1.41,
-  XAUUSD: 3020,
-  XAGUSD: 33.50,
-  EURUSD: 1.1576,
-  GBPUSD: 1.3378,
-  USDJPY: 159.205,
+  BTCUSD: 70798,
+  ETHUSD: 2147.53,
+  XRPUSD: 1.40,
+  XAUUSD: 4505,
+  XAGUSD: 71.36,
+  EURUSD: 1.1559,
+  GBPUSD: 1.3352,
+  USDJPY: 159.53,
 };
 
 function addNoise(price: number, pct = 0.002): number {
@@ -50,26 +50,40 @@ export async function GET() {
       }
     }
 
-    // Add forex/metals with realistic mock (seeded to current hour for consistency)
-    const hourSeed = new Date().getHours();
-    const dailyNoise = (Math.sin(hourSeed * 0.5) * 0.003);
-
-    const forexBase: Record<string, { price: number; change: number }> = {
-      XAUUSD: { price: 3020 + dailyNoise * 3020, change: +(dailyNoise * 100).toFixed(2) },
-      XAGUSD: { price: 33.50 + dailyNoise * 33.50, change: +(dailyNoise * 100).toFixed(2) },
-      EURUSD: { price: 1.1576 + dailyNoise * 1.1576, change: +(dailyNoise * 100).toFixed(2) },
-      GBPUSD: { price: 1.3378 + dailyNoise * 1.3378, change: +(dailyNoise * 100).toFixed(2) },
-      USDJPY: { price: 159.205 + dailyNoise * 159.205, change: +(dailyNoise * 100).toFixed(2) },
-      AUDUSD: { price: 0.6951 + dailyNoise * 0.6951, change: +(dailyNoise * 100).toFixed(2) },
+    // Fetch metals + forex from stooq (free, reliable CSV endpoint)
+    const stooqSymbols: Record<string, string> = {
+      XAUUSD: 'xauusd', XAGUSD: 'xagusd',
+      EURUSD: 'eurusd', GBPUSD: 'gbpusd', USDJPY: 'usdjpy',
+      AUDUSD: 'audusd', USDCAD: 'usdcad', NZDUSD: 'nzdusd', USDCHF: 'usdchf',
     };
 
-    for (const [symbol, data] of Object.entries(forexBase)) {
+    await Promise.allSettled(
+      Object.entries(stooqSymbols).map(async ([symbol, stooqSym]) => {
+        if (prices[symbol]) return; // already have it from crypto APIs
+        try {
+          const res = await fetch(`https://stooq.com/q/l/?s=${stooqSym}&f=c&h&e=csv`, {
+            signal: AbortSignal.timeout(5000),
+          });
+          if (!res.ok) return;
+          const text = await res.text();
+          const lines = text.trim().split('\n');
+          if (lines.length < 2) return;
+          const val = parseFloat(lines[1].trim());
+          if (!isNaN(val) && val > 0) {
+            prices[symbol] = { price: val, change24h: 0, source: 'stooq' };
+          }
+        } catch { /* fall through to fallback */ }
+      })
+    );
+
+    // Fallback for anything still missing
+    const fallbackBase: Record<string, number> = {
+      XAUUSD: 4505, XAGUSD: 71.36, EURUSD: 1.1559, GBPUSD: 1.3352,
+      USDJPY: 159.53, AUDUSD: 0.6939, USDCAD: 1.3826, NZDUSD: 0.5799, USDCHF: 0.7922,
+    };
+    for (const [symbol, base] of Object.entries(fallbackBase)) {
       if (!prices[symbol]) {
-        prices[symbol] = {
-          price: addNoise(data.price),
-          change24h: data.change,
-          source: 'internal',
-        };
+        prices[symbol] = { price: addNoise(base), change24h: 0, source: 'fallback' };
       }
     }
 

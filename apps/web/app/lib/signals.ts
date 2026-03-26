@@ -27,20 +27,20 @@ export interface IndicatorSummary {
   resistance: number[];
 }
 
-// Symbol configurations with current market prices
+// Symbol configurations with current market prices (Mar 2026)
 export const SYMBOLS = [
-  { symbol: 'XAUUSD', name: 'Gold', pip: 0.01, basePrice: 3020.0, volatility: 15 },
-  { symbol: 'XAGUSD', name: 'Silver', pip: 0.001, basePrice: 33.50, volatility: 0.3 },
-  { symbol: 'BTCUSD', name: 'Bitcoin', pip: 0.01, basePrice: 70944.0, volatility: 2000 },
-  { symbol: 'ETHUSD', name: 'Ethereum', pip: 0.01, basePrice: 2154.94, volatility: 100 },
-  { symbol: 'XRPUSD', name: 'XRP', pip: 0.0001, basePrice: 1.41, volatility: 0.03 },
-  { symbol: 'EURUSD', name: 'EUR/USD', pip: 0.0001, basePrice: 1.1576, volatility: 0.005 },
-  { symbol: 'GBPUSD', name: 'GBP/USD', pip: 0.0001, basePrice: 1.3378, volatility: 0.006 },
-  { symbol: 'USDJPY', name: 'USD/JPY', pip: 0.01, basePrice: 151.20, volatility: 0.8 },
-  { symbol: 'AUDUSD', name: 'AUD/USD', pip: 0.0001, basePrice: 0.6951, volatility: 0.004 },
-  { symbol: 'USDCAD', name: 'USD/CAD', pip: 0.0001, basePrice: 1.3535, volatility: 0.005 },
-  { symbol: 'NZDUSD', name: 'NZD/USD', pip: 0.0001, basePrice: 0.6069, volatility: 0.004 },
-  { symbol: 'USDCHF', name: 'USD/CHF', pip: 0.0001, basePrice: 0.8818, volatility: 0.004 },
+  { symbol: 'XAUUSD', name: 'Gold', pip: 0.01, basePrice: 4505.0, volatility: 20 },
+  { symbol: 'XAGUSD', name: 'Silver', pip: 0.001, basePrice: 71.36, volatility: 0.8 },
+  { symbol: 'BTCUSD', name: 'Bitcoin', pip: 0.01, basePrice: 70798.0, volatility: 2000 },
+  { symbol: 'ETHUSD', name: 'Ethereum', pip: 0.01, basePrice: 2147.53, volatility: 100 },
+  { symbol: 'XRPUSD', name: 'XRP', pip: 0.0001, basePrice: 1.40, volatility: 0.03 },
+  { symbol: 'EURUSD', name: 'EUR/USD', pip: 0.0001, basePrice: 1.1559, volatility: 0.005 },
+  { symbol: 'GBPUSD', name: 'GBP/USD', pip: 0.0001, basePrice: 1.3352, volatility: 0.006 },
+  { symbol: 'USDJPY', name: 'USD/JPY', pip: 0.01, basePrice: 159.53, volatility: 0.8 },
+  { symbol: 'AUDUSD', name: 'AUD/USD', pip: 0.0001, basePrice: 0.6939, volatility: 0.004 },
+  { symbol: 'USDCAD', name: 'USD/CAD', pip: 0.0001, basePrice: 1.3826, volatility: 0.005 },
+  { symbol: 'NZDUSD', name: 'NZD/USD', pip: 0.0001, basePrice: 0.5799, volatility: 0.004 },
+  { symbol: 'USDCHF', name: 'USD/CHF', pip: 0.0001, basePrice: 0.7922, volatility: 0.004 },
 ];
 
 export const TIMEFRAMES = ['M5', 'M15', 'H1', 'H4', 'D1'];
@@ -150,35 +150,67 @@ export function generateSignal(symbolConfig: typeof SYMBOLS[0], livePrice?: numb
   };
 }
 
+async function fetchStooq(symbol: string): Promise<number | null> {
+  try {
+    const res = await fetch(`https://stooq.com/q/l/?s=${symbol.toLowerCase()}&f=c&h&e=csv`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return null;
+    const text = await res.text();
+    const lines = text.trim().split('\n');
+    if (lines.length < 2) return null;
+    const val = parseFloat(lines[1].trim());
+    return isNaN(val) ? null : val;
+  } catch {
+    return null;
+  }
+}
+
 export async function getLivePrices(): Promise<Map<string, number>> {
   const map = new Map<string, number>();
-  try {
-    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,ripple,solana&vs_currencies=usd', { 
+
+  // Fetch all sources in parallel
+  const [cryptoResult, forexResult, xauResult, xagResult] = await Promise.allSettled([
+    // Crypto via CoinGecko
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,ripple,solana&vs_currencies=usd', {
       signal: AbortSignal.timeout(5000),
-      next: { revalidate: 30 }
-    });
-    if (res.ok) {
-      const data = await res.json() as Record<string, {usd: number}>;
-      if (data.bitcoin) map.set('BTCUSD', data.bitcoin.usd);
-      if (data.ethereum) map.set('ETHUSD', data.ethereum.usd);
-      if (data.ripple) map.set('XRPUSD', data.ripple.usd);
-      if (data.solana) map.set('SOLUSD', data.solana.usd);
-    }
-  } catch {}
-  try {
-    const res = await fetch('https://open.er-api.com/v6/latest/USD', { signal: AbortSignal.timeout(5000) });
-    if (res.ok) {
-      const data = await res.json() as {rates: Record<string, number>};
-      const r = data.rates || {};
-      if (r.EUR) map.set('EURUSD', +(1 / r.EUR).toFixed(5));
-      if (r.GBP) map.set('GBPUSD', +(1 / r.GBP).toFixed(5));
-      if (r.JPY) map.set('USDJPY', +r.JPY.toFixed(3));
-      if (r.AUD) map.set('AUDUSD', +(1 / r.AUD).toFixed(5));
-      if (r.CAD) map.set('USDCAD', +r.CAD.toFixed(5));
-      if (r.NZD) map.set('NZDUSD', +(1 / r.NZD).toFixed(5));
-      if (r.CHF) map.set('USDCHF', +r.CHF.toFixed(5));
-    }
-  } catch {}
+      // @ts-expect-error next cache hint
+      next: { revalidate: 30 },
+    }).then(r => r.ok ? r.json() as Promise<Record<string, {usd: number}>> : null),
+    // Forex via open.er-api.com
+    fetch('https://open.er-api.com/v6/latest/USD', { signal: AbortSignal.timeout(5000) })
+      .then(r => r.ok ? r.json() as Promise<{rates: Record<string, number>}> : null),
+    // Gold via stooq
+    fetchStooq('XAUUSD'),
+    // Silver via stooq
+    fetchStooq('XAGUSD'),
+  ]);
+
+  // Crypto
+  if (cryptoResult.status === 'fulfilled' && cryptoResult.value) {
+    const data = cryptoResult.value;
+    if (data.bitcoin?.usd) map.set('BTCUSD', data.bitcoin.usd);
+    if (data.ethereum?.usd) map.set('ETHUSD', data.ethereum.usd);
+    if (data.ripple?.usd) map.set('XRPUSD', data.ripple.usd);
+    if (data.solana?.usd) map.set('SOLUSD', data.solana.usd);
+  }
+
+  // Forex
+  if (forexResult.status === 'fulfilled' && forexResult.value) {
+    const r = forexResult.value.rates || {};
+    if (r.EUR) map.set('EURUSD', +(1 / r.EUR).toFixed(5));
+    if (r.GBP) map.set('GBPUSD', +(1 / r.GBP).toFixed(5));
+    if (r.JPY) map.set('USDJPY', +r.JPY.toFixed(3));
+    if (r.AUD) map.set('AUDUSD', +(1 / r.AUD).toFixed(5));
+    if (r.CAD) map.set('USDCAD', +r.CAD.toFixed(5));
+    if (r.NZD) map.set('NZDUSD', +(1 / r.NZD).toFixed(5));
+    if (r.CHF) map.set('USDCHF', +r.CHF.toFixed(5));
+  }
+
+  // Metals via stooq
+  if (xauResult.status === 'fulfilled' && xauResult.value) map.set('XAUUSD', xauResult.value);
+  if (xagResult.status === 'fulfilled' && xagResult.value) map.set('XAGUSD', xagResult.value);
+
   return map;
 }
 
