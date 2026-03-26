@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getSignals } from '../../lib/signals';
 import { SignalShareButtons } from '../../components/signal-share-buttons';
+import { EmbedButton } from '../../components/embed-button';
 
 function formatPrice(p: number): string {
   if (p >= 1000) return p.toFixed(2);
@@ -255,8 +256,14 @@ export default async function SignalPage(
           </div>
         </div>
 
-        {/* Share buttons */}
+        {/* Share + Embed buttons */}
         <SignalShareButtons signal={signal} signalPath={signalPath} />
+        <div className="glass-card rounded-2xl p-4 mt-3">
+          <div className="text-[11px] text-zinc-600 uppercase tracking-wider mb-3">Embed</div>
+          <div className="flex gap-2">
+            <EmbedButton pair={signal.symbol} />
+          </div>
+        </div>
 
         <div className="text-center mt-8">
           <Link

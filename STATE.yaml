@@ -114,13 +114,15 @@ tasks:
 
   - id: TC-014
     title: "Embeddable signal widget — iframe + script tag for external sites"
-    status: pending
+    status: done
     owner: pm-tradeclaw
     notes: >
-      Create /embed/[pair] route that renders a compact signal card (300x400) suitable
-      for iframe embedding. Add /api/embed.js that external sites can include via script tag
-      to show live TradeClaw signals. Widget auto-refreshes every 60s. Dark + light theme
-      option via query param. Powered by TradeClaw link at bottom. Drives backlinks.
+      Complete: /embed/[pair] compact card (320x420) auto-refreshes every 60s, dark/light
+      theme via ?theme=. /api/embed returns JS that injects an iframe via script tag
+      (supports data-pair, data-theme, data-width, data-height). /embed docs page with
+      live preview, copy-paste snippets, pair selector. EmbedButton component added to
+      /signal/[id] with modal showing iframe + script code. embed/layout.tsx strips main
+      app chrome. Build passes 27/27 pages. 2026-03-27
 
   - id: TC-015
     title: "Public signal leaderboard — track signal accuracy over time"
@@ -161,4 +163,4 @@ tasks:
       timeframe. Show P&L if signals were followed. Export CSV. Proves the engine works.
 
 next_actions:
-  - "pm-tradeclaw: Phase 2 complete (TC-009 to TC-013). Phase 3 defined (TC-014 to TC-018). Starting TC-014."
+  - "pm-tradeclaw: TC-014 done. Next: TC-015 (signal leaderboard with accuracy tracking)."
