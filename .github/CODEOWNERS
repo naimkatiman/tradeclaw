@@ -1,0 +1,17 @@
+# TradeClaw Code Owners
+# These people are automatically requested for review on PRs
+
+# Default: repo owner reviews everything
+* @naimkatiman
+
+# Signal engine — core TA logic
+/packages/ta-engine/ @naimkatiman
+/apps/web/lib/ta-engine.ts @naimkatiman
+/apps/web/lib/signal-generator.ts @naimkatiman
+
+# API routes
+/apps/web/app/api/ @naimkatiman
+
+# Docs
+/docs/ @naimkatiman
+/README.md @naimkatiman

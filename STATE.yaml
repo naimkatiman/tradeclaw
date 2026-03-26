@@ -237,13 +237,66 @@ tasks:
 
   - id: TC-023
     title: "Interactive API docs — Swagger/OpenAPI spec + playground"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: 9 missing endpoints added to /api-docs (leaderboard, strategies, explain,
+      tpsl, telegram/send, telegram/webhook, webhooks dispatch/deliveries/test).
+      New categories: Leaderboard, Strategies, Explain, TP/SL. OpenAPI 3.0.3 spec
+      endpoint at /api/openapi with full paths/params/schemas. Download button + badge
+      in header. Build passes 47 pages. Committed 83b379e0. 2026-03-27
+
+  # ── Phase 5: GitHub Viral Growth ──
+
+  - id: TC-024
+    title: "GitHub star growth — .github community files, issue templates, discussion config"
     status: in_progress
     owner: pm-tradeclaw
     notes: >
-      IN PROGRESS: API docs page exists (950 lines) with playground + code snippets.
-      Needs: (1) OpenAPI 3.0 spec served at /api/openapi, (2) missing endpoints added
-      (leaderboard, strategies, explain, tpsl, telegram/send, telegram/webhook,
-      webhooks sub-routes), (3) OpenAPI JSON download button on the page.
+      IN PROGRESS: Adding .github community files, updating README badges/CTAs,
+      CHANGELOG.md. Goal: look like a thriving, well-maintained OSS project.
+
+  - id: TC-025
+    title: "AI signal explanation endpoint — natural language reasoning for signals"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      Enhance /api/explain to return full markdown reasoning: why this signal fired,
+      which indicators tipped it, key support/resistance levels, risk factors.
+      UI: /signal/[id] page gets a collapsible "AI Analysis" panel with the explanation.
+      Use built-in logic (no external AI API needed) — deterministic but human-readable.
+      Makes signals feel intelligent and educational. Viral factor: screenshot-worthy.
+
+  - id: TC-026
+    title: "Mobile-responsive dashboard polish — perfect on phones"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      Audit every page for mobile breakpoints. Fix overflow, tiny touch targets,
+      horizontal scroll. Bottom nav on mobile (Dashboard / Signals / Leaderboard / Settings).
+      Signals page swipeable cards on mobile. Target: 100% usable on a 375px screen.
+      Key for virality — people share screenshots from phones.
+
+  - id: TC-027
+    title: "Price alerts — set target price triggers with browser notifications"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      /api/alerts CRUD + lib/price-alerts.ts. Browser Push API (serviceWorker + 
+      Notification API). Alert cards on /settings page. Alert triggered when live
+      price crosses target. Also supports % move alerts (e.g. BTC moves 2% in 1hr).
+      Stores in data/price-alerts.json. No backend infra needed.
+
+  - id: TC-028
+    title: "Screener page — scan all assets for setups matching custom criteria"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      /screener page: filter all supported assets by RSI range, MACD crossover, 
+      EMA position, confidence threshold, timeframe. Real-time scan button.
+      Results table with mini-sparkline, signal direction badge, confidence bar.
+      One-click: "View Signal" → /signal/[id], "Add to Watchlist".
+      This is the core feature of Alpha Screener — show it off in open source version.
 
 next_actions:
-  - "pm-tradeclaw: TC-022 done. Next: TC-023 (interactive API docs)."
+  - "pm-tradeclaw: TC-023 done. Next: TC-024 (GitHub community files for star growth)."

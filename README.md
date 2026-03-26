@@ -8,9 +8,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Stars](https://img.shields.io/github/stars/naimkatiman/tradeclaw?style=social)](https://github.com/naimkatiman/tradeclaw/stargazers)
+[![Forks](https://img.shields.io/github/forks/naimkatiman/tradeclaw?style=social)](https://github.com/naimkatiman/tradeclaw/forks)
+[![Issues](https://img.shields.io/github/issues/naimkatiman/tradeclaw?color=2ea44f)](https://github.com/naimkatiman/tradeclaw/issues)
+[![Last Commit](https://img.shields.io/github/last-commit/naimkatiman/tradeclaw?color=10b981)](https://github.com/naimkatiman/tradeclaw/commits/main)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/naimkatiman/tradeclaw)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)](https://nextjs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://typescriptlang.org)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-85EA2D?logo=openapiinitiative&logoColor=black)](https://github.com/naimkatiman/tradeclaw/blob/main/apps/web/app/api/openapi/route.ts)
 
 [**🚀 Live Demo**](https://web-production-a5139.up.railway.app) · [**Dashboard**](https://web-production-a5139.up.railway.app/dashboard) · [**🦞 CLI Agent**](https://github.com/naimkatiman/tradeclaw-agent) · [**Alpha Screener (hosted)**](https://alphascreen.io) · [**Discord**](https://discord.gg/tradeclaw)
 
@@ -214,6 +218,19 @@ npm run build      # Production build
 
 ---
 
+## Contributing
+
+PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+- 🐛 [Report a bug](https://github.com/naimkatiman/tradeclaw/issues/new?template=bug_report.yml)
+- 💡 [Request a feature](https://github.com/naimkatiman/tradeclaw/issues/new?template=feature_request.yml)
+- 📊 [Ask about signals](https://github.com/naimkatiman/tradeclaw/issues/new?template=signal_question.yml)
+- 💬 [Join Discord](https://discord.gg/tradeclaw)
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a full history of releases.
+
 ## License
 
 MIT — use it, fork it, build on it. Just don't sell it as your own.
@@ -223,6 +240,8 @@ MIT — use it, fork it, build on it. Just don't sell it as your own.
 <div align="center">
 
 **If TradeClaw saved you money on trading tools, give it a ⭐**
+
+[![Star History Chart](https://api.star-history.com/svg?repos=naimkatiman/tradeclaw&type=Date)](https://star-history.com/#naimkatiman/tradeclaw&Date)
 
 Made with 🦾 by [@naimkatiman](https://github.com/naimkatiman) · Powered by [Alpha Screener](https://alphascreen.io)
 

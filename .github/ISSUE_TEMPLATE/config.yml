@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Community Discord
+    url: https://discord.gg/tradeclaw
+    about: Join the community for help, trading discussion, and feature previews.
+  - name: 📚 Documentation
+    url: https://github.com/naimkatiman/tradeclaw/tree/main/docs
+    about: Read the docs first — your question may already be answered.
+  - name: ☁️ Alpha Screener (hosted version)
+    url: https://alphascreen.io
+    about: Want managed hosting instead of self-hosting? Check out Alpha Screener.

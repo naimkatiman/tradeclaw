@@ -1,0 +1,43 @@
+name: 📊 Signal / Indicator Question
+description: Question about how signals work, indicator logic, or TA methodology.
+title: "[Signal]: "
+labels: ["question", "signal-engine"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Questions about the signal engine, indicator math, or trading logic? Ask away!
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      options:
+        - RSI calculation / thresholds
+        - MACD signal logic
+        - EMA crossover rules
+        - Bollinger Bands usage
+        - Stochastic oscillator
+        - Multi-timeframe confluence
+        - Signal confidence scoring
+        - TP/SL calculation (ATR / Fibonacci)
+        - Backtesting methodology
+        - New indicator request
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: Be as specific as possible. Include symbol, timeframe, and what you observed vs expected.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Any relevant signal output, screenshots, or configuration?
+      render: json

@@ -1,0 +1,69 @@
+name: 💡 Feature Request
+description: Suggest a new feature or improvement.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Got an idea? We'd love to hear it. TradeClaw is community-driven — the best ideas become real features.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the pain point. What can't you do right now that you wish you could?
+      placeholder: I'm frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe your ideal solution
+      description: How would you like it to work?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+      description: Any other approaches? Workarounds you're using now?
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature area
+      options:
+        - Signal Engine (TA indicators)
+        - Dashboard / UI
+        - Backtesting
+        - Paper Trading
+        - Telegram / Notifications
+        - Webhooks
+        - API
+        - Docker / Deployment
+        - Multi-asset / New pairs
+        - Leaderboard / Social
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: How important is this to you?
+      options:
+        - Nice to have
+        - Would use it regularly
+        - Blocking my use case
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Would you like to implement this?
+      options:
+        - label: Yes, I'd like to open a PR for this
