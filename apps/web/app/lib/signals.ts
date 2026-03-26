@@ -174,8 +174,6 @@ export async function getLivePrices(): Promise<Map<string, number>> {
     // Crypto via CoinGecko
     fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,ripple,solana&vs_currencies=usd', {
       signal: AbortSignal.timeout(5000),
-      // @ts-expect-error next cache hint
-      next: { revalidate: 30 },
     }).then(r => r.ok ? r.json() as Promise<Record<string, {usd: number}>> : null),
     // Forex via open.er-api.com
     fetch('https://open.er-api.com/v6/latest/USD', { signal: AbortSignal.timeout(5000) })
