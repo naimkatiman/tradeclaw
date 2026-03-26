@@ -4,8 +4,35 @@
  */
 
 import type { AllIndicators } from './ta-engine';
-import { findSwingLevels } from './ta-engine';
+import { calculateAllIndicators, findSwingLevels } from './ta-engine';
 import type { TradingSignal, IndicatorSummary } from './signals';
+import { getOHLCV } from './ohlcv';
+
+// ─── Multi-Timeframe Types ────────────────────────────────────
+
+const MTF_TIMEFRAMES = ['H1', 'H4', 'D1'] as const;
+type MTFTimeframe = typeof MTF_TIMEFRAMES[number];
+
+export interface TFDirection {
+  timeframe: MTFTimeframe;
+  direction: 'BUY' | 'SELL' | 'NEUTRAL';
+  confidence: number;
+  buyScore: number;
+  sellScore: number;
+}
+
+export interface MultiTFResult {
+  symbol: string;
+  timeframes: TFDirection[];
+  dominantDirection: 'BUY' | 'SELL' | 'NEUTRAL';
+  agreementCount: number; // how many of 3 TFs agree
+  confluenceBonus: number; // +15, +5, 0, -20
+  isConflicted: boolean;
+  entry: number;
+  indicators: IndicatorSummary;
+  timestamp: string;
+  source: 'real' | 'synthetic';
+}
 
 // Scoring weights for each indicator
 const WEIGHTS = {
@@ -299,4 +326,103 @@ export function generateSignalsFromTA(
   }
 
   return signals;
+}
+
+// ─── Multi-Timeframe Analysis ─────────────────────────────────
+
+/**
+ * Determine directional bias for one timeframe from pre-scored indicators.
+ * Does NOT apply the SIGNAL_THRESHOLD — we want the bias even for weak signals.
+ */
+function getTFDirection(indicators: AllIndicators, timeframe: MTFTimeframe): TFDirection {
+  const { buyScore, sellScore } = scoreIndicators(indicators);
+
+  let direction: 'BUY' | 'SELL' | 'NEUTRAL' = 'NEUTRAL';
+  let dominantScore = 0;
+
+  if (buyScore > sellScore && buyScore > 0) {
+    direction = 'BUY';
+    dominantScore = buyScore;
+  } else if (sellScore > buyScore && sellScore > 0) {
+    direction = 'SELL';
+    dominantScore = sellScore;
+  }
+
+  const confidence = direction === 'NEUTRAL'
+    ? Math.round((buyScore + sellScore) / 2)
+    : Math.min(95, Math.max(40, dominantScore));
+
+  return { timeframe, direction, confidence, buyScore, sellScore };
+}
+
+/**
+ * Run the TA engine across H1, H4, D1 for a single symbol and compute confluence.
+ * Returns null if insufficient data is available for all timeframes.
+ */
+export async function generateMultiTFSignal(symbol: string): Promise<MultiTFResult | null> {
+  type TFEntry = { tf: MTFTimeframe; indicators: AllIndicators; source: 'binance' | 'yahoo' | 'synthetic' };
+
+  const settled = await Promise.allSettled(
+    MTF_TIMEFRAMES.map(async (tf): Promise<TFEntry | null> => {
+      const { candles, source } = await getOHLCV(symbol, tf);
+      if (candles.length < 50) return null;
+      const indicators = calculateAllIndicators(candles);
+      return { tf, indicators, source };
+    })
+  );
+
+  const tfData = settled
+    .filter(
+      (r): r is PromiseFulfilledResult<TFEntry> =>
+        r.status === 'fulfilled' && r.value !== null
+    )
+    .map(r => r.value);
+
+  if (tfData.length === 0) return null;
+
+  const timeframes = tfData.map(({ tf, indicators }) => getTFDirection(indicators, tf));
+
+  const buyCount = timeframes.filter(t => t.direction === 'BUY').length;
+  const sellCount = timeframes.filter(t => t.direction === 'SELL').length;
+
+  let dominantDirection: 'BUY' | 'SELL' | 'NEUTRAL' = 'NEUTRAL';
+  let agreementCount = 0;
+  let confluenceBonus = 0;
+  let isConflicted = false;
+
+  if (buyCount > sellCount) {
+    dominantDirection = 'BUY';
+    agreementCount = buyCount;
+  } else if (sellCount > buyCount) {
+    dominantDirection = 'SELL';
+    agreementCount = sellCount;
+  }
+
+  if (buyCount === 3 || sellCount === 3) {
+    confluenceBonus = 15;
+  } else if (buyCount === 2 || sellCount === 2) {
+    confluenceBonus = 5;
+  } else if (buyCount >= 1 && sellCount >= 1) {
+    confluenceBonus = -20;
+    isConflicted = true;
+  }
+
+  // Use H1 data (first available) as primary for entry price + indicators
+  const primary = tfData[0];
+  const entry = primary.indicators.closes[primary.indicators.closes.length - 1];
+  const indicatorSummary = buildIndicatorSummary(primary.indicators, entry);
+  const source = tfData.every(d => d.source === 'synthetic') ? 'synthetic' : 'real';
+
+  return {
+    symbol,
+    timeframes,
+    dominantDirection,
+    agreementCount,
+    confluenceBonus,
+    isConflicted,
+    entry: +entry.toFixed(5),
+    indicators: indicatorSummary,
+    timestamp: new Date().toISOString(),
+    source,
+  };
 }

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { PriceTicker } from '../components/price-ticker';
 import type { TradingSignal } from '../lib/signals';
+import type { TFDirection } from '../lib/signal-generator';
 
 const TIMEFRAMES = ['ALL', 'M5', 'M15', 'H1', 'H4', 'D1'];
 
@@ -13,6 +14,7 @@ const NAV_PAGES = [
   { href: '/backtest', label: 'Backtest' },
   { href: '/leaderboard', label: 'Leaderboard' },
   { href: '/strategy-builder', label: 'Strategy' },
+  { href: '/multi-timeframe', label: 'Multi-TF' },
 ];
 
 function formatPrice(p: number): string {
@@ -45,7 +47,22 @@ function ConfidenceBar({ value }: { value: number }) {
   );
 }
 
-function SignalCard({ signal }: { signal: TradingSignal }) {
+// ─── TF Badges ───────────────────────────────────────────────
+
+function TFBadgeInline({ tf }: { tf: TFDirection }) {
+  const arrow = tf.direction === 'BUY' ? '▲' : tf.direction === 'SELL' ? '▼' : '●';
+  const color =
+    tf.direction === 'BUY' ? 'text-emerald-400 border-emerald-500/25 bg-emerald-500/8' :
+    tf.direction === 'SELL' ? 'text-rose-400 border-rose-500/25 bg-rose-500/8' :
+    'text-amber-400 border-amber-500/25 bg-amber-500/8';
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${color} tabular-nums`}>
+      {tf.timeframe}{arrow}
+    </span>
+  );
+}
+
+function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirections?: TFDirection[] }) {
   const [expanded, setExpanded] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
 
@@ -65,6 +82,11 @@ function SignalCard({ signal }: { signal: TradingSignal }) {
           <div>
             <div className="text-sm font-semibold text-white font-mono tracking-tight">{signal.symbol}</div>
             <div className="text-[11px] text-zinc-600 font-mono mt-0.5">{signal.timeframe} · {new Date(signal.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            {tfDirections && tfDirections.length > 0 && (
+              <div className="flex gap-1 mt-1.5">
+                {tfDirections.map(tf => <TFBadgeInline key={tf.timeframe} tf={tf} />)}
+              </div>
+            )}
           </div>
           <DirectionBadge direction={signal.direction} />
         </div>
@@ -180,6 +202,7 @@ function StatCard({ value, label, color = 'text-white' }: { value: string; label
 
 export function DashboardClient({ initialSignals }: { initialSignals?: TradingSignal[] }) {
   const [signals, setSignals] = useState<TradingSignal[]>(initialSignals || []);
+  const [tfMap, setTfMap] = useState<Map<string, TFDirection[]>>(new Map());
   const [loading, setLoading] = useState(!initialSignals || initialSignals.length === 0);
   const [timeframe, setTimeframe] = useState('ALL');
   const [direction, setDirection] = useState<'ALL' | 'BUY' | 'SELL'>('ALL');
@@ -193,12 +216,24 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
       if (direction !== 'ALL') params.set('direction', direction);
       params.set('minConfidence', '50');
 
-      const res = await fetch(`/api/signals?${params}`);
-      const data = await res.json();
-      setSignals(data.signals);
+      const [signalsRes, mtfRes] = await Promise.allSettled([
+        fetch(`/api/signals?${params}`).then(r => r.json()),
+        fetch('/api/signals/multi-tf').then(r => r.json()),
+      ]);
+
+      if (signalsRes.status === 'fulfilled') {
+        setSignals(signalsRes.value.signals);
+      }
+      if (mtfRes.status === 'fulfilled' && mtfRes.value.results) {
+        const map = new Map<string, TFDirection[]>();
+        for (const r of mtfRes.value.results) {
+          map.set(r.symbol, r.timeframes);
+        }
+        setTfMap(map);
+      }
       setLastUpdate(new Date());
-    } catch (err) {
-      console.error('Failed to fetch signals:', err);
+    } catch {
+      // silent
     } finally {
       setLoading(false);
     }
@@ -364,7 +399,7 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {signals.map(signal => (
-              <SignalCard key={signal.id} signal={signal} />
+              <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} />
             ))}
           </div>
         )}

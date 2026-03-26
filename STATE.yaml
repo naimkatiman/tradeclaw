@@ -221,13 +221,19 @@ tasks:
 
   - id: TC-022
     title: "Multi-timeframe analysis — signal confluence across H1/H4/D1"
-    status: pending
+    status: done
     owner: pm-tradeclaw
     notes: >
-      Enhance signal engine to check multiple timeframes. If H1 and H4 both
-      say BUY, confidence boost. If H1 says BUY but D1 says SELL, reduce
-      confidence. Display timeframe agreement on signal cards. New
-      /api/signals/multi-tf endpoint.
+      Complete: signal-generator.ts extended with TFDirection/MultiTFResult types,
+      getTFDirection() per-TF scorer, generateMultiTFSignal() with confluence logic
+      (all 3 agree = +15%, 2/3 = +5%, conflicted = -20%, marked isConflicted).
+      GET /api/signals/multi-tf returns full matrix with summary stats (bullish/
+      bearish/conflicted/allAligned). /multi-timeframe page: matrix view with rows=
+      assets, columns=H1/H4/D1 TFBadge tiles (direction arrow + confidence%),
+      ConfluenceBar, conflict/alignment alerts, expanded detail per row, direction
+      filter tabs, live auto-refresh 60s. DashboardClient signal cards get inline
+      [H1▲][H4▲][D1▼] TF badges fetched in parallel from multi-tf API.
+      Build passes clean. 2026-03-27
 
   - id: TC-023
     title: "Interactive API docs — Swagger/OpenAPI spec + playground"
@@ -240,4 +246,4 @@ tasks:
       Boosts developer adoption and GitHub stars.
 
 next_actions:
-  - "pm-tradeclaw: TC-018 done. Next: TC-019 (strategy builder)."
+  - "pm-tradeclaw: TC-022 done. Next: TC-023 (interactive API docs)."
