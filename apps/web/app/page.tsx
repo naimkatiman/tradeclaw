@@ -1,29 +1,27 @@
-import { HeroSection } from "./components/hero";
-import { ProblemSection } from "./components/problem";
-import { FeaturesSection } from "./components/features";
-import { HowItWorksSection } from "./components/how-it-works";
-import { ComparisonSection } from "./components/comparison";
-import { TechStackSection } from "./components/tech-stack";
-import { CommunitySection } from "./components/community";
-import { CTASection } from "./components/cta";
 import { Navbar } from "./components/navbar";
-import { Footer } from "./components/footer";
+import { AnimatedHero } from "../components/landing/animated-hero";
+import { SocialProof } from "../components/landing/social-proof";
+import { ComparisonTable } from "../components/landing/comparison-table";
+import { HowItWorks } from "../components/landing/how-it-works";
+import { AssetsShowcase } from "../components/landing/assets-showcase";
+import { FAQAccordion } from "../components/landing/faq-accordion";
+import { DeploySection } from "../components/landing/deploy-section";
+import { SiteFooter } from "../components/landing/site-footer";
 
 export default function Home() {
   return (
     <>
       <Navbar />
       <main>
-        <HeroSection />
-        <ProblemSection />
-        <FeaturesSection />
-        <HowItWorksSection />
-        <ComparisonSection />
-        <TechStackSection />
-        <CommunitySection />
-        <CTASection />
+        <AnimatedHero />
+        <SocialProof />
+        <HowItWorks />
+        <ComparisonTable />
+        <AssetsShowcase />
+        <FAQAccordion />
+        <DeploySection />
       </main>
-      <Footer />
+      <SiteFooter />
     </>
   );
 }

@@ -139,6 +139,18 @@ body {
   font-feature-settings: "tnum";
 }
 
+/* Stagger entrance animation */
+.stagger-item {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 400ms ease, transform 400ms ease;
+}
+
+.stagger-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Grain overlay (fixed, no interaction) */
 .grain-overlay::before {
   content: '';
