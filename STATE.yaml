@@ -261,7 +261,7 @@ tasks:
 
   - id: TC-025
     title: "AI signal explanation endpoint — natural language reasoning for signals"
-    status: pending
+    status: in_progress
     owner: pm-tradeclaw
     notes: >
       Enhance /api/explain to return full markdown reasoning: why this signal fired,

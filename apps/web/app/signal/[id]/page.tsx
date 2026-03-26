@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { getSignals } from '../../lib/signals';
 import { SignalShareButtons } from '../../components/signal-share-buttons';
 import { EmbedButton } from '../../components/embed-button';
+import { AIAnalysisPanel } from '../../components/ai-analysis-panel';
 
 function formatPrice(p: number): string {
   if (p >= 1000) return p.toFixed(2);
@@ -255,6 +256,9 @@ export default async function SignalPage(
             </span>
           </div>
         </div>
+
+        {/* AI Analysis Panel */}
+        <AIAnalysisPanel symbol={signal.symbol} timeframe={signal.timeframe} />
 
         {/* Share + Embed buttons */}
         <SignalShareButtons signal={signal} signalPath={signalPath} />
