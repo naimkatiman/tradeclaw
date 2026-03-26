@@ -192,23 +192,32 @@ tasks:
 
   - id: TC-020
     title: "Webhook alerts — POST signal data to user-configured URLs"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
     notes: >
-      /settings/webhooks page. Add webhook URLs with optional secret for HMAC.
-      When new signal fires, POST JSON payload to all configured webhooks.
-      Retry logic (3 attempts, exponential backoff). Delivery log with status.
-      Supports Discord webhooks, Slack incoming webhooks, custom endpoints.
+      Complete: webhooks.ts (280+ lines: file-based JSON CRUD, HMAC-SHA256 signing,
+      Discord embed + Slack Block Kit auto-formatting, 3-attempt exponential backoff
+      retry, 5s rate limiting, delivery log capped at 50). Settings page with add form,
+      webhook cards (status badges, toggle, test button, expandable delivery log),
+      payload reference, security docs. 7 API routes: GET/POST/PATCH/DELETE /api/webhooks,
+      /api/webhooks/test, /api/webhooks/dispatch, /api/webhooks/[id]/deliveries,
+      /api/webhooks/[id]/test. Build passes clean. 1333 lines added. 2026-03-27
 
   - id: TC-021
     title: "Paper trading simulator — virtual portfolio tracking signals"
-    status: pending
+    status: done
     owner: pm-tradeclaw
     notes: >
-      /paper-trading page already exists as placeholder. Build real virtual portfolio:
-      start with $10k virtual balance. Follow signals manually or auto-follow.
-      Track P&L per position, daily equity curve, win rate. Leaderboard integration.
-      No real money, just proving ground for strategies.
+      Complete: lib/paper-trading.ts (409 lines — file-based JSON storage, seed data with
+      8 historical trades, openPosition/closePosition/closeAll/reset/autoFollowSignal,
+      calculateStats with win rate/Sharpe/max drawdown/profit factor). 7 API routes:
+      GET /api/paper-trading, POST /api/paper-trading/open, /close, /close-all, /reset,
+      /follow-signal, /stats. Full UI at /paper-trading: account summary (balance/equity/
+      open P&L/total return), order form with symbol/direction/size selector, open
+      positions panel with live P&L + SL/TP display + close buttons, signal feed with
+      auto-follow toggle, canvas equity curve with hover tooltip, 8-stat performance
+      panel, paginated trade history table. Auto SL/TP close on price tick. Price
+      simulation via sin/noise drift. Build passes clean. 2026-03-27
 
   - id: TC-022
     title: "Multi-timeframe analysis — signal confluence across H1/H4/D1"
