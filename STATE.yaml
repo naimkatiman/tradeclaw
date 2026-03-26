@@ -110,5 +110,55 @@ tasks:
       apps/web). README Deploy section updated with Railway + Vercel + Docker
       buttons in a table. Build passes 25/25 pages. 2026-03-27
 
+  # ── Phase 3: Viral Growth + Polish ──
+
+  - id: TC-014
+    title: "Embeddable signal widget — iframe + script tag for external sites"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      Create /embed/[pair] route that renders a compact signal card (300x400) suitable
+      for iframe embedding. Add /api/embed.js that external sites can include via script tag
+      to show live TradeClaw signals. Widget auto-refreshes every 60s. Dark + light theme
+      option via query param. Powered by TradeClaw link at bottom. Drives backlinks.
+
+  - id: TC-015
+    title: "Public signal leaderboard — track signal accuracy over time"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      /leaderboard page showing signal performance: hit rate by asset, avg confidence,
+      best/worst performers, total signals generated. File-based or SQLite storage
+      for signal history. Auto-records signal outcomes (entry vs price after 4h/24h).
+      Shareable leaderboard cards. Builds trust + credibility.
+
+  - id: TC-016
+    title: "SEO landing page redesign — conversion-optimized with social proof"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      Redesign landing page: animated hero with live signal feed, feature comparison
+      table (TradeClaw vs paid alternatives), social proof (stars/forks/signal count),
+      pricing comparison (free vs paid), FAQ accordion, newsletter signup.
+      Mobile-first, Core Web Vitals optimized.
+
+  - id: TC-017
+    title: "Telegram bot for signal notifications"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      Telegram bot sending formatted signal alerts. Bot token via .env. Configurable
+      thresholds (confidence >80%, specific pairs). Rich formatting with entry/SL/TP.
+      /subscribe and /unsubscribe commands. Top requested feature for trading tools.
+
+  - id: TC-018
+    title: "Backtest visualization — chart signals on historical price data"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      /backtest page with interactive chart (lightweight-charts or recharts) showing
+      historical prices with signal markers (green BUY, red SELL arrows). Select asset +
+      timeframe. Show P&L if signals were followed. Export CSV. Proves the engine works.
+
 next_actions:
-  - "pm-tradeclaw: TC-013 done. All Phase 2 tasks complete (TC-009 to TC-013)."
+  - "pm-tradeclaw: Phase 2 complete (TC-009 to TC-013). Phase 3 defined (TC-014 to TC-018). Starting TC-014."
