@@ -167,12 +167,67 @@ tasks:
 
   - id: TC-018
     title: "Backtest visualization — chart signals on historical price data"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: Price chart tab with EMA20/50 overlays + BUY/SELL triangle markers.
+      Indicators tab with RSI (30/70 shaded zones) + MACD (histogram + signal line).
+      Real TA engine integration — imports calculateRSI/MACD/EMA, generates 300 OHLCV
+      candles, confluence-based signal detection. CSV export button in trade log.
+      Monthly returns heatmap below metrics. All canvas with ResizeObserver.
+      Build passes clean. Committed 9e0d14c9. 2026-03-27
+
+  # ── Phase 4: Growth + Polish + Community ──
+
+  - id: TC-019
+    title: "Strategy builder — visual drag-and-drop indicator composer"
     status: in_progress
     owner: pm-tradeclaw
     notes: >
-      /backtest page with interactive chart (lightweight-charts or recharts) showing
-      historical prices with signal markers (green BUY, red SELL arrows). Select asset +
-      timeframe. Show P&L if signals were followed. Export CSV. Proves the engine works.
+      /strategy-builder page. Visual composer where users combine indicators
+      (RSI, MACD, EMA, Bollinger) with conditions (crosses above/below, threshold)
+      to create custom strategies. Save strategies as JSON. Import/export.
+      Run saved strategies in backtest. No code required.
+
+  - id: TC-020
+    title: "Webhook alerts — POST signal data to user-configured URLs"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      /settings/webhooks page. Add webhook URLs with optional secret for HMAC.
+      When new signal fires, POST JSON payload to all configured webhooks.
+      Retry logic (3 attempts, exponential backoff). Delivery log with status.
+      Supports Discord webhooks, Slack incoming webhooks, custom endpoints.
+
+  - id: TC-021
+    title: "Paper trading simulator — virtual portfolio tracking signals"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      /paper-trading page already exists as placeholder. Build real virtual portfolio:
+      start with $10k virtual balance. Follow signals manually or auto-follow.
+      Track P&L per position, daily equity curve, win rate. Leaderboard integration.
+      No real money, just proving ground for strategies.
+
+  - id: TC-022
+    title: "Multi-timeframe analysis — signal confluence across H1/H4/D1"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      Enhance signal engine to check multiple timeframes. If H1 and H4 both
+      say BUY, confidence boost. If H1 says BUY but D1 says SELL, reduce
+      confidence. Display timeframe agreement on signal cards. New
+      /api/signals/multi-tf endpoint.
+
+  - id: TC-023
+    title: "Interactive API docs — Swagger/OpenAPI spec + playground"
+    status: pending
+    owner: pm-tradeclaw
+    notes: >
+      /api-docs page with interactive API explorer. Auto-generated OpenAPI 3.0
+      spec from all /api routes. Try-it-now playground for each endpoint.
+      Code snippets (curl, Python, JS). Makes integration dead simple.
+      Boosts developer adoption and GitHub stars.
 
 next_actions:
-  - "pm-tradeclaw: TC-017 done. Next: TC-018 (backtest visualization)."
+  - "pm-tradeclaw: TC-018 done. Next: TC-019 (strategy builder)."

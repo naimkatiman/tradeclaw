@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 
 type ConditionType = 'RSI' | 'MACD' | 'EMA_CROSS' | 'BB' | 'STOCH' | 'PRICE_ACTION';
 type ActionType = 'ENTRY_LONG' | 'ENTRY_SHORT' | 'EXIT' | 'ALERT';
@@ -79,6 +80,13 @@ const EXAMPLE_STRATEGIES: Strategy[] = [
 ];
 
 function uid() { return Math.random().toString(36).slice(2, 8); }
+
+function validateStrategy(strategy: Strategy): string[] {
+  const errors: string[] = [];
+  if (!strategy.blocks.some(b => b.type === 'IF')) errors.push('Add at least one IF block');
+  if (!strategy.blocks.some(b => b.type === 'THEN')) errors.push('Add at least one THEN block');
+  return errors;
+}
 
 function BlockCard({
   block,
@@ -191,6 +199,9 @@ function StrategyPreview({ strategy }: { strategy: Strategy }) {
 }
 
 export default function StrategyBuilderPage() {
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [strategy, setStrategy] = useState<Strategy>({
     id: uid(),
     name: 'My Strategy',
@@ -202,13 +213,29 @@ export default function StrategyBuilderPage() {
     ],
   });
   const [saved, setSaved] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [savedStrategies, setSavedStrategies] = useState<Strategy[]>([]);
+
+  useEffect(() => { loadSavedStrategies(); }, []);
+
+  const loadSavedStrategies = () => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('tc-strategies') || '[]') as Strategy[];
+      setSavedStrategies(stored.slice(0, 20));
+    } catch { /* ignore */ }
+  };
+
+  const validate = useCallback(() => {
+    const errors = validateStrategy(strategy);
+    setValidationErrors(errors);
+    return errors.length === 0;
+  }, [strategy]);
 
   const addBlock = useCallback((type: StrategyBlock['type']) => {
     const block: StrategyBlock = type === 'THEN'
       ? { id: uid(), type: 'THEN', action: { type: 'ENTRY_LONG' } }
       : { id: uid(), type, condition: { indicator: 'RSI', operator: '<', value: 30 } };
     setStrategy(s => {
-      // Insert THEN blocks at end; condition blocks before first THEN
       const thenIdx = s.blocks.findIndex(b => b.type === 'THEN');
       const blocks = [...s.blocks];
       if (type === 'THEN' || thenIdx === -1) {
@@ -230,17 +257,77 @@ export default function StrategyBuilderPage() {
 
   const loadExample = (ex: Strategy) => {
     setStrategy({ ...ex, id: uid(), blocks: ex.blocks.map(b => ({ ...b, id: uid() })) });
+    setValidationErrors([]);
   };
 
   const saveStrategy = () => {
+    if (!validate()) return;
     try {
       const stored = JSON.parse(localStorage.getItem('tc-strategies') || '[]') as Strategy[];
       const exists = stored.findIndex(s => s.id === strategy.id);
       if (exists >= 0) stored[exists] = strategy;
-      else stored.push(strategy);
-      localStorage.setItem('tc-strategies', JSON.stringify(stored));
+      else stored.unshift(strategy);
+      const limited = stored.slice(0, 20);
+      localStorage.setItem('tc-strategies', JSON.stringify(limited));
       setSaved(true);
+      setSavedStrategies(limited);
       setTimeout(() => setSaved(false), 2000);
+    } catch { /* ignore */ }
+  };
+
+  const exportJSON = () => {
+    if (!validate()) return;
+    const json = JSON.stringify(strategy, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${strategy.name.replace(/\s+/g, '_')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target?.result as string) as Partial<Strategy>;
+        if (!parsed.name || !Array.isArray(parsed.blocks)) {
+          setValidationErrors(['Invalid strategy file: missing required fields']);
+          return;
+        }
+        setStrategy({
+          name: 'Imported Strategy',
+          symbol: 'XAUUSD',
+          timeframe: 'H1',
+          ...parsed,
+          id: uid(),
+          blocks: (parsed.blocks || []).map(b => ({ ...b, id: uid() })),
+        });
+        setValidationErrors([]);
+      } catch {
+        setValidationErrors(['Failed to parse JSON file']);
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const runBacktest = () => {
+    if (!validate()) return;
+    const encoded = btoa(JSON.stringify(strategy));
+    router.push(`/backtest?strategy=${encoded}`);
+  };
+
+  const deleteSavedStrategy = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const stored = JSON.parse(localStorage.getItem('tc-strategies') || '[]') as Strategy[];
+      const updated = stored.filter(s => s.id !== id);
+      localStorage.setItem('tc-strategies', JSON.stringify(updated));
+      setSavedStrategies(updated.slice(0, 20));
     } catch { /* ignore */ }
   };
 
@@ -318,6 +405,21 @@ export default function StrategyBuilderPage() {
                 )}
               </div>
 
+              {/* Validation errors */}
+              {validationErrors.length > 0 && (
+                <div className="mb-4 space-y-1">
+                  {validationErrors.map((err, i) => (
+                    <div key={i} className="flex items-center gap-1.5 text-[11px] text-red-400">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="flex-shrink-0">
+                        <circle cx="5" cy="5" r="4.5" stroke="rgba(239,68,68,0.5)"/>
+                        <path d="M5 3V5.5M5 7H5.01" stroke="#EF4444" strokeWidth="1" strokeLinecap="round"/>
+                      </svg>
+                      {err}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Add block buttons */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {(['IF', 'AND', 'OR', 'THEN'] as const).map(type => (
@@ -340,20 +442,63 @@ export default function StrategyBuilderPage() {
               <StrategyPreview strategy={strategy} />
             </div>
 
-            {/* Save */}
-            <button
-              onClick={saveStrategy}
-              className={`w-full py-3 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.99] border ${
-                saved
-                  ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
-                  : 'bg-emerald-500/15 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
-              }`}
-            >
-              {saved ? 'Strategy saved' : 'Save strategy'}
-            </button>
+            {/* Action buttons */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={saveStrategy}
+                className={`py-3 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.99] border ${
+                  saved
+                    ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+                    : 'bg-emerald-500/15 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
+                }`}
+              >
+                {saved ? 'Saved ✓' : 'Save strategy'}
+              </button>
+
+              <button
+                onClick={runBacktest}
+                className="py-3 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.99] border bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500/15 flex items-center justify-center gap-2"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 2L10 6L3 10V2Z" fill="#60A5FA"/>
+                </svg>
+                Run Backtest
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={exportJSON}
+                className="py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-[0.99] border bg-white/5 border-white/8 text-zinc-400 hover:text-zinc-300 hover:bg-white/8 flex items-center justify-center gap-1.5"
+              >
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                  <path d="M5.5 1v6M3 5l2.5 2.5L8 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M1 9h9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                </svg>
+                Export JSON
+              </button>
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-[0.99] border bg-white/5 border-white/8 text-zinc-400 hover:text-zinc-300 hover:bg-white/8 flex items-center justify-center gap-1.5"
+              >
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                  <path d="M5.5 7V1M3 3l2.5-2.5L8 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M1 9h9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                </svg>
+                Import JSON
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                onChange={importJSON}
+                className="hidden"
+              />
+            </div>
           </div>
 
-          {/* Sidebar: examples */}
+          {/* Sidebar */}
           <div className="space-y-3">
             <div className="glass-card rounded-2xl p-5">
               <div className="text-xs font-semibold text-white tracking-tight mb-3">Example strategies</div>
@@ -370,6 +515,33 @@ export default function StrategyBuilderPage() {
                 ))}
               </div>
             </div>
+
+            {/* My Strategies */}
+            {savedStrategies.length > 0 && (
+              <div className="glass-card rounded-2xl p-5">
+                <div className="text-xs font-semibold text-white tracking-tight mb-3">My Strategies</div>
+                <div className="space-y-1.5">
+                  {savedStrategies.map(s => (
+                    <div key={s.id} className="relative group">
+                      <button
+                        onClick={() => { setStrategy(s); setValidationErrors([]); }}
+                        className="w-full text-left px-3 py-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all pr-8"
+                      >
+                        <div className="text-xs font-semibold text-zinc-300 group-hover:text-white transition-colors truncate mb-0.5">{s.name}</div>
+                        <div className="text-[10px] text-zinc-600 font-mono">{s.symbol} · {s.timeframe} · {s.blocks.length} blocks</div>
+                      </button>
+                      <button
+                        onClick={(e) => deleteSavedStrategy(s.id, e)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-zinc-700 hover:text-red-400 transition-all text-sm px-1"
+                        title="Delete"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="glass-card rounded-2xl p-5">
               <div className="text-xs font-semibold text-white tracking-tight mb-2">Block guide</div>

@@ -796,6 +796,38 @@ export default function BacktestPage() {
   const [result, setResult] = useState<BacktestResult | null>(null);
   const [running, setRunning] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('equity');
+  const [loadedStrategyName, setLoadedStrategyName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    const encoded = sp.get('strategy');
+    if (!encoded) return;
+    try {
+      const decoded = JSON.parse(atob(encoded)) as { name?: string; symbol?: string; timeframe?: string };
+      const symbol = typeof decoded.symbol === 'string' ? decoded.symbol : 'XAUUSD';
+      const timeframe = typeof decoded.timeframe === 'string' ? decoded.timeframe : 'H1';
+      const strategyName = typeof decoded.name === 'string' ? decoded.name : 'Custom Strategy';
+      const newParams: BacktestParams = {
+        symbol,
+        timeframe,
+        strategy: strategyName,
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
+        initialBalance: 10000,
+        riskPercent: 1,
+      };
+      setParams(newParams);
+      setLoadedStrategyName(strategyName);
+      setRunning(true);
+      setTimeout(() => {
+        const r = runBacktest(newParams);
+        setResult(r);
+        setRunning(false);
+        setActiveTab('equity');
+      }, 600);
+    } catch { /* ignore invalid param */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleRun = useCallback(() => {
     setRunning(true);
@@ -831,6 +863,17 @@ export default function BacktestPage() {
           </div>
           <p className="text-[11px] text-zinc-600">Replay strategies against historical data — equity curve, price chart, indicators, trade log</p>
         </div>
+
+        {loadedStrategyName && (
+          <div className="mb-4 px-4 py-2.5 rounded-xl bg-blue-500/8 border border-blue-500/15 flex items-center gap-2">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="flex-shrink-0">
+              <rect x="1" y="3" width="4" height="4" rx="0.8" fill="rgba(96,165,250,0.4)"/>
+              <rect x="7" y="3" width="4" height="4" rx="0.8" fill="rgba(96,165,250,0.2)"/>
+              <path d="M3 5H9" stroke="rgba(96,165,250,0.4)" strokeWidth="0.8" strokeDasharray="1.5 1.5"/>
+            </svg>
+            <span className="text-[11px] text-blue-400">Loaded from Strategy Builder: <span className="font-semibold">{loadedStrategyName}</span></span>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
           {/* Config panel */}
@@ -875,6 +918,9 @@ export default function BacktestPage() {
                   onChange={e => update('strategy', e.target.value)}
                   className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30"
                 >
+                  {!STRATEGIES.includes(params.strategy) && (
+                    <option value={params.strategy}>{params.strategy}</option>
+                  )}
                   {STRATEGIES.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
