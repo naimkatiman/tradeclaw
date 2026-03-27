@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Navbar } from "./components/navbar";
 import { AnimatedHero } from "../components/landing/animated-hero";
 import { SocialProof } from "../components/landing/social-proof";
@@ -21,6 +22,17 @@ export default function Home() {
         <SocialProof />
         <HowItWorks />
         <ComparisonTable />
+        <div className="flex justify-center pb-8 -mt-4">
+          <Link
+            href="/compare"
+            className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors inline-flex items-center gap-1.5"
+          >
+            See full comparison
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
         <AssetsShowcase />
         <FAQAccordion />
         <DeploySection />

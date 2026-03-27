@@ -7,7 +7,7 @@ import { ThemeToggle } from './theme-toggle';
 const NAV_LINKS = [
   { href: '#features', label: 'Features' },
   { href: '#how-it-works', label: 'How it works' },
-  { href: '#comparison', label: 'Compare' },
+  { href: '/compare', label: 'Compare' },
   { href: '/awesome', label: 'Awesome' },
   { href: '/contribute', label: 'Contribute 🤝' },
   { href: '/launch', label: 'Launch 🚀' },
