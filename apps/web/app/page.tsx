@@ -1,6 +1,7 @@
 import { Navbar } from "./components/navbar";
 import { AnimatedHero } from "../components/landing/animated-hero";
 import { SocialProof } from "../components/landing/social-proof";
+import { StarsBadge } from "../components/landing/stars-badge";
 import { ComparisonTable } from "../components/landing/comparison-table";
 import { HowItWorks } from "../components/landing/how-it-works";
 import { AssetsShowcase } from "../components/landing/assets-showcase";
@@ -14,6 +15,9 @@ export default function Home() {
       <Navbar />
       <main>
         <AnimatedHero />
+        <div className="flex justify-center pb-4">
+          <StarsBadge />
+        </div>
         <SocialProof />
         <HowItWorks />
         <ComparisonTable />

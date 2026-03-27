@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: '/contribute', label: 'Contribute 🤝' },
   { href: '/launch', label: 'Launch 🚀' },
   { href: '/share', label: 'Share ⭐' },
+  { href: '/stars', label: 'Stars 🌟' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
 

@@ -475,9 +475,46 @@ tasks:
 
   - id: TC-043
     title: "Contributor onboarding — /contribute page, good-first-issue generator, mentorship program"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: ContributeClient.tsx (hero with live GitHub stats, 3 contributor paths,
+      10 good-first-issues with difficulty/hours, 5-step how-to-contribute flow, mentorship
+      form with localStorage, community links, stats badge copy section). .github/GOOD_FIRST_ISSUES.md
+      (10 detailed templates). README Contributing section updated with links. Build passes 87 pages.
+      Committed 7ac087e8. 2026-03-28
+
+  # ── Phase 9: Star Velocity + Viral Hooks ──
+
+  - id: TC-044
+    title: "GitHub stars counter widget — animated star-growth badge + milestone celebration page"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-045
+    title: "Hacker News Show HN post generator — auto-draft /hn page with optimal HN submission text"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-046
+    title: "Live signal feed as public RSS/Atom feed — subscribe to trading signals via any RSS reader"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-047
+    title: "Comparison benchmark page — TradeClaw vs TA-Lib vs pandas-ta vs TradingView Pine Script"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-048
+    title: "One-command demo with Bun/npx — npx tradeclaw-demo spins up local instance in 10 seconds"
     status: pending
     owner: pm-tradeclaw
     notes: ""
 
 next_actions:
-  - "pm-tradeclaw: TC-040 done. Next: TC-041 social outreach hub, TC-042 README visual upgrade."
+  - "pm-tradeclaw: TC-043 done. Now on TC-044 (stars widget + milestone page)."
