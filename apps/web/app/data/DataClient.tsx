@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
+import { Brain, Bell, Star, BarChart2, Link as LinkIcon, Puzzle, Send } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 
 // ─── Types ────────────────────────────────────────────────────
@@ -27,14 +29,14 @@ interface ImportResult {
 
 type DataSection = 'alerts' | 'paperTrading' | 'webhooks' | 'plugins' | 'telegramSettings' | 'strategies' | 'watchlist';
 
-const DATA_SECTIONS: { key: DataSection; label: string; icon: string; storageKey?: string }[] = [
-  { key: 'strategies', label: 'Strategies', icon: '🧠', storageKey: 'tc-strategies' },
-  { key: 'alerts', label: 'Price Alerts', icon: '🔔' },
-  { key: 'watchlist', label: 'Watchlist', icon: '⭐', storageKey: 'screener-watchlist' },
-  { key: 'paperTrading', label: 'Paper Trading', icon: '📊' },
-  { key: 'webhooks', label: 'Webhooks', icon: '🔗' },
-  { key: 'plugins', label: 'Plugins', icon: '🧩' },
-  { key: 'telegramSettings', label: 'Telegram', icon: '✈️' },
+const DATA_SECTIONS: { key: DataSection; label: string; Icon: LucideIcon; storageKey?: string }[] = [
+  { key: 'strategies', label: 'Strategies', Icon: Brain, storageKey: 'tc-strategies' },
+  { key: 'alerts', label: 'Price Alerts', Icon: Bell },
+  { key: 'watchlist', label: 'Watchlist', Icon: Star, storageKey: 'screener-watchlist' },
+  { key: 'paperTrading', label: 'Paper Trading', Icon: BarChart2 },
+  { key: 'webhooks', label: 'Webhooks', Icon: LinkIcon },
+  { key: 'plugins', label: 'Plugins', Icon: Puzzle },
+  { key: 'telegramSettings', label: 'Telegram', Icon: Send },
 ];
 
 // ─── Component ────────────────────────────────────────────────
@@ -260,7 +262,7 @@ export function DataClient() {
                     onChange={() => toggleSection(section.key)}
                     className="h-4 w-4 rounded border-neutral-600 bg-neutral-800 text-emerald-500 focus:ring-emerald-500/30"
                   />
-                  <span className="text-base">{section.icon}</span>
+                  <section.Icon className="h-4 w-4 text-zinc-400" />
                   <span className="text-sm text-neutral-200">{section.label}</span>
                   {section.storageKey && (
                     <span className="ml-auto rounded-full bg-neutral-800 px-2 py-0.5 text-[10px] text-neutral-500">

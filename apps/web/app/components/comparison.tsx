@@ -1,3 +1,5 @@
+import { CheckCircle2, XCircle, Footprints } from 'lucide-react';
+
 const comparisonData = [
   {
     feature: "AI Signals",
@@ -64,6 +66,12 @@ const comparisonData = [
   },
 ];
 
+function Cell({ value }: { value: boolean }) {
+  return value
+    ? <CheckCircle2 className="inline h-5 w-5 text-emerald-400" />
+    : <XCircle className="inline h-5 w-5 text-zinc-600" />;
+}
+
 export function ComparisonSection() {
   return (
     <section id="comparison" className="bg-[#0A0A0A] px-6 py-24">
@@ -85,7 +93,9 @@ export function ComparisonSection() {
               <tr className="border-b border-white/10">
                 <th className="px-4 py-3 text-zinc-500 font-medium">Feature</th>
                 <th className="px-4 py-3 text-center font-semibold text-emerald-400">
-                  🐾 TradeClaw
+                  <span className="inline-flex items-center justify-center gap-1">
+                    <Footprints className="h-4 w-4" /> TradeClaw
+                  </span>
                 </th>
                 <th className="px-4 py-3 text-center text-zinc-400 font-medium">
                   TradingView
@@ -106,16 +116,16 @@ export function ComparisonSection() {
                 >
                   <td className="px-4 py-3 text-zinc-300">{row.feature}</td>
                   <td className="px-4 py-3 text-center">
-                    {row.tradeclaw ? "✅" : "❌"}
+                    <Cell value={row.tradeclaw} />
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {row.tradingview ? "✅" : "❌"}
+                    <Cell value={row.tradingview} />
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {row.threecommas ? "✅" : "❌"}
+                    <Cell value={row.threecommas} />
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {row.freqtrade ? "✅" : "❌"}
+                    <Cell value={row.freqtrade} />
                   </td>
                 </tr>
               ))}

@@ -1,48 +1,51 @@
-const features = [
+import { Bot, BarChart2, Target, Smartphone, TrendingUp, DollarSign, Lock, Box } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+const features: { Icon: LucideIcon; title: string; description: string }[] = [
   {
-    icon: "🤖",
+    Icon: Bot,
     title: "AI Signal Engine",
     description:
       "BUY/SELL signals powered by multi-indicator analysis. RSI, MACD, EMA, Bollinger, Stochastic, S/R levels.",
   },
   {
-    icon: "📊",
+    Icon: BarChart2,
     title: "12+ Symbols",
     description:
       "XAUUSD, BTCUSD, ETHUSD, XRPUSD, EURUSD, GBPUSD, and more. Forex + crypto + metals in one dashboard.",
   },
   {
-    icon: "🎯",
+    Icon: Target,
     title: "Fibonacci TP/SL",
     description:
       "Automatic take-profit and stop-loss using Fibonacci retracement. TP1, TP2, TP3 with confidence scores.",
   },
   {
-    icon: "📱",
+    Icon: Smartphone,
     title: "Telegram Alerts",
     description:
       "Get instant BUY/SELL notifications on Telegram. Never miss a signal, even away from your desk.",
   },
   {
-    icon: "📈",
+    Icon: TrendingUp,
     title: "Backtesting",
     description:
       "Test strategies against historical data before risking real money. Full performance metrics and reports.",
   },
   {
-    icon: "💰",
+    Icon: DollarSign,
     title: "Paper Trading",
     description:
       "Practice with virtual money. Track P&L, win rate, and drawdown in real-time before going live.",
   },
   {
-    icon: "🔒",
+    Icon: Lock,
     title: "Self-Hosted",
     description:
       "Your server. Your data. Your API keys. Nothing leaves your infrastructure. Full privacy.",
   },
   {
-    icon: "🐳",
+    Icon: Box,
     title: "One-Click Deploy",
     description:
       "docker compose up -d — that's it. Full dashboard ready in under 60 seconds on any machine.",
@@ -69,7 +72,7 @@ export function FeaturesSection() {
               key={feature.title}
               className="group rounded-xl border border-white/5 bg-white/[0.02] p-6 transition-all hover:border-emerald-500/20 hover:bg-emerald-500/[0.03]"
             >
-              <div className="text-3xl">{feature.icon}</div>
+              <feature.Icon className="h-8 w-8 text-emerald-400" />
               <h3 className="mt-4 text-lg font-semibold">{feature.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-zinc-400">
                 {feature.description}

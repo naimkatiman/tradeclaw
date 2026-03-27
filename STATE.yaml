@@ -424,5 +424,37 @@ tasks:
     owner: pm-tradeclaw
     notes: "Done 2026-03-27. API route /api/correlation (Pearson r, 100 hourly bars, 5-min cache), /correlation page with CSS heatmap grid, stats cards, top pairs table. Added to mobile nav. Build passes."
 
+  # ── Phase 8: External Visibility + Viral Distribution ──
+
+  - id: TC-039
+    title: "Awesome-lists submission kit — pre-written PRs + /awesome page on site"
+    status: in-progress
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-040
+    title: "ProductHunt launch preparation — /launch page with PH badge, gallery, hunter kit"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-041
+    title: "Social outreach content hub — /share page with 1-click Reddit/HN/Twitter posts + badge wall"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-042
+    title: "README visual upgrade — real Playwright screenshots, animated demo GIF script, hero banner"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-043
+    title: "Contributor onboarding — /contribute page, good-first-issue generator, mentorship program"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
 next_actions:
-  - "pm-tradeclaw: Phase 7 complete (TC-034–TC-038). Define Phase 8."
+  - "pm-tradeclaw: Phase 8 started. TC-039 in-progress (Claude Code spawned)."

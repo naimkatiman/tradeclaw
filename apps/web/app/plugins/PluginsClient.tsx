@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { Puzzle, Pause, Play, Pencil, Trash2, BookOpen } from 'lucide-react';
 
 /* ── Types ── */
 interface PluginParam {
@@ -221,7 +222,7 @@ export function PluginsClient() {
         </div>
       ) : plugins.length === 0 ? (
         <div className="glass-card rounded-xl p-12 text-center">
-          <div className="text-4xl mb-3">🧩</div>
+          <div className="flex justify-center mb-3"><Puzzle className="h-10 w-10 text-zinc-600" /></div>
           <h3 className="text-lg font-medium text-zinc-300 mb-1">No plugins yet</h3>
           <p className="text-sm text-zinc-500 mb-4">Create your first custom indicator</p>
           <button
@@ -263,21 +264,21 @@ export function PluginsClient() {
                     }`}
                     title={plugin.enabled ? 'Disable' : 'Enable'}
                   >
-                    {plugin.enabled ? '⏸' : '▶'}
+                    {plugin.enabled ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
                   </button>
                   <button
                     onClick={() => openEditor(plugin)}
                     className="p-1.5 rounded text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 text-xs transition-colors"
                     title="Edit"
                   >
-                    ✏️
+                    <Pencil className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={() => handleDelete(plugin.id)}
                     className="p-1.5 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 text-xs transition-colors"
                     title="Delete"
                   >
-                    🗑
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
@@ -288,7 +289,7 @@ export function PluginsClient() {
 
       {/* How it works */}
       <div className="glass-card rounded-xl p-4 border-l-2 border-emerald-500/50">
-        <h3 className="text-sm font-medium text-zinc-300 mb-2">📖 How Plugins Work</h3>
+        <h3 className="text-sm font-medium text-zinc-300 mb-2 flex items-center gap-1.5"><BookOpen className="h-4 w-4 text-emerald-400" /> How Plugins Work</h3>
         <div className="text-xs text-zinc-500 space-y-1.5 leading-relaxed">
           <p>Write JavaScript that receives OHLCV candle data and returns a signal result.</p>
           <p>Your function gets: <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">candles[]</code> (OHLCV array), <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">params</code> (your config), and <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">Math</code>.</p>

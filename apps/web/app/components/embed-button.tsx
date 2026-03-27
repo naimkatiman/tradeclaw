@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Check } from 'lucide-react';
 
 interface Props {
   pair: string;
@@ -22,7 +23,7 @@ function CodeSnippet({ code }: { code: string }) {
         onClick={handleCopy}
         className="absolute top-2 right-2 text-[9px] px-2 py-0.5 rounded bg-white/8 border border-white/10 text-zinc-500 hover:text-zinc-200 transition-colors"
       >
-        {copied ? '✓' : 'Copy'}
+        {copied ? <Check className="inline h-3 w-3" /> : 'Copy'}
       </button>
     </div>
   );

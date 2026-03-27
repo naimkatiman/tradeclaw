@@ -199,6 +199,8 @@ Pull requests welcome. For major changes, open an issue first.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
+**Help us get listed on awesome-lists** — pre-written PR templates for awesome-selfhosted, awesome-quant, and awesome-trading are in [`docs/awesome-lists/`](docs/awesome-lists/). Upvoting open PRs takes 2 minutes and helps thousands of developers discover TradeClaw. Track status at [tradeclaw.win/awesome](https://tradeclaw.win/awesome).
+
 ```bash
 # Development
 npm install

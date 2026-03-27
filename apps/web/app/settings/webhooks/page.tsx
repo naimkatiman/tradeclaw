@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Gamepad2, Hash, Link, Webhook, Check, X } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -34,10 +35,10 @@ function urlLabel(url: string): string {
   return 'Custom';
 }
 
-function urlIcon(url: string): string {
-  if (url.includes('discord.com/api/webhooks')) return '🎮';
-  if (url.includes('hooks.slack.com')) return '💬';
-  return '🔗';
+function urlIcon(url: string): React.ReactNode {
+  if (url.includes('discord.com/api/webhooks')) return <Gamepad2 className="h-4 w-4 text-zinc-400" />;
+  if (url.includes('hooks.slack.com')) return <Hash className="h-4 w-4 text-zinc-400" />;
+  return <Link className="h-4 w-4 text-zinc-400" />;
 }
 
 function relativeTime(iso: string): string {
@@ -155,7 +156,7 @@ function WebhookCard({
         {/* Left: name + url */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="text-base">{icon}</span>
+            {icon}
             <span className="font-medium text-sm">
               {wh.name || type}
             </span>
@@ -166,7 +167,7 @@ function WebhookCard({
             {wh.hasSecret && <Badge variant="warn">HMAC</Badge>}
             {lastDelivery && (
               <Badge variant={lastDelivery.success ? 'success' : 'error'}>
-                Last: {lastDelivery.success ? '✓' : '✗'}
+                Last: {lastDelivery.success ? <Check className="inline h-3 w-3" /> : <X className="inline h-3 w-3" />}
               </Badge>
             )}
           </div>
@@ -484,7 +485,7 @@ export default function WebhooksSettingsPage() {
       <div className="border-b border-[#1a1a1a]">
         <div className="max-w-4xl mx-auto px-6 py-6">
           <div className="flex items-center gap-3 mb-1">
-            <span className="text-2xl">🪝</span>
+            <Webhook className="h-6 w-6 text-emerald-400" />
             <h1 className="text-xl font-semibold tracking-tight">Webhook Alerts</h1>
           </div>
           <p className="text-sm text-zinc-500">
@@ -519,7 +520,7 @@ export default function WebhooksSettingsPage() {
             </div>
           ) : webhooks.length === 0 ? (
             <Card className="text-center py-12">
-              <p className="text-3xl mb-3">🪝</p>
+              <div className="flex justify-center mb-3"><Webhook className="h-8 w-8 text-zinc-600" /></div>
               <p className="text-zinc-400 text-sm">No webhooks configured yet.</p>
               <p className="text-zinc-600 text-xs mt-1">
                 Add a webhook above to start receiving signal alerts.

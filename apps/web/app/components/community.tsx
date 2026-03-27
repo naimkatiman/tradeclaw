@@ -1,3 +1,6 @@
+import { MessageSquare, Bug, Users } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
 export function CommunitySection() {
   return (
     <section className="bg-[#0A0A0A] px-6 py-24">
@@ -13,21 +16,21 @@ export function CommunitySection() {
 
         <div className="mt-12 grid gap-4 sm:grid-cols-3">
           <CommunityCard
-            icon="💬"
+            Icon={MessageSquare}
             title="Discord"
             description="Chat with contributors. Share strategies. Get help."
             link="#"
             linkText="Join Discord"
           />
           <CommunityCard
-            icon="🐛"
+            Icon={Bug}
             title="GitHub Issues"
             description="Report bugs, request features, track progress."
             link="https://github.com/naimkatiman/tradeclaw/issues"
             linkText="Open Issue"
           />
           <CommunityCard
-            icon="🤝"
+            Icon={Users}
             title="Contribute"
             description="First PR? We have good-first-issue labels waiting."
             link="https://github.com/naimkatiman/tradeclaw/blob/main/CONTRIBUTING.md"
@@ -40,13 +43,13 @@ export function CommunitySection() {
 }
 
 function CommunityCard({
-  icon,
+  Icon,
   title,
   description,
   link,
   linkText,
 }: {
-  icon: string;
+  Icon: LucideIcon;
   title: string;
   description: string;
   link: string;
@@ -54,7 +57,7 @@ function CommunityCard({
 }) {
   return (
     <div className="rounded-xl border border-white/5 bg-white/[0.02] p-6 text-left">
-      <div className="text-3xl">{icon}</div>
+      <Icon className="h-8 w-8 text-emerald-400" />
       <h3 className="mt-3 text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-sm text-zinc-400">{description}</p>
       <a

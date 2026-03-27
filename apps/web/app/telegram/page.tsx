@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Send } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -146,7 +147,7 @@ export default function TelegramSettingsPage() {
       <div className="border-b border-[#1a1a1a]">
         <div className="max-w-4xl mx-auto px-6 py-6">
           <div className="flex items-center gap-3 mb-1">
-            <span className="text-2xl">✈️</span>
+            <Send className="h-6 w-6 text-emerald-400" />
             <h1 className="text-xl font-semibold tracking-tight">Telegram Bot</h1>
           </div>
           <p className="text-sm text-zinc-500">

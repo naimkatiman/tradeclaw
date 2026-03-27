@@ -1,3 +1,5 @@
+import { CheckCircle2, XCircle, Footprints } from 'lucide-react';
+
 export function ProblemSection() {
   return (
     <section className="bg-[#0d1117] px-6 py-24">
@@ -53,7 +55,9 @@ export function ProblemSection() {
               />
               <tr className="border-t-2 border-emerald-500/30 bg-emerald-500/5">
                 <td className="px-6 py-4 font-semibold text-emerald-400">
-                  🐾 TradeClaw
+                  <span className="inline-flex items-center gap-1.5">
+                    <Footprints className="h-4 w-4" /> TradeClaw
+                  </span>
                 </td>
                 <td className="px-6 py-4 text-right font-bold text-emerald-400">
                   $0
@@ -61,7 +65,9 @@ export function ProblemSection() {
                 <td className="px-6 py-4 text-right font-bold text-emerald-400">
                   $0
                 </td>
-                <td className="px-6 py-4 text-center text-lg">✅</td>
+                <td className="px-6 py-4 text-center">
+                  <CheckCircle2 className="inline h-5 w-5 text-emerald-400" />
+                </td>
               </tr>
             </tbody>
           </table>
@@ -92,7 +98,12 @@ function ComparisonRow({
       <td className="px-6 py-4">{name}</td>
       <td className="px-6 py-4 text-right text-zinc-400">{monthly}</td>
       <td className="px-6 py-4 text-right text-zinc-400">{yearly}</td>
-      <td className="px-6 py-4 text-center">{owned ? "✅" : "❌"}</td>
+      <td className="px-6 py-4 text-center">
+        {owned
+          ? <CheckCircle2 className="inline h-5 w-5 text-emerald-400" />
+          : <XCircle className="inline h-5 w-5 text-red-400" />
+        }
+      </td>
     </tr>
   );
 }

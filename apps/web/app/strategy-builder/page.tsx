@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { Check } from 'lucide-react';
 
 type ConditionType = 'RSI' | 'MACD' | 'EMA_CROSS' | 'BB' | 'STOCH' | 'PRICE_ACTION';
 type ActionType = 'ENTRY_LONG' | 'ENTRY_SHORT' | 'EXIT' | 'ALERT';
@@ -452,7 +453,7 @@ export default function StrategyBuilderPage() {
                     : 'bg-emerald-500/15 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
                 }`}
               >
-                {saved ? 'Saved ✓' : 'Save strategy'}
+                {saved ? <><Check className="inline h-3.5 w-3.5 mr-1" />Saved</> : 'Save strategy'}
               </button>
 
               <button
