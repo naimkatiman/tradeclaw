@@ -535,7 +535,7 @@ export default function PaperTradingPage() {
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6 space-y-6">
 
         {/* Account summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

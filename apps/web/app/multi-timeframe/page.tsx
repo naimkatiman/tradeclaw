@@ -168,7 +168,7 @@ function MatrixRow({ result }: { result: MultiTFResult }) {
           </div>
 
           {/* Indicators from primary TF */}
-          <div className="grid grid-cols-4 gap-2 mt-3 text-[10px] font-mono">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 text-[10px] font-mono">
             {[
               { label: 'RSI', value: result.indicators.rsi.value.toFixed(0), signal: result.indicators.rsi.signal },
               { label: 'MACD', value: result.indicators.macd.signal, signal: result.indicators.macd.signal },
@@ -316,7 +316,7 @@ export default function MultiTimeframePage() {
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Page header */}
         <div className="mb-6">
           <h1 className="text-xl font-bold tracking-tight">Multi-Timeframe Analysis</h1>

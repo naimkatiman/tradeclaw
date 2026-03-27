@@ -261,28 +261,36 @@ tasks:
 
   - id: TC-025
     title: "AI signal explanation endpoint — natural language reasoning for signals"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
     notes: >
-      Enhance /api/explain to return full markdown reasoning: why this signal fired,
-      which indicators tipped it, key support/resistance levels, risk factors.
-      UI: /signal/[id] page gets a collapsible "AI Analysis" panel with the explanation.
-      Use built-in logic (no external AI API needed) — deterministic but human-readable.
-      Makes signals feel intelligent and educational. Viral factor: screenshot-worthy.
+      Complete: signal-explainer.ts (400+ lines, template-based with seeded phrase
+      variation, Bloomberg-grade markdown). /api/explain GET+POST support. AIAnalysisPanel
+      component on /signal/[id] — collapsible with smooth animation, renders tables/
+      blockquotes/inline bold, Copy Analysis + Share buttons. Standalone /explain page
+      with asset/timeframe grid selector, live preview, recent analysis history (10 max).
+      Sections: Indicator Breakdown (RSI/MACD/EMA/Stoch/BB), Confluence Score (X/5),
+      Key Levels table, Trade Setup with R:R ratios, Risk Factors, Market Context,
+      Educational Notes. Build passes 48+ pages. Committed 9b3d351b. 2026-03-27
 
   - id: TC-026
     title: "Mobile-responsive dashboard polish — perfect on phones"
-    status: pending
+    status: done
     owner: pm-tradeclaw
     notes: >
-      Audit every page for mobile breakpoints. Fix overflow, tiny touch targets,
-      horizontal scroll. Bottom nav on mobile (Dashboard / Signals / Leaderboard / Settings).
-      Signals page swipeable cards on mobile. Target: 100% usable on a 375px screen.
-      Key for virality — people share screenshots from phones.
+      Complete: MobileNav (fixed bottom-0 md:hidden, 4 tabs + More sheet) committed.
+      layout.tsx wraps children in pb-16 md:pb-0 to clear bottom nav.
+      All 11 pages patched with pb-20 md:pb-X on main content containers:
+      dashboard, leaderboard, multi-timeframe, paper-trading, backtest,
+      strategy-builder, explain, api-docs, settings/webhooks, embed, telegram.
+      multi-timeframe indicators grid fixed: grid-cols-4 → grid-cols-2 md:grid-cols-4.
+      embed iframe: maxWidth:100% added for responsive constraint.
+      api-docs params table: overflow-x-auto wrapper + min-w-[480px].
+      Build passes clean. 2026-03-27
 
   - id: TC-027
     title: "Price alerts — set target price triggers with browser notifications"
-    status: pending
+    status: in_progress
     owner: pm-tradeclaw
     notes: >
       /api/alerts CRUD + lib/price-alerts.ts. Browser Push API (serviceWorker + 
@@ -302,4 +310,4 @@ tasks:
       This is the core feature of Alpha Screener — show it off in open source version.
 
 next_actions:
-  - "pm-tradeclaw: TC-023 + TC-024 done. Next: TC-025 (AI signal explanation), TC-026 (mobile polish), TC-027 (price alerts), TC-028 (screener page)."
+  - "pm-tradeclaw: TC-026 done. Next: TC-027 (price alerts), TC-028 (screener page)."

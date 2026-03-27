@@ -138,7 +138,7 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
             <span className="text-lg font-mono font-bold text-white">{pair}</span>
             <span className="text-[10px] text-zinc-600 uppercase tracking-wider">Signal Performance</span>
           </div>
-          <button onClick={onClose} className="text-zinc-600 hover:text-zinc-300 transition-colors text-xl leading-none">×</button>
+          <button onClick={onClose} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-600 hover:text-zinc-300 transition-colors text-xl leading-none">×</button>
         </div>
 
         {loading && (
@@ -148,7 +148,7 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
         {!loading && data && (
           <div className="flex-1 overflow-y-auto">
             {/* stats row */}
-            <div className="grid grid-cols-4 gap-3 p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4">
               <StatCard label="Signals" value={data.asset.totalSignals.toString()} />
               <StatCard label="4h Hit Rate" value={`${data.asset.hitRate4h}%`} color={data.asset.hitRate4h >= 55 ? 'text-emerald-400' : 'text-red-400'} />
               <StatCard label="24h Hit Rate" value={`${data.asset.hitRate24h}%`} color={data.asset.hitRate24h >= 55 ? 'text-emerald-400' : 'text-red-400'} />
@@ -295,7 +295,7 @@ export default function LeaderboardClient() {
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-8 pb-20 md:pb-8">
         {/* Hero */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">

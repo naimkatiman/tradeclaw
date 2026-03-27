@@ -5,6 +5,7 @@ import { getSignals } from '../../lib/signals';
 import { SignalShareButtons } from '../../components/signal-share-buttons';
 import { EmbedButton } from '../../components/embed-button';
 import { AIAnalysisPanel } from '../../components/ai-analysis-panel';
+import { SetAlertButton } from '../../components/set-alert-button';
 
 function formatPrice(p: number): string {
   if (p >= 1000) return p.toFixed(2);
@@ -77,9 +78,12 @@ export default async function SignalPage(
             </svg>
             <span className="text-sm font-semibold">Trade<span className="text-emerald-400">Claw</span></span>
           </Link>
-          <Link href="/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-            View All Signals →
-          </Link>
+          <div className="flex items-center gap-3">
+            <SetAlertButton symbol={signal.symbol} currentPrice={signal.entry} />
+            <Link href="/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+              View All Signals →
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -134,7 +138,7 @@ export default async function SignalPage(
           </div>
 
           {/* Price levels */}
-          <div className="grid grid-cols-5 gap-2 mb-8">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-8">
             {[
               { label: 'Entry', value: signal.entry, color: 'text-white' },
               { label: 'Stop Loss', value: signal.stopLoss, color: 'text-red-400' },

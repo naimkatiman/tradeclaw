@@ -75,7 +75,7 @@ export default function EmbedDocsPage() {
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto px-4 py-12 pb-20 md:pb-12">
         {/* Hero */}
         <div className="mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono mb-4">
@@ -198,6 +198,7 @@ export default function EmbedDocsPage() {
                     borderRadius: '12px',
                     overflow: 'hidden',
                     display: 'block',
+                    maxWidth: '100%',
                   }}
                   scrolling="no"
                 />

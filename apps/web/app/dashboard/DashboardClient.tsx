@@ -83,7 +83,7 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
             <div className="text-sm font-semibold text-white font-mono tracking-tight">{signal.symbol}</div>
             <div className="text-[11px] text-zinc-600 font-mono mt-0.5">{signal.timeframe} · {new Date(signal.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
             {tfDirections && tfDirections.length > 0 && (
-              <div className="flex gap-1 mt-1.5">
+              <div className="flex gap-1 mt-1.5 overflow-x-auto scrollbar-none">
                 {tfDirections.map(tf => <TFBadgeInline key={tf.timeframe} tf={tf} />)}
               </div>
             )}
@@ -94,7 +94,7 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
           <button
             onClick={handleShare}
             title="Copy signal link"
-            className="flex items-center justify-center w-7 h-7 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-all duration-200"
+            className="flex items-center justify-center min-w-[44px] min-h-[44px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-all duration-200"
           >
             {shareCopied ? (
               <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
@@ -122,7 +122,7 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
       <ConfidenceBar value={signal.confidence} />
 
       {/* Price levels */}
-      <div className="grid grid-cols-5 gap-1.5 mt-4 text-center">
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 mt-4 text-center">
         {[
           { label: 'Entry', value: signal.entry, color: 'text-white' },
           { label: 'SL', value: signal.stopLoss, color: 'text-red-400' },
@@ -319,7 +319,7 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
       {/* Price ticker */}
       <PriceTicker />
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <StatCard value={String(signals.length)} label="Active signals" />
@@ -333,8 +333,8 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap gap-3 mb-6">
-          <div className="flex gap-0.5 bg-white/[0.03] border border-white/5 rounded-xl p-1">
+        <div className="flex gap-3 mb-6 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex gap-0.5 bg-white/[0.03] border border-white/5 rounded-xl p-1 shrink-0">
             {TIMEFRAMES.map(tf => (
               <button
                 key={tf}
@@ -349,7 +349,7 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
               </button>
             ))}
           </div>
-          <div className="flex gap-0.5 bg-white/[0.03] border border-white/5 rounded-xl p-1">
+          <div className="flex gap-0.5 bg-white/[0.03] border border-white/5 rounded-xl p-1 shrink-0">
             {(['ALL', 'BUY', 'SELL'] as const).map(d => (
               <button
                 key={d}
@@ -368,7 +368,7 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
           </div>
           <button
             onClick={fetchSignals}
-            className="px-4 py-1.5 rounded-xl text-xs border border-white/8 text-zinc-500 hover:text-zinc-300 hover:border-white/15 transition-all duration-200 font-mono"
+            className="px-4 py-1.5 rounded-xl text-xs border border-white/8 text-zinc-500 hover:text-zinc-300 hover:border-white/15 transition-all duration-200 font-mono shrink-0"
           >
             Refresh
           </button>

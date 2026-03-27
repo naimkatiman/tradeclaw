@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SWRegister } from "./components/sw-register";
+import { MobileNav } from "./components/mobile-nav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -100,7 +101,10 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <SWRegister />
-        {children}
+        <div className="flex-1 pb-16 md:pb-0">
+          {children}
+        </div>
+        <MobileNav />
       </body>
     </html>
   );

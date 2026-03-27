@@ -333,7 +333,7 @@ export default function StrategyBuilderPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[#050505] text-white">
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
