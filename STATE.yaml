@@ -348,9 +348,17 @@ tasks:
 
   - id: TC-031
     title: "Plugin system — custom indicators via user-defined JS modules"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: lib/plugin-system.ts (300+ lines — CRUD, sandboxed Function execution,
+      validatePluginCode dry-run, 4 seed plugins: VWAP/ATR/OBV/Ichimoku). API routes:
+      GET/POST /api/plugins, GET/PATCH/DELETE /api/plugins/[id] (toggle support),
+      POST /api/plugins/test (validate + execute with mock candles). /plugins page:
+      plugin cards with enable/disable/edit/delete, code editor modal with live test
+      runner showing value/signal/strength/label. Template code included. Category
+      system (trend/momentum/volatility/volume/custom). Mobile nav entry.
+      Build passes clean. Committed 10451308. 2026-03-27
 
   - id: TC-032
     title: "PWA support — installable app, offline caching, push notifications"

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SWRegister } from "./components/sw-register";
 import { MobileNav } from "./components/mobile-nav";
+import { PWAInstallPrompt } from "./components/pwa-install";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -105,6 +106,7 @@ export default function RootLayout({
           {children}
         </div>
         <MobileNav />
+        <PWAInstallPrompt />
       </body>
     </html>
   );
