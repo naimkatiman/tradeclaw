@@ -7,6 +7,8 @@ interface GitHubRepo {
   forks_count: number;
   watchers_count: number;
   open_issues_count: number;
+  pushed_at: string;
+  updated_at: string;
 }
 
 interface CachedData {
@@ -14,6 +16,7 @@ interface CachedData {
   forks: number;
   watchers: number;
   openIssues: number;
+  lastUpdated: string;
 }
 
 let cache: { data: CachedData; timestamp: number } | null = null;
@@ -49,6 +52,7 @@ export async function GET() {
       forks: repo.forks_count,
       watchers: repo.watchers_count,
       openIssues: repo.open_issues_count,
+      lastUpdated: repo.pushed_at || repo.updated_at || new Date().toISOString(),
     };
 
     cache = { data, timestamp: now };
@@ -58,7 +62,7 @@ export async function GET() {
       return NextResponse.json(cache.data);
     }
     return NextResponse.json(
-      { stars: 0, forks: 0, watchers: 0, openIssues: 0 },
+      { stars: 0, forks: 0, watchers: 0, openIssues: 0, lastUpdated: new Date().toISOString() },
       { status: 502 }
     );
   }

@@ -525,8 +525,118 @@ export function StarsClient() {
           </div>
         </section>
 
+        {/* ── Help Us Reach 1,000 Stars ── */}
+        <section className="space-y-6 opacity-0 animate-fade-up" style={{ animationDelay: '380ms', animationFillMode: 'forwards' }}>
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-bold text-white">Help Us Reach 1,000 Stars</h2>
+            <p className="text-[var(--text-secondary)]">Every action below moves the counter. Pick one — or all five.</p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Star on GitHub */}
+            <a
+              href={REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass-card rounded-2xl p-5 flex flex-col gap-3 hover:border-emerald-500/30 transition-all duration-200 group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500/25 transition-colors">
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-white">Star on GitHub</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-0.5">Takes 2 seconds, means the world.</div>
+              </div>
+              <div className="text-xs text-emerald-400 font-medium mt-auto">Star now →</div>
+            </a>
+
+            {/* Share on Twitter */}
+            <a
+              href={twitterShareUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass-card rounded-2xl p-5 flex flex-col gap-3 hover:border-sky-500/30 transition-all duration-200 group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-sky-500/15 flex items-center justify-center text-sky-400 group-hover:bg-sky-500/25 transition-colors">
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.732-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-white">Share on X / Twitter</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-0.5">One tweet reaches 1000+ developers.</div>
+              </div>
+              <div className="text-xs text-sky-400 font-medium mt-auto">Tweet now →</div>
+            </a>
+
+            {/* Write a Blog Post */}
+            <a
+              href={`https://dev.to/new?prefill=---+title%3A+I+tried+TradeClaw%2C+the+open-source+AI+trading+signals+platform%0A---`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass-card rounded-2xl p-5 flex flex-col gap-3 hover:border-violet-500/30 transition-all duration-200 group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center text-violet-400 group-hover:bg-violet-500/25 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-white">Write a Blog Post</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-0.5">Share your experience on dev.to or Medium.</div>
+              </div>
+              <div className="text-xs text-violet-400 font-medium mt-auto">Draft on dev.to →</div>
+            </a>
+
+            {/* Contribute Code */}
+            <a
+              href="/contribute"
+              className="glass-card rounded-2xl p-5 flex flex-col gap-3 hover:border-amber-500/30 transition-all duration-200 group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-400 group-hover:bg-amber-500/25 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-white">Contribute Code</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-0.5">Good first issues waiting for you.</div>
+              </div>
+              <div className="text-xs text-amber-400 font-medium mt-auto">See open issues →</div>
+            </a>
+
+            {/* Self-Host & Share */}
+            <a
+              href="https://github.com/naimkatiman/tradeclaw#quick-start"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass-card rounded-2xl p-5 flex flex-col gap-3 hover:border-rose-500/30 transition-all duration-200 group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-rose-500/15 flex items-center justify-center text-rose-400 group-hover:bg-rose-500/25 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 12H3l9-9 9 9h-2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-white">Self-Host & Share</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-0.5">Deploy in 5 min. Show your community.</div>
+              </div>
+              <div className="text-xs text-rose-400 font-medium mt-auto">Deploy with Docker →</div>
+            </a>
+          </div>
+        </section>
+
+        {/* ── Star History Chart ── */}
+        <section className="glass-card rounded-2xl p-6 space-y-4 opacity-0 animate-fade-up" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-white">Star History</h2>
+            <span className="text-xs text-[var(--text-secondary)]">via star-history.com</span>
+          </div>
+          <div className="w-full rounded-xl overflow-hidden bg-white/3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://api.star-history.com/svg?repos=naimkatiman/tradeclaw&type=Date"
+              alt="Star History chart for naimkatiman/tradeclaw"
+              className="w-full"
+              loading="lazy"
+            />
+          </div>
+        </section>
+
         {/* ── Join the Journey ── */}
-        <section className="space-y-6 opacity-0 animate-fade-up" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+        <section className="space-y-6 opacity-0 animate-fade-up" style={{ animationDelay: '450ms', animationFillMode: 'forwards' }}>
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-bold text-white">Join the Journey</h2>
             <p className="text-[var(--text-secondary)]">Features unlock as TradeClaw grows. Every star counts.</p>
@@ -535,6 +645,10 @@ export function StarsClient() {
           <div className="grid gap-4 sm:grid-cols-2">
             {MILESTONES.map((m, i) => {
               const reached = stats.stars >= m.stars;
+              const milestoneTweet = encodeURIComponent(
+                `TradeClaw just hit the ${m.label} milestone! ${m.emoji} ${m.message} Self-hosted AI trading signals, MIT licensed — star it on GitHub:\n${REPO_URL}`
+              );
+              const milestoneShareUrl = `https://twitter.com/intent/tweet?text=${milestoneTweet}`;
               return (
                 <div
                   key={m.stars}
@@ -543,7 +657,7 @@ export function StarsClient() {
                       ? 'border-amber-500/40 bg-amber-500/10'
                       : 'border-white/10 bg-white/3 opacity-60'
                   }`}
-                  style={{ animationDelay: `${400 + i * 60}ms` }}
+                  style={{ animationDelay: `${450 + i * 60}ms` }}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
@@ -562,13 +676,26 @@ export function StarsClient() {
                         {m.unlock}
                       </p>
                     </div>
-                    {!reached && (
-                      <div className="shrink-0 text-right">
+                    <div className="shrink-0 text-right flex flex-col items-end gap-1.5">
+                      {!reached && (
                         <div className="text-xs text-[var(--text-secondary)]">
                           {(m.stars - stats.stars).toLocaleString()} more
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {reached && (
+                        <a
+                          href={milestoneShareUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-2 py-1 text-[10px] text-[var(--text-secondary)] transition-colors"
+                          title="Share this milestone"
+                        >
+                          <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.732-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                          Share
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

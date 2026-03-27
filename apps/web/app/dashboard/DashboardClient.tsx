@@ -6,6 +6,7 @@ import { LiveTicker } from '../../components/live-ticker';
 import { SignalToast } from '../../components/signal-toast';
 import { ConnectionStatus } from '../../components/connection-status';
 import { GuidedTourListener, TakeTourButton } from '../../components/guided-tour';
+import { StarsWidget } from '../../components/stars-widget';
 import { HintBadge, PageHint } from '../../components/feature-highlights';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import type { TradingSignal } from '../lib/signals';
@@ -323,6 +324,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           </div>
 
           <div className="flex items-center gap-3">
+            <StarsWidget />
             <TakeTourButton />
             <ConnectionStatus state={connectionState} />
             <button
