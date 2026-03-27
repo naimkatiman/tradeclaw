@@ -336,9 +336,15 @@ tasks:
 
   - id: TC-030
     title: "Signal accuracy tracker — historical win/loss stats with public proof"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/signals/history endpoint (filters: pair, direction, outcome,
+      pagination). /accuracy page (AccuracyClient.tsx, 280+ lines): 8-stat summary
+      cards (total/winRate/avgPnl/avgConf/wins/losses/totalPnl/resolved), win/loss
+      distribution bar, filterable signal table with 4h+24h outcome badges, P&L
+      per signal, pagination. Mobile nav entry. Transparency note pointing to
+      data/signal-history.json. Build passes clean. Committed 88c2d339. 2026-03-27
 
   - id: TC-031
     title: "Plugin system — custom indicators via user-defined JS modules"
