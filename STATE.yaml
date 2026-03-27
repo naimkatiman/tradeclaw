@@ -526,17 +526,17 @@ tasks:
 
   - id: TC-048
     title: "One-command demo with Bun/npx — npx tradeclaw-demo spins up local instance in 10 seconds"
-    status: in-progress
+    status: done
     owner: pm-tradeclaw
-    notes: "Started 2026-03-28. Building npx tradeclaw package."
+    notes: "Done 2026-03-28. packages/tradeclaw-demo/ — Express server, Bloomberg-style UI, signal cards, comparison table, GitHub stars live fetch, auto-refresh. Committed e1613542."
 
   # ── Phase 10: Maximum Virality + Developer Ecosystem ──
 
   - id: TC-049
     title: "Interactive signal replay — step through historical signals with visual price simulation"
-    status: pending
+    status: in-progress
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Started 2026-03-28."
 
   - id: TC-050
     title: "Public API key system — generate free API keys, rate-limited, for external developers"

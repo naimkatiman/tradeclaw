@@ -15,6 +15,7 @@ const NAV_LINKS = [
   { href: '/stars', label: 'Stars 🌟' },
   { href: '/hn', label: 'HN 🟠' },
   { href: '/rss', label: 'RSS 📡' },
+  { href: '/replay', label: 'Replay ▶' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
 
