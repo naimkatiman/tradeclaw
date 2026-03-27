@@ -464,9 +464,14 @@ tasks:
 
   - id: TC-042
     title: "README visual upgrade — real Playwright screenshots, animated demo GIF script, hero banner"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: apps/web/public/readme-banner.svg (1280x640 dark SVG, TradeClaw branding,
+      mock signal card, emerald accents). README.md restructured to ~220 lines: banner at top,
+      Live Demo section, expanded comparison table, screenshots section with OG image URLs,
+      cleaner Quick Start. docs/github-social-preview.md with setup instructions.
+      Build passes 86 pages. Committed 02dd92ec. 2026-03-28
 
   - id: TC-043
     title: "Contributor onboarding — /contribute page, good-first-issue generator, mentorship program"

@@ -218,7 +218,9 @@ Every star and share helps independent traders discover a free alternative to ex
 
 Pull requests welcome. For major changes, open an issue first.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+👉 **[Contributor hub → tradeclaw.win/contribute](https://tradeclaw.win/contribute)** — good first issues, mentorship program, and step-by-step setup guide.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines. Ready-to-post issue templates are in [.github/GOOD_FIRST_ISSUES.md](.github/GOOD_FIRST_ISSUES.md).
 
 ```bash
 # Development
