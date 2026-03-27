@@ -428,15 +428,27 @@ tasks:
 
   - id: TC-039
     title: "Awesome-lists submission kit — pre-written PRs + /awesome page on site"
-    status: in-progress
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: docs/awesome-lists/ (awesome-selfhosted.md, awesome-quant.md, awesome-trading.md,
+      submission-checklist.md). /awesome page (server page.tsx + AwesomeClient.tsx with copy-to-clipboard
+      toast, entry previews, status badges). README Contributing section updated. Build passes. Committed
+      74798327. 2026-03-28
 
   - id: TC-040
     title: "ProductHunt launch preparation — /launch page with PH badge, gallery, hunter kit"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: apps/web/app/launch/page.tsx (server, metadata) + LaunchClient.tsx (hero with
+      emerald/purple gradient, PH upvote button, official PH badge embed, 6-card feature gallery,
+      hunter kit with 3 taglines + short desc + topics + first comment + 6 gallery suggestions —
+      all with copy buttons, social sharing pre-written for Twitter/LinkedIn/Reddit, 3-item FAQ
+      accordion, 8-item launch checklist). docs/producthunt-launch.md (full launch playbook: day-before
+      checklist, launch day protocol, first comment template, FAQ responses, asset checklist,
+      post-launch follow-up, metrics table). /launch added to navbar (desktop + mobile via NAV_LINKS).
+      PH badge added to README.md badge row. STATE.yaml updated. 2026-03-28
 
   - id: TC-041
     title: "Social outreach content hub — /share page with 1-click Reddit/HN/Twitter posts + badge wall"
@@ -457,4 +469,4 @@ tasks:
     notes: ""
 
 next_actions:
-  - "pm-tradeclaw: Phase 8 started. TC-039 in-progress (Claude Code spawned)."
+  - "pm-tradeclaw: TC-040 done. Next: TC-041 social outreach hub, TC-042 README visual upgrade."

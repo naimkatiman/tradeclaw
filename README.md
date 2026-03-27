@@ -14,6 +14,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/naimkatiman/tradeclaw)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://typescriptlang.org)
+[![Product Hunt](https://img.shields.io/badge/Product%20Hunt-Launch-DA552F?logo=producthunt&logoColor=white)](https://www.producthunt.com/posts/tradeclaw)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-85EA2D?logo=openapiinitiative&logoColor=black)](https://github.com/naimkatiman/tradeclaw/blob/main/apps/web/app/api/openapi/route.ts)
 
 [**🚀 Live Demo**](https://web-production-a5139.up.railway.app) · [**Dashboard**](https://web-production-a5139.up.railway.app/dashboard) · [**🦞 CLI Agent**](https://github.com/naimkatiman/tradeclaw-agent) · [**Alpha Screener (hosted)**](https://alphascreen.io) · [**Discord**](https://discord.gg/tradeclaw)

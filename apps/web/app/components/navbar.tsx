@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { href: '#how-it-works', label: 'How it works' },
   { href: '#comparison', label: 'Compare' },
   { href: '/awesome', label: 'Awesome' },
+  { href: '/launch', label: 'Launch 🚀' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
 
