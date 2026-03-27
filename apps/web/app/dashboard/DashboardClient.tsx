@@ -2,9 +2,14 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { PriceTicker } from '../components/price-ticker';
+import { LiveTicker } from '../../components/live-ticker';
+import { SignalToast } from '../../components/signal-toast';
+import { ConnectionStatus } from '../../components/connection-status';
+import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import type { TradingSignal } from '../lib/signals';
 import type { TFDirection } from '../lib/signal-generator';
+
+const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];
 
 const TIMEFRAMES = ['ALL', 'M5', 'M15', 'H1', 'H4', 'D1'];
 
@@ -201,6 +206,7 @@ function StatCard({ value, label, color = 'text-white' }: { value: string; label
 }
 
 export function DashboardClient({ initialSignals }: { initialSignals?: TradingSignal[] }) {
+  const { prices, state: connectionState } = usePriceStream(TICKER_PAIRS);
   const [signals, setSignals] = useState<TradingSignal[]>(initialSignals || []);
   const [tfMap, setTfMap] = useState<Map<string, TFDirection[]>>(new Map());
   const [loading, setLoading] = useState(!initialSignals || initialSignals.length === 0);
@@ -296,6 +302,7 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
           </div>
 
           <div className="flex items-center gap-3">
+            <ConnectionStatus state={connectionState} />
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
               className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all duration-200 ${
@@ -305,7 +312,7 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
               }`}
             >
               <span className={`h-1.5 w-1.5 rounded-full ${autoRefresh ? 'bg-emerald-400 pulse-dot' : 'bg-zinc-600'}`} />
-              {autoRefresh ? 'Live' : 'Paused'}
+              {autoRefresh ? 'Auto' : 'Paused'}
             </button>
             {lastUpdate && (
               <span className="hidden sm:block text-xs text-zinc-700 font-mono">
@@ -316,8 +323,8 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
         </div>
       </nav>
 
-      {/* Price ticker */}
-      <PriceTicker />
+      {/* Live ticker */}
+      <LiveTicker prices={prices} pairs={TICKER_PAIRS} />
 
       <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Stats */}
@@ -410,6 +417,8 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
           <p className="text-xs text-zinc-800 mt-1">Signal analysis is for educational purposes only. Not financial advice.</p>
         </footer>
       </div>
+      {/* Signal toasts */}
+      <SignalToast />
     </div>
   );
 }

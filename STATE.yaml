@@ -290,24 +290,67 @@ tasks:
 
   - id: TC-027
     title: "Price alerts — set target price triggers with browser notifications"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
     notes: >
-      /api/alerts CRUD + lib/price-alerts.ts. Browser Push API (serviceWorker + 
-      Notification API). Alert cards on /settings page. Alert triggered when live
-      price crosses target. Also supports % move alerts (e.g. BTC moves 2% in 1hr).
-      Stores in data/price-alerts.json. No backend infra needed.
+      Complete: lib/price-alerts.ts (file-based JSON, CRUD, seed data, checkAlerts),
+      lib/notifications.ts (browser Notification API + permission flow),
+      public/sw.js (service worker for push). 4 API routes: GET/POST /api/alerts,
+      PATCH/DELETE /api/alerts/[id], POST /api/alerts/check, GET /api/alerts/stats.
+      /alerts page: create modal, active/triggered sections, stats bar, enable
+      notifications button. Set Alert button on /signal/[id]. Mobile nav bell icon.
+      Emerald above / rose below theme. 1618 lines added. Build passes. Committed
+      45384a5b. 2026-03-27
 
   - id: TC-028
     title: "Screener page — scan all assets for setups matching custom criteria"
-    status: pending
+    status: done
     owner: pm-tradeclaw
     notes: >
-      /screener page: filter all supported assets by RSI range, MACD crossover, 
-      EMA position, confidence threshold, timeframe. Real-time scan button.
-      Results table with mini-sparkline, signal direction badge, confidence bar.
-      One-click: "View Signal" → /signal/[id], "Add to Watchlist".
-      This is the core feature of Alpha Screener — show it off in open source version.
+      Complete: /screener page (ScreenerClient.tsx, 450+ lines). Filter bar with RSI
+      range dual-slider, MACD filter (any/bullish/bearish), EMA position filter (any/
+      above EMA20/below EMA20/golden cross), confidence threshold slider, timeframe
+      selector (H1/H4/D1), direction filter (All/BUY/SELL), Scan Now button with spinner.
+      Results table: sortable by symbol/price/confidence/RSI/MACD histogram, watchlist
+      star, signal badge (emerald BUY / rose SELL with glow), confidence gradient bar,
+      RSI colored value, MACD mini histogram bar, EMA status badge, canvas sparkline
+      (80x30 with gradient fill), row actions (View/Alert/Watch). localStorage watchlist
+      with "Watchlist Only" toggle + count badge. 4-card stats summary (total/matching/
+      strongest/bias). Loading skeleton rows. /api/screener GET endpoint with all filters
+      applied, deduplication by symbol. MobileNav already had /screener in MAIN_NAV.
+      Build passes 54 pages clean. 2026-03-27
+
+  # ── Phase 6: Production Polish + Viral Differentiators ──
+
+  - id: TC-029
+    title: "Real-time WebSocket price feed + live signal push"
+    status: in_progress
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-030
+    title: "Signal accuracy tracker — historical win/loss stats with public proof"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-031
+    title: "Plugin system — custom indicators via user-defined JS modules"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-032
+    title: "PWA support — installable app, offline caching, push notifications"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-033
+    title: "Comprehensive docs site — /docs with guides, API ref, deployment, examples"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
 
 next_actions:
-  - "pm-tradeclaw: TC-026 done. Next: TC-027 (price alerts), TC-028 (screener page)."
+  - "pm-tradeclaw: Phase 6 defined (TC-029 to TC-033). Starting TC-029."
