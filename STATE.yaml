@@ -452,9 +452,15 @@ tasks:
 
   - id: TC-041
     title: "Social outreach content hub — /share page with 1-click Reddit/HN/Twitter posts + badge wall"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: apps/web/app/share/ShareClient.tsx (client) + page.tsx (server). Platform cards
+      with pre-written posts for Reddit (r/algotrading, r/selfhosted, r/CryptoCurrency), HN Show HN,
+      Twitter/X (3 angles), LinkedIn, Discord. Copy buttons with toast feedback. Badge wall with
+      markdown snippets. localStorage share progress tracker with progress bar. Live GitHub star
+      count + 1000-star progress bar. Navbar entry already existed. Build passes 86 pages.
+      Committed e7cf2e3d. 2026-03-28
 
   - id: TC-042
     title: "README visual upgrade — real Playwright screenshots, animated demo GIF script, hero banner"

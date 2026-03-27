@@ -1,10 +1,8 @@
 <div align="center">
 
-<img src="docs/assets/logo.svg" alt="TradeClaw Logo" width="120" />
+<img src="apps/web/public/readme-banner.svg" alt="TradeClaw — Open-source AI trading signals. Self-hostable. Free." width="100%" />
 
-# TradeClaw
-
-**Self-hosted AI trading signal platform. Runs on your machine. Free forever.**
+<br/>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Stars](https://img.shields.io/github/stars/naimkatiman/tradeclaw?style=social)](https://github.com/naimkatiman/tradeclaw/stargazers)
@@ -17,53 +15,51 @@
 [![Product Hunt](https://img.shields.io/badge/Product%20Hunt-Launch-DA552F?logo=producthunt&logoColor=white)](https://www.producthunt.com/posts/tradeclaw)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-85EA2D?logo=openapiinitiative&logoColor=black)](https://github.com/naimkatiman/tradeclaw/blob/main/apps/web/app/api/openapi/route.ts)
 
-[**🚀 Live Demo**](https://web-production-a5139.up.railway.app) · [**Dashboard**](https://web-production-a5139.up.railway.app/dashboard) · [**🦞 CLI Agent**](https://github.com/naimkatiman/tradeclaw-agent) · [**Alpha Screener (hosted)**](https://alphascreen.io) · [**Discord**](https://discord.gg/tradeclaw)
+[**🚀 Live Demo**](https://tradeclaw.win) · [**Dashboard**](https://tradeclaw.win/dashboard) · [**🦞 CLI Agent**](https://github.com/naimkatiman/tradeclaw-agent) · [**Alpha Screener (hosted)**](https://alphascreen.io) · [**Discord**](https://discord.gg/tradeclaw)
 
 > **Prefer CLI over web?** → Check out **[tradeclaw-agent](https://github.com/naimkatiman/tradeclaw-agent)** — the daemon version that pushes signals directly to Telegram/Discord.
-
-<br/>
-
-<!-- Dashboard preview -->
-<img src="docs/assets/dashboard-preview.png" alt="TradeClaw Dashboard — AI Trading Signals" width="800" onerror="this.style.display='none'" />
-
-> **[→ Try the live demo](https://tradeclaw.demo.alphascreen.io)** • [Deploy your own in 5 min ↗](#quick-start)
 
 </div>
 
 ---
 
+## 🎬 Live Demo
+
+> **[Try the live demo →](https://tradeclaw.win)**
+
+[![TradeClaw Dashboard](https://tradeclaw.win/api/og)](https://tradeclaw.win/dashboard)
+
+---
+
 ## Why TradeClaw?
 
-Most trading dashboards are:
-- **Expensive** (Bloomberg, TradingView Pro — $$$)
-- **Cloud-locked** (your signals, their servers)
-- **Dumb** (no AI, no context, just charts)
+Most trading dashboards are **expensive, cloud-locked, and dumb** (no AI, just charts). TradeClaw is different:
 
-TradeClaw is different:
-
-| Feature | TradeClaw | TradingView | MT4 Platform |
-|---------|-----------|-------------|--------------|
-| AI-generated signals | ✅ | ❌ | ❌ |
-| Self-hosted | ✅ | ❌ | Partial |
-| Open source | ✅ | ❌ | ❌ |
-| Multi-asset (forex + crypto + metals) | ✅ | ✅ | Partial |
-| One-click Docker deploy | ✅ | ❌ | ❌ |
-| Free forever | ✅ | ❌ | ❌ |
+| Feature | TradeClaw | TradingView | Bloomberg | MT4 Platform |
+|---------|:---------:|:-----------:|:---------:|:------------:|
+| AI-generated signals | ✅ | ❌ | ❌ | ❌ |
+| Self-hosted | ✅ | ❌ | ❌ | Partial |
+| Open source | ✅ | ❌ | ❌ | ❌ |
+| Multi-asset (forex + crypto + metals) | ✅ | ✅ | ✅ | Partial |
+| One-click Docker deploy | ✅ | ❌ | ❌ | ❌ |
+| Free forever | ✅ | ❌ | ❌ | ❌ |
+| Telegram push notifications | ✅ | ❌ | ❌ | ❌ |
+| Backtesting engine | ✅ | Pro only | ❌ | Limited |
 
 ---
 
 ## What It Does
 
-TradeClaw gives you AI-powered trading signals on **15 assets** across forex, crypto, and metals — with full technical analysis, risk management, and a clean dashboard you actually want to look at.
+TradeClaw gives you AI-powered trading signals on **15 assets** across forex, crypto, and metals — with full technical analysis, risk management, and a clean dashboard.
 
-### Supported Assets
+### 📈 Supported Assets
 ```
 Forex:   XAUUSD · XAGUSD · EURUSD · GBPUSD · USDJPY · AUDUSD
 Crypto:  BTCUSD · ETHUSD · XRPUSD · SOLUSD · ADAUSD
 Indices: US30 · NAS100 · SPX500 · GER40
 ```
 
-### Signal Engine
+### ⚡ Signal Engine
 Every signal includes:
 - **Direction:** BUY / SELL with confidence score
 - **Entry zone** with Fibonacci precision
@@ -71,30 +67,51 @@ Every signal includes:
 - **Stop loss** (ATR-based, volatility-adjusted)
 - **Multi-timeframe alignment** (M15 → H1 → H4 → D1)
 
-### Technical Indicators
-RSI · MACD · EMA (9/21/50/200) · Bollinger Bands · Stochastic · Support/Resistance · Fibonacci Retracements
+**Technical Indicators:** RSI · MACD · EMA (9/21/50/200) · Bollinger Bands · Stochastic · Support/Resistance · Fibonacci
 
-### Everything Else
-- 📊 **Canvas-based charts** — fast, no Canvas library bloat
-- 📜 **Signal history** — 30-day lookback, searchable
-- 🏆 **Signal leaderboard** — ranked by accuracy
-- 📝 **Paper trading** — risk-free practice mode
-- 🔬 **Backtesting engine** — test strategies on historical data
-- 🤖 **Telegram bot** — signals pushed to your phone
-- 🔔 **Custom alerts** — price, indicator, or signal-based
-- 📱 **PWA** — installable, works offline
+### 🧰 Full Feature Set
+
+| Feature | Description |
+|---------|-------------|
+| 📊 **Canvas charts** | Fast, no library bloat |
+| 📜 **Signal history** | 30-day lookback, searchable |
+| 🏆 **Leaderboard** | Signals ranked by accuracy |
+| 📝 **Paper trading** | Risk-free practice mode |
+| 🔬 **Backtesting** | Test strategies on historical data |
+| 🤖 **Telegram bot** | Signals pushed to your phone |
+| 🔔 **Custom alerts** | Price, indicator, or signal-based |
+| 📱 **PWA** | Installable, works offline |
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
+# 1. Clone
 git clone https://github.com/naimkatiman/tradeclaw
+
+# 2. Configure
 cp .env.example .env
+
+# 3. Launch
 docker compose up -d
 ```
 
 Open [http://localhost:3000](http://localhost:3000). That's it.
+
+---
+
+## Screenshots
+
+<div align="center">
+
+[![Dashboard](https://tradeclaw.win/api/og)](https://tradeclaw.win/dashboard)
+
+[![Signal Leaderboard](https://tradeclaw.win/api/og/leaderboard)](https://tradeclaw.win/leaderboard)
+
+[![XAUUSD Signal](https://tradeclaw.win/api/og/signal/XAUUSD-H1-BUY)](https://tradeclaw.win/signals/XAUUSD)
+
+</div>
 
 ---
 
@@ -136,7 +153,7 @@ DEFAULT_CAPITAL=500
 ```
 tradeclaw/
 ├── apps/
-│   └── web/              # Next.js 16 frontend + API routes
+│   └── web/              # Next.js 15 frontend + API routes
 │       ├── app/          # App router pages
 │       ├── components/   # UI components
 │       └── lib/          # Signal engine, indicators, utils
@@ -145,7 +162,7 @@ tradeclaw/
 └── docs/                 # Documentation
 ```
 
-**Stack:** Next.js 16 · TypeScript · Tailwind CSS v4 · Canvas API · Vercel/Railway-ready
+**Stack:** Next.js 15 · TypeScript · Tailwind CSS v4 · Canvas API · Vercel/Railway-ready
 
 ---
 
@@ -183,26 +200,17 @@ If you don't want to manage infrastructure, **[Alpha Screener](https://alphascre
 | 📋 | Mobile app (React Native) |
 | 📋 | Strategy builder (visual drag-and-drop) |
 | 📋 | MT4/MT5 connector (MetaApi) |
-| 📋 | Social signal sharing |
 | 📋 | AI explanation mode ("why this signal?") |
 
 ---
 
-## ⭐ Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=naimkatiman/tradeclaw,naimkatiman/tradeclaw-agent&type=Date)](https://star-history.com/#naimkatiman/tradeclaw&naimkatiman/tradeclaw-agent&Date)
-
----
-
-## 🚀 Help Us Grow
+## ⭐ Help Us Grow
 
 Every star and share helps independent traders discover a free alternative to expensive signal platforms.
 
 - ⭐ **[Star the repo](https://github.com/naimkatiman/tradeclaw)** — takes 3 seconds, signals traction to the community
-- 📣 **[Share on social](https://tradeclaw.win/share)** — pre-written posts for Reddit, HN, Twitter, LinkedIn, Discord and Telegram
-- 📋 **[Submit to awesome-lists](https://tradeclaw.win/awesome)** — upvote open PRs to awesome-selfhosted, awesome-quant and more
-
-> Pre-written posts with copy buttons are available at [tradeclaw.win/share](https://tradeclaw.win/share) — takes 30 seconds to share across all platforms.
+- 📣 **[Share on social](https://tradeclaw.win/share)** — pre-written posts for Reddit, HN, Twitter, LinkedIn, Discord
+- 📋 **[Submit to awesome-lists](https://tradeclaw.win/awesome)** — upvote open PRs to awesome-selfhosted, awesome-quant
 
 ---
 
@@ -212,8 +220,6 @@ Pull requests welcome. For major changes, open an issue first.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-**Help us get listed on awesome-lists** — pre-written PR templates for awesome-selfhosted, awesome-quant, and awesome-trading are in [`docs/awesome-lists/`](docs/awesome-lists/). Upvoting open PRs takes 2 minutes and helps thousands of developers discover TradeClaw. Track status at [tradeclaw.win/awesome](https://tradeclaw.win/awesome).
-
 ```bash
 # Development
 npm install
@@ -221,6 +227,10 @@ npm run dev        # Start dev server on :3000
 npm run lint       # ESLint
 npm run build      # Production build
 ```
+
+- 🐛 [Report a bug](https://github.com/naimkatiman/tradeclaw/issues/new?template=bug_report.yml)
+- 💡 [Request a feature](https://github.com/naimkatiman/tradeclaw/issues/new?template=feature_request.yml)
+- 💬 [Join Discord](https://discord.gg/tradeclaw)
 
 ---
 
@@ -233,30 +243,21 @@ npm run build      # Production build
 
 ---
 
-## Contributing
+## ⭐ Star History
 
-PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+[![Star History Chart](https://api.star-history.com/svg?repos=naimkatiman/tradeclaw,naimkatiman/tradeclaw-agent&type=Date)](https://star-history.com/#naimkatiman/tradeclaw&naimkatiman/tradeclaw-agent&Date)
 
-- 🐛 [Report a bug](https://github.com/naimkatiman/tradeclaw/issues/new?template=bug_report.yml)
-- 💡 [Request a feature](https://github.com/naimkatiman/tradeclaw/issues/new?template=feature_request.yml)
-- 📊 [Ask about signals](https://github.com/naimkatiman/tradeclaw/issues/new?template=signal_question.yml)
-- 💬 [Join Discord](https://discord.gg/tradeclaw)
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for a full history of releases.
+---
 
 ## License
 
-MIT — use it, fork it, build on it. Just don't sell it as your own.
+MIT — use it, fork it, build on it.
 
 ---
 
 <div align="center">
 
 **If TradeClaw saved you money on trading tools, give it a ⭐**
-
-[![Star History Chart](https://api.star-history.com/svg?repos=naimkatiman/tradeclaw&type=Date)](https://star-history.com/#naimkatiman/tradeclaw&Date)
 
 Made with 🦾 by [@naimkatiman](https://github.com/naimkatiman) · Powered by [Alpha Screener](https://alphascreen.io)
 
