@@ -58,7 +58,7 @@ export default async function SignalPage(
 
   if (direction !== 'BUY' && direction !== 'SELL') notFound();
 
-  const signals = await getSignals({ symbol, timeframe, direction });
+  const { signals } = await getSignals({ symbol, timeframe, direction });
   if (signals.length === 0) notFound();
 
   const signal = signals[0];

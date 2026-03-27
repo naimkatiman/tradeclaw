@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
   const direction = searchParams.get('direction') || 'all';     // all | BUY | SELL
 
   // Fetch signals for all symbols at the requested timeframe
-  const signals = await getSignals({
+  const { signals } = await getSignals({
     timeframe,
     direction: direction === 'all' ? undefined : direction,
     minConfidence,

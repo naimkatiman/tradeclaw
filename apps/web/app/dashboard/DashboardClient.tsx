@@ -69,6 +69,15 @@ function TFBadgeInline({ tf }: { tf: TFDirection }) {
   );
 }
 
+function LiveBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+      <span className="h-1 w-1 rounded-full bg-emerald-400 pulse-dot" />
+      LIVE
+    </span>
+  );
+}
+
 function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirections?: TFDirection[] }) {
   const [expanded, setExpanded] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
@@ -87,7 +96,10 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div>
-            <div className="text-sm font-semibold text-white font-mono tracking-tight">{signal.symbol}</div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-semibold text-white font-mono tracking-tight">{signal.symbol}</span>
+              {signal.dataQuality === 'real' && <LiveBadge />}
+            </div>
             <div className="text-[11px] text-zinc-600 font-mono mt-0.5">{signal.timeframe} · {new Date(signal.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
             {tfDirections && tfDirections.length > 0 && (
               <div className="flex gap-1 mt-1.5 overflow-x-auto scrollbar-none">
@@ -210,9 +222,10 @@ function StatCard({ value, label, color = 'text-white' }: { value: string; label
   );
 }
 
-export function DashboardClient({ initialSignals }: { initialSignals?: TradingSignal[] }) {
+export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { initialSignals?: TradingSignal[]; initialSyntheticSymbols?: string[] }) {
   const { prices, state: connectionState } = usePriceStream(TICKER_PAIRS);
   const [signals, setSignals] = useState<TradingSignal[]>(initialSignals || []);
+  const [syntheticSymbols, setSyntheticSymbols] = useState<string[]>(initialSyntheticSymbols || []);
   const [tfMap, setTfMap] = useState<Map<string, TFDirection[]>>(new Map());
   const [loading, setLoading] = useState(!initialSignals || initialSignals.length === 0);
   const [timeframe, setTimeframe] = useState('ALL');
@@ -234,6 +247,7 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
 
       if (signalsRes.status === 'fulfilled') {
         setSignals(signalsRes.value.signals);
+        setSyntheticSymbols(signalsRes.value.syntheticSymbols || []);
       }
       if (mtfRes.status === 'fulfilled' && mtfRes.value.results) {
         const map = new Map<string, TFDirection[]>();
@@ -333,6 +347,15 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
 
       {/* Live ticker */}
       <LiveTicker prices={prices} pairs={TICKER_PAIRS} />
+
+      {/* Synthetic data warning banner */}
+      {syntheticSymbols.length > 0 && syntheticSymbols.length / 12 > 0.3 && (
+        <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-2">
+          <p className="max-w-7xl mx-auto text-xs text-amber-400/80 font-mono">
+            ⚠ {syntheticSymbols.length} of 12 symbols are using synthetic data (API unavailable) — signals suppressed for those pairs.
+          </p>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6">
         <PageHint message="Demo mode: all signals use live-simulated market data. Explore freely — no account needed." />

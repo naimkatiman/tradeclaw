@@ -45,7 +45,7 @@ const BINANCE_INTERVALS: Record<string, string> = {
 const YAHOO_CONFIG: Record<string, { interval: string; range: string }> = {
   M15: { interval: '15m', range: '5d' },
   H1: { interval: '1h', range: '30d' },
-  H4: { interval: '1h', range: '60d' }, // Yahoo doesn't have 4h, we'll aggregate
+  H4: { interval: '1h', range: '90d' }, // Yahoo doesn't have 4h, we'll aggregate
   D1: { interval: '1d', range: '1y' },
 };
 
@@ -166,9 +166,9 @@ async function fetchYahooOHLCV(symbol: string, timeframe: string): Promise<OHLCV
       }
     }
     
-    // For H4 timeframe, aggregate 1h candles into 4h candles
+    // For H4 timeframe, aggregate 1h candles into properly boundary-aligned 4h candles
     if (timeframe === 'H4') {
-      return aggregateCandles(candles, 4);
+      return aggregateCandles(candles, 4, 4 * 3600 * 1000);
     }
     
     return candles;
@@ -178,20 +178,48 @@ async function fetchYahooOHLCV(symbol: string, timeframe: string): Promise<OHLCV
 }
 
 /**
- * Aggregate candles into larger timeframe
+ * Aggregate candles into larger timeframe.
+ * When alignToMs is provided, groups candles by boundary (e.g. 4h = 4*3600*1000)
+ * instead of naive sequential chunking, ensuring proper period alignment.
  */
-function aggregateCandles(candles: OHLCV[], factor: number): OHLCV[] {
+function aggregateCandles(candles: OHLCV[], factor: number, alignToMs?: number): OHLCV[] {
+  if (!alignToMs) {
+    // Naive sequential chunking (for non-forex/fallback)
+    const result: OHLCV[] = [];
+    for (let i = 0; i < candles.length; i += factor) {
+      const chunk = candles.slice(i, i + factor);
+      if (chunk.length === 0) break;
+      result.push({
+        timestamp: chunk[0].timestamp,
+        open: chunk[0].open,
+        high: Math.max(...chunk.map(c => c.high)),
+        low: Math.min(...chunk.map(c => c.low)),
+        close: chunk[chunk.length - 1].close,
+        volume: chunk.reduce((sum, c) => sum + c.volume, 0),
+      });
+    }
+    return result;
+  }
+
+  // Boundary-aligned grouping (e.g. H4 boundaries at 00:00/04:00/08:00/12:00/16:00/20:00 UTC)
+  const groups = new Map<number, OHLCV[]>();
+  for (const c of candles) {
+    const boundary = Math.floor(c.timestamp / alignToMs) * alignToMs;
+    if (!groups.has(boundary)) groups.set(boundary, []);
+    groups.get(boundary)!.push(c);
+  }
+
   const result: OHLCV[] = [];
-  for (let i = 0; i < candles.length; i += factor) {
-    const chunk = candles.slice(i, i + factor);
-    if (chunk.length === 0) break;
+  for (const [boundary, chunk] of [...groups.entries()].sort((a, b) => a[0] - b[0])) {
+    if (chunk.length === 0) continue;
+    const sorted = chunk.sort((a, b) => a.timestamp - b.timestamp);
     result.push({
-      timestamp: chunk[0].timestamp,
-      open: chunk[0].open,
-      high: Math.max(...chunk.map(c => c.high)),
-      low: Math.min(...chunk.map(c => c.low)),
-      close: chunk[chunk.length - 1].close,
-      volume: chunk.reduce((sum, c) => sum + c.volume, 0),
+      timestamp: boundary,
+      open: sorted[0].open,
+      high: Math.max(...sorted.map(c => c.high)),
+      low: Math.min(...sorted.map(c => c.low)),
+      close: sorted[sorted.length - 1].close,
+      volume: sorted.reduce((sum, c) => sum + c.volume, 0),
     });
   }
   return result;

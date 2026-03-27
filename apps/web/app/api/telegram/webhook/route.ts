@@ -136,7 +136,7 @@ async function handleUnsubscribe(chatId: number): Promise<void> {
 }
 
 async function handleSignals(chatId: number): Promise<void> {
-  const signals = await getSignals({ minConfidence: 70 });
+  const { signals } = await getSignals({ minConfidence: 70 });
   const top = signals.slice(0, 5);
 
   if (top.length === 0) {

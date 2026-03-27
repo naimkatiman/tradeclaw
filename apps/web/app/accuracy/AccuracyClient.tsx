@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Search, Check, X } from 'lucide-react';
 
 /* ── Types ── */
 interface SignalOutcome {
@@ -21,6 +22,8 @@ interface SignalRecord {
     '4h': SignalOutcome | null;
     '24h': SignalOutcome | null;
   };
+  isSimulated?: boolean;
+  lastVerified?: number;
 }
 
 interface Stats {
@@ -104,6 +107,13 @@ export function AccuracyClient() {
 
   return (
     <div className="space-y-6 pb-20 md:pb-6">
+      {/* Disclaimer banner */}
+      <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+        <p className="text-xs text-amber-400/90 leading-relaxed">
+          <span className="font-semibold">Disclaimer:</span> Rows marked <span className="font-mono text-zinc-400 bg-zinc-800 px-1 rounded">Example</span> are simulated seed data used to demonstrate the interface and are <strong>excluded from all accuracy statistics</strong>. Only <span className="font-mono text-emerald-400 bg-emerald-500/10 px-1 rounded">Live tracked</span> signals represent real outcomes verified against market prices. Past performance is not indicative of future results. This is not financial advice.
+        </p>
+      </div>
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Signal Accuracy Tracker</h1>
@@ -229,13 +239,15 @@ export function AccuracyClient() {
                 <th className="text-center px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">4h Result</th>
                 <th className="text-center px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">24h Result</th>
                 <th className="text-right px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">P&L</th>
+                <th className="text-center px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Data source</th>
+                <th className="text-right px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Last verified</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 Array.from({ length: 10 }).map((_, i) => (
                   <tr key={i} className="border-b border-zinc-800/30">
-                    {Array.from({ length: 8 }).map((_, j) => (
+                    {Array.from({ length: 10 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
                         <div className="h-4 bg-zinc-800/50 rounded animate-pulse" style={{ width: `${50 + Math.random() * 50}%` }} />
                       </td>
@@ -244,13 +256,13 @@ export function AccuracyClient() {
                 ))
               ) : records.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-zinc-600">
+                  <td colSpan={10} className="px-4 py-12 text-center text-zinc-600">
                     No signals match the current filters
                   </td>
                 </tr>
               ) : (
                 records.map(r => (
-                  <tr key={r.id} className="border-b border-zinc-800/30 hover:bg-zinc-800/20 transition-colors">
+                  <tr key={r.id} className={`border-b border-zinc-800/30 hover:bg-zinc-800/20 transition-colors ${r.isSimulated ? 'opacity-60' : ''}`}>
                     <td className="px-4 py-3 text-zinc-400 font-mono text-xs tabular-nums whitespace-nowrap">
                       {formatTime(r.timestamp)}
                     </td>
@@ -285,6 +297,16 @@ export function AccuracyClient() {
                       ) : (
                         <span className="text-zinc-600">—</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {r.isSimulated ? (
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-500">Example</span>
+                      ) : (
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Live tracked</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono tabular-nums text-xs text-zinc-600 whitespace-nowrap">
+                      {r.lastVerified ? formatTime(r.lastVerified) : '—'}
                     </td>
                   </tr>
                 ))
@@ -321,7 +343,7 @@ export function AccuracyClient() {
 
       {/* Transparency note */}
       <div className="glass-card rounded-xl p-4 border-l-2 border-emerald-500/50">
-        <h3 className="text-sm font-medium text-zinc-300 mb-1">🔍 Full Transparency</h3>
+        <h3 className="text-sm font-medium text-zinc-300 mb-1 flex items-center gap-1.5"><Search className="h-4 w-4 text-emerald-400" /> Full Transparency</h3>
         <p className="text-xs text-zinc-500 leading-relaxed">
           Every signal is recorded at generation time with its entry price and confidence score.
           Outcomes are evaluated at 4-hour and 24-hour windows against actual price movement.
@@ -360,7 +382,7 @@ function OutcomeBadge({ outcome }: { outcome: { price: number; pnlPct: number; h
         ? 'bg-emerald-500/15 text-emerald-400'
         : 'bg-rose-500/15 text-rose-400'
     }`}>
-      {outcome.hit ? '✓ WIN' : '✗ LOSS'}
+      {outcome.hit ? <><Check className="inline h-3 w-3" /> WIN</> : <><X className="inline h-3 w-3" /> LOSS</>}
     </span>
   );
 }

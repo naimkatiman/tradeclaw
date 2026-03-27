@@ -21,6 +21,7 @@ export interface TradingSignal {
   timestamp: string;
   status: 'active' | 'hit_tp1' | 'hit_tp2' | 'hit_tp3' | 'stopped' | 'expired';
   source?: 'real' | 'fallback'; // New field to indicate signal source
+  dataQuality?: 'real' | 'synthetic';
 }
 
 export interface IndicatorSummary {
@@ -224,40 +225,41 @@ export async function getLivePrices(): Promise<Map<string, number>> {
 async function generateRealSignals(
   symbols: typeof SYMBOLS,
   timeframe: string,
-): Promise<TradingSignal[]> {
+): Promise<{ signals: TradingSignal[]; syntheticSymbols: string[] }> {
   const symbolNames = symbols.map(s => s.symbol);
-  
+
   // Fetch OHLCV data for all symbols in parallel
   const ohlcvData = await getMultiOHLCV(symbolNames, timeframe);
-  
+
   const signals: TradingSignal[] = [];
-  
+  const syntheticSymbols: string[] = [];
+
   for (const sym of symbols) {
     const data = ohlcvData.get(sym.symbol);
-    
+
     if (!data || data.candles.length < 50) {
-      // Not enough data — fallback to random for this symbol
-      const livePrices = await getLivePrices();
-      const count = 1 + Math.floor(Math.random() * 2);
-      for (let i = 0; i < count; i++) {
-        signals.push(generateSignal(sym, livePrices.get(sym.symbol)));
-      }
+      // Not enough data — skip this symbol entirely
       continue;
     }
-    
-    // Calculate indicators and generate signals
-    const indicators = calculateAllIndicators(data.candles);
-    const realSignals = generateSignalsFromTA(sym.symbol, indicators, timeframe);
-    
-    // Tag with source
-    for (const sig of realSignals) {
-      sig.source = data.source === 'synthetic' ? 'fallback' : 'real';
+
+    if (data.source === 'synthetic') {
+      syntheticSymbols.push(sym.symbol);
     }
-    
+
+    // Calculate indicators and generate signals (generateSignalsFromTA returns [] for synthetic)
+    const indicators = calculateAllIndicators(data.candles);
+    const signalSource = data.source === 'synthetic' ? 'synthetic' : 'real';
+    const realSignals = generateSignalsFromTA(sym.symbol, indicators, timeframe, signalSource);
+
+    for (const sig of realSignals) {
+      sig.source = 'real';
+      sig.dataQuality = 'real';
+    }
+
     signals.push(...realSignals);
   }
-  
-  return signals;
+
+  return { signals, syntheticSymbols };
 }
 
 /**
@@ -269,7 +271,7 @@ export async function getSignals(params: {
   timeframe?: string;
   direction?: string;
   minConfidence?: number;
-}): Promise<TradingSignal[]> {
+}): Promise<{ signals: TradingSignal[]; syntheticSymbols: string[] }> {
   const { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence = 0 } = params;
 
   let symbols = SYMBOLS;
@@ -277,7 +279,7 @@ export async function getSignals(params: {
     const upper = symbolFilter.toUpperCase();
     symbols = SYMBOLS.filter(s => s.symbol === upper);
     if (symbols.length === 0) {
-      return [];
+      return { signals: [], syntheticSymbols: [] };
     }
   }
 
@@ -287,35 +289,16 @@ export async function getSignals(params: {
     : ['H1', 'H4']; // Default: check H1 and H4
 
   let allSignals: TradingSignal[] = [];
+  const allSyntheticSymbols = new Set<string>();
 
   try {
-    // Generate real TA signals for each timeframe
     for (const tf of timeframesToCheck) {
-      const signals = await generateRealSignals(symbols, tf);
+      const { signals, syntheticSymbols } = await generateRealSignals(symbols, tf);
       allSignals.push(...signals);
-    }
-    
-    // If no real signals generated, provide fallback signals
-    if (allSignals.length === 0) {
-      const livePrices = await getLivePrices();
-      for (const sym of symbols) {
-        const count = 1 + Math.floor(Math.random() * 2);
-        const livePrice = livePrices.get(sym.symbol);
-        for (let i = 0; i < count; i++) {
-          allSignals.push(generateSignal(sym, livePrice));
-        }
-      }
+      for (const s of syntheticSymbols) allSyntheticSymbols.add(s);
     }
   } catch {
-    // Complete fallback if TA engine crashes
-    const livePrices = await getLivePrices();
-    for (const sym of symbols) {
-      const count = 1 + Math.floor(Math.random() * 3);
-      const livePrice = livePrices.get(sym.symbol);
-      for (let i = 0; i < count; i++) {
-        allSignals.push(generateSignal(sym, livePrice));
-      }
-    }
+    // TA engine crashed — return empty rather than misleading random signals
   }
 
   // Apply filters
@@ -334,5 +317,5 @@ export async function getSignals(params: {
   // Sort by confidence descending
   allSignals.sort((a, b) => b.confidence - a.confidence);
 
-  return allSignals;
+  return { signals: allSignals, syntheticSymbols: [...allSyntheticSymbols] };
 }

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { getOHLCV, type OHLCV } from '../app/lib/ohlcv';
 
 export interface SignalOutcome {
   price: number;
@@ -15,6 +16,10 @@ export interface SignalHistoryRecord {
   confidence: number;
   entryPrice: number;
   timestamp: number; // ms epoch
+  tp1?: number;
+  sl?: number;
+  isSimulated?: boolean;
+  lastVerified?: number; // ms epoch when outcomes were last resolved
   outcomes: {
     '4h': SignalOutcome | null;
     '24h': SignalOutcome | null;
@@ -95,6 +100,8 @@ export function recordSignal(
   confidence: number,
   entryPrice: number,
   id?: string,
+  tp1?: number,
+  sl?: number,
 ): void {
   const records = readHistory();
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
@@ -109,6 +116,9 @@ export function recordSignal(
     confidence,
     entryPrice,
     timestamp: Date.now(),
+    tp1,
+    sl,
+    isSimulated: false,
     outcomes: { '4h': null, '24h': null },
   };
 
@@ -122,6 +132,7 @@ export function recordSignal(
 function resolveOutcomesLazy(records: SignalHistoryRecord[]): void {
   const now = Date.now();
   for (const r of records) {
+    if (!r.isSimulated) continue; // real records resolved via resolveRealOutcomes()
     if (r.outcomes['4h'] === null && now - r.timestamp >= 4 * 3600 * 1000) {
       r.outcomes['4h'] = simulateOutcome(r, '4h');
     }
@@ -129,6 +140,77 @@ function resolveOutcomesLazy(records: SignalHistoryRecord[]): void {
       r.outcomes['24h'] = simulateOutcome(r, '24h');
     }
   }
+}
+
+function resolveFromCandles(r: SignalHistoryRecord, candles: OHLCV[]): SignalOutcome | null {
+  if (!r.tp1 || !r.sl || candles.length === 0) return null;
+
+  for (const candle of candles) {
+    if (r.direction === 'BUY') {
+      if (candle.high >= r.tp1) {
+        const pnlPct = +((r.tp1 - r.entryPrice) / r.entryPrice * 100).toFixed(2);
+        return { price: r.tp1, pnlPct, hit: true };
+      }
+      if (candle.low <= r.sl) {
+        const pnlPct = +((r.sl - r.entryPrice) / r.entryPrice * 100).toFixed(2);
+        return { price: r.sl, pnlPct, hit: false };
+      }
+    } else {
+      if (candle.low <= r.tp1) {
+        const pnlPct = +((r.entryPrice - r.tp1) / r.entryPrice * 100).toFixed(2);
+        return { price: r.tp1, pnlPct, hit: true };
+      }
+      if (candle.high >= r.sl) {
+        const pnlPct = +((r.entryPrice - r.sl) / r.entryPrice * 100).toFixed(2);
+        return { price: r.sl, pnlPct, hit: false };
+      }
+    }
+  }
+
+  return null; // still pending — neither TP1 nor SL hit yet
+}
+
+/**
+ * Resolve outcomes for real (non-simulated) signals using actual OHLCV data.
+ * Call this at the start of the history API route.
+ */
+export async function resolveRealOutcomes(): Promise<void> {
+  const records = readHistory();
+  let changed = false;
+  const now = Date.now();
+
+  for (const r of records) {
+    if (r.isSimulated) continue;
+    if (!r.tp1 || !r.sl) continue;
+
+    const needs4h = r.outcomes['4h'] === null && now - r.timestamp >= 4 * 3600 * 1000;
+    const needs24h = r.outcomes['24h'] === null && now - r.timestamp >= 24 * 3600 * 1000;
+    if (!needs4h && !needs24h) continue;
+
+    try {
+      const { candles } = await getOHLCV(r.pair, 'H1');
+
+      if (needs4h) {
+        const windowEnd = r.timestamp + 4 * 3600 * 1000;
+        const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
+        r.outcomes['4h'] = resolveFromCandles(r, window);
+        r.lastVerified = now;
+        changed = true;
+      }
+
+      if (needs24h) {
+        const windowEnd = r.timestamp + 24 * 3600 * 1000;
+        const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
+        r.outcomes['24h'] = resolveFromCandles(r, window);
+        r.lastVerified = now;
+        changed = true;
+      }
+    } catch {
+      // Skip this record if OHLCV fetch fails
+    }
+  }
+
+  if (changed) writeHistory(records);
 }
 
 function seededRandom(seed: number): number {
@@ -176,7 +258,7 @@ export function computeLeaderboard(
     : period === '30d' ? Date.now() - 30 * 86400000
     : 0;
 
-  const filtered = records.filter(r => r.timestamp >= cutoff);
+  const filtered = records.filter(r => r.timestamp >= cutoff && !r.isSimulated);
 
   const map = new Map<string, {
     total: number;
@@ -317,6 +399,7 @@ function generateSeedData(): SignalHistoryRecord[] {
       confidence,
       entryPrice,
       timestamp,
+      isSimulated: true,
       outcomes: { '4h': null, '24h': null },
     };
     rec.outcomes['4h'] = simulateOutcome(rec, '4h');

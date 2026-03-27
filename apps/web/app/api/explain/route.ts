@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'symbol query parameter is required' }, { status: 400 });
   }
 
-  const signals = await getSignals({ symbol, timeframe });
+  const { signals } = await getSignals({ symbol, timeframe });
   const signal = signals[0] ?? null;
 
   if (!signal) {
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     if (!symbol || !timeframe) {
       return NextResponse.json({ error: 'symbol and timeframe are required' }, { status: 400 });
     }
-    const signals = await getSignals({ symbol: symbol.toUpperCase(), timeframe });
+    const { signals } = await getSignals({ symbol: symbol.toUpperCase(), timeframe });
     signal = signals[0] ?? null;
   }
 

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readHistory, type SignalHistoryRecord } from '../../../../lib/signal-history';
+import { readHistory, resolveRealOutcomes, type SignalHistoryRecord } from '../../../../lib/signal-history';
 
 export async function GET(request: NextRequest) {
+  // Resolve real outcomes for any pending non-simulated records
+  await resolveRealOutcomes();
   const { searchParams } = new URL(request.url);
   
   const pair = searchParams.get('pair')?.toUpperCase();
@@ -25,8 +27,8 @@ export async function GET(request: NextRequest) {
   const total = records.length;
   const page = records.slice(offset, offset + limit);
 
-  // Compute aggregate stats
-  const resolved = records.filter(r => r.outcomes['24h']);
+  // Compute aggregate stats — exclude simulated seed data
+  const resolved = records.filter(r => r.outcomes['24h'] && !r.isSimulated);
   const wins = resolved.filter(r => r.outcomes['24h']!.hit);
   const totalPnl = resolved.reduce((sum, r) => sum + (r.outcomes['24h']?.pnlPct ?? 0), 0);
   const avgConfidence = records.length > 0 

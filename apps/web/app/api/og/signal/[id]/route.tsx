@@ -29,7 +29,7 @@ export async function GET(
   let timestamp = new Date().toISOString();
 
   try {
-    const signals = await getSignals({ symbol, timeframe, direction });
+    const { signals } = await getSignals({ symbol, timeframe, direction });
     if (signals.length > 0) {
       const sig = signals[0];
       entry = sig.entry;

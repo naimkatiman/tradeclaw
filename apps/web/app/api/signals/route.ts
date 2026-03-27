@@ -19,26 +19,23 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const signals = await getSignals({
+  const { signals, syntheticSymbols } = await getSignals({
     symbol: symbolFilter || undefined,
     timeframe: timeframeFilter || undefined,
     direction: directionFilter || undefined,
     minConfidence,
   });
 
-  // Count real vs fallback signals
-  const realCount = signals.filter(s => s.source === 'real').length;
-  const fallbackCount = signals.filter(s => s.source === 'fallback').length;
-
   return NextResponse.json({
     count: signals.length,
     timestamp: new Date().toISOString(),
     engine: {
-      real: realCount,
-      fallback: fallbackCount,
-      version: '2.0.0', // TC-009: Real TA engine
+      real: signals.filter(s => s.source === 'real').length,
+      fallback: 0,
+      version: '2.0.0',
     },
     filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence },
     signals,
+    syntheticSymbols,
   });
 }
