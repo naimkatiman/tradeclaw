@@ -4,6 +4,7 @@ import "./globals.css";
 import { SWRegister } from "./components/sw-register";
 import { MobileNav } from "./components/mobile-nav";
 import { PWAInstallPrompt } from "./components/pwa-install";
+import { DemoBanner } from "./components/demo-banner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -102,6 +103,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <SWRegister />
+        {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && <DemoBanner />}
         <div className="flex-1 pb-16 md:pb-0">
           {children}
         </div>

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { LiveTicker } from '../../components/live-ticker';
 import { SignalToast } from '../../components/signal-toast';
 import { ConnectionStatus } from '../../components/connection-status';
+import { GuidedTourListener, TakeTourButton } from '../../components/guided-tour';
+import { HintBadge, PageHint } from '../../components/feature-highlights';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import type { TradingSignal } from '../lib/signals';
 import type { TFDirection } from '../lib/signal-generator';
@@ -118,7 +120,10 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
             <div className={`text-sm font-bold font-mono tabular-nums ${
               signal.confidence >= 80 ? 'text-emerald-400' : signal.confidence >= 65 ? 'text-yellow-400' : 'text-red-400'
             }`}>{signal.confidence}%</div>
-            <div className="text-[10px] text-zinc-600 mt-0.5">confidence</div>
+            <div className="flex items-center justify-end gap-1 mt-0.5">
+              <div className="text-[10px] text-zinc-600">confidence</div>
+              <HintBadge label="Signal confidence (0–100%). ≥80% = high conviction. Combines RSI, MACD, EMA, Stochastic, and BB signals." />
+            </div>
           </div>
         </div>
       </div>
@@ -273,6 +278,7 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
 
   return (
     <div className="min-h-[100dvh] bg-[#050505] text-white">
+      <GuidedTourListener />
       {/* Top nav */}
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#050505]/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
@@ -290,6 +296,7 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
               <Link
                 key={page.href}
                 href={page.href}
+                data-tour-id={`nav-${page.href.slice(1)}`}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                   page.href === '/dashboard'
                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
@@ -302,6 +309,7 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
           </div>
 
           <div className="flex items-center gap-3">
+            <TakeTourButton />
             <ConnectionStatus state={connectionState} />
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
@@ -327,8 +335,10 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
       <LiveTicker prices={prices} pairs={TICKER_PAIRS} />
 
       <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6">
+        <PageHint message="Demo mode: all signals use live-simulated market data. Explore freely — no account needed." />
+
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div data-tour-id="dashboard-stats" className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <StatCard value={String(signals.length)} label="Active signals" />
           <StatCard
             value={`${buyCount} / ${sellCount}`}
@@ -404,7 +414,7 @@ export function DashboardClient({ initialSignals }: { initialSignals?: TradingSi
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div data-tour-id="signal-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {signals.map(signal => (
               <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} />
             ))}

@@ -375,9 +375,45 @@ tasks:
 
   - id: TC-033
     title: "Comprehensive docs site — /docs with guides, API ref, deployment, examples"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
-    notes: "Started 2026-03-27 11:28"
+    notes: >
+      Complete: 6 new docs pages (webhooks, telegram, plugins, embedding, contributing,
+      changelog) + full docs infrastructure (sidebar, nav-config, code-block, page-nav,
+      layout). 1369 lines across pages. 12 nav items in 4 sections. Build passes clean.
+      Committed de30b4b6. 2026-03-27
+
+  # ── Phase 7: Production-Ready + Viral Differentiators ──
+
+  - id: TC-034
+    title: "Live demo instance — seed data, guided tour, zero-config experience"
+    status: done
+    owner: pm-tradeclaw
+    notes: "Done 2026-03-27. DemoBanner, GuidedTour (7-step), HintBadge, PageHint. NEXT_PUBLIC_DEMO_MODE env var. Build passes."
+
+  - id: TC-035
+    title: "Performance dashboard — latency metrics, signal generation stats, system health"
+    status: done
+    owner: pm-tradeclaw
+    notes: "Done 2026-03-27. lib/performance-metrics.ts (file-based JSON, 288-pt seed), 3 API routes (/api/performance, /api/performance/history, /api/performance/reset), /performance page with canvas latency chart, API table, signal bars, cache radial. Mobile nav updated. Build passes."
+
+  - id: TC-036
+    title: "Dark/light theme toggle — system preference detection + manual override"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-037
+    title: "Export/import user data — strategies, alerts, watchlists as portable JSON"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-038
+    title: "Correlation matrix — cross-asset correlation heatmap with live data"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
 
 next_actions:
-  - "pm-tradeclaw: Phase 6 defined (TC-029 to TC-033). Starting TC-029."
+  - "pm-tradeclaw: Phase 7 defined (TC-034 to TC-038). Starting TC-034."
