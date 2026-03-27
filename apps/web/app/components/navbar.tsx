@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { href: '/launch', label: 'Launch 🚀' },
   { href: '/share', label: 'Share ⭐' },
   { href: '/stars', label: 'Stars 🌟' },
+  { href: '/hn', label: 'HN 🟠' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
 

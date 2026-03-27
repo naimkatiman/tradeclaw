@@ -488,9 +488,14 @@ tasks:
 
   - id: TC-044
     title: "GitHub stars counter widget — animated star-growth badge + milestone celebration page"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/github-stars (5-min cache, fallback), StarsWidget component (auto-refresh 60s),
+      /stars page (animated count-up, milestone progress bars, CSS confetti, star-history.com embed,
+      5 action cards, share tweets per milestone), MilestoneCelebrationModal (localStorage-based,
+      shows once per milestone). Added to navbar + mobile nav. StarsWidget in dashboard header.
+      Build passes clean. Committed 1fe1a3c0. 2026-03-28
 
   - id: TC-045
     title: "Hacker News Show HN post generator — auto-draft /hn page with optimal HN submission text"
