@@ -25,6 +25,16 @@
 
 ---
 
+## ⚡ Try in 10 Seconds
+
+```bash
+npx tradeclaw-demo
+```
+
+No installation. No config. No Docker. Just one command — spins up a local demo with live signals instantly.
+
+---
+
 ## 🎬 Live Demo
 
 > **[Try the live demo →](https://tradeclaw.win)**

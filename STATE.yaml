@@ -499,27 +499,69 @@ tasks:
 
   - id: TC-045
     title: "Hacker News Show HN post generator — auto-draft /hn page with optimal HN submission text"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /hn page (HNClient.tsx) with 9 sections: hero, 3 title variants with copy+submit
+      buttons, 300-word body draft, submission tips, first comment template, karma growth tips,
+      6 HN Algolia search links, 7-item localStorage checklist, orange submit button.
+      Navbar + mobile nav updated. README Show HN badge added. Build passes. Committed 850b9322. 2026-03-28
 
   - id: TC-046
     title: "Live signal feed as public RSS/Atom feed — subscribe to trading signals via any RSS reader"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /feed.xml (RSS 2.0), /atom.xml (Atom 1.0), /feed.json (JSON Feed 1.1).
+      All return latest 50 signals from signal-history.ts with CDATA rich HTML descriptions.
+      /rss page with copy-buttons, live signal preview, reader setup guides (Feedly/Inoreader/
+      NewsBlur/FreshRSS), use cases. Feed autodiscovery in layout.tsx metadata.
+      Navbar + mobile nav updated. Committed f744f63d. 2026-03-28
 
   - id: TC-047
     title: "Comparison benchmark page — TradeClaw vs TA-Lib vs pandas-ta vs TradingView Pine Script"
+    status: done
+    owner: pm-tradeclaw
+    notes: "Done 2026-03-28. /compare page committed 56832969."
+
+  - id: TC-048
+    title: "One-command demo with Bun/npx — npx tradeclaw-demo spins up local instance in 10 seconds"
+    status: in-progress
+    owner: pm-tradeclaw
+    notes: "Started 2026-03-28. Building npx tradeclaw package."
+
+  # ── Phase 10: Maximum Virality + Developer Ecosystem ──
+
+  - id: TC-049
+    title: "Interactive signal replay — step through historical signals with visual price simulation"
     status: pending
     owner: pm-tradeclaw
     notes: ""
 
-  - id: TC-048
-    title: "One-command demo with Bun/npx — npx tradeclaw-demo spins up local instance in 10 seconds"
+  - id: TC-050
+    title: "Public API key system — generate free API keys, rate-limited, for external developers"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-051
+    title: "TradeClaw badge — dynamic SVG badge showing live BTC signal for embedding in any README"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-052
+    title: "Signal webhook marketplace — gallery of community webhook integrations (Notion/Airtable/Zapier)"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-053
+    title: "Animated landing page hero — Three.js/canvas particle chart animation for wow-factor"
     status: pending
     owner: pm-tradeclaw
     notes: ""
 
 next_actions:
-  - "pm-tradeclaw: TC-043 done. Now on TC-044 (stars widget + milestone page)."
+  - "pm-tradeclaw: TC-047 done. TC-048 in-progress (npx tradeclaw-demo)."
+  - "Phase 10 tasks TC-049 through TC-053 defined for next runs."

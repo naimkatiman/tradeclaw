@@ -1,0 +1,33 @@
+{
+  "name": "tradeclaw-demo",
+  "version": "0.1.0",
+  "description": "Spin up a TradeClaw AI trading signals demo in 10 seconds",
+  "bin": {
+    "tradeclaw-demo": "./bin/cli.js"
+  },
+  "main": "./lib/index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "open": "^8.4.0",
+    "picocolors": "^1.0.0"
+  },
+  "keywords": [
+    "trading",
+    "signals",
+    "forex",
+    "crypto",
+    "bitcoin",
+    "algo-trading",
+    "demo",
+    "tradeclaw"
+  ],
+  "homepage": "https://tradeclaw.win",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naimkatiman/tradeclaw"
+  },
+  "license": "MIT"
+}
