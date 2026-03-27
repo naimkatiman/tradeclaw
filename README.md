@@ -15,6 +15,7 @@
 [![Product Hunt](https://img.shields.io/badge/Product%20Hunt-Launch-DA552F?logo=producthunt&logoColor=white)](https://www.producthunt.com/posts/tradeclaw)
 [![Show HN](https://img.shields.io/badge/Hacker%20News-Show%20HN-FF6600?logo=ycombinator&logoColor=white)](https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fgithub.com%2Fnaimkatiman%2Ftradeclaw&t=Show+HN%3A+TradeClaw+%E2%80%93+Open-source+AI+trading+signal+platform+(self-hosted))
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-85EA2D?logo=openapiinitiative&logoColor=black)](https://github.com/naimkatiman/tradeclaw/blob/main/apps/web/app/api/openapi/route.ts)
+[![RSS Feed](https://img.shields.io/badge/RSS-Live%20Signals-orange?logo=rss&logoColor=white)](https://tradeclaw.win/feed.xml)
 
 [**🚀 Live Demo**](https://tradeclaw.win) · [**Dashboard**](https://tradeclaw.win/dashboard) · [**🦞 CLI Agent**](https://github.com/naimkatiman/tradeclaw-agent) · [**Alpha Screener (hosted)**](https://alphascreen.io) · [**Discord**](https://discord.gg/tradeclaw)
 

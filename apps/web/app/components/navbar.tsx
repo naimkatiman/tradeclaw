@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { href: '/share', label: 'Share ⭐' },
   { href: '/stars', label: 'Stars 🌟' },
   { href: '/hn', label: 'HN 🟠' },
+  { href: '/rss', label: 'RSS 📡' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
 

@@ -87,6 +87,13 @@ export const metadata: Metadata = {
     images: ["/api/og"],
   },
   manifest: "/manifest.json",
+  alternates: {
+    types: {
+      'application/rss+xml': [{ url: '/feed.xml', title: 'TradeClaw — Live AI Trading Signals (RSS)' }],
+      'application/atom+xml': [{ url: '/atom.xml', title: 'TradeClaw — Live AI Trading Signals (Atom)' }],
+      'application/feed+json': [{ url: '/feed.json', title: 'TradeClaw — Live AI Trading Signals (JSON Feed)' }],
+    },
+  },
 };
 
 export default function RootLayout({
