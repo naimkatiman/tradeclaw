@@ -194,6 +194,18 @@ If you don't want to manage infrastructure, **[Alpha Screener](https://alphascre
 
 ---
 
+## 🚀 Help Us Grow
+
+Every star and share helps independent traders discover a free alternative to expensive signal platforms.
+
+- ⭐ **[Star the repo](https://github.com/naimkatiman/tradeclaw)** — takes 3 seconds, signals traction to the community
+- 📣 **[Share on social](https://tradeclaw.win/share)** — pre-written posts for Reddit, HN, Twitter, LinkedIn, Discord and Telegram
+- 📋 **[Submit to awesome-lists](https://tradeclaw.win/awesome)** — upvote open PRs to awesome-selfhosted, awesome-quant and more
+
+> Pre-written posts with copy buttons are available at [tradeclaw.win/share](https://tradeclaw.win/share) — takes 30 seconds to share across all platforms.
+
+---
+
 ## Contributing
 
 Pull requests welcome. For major changes, open an issue first.

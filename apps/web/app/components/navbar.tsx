@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { href: '#comparison', label: 'Compare' },
   { href: '/awesome', label: 'Awesome' },
   { href: '/launch', label: 'Launch 🚀' },
+  { href: '/share', label: 'Share ⭐' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
 
