@@ -362,15 +362,22 @@ tasks:
 
   - id: TC-032
     title: "PWA support — installable app, offline caching, push notifications"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: Dynamic icon generation (icon.tsx 512px + apple-icon.tsx 180px via
+      next/og). Enhanced sw.js v2: cache-first for static assets, network-first for
+      pages, SSE stream bypass, push notification handler (view/dismiss actions),
+      background sync for alert checks. PWAInstallPrompt component (30s delay,
+      7-day dismiss cooldown, standalone detection). manifest.json updated with
+      SVG + generated PNG icons. Offline page already existed. icon.svg created.
+      Build passes 62 pages. Committed 5034b698. 2026-03-27
 
   - id: TC-033
     title: "Comprehensive docs site — /docs with guides, API ref, deployment, examples"
-    status: pending
+    status: in_progress
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Started 2026-03-27 11:28"
 
 next_actions:
   - "pm-tradeclaw: Phase 6 defined (TC-029 to TC-033). Starting TC-029."
