@@ -520,7 +520,8 @@ export function CompareClient() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/6 overflow-hidden" style={{ background: 'var(--bg-card, #111)' }}>
+          <div className="overflow-x-auto">
+          <div className="rounded-2xl border border-white/6 overflow-hidden min-w-[480px]" style={{ background: 'var(--bg-card, #111)' }}>
             <div className="grid grid-cols-4 border-b border-white/6 bg-white/[0.02] px-6 py-3 text-xs font-semibold text-[var(--text-secondary)]">
               <span>Task</span>
               <span className="text-emerald-400">TradeClaw</span>
@@ -584,6 +585,7 @@ export function CompareClient() {
                 All measurements on Apple M2 Pro with 1,000 OHLCV candles unless noted.
               </p>
             </div>
+          </div>
           </div>
         </div>
       </section>

@@ -440,7 +440,7 @@ export function PerformanceClient() {
             )}
           </div>
 
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <LatencyBox label="AVG" value={m?.latency.avg ?? 0} color="text-zinc-400" />
             <LatencyBox label="p50" value={m?.latency.p50 ?? 0} color="text-emerald-400" />
             <LatencyBox label="p95" value={m?.latency.p95 ?? 0} color="text-amber-400" />

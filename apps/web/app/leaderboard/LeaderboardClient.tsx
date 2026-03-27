@@ -163,8 +163,8 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
             {/* recent signals */}
             <div className="px-4 pb-4">
               <div className="text-[10px] text-zinc-700 uppercase tracking-wider mb-2">Recent Signals</div>
-              <div className="glass-card rounded-xl overflow-hidden">
-                <table className="w-full">
+              <div className="glass-card rounded-xl overflow-x-auto">
+                <table className="w-full min-w-[420px]">
                   <thead>
                     <tr className="border-b border-white/5">
                       <th className="px-3 py-2 text-left text-[10px] text-zinc-700 font-medium">Dir</th>
