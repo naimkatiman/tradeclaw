@@ -323,10 +323,16 @@ tasks:
   # ── Phase 6: Production Polish + Viral Differentiators ──
 
   - id: TC-029
-    title: "Real-time WebSocket price feed + live signal push"
-    status: in_progress
+    title: "Real-time SSE price feed + live signal push"
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/prices/stream SSE endpoint (140 lines). 10 assets with per-asset
+      volatility random-walk simulation, 2s tick interval. Named events: connected,
+      price (PriceTick), signal (~3% per cycle), heartbeat (15s). ?pairs= filter.
+      Frontend hooks (use-price-stream.ts) + components (live-ticker, signal-toast,
+      connection-status) already existed. Dashboard integration already wired.
+      Build passes clean. Committed 3b2a89f8. 2026-03-27
 
   - id: TC-030
     title: "Signal accuracy tracker — historical win/loss stats with public proof"
