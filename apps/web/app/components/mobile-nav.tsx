@@ -168,6 +168,23 @@ const MENU_ITEMS = [
       </svg>
     ),
   },
+  {
+    href: '/correlation',
+    label: 'Correlation',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="4" height="4" rx="0.5" />
+        <rect x="10" y="3" width="4" height="4" rx="0.5" />
+        <rect x="17" y="3" width="4" height="4" rx="0.5" />
+        <rect x="3" y="10" width="4" height="4" rx="0.5" />
+        <rect x="10" y="10" width="4" height="4" rx="0.5" />
+        <rect x="17" y="10" width="4" height="4" rx="0.5" />
+        <rect x="3" y="17" width="4" height="4" rx="0.5" />
+        <rect x="10" y="17" width="4" height="4" rx="0.5" />
+        <rect x="17" y="17" width="4" height="4" rx="0.5" />
+      </svg>
+    ),
+  },
 ];
 
 export function MobileNav() {

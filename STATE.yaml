@@ -405,15 +405,24 @@ tasks:
 
   - id: TC-037
     title: "Export/import user data — strategies, alerts, watchlists as portable JSON"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
-    notes: "Started 2026-03-27 14:00 SGT"
+    notes: >
+      Complete: lib/data-export.ts (367 lines — export/import logic, schema validation,
+      sanitised webhooks, merge/replace modes with conflict detection). 3 API routes:
+      GET /api/export, POST /api/import (merge/replace), POST /api/import/preview (dry-run).
+      /data page: DataClient.tsx (546 lines) — export card with selective checkboxes per
+      data type (client badge for localStorage items), import card with drag-drop zone,
+      auto-preview (counts + conflicts), merge/replace mode selector, import result summary.
+      Client-side data (tc-strategies, screener-watchlist) merged from localStorage on
+      export, written back on import. Webhook secrets redacted. Mobile nav updated.
+      .gitignore fixed (/data/ root-only). Build passes clean. Committed aaff9dc1. 2026-03-27
 
   - id: TC-038
     title: "Correlation matrix — cross-asset correlation heatmap with live data"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Done 2026-03-27. API route /api/correlation (Pearson r, 100 hourly bars, 5-min cache), /correlation page with CSS heatmap grid, stats cards, top pairs table. Added to mobile nav. Build passes."
 
 next_actions:
-  - "pm-tradeclaw: Phase 7 defined (TC-034 to TC-038). Starting TC-034."
+  - "pm-tradeclaw: Phase 7 complete (TC-034–TC-038). Define Phase 8."
