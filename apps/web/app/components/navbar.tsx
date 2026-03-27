@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { ThemeToggle } from './theme-toggle';
 
 const NAV_LINKS = [
   { href: '#features', label: 'Features' },
@@ -46,12 +47,12 @@ export function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-6 text-xs font-medium text-zinc-400">
+          <div className="hidden md:flex items-center gap-6 text-xs font-medium text-[var(--text-secondary)]">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="hover:text-white transition-colors duration-300"
+                className="hover:text-[var(--foreground)] transition-colors duration-300"
               >
                 {link.label}
               </Link>
@@ -77,6 +78,8 @@ export function Navbar() {
               </svg>
               Star
             </a>
+
+            <ThemeToggle className="text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]" />
 
             {/* Mobile hamburger */}
             <button

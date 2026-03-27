@@ -2,5 +2,5 @@ node_modules/
 .next/
 .env
 
-# Signal history data
-data/
+# Signal history data (root-level only)
+/data/

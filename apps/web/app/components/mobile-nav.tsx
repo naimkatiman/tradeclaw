@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { ThemeToggle } from './theme-toggle';
 
 const MAIN_NAV = [
   {
@@ -117,6 +118,17 @@ const MENU_ITEMS = [
     ),
   },
   {
+    href: '/data',
+    label: 'Data',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+    ),
+  },
+  {
     href: '/settings/webhooks',
     label: 'Settings',
     icon: (
@@ -169,7 +181,7 @@ export function MobileNav() {
   return (
     <>
       {/* Bottom nav bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-white/10 bg-black/80 backdrop-blur-xl" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-[var(--border)] backdrop-blur-xl" style={{ paddingBottom: 'env(safe-area-inset-bottom)', background: 'color-mix(in srgb, var(--background) 85%, transparent)' }}>
         <div className="grid grid-cols-4 h-14">
           {MAIN_NAV.map(item => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
@@ -178,7 +190,7 @@ export function MobileNav() {
                 key={item.href}
                 href={item.href}
                 className={`flex flex-col items-center justify-center gap-1 min-h-[44px] transition-colors ${
-                  isActive ? 'text-emerald-400' : 'text-zinc-500'
+                  isActive ? 'text-emerald-400' : 'text-[var(--text-secondary)]'
                 }`}
               >
                 {item.icon}
@@ -191,7 +203,7 @@ export function MobileNav() {
           <button
             onClick={() => setMenuOpen(true)}
             className={`flex flex-col items-center justify-center gap-1 min-h-[44px] transition-colors ${
-              isMenuActive ? 'text-emerald-400' : 'text-zinc-500'
+              isMenuActive ? 'text-emerald-400' : 'text-[var(--text-secondary)]'
             }`}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -214,7 +226,7 @@ export function MobileNav() {
           />
 
           {/* Sheet */}
-          <div className="fixed bottom-0 left-0 right-0 z-[70] md:hidden rounded-t-2xl bg-[#0a0a0a] border-t border-white/10" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}>
+          <div className="fixed bottom-0 left-0 right-0 z-[70] md:hidden rounded-t-2xl border-t border-[var(--border)]" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)', background: 'var(--bg-card)' }}>
             {/* Handle */}
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 rounded-full bg-white/20" />
@@ -222,16 +234,19 @@ export function MobileNav() {
 
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-white/5">
-              <span className="text-sm font-semibold text-white">More</span>
-              <button
-                onClick={() => setMenuOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-zinc-400"
-              >
+              <span className="text-sm font-semibold">More</span>
+              <div className="flex items-center gap-1">
+                <ThemeToggle className="text-zinc-400 hover:text-zinc-200 hover:bg-white/10" />
+                <button
+                  onClick={() => setMenuOpen(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-zinc-400"
+                >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
-              </button>
+                </button>
+              </div>
             </div>
 
             {/* Menu items */}

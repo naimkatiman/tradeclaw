@@ -399,15 +399,15 @@ tasks:
 
   - id: TC-036
     title: "Dark/light theme toggle — system preference detection + manual override"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Done 2026-03-27. next-themes installed, ThemeProvider (class strategy, default dark, enableSystem), ThemeToggle (cycles dark→light→system with sun/moon/monitor icons), CSS vars restructured (:root=light, .dark=dark), glass utilities theme-aware, navbar + mobile-nav updated. Build passes cleanly."
 
   - id: TC-037
     title: "Export/import user data — strategies, alerts, watchlists as portable JSON"
-    status: pending
+    status: in_progress
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Started 2026-03-27 14:00 SGT"
 
   - id: TC-038
     title: "Correlation matrix — cross-asset correlation heatmap with live data"

@@ -5,6 +5,7 @@ import { SWRegister } from "./components/sw-register";
 import { MobileNav } from "./components/mobile-nav";
 import { PWAInstallPrompt } from "./components/pwa-install";
 import { DemoBanner } from "./components/demo-banner";
+import { ThemeProvider } from "./components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -95,20 +96,23 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-[#050505] text-white grain-overlay">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <SWRegister />
-        {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && <DemoBanner />}
-        <div className="flex-1 pb-16 md:pb-0">
-          {children}
-        </div>
-        <MobileNav />
-        <PWAInstallPrompt />
+      <body className="min-h-full flex flex-col grain-overlay" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+        <ThemeProvider>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+          <SWRegister />
+          {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && <DemoBanner />}
+          <div className="flex-1 pb-16 md:pb-0">
+            {children}
+          </div>
+          <MobileNav />
+          <PWAInstallPrompt />
+        </ThemeProvider>
       </body>
     </html>
   );
