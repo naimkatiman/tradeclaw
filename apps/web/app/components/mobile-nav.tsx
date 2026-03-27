@@ -226,6 +226,16 @@ const MENU_ITEMS = [
     ),
   },
   {
+    href: '/demo',
+    label: 'Demo',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+      </svg>
+    ),
+  },
+  {
     href: '/replay',
     label: 'Replay',
     icon: (
