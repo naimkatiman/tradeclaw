@@ -4,3 +4,4 @@ node_modules/
 
 # Signal history data (root-level only)
 /data/
+.env.social

@@ -92,7 +92,12 @@ Share your paper trading performance anywhere with embeddable widgets:
 [![TradeClaw Portfolio](https://img.shields.io/endpoint?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fwidget%2Fportfolio%2Fbadge&style=for-the-badge)](https://tradeclaw.win/paper-trading)
 ```
 
-JSON API: `GET /api/widget/portfolio` — returns balance, equity, P&L, win rate. [Widget page &rarr;](https://tradeclaw.win/widget)
+```markdown
+<!-- SVG badge (no external service) -->
+[![TradeClaw Portfolio](https://tradeclaw.win/api/widget/badge)](https://tradeclaw.win/paper-trading)
+```
+
+JSON API: `GET /api/widget/portfolio` — returns balance, equity, P&L, win rate. [Widget gallery &rarr;](https://tradeclaw.win/widgets)
 
 ## Discord Bot
 
