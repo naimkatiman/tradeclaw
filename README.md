@@ -20,6 +20,7 @@
 [![Code Size](https://img.shields.io/github/languages/code-size/naimkatiman/tradeclaw?color=6366f1)](https://github.com/naimkatiman/tradeclaw)
 [![Discussions](https://img.shields.io/github/discussions/naimkatiman/tradeclaw?color=8b5cf6&logo=github)](https://github.com/naimkatiman/tradeclaw/discussions)
 [![Status](https://img.shields.io/badge/status-operational-emerald)](https://tradeclaw.win/status)
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=github-sponsors&logoColor=white)](https://github.com/sponsors/naimkatiman)
 
 <br/>
 
@@ -128,6 +129,8 @@ If TradeClaw is useful to you, help us grow by starring the repo — it takes 2 
 [![TradeClaw Stars](https://img.shields.io/github/stars/naimkatiman/tradeclaw?style=social)](https://github.com/naimkatiman/tradeclaw)
 
 Every star unlocks community milestones: MT4/MT5 integration at 100, mobile app at 250, hosted cloud at 500, and full backtesting at 1,000. See our **[star campaign page →](https://tradeclaw.win/star)**
+
+- **[Sponsor us](https://tradeclaw.win/sponsor)** — monthly sponsorship keeps the lights on and unlocks roadmap milestones
 
 ---
 

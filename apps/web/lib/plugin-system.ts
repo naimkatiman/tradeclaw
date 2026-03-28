@@ -8,6 +8,8 @@
 
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
+import vm from 'vm';
 
 /* ── Types ── */
 export interface PluginIndicator {
@@ -92,7 +94,7 @@ export function createPlugin(input: Omit<PluginIndicator, 'id' | 'createdAt' | '
   const plugins = readPlugins();
   const plugin: PluginIndicator = {
     ...input,
-    id: `plugin-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    id: `plugin-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
@@ -141,14 +143,24 @@ export function executePlugin(
   }
 
   try {
-    // Create sandboxed function
-    // The function receives: candles (OHLCV[]), params (Record), and Math
-    const fn = new Function(
-      'candles', 'params', 'Math',
-      `"use strict";\n${plugin.code}`
-    );
+    // Create sandboxed context with only safe globals
+    const sandbox = vm.createContext({
+      candles,
+      params,
+      Math,
+      JSON,
+      Number,
+      parseInt,
+      parseFloat,
+      isNaN,
+      isFinite,
+      Array,
+      Object,
+      String,
+      Date,
+    });
 
-    const result = fn(candles, params, Math);
+    const result = vm.runInNewContext(`"use strict";\n${plugin.code}`, sandbox, { timeout: 1000 });
 
     // Validate result shape
     if (
@@ -188,10 +200,7 @@ export function executePlugin(
 /* ── Validate plugin code (dry run) ── */
 export function validatePluginCode(code: string): { valid: boolean; error?: string } {
   try {
-    // Try to create the function (syntax check)
-    new Function('candles', 'params', 'Math', `"use strict";\n${code}`);
-
-    // Run with dummy data
+    // Run with dummy data in a sandboxed context
     const dummyCandles: OHLCV[] = Array.from({ length: 20 }, (_, i) => ({
       open: 100 + i,
       high: 102 + i,
@@ -201,8 +210,23 @@ export function validatePluginCode(code: string): { valid: boolean; error?: stri
       timestamp: Date.now() - (20 - i) * 3600000,
     }));
 
-    const fn = new Function('candles', 'params', 'Math', `"use strict";\n${code}`);
-    const result = fn(dummyCandles, {}, Math);
+    const sandbox = vm.createContext({
+      candles: dummyCandles,
+      params: {},
+      Math,
+      JSON,
+      Number,
+      parseInt,
+      parseFloat,
+      isNaN,
+      isFinite,
+      Array,
+      Object,
+      String,
+      Date,
+    });
+
+    const result = vm.runInNewContext(`"use strict";\n${code}`, sandbox, { timeout: 1000 });
 
     if (typeof result !== 'object' || result === null) {
       return { valid: false, error: 'Must return an object' };

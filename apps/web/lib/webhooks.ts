@@ -93,6 +93,47 @@ function writeWebhooks(webhooks: WebhookConfig[]): void {
 }
 
 // ---------------------------------------------------------------------------
+// URL safety validation (SSRF prevention)
+// ---------------------------------------------------------------------------
+
+function isUnsafeUrl(url: string): boolean {
+  // Reject non-https protocols
+  if (!/^https:\/\//i.test(url)) return true;
+
+  // Reject dangerous protocol prefixes that could be embedded
+  if (/^(file|ftp|data):\/\//i.test(url)) return true;
+
+  let hostname: string;
+  try {
+    hostname = new URL(url).hostname;
+  } catch {
+    return true; // Unparseable URL is unsafe
+  }
+
+  // Reject IPv6 loopback
+  if (hostname === '[::1]' || hostname === '::1') return true;
+
+  // Reject IPv6 private (fc00::/7)
+  if (/^\[?f[cd]/i.test(hostname)) return true;
+
+  // Check for IPv4 private/internal ranges
+  const ipv4Match = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4Match) {
+    const [, a, b] = ipv4Match.map(Number);
+    if (a === 127) return true;                         // 127.0.0.0/8
+    if (a === 10) return true;                          // 10.0.0.0/8
+    if (a === 172 && b >= 16 && b <= 31) return true;   // 172.16.0.0/12
+    if (a === 192 && b === 168) return true;            // 192.168.0.0/16
+    if (a === 169 && b === 254) return true;            // 169.254.0.0/16
+  }
+
+  // Reject localhost by name
+  if (hostname === 'localhost' || hostname.endsWith('.localhost')) return true;
+
+  return false;
+}
+
+// ---------------------------------------------------------------------------
 // CRUD
 // ---------------------------------------------------------------------------
 
@@ -103,6 +144,9 @@ export function addWebhook(opts: {
   pairs?: string[] | 'all';
   minConfidence?: number;
 }): WebhookConfig {
+  if (!opts.url || opts.url.length > 2048) throw new Error('URL must be between 1 and 2048 characters');
+  if (opts.name && opts.name.length > 100) throw new Error('Name must be 100 characters or fewer');
+  if (isUnsafeUrl(opts.url)) throw new Error('URL is not allowed: must be HTTPS and not target internal/private addresses');
   const webhooks = readWebhooks();
   const wh: WebhookConfig = {
     id: `wh_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,

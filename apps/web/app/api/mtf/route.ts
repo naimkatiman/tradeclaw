@@ -114,40 +114,44 @@ function computeConfluence(signals: TimeframeSignal[]): { confluence: number; di
 }
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const symbolFilter = searchParams.get('symbol')?.toUpperCase();
+  try {
+    const { searchParams } = new URL(request.url);
+    const symbolFilter = searchParams.get('symbol')?.toUpperCase();
 
-  const targetSymbols = symbolFilter
-    ? SYMBOLS.filter(s => s.symbol === symbolFilter)
-    : SYMBOLS;
+    const targetSymbols = symbolFilter
+      ? SYMBOLS.filter(s => s.symbol === symbolFilter)
+      : SYMBOLS;
 
-  if (symbolFilter && targetSymbols.length === 0) {
-    return NextResponse.json(
-      { error: `Unknown symbol: ${symbolFilter}` },
-      { status: 400 }
-    );
+    if (symbolFilter && targetSymbols.length === 0) {
+      return NextResponse.json(
+        { error: `Unknown symbol: ${symbolFilter}` },
+        { status: 400 }
+      );
+    }
+
+    // Use minute-level seed for semi-stable signals
+    const baseSeed = Math.floor(Date.now() / 60000);
+
+    const analyses: MTFAnalysis[] = targetSymbols.map(sym => {
+      const symbolSeed = baseSeed + sym.symbol.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+      const timeframes = TIMEFRAMES.map(tf => analyzeTimeframe(sym.symbol, tf, symbolSeed));
+      const { confluence, direction, aligned } = computeConfluence(timeframes);
+
+      return {
+        symbol: sym.symbol,
+        timeframes,
+        confluence,
+        dominantDirection: direction,
+        alignedTimeframes: aligned,
+      };
+    });
+
+    return NextResponse.json({
+      timestamp: new Date().toISOString(),
+      count: analyses.length,
+      analyses,
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-
-  // Use minute-level seed for semi-stable signals
-  const baseSeed = Math.floor(Date.now() / 60000);
-
-  const analyses: MTFAnalysis[] = targetSymbols.map(sym => {
-    const symbolSeed = baseSeed + sym.symbol.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    const timeframes = TIMEFRAMES.map(tf => analyzeTimeframe(sym.symbol, tf, symbolSeed));
-    const { confluence, direction, aligned } = computeConfluence(timeframes);
-
-    return {
-      symbol: sym.symbol,
-      timeframes,
-      confluence,
-      dominantDirection: direction,
-      alignedTimeframes: aligned,
-    };
-  });
-
-  return NextResponse.json({
-    timestamp: new Date().toISOString(),
-    count: analyses.length,
-    analyses,
-  });
 }

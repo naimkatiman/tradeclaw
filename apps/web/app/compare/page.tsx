@@ -1,5 +1,13 @@
 import type { Metadata } from 'next';
-import { CompareClient } from './CompareClient';
+import dynamic from 'next/dynamic';
+
+const CompareClient = dynamic(() => import('./CompareClient').then(m => ({ default: m.CompareClient })), {
+  loading: () => (
+    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  ),
+});
 
 export const metadata: Metadata = {
   title: 'TradeClaw vs TradingView vs TA-Lib vs pandas-ta — Open Source Signal Platform Comparison',

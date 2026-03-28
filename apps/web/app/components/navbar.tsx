@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash } from 'lucide-react';
+import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import type { LucideIcon } from 'lucide-react';
 
@@ -46,8 +46,7 @@ const MORE_GROUPS: DropdownGroup[] = [
     links: [
       { href: '/strategy-builder', label: 'Strategy Builder' },
       { href: '/plugins', label: 'Plugins' },
-      { href: '/badge', label: 'Badges' },
-      { href: '/badges', label: 'Badges Gallery' },
+      { href: '/badge', label: 'Badges Gallery' },
       { href: '/marketplace', label: 'Marketplace' },
       { href: '/api-keys', label: 'API Keys' },
       { href: '/status', label: 'Status', icon: Activity },
@@ -57,7 +56,9 @@ const MORE_GROUPS: DropdownGroup[] = [
     label: 'Community',
     links: [
       { href: '/blog', label: 'Blog' },
+      { href: '/showcase', label: 'Showcase', icon: Users },
       { href: '/contribute', label: 'Contribute', icon: Handshake },
+      { href: '/sponsor', label: 'Sponsor', icon: Heart },
       { href: '/awesome', label: 'Awesome Lists' },
       { href: '/card', label: 'Signal Card' },
       { href: '/playground', label: 'Playground' },

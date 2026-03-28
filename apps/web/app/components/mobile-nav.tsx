@@ -243,7 +243,7 @@ const MENU_SECTIONS: MenuSection[] = [
         ),
       },
       {
-        href: '/badges',
+        href: '/badge',
         label: 'Signal Badges',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -354,6 +354,15 @@ const MENU_SECTIONS: MenuSection[] = [
             <line x1="4" y1="15" x2="20" y2="15" />
             <line x1="10" y1="3" x2="8" y2="21" />
             <line x1="16" y1="3" x2="14" y2="21" />
+          </svg>
+        ),
+      },
+      {
+        href: '/sponsor',
+        label: 'Sponsor',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7 7-7z" />
           </svg>
         ),
       },

@@ -56,7 +56,7 @@ function seedKeys(): ApiKey[] {
   return [
     {
       id: 'demo-key-1',
-      key: 'tc_live_a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4',
+      key: generateKeyString(),
       name: 'Demo Key — Signals only',
       email: 'demo@tradeclaw.win',
       description: 'Read-only access to trading signals endpoint.',
@@ -71,7 +71,7 @@ function seedKeys(): ApiKey[] {
     },
     {
       id: 'demo-key-2',
-      key: 'tc_live_b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5',
+      key: generateKeyString(),
       name: 'Demo Key — Signals + Leaderboard',
       email: 'demo@tradeclaw.win',
       description: 'Signals and leaderboard access for a bot.',
@@ -86,7 +86,7 @@ function seedKeys(): ApiKey[] {
     },
     {
       id: 'demo-key-3',
-      key: 'tc_live_c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6',
+      key: generateKeyString(),
       name: 'Demo Key — Full access',
       email: 'demo@tradeclaw.win',
       description: 'Full scope access: signals, leaderboard, screener.',
@@ -177,7 +177,13 @@ export function revokeKey(id: string): ApiKey | null {
 
 export function getKeyByString(keyStr: string): ApiKey | null {
   const keys = readKeys();
-  return keys.find((k) => k.key === keyStr) ?? null;
+  return keys.find((k) => {
+    try {
+      return crypto.timingSafeEqual(Buffer.from(k.key), Buffer.from(keyStr));
+    } catch {
+      return false;
+    }
+  }) ?? null;
 }
 
 export function listKeysByEmail(email: string): ApiKey[] {
@@ -187,7 +193,13 @@ export function listKeysByEmail(email: string): ApiKey[] {
 
 export function validateKey(keyStr: string): ApiKey | null {
   const keys = readKeys();
-  const key = keys.find((k) => k.key === keyStr && k.status === 'active');
+  const key = keys.find((k) => {
+    try {
+      return crypto.timingSafeEqual(Buffer.from(k.key), Buffer.from(keyStr)) && k.status === 'active';
+    } catch {
+      return false;
+    }
+  });
   if (!key) return null;
   // Update usage
   key.lastUsedAt = Date.now();

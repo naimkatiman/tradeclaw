@@ -940,9 +940,9 @@ next_actions:
 
   - id: TC-083
     title: "GitHub sponsor page + /sponsor — OSS sustainability page with tiers, goals, and roadmap unlocks"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "SponsorClient.tsx (hero, 4 tiers, roadmap milestones, sponsor wall, OSS stats, why-sponsor, share buttons, footer CTA). FUNDING.yml updated with ko_fi + buy_me_a_coffee. /sponsor in navbar Community group + mobile nav More section. README sponsor badge + link in Support section. Build passes."
 
   - id: TC-078
     title: "TradeClaw social card generator — /card page creates a personalized image (your name + fav pair signal) to share"
@@ -953,3 +953,35 @@ next_actions:
       personalized name, live signal fetch, BUY/SELL badge with glow, confidence bar, RSI,
       metadata grid, star CTA. Controls: name, 8 pairs, 3 TFs, refresh. Actions: Download PNG,
       Share on X, Copy to clipboard. Added to Community navbar. Build passes. Committed b16e4492. 2026-03-28
+
+  # ── Phase 17: First-Impression & Distribution Blitz ──
+
+  - id: TC-084
+    title: "Stunning /showcase page — real-world use cases with mock screenshots, testimonials, and 'Deploy yours' CTAs"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-085
+    title: "README overhaul — one hero GIF at top (use demo-signals-animated.svg), tighten to 120 lines, killer first 10 lines"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-086
+    title: "/api/v2 SDK — publish tradeclaw-js npm package (fetch signals, leaderboard, health) so devs can npm install tradeclaw"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-087
+    title: "Viral tweet thread asset pack — /threads page with 7-tweet breakdown of TradeClaw architecture + copy buttons"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-088
+    title: "Landing page above-the-fold score — hero shows LIVE signal data (pair + direction + confidence) fetched from /api/signals on server side for instant wow"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
