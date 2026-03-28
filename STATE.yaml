@@ -879,9 +879,13 @@ next_actions:
 
   - id: TC-075
     title: "CodeSandbox / StackBlitz one-click playground — run TradeClaw signal engine in browser without cloning"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /playground page (PlaygroundClient.tsx) — 3 runnable examples (Signal Engine Core,
+      MACD Calculator, Bollinger Bands) with syntax-highlighted display, copy button, StackBlitz
+      one-click launch, CodeSandbox link, CLI snippet, docs link, star CTA. No install needed.
+      Added to Community navbar. Build passes. Committed b16e4492. 2026-03-28
 
   - id: TC-076
     title: "Signal digest email template — beautiful HTML email showing weekly top signals (copy-paste ready for newsletters)"
@@ -897,6 +901,10 @@ next_actions:
 
   - id: TC-078
     title: "TradeClaw social card generator — /card page creates a personalized image (your name + fav pair signal) to share"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /card page (CardClient.tsx, 380+ lines) — Canvas 1200x630 PNG generator with
+      personalized name, live signal fetch, BUY/SELL badge with glow, confidence bar, RSI,
+      metadata grid, star CTA. Controls: name, 8 pairs, 3 TFs, refresh. Actions: Download PNG,
+      Share on X, Copy to clipboard. Added to Community navbar. Build passes. Committed b16e4492. 2026-03-28
