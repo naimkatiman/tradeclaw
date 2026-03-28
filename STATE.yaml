@@ -764,6 +764,11 @@ next_actions:
 
   - id: TC-068
     title: "Dev.to / Hashnode viral article — 'I built an open-source AI trading signal platform in 7 days'"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: docs/devto-article.md — 1200-word article covering signal engine math, no-database
+      architecture, plugin system, MCP integration, npx viral hooks. Covers tech stack (Next.js/TS),
+      code snippets (scoring algo, synthetic fallback, plugin API), honest disclaimer on accuracy.
+      Ready to submit to Dev.to/Hashnode/Medium. Tags: opensource, trading, nextjs, typescript,
+      selfhosted. 2026-03-28
