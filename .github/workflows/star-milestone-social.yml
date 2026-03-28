@@ -1,0 +1,159 @@
+name: Star Milestone Social Post
+
+on:
+  watch:
+    types: [started]
+  workflow_dispatch:
+    inputs:
+      simulate_stars:
+        description: 'Simulate star count (for testing milestone detection)'
+        required: false
+        default: '0'
+
+jobs:
+  milestone-social:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - name: Check star count and generate social content
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get real star count or use simulation input
+            const simulated = parseInt('${{ github.event.inputs.simulate_stars }}' || '0');
+            
+            let stars;
+            if (simulated > 0) {
+              stars = simulated;
+              core.info(`🧪 Simulating ${stars} stars`);
+            } else {
+              const { data: repo } = await github.rest.repos.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+              stars = repo.stargazers_count;
+            }
+
+            core.info(`Current stars: ${stars}`);
+
+            const milestones = [10, 25, 50, 100, 250, 500, 1000];
+            const milestone = milestones.find(m => stars === m);
+            const nextMilestone = milestones.find(m => m > stars) || (stars * 2);
+            const progress = nextMilestone ? Math.round((stars / nextMilestone) * 100) : 100;
+
+            // Pre-written social post content
+            const tweets = {
+              10:  `🚀 TradeClaw just hit 10 GitHub stars!\n\nOpen-source AI trading signal platform — RSI, MACD, EMA signals across XAUUSD, BTC, EUR/USD and more. Self-hostable, free forever.\n\nnpx tradeclaw signals\n\n👉 https://github.com/naimkatiman/tradeclaw\n\n#OpenSource #AlgoTrading #TradeClaw`,
+              25:  `⭐ 25 stars on TradeClaw! Growing fast.\n\nAI trading signals + paper trading + backtest + Telegram alerts + webhook integrations — all open source, zero cost.\n\nTry it: npx tradeclaw-demo\n\n🔗 https://github.com/naimkatiman/tradeclaw\n\n#Trading #OpenSource #SelfHosted`,
+              50:  `🎯 50 GitHub stars for TradeClaw!\n\nBuilt with Next.js + TypeScript. Signal engine covers 10 assets across H1/H4/D1 timeframes. MCP server for AI assistants included.\n\nStar it if you find it useful ⭐\nhttps://github.com/naimkatiman/tradeclaw\n\n#AlgoTrading #NextJS #OpenSource`,
+              100: `💯 100 stars! Thank you!\n\nTradeClaw now has 100 GitHub stargazers. Started as a weekend project, growing into a real open-source trading platform.\n\nFeatures:\n✅ Live signals (RSI/MACD/EMA)\n✅ Telegram alerts\n✅ Paper trading\n✅ MCP server for AI tools\n✅ 1-click Docker deploy\n\nhttps://github.com/naimkatiman/tradeclaw`,
+              250: `🌟 250 GitHub stars! TradeClaw is officially trending.\n\nOpen-source AI trading signal platform. Built for developers who want real tools, not subscriptions.\n\nnpx tradeclaw signals --pair BTCUSD\n\n#OpenSource #Trading #TypeScript\nhttps://github.com/naimkatiman/tradeclaw`,
+              500: `🔥 500 stars on TradeClaw!\n\nHalf way to 1000. The community is growing and we're just getting started.\n\nIf TradeClaw helped you — share it. That's how open source survives.\n\n🔗 https://github.com/naimkatiman/tradeclaw\n\n#OpenSource #AlgoTrading`,
+              1000: `🎉 1000 GitHub stars! WE MADE IT! 🎉\n\nTradeClaw hit 1000 stars. Thank you to every single person who starred, shared, contributed, and built with it.\n\nThis is just the beginning.\n\n🚀 https://github.com/naimkatiman/tradeclaw\n\n#OpenSource #AlgoTrading #Milestone`,
+            };
+
+            const redditPosts = {
+              10:  `[Show r/algotrading] TradeClaw just hit 10 GitHub stars — open-source AI trading signal platform\n\nBuilt TradeClaw: self-hostable signal platform with RSI/MACD/EMA engine, backtest, paper trading, Telegram alerts. Just hit 10 stars. All TypeScript/Next.js. Try it: npx tradeclaw signals\n\nhttps://github.com/naimkatiman/tradeclaw`,
+              50:  `[Show r/selfhosted] TradeClaw (50 ⭐) — self-hosted trading signal platform with Docker Compose\n\nOne-command self-hosted trading signals. docker compose up and you get: live signals for 10 assets, backtest engine, paper trading simulator, Telegram bot, webhook marketplace.\n\nhttps://github.com/naimkatiman/tradeclaw`,
+              100: `[Show r/algotrading] Open-source trading signal platform hit 100 GitHub stars\n\nTradeClaw is an open-source, self-hostable AI trading signal platform. 100 stars in [X] days. Signal engine uses RSI/MACD/EMA/Bollinger with confluence scoring.\n\nAll code open, no paywalls, MIT licensed.\nhttps://github.com/naimkatiman/tradeclaw`,
+              1000: `[Show r/programming] TradeClaw just hit 1000 GitHub stars — here's what I built\n\n1000 stars for my open-source AI trading signal platform. Built with Next.js 15, TypeScript, no database required. Features: live signals, backtest, paper trading, MCP server for AI assistants.\n\nhttps://github.com/naimkatiman/tradeclaw`,
+            };
+
+            const discordEmbeds = {
+              default: {
+                title: `⭐ TradeClaw hit ${stars} GitHub stars!`,
+                description: milestone 
+                  ? `🎉 Milestone reached: **${milestone} stars**!\n\nHelp us reach ${nextMilestone} by sharing the repo.`
+                  : `We're at ${stars} stars — ${progress}% to ${nextMilestone}!`,
+                color: 0x00d4a3,
+                url: "https://github.com/naimkatiman/tradeclaw",
+                fields: [
+                  { name: "⭐ Stars", value: String(stars), inline: true },
+                  { name: "🎯 Next", value: String(nextMilestone), inline: true },
+                  { name: "📈 Progress", value: `${progress}%`, inline: true },
+                ],
+                footer: { text: "TradeClaw — Open-source AI trading signals" },
+              }
+            };
+
+            // Write job summary
+            await core.summary
+              .addHeading(`⭐ TradeClaw — ${stars} Stars`)
+              .addRaw(milestone ? `\n## 🎉 Milestone Reached: ${milestone} Stars!\n` : `\n## Current: ${stars} stars (${progress}% to ${nextMilestone})\n`)
+              .addHeading('📣 Tweet / X Post', 3)
+              .addCodeBlock(tweets[milestone] || tweets[Math.max(...milestones.filter(m => m <= stars))] || tweets[10], 'text')
+              .addHeading('📱 Reddit Post', 3)
+              .addCodeBlock(redditPosts[milestone] || `Share on r/algotrading:\nhttps://github.com/naimkatiman/tradeclaw — ${stars} stars and growing!`, 'text')
+              .addHeading('💬 Discord Embed JSON', 3)
+              .addCodeBlock(JSON.stringify(discordEmbeds.default, null, 2), 'json')
+              .addHeading('🔗 Quick Share Links', 3)
+              .addList([
+                `Twitter: https://twitter.com/intent/tweet?text=${encodeURIComponent('Check out TradeClaw — open-source AI trading signal platform ⭐ https://github.com/naimkatiman/tradeclaw #OpenSource #AlgoTrading')}`,
+                `Reddit r/algotrading: https://reddit.com/r/algotrading/submit?url=https://github.com/naimkatiman/tradeclaw`,
+                `Reddit r/selfhosted: https://reddit.com/r/selfhosted/submit?url=https://github.com/naimkatiman/tradeclaw`,
+                `HackerNews: https://news.ycombinator.com/submitlink?u=https://github.com/naimkatiman/tradeclaw&t=TradeClaw+–+Open-source+AI+trading+signal+platform`,
+              ])
+              .write();
+
+            // Create milestone issue if hit
+            if (milestone) {
+              core.info(`🎉 Milestone hit: ${milestone} stars!`);
+              
+              // Ensure label exists
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: 'milestone-reached',
+                  color: 'FFD700',
+                  description: 'Star milestone celebration',
+                });
+              } catch (e) {
+                // Label already exists, ignore
+              }
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🌟 ${milestone} Stars Milestone — Social Post Kit`,
+                labels: ['announcement', 'milestone-reached'],
+                body: `## 🎉 TradeClaw just hit **${milestone} GitHub stars**!
+
+Thank you to all **${stars} stargazers**! Here's your social post kit to help spread the word.
+
+---
+
+### 🐦 Tweet / X Post
+\`\`\`
+${tweets[milestone] || ''}
+\`\`\`
+
+### 📱 Reddit
+Post to [r/algotrading](https://reddit.com/r/algotrading) and [r/selfhosted](https://reddit.com/r/selfhosted):
+\`\`\`
+${redditPosts[milestone] || `TradeClaw just hit ${milestone} stars! https://github.com/naimkatiman/tradeclaw`}
+\`\`\`
+
+### 💬 Discord Embed
+\`\`\`json
+${JSON.stringify(discordEmbeds.default, null, 2)}
+\`\`\`
+
+---
+
+### 🎯 Next Milestone: ${nextMilestone} Stars (${progress}% there!)
+
+Help us reach it:
+- ⭐ Share this repo link: https://github.com/naimkatiman/tradeclaw
+- 📝 Write a blog post or tutorial
+- 🐦 Post the tweet above
+- 📣 Mention in r/algotrading, r/selfhosted, r/CryptoCurrency
+- 💬 Post in Discord/Slack trading communities
+
+**Thank you for being part of this!** 🚀`,
+              });
+            }
+
+            return { stars, milestone: milestone || null, nextMilestone, progress };

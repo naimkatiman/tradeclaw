@@ -35,6 +35,8 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/replay', label: 'Replay', icon: Play },
       { href: '/correlation', label: 'Correlation' },
       { href: '/alerts', label: 'Alerts' },
+      { href: '/accuracy', label: 'Accuracy' },
+      { href: '/calibration', label: 'Calibration' },
     ],
   },
   {
