@@ -889,9 +889,12 @@ next_actions:
 
   - id: TC-076
     title: "Signal digest email template — beautiful HTML email showing weekly top signals (copy-paste ready for newsletters)"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      email-digest.ts generates Gmail-compatible dark-theme HTML with top signals, accuracy stats, leaderboard.
+      GET /api/email-digest returns HTML or JSON. /email-digest preview page with copy/download.
+      Added to Community navbar with Mail icon. Build passes. 2026-03-28
 
   - id: TC-077
     title: "Awesome-quant PR submission — open actual PR to awesome-quant and awesome-selfhosted with TradeClaw entry"
