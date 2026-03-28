@@ -1,7 +1,7 @@
 <div align="center">
 
-<a href="https://github.com/naimkatiman/tradeclaw">
-  <img src="apps/web/public/demo-video-thumbnail.svg" alt="Watch TradeClaw Demo — Click to Play" width="100%" />
+<a href="https://tradeclaw.win/demo">
+  <img src="apps/web/public/demo-dashboard-animated.svg" alt="TradeClaw Dashboard Preview" width="100%" />
 </a>
 
 <h1>TradeClaw ⚡</h1>
