@@ -1,7 +1,7 @@
 <div align="center">
 
-<a href="https://tradeclaw.win/demo">
-  <img src="apps/web/public/demo-dashboard-animated.svg" alt="TradeClaw Dashboard Preview" width="100%" />
+<a href="https://tradeclaw.win/dashboard">
+  <img src="apps/web/public/demo.gif" alt="TradeClaw Dashboard Demo" width="100%" />
 </a>
 
 <h1>TradeClaw ⚡</h1>
@@ -12,9 +12,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Last Commit](https://img.shields.io/github/last-commit/naimkatiman/tradeclaw?color=10b981)](https://github.com/naimkatiman/tradeclaw/commits/main)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](https://hub.docker.com)
-[![Demo](https://img.shields.io/badge/Demo-Live-10b981?logo=vercel)](https://tradeclaw.win/demo)
+[![Demo](https://img.shields.io/badge/Demo-Live-10b981?logo=vercel)](https://tradeclaw.win/dashboard)
 
-**[🚀 Live Demo](https://tradeclaw.win/demo)** · **[📡 API Docs](https://tradeclaw.win/api-docs)** · **[🤝 Contribute](https://tradeclaw.win/contribute)**
+**[🚀 Live Demo](https://tradeclaw.win/dashboard)** · **[📡 API Docs](https://tradeclaw.win/api-docs)** · **[🤝 Contribute](https://tradeclaw.win/contribute)**
 
 </div>
 
