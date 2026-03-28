@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use TradeClaw in your research or trading systems, please cite it as below."
+type: software
+title: "TradeClaw"
+abstract: >
+  TradeClaw is an open-source, self-hosted AI trading signal platform that generates
+  real-time BUY/SELL signals for forex, crypto, and commodities using technical analysis
+  indicators including RSI, MACD, EMA crossover, Bollinger Bands, and Stochastic oscillator.
+  Supports backtesting, paper trading, multi-timeframe analysis, and Telegram notifications.
+authors:
+  - family-names: "TradeClaw Contributors"
+    name: "TradeClaw Open Source Project"
+repository-code: "https://github.com/naimkatiman/tradeclaw"
+url: "https://tradeclaw.win"
+license: MIT
+version: "0.4.0"
+date-released: "2026-03-28"
+keywords:
+  - algorithmic-trading
+  - technical-analysis
+  - trading-signals
+  - forex
+  - cryptocurrency
+  - backtesting
+  - paper-trading
+  - open-source
+  - self-hosted
+  - RSI
+  - MACD
+  - EMA

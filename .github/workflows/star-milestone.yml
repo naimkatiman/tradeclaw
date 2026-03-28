@@ -1,0 +1,32 @@
+name: Star Milestones
+
+on:
+  watch:
+    types: [started]
+
+jobs:
+  milestone:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Check star milestones
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: repo } = await github.rest.repos.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const stars = repo.stargazers_count;
+            const milestones = [10, 25, 50, 100, 250, 500, 1000];
+            const milestone = milestones.find(m => stars === m);
+            if (milestone) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🌟 Milestone: ${milestone} GitHub Stars!`,
+                body: `## 🎉 TradeClaw just hit **${milestone} stars**!\n\nThank you to all **${stars} stargazers** who believe in open-source trading tools.\n\n### What's Next\nWe're aiming for ${milestones[milestones.indexOf(milestone) + 1] || milestone * 2} stars next. Help us get there:\n- ⭐ Share the repo: https://github.com/naimkatiman/tradeclaw\n- 📣 Post on [Reddit r/algotrading](https://reddit.com/r/algotrading)\n- 🐦 Tweet about it with #TradeClaw\n- 📝 Write a blog post or tutorial\n\n**Thank you for making this possible!** 🚀`,
+                labels: ['announcement'],
+              });
+            }

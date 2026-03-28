@@ -570,10 +570,48 @@ tasks:
 
   - id: TC-053
     title: "Animated landing page hero — Three.js/canvas particle chart animation for wow-factor"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: animated-chart-hero.tsx rewritten (350+ lines). Dual price lines (emerald + purple)
+      with bezier-smooth curves, gradient fills, glowing tips with pulse rings. 65 particles in
+      three colors (emerald/purple/white) with proximity connection lines. Floating signal badges
+      (130x44 rounded cards with BUY/SELL, symbol, price, confidence bar). Sparkle burst system
+      on new signal spawn. prefers-reduced-motion respected. will-change: transform. Build passes
+      101 pages. Committed b3de743b. 2026-03-28
+
+  # ── Phase 11: Star Acceleration + Developer Credibility ──
+
+  - id: TC-054
+    title: "GitHub trending optimization — perfect repo metadata, topics, About section, social preview"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-055
+    title: "Signal accuracy leaderboard public API — /api/v1 RESTful endpoint with OpenAPI, showcase on landing"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-056
+    title: "TradeClaw CLI tool — npx tradeclaw <command> for signal fetch, backtest, strategy commands in terminal"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-057
+    title: "Video demo script + auto-generated GIF — ffmpeg terminal demo recording embedded in README"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-058
+    title: "Referral star campaign page — /star page with viral loop: share → get notified at 100/500/1000 milestones"
     status: pending
     owner: pm-tradeclaw
     notes: ""
 
 next_actions:
-  - "pm-tradeclaw: TC-047 done. TC-048 in-progress (npx tradeclaw-demo)."
-  - "Phase 10 tasks TC-049 through TC-053 defined for next runs."
+  - "TC-053 done. Phase 11 tasks TC-054 through TC-058 defined."
+  - "Next: TC-054 GitHub trending optimization."

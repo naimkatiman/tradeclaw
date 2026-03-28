@@ -1,0 +1,8 @@
+title: "[Announcement] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## TradeClaw Announcements
+        This category is for official project announcements, new releases, and major updates.
