@@ -244,6 +244,62 @@ export async function resolveRealOutcomes(): Promise<void> {
 }
 
 // ──────────────────────────────────────────────
+// Query helpers for cron resolution pipeline
+// ──────────────────────────────────────────────
+
+/**
+ * Return all records where both 4h and 24h outcomes are still null
+ * (i.e. completely unresolved). Excludes simulated records.
+ */
+export function getPendingRecords(): SignalHistoryRecord[] {
+  const records = readHistory();
+  return records.filter(
+    r => !r.isSimulated && (r.outcomes['4h'] === null || r.outcomes['24h'] === null),
+  );
+}
+
+/**
+ * Check whether a record already exists for the given symbol + direction
+ * within the specified time window (milliseconds from now).
+ */
+export function getRecentRecordForSymbol(
+  symbol: string,
+  direction: 'BUY' | 'SELL',
+  withinMs: number,
+): SignalHistoryRecord | undefined {
+  const cutoff = Date.now() - withinMs;
+  const records = readHistory();
+  return records.find(
+    r => r.pair === symbol && r.direction === direction && r.timestamp >= cutoff,
+  );
+}
+
+/**
+ * Bulk-update records by id. Merges provided partial fields into each matching record.
+ * Returns the number of records updated.
+ */
+export function updateRecords(
+  updates: Array<{ id: string; patch: Partial<SignalHistoryRecord> }>,
+): number {
+  if (updates.length === 0) return 0;
+
+  const records = readHistory();
+  const patchMap = new Map(updates.map(u => [u.id, u.patch]));
+  let changed = 0;
+
+  for (const r of records) {
+    const patch = patchMap.get(r.id);
+    if (patch) {
+      Object.assign(r, patch);
+      changed++;
+    }
+  }
+
+  if (changed > 0) writeHistory(records);
+  return changed;
+}
+
+// ──────────────────────────────────────────────
 // Leaderboard computation
 // ──────────────────────────────────────────────
 

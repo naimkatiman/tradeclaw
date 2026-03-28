@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -34,6 +35,7 @@ interface ApiSignal {
 }
 
 interface Signal {
+  id: string;
   symbol: string;
   asset: string;
   direction: 'BUY' | 'SELL';
@@ -117,6 +119,7 @@ function trendFromIndicators(sig: ApiSignal): string {
 
 function mapApiSignal(api: ApiSignal): Signal {
   return {
+    id: api.id,
     symbol: api.symbol,
     asset: SYMBOL_NAMES[api.symbol] || api.symbol,
     direction: api.direction,
@@ -205,7 +208,10 @@ function SignalCard({ sig, prev }: { sig: Signal; prev?: Signal }) {
               {sig.timeframe}
             </span>
           </div>
-          <div className="text-xs mt-0.5" style={{ color: '#4b5563' }}>{sig.asset} \u00b7 {timeAgo(sig.timestamp)}</div>
+          <div className="flex items-center gap-1.5 mt-1">
+            <DataSourceBadge source={getDataSource(sig.symbol)} />
+          </div>
+          <div className="text-xs mt-0.5" style={{ color: '#4b5563' }}>{sig.asset} · {formatSignalTimestamp(sig.timestamp)}</div>
         </div>
         <div className="text-right">
           <div
@@ -237,7 +243,10 @@ function SignalCard({ sig, prev }: { sig: Signal; prev?: Signal }) {
         ))}
       </div>
       <div className="flex items-center justify-between mt-3 text-xs" style={{ color: '#4b5563' }}>
-        <span>RSI {sig.rsi.toFixed(1)}</span>
+        <span className="flex items-center gap-2">
+          <span>RSI {sig.rsi.toFixed(1)}</span>
+          <span className="text-[9px] font-mono" style={{ color: '#374151' }} title={sig.id}>{shortSignalId(sig.id)}</span>
+        </span>
         <span
           className="text-[9px] font-bold px-1.5 py-0.5 rounded"
           style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)' }}

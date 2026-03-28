@@ -10,6 +10,11 @@ import { GuidedTourListener, TakeTourButton } from '../../components/guided-tour
 import { StarsWidget } from '../../components/stars-widget';
 import { HintBadge, PageHint } from '../../components/feature-highlights';
 import { AnimatedChartHero } from '../../components/animated-chart-hero';
+import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
+import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
+import { SignalLedger } from '../components/signal-ledger';
+import { LatestOutcomes } from '../components/latest-outcomes';
+import { EquityCurve } from '../components/equity-curve';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import type { TradingSignal } from '../lib/signals';
 import type { TFDirection } from '../lib/signal-generator';
@@ -102,8 +107,9 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-semibold text-white font-mono tracking-tight">{signal.symbol}</span>
               {signal.dataQuality === 'real' && <LiveBadge />}
+              <DataSourceBadge source={getDataSource(signal.symbol)} />
             </div>
-            <div className="text-[11px] text-zinc-600 font-mono mt-0.5">{signal.timeframe} · {new Date(signal.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            <div className="text-[11px] text-zinc-600 font-mono mt-0.5">{signal.timeframe} · {formatSignalTimestamp(signal.timestamp)}</div>
             {tfDirections && tfDirections.length > 0 && (
               <div className="flex gap-1 mt-1.5 overflow-x-auto scrollbar-none">
                 {tfDirections.map(tf => <TFBadgeInline key={tf.timeframe} tf={tf} />)}
@@ -207,7 +213,7 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
             </div>
           </div>
           <div className="col-span-2 flex items-center justify-between text-[10px] font-mono text-zinc-700 pt-2 border-t border-white/5">
-            <span>{signal.id}</span>
+            <span title={signal.id}>{shortSignalId(signal.id)}</span>
             <span>BB Width: {signal.indicators.bollingerBands.bandwidth}%</span>
           </div>
         </div>
@@ -377,6 +383,11 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6">
         <PageHint message="Demo mode: all signals use live-simulated market data. Explore freely — no account needed." />
 
+        {/* Accuracy stats bar */}
+        <div className="mb-6">
+          <AccuracyStatsBar />
+        </div>
+
         {/* Stats */}
         <div data-tour-id="dashboard-stats" className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <StatCard value={String(signals.length)} label="Active signals" />
@@ -460,6 +471,19 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
             ))}
           </div>
         )}
+
+        {/* Equity curve chart */}
+        <div className="mt-8">
+          <EquityCurve />
+        </div>
+
+        {/* Signal ledger */}
+        <div className="mt-8">
+          <SignalLedger />
+        </div>
+
+        {/* Signal outcome verification */}
+        <LatestOutcomes limit={5} />
 
         {/* Footer */}
         <footer className="mt-16 pb-8 text-center">

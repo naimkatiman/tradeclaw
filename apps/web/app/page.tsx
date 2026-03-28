@@ -12,6 +12,8 @@ import { SiteFooter } from "../components/landing/site-footer";
 import { LiveDemoSection } from "../components/landing/live-demo-section";
 import { LiveDemoEmbed } from "../components/landing/live-demo-embed";
 import { LiveHeroSignals } from "../components/landing/live-hero-signals";
+import { AccuracyStatsBar } from "./components/accuracy-stats-bar";
+import { LatestOutcomes } from "./components/latest-outcomes";
 
 export default function Home() {
   return (
@@ -20,11 +22,18 @@ export default function Home() {
       <main>
         <ABHero />
         <LiveHeroSignals />
+        <div className="max-w-5xl mx-auto px-4 py-4">
+          <AccuracyStatsBar inline />
+        </div>
         <div className="flex justify-center pb-4">
           <StarsBadge />
         </div>
         <LiveDemoEmbed />
         <LiveDemoSection />
+        {/* Signal outcome social proof */}
+        <div className="max-w-5xl mx-auto px-4">
+          <LatestOutcomes limit={3} compact title="TradeClaw Said X -- Here's What Happened" />
+        </div>
         <SocialProof />
         <HowItWorks />
         <ComparisonTable />

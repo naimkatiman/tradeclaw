@@ -36,6 +36,29 @@ export async function GET(request: NextRequest) {
       ? records.reduce((sum, r) => sum + r.confidence, 0) / records.length
       : 0;
 
+    // Best signal by P&L %
+    let bestSignal: { pair: string; pnlPct: number } | null = null;
+    for (const r of resolved) {
+      const pnl = r.outcomes['24h']?.pnlPct ?? 0;
+      if (!bestSignal || pnl > bestSignal.pnlPct) {
+        bestSignal = { pair: r.pair, pnlPct: pnl };
+      }
+    }
+
+    // Current streak (win/loss) — sorted newest first
+    const sortedResolved = [...resolved].sort((a, b) => b.timestamp - a.timestamp);
+    let streak = 0;
+    if (sortedResolved.length > 0) {
+      const firstHit = sortedResolved[0].outcomes['24h']!.hit;
+      for (const r of sortedResolved) {
+        if (r.outcomes['24h']!.hit === firstHit) {
+          streak += firstHit ? 1 : -1;
+        } else {
+          break;
+        }
+      }
+    }
+
     return NextResponse.json({
       records: page,
       total,
@@ -50,6 +73,8 @@ export async function GET(request: NextRequest) {
         totalPnlPct: +totalPnl.toFixed(2),
         avgPnlPct: resolved.length > 0 ? +(totalPnl / resolved.length).toFixed(2) : 0,
         avgConfidence: +avgConfidence.toFixed(1),
+        bestSignal,
+        streak,
       },
     });
   } catch {
