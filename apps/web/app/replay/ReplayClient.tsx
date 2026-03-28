@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import { ReplayChart } from '../components/charts';
 import { generateBars as genBars } from '../lib/chart-utils';
 
@@ -356,12 +357,12 @@ export default function ReplayClient() {
           <div style={{ fontSize: '0.85rem', color: THEME.muted, lineHeight: 1.5 }}>
             No signals available for replay — signals will appear as they are generated
           </div>
-          <a
+          <Link
             href="/"
             style={{ display: 'inline-block', marginTop: '1.5rem', fontSize: '0.85rem', color: THEME.emerald, textDecoration: 'none', padding: '8px 20px', border: `1px solid ${THEME.emerald}40`, borderRadius: '8px' }}
           >
             Back to Dashboard
-          </a>
+          </Link>
         </div>
       </div>
     );

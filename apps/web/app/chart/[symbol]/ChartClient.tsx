@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { FullChart } from '../../components/charts';
 import { generateBars } from '../../lib/chart-utils';
@@ -14,21 +14,21 @@ export default function ChartClient({ symbol }: ChartClientProps) {
   const [selectedSymbol, setSelectedSymbol] = useState(symbol);
   const symbolConfig = SYMBOLS.find((s) => s.symbol === selectedSymbol) ?? SYMBOLS[0];
 
-  // Capture timestamp once per symbol change to keep useMemo pure
-  const tsRef = useRef(Date.now());
+  // Generate bars with a stable timestamp per symbol change
+  const [ts, setTs] = useState(0);
   useEffect(() => {
-    tsRef.current = Date.now();
+    setTimeout(() => setTs(Date.now()), 0);
   }, [symbolConfig.basePrice]);
 
   const bars = useMemo(
-    () => generateBars(symbolConfig.basePrice, 'BUY', tsRef.current, 120),
-    [symbolConfig.basePrice],
+    () => generateBars(symbolConfig.basePrice, 'BUY', ts, 120),
+    [symbolConfig.basePrice, ts],
   );
 
   // Avoid hydration mismatch — start with fallback, update after mount
   const [chartHeight, setChartHeight] = useState(600);
   useEffect(() => {
-    setChartHeight(window.innerHeight - 72);
+    setTimeout(() => setChartHeight(window.innerHeight - 72), 0);
   }, []);
 
   return (

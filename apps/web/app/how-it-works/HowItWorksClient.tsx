@@ -304,7 +304,7 @@ export function HowItWorksClient() {
             RSI Implementation (from scratch, no TA-Lib)
           </h2>
           <p className="text-sm text-zinc-400 mb-3">
-            Wilder's original RSI formula, implemented in TypeScript.
+            Wilder&apos;s original RSI formula, implemented in TypeScript.
             File:{' '}
             <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded text-emerald-300">apps/web/app/lib/ta-engine.ts</code>
           </p>

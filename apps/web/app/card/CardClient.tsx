@@ -475,7 +475,7 @@ export function CardClient() {
             <div className="mt-4 rounded-xl p-4 border border-white/5 bg-zinc-900/30">
               <p className="text-xs text-zinc-500 leading-relaxed">
                 <span className="text-emerald-400 font-semibold">💡 Tip:</span> Download your card and post it on Twitter/X, Discord, or Telegram with{' '}
-                <span className="text-white font-mono text-[11px]">#TradeClaw</span>. Tag us and we'll retweet!
+                <span className="text-white font-mono text-[11px]">#TradeClaw</span>. Tag us and we&apos;ll retweet!
                 The more people who see it, the faster we reach 1,000 ⭐.
               </p>
             </div>

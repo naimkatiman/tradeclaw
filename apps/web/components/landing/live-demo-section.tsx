@@ -14,9 +14,12 @@ interface Signal {
 export function LiveDemoSection() {
   const [signals, setSignals] = useState<Signal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(0);
 
   useEffect(() => {
     let mounted = true;
+    setTimeout(() => setNow(Date.now()), 0);
+    const tick = setInterval(() => setNow(Date.now()), 10_000);
 
     async function fetchSignals() {
       try {
@@ -44,11 +47,12 @@ export function LiveDemoSection() {
     return () => {
       mounted = false;
       clearInterval(interval);
+      clearInterval(tick);
     };
   }, []);
 
   function timeAgo(iso: string): string {
-    const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    const secs = Math.floor((now - new Date(iso).getTime()) / 1000);
     if (secs < 60) return `${secs}s ago`;
     const mins = Math.floor(secs / 60);
     if (mins < 60) return `${mins}m ago`;

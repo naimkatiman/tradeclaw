@@ -74,14 +74,14 @@ export default function SelfHostingPage() {
             <li><strong className="text-white">Full data ownership</strong> — your signals, your history, on your machine. No vendor lock-in.</li>
             <li><strong className="text-white">Customisable</strong> — change the scoring weights, add indicators, modify thresholds. The code is yours.</li>
             <li><strong className="text-white">No rate limits</strong> — self-hosted means as many signals, backtests, and screener scans as your server handles.</li>
-            <li><strong className="text-white">Privacy</strong> — your trading activity doesn't touch someone else's servers.</li>
+            <li><strong className="text-white">Privacy</strong> — your trading activity doesn&apos;t touch someone else&apos;s servers.</li>
             <li><strong className="text-white">Free API access</strong> — plug your own apps into <code className="text-xs bg-zinc-800 px-1 py-0.5 rounded text-emerald-300">/api/v1/signals</code> without paying for API access.</li>
           </ul>
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">What You Give Up</h2>
           <p className="text-zinc-300">Be honest with yourself here:</p>
           <ul className="space-y-2 text-zinc-400 list-disc list-inside">
-            <li><strong className="text-white">Maintenance</strong> — you're responsible for updates, uptime, and backups. Minimal, but real.</li>
+            <li><strong className="text-white">Maintenance</strong> — you&apos;re responsible for updates, uptime, and backups. Minimal, but real.</li>
             <li><strong className="text-white">Support</strong> — no customer service team. GitHub issues and community.</li>
             <li><strong className="text-white">Mobile apps</strong> — TradeClaw is a web app. No dedicated iOS/Android app yet.</li>
             <li><strong className="text-white">Broker integrations</strong> — no one-click IBKR or Binance trading from TradeClaw (yet). Signals only.</li>
@@ -98,7 +98,7 @@ cd tradeclaw
 cp .env.example .env  # edit if needed
 docker compose up -d  # done`}</pre>
           </div>
-          <p className="text-zinc-400">That's it. Open <code className="text-xs bg-zinc-800 px-1 py-0.5 rounded text-emerald-300">http://localhost:3000</code> and you have a running signal dashboard.</p>
+          <p className="text-zinc-400">That&apos;s it. Open <code className="text-xs bg-zinc-800 px-1 py-0.5 rounded text-emerald-300">http://localhost:3000</code> and you have a running signal dashboard.</p>
 
           <h3 className="font-semibold text-white mt-4 mb-2">Option 2: One-click Railway deploy</h3>
           <p className="text-zinc-400">Click the Railway deploy button in the README. It provisions a container, sets env vars, and gives you a public URL. Free tier works for personal use.</p>

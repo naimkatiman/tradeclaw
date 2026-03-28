@@ -189,8 +189,10 @@ export function QuizClient() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved && saved in PROFILES) {
-        setResult(saved as ProfileKey);
-        setStep(QUESTIONS.length); // jump to results
+        setTimeout(() => {
+          setResult(saved as ProfileKey);
+          setStep(QUESTIONS.length); // jump to results
+        }, 0);
       }
     } catch {
       // localStorage not available

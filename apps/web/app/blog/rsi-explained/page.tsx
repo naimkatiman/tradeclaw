@@ -36,7 +36,7 @@ export default function RSIExplainedPage() {
         <div className="prose prose-invert prose-zinc max-w-none space-y-6 text-sm leading-7">
 
           <p className="text-base text-zinc-300">
-            RSI (Relative Strength Index) appears on the screen of virtually every trader. Created by J. Welles Wilder Jr. in 1978, it's one of the oldest and most used technical indicators. But most traders use it as a magic number — "below 30 = buy, above 70 = sell" — without understanding the math behind it.
+            RSI (Relative Strength Index) appears on the screen of virtually every trader. Created by J. Welles Wilder Jr. in 1978, it&apos;s one of the oldest and most used technical indicators. But most traders use it as a magic number — &quot;below 30 = buy, above 70 = sell&quot; — without understanding the math behind it.
           </p>
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">What RSI Actually Measures</h2>
@@ -50,7 +50,7 @@ export default function RSIExplainedPage() {
           </ul>
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">The Formula</h2>
-          <p className="text-zinc-300">Wilder's formula in three steps:</p>
+          <p className="text-zinc-300">Wilder&apos;s formula in three steps:</p>
 
           <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-5 font-mono text-sm space-y-2 text-zinc-300">
             <div><span className="text-zinc-500">Step 1:</span> RS = Average Gain(n) / Average Loss(n)</div>
@@ -58,10 +58,10 @@ export default function RSIExplainedPage() {
             <div><span className="text-zinc-500">Smoothing:</span> AvgGain = (prevAvgGain × (n−1) + currentGain) / n</div>
           </div>
 
-          <p className="text-zinc-400">Where <code className="text-emerald-300 bg-zinc-800 px-1.5 py-0.5 rounded text-xs">n = 14</code> by default (Wilder's original choice).</p>
+          <p className="text-zinc-400">Where <code className="text-emerald-300 bg-zinc-800 px-1.5 py-0.5 rounded text-xs">n = 14</code> by default (Wilder&apos;s original choice).</p>
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">TypeScript Implementation (from TradeClaw)</h2>
-          <p className="text-zinc-300">Here's the exact implementation we use — no third-party TA library, just math:</p>
+          <p className="text-zinc-300">Here&apos;s the exact implementation we use — no third-party TA library, just math:</p>
 
           <div className="bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden">
             <div className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-xs text-zinc-400 font-mono">apps/web/app/lib/ta-engine.ts</div>
@@ -95,7 +95,7 @@ export default function RSIExplainedPage() {
           </div>
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">How TradeClaw Uses RSI in Signal Scoring</h2>
-          <p className="text-zinc-300">RSI contributes up to 20 points in TradeClaw's 90-point signal scoring system:</p>
+          <p className="text-zinc-300">RSI contributes up to 20 points in TradeClaw&apos;s 90-point signal scoring system:</p>
 
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
             <table className="w-full text-xs">
@@ -126,13 +126,13 @@ export default function RSIExplainedPage() {
           </div>
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">RSI Limitations</h2>
-          <p className="text-zinc-300">RSI alone isn't enough. These are its known weaknesses:</p>
+          <p className="text-zinc-300">RSI alone isn&apos;t enough. These are its known weaknesses:</p>
           <ul className="space-y-2 text-zinc-400 list-disc list-inside">
-            <li><strong className="text-white">Trending markets</strong> — in a strong uptrend, RSI can stay above 70 for weeks. "Overbought" can mean "strong trend" not "reversal."</li>
+            <li><strong className="text-white">Trending markets</strong> — in a strong uptrend, RSI can stay above 70 for weeks. &quot;Overbought&quot; can mean &quot;strong trend&quot; not &quot;reversal.&quot;</li>
             <li><strong className="text-white">Period sensitivity</strong> — RSI(14) behaves very differently from RSI(5) or RSI(30). Shorter = more signals, more noise.</li>
             <li><strong className="text-white">No price level context</strong> — RSI tells you about momentum, not whether the price is at a key level.</li>
           </ul>
-          <p className="text-zinc-300">That's why TradeClaw combines RSI with MACD, EMA trend, Bollinger Bands, and Stochastic before emitting any signal. See the <Link href="/how-it-works" className="text-emerald-400 hover:underline">full scoring algorithm</Link> for details.</p>
+          <p className="text-zinc-300">That&apos;s why TradeClaw combines RSI with MACD, EMA trend, Bollinger Bands, and Stochastic before emitting any signal. See the <Link href="/how-it-works" className="text-emerald-400 hover:underline">full scoring algorithm</Link> for details.</p>
 
           <div className="border-t border-zinc-800 pt-6 mt-8">
             <p className="text-zinc-400 text-xs">
