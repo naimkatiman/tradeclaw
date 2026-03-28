@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { href: '/demo', label: 'Demo 🟢' },
   { href: '/replay', label: 'Replay ▶' },
   { href: '/badge', label: 'Badges' },
+  { href: '/badges', label: 'Badges Gallery' },
   { href: '/api-keys', label: 'API Keys' },
   { href: '/dashboard', label: 'Dashboard' },
 ];

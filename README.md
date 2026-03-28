@@ -50,6 +50,30 @@ No installation. No config. No Docker. Just one command — spins up a local dem
 
 ---
 
+## Live Signal Badges
+
+Embed live trading signals directly in your GitHub README — no API key required.
+
+```markdown
+[![BTC Signal](https://tradeclaw.win/api/badge/BTCUSD)](https://tradeclaw.win)
+[![ETH Signal](https://tradeclaw.win/api/badge/ETHUSD)](https://tradeclaw.win)
+[![Gold Signal](https://tradeclaw.win/api/badge/XAUUSD)](https://tradeclaw.win)
+```
+
+[![BTC Signal](https://tradeclaw.win/api/badge/BTCUSD)](https://tradeclaw.win)
+[![ETH Signal](https://tradeclaw.win/api/badge/ETHUSD)](https://tradeclaw.win)
+[![Gold Signal](https://tradeclaw.win/api/badge/XAUUSD)](https://tradeclaw.win)
+
+Badges update every **5 minutes**, powered by real TA (RSI, MACD, EMA, Bollinger Bands).
+Supports Markdown, HTML, RST, and AsciiDoc — see **[tradeclaw.win/badges](https://tradeclaw.win/badges)** for all 10 pairs.
+
+Also available as a **shields.io-compatible endpoint**:
+```
+https://tradeclaw.win/api/badge/BTCUSD/json
+```
+
+---
+
 ## API Access
 
 Get a free API key at **[tradeclaw.win/api-keys](https://tradeclaw.win/api-keys)**.

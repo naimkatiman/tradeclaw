@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSignals, SYMBOLS } from '../../../lib/signals';
-import { generateBadgeSvg, BADGE_SHORT_NAMES, type BadgeDirection } from '../../../lib/badge';
-import { getBadgeCache, setBadgeCache } from '../../../../lib/badge-cache';
+import { getSignals, SYMBOLS } from '../../../../lib/signals';
+import { BADGE_SHORT_NAMES, type BadgeDirection } from '../../../../lib/badge';
+import { getBadgeCache, setBadgeCache } from '../../../../../lib/badge-cache';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Shields.io compatible endpoint.
+ * Example: https://img.shields.io/endpoint?url=https://tradeclaw.win/api/badge/BTCUSD/json
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ pair: string }> },
@@ -33,21 +37,37 @@ export async function GET(
         setBadgeCache(cacheKey, cached);
       }
     } catch {
-      // Fall through — show NEUTRAL badge on error
+      // Fall through
     }
   }
 
   const direction: BadgeDirection = cached?.direction ?? 'NEUTRAL';
   const confidence = cached?.confidence ?? 0;
-  const rsi = cached?.rsi ?? 50;
 
-  const svg = generateBadgeSvg({ symbol: shortName, direction, confidence, rsi, timeframe: tf });
+  const dirIcon = direction === 'BUY' ? '▲' : direction === 'SELL' ? '▼' : '—';
+  const message =
+    direction === 'NEUTRAL'
+      ? `${shortName} —`
+      : `${dirIcon} ${direction} ${confidence}%`;
 
-  return new NextResponse(svg, {
-    headers: {
-      'Content-Type': 'image/svg+xml',
-      'Cache-Control': 'no-cache, max-age=300',
-      'X-Content-Type-Options': 'nosniff',
+  const color =
+    direction === 'BUY'
+      ? 'brightgreen'
+      : direction === 'SELL'
+        ? 'red'
+        : 'lightgrey';
+
+  return NextResponse.json(
+    {
+      schemaVersion: 1,
+      label: `TradeClaw ${shortName}`,
+      message,
+      color,
     },
-  });
+    {
+      headers: {
+        'Cache-Control': 'no-cache, max-age=300',
+      },
+    },
+  );
 }
