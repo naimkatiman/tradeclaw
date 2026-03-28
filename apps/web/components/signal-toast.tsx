@@ -26,7 +26,7 @@ function ToastCard({ toast, onDismiss }: ToastCardProps) {
 
   return (
     <div
-      className={`pointer-events-auto w-72 rounded-xl border bg-[#0c0c0c] p-4 shadow-2xl transition-all duration-300 ${
+      className={`pointer-events-auto w-72 rounded-xl border bg-white dark:bg-[#0c0c0c] p-4 shadow-2xl transition-all duration-300 ${
         toast.dismissing
           ? 'opacity-0 translate-x-3'
           : 'opacity-100 translate-x-0'
@@ -48,11 +48,11 @@ function ToastCard({ toast, onDismiss }: ToastCardProps) {
           }`}>
             {toast.direction}
           </span>
-          <span className="text-sm font-semibold font-mono text-white">{toast.pair}</span>
+          <span className="text-sm font-semibold font-mono text-gray-900 dark:text-white">{toast.pair}</span>
         </div>
         <button
           onClick={() => onDismiss(toast.id)}
-          className="flex items-center justify-center w-5 h-5 text-zinc-600 hover:text-zinc-300 transition-colors shrink-0"
+          className="flex items-center justify-center w-5 h-5 text-gray-400 hover:text-gray-700 dark:text-zinc-600 dark:hover:text-zinc-300 transition-colors shrink-0"
           aria-label="Dismiss"
         >
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -62,11 +62,11 @@ function ToastCard({ toast, onDismiss }: ToastCardProps) {
       </div>
 
       {/* Reason */}
-      <p className="mt-2 text-[11px] text-zinc-500 leading-relaxed">{toast.reason}</p>
+      <p className="mt-2 text-[11px] text-gray-500 dark:text-zinc-500 leading-relaxed">{toast.reason}</p>
 
       {/* Footer */}
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-[10px] font-mono text-zinc-600 tabular-nums">
+        <span className="text-[10px] font-mono text-gray-400 dark:text-zinc-600 tabular-nums">
           @ {formatPrice(toast.entry)}
         </span>
         <span className={`text-[10px] font-mono font-bold tabular-nums ${
@@ -77,7 +77,7 @@ function ToastCard({ toast, onDismiss }: ToastCardProps) {
       </div>
 
       {/* Progress bar */}
-      <div className="mt-3 h-0.5 w-full rounded-full bg-white/5 overflow-hidden">
+      <div className="mt-3 h-0.5 w-full rounded-full bg-gray-100 dark:bg-white/5 overflow-hidden">
         <div
           className={`h-full rounded-full ${isBuy ? 'bg-emerald-500/50' : 'bg-rose-500/50'}`}
           style={{ animation: `toast-progress ${AUTO_DISMISS_MS}ms linear forwards` }}
