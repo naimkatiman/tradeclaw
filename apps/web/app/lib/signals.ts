@@ -294,7 +294,7 @@ export async function getSignals(params: {
   // Determine timeframes to analyze
   const timeframesToCheck = timeframeFilter
     ? [timeframeFilter.toUpperCase()]
-    : ['H1', 'H4']; // Default: check H1 and H4
+    : ['M15', 'H1', 'H4', 'D1']; // Default: check all timeframes
 
   let allSignals: TradingSignal[] = [];
   const allSyntheticSymbols = new Set<string>();

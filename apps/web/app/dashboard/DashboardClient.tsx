@@ -9,7 +9,8 @@ import { ConnectionStatus } from '../../components/connection-status';
 import { GuidedTourListener, TakeTourButton } from '../../components/guided-tour';
 import { StarsWidget } from '../../components/stars-widget';
 import { HintBadge, PageHint } from '../../components/feature-highlights';
-import { AnimatedChartHero } from '../../components/animated-chart-hero';
+import { SignalChart } from '../components/charts';
+import { generateBars } from '../lib/chart-utils';
 import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
 import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
 import { SignalLedger } from '../components/signal-ledger';
@@ -367,18 +368,43 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
         </div>
       )}
 
-      {/* Animated chart banner */}
-      <div className="relative overflow-hidden border-b border-white/5" style={{ height: 300 }}>
-        <AnimatedChartHero height={300} className="absolute inset-0 w-full h-full" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/30 via-transparent to-[#050505]/70" />
-        <div className="relative z-10 h-full flex flex-col items-center justify-center gap-2 pointer-events-none">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono tracking-widest">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
-            LIVE SIGNAL ENGINE
+      {/* Hero chart — shows highest-confidence signal */}
+      {(() => {
+        const topSignal = signals.length > 0
+          ? [...signals].sort((a, b) => b.confidence - a.confidence)[0]
+          : null;
+        if (!topSignal) return null;
+        const ts = new Date(topSignal.timestamp).getTime();
+        const bars = generateBars(topSignal.entry, topSignal.direction, ts);
+        const signalTime = bars[Math.min(30, bars.length - 1)]?.time;
+        return (
+          <div className="relative border-b border-white/5">
+            <div className="absolute top-3 left-4 z-10 flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono tracking-widest">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
+                TOP SIGNAL
+              </div>
+              <span className="text-xs font-mono font-semibold text-white">{topSignal.symbol}</span>
+              <span className="text-xs font-mono text-zinc-600">{topSignal.timeframe}</span>
+              <DirectionBadge direction={topSignal.direction} />
+              <span className={`text-xs font-mono font-bold ${topSignal.confidence >= 80 ? 'text-emerald-400' : topSignal.confidence >= 65 ? 'text-yellow-400' : 'text-red-400'}`}>
+                {topSignal.confidence}%
+              </span>
+            </div>
+            <SignalChart
+              bars={bars}
+              direction={topSignal.direction}
+              entry={topSignal.entry}
+              stopLoss={topSignal.stopLoss}
+              takeProfit1={topSignal.takeProfit1}
+              takeProfit2={topSignal.takeProfit2}
+              takeProfit3={topSignal.takeProfit3}
+              signalTime={signalTime}
+              height={300}
+            />
           </div>
-          <p className="text-white/50 text-xs font-mono">AI-powered · Multi-timeframe · Real-time</p>
-        </div>
-      </div>
+        );
+      })()}
 
       <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6">
         <PageHint message="Demo mode: all signals use live-simulated market data. Explore freely — no account needed." />

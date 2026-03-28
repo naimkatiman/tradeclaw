@@ -48,13 +48,13 @@ const WEIGHTS = {
   BB_UPPER_TOUCH: 10,    // Price near upper Bollinger band
 } as const;
 
-const SIGNAL_THRESHOLD = 55; // Minimum score to generate a signal
-const MIN_DIRECTIONAL_EDGE = 12;
-const MIN_TREND_STRENGTH = 0.2;
-const MIN_ATR_PCT = 0.0008;
-const MIN_BB_WIDTH = 0.5;
-const MIN_RISK_ATR = 0.8;
-const MAX_RISK_ATR = 2.5;
+const SIGNAL_THRESHOLD = 40; // Minimum score to generate a signal
+const MIN_DIRECTIONAL_EDGE = 8;
+const MIN_TREND_STRENGTH = 0.08;
+const MIN_ATR_PCT = 0.0003;
+const MIN_BB_WIDTH = 0.3;
+const MIN_RISK_ATR = 0.5;
+const MAX_RISK_ATR = 3.5;
 
 let signalCounter = 0;
 
@@ -219,43 +219,50 @@ function passesDirectionGate(
   }
 
   // ADX directional confirmation: +DI > -DI for BUY, -DI > +DI for SELL
+  // Penalizes confidence instead of hard-rejecting
+  let diPenalty = 0;
   const { adx } = indicators;
   const plusDI = adx.current.plusDI;
   const minusDI = adx.current.minusDI;
   if (!isNaN(plusDI) && !isNaN(minusDI)) {
-    if (direction === 'BUY' && minusDI > plusDI) {
+    if (direction === 'BUY' && minusDI > plusDI * 1.3) {
       return { passes: false, confidenceBoost: 0 };
     }
-    if (direction === 'SELL' && plusDI > minusDI) {
+    if (direction === 'SELL' && plusDI > minusDI * 1.3) {
       return { passes: false, confidenceBoost: 0 };
     }
+    // Mild DI disagreement → lower confidence
+    if (direction === 'BUY' && minusDI > plusDI) diPenalty = -5;
+    if (direction === 'SELL' && plusDI > minusDI) diPenalty = -5;
   }
 
   if (direction === 'BUY') {
-    if (macd.current.histogram <= 0 || quality.ema20Slope <= 0 || quality.ema50Slope < 0) {
+    // MACD or EMA slope must support direction (not both required)
+    if (macd.current.histogram <= 0 && quality.ema20Slope <= 0) {
       return { passes: false, confidenceBoost: 0 };
     }
-    if (!isNaN(rsi.current) && (rsi.current < 43 || rsi.current > 74)) {
+    if (!isNaN(rsi.current) && (rsi.current < 30 || rsi.current > 78)) {
       return { passes: false, confidenceBoost: 0 };
     }
-    if (stochastic.current.k > 92 && stochastic.current.d > 88) {
+    if (stochastic.current.k > 95 && stochastic.current.d > 92) {
       return { passes: false, confidenceBoost: 0 };
     }
   } else {
-    if (macd.current.histogram >= 0 || quality.ema20Slope >= 0 || quality.ema50Slope > 0) {
+    // MACD or EMA slope must support direction (not both required)
+    if (macd.current.histogram >= 0 && quality.ema20Slope >= 0) {
       return { passes: false, confidenceBoost: 0 };
     }
-    if (!isNaN(rsi.current) && (rsi.current > 57 || rsi.current < 26)) {
+    if (!isNaN(rsi.current) && (rsi.current > 70 || rsi.current < 22)) {
       return { passes: false, confidenceBoost: 0 };
     }
-    if (stochastic.current.k < 8 && stochastic.current.d < 12) {
+    if (stochastic.current.k < 5 && stochastic.current.d < 8) {
       return { passes: false, confidenceBoost: 0 };
     }
   }
 
   const confidenceBoost = Math.min(
     12,
-    Math.round(scoreEdge / 3 + quality.trendStrength * 2 + quality.macdStrength * 10),
+    Math.round(scoreEdge / 3 + quality.trendStrength * 2 + quality.macdStrength * 10 + diPenalty),
   );
 
   return { passes: true, confidenceBoost };
@@ -510,8 +517,8 @@ export function generateSignalsFromTA(
   // Suppress signals on synthetic data
   if (source === 'synthetic') return [];
 
-  // Minimum candle count guard — require at least 100 candles for reliable signals
-  if (indicators.closes.length < 100) return [];
+  // Minimum candle count guard — require at least 50 candles for reliable signals
+  if (indicators.closes.length < 50) return [];
 
   const { buyScore, sellScore, buyCategories, sellCategories } = scoreIndicators(indicators);
   const closes = indicators.closes;
@@ -519,13 +526,13 @@ export function generateSignalsFromTA(
 
   if (!currentPrice || isNaN(currentPrice)) return [];
 
-  // ── ADX Gate: suppress signals in ranging markets (ADX < 25) ──
+  // ── ADX Gate: suppress signals in very flat markets (ADX < 15) ──
   const adxValue = indicators.adx.current.adx;
-  if (!isNaN(adxValue) && adxValue < 25) return [];
+  if (!isNaN(adxValue) && adxValue < 15) return [];
 
-  // ── Volume Gate: require above-average volume for confirmation ──
+  // ── Volume Gate: require some volume (skip for forex where volume is synthetic) ──
   const { volume } = indicators;
-  if (!volume.isSynthetic && volume.ratio > 0 && volume.ratio < 1.5) return [];
+  if (!volume.isSynthetic && volume.ratio > 0 && volume.ratio < 0.5) return [];
 
   const signals: TradingSignal[] = [];
   const indicatorSummary = buildIndicatorSummary(indicators, currentPrice);
@@ -538,7 +545,9 @@ export function generateSignalsFromTA(
   const buyingCategoryCount = [buyCategories.momentum, buyCategories.trend, buyCategories.volatility]
     .filter(v => v > 0).length;
   const buyGate = passesDirectionGate('BUY', indicators, marketQuality, buyScore, sellScore);
-  if (buyScore >= SIGNAL_THRESHOLD && buyScore > sellScore && buyingCategoryCount >= 2 && buyGate.passes) {
+  // Require 2 categories for high confidence, 1 category for moderate signals
+  const buyMinCategories = buyScore >= 55 ? 2 : 1;
+  if (buyScore >= SIGNAL_THRESHOLD && buyScore > sellScore && buyingCategoryCount >= buyMinCategories && buyGate.passes) {
     const confidence = Math.min(95, Math.max(52, Math.round(buyScore + buyGate.confidenceBoost)));
     const slDistance = atr * 1.5;
     const entry = +currentPrice.toFixed(5);
@@ -582,7 +591,8 @@ export function generateSignalsFromTA(
   const sellingCategoryCount = [sellCategories.momentum, sellCategories.trend, sellCategories.volatility]
     .filter(v => v > 0).length;
   const sellGate = passesDirectionGate('SELL', indicators, marketQuality, sellScore, buyScore);
-  if (sellScore >= SIGNAL_THRESHOLD && sellScore > buyScore && sellingCategoryCount >= 2 && sellGate.passes) {
+  const sellMinCategories = sellScore >= 55 ? 2 : 1;
+  if (sellScore >= SIGNAL_THRESHOLD && sellScore > buyScore && sellingCategoryCount >= sellMinCategories && sellGate.passes) {
     const confidence = Math.min(95, Math.max(52, Math.round(sellScore + sellGate.confidenceBoost)));
     const slDistance = atr * 1.5;
     const entry = +currentPrice.toFixed(5);
