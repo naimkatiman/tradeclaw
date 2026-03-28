@@ -94,6 +94,20 @@ Share your paper trading performance anywhere with embeddable widgets:
 
 JSON API: `GET /api/widget/portfolio` — returns balance, equity, P&L, win rate. [Widget page &rarr;](https://tradeclaw.win/widget)
 
+## Discord Bot
+
+Add TradeClaw to your Discord server for live trading signals:
+
+```bash
+cd packages/tradeclaw-discord
+npm install
+DISCORD_TOKEN=your_token node bin/bot.js
+```
+
+**Slash commands:** `/signal`, `/leaderboard`, `/health`, `/subscribe`, `/unsubscribe`, `/help`
+
+[Discord setup guide &rarr;](https://tradeclaw.win/discord) &middot; [Bot source &rarr;](https://github.com/naimkatiman/tradeclaw/tree/main/packages/tradeclaw-discord)
+
 ## Contributing
 
 We welcome PRs! Check our **[good first issues](https://github.com/naimkatiman/tradeclaw/labels/good%20first%20issue)** and **[contribution guide](https://tradeclaw.win/contribute)**.

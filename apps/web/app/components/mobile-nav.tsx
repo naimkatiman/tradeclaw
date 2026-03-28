@@ -368,6 +368,16 @@ const MENU_SECTIONS: MenuSection[] = [
         ),
       },
       {
+        href: '/discord',
+        label: 'Discord Bot',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 12a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM15 12a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z" />
+            <path d="M7.5 7.5c3-1 6-1 9 0M7 16.5c3 1 7 1 10 0" />
+          </svg>
+        ),
+      },
+      {
         href: '/slack',
         label: 'Slack',
         icon: (

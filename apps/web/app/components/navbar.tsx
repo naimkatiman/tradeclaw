@@ -74,6 +74,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/waitlist', label: 'Waitlist', icon: Clock },
       { href: '/launch', label: 'Launch', icon: Rocket },
       { href: '/vs-tradingview', label: 'vs TradingView' },
+      { href: '/discord', label: 'Discord Bot' },
       { href: '/quiz', label: 'Trader Quiz', icon: HelpCircle },
     ],
   },
