@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { AnimatedChartHero } from "../animated-chart-hero";
 
 const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
 
@@ -40,20 +41,25 @@ export function AnimatedHero() {
 
   return (
     <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-16 text-center">
-      {/* Grid dot background */}
+      {/* Canvas chart animation — full bleed background */}
+      <AnimatedChartHero className="absolute inset-0 w-full h-full" />
+
+      {/* Grid dot overlay */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
-            "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)",
+            "radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)",
           backgroundSize: "28px 28px",
         }}
       />
 
+      {/* Dark vignette so text stays readable */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#050505]/60 via-transparent to-[#050505]/80" />
+
       {/* Ambient glows */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[800px] w-[800px] rounded-full bg-emerald-500/5 blur-[160px]" />
-        <div className="absolute bottom-1/4 right-1/4 h-[400px] w-[400px] rounded-full bg-emerald-500/3 blur-[100px]" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-emerald-500/5 blur-[140px]" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-4xl">
