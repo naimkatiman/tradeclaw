@@ -139,6 +139,15 @@ export function AnimatedHero() {
               </span>
             )}
           </a>
+          <Link
+            href="/star"
+            className="flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/5 px-7 py-3 text-sm font-semibold text-yellow-400 transition-all duration-200 hover:border-yellow-400/30 hover:bg-yellow-400/10 active:scale-[0.98]"
+          >
+            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+            Star on GitHub
+          </Link>
         </div>
 
         {/* Trust badges */}

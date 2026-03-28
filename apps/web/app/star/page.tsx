@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { StarCampaignClient } from "./StarCampaignClient";
+import { StarClient } from "./StarClient";
 
 export const metadata: Metadata = {
-  title: "⭐ Star TradeClaw — Help Us Reach 1000 Stars",
+  title: "Star TradeClaw — Help Us Reach 1,000 GitHub Stars",
   description:
-    "TradeClaw is free and open-source forever. A star takes 2 seconds and helps thousands of traders discover it. Join the mission.",
+    "Star TradeClaw on GitHub to unlock community milestones: MT4/MT5 integration, mobile app, hosted cloud, and full backtesting. Share pre-written posts and spread the word.",
   openGraph: {
-    title: "⭐ Star TradeClaw — Help Us Reach 1000 Stars",
-    description: "Free AI trading signals. MIT license. Zero paywalls. 2 seconds to help.",
-    images: [{ url: "/api/og", width: 1200, height: 630 }],
+    title: "Help TradeClaw Reach 1,000 ⭐ on GitHub",
+    description:
+      "Free, open-source AI trading signals. Every star unlocks new features. Star, share, and help us grow.",
+    type: "website",
   },
 };
 
 export default function StarPage() {
-  return <StarCampaignClient />;
+  return <StarClient />;
 }

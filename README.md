@@ -34,6 +34,16 @@
 
 ---
 
+## ⭐ Support the Project
+
+If TradeClaw is useful to you, help us grow by starring the repo — it takes 2 seconds and helps thousands of traders discover free tools.
+
+[![TradeClaw Stars](https://img.shields.io/github/stars/naimkatiman/tradeclaw?style=social)](https://github.com/naimkatiman/tradeclaw)
+
+Every star unlocks community milestones: MT4/MT5 integration at 100⭐, mobile app at 250⭐, hosted cloud at 500⭐, and full backtesting at 1,000⭐. See our **[star campaign page →](https://tradeclaw.win/star)**
+
+---
+
 ## ⚡ Try in 10 Seconds
 
 **Option 1 — CLI (signals in your terminal):**
