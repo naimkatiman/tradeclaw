@@ -1002,9 +1002,9 @@ next_actions:
 
   - id: TC-091
     title: "GitHub README video thumbnail — replace static banner with a YouTube-style click-to-play image linking to a Loom/YouTube demo video placeholder for credibility"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Complete: demo-video-thumbnail.svg (1280x640, play button, signal cards, chart), README updated with click-to-play pattern, docs/DEMO_VIDEO.md recording guide. Committed 6fc4a412. 2026-03-29"
 
   - id: TC-092
     title: "/api/widget endpoint + embeddable portfolio tracker — show live P&L from paper trading in any external site as a badge or card"

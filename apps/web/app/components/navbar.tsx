@@ -47,6 +47,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/strategy-builder', label: 'Strategy Builder' },
       { href: '/plugins', label: 'Plugins' },
       { href: '/badge', label: 'Badges Gallery' },
+      { href: '/widget', label: 'Widgets' },
       { href: '/marketplace', label: 'Marketplace' },
       { href: '/api-keys', label: 'API Keys' },
       { href: '/status', label: 'Status', icon: Activity },
