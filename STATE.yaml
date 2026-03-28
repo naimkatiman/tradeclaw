@@ -982,6 +982,6 @@ next_actions:
 
   - id: TC-088
     title: "Landing page above-the-fold score — hero shows LIVE signal data (pair + direction + confidence) fetched from /api/signals on server side for instant wow"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "LiveHeroSignals server component — fetches real signals at page render, ISR 60s revalidate. Live signal strip below hero with confidence bars + direction badges. Committed 2033a945. 2026-03-28"

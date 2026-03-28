@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import {
   Activity,
@@ -17,6 +17,7 @@ import {
   Bell,
   ChevronDown,
   ChevronUp,
+  Inbox,
 } from 'lucide-react';
 
 interface ServiceStatus {
@@ -49,58 +50,6 @@ const SERVICE_ICONS: Record<string, typeof Activity> = {
   'SSE Feed': Radio,
 };
 
-function seededRandom(seed: number): number {
-  const x = Math.sin(seed) * 10000;
-  return x - Math.floor(x);
-}
-
-function generateUptimeHistory(): ('operational' | 'degraded')[] {
-  const days: ('operational' | 'degraded')[] = [];
-  for (let i = 0; i < 90; i++) {
-    const r = seededRandom(i * 7 + 42);
-    days.push(r < 0.04 ? 'degraded' : 'operational');
-  }
-  return days;
-}
-
-interface Incident {
-  id: string;
-  title: string;
-  date: string;
-  status: 'resolved';
-  duration: string;
-  description: string;
-}
-
-function generateIncidents(): Incident[] {
-  return [
-    {
-      id: 'inc-001',
-      title: 'Elevated API latency',
-      date: '2026-03-15',
-      status: 'resolved',
-      duration: '23 min',
-      description: 'API response times exceeded 2s threshold due to upstream provider latency. Auto-recovered.',
-    },
-    {
-      id: 'inc-002',
-      title: 'SSE Feed reconnection delays',
-      date: '2026-02-28',
-      status: 'resolved',
-      duration: '11 min',
-      description: 'WebSocket reconnection backoff caused brief gaps in price streaming. Hotfix deployed.',
-    },
-    {
-      id: 'inc-003',
-      title: 'Signal Engine maintenance window',
-      date: '2026-02-10',
-      status: 'resolved',
-      duration: '8 min',
-      description: 'Planned maintenance for indicator engine upgrade. All signals resumed on schedule.',
-    },
-  ];
-}
-
 function formatUptime(seconds: number): string {
   const d = Math.floor(seconds / 86400);
   const h = Math.floor((seconds % 86400) / 3600);
@@ -118,16 +67,23 @@ function formatTime(iso: string): string {
   });
 }
 
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 export function StatusClient() {
   const [data, setData] = useState<StatusData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [showIncidents, setShowIncidents] = useState(true);
-
-  const uptimeHistory = generateUptimeHistory();
-  const incidents = generateIncidents();
+  const monitoringStarted = useRef<string>(new Date().toISOString());
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -135,9 +91,12 @@ export function StatusClient() {
       if (res.ok) {
         const json: StatusData = await res.json();
         setData(json);
+        setError(false);
+      } else {
+        setError(true);
       }
     } catch {
-      // keep existing data on error
+      setError(true);
     } finally {
       setLoading(false);
       setLastRefresh(new Date());
@@ -163,8 +122,18 @@ export function StatusClient() {
     setEmail('');
   };
 
-  const statusCfg = data ? STATUS_CONFIG[data.status] : STATUS_CONFIG.operational;
+  const statusCfg = data
+    ? STATUS_CONFIG[data.status]
+    : error
+      ? STATUS_CONFIG.outage
+      : STATUS_CONFIG.operational;
   const StatusIcon = statusCfg.Icon;
+
+  const currentDayStatus: 'operational' | 'degraded' | 'outage' = data
+    ? data.status
+    : error
+      ? 'outage'
+      : 'operational';
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -227,7 +196,9 @@ export function StatusClient() {
                 }`}
               />
               <div>
-                <h2 className="text-xl font-semibold">{statusCfg.label}</h2>
+                <h2 className="text-xl font-semibold">
+                  {error && !data ? 'Unable to reach status endpoint' : statusCfg.label}
+                </h2>
                 <p className="text-sm text-[var(--text-secondary)] mt-0.5">
                   Uptime: {data ? `${data.uptimePct}%` : '—'} · Process: {data ? formatUptime(data.uptimeSeconds) : '—'}
                   {data?.version && ` · v${data.version}`}
@@ -253,7 +224,7 @@ export function StatusClient() {
                         : 'bg-rose-400'
                   }`}
                 />
-                {data?.status ?? 'checking'}
+                {data?.status ?? (error ? 'unreachable' : 'checking')}
               </span>
             </div>
           </div>
@@ -267,7 +238,6 @@ export function StatusClient() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {(data?.services ?? []).map((svc) => {
               const SvcIcon = SERVICE_ICONS[svc.name] ?? Server;
-              const svcCfg = STATUS_CONFIG[svc.status];
               return (
                 <div key={svc.name} className="glass-card rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -320,25 +290,36 @@ export function StatusClient() {
           </section>
         )}
 
-        {/* 90-Day Uptime History */}
+        {/* Uptime Monitoring */}
         <section>
           <h3 className="text-sm font-medium text-[var(--text-secondary)] uppercase tracking-widest mb-4">
-            90-Day Uptime
+            Uptime Monitoring
           </h3>
           <div className="glass-card rounded-xl p-4">
-            <div className="flex gap-[3px] flex-wrap">
-              {uptimeHistory.map((day, i) => (
-                <div
-                  key={i}
-                  className={`h-3 w-3 rounded-sm ${
-                    day === 'operational' ? 'bg-emerald-500/60' : 'bg-yellow-500/60'
-                  }`}
-                  title={`Day ${i + 1}: ${day}`}
-                />
-              ))}
+            <div className="flex items-center gap-3 mb-3">
+              <div
+                className={`h-4 w-4 rounded-sm ${
+                  currentDayStatus === 'operational'
+                    ? 'bg-emerald-500/60'
+                    : currentDayStatus === 'degraded'
+                      ? 'bg-yellow-500/60'
+                      : 'bg-rose-500/60'
+                }`}
+                title={`Today: ${currentDayStatus}`}
+              />
+              <span className="text-sm font-medium">
+                Today — {currentDayStatus === 'operational'
+                  ? 'Operational'
+                  : currentDayStatus === 'degraded'
+                    ? 'Degraded'
+                    : 'Outage'}
+              </span>
             </div>
-            <div className="flex items-center justify-between mt-3 text-xs text-[var(--text-secondary)]">
-              <span>90 days ago</span>
+            <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-3 w-3" />
+                Monitoring started {formatDate(monitoringStarted.current)}
+              </span>
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
                   <span className="h-2 w-2 rounded-sm bg-emerald-500/60" /> Operational
@@ -346,8 +327,10 @@ export function StatusClient() {
                 <span className="flex items-center gap-1">
                   <span className="h-2 w-2 rounded-sm bg-yellow-500/60" /> Degraded
                 </span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-sm bg-rose-500/60" /> Outage
+                </span>
               </div>
-              <span>Today</span>
             </div>
           </div>
         </section>
@@ -362,25 +345,12 @@ export function StatusClient() {
             {showIncidents ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
           </button>
           {showIncidents && (
-            <div className="space-y-3">
-              {incidents.map((inc) => (
-                <div key={inc.id} className="glass-card rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium">{inc.title}</h4>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-400">
-                      <CheckCircle2 className="h-3 w-3" />
-                      {inc.status}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[var(--text-secondary)] mb-1">{inc.description}</p>
-                  <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" /> {inc.date}
-                    </span>
-                    <span>Duration: {inc.duration}</span>
-                  </div>
-                </div>
-              ))}
+            <div className="glass-card rounded-xl p-6 flex flex-col items-center justify-center text-center">
+              <Inbox className="h-8 w-8 text-[var(--text-secondary)] mb-3 opacity-40" />
+              <p className="text-sm font-medium text-[var(--text-secondary)]">No recorded incidents</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-1 opacity-70">
+                Incidents will appear here when service disruptions are detected.
+              </p>
             </div>
           )}
         </section>

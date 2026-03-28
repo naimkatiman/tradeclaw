@@ -87,10 +87,13 @@ export async function GET() {
       }
     }
 
+    const hasFallback = Object.values(prices).some((p) => p.source === 'fallback');
+
     return NextResponse.json({
       timestamp: new Date().toISOString(),
       count: Object.keys(prices).length,
       prices,
+      ...(hasFallback && { stale: true }),
     });
   } catch {
     // Return fallback prices if everything fails
@@ -102,6 +105,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       count: Object.keys(fallback).length,
       prices: fallback,
+      stale: true,
     });
   }
 }

@@ -113,10 +113,10 @@ export function getPortfolio(): Portfolio {
       const raw = fs.readFileSync(PT_FILE, 'utf-8');
       return JSON.parse(raw) as Portfolio;
     } catch {
-      // Corrupt — fall through to seed
+      // Corrupt — fall through to empty portfolio
     }
   }
-  const portfolio = generateSeedPortfolio();
+  const portfolio = emptyPortfolio();
   writePortfolio(portfolio);
   return portfolio;
 }
@@ -131,78 +131,23 @@ function writePortfolio(portfolio: Portfolio): void {
 }
 
 // ---------------------------------------------------------------------------
-// Seed data — 8 historical trades so the page looks alive on first load
+// Empty portfolio — clean slate for new users
 // ---------------------------------------------------------------------------
-
-function seededRandom(seed: number): number {
-  const x = Math.sin(seed + 1) * 10000;
-  return x - Math.floor(x);
-}
 
 function fmt(v: number, price: number): number {
   return +v.toFixed(price >= 100 ? 2 : 5);
 }
 
-function generateSeedPortfolio(): Portfolio {
-  const SYMBOLS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'XAGUSD', 'AUDUSD'];
-  const now = Date.now();
-  let balance = STARTING_BALANCE;
-  const history: Trade[] = [];
-  const equityCurve: EquityPoint[] = [
-    { timestamp: new Date(now - 9 * 86400000).toISOString(), equity: balance, balance },
-  ];
-
-  for (let i = 0; i < 8; i++) {
-    const r1 = seededRandom(i * 13);
-    const r2 = seededRandom(i * 13 + 1);
-    const r3 = seededRandom(i * 13 + 2);
-    const r4 = seededRandom(i * 13 + 3);
-
-    const symbol = SYMBOLS[Math.floor(r1 * SYMBOLS.length)];
-    const direction: 'BUY' | 'SELL' = r2 > 0.5 ? 'BUY' : 'SELL';
-    const daysAgo = 8 - i;
-    const openedAt = new Date(now - daysAgo * 86400000 - 3600000).toISOString();
-    const closedAt = new Date(now - daysAgo * 86400000).toISOString();
-    const basePrice = BASE_PRICES[symbol] ?? 100;
-    const entryPrice = fmt(basePrice * (1 + (r3 - 0.5) * 0.01), basePrice);
-    const quantity = Math.round(balance * 0.05);
-
-    // ~62% win rate for positive drift
-    const win = r4 > 0.38;
-    const movePct = win
-      ? 0.008 + seededRandom(i * 13 + 4) * 0.015
-      : -(0.004 + seededRandom(i * 13 + 4) * 0.008);
-    const dirMult = direction === 'BUY' ? 1 : -1;
-    const actualMove = movePct * dirMult;
-    const pnl = +(quantity * actualMove).toFixed(2);
-    const exitPrice = fmt(entryPrice * (1 + actualMove), basePrice);
-
-    balance = +(balance + pnl).toFixed(2);
-
-    history.push({
-      id: `pt_seed_${i}`,
-      symbol,
-      direction,
-      entryPrice,
-      exitPrice,
-      quantity,
-      pnl,
-      pnlPercent: +(actualMove * 100).toFixed(2),
-      openedAt,
-      closedAt,
-      exitReason: 'manual',
-    });
-
-    equityCurve.push({ timestamp: closedAt, equity: balance, balance });
-  }
-
+function emptyPortfolio(): Portfolio {
   return {
-    balance,
+    balance: STARTING_BALANCE,
     startingBalance: STARTING_BALANCE,
     positions: [],
-    history,
-    equityCurve,
-    stats: calculateStats(history, STARTING_BALANCE, equityCurve),
+    history: [],
+    equityCurve: [
+      { timestamp: new Date().toISOString(), equity: STARTING_BALANCE, balance: STARTING_BALANCE },
+    ],
+    stats: emptyStats(),
   };
 }
 
@@ -268,12 +213,11 @@ export function openPosition(opts: {
   signalId?: string;
   stopLoss?: number;
   takeProfit?: number;
+  entryPrice?: number;
 }): { portfolio: Portfolio; position: Position } {
   const portfolio = getPortfolio();
   const basePrice = BASE_PRICES[opts.symbol] ?? 100;
-  // Small random noise around base price
-  const noise = (Math.random() - 0.5) * 0.002;
-  const entryPrice = fmt(basePrice * (1 + noise), basePrice);
+  const entryPrice = opts.entryPrice ?? fmt(basePrice, basePrice);
   const quantity = opts.quantity ?? Math.round(portfolio.balance * 0.05);
   const atr = entryPrice * 0.005;
 

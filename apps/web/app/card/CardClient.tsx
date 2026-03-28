@@ -35,25 +35,25 @@ export function CardClient() {
   const [signal, setSignal] = useState<Signal | null>(null);
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const { toast, show } = useToast();
 
   const fetchSignal = useCallback(async (p: string, tf: string) => {
     setLoading(true);
+    setFetchError(false);
     try {
       const res = await fetch(`/api/signals?pair=${p}&timeframe=${tf}&limit=1`);
       if (!res.ok) throw new Error('fetch failed');
       const data = await res.json();
       const sig = (data.signals || [])[0];
-      if (sig) setSignal(sig);
+      if (sig) {
+        setSignal(sig);
+      } else {
+        throw new Error('no signal returned');
+      }
     } catch {
-      // fallback synthetic signal
-      setSignal({
-        symbol: p, direction: Math.random() > 0.5 ? 'BUY' : 'SELL',
-        confidence: 70 + Math.floor(Math.random() * 25),
-        timeframe: tf,
-        price: p.startsWith('BTC') ? 84250 : p.startsWith('ETH') ? 3218 : p.startsWith('XAU') ? 2651 : 1.0842,
-        rsi: 45 + Math.floor(Math.random() * 30),
-      });
+      setSignal(null);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }

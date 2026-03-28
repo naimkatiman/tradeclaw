@@ -858,7 +858,16 @@ export default function PaperTradingPage() {
           </div>
 
           {histTotal === 0 ? (
-            <div className="text-center py-8 text-xs text-zinc-700">No closed trades yet</div>
+            <div className="text-center py-12 space-y-2">
+              <div className="text-xs text-zinc-500">No trades yet</div>
+              <div className="text-[11px] text-zinc-700">
+                Open a position from the order form or{' '}
+                <Link href="/dashboard" className="text-emerald-500 hover:text-emerald-400 underline underline-offset-2 transition-colors">
+                  follow a signal
+                </Link>{' '}
+                to start paper trading.
+              </div>
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-[11px] font-mono">

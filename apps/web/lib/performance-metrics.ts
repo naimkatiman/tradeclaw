@@ -101,14 +101,6 @@ function ensureDataDir(): void {
   }
 }
 
-function seededRand(seed: number): () => number {
-  let s = (seed >>> 0) || 1;
-  return () => {
-    s = (Math.imul(1664525, s) + 1013904223) >>> 0;
-    return s / 0x100000000;
-  };
-}
-
 function formatUptime(ms: number): string {
   const totalSec = Math.floor(ms / 1000);
   const minutes = Math.floor(totalSec / 60) % 60;
@@ -119,93 +111,30 @@ function formatUptime(ms: number): string {
   return `${minutes}m`;
 }
 
-// ─── Seed ────────────────────────────────────────────────────────────────────
-
-function generateSeedData(): PerformanceData {
-  const now = Date.now();
-  const r = seededRand(0xdeadbeef);
-
-  const PAIRS = [
-    'BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD',
-    'USDJPY', 'XAGUSD', 'AUDUSD', 'XRPUSD', 'USDCAD', 'BNBUSD', 'SOLUSD',
-  ];
-  const TIMEFRAMES = ['1m', '5m', '15m', '1h', '4h', '1d'];
-
-  // 288 points = 24h at 5-min intervals
-  const latency: LatencyPoint[] = [];
-  const throughput: ThroughputPoint[] = [];
-  const memory: MemoryPoint[] = [];
-
-  for (let i = 0; i < 288; i++) {
-    const ts = now - (287 - i) * 5 * 60 * 1000;
-    const base = 35 + r() * 35;
-    const jitter = r() * 25;
-
-    latency.push({
-      timestamp: ts,
-      avg: +(base + jitter * 0.5).toFixed(1),
-      p50: +base.toFixed(1),
-      p95: +(base * 2.8 + jitter).toFixed(1),
-      p99: +(base * 5.5 + jitter * 2).toFixed(1),
-      count: Math.floor(15 + r() * 90),
-    });
-
-    const perMin = +(2 + r() * 8).toFixed(1);
-    throughput.push({
-      timestamp: ts,
-      perMinute: perMin,
-      perHour: Math.round(perMin * 60 * (0.75 + r() * 0.5)),
-    });
-
-    const rss = Math.round((82 + r() * 50) * 1024 * 1024);
-    const heapTotal = Math.round((58 + r() * 42) * 1024 * 1024);
-    const heapUsed = Math.round(heapTotal * (0.55 + r() * 0.35));
-    memory.push({ timestamp: ts, rss, heapUsed, heapTotal });
-  }
-
-  // Signal stats
-  const byPair: Record<string, number> = {};
-  PAIRS.forEach(p => {
-    byPair[p] = Math.floor(40 + r() * 120);
-  });
-  byPair['BTCUSD'] += 120;
-  byPair['ETHUSD'] += 90;
-  byPair['XAUUSD'] += 60;
-
-  const signalTotal = Object.values(byPair).reduce((a, b) => a + b, 0);
-
-  const tfWeights = [0.04, 0.12, 0.32, 0.28, 0.16, 0.08];
-  const byTimeframe: Record<string, number> = {};
-  TIMEFRAMES.forEach((tf, i) => {
-    byTimeframe[tf] = Math.floor(signalTotal * tfWeights[i]);
-  });
-
-  const buy = Math.floor(signalTotal * (0.47 + r() * 0.06));
-
-  const apiRoutes: ApiRouteStats[] = [
-    { route: '/api/signals', avg: 43, p95: 115, max: 270, count: 8840, lastSeen: now - 2800 },
-    { route: '/api/screener', avg: 128, p95: 370, max: 710, count: 3450, lastSeen: now - 7200 },
-    { route: '/api/leaderboard', avg: 74, p95: 195, max: 460, count: 1920, lastSeen: now - 14000 },
-    { route: '/api/alerts', avg: 21, p95: 58, max: 170, count: 2280, lastSeen: now - 4600 },
-    { route: '/api/paper-trading', avg: 52, p95: 138, max: 310, count: 1040, lastSeen: now - 20000 },
-    { route: '/api/price-feed/sse', avg: 7, p95: 19, max: 48, count: 13200, lastSeen: now - 900 },
-    { route: '/api/signals/history', avg: 84, p95: 228, max: 560, count: 1680, lastSeen: now - 11000 },
-    { route: '/api/performance', avg: 16, p95: 44, max: 88, count: 380, lastSeen: now - 1800 },
-  ];
-
-  const cacheTotal = 48600;
-  const cacheHits = Math.floor(cacheTotal * 0.845);
-
+/** Capture a real memory snapshot from the current Node.js process. */
+function captureMemoryPoint(): MemoryPoint {
+  const mem = process.memoryUsage();
   return {
-    latency,
-    apiRoutes,
-    throughput,
-    memory,
-    cache: { hits: cacheHits, misses: cacheTotal - cacheHits },
-    signals: { byPair, byTimeframe, buy, sell: signalTotal - buy, total: signalTotal },
-    startedAt: now - 3 * 24 * 60 * 60 * 1000,
-    lastRestartAt: now - 3 * 24 * 60 * 60 * 1000,
-    sseConnections: Math.floor(3 + r() * 6),
+    timestamp: Date.now(),
+    rss: mem.rss,
+    heapUsed: mem.heapUsed,
+    heapTotal: mem.heapTotal,
+  };
+}
+
+/** Create an empty PerformanceData with real timestamps and one real memory snapshot. */
+function createEmptyData(): PerformanceData {
+  const now = Date.now();
+  return {
+    latency: [],
+    apiRoutes: [],
+    throughput: [],
+    memory: [captureMemoryPoint()],
+    cache: { hits: 0, misses: 0 },
+    signals: { byPair: {}, byTimeframe: {}, buy: 0, sell: 0, total: 0 },
+    startedAt: now,
+    lastRestartAt: now,
+    sseConnections: 0,
     lastUpdated: now,
   };
 }
@@ -219,16 +148,16 @@ export function readMetrics(): PerformanceData {
       const raw = fs.readFileSync(METRICS_FILE, 'utf-8');
       return JSON.parse(raw) as PerformanceData;
     } catch {
-      // corrupt file — fall through to seed
+      // corrupt file — fall through to empty data
     }
   }
-  const seed = generateSeedData();
+  const empty = createEmptyData();
   try {
-    fs.writeFileSync(METRICS_FILE, JSON.stringify(seed, null, 2));
+    fs.writeFileSync(METRICS_FILE, JSON.stringify(empty, null, 2));
   } catch {
     // ignore write failures
   }
-  return seed;
+  return empty;
 }
 
 function writeMetrics(data: PerformanceData): void {
@@ -271,7 +200,18 @@ export function recordMetric(
 }
 
 export function getMetrics(): PerformanceData {
-  return readMetrics();
+  const data = readMetrics();
+
+  // Always append a fresh memory snapshot so the dashboard shows real memory
+  const memPoint = captureMemoryPoint();
+  data.memory.push(memPoint);
+  if (data.memory.length > MAX_POINTS) {
+    data.memory = data.memory.slice(-MAX_POINTS);
+  }
+  data.lastUpdated = Date.now();
+  writeMetrics(data);
+
+  return data;
 }
 
 export function getSystemHealth(): SystemHealth {
@@ -283,8 +223,8 @@ export function getSystemHealth(): SystemHealth {
   const heapTotalMb = +(mem.heapTotal / 1024 / 1024).toFixed(1);
   const heapPct = +((mem.heapUsed / mem.heapTotal) * 100).toFixed(1);
 
-  const now = Date.now();
-  const uptimeMs = now - data.startedAt;
+  const uptimeMs = process.uptime() * 1000;
+  const startedAt = data.startedAt || Date.now() - uptimeMs;
   const lastThroughput = data.throughput[data.throughput.length - 1];
 
   return {
@@ -298,8 +238,8 @@ export function getSystemHealth(): SystemHealth {
       heapPct,
     },
     uptime: {
-      startedAt: data.startedAt,
-      lastRestartAt: data.lastRestartAt,
+      startedAt,
+      lastRestartAt: data.lastRestartAt || startedAt,
       uptimeMs,
       uptimeFormatted: formatUptime(uptimeMs),
     },
@@ -312,9 +252,6 @@ export function getSystemHealth(): SystemHealth {
 }
 
 export function resetMetrics(): void {
-  const seed = generateSeedData();
-  const now = Date.now();
-  seed.startedAt = now;
-  seed.lastRestartAt = now;
-  writeMetrics(seed);
+  const empty = createEmptyData();
+  writeMetrics(empty);
 }

@@ -6,6 +6,7 @@ import { SignalShareButtons } from '../../components/signal-share-buttons';
 import { EmbedButton } from '../../components/embed-button';
 import { AIAnalysisPanel } from '../../components/ai-analysis-panel';
 import { SetAlertButton } from '../../components/set-alert-button';
+import { SignalChartSection } from './SignalChartSection';
 
 function formatPrice(p: number): string {
   if (p >= 1000) return p.toFixed(2);

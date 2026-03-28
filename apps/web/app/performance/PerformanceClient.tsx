@@ -434,8 +434,9 @@ export function PerformanceClient() {
               className="absolute inset-0 w-full h-full"
             />
             {(!history || history.latency.length === 0) && (
-              <div className="absolute inset-0 flex items-center justify-center text-zinc-600 text-xs font-mono">
-                No data
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-600 text-xs font-mono gap-1">
+                <span>No latency data yet</span>
+                <span className="text-zinc-700 text-[10px]">Metrics will appear once the system starts processing requests</span>
               </div>
             )}
           </div>
@@ -468,31 +469,39 @@ export function PerformanceClient() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.03]">
-                  {(m?.apiRoutes ?? []).map(route => (
-                    <tr key={route.route} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-2 pr-4">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${RouteDot(route.avg)}`} />
-                          <span className="text-zinc-300 truncate max-w-[160px]">{route.route}</span>
-                        </div>
-                      </td>
-                      <td className={`py-2 text-right tabular-nums ${RouteColor(route.avg)}`}>
-                        {route.avg}ms
-                      </td>
-                      <td className={`py-2 text-right tabular-nums ${RouteColor(route.p95)}`}>
-                        {route.p95}ms
-                      </td>
-                      <td className={`py-2 text-right tabular-nums ${RouteColor(route.max)}`}>
-                        {route.max}ms
-                      </td>
-                      <td className="py-2 text-right tabular-nums text-zinc-500">
-                        {route.count.toLocaleString()}
-                      </td>
-                      <td className="py-2 text-right tabular-nums text-zinc-600">
-                        {timeAgo(route.lastSeen)}
+                  {(m?.apiRoutes ?? []).length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-zinc-600 text-xs font-mono">
+                        No API route data yet. Metrics will appear once requests are served.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    (m?.apiRoutes ?? []).map(route => (
+                      <tr key={route.route} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="py-2 pr-4">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${RouteDot(route.avg)}`} />
+                            <span className="text-zinc-300 truncate max-w-[160px]">{route.route}</span>
+                          </div>
+                        </td>
+                        <td className={`py-2 text-right tabular-nums ${RouteColor(route.avg)}`}>
+                          {route.avg}ms
+                        </td>
+                        <td className={`py-2 text-right tabular-nums ${RouteColor(route.p95)}`}>
+                          {route.p95}ms
+                        </td>
+                        <td className={`py-2 text-right tabular-nums ${RouteColor(route.max)}`}>
+                          {route.max}ms
+                        </td>
+                        <td className="py-2 text-right tabular-nums text-zinc-500">
+                          {route.count.toLocaleString()}
+                        </td>
+                        <td className="py-2 text-right tabular-nums text-zinc-600">
+                          {timeAgo(route.lastSeen)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -576,15 +585,19 @@ export function PerformanceClient() {
             {/* By Pair */}
             <div className="space-y-1">
               <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-2">By Pair</p>
-              {signalPairs.map(([pair, count]) => (
-                <HBar
-                  key={pair}
-                  label={pair.replace('USD', '')}
-                  value={count}
-                  max={maxPairCount}
-                  color="bg-emerald-500"
-                />
-              ))}
+              {signalPairs.length === 0 ? (
+                <p className="text-xs text-zinc-700 font-mono py-4">No signal data yet</p>
+              ) : (
+                signalPairs.map(([pair, count]) => (
+                  <HBar
+                    key={pair}
+                    label={pair.replace('USD', '')}
+                    value={count}
+                    max={maxPairCount}
+                    color="bg-emerald-500"
+                  />
+                ))
+              )}
             </div>
 
             {/* BUY vs SELL + By Timeframe */}
@@ -628,15 +641,19 @@ export function PerformanceClient() {
             {/* By Timeframe */}
             <div className="space-y-1">
               <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-2">By Timeframe</p>
-              {signalTfs.map(([tf, count]) => (
-                <HBar
-                  key={tf}
-                  label={tf}
-                  value={count}
-                  max={maxTfCount}
-                  color="bg-violet-500"
-                />
-              ))}
+              {signalTfs.length === 0 ? (
+                <p className="text-xs text-zinc-700 font-mono py-4">No signal data yet</p>
+              ) : (
+                signalTfs.map(([tf, count]) => (
+                  <HBar
+                    key={tf}
+                    label={tf}
+                    value={count}
+                    max={maxTfCount}
+                    color="bg-violet-500"
+                  />
+                ))
+              )}
             </div>
           </div>
         </div>

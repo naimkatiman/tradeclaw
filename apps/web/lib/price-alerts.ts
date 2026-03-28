@@ -67,95 +67,6 @@ function generateId(): string {
   return `alert_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 }
 
-function generateSeedData(): PriceAlert[] {
-  const now = Date.now();
-  const h = (ms: number) => new Date(now - ms).toISOString();
-
-  return [
-    {
-      id: 'alert_seed_001',
-      symbol: 'BTCUSD',
-      direction: 'above',
-      targetPrice: 90000,
-      currentPrice: 87500,
-      status: 'active',
-      createdAt: h(3 * 3600000),
-      note: 'Breakout above resistance',
-    },
-    {
-      id: 'alert_seed_002',
-      symbol: 'XAUUSD',
-      direction: 'above',
-      targetPrice: 2200,
-      currentPrice: 2180,
-      status: 'active',
-      createdAt: h(1.5 * 3600000),
-      note: 'Gold ATH watch',
-    },
-    {
-      id: 'alert_seed_003',
-      symbol: 'EURUSD',
-      direction: 'below',
-      targetPrice: 1.075,
-      currentPrice: 1.083,
-      status: 'active',
-      createdAt: h(2 * 3600000),
-    },
-    {
-      id: 'alert_seed_004',
-      symbol: 'BTCUSD',
-      direction: 'below',
-      targetPrice: 85000,
-      currentPrice: 87500,
-      status: 'active',
-      createdAt: h(4 * 3600000),
-      note: 'Support level watch',
-    },
-    {
-      id: 'alert_seed_005',
-      symbol: 'ETHUSD',
-      direction: 'above',
-      targetPrice: 3500,
-      currentPrice: 3400,
-      status: 'active',
-      percentMove: 2.9,
-      timeWindow: '4h',
-      createdAt: h(0.5 * 3600000),
-    },
-    {
-      id: 'alert_seed_006',
-      symbol: 'GBPUSD',
-      direction: 'below',
-      targetPrice: 1.25,
-      currentPrice: 1.264,
-      status: 'triggered',
-      triggeredAt: h(0.5 * 3600000),
-      createdAt: h(6 * 3600000),
-      note: 'GBP weakness play',
-    },
-    {
-      id: 'alert_seed_007',
-      symbol: 'XAGUSD',
-      direction: 'above',
-      targetPrice: 25.5,
-      currentPrice: 24.8,
-      status: 'triggered',
-      triggeredAt: h(1 * 3600000),
-      createdAt: h(8 * 3600000),
-    },
-    {
-      id: 'alert_seed_008',
-      symbol: 'USDJPY',
-      direction: 'above',
-      targetPrice: 152,
-      currentPrice: 151.2,
-      status: 'active',
-      createdAt: h(2.5 * 3600000),
-      note: 'BOJ intervention watch',
-    },
-  ];
-}
-
 // ---------------------------------------------------------------------------
 // Read / Write
 // ---------------------------------------------------------------------------
@@ -168,17 +79,10 @@ export function readAlerts(): PriceAlert[] {
       const data = JSON.parse(raw) as AlertsData;
       return data.alerts ?? [];
     } catch {
-      // Corrupt file — fall through to seed
+      // Corrupt file — return empty
     }
   }
-  const seed = generateSeedData();
-  try {
-    const data: AlertsData = { alerts: seed, lastChecked: new Date().toISOString() };
-    fs.writeFileSync(ALERTS_FILE, JSON.stringify(data, null, 2));
-  } catch {
-    // ignore write failures
-  }
-  return seed;
+  return [];
 }
 
 function writeAlerts(alerts: PriceAlert[]): void {

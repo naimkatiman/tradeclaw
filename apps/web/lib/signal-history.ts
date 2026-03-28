@@ -84,16 +84,10 @@ export function readHistory(): SignalHistoryRecord[] {
       const raw = fs.readFileSync(HISTORY_FILE, 'utf-8');
       return JSON.parse(raw) as SignalHistoryRecord[];
     } catch {
-      // Corrupt file — fall through to seed
+      // Corrupt file — return empty
     }
   }
-  const seed = generateSeedData();
-  try {
-    fs.writeFileSync(HISTORY_FILE, JSON.stringify(seed));
-  } catch {
-    // ignore write failures
-  }
-  return seed;
+  return [];
 }
 
 function writeHistory(records: SignalHistoryRecord[]): void {
@@ -138,7 +132,6 @@ export function recordSignal(
   records.unshift(newRecord);
   if (records.length > MAX_RECORDS) records.splice(MAX_RECORDS);
 
-  resolveOutcomesLazy(records);
   writeHistory(records);
 }
 
@@ -175,22 +168,8 @@ export function recordSignals(signals: TrackedSignalInput[]): number {
   if (inserted === 0) return 0;
 
   if (records.length > MAX_RECORDS) records.splice(MAX_RECORDS);
-  resolveOutcomesLazy(records);
   writeHistory(records);
   return inserted;
-}
-
-function resolveOutcomesLazy(records: SignalHistoryRecord[]): void {
-  const now = Date.now();
-  for (const r of records) {
-    if (!r.isSimulated) continue; // real records resolved via resolveRealOutcomes()
-    if (r.outcomes['4h'] === null && now - r.timestamp >= 4 * 3600 * 1000) {
-      r.outcomes['4h'] = simulateOutcome(r, '4h');
-    }
-    if (r.outcomes['24h'] === null && now - r.timestamp >= 24 * 3600 * 1000) {
-      r.outcomes['24h'] = simulateOutcome(r, '24h');
-    }
-  }
 }
 
 function resolveFromCandles(r: SignalHistoryRecord, candles: OHLCV[]): SignalOutcome | null {
@@ -262,37 +241,6 @@ export async function resolveRealOutcomes(): Promise<void> {
   }
 
   if (changed) writeHistory(records);
-}
-
-function seededRandom(seed: number): number {
-  const x = Math.sin(seed + 1) * 10000;
-  return x - Math.floor(x);
-}
-
-function hashString(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) {
-    h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
-
-function simulateOutcome(r: SignalHistoryRecord, window: '4h' | '24h'): SignalOutcome {
-  const seed = hashString(`${r.id}-${window}`);
-  // Base hit rate 55%, scaled by confidence. Range ~55-75%
-  const hitRate = 0.55 + (r.confidence - 50) * 0.004;
-  const hit = seededRandom(seed) < Math.min(hitRate, 0.78);
-  const maxMove = window === '4h' ? 1.5 : 2.5;
-  const movePct = hit
-    ? +(0.5 + seededRandom(seed + 1) * maxMove).toFixed(2)
-    : -(0.2 + seededRandom(seed + 1) * 0.8).toFixed(2);
-  const price =
-    r.entryPrice > 0
-      ? +(r.entryPrice * (1 + (r.direction === 'BUY' ? movePct : -movePct) / 100)).toFixed(
-          r.entryPrice >= 100 ? 2 : 5,
-        )
-      : 0;
-  return { price, pnlPct: movePct, hit };
 }
 
 // ──────────────────────────────────────────────
@@ -409,54 +357,3 @@ export function computeLeaderboard(
   };
 }
 
-// ──────────────────────────────────────────────
-// Seed data
-// ──────────────────────────────────────────────
-
-const PAIRS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'XAGUSD', 'AUDUSD', 'XRPUSD', 'USDCAD'];
-const TIMEFRAMES = ['H1', 'H4', 'D1', 'M15'];
-const BASE_PRICES: Record<string, number> = {
-  BTCUSD: 84000, ETHUSD: 3200, XAUUSD: 2340, EURUSD: 1.085,
-  GBPUSD: 1.27, USDJPY: 149.5, XAGUSD: 27.5, AUDUSD: 0.645,
-  XRPUSD: 0.615, USDCAD: 1.365,
-};
-
-function generateSeedData(): SignalHistoryRecord[] {
-  const records: SignalHistoryRecord[] = [];
-  const now = Date.now();
-
-  for (let i = 0; i < 100; i++) {
-    const r1 = seededRandom(i * 17);
-    const r2 = seededRandom(i * 17 + 1);
-    const r3 = seededRandom(i * 17 + 2);
-    const r4 = seededRandom(i * 17 + 3);
-    const r5 = seededRandom(i * 17 + 4);
-
-    const pair = PAIRS[Math.floor(r1 * PAIRS.length)];
-    const timeframe = TIMEFRAMES[Math.floor(r2 * TIMEFRAMES.length)];
-    const direction: 'BUY' | 'SELL' = r3 > 0.5 ? 'BUY' : 'SELL';
-    const daysAgo = 1 + Math.floor(r4 * 29);
-    const timestamp = now - daysAgo * 86400000 - Math.floor(r5 * 86400000);
-    const confidence = Math.round(55 + seededRandom(i * 17 + 5) * 35);
-    const basePrice = BASE_PRICES[pair] ?? 100;
-    const variance = (seededRandom(i * 17 + 6) - 0.5) * 0.02;
-    const entryPrice = +(basePrice * (1 + variance)).toFixed(basePrice >= 100 ? 2 : 5);
-
-    const rec: SignalHistoryRecord = {
-      id: `seed-${i}`,
-      pair,
-      timeframe,
-      direction,
-      confidence,
-      entryPrice,
-      timestamp,
-      isSimulated: true,
-      outcomes: { '4h': null, '24h': null },
-    };
-    rec.outcomes['4h'] = simulateOutcome(rec, '4h');
-    rec.outcomes['24h'] = simulateOutcome(rec, '24h');
-    records.push(rec);
-  }
-
-  return records.sort((a, b) => b.timestamp - a.timestamp);
-}

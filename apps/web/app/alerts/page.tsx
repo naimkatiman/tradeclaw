@@ -633,6 +633,24 @@ function AlertsPageInner() {
 
         {loading ? (
           <div className="text-center py-16 text-zinc-700 text-sm">Loading alerts…</div>
+        ) : alerts.length === 0 ? (
+          <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-xl">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3 text-zinc-700">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 01-3.46 0" />
+            </svg>
+            <div className="text-zinc-500 text-sm mb-1">No price alerts configured</div>
+            <p className="text-zinc-700 text-xs mb-4">Create an alert to get notified when prices reach your targets</p>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 text-sm font-semibold hover:bg-emerald-500/20 transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Create First Alert
+            </button>
+          </div>
         ) : (
           <>
             {/* Active alerts */}
@@ -646,7 +664,7 @@ function AlertsPageInner() {
                 <div className="text-center py-10 border border-dashed border-white/[0.06] rounded-xl">
                   <div className="text-zinc-700 text-sm mb-1">No active alerts</div>
                   <button onClick={() => setShowCreate(true)} className="text-xs text-emerald-500 hover:text-emerald-400 transition-colors">
-                    Create your first alert →
+                    Create a new alert →
                   </button>
                 </div>
               ) : (
