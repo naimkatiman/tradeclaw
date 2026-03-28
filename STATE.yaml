@@ -584,9 +584,13 @@ tasks:
 
   - id: TC-054
     title: "GitHub trending optimization — perfect repo metadata, topics, About section, social preview"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: Description updated with emoji + keywords. 20 topics (maxed: finance, rsi, macd added).
+      CITATION.cff created for academic discovery. welcome.yml GH Action (welcome first-time contributors + CTA to star).
+      star-milestone.yml GH Action (auto-issue at 10/25/50/100/500/1000 stars). social-preview.svg (1280x640).
+      Committed d40f10fd. 2026-03-28
 
   - id: TC-055
     title: "Signal accuracy leaderboard public API — /api/v1 RESTful endpoint with OpenAPI, showcase on landing"
