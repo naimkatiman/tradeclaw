@@ -540,21 +540,33 @@ tasks:
 
   - id: TC-050
     title: "Public API key system — generate free API keys, rate-limited, for external developers"
-    status: in-progress
+    status: done
     owner: pm-tradeclaw
-    notes: "Claude Code spawned 2026-03-28 07:54 SGT. Building lib/api-keys.ts, API routes, /api-keys page, developer portal."
+    notes: >
+      Complete: apps/web/lib/api-keys.ts (generateApiKey/CRUD/rate-limiting/seed data),
+      4 API routes (POST/GET /api/keys, validate/usage/revoke per key), /api-keys page
+      (hero, create form, key reveal, my-keys lookup, code examples: curl/JS/Python),
+      /developer page (DeveloperClient.tsx), navbar updated, api-docs updated with auth section.
+      Build passes. Committed 4806bd62. 2026-03-28
 
   - id: TC-051
     title: "TradeClaw badge — dynamic SVG badge showing live BTC signal for embedding in any README"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: badge-cache.ts (5-min TTL), /api/badge/[pair]/json (shields.io JSON endpoint),
+      /badges gallery page with Markdown/HTML/RST/AsciiDoc snippets for all 10 pairs + live previews.
+      Navbar + mobile-nav updated. README Live Signal Badges section added. Build passes. 2026-03-28
 
   - id: TC-052
     title: "Signal webhook marketplace — gallery of community webhook integrations (Notion/Airtable/Zapier)"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: 12 integrations (Notion, Airtable, Zapier, Make, Google Sheets, Discord, Slack,
+      PagerDuty, Telegram, n8n, IFTTT, Pipedream). /marketplace page with category filters, search,
+      InstallModal with step-by-step guide + payload preview + test connection. GET /api/marketplace
+      returns integration list as JSON. Navbar + mobile-nav updated. 2026-03-28
 
   - id: TC-053
     title: "Animated landing page hero — Three.js/canvas particle chart animation for wow-factor"
