@@ -59,10 +59,18 @@ No installation. No config. No Docker. Fetches live AI signals instantly.
 ```bash
 git clone https://github.com/naimkatiman/tradeclaw
 cp .env.example .env
+# Set DB_PASSWORD and AUTH_SECRET in .env
 docker compose up -d
 ```
 
 Open [http://localhost:3000](http://localhost:3000). That's it.
+
+**Verify your setup:**
+```bash
+bash scripts/test-docker.sh            # Build + health check
+bash scripts/test-docker.sh --no-build # Skip rebuild (faster)
+bash scripts/test-docker.sh --cleanup  # Tear down after test
+```
 
 ---
 
