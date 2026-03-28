@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { AlertTriangle } from 'lucide-react';
 import { LiveTicker } from '../../components/live-ticker';
 import { SignalToast } from '../../components/signal-toast';
 import { ConnectionStatus } from '../../components/connection-status';
@@ -355,7 +356,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       {syntheticSymbols.length > 0 && syntheticSymbols.length / 12 > 0.3 && (
         <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-2">
           <p className="max-w-7xl mx-auto text-xs text-amber-400/80 font-mono">
-            ⚠ {syntheticSymbols.length} of 12 symbols are using synthetic data (API unavailable) — signals suppressed for those pairs.
+            <AlertTriangle className="w-3.5 h-3.5 inline mr-1" /> {syntheticSymbols.length} of 12 symbols are using synthetic data (API unavailable) — signals suppressed for those pairs.
           </p>
         </div>
       )}

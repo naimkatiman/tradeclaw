@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Sprout, Zap, Flame, Gem, Rocket, Trophy, Sparkles } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface GitHubStats {
   stars: number;
@@ -9,7 +11,7 @@ interface GitHubStats {
 interface MilestoneInfo {
   threshold: number;
   label: string;
-  emoji: string;
+  icon: LucideIcon;
   tweet: string;
 }
 
@@ -17,43 +19,43 @@ const MILESTONES: MilestoneInfo[] = [
   {
     threshold: 10,
     label: '10 Stars',
-    emoji: '🌱',
+    icon: Sprout,
     tweet: 'TradeClaw just hit 10 GitHub stars! 🌱 The open-source AI trading signals platform is gaining traction. Check it out: https://github.com/naimkatiman/tradeclaw #opensource #trading',
   },
   {
     threshold: 25,
     label: '25 Stars',
-    emoji: '⚡',
+    icon: Zap,
     tweet: 'TradeClaw just hit 25 GitHub stars! ⚡ Momentum building for this open-source AI trading signals platform. Star it now: https://github.com/naimkatiman/tradeclaw #algotrading',
   },
   {
     threshold: 50,
     label: '50 Stars',
-    emoji: '🔥',
+    icon: Flame,
     tweet: 'TradeClaw is on fire — 50 GitHub stars! 🔥 Self-hosted AI trading signals for forex, crypto & metals. Free forever: https://github.com/naimkatiman/tradeclaw #trading #opensource',
   },
   {
     threshold: 100,
     label: '100 Stars',
-    emoji: '💎',
+    icon: Gem,
     tweet: 'TradeClaw hit 100 GitHub stars! 💎 Triple digits for this open-source AI trading signals platform. Join the community: https://github.com/naimkatiman/tradeclaw #tradingbot',
   },
   {
     threshold: 250,
     label: '250 Stars',
-    emoji: '🚀',
+    icon: Rocket,
     tweet: 'TradeClaw is going viral — 250 GitHub stars! 🚀 The open-source AI trading signals platform everyone is talking about. Star it: https://github.com/naimkatiman/tradeclaw',
   },
   {
     threshold: 500,
     label: '500 Stars',
-    emoji: '🏆',
+    icon: Trophy,
     tweet: 'TradeClaw reached 500 GitHub stars! 🏆 Half-way to 1,000 stars on this incredible open-source AI trading signals platform. Check it out: https://github.com/naimkatiman/tradeclaw',
   },
   {
     threshold: 1000,
     label: '1,000 Stars',
-    emoji: '🌟',
+    icon: Sparkles,
     tweet: 'TradeClaw is LEGENDARY — 1,000 GitHub stars! 🌟 The open-source AI trading signals platform has made it. Join thousands of traders: https://github.com/naimkatiman/tradeclaw',
   },
 ];
@@ -162,7 +164,7 @@ export function MilestoneCelebrationModal() {
           </button>
 
           <div className="relative space-y-4">
-            <div className="text-6xl">{milestone.emoji}</div>
+            <div className="flex justify-center"><milestone.icon className="w-14 h-14 text-amber-300" /></div>
             <div>
               <h2 className="text-2xl font-black text-amber-300">Milestone Reached!</h2>
               <p className="text-lg font-bold text-white mt-1">{milestone.label}</p>
@@ -187,7 +189,7 @@ export function MilestoneCelebrationModal() {
                 onClick={dismiss}
                 className="rounded-xl bg-emerald-500 hover:bg-emerald-400 px-4 py-2.5 text-sm font-semibold text-black transition-colors"
               >
-                Keep Building 🚀
+                Keep Building
               </button>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Settings } from 'lucide-react';
 
 interface Strategy {
   id: string;
@@ -220,7 +221,7 @@ export default function StrategiesPage() {
         {/* Strategy List */}
         {loading ? (
           <div className="text-center py-20 text-gray-500">
-            <div className="animate-pulse text-4xl mb-4">⚙️</div>
+            <Settings className="w-10 h-10 mx-auto mb-4 animate-pulse text-gray-500" />
             <div>Loading strategies...</div>
           </div>
         ) : (

@@ -2,27 +2,29 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
+import type { LucideIcon } from 'lucide-react';
 
-const NAV_LINKS = [
+const NAV_LINKS: Array<{ href: string; label: string; icon?: LucideIcon }> = [
   { href: '#features', label: 'Features' },
   { href: '#how-it-works', label: 'How it works' },
   { href: '/compare', label: 'Compare' },
   { href: '/awesome', label: 'Awesome' },
-  { href: '/contribute', label: 'Contribute 🤝' },
-  { href: '/launch', label: 'Launch 🚀' },
-  { href: '/star', label: '⭐ Star Us' },
-  { href: '/share', label: 'Share ⭐' },
-  { href: '/stars', label: 'Stars 🌟' },
-  { href: '/hn', label: 'HN 🟠' },
-  { href: '/rss', label: 'RSS 📡' },
-  { href: '/demo', label: 'Demo 🟢' },
-  { href: '/replay', label: 'Replay ▶' },
+  { href: '/contribute', label: 'Contribute', icon: Handshake },
+  { href: '/launch', label: 'Launch', icon: Rocket },
+  { href: '/star', label: 'Star Us', icon: Star },
+  { href: '/share', label: 'Share', icon: Star },
+  { href: '/stars', label: 'Stars', icon: Sparkles },
+  { href: '/hn', label: 'HN', icon: Circle },
+  { href: '/rss', label: 'RSS', icon: Radio },
+  { href: '/demo', label: 'Demo', icon: Circle },
+  { href: '/replay', label: 'Replay', icon: Play },
   { href: '/badge', label: 'Badges' },
   { href: '/badges', label: 'Badges Gallery' },
   { href: '/marketplace', label: 'Marketplace' },
   { href: '/api-keys', label: 'API Keys' },
-  { href: '/heatmap', label: 'Heatmap 🌡️' },
+  { href: '/heatmap', label: 'Heatmap', icon: Thermometer },
   { href: '/vs-tradingview', label: 'vs TradingView' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
@@ -68,8 +70,9 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="hover:text-[var(--foreground)] transition-colors duration-300"
+                className="flex items-center gap-1 hover:text-[var(--foreground)] transition-colors duration-300"
               >
+                {link.icon && <link.icon className="w-3 h-3" />}
                 {link.label}
               </Link>
             ))}
@@ -134,10 +137,11 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-2xl font-semibold text-white opacity-0 animate-fade-up"
+              className="flex items-center gap-2 text-2xl font-semibold text-white opacity-0 animate-fade-up"
               style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'forwards' }}
               onClick={() => setMenuOpen(false)}
             >
+              {link.icon && <link.icon className="w-5 h-5" />}
               {link.label}
             </Link>
           ))}

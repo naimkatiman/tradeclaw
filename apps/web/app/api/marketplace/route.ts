@@ -1,6 +1,26 @@
 import { NextResponse } from 'next/server';
+import {
+  FileText, BarChart2, Zap, Sparkles, ClipboardList, Gamepad2,
+  MessageSquare, AlertTriangle, Send, Wrench, Link2, Waves,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+
+export const INTEGRATION_ICONS: Record<string, LucideIcon> = {
+  notion: FileText,
+  airtable: BarChart2,
+  zapier: Zap,
+  make: Sparkles,
+  'google-sheets': ClipboardList,
+  discord: Gamepad2,
+  slack: MessageSquare,
+  pagerduty: AlertTriangle,
+  telegram: Send,
+  n8n: Wrench,
+  ifttt: Link2,
+  pipedream: Waves,
+};
 
 export const INTEGRATIONS = [
   {

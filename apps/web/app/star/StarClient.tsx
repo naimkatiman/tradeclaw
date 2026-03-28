@@ -2,32 +2,34 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { Plug, Smartphone, Cloud, BarChart2, Search, TrendingUp, Wrench } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
 const GOAL = 1000;
 
-const MILESTONES = [
+const MILESTONES: Array<{ stars: number; icon: LucideIcon; feature: string; desc: string }> = [
   {
     stars: 100,
-    emoji: "🔌",
+    icon: Plug,
     feature: "MT4/MT5 broker integration",
     desc: "Connect your broker directly — auto-execute signals from TradeClaw",
   },
   {
     stars: 250,
-    emoji: "📱",
+    icon: Smartphone,
     feature: "Mobile app (React Native)",
     desc: "Real-time signals and alerts on your phone, with push notifications",
   },
   {
     stars: 500,
-    emoji: "☁️",
+    icon: Cloud,
     feature: "Hosted cloud version (free tier)",
     desc: "No Docker required — sign up and get signals instantly, free forever",
   },
   {
     stars: 1000,
-    emoji: "📊",
+    icon: BarChart2,
     feature: "Full backtesting engine with real broker data",
     desc: "Test any strategy against historical tick data from live brokers",
   },
@@ -242,7 +244,7 @@ export function StarClient() {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{m.emoji}</span>
+                      <m.icon className="w-6 h-6 text-emerald-400" />
                       <span className={`text-sm font-bold font-mono ${reached ? "text-yellow-400" : "text-zinc-300"}`}>
                         {m.stars.toLocaleString()} ⭐
                       </span>
@@ -520,28 +522,28 @@ export function StarClient() {
         <div className="mx-auto max-w-4xl">
           <h2 className="text-center text-2xl font-bold mb-10">Why star?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {[
+            {([
               {
-                icon: "🔍",
+                icon: Search,
                 title: "Discoverability",
                 desc: "Every star helps more developers discover TradeClaw on GitHub search and explore",
               },
               {
-                icon: "📈",
+                icon: TrendingUp,
                 title: "GitHub Trending",
                 desc: "Stars = visibility on GitHub Trending. Trending = thousands of new users organically",
               },
               {
-                icon: "🛠️",
+                icon: Wrench,
                 title: "Better for everyone",
                 desc: "More stars = more contributors = better signals, more features, faster development",
               },
-            ].map((card) => (
+            ] as { icon: LucideIcon; title: string; desc: string }[]).map((card) => (
               <div
                 key={card.title}
                 className="rounded-xl border border-white/8 bg-white/[0.025] p-6 text-center"
               >
-                <div className="text-3xl mb-3">{card.icon}</div>
+                <div className="mb-3 flex justify-center"><card.icon className="w-7 h-7 text-emerald-400" /></div>
                 <h3 className="font-bold text-sm mb-2">{card.title}</h3>
                 <p className="text-xs text-zinc-500 leading-relaxed">{card.desc}</p>
               </div>

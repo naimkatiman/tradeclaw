@@ -647,9 +647,13 @@ tasks:
 
   - id: TC-060
     title: "TradeClaw vs TradingView live comparison — side-by-side signal output for same asset same time"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /vs-tradingview page (VsClient.tsx, 488 lines) — side-by-side live comparison,
+      TradingView raw indicator cards vs TradeClaw AI decision card, asset/timeframe selectors,
+      comparison table, share button, auto-refresh 60s. Already in navbar. Build passes 107 pages.
+      2026-03-28
 
   - id: TC-061
     title: "GitHub Discussions seeding — post 10 thoughtful discussion threads to bootstrap community"

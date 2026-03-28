@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Clock, Megaphone, MessageCircle, EyeOff, Zap, UserRound } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -75,34 +77,34 @@ I kept paying $X/month for platforms that were either cloud-locked or opaque abo
 
 Ask me anything — happy to go deep on the architecture, the signal logic, or how I'm thinking about the roadmap.`;
 
-const TIPS = [
+const TIPS: Array<{ icon: LucideIcon; title: string; body: string }> = [
   {
-    icon: '🕗',
+    icon: Clock,
     title: 'Post on weekday mornings (8–10am ET)',
     body: "HN traffic peaks on US East Coast mornings on weekdays. Avoid weekends and late Friday — posts die fast. Tuesday and Wednesday mornings tend to perform best.",
   },
   {
-    icon: '📢',
+    icon: Megaphone,
     title: 'Show HN vs Ask HN',
     body: 'Use "Show HN" when you have something to demo — a live URL, GitHub repo, or working product. Use "Ask HN" when you have a genuine question. TradeClaw has both a live demo and a repo, so "Show HN" is correct.',
   },
   {
-    icon: '💬',
+    icon: MessageCircle,
     title: 'Post your first comment immediately',
     body: "As soon as the submission goes live, post a detailed comment (use the template below). This gives people something to respond to and signals you're engaged. It's also the HN norm for Show HN posts.",
   },
   {
-    icon: '🤫',
+    icon: EyeOff,
     title: "Don't share the link before it gets traction",
     body: 'Resist the urge to blast the link on Twitter/Discord the moment you post. Let organic HN upvotes build first. Coordinated voting from external sources can get you flagged.',
   },
   {
-    icon: '⚡',
+    icon: Zap,
     title: 'Engage every comment in the first hour',
     body: 'The algorithm rewards post velocity. Reply thoughtfully to every single comment in the first 60 minutes. Not just "thanks!" — add substance, answer questions, acknowledge criticism.',
   },
   {
-    icon: '🙋',
+    icon: UserRound,
     title: 'Use "I" language, not "we"',
     body: '"I built TradeClaw" feels authentic. "We built" sounds like marketing. HN values individual builders. If you have co-founders, you can mention them after the initial hook.',
   },
@@ -328,7 +330,7 @@ export function HNClient() {
           <div className="space-y-3">
             {TIPS.map(tip => (
               <div key={tip.title} className="glass-card rounded-xl p-4 flex gap-4">
-                <span className="text-2xl shrink-0">{tip.icon}</span>
+                <tip.icon className="w-6 h-6 shrink-0 text-emerald-400" />
                 <div>
                   <p className="text-sm font-semibold mb-1">{tip.title}</p>
                   <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{tip.body}</p>

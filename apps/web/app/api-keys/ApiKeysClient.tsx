@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { Zap, KeyRound, BarChart2, Container } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -124,14 +126,14 @@ function Hero() {
         </Link>
       </p>
       <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-[var(--text-secondary)]">
-        {[
-          { icon: '⚡', text: '1,000 req/hour free' },
-          { icon: '🔑', text: 'Scoped permissions' },
-          { icon: '📊', text: 'Usage dashboard' },
-          { icon: '🐳', text: 'Self-host for unlimited' },
-        ].map(({ icon, text }) => (
+        {([
+          { icon: Zap, text: '1,000 req/hour free' },
+          { icon: KeyRound, text: 'Scoped permissions' },
+          { icon: BarChart2, text: 'Usage dashboard' },
+          { icon: Container, text: 'Self-host for unlimited' },
+        ] as const).map(({ icon: Icon, text }) => (
           <span key={text} className="flex items-center gap-1.5">
-            {icon} {text}
+            <Icon className="w-3.5 h-3.5" /> {text}
           </span>
         ))}
       </div>
@@ -290,7 +292,7 @@ function KeyRevealBanner({
   return (
     <div className="rounded-xl border-2 border-emerald-500/60 bg-emerald-500/10 p-5">
       <div className="flex items-start gap-3 mb-3">
-        <span className="text-xl mt-0.5">🔑</span>
+        <KeyRound className="w-5 h-5 text-emerald-300 mt-0.5 shrink-0" />
         <div>
           <p className="text-sm font-semibold text-emerald-300">Your new API key</p>
           <p className="text-xs text-emerald-400/70 mt-0.5">

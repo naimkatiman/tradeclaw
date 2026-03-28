@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Navbar } from "./components/navbar";
-import { AnimatedHero } from "../components/landing/animated-hero";
+import { ABHero } from "../components/landing/ab-hero";
 import { SocialProof } from "../components/landing/social-proof";
 import { StarsBadge } from "../components/landing/stars-badge";
 import { ComparisonTable } from "../components/landing/comparison-table";
@@ -15,7 +15,7 @@ export default function Home() {
     <>
       <Navbar />
       <main>
-        <AnimatedHero />
+        <ABHero />
         <div className="flex justify-center pb-4">
           <StarsBadge />
         </div>

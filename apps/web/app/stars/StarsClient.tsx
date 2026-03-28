@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Sprout, Zap, Flame, Gem, Rocket, Trophy, Sparkles, Target, Gift } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 const REPO_URL = 'https://github.com/naimkatiman/tradeclaw';
 const STAR_TARGET = 1000;
@@ -15,19 +17,19 @@ interface GitHubStats {
 interface Milestone {
   stars: number;
   label: string;
-  emoji: string;
+  icon: LucideIcon;
   message: string;
   unlock: string;
 }
 
 const MILESTONES: Milestone[] = [
-  { stars: 10, label: '10 Stars', emoji: '🌱', message: 'First community signal!', unlock: 'First community signal fires' },
-  { stars: 25, label: '25 Stars', emoji: '⚡', message: 'Gaining momentum!', unlock: 'Telegram bot goes live' },
-  { stars: 50, label: '50 Stars', emoji: '🔥', message: 'On fire!', unlock: 'Strategy builder release' },
-  { stars: 100, label: '100 Stars', emoji: '💎', message: 'Triple digits!', unlock: 'Plugin ecosystem launch' },
-  { stars: 250, label: '250 Stars', emoji: '🚀', message: 'Going viral!', unlock: 'Mobile app beta' },
-  { stars: 500, label: '500 Stars', emoji: '🏆', message: 'Half-way hero!', unlock: 'Enterprise features unlock' },
-  { stars: 1000, label: '1,000 Stars', emoji: '🌟', message: 'Legendary! We made it!', unlock: 'Full SaaS launch' },
+  { stars: 10, label: '10 Stars', icon: Sprout, message: 'First community signal!', unlock: 'First community signal fires' },
+  { stars: 25, label: '25 Stars', icon: Zap, message: 'Gaining momentum!', unlock: 'Telegram bot goes live' },
+  { stars: 50, label: '50 Stars', icon: Flame, message: 'On fire!', unlock: 'Strategy builder release' },
+  { stars: 100, label: '100 Stars', icon: Gem, message: 'Triple digits!', unlock: 'Plugin ecosystem launch' },
+  { stars: 250, label: '250 Stars', icon: Rocket, message: 'Going viral!', unlock: 'Mobile app beta' },
+  { stars: 500, label: '500 Stars', icon: Trophy, message: 'Half-way hero!', unlock: 'Enterprise features unlock' },
+  { stars: 1000, label: '1,000 Stars', icon: Sparkles, message: 'Legendary! We made it!', unlock: 'Full SaaS launch' },
 ];
 
 function useCountUp(target: number, duration: number, triggered: boolean): number {
@@ -393,7 +395,7 @@ export function StarsClient() {
 
           <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
             <span>{stats.stars.toLocaleString()} stars</span>
-            <span>1,000 stars 🎯</span>
+            <span className="flex items-center gap-1">1,000 stars <Target className="w-3.5 h-3.5 inline" /></span>
           </div>
 
           {/* Milestone chips */}
@@ -407,7 +409,7 @@ export function StarsClient() {
                     : 'border-white/10 bg-white/5 text-[var(--text-secondary)]'
                 }`}
               >
-                {stats.stars >= m.stars && '✓ '}{m.emoji} {m.label}
+                {stats.stars >= m.stars && '✓ '}<m.icon className="w-3.5 h-3.5 inline" /> {m.label}
               </span>
             ))}
           </div>
@@ -416,13 +418,13 @@ export function StarsClient() {
         {/* ── Milestone Celebration ── */}
         {highestMilestone && (
           <section className="relative rounded-2xl border border-amber-500/40 bg-amber-500/10 p-6 text-center space-y-3 overflow-hidden opacity-0 animate-fade-up" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-            <div className="text-5xl">{highestMilestone.emoji}</div>
+            <div className="flex justify-center"><highestMilestone.icon className="w-12 h-12 text-amber-300" /></div>
             <h2 className="text-2xl font-bold text-amber-300">{highestMilestone.message}</h2>
             <p className="text-[var(--text-secondary)]">
               You&apos;ve reached the <strong className="text-amber-400">{highestMilestone.label}</strong> milestone!
             </p>
             <p className="text-sm text-emerald-400 font-medium">
-              🎁 Unlocked: {highestMilestone.unlock}
+              <Gift className="w-4 h-4 inline mr-1" /> Unlocked: {highestMilestone.unlock}
             </p>
             <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(245,158,11,0.08) 0%, transparent 70%)' }} />
           </section>
@@ -646,7 +648,7 @@ export function StarsClient() {
             {MILESTONES.map((m, i) => {
               const reached = stats.stars >= m.stars;
               const milestoneTweet = encodeURIComponent(
-                `TradeClaw just hit the ${m.label} milestone! ${m.emoji} ${m.message} Self-hosted AI trading signals, MIT licensed — star it on GitHub:\n${REPO_URL}`
+                `TradeClaw just hit the ${m.label} milestone! ${m.message} Self-hosted AI trading signals, MIT licensed — star it on GitHub:\n${REPO_URL}`
               );
               const milestoneShareUrl = `https://twitter.com/intent/tweet?text=${milestoneTweet}`;
               return (
@@ -662,7 +664,7 @@ export function StarsClient() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xl">{m.emoji}</span>
+                        <m.icon className="w-5 h-5 text-amber-300" />
                         <span className={`text-sm font-bold ${reached ? 'text-amber-300' : 'text-white'}`}>
                           {m.label}
                         </span>

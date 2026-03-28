@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { AlertTriangle } from 'lucide-react';
 import type { MultiTFResult, TFDirection } from '../lib/signal-generator';
 
 // ─── Nav ─────────────────────────────────────────────────────
@@ -190,7 +191,7 @@ function MatrixRow({ result }: { result: MultiTFResult }) {
 
           {result.isConflicted && (
             <div className="mt-3 flex items-center gap-2 text-[10px] font-mono text-amber-400/80 bg-amber-500/5 border border-amber-500/10 rounded-lg px-3 py-2">
-              <span>⚠</span>
+              <AlertTriangle className="w-3.5 h-3.5" />
               <span>Timeframes in conflict — confidence adjusted {result.confluenceBonus}%</span>
             </div>
           )}

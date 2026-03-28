@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { INTEGRATIONS } from '../app/api/marketplace/route';
+import { Search, Wrench, Info } from 'lucide-react';
+import { INTEGRATIONS, INTEGRATION_ICONS } from '../app/api/marketplace/route';
 
 type Integration = (typeof INTEGRATIONS)[number];
 
@@ -66,7 +67,7 @@ function InstallModal({ integration, onClose }: { integration: Integration; onCl
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-white/5" style={{ background: 'var(--bg-card)' }}>
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{integration.emoji}</span>
+            <span className="text-2xl">{(() => { const Icon = INTEGRATION_ICONS[integration.id]; return Icon ? <Icon className="w-6 h-6" /> : null; })()}</span>
             <div>
               <h2 className="text-base font-semibold">{integration.name}</h2>
               <span className={`inline-block mt-0.5 text-[10px] px-2 py-0.5 rounded-full border ${CATEGORY_COLORS[integration.category]}`}>
@@ -163,7 +164,7 @@ function IntegrationCard({ integration, onInstall }: { integration: Integration;
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl">
-            {integration.emoji}
+            {(() => { const Icon = INTEGRATION_ICONS[integration.id]; return Icon ? <Icon className="w-5 h-5" /> : null; })()}
           </div>
           <div>
             <h3 className="text-sm font-semibold">{integration.name}</h3>
@@ -309,14 +310,14 @@ export function MarketplaceClient() {
           </div>
         ) : (
           <div className="text-center py-16 text-[var(--text-secondary)]">
-            <div className="text-4xl mb-3">🔍</div>
+            <div className="mb-3"><Search className="w-10 h-10 mx-auto text-[var(--text-secondary)]" /></div>
             <p className="text-sm">No integrations found for &ldquo;{search}&rdquo;</p>
           </div>
         )}
 
         {/* Build your own CTA */}
         <div className="glass-card rounded-2xl p-8 text-center space-y-4 border border-emerald-500/10">
-          <div className="text-3xl">🛠️</div>
+          <div><Wrench className="w-8 h-8 mx-auto text-emerald-400" /></div>
           <h2 className="text-lg font-semibold">Build Your Own Integration</h2>
           <p className="text-sm text-[var(--text-secondary)] max-w-md mx-auto">
             TradeClaw sends standard JSON payloads to any HTTPS endpoint.
@@ -342,7 +343,7 @@ export function MarketplaceClient() {
 
         {/* API endpoint note */}
         <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-500/5 border border-blue-500/15">
-          <span className="text-blue-400 text-lg mt-0.5">ℹ️</span>
+          <Info className="w-5 h-5 text-blue-400 mt-0.5 shrink-0" />
           <div className="text-xs text-blue-300/80 leading-relaxed">
             <strong>For developers:</strong> Query available integrations programmatically via{' '}
             <code className="text-blue-400">GET /api/marketplace</code>.

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Rss, Copy, Check, ExternalLink, Zap, Clock, TrendingUp, TrendingDown } from 'lucide-react';
+import { Rss, Copy, Check, ExternalLink, Zap, Clock, TrendingUp, TrendingDown, X } from 'lucide-react';
 import type { SignalHistoryRecord } from '../../lib/signal-history';
 
 const BASE_URL =
@@ -137,7 +137,7 @@ function SignalPreviewItem({ signal }: { signal: SignalHistoryRecord }) {
                 outcome24h.hit ? 'text-emerald-400' : 'text-red-400'
               }`}
             >
-              24h: {outcome24h.hit ? '✅ Hit TP' : '❌ Hit SL'}{' '}
+              24h: {outcome24h.hit ? <><Check className="w-3 h-3 inline" /> Hit TP</> : <><X className="w-3 h-3 inline" /> Hit SL</>}{' '}
               ({outcome24h.pnlPct > 0 ? '+' : ''}
               {outcome24h.pnlPct}%)
             </span>

@@ -700,12 +700,12 @@ export default function ReplayClient() {
             </div>
             {hitTP && (
               <div style={{ marginLeft: 'auto', background: 'rgba(16,185,129,0.15)', color: THEME.emerald, padding: '4px 12px', borderRadius: '8px', fontWeight: 700, fontSize: '0.8rem', border: `1px solid ${THEME.emerald}40` }}>
-                ✅ TP HIT
+                TP HIT
               </div>
             )}
             {hitSL && !hitTP && (
               <div style={{ marginLeft: 'auto', background: 'rgba(244,63,94,0.15)', color: THEME.rose, padding: '4px 12px', borderRadius: '8px', fontWeight: 700, fontSize: '0.8rem', border: `1px solid ${THEME.rose}40` }}>
-                ❌ SL HIT
+                SL HIT
               </div>
             )}
           </div>
@@ -814,7 +814,7 @@ export default function ReplayClient() {
           {/* Outcome summary (visible after replay done) */}
           {playState === 'done' && (
             <div style={{ borderTop: `1px solid ${THEME.border}`, padding: '0.75rem 1rem', display: 'flex', gap: '1rem', background: THEME.surface }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: THEME.text, marginRight: '0.5rem' }}>📊 Outcomes:</div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: THEME.text, marginRight: '0.5rem' }}>Outcomes:</div>
               {(['4h', '24h'] as const).map((period) => {
                 const outcome = signal.outcomes[period];
                 if (!outcome) return null;

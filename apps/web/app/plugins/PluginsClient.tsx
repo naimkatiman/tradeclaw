@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Puzzle, Pause, Play, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { Puzzle, Pause, Play, Pencil, Trash2, BookOpen, AlertTriangle } from 'lucide-react';
 
 /* ── Types ── */
 interface PluginParam {
@@ -387,7 +387,7 @@ export function PluginsClient() {
 
               {testError && (
                 <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg p-3 text-sm text-rose-400">
-                  ⚠ {testError}
+                  <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />{testError}
                 </div>
               )}
 

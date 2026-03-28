@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { Globe, Lock, Database, Radio } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { CodeBlock } from '../components/code-block';
 import { PageNav } from '../components/page-nav';
 import { getPrevNext } from '../nav-config';
@@ -29,14 +31,14 @@ export default function SelfHostingPage() {
           A production TradeClaw deployment consists of:
         </p>
         <div className="grid gap-3">
-          {[
-            { name: 'Web App', desc: 'Next.js standalone server on port 3000', icon: '🌐' },
-            { name: 'Reverse Proxy', desc: 'nginx handling TLS termination and compression', icon: '🔒' },
-            { name: 'Data Store', desc: 'File-based JSON in /data directory (no external DB required)', icon: '💾' },
-            { name: 'SSE Stream', desc: 'Server-Sent Events for live price feed on /api/prices/stream', icon: '📡' },
-          ].map(item => (
+          {([
+            { name: 'Web App', desc: 'Next.js standalone server on port 3000', icon: Globe },
+            { name: 'Reverse Proxy', desc: 'nginx handling TLS termination and compression', icon: Lock },
+            { name: 'Data Store', desc: 'File-based JSON in /data directory (no external DB required)', icon: Database },
+            { name: 'SSE Stream', desc: 'Server-Sent Events for live price feed on /api/prices/stream', icon: Radio },
+          ] as { name: string; desc: string; icon: LucideIcon }[]).map(item => (
             <div key={item.name} className="flex items-start gap-3 p-4 rounded-xl border border-white/6 bg-white/[0.02]">
-              <span className="text-lg">{item.icon}</span>
+              <item.icon className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm font-medium text-zinc-200">{item.name}</p>
                 <p className="text-xs text-zinc-500 mt-0.5">{item.desc}</p>
