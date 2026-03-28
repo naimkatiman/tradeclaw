@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { fetchCoinCapPrices, fetchKrakenPrices, fetchFrankfurterRates, fetchFreeGoldPrice, fetchFreeSilverPrice } from '../../lib/data-providers';
 
 // Free price APIs - no key needed
 const CRYPTO_SYMBOLS = ['bitcoin', 'ethereum', 'ripple', 'solana', 'cardano'];
@@ -76,7 +77,50 @@ export async function GET() {
       })
     );
 
-    // Fallback for anything still missing
+    // Fallback chain: CoinCap → Kraken (crypto), Frankfurter (forex), Free Gold API (metals)
+    const missingCrypto = ['BTCUSD', 'ETHUSD', 'XRPUSD', 'SOLUSD', 'ADAUSD'].filter(s => !prices[s]);
+    const missingForex = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF'].filter(s => !prices[s]);
+    const missingMetals = ['XAUUSD', 'XAGUSD'].filter(s => !prices[s]);
+
+    if (missingCrypto.length > 0 || missingForex.length > 0 || missingMetals.length > 0) {
+      const [coinCap, kraken, frankfurter, goldPrice, silverPrice] = await Promise.allSettled([
+        missingCrypto.length > 0 ? fetchCoinCapPrices() : Promise.resolve([]),
+        missingCrypto.length > 0 ? fetchKrakenPrices() : Promise.resolve([]),
+        missingForex.length > 0 ? fetchFrankfurterRates() : Promise.resolve([]),
+        missingMetals.includes('XAUUSD') ? fetchFreeGoldPrice() : Promise.resolve(null),
+        missingMetals.includes('XAGUSD') ? fetchFreeSilverPrice() : Promise.resolve(null),
+      ]);
+
+      if (coinCap.status === 'fulfilled') {
+        for (const q of coinCap.value) {
+          if (!prices[q.symbol]) {
+            prices[q.symbol] = { price: q.price, change24h: q.change24h ?? 0, source: 'coincap' };
+          }
+        }
+      }
+      if (kraken.status === 'fulfilled') {
+        for (const q of kraken.value) {
+          if (!prices[q.symbol]) {
+            prices[q.symbol] = { price: q.price, change24h: q.change24h ?? 0, source: 'kraken' };
+          }
+        }
+      }
+      if (frankfurter.status === 'fulfilled') {
+        for (const r of frankfurter.value) {
+          if (!prices[r.pair]) {
+            prices[r.pair] = { price: r.rate, change24h: 0, source: 'frankfurter' };
+          }
+        }
+      }
+      if (goldPrice.status === 'fulfilled' && goldPrice.value && !prices['XAUUSD']) {
+        prices['XAUUSD'] = { price: goldPrice.value.price, change24h: 0, source: 'freegoldapi' };
+      }
+      if (silverPrice.status === 'fulfilled' && silverPrice.value && !prices['XAGUSD']) {
+        prices['XAGUSD'] = { price: silverPrice.value.price, change24h: 0, source: 'freegoldapi' };
+      }
+    }
+
+    // Static fallback for anything still missing
     const fallbackBase: Record<string, number> = {
       XAUUSD: 4505, XAGUSD: 71.36, EURUSD: 1.1559, GBPUSD: 1.3352,
       USDJPY: 159.53, AUDUSD: 0.6939, USDCAD: 1.3826, NZDUSD: 0.5799, USDCHF: 0.7922,

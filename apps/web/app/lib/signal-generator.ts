@@ -702,7 +702,7 @@ function getTFDirection(indicators: AllIndicators, timeframe: MTFTimeframe): TFD
  * Returns null if insufficient data is available for all timeframes.
  */
 export async function generateMultiTFSignal(symbol: string): Promise<MultiTFResult | null> {
-  type TFEntry = { tf: MTFTimeframe; indicators: AllIndicators; source: 'binance' | 'yahoo' | 'synthetic' };
+  type TFEntry = { tf: MTFTimeframe; indicators: AllIndicators; source: string };
 
   const settled = await Promise.allSettled(
     MTF_TIMEFRAMES.map(async (tf): Promise<TFEntry | null> => {

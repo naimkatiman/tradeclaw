@@ -6,21 +6,42 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const portfolio = getPortfolio();
   const totalReturn = ((portfolio.balance - STARTING_BALANCE) / STARTING_BALANCE) * 100;
-  const isPositive = totalReturn >= 0;
-  const sign = isPositive ? '+' : '';
+  const sign = totalReturn >= 0 ? '+' : '';
+
+  let color: string;
+  if (totalReturn > 0.5) {
+    color = 'brightgreen';
+  } else if (totalReturn < -0.5) {
+    color = 'red';
+  } else {
+    color = 'yellow';
+  }
 
   return NextResponse.json(
     {
       schemaVersion: 1,
-      label: 'Portfolio',
+      label: 'TradeClaw Portfolio',
       message: `${sign}${totalReturn.toFixed(1)}% P&L`,
-      color: isPositive ? 'brightgreen' : 'red',
+      color,
     },
     {
       headers: {
         'Cache-Control': 'no-cache, max-age=300',
         'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
       },
     },
   );
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
 }

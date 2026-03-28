@@ -105,10 +105,10 @@ function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: C
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-[#0d0d0d] border border-white/10 rounded-2xl p-6 shadow-2xl">
+      <div className="w-full max-w-md bg-[#0d0d0d] border border-[var(--border)] rounded-2xl p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-white">New Price Alert</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors">
+          <h2 className="text-base font-semibold text-[var(--foreground)]">New Price Alert</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] transition-colors">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -118,11 +118,11 @@ function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: C
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Symbol */}
           <div>
-            <label className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5 block">Symbol</label>
+            <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1.5 block">Symbol</label>
             <select
               value={symbol}
               onChange={e => setSymbol(e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors font-mono"
+              className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-emerald-500/50 transition-colors font-mono"
             >
               {SUPPORTED_SYMBOLS.map(s => (
                 <option key={s} value={s}>{s}</option>
@@ -132,7 +132,7 @@ function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: C
 
           {/* Direction toggle */}
           <div>
-            <label className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5 block">Direction</label>
+            <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1.5 block">Direction</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -140,7 +140,7 @@ function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: C
                 className={`py-2.5 rounded-lg text-sm font-semibold border transition-colors ${
                   direction === 'above'
                     ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                    : 'bg-white/[0.03] text-zinc-500 border-white/5 hover:border-white/10'
+                    : 'bg-white/[0.03] text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--border)]'
                 }`}
               >
                 ▲ Above
@@ -151,7 +151,7 @@ function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: C
                 className={`py-2.5 rounded-lg text-sm font-semibold border transition-colors ${
                   direction === 'below'
                     ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
-                    : 'bg-white/[0.03] text-zinc-500 border-white/5 hover:border-white/10'
+                    : 'bg-white/[0.03] text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--border)]'
                 }`}
               >
                 ▼ Below
@@ -161,10 +161,10 @@ function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: C
 
           {/* Target price */}
           <div>
-            <label className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5 block">
+            <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1.5 block">
               Target Price
               {currentPrice > 0 && (
-                <span className="ml-2 text-zinc-600 normal-case">
+                <span className="ml-2 text-[var(--text-secondary)] normal-case">
                   (current: {formatPrice(currentPrice)})
                 </span>
               )}
@@ -176,7 +176,7 @@ function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: C
               value={targetPrice}
               onChange={e => setTargetPrice(e.target.value)}
               placeholder={formatPrice(currentPrice * (direction === 'above' ? 1.02 : 0.98))}
-              className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white font-mono tabular-nums focus:outline-none focus:border-emerald-500/50 transition-colors placeholder-zinc-700"
+              className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--foreground)] font-mono tabular-nums focus:outline-none focus:border-emerald-500/50 transition-colors placeholder-[var(--text-secondary)]"
               required
             />
           </div>
@@ -184,7 +184,7 @@ function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: C
           {/* Optional % move + time window */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5 block">% Move (opt)</label>
+              <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1.5 block">% Move (opt)</label>
               <input
                 type="number"
                 step="0.1"
@@ -192,15 +192,15 @@ function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: C
                 value={percentMove}
                 onChange={e => setPercentMove(e.target.value)}
                 placeholder="e.g. 2.5"
-                className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-emerald-500/50 transition-colors placeholder-zinc-700"
+                className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--foreground)] font-mono focus:outline-none focus:border-emerald-500/50 transition-colors placeholder-[var(--text-secondary)]"
               />
             </div>
             <div>
-              <label className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5 block">Time Window (opt)</label>
+              <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1.5 block">Time Window (opt)</label>
               <select
                 value={timeWindow}
                 onChange={e => setTimeWindow(e.target.value)}
-                className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-emerald-500/50 transition-colors"
               >
                 <option value="">Any</option>
                 <option value="1h">1h</option>
@@ -213,14 +213,14 @@ function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: C
 
           {/* Note */}
           <div>
-            <label className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5 block">Note (opt)</label>
+            <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1.5 block">Note (opt)</label>
             <input
               type="text"
               value={note}
               onChange={e => setNote(e.target.value)}
               placeholder="e.g. Breakout above resistance"
               maxLength={100}
-              className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors placeholder-zinc-700"
+              className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-emerald-500/50 transition-colors placeholder-[var(--text-secondary)]"
             />
           </div>
 
@@ -273,13 +273,13 @@ function AlertCard({ alert, onDelete, onEdit, flash }: AlertCardProps) {
           ? isAbove
             ? 'border-emerald-500/40 bg-emerald-500/8 shadow-[0_0_12px_rgba(16,185,129,0.08)]'
             : 'border-rose-500/40 bg-rose-500/8 shadow-[0_0_12px_rgba(244,63,94,0.08)]'
-          : 'border-white/[0.06] bg-white/[0.02] hover:border-white/10'
+          : 'border-[var(--border)] bg-white/[0.02] hover:border-[var(--border)]'
       }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
-            <span className="font-mono font-bold text-sm text-white">{alert.symbol}</span>
+            <span className="font-mono font-bold text-sm text-[var(--foreground)]">{alert.symbol}</span>
             <span className={`text-xs font-semibold ${isAbove ? 'text-emerald-400' : 'text-rose-400'}`}>
               {isAbove ? '▲ Above' : '▼ Below'}
             </span>
@@ -301,21 +301,21 @@ function AlertCard({ alert, onDelete, onEdit, flash }: AlertCardProps) {
 
           <div className="flex items-baseline gap-3 flex-wrap">
             <div>
-              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-0.5">Target</div>
+              <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">Target</div>
               <div className={`text-base font-mono font-bold tabular-nums ${isAbove ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {formatPrice(alert.targetPrice)}
               </div>
             </div>
             <div>
-              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-0.5">At Creation</div>
-              <div className="text-sm font-mono tabular-nums text-zinc-400">
+              <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">At Creation</div>
+              <div className="text-sm font-mono tabular-nums text-[var(--text-secondary)]">
                 {formatPrice(alert.currentPrice)}
               </div>
             </div>
             {!isTriggered && (
               <div>
-                <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-0.5">Distance</div>
-                <div className={`text-sm font-mono tabular-nums ${isClose ? 'text-amber-400' : 'text-zinc-500'}`}>
+                <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">Distance</div>
+                <div className={`text-sm font-mono tabular-nums ${isClose ? 'text-amber-400' : 'text-[var(--text-secondary)]'}`}>
                   {distance.toFixed(2)}%
                 </div>
               </div>
@@ -323,10 +323,10 @@ function AlertCard({ alert, onDelete, onEdit, flash }: AlertCardProps) {
           </div>
 
           {alert.note && (
-            <p className="mt-2 text-xs text-zinc-600 truncate">{alert.note}</p>
+            <p className="mt-2 text-xs text-[var(--text-secondary)] truncate">{alert.note}</p>
           )}
 
-          <div className="mt-2 text-[10px] text-zinc-700 font-mono">
+          <div className="mt-2 text-[10px] text-[var(--text-secondary)] font-mono">
             {isTriggered && alert.triggeredAt
               ? `Triggered ${timeAgo(alert.triggeredAt)}`
               : `Created ${timeAgo(alert.createdAt)}`}
@@ -339,7 +339,7 @@ function AlertCard({ alert, onDelete, onEdit, flash }: AlertCardProps) {
           {!isTriggered && (
             <button
               onClick={() => onEdit(alert)}
-              className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/5 text-zinc-500 hover:text-white hover:bg-white/10 transition-colors"
+              className="w-7 h-7 flex items-center justify-center rounded-lg bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--glass-bg)] transition-colors"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
@@ -349,7 +349,7 @@ function AlertCard({ alert, onDelete, onEdit, flash }: AlertCardProps) {
           )}
           <button
             onClick={() => onDelete(alert.id)}
-            className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/5 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6" />
@@ -406,10 +406,10 @@ function EditAlertModal({ alert, onClose, onUpdated }: EditAlertModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-[#0d0d0d] border border-white/10 rounded-2xl p-6 shadow-2xl">
+      <div className="w-full max-w-md bg-[#0d0d0d] border border-[var(--border)] rounded-2xl p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-white">Edit Alert — <span className="font-mono text-emerald-400">{alert.symbol}</span></h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors">
+          <h2 className="text-base font-semibold text-[var(--foreground)]">Edit Alert — <span className="font-mono text-emerald-400">{alert.symbol}</span></h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] transition-colors">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -417,19 +417,19 @@ function EditAlertModal({ alert, onClose, onUpdated }: EditAlertModalProps) {
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5 block">Direction</label>
+            <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1.5 block">Direction</label>
             <div className="grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => setDirection('above')} className={`py-2.5 rounded-lg text-sm font-semibold border transition-colors ${direction === 'above' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-white/[0.03] text-zinc-500 border-white/5'}`}>▲ Above</button>
-              <button type="button" onClick={() => setDirection('below')} className={`py-2.5 rounded-lg text-sm font-semibold border transition-colors ${direction === 'below' ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' : 'bg-white/[0.03] text-zinc-500 border-white/5'}`}>▼ Below</button>
+              <button type="button" onClick={() => setDirection('above')} className={`py-2.5 rounded-lg text-sm font-semibold border transition-colors ${direction === 'above' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-white/[0.03] text-[var(--text-secondary)] border-[var(--border)]'}`}>▲ Above</button>
+              <button type="button" onClick={() => setDirection('below')} className={`py-2.5 rounded-lg text-sm font-semibold border transition-colors ${direction === 'below' ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' : 'bg-white/[0.03] text-[var(--text-secondary)] border-[var(--border)]'}`}>▼ Below</button>
             </div>
           </div>
           <div>
-            <label className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5 block">Target Price</label>
-            <input type="number" step="any" min="0" value={targetPrice} onChange={e => setTargetPrice(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white font-mono tabular-nums focus:outline-none focus:border-emerald-500/50 transition-colors" required />
+            <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1.5 block">Target Price</label>
+            <input type="number" step="any" min="0" value={targetPrice} onChange={e => setTargetPrice(e.target.value)} className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--foreground)] font-mono tabular-nums focus:outline-none focus:border-emerald-500/50 transition-colors" required />
           </div>
           <div>
-            <label className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5 block">Note (opt)</label>
-            <input type="text" value={note} onChange={e => setNote(e.target.value)} maxLength={100} className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors placeholder-zinc-700" />
+            <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1.5 block">Note (opt)</label>
+            <input type="text" value={note} onChange={e => setNote(e.target.value)} maxLength={100} className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-3 py-2.5 text-sm text-[var(--foreground)] focus:outline-none focus:border-emerald-500/50 transition-colors placeholder-[var(--text-secondary)]" />
           </div>
           {error && <p className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2">{error}</p>}
           <button type="submit" disabled={saving} className="w-full py-3 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 font-semibold text-sm hover:bg-emerald-500/20 transition-colors disabled:opacity-50">
@@ -553,9 +553,9 @@ function AlertsPageInner() {
   const triggeredAlerts = alerts.filter(a => a.status === 'triggered');
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] text-white pb-20 md:pb-8">
+    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)] pb-20 md:pb-8">
       {/* Nav */}
-      <nav className="sticky top-0 z-40 border-b border-white/5 bg-[#050505]/90 backdrop-blur-xl">
+      <nav className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-xl">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
@@ -568,7 +568,7 @@ function AlertsPageInner() {
             {notifPerm !== 'granted' && notifPerm !== 'unsupported' && notifPerm !== 'denied' && (
               <button
                 onClick={handleEnableNotifications}
-                className="text-xs text-zinc-500 hover:text-emerald-400 border border-white/10 hover:border-emerald-500/30 rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1.5"
+                className="text-xs text-[var(--text-secondary)] hover:text-emerald-400 border border-[var(--border)] hover:border-emerald-500/30 rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1.5"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -583,7 +583,7 @@ function AlertsPageInner() {
                 Notifications on
               </span>
             )}
-            <Link href="/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+            <Link href="/dashboard" className="text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors">
               Dashboard →
             </Link>
           </div>
@@ -594,7 +594,7 @@ function AlertsPageInner() {
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
               Price Alerts
               {activeAlerts.length > 0 && (
                 <span className="text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 rounded-full px-2 py-0.5 font-mono tabular-nums">
@@ -602,7 +602,7 @@ function AlertsPageInner() {
                 </span>
               )}
             </h1>
-            <p className="text-xs text-zinc-600 mt-0.5">Set target price triggers with browser notifications</p>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">Set target price triggers with browser notifications</p>
           </div>
           <button
             onClick={() => setShowCreate(true)}
@@ -621,26 +621,26 @@ function AlertsPageInner() {
             {[
               { label: 'Active', value: stats.totalActive, color: 'text-emerald-400' },
               { label: 'Triggered Today', value: stats.triggeredToday, color: 'text-amber-400' },
-              { label: 'Top Symbol', value: stats.mostWatchedSymbol ?? '—', color: 'text-zinc-300' },
+              { label: 'Top Symbol', value: stats.mostWatchedSymbol ?? '—', color: 'text-[var(--foreground)]' },
             ].map(({ label, value, color }) => (
-              <div key={label} className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-3 py-3 text-center">
+              <div key={label} className="bg-white/[0.02] border border-[var(--border)] rounded-xl px-3 py-3 text-center">
                 <div className={`text-sm font-bold font-mono tabular-nums ${color}`}>{value}</div>
-                <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5">{label}</div>
+                <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mt-0.5">{label}</div>
               </div>
             ))}
           </div>
         )}
 
         {loading ? (
-          <div className="text-center py-16 text-zinc-700 text-sm">Loading alerts…</div>
+          <div className="text-center py-16 text-[var(--text-secondary)] text-sm">Loading alerts…</div>
         ) : alerts.length === 0 ? (
-          <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-xl">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3 text-zinc-700">
+          <div className="text-center py-20 border border-dashed border-[var(--border)] rounded-xl">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3 text-[var(--text-secondary)]">
               <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 01-3.46 0" />
             </svg>
-            <div className="text-zinc-500 text-sm mb-1">No price alerts configured</div>
-            <p className="text-zinc-700 text-xs mb-4">Create an alert to get notified when prices reach your targets</p>
+            <div className="text-[var(--text-secondary)] text-sm mb-1">No price alerts configured</div>
+            <p className="text-[var(--text-secondary)] text-xs mb-4">Create an alert to get notified when prices reach your targets</p>
             <button
               onClick={() => setShowCreate(true)}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 text-sm font-semibold hover:bg-emerald-500/20 transition-colors"
@@ -656,13 +656,13 @@ function AlertsPageInner() {
             {/* Active alerts */}
             <section className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">
-                  Active <span className="text-zinc-700">({activeAlerts.length})</span>
+                <h2 className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">
+                  Active <span className="text-[var(--text-secondary)]">({activeAlerts.length})</span>
                 </h2>
               </div>
               {activeAlerts.length === 0 ? (
-                <div className="text-center py-10 border border-dashed border-white/[0.06] rounded-xl">
-                  <div className="text-zinc-700 text-sm mb-1">No active alerts</div>
+                <div className="text-center py-10 border border-dashed border-[var(--border)] rounded-xl">
+                  <div className="text-[var(--text-secondary)] text-sm mb-1">No active alerts</div>
                   <button onClick={() => setShowCreate(true)} className="text-xs text-emerald-500 hover:text-emerald-400 transition-colors">
                     Create a new alert →
                   </button>
@@ -686,8 +686,8 @@ function AlertsPageInner() {
             {triggeredAlerts.length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">
-                    Triggered <span className="text-zinc-700">({triggeredAlerts.length})</span>
+                  <h2 className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-semibold">
+                    Triggered <span className="text-[var(--text-secondary)]">({triggeredAlerts.length})</span>
                   </h2>
                 </div>
                 <div className="space-y-2">
@@ -729,7 +729,7 @@ function AlertsPageInner() {
 
 export default function AlertsPage() {
   return (
-    <Suspense fallback={<div className="min-h-[100dvh] bg-[#050505]" />}>
+    <Suspense fallback={<div className="min-h-[100dvh] bg-[var(--background)]" />}>
       <AlertsPageInner />
     </Suspense>
   );

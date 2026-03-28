@@ -156,7 +156,7 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
         copied
           ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-          : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-700 hover:border-zinc-600'
+          : 'bg-[var(--bg-card)] hover:bg-zinc-700 text-[var(--text-secondary)] hover:text-[var(--foreground)] border border-[var(--border)] hover:border-zinc-600'
       }`}
     >
       {copied ? (
@@ -190,11 +190,11 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-zinc-900/60 transition-colors"
       >
-        <span className="text-sm font-medium text-zinc-200">{q}</span>
+        <span className="text-sm font-medium text-[var(--foreground)]">{q}</span>
         <svg
           width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
           strokeLinecap="round" strokeLinejoin="round"
-          className={`shrink-0 text-zinc-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`shrink-0 text-[var(--text-secondary)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         >
           <polyline points="6 9 12 15 18 9" />
         </svg>
@@ -203,7 +203,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         className="overflow-hidden transition-all duration-200"
         style={{ maxHeight: open ? '300px' : '0px' }}
       >
-        <p className="px-5 pb-5 text-sm text-zinc-400 leading-relaxed">{a}</p>
+        <p className="px-5 pb-5 text-sm text-[var(--text-secondary)] leading-relaxed">{a}</p>
       </div>
     </div>
   );
@@ -213,7 +213,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 
 export function LaunchClient() {
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
 
       {/* ── Hero ── */}
       <section className="relative px-6 pt-28 pb-20 text-center overflow-hidden">
@@ -236,7 +236,7 @@ export function LaunchClient() {
             </span>
           </h1>
 
-          <p className="text-zinc-400 text-lg max-w-2xl mx-auto mb-10">
+          <p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto mb-10">
             Self-hosted AI trading signals — free forever. RSI, MACD, EMA confluence scoring,
             backtesting, paper trading, Telegram alerts. MIT licensed.
           </p>
@@ -257,7 +257,7 @@ export function LaunchClient() {
               href="https://github.com/naimkatiman/tradeclaw"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-6 py-3 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium transition-colors border border-zinc-700"
+              className="flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--bg-card)] hover:bg-zinc-700 text-[var(--foreground)] text-sm font-medium transition-colors border border-[var(--border)]"
             >
               <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
@@ -272,7 +272,7 @@ export function LaunchClient() {
               href="https://www.producthunt.com/posts/tradeclaw"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-zinc-800 border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--bg-card)] border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--foreground)] hover:bg-zinc-700 hover:text-white transition-colors"
             >
               <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M13.604 8.4h-3.405V12h3.405c.996 0 1.801-.805 1.801-1.8S14.6 8.4 13.604 8.4zM12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zm1.604 14.4h-3.405V18H7.8V6h5.804c2.319 0 4.2 1.881 4.2 4.2s-1.881 4.2-4.2 4.2z" />
@@ -285,8 +285,8 @@ export function LaunchClient() {
 
       {/* ── Feature Gallery ── */}
       <section className="px-6 pb-20 max-w-5xl mx-auto">
-        <h2 className="text-xl font-semibold text-zinc-100 mb-2">What you get</h2>
-        <p className="text-zinc-500 text-sm mb-8">
+        <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">What you get</h2>
+        <p className="text-[var(--text-secondary)] text-sm mb-8">
           Six core features — all open source, all self-hosted, all yours.
         </p>
 
@@ -297,8 +297,8 @@ export function LaunchClient() {
               className="bg-zinc-900 border border-zinc-800 hover:border-emerald-500/30 rounded-2xl p-5 transition-all duration-200"
             >
               <div className="mb-3"><f.icon className="w-6 h-6 text-emerald-400" /></div>
-              <div className="text-sm font-semibold text-zinc-100 mb-2">{f.title}</div>
-              <p className="text-xs text-zinc-500 leading-relaxed">{f.desc}</p>
+              <div className="text-sm font-semibold text-[var(--foreground)] mb-2">{f.title}</div>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -314,18 +314,18 @@ export function LaunchClient() {
             Hunter Kit
           </div>
 
-          <h2 className="text-xl font-semibold text-zinc-100 mb-2">Everything you need to submit</h2>
-          <p className="text-zinc-500 text-sm mb-8">
+          <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">Everything you need to submit</h2>
+          <p className="text-[var(--text-secondary)] text-sm mb-8">
             Copy-paste ready assets for your PH submission. Click any copy button to grab the text.
           </p>
 
           {/* Taglines */}
           <div className="mb-8">
-            <h3 className="text-sm font-semibold text-zinc-300 mb-3">Tagline options</h3>
+            <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3">Tagline options</h3>
             <div className="space-y-3">
               {TAGLINES.map((t, i) => (
-                <div key={i} className="flex items-center justify-between gap-4 bg-zinc-950/60 border border-zinc-800 rounded-xl px-4 py-3">
-                  <span className="text-sm text-zinc-300 font-mono">{t}</span>
+                <div key={i} className="flex items-center justify-between gap-4 bg-[var(--background)]/60 border border-zinc-800 rounded-xl px-4 py-3">
+                  <span className="text-sm text-[var(--foreground)] font-mono">{t}</span>
                   <CopyButton text={t} label="Copy" />
                 </div>
               ))}
@@ -335,12 +335,12 @@ export function LaunchClient() {
           {/* Short description */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-zinc-300">Short description</h3>
-              <span className="text-xs text-zinc-600">{SHORT_DESC.length} / 260 chars</span>
+              <h3 className="text-sm font-semibold text-[var(--foreground)]">Short description</h3>
+              <span className="text-xs text-[var(--text-secondary)]">{SHORT_DESC.length} / 260 chars</span>
             </div>
-            <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-4">
+            <div className="bg-[var(--background)]/60 border border-zinc-800 rounded-xl p-4">
               <div className="flex items-start justify-between gap-3 mb-3">
-                <p className="text-sm text-zinc-400 leading-relaxed">{SHORT_DESC}</p>
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{SHORT_DESC}</p>
                 <CopyButton text={SHORT_DESC} label="Copy" />
               </div>
             </div>
@@ -348,10 +348,10 @@ export function LaunchClient() {
 
           {/* Topics */}
           <div className="mb-8">
-            <h3 className="text-sm font-semibold text-zinc-300 mb-3">Topics / tags</h3>
+            <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3">Topics / tags</h3>
             <div className="flex flex-wrap gap-2">
               {TOPICS.map((t) => (
-                <span key={t} className="px-3 py-1.5 rounded-full text-xs font-medium bg-zinc-800 border border-zinc-700 text-zinc-300">
+                <span key={t} className="px-3 py-1.5 rounded-full text-xs font-medium bg-[var(--bg-card)] border border-[var(--border)] text-[var(--foreground)]">
                   {t}
                 </span>
               ))}
@@ -361,27 +361,27 @@ export function LaunchClient() {
           {/* First comment */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-zinc-300">First comment template</h3>
+              <h3 className="text-sm font-semibold text-[var(--foreground)]">First comment template</h3>
               <CopyButton text={FIRST_COMMENT} label="Copy comment" />
             </div>
-            <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-4 max-h-48 overflow-y-auto">
-              <pre className="text-xs text-zinc-400 leading-relaxed whitespace-pre-wrap font-sans">{FIRST_COMMENT}</pre>
+            <div className="bg-[var(--background)]/60 border border-zinc-800 rounded-xl p-4 max-h-48 overflow-y-auto">
+              <pre className="text-xs text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap font-sans">{FIRST_COMMENT}</pre>
             </div>
           </div>
 
           {/* Gallery suggestions */}
           <div>
-            <h3 className="text-sm font-semibold text-zinc-300 mb-3">Gallery image suggestions</h3>
-            <p className="text-xs text-zinc-600 mb-4">Recommended screenshots for your PH gallery. PH optimal size: 1270 × 760 px.</p>
+            <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3">Gallery image suggestions</h3>
+            <p className="text-xs text-[var(--text-secondary)] mb-4">Recommended screenshots for your PH gallery. PH optimal size: 1270 × 760 px.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {GALLERY_SUGGESTIONS.map((g, i) => (
-                <div key={i} className="flex gap-3 p-3 rounded-xl bg-zinc-950/60 border border-zinc-800">
+                <div key={i} className="flex gap-3 p-3 rounded-xl bg-[var(--background)]/60 border border-zinc-800">
                   <span className="shrink-0 w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center justify-center">
                     {i + 1}
                   </span>
                   <div>
-                    <div className="text-xs font-semibold text-zinc-300 mb-0.5">{g.title}</div>
-                    <div className="text-xs text-zinc-600 leading-relaxed">{g.desc}</div>
+                    <div className="text-xs font-semibold text-[var(--foreground)] mb-0.5">{g.title}</div>
+                    <div className="text-xs text-[var(--text-secondary)] leading-relaxed">{g.desc}</div>
                   </div>
                 </div>
               ))}
@@ -392,8 +392,8 @@ export function LaunchClient() {
 
       {/* ── Social Sharing ── */}
       <section className="px-6 pb-20 max-w-5xl mx-auto">
-        <h2 className="text-xl font-semibold text-zinc-100 mb-2">Tell your friends</h2>
-        <p className="text-zinc-500 text-sm mb-8">
+        <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">Tell your friends</h2>
+        <p className="text-[var(--text-secondary)] text-sm mb-8">
           Pre-written posts for launch day. Copy, paste, and share — it takes 30 seconds and makes a huge difference.
         </p>
 
@@ -401,13 +401,13 @@ export function LaunchClient() {
           {TWEETS.map((t) => (
             <div key={t.platform} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-zinc-300">
-                  <span className="text-zinc-500">{t.icon}</span>
+                <div className="flex items-center gap-2 text-sm font-medium text-[var(--foreground)]">
+                  <span className="text-[var(--text-secondary)]">{t.icon}</span>
                   {t.platform}
                 </div>
                 <CopyButton text={t.text} label="Copy" />
               </div>
-              <pre className="text-xs text-zinc-400 leading-relaxed whitespace-pre-wrap font-sans bg-zinc-950/60 rounded-xl p-3 max-h-40 overflow-y-auto">
+              <pre className="text-xs text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap font-sans bg-[var(--background)]/60 rounded-xl p-3 max-h-40 overflow-y-auto">
                 {t.text}
               </pre>
             </div>
@@ -417,8 +417,8 @@ export function LaunchClient() {
 
       {/* ── FAQ ── */}
       <section className="px-6 pb-20 max-w-5xl mx-auto">
-        <h2 className="text-xl font-semibold text-zinc-100 mb-2">FAQ</h2>
-        <p className="text-zinc-500 text-sm mb-8">Common questions about the launch.</p>
+        <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">FAQ</h2>
+        <p className="text-[var(--text-secondary)] text-sm mb-8">Common questions about the launch.</p>
 
         <div className="space-y-3">
           {FAQS.map((f) => (
@@ -430,12 +430,12 @@ export function LaunchClient() {
       {/* ── Launch Checklist ── */}
       <section className="px-6 pb-20 max-w-5xl mx-auto">
         <div className="bg-gradient-to-br from-emerald-950/50 to-zinc-900 border border-emerald-500/20 rounded-3xl p-8">
-          <h2 className="text-xl font-semibold text-zinc-100 mb-2">Launch checklist</h2>
-          <p className="text-zinc-500 text-sm mb-8">Everything we need in place before going live.</p>
+          <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">Launch checklist</h2>
+          <p className="text-[var(--text-secondary)] text-sm mb-8">Everything we need in place before going live.</p>
 
           <ul className="space-y-3">
             {CHECKLIST.map((item, i) => (
-              <li key={i} className="flex items-center gap-3 text-sm text-zinc-400">
+              <li key={i} className="flex items-center gap-3 text-sm text-[var(--text-secondary)]">
                 <span className="shrink-0 w-5 h-5 rounded-full border border-emerald-500/40 bg-emerald-500/10 flex items-center justify-center">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
                     <polyline points="20 6 9 17 4 12" />
@@ -450,7 +450,7 @@ export function LaunchClient() {
 
       {/* ── Back link ── */}
       <section className="px-6 pb-28 text-center">
-        <Link href="/" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
+        <Link href="/" className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors">
           ← Back to TradeClaw
         </Link>
       </section>

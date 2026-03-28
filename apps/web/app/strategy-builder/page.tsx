@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check } from 'lucide-react';
+import { ThemeToggle } from '../components/theme-toggle';
 
 type ConditionType = 'RSI' | 'MACD' | 'EMA_CROSS' | 'BB' | 'STOCH' | 'PRICE_ACTION';
 type ActionType = 'ENTRY_LONG' | 'ENTRY_SHORT' | 'EXIT' | 'ALERT';
@@ -117,18 +118,18 @@ function BlockCard({
           {block.type}
         </div>
         {!isFirst && index < 10 && (
-          <div className="w-px h-3 bg-white/10 mt-1" />
+          <div className="w-px h-3 bg-[var(--border)] mt-1" />
         )}
       </div>
 
       {/* Block body */}
-      <div className="flex-1 bg-white/[0.025] rounded-xl border border-white/8 p-3 flex items-center gap-2">
+      <div className="flex-1 bg-[var(--glass-bg)] rounded-xl border border-[var(--border)] p-3 flex items-center gap-2">
         {!isAction && block.condition && (
           <>
             <select
               value={block.condition.indicator}
               onChange={e => onChange(block.id, { condition: { ...block.condition!, indicator: e.target.value as ConditionType } })}
-              className="bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-[10px] text-zinc-300 outline-none focus:border-emerald-500/30 flex-1"
+              className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-[10px] text-[var(--foreground)] outline-none focus:border-emerald-500/30 flex-1"
             >
               {(Object.keys(CONDITION_LABELS) as ConditionType[]).map(k => (
                 <option key={k} value={k}>{CONDITION_LABELS[k]}</option>
@@ -137,7 +138,7 @@ function BlockCard({
             <select
               value={block.condition.operator}
               onChange={e => onChange(block.id, { condition: { ...block.condition!, operator: e.target.value as Operator } })}
-              className="bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-[10px] text-zinc-300 outline-none focus:border-emerald-500/30 flex-1"
+              className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-[10px] text-[var(--foreground)] outline-none focus:border-emerald-500/30 flex-1"
             >
               {(Object.keys(OPERATOR_LABELS) as Operator[]).map(k => (
                 <option key={k} value={k}>{OPERATOR_LABELS[k]}</option>
@@ -148,7 +149,7 @@ function BlockCard({
                 type="number"
                 value={block.condition.value}
                 onChange={e => onChange(block.id, { condition: { ...block.condition!, value: Number(e.target.value) } })}
-                className="w-16 bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-[10px] text-zinc-300 outline-none focus:border-emerald-500/30 font-mono"
+                className="w-16 bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-[10px] text-[var(--foreground)] outline-none focus:border-emerald-500/30 font-mono"
               />
             )}
           </>
@@ -157,7 +158,7 @@ function BlockCard({
           <select
             value={block.action.type}
             onChange={e => onChange(block.id, { action: { ...block.action!, type: e.target.value as ActionType } })}
-            className="bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-[10px] text-zinc-300 outline-none focus:border-emerald-500/30 flex-1"
+            className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-[10px] text-[var(--foreground)] outline-none focus:border-emerald-500/30 flex-1"
           >
             {(Object.keys(ACTION_LABELS) as ActionType[]).map(k => (
               <option key={k} value={k}>{ACTION_LABELS[k]}</option>
@@ -166,7 +167,7 @@ function BlockCard({
         )}
         <button
           onClick={() => onDelete(block.id)}
-          className="text-zinc-700 hover:text-red-400 text-sm px-1 transition-colors flex-shrink-0"
+          className="text-[var(--text-secondary)] hover:text-red-400 text-sm px-1 transition-colors flex-shrink-0"
         >
           ×
         </button>
@@ -191,10 +192,10 @@ function StrategyPreview({ strategy }: { strategy: Strategy }) {
   const actStr = actions.map(b => b.action ? ACTION_LABELS[b.action.type] : '').join(', ');
 
   return (
-    <div className="bg-white/[0.02] rounded-xl p-3 border border-white/5 font-mono text-[10px] text-zinc-500 leading-relaxed">
-      <span className="text-zinc-600 font-semibold">Rule: </span>
+    <div className="bg-[var(--glass-bg)] rounded-xl p-3 border border-[var(--border)] font-mono text-[10px] text-[var(--text-secondary)] leading-relaxed">
+      <span className="text-[var(--text-secondary)] font-semibold">Rule: </span>
       {condStr && <span>{condStr} </span>}
-      {actStr && <><span className="text-zinc-600 font-semibold">→ </span><span className="text-emerald-400">{actStr}</span></>}
+      {actStr && <><span className="text-[var(--text-secondary)] font-semibold">→ </span><span className="text-emerald-400">{actStr}</span></>}
     </div>
   );
 }
@@ -333,21 +334,24 @@ export default function StrategyBuilderPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] text-white">
+    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
       <div className="max-w-4xl mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <rect x="2" y="4" width="5" height="5" rx="1" fill="rgba(255,255,255,0.15)"/>
-              <rect x="9" y="4" width="5" height="5" rx="1" fill="rgba(16,185,129,0.4)"/>
-              <path d="M4.5 6.5H11.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeDasharray="2 2"/>
-              <rect x="2" y="11" width="5" height="3" rx="1" fill="rgba(16,185,129,0.2)"/>
-              <rect x="9" y="11" width="5" height="3" rx="1" fill="rgba(255,255,255,0.08)"/>
-            </svg>
-            <h1 className="text-sm font-semibold text-white tracking-tight">Strategy Builder</h1>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <rect x="2" y="4" width="5" height="5" rx="1" fill="currentColor" className="text-[var(--border)]" style={{ opacity: 0.6 }}/>
+                <rect x="9" y="4" width="5" height="5" rx="1" fill="rgba(16,185,129,0.4)"/>
+                <path d="M4.5 6.5H11.5" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" className="text-[var(--border)]"/>
+                <rect x="2" y="11" width="5" height="3" rx="1" fill="rgba(16,185,129,0.2)"/>
+                <rect x="9" y="11" width="5" height="3" rx="1" fill="currentColor" className="text-[var(--border)]" style={{ opacity: 0.3 }}/>
+              </svg>
+              <h1 className="text-sm font-semibold text-[var(--foreground)] tracking-tight">Strategy Builder</h1>
+            </div>
+            <p className="text-[11px] text-[var(--text-secondary)]">Visual IF/THEN rule editor — compose trading logic without code</p>
           </div>
-          <p className="text-[11px] text-zinc-600">Visual IF/THEN rule editor — compose trading logic without code</p>
+          <ThemeToggle className="text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
@@ -357,20 +361,20 @@ export default function StrategyBuilderPage() {
             <div className="glass-card rounded-2xl p-5">
               <div className="grid grid-cols-3 gap-3 mb-4">
                 <div className="col-span-3 sm:col-span-1">
-                  <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Strategy name</label>
+                  <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Strategy name</label>
                   <input
                     type="text"
                     value={strategy.name}
                     onChange={e => setStrategy(s => ({ ...s, name: e.target.value }))}
-                    className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30"
+                    className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Symbol</label>
+                  <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Symbol</label>
                   <select
                     value={strategy.symbol}
                     onChange={e => setStrategy(s => ({ ...s, symbol: e.target.value }))}
-                    className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30"
+                    className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30"
                   >
                     {['XAUUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD', 'USDJPY'].map(s => (
                       <option key={s} value={s}>{s}</option>
@@ -378,11 +382,11 @@ export default function StrategyBuilderPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Timeframe</label>
+                  <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Timeframe</label>
                   <select
                     value={strategy.timeframe}
                     onChange={e => setStrategy(s => ({ ...s, timeframe: e.target.value }))}
-                    className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30"
+                    className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30"
                   >
                     {['M15', 'H1', 'H4', 'D1'].map(tf => <option key={tf} value={tf}>{tf}</option>)}
                   </select>
@@ -402,7 +406,7 @@ export default function StrategyBuilderPage() {
                   />
                 ))}
                 {strategy.blocks.length === 0 && (
-                  <div className="text-center py-6 text-xs text-zinc-700">Add blocks to build your strategy</div>
+                  <div className="text-center py-6 text-xs text-[var(--text-secondary)]">Add blocks to build your strategy</div>
                 )}
               </div>
 
@@ -470,7 +474,7 @@ export default function StrategyBuilderPage() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={exportJSON}
-                className="py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-[0.99] border bg-white/5 border-white/8 text-zinc-400 hover:text-zinc-300 hover:bg-white/8 flex items-center justify-center gap-1.5"
+                className="py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-[0.99] border bg-[var(--glass-bg)] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] flex items-center justify-center gap-1.5"
               >
                 <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
                   <path d="M5.5 1v6M3 5l2.5 2.5L8 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -481,7 +485,7 @@ export default function StrategyBuilderPage() {
 
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-[0.99] border bg-white/5 border-white/8 text-zinc-400 hover:text-zinc-300 hover:bg-white/8 flex items-center justify-center gap-1.5"
+                className="py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-[0.99] border bg-[var(--glass-bg)] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] flex items-center justify-center gap-1.5"
               >
                 <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
                   <path d="M5.5 7V1M3 3l2.5-2.5L8 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -502,16 +506,16 @@ export default function StrategyBuilderPage() {
           {/* Sidebar */}
           <div className="space-y-3">
             <div className="glass-card rounded-2xl p-5">
-              <div className="text-xs font-semibold text-white tracking-tight mb-3">Example strategies</div>
+              <div className="text-xs font-semibold text-[var(--foreground)] tracking-tight mb-3">Example strategies</div>
               <div className="space-y-2">
                 {EXAMPLE_STRATEGIES.map(ex => (
                   <button
                     key={ex.id}
                     onClick={() => loadExample(ex)}
-                    className="w-full text-left px-3 py-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group"
+                    className="w-full text-left px-3 py-3 rounded-xl bg-[var(--glass-bg)] border border-[var(--border)] hover:border-[var(--glass-border-accent)] transition-all group"
                   >
-                    <div className="text-xs font-semibold text-zinc-300 group-hover:text-white transition-colors mb-1">{ex.name}</div>
-                    <div className="text-[10px] text-zinc-600 font-mono">{ex.symbol} · {ex.timeframe} · {ex.blocks.length} blocks</div>
+                    <div className="text-xs font-semibold text-[var(--foreground)] transition-colors mb-1">{ex.name}</div>
+                    <div className="text-[10px] text-[var(--text-secondary)] font-mono">{ex.symbol} · {ex.timeframe} · {ex.blocks.length} blocks</div>
                   </button>
                 ))}
               </div>
@@ -520,20 +524,20 @@ export default function StrategyBuilderPage() {
             {/* My Strategies */}
             {savedStrategies.length > 0 && (
               <div className="glass-card rounded-2xl p-5">
-                <div className="text-xs font-semibold text-white tracking-tight mb-3">My Strategies</div>
+                <div className="text-xs font-semibold text-[var(--foreground)] tracking-tight mb-3">My Strategies</div>
                 <div className="space-y-1.5">
                   {savedStrategies.map(s => (
                     <div key={s.id} className="relative group">
                       <button
                         onClick={() => { setStrategy(s); setValidationErrors([]); }}
-                        className="w-full text-left px-3 py-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all pr-8"
+                        className="w-full text-left px-3 py-2.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--border)] hover:border-[var(--glass-border-accent)] transition-all pr-8"
                       >
-                        <div className="text-xs font-semibold text-zinc-300 group-hover:text-white transition-colors truncate mb-0.5">{s.name}</div>
-                        <div className="text-[10px] text-zinc-600 font-mono">{s.symbol} · {s.timeframe} · {s.blocks.length} blocks</div>
+                        <div className="text-xs font-semibold text-[var(--foreground)] truncate mb-0.5">{s.name}</div>
+                        <div className="text-[10px] text-[var(--text-secondary)] font-mono">{s.symbol} · {s.timeframe} · {s.blocks.length} blocks</div>
                       </button>
                       <button
                         onClick={(e) => deleteSavedStrategy(s.id, e)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-zinc-700 hover:text-red-400 transition-all text-sm px-1"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-[var(--text-secondary)] hover:text-red-400 transition-all text-sm px-1"
                         title="Delete"
                       >
                         ×
@@ -545,7 +549,7 @@ export default function StrategyBuilderPage() {
             )}
 
             <div className="glass-card rounded-2xl p-5">
-              <div className="text-xs font-semibold text-white tracking-tight mb-2">Block guide</div>
+              <div className="text-xs font-semibold text-[var(--foreground)] tracking-tight mb-2">Block guide</div>
               <div className="space-y-2">
                 {[
                   { label: 'IF', color: 'text-blue-400', desc: 'Start condition' },
@@ -555,24 +559,24 @@ export default function StrategyBuilderPage() {
                 ].map(item => (
                   <div key={item.label} className="flex items-center gap-2">
                     <span className={`text-[9px] font-bold w-8 ${item.color}`}>{item.label}</span>
-                    <span className="text-[10px] text-zinc-600">{item.desc}</span>
+                    <span className="text-[10px] text-[var(--text-secondary)]">{item.desc}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="glass-card rounded-2xl p-5">
-              <div className="text-xs font-semibold text-white tracking-tight mb-2">Quick nav</div>
+              <div className="text-xs font-semibold text-[var(--foreground)] tracking-tight mb-2">Quick nav</div>
               <div className="space-y-1">
                 {[
                   { label: 'Backtesting', href: '/backtest' },
                   { label: 'Paper Trading', href: '/paper-trading' },
                   { label: 'Dashboard', href: '/dashboard' },
                 ].map(link => (
-                  <a key={link.href} href={link.href} className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors group">
-                    <span className="text-xs text-zinc-500 group-hover:text-zinc-300 transition-colors">{link.label}</span>
+                  <a key={link.href} href={link.href} className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[var(--glass-bg)] transition-colors group">
+                    <span className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--foreground)] transition-colors">{link.label}</span>
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <path d="M3 2L7 5L3 8" stroke="rgba(255,255,255,0.4)" strokeWidth="1.2" strokeLinecap="round"/>
+                      <path d="M3 2L7 5L3 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" className="text-[var(--text-secondary)]"/>
                     </svg>
                   </a>
                 ))}

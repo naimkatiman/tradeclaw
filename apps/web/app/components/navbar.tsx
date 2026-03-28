@@ -167,10 +167,10 @@ export function Navbar() {
               </button>
 
               {moreOpen && (
-                <div className="absolute top-full right-0 mt-3 w-[480px] rounded-2xl border border-white/10 backdrop-blur-2xl bg-black/80 shadow-2xl shadow-black/40 p-5 grid grid-cols-3 gap-6">
+                <div className="absolute top-full right-0 mt-3 w-[480px] rounded-2xl border border-[var(--border)] backdrop-blur-2xl bg-[var(--bg-card)]/95 shadow-2xl shadow-black/40 p-5 grid grid-cols-3 gap-6">
                   {MORE_GROUPS.map((group) => (
                     <div key={group.label}>
-                      <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold mb-2 block">
+                      <span className="text-[10px] uppercase tracking-widest text-[var(--text-secondary)] font-semibold mb-2 block">
                         {group.label}
                       </span>
                       <div className="flex flex-col gap-1">
@@ -179,7 +179,7 @@ export function Navbar() {
                             key={link.href}
                             href={link.href}
                             onClick={() => setMoreOpen(false)}
-                            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-white/5 transition-colors duration-200"
+                            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--glass-bg)] transition-colors duration-200"
                           >
                             {link.icon && <link.icon className="w-3 h-3" />}
                             {link.label}

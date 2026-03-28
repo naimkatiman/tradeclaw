@@ -335,7 +335,7 @@ export function StarsClient() {
           </div>
 
           <div className="space-y-2">
-            <div className="text-8xl font-black tracking-tight tabular-nums text-white" aria-live="polite">
+            <div className="text-8xl font-black tracking-tight tabular-nums text-[var(--foreground)]" aria-live="polite">
               {loaded ? animatedStars.toLocaleString() : '—'}
             </div>
             <div className="text-[var(--text-secondary)] text-lg">GitHub stars and counting</div>
@@ -370,11 +370,11 @@ export function StarsClient() {
         {/* ── Progress Bar ── */}
         <section className="glass-card rounded-2xl p-6 space-y-4 opacity-0 animate-fade-up" style={{ animationDelay: '150ms', animationFillMode: 'forwards' }}>
           <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold text-white">Progress to 1,000 Stars</span>
+            <span className="font-semibold text-[var(--foreground)]">Progress to 1,000 Stars</span>
             <span className="text-emerald-400 font-mono font-bold">{progressPct.toFixed(1)}%</span>
           </div>
 
-          <div className="relative h-4 rounded-full bg-white/5 overflow-hidden">
+          <div className="relative h-4 rounded-full bg-[var(--glass-bg)] overflow-hidden">
             <div
               className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-300 transition-all duration-[1500ms] ease-out shadow-[0_0_12px_rgba(16,185,129,0.5)]"
               style={{ width: loaded ? `${progressPct}%` : '0%' }}
@@ -406,7 +406,7 @@ export function StarsClient() {
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium border transition-all ${
                   stats.stars >= m.stars
                     ? 'border-amber-500/60 bg-amber-500/15 text-amber-300'
-                    : 'border-white/10 bg-white/5 text-[var(--text-secondary)]'
+                    : 'border-[var(--border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
                 }`}
               >
                 {stats.stars >= m.stars && '✓ '}<m.icon className="w-3.5 h-3.5 inline" /> {m.label}
@@ -433,7 +433,7 @@ export function StarsClient() {
         {/* ── Star History Chart ── */}
         <section className="glass-card rounded-2xl p-6 space-y-4 opacity-0 animate-fade-up" style={{ animationDelay: '250ms', animationFillMode: 'forwards' }}>
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-white">Star Growth Trajectory</h2>
+            <h2 className="font-semibold text-[var(--foreground)]">Star Growth Trajectory</h2>
             <span className="text-xs text-[var(--text-secondary)]">Projected path to 1,000</span>
           </div>
           <div ref={chartContainerRef} className="w-full">
@@ -446,7 +446,7 @@ export function StarsClient() {
 
         {/* ── Share Milestone ── */}
         <section className="glass-card rounded-2xl p-6 space-y-4 opacity-0 animate-fade-up" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
-          <h2 className="font-semibold text-white">Share the Milestone</h2>
+          <h2 className="font-semibold text-[var(--foreground)]">Share the Milestone</h2>
           <p className="text-sm text-[var(--text-secondary)]">Help us reach 1,000 — one tweet can make a difference.</p>
 
           <div className="flex flex-col sm:flex-row gap-3">
@@ -454,7 +454,7 @@ export function StarsClient() {
               href={twitterShareUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-5 py-3 text-sm font-medium transition-all duration-200"
+              className="flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg)] px-5 py-3 text-sm font-medium transition-all duration-200"
             >
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.732-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               Share on X / Twitter
@@ -465,7 +465,7 @@ export function StarsClient() {
                 `TradeClaw is an open-source AI trading signals platform — ${stats.stars} GitHub stars and growing! MIT licensed, self-hostable. Check it out: ${REPO_URL}`,
                 'shareText'
               )}
-              className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-5 py-3 text-sm font-medium transition-all duration-200"
+              className="flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg)] px-5 py-3 text-sm font-medium transition-all duration-200"
             >
               {copied === 'shareText' ? (
                 <><svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg> Copied!</>
@@ -479,7 +479,7 @@ export function StarsClient() {
         {/* ── Embed Code ── */}
         <section className="glass-card rounded-2xl p-6 space-y-5 opacity-0 animate-fade-up" style={{ animationDelay: '350ms', animationFillMode: 'forwards' }}>
           <div>
-            <h2 className="font-semibold text-white">Embed on Your Site</h2>
+            <h2 className="font-semibold text-[var(--foreground)]">Embed on Your Site</h2>
             <p className="text-sm text-[var(--text-secondary)] mt-1">Copy-paste a live star badge anywhere.</p>
           </div>
 
@@ -498,12 +498,12 @@ export function StarsClient() {
           <div className="space-y-2">
             <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Markdown</div>
             <div className="relative">
-              <pre className="rounded-xl bg-black/40 border border-white/10 px-4 py-3 text-xs font-mono text-emerald-300 overflow-x-auto whitespace-pre-wrap break-all">
+              <pre className="rounded-xl bg-black/40 border border-[var(--border)] px-4 py-3 text-xs font-mono text-emerald-300 overflow-x-auto whitespace-pre-wrap break-all">
                 {badgeMarkdown}
               </pre>
               <button
                 onClick={() => copyToClipboard(badgeMarkdown, 'markdown')}
-                className="absolute top-2 right-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-2.5 py-1 text-xs transition-all"
+                className="absolute top-2 right-2 rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg)] px-2.5 py-1 text-xs transition-all"
               >
                 {copied === 'markdown' ? '✓ Copied' : 'Copy'}
               </button>
@@ -514,12 +514,12 @@ export function StarsClient() {
           <div className="space-y-2">
             <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">HTML</div>
             <div className="relative">
-              <pre className="rounded-xl bg-black/40 border border-white/10 px-4 py-3 text-xs font-mono text-emerald-300 overflow-x-auto whitespace-pre-wrap break-all">
+              <pre className="rounded-xl bg-black/40 border border-[var(--border)] px-4 py-3 text-xs font-mono text-emerald-300 overflow-x-auto whitespace-pre-wrap break-all">
                 {badgeHtml}
               </pre>
               <button
                 onClick={() => copyToClipboard(badgeHtml, 'html')}
-                className="absolute top-2 right-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-2.5 py-1 text-xs transition-all"
+                className="absolute top-2 right-2 rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg)] px-2.5 py-1 text-xs transition-all"
               >
                 {copied === 'html' ? '✓ Copied' : 'Copy'}
               </button>
@@ -530,7 +530,7 @@ export function StarsClient() {
         {/* ── Help Us Reach 1,000 Stars ── */}
         <section className="space-y-6 opacity-0 animate-fade-up" style={{ animationDelay: '380ms', animationFillMode: 'forwards' }}>
           <div className="text-center space-y-2">
-            <h2 className="text-2xl font-bold text-white">Help Us Reach 1,000 Stars</h2>
+            <h2 className="text-2xl font-bold text-[var(--foreground)]">Help Us Reach 1,000 Stars</h2>
             <p className="text-[var(--text-secondary)]">Every action below moves the counter. Pick one — or all five.</p>
           </div>
 
@@ -546,7 +546,7 @@ export function StarsClient() {
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
               </div>
               <div>
-                <div className="text-sm font-semibold text-white">Star on GitHub</div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Star on GitHub</div>
                 <div className="text-xs text-[var(--text-secondary)] mt-0.5">Takes 2 seconds, means the world.</div>
               </div>
               <div className="text-xs text-emerald-400 font-medium mt-auto">Star now →</div>
@@ -563,7 +563,7 @@ export function StarsClient() {
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.732-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               </div>
               <div>
-                <div className="text-sm font-semibold text-white">Share on X / Twitter</div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Share on X / Twitter</div>
                 <div className="text-xs text-[var(--text-secondary)] mt-0.5">One tweet reaches 1000+ developers.</div>
               </div>
               <div className="text-xs text-sky-400 font-medium mt-auto">Tweet now →</div>
@@ -580,7 +580,7 @@ export function StarsClient() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
               </div>
               <div>
-                <div className="text-sm font-semibold text-white">Write a Blog Post</div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Write a Blog Post</div>
                 <div className="text-xs text-[var(--text-secondary)] mt-0.5">Share your experience on dev.to or Medium.</div>
               </div>
               <div className="text-xs text-violet-400 font-medium mt-auto">Draft on dev.to →</div>
@@ -595,7 +595,7 @@ export function StarsClient() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
               </div>
               <div>
-                <div className="text-sm font-semibold text-white">Contribute Code</div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Contribute Code</div>
                 <div className="text-xs text-[var(--text-secondary)] mt-0.5">Good first issues waiting for you.</div>
               </div>
               <div className="text-xs text-amber-400 font-medium mt-auto">See open issues →</div>
@@ -612,7 +612,7 @@ export function StarsClient() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 12H3l9-9 9 9h-2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
               </div>
               <div>
-                <div className="text-sm font-semibold text-white">Self-Host & Share</div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Self-Host & Share</div>
                 <div className="text-xs text-[var(--text-secondary)] mt-0.5">Deploy in 5 min. Show your community.</div>
               </div>
               <div className="text-xs text-rose-400 font-medium mt-auto">Deploy with Docker →</div>
@@ -623,7 +623,7 @@ export function StarsClient() {
         {/* ── Star History Chart ── */}
         <section className="glass-card rounded-2xl p-6 space-y-4 opacity-0 animate-fade-up" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-white">Star History</h2>
+            <h2 className="font-semibold text-[var(--foreground)]">Star History</h2>
             <span className="text-xs text-[var(--text-secondary)]">via star-history.com</span>
           </div>
           <div className="w-full rounded-xl overflow-hidden bg-white/3">
@@ -640,7 +640,7 @@ export function StarsClient() {
         {/* ── Join the Journey ── */}
         <section className="space-y-6 opacity-0 animate-fade-up" style={{ animationDelay: '450ms', animationFillMode: 'forwards' }}>
           <div className="text-center space-y-2">
-            <h2 className="text-2xl font-bold text-white">Join the Journey</h2>
+            <h2 className="text-2xl font-bold text-[var(--foreground)]">Join the Journey</h2>
             <p className="text-[var(--text-secondary)]">Features unlock as TradeClaw grows. Every star counts.</p>
           </div>
 
@@ -657,7 +657,7 @@ export function StarsClient() {
                   className={`rounded-2xl border p-5 transition-all duration-300 ${
                     reached
                       ? 'border-amber-500/40 bg-amber-500/10'
-                      : 'border-white/10 bg-white/3 opacity-60'
+                      : 'border-[var(--border)] bg-white/3 opacity-60'
                   }`}
                   style={{ animationDelay: `${450 + i * 60}ms` }}
                 >
@@ -665,7 +665,7 @@ export function StarsClient() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <m.icon className="w-5 h-5 text-amber-300" />
-                        <span className={`text-sm font-bold ${reached ? 'text-amber-300' : 'text-white'}`}>
+                        <span className={`text-sm font-bold ${reached ? 'text-amber-300' : 'text-[var(--foreground)]'}`}>
                           {m.label}
                         </span>
                         {reached && (
@@ -690,7 +690,7 @@ export function StarsClient() {
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-2 py-1 text-[10px] text-[var(--text-secondary)] transition-colors"
+                          className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg)] px-2 py-1 text-[10px] text-[var(--text-secondary)] transition-colors"
                           title="Share this milestone"
                         >
                           <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.732-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>

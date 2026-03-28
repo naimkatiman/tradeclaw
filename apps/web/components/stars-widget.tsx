@@ -36,9 +36,9 @@ export function StarsWidget() {
         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
       </svg>
       {stars !== null ? (
-        <span className="font-bold text-white tabular-nums">{stars.toLocaleString()}</span>
+        <span className="font-bold text-gray-900 dark:text-white tabular-nums">{stars.toLocaleString()}</span>
       ) : (
-        <span className="w-6 h-2.5 rounded bg-white/10 animate-pulse inline-block" />
+        <span className="w-6 h-2.5 rounded bg-gray-200 dark:bg-white/10 animate-pulse inline-block" />
       )}
     </Link>
   );
