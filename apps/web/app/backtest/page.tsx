@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { calculateRSI, calculateMACD, calculateEMAs } from '../lib/ta-engine';
+import { ThemeToggle } from '../components/theme-toggle';
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -110,7 +111,6 @@ function generatePriceData(params: BacktestParams): OHLCVCandle[] {
     const r2 = seededRandom(seed + i * 11 + 1);
     const r3 = seededRandom(seed + i * 11 + 2);
 
-    // Slight upward drift + random walk
     const change = (r1 - 0.49) * 2 * vol;
     const open = price;
     price = Math.max(price + change, price * 0.5);
@@ -140,7 +140,6 @@ function runBacktest(params: BacktestParams): BacktestResult {
   const priceData = generatePriceData(params);
   const closes = priceData.map(c => c.close);
 
-  // Real TA indicators
   const rsiResult = calculateRSI(closes, 14);
   const macdResult = calculateMACD(closes, 12, 26, 9);
   const emaResult = calculateEMAs(closes);
@@ -149,7 +148,6 @@ function runBacktest(params: BacktestParams): BacktestResult {
   const { macdLine, signalLine, histogram } = macdResult;
   const { ema20, ema50 } = emaResult;
 
-  // Signal detection with indicator confluence
   const signals: SignalPoint[] = [];
   let lastSignalBar = -8;
   const MIN_BAR = 55;
@@ -177,7 +175,6 @@ function runBacktest(params: BacktestParams): BacktestResult {
     }
   }
 
-  // Build trades from signals
   let balance = params.initialBalance;
   const equityCurve: number[] = [balance];
   const trades: Trade[] = [];
@@ -228,7 +225,6 @@ function runBacktest(params: BacktestParams): BacktestResult {
     equityCurve.push(+balance.toFixed(2));
   });
 
-  // Build full monthly returns grid
   const monthlyReturns: MonthReturn[] = [];
   const startD = new Date(params.startDate);
   const endD = new Date(params.endDate);
@@ -246,7 +242,6 @@ function runBacktest(params: BacktestParams): BacktestResult {
     });
   }
 
-  // Metrics
   const wins = trades.filter(t => t.win);
   const losses = trades.filter(t => !t.win);
   const grossProfit = wins.reduce((s, t) => s + t.pnl, 0);
@@ -339,9 +334,15 @@ function useCanvas(draw: (ctx: CanvasRenderingContext2D, W: number, H: number) =
   return canvasRef;
 }
 
+// ─── Canvas color helpers ────────────────────────────────────
+
+function cc(isDark: boolean, dark: string, light: string): string {
+  return isDark ? dark : light;
+}
+
 // ─── Equity Curve Canvas ─────────────────────────────────────
 
-function EquityCurveCanvas({ curve, startBalance }: { curve: number[]; startBalance: number }) {
+function EquityCurveCanvas({ curve, startBalance, isDark }: { curve: number[]; startBalance: number; isDark: boolean }) {
   const canvasRef = useCanvas((ctx, W, H) => {
     if (curve.length < 2) return;
     const pad = { top: 16, right: 16, bottom: 28, left: 52 };
@@ -354,7 +355,7 @@ function EquityCurveCanvas({ curve, startBalance }: { curve: number[]; startBala
     const toX = (i: number) => pad.left + (i / (curve.length - 1)) * cW;
     const toY = (v: number) => pad.top + cH - ((v - min) / range) * cH;
 
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.strokeStyle = cc(isDark, 'rgba(255,255,255,0.04)', 'rgba(0,0,0,0.06)');
     ctx.lineWidth = 1;
     for (let g = 0; g <= 4; g++) {
       const y = pad.top + (g / 4) * cH;
@@ -363,7 +364,7 @@ function EquityCurveCanvas({ curve, startBalance }: { curve: number[]; startBala
 
     const zeroY = toY(startBalance);
     if (zeroY >= pad.top && zeroY <= pad.top + cH) {
-      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.strokeStyle = cc(isDark, 'rgba(255,255,255,0.12)', 'rgba(0,0,0,0.15)');
       ctx.setLineDash([4, 4]);
       ctx.beginPath(); ctx.moveTo(pad.left, zeroY); ctx.lineTo(W - pad.right, zeroY); ctx.stroke();
       ctx.setLineDash([]);
@@ -390,7 +391,7 @@ function EquityCurveCanvas({ curve, startBalance }: { curve: number[]; startBala
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.fillStyle = cc(isDark, 'rgba(255,255,255,0.25)', 'rgba(0,0,0,0.45)');
     ctx.font = '10px monospace';
     ctx.textAlign = 'right';
     for (let g = 0; g <= 4; g++) {
@@ -400,12 +401,12 @@ function EquityCurveCanvas({ curve, startBalance }: { curve: number[]; startBala
     }
 
     ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillStyle = cc(isDark, 'rgba(255,255,255,0.2)', 'rgba(0,0,0,0.3)');
     [0, 0.25, 0.5, 0.75, 1].forEach(p => {
       const i = Math.floor(p * (curve.length - 1));
       ctx.fillText(`T${i}`, toX(i), pad.top + cH + 18);
     });
-  }, [curve, startBalance]);
+  }, [curve, startBalance, isDark]);
 
   return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
 }
@@ -413,12 +414,13 @@ function EquityCurveCanvas({ curve, startBalance }: { curve: number[]; startBala
 // ─── Price Chart Canvas ──────────────────────────────────────
 
 function PriceChartCanvas({
-  priceData, ema20, ema50, signals,
+  priceData, ema20, ema50, signals, isDark,
 }: {
   priceData: OHLCVCandle[];
   ema20: number[];
   ema50: number[];
   signals: SignalPoint[];
+  isDark: boolean;
 }) {
   const canvasRef = useCanvas((ctx, W, H) => {
     if (priceData.length < 2) return;
@@ -429,11 +431,7 @@ function PriceChartCanvas({
     const closes = priceData.map(c => c.close);
     const validEma20 = ema20.filter(v => !isNaN(v));
     const validEma50 = ema50.filter(v => !isNaN(v));
-    const allPrices = [
-      ...closes,
-      ...validEma20,
-      ...validEma50,
-    ];
+    const allPrices = [...closes, ...validEma20, ...validEma50];
 
     const min = Math.min(...allPrices) * 0.997;
     const max = Math.max(...allPrices) * 1.003;
@@ -443,8 +441,7 @@ function PriceChartCanvas({
     const toX = (i: number) => pad.left + (i / (n - 1)) * cW;
     const toY = (v: number) => pad.top + cH - ((v - min) / range) * cH;
 
-    // Grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.strokeStyle = cc(isDark, 'rgba(255,255,255,0.04)', 'rgba(0,0,0,0.06)');
     ctx.lineWidth = 1;
     for (let g = 0; g <= 4; g++) {
       const y = pad.top + (g / 4) * cH;
@@ -479,24 +476,22 @@ function PriceChartCanvas({
     ctx.beginPath();
     ctx.moveTo(toX(0), toY(closes[0]));
     for (let i = 1; i < n; i++) ctx.lineTo(toX(i), toY(closes[i]));
-    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.strokeStyle = cc(isDark, 'rgba(255,255,255,0.6)', 'rgba(0,0,0,0.65)');
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Signal markers — triangles
+    // Signal markers
     signals.forEach(sig => {
       const x = toX(sig.barIndex);
       const y = toY(sig.price);
       const size = 7;
       ctx.beginPath();
       if (sig.direction === 'BUY') {
-        // Up triangle below price
         ctx.moveTo(x, y + size * 2.2);
         ctx.lineTo(x - size, y + size * 2.2 + size * 1.6);
         ctx.lineTo(x + size, y + size * 2.2 + size * 1.6);
         ctx.fillStyle = '#10B981';
       } else {
-        // Down triangle above price
         ctx.moveTo(x, y - size * 2.2);
         ctx.lineTo(x - size, y - size * 2.2 - size * 1.6);
         ctx.lineTo(x + size, y - size * 2.2 - size * 1.6);
@@ -506,8 +501,7 @@ function PriceChartCanvas({
       ctx.fill();
     });
 
-    // Y-axis labels
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.fillStyle = cc(isDark, 'rgba(255,255,255,0.25)', 'rgba(0,0,0,0.45)');
     ctx.font = '10px monospace';
     ctx.textAlign = 'right';
     for (let g = 0; g <= 4; g++) {
@@ -516,9 +510,8 @@ function PriceChartCanvas({
       ctx.fillText(fmt(v), pad.left - 4, y + 4);
     }
 
-    // X-axis labels
     ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillStyle = cc(isDark, 'rgba(255,255,255,0.2)', 'rgba(0,0,0,0.3)');
     [0, 0.25, 0.5, 0.75, 1].forEach(p => {
       const i = Math.floor(p * (n - 1));
       const d = new Date(priceData[i].timestamp);
@@ -526,9 +519,8 @@ function PriceChartCanvas({
       ctx.fillText(label, toX(i), pad.top + cH + 18);
     });
 
-    // Legend
     const legendItems = [
-      { color: 'rgba(255,255,255,0.6)', label: 'Price' },
+      { color: cc(isDark, 'rgba(255,255,255,0.6)', 'rgba(0,0,0,0.65)'), label: 'Price' },
       { color: 'rgba(99,102,241,0.6)', label: 'EMA20' },
       { color: 'rgba(251,191,36,0.5)', label: 'EMA50' },
     ];
@@ -538,11 +530,11 @@ function PriceChartCanvas({
     legendItems.forEach(({ color, label }) => {
       ctx.fillStyle = color;
       ctx.fillRect(lx, pad.top + 4, 16, 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.fillStyle = cc(isDark, 'rgba(255,255,255,0.3)', 'rgba(0,0,0,0.45)');
       ctx.fillText(label, lx + 20, pad.top + 10);
       lx += 65;
     });
-  }, [priceData, ema20, ema50, signals]);
+  }, [priceData, ema20, ema50, signals, isDark]);
 
   return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
 }
@@ -550,12 +542,13 @@ function PriceChartCanvas({
 // ─── Indicators Canvas ───────────────────────────────────────
 
 function IndicatorsCanvas({
-  rsiValues, macdLine, macdSignalLine, macdHistogram,
+  rsiValues, macdLine, macdSignalLine, macdHistogram, isDark,
 }: {
   rsiValues: number[];
   macdLine: number[];
   macdSignalLine: number[];
   macdHistogram: number[];
+  isDark: boolean;
 }) {
   const canvasRef = useCanvas((ctx, W, H) => {
     const n = rsiValues.length;
@@ -573,23 +566,20 @@ function IndicatorsCanvas({
 
     // ── RSI panel ──────────────────────────────
     const rsiTop = PAD_TOP;
-
-    // Shaded zones
     const toRsiY = (v: number) => rsiTop + rsiH - (v / 100) * rsiH;
+
     ctx.fillStyle = 'rgba(239,68,68,0.06)';
     ctx.fillRect(PAD_L, toRsiY(100), cW, toRsiY(70) - toRsiY(100));
     ctx.fillStyle = 'rgba(16,185,129,0.06)';
     ctx.fillRect(PAD_L, toRsiY(30), cW, toRsiY(0) - toRsiY(30));
 
-    // Grid lines
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.strokeStyle = cc(isDark, 'rgba(255,255,255,0.04)', 'rgba(0,0,0,0.06)');
     ctx.lineWidth = 1;
     [0, 25, 50, 75, 100].forEach(v => {
       const y = toRsiY(v);
       ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
     });
 
-    // 30 / 70 lines
     [30, 70].forEach(v => {
       const y = toRsiY(v);
       ctx.strokeStyle = v === 30 ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)';
@@ -598,11 +588,9 @@ function IndicatorsCanvas({
       ctx.setLineDash([]);
     });
 
-    // 50 center line
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = cc(isDark, 'rgba(255,255,255,0.08)', 'rgba(0,0,0,0.1)');
     ctx.beginPath(); ctx.moveTo(PAD_L, toRsiY(50)); ctx.lineTo(W - PAD_R, toRsiY(50)); ctx.stroke();
 
-    // RSI line
     ctx.beginPath();
     let started = false;
     for (let i = 0; i < n; i++) {
@@ -616,8 +604,7 @@ function IndicatorsCanvas({
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // RSI labels
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillStyle = cc(isDark, 'rgba(255,255,255,0.2)', 'rgba(0,0,0,0.35)');
     ctx.font = '9px monospace';
     ctx.textAlign = 'right';
     [30, 50, 70].forEach(v => {
@@ -639,20 +626,17 @@ function IndicatorsCanvas({
     const macdRange = macdMax - macdMin || 1;
     const toMacdY = (v: number) => macdTop + macdH - ((v - macdMin) / macdRange) * macdH;
 
-    // Grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.strokeStyle = cc(isDark, 'rgba(255,255,255,0.04)', 'rgba(0,0,0,0.06)');
     ctx.lineWidth = 1;
     for (let g = 0; g <= 3; g++) {
       const y = macdTop + (g / 3) * macdH;
       ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
     }
 
-    // Zero line
     const zeroY = toMacdY(0);
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.strokeStyle = cc(isDark, 'rgba(255,255,255,0.12)', 'rgba(0,0,0,0.15)');
     ctx.beginPath(); ctx.moveTo(PAD_L, zeroY); ctx.lineTo(W - PAD_R, zeroY); ctx.stroke();
 
-    // Histogram bars
     const barW = Math.max(1, cW / n - 1);
     for (let i = 0; i < n; i++) {
       const h = macdHistogram[i];
@@ -664,7 +648,6 @@ function IndicatorsCanvas({
       ctx.fillRect(x, Math.min(y0, y1), barW, Math.abs(y1 - y0));
     }
 
-    // MACD line
     ctx.beginPath();
     started = false;
     for (let i = 0; i < n; i++) {
@@ -673,11 +656,10 @@ function IndicatorsCanvas({
       if (!started) { ctx.moveTo(x, y); started = true; }
       else ctx.lineTo(x, y);
     }
-    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.strokeStyle = cc(isDark, 'rgba(255,255,255,0.7)', 'rgba(0,0,0,0.7)');
     ctx.lineWidth = 1.2;
     ctx.stroke();
 
-    // Signal line
     ctx.beginPath();
     started = false;
     for (let i = 0; i < n; i++) {
@@ -690,11 +672,11 @@ function IndicatorsCanvas({
     ctx.lineWidth = 1.2;
     ctx.stroke();
 
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillStyle = cc(isDark, 'rgba(255,255,255,0.3)', 'rgba(0,0,0,0.45)');
     ctx.font = '9px monospace';
     ctx.textAlign = 'left';
     ctx.fillText('MACD', PAD_L + 4, macdTop + 12);
-  }, [rsiValues, macdLine, macdSignalLine, macdHistogram]);
+  }, [rsiValues, macdLine, macdSignalLine, macdHistogram, isDark]);
 
   return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
 }
@@ -703,7 +685,7 @@ function IndicatorsCanvas({
 
 const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-function MonthlyHeatmap({ monthlyReturns }: { monthlyReturns: MonthReturn[] }) {
+function MonthlyHeatmap({ monthlyReturns, isDark }: { monthlyReturns: MonthReturn[]; isDark: boolean }) {
   if (monthlyReturns.length === 0) return null;
 
   const years = [...new Set(monthlyReturns.map(r => r.year))].sort();
@@ -711,27 +693,27 @@ function MonthlyHeatmap({ monthlyReturns }: { monthlyReturns: MonthReturn[] }) {
 
   return (
     <div className="glass-card rounded-2xl p-4">
-      <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-3">Monthly Returns</div>
+      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-3">Monthly Returns</div>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse" style={{ minWidth: 500 }}>
           <thead>
             <tr>
-              <th className="text-[9px] text-zinc-700 text-right pr-2 pb-1 font-normal w-10">Year</th>
+              <th className="text-[9px] text-[var(--text-secondary)] text-right pr-2 pb-1 font-normal w-10">Year</th>
               {MONTH_ABBR.map(m => (
-                <th key={m} className="text-[9px] text-zinc-700 text-center pb-1 font-normal" style={{ width: '7%' }}>{m}</th>
+                <th key={m} className="text-[9px] text-[var(--text-secondary)] text-center pb-1 font-normal" style={{ width: '7%' }}>{m}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {years.map(year => (
               <tr key={year}>
-                <td className="text-[9px] text-zinc-600 text-right pr-2 font-mono">{year}</td>
+                <td className="text-[9px] text-[var(--text-secondary)] text-right pr-2 font-mono">{year}</td>
                 {Array.from({ length: 12 }, (_, mo) => {
                   const entry = monthlyReturns.find(r => r.year === year && r.month === mo + 1);
                   const val = entry?.returnPct ?? null;
                   const intensity = val !== null ? Math.min(Math.abs(val) / maxAbs, 1) : 0;
-                  let bg = 'rgba(255,255,255,0.03)';
-                  let textColor = 'rgba(255,255,255,0.15)';
+                  let bg = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)';
+                  let textColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.2)';
                   if (val !== null && val !== 0) {
                     if (val > 0) {
                       bg = `rgba(16,185,129,${0.1 + intensity * 0.5})`;
@@ -745,13 +727,7 @@ function MonthlyHeatmap({ monthlyReturns }: { monthlyReturns: MonthReturn[] }) {
                     <td key={mo} className="p-0.5">
                       <div
                         className="rounded text-center font-mono tabular-nums"
-                        style={{
-                          background: bg,
-                          color: textColor,
-                          fontSize: 8,
-                          padding: '3px 2px',
-                          lineHeight: 1.2,
-                        }}
+                        style={{ background: bg, color: textColor, fontSize: 8, padding: '3px 2px', lineHeight: 1.2 }}
                       >
                         {val !== null ? (val > 0 ? '+' : '') + val.toFixed(1) + '%' : '—'}
                       </div>
@@ -769,12 +745,12 @@ function MonthlyHeatmap({ monthlyReturns }: { monthlyReturns: MonthReturn[] }) {
 
 // ─── Metric Card ─────────────────────────────────────────────
 
-function MetricCard({ label, value, sub, color = 'text-white' }: { label: string; value: string; sub?: string; color?: string }) {
+function MetricCard({ label, value, sub, color = 'text-[var(--foreground)]' }: { label: string; value: string; sub?: string; color?: string }) {
   return (
-    <div className="bg-white/[0.03] rounded-xl p-3 border border-white/5">
-      <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">{label}</div>
+    <div className="bg-[var(--glass-bg)] rounded-xl p-3 border border-[var(--border)]">
+      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1">{label}</div>
       <div className={`text-lg font-bold font-mono tabular-nums ${color}`}>{value}</div>
-      {sub && <div className="text-[10px] text-zinc-600 mt-0.5 font-mono">{sub}</div>}
+      {sub && <div className="text-[10px] text-[var(--text-secondary)] mt-0.5 font-mono">{sub}</div>}
     </div>
   );
 }
@@ -797,6 +773,16 @@ export default function BacktestPage() {
   const [running, setRunning] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('equity');
   const [loadedStrategyName, setLoadedStrategyName] = useState<string | null>(null);
+  const [isDark, setIsDark] = useState(true);
+
+  // Detect theme
+  useEffect(() => {
+    const update = () => setIsDark(document.documentElement.classList.contains('dark'));
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
@@ -808,13 +794,9 @@ export default function BacktestPage() {
       const timeframe = typeof decoded.timeframe === 'string' ? decoded.timeframe : 'H1';
       const strategyName = typeof decoded.name === 'string' ? decoded.name : 'Custom Strategy';
       const newParams: BacktestParams = {
-        symbol,
-        timeframe,
-        strategy: strategyName,
-        startDate: '2024-01-01',
-        endDate: '2024-12-31',
-        initialBalance: 10000,
-        riskPercent: 1,
+        symbol, timeframe, strategy: strategyName,
+        startDate: '2024-01-01', endDate: '2024-12-31',
+        initialBalance: 10000, riskPercent: 1,
       };
       setParams(newParams);
       setLoadedStrategyName(strategyName);
@@ -850,18 +832,21 @@ export default function BacktestPage() {
   ];
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] text-white">
+    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
       <div className="max-w-6xl mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M2 12L6 8L9 11L14 4" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 14H14" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
-            </svg>
-            <h1 className="text-sm font-semibold text-white tracking-tight">Backtesting Engine</h1>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M2 12L6 8L9 11L14 4" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 14H14" stroke="currentColor" strokeWidth="1" className="text-[var(--border)]"/>
+              </svg>
+              <h1 className="text-sm font-semibold text-[var(--foreground)] tracking-tight">Backtesting Engine</h1>
+            </div>
+            <p className="text-[11px] text-[var(--text-secondary)]">Replay strategies against historical data — equity curve, price chart, indicators, trade log</p>
           </div>
-          <p className="text-[11px] text-zinc-600">Replay strategies against historical data — equity curve, price chart, indicators, trade log</p>
+          <ThemeToggle className="text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]" />
         </div>
 
         {loadedStrategyName && (
@@ -879,21 +864,21 @@ export default function BacktestPage() {
           {/* Config panel */}
           <div className="space-y-3">
             <div className="glass-card rounded-2xl p-5 space-y-3">
-              <div className="text-xs font-semibold text-white tracking-tight mb-1">Configuration</div>
+              <div className="text-xs font-semibold text-[var(--foreground)] tracking-tight mb-1">Configuration</div>
 
               <div>
-                <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Symbol</label>
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Symbol</label>
                 <select
                   value={params.symbol}
                   onChange={e => update('symbol', e.target.value)}
-                  className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30"
+                  className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30"
                 >
                   {SYMBOLS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
 
               <div>
-                <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Timeframe</label>
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Timeframe</label>
                 <div className="grid grid-cols-4 gap-1">
                   {TIMEFRAMES.map(tf => (
                     <button
@@ -902,7 +887,7 @@ export default function BacktestPage() {
                       className={`py-1.5 rounded-lg text-[10px] font-mono font-semibold transition-all duration-150 ${
                         params.timeframe === tf
                           ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
-                          : 'bg-white/5 text-zinc-600 border border-white/5 hover:text-zinc-400'
+                          : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)] hover:text-[var(--foreground)]'
                       }`}
                     >
                       {tf}
@@ -912,11 +897,11 @@ export default function BacktestPage() {
               </div>
 
               <div>
-                <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Strategy</label>
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Strategy</label>
                 <select
                   value={params.strategy}
                   onChange={e => update('strategy', e.target.value)}
-                  className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30"
+                  className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30"
                 >
                   {!STRATEGIES.includes(params.strategy) && (
                     <option value={params.strategy}>{params.strategy}</option>
@@ -927,37 +912,37 @@ export default function BacktestPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Start</label>
+                  <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Start</label>
                   <input
                     type="date"
                     value={params.startDate}
                     onChange={e => update('startDate', e.target.value)}
-                    className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-[10px] text-zinc-300 outline-none focus:border-emerald-500/30 font-mono"
+                    className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-[10px] text-[var(--foreground)] outline-none focus:border-emerald-500/30 font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">End</label>
+                  <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">End</label>
                   <input
                     type="date"
                     value={params.endDate}
                     onChange={e => update('endDate', e.target.value)}
-                    className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-[10px] text-zinc-300 outline-none focus:border-emerald-500/30 font-mono"
+                    className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-[10px] text-[var(--foreground)] outline-none focus:border-emerald-500/30 font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Initial Balance ($)</label>
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Initial Balance ($)</label>
                 <input
                   type="number"
                   value={params.initialBalance}
                   onChange={e => update('initialBalance', Number(e.target.value))}
-                  className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30 font-mono"
+                  className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30 font-mono"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Risk per trade (%)</label>
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Risk per trade (%)</label>
                 <input
                   type="number"
                   value={params.riskPercent}
@@ -965,7 +950,7 @@ export default function BacktestPage() {
                   min="0.1"
                   max="10"
                   onChange={e => update('riskPercent', Number(e.target.value))}
-                  className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30 font-mono"
+                  className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30 font-mono"
                 />
               </div>
 
@@ -992,7 +977,7 @@ export default function BacktestPage() {
 
             {/* Quick nav */}
             <div className="glass-card rounded-2xl p-4 space-y-1">
-              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-2">Quick nav</div>
+              <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-2">Quick nav</div>
               {[
                 { label: 'Dashboard', href: '/dashboard' },
                 { label: 'Paper Trading', href: '/paper-trading' },
@@ -1001,11 +986,11 @@ export default function BacktestPage() {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors group"
+                  className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[var(--glass-bg)] transition-colors group"
                 >
-                  <span className="text-xs text-zinc-500 group-hover:text-zinc-300 transition-colors">{link.label}</span>
+                  <span className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--foreground)] transition-colors">{link.label}</span>
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <path d="M3 2L7 5L3 8" stroke="rgba(255,255,255,0.4)" strokeWidth="1.2" strokeLinecap="round"/>
+                    <path d="M3 2L7 5L3 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" className="text-[var(--text-secondary)]"/>
                   </svg>
                 </a>
               ))}
@@ -1016,21 +1001,21 @@ export default function BacktestPage() {
           <div className="space-y-4">
             {!result && !running && (
               <div className="glass-card rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-                <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-3">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--glass-bg)] flex items-center justify-center mb-3">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M3 17L9 11L13 15L21 6" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M3 21H21" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
+                    <path d="M3 17L9 11L13 15L21 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--border)]" style={{ opacity: 0.5 }}/>
+                    <path d="M3 21H21" stroke="currentColor" strokeWidth="1" className="text-[var(--border)]" style={{ opacity: 0.4 }}/>
                   </svg>
                 </div>
-                <div className="text-sm text-zinc-500 font-medium">Configure and run a backtest</div>
-                <div className="text-xs text-zinc-700 mt-1">Results will appear here</div>
+                <div className="text-sm text-[var(--text-secondary)] font-medium">Configure and run a backtest</div>
+                <div className="text-xs text-[var(--text-secondary)] opacity-50 mt-1">Results will appear here</div>
               </div>
             )}
 
             {running && (
               <div className="glass-card rounded-2xl p-12 flex flex-col items-center justify-center text-center">
                 <div className="w-8 h-8 border border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin mb-3" />
-                <div className="text-xs text-zinc-500">Replaying signals against {params.symbol} {params.timeframe}...</div>
+                <div className="text-xs text-[var(--text-secondary)]">Replaying signals against {params.symbol} {params.timeframe}...</div>
               </div>
             )}
 
@@ -1073,11 +1058,11 @@ export default function BacktestPage() {
                 </div>
 
                 {/* Monthly returns heatmap */}
-                <MonthlyHeatmap monthlyReturns={result.monthlyReturns} />
+                <MonthlyHeatmap monthlyReturns={result.monthlyReturns} isDark={isDark} />
 
                 {/* Tabs */}
                 <div className="glass-card rounded-2xl overflow-hidden">
-                  <div className="flex border-b border-white/5">
+                  <div className="flex border-b border-[var(--border)]">
                     {tabs.map(tab => (
                       <button
                         key={tab.id}
@@ -1085,7 +1070,7 @@ export default function BacktestPage() {
                         className={`flex-1 py-3 text-[10px] font-semibold tracking-wider uppercase transition-all duration-200 ${
                           activeTab === tab.id
                             ? 'text-emerald-400 border-b border-emerald-500/40 bg-emerald-500/5'
-                            : 'text-zinc-600 hover:text-zinc-400'
+                            : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                         }`}
                       >
                         {tab.label}
@@ -1096,9 +1081,9 @@ export default function BacktestPage() {
                   {activeTab === 'equity' && (
                     <div className="p-5">
                       <div className="h-64">
-                        <EquityCurveCanvas curve={result.equityCurve} startBalance={result.startBalance} />
+                        <EquityCurveCanvas curve={result.equityCurve} startBalance={result.startBalance} isDark={isDark} />
                       </div>
-                      <div className="flex items-center justify-between mt-3 text-[10px] font-mono text-zinc-600">
+                      <div className="flex items-center justify-between mt-3 text-[10px] font-mono text-[var(--text-secondary)]">
                         <span>Start: ${result.startBalance.toLocaleString()}</span>
                         <span className={result.endBalance >= result.startBalance ? 'text-emerald-400' : 'text-red-400'}>
                           End: ${result.endBalance.toLocaleString()}
@@ -1109,7 +1094,7 @@ export default function BacktestPage() {
 
                   {activeTab === 'price' && (
                     <div className="p-5">
-                      <div className="flex items-center gap-4 mb-3 text-[9px] text-zinc-600">
+                      <div className="flex items-center gap-4 mb-3 text-[9px] text-[var(--text-secondary)]">
                         <span className="flex items-center gap-1.5">
                           <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" /> BUY signal
                         </span>
@@ -1124,6 +1109,7 @@ export default function BacktestPage() {
                           ema20={result.ema20}
                           ema50={result.ema50}
                           signals={result.signals}
+                          isDark={isDark}
                         />
                       </div>
                     </div>
@@ -1131,12 +1117,12 @@ export default function BacktestPage() {
 
                   {activeTab === 'indicators' && (
                     <div className="p-5">
-                      <div className="flex items-center gap-4 mb-3 text-[9px] text-zinc-600">
+                      <div className="flex items-center gap-4 mb-3 text-[9px] text-[var(--text-secondary)]">
                         <span className="flex items-center gap-1.5">
                           <span className="inline-block w-3 h-0.5 bg-violet-400 rounded" /> RSI
                         </span>
                         <span className="flex items-center gap-1.5">
-                          <span className="inline-block w-3 h-0.5 bg-white/60 rounded" /> MACD
+                          <span className="inline-block w-3 h-0.5 rounded" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }} /> MACD
                         </span>
                         <span className="flex items-center gap-1.5">
                           <span className="inline-block w-3 h-0.5 bg-yellow-400/80 rounded" /> Signal
@@ -1148,6 +1134,7 @@ export default function BacktestPage() {
                           macdLine={result.macdLine}
                           macdSignalLine={result.macdSignalLine}
                           macdHistogram={result.macdHistogram}
+                          isDark={isDark}
                         />
                       </div>
                     </div>
@@ -1155,11 +1142,11 @@ export default function BacktestPage() {
 
                   {activeTab === 'trades' && (
                     <div>
-                      <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-white/[0.03]">
-                        <span className="text-[10px] text-zinc-600">{result.trades.length} trades</span>
+                      <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-[var(--border)]">
+                        <span className="text-[10px] text-[var(--text-secondary)]">{result.trades.length} trades</span>
                         <button
                           onClick={() => exportCSV(result.trades, params.symbol)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/8 text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-white/8 transition-all"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-[10px] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-all"
                         >
                           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                             <path d="M5 1V7M2 5L5 8L8 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1171,40 +1158,40 @@ export default function BacktestPage() {
                       <div className="overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="border-b border-white/5">
-                              <th className="px-4 py-2.5 text-left text-[10px] text-zinc-600 uppercase tracking-wider font-medium">#</th>
-                              <th className="px-4 py-2.5 text-left text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Dir</th>
-                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Entry</th>
-                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Exit</th>
-                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">P&amp;L</th>
-                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">%</th>
-                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Bars</th>
+                            <tr className="border-b border-[var(--border)]">
+                              <th className="px-4 py-2.5 text-left text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">#</th>
+                              <th className="px-4 py-2.5 text-left text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Dir</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Entry</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Exit</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">P&amp;L</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">%</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Bars</th>
                             </tr>
                           </thead>
                           <tbody>
                             {result.trades.slice(0, 50).map(trade => (
-                              <tr key={trade.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                                <td className="px-4 py-2 font-mono text-zinc-600">{trade.id}</td>
+                              <tr key={trade.id} className="border-b border-[var(--border)] hover:bg-[var(--glass-bg)] transition-colors">
+                                <td className="px-4 py-2 font-mono text-[var(--text-secondary)]">{trade.id}</td>
                                 <td className="px-4 py-2">
                                   <span className={`text-[10px] font-bold ${trade.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}`}>
                                     {trade.direction}
                                   </span>
                                 </td>
-                                <td className="px-4 py-2 text-right font-mono text-zinc-400">{trade.entry}</td>
-                                <td className="px-4 py-2 text-right font-mono text-zinc-400">{trade.exit}</td>
+                                <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)]">{trade.entry}</td>
+                                <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)]">{trade.exit}</td>
                                 <td className={`px-4 py-2 text-right font-mono font-semibold tabular-nums ${trade.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                   {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}
                                 </td>
                                 <td className={`px-4 py-2 text-right font-mono tabular-nums text-[10px] ${trade.pnlPct >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'}`}>
                                   {trade.pnlPct >= 0 ? '+' : ''}{trade.pnlPct.toFixed(2)}%
                                 </td>
-                                <td className="px-4 py-2 text-right font-mono text-zinc-600">{trade.bars}</td>
+                                <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)]">{trade.bars}</td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                         {result.trades.length > 50 && (
-                          <div className="px-4 py-3 text-center text-[10px] text-zinc-700">
+                          <div className="px-4 py-3 text-center text-[10px] text-[var(--text-secondary)] opacity-60">
                             Showing 50 of {result.trades.length} trades
                           </div>
                         )}
