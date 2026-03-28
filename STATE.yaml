@@ -604,9 +604,13 @@ tasks:
 
   - id: TC-056
     title: "TradeClaw CLI tool — npx tradeclaw <command> for signal fetch, backtest, strategy commands in terminal"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: packages/tradeclaw-cli/ — bin/cli.js + lib/index.js + package.json + README.md.
+      Commands: signals (--pair/--direction/--timeframe/--limit), leaderboard (--period), health, badge <PAIR>, version, help.
+      Colored terminal output (picocolors), spinner, formatted table with confidence bars.
+      README updated with npx tradeclaw examples. Build passes 105 pages. Committed 5332afee. 2026-03-28
 
   - id: TC-057
     title: "Video demo script + auto-generated GIF — ffmpeg terminal demo recording embedded in README"
@@ -621,4 +625,4 @@ tasks:
     notes: ""
 
 next_actions:
-  - "TC-053, TC-054, TC-055 done. Next: TC-056 TradeClaw CLI."
+  - "TC-053 through TC-056 done. Next: TC-057 demo GIF / TC-058 star campaign page."
