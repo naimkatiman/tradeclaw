@@ -17,6 +17,18 @@
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-85EA2D?logo=openapiinitiative&logoColor=black)](https://github.com/naimkatiman/tradeclaw/blob/main/apps/web/app/api/openapi/route.ts)
 [![RSS Feed](https://img.shields.io/badge/RSS-Live%20Signals-orange?logo=rss&logoColor=white)](https://tradeclaw.win/feed.xml)
 [![Demo](https://img.shields.io/badge/Demo-Live%20Signals-10b981?logo=vercel&logoColor=white)](https://tradeclaw.win/demo)
+[![Code Size](https://img.shields.io/github/languages/code-size/naimkatiman/tradeclaw?color=6366f1)](https://github.com/naimkatiman/tradeclaw)
+[![Discussions](https://img.shields.io/github/discussions/naimkatiman/tradeclaw?color=8b5cf6&logo=github)](https://github.com/naimkatiman/tradeclaw/discussions)
+
+<br/>
+
+![Next.js](https://img.shields.io/badge/Next.js_15-000?style=flat-square&logo=nextdotjs)
+![TypeScript](https://img.shields.io/badge/TypeScript_5-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000?style=flat-square&logo=vercel)
+![Railway](https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway)
 
 **AI-powered trading signals for forex, crypto, and metals — free, open-source, self-hostable.**
 
@@ -176,7 +188,9 @@ curl -H "X-API-Key: tc_live_YOUR_KEY" \
 
 ## Why TradeClaw?
 
-Most trading dashboards are **expensive, cloud-locked, and dumb** (no AI, just charts). TradeClaw is different:
+- **Free forever, no catch** — MIT licensed, self-hostable, no paywalls. You own your signals and your data.
+- **AI signals, not just charts** — Multi-indicator scoring (RSI + MACD + EMA + Fibonacci) with confidence levels. Most tools show charts and leave you guessing.
+- **One command to deploy** — `docker compose up -d` gives you a full trading dashboard with 15 assets, backtesting, and Telegram alerts. No PhD in DevOps required.
 
 ### Head-to-Head Comparison
 
@@ -292,6 +306,19 @@ tradeclaw/
 
 ---
 
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | Next.js 15, TypeScript 5, Tailwind CSS v4, Canvas API |
+| **Backend** | Node.js API routes, SSE real-time streams |
+| **Data** | Binance WebSocket, Yahoo Finance, file-based JSON cache |
+| **Deployment** | Docker Compose, Railway, Vercel, Render |
+| **Notifications** | Telegram Bot API, Discord webhooks |
+| **Analysis** | RSI, MACD, EMA, Bollinger, Fibonacci, Stochastic |
+
+---
+
 ## Self-host vs Cloud
 
 TradeClaw is **free and open source forever**.
@@ -374,6 +401,14 @@ npm run build      # Production build
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=naimkatiman/tradeclaw,naimkatiman/tradeclaw-agent&type=Date)](https://star-history.com/#naimkatiman/tradeclaw&naimkatiman/tradeclaw-agent&Date)
+
+---
+
+## Contributors
+
+<a href="https://github.com/naimkatiman/tradeclaw/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=naimkatiman/tradeclaw" />
+</a>
 
 ---
 
