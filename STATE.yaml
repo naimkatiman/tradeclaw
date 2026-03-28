@@ -637,9 +637,13 @@ tasks:
 
   - id: TC-059-B
     title: "Real-time global signal heatmap — world map showing which assets are trending BUY/SELL"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/heatmap endpoint (H1 signals for 10 pairs), /heatmap page with HeatmapClient.tsx.
+      CSS grid (2/3/4/5 col responsive), asset cards with emerald/rose/zinc color coding, confidence
+      bars, auto-refresh 30s, summary stats bar, click-through to signal detail. Build passes.
+      Committed + pushed 2026-03-28.
 
   - id: TC-060
     title: "TradeClaw vs TradingView live comparison — side-by-side signal output for same asset same time"
