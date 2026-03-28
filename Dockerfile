@@ -33,12 +33,12 @@ RUN apk add --no-cache curl
 
 WORKDIR /app
 
-# Copy standalone output from builder
-COPY --from=builder /app/apps/web/.next/standalone/apps/web ./
+# Copy standalone output from builder (includes node_modules at root)
+COPY --from=builder /app/apps/web/.next/standalone ./
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 EXPOSE 3000
 
-CMD ["sh", "-c", "PORT=${PORT:-3000} node server.js"]
+CMD ["sh", "-c", "PORT=${PORT:-3000} node apps/web/server.js"]
