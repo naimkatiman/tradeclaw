@@ -41,6 +41,24 @@ curl -H "Authorization: Bearer YOUR_KEY" https://tradeclaw.win/api/signals
 
 Free tier: 1,000 requests/hour. Self-host for unlimited access.
 
+## Slack Integration
+
+Get real-time trading signal alerts directly in your Slack channels.
+
+**Setup:**
+1. Create a [Slack Incoming Webhook](https://api.slack.com/messaging/webhooks) for your channel
+2. Add the webhook URL at [tradeclaw.win/slack](https://tradeclaw.win/slack)
+3. Receive formatted Block Kit signal alerts automatically
+
+```bash
+# Programmatic test signal
+curl -X POST https://tradeclaw.win/api/slack/webhook \
+  -H "Content-Type: application/json" \
+  -d '{"action":"test","id":"YOUR_INTEGRATION_ID"}'
+```
+
+OAuth "Add to Slack" one-click install coming soon.
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.

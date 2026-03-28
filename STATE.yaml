@@ -916,20 +916,26 @@ next_actions:
 
   - id: TC-080
     title: "TradeClaw status page — /status shows uptime, last signal time, API health, version, and incident history"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /status page (StatusClient.tsx) with overall system status banner, 4 service cards
+      (Signal Engine, API, Database, SSE Feed) with response times, 90-day uptime history dots,
+      3 seeded resolved incidents, email subscribe (localStorage), auto-refresh 30s.
+      /api/status route. Navbar + mobile-nav updated. README status badge added.
+      Build passes. Committed 8cb83194. 2026-03-28
 
   - id: TC-081
     title: "Signal alert Slack app — /api/slack/webhook endpoint + one-click Slack install button + docs"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Slack integration: lib/slack-integration.ts (CRUD+Block Kit+broadcast), /api/slack/webhook (6 actions), /slack page (hero+form+list+code example), navbar+mobile-nav links, README updated. Build passes."
 
   - id: TC-082
     title: "Localization landing page — Spanish + Chinese hero section variants for international GitHub discovery"
-    status: pending
+    status: done
     owner: pm-tradeclaw
+    notes: "translations.ts (EN/ES/ZH typed keys), locale-switcher.tsx (EN|ES|中文 pill), localized-landing.tsx (shared component), /es page (og:locale=es_ES), /zh page (og:locale=zh_CN), sitemap updated, hreflang alternates in layout. Build passes."
     notes: ""
 
   - id: TC-083

@@ -88,6 +88,12 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   alternates: {
+    languages: {
+      "en": "https://tradeclaw.com",
+      "es": "https://tradeclaw.com/es",
+      "zh-CN": "https://tradeclaw.com/zh",
+      "x-default": "https://tradeclaw.com",
+    },
     types: {
       'application/rss+xml': [{ url: '/feed.xml', title: 'TradeClaw — Live AI Trading Signals (RSS)' }],
       'application/atom+xml': [{ url: '/atom.xml', title: 'TradeClaw — Live AI Trading Signals (Atom)' }],
