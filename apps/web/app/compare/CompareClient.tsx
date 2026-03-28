@@ -337,7 +337,7 @@ function Cell({ value }: { value: FeatureValue }) {
   if (value === false) {
     return (
       <div className="flex justify-center">
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/[0.04] text-[var(--text-secondary)]">
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)]">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
             <path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
@@ -379,7 +379,7 @@ export function CompareClient() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-emerald-500/[0.06] blur-[120px] pointer-events-none" />
 
         <div className="relative mx-auto max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-4 py-1.5 text-xs font-medium text-[var(--text-secondary)] mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--glass-bg)] px-4 py-1.5 text-xs font-medium text-[var(--text-secondary)] mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Open Source · Self-Hosted · Free Forever
           </div>
@@ -430,10 +430,10 @@ export function CompareClient() {
             </p>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-white/6" style={{ background: '#0a0a0a' }}>
+          <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--bg-card)]">
             <table className="w-full" style={{ minWidth: '760px' }}>
               <thead>
-                <tr className="border-b border-white/6">
+                <tr className="border-b border-[var(--border)]">
                   <th className="text-left px-5 py-4 text-xs font-semibold text-[var(--text-secondary)] w-[240px]">
                     Feature
                   </th>
@@ -458,7 +458,7 @@ export function CompareClient() {
                 {COMPARISON_ROWS.map((row, i) => (
                   <tr
                     key={row.feature}
-                    className={`border-b border-white/[0.04] transition-colors hover:bg-white/[0.015] ${
+                    className={`border-b border-[var(--border)] transition-colors hover:bg-[var(--glass-bg)] ${
                       i === COMPARISON_ROWS.length - 1 ? 'border-b-0' : ''
                     }`}
                   >
@@ -501,7 +501,7 @@ export function CompareClient() {
               Partial / paid tier
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-white/[0.04] text-[var(--text-secondary)]">
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)]">
                 <svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
               </span>
               Not available
@@ -521,8 +521,8 @@ export function CompareClient() {
           </div>
 
           <div className="overflow-x-auto">
-          <div className="rounded-2xl border border-white/6 overflow-hidden min-w-[480px]" style={{ background: 'var(--bg-card, #111)' }}>
-            <div className="grid grid-cols-4 border-b border-white/6 bg-white/[0.02] px-6 py-3 text-xs font-semibold text-[var(--text-secondary)]">
+          <div className="rounded-2xl border border-[var(--border)] overflow-hidden min-w-[480px] bg-[var(--bg-card)]">
+            <div className="grid grid-cols-4 border-b border-[var(--border)] bg-[var(--glass-bg)] px-6 py-3 text-xs font-semibold text-[var(--text-secondary)]">
               <span>Task</span>
               <span className="text-emerald-400">TradeClaw</span>
               <span>TA-Lib</span>
@@ -532,7 +532,7 @@ export function CompareClient() {
             {BENCHMARKS.map((row, i) => (
               <div
                 key={row.task}
-                className={`px-6 py-4 ${i < BENCHMARKS.length - 1 ? 'border-b border-white/[0.04]' : ''}`}
+                className={`px-6 py-4 ${i < BENCHMARKS.length - 1 ? 'border-b border-[var(--border)]' : ''}`}
               >
                 <p className="text-xs font-medium text-[var(--foreground)] mb-3">{row.task}</p>
                 <div className="grid grid-cols-3 gap-3">
@@ -541,7 +541,7 @@ export function CompareClient() {
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-emerald-400 font-semibold">{row.tradeclaw}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
                       <div
                         className="h-full rounded-full bg-emerald-400 transition-all duration-700"
                         style={{ width: `${Math.round((row.tcMs / maxMs) * 100)}%` }}
@@ -553,7 +553,7 @@ export function CompareClient() {
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-[var(--text-secondary)]">{row.talib}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
                       {row.talibMs > 0 ? (
                         <div
                           className="h-full rounded-full bg-blue-400 transition-all duration-700"
@@ -567,7 +567,7 @@ export function CompareClient() {
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-[var(--text-secondary)]">{row.pandasta}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
                       <div
                         className="h-full rounded-full bg-orange-400 transition-all duration-700"
                         style={{ width: `${Math.round((row.pandaMs / maxMs) * 100)}%` }}
@@ -578,7 +578,7 @@ export function CompareClient() {
               </div>
             ))}
 
-            <div className="px-6 py-3 border-t border-white/6 bg-white/[0.01]">
+            <div className="px-6 py-3 border-t border-[var(--border)] bg-[var(--glass-bg)]">
               <p className="text-xs text-[var(--text-secondary)]">
                 * TradeClaw includes HTTP overhead (REST API call). TA-Lib measured as raw C call via Python bindings.
                 pandas-ta measured via DataFrame.ta extension. TradingView and 3Commas are cloud-only and excluded.
@@ -601,7 +601,7 @@ export function CompareClient() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 rounded-xl border border-white/6 bg-white/[0.02] p-1 mb-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex gap-1 rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] p-1 mb-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
             {(Object.keys(CODE_SAMPLES) as CodeTab[]).map((tab) => (
               <button
                 key={tab}
@@ -618,8 +618,8 @@ export function CompareClient() {
           </div>
 
           {/* Code block */}
-          <div className="rounded-b-2xl rounded-tr-2xl border border-t-0 border-white/6 overflow-hidden" style={{ background: '#0a0a0a' }}>
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/6">
+          <div className="rounded-b-2xl rounded-tr-2xl border border-t-0 border-[var(--border)] overflow-hidden bg-[#0d0d0d]">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/8">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
               <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" />
@@ -652,8 +652,7 @@ export function CompareClient() {
             {FAQS.map((faq, i) => (
               <div
                 key={i}
-                className="rounded-xl border border-white/6 overflow-hidden transition-all duration-200"
-                style={{ background: 'var(--bg-card, #111)' }}
+                className="rounded-xl border border-[var(--border)] overflow-hidden transition-all duration-200 bg-[var(--bg-card)]"
               >
                 <button
                   className="w-full flex items-center justify-between px-6 py-4 text-left"
@@ -677,7 +676,7 @@ export function CompareClient() {
                   </svg>
                 </button>
                 {openFaq === i && (
-                  <div className="px-6 pb-5 text-sm text-[var(--text-secondary)] leading-relaxed border-t border-white/[0.04] pt-4">
+                  <div className="px-6 pb-5 text-sm text-[var(--text-secondary)] leading-relaxed border-t border-[var(--border)] pt-4">
                     {faq.a}
                   </div>
                 )}
@@ -700,8 +699,8 @@ export function CompareClient() {
           </p>
 
           {/* Docker one-liner */}
-          <div className="rounded-xl border border-white/6 overflow-hidden mb-8 text-left" style={{ background: '#0a0a0a' }}>
-            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/6">
+          <div className="rounded-xl border border-[var(--border)] overflow-hidden mb-8 text-left bg-[#0d0d0d]">
+            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/8">
               <span className="w-2 h-2 rounded-full bg-red-500/60" />
               <span className="w-2 h-2 rounded-full bg-yellow-500/60" />
               <span className="w-2 h-2 rounded-full bg-emerald-500/60" />
