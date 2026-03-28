@@ -4,6 +4,10 @@
 
 <br/>
 
+![TradeClaw Demo](https://raw.githubusercontent.com/naimkatiman/tradeclaw/main/apps/web/public/demo-terminal.svg)
+
+<br/>
+
 [![BTC Signal](https://tradeclaw.win/api/badge)](https://tradeclaw.win)
 [![ETH Signal](https://tradeclaw.win/api/badge?pair=ETHUSD)](https://tradeclaw.win)
 [![Gold Signal](https://tradeclaw.win/api/badge?pair=XAUUSD)](https://tradeclaw.win)
@@ -52,9 +56,9 @@ No installation. No config. No Docker. Fetches live AI signals instantly.
 
 > **[Try the live demo →](https://tradeclaw.win/demo)** — AI signals for BTC, ETH, Gold, EUR/USD. No login.
 
-[![TradeClaw Demo — Live AI Signals](https://tradeclaw.win/api/og)](https://tradeclaw.win/demo)
+![TradeClaw Dashboard](https://raw.githubusercontent.com/naimkatiman/tradeclaw/main/apps/web/public/demo-dashboard.svg)
 
-> 📽️ Want to record a demo GIF? See **[DEMO_RECORDING.md](./DEMO_RECORDING.md)**
+> 📽️ Want to record your own demo? See **[docs/demo/RECORDING_GUIDE.md](./docs/demo/RECORDING_GUIDE.md)**
 
 ---
 

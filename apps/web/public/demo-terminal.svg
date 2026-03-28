@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" width="800" height="480">
+  <style>
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes dots1 { 0%,100%{opacity:0} 33%,99%{opacity:1} }
+    @keyframes dots2 { 0%,33%{opacity:0} 50%,99%{opacity:1} 100%{opacity:0} }
+    @keyframes dots3 { 0%,50%{opacity:0} 66%,99%{opacity:1} 100%{opacity:0} }
+    @keyframes typeChar { from{width:0} to{width:100%} }
+    @keyframes slideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    .line { opacity: 0; animation: fadeIn 0.3s ease forwards; }
+    .l1 { animation-delay: 0.5s; }
+    .l2 { animation-delay: 1.2s; }
+    .l3 { animation-delay: 1.8s; }
+    .l4 { animation-delay: 2.4s; }
+    .l5 { animation-delay: 3.2s; }
+    .l6 { animation-delay: 3.5s; }
+    .l7 { animation-delay: 3.8s; }
+    .l8 { animation-delay: 4.3s; }
+    .l9 { animation-delay: 4.6s; }
+    .l10 { animation-delay: 4.9s; }
+    .l11 { animation-delay: 5.2s; }
+    .l12 { animation-delay: 5.5s; }
+    .l13 { animation-delay: 5.8s; }
+    .l14 { animation-delay: 6.1s; }
+    .l15 { animation-delay: 6.4s; }
+    .l16 { animation-delay: 7.0s; }
+    .l17 { animation-delay: 7.5s; }
+
+    .cursor { animation: blink 1s step-end infinite; }
+    .dot1 { animation: dots1 1.2s ease infinite; animation-delay: 1.8s; }
+    .dot2 { animation: dots2 1.2s ease infinite; animation-delay: 1.8s; }
+    .dot3 { animation: dots3 1.2s ease infinite; animation-delay: 1.8s; }
+
+    text { font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, 'Liberation Mono', Menlo, monospace; }
+  </style>
+
+  <defs>
+    <linearGradient id="titleBar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2d333b"/>
+      <stop offset="100%" stop-color="#22272e"/>
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#010409"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Terminal window -->
+  <rect width="800" height="480" rx="12" fill="url(#bgGrad)"/>
+  <rect width="800" height="38" rx="12" fill="url(#titleBar)"/>
+  <rect y="26" width="800" height="12" fill="url(#titleBar)"/>
+
+  <!-- Traffic lights -->
+  <circle cx="20" cy="19" r="7" fill="#f85149"/>
+  <circle cx="42" cy="19" r="7" fill="#f0b429"/>
+  <circle cx="64" cy="19" r="7" fill="#3fb950"/>
+
+  <!-- Title -->
+  <text x="400" y="24" fill="#8b949e" font-size="13" text-anchor="middle" font-weight="500">Terminal — tradeclaw</text>
+
+  <!-- Line 1: prompt + command -->
+  <g class="line l1">
+    <text x="24" y="72" fill="#8b949e" font-size="14">$</text>
+    <text x="40" y="72" fill="#e6edf3" font-size="14">npx tradeclaw signals</text>
+  </g>
+
+  <!-- Line 2: resolving -->
+  <g class="line l2">
+    <text x="24" y="98" fill="#8b949e" font-size="13">Need to install the following packages:</text>
+  </g>
+
+  <!-- Line 3: loading with animated dots -->
+  <g class="line l3">
+    <text x="24" y="122" fill="#f0b429" font-size="13">Fetching live signals</text>
+    <text x="177" y="122" fill="#f0b429" font-size="13" class="dot1">.</text>
+    <text x="183" y="122" fill="#f0b429" font-size="13" class="dot2">.</text>
+    <text x="189" y="122" fill="#f0b429" font-size="13" class="dot3">.</text>
+  </g>
+
+  <!-- Line 4: blank / success -->
+  <g class="line l4">
+    <text x="24" y="148" fill="#3fb950" font-size="13">Connected to tradeclaw.win API</text>
+  </g>
+
+  <!-- Line 5: header bar -->
+  <g class="line l5">
+    <text x="24" y="178" fill="#58a6ff" font-size="14" font-weight="bold">TradeClaw v2.1.0</text>
+    <text x="185" y="178" fill="#484f58" font-size="14">|</text>
+    <text x="198" y="178" fill="#8b949e" font-size="14">Live AI Trading Signals</text>
+    <text x="418" y="178" fill="#484f58" font-size="14">|</text>
+    <text x="431" y="178" fill="#8b949e" font-size="14">2026-03-28 12:00 UTC</text>
+  </g>
+
+  <!-- Line 6: separator -->
+  <g class="line l6">
+    <text x="24" y="198" fill="#30363d" font-size="14">────────────────────────────────────────────────────────────</text>
+  </g>
+
+  <!-- Line 7: table header -->
+  <g class="line l7">
+    <text x="24" y="222" fill="#8b949e" font-size="13" font-weight="bold">PAIR</text>
+    <text x="120" y="222" fill="#8b949e" font-size="13" font-weight="bold">DIR</text>
+    <text x="200" y="222" fill="#8b949e" font-size="13" font-weight="bold">CONF</text>
+    <text x="280" y="222" fill="#8b949e" font-size="13" font-weight="bold">ENTRY</text>
+    <text x="390" y="222" fill="#8b949e" font-size="13" font-weight="bold">TP1</text>
+    <text x="490" y="222" fill="#8b949e" font-size="13" font-weight="bold">TP2</text>
+    <text x="590" y="222" fill="#8b949e" font-size="13" font-weight="bold">SL</text>
+    <text x="680" y="222" fill="#8b949e" font-size="13" font-weight="bold">TF</text>
+  </g>
+
+  <!-- Line 8: separator -->
+  <g class="line l8">
+    <text x="24" y="240" fill="#30363d" font-size="14">────────────────────────────────────────────────────────────</text>
+  </g>
+
+  <!-- Line 9: BTCUSD BUY -->
+  <g class="line l9">
+    <text x="24" y="264" fill="#e6edf3" font-size="14" font-weight="bold">BTCUSD</text>
+    <text x="120" y="264" fill="#3fb950" font-size="14" font-weight="bold">BUY</text>
+    <text x="200" y="264" fill="#3fb950" font-size="14">87%</text>
+    <text x="280" y="264" fill="#e6edf3" font-size="14">87,245.50</text>
+    <text x="390" y="264" fill="#e6edf3" font-size="14">89,120.00</text>
+    <text x="490" y="264" fill="#e6edf3" font-size="14">91,500.00</text>
+    <text x="590" y="264" fill="#f85149" font-size="14">85,800.00</text>
+    <text x="680" y="264" fill="#8b949e" font-size="14">H4</text>
+  </g>
+
+  <!-- Line 10: XAUUSD SELL -->
+  <g class="line l10">
+    <text x="24" y="292" fill="#e6edf3" font-size="14" font-weight="bold">XAUUSD</text>
+    <text x="120" y="292" fill="#f85149" font-size="14" font-weight="bold">SELL</text>
+    <text x="200" y="292" fill="#f85149" font-size="14">72%</text>
+    <text x="280" y="292" fill="#e6edf3" font-size="14">3,048.30</text>
+    <text x="390" y="292" fill="#e6edf3" font-size="14">3,025.00</text>
+    <text x="490" y="292" fill="#e6edf3" font-size="14">2,998.50</text>
+    <text x="590" y="292" fill="#f85149" font-size="14">3,072.00</text>
+    <text x="680" y="292" fill="#8b949e" font-size="14">H1</text>
+  </g>
+
+  <!-- Line 11: EURUSD BUY -->
+  <g class="line l11">
+    <text x="24" y="320" fill="#e6edf3" font-size="14" font-weight="bold">EURUSD</text>
+    <text x="120" y="320" fill="#3fb950" font-size="14" font-weight="bold">BUY</text>
+    <text x="200" y="320" fill="#3fb950" font-size="14">65%</text>
+    <text x="280" y="320" fill="#e6edf3" font-size="14">1.0842</text>
+    <text x="390" y="320" fill="#e6edf3" font-size="14">1.0890</text>
+    <text x="490" y="320" fill="#e6edf3" font-size="14">1.0935</text>
+    <text x="590" y="320" fill="#f85149" font-size="14">1.0795</text>
+    <text x="680" y="320" fill="#8b949e" font-size="14">H4</text>
+  </g>
+
+  <!-- Line 12: ETHUSD HOLD -->
+  <g class="line l12">
+    <text x="24" y="348" fill="#e6edf3" font-size="14" font-weight="bold">ETHUSD</text>
+    <text x="120" y="348" fill="#f0b429" font-size="14" font-weight="bold">HOLD</text>
+    <text x="200" y="348" fill="#f0b429" font-size="14">51%</text>
+    <text x="280" y="348" fill="#e6edf3" font-size="14">3,412.80</text>
+    <text x="390" y="348" fill="#484f58" font-size="14">—</text>
+    <text x="490" y="348" fill="#484f58" font-size="14">—</text>
+    <text x="590" y="348" fill="#484f58" font-size="14">—</text>
+    <text x="680" y="348" fill="#8b949e" font-size="14">H1</text>
+  </g>
+
+  <!-- Line 13: GBPUSD BUY -->
+  <g class="line l13">
+    <text x="24" y="376" fill="#e6edf3" font-size="14" font-weight="bold">GBPUSD</text>
+    <text x="120" y="376" fill="#3fb950" font-size="14" font-weight="bold">BUY</text>
+    <text x="200" y="376" fill="#3fb950" font-size="14">78%</text>
+    <text x="280" y="376" fill="#e6edf3" font-size="14">1.2934</text>
+    <text x="390" y="376" fill="#e6edf3" font-size="14">1.2985</text>
+    <text x="490" y="376" fill="#e6edf3" font-size="14">1.3040</text>
+    <text x="590" y="376" fill="#f85149" font-size="14">1.2880</text>
+    <text x="680" y="376" fill="#8b949e" font-size="14">H4</text>
+  </g>
+
+  <!-- Line 14: separator -->
+  <g class="line l14">
+    <text x="24" y="400" fill="#30363d" font-size="14">────────────────────────────────────────────────────────────</text>
+  </g>
+
+  <!-- Line 15: summary -->
+  <g class="line l15">
+    <text x="24" y="424" fill="#8b949e" font-size="13">5 signals</text>
+    <text x="105" y="424" fill="#484f58" font-size="13">|</text>
+    <text x="118" y="424" fill="#3fb950" font-size="13">3 BUY</text>
+    <text x="172" y="424" fill="#484f58" font-size="13">|</text>
+    <text x="185" y="424" fill="#f85149" font-size="13">1 SELL</text>
+    <text x="248" y="424" fill="#484f58" font-size="13">|</text>
+    <text x="261" y="424" fill="#f0b429" font-size="13">1 HOLD</text>
+    <text x="328" y="424" fill="#484f58" font-size="13">|</text>
+    <text x="341" y="424" fill="#8b949e" font-size="13">avg confidence: 70.6%</text>
+  </g>
+
+  <!-- Line 16: docs hint -->
+  <g class="line l16">
+    <text x="24" y="448" fill="#484f58" font-size="12">Powered by tradeclaw.win — Run </text>
+    <text x="272" y="448" fill="#58a6ff" font-size="12">npx tradeclaw --help</text>
+    <text x="448" y="448" fill="#484f58" font-size="12"> for more commands</text>
+  </g>
+
+  <!-- Line 17: new prompt with cursor -->
+  <g class="line l17">
+    <text x="24" y="472" fill="#8b949e" font-size="14">$</text>
+    <rect x="40" y="459" width="8" height="16" fill="#58a6ff" class="cursor"/>
+  </g>
+</svg>
