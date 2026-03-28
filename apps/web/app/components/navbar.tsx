@@ -22,6 +22,7 @@ const NAV_LINKS = [
   { href: '/badges', label: 'Badges Gallery' },
   { href: '/marketplace', label: 'Marketplace' },
   { href: '/api-keys', label: 'API Keys' },
+  { href: '/heatmap', label: 'Heatmap 🌡️' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
 
