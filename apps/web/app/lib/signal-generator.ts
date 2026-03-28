@@ -48,8 +48,8 @@ const WEIGHTS = {
   BB_UPPER_TOUCH: 10,    // Price near upper Bollinger band
 } as const;
 
-const SIGNAL_THRESHOLD = 40; // Minimum score to generate a signal
-const MIN_DIRECTIONAL_EDGE = 8;
+const SIGNAL_THRESHOLD = 20; // Minimum score to generate a signal
+const MIN_DIRECTIONAL_EDGE = 5;
 const MIN_TREND_STRENGTH = 0.08;
 const MIN_ATR_PCT = 0.0003;
 const MIN_BB_WIDTH = 0.3;
@@ -290,6 +290,10 @@ function scoreIndicators(indicators: AllIndicators): ScoreResult {
       buyScore += WEIGHTS.RSI_OVERSOLD * 0.5;
       buyCategories.momentum += WEIGHTS.RSI_OVERSOLD * 0.5;
       reasons.push(`RSI near oversold (${rsi.current.toFixed(1)})`);
+    } else if (rsi.current < 50) {
+      buyScore += WEIGHTS.RSI_OVERSOLD * 0.25;
+      buyCategories.momentum += WEIGHTS.RSI_OVERSOLD * 0.25;
+      reasons.push(`RSI leaning bullish (${rsi.current.toFixed(1)})`);
     } else if (rsi.current > 70) {
       sellScore += WEIGHTS.RSI_OVERBOUGHT;
       sellCategories.momentum += WEIGHTS.RSI_OVERBOUGHT;
@@ -298,6 +302,10 @@ function scoreIndicators(indicators: AllIndicators): ScoreResult {
       sellScore += WEIGHTS.RSI_OVERBOUGHT * 0.5;
       sellCategories.momentum += WEIGHTS.RSI_OVERBOUGHT * 0.5;
       reasons.push(`RSI near overbought (${rsi.current.toFixed(1)})`);
+    } else if (rsi.current > 50) {
+      sellScore += WEIGHTS.RSI_OVERBOUGHT * 0.25;
+      sellCategories.momentum += WEIGHTS.RSI_OVERBOUGHT * 0.25;
+      reasons.push(`RSI leaning bearish (${rsi.current.toFixed(1)})`);
     }
   }
 
@@ -341,6 +349,11 @@ function scoreIndicators(indicators: AllIndicators): ScoreResult {
       } else {
         reasons.push('Uptrend (price > EMA20 > EMA50)');
       }
+    } else if (currentPrice > ema20) {
+      // Partial uptrend: price above short-term EMA
+      buyScore += WEIGHTS.EMA_TREND_UP * 0.35;
+      buyCategories.trend += WEIGHTS.EMA_TREND_UP * 0.35;
+      reasons.push('Price above EMA20');
     } else if (currentPrice < ema20 && ema20 < ema50) {
       sellScore += WEIGHTS.EMA_TREND_DOWN * 0.7;
       sellCategories.trend += WEIGHTS.EMA_TREND_DOWN * 0.7;
@@ -351,6 +364,11 @@ function scoreIndicators(indicators: AllIndicators): ScoreResult {
       } else {
         reasons.push('Downtrend (price < EMA20 < EMA50)');
       }
+    } else if (currentPrice < ema20) {
+      // Partial downtrend: price below short-term EMA
+      sellScore += WEIGHTS.EMA_TREND_DOWN * 0.35;
+      sellCategories.trend += WEIGHTS.EMA_TREND_DOWN * 0.35;
+      reasons.push('Price below EMA20');
     }
   }
 
@@ -365,6 +383,10 @@ function scoreIndicators(indicators: AllIndicators): ScoreResult {
       } else {
         reasons.push('Stochastic oversold');
       }
+    } else if (k < 40) {
+      buyScore += WEIGHTS.STOCH_OVERSOLD * 0.4;
+      buyCategories.momentum += WEIGHTS.STOCH_OVERSOLD * 0.4;
+      reasons.push(`Stochastic low (${k.toFixed(0)})`);
     } else if (k > 80 && d > 80) {
       sellScore += WEIGHTS.STOCH_OVERBOUGHT;
       sellCategories.momentum += WEIGHTS.STOCH_OVERBOUGHT;
@@ -373,6 +395,10 @@ function scoreIndicators(indicators: AllIndicators): ScoreResult {
       } else {
         reasons.push('Stochastic overbought');
       }
+    } else if (k > 60) {
+      sellScore += WEIGHTS.STOCH_OVERBOUGHT * 0.4;
+      sellCategories.momentum += WEIGHTS.STOCH_OVERBOUGHT * 0.4;
+      reasons.push(`Stochastic elevated (${k.toFixed(0)})`);
     }
   }
 
@@ -390,26 +416,35 @@ function scoreIndicators(indicators: AllIndicators): ScoreResult {
         buyScore += WEIGHTS.BB_LOWER_TOUCH;
         buyCategories.volatility += WEIGHTS.BB_LOWER_TOUCH;
         reasons.push('Price at lower Bollinger Band');
+      } else if (distToLower < 0.3) {
+        buyScore += WEIGHTS.BB_LOWER_TOUCH * 0.5;
+        buyCategories.volatility += WEIGHTS.BB_LOWER_TOUCH * 0.5;
+        reasons.push('Price near lower Bollinger Band');
       } else if (distToUpper < 0.1) {
         sellScore += WEIGHTS.BB_UPPER_TOUCH;
         sellCategories.volatility += WEIGHTS.BB_UPPER_TOUCH;
         reasons.push('Price at upper Bollinger Band');
+      } else if (distToUpper < 0.3) {
+        sellScore += WEIGHTS.BB_UPPER_TOUCH * 0.5;
+        sellCategories.volatility += WEIGHTS.BB_UPPER_TOUCH * 0.5;
+        reasons.push('Price near upper Bollinger Band');
       }
     }
   }
 
   // ── ADX Trend Strength Bonus ────────────────────────────
   const adxCurrent = indicators.adx.current;
-  if (!isNaN(adxCurrent.adx) && adxCurrent.adx > 40) {
-    // Strong trend bonus — add to the dominant direction
+  if (!isNaN(adxCurrent.adx) && adxCurrent.adx > 20) {
+    // Trend present — add bonus based on strength
+    const adxBonus = adxCurrent.adx > 40 ? 8 : adxCurrent.adx > 30 ? 5 : 3;
     if (buyScore > sellScore) {
-      buyScore += 5;
-      buyCategories.trend += 5;
-      reasons.push(`Strong trend (ADX=${adxCurrent.adx.toFixed(1)})`);
+      buyScore += adxBonus;
+      buyCategories.trend += adxBonus;
+      reasons.push(`Trending (ADX=${adxCurrent.adx.toFixed(1)})`);
     } else if (sellScore > buyScore) {
-      sellScore += 5;
-      sellCategories.trend += 5;
-      reasons.push(`Strong trend (ADX=${adxCurrent.adx.toFixed(1)})`);
+      sellScore += adxBonus;
+      sellCategories.trend += adxBonus;
+      reasons.push(`Trending (ADX=${adxCurrent.adx.toFixed(1)})`);
     }
   }
 
@@ -530,9 +565,9 @@ export function generateSignalsFromTA(
   const adxValue = indicators.adx.current.adx;
   if (!isNaN(adxValue) && adxValue < 15) return [];
 
-  // ── Volume Gate: require some volume (skip for forex where volume is synthetic) ──
+  // Volume is informational only — the current candle is often still forming,
+  // making ratio unreliable as a hard gate.
   const { volume } = indicators;
-  if (!volume.isSynthetic && volume.ratio > 0 && volume.ratio < 0.5) return [];
 
   const signals: TradingSignal[] = [];
   const indicatorSummary = buildIndicatorSummary(indicators, currentPrice);
@@ -546,7 +581,7 @@ export function generateSignalsFromTA(
     .filter(v => v > 0).length;
   const buyGate = passesDirectionGate('BUY', indicators, marketQuality, buyScore, sellScore);
   // Require 2 categories for high confidence, 1 category for moderate signals
-  const buyMinCategories = buyScore >= 55 ? 2 : 1;
+  const buyMinCategories = buyScore >= 40 ? 2 : 1;
   if (buyScore >= SIGNAL_THRESHOLD && buyScore > sellScore && buyingCategoryCount >= buyMinCategories && buyGate.passes) {
     const confidence = Math.min(95, Math.max(52, Math.round(buyScore + buyGate.confidenceBoost)));
     const slDistance = atr * 1.5;
@@ -591,7 +626,7 @@ export function generateSignalsFromTA(
   const sellingCategoryCount = [sellCategories.momentum, sellCategories.trend, sellCategories.volatility]
     .filter(v => v > 0).length;
   const sellGate = passesDirectionGate('SELL', indicators, marketQuality, sellScore, buyScore);
-  const sellMinCategories = sellScore >= 55 ? 2 : 1;
+  const sellMinCategories = sellScore >= 40 ? 2 : 1;
   if (sellScore >= SIGNAL_THRESHOLD && sellScore > buyScore && sellingCategoryCount >= sellMinCategories && sellGate.passes) {
     const confidence = Math.min(95, Math.max(52, Math.round(sellScore + sellGate.confidenceBoost)));
     const slDistance = atr * 1.5;
