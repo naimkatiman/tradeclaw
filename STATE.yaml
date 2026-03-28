@@ -843,6 +843,11 @@ next_actions:
 
   - id: TC-073
     title: "SEO blog — /blog with 3 posts: 'RSI explained', 'How we score signals', 'Self-hosting trading tools'"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /blog index + 3 SEO-optimised articles: /blog/rsi-explained (Wilder formula,
+      TypeScript code, scoring table), /blog/how-we-score-signals (full algorithm walkthrough,
+      quality gates, calibration), /blog/self-hosting-trading-tools (cost comparison, 3 setup
+      options). All with metadata, og:tags, keywords. Blog added to navbar Community group.
+      Build passes 119 pages. Committed 7043fcfc. 2026-03-28
