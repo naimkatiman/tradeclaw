@@ -9,6 +9,7 @@ import { AssetsShowcase } from "../components/landing/assets-showcase";
 import { FAQAccordion } from "../components/landing/faq-accordion";
 import { DeploySection } from "../components/landing/deploy-section";
 import { SiteFooter } from "../components/landing/site-footer";
+import { LiveDemoSection } from "../components/landing/live-demo-section";
 
 export default function Home() {
   return (
@@ -19,6 +20,7 @@ export default function Home() {
         <div className="flex justify-center pb-4">
           <StarsBadge />
         </div>
+        <LiveDemoSection />
         <SocialProof />
         <HowItWorks />
         <ComparisonTable />

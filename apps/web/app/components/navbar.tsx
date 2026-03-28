@@ -15,6 +15,7 @@ interface NavLink {
 const PRIMARY_LINKS: NavLink[] = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/screener', label: 'Signals' },
+  { href: '/demo', label: 'Live Demo' },
   { href: '/backtest', label: 'Backtest' },
   { href: '/api-docs', label: 'API Docs' },
   { href: '/compare', label: 'Compare' },
@@ -63,7 +64,6 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/hn', label: 'HN', icon: Circle },
       { href: '/rss', label: 'RSS', icon: Radio },
       { href: '/launch', label: 'Launch', icon: Rocket },
-      { href: '/demo', label: 'Demo', icon: Circle },
       { href: '/vs-tradingview', label: 'vs TradingView' },
     ],
   },
@@ -133,8 +133,14 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="hover:text-[var(--foreground)] transition-colors duration-300"
+                className="hover:text-[var(--foreground)] transition-colors duration-300 flex items-center gap-1.5"
               >
+                {link.label === 'Live Demo' && (
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
+                  </span>
+                )}
                 {link.label}
               </Link>
             ))}
