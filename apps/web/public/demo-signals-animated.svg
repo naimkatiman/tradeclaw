@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" width="800" height="440">
+  <defs>
+    <style>
+      @keyframes fadeUp {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes slideIn {
+        0% { opacity: 0; transform: translateX(-16px); }
+        100% { opacity: 1; transform: translateX(0); }
+      }
+      @keyframes barFill1 { 0%,10% { width: 0; } 40%,90% { width: 87%; } 100% { width: 87%; } }
+      @keyframes barFill2 { 0%,25% { width: 0; } 55%,90% { width: 74%; } 100% { width: 74%; } }
+      @keyframes barFill3 { 0%,40% { width: 0; } 70%,90% { width: 91%; } 100% { width: 91%; } }
+      @keyframes barFill4 { 0%,55% { width: 0; } 85%,90% { width: 68%; } 100% { width: 68%; } }
+      @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+      @keyframes sparkle { 0%,100% { opacity:0; transform:scale(0); } 50% { opacity:1; transform:scale(1); } }
+      @keyframes priceAnim {
+        0%,10% { opacity:0; } 15%,85% { opacity:1; } 90%,100% { opacity:0; }
+      }
+      .card1 { animation: fadeUp 0.5s ease 0.2s both; }
+      .card2 { animation: fadeUp 0.5s ease 0.5s both; }
+      .card3 { animation: fadeUp 0.5s ease 0.8s both; }
+      .card4 { animation: fadeUp 0.5s ease 1.1s both; }
+      .badge { animation: slideIn 0.4s ease 0.4s both; }
+      .title { animation: slideIn 0.6s ease 0.05s both; }
+      .live-dot { animation: pulse 1.5s ease infinite; }
+    </style>
+    <linearGradient id="buyGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0.02"/>
+    </linearGradient>
+    <linearGradient id="sellGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#f43f5e" stop-opacity="0.02"/>
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#080c10"/>
+      <stop offset="100%" stop-color="#040608"/>
+    </linearGradient>
+    <clipPath id="bar1Clip"><rect x="0" y="0" height="8" rx="4"><animate attributeName="width" from="0" to="87%" dur="0.8s" begin="0.4s" fill="freeze"/></rect></clipPath>
+    <clipPath id="bar2Clip"><rect x="0" y="0" height="8" rx="4"><animate attributeName="width" from="0" to="74%" dur="0.8s" begin="0.7s" fill="freeze"/></rect></clipPath>
+    <clipPath id="bar3Clip"><rect x="0" y="0" height="8" rx="4"><animate attributeName="width" from="0" to="91%" dur="0.8s" begin="1.0s" fill="freeze"/></rect></clipPath>
+    <clipPath id="bar4Clip"><rect x="0" y="0" height="8" rx="4"><animate attributeName="width" from="0" to="68%" dur="0.8s" begin="1.3s" fill="freeze"/></rect></clipPath>
+    <filter id="glow-green">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="440" fill="url(#bgGrad)" rx="16"/>
+  <rect width="800" height="440" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1" rx="16"/>
+
+  <!-- Ambient glow -->
+  <ellipse cx="400" cy="80" rx="300" ry="80" fill="rgba(16,185,129,0.04)"/>
+
+  <!-- Header -->
+  <g class="title">
+    <circle cx="34" cy="36" r="6" fill="rgba(16,185,129,1)" class="live-dot"/>
+    <circle cx="34" cy="36" r="10" fill="rgba(16,185,129,0.2)" class="live-dot"/>
+    <text x="50" y="41" font-family="monospace" font-size="13" fill="#10b981" font-weight="bold">TRADECLAW</text>
+    <text x="162" y="41" font-family="monospace" font-size="13" fill="rgba(255,255,255,0.3)">· Live Signal Feed</text>
+    <text x="690" y="41" font-family="monospace" font-size="11" fill="rgba(255,255,255,0.2)">auto-refresh 30s</text>
+  </g>
+
+  <!-- Card 1: BTCUSD BUY -->
+  <g class="card1">
+    <rect x="24" y="68" width="752" height="72" rx="12" fill="url(#buyGrad)" stroke="rgba(16,185,129,0.2)" stroke-width="1"/>
+    <rect x="24" y="68" width="4" height="72" rx="2" fill="#10b981"/>
+    <text x="48" y="99" font-family="monospace" font-size="16" font-weight="bold" fill="white">BTCUSD</text>
+    <rect x="132" y="83" width="46" height="22" rx="11" fill="rgba(16,185,129,0.2)" stroke="rgba(16,185,129,0.4)" stroke-width="1"/>
+    <text x="141" y="99" font-family="monospace" font-size="11" font-weight="bold" fill="#10b981">▲ BUY</text>
+    <text x="196" y="99" font-family="monospace" font-size="11" fill="rgba(255,255,255,0.3)">H1</text>
+    <text x="48" y="122" font-family="monospace" font-size="11" fill="rgba(255,255,255,0.4)">Entry: $84,250</text>
+    <text x="154" y="122" font-family="monospace" font-size="11" fill="rgba(16,185,129,0.7)">TP: $85,800</text>
+    <text x="256" y="122" font-family="monospace" font-size="11" fill="rgba(244,63,94,0.7)">SL: $83,400</text>
+    <!-- Confidence bar -->
+    <text x="580" y="95" font-family="monospace" font-size="10" fill="rgba(255,255,255,0.3)">Confidence</text>
+    <rect x="580" y="100" width="150" height="8" rx="4" fill="rgba(255,255,255,0.06)"/>
+    <rect x="580" y="100" width="0" height="8" rx="4" fill="#10b981">
+      <animate attributeName="width" from="0" to="130" dur="0.8s" begin="0.4s" fill="freeze"/>
+    </rect>
+    <text x="740" y="109" font-family="monospace" font-size="12" font-weight="bold" fill="#10b981">87%</text>
+  </g>
+
+  <!-- Card 2: XAUUSD SELL -->
+  <g class="card2">
+    <rect x="24" y="152" width="752" height="72" rx="12" fill="url(#sellGrad)" stroke="rgba(244,63,94,0.2)" stroke-width="1"/>
+    <rect x="24" y="152" width="4" height="72" rx="2" fill="#f43f5e"/>
+    <text x="48" y="183" font-family="monospace" font-size="16" font-weight="bold" fill="white">XAUUSD</text>
+    <rect x="136" y="167" width="50" height="22" rx="11" fill="rgba(244,63,94,0.2)" stroke="rgba(244,63,94,0.4)" stroke-width="1"/>
+    <text x="145" y="183" font-family="monospace" font-size="11" font-weight="bold" fill="#f43f5e">▼ SELL</text>
+    <text x="196" y="183" font-family="monospace" font-size="11" fill="rgba(255,255,255,0.3)">H4</text>
+    <text x="48" y="206" font-family="monospace" font-size="11" fill="rgba(255,255,255,0.4)">Entry: $2,651</text>
+    <text x="150" y="206" font-family="monospace" font-size="11" fill="rgba(16,185,129,0.7)">TP: $2,620</text>
+    <text x="248" y="206" font-family="monospace" font-size="11" fill="rgba(244,63,94,0.7)">SL: $2,668</text>
+    <text x="580" y="179" font-family="monospace" font-size="10" fill="rgba(255,255,255,0.3)">Confidence</text>
+    <rect x="580" y="184" width="150" height="8" rx="4" fill="rgba(255,255,255,0.06)"/>
+    <rect x="580" y="184" width="0" height="8" rx="4" fill="#f59e0b">
+      <animate attributeName="width" from="0" to="111" dur="0.8s" begin="0.7s" fill="freeze"/>
+    </rect>
+    <text x="740" y="193" font-family="monospace" font-size="12" font-weight="bold" fill="#f59e0b">74%</text>
+  </g>
+
+  <!-- Card 3: ETHUSD BUY -->
+  <g class="card3">
+    <rect x="24" y="236" width="752" height="72" rx="12" fill="url(#buyGrad)" stroke="rgba(16,185,129,0.2)" stroke-width="1"/>
+    <rect x="24" y="236" width="4" height="72" rx="2" fill="#10b981"/>
+    <text x="48" y="267" font-family="monospace" font-size="16" font-weight="bold" fill="white">ETHUSD</text>
+    <rect x="136" y="251" width="46" height="22" rx="11" fill="rgba(16,185,129,0.2)" stroke="rgba(16,185,129,0.4)" stroke-width="1"/>
+    <text x="145" y="267" font-family="monospace" font-size="11" font-weight="bold" fill="#10b981">▲ BUY</text>
+    <text x="196" y="267" font-family="monospace" font-size="11" fill="rgba(255,255,255,0.3)">D1</text>
+    <text x="48" y="290" font-family="monospace" font-size="11" fill="rgba(255,255,255,0.4)">Entry: $3,218</text>
+    <text x="154" y="290" font-family="monospace" font-size="11" fill="rgba(16,185,129,0.7)">TP: $3,380</text>
+    <text x="256" y="290" font-family="monospace" font-size="11" fill="rgba(244,63,94,0.7)">SL: $3,140</text>
+    <text x="580" y="263" font-family="monospace" font-size="10" fill="rgba(255,255,255,0.3)">Confidence</text>
+    <rect x="580" y="268" width="150" height="8" rx="4" fill="rgba(255,255,255,0.06)"/>
+    <rect x="580" y="268" width="0" height="8" rx="4" fill="#10b981">
+      <animate attributeName="width" from="0" to="136" dur="0.8s" begin="1.0s" fill="freeze"/>
+    </rect>
+    <text x="740" y="277" font-family="monospace" font-size="12" font-weight="bold" fill="#10b981">91%</text>
+  </g>
+
+  <!-- Card 4: EURUSD SELL -->
+  <g class="card4">
+    <rect x="24" y="320" width="752" height="72" rx="12" fill="url(#sellGrad)" stroke="rgba(244,63,94,0.15)" stroke-width="1"/>
+    <rect x="24" y="320" width="4" height="72" rx="2" fill="#f43f5e"/>
+    <text x="48" y="351" font-family="monospace" font-size="16" font-weight="bold" fill="white">EURUSD</text>
+    <rect x="136" y="335" width="50" height="22" rx="11" fill="rgba(244,63,94,0.2)" stroke="rgba(244,63,94,0.4)" stroke-width="1"/>
+    <text x="145" y="351" font-family="monospace" font-size="11" font-weight="bold" fill="#f43f5e">▼ SELL</text>
+    <text x="196" y="351" font-family="monospace" font-size="11" fill="rgba(255,255,255,0.3)">H1</text>
+    <text x="48" y="374" font-family="monospace" font-size="11" fill="rgba(255,255,255,0.4)">Entry: $1.0842</text>
+    <text x="162" y="374" font-family="monospace" font-size="11" fill="rgba(16,185,129,0.7)">TP: $1.0790</text>
+    <text x="268" y="374" font-family="monospace" font-size="11" fill="rgba(244,63,94,0.7)">SL: $1.0875</text>
+    <text x="580" y="347" font-family="monospace" font-size="10" fill="rgba(255,255,255,0.3)">Confidence</text>
+    <rect x="580" y="352" width="150" height="8" rx="4" fill="rgba(255,255,255,0.06)"/>
+    <rect x="580" y="352" width="0" height="8" rx="4" fill="#6b7280">
+      <animate attributeName="width" from="0" to="102" dur="0.8s" begin="1.3s" fill="freeze"/>
+    </rect>
+    <text x="740" y="361" font-family="monospace" font-size="12" font-weight="bold" fill="#6b7280">68%</text>
+  </g>
+
+  <!-- Footer bar -->
+  <rect x="24" y="410" width="752" height="1" fill="rgba(255,255,255,0.04)"/>
+  <text x="24" y="430" font-family="monospace" font-size="10" fill="rgba(255,255,255,0.2)">RSI · MACD · EMA · Bollinger · Stochastic</text>
+  <text x="580" y="430" font-family="monospace" font-size="10" fill="rgba(255,255,255,0.2)">github.com/naimkatiman/tradeclaw</text>
+</svg>

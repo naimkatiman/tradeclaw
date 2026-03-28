@@ -84,13 +84,25 @@ bash scripts/test-docker.sh --cleanup  # Tear down after test
 
 ---
 
+## 🎬 See It In Action
+
+<div align="center">
+
+![TradeClaw Live Signal Feed](https://raw.githubusercontent.com/naimkatiman/tradeclaw/main/apps/web/public/demo-signals-animated.svg)
+
+**AI-scored signals with confidence, TP/SL, and indicator context — for 10 assets, 3 timeframes**
+
+</div>
+
+---
+
 ## Live Dashboard
 
 <div align="center">
 
 ![TradeClaw Dashboard](https://raw.githubusercontent.com/naimkatiman/tradeclaw/main/apps/web/public/demo-dashboard-animated.svg)
 
-> **[Try the live demo →](https://tradeclaw.win/demo)** — AI signals for BTC, ETH, Gold, EUR/USD. No login required.
+> **[Try the live demo →](https://tradeclaw.win)** — AI signals for BTC, ETH, Gold, EUR/USD. No login required.
 
 </div>
 
