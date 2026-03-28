@@ -832,9 +832,14 @@ next_actions:
 
   - id: TC-072
     title: "Signal engine transparency page — /how-it-works with exact scoring formula, code snippets, live example"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /how-it-works page (HowItWorksClient.tsx) — 5-step pipeline diagram,
+      indicator weight bars (RSI 20pts / MACD 20pts / EMA 20pts / BB 15pts / Stoch 15pts),
+      exact scoring formula TypeScript code block, RSI Wilder implementation code,
+      TP/SL swing-high/low logic code, data sources (Binance/Yahoo/synthetic), disclaimer.
+      Copy-to-clipboard code blocks. Added to navbar. Build passes 115 pages. 2026-03-28
 
   - id: TC-073
     title: "SEO blog — /blog with 3 posts: 'RSI explained', 'How we score signals', 'Self-hosting trading tools'"

@@ -54,6 +54,7 @@ const MORE_GROUPS: DropdownGroup[] = [
   {
     label: 'Community',
     links: [
+      { href: '/blog', label: 'Blog' },
       { href: '/contribute', label: 'Contribute', icon: Handshake },
       { href: '/awesome', label: 'Awesome Lists' },
       { href: '/share', label: 'Share', icon: Star },
