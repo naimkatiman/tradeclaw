@@ -758,9 +758,13 @@ next_actions:
 
   - id: TC-064
     title: "GitHub Actions star-triggered social post — auto-tweet/post when milestone stars hit"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: .github/workflows/star-milestone-social.yml — workflow_dispatch with simulate_stars
+      input, job summary with pre-written tweets/Reddit/Discord embeds, milestone issue creator
+      with social post kit. docs/star-milestone-workflow.md for webhook extension guide.
+      Committed 32ed40a3. 2026-03-28
 
   - id: TC-065
     title: "TradeClaw MCP server — Model Context Protocol server so AI assistants can fetch live signals"
@@ -775,15 +779,25 @@ next_actions:
 
   - id: TC-066
     title: "Landing page performance score — Lighthouse 100 optimization, sub-1s LCP, Core Web Vitals green"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: next.config.ts hardened with compress:true, avif/webp image formats, security headers
+      (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy), aggressive
+      static asset cache headers (1yr for images/fonts), SSE stream no-buffering header,
+      removeConsole in production, optimizePackageImports for lucide-react. Build passes 114 pages.
+      Committed 32ed40a3. 2026-03-28
 
   - id: TC-067
     title: "Signal confidence calibration page — /calibration shows if 80% confidence signals win 80% of time"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /calibration page (CalibrationClient.tsx) — canvas calibration curve chart (bars=actual
+      win rate, lines=expected), bucket breakdown table with error deltas, Brier score, ECE metric,
+      explainer card, simulated-data warning when < 20 live signals. /api/calibration endpoint (5-min
+      cache, readHistory(), Pearson calibration math). Added to navbar + mobile nav. Build passes
+      114 pages. Committed 32ed40a3. 2026-03-28
 
   - id: TC-068
     title: "Dev.to / Hashnode viral article — 'I built an open-source AI trading signal platform in 7 days'"
@@ -795,3 +809,35 @@ next_actions:
       code snippets (scoring algo, synthetic fallback, plugin API), honest disclaimer on accuracy.
       Ready to submit to Dev.to/Hashnode/Medium. Tags: opensource, trading, nextjs, typescript,
       selfhosted. 2026-03-28
+
+  # ── Phase 14: Star Velocity + Viral Hooks ──
+
+  - id: TC-069
+    title: "Interactive live demo embed on tradeclaw.win — embed dashboard widget on landing page for wow factor"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-070
+    title: "GitHub README animated GIF — record actual dashboard tour, replace SVG placeholders with real GIF"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-071
+    title: "One-liner Docker test script — verify docker compose up works end-to-end with health check"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-072
+    title: "Signal engine transparency page — /how-it-works with exact scoring formula, code snippets, live example"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-073
+    title: "SEO blog — /blog with 3 posts: 'RSI explained', 'How we score signals', 'Self-hosting trading tools'"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""

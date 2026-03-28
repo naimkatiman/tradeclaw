@@ -29,6 +29,7 @@ const MORE_GROUPS: DropdownGroup[] = [
   {
     label: 'Trading',
     links: [
+      { href: '/how-it-works', label: 'How It Works' },
       { href: '/heatmap', label: 'Heatmap', icon: Thermometer },
       { href: '/multi-timeframe', label: 'Multi-Timeframe' },
       { href: '/paper-trading', label: 'Paper Trading' },
