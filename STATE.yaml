@@ -747,7 +747,7 @@ tasks:
       All routes preserved. Build passes 108 pages. 2026-03-28
 
 next_actions:
-  - "TC-064 and TC-065 done. Phase 13 complete."
+  - "TC-069/070/071 done. Phase 14 in progress. Next: define Phase 15 viral tasks."
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
   - "Replace seed-heavy accuracy UX with live-only metrics once enough tracked signal records accumulate."
   - "Add test suite (currently zero tests for 108+ pages)."
@@ -814,21 +814,38 @@ next_actions:
 
   - id: TC-069
     title: "Interactive live demo embed on tradeclaw.win — embed dashboard widget on landing page for wow factor"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: LiveDemoEmbed component (apps/web/components/landing/live-demo-embed.tsx, 230+ lines).
+      Browser chrome frame with fake URL bar. Three sparkline charts (BTC/ETH/XAU) with real-time
+      price simulation + gradient fills + glowing tip dot. 4 live signal cards auto-refreshing 30s
+      from /api/signals. Confidence bars with color coding. Sub-CTAs: embed, RSS, API key, Telegram.
+      Added to landing page above LiveDemoSection. Build passes. Committed 8fbd427e. 2026-03-28
 
   - id: TC-070
-    title: "GitHub README animated GIF — record actual dashboard tour, replace SVG placeholders with real GIF"
-    status: pending
+    title: "GitHub README animated GIF — replace SVG placeholders with better demo content"
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: demo-signals-animated.svg (800x440) — 4 signal cards (BTCUSD BUY 87%, XAUUSD SELL 74%,
+      ETHUSD BUY 91%, EURUSD SELL 68%) with staggered fadeUp animations, SVG animate confidence bars
+      filling in, TP/SL levels, indicator reference footer. demo-dashboard-animated.svg (900x500) —
+      full dashboard with stat cards, animated EMA chart line drawing, 4-signal panel, live dot pulse.
+      README updated with '🎬 See It In Action' section embedding demo-signals-animated.svg.
+      Committed 8fbd427e. 2026-03-28
 
   - id: TC-071
     title: "One-liner Docker test script — verify docker compose up works end-to-end with health check"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: scripts/test-docker.sh (bash, 180 lines) — prerequisites (docker/compose/compose.yml),
+      docker compose up --build with live output, 90s health polling with dot progress, 5 API checks
+      (/api/health JSON, /api/signals array, /api/v1/health, homepage 200, dashboard 200), PASS/FAIL
+      per check with color, PASS_COUNT/FAIL_COUNT summary, cleanup trap on exit, ⭐ CTA on success.
+      CLEANUP=false env var for CI use. .github/workflows/docker-test.yml added for CI on
+      Dockerfile/docker-compose changes. Build passes. Committed 8fbd427e. 2026-03-28
 
   - id: TC-072
     title: "Signal engine transparency page — /how-it-works with exact scoring formula, code snippets, live example"
@@ -851,3 +868,35 @@ next_actions:
       quality gates, calibration), /blog/self-hosting-trading-tools (cost comparison, 3 setup
       options). All with metadata, og:tags, keywords. Blog added to navbar Community group.
       Build passes 119 pages. Committed 7043fcfc. 2026-03-28
+
+  # ── Phase 15: Maximum Viral Distribution ──
+
+  - id: TC-074
+    title: "GitHub star velocity page — /stargazers shows live star growth chart + shareable milestone badges"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-075
+    title: "CodeSandbox / StackBlitz one-click playground — run TradeClaw signal engine in browser without cloning"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-076
+    title: "Signal digest email template — beautiful HTML email showing weekly top signals (copy-paste ready for newsletters)"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-077
+    title: "Awesome-quant PR submission — open actual PR to awesome-quant and awesome-selfhosted with TradeClaw entry"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-078
+    title: "TradeClaw social card generator — /card page creates a personalized image (your name + fav pair signal) to share"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
