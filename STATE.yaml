@@ -898,6 +898,41 @@ next_actions:
 
   - id: TC-077
     title: "Awesome-quant PR submission — open actual PR to awesome-quant and awesome-selfhosted with TradeClaw entry"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: PR#300 opened to wilsonfreitas/awesome-quant (TradeClaw in JavaScript section, OPEN).
+      PR#2234 opened to awesome-selfhosted/awesome-selfhosted-data (software/tradeclaw.yml, OPEN).
+      docs/awesome-lists/SUBMISSION_STATUS.md created. Committed 9cebc81b. 2026-03-28
+
+  # ── Phase 16: Star Velocity + Credibility ──
+
+  - id: TC-079
+    title: "README social proof upgrade — contributor avatars grid, language badges, and 'Built with' tech stack section"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-080
+    title: "TradeClaw status page — /status shows uptime, last signal time, API health, version, and incident history"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-081
+    title: "Signal alert Slack app — /api/slack/webhook endpoint + one-click Slack install button + docs"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-082
+    title: "Localization landing page — Spanish + Chinese hero section variants for international GitHub discovery"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-083
+    title: "GitHub sponsor page + /sponsor — OSS sustainability page with tiers, goals, and roadmap unlocks"
     status: pending
     owner: pm-tradeclaw
     notes: ""
