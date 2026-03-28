@@ -406,6 +406,17 @@ const THEME = {
   muted: '#64748b',
 };
 
+const UI = {
+  bg: 'var(--background)',
+  surface: 'var(--bg-card)',
+  surface2: 'var(--glass-bg)',
+  border: 'var(--border)',
+  text: 'var(--foreground)',
+  muted: 'var(--text-secondary)',
+  emerald: '#10b981',
+  rose: '#f43f5e',
+};
+
 const SEED_SIGNALS: SignalRecord[] = [
   {
     id: 'BTCUSD-H1-BUY',
@@ -575,20 +586,20 @@ export default function ReplayClient() {
   const progressPct = ((currentBar / (totalBars - 1)) * 100).toFixed(1);
 
   return (
-    <div style={{ minHeight: '100vh', background: THEME.bg, color: THEME.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: UI.bg, color: UI.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
       {/* Header */}
-      <div style={{ borderBottom: `1px solid ${THEME.border}`, padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+      <div style={{ borderBottom: `1px solid ${UI.border}`, padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
           <h1 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>
             📼 Signal Replay
           </h1>
-          <p style={{ fontSize: '0.8rem', color: THEME.muted, margin: '2px 0 0' }}>
+          <p style={{ fontSize: '0.8rem', color: UI.muted, margin: '2px 0 0' }}>
             Step through historical signals with animated price simulation
           </p>
         </div>
         <a
           href="/backtest"
-          style={{ fontSize: '0.8rem', color: THEME.emerald, textDecoration: 'none', padding: '6px 14px', border: `1px solid ${THEME.emerald}30`, borderRadius: '8px' }}
+          style={{ fontSize: '0.8rem', color: UI.emerald, textDecoration: 'none', padding: '6px 14px', border: `1px solid ${UI.emerald}30`, borderRadius: '8px' }}
         >
           Full Backtest →
         </a>
@@ -597,8 +608,8 @@ export default function ReplayClient() {
       <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 0, height: 'calc(100vh - 65px)' }}>
 
         {/* LEFT PANEL — Signal selector */}
-        <div style={{ borderRight: `1px solid ${THEME.border}`, overflowY: 'auto', padding: '1rem' }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: 600, color: THEME.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem' }}>
+        <div style={{ borderRight: `1px solid ${UI.border}`, overflowY: 'auto', padding: '1rem' }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: 600, color: UI.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem' }}>
             Select Signal
           </div>
           {signals.map((s, i) => {
@@ -611,13 +622,13 @@ export default function ReplayClient() {
                 style={{
                   width: '100%',
                   textAlign: 'left',
-                  background: active ? (s.direction === 'BUY' ? 'rgba(16,185,129,0.12)' : 'rgba(244,63,94,0.12)') : THEME.surface,
-                  border: `1px solid ${active ? (s.direction === 'BUY' ? THEME.emerald : THEME.rose) + '60' : THEME.border}`,
+                  background: active ? (s.direction === 'BUY' ? 'rgba(16,185,129,0.12)' : 'rgba(244,63,94,0.12)') : UI.surface,
+                  border: `1px solid ${active ? (s.direction === 'BUY' ? UI.emerald : UI.rose) + '60' : UI.border}`,
                   borderRadius: '10px',
                   padding: '0.75rem',
                   marginBottom: '0.5rem',
                   cursor: 'pointer',
-                  color: THEME.text,
+                  color: UI.text,
                   transition: 'all 0.2s',
                 }}
               >
@@ -626,12 +637,12 @@ export default function ReplayClient() {
                   <span style={{
                     fontSize: '0.7rem', fontWeight: 700, padding: '2px 7px', borderRadius: '6px',
                     background: s.direction === 'BUY' ? 'rgba(16,185,129,0.15)' : 'rgba(244,63,94,0.15)',
-                    color: s.direction === 'BUY' ? THEME.emerald : THEME.rose,
+                    color: s.direction === 'BUY' ? UI.emerald : UI.rose,
                   }}>
                     {s.direction}
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.72rem', color: THEME.muted, marginBottom: '0.35rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.72rem', color: UI.muted, marginBottom: '0.35rem' }}>
                   <span>{s.timeframe}</span>
                   <span>•</span>
                   <span>{s.confidence}% conf</span>
@@ -639,11 +650,11 @@ export default function ReplayClient() {
                   <span>{timeAgo(s.timestamp)}</span>
                 </div>
                 <div style={{ display: 'flex', gap: '0.4rem', fontSize: '0.7rem' }}>
-                  <span style={{ color: won ? THEME.emerald : THEME.rose }}>
+                  <span style={{ color: won ? UI.emerald : UI.rose }}>
                     {won ? '✓ Hit TP' : '✗ Missed'} 24h
                   </span>
                   {s.outcomes['4h']?.hit && (
-                    <span style={{ color: THEME.emerald }}>• ✓ Hit 4h</span>
+                    <span style={{ color: UI.emerald }}>• ✓ Hit 4h</span>
                   )}
                 </div>
               </button>
@@ -651,16 +662,16 @@ export default function ReplayClient() {
           })}
 
           {/* Legend */}
-          <div style={{ marginTop: '1rem', padding: '0.75rem', background: THEME.surface, borderRadius: '8px', border: `1px solid ${THEME.border}` }}>
-            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: THEME.muted, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Legend</div>
+          <div style={{ marginTop: '1rem', padding: '0.75rem', background: UI.surface, borderRadius: '8px', border: `1px solid ${UI.border}` }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 600, color: UI.muted, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Legend</div>
             {[
-              { color: THEME.emerald, label: 'Bullish candle / BUY signal' },
-              { color: THEME.rose, label: 'Bearish candle / SELL signal' },
+              { color: UI.emerald, label: 'Bullish candle / BUY signal' },
+              { color: UI.rose, label: 'Bearish candle / SELL signal' },
               { color: '#a78bfa', label: 'RSI oscillator line' },
-              { color: THEME.emerald, label: 'Take profit level (TP)' },
-              { color: THEME.rose, label: 'Stop loss level (SL)' },
+              { color: UI.emerald, label: 'Take profit level (TP)' },
+              { color: UI.rose, label: 'Stop loss level (SL)' },
             ].map((item) => (
-              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', color: THEME.muted, marginBottom: '0.25rem' }}>
+              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', color: UI.muted, marginBottom: '0.25rem' }}>
                 <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.color, flexShrink: 0 }} />
                 {item.label}
               </div>
@@ -672,39 +683,39 @@ export default function ReplayClient() {
         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
           {/* Signal info bar */}
-          <div style={{ borderBottom: `1px solid ${THEME.border}`, padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+          <div style={{ borderBottom: `1px solid ${UI.border}`, padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
             <div>
               <span style={{ fontSize: '1.1rem', fontWeight: 800, marginRight: '0.5rem' }}>{signal.pair}</span>
-              <span style={{ fontSize: '0.75rem', background: THEME.surface2, padding: '2px 8px', borderRadius: '6px', color: THEME.muted }}>{signal.timeframe}</span>
+              <span style={{ fontSize: '0.75rem', background: UI.surface2, padding: '2px 8px', borderRadius: '6px', color: UI.muted }}>{signal.timeframe}</span>
               <span style={{
                 fontSize: '0.8rem', fontWeight: 700, marginLeft: '0.5rem', padding: '3px 10px', borderRadius: '7px',
                 background: signal.direction === 'BUY' ? 'rgba(16,185,129,0.15)' : 'rgba(244,63,94,0.15)',
-                color: signal.direction === 'BUY' ? THEME.emerald : THEME.rose,
+                color: signal.direction === 'BUY' ? UI.emerald : UI.rose,
               }}>
                 {signal.direction}
               </span>
             </div>
             <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
               {[
-                { label: 'Entry', value: formatPrice(signal.entryPrice), color: THEME.text },
-                { label: 'TP', value: signal.tp1 ? formatPrice(signal.tp1) : '—', color: THEME.emerald },
-                { label: 'SL', value: signal.sl ? formatPrice(signal.sl) : '—', color: THEME.rose },
-                { label: 'Confidence', value: `${signal.confidence}%`, color: THEME.text },
-                { label: 'Current P&L', value: signalFired ? formatPct(pnl) : '—', color: pnl >= 0 ? THEME.emerald : THEME.rose },
+                { label: 'Entry', value: formatPrice(signal.entryPrice), color: UI.text },
+                { label: 'TP', value: signal.tp1 ? formatPrice(signal.tp1) : '—', color: UI.emerald },
+                { label: 'SL', value: signal.sl ? formatPrice(signal.sl) : '—', color: UI.rose },
+                { label: 'Confidence', value: `${signal.confidence}%`, color: UI.text },
+                { label: 'Current P&L', value: signalFired ? formatPct(pnl) : '—', color: pnl >= 0 ? UI.emerald : UI.rose },
               ].map((item) => (
                 <div key={item.label}>
-                  <div style={{ fontSize: '0.65rem', color: THEME.muted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{item.label}</div>
+                  <div style={{ fontSize: '0.65rem', color: UI.muted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{item.label}</div>
                   <div style={{ fontSize: '0.88rem', fontWeight: 600, color: item.color }}>{item.value}</div>
                 </div>
               ))}
             </div>
             {hitTP && (
-              <div style={{ marginLeft: 'auto', background: 'rgba(16,185,129,0.15)', color: THEME.emerald, padding: '4px 12px', borderRadius: '8px', fontWeight: 700, fontSize: '0.8rem', border: `1px solid ${THEME.emerald}40` }}>
+              <div style={{ marginLeft: 'auto', background: 'rgba(16,185,129,0.15)', color: UI.emerald, padding: '4px 12px', borderRadius: '8px', fontWeight: 700, fontSize: '0.8rem', border: `1px solid ${UI.emerald}40` }}>
                 ✅ TP HIT
               </div>
             )}
             {hitSL && !hitTP && (
-              <div style={{ marginLeft: 'auto', background: 'rgba(244,63,94,0.15)', color: THEME.rose, padding: '4px 12px', borderRadius: '8px', fontWeight: 700, fontSize: '0.8rem', border: `1px solid ${THEME.rose}40` }}>
+              <div style={{ marginLeft: 'auto', background: 'rgba(244,63,94,0.15)', color: UI.rose, padding: '4px 12px', borderRadius: '8px', fontWeight: 700, fontSize: '0.8rem', border: `1px solid ${UI.rose}40` }}>
                 ❌ SL HIT
               </div>
             )}
@@ -719,7 +730,7 @@ export default function ReplayClient() {
           </div>
 
           {/* RSI chart */}
-          <div style={{ height: 80, padding: '0 1rem 0.25rem', borderTop: `1px solid ${THEME.border}20` }}>
+          <div style={{ height: 80, padding: '0 1rem 0.25rem', borderTop: `1px solid ${UI.border}` }}>
             <canvas
               ref={rsiRef}
               style={{ width: '100%', height: '100%', display: 'block' }}
@@ -729,7 +740,7 @@ export default function ReplayClient() {
           {/* Progress bar */}
           <div style={{ padding: '0 1rem', marginBottom: '0.25rem' }}>
             <div
-              style={{ height: 3, background: THEME.surface2, borderRadius: 99, overflow: 'hidden', cursor: 'pointer' }}
+              style={{ height: 3, background: UI.border, borderRadius: 99, overflow: 'hidden', cursor: 'pointer' }}
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const pct = (e.clientX - rect.left) / rect.width;
@@ -737,25 +748,25 @@ export default function ReplayClient() {
                 setPlayState('paused');
               }}
             >
-              <div style={{ height: '100%', background: signal.direction === 'BUY' ? THEME.emerald : THEME.rose, width: `${progressPct}%`, transition: 'width 0.1s' }} />
+              <div style={{ height: '100%', background: signal.direction === 'BUY' ? UI.emerald : UI.rose, width: `${progressPct}%`, transition: 'width 0.1s' }} />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: THEME.muted, marginTop: '3px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: UI.muted, marginTop: '3px' }}>
               <span>Bar {currentBar + 1} / {totalBars}</span>
               <span>{liveBar ? new Date(liveBar.time).toLocaleString() : ''}</span>
             </div>
           </div>
 
           {/* Controls */}
-          <div style={{ padding: '0.5rem 1rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', borderTop: `1px solid ${THEME.border}`, flexWrap: 'wrap' }}>
+          <div style={{ padding: '0.5rem 1rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', borderTop: `1px solid ${UI.border}`, flexWrap: 'wrap' }}>
             <button
               onClick={reset}
-              style={{ background: THEME.surface, border: `1px solid ${THEME.border}`, color: THEME.muted, padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}
+              style={{ background: UI.surface, border: `1px solid ${UI.border}`, color: UI.muted, padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}
             >
               ⏮ Reset
             </button>
             <button
               onClick={stepBack}
-              style={{ background: THEME.surface, border: `1px solid ${THEME.border}`, color: THEME.text, padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}
+              style={{ background: UI.surface, border: `1px solid ${UI.border}`, color: UI.text, padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}
             >
               ◀ Step
             </button>
@@ -769,27 +780,27 @@ export default function ReplayClient() {
             ) : (
               <button
                 onClick={play}
-                style={{ background: signal.direction === 'BUY' ? THEME.emerald : THEME.rose, border: 'none', color: '#000', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}
+                style={{ background: signal.direction === 'BUY' ? UI.emerald : UI.rose, border: 'none', color: '#000', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}
               >
                 {playState === 'done' ? '↺ Replay' : '▶ Play'}
               </button>
             )}
             <button
               onClick={stepForward}
-              style={{ background: THEME.surface, border: `1px solid ${THEME.border}`, color: THEME.text, padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}
+              style={{ background: UI.surface, border: `1px solid ${UI.border}`, color: UI.text, padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}
             >
               Step ▶
             </button>
             <button
               onClick={() => { setCurrentBar(totalBars - 1); setPlayState('done'); }}
-              style={{ background: THEME.surface, border: `1px solid ${THEME.border}`, color: THEME.muted, padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}
+              style={{ background: UI.surface, border: `1px solid ${UI.border}`, color: UI.muted, padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}
             >
               ⏭ End
             </button>
 
             {/* Speed control */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
-              <span style={{ fontSize: '0.75rem', color: THEME.muted }}>Speed:</span>
+              <span style={{ fontSize: '0.75rem', color: UI.muted }}>Speed:</span>
               {[{ label: '0.5×', ms: 160 }, { label: '1×', ms: 80 }, { label: '2×', ms: 40 }, { label: '5×', ms: 16 }].map((s) => (
                 <button
                   key={s.label}
@@ -797,9 +808,9 @@ export default function ReplayClient() {
                   style={{
                     padding: '4px 10px',
                     borderRadius: '6px',
-                    border: `1px solid ${speed === s.ms ? THEME.emerald : THEME.border}`,
-                    background: speed === s.ms ? 'rgba(16,185,129,0.12)' : THEME.surface,
-                    color: speed === s.ms ? THEME.emerald : THEME.muted,
+                    border: `1px solid ${speed === s.ms ? UI.emerald : UI.border}`,
+                    background: speed === s.ms ? 'rgba(16,185,129,0.12)' : UI.surface,
+                    color: speed === s.ms ? UI.emerald : UI.muted,
                     cursor: 'pointer',
                     fontSize: '0.75rem',
                     fontWeight: speed === s.ms ? 700 : 400,
@@ -813,8 +824,8 @@ export default function ReplayClient() {
 
           {/* Outcome summary (visible after replay done) */}
           {playState === 'done' && (
-            <div style={{ borderTop: `1px solid ${THEME.border}`, padding: '0.75rem 1rem', display: 'flex', gap: '1rem', background: THEME.surface }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: THEME.text, marginRight: '0.5rem' }}>📊 Outcomes:</div>
+            <div style={{ borderTop: `1px solid ${UI.border}`, padding: '0.75rem 1rem', display: 'flex', gap: '1rem', background: UI.surface }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: UI.text, marginRight: '0.5rem' }}>📊 Outcomes:</div>
               {(['4h', '24h'] as const).map((period) => {
                 const outcome = signal.outcomes[period];
                 if (!outcome) return null;
@@ -822,16 +833,16 @@ export default function ReplayClient() {
                   <div key={period} style={{
                     padding: '4px 12px', borderRadius: '8px',
                     background: outcome.hit ? 'rgba(16,185,129,0.12)' : 'rgba(244,63,94,0.12)',
-                    border: `1px solid ${outcome.hit ? THEME.emerald : THEME.rose}40`,
+                    border: `1px solid ${outcome.hit ? UI.emerald : UI.rose}40`,
                     fontSize: '0.78rem',
-                    color: outcome.hit ? THEME.emerald : THEME.rose,
+                    color: outcome.hit ? UI.emerald : UI.rose,
                     fontWeight: 600,
                   }}>
                     {period}: {outcome.hit ? '✓ Hit TP' : '✗ Missed'} · {formatPct(outcome.pnlPct)}
                   </div>
                 );
               })}
-              <a href="/accuracy" style={{ marginLeft: 'auto', fontSize: '0.78rem', color: THEME.emerald, textDecoration: 'none' }}>
+              <a href="/accuracy" style={{ marginLeft: 'auto', fontSize: '0.78rem', color: UI.emerald, textDecoration: 'none' }}>
                 View all accuracy stats →
               </a>
             </div>
