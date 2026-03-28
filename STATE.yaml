@@ -657,21 +657,37 @@ tasks:
 
   - id: TC-061
     title: "GitHub Discussions seeding — post 10 thoughtful discussion threads to bootstrap community"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: 10 GitHub Discussions created via GraphQL API (discussions/22–31).
+      Categories: General (3), Q&A (2), Ideas (3), Show and tell (2).
+      Topics: Welcome/intro, Show your setup, Telegram alerts FAQ, Feature requests,
+      Self-hosting FAQ, Broker integrations wishlist, 2026 Roadmap, API code snippets,
+      Asset expansion poll, Signal accuracy methodology. 2026-03-28
 
   - id: TC-062
     title: "Landing page A/B hero variants — 3 different hero messages, track which gets more GitHub clicks"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: components/landing/ab-hero.tsx (3 variants: A=original, B=developer-focused,
+      C=trader-focused). localStorage variant assignment, impression+click tracking, CTR calculation.
+      /ab-stats page (ABStatsClient.tsx) — per-variant stats, CTR bars, WINNING badge, force-variant
+      button, reset. Landing page (app/page.tsx) swapped from AnimatedHero to ABHero.
+      window.__tcABStats() in devtools. Build passes 108 pages. Committed 317dcb15. 2026-03-28
 
   - id: TC-063
     title: "npx tradeclaw-demo enhancement — add web UI flag, auto-open browser, show live signal feed"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: bin/cli.js enhanced with --port/-p, --no-open, --help/-h flags. lib/server.js
+      rewritten: opts param (port+noOpen), SSE endpoint /api/signals/stream (live 5s push),
+      /api/health endpoint, broadcastSignals() to all connected SSE clients, terminal live
+      signal ticker every 5s with colored BUY/SELL arrows. demo-page.js: connectStream() adds
+      EventSource SSE with fallback to polling, live-dot flash on new signal. Version bumped to
+      0.2.0. 2026-03-28
 
   - id: TC-059
     title: "Profitability research — can users make money by following TradeClaw signals?"

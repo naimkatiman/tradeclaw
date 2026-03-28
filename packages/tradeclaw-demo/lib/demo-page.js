@@ -610,10 +610,52 @@ function getDemoPage(port) {
     } catch {}
   }
 
+  // Live SSE stream — auto-updates signals as server pushes them
+  function connectStream() {
+    const es = new EventSource('/api/signals/stream');
+    let reconnectTimer = null;
+
+    es.addEventListener('message', (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.signals) {
+          renderSignals(data.signals);
+          // Flash the live indicator
+          const dot = document.querySelector('.live-dot');
+          if (dot) {
+            dot.style.background = '#10b981';
+            dot.style.boxShadow = '0 0 8px #10b981';
+            setTimeout(() => {
+              dot.style.background = '';
+              dot.style.boxShadow = '';
+            }, 500);
+          }
+        }
+      } catch {}
+    });
+
+    es.onerror = () => {
+      // Fallback to polling if SSE fails
+      if (!reconnectTimer) {
+        reconnectTimer = setTimeout(() => {
+          es.close();
+          reconnectTimer = null;
+          // Try reconnect
+          connectStream();
+        }, 5000);
+      }
+    };
+
+    return es;
+  }
+
   // Init
   loadSignals();
   loadStars();
-  setInterval(loadSignals, 10000);
+  // Start live SSE stream (falls back to polling on error)
+  const sse = connectStream();
+  // Polling fallback in case SSE drops
+  setInterval(loadSignals, 30000);
 </script>
 
 </body>
