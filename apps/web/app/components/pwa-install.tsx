@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Download } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -56,7 +57,7 @@ export function PWAInstallPrompt() {
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 shadow-2xl shadow-black/50">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-            <span className="text-emerald-400 text-lg">📲</span>
+            <Download className="w-5 h-5 text-emerald-400" />
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-medium text-zinc-200">Install TradeClaw</h4>

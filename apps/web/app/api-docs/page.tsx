@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { Play, Loader2 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -937,9 +938,9 @@ function EndpointCard({ endpoint }: { endpoint: Endpoint }) {
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/20 text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {pg.loading ? (
-                  <><span className="animate-spin">⟳</span> Sending...</>
+                  <><Loader2 className="w-3 h-3 animate-spin" /> Sending...</>
                 ) : (
-                  <><span>▶</span> Execute</>
+                  <><Play className="w-3 h-3" /> Execute</>
                 )}
               </button>
 
