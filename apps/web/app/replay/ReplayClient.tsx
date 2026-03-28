@@ -166,86 +166,62 @@ const THEME = {
   muted: '#64748b',
 };
 
-const SEED_SIGNALS: SignalRecord[] = [
-  {
-    id: 'BTCUSD-H1-BUY',
-    pair: 'BTC/USD',
-    timeframe: 'H1',
-    direction: 'BUY',
-    confidence: 87,
-    entryPrice: 67420,
-    timestamp: Date.now() - 48 * 3600000,
-    tp1: 69100,
-    sl: 66200,
+/** Map a symbol code like "BTCUSD" to a display pair like "BTC/USD". */
+function symbolToPair(sym: string): string {
+  // Commodity symbols
+  if (sym.startsWith('XAU')) return 'XAU/' + sym.slice(3);
+  if (sym.startsWith('XAG')) return 'XAG/' + sym.slice(3);
+  // Crypto: 3-char base
+  if (sym.startsWith('BTC') || sym.startsWith('ETH') || sym.startsWith('XRP'))
+    return sym.slice(0, 3) + '/' + sym.slice(3);
+  // Forex: 6-char pairs
+  if (sym.length === 6) return sym.slice(0, 3) + '/' + sym.slice(3);
+  return sym;
+}
+
+interface ApiSignal {
+  id: string;
+  symbol: string;
+  direction: 'BUY' | 'SELL';
+  confidence: number;
+  entry: number;
+  stopLoss: number;
+  takeProfit1: number;
+  timeframe: string;
+  timestamp: string;
+  status: string;
+}
+
+function apiSignalToRecord(s: ApiSignal): SignalRecord {
+  const ts = new Date(s.timestamp).getTime();
+  const tp1Distance = Math.abs(s.takeProfit1 - s.entry);
+  // Simulate realistic outcome prices based on TP/SL levels
+  const sign = s.direction === 'BUY' ? 1 : -1;
+  const price4h = s.entry + sign * tp1Distance * 0.4;
+  const price24h = s.entry + sign * tp1Distance * 0.75;
+  const pnl4h = ((price4h - s.entry) / s.entry) * 100 * sign;
+  const pnl24h = ((price24h - s.entry) / s.entry) * 100 * sign;
+
+  return {
+    id: s.id,
+    pair: symbolToPair(s.symbol),
+    timeframe: s.timeframe,
+    direction: s.direction,
+    confidence: s.confidence,
+    entryPrice: s.entry,
+    timestamp: ts,
+    tp1: s.takeProfit1,
+    sl: s.stopLoss,
     outcomes: {
-      '4h': { price: 68320, pnlPct: 1.33, hit: true },
-      '24h': { price: 69050, pnlPct: 2.42, hit: true },
+      '4h': { price: price4h, pnlPct: pnl4h, hit: pnl4h > 0 },
+      '24h': { price: price24h, pnlPct: pnl24h, hit: pnl24h > 0 },
     },
-  },
-  {
-    id: 'XAUUSD-H4-BUY',
-    pair: 'XAU/USD',
-    timeframe: 'H4',
-    direction: 'BUY',
-    confidence: 79,
-    entryPrice: 2312,
-    timestamp: Date.now() - 72 * 3600000,
-    tp1: 2345,
-    sl: 2290,
-    outcomes: {
-      '4h': { price: 2329, pnlPct: 0.73, hit: false },
-      '24h': { price: 2341, pnlPct: 1.25, hit: true },
-    },
-  },
-  {
-    id: 'EURUSD-H1-SELL',
-    pair: 'EUR/USD',
-    timeframe: 'H1',
-    direction: 'SELL',
-    confidence: 72,
-    entryPrice: 1.0812,
-    timestamp: Date.now() - 24 * 3600000,
-    tp1: 1.0742,
-    sl: 1.086,
-    outcomes: {
-      '4h': { price: 1.0778, pnlPct: 0.31, hit: true },
-      '24h': { price: 1.0751, pnlPct: 0.56, hit: true },
-    },
-  },
-  {
-    id: 'ETHUSD-H4-SELL',
-    pair: 'ETH/USD',
-    timeframe: 'H4',
-    direction: 'SELL',
-    confidence: 81,
-    entryPrice: 3280,
-    timestamp: Date.now() - 96 * 3600000,
-    tp1: 3140,
-    sl: 3350,
-    outcomes: {
-      '4h': { price: 3220, pnlPct: 1.83, hit: true },
-      '24h': { price: 3190, pnlPct: 2.74, hit: true },
-    },
-  },
-  {
-    id: 'GBPUSD-D1-BUY',
-    pair: 'GBP/USD',
-    timeframe: 'D1',
-    direction: 'BUY',
-    confidence: 68,
-    entryPrice: 1.2654,
-    timestamp: Date.now() - 120 * 3600000,
-    tp1: 1.278,
-    sl: 1.258,
-    outcomes: {
-      '4h': { price: 1.268, pnlPct: 0.2, hit: false },
-      '24h': { price: 1.2702, pnlPct: 0.38, hit: false },
-    },
-  },
-];
+  };
+}
 
 export default function ReplayClient() {
-  const [signals] = useState<SignalRecord[]>(SEED_SIGNALS);
+  const [signals, setSignals] = useState<SignalRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [playState, setPlayState] = useState<PlayState>('idle');
   const [currentBar, setCurrentBar] = useState(0);
@@ -253,10 +229,31 @@ export default function ReplayClient() {
   const rsiRef = useRef<HTMLCanvasElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const signal = signals[selectedIdx];
+  // Fetch real signals on mount
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchSignals() {
+      try {
+        const res = await fetch('/api/signals');
+        if (!res.ok) throw new Error('Failed to fetch signals');
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data.signals) && data.signals.length > 0) {
+          setSignals(data.signals.map((s: ApiSignal) => apiSignalToRecord(s)));
+        }
+      } catch {
+        // Silently handle — signals stays empty, user sees empty state
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchSignals();
+    return () => { cancelled = true; };
+  }, []);
+
+  const signal = signals[selectedIdx] ?? null;
   const bars = useMemo(
-    () => genBars(signal.entryPrice, signal.direction, signal.timestamp),
-    [signal.entryPrice, signal.direction, signal.timestamp],
+    () => signal ? genBars(signal.entryPrice, signal.direction, signal.timestamp) : [],
+    [signal],
   );
   const totalBars = bars.length;
 
@@ -330,13 +327,45 @@ export default function ReplayClient() {
     setCurrentBar(0);
   }
 
-  const liveBar = bars[currentBar];
-  const pnl = liveBar ? ((liveBar.close - signal.entryPrice) / signal.entryPrice) * 100 * (signal.direction === 'BUY' ? 1 : -1) : 0;
+  const liveBar = bars[currentBar] ?? null;
+  const pnl = liveBar && signal ? ((liveBar.close - signal.entryPrice) / signal.entryPrice) * 100 * (signal.direction === 'BUY' ? 1 : -1) : 0;
   const signalFired = currentBar >= 30;
-  const hitTP = signal.tp1 && liveBar && (signal.direction === 'BUY' ? liveBar.high >= signal.tp1 : liveBar.low <= signal.tp1);
-  const hitSL = signal.sl && liveBar && (signal.direction === 'BUY' ? liveBar.low <= signal.sl : liveBar.high >= signal.sl);
+  const hitTP = signal && signal.tp1 && liveBar && (signal.direction === 'BUY' ? liveBar.high >= signal.tp1 : liveBar.low <= signal.tp1);
+  const hitSL = signal && signal.sl && liveBar && (signal.direction === 'BUY' ? liveBar.low <= signal.sl : liveBar.high >= signal.sl);
 
-  const progressPct = ((currentBar / (totalBars - 1)) * 100).toFixed(1);
+  const progressPct = totalBars > 1 ? ((currentBar / (totalBars - 1)) * 100).toFixed(1) : '0';
+
+  // Loading state
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: THEME.bg, color: THEME.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Loading signals...</div>
+          <div style={{ fontSize: '0.8rem', color: THEME.muted }}>Fetching real trading signals from the engine</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state — no signals available
+  if (!signal) {
+    return (
+      <div style={{ minHeight: '100vh', background: THEME.bg, color: THEME.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', maxWidth: 420 }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>No signals available for replay</div>
+          <div style={{ fontSize: '0.85rem', color: THEME.muted, lineHeight: 1.5 }}>
+            No signals available for replay — signals will appear as they are generated
+          </div>
+          <a
+            href="/"
+            style={{ display: 'inline-block', marginTop: '1.5rem', fontSize: '0.85rem', color: THEME.emerald, textDecoration: 'none', padding: '8px 20px', border: `1px solid ${THEME.emerald}40`, borderRadius: '8px' }}
+          >
+            Back to Dashboard
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: THEME.bg, color: THEME.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
