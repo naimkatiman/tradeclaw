@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-03-28T13:02:53+08:00
+updated: 2026-03-28T14:30:00+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -700,7 +700,7 @@ tasks:
       simulated and recordSignal() is not yet wired into live signal generation, so there is no
       audited live follower P&L track record yet.
 
-  - id: TC-060
+  - id: TC-060-B
     title: "Signal engine quality pass — stricter regime filters, smarter stops, parallel timeframe generation"
     status: done
     owner: pm-tradeclaw
@@ -713,7 +713,7 @@ tasks:
       requested timeframes in parallel. Verified with npm run build (passed outside sandbox due
       Next/Google Fonts fetch requirement).
 
-  - id: TC-061
+  - id: TC-061-B
     title: "Audited live signal tracking — persist emitted real signals and refresh leaderboard outcomes automatically"
     status: done
     owner: pm-tradeclaw
@@ -725,11 +725,34 @@ tasks:
       Leaderboard APIs now call resolveRealOutcomes() before computing stats, so accuracy pages and
       performance summaries refresh without depending on /api/signals/history. npm run build passes.
 
+  # ── Phase 13: Polish + Quality ──
+
+  - id: TC-064
+    title: "Replace all emoji icons with Lucide React across UI files"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: Replaced emoji icons with Lucide React components in ab-hero.tsx, StarClient.tsx,
+      star/page.tsx, ShareClient.tsx, cta.tsx, launch/page.tsx, ai-analysis-panel.tsx.
+      Remaining emojis in social media post text (tweets, LinkedIn) are intentional.
+      Build passes 108 pages. 2026-03-28
+
+  - id: TC-065
+    title: "Navbar restructure — group 20+ links into categorized dropdown menus"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: Desktop navbar reduced to 5-6 primary links + "More" dropdown with Trading/Tools/Community
+      groups. Mobile nav slide-up sheet reorganized into sectioned categories with headers.
+      All routes preserved. Build passes 108 pages. 2026-03-28
+
 next_actions:
-  - "TC-059-B global signal heatmap, TC-060 live comparison page, TC-061 Discussions seeding."
+  - "TC-064 and TC-065 done. Phase 13 complete."
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
-  - "Measure TC-060 impact with audited live signal logging and forward hit-rate / net-PnL tracking."
-  - "Replace seed-heavy accuracy UX with live-only metrics once enough TC-061 records accumulate."
+  - "Replace seed-heavy accuracy UX with live-only metrics once enough tracked signal records accumulate."
+  - "Add test suite (currently zero tests for 108+ pages)."
+  - "Migrate file-based JSON storage to PostgreSQL for production self-hosters."
+  - "Deploy live demo instance and validate Docker Compose end-to-end."
 
   # ── Phase 13: Distribution + Developer Ecosystem ──
 

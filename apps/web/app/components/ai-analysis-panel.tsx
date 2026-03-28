@@ -215,14 +215,14 @@ export function AIAnalysisPanel({ symbol, timeframe, signalId }: AIAnalysisPanel
       });
       const data = await res.json();
       if (data.error) {
-        setMarkdown(`> ⚠️ ${data.error}`);
+        setMarkdown(`> Warning: ${data.error}`);
       } else {
         setMarkdown(data.markdown || '');
         setSummary(data.summary || '');
         setConfluenceScore(data.confluenceScore ?? 0);
       }
     } catch {
-      setMarkdown('> ⚠️ Failed to load analysis. Check your connection.');
+      setMarkdown('> Warning: Failed to load analysis. Check your connection.');
     } finally {
       setLoading(false);
     }

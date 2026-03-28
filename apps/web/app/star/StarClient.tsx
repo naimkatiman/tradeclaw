@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { Plug, Smartphone, Cloud, BarChart2, Search, TrendingUp, Wrench } from "lucide-react";
+import { Plug, Smartphone, Cloud, BarChart2, Search, TrendingUp, Wrench, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
@@ -169,7 +169,7 @@ export function StarClient() {
           <h1 className="text-5xl font-bold leading-tight tracking-tight sm:text-6xl">
             Help TradeClaw reach
             <br />
-            <span className="text-yellow-400">1,000 ⭐</span>
+            <span className="text-yellow-400">1,000 <Star className="w-5 h-5 inline" /></span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-base text-zinc-400 leading-relaxed">
@@ -246,7 +246,7 @@ export function StarClient() {
                     <div className="flex items-center gap-2">
                       <m.icon className="w-6 h-6 text-emerald-400" />
                       <span className={`text-sm font-bold font-mono ${reached ? "text-yellow-400" : "text-zinc-300"}`}>
-                        {m.stars.toLocaleString()} ⭐
+                        {m.stars.toLocaleString()} <Star className="w-3.5 h-3.5 inline" />
                       </span>
                     </div>
                     {reached && (
@@ -555,7 +555,7 @@ export function StarClient() {
       {/* ─── FOOTER CTA ─── */}
       <section className="px-6 py-16 border-t border-white/5 text-center">
         <div className="mx-auto max-w-xl">
-          <div className="text-4xl mb-4">⭐</div>
+          <div className="text-4xl mb-4"><Star className="w-10 h-10 text-yellow-400 mx-auto" /></div>
           <h2 className="text-2xl font-bold mb-3">2 seconds. Zero cost. Real impact.</h2>
           <p className="text-sm text-zinc-500 mb-8">
             Every star makes TradeClaw more discoverable to traders who need free tools.

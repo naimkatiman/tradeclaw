@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { ClipboardList, Circle, Bird, Briefcase } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -344,28 +346,28 @@ const BADGES = [
   },
 ];
 
-const TIMING_TIPS = [
+const TIMING_TIPS: { platform: string; icon: LucideIcon; bestTime: string; tip: string }[] = [
   {
     platform: 'Reddit',
-    icon: '📋',
+    icon: ClipboardList,
     bestTime: 'Mon–Fri, 9am–12pm EST',
     tip: 'Post on weekday mornings. r/selfhosted and r/algotrading peak mid-morning US time. Avoid weekends.',
   },
   {
     platform: 'Hacker News',
-    icon: '🟠',
+    icon: Circle,
     bestTime: 'Mon–Fri, 8am–10am EST',
     tip: 'Show HN posts perform best early weekday mornings (US East Coast). Avoid Fridays and weekends.',
   },
   {
     platform: 'Twitter / X',
-    icon: '🐦',
+    icon: Bird,
     bestTime: 'Tue–Thu, 9am or 5pm EST',
     tip: 'Engagement peaks at commute hours. Use the thread format — split content across 3 tweets for higher reach.',
   },
   {
     platform: 'LinkedIn',
-    icon: '💼',
+    icon: Briefcase,
     bestTime: 'Tue–Thu, 8am–10am EST',
     tip: 'Professional network is most active Tuesday–Thursday mornings. Lead with the problem you solved, not the solution.',
   },
@@ -796,7 +798,7 @@ export function ShareClient() {
             {TIMING_TIPS.map((tip) => (
               <div key={tip.platform} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">{tip.icon}</span>
+                  <tip.icon className="w-5 h-5 text-emerald-400" />
                   <span className="text-sm font-semibold text-zinc-300">{tip.platform}</span>
                 </div>
                 <p className="text-xs text-emerald-400 font-medium mb-1.5">{tip.bestTime}</p>

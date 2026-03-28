@@ -51,7 +51,7 @@ export function CTASection() {
             <span className="text-emerald-400">$</span> docker compose up -d
             <br />
             <span className="text-zinc-600">
-              # ✅ Dashboard ready at localhost:3000
+              # Dashboard ready at localhost:3000
             </span>
           </div>
         </div>
