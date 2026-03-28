@@ -181,9 +181,9 @@ const STATS_BADGE = `[![GitHub Stars](https://img.shields.io/github/stars/naimka
 function StatCard({ label, value, loading }: { label: string; value: string | number; loading: boolean }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className="text-2xl font-bold text-white">
+      <span className="text-2xl font-bold text-[var(--foreground)]">
         {loading ? (
-          <span className="inline-block w-12 h-6 bg-white/10 rounded animate-pulse" />
+          <span className="inline-block w-12 h-6 bg-[var(--border)] rounded animate-pulse" />
         ) : (
           value
         )}
@@ -327,9 +327,9 @@ export function ContributeClient() {
 
           <div className="flex items-center justify-center gap-12 mb-10">
             <StatCard label="GitHub Stars" value={stats.stars} loading={statsLoading} />
-            <div className="h-8 w-px bg-white/10" />
+            <div className="h-8 w-px bg-[var(--border)]" />
             <StatCard label="Open Issues" value={stats.openIssues} loading={statsLoading} />
-            <div className="h-8 w-px bg-white/10" />
+            <div className="h-8 w-px bg-[var(--border)]" />
             <StatCard label="Contributors" value={stats.contributors} loading={statsLoading} />
           </div>
 
@@ -346,7 +346,7 @@ export function ContributeClient() {
               href={`${REPO_URL}/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-semibold text-white hover:bg-white/10 transition-colors duration-200"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--glass-bg)] px-6 py-2.5 text-sm font-semibold text-[var(--foreground)] hover:bg-[var(--border)] transition-colors duration-200"
             >
               Browse issues
             </a>
@@ -384,7 +384,7 @@ export function ContributeClient() {
                 >
                   <div className={colorMap[path.color]}>{path.icon}</div>
                   <div>
-                    <h3 className="font-semibold text-white mb-1">{path.title}</h3>
+                    <h3 className="font-semibold text-[var(--foreground)] mb-1">{path.title}</h3>
                     <p className="text-sm text-[var(--text-secondary)]">{path.description}</p>
                   </div>
                   <span className={`text-xs font-medium mt-auto ${colorMap[path.color]}`}>
@@ -424,14 +424,14 @@ export function ContributeClient() {
                 href={issue.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center justify-between gap-4 rounded-xl border border-white/8 bg-white/3 px-5 py-4 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all duration-200"
+                className="group flex items-center justify-between gap-4 rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] px-5 py-4 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all duration-200"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="shrink-0 text-emerald-400/60">
                     <circle cx="12" cy="12" r="10" />
                     <path d="M12 8v4M12 16h.01" />
                   </svg>
-                  <span className="text-sm font-medium text-white truncate group-hover:text-emerald-300 transition-colors">
+                  <span className="text-sm font-medium text-[var(--foreground)] truncate group-hover:text-emerald-400 transition-colors">
                     {issue.title}
                   </span>
                 </div>
@@ -440,7 +440,7 @@ export function ContributeClient() {
                     <span className="text-xs text-[var(--text-secondary)]">{issue.estimate}</span>
                   )}
                   <DifficultyBadge difficulty={issue.difficulty} />
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--text-secondary)] group-hover:text-white transition-colors">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--text-secondary)] group-hover:text-[var(--foreground)] transition-colors">
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </div>
@@ -460,7 +460,7 @@ export function ContributeClient() {
 
           <div className="relative">
             {/* Connector line */}
-            <div className="hidden sm:block absolute top-6 left-0 right-0 h-px bg-white/8 z-0" style={{ left: '10%', right: '10%' }} />
+            <div className="hidden sm:block absolute top-6 left-0 right-0 h-px bg-[var(--border)] z-0" style={{ left: '10%', right: '10%' }} />
 
             <div className="grid sm:grid-cols-5 gap-6 relative z-10">
               {HOW_TO_STEPS.map((s) => (
@@ -469,7 +469,7 @@ export function ContributeClient() {
                     {s.step}
                   </div>
                   <div>
-                    <p className="font-semibold text-white text-sm mb-1">{s.label}</p>
+                    <p className="font-semibold text-[var(--foreground)] text-sm mb-1">{s.label}</p>
                     <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{s.description}</p>
                   </div>
                 </div>
@@ -517,7 +517,7 @@ export function ContributeClient() {
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </div>
-                  <p className="font-semibold text-white">Application received!</p>
+                  <p className="font-semibold text-[var(--foreground)]">Application received!</p>
                   <p className="text-sm text-[var(--text-secondary)]">
                     We will reach out via GitHub within 48 hours. Keep an eye on your notifications.
                   </p>
@@ -532,7 +532,7 @@ export function ContributeClient() {
                       placeholder="Naim"
                       value={form.name}
                       onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 focus:border-violet-400/50 focus:outline-none focus:ring-1 focus:ring-violet-400/30 transition-colors"
+                      className="rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--text-secondary)] focus:border-violet-400/50 focus:outline-none focus:ring-1 focus:ring-violet-400/30 transition-colors"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -543,7 +543,7 @@ export function ContributeClient() {
                       placeholder="@naimkatiman"
                       value={form.github}
                       onChange={(e) => setForm((f) => ({ ...f, github: e.target.value }))}
-                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 focus:border-violet-400/50 focus:outline-none focus:ring-1 focus:ring-violet-400/30 transition-colors"
+                      className="rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--text-secondary)] focus:border-violet-400/50 focus:outline-none focus:ring-1 focus:ring-violet-400/30 transition-colors"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -554,7 +554,7 @@ export function ContributeClient() {
                       placeholder="React, TypeScript, testing…"
                       value={form.skills}
                       onChange={(e) => setForm((f) => ({ ...f, skills: e.target.value }))}
-                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 focus:border-violet-400/50 focus:outline-none focus:ring-1 focus:ring-violet-400/30 transition-colors"
+                      className="rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--text-secondary)] focus:border-violet-400/50 focus:outline-none focus:ring-1 focus:ring-violet-400/30 transition-colors"
                     />
                   </div>
                   <div className="sm:col-span-3 flex justify-center pt-2">
@@ -586,7 +586,7 @@ export function ContributeClient() {
               href={DISCUSSIONS_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col gap-4 rounded-xl border border-white/8 bg-white/3 p-6 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all duration-200"
+              className="group flex flex-col gap-4 rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] p-6 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all duration-200"
             >
               <div className="text-emerald-400">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -594,7 +594,7 @@ export function ContributeClient() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-white mb-1">GitHub Discussions</h3>
+                <h3 className="font-semibold text-[var(--foreground)] mb-1">GitHub Discussions</h3>
                 <p className="text-sm text-[var(--text-secondary)]">Q&amp;A, ideas, and announcements. Best place for in-depth technical discussion.</p>
               </div>
               <span className="text-xs font-medium text-emerald-400 mt-auto">Open discussions →</span>
@@ -605,7 +605,7 @@ export function ContributeClient() {
               href={DISCORD_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col gap-4 rounded-xl border border-white/8 bg-white/3 p-6 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all duration-200"
+              className="group flex flex-col gap-4 rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] p-6 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all duration-200"
             >
               <div className="text-indigo-400">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -613,7 +613,7 @@ export function ContributeClient() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-white mb-1">Discord</h3>
+                <h3 className="font-semibold text-[var(--foreground)] mb-1">Discord</h3>
                 <p className="text-sm text-[var(--text-secondary)]">Real-time chat for contributors. Get unstuck fast and coordinate with maintainers.</p>
               </div>
               <span className="text-xs font-medium text-indigo-400 mt-auto">Join server →</span>
@@ -624,7 +624,7 @@ export function ContributeClient() {
               href={TWITTER_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col gap-4 rounded-xl border border-white/8 bg-white/3 p-6 hover:border-sky-500/30 hover:bg-sky-500/5 transition-all duration-200"
+              className="group flex flex-col gap-4 rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] p-6 hover:border-sky-500/30 hover:bg-sky-500/5 transition-all duration-200"
             >
               <div className="text-sky-400">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -632,7 +632,7 @@ export function ContributeClient() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-white mb-1">Twitter / X</h3>
+                <h3 className="font-semibold text-[var(--foreground)] mb-1">Twitter / X</h3>
                 <p className="text-sm text-[var(--text-secondary)]">Follow for releases, contributor spotlights, and trading signal updates.</p>
               </div>
               <span className="text-xs font-medium text-sky-400 mt-auto">Follow @tradeclaw →</span>
@@ -644,7 +644,7 @@ export function ContributeClient() {
       {/* ── Stats Badge ───────────────────────────────────────────────────────── */}
       <section className="px-4 pb-28">
         <div className="mx-auto max-w-4xl">
-          <div className="rounded-2xl border border-white/8 bg-white/3 p-8">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--glass-bg)] p-8">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
                 <h2 className="text-xl font-bold mb-1">Show your support</h2>
@@ -654,12 +654,12 @@ export function ContributeClient() {
               </div>
             </div>
 
-            <div className="relative rounded-xl bg-black/40 border border-white/8 overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/8">
+            <div className="relative rounded-xl bg-[#0d0d0d] border border-[var(--border)] overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
                 <span className="text-xs text-[var(--text-secondary)] font-mono">markdown</span>
                 <button
                   onClick={copyBadge}
-                  className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-white transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                 >
                   {badgeCopied ? (
                     <>

@@ -1,8 +1,12 @@
 /**
  * OHLCV Data Fetcher — fetches historical candle data from free APIs
- * Crypto: Binance public API (no key needed)
- * Forex/Metals: Yahoo Finance chart API (no key needed)
+ * Crypto: Binance → Kraken → CryptoCompare (fallback chain)
+ * Forex/Metals: Yahoo Finance → Twelve Data (fallback chain)
  */
+
+import { fetchKrakenOHLCV, fetchCryptoCompareOHLCV, fetchTwelveDataOHLCV } from './data-providers';
+
+export type OHLCVSource = 'binance' | 'yahoo' | 'kraken' | 'cryptocompare' | 'twelvedata' | 'synthetic';
 
 export interface OHLCV {
   timestamp: number;
@@ -274,16 +278,16 @@ const FALLBACK_CONFIG: Record<string, { basePrice: number; volatility: number }>
  * Main entry point — fetch OHLCV data for a symbol and timeframe
  * Returns at least 200 candles when possible
  */
-export async function getOHLCV(symbol: string, timeframe: string = 'H1'): Promise<{ candles: OHLCV[]; source: 'binance' | 'yahoo' | 'synthetic' }> {
+export async function getOHLCV(symbol: string, timeframe: string = 'H1'): Promise<{ candles: OHLCV[]; source: OHLCVSource }> {
   const cacheKey = getCacheKey(symbol, timeframe);
   const cached = getFromCache(cacheKey);
   if (cached) {
-    const source = BINANCE_SYMBOLS[symbol] ? 'binance' : YAHOO_SYMBOLS[symbol] ? 'yahoo' : 'synthetic';
+    const source: OHLCVSource = BINANCE_SYMBOLS[symbol] ? 'binance' : YAHOO_SYMBOLS[symbol] ? 'yahoo' : 'synthetic';
     return { candles: cached, source };
   }
 
   let candles: OHLCV[] = [];
-  let source: 'binance' | 'yahoo' | 'synthetic' = 'synthetic';
+  let source: OHLCVSource = 'synthetic';
 
   try {
     if (BINANCE_SYMBOLS[symbol]) {
@@ -294,10 +298,36 @@ export async function getOHLCV(symbol: string, timeframe: string = 'H1'): Promis
       if (candles.length > 0) source = 'yahoo';
     }
   } catch {
-    // Fall through to synthetic
+    // Fall through to fallback providers
   }
 
-  // Fallback to synthetic if API fails
+  // Fallback chain: Kraken → CryptoCompare (crypto), Twelve Data (forex/metals)
+  if (candles.length < 50) {
+    try {
+      if (BINANCE_SYMBOLS[symbol]) {
+        candles = await fetchKrakenOHLCV(symbol, timeframe);
+        if (candles.length > 0) source = 'kraken';
+
+        if (candles.length < 50) {
+          candles = await fetchCryptoCompareOHLCV(symbol, timeframe);
+          if (candles.length > 0) source = 'cryptocompare';
+        }
+      } else if (YAHOO_SYMBOLS[symbol]) {
+        const tfMap: Record<string, '15min' | '1h' | '4h' | '1day'> = {
+          M15: '15min', H1: '1h', H4: '4h', D1: '1day',
+        };
+        const tdInterval = tfMap[timeframe];
+        if (tdInterval) {
+          candles = await fetchTwelveDataOHLCV(symbol, tdInterval);
+          if (candles.length > 0) source = 'twelvedata';
+        }
+      }
+    } catch {
+      // Fall through to synthetic
+    }
+  }
+
+  // Fallback to synthetic if all APIs fail
   if (candles.length < 50) {
     const config = FALLBACK_CONFIG[symbol];
     if (config) {
@@ -319,8 +349,8 @@ export async function getOHLCV(symbol: string, timeframe: string = 'H1'): Promis
 export async function getMultiOHLCV(
   symbols: string[],
   timeframe: string = 'H1'
-): Promise<Map<string, { candles: OHLCV[]; source: 'binance' | 'yahoo' | 'synthetic' }>> {
-  const results = new Map<string, { candles: OHLCV[]; source: 'binance' | 'yahoo' | 'synthetic' }>();
+): Promise<Map<string, { candles: OHLCV[]; source: OHLCVSource }>> {
+  const results = new Map<string, { candles: OHLCV[]; source: OHLCVSource }>();
   
   const settled = await Promise.allSettled(
     symbols.map(async (symbol) => {

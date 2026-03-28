@@ -761,21 +761,21 @@ function MonthlyHeatmap({ monthlyReturns }: { monthlyReturns: MonthReturn[] }) {
 
   return (
     <div className="glass-card rounded-2xl p-4">
-      <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-3">Monthly Returns</div>
+      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-3">Monthly Returns</div>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse" style={{ minWidth: 500 }}>
           <thead>
             <tr>
-              <th className="text-[9px] text-zinc-700 text-right pr-2 pb-1 font-normal w-10">Year</th>
+              <th className="text-[9px] text-[var(--text-secondary)] text-right pr-2 pb-1 font-normal w-10">Year</th>
               {MONTH_ABBR.map(m => (
-                <th key={m} className="text-[9px] text-zinc-700 text-center pb-1 font-normal" style={{ width: '7%' }}>{m}</th>
+                <th key={m} className="text-[9px] text-[var(--text-secondary)] text-center pb-1 font-normal" style={{ width: '7%' }}>{m}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {years.map(year => (
               <tr key={year}>
-                <td className="text-[9px] text-zinc-600 text-right pr-2 font-mono">{year}</td>
+                <td className="text-[9px] text-[var(--text-secondary)] text-right pr-2 font-mono">{year}</td>
                 {Array.from({ length: 12 }, (_, mo) => {
                   const entry = monthlyReturns.find(r => r.year === year && r.month === mo + 1);
                   const val = entry?.returnPct ?? null;
@@ -819,12 +819,12 @@ function MonthlyHeatmap({ monthlyReturns }: { monthlyReturns: MonthReturn[] }) {
 
 // ─── Metric Card ─────────────────────────────────────────────
 
-function MetricCard({ label, value, sub, color = 'text-white' }: { label: string; value: string; sub?: string; color?: string }) {
+function MetricCard({ label, value, sub, color = 'text-[var(--foreground)]' }: { label: string; value: string; sub?: string; color?: string }) {
   return (
-    <div className="bg-white/[0.03] rounded-xl p-3 border border-white/5">
-      <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">{label}</div>
+    <div className="bg-white/[0.03] rounded-xl p-3 border border-[var(--border)]">
+      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1">{label}</div>
       <div className={`text-lg font-bold font-mono tabular-nums ${color}`}>{value}</div>
-      {sub && <div className="text-[10px] text-zinc-600 mt-0.5 font-mono">{sub}</div>}
+      {sub && <div className="text-[10px] text-[var(--text-secondary)] mt-0.5 font-mono">{sub}</div>}
     </div>
   );
 }
@@ -835,7 +835,7 @@ function DataSourceBadge({ source }: { source: string }) {
   const labels: Record<string, { text: string; color: string }> = {
     binance: { text: 'Binance', color: 'text-yellow-400 border-yellow-500/20 bg-yellow-500/10' },
     yahoo: { text: 'Yahoo Finance', color: 'text-purple-400 border-purple-500/20 bg-purple-500/10' },
-    synthetic: { text: 'Synthetic', color: 'text-zinc-400 border-zinc-500/20 bg-zinc-500/10' },
+    synthetic: { text: 'Synthetic', color: 'text-[var(--text-secondary)] border-zinc-500/20 bg-zinc-500/10' },
   };
   const config = labels[source] || labels.synthetic;
   return (
@@ -925,7 +925,7 @@ export default function BacktestPage() {
   ];
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] text-white">
+    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
       <div className="max-w-6xl mx-auto px-4 py-6 pb-20 md:pb-6">
         <div className="mb-4 rounded-lg border border-emerald-500/20 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-300">
           <strong>Live Backtest</strong> — Uses real market data from Binance and Yahoo Finance. Trade outcomes are determined by actual candle price action (TP/SL against real highs and lows).
@@ -938,10 +938,10 @@ export default function BacktestPage() {
               <path d="M2 12L6 8L9 11L14 4" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M2 14H14" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
             </svg>
-            <h1 className="text-sm font-semibold text-white tracking-tight">Backtesting Engine</h1>
+            <h1 className="text-sm font-semibold text-[var(--foreground)] tracking-tight">Backtesting Engine</h1>
             {result && <DataSourceBadge source={result.dataSource} />}
           </div>
-          <p className="text-[11px] text-zinc-600">Replay strategies against real historical data — equity curve, price chart, indicators, trade log</p>
+          <p className="text-[11px] text-[var(--text-secondary)]">Replay strategies against real historical data — equity curve, price chart, indicators, trade log</p>
         </div>
 
         {loadedStrategyName && (
@@ -959,21 +959,21 @@ export default function BacktestPage() {
           {/* Config panel */}
           <div className="space-y-3">
             <div className="glass-card rounded-2xl p-5 space-y-3">
-              <div className="text-xs font-semibold text-white tracking-tight mb-1">Configuration</div>
+              <div className="text-xs font-semibold text-[var(--foreground)] tracking-tight mb-1">Configuration</div>
 
               <div>
-                <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Symbol</label>
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Symbol</label>
                 <select
                   value={params.symbol}
                   onChange={e => update('symbol', e.target.value)}
-                  className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30"
+                  className="w-full bg-[var(--glass-bg)] border border-white/8 rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30"
                 >
                   {SYMBOLS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
 
               <div>
-                <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Timeframe</label>
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Timeframe</label>
                 <div className="grid grid-cols-4 gap-1">
                   {TIMEFRAMES.map(tf => (
                     <button
@@ -982,7 +982,7 @@ export default function BacktestPage() {
                       className={`py-1.5 rounded-lg text-[10px] font-mono font-semibold transition-all duration-150 ${
                         params.timeframe === tf
                           ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
-                          : 'bg-white/5 text-zinc-600 border border-white/5 hover:text-zinc-400'
+                          : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)] hover:text-[var(--text-secondary)]'
                       }`}
                     >
                       {tf}
@@ -992,11 +992,11 @@ export default function BacktestPage() {
               </div>
 
               <div>
-                <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Strategy</label>
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Strategy</label>
                 <select
                   value={params.strategy}
                   onChange={e => update('strategy', e.target.value)}
-                  className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30"
+                  className="w-full bg-[var(--glass-bg)] border border-white/8 rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30"
                 >
                   {!STRATEGIES.includes(params.strategy) && (
                     <option value={params.strategy}>{params.strategy}</option>
@@ -1006,17 +1006,17 @@ export default function BacktestPage() {
               </div>
 
               <div>
-                <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Initial Balance ($)</label>
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Initial Balance ($)</label>
                 <input
                   type="number"
                   value={params.initialBalance}
                   onChange={e => update('initialBalance', Number(e.target.value))}
-                  className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30 font-mono"
+                  className="w-full bg-[var(--glass-bg)] border border-white/8 rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30 font-mono"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Risk per trade (%)</label>
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Risk per trade (%)</label>
                 <input
                   type="number"
                   value={params.riskPercent}
@@ -1024,7 +1024,7 @@ export default function BacktestPage() {
                   min="0.1"
                   max="10"
                   onChange={e => update('riskPercent', Number(e.target.value))}
-                  className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30 font-mono"
+                  className="w-full bg-[var(--glass-bg)] border border-white/8 rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30 font-mono"
                 />
               </div>
 
@@ -1035,9 +1035,9 @@ export default function BacktestPage() {
                   onChange={e => setParams(p => ({ ...p, slippage: e.target.checked }))}
                   className="w-3.5 h-3.5 accent-emerald-500 rounded"
                 />
-                <span className="text-[10px] text-zinc-400">Realistic slippage</span>
+                <span className="text-[10px] text-[var(--text-secondary)]">Realistic slippage</span>
                 {params.slippage && (
-                  <span className="text-[9px] text-zinc-600">
+                  <span className="text-[9px] text-[var(--text-secondary)]">
                     ({['BTCUSD','ETHUSD','XRPUSD'].includes(params.symbol) ? '0.3%' : ['XAUUSD','XAGUSD'].includes(params.symbol) ? '0.1%' : '0.04%'} round-trip)
                   </span>
                 )}
@@ -1066,7 +1066,7 @@ export default function BacktestPage() {
 
             {/* Quick nav */}
             <div className="glass-card rounded-2xl p-4 space-y-1">
-              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-2">Quick nav</div>
+              <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-2">Quick nav</div>
               {[
                 { label: 'Dashboard', href: '/dashboard' },
                 { label: 'Paper Trading', href: '/paper-trading' },
@@ -1075,9 +1075,9 @@ export default function BacktestPage() {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors group"
+                  className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[var(--glass-bg)] transition-colors group"
                 >
-                  <span className="text-xs text-zinc-500 group-hover:text-zinc-300 transition-colors">{link.label}</span>
+                  <span className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--foreground)] transition-colors">{link.label}</span>
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="opacity-0 group-hover:opacity-100 transition-opacity">
                     <path d="M3 2L7 5L3 8" stroke="rgba(255,255,255,0.4)" strokeWidth="1.2" strokeLinecap="round"/>
                   </svg>
@@ -1090,14 +1090,14 @@ export default function BacktestPage() {
           <div className="space-y-4">
             {!result && !running && !error && (
               <div className="glass-card rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-                <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-3">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--glass-bg)] flex items-center justify-center mb-3">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path d="M3 17L9 11L13 15L21 6" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M3 21H21" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
                   </svg>
                 </div>
-                <div className="text-sm text-zinc-500 font-medium">Configure and run a backtest</div>
-                <div className="text-xs text-zinc-700 mt-1">Uses real OHLCV data from Binance and Yahoo Finance</div>
+                <div className="text-sm text-[var(--text-secondary)] font-medium">Configure and run a backtest</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1">Uses real OHLCV data from Binance and Yahoo Finance</div>
               </div>
             )}
 
@@ -1110,10 +1110,10 @@ export default function BacktestPage() {
                   </svg>
                 </div>
                 <div className="text-sm text-red-400 font-medium mb-1">Backtest Failed</div>
-                <div className="text-xs text-zinc-500 max-w-md">{error}</div>
+                <div className="text-xs text-[var(--text-secondary)] max-w-md">{error}</div>
                 <button
                   onClick={handleRun}
-                  className="mt-4 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                  className="mt-4 px-4 py-2 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                 >
                   Retry
                 </button>
@@ -1123,8 +1123,8 @@ export default function BacktestPage() {
             {running && (
               <div className="glass-card rounded-2xl p-12 flex flex-col items-center justify-center text-center">
                 <div className="w-8 h-8 border border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin mb-3" />
-                <div className="text-xs text-zinc-500">Fetching real OHLCV data for {params.symbol} {params.timeframe}...</div>
-                <div className="text-[10px] text-zinc-700 mt-1">Connecting to Binance / Yahoo Finance</div>
+                <div className="text-xs text-[var(--text-secondary)]">Fetching real OHLCV data for {params.symbol} {params.timeframe}...</div>
+                <div className="text-[10px] text-[var(--text-secondary)] mt-1">Connecting to Binance / Yahoo Finance</div>
               </div>
             )}
 
@@ -1171,7 +1171,7 @@ export default function BacktestPage() {
 
                 {/* Tabs */}
                 <div className="glass-card rounded-2xl overflow-hidden">
-                  <div className="flex border-b border-white/5">
+                  <div className="flex border-b border-[var(--border)]">
                     {tabs.map(tab => (
                       <button
                         key={tab.id}
@@ -1179,7 +1179,7 @@ export default function BacktestPage() {
                         className={`flex-1 py-3 text-[10px] font-semibold tracking-wider uppercase transition-all duration-200 ${
                           activeTab === tab.id
                             ? 'text-emerald-400 border-b border-emerald-500/40 bg-emerald-500/5'
-                            : 'text-zinc-600 hover:text-zinc-400'
+                            : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'
                         }`}
                       >
                         {tab.label}
@@ -1192,7 +1192,7 @@ export default function BacktestPage() {
                       <div className="h-64">
                         <EquityCurveCanvas curve={result.equityCurve} startBalance={result.startBalance} />
                       </div>
-                      <div className="flex items-center justify-between mt-3 text-[10px] font-mono text-zinc-600">
+                      <div className="flex items-center justify-between mt-3 text-[10px] font-mono text-[var(--text-secondary)]">
                         <span>Start: ${result.startBalance.toLocaleString()}</span>
                         <span className={result.endBalance >= result.startBalance ? 'text-emerald-400' : 'text-red-400'}>
                           End: ${result.endBalance.toLocaleString()}
@@ -1203,7 +1203,7 @@ export default function BacktestPage() {
 
                   {activeTab === 'price' && (
                     <div className="p-5">
-                      <div className="flex items-center gap-4 mb-3 text-[9px] text-zinc-600">
+                      <div className="flex items-center gap-4 mb-3 text-[9px] text-[var(--text-secondary)]">
                         <span className="flex items-center gap-1.5">
                           <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" /> BUY signal
                         </span>
@@ -1225,7 +1225,7 @@ export default function BacktestPage() {
 
                   {activeTab === 'indicators' && (
                     <div className="p-5">
-                      <div className="flex items-center gap-4 mb-3 text-[9px] text-zinc-600">
+                      <div className="flex items-center gap-4 mb-3 text-[9px] text-[var(--text-secondary)]">
                         <span className="flex items-center gap-1.5">
                           <span className="inline-block w-3 h-0.5 bg-violet-400 rounded" /> RSI
                         </span>
@@ -1250,10 +1250,10 @@ export default function BacktestPage() {
                   {activeTab === 'trades' && (
                     <div>
                       <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-white/[0.03]">
-                        <span className="text-[10px] text-zinc-600">{result.trades.length} trades</span>
+                        <span className="text-[10px] text-[var(--text-secondary)]">{result.trades.length} trades</span>
                         <button
                           onClick={() => exportCSV(result.trades, params.symbol)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/8 text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-white/8 transition-all"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--glass-bg)] border border-white/8 text-[10px] text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-white/8 transition-all"
                         >
                           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                             <path d="M5 1V7M2 5L5 8L8 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1265,40 +1265,40 @@ export default function BacktestPage() {
                       <div className="overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="border-b border-white/5">
-                              <th className="px-4 py-2.5 text-left text-[10px] text-zinc-600 uppercase tracking-wider font-medium">#</th>
-                              <th className="px-4 py-2.5 text-left text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Dir</th>
-                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Entry</th>
-                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Exit</th>
-                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">P&amp;L</th>
-                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">%</th>
-                              <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Bars</th>
-                              <th className="px-4 py-2.5 text-center text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Exit</th>
+                            <tr className="border-b border-[var(--border)]">
+                              <th className="px-4 py-2.5 text-left text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">#</th>
+                              <th className="px-4 py-2.5 text-left text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Dir</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Entry</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Exit</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">P&amp;L</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">%</th>
+                              <th className="px-4 py-2.5 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Bars</th>
+                              <th className="px-4 py-2.5 text-center text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Exit</th>
                             </tr>
                           </thead>
                           <tbody>
                             {result.trades.slice(0, 50).map(trade => (
                               <tr key={trade.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                                <td className="px-4 py-2 font-mono text-zinc-600">{trade.id}</td>
+                                <td className="px-4 py-2 font-mono text-[var(--text-secondary)]">{trade.id}</td>
                                 <td className="px-4 py-2">
                                   <span className={`text-[10px] font-bold ${trade.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}`}>
                                     {trade.direction}
                                   </span>
                                 </td>
-                                <td className="px-4 py-2 text-right font-mono text-zinc-400">{trade.entry}</td>
-                                <td className="px-4 py-2 text-right font-mono text-zinc-400">{trade.exit}</td>
+                                <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)]">{trade.entry}</td>
+                                <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)]">{trade.exit}</td>
                                 <td className={`px-4 py-2 text-right font-mono font-semibold tabular-nums ${trade.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                   {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}
                                 </td>
                                 <td className={`px-4 py-2 text-right font-mono tabular-nums text-[10px] ${trade.pnlPct >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'}`}>
                                   {trade.pnlPct >= 0 ? '+' : ''}{trade.pnlPct.toFixed(2)}%
                                 </td>
-                                <td className="px-4 py-2 text-right font-mono text-zinc-600">{trade.bars}</td>
+                                <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)]">{trade.bars}</td>
                                 <td className="px-4 py-2 text-center">
                                   <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${
                                     trade.exitReason === 'TP' ? 'text-emerald-400 bg-emerald-500/10' :
                                     trade.exitReason === 'SL' ? 'text-red-400 bg-red-500/10' :
-                                    'text-zinc-400 bg-zinc-500/10'
+                                    'text-[var(--text-secondary)] bg-zinc-500/10'
                                   }`}>
                                     {trade.exitReason}
                                   </span>
@@ -1308,7 +1308,7 @@ export default function BacktestPage() {
                           </tbody>
                         </table>
                         {result.trades.length > 50 && (
-                          <div className="px-4 py-3 text-center text-[10px] text-zinc-700">
+                          <div className="px-4 py-3 text-center text-[10px] text-[var(--text-secondary)]">
                             Showing 50 of {result.trades.length} trades
                           </div>
                         )}

@@ -91,7 +91,7 @@ function Cell({ value }: { value: FeatureValue }) {
       </svg>
     </span>
   ) : (
-    <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-white/5 text-zinc-600">
+    <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-[var(--glass-bg)] text-[var(--text-secondary)]">
       <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
         <path
           d="M2 2l4 4M6 2L2 6"
@@ -106,27 +106,27 @@ function Cell({ value }: { value: FeatureValue }) {
 
 export function ComparisonTable() {
   return (
-    <section id="comparison" className="px-6 py-24 bg-[#050505]">
+    <section id="comparison" className="px-6 py-24 bg-[var(--background)]">
       <div className="mx-auto max-w-5xl">
         <div className="text-center mb-14">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-1.5 text-xs uppercase tracking-widest text-zinc-500">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--glass-bg)] px-3.5 py-1.5 text-xs uppercase tracking-widest text-[var(--text-secondary)]">
             Compare
           </div>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-white">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[var(--foreground)]">
             Why pay for signals that{" "}
             <span className="text-emerald-400">should be free?</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base text-zinc-400">
+          <p className="mx-auto mt-4 max-w-xl text-base text-[var(--text-secondary)]">
             TradeClaw is the only open-source platform combining AI signals, a
             beautiful UI, and multi-asset support.
           </p>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-white/6 bg-[#0a0a0a]">
+        <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--bg-card)]">
           <table className="w-full min-w-[640px] text-sm">
             <thead>
-              <tr className="border-b border-white/6">
-                <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-widest text-zinc-600 w-[38%]">
+              <tr className="border-b border-[var(--border)]">
+                <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-widest text-[var(--text-secondary)] w-[38%]">
                   Feature
                 </th>
                 <th className="px-4 py-4 text-center w-[15%]">
@@ -139,22 +139,22 @@ export function ComparisonTable() {
                     </span>
                   </div>
                 </th>
-                <th className="px-4 py-4 text-center text-zinc-500 font-medium w-[15%]">
+                <th className="px-4 py-4 text-center text-[var(--text-secondary)] font-medium w-[15%]">
                   <div className="flex flex-col items-center gap-1">
                     <span>TradingView</span>
-                    <span className="text-[10px] text-zinc-600">$60/mo</span>
+                    <span className="text-[10px] text-[var(--text-secondary)]">$60/mo</span>
                   </div>
                 </th>
-                <th className="px-4 py-4 text-center text-zinc-500 font-medium w-[15%]">
+                <th className="px-4 py-4 text-center text-[var(--text-secondary)] font-medium w-[15%]">
                   <div className="flex flex-col items-center gap-1">
                     <span>3Commas</span>
-                    <span className="text-[10px] text-zinc-600">$49/mo</span>
+                    <span className="text-[10px] text-[var(--text-secondary)]">$49/mo</span>
                   </div>
                 </th>
-                <th className="px-4 py-4 text-center text-zinc-500 font-medium w-[17%]">
+                <th className="px-4 py-4 text-center text-[var(--text-secondary)] font-medium w-[17%]">
                   <div className="flex flex-col items-center gap-1">
                     <span>Cryptohopper</span>
-                    <span className="text-[10px] text-zinc-600">$107/mo</span>
+                    <span className="text-[10px] text-[var(--text-secondary)]">$107/mo</span>
                   </div>
                 </th>
               </tr>
@@ -163,11 +163,11 @@ export function ComparisonTable() {
               {ROWS.map((row, i) => (
                 <tr
                   key={row.feature}
-                  className={`border-b border-white/4 transition-colors hover:bg-white/[0.015] ${
+                  className={`border-b border-[var(--border)] transition-colors hover:bg-[var(--glass-bg)] ${
                     i === ROWS.length - 1 ? "border-b-0" : ""
                   }`}
                 >
-                  <td className="px-6 py-3.5 text-zinc-300">{row.feature}</td>
+                  <td className="px-6 py-3.5 text-[var(--foreground)]">{row.feature}</td>
                   <td className="px-4 py-3.5 text-center bg-emerald-500/[0.03]">
                     {typeof row.tradeclaw === "string" ? (
                       <span className="font-bold text-emerald-400">
@@ -179,17 +179,17 @@ export function ComparisonTable() {
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3.5 text-center text-zinc-400">
+                  <td className="px-4 py-3.5 text-center text-[var(--text-secondary)]">
                     <div className="flex justify-center">
                       <Cell value={row.tradingview} />
                     </div>
                   </td>
-                  <td className="px-4 py-3.5 text-center text-zinc-400">
+                  <td className="px-4 py-3.5 text-center text-[var(--text-secondary)]">
                     <div className="flex justify-center">
                       <Cell value={row.threecommas} />
                     </div>
                   </td>
-                  <td className="px-4 py-3.5 text-center text-zinc-400">
+                  <td className="px-4 py-3.5 text-center text-[var(--text-secondary)]">
                     <div className="flex justify-center">
                       <Cell value={row.cryptohopper} />
                     </div>
@@ -200,7 +200,7 @@ export function ComparisonTable() {
           </table>
         </div>
 
-        <p className="mt-4 text-center text-xs text-zinc-700">
+        <p className="mt-4 text-center text-xs text-[var(--text-secondary)]">
           Prices as of March 2026. Subject to change.
         </p>
       </div>

@@ -46,7 +46,7 @@ const QUICK_SHARE_LINKS = [
   },
   {
     platform: 'twitter' as PlatformId,
-    color: 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:border-zinc-500',
+    color: 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--foreground)] hover:border-zinc-500',
     href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(SHARE_CONTENT.twitterFallback)}`,
     icon: (
       <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
@@ -395,7 +395,7 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 shrink-0 ${
         copied
           ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-          : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-700 hover:border-zinc-600'
+          : 'bg-[var(--bg-card)] hover:bg-zinc-700 text-[var(--text-secondary)] hover:text-[var(--foreground)] border border-[var(--border)] hover:border-zinc-600'
       }`}
     >
       {copied ? (
@@ -436,7 +436,7 @@ function CopyLinkButton() {
       className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-medium transition-all duration-200 border ${
         copied
           ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-          : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500'
+          : 'bg-zinc-900 border-[var(--border)] text-[var(--foreground)] hover:border-zinc-500'
       }`}
     >
       {copied ? (
@@ -508,7 +508,7 @@ export function ShareClient() {
   const sharePercent = (sharedCount / PLATFORM_IDS.length) * 100;
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
 
       {/* ── Hero ── */}
       <section className="relative px-6 pt-28 pb-20 text-center overflow-hidden">
@@ -532,24 +532,24 @@ export function ShareClient() {
             </span>
           </h1>
 
-          <p className="text-zinc-400 text-lg max-w-xl mx-auto mb-10">
+          <p className="text-[var(--text-secondary)] text-lg max-w-xl mx-auto mb-10">
             Every star, share, and post helps independent traders discover a free alternative
             to expensive signal platforms. Takes 10 seconds. Makes a real difference.
           </p>
 
           {/* GitHub stars progress bar */}
           <div className="mb-6 px-4">
-            <div className="flex items-center justify-between text-xs text-zinc-500 mb-2">
+            <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] mb-2">
               <span className="text-emerald-400 font-medium">{stars.toLocaleString()} stars</span>
               <span>Goal: {STARS_GOAL.toLocaleString()}</span>
             </div>
-            <div className="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-[var(--bg-card)] rounded-full h-3 overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-700"
                 style={{ width: `${Math.max(starsPercent, 0.3)}%` }}
               />
             </div>
-            <p className="text-xs text-zinc-600 mt-2 text-center">
+            <p className="text-xs text-[var(--text-secondary)] mt-2 text-center">
               {(STARS_GOAL - stars).toLocaleString()} more stars to reach our goal
             </p>
           </div>
@@ -565,7 +565,7 @@ export function ShareClient() {
                   <span className="text-emerald-300 font-bold">Complete!</span>
                 )}
               </div>
-              <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+              <div className="w-full bg-[var(--bg-card)] rounded-full h-2 overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
                   style={{ width: `${sharePercent}%` }}
@@ -594,16 +594,16 @@ export function ShareClient() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base font-semibold text-zinc-100">Your sharing progress</h2>
-              <p className="text-xs text-zinc-500 mt-0.5">Check off each platform after you share</p>
+              <h2 className="text-base font-semibold text-[var(--foreground)]">Your sharing progress</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">Check off each platform after you share</p>
             </div>
             <span className="text-2xl font-bold text-emerald-400 tabular-nums">
-              {sharedCount}<span className="text-zinc-600 text-lg">/{PLATFORM_IDS.length}</span>
+              {sharedCount}<span className="text-[var(--text-secondary)] text-lg">/{PLATFORM_IDS.length}</span>
             </span>
           </div>
 
           {/* Progress bar */}
-          <div className="w-full bg-zinc-800 rounded-full h-2 mb-5 overflow-hidden">
+          <div className="w-full bg-[var(--bg-card)] rounded-full h-2 mb-5 overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
               style={{ width: `${sharePercent}%` }}
@@ -623,7 +623,7 @@ export function ShareClient() {
                   className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium border transition-all duration-200 text-left ${
                     isChecked
                       ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                      : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:border-zinc-600 hover:text-zinc-400'
+                      : 'bg-[var(--bg-card)]/50 border-[var(--border)]/50 text-[var(--text-secondary)] hover:border-zinc-600 hover:text-[var(--text-secondary)]'
                   }`}
                 >
                   <span className={`shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-all ${
@@ -651,8 +651,8 @@ export function ShareClient() {
 
       {/* ── Quick Share Buttons ── */}
       <section className="px-6 pb-20 max-w-3xl mx-auto">
-        <h2 className="text-xl font-semibold text-zinc-100 mb-2">Quick share</h2>
-        <p className="text-zinc-500 text-sm mb-8">
+        <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">Quick share</h2>
+        <p className="text-[var(--text-secondary)] text-sm mb-8">
           One click to share on any platform. Pre-filled content — just review and post.
         </p>
 
@@ -681,8 +681,8 @@ export function ShareClient() {
 
       {/* ── Pre-written Posts ── */}
       <section className="px-6 pb-20 max-w-3xl mx-auto">
-        <h2 className="text-xl font-semibold text-zinc-100 mb-2">Pre-written posts</h2>
-        <p className="text-zinc-500 text-sm mb-8">
+        <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">Pre-written posts</h2>
+        <p className="text-[var(--text-secondary)] text-sm mb-8">
           Copy-paste ready content for every platform. Customise as you like — or post as-is.
         </p>
 
@@ -693,10 +693,10 @@ export function ShareClient() {
             }`}>
               <div className="flex items-center justify-between mb-4 gap-3">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-zinc-500 shrink-0">{post.icon}</span>
-                  <span className="text-sm font-medium text-zinc-300 truncate">{post.platform}</span>
+                  <span className="text-[var(--text-secondary)] shrink-0">{post.icon}</span>
+                  <span className="text-sm font-medium text-[var(--foreground)] truncate">{post.platform}</span>
                   {post.subreddit && (
-                    <span className="shrink-0 text-xs text-zinc-600 bg-zinc-800 border border-zinc-700 px-2 py-0.5 rounded-full">
+                    <span className="shrink-0 text-xs text-[var(--text-secondary)] bg-[var(--bg-card)] border border-[var(--border)] px-2 py-0.5 rounded-full">
                       {post.subreddit}
                     </span>
                   )}
@@ -709,7 +709,7 @@ export function ShareClient() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => toggleShared(post.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-700 hover:border-zinc-600 transition-all duration-200"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-card)] hover:bg-zinc-700 text-[var(--text-secondary)] hover:text-[var(--foreground)] border border-[var(--border)] hover:border-zinc-600 transition-all duration-200"
                     >
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
@@ -722,11 +722,11 @@ export function ShareClient() {
                 </div>
               </div>
               {post.title && (
-                <p className="text-xs font-semibold text-zinc-400 mb-2 px-3 py-2 bg-zinc-950/60 rounded-lg border border-zinc-800">
+                <p className="text-xs font-semibold text-[var(--text-secondary)] mb-2 px-3 py-2 bg-[var(--background)]/60 rounded-lg border border-zinc-800">
                   Title: {post.title}
                 </p>
               )}
-              <pre className="text-xs text-zinc-400 leading-relaxed whitespace-pre-wrap font-sans bg-zinc-950/60 rounded-xl p-3 max-h-48 overflow-y-auto border border-zinc-800/50">
+              <pre className="text-xs text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap font-sans bg-[var(--background)]/60 rounded-xl p-3 max-h-48 overflow-y-auto border border-zinc-800/50">
                 {post.text}
               </pre>
 
@@ -735,11 +735,11 @@ export function ShareClient() {
                 <button
                   onClick={() => toggleShared(post.id)}
                   className={`flex items-center gap-2 text-xs font-medium transition-all duration-200 ${
-                    shared[post.id] ? 'text-emerald-400' : 'text-zinc-600 hover:text-zinc-400'
+                    shared[post.id] ? 'text-emerald-400' : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'
                   }`}
                 >
                   <span className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all ${
-                    shared[post.id] ? 'bg-emerald-500 border-emerald-500' : 'border-zinc-700'
+                    shared[post.id] ? 'bg-emerald-500 border-emerald-500' : 'border-[var(--border)]'
                   }`}>
                     {shared[post.id] && (
                       <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -757,16 +757,16 @@ export function ShareClient() {
 
       {/* ── Embed Badge Wall ── */}
       <section className="px-6 pb-20 max-w-3xl mx-auto">
-        <h2 className="text-xl font-semibold text-zinc-100 mb-2">Embed badges</h2>
-        <p className="text-zinc-500 text-sm mb-8">
+        <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">Embed badges</h2>
+        <p className="text-[var(--text-secondary)] text-sm mb-8">
           Add TradeClaw badges to your blog, README, or website. Click to copy Markdown or HTML.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {BADGES.map((badge) => (
-            <div key={badge.label} className="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-2xl p-5 transition-colors">
+            <div key={badge.label} className="bg-zinc-900 border border-zinc-800 hover:border-[var(--border)] rounded-2xl p-5 transition-colors">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-zinc-400">{badge.label}</span>
+                <span className="text-xs font-semibold text-[var(--text-secondary)]">{badge.label}</span>
               </div>
 
               {/* Badge preview */}
@@ -788,8 +788,8 @@ export function ShareClient() {
       {/* ── Timing Tips ── */}
       <section className="px-6 pb-28 max-w-3xl mx-auto">
         <div className="bg-gradient-to-br from-emerald-950/50 to-zinc-900 border border-emerald-500/20 rounded-3xl p-8">
-          <h2 className="text-xl font-semibold text-zinc-100 mb-2">Every share matters</h2>
-          <p className="text-zinc-500 text-sm mb-8">
+          <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">Every share matters</h2>
+          <p className="text-[var(--text-secondary)] text-sm mb-8">
             Open-source projects live and die by word of mouth. A single well-timed Reddit post can bring hundreds of new users.
             Here&#39;s when each platform is most receptive.
           </p>
@@ -799,18 +799,18 @@ export function ShareClient() {
               <div key={tip.platform} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <tip.icon className="w-5 h-5 text-emerald-400" />
-                  <span className="text-sm font-semibold text-zinc-300">{tip.platform}</span>
+                  <span className="text-sm font-semibold text-[var(--foreground)]">{tip.platform}</span>
                 </div>
                 <p className="text-xs text-emerald-400 font-medium mb-1.5">{tip.bestTime}</p>
-                <p className="text-xs text-zinc-500 leading-relaxed">{tip.tip}</p>
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{tip.tip}</p>
               </div>
             ))}
           </div>
 
           <div className="mt-8 pt-6 border-t border-zinc-800/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-zinc-300">Ready to spread the word?</p>
-              <p className="text-xs text-zinc-600 mt-0.5">Star it first — then share it.</p>
+              <p className="text-sm font-medium text-[var(--foreground)]">Ready to spread the word?</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">Star it first — then share it.</p>
             </div>
             <a
               href={REPO_URL}
@@ -829,7 +829,7 @@ export function ShareClient() {
 
       {/* ── Back link ── */}
       <section className="px-6 pb-16 text-center">
-        <Link href="/" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
+        <Link href="/" className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors">
           ← Back to TradeClaw
         </Link>
       </section>

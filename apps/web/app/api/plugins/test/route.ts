@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch real OHLCV data (default: BTCUSD H1)
     let candles: OHLCV[];
-    let source: 'binance' | 'yahoo' | 'synthetic';
+    let source: string;
 
     try {
       const ohlcvResult = await getOHLCV(

@@ -71,17 +71,17 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="px-6 py-24 bg-[#0a0a0a]">
+    <section id="how-it-works" className="px-6 py-24 bg-[var(--bg-card)]">
       <div className="mx-auto max-w-5xl">
         <div className="text-center mb-16">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-1.5 text-xs uppercase tracking-widest text-zinc-500">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--glass-bg)] px-3.5 py-1.5 text-xs uppercase tracking-widest text-[var(--text-secondary)]">
             Get started
           </div>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-white">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[var(--foreground)]">
             Deploy in{" "}
             <span className="text-emerald-400">under 2 minutes</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-lg text-base text-zinc-400">
+          <p className="mx-auto mt-4 max-w-lg text-base text-[var(--text-secondary)]">
             No vendor accounts, no API keys for signal providers, no monthly
             fees. Just clone and run.
           </p>
@@ -89,7 +89,7 @@ export function HowItWorks() {
 
         <div className="relative grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Connector line */}
-          <div className="absolute top-10 left-1/6 right-1/6 hidden h-px bg-gradient-to-r from-transparent via-white/8 to-transparent md:block" />
+          <div className="absolute top-10 left-1/6 right-1/6 hidden h-px bg-gradient-to-r from-transparent via-[var(--border)] to-transparent md:block" />
 
           {STEPS.map((step) => (
             <div key={step.number} className="relative flex flex-col gap-4">
@@ -98,22 +98,22 @@ export function HowItWorks() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/8 text-emerald-400">
                   {step.icon}
                 </div>
-                <span className="font-mono text-xs font-bold text-zinc-700">
+                <span className="font-mono text-xs font-bold text-[var(--text-secondary)]">
                   {step.number}
                 </span>
               </div>
 
-              <h3 className="text-base font-semibold text-white">
+              <h3 className="text-base font-semibold text-[var(--foreground)]">
                 {step.title}
               </h3>
-              <p className="text-sm text-zinc-500 leading-relaxed">
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                 {step.description}
               </p>
 
               {/* Mini code snippet */}
-              <div className="mt-auto rounded-lg border border-white/6 bg-[#050505] px-3.5 py-2.5">
+              <div className="mt-auto rounded-lg border border-[var(--border)] bg-[var(--background)] px-3.5 py-2.5">
                 <span className="text-emerald-400 font-mono text-xs">$ </span>
-                <span className="font-mono text-xs text-zinc-400">
+                <span className="font-mono text-xs text-[var(--text-secondary)]">
                   {step.code}
                 </span>
               </div>
