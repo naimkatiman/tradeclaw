@@ -133,14 +133,14 @@ export function Navbar() {
       {/* Mobile menu overlay */}
       {menuOpen && (
         <div
-          className="fixed inset-0 z-40 backdrop-blur-2xl bg-black/85 flex flex-col items-center justify-center gap-8"
+          className="fixed inset-0 z-40 backdrop-blur-2xl bg-[var(--background)]/90 flex flex-col items-center justify-center gap-8"
           onClick={() => setMenuOpen(false)}
         >
           {NAV_LINKS.map((link, i) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-2xl font-semibold text-white opacity-0 animate-fade-up"
+              className="text-2xl font-semibold text-[var(--foreground)] opacity-0 animate-fade-up"
               style={{
                 animationDelay: `${i * 60}ms`,
                 animationFillMode: "forwards",

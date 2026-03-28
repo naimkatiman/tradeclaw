@@ -51,25 +51,25 @@ const FOOTER_LINKS: { title: string; links: FooterLink[] }[] = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-white/6 bg-[#050505] px-6 py-16">
+    <footer className="border-t border-[var(--border)] bg-[var(--background)] px-6 py-16">
       <div className="mx-auto max-w-5xl">
         <div className="grid grid-cols-2 gap-10 sm:grid-cols-4">
           {/* Brand */}
           <div className="col-span-2 sm:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-lg font-bold tracking-tight text-white">
+              <span className="text-lg font-bold tracking-tight text-[var(--foreground)]">
                 TradeClaw
               </span>
               <span className="rounded-full border border-emerald-500/20 bg-emerald-500/8 px-2 py-0.5 text-[9px] font-mono uppercase tracking-wider text-emerald-400">
                 Open Source
               </span>
             </div>
-            <p className="text-xs text-zinc-600 leading-relaxed mb-5">
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-5">
               AI-powered trading signals.
               <br />
               Self-hosted. Free forever.
             </p>
-            <p className="text-xs text-zinc-700 italic">
+            <p className="text-xs text-[var(--text-secondary)] italic">
               Built by traders, for traders.
             </p>
 
@@ -90,7 +90,7 @@ export function SiteFooter() {
           {/* Link columns */}
           {FOOTER_LINKS.map((group) => (
             <div key={group.title}>
-              <h4 className="mb-3.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+              <h4 className="mb-3.5 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
                 {group.title}
               </h4>
               <ul className="space-y-2.5">
@@ -100,7 +100,7 @@ export function SiteFooter() {
                       href={link.href}
                       target={link.external ? "_blank" : undefined}
                       rel={link.external ? "noopener noreferrer" : undefined}
-                      className="text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+                      className="text-xs text-[var(--text-secondary)] transition-colors hover:text-[var(--foreground)]"
                     >
                       {link.label}
                     </a>
@@ -112,22 +112,22 @@ export function SiteFooter() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/4 pt-6 sm:flex-row">
-          <p className="text-[11px] text-zinc-700">
+        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-[var(--border)] pt-6 sm:flex-row">
+          <p className="text-[11px] text-[var(--text-secondary)]">
             © {new Date().getFullYear()} TradeClaw. Released under the{" "}
             <a
               href={`${GITHUB_URL}/blob/main/LICENSE`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-zinc-600 hover:text-zinc-400 transition-colors"
+              className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
             >
               MIT License
             </a>
             .
           </p>
-          <div className="flex items-center gap-1.5 rounded-full border border-white/6 px-3 py-1">
+          <div className="flex items-center gap-1.5 rounded-full border border-[var(--border)] px-3 py-1">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
-            <span className="text-[10px] font-mono text-zinc-600">
+            <span className="text-[10px] font-mono text-[var(--text-secondary)]">
               All systems operational
             </span>
           </div>
@@ -152,7 +152,7 @@ function SocialLink({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/8 bg-white/[0.03] text-zinc-500 transition-all hover:border-white/15 hover:text-zinc-300"
+      className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-all hover:border-[var(--glass-border-accent)] hover:text-[var(--foreground)]"
     >
       {children}
     </a>
