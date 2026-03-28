@@ -39,11 +39,11 @@ jobs:
       - name: Create .env for CI
         run: |
           cat > .env << 'EOF'
-          DB_PASSWORD=ci_test_password
+          DB_PASSWORD=ci_test_password_123
           DB_USER=tradeclaw
           DB_NAME=tradeclaw
-          NEXTAUTH_SECRET=ci_test_secret_32_chars_minimum_x
-          NEXTAUTH_URL=http://localhost:3000
+          AUTH_SECRET=ci_test_auth_secret_32_chars_min_x
+          APP_URL=http://localhost:3000
           NEXT_PUBLIC_APP_URL=http://localhost:3000
           NODE_ENV=production
           EOF
@@ -53,11 +53,11 @@ jobs:
           docker compose up -d --build
         env:
           DOCKER_BUILDKIT: 1
-          DB_PASSWORD: ci_test_password
+          DB_PASSWORD: ci_test_password_123
           DB_USER: tradeclaw
           DB_NAME: tradeclaw
-          NEXTAUTH_SECRET: ci_test_secret_32_chars_minimum_x
-          NEXTAUTH_URL: http://localhost:3000
+          AUTH_SECRET: ci_test_auth_secret_32_chars_min_x
+          APP_URL: http://localhost:3000
 
       - name: Wait for health endpoint
         run: |
@@ -74,14 +74,18 @@ jobs:
         if: failure()
         run: docker compose logs
         env:
-          DB_PASSWORD: ci_test_password
+          DB_PASSWORD: ci_test_password_123
           DB_USER: tradeclaw
           DB_NAME: tradeclaw
+          AUTH_SECRET: ci_test_auth_secret_32_chars_min_x
+          APP_URL: http://localhost:3000
 
       - name: Teardown
         if: always()
         run: docker compose down --volumes --remove-orphans
         env:
-          DB_PASSWORD: ci_test_password
+          DB_PASSWORD: ci_test_password_123
           DB_USER: tradeclaw
           DB_NAME: tradeclaw
+          AUTH_SECRET: ci_test_auth_secret_32_chars_min_x
+          APP_URL: http://localhost:3000
