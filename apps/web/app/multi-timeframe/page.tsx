@@ -46,11 +46,11 @@ function directionArrow(dir: 'BUY' | 'SELL' | 'NEUTRAL'): string {
 function TFBadge({ tf }: { tf: TFDirection }) {
   return (
     <div className={`flex flex-col items-center gap-1 p-2 rounded-xl border ${directionBg(tf.direction)}`}>
-      <div className="text-[9px] text-zinc-600 font-mono uppercase">{tf.timeframe}</div>
+      <div className="text-[9px] text-[var(--text-secondary)] font-mono uppercase">{tf.timeframe}</div>
       <div className={`text-xs font-bold tabular-nums ${directionColor(tf.direction)}`}>
         {directionArrow(tf.direction)}
       </div>
-      <div className="text-[10px] font-mono text-zinc-500 tabular-nums">{tf.confidence}%</div>
+      <div className="text-[10px] font-mono text-[var(--text-secondary)] tabular-nums">{tf.confidence}%</div>
     </div>
   );
 }
@@ -61,7 +61,7 @@ function ConfluenceBar({ value, direction }: { value: number; direction: 'BUY' |
     direction === 'SELL' ? '#f43f5e' :
     '#f59e0b';
   return (
-    <div className="relative h-1 w-full rounded-full bg-white/5">
+    <div className="relative h-1 w-full rounded-full bg-[var(--border)]">
       <div
         className="absolute h-1 rounded-full transition-all duration-700"
         style={{ width: `${value}%`, background: color, boxShadow: `0 0 6px ${color}50` }}
@@ -88,14 +88,14 @@ function MatrixRow({ result }: { result: MultiTFResult }) {
     <div className="glass-card rounded-2xl overflow-hidden">
       {/* Main row */}
       <button
-        className="w-full text-left p-4 hover:bg-white/[0.02] transition-all duration-200"
+        className="w-full text-left p-4 hover:bg-[var(--glass-bg)] transition-all duration-200"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-4">
           {/* Symbol */}
           <div className="w-20 shrink-0">
-            <div className="text-sm font-semibold text-white font-mono">{result.symbol}</div>
-            <div className="text-[10px] text-zinc-600 font-mono tabular-nums mt-0.5">{formatPrice(result.entry)}</div>
+            <div className="text-sm font-semibold text-[var(--foreground)] font-mono">{result.symbol}</div>
+            <div className="text-[10px] text-[var(--text-secondary)] font-mono tabular-nums mt-0.5">{formatPrice(result.entry)}</div>
           </div>
 
           {/* TF Cells */}
@@ -115,7 +115,7 @@ function MatrixRow({ result }: { result: MultiTFResult }) {
             </div>
             <div className={`text-[10px] font-mono ${
               result.isConflicted ? 'text-amber-400' :
-              result.agreementCount === 3 ? 'text-emerald-400' : 'text-zinc-500'
+              result.agreementCount === 3 ? 'text-emerald-400' : 'text-[var(--text-secondary)]'
             }`}>
               {confluenceLabel}
             </div>
@@ -132,24 +132,24 @@ function MatrixRow({ result }: { result: MultiTFResult }) {
             )}
           </div>
 
-          <div className="text-zinc-700 text-[10px]">{expanded ? '▴' : '▾'}</div>
+          <div className="text-[var(--text-secondary)] text-[10px]">{expanded ? '▴' : '▾'}</div>
         </div>
       </button>
 
       {/* Expanded detail */}
       {expanded && (
-        <div className="px-4 pb-4 pt-0 border-t border-white/5">
+        <div className="px-4 pb-4 pt-0 border-t border-[var(--border)]">
           <div className="grid grid-cols-3 gap-3 mt-3">
             {result.timeframes.map(tf => (
               <div
                 key={tf.timeframe}
                 className={`rounded-xl p-3 border ${directionBg(tf.direction)}`}
               >
-                <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-2">{tf.timeframe}</div>
+                <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-2">{tf.timeframe}</div>
                 <div className={`text-lg font-bold font-mono ${directionColor(tf.direction)}`}>
                   {directionArrow(tf.direction)} {tf.direction}
                 </div>
-                <div className="mt-2 space-y-1 text-[10px] font-mono text-zinc-500">
+                <div className="mt-2 space-y-1 text-[10px] font-mono text-[var(--text-secondary)]">
                   <div className="flex justify-between">
                     <span>Buy score</span>
                     <span className="text-emerald-400 tabular-nums">{tf.buyScore.toFixed(0)}</span>
@@ -160,7 +160,7 @@ function MatrixRow({ result }: { result: MultiTFResult }) {
                   </div>
                   <div className="flex justify-between">
                     <span>Confidence</span>
-                    <span className="text-white tabular-nums">{tf.confidence}%</span>
+                    <span className="text-[var(--foreground)] tabular-nums">{tf.confidence}%</span>
                   </div>
                 </div>
               </div>
@@ -178,9 +178,9 @@ function MatrixRow({ result }: { result: MultiTFResult }) {
               const isBull = sig === 'bullish' || sig === 'oversold' || sig === 'up';
               const isBear = sig === 'bearish' || sig === 'overbought' || sig === 'down';
               return (
-                <div key={label} className="bg-white/[0.02] rounded-lg p-2">
-                  <div className="text-zinc-600 mb-0.5">{label}</div>
-                  <div className={isBull ? 'text-emerald-400' : isBear ? 'text-rose-400' : 'text-zinc-400'}>
+                <div key={label} className="bg-[var(--glass-bg)] rounded-lg p-2">
+                  <div className="text-[var(--text-secondary)] mb-0.5">{label}</div>
+                  <div className={isBull ? 'text-emerald-400' : isBear ? 'text-rose-400' : 'text-[var(--text-secondary)]'}>
                     {value}
                   </div>
                 </div>
@@ -201,7 +201,7 @@ function MatrixRow({ result }: { result: MultiTFResult }) {
             </div>
           )}
 
-          <div className="mt-3 text-[9px] text-zinc-700 font-mono flex items-center justify-between">
+          <div className="mt-3 text-[9px] text-[var(--text-secondary)] font-mono flex items-center justify-between">
             <span>Source: {result.source}</span>
             <span>{new Date(result.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
           </div>
@@ -213,11 +213,11 @@ function MatrixRow({ result }: { result: MultiTFResult }) {
 
 // ─── Summary stats ────────────────────────────────────────────
 
-function SummaryCard({ value, label, color = 'text-white' }: { value: string | number; label: string; color?: string }) {
+function SummaryCard({ value, label, color = 'text-[var(--foreground)]' }: { value: string | number; label: string; color?: string }) {
   return (
     <div className="glass-card rounded-2xl p-4 text-center">
       <div className={`text-2xl font-bold font-mono tabular-nums tracking-tight ${color}`}>{value}</div>
-      <div className="text-[11px] text-zinc-600 uppercase tracking-wider mt-1">{label}</div>
+      <div className="text-[11px] text-[var(--text-secondary)] uppercase tracking-wider mt-1">{label}</div>
     </div>
   );
 }
@@ -267,9 +267,9 @@ export default function MultiTimeframePage() {
   ) ?? [];
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] text-white">
+    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#050505]/90 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
@@ -287,7 +287,7 @@ export default function MultiTimeframePage() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                   page.href === '/multi-timeframe'
                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
                 }`}
               >
                 {page.label}
@@ -301,14 +301,14 @@ export default function MultiTimeframePage() {
               className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all duration-200 ${
                 autoRefresh
                   ? 'border-emerald-500/25 text-emerald-400 bg-emerald-500/8'
-                  : 'border-white/8 text-zinc-600'
+                  : 'border-[var(--border)] text-[var(--text-secondary)]'
               }`}
             >
-              <span className={`h-1.5 w-1.5 rounded-full ${autoRefresh ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`} />
+              <span className={`h-1.5 w-1.5 rounded-full ${autoRefresh ? 'bg-emerald-400 animate-pulse' : 'bg-[var(--border)]'}`} />
               {autoRefresh ? 'Live' : 'Paused'}
             </button>
             {lastUpdate && (
-              <span className="hidden sm:block text-xs text-zinc-700 font-mono tabular-nums">
+              <span className="hidden sm:block text-xs text-[var(--text-secondary)] font-mono tabular-nums">
                 {lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </span>
             )}
@@ -320,7 +320,7 @@ export default function MultiTimeframePage() {
         {/* Page header */}
         <div className="mb-6">
           <h1 className="text-xl font-bold tracking-tight">Multi-Timeframe Analysis</h1>
-          <p className="text-xs text-zinc-600 mt-1">Signal confluence across H1 · H4 · D1 — all assets</p>
+          <p className="text-xs text-[var(--text-secondary)] mt-1">Signal confluence across H1 · H4 · D1 — all assets</p>
         </div>
 
         {/* Summary cards */}
@@ -338,7 +338,7 @@ export default function MultiTimeframePage() {
           <SummaryCard
             value={data?.summary.allAligned ?? 0}
             label="All TFs aligned"
-            color="text-white"
+            color="text-[var(--foreground)]"
           />
           <SummaryCard
             value={data?.summary.conflicted ?? 0}
@@ -348,7 +348,7 @@ export default function MultiTimeframePage() {
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-4 mb-4 text-[10px] font-mono text-zinc-600">
+        <div className="flex flex-wrap items-center gap-4 mb-4 text-[10px] font-mono text-[var(--text-secondary)]">
           <span className="flex items-center gap-1.5">
             <span className="text-emerald-400">+15%</span> All 3 TFs agree
           </span>
@@ -361,7 +361,7 @@ export default function MultiTimeframePage() {
         </div>
 
         {/* Direction filter */}
-        <div className="flex gap-0.5 bg-white/[0.03] border border-white/5 rounded-xl p-1 mb-4 w-fit">
+        <div className="flex gap-0.5 bg-[var(--glass-bg)] border border-[var(--border)] rounded-xl p-1 mb-4 w-fit">
           {(['ALL', 'BUY', 'SELL', 'NEUTRAL'] as const).map(dir => (
             <button
               key={dir}
@@ -371,8 +371,8 @@ export default function MultiTimeframePage() {
                   ? dir === 'BUY' ? 'bg-emerald-500/15 text-emerald-400'
                   : dir === 'SELL' ? 'bg-rose-500/15 text-rose-400'
                   : dir === 'NEUTRAL' ? 'bg-amber-500/15 text-amber-400'
-                  : 'bg-white/8 text-white'
-                  : 'text-zinc-600 hover:text-zinc-300'
+                  : 'bg-[var(--glass-bg)] text-[var(--foreground)]'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
               }`}
             >
               {dir}
@@ -381,7 +381,7 @@ export default function MultiTimeframePage() {
         </div>
 
         {/* Matrix header */}
-        <div className="flex items-center gap-4 px-4 mb-2 text-[10px] font-mono text-zinc-700 uppercase tracking-wider">
+        <div className="flex items-center gap-4 px-4 mb-2 text-[10px] font-mono text-[var(--text-secondary)] uppercase tracking-wider">
           <div className="w-20 shrink-0">Symbol</div>
           <div className="flex gap-2 flex-1">
             <div className="w-[52px] text-center">H1</div>
@@ -401,7 +401,7 @@ export default function MultiTimeframePage() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="glass-card rounded-2xl p-8 text-center text-zinc-700 text-sm">
+          <div className="glass-card rounded-2xl p-8 text-center text-[var(--text-secondary)] text-sm">
             No signals matching filter
           </div>
         ) : (
@@ -413,7 +413,7 @@ export default function MultiTimeframePage() {
         )}
 
         {/* Footer note */}
-        <div className="mt-6 text-[10px] text-zinc-700 font-mono text-center">
+        <div className="mt-6 text-[10px] text-[var(--text-secondary)] font-mono text-center">
           Refreshes every 60s · H1/H4/D1 from live OHLCV · Confluence = % TF agreement weighted by TA score
         </div>
       </div>
