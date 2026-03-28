@@ -1054,8 +1054,27 @@ export default function ApiDocsPage() {
           <h1 className="text-3xl font-bold text-zinc-100 mb-3">API Reference</h1>
           <p className="text-zinc-400 max-w-xl leading-relaxed">
             Programmatic access to TradeClaw signals, paper trading, webhooks, and more.
-            All endpoints return JSON. No authentication required for public endpoints.
+            All endpoints return JSON. Public endpoints work without authentication — add an API key for higher rate limits.
           </p>
+
+          {/* Authentication */}
+          <div className="mt-6 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 max-w-xl">
+            <p className="text-xs font-semibold text-emerald-400 mb-2">Authentication</p>
+            <p className="text-xs text-zinc-400 mb-3">
+              Public endpoints work without a key. Add an API key for rate-limited access (1,000 req/hour free).
+              Pass as a query param or <code className="font-mono text-zinc-300">Authorization</code> header.{' '}
+              <a href="/api-keys" className="text-emerald-400 hover:underline">Get a free key →</a>
+            </p>
+            <pre className="text-xs font-mono bg-black/40 rounded-lg p-3 text-emerald-300 overflow-x-auto">
+{`# Query param
+curl "https://tradeclaw.win/api/signals?api_key=tc_live_YOUR_KEY"
+
+# Bearer header
+curl -H "Authorization: Bearer tc_live_YOUR_KEY" \\
+  https://tradeclaw.win/api/signals`}
+            </pre>
+          </div>
+
           <div className="flex flex-wrap gap-4 mt-6">
             <div className="flex items-center gap-2 text-xs text-zinc-500">
               <span className="font-mono text-zinc-400 tabular-nums">{totalEndpoints}</span> endpoints

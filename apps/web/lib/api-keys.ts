@@ -4,16 +4,19 @@ import crypto from 'crypto';
 
 export interface ApiKey {
   id: string;
-  key: string; // tc_live_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  key: string; // tc_live_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX (32 hex chars)
   name: string;
+  email: string;
+  description: string;
+  scopes: ('signals' | 'leaderboard' | 'screener')[];
   createdAt: number;
   lastUsedAt: number | null;
   requestCount: number;
-  dailyLimit: number; // requests per day
-  tier: 'free' | 'pro';
+  rateLimit: number; // requests per hour
+  status: 'active' | 'revoked';
+  // kept for backward-compat with existing [id]/route.ts toggle handler
   active: boolean;
-  allowedEndpoints: string[]; // ['*'] = all
-  ipAllowlist: string[]; // empty = all IPs
+  tier: 'free' | 'pro';
 }
 
 export interface RateLimitEntry {
@@ -21,37 +24,80 @@ export interface RateLimitEntry {
   windowStart: number; // ms epoch of window start
 }
 
+export interface UsageStats {
+  requestsThisHour: number;
+  requestsToday: number;
+  rateLimit: number;
+  resetAt: number;
+}
+
 const DATA_DIR = path.join(process.cwd(), 'data');
 const KEYS_FILE = path.join(DATA_DIR, 'api-keys.json');
-const RATE_FILE = path.join(DATA_DIR, 'api-rate-limits.json');
+const USAGE_FILE = path.join(DATA_DIR, 'api-key-usage.json');
 
-const FREE_DAILY_LIMIT = 1000;
+const DEFAULT_RATE_LIMIT = 1000; // per hour
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
 
 function ensureDir() {
   try {
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  } catch { /* read-only */ }
+  } catch { /* read-only env */ }
 }
 
 function generateKeyString(): string {
-  const rand = crypto.randomBytes(24).toString('hex');
+  // 16 bytes = 32 hex chars
+  const rand = crypto.randomBytes(16).toString('hex');
   return `tc_live_${rand}`;
 }
 
 function seedKeys(): ApiKey[] {
+  const now = Date.now();
   return [
     {
       id: 'demo-key-1',
-      key: 'tc_live_demo_00000000000000000000000000000001',
-      name: 'Demo Key (read-only)',
-      createdAt: Date.now() - 7 * 86400000,
-      lastUsedAt: Date.now() - 3600000,
-      requestCount: 142,
-      dailyLimit: FREE_DAILY_LIMIT,
+      key: 'tc_live_a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4',
+      name: 'Demo Key — Signals only',
+      email: 'demo@tradeclaw.win',
+      description: 'Read-only access to trading signals endpoint.',
+      scopes: ['signals'],
+      createdAt: now - 14 * DAY_MS,
+      lastUsedAt: now - 2 * DAY_MS,
+      requestCount: 340,
+      rateLimit: DEFAULT_RATE_LIMIT,
+      status: 'revoked',
+      active: false,
       tier: 'free',
-      active: true,
-      allowedEndpoints: ['/api/signals', '/api/leaderboard', '/api/prices'],
-      ipAllowlist: [],
+    },
+    {
+      id: 'demo-key-2',
+      key: 'tc_live_b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5',
+      name: 'Demo Key — Signals + Leaderboard',
+      email: 'demo@tradeclaw.win',
+      description: 'Signals and leaderboard access for a bot.',
+      scopes: ['signals', 'leaderboard'],
+      createdAt: now - 7 * DAY_MS,
+      lastUsedAt: now - DAY_MS,
+      requestCount: 892,
+      rateLimit: DEFAULT_RATE_LIMIT,
+      status: 'revoked',
+      active: false,
+      tier: 'free',
+    },
+    {
+      id: 'demo-key-3',
+      key: 'tc_live_c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6',
+      name: 'Demo Key — Full access',
+      email: 'demo@tradeclaw.win',
+      description: 'Full scope access: signals, leaderboard, screener.',
+      scopes: ['signals', 'leaderboard', 'screener'],
+      createdAt: now - 3 * DAY_MS,
+      lastUsedAt: now - 3600000,
+      requestCount: 1247,
+      rateLimit: DEFAULT_RATE_LIMIT,
+      status: 'revoked',
+      active: false,
+      tier: 'free',
     },
   ];
 }
@@ -73,20 +119,27 @@ function writeKeys(keys: ApiKey[]) {
   try { fs.writeFileSync(KEYS_FILE, JSON.stringify(keys, null, 2)); } catch { /* read-only */ }
 }
 
-export function createKey(name: string): ApiKey {
+export function createKey(opts: {
+  name: string;
+  email: string;
+  description?: string;
+  scopes?: ('signals' | 'leaderboard' | 'screener')[];
+}): ApiKey {
   const keys = readKeys();
   const newKey: ApiKey = {
     id: crypto.randomBytes(8).toString('hex'),
     key: generateKeyString(),
-    name: name.trim().slice(0, 80) || 'My API Key',
+    name: opts.name.trim().slice(0, 80) || 'My API Key',
+    email: opts.email.trim().toLowerCase(),
+    description: (opts.description ?? '').trim().slice(0, 200),
+    scopes: opts.scopes ?? ['signals', 'leaderboard', 'screener'],
     createdAt: Date.now(),
     lastUsedAt: null,
     requestCount: 0,
-    dailyLimit: FREE_DAILY_LIMIT,
-    tier: 'free',
+    rateLimit: DEFAULT_RATE_LIMIT,
+    status: 'active',
     active: true,
-    allowedEndpoints: ['*'],
-    ipAllowlist: [],
+    tier: 'free',
   };
   keys.push(newKey);
   writeKeys(keys);
@@ -107,13 +160,34 @@ export function toggleKey(id: string): ApiKey | null {
   const key = keys.find((k) => k.id === id);
   if (!key) return null;
   key.active = !key.active;
+  key.status = key.active ? 'active' : 'revoked';
   writeKeys(keys);
   return key;
 }
 
+export function revokeKey(id: string): ApiKey | null {
+  const keys = readKeys();
+  const key = keys.find((k) => k.id === id);
+  if (!key) return null;
+  key.status = 'revoked';
+  key.active = false;
+  writeKeys(keys);
+  return key;
+}
+
+export function getKeyByString(keyStr: string): ApiKey | null {
+  const keys = readKeys();
+  return keys.find((k) => k.key === keyStr) ?? null;
+}
+
+export function listKeysByEmail(email: string): ApiKey[] {
+  const keys = readKeys();
+  return keys.filter((k) => k.email === email.trim().toLowerCase());
+}
+
 export function validateKey(keyStr: string): ApiKey | null {
   const keys = readKeys();
-  const key = keys.find((k) => k.key === keyStr && k.active);
+  const key = keys.find((k) => k.key === keyStr && k.status === 'active');
   if (!key) return null;
   // Update usage
   key.lastUsedAt = Date.now();
@@ -122,40 +196,59 @@ export function validateKey(keyStr: string): ApiKey | null {
   return key;
 }
 
-// Rate limiting
-function readRateLimits(): Record<string, RateLimitEntry> {
+// ─── Rate Limiting (hourly) ───────────────────────────────────────────────────
+
+function readUsage(): Record<string, RateLimitEntry> {
   ensureDir();
-  if (fs.existsSync(RATE_FILE)) {
+  if (fs.existsSync(USAGE_FILE)) {
     try {
-      return JSON.parse(fs.readFileSync(RATE_FILE, 'utf-8')) as Record<string, RateLimitEntry>;
+      return JSON.parse(fs.readFileSync(USAGE_FILE, 'utf-8')) as Record<string, RateLimitEntry>;
     } catch { /* */ }
   }
   return {};
 }
 
-function writeRateLimits(data: Record<string, RateLimitEntry>) {
+function writeUsage(data: Record<string, RateLimitEntry>) {
   ensureDir();
-  try { fs.writeFileSync(RATE_FILE, JSON.stringify(data)); } catch { /* read-only */ }
+  try { fs.writeFileSync(USAGE_FILE, JSON.stringify(data)); } catch { /* read-only */ }
 }
 
-export function checkRateLimit(keyId: string, dailyLimit: number): { allowed: boolean; remaining: number; resetAt: number } {
+export function checkRateLimit(keyId: string, hourlyLimit: number): { allowed: boolean; remaining: number; resetAt: number } {
   const now = Date.now();
-  const windowMs = 24 * 60 * 60 * 1000;
-  const limits = readRateLimits();
-  const entry = limits[keyId];
+  const usage = readUsage();
+  const entry = usage[keyId];
 
-  if (!entry || now - entry.windowStart > windowMs) {
-    // New window
-    limits[keyId] = { count: 1, windowStart: now };
-    writeRateLimits(limits);
-    return { allowed: true, remaining: dailyLimit - 1, resetAt: now + windowMs };
+  if (!entry || now - entry.windowStart > HOUR_MS) {
+    // New hourly window
+    usage[keyId] = { count: 1, windowStart: now };
+    writeUsage(usage);
+    return { allowed: true, remaining: hourlyLimit - 1, resetAt: now + HOUR_MS };
   }
 
-  if (entry.count >= dailyLimit) {
-    return { allowed: false, remaining: 0, resetAt: entry.windowStart + windowMs };
+  if (entry.count >= hourlyLimit) {
+    return { allowed: false, remaining: 0, resetAt: entry.windowStart + HOUR_MS };
   }
 
   entry.count++;
-  writeRateLimits(limits);
-  return { allowed: true, remaining: dailyLimit - entry.count, resetAt: entry.windowStart + windowMs };
+  writeUsage(usage);
+  return { allowed: true, remaining: hourlyLimit - entry.count, resetAt: entry.windowStart + HOUR_MS };
+}
+
+export function getUsageStats(keyId: string, hourlyLimit: number): UsageStats {
+  const now = Date.now();
+  const usage = readUsage();
+  const hourEntry = usage[keyId];
+
+  const requestsThisHour = hourEntry && now - hourEntry.windowStart <= HOUR_MS
+    ? hourEntry.count
+    : 0;
+
+  // Approximate today's requests from the key's total (no per-day tracking; use requestCount as total)
+  const keys = readKeys();
+  const key = keys.find((k) => k.id === keyId);
+  const requestsToday = key ? Math.min(key.requestCount, hourlyLimit * 24) : 0;
+
+  const resetAt = hourEntry ? hourEntry.windowStart + HOUR_MS : now + HOUR_MS;
+
+  return { requestsThisHour, requestsToday, rateLimit: hourlyLimit, resetAt };
 }

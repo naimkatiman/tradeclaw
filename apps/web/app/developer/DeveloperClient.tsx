@@ -5,11 +5,19 @@ import { useState, useEffect } from 'react';
 interface ApiKey {
   id: string;
   name: string;
-  keyPreview: string;
-  createdAt: string;
-  lastUsed: string | null;
-  requestsToday: number;
-  requestsTotal: number;
+  key: string; // masked in list responses, full on creation
+  email?: string;
+  scopes?: string[];
+  status?: 'active' | 'revoked';
+  createdAt: number;
+  lastUsedAt?: number | null;
+  requestCount?: number;
+  rateLimit?: number;
+  // legacy fields kept for compatibility
+  keyPreview?: string;
+  lastUsed?: string | null;
+  requestsToday?: number;
+  requestsTotal?: number;
 }
 
 interface ApiResponse {
@@ -18,7 +26,7 @@ interface ApiResponse {
 
 interface CreateResponse {
   key: ApiKey;
-  fullKey: string;
+  message: string;
 }
 
 function UsageBar({ used, limit }: { used: number; limit: number }) {
@@ -53,6 +61,7 @@ export default function DeveloperClient() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [newKeyName, setNewKeyName] = useState('');
+  const [newKeyEmail, setNewKeyEmail] = useState('');
   const [newKeyValue, setNewKeyValue] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,21 +75,22 @@ export default function DeveloperClient() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    if (!newKeyName.trim()) return;
+    if (!newKeyName.trim() || !newKeyEmail.trim()) return;
     setCreating(true);
     setError(null);
     try {
       const r = await fetch('/api/keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newKeyName.trim() }),
+        body: JSON.stringify({ name: newKeyName.trim(), email: newKeyEmail.trim() }),
       });
       if (!r.ok) {
         const d = await r.json();
         throw new Error(d.error ?? 'Failed to create key');
       }
       const data: CreateResponse = await r.json();
-      setNewKeyValue(data.fullKey);
+      // Full key string is in data.key.key on creation
+      setNewKeyValue(data.key.key);
       setKeys((prev) => [data.key, ...prev]);
       setNewKeyName('');
     } catch (err) {
@@ -143,12 +153,19 @@ export default function DeveloperClient() {
                   value={newKeyName}
                   onChange={(e) => setNewKeyName(e.target.value)}
                   placeholder="Key name (e.g. my-bot)"
-                  className="flex-1 min-w-0 rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50"
+                  className="flex-1 min-w-[140px] rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50"
                   maxLength={64}
+                />
+                <input
+                  type="email"
+                  value={newKeyEmail}
+                  onChange={(e) => setNewKeyEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="flex-1 min-w-[160px] rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50"
                 />
                 <button
                   type="submit"
-                  disabled={creating || !newKeyName.trim()}
+                  disabled={creating || !newKeyName.trim() || !newKeyEmail.trim()}
                   className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-black text-xs font-semibold transition-colors shrink-0"
                 >
                   {creating ? 'Creating…' : 'Generate key'}
@@ -175,22 +192,25 @@ export default function DeveloperClient() {
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">{k.name}</p>
-                          <code className="text-xs text-[var(--text-secondary)] font-mono">{k.keyPreview}</code>
+                          <code className="text-xs text-[var(--text-secondary)] font-mono">{k.key}</code>
                         </div>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 shrink-0">
-                          Free
+                        <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
+                          k.status === 'revoked'
+                            ? 'bg-red-500/20 text-red-400'
+                            : 'bg-emerald-500/20 text-emerald-400'
+                        }`}>
+                          {k.status ?? 'Free'}
                         </span>
                       </div>
                       <div className="mt-2">
                         <div className="flex justify-between text-xs text-[var(--text-secondary)]">
-                          <span>{k.requestsToday.toLocaleString()} / 1,000 today</span>
-                          <span>{k.requestsTotal.toLocaleString()} total</span>
+                          <span>{(k.requestCount ?? 0).toLocaleString()} / {(k.rateLimit ?? 1000).toLocaleString()} req/hr</span>
                         </div>
-                        <UsageBar used={k.requestsToday} limit={1000} />
+                        <UsageBar used={k.requestCount ?? 0} limit={k.rateLimit ?? 1000} />
                       </div>
                       <p className="text-xs text-[var(--text-secondary)] mt-1.5">
                         Created {new Date(k.createdAt).toLocaleDateString()}
-                        {k.lastUsed && ` · Last used ${new Date(k.lastUsed).toLocaleDateString()}`}
+                        {k.lastUsedAt && ` · Last used ${new Date(k.lastUsedAt).toLocaleDateString()}`}
                       </p>
                     </li>
                   ))}

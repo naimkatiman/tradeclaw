@@ -17,6 +17,7 @@ const NAV_LINKS = [
   { href: '/rss', label: 'RSS 📡' },
   { href: '/demo', label: 'Demo 🟢' },
   { href: '/replay', label: 'Replay ▶' },
+  { href: '/api-keys', label: 'API Keys' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
 

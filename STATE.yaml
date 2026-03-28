@@ -542,7 +542,7 @@ tasks:
     title: "Public API key system — generate free API keys, rate-limited, for external developers"
     status: in-progress
     owner: pm-tradeclaw
-    notes: "Started 2026-03-28."
+    notes: "Claude Code spawned 2026-03-28 07:54 SGT. Building lib/api-keys.ts, API routes, /api-keys page, developer portal."
 
   - id: TC-051
     title: "TradeClaw badge — dynamic SVG badge showing live BTC signal for embedding in any README"
