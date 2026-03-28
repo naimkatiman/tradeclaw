@@ -70,7 +70,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-zinc-200 border border-white/10"
+      className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200 bg-[var(--glass-bg)] hover:bg-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] border border-[var(--border)]"
       title="Copy to clipboard"
     >
       {copied ? (
@@ -99,7 +99,7 @@ function SignalPreviewItem({ signal }: { signal: SignalHistoryRecord }) {
   const date = new Date(signal.timestamp);
 
   return (
-    <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] transition-colors">
+    <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[var(--glass-bg)] border border-[var(--border)] hover:bg-[var(--bg-card)] transition-colors">
       <div
         className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
           isBuy
@@ -112,8 +112,8 @@ function SignalPreviewItem({ signal }: { signal: SignalHistoryRecord }) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-semibold text-white">{signal.pair}</span>
-          <span className="text-xs text-zinc-500">{signal.timeframe}</span>
+          <span className="text-sm font-semibold text-[var(--foreground)]">{signal.pair}</span>
+          <span className="text-xs text-[var(--text-secondary)]">{signal.timeframe}</span>
           <span
             className={`text-xs font-medium px-1.5 py-0.5 rounded ${
               isBuy ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
@@ -121,10 +121,10 @@ function SignalPreviewItem({ signal }: { signal: SignalHistoryRecord }) {
           >
             {signal.direction}
           </span>
-          <span className="text-xs text-zinc-500">{signal.confidence}% confidence</span>
+          <span className="text-xs text-[var(--text-secondary)]">{signal.confidence}% confidence</span>
         </div>
 
-        <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500 flex-wrap">
+        <div className="mt-1 flex items-center gap-3 text-xs text-[var(--text-secondary)] flex-wrap">
           <span>Entry: {fmtPrice(signal.entryPrice)}</span>
           {signal.tp1 && <span className="text-emerald-500">TP1: {fmtPrice(signal.tp1)}</span>}
           {signal.sl && <span className="text-red-500">SL: {fmtPrice(signal.sl)}</span>}
@@ -146,7 +146,7 @@ function SignalPreviewItem({ signal }: { signal: SignalHistoryRecord }) {
       </div>
 
       <div className="flex-shrink-0 text-right">
-        <div className="flex items-center gap-1 text-xs text-zinc-600">
+        <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
           <Clock size={10} />
           <span>{date.toLocaleDateString()}</span>
         </div>
@@ -220,7 +220,7 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       {/* Header */}
-      <div className="border-b border-white/[0.06] pt-20 pb-10 px-4">
+      <div className="border-b border-[var(--border)] pt-20 pb-10 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
@@ -228,10 +228,10 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Live Signal Feed</h1>
-              <p className="text-sm text-zinc-500">Subscribe via RSS, Atom, or JSON Feed</p>
+              <p className="text-sm text-[var(--text-secondary)]">Subscribe via RSS, Atom, or JSON Feed</p>
             </div>
           </div>
-          <p className="text-zinc-400 text-sm leading-relaxed max-w-xl">
+          <p className="text-[var(--text-secondary)] text-sm leading-relaxed max-w-xl">
             Get TradeClaw AI trading signals delivered directly to your RSS reader, monitoring
             setup, or automation workflow. No account required. Free forever.
           </p>
@@ -269,21 +269,21 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
             {feedLinks.map((feed) => (
               <div
                 key={feed.url}
-                className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4"
+                className="rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] p-4"
               >
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div className="flex items-center gap-3">
                     {feed.icon}
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-white">{feed.label}</span>
+                        <span className="text-sm font-semibold text-[var(--foreground)]">{feed.label}</span>
                         <span
                           className={`text-xs px-1.5 py-0.5 rounded border font-medium ${feed.badgeColor}`}
                         >
                           {feed.badge}
                         </span>
                       </div>
-                      <p className="text-xs text-zinc-500 mt-0.5">{feed.description}</p>
+                      <p className="text-xs text-[var(--text-secondary)] mt-0.5">{feed.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -299,7 +299,7 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
                     </a>
                   </div>
                 </div>
-                <div className="mt-3 px-3 py-2 rounded-lg bg-black/30 border border-white/5 font-mono text-xs text-zinc-400 break-all">
+                <div className="mt-3 px-3 py-2 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] font-mono text-xs text-[var(--text-secondary)] break-all">
                   {feed.url}
                 </div>
               </div>
@@ -314,7 +314,7 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
             Latest Signals Preview
           </h2>
           {recentSignals.length === 0 ? (
-            <p className="text-sm text-zinc-500 text-center py-8">No signals yet.</p>
+            <p className="text-sm text-[var(--text-secondary)] text-center py-8">No signals yet.</p>
           ) : (
             <div className="space-y-2">
               {recentSignals.map((signal) => (
@@ -331,44 +331,44 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
             {READERS.map((reader) => (
               <div
                 key={reader.name}
-                className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4"
+                className="rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] p-4"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-white">{reader.name}</span>
+                  <span className="text-sm font-semibold text-[var(--foreground)]">{reader.name}</span>
                   <span
                     className={`text-xs px-1.5 py-0.5 rounded border font-medium ${
                       reader.type === 'self-hosted'
                         ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                        : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+                        : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] border-[var(--border)]'
                     }`}
                   >
                     {reader.type === 'self-hosted' ? 'Self-hosted' : 'Cloud'}
                   </span>
                 </div>
-                <p className="text-xs text-zinc-500 mb-3">{reader.description}</p>
+                <p className="text-xs text-[var(--text-secondary)] mb-3">{reader.description}</p>
                 <div className="flex items-center gap-1 flex-wrap mb-3">
                   {reader.supports.map((s) => (
                     <span
                       key={s}
-                      className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 border border-white/5"
+                      className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)]"
                     >
                       {s}
                     </span>
                   ))}
                 </div>
-                <div className="text-xs text-zinc-600 space-y-1">
+                <div className="text-xs text-[var(--text-secondary)] space-y-1">
                   <p>1. Open {reader.name}</p>
                   <p>2. Add new feed</p>
                   <p>
                     3. Paste:{' '}
-                    <code className="text-zinc-400 bg-white/5 px-1 rounded">{BASE_URL}/feed.xml</code>
+                    <code className="text-[var(--foreground)] bg-[var(--glass-bg)] px-1 rounded">{BASE_URL}/feed.xml</code>
                   </p>
                 </div>
                 <a
                   href={reader.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                  className="mt-3 flex items-center gap-1 text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                 >
                   <ExternalLink size={10} />
                   {reader.url.replace('https://', '')}
@@ -381,7 +381,7 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
         {/* Use cases */}
         <section>
           <h2 className="text-base font-semibold mb-4">Example Use Cases</h2>
-          <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] divide-y divide-white/[0.05]">
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] divide-y divide-[var(--border)]">
             {[
               {
                 title: 'Morning briefing',
@@ -405,8 +405,8 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
               },
             ].map((item) => (
               <div key={item.title} className="px-4 py-3">
-                <span className="text-sm font-medium text-white">{item.title}</span>
-                <p className="text-xs text-zinc-500 mt-0.5">{item.desc}</p>
+                <span className="text-sm font-medium text-[var(--foreground)]">{item.title}</span>
+                <p className="text-xs text-[var(--text-secondary)] mt-0.5">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -417,9 +417,9 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
           <h3 className="text-sm font-semibold text-emerald-400 mb-1">
             Autodiscovery enabled
           </h3>
-          <p className="text-xs text-zinc-400 leading-relaxed">
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
             TradeClaw includes feed autodiscovery{' '}
-            <code className="text-zinc-300 bg-white/5 px-1 rounded">
+            <code className="text-[var(--foreground)] bg-[var(--glass-bg)] px-1 rounded">
               {'<link rel="alternate">'}
             </code>{' '}
             tags in every page. Most RSS readers and browsers will detect the feeds automatically
