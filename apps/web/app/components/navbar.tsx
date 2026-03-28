@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail } from 'lucide-react';
+import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import type { LucideIcon } from 'lucide-react';
 
@@ -50,6 +50,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/badges', label: 'Badges Gallery' },
       { href: '/marketplace', label: 'Marketplace' },
       { href: '/api-keys', label: 'API Keys' },
+      { href: '/status', label: 'Status', icon: Activity },
     ],
   },
   {

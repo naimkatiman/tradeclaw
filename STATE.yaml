@@ -909,8 +909,9 @@ next_actions:
 
   - id: TC-079
     title: "README social proof upgrade — contributor avatars grid, language badges, and 'Built with' tech stack section"
-    status: pending
+    status: done
     owner: pm-tradeclaw
+    notes: "Added: code-size + discussions badges, flat-square tech stack badge row, 3-bullet 'Why TradeClaw?' skim section, Tech Stack table, Contributors section with contrib.rocks. Star history already existed."
     notes: ""
 
   - id: TC-080

@@ -19,6 +19,7 @@
 [![Demo](https://img.shields.io/badge/Demo-Live%20Signals-10b981?logo=vercel&logoColor=white)](https://tradeclaw.win/demo)
 [![Code Size](https://img.shields.io/github/languages/code-size/naimkatiman/tradeclaw?color=6366f1)](https://github.com/naimkatiman/tradeclaw)
 [![Discussions](https://img.shields.io/github/discussions/naimkatiman/tradeclaw?color=8b5cf6&logo=github)](https://github.com/naimkatiman/tradeclaw/discussions)
+[![Status](https://img.shields.io/badge/status-operational-emerald)](https://tradeclaw.win/status)
 
 <br/>
 
