@@ -3,12 +3,12 @@
  * All standard TA indicators implemented from scratch
  */
 
-import type { OHLCV } from './ohlcv';
+import type { OHLCV } from "./ohlcv";
 
 // ─── Result Types ────────────────────────────────────────────
 
 export interface RSIResult {
-  values: number[];  // RSI values for each candle (NaN for insufficient data)
+  values: number[]; // RSI values for each candle (NaN for insufficient data)
   current: number;
 }
 
@@ -108,7 +108,7 @@ function calcSMA(data: number[], period: number): number[] {
  */
 export function calculateRSI(closes: number[], period: number = 14): RSIResult {
   const values: number[] = new Array(closes.length).fill(NaN);
-  
+
   if (closes.length < period + 1) {
     return { values, current: NaN };
   }
@@ -154,7 +154,7 @@ export function calculateRSI(closes: number[], period: number = 14): RSIResult {
     }
   }
 
-  const lastValid = values.filter(v => !isNaN(v));
+  const lastValid = values.filter((v) => !isNaN(v));
   return {
     values,
     current: lastValid.length > 0 ? lastValid[lastValid.length - 1] : NaN,
@@ -188,7 +188,7 @@ export function calculateMACD(
   }
 
   // Signal line = EMA of MACD line
-  const validMacd = macdLine.filter(v => !isNaN(v));
+  const validMacd = macdLine.filter((v) => !isNaN(v));
   const signalEma = calcEMA(validMacd, signalPeriod);
 
   // Map signal back to full array
@@ -209,9 +209,9 @@ export function calculateMACD(
     }
   }
 
-  const lastMacd = macdLine.filter(v => !isNaN(v));
-  const lastSignal = signalLine.filter(v => !isNaN(v));
-  const lastHist = histogram.filter(v => !isNaN(v));
+  const lastMacd = macdLine.filter((v) => !isNaN(v));
+  const lastSignal = signalLine.filter((v) => !isNaN(v));
+  const lastHist = histogram.filter((v) => !isNaN(v));
 
   return {
     macdLine,
@@ -235,9 +235,9 @@ export function calculateEMAs(closes: number[]): EMAResult {
   const ema50 = calcEMA(closes, 50);
   const ema200 = calcEMA(closes, 200);
 
-  const last20 = ema20.filter(v => !isNaN(v));
-  const last50 = ema50.filter(v => !isNaN(v));
-  const last200 = ema200.filter(v => !isNaN(v));
+  const last20 = ema20.filter((v) => !isNaN(v));
+  const last50 = ema50.filter((v) => !isNaN(v));
+  const last200 = ema200.filter((v) => !isNaN(v));
 
   return {
     ema20,
@@ -280,13 +280,14 @@ export function calculateBollingerBands(
 
     upper[i] = middle[i] + stdDevMultiplier * stdDev;
     lower[i] = middle[i] - stdDevMultiplier * stdDev;
-    bandwidth[i] = middle[i] > 0 ? ((upper[i] - lower[i]) / middle[i]) * 100 : 0;
+    bandwidth[i] =
+      middle[i] > 0 ? ((upper[i] - lower[i]) / middle[i]) * 100 : 0;
   }
 
-  const lastUpper = upper.filter(v => !isNaN(v));
-  const lastMiddle = middle.filter(v => !isNaN(v));
-  const lastLower = lower.filter(v => !isNaN(v));
-  const lastBw = bandwidth.filter(v => !isNaN(v));
+  const lastUpper = upper.filter((v) => !isNaN(v));
+  const lastMiddle = middle.filter((v) => !isNaN(v));
+  const lastLower = lower.filter((v) => !isNaN(v));
+  const lastBw = bandwidth.filter((v) => !isNaN(v));
 
   return {
     upper,
@@ -337,7 +338,7 @@ export function calculateStochastic(
   }
 
   // Smooth %K with SMA
-  const validRawK = rawK.filter(v => !isNaN(v));
+  const validRawK = rawK.filter((v) => !isNaN(v));
   const smoothedK = calcSMA(validRawK, kSmooth);
 
   // Map back to full array
@@ -351,7 +352,7 @@ export function calculateStochastic(
   }
 
   // %D = SMA of %K
-  const validK = k.filter(v => !isNaN(v));
+  const validK = k.filter((v) => !isNaN(v));
   const dSma = calcSMA(validK, dPeriod);
 
   const d: number[] = new Array(len).fill(NaN);
@@ -363,8 +364,8 @@ export function calculateStochastic(
     }
   }
 
-  const lastK = k.filter(v => !isNaN(v));
-  const lastD = d.filter(v => !isNaN(v));
+  const lastK = k.filter((v) => !isNaN(v));
+  const lastD = d.filter((v) => !isNaN(v));
 
   return {
     k,
@@ -389,10 +390,10 @@ export function findSwingLevels(
   const startIdx = Math.max(0, highs.length - lookback);
   const recentHighs = highs.slice(startIdx);
   const recentLows = lows.slice(startIdx);
-  
+
   const swingHighs: number[] = [];
   const swingLows: number[] = [];
-  
+
   for (let i = 2; i < recentHighs.length - 2; i++) {
     // Swing high: higher than 2 candles on each side
     if (
@@ -403,7 +404,7 @@ export function findSwingLevels(
     ) {
       swingHighs.push(recentHighs[i]);
     }
-    
+
     // Swing low: lower than 2 candles on each side
     if (
       recentLows[i] < recentLows[i - 1] &&
@@ -414,11 +415,11 @@ export function findSwingLevels(
       swingLows.push(recentLows[i]);
     }
   }
-  
+
   // Sort and take top 2 closest to current price
   swingHighs.sort((a, b) => b - a);
   swingLows.sort((a, b) => a - b);
-  
+
   return {
     support: swingLows.slice(0, 3),
     resistance: swingHighs.slice(0, 3),
@@ -431,9 +432,9 @@ export function findSwingLevels(
  * Calculate all technical indicators from OHLCV data
  */
 export function calculateAllIndicators(candles: OHLCV[]): AllIndicators {
-  const closes = candles.map(c => c.close);
-  const highs = candles.map(c => c.high);
-  const lows = candles.map(c => c.low);
+  const closes = candles.map((c) => c.close);
+  const highs = candles.map((c) => c.high);
+  const lows = candles.map((c) => c.low);
 
   return {
     rsi: calculateRSI(closes),
