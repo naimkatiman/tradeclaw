@@ -78,6 +78,22 @@ Open [http://localhost:3000](http://localhost:3000) — dashboard is live.
 
 Next.js 15 · TypeScript 5 · Tailwind CSS v4 · Node.js 22 · Docker
 
+## Embed Your Portfolio
+
+Share your paper trading performance anywhere with embeddable widgets:
+
+```html
+<!-- Iframe embed (dark theme, auto-refreshes every 30s) -->
+<iframe src="https://tradeclaw.win/api/widget/portfolio/embed?theme=dark" width="320" height="200" frameborder="0" style="border-radius:12px"></iframe>
+```
+
+```markdown
+<!-- Shields.io badge for your README -->
+[![TradeClaw Portfolio](https://img.shields.io/endpoint?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fwidget%2Fportfolio%2Fbadge&style=for-the-badge)](https://tradeclaw.win/paper-trading)
+```
+
+JSON API: `GET /api/widget/portfolio` — returns balance, equity, P&L, win rate. [Widget page &rarr;](https://tradeclaw.win/widget)
+
 ## Contributing
 
 We welcome PRs! Check our **[good first issues](https://github.com/naimkatiman/tradeclaw/labels/good%20first%20issue)** and **[contribution guide](https://tradeclaw.win/contribute)**.

@@ -1,8 +1,18 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { Code, Copy, Check, Sun, Moon, ExternalLink, Star } from 'lucide-react';
 
 const BASE_URL = 'https://tradeclaw.win';
+
+type Theme = 'dark' | 'light';
+type SizePreset = 'compact' | 'standard' | 'large';
+
+const SIZES: Record<SizePreset, { w: number; h: number; label: string }> = {
+  compact: { w: 280, h: 160, label: 'Compact' },
+  standard: { w: 320, h: 200, label: 'Standard' },
+  large: { w: 400, h: 280, label: 'Large' },
+};
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -16,226 +26,212 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="text-xs px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 transition-colors text-[var(--text-secondary)] hover:text-white font-mono"
+      className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-[var(--text-secondary)] hover:text-white font-mono"
     >
+      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
       {copied ? 'Copied!' : 'Copy'}
     </button>
   );
 }
 
-function CodeBlock({ code, label }: { code: string; label: string }) {
+function CodeSnippet({ code, label }: { code: string; label: string }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest font-semibold">
+        <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest font-semibold flex items-center gap-1.5">
+          <Code className="w-3 h-3" />
           {label}
         </span>
         <CopyButton text={code} />
       </div>
-      <pre className="text-[11px] bg-black/40 border border-white/5 rounded p-2 overflow-x-auto text-emerald-300 font-mono whitespace-pre-wrap break-all">
+      <pre className="text-[11px] bg-black/40 border border-white/5 rounded-lg p-3 overflow-x-auto text-emerald-300 font-mono whitespace-pre-wrap break-all leading-relaxed">
         {code}
       </pre>
     </div>
   );
 }
 
-function WidgetCard({
-  title,
-  description,
-  previewUrl,
-  previewWidth,
-  previewHeight,
-  snippets,
-  cacheBust,
-}: {
-  title: string;
-  description: string;
-  previewUrl: string;
-  previewWidth: number;
-  previewHeight: number;
-  snippets: { label: string; code: string }[];
-  cacheBust: number;
-}) {
-  return (
-    <div className="border border-white/10 rounded-xl p-6 space-y-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-      <div>
-        <h3 className="text-sm font-semibold">{title}</h3>
-        <p className="text-xs text-[var(--text-secondary)] mt-1">{description}</p>
-      </div>
-
-      {/* Live preview */}
-      <div className="rounded-lg bg-[#0d1117] border border-[#30363d] p-4 flex items-center justify-center">
-        <img
-          src={`${previewUrl}${previewUrl.includes('?') ? '&' : '?'}_=${cacheBust}`}
-          alt={title}
-          width={previewWidth}
-          height={previewHeight}
-          className="max-w-full"
-          loading="lazy"
-        />
-      </div>
-
-      {/* Snippets */}
-      <div className="space-y-3">
-        {snippets.map((s) => (
-          <CodeBlock key={s.label} label={s.label} code={s.code} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function WidgetClient() {
-  const [cacheBust, setCacheBust] = useState(() => Date.now());
+  const [theme, setTheme] = useState<Theme>('dark');
+  const [size, setSize] = useState<SizePreset>('standard');
 
-  useEffect(() => {
-    const timer = setInterval(() => setCacheBust(Date.now()), 5 * 60 * 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const { w, h } = SIZES[size];
+  const embedUrl = `${BASE_URL}/api/widget/portfolio/embed?theme=${theme}`;
+  const badgeUrl = `${BASE_URL}/api/widget/portfolio/badge`;
 
-  const handleRefresh = useCallback(() => setCacheBust(Date.now()), []);
-
-  const badgeUrl = `${BASE_URL}/api/widget/portfolio`;
-  const cardUrl = `${BASE_URL}/api/widget/portfolio/card`;
+  const iframeCode = `<iframe src="${embedUrl}" width="${w}" height="${h}" frameborder="0" style="border-radius:12px;overflow:hidden"></iframe>`;
+  const badgeMarkdown = `[![TradeClaw Portfolio](https://img.shields.io/endpoint?url=${encodeURIComponent(badgeUrl)}&style=for-the-badge)](${BASE_URL}/paper-trading)`;
 
   return (
     <main className="min-h-screen pt-24 pb-16 px-4">
-      <div className="max-w-5xl mx-auto space-y-12">
+      <div className="max-w-4xl mx-auto space-y-12">
         {/* Hero */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-medium">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Embeddable Widgets
+            Embeddable Widget
           </div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Show your P&amp;L{' '}
-            <span className="text-emerald-400">everywhere</span>
+            Embed Your Portfolio{' '}
+            <span className="text-emerald-400">Anywhere</span>
           </h1>
           <p className="text-[var(--text-secondary)] max-w-xl mx-auto text-sm leading-relaxed">
-            Dynamic SVG widgets that display your live paper trading performance.
-            Embed them in GitHub READMEs, blogs, portfolios, or any website. No API key required.
+            Show live P&amp;L from your paper trading on any website, blog, or README.
+            Auto-refreshing every 30 seconds. No API key required.
           </p>
+        </div>
 
-          {/* Live previews */}
-          <div className="flex flex-col items-center gap-4 pt-4">
-            <img
-              src={`/api/widget/portfolio?_=${cacheBust}`}
-              alt="Portfolio badge"
-              height={20}
-              className="h-5"
-            />
-            <img
-              src={`/api/widget/portfolio/card?_=${cacheBust}`}
-              alt="Portfolio card"
-              width={400}
-              height={120}
-              className="max-w-full"
-            />
-            <p className="text-[10px] text-[var(--text-secondary)]">
-              Live — refreshes every 5 minutes
-            </p>
+        {/* Controls */}
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          {/* Theme toggle */}
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5 border border-white/10">
+            <button
+              onClick={() => setTheme('dark')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                theme === 'dark'
+                  ? 'bg-white/15 text-white'
+                  : 'text-[var(--text-secondary)] hover:text-white'
+              }`}
+            >
+              <Moon className="w-3.5 h-3.5" />
+              Dark
+            </button>
+            <button
+              onClick={() => setTheme('light')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                theme === 'light'
+                  ? 'bg-white/15 text-white'
+                  : 'text-[var(--text-secondary)] hover:text-white'
+              }`}
+            >
+              <Sun className="w-3.5 h-3.5" />
+              Light
+            </button>
+          </div>
+
+          {/* Size presets */}
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5 border border-white/10">
+            {(Object.entries(SIZES) as [SizePreset, (typeof SIZES)[SizePreset]][]).map(
+              ([key, { label, w: pw, h: ph }]) => (
+                <button
+                  key={key}
+                  onClick={() => setSize(key)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    size === key
+                      ? 'bg-white/15 text-white'
+                      : 'text-[var(--text-secondary)] hover:text-white'
+                  }`}
+                >
+                  {label}
+                  <span className="ml-1 text-[10px] opacity-60">
+                    {pw}x{ph}
+                  </span>
+                </button>
+              ),
+            )}
           </div>
         </div>
 
-        {/* Refresh */}
-        <div className="flex items-center justify-end">
-          <button
-            onClick={handleRefresh}
-            className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-white transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            Refresh widgets
-          </button>
+        {/* Live preview */}
+        <div className="flex flex-col items-center gap-4">
+          <div className="rounded-2xl bg-[#0d1117] border border-[#30363d] p-6 inline-block">
+            <iframe
+              src={`/api/widget/portfolio/embed?theme=${theme}`}
+              width={w}
+              height={h}
+              style={{ border: 'none', borderRadius: 12, overflow: 'hidden' }}
+              title="TradeClaw Portfolio Widget"
+            />
+          </div>
+          <p className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Live preview — auto-refreshes every 30s
+          </p>
         </div>
 
-        {/* Widget gallery */}
+        {/* Code snippets */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <WidgetCard
-            title="Portfolio Badge"
-            description="Shields.io-compatible flat badge showing balance, return %, and win rate."
-            previewUrl="/api/widget/portfolio"
-            previewWidth={300}
-            previewHeight={20}
-            cacheBust={cacheBust}
-            snippets={[
-              {
-                label: 'Markdown',
-                code: `[![TradeClaw Portfolio](${badgeUrl})](${BASE_URL}/paper-trading)`,
-              },
-              {
-                label: 'HTML',
-                code: `<a href="${BASE_URL}/paper-trading"><img src="${badgeUrl}" alt="TradeClaw Portfolio" /></a>`,
-              },
-              { label: 'Direct URL', code: badgeUrl },
-            ]}
-          />
+          <div className="border border-white/10 rounded-xl p-6 space-y-5 bg-white/[0.02]">
+            <div>
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <ExternalLink className="w-4 h-4 text-emerald-400" />
+                Iframe Embed
+              </h3>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                Paste into any HTML page, blog, or Notion embed block.
+              </p>
+            </div>
+            <CodeSnippet label="HTML" code={iframeCode} />
+          </div>
 
-          <WidgetCard
-            title="Portfolio Card"
-            description="Rich 400x120 card with balance, return, win rate, trade count, and P&L sparkline."
-            previewUrl="/api/widget/portfolio/card"
-            previewWidth={400}
-            previewHeight={120}
-            cacheBust={cacheBust}
-            snippets={[
-              {
-                label: 'Markdown',
-                code: `[![TradeClaw Portfolio](${cardUrl})](${BASE_URL}/paper-trading)`,
-              },
-              {
-                label: 'HTML',
-                code: `<a href="${BASE_URL}/paper-trading"><img src="${cardUrl}" alt="TradeClaw Portfolio Card" width="400" /></a>`,
-              },
-              { label: 'Direct URL', code: cardUrl },
-            ]}
-          />
+          <div className="border border-white/10 rounded-xl p-6 space-y-5 bg-white/[0.02]">
+            <div>
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Code className="w-4 h-4 text-emerald-400" />
+                Shields.io Badge
+              </h3>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                Dynamic badge for GitHub README or any markdown file.
+              </p>
+            </div>
+            <div className="rounded-lg bg-[#0d1117] border border-[#30363d] p-4 flex items-center justify-center">
+              <img
+                src={`https://img.shields.io/endpoint?url=${encodeURIComponent(badgeUrl)}&style=for-the-badge`}
+                alt="TradeClaw Portfolio Badge"
+                height={28}
+                className="h-7"
+              />
+            </div>
+            <CodeSnippet label="Markdown" code={badgeMarkdown} />
+          </div>
         </div>
 
-        {/* Share section */}
+        {/* API endpoints reference */}
         <div className="space-y-4 p-6 rounded-xl border border-white/10 bg-white/[0.02]">
-          <h2 className="text-lg font-semibold">Share your performance</h2>
-          <p className="text-sm text-[var(--text-secondary)]">
-            Add both widgets to your GitHub profile README to showcase your trading results:
-          </p>
-          <CodeBlock
-            label="Markdown — paste into your README.md"
-            code={[
-              `## My Trading Performance`,
-              ``,
-              `[![TradeClaw Portfolio](${badgeUrl})](${BASE_URL}/paper-trading)`,
-              ``,
-              `[![TradeClaw Portfolio Card](${cardUrl})](${BASE_URL}/paper-trading)`,
-            ].join('\n')}
-          />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 text-sm text-[var(--text-secondary)]">
+          <h2 className="text-lg font-semibold">API Endpoints</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <div className="space-y-1">
-              <p className="font-medium text-white text-xs">Badge endpoint</p>
-              <code className="text-xs font-mono text-emerald-400">
-                /api/widget/portfolio
-              </code>
+              <p className="font-medium text-white text-xs">JSON Data</p>
+              <code className="text-xs font-mono text-emerald-400">/api/widget/portfolio</code>
+              <p className="text-[10px] text-[var(--text-secondary)]">Balance, equity, P&amp;L, win rate</p>
             </div>
             <div className="space-y-1">
-              <p className="font-medium text-white text-xs">Card endpoint</p>
-              <code className="text-xs font-mono text-emerald-400">
-                /api/widget/portfolio/card
-              </code>
+              <p className="font-medium text-white text-xs">HTML Embed</p>
+              <code className="text-xs font-mono text-emerald-400">/api/widget/portfolio/embed</code>
+              <p className="text-[10px] text-[var(--text-secondary)]">?theme=dark|light</p>
+            </div>
+            <div className="space-y-1">
+              <p className="font-medium text-white text-xs">Shields.io Badge</p>
+              <code className="text-xs font-mono text-emerald-400">/api/widget/portfolio/badge</code>
+              <p className="text-[10px] text-[var(--text-secondary)]">shields.io endpoint format</p>
             </div>
           </div>
+        </div>
+
+        {/* Star CTA */}
+        <div className="text-center space-y-4">
+          <p className="text-sm text-[var(--text-secondary)]">
+            Like TradeClaw? Help us grow.
+          </p>
+          <a
+            href="https://github.com/naimkatiman/tradeclaw"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-white/90 px-6 py-2.5 text-sm font-semibold text-black hover:bg-white transition-all duration-300 active:scale-[0.98]"
+          >
+            <Star className="w-4 h-4" />
+            Star on GitHub
+          </a>
         </div>
 
         {/* Footer */}
         <p className="text-center text-xs text-[var(--text-secondary)]">
-          Widgets update every 5 minutes · Data from paper trading engine ·{' '}
-          <a href="/paper-trading" className="text-emerald-400 hover:text-emerald-300 transition-colors">
-            Start paper trading →
+          Widget auto-refreshes every 30s · Data from paper trading engine ·{' '}
+          <a
+            href="/paper-trading"
+            className="text-emerald-400 hover:text-emerald-300 transition-colors"
+          >
+            Start paper trading &rarr;
           </a>
         </p>
       </div>
