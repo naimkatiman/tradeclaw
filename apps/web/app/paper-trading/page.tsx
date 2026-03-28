@@ -1,8 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import Link from 'next/link';
-import type { Portfolio, Position, Trade, EquityPoint } from '../../lib/paper-trading';
+import { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
+import type {
+  Portfolio,
+  Position,
+  Trade,
+  EquityPoint,
+} from "../../lib/paper-trading";
+import { ThemeToggle } from "../components/theme-toggle";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -11,7 +17,7 @@ import type { Portfolio, Position, Trade, EquityPoint } from '../../lib/paper-tr
 interface Signal {
   id: string;
   symbol: string;
-  direction: 'BUY' | 'SELL';
+  direction: "BUY" | "SELL";
   entry: number;
   stopLoss: number;
   takeProfit: number;
@@ -31,22 +37,40 @@ interface TooltipState {
 // Constants
 // ---------------------------------------------------------------------------
 
-const SYMBOLS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'XAGUSD', 'AUDUSD', 'XRPUSD', 'USDCAD'];
-const SIZE_PCTS = [0.01, 0.02, 0.05, 0.10];
-const SIZE_LABELS = ['1%', '2%', '5%', '10%'];
+const SYMBOLS = [
+  "BTCUSD",
+  "ETHUSD",
+  "XAUUSD",
+  "EURUSD",
+  "GBPUSD",
+  "USDJPY",
+  "XAGUSD",
+  "AUDUSD",
+  "XRPUSD",
+  "USDCAD",
+];
+const SIZE_PCTS = [0.01, 0.02, 0.05, 0.1];
+const SIZE_LABELS = ["1%", "2%", "5%", "10%"];
 
 const BASE_PRICES: Record<string, number> = {
-  BTCUSD: 87500, ETHUSD: 3400, XAUUSD: 2180, EURUSD: 1.083,
-  GBPUSD: 1.264, USDJPY: 151.2, XAGUSD: 24.8, AUDUSD: 0.654,
-  XRPUSD: 0.615, USDCAD: 1.365,
+  BTCUSD: 87500,
+  ETHUSD: 3400,
+  XAUUSD: 2180,
+  EURUSD: 1.083,
+  GBPUSD: 1.264,
+  USDJPY: 151.2,
+  XAGUSD: 24.8,
+  AUDUSD: 0.654,
+  XRPUSD: 0.615,
+  USDCAD: 1.365,
 };
 
 const NAV_PAGES = [
-  { href: '/dashboard', label: 'Signals' },
-  { href: '/paper-trading', label: 'Paper Trade' },
-  { href: '/backtest', label: 'Backtest' },
-  { href: '/leaderboard', label: 'Leaderboard' },
-  { href: '/strategy-builder', label: 'Strategy' },
+  { href: "/dashboard", label: "Signals" },
+  { href: "/paper-trading", label: "Paper Trade" },
+  { href: "/backtest", label: "Backtest" },
+  { href: "/leaderboard", label: "Leaderboard" },
+  { href: "/strategy-builder", label: "Strategy" },
 ];
 
 const HIST_PAGE_SIZE = 8;
@@ -60,15 +84,26 @@ function fmtPrice(n: number): string {
 }
 
 function fmtMoney(n: number): string {
-  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (
+    "$" +
+    n.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
 }
 
 function fmtSignedMoney(n: number): string {
-  return (n >= 0 ? '+' : '') + fmtMoney(n);
+  return (n >= 0 ? "+" : "") + fmtMoney(n);
 }
 
 function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function fmtTradeDuration(openedAt: string, closedAt: string): string {
@@ -78,10 +113,10 @@ function fmtTradeDuration(openedAt: string, closedAt: string): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-let _priceSeeds: Record<string, number> = {};
+const _priceSeeds: Record<string, number> = {};
 function noisyPrice(sym: string, base: number): number {
   const prev = _priceSeeds[sym] ?? base;
-  const drift = (Math.sin(Date.now() / 3000 + sym.charCodeAt(0)) * 0.0005);
+  const drift = Math.sin(Date.now() / 3000 + sym.charCodeAt(0)) * 0.0005;
   const noise = (Math.random() - 0.5) * 0.002;
   const next = prev * (1 + drift + noise);
   _priceSeeds[sym] = next;
@@ -96,13 +131,14 @@ function drawEquityCurve(
   canvas: HTMLCanvasElement,
   points: EquityPoint[],
   tooltip: TooltipState,
+  isDark: boolean,
 ): void {
   const dpr = window.devicePixelRatio || 1;
   const W = canvas.offsetWidth;
   const H = canvas.offsetHeight;
   canvas.width = W * dpr;
   canvas.height = H * dpr;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
   if (!ctx) return;
   ctx.scale(dpr, dpr);
 
@@ -111,7 +147,7 @@ function drawEquityCurve(
   if (points.length < 2) {
     // Flat dashed line
     ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.1)";
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, H / 2);
@@ -121,7 +157,10 @@ function drawEquityCurve(
     return;
   }
 
-  const PAD_L = 8, PAD_R = 8, PAD_T = 12, PAD_B = 24;
+  const PAD_L = 8,
+    PAD_R = 8,
+    PAD_T = 12,
+    PAD_B = 24;
   const cW = W - PAD_L - PAD_R;
   const cH = H - PAD_T - PAD_B;
 
@@ -137,11 +176,11 @@ function drawEquityCurve(
   const grad = ctx.createLinearGradient(0, PAD_T, 0, PAD_T + cH);
   const isPositive = points[points.length - 1].equity >= points[0].equity;
   if (isPositive) {
-    grad.addColorStop(0, 'rgba(52,211,153,0.18)');
-    grad.addColorStop(1, 'rgba(52,211,153,0)');
+    grad.addColorStop(0, "rgba(52,211,153,0.18)");
+    grad.addColorStop(1, "rgba(52,211,153,0)");
   } else {
-    grad.addColorStop(0, 'rgba(239,68,68,0.18)');
-    grad.addColorStop(1, 'rgba(239,68,68,0)');
+    grad.addColorStop(0, "rgba(239,68,68,0.18)");
+    grad.addColorStop(1, "rgba(239,68,68,0)");
   }
 
   ctx.beginPath();
@@ -161,20 +200,22 @@ function drawEquityCurve(
   for (let i = 1; i < points.length; i++) {
     ctx.lineTo(xOf(i), yOf(points[i].equity));
   }
-  ctx.strokeStyle = isPositive ? 'rgb(52,211,153)' : 'rgb(239,68,68)';
+  ctx.strokeStyle = isPositive ? "rgb(52,211,153)" : "rgb(239,68,68)";
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
   // Tooltip line + dot
   if (tooltip.visible) {
-    const nearestIdx = Math.round((Math.max(0, Math.min(tooltip.x - PAD_L, cW)) / cW) * (points.length - 1));
+    const nearestIdx = Math.round(
+      (Math.max(0, Math.min(tooltip.x - PAD_L, cW)) / cW) * (points.length - 1),
+    );
     const ptX = xOf(nearestIdx);
     const ptY = yOf(points[nearestIdx].equity);
 
     ctx.beginPath();
     ctx.moveTo(ptX, PAD_T);
     ctx.lineTo(ptX, PAD_T + cH);
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.strokeStyle = isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.15)";
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
     ctx.stroke();
@@ -182,7 +223,7 @@ function drawEquityCurve(
 
     ctx.beginPath();
     ctx.arc(ptX, ptY, 3.5, 0, Math.PI * 2);
-    ctx.fillStyle = isPositive ? 'rgb(52,211,153)' : 'rgb(239,68,68)';
+    ctx.fillStyle = isPositive ? "rgb(52,211,153)" : "rgb(239,68,68)";
     ctx.fill();
   }
 }
@@ -198,12 +239,25 @@ interface StatCardProps {
   color?: string;
 }
 
-function StatCard({ label, value, sub, color = 'text-white' }: StatCardProps) {
+function StatCard({
+  label,
+  value,
+  sub,
+  color = "text-[var(--foreground)]",
+}: StatCardProps) {
   return (
-    <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3">
-      <div className={`text-base font-mono font-bold tabular-nums ${color}`}>{value}</div>
-      {sub && <div className="text-[10px] text-zinc-600 font-mono mt-0.5">{sub}</div>}
-      <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-1">{label}</div>
+    <div className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-xl p-3">
+      <div className={`text-base font-mono font-bold tabular-nums ${color}`}>
+        {value}
+      </div>
+      {sub && (
+        <div className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5">
+          {sub}
+        </div>
+      )}
+      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mt-1">
+        {label}
+      </div>
     </div>
   );
 }
@@ -218,8 +272,8 @@ export default function PaperTradingPage() {
   const [signals, setSignals] = useState<Signal[]>([]);
 
   // Form state
-  const [symbol, setSymbol] = useState('XAUUSD');
-  const [direction, setDirection] = useState<'BUY' | 'SELL'>('BUY');
+  const [symbol, setSymbol] = useState("XAUUSD");
+  const [direction, setDirection] = useState<"BUY" | "SELL">("BUY");
   const [sizePct, setSizePct] = useState(0.05);
   const [autoFollow, setAutoFollow] = useState(false);
 
@@ -228,10 +282,30 @@ export default function PaperTradingPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [histPage, setHistPage] = useState(0);
   const [showReset, setShowReset] = useState(false);
-  const [tooltip, setTooltip] = useState<TooltipState>({ x: 0, y: 0, equity: 0, date: '', visible: false });
+  const [tooltip, setTooltip] = useState<TooltipState>({
+    x: 0,
+    y: 0,
+    equity: 0,
+    date: "",
+    visible: false,
+  });
+  const [isDark, setIsDark] = useState(true);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tooltipNearestRef = useRef<number>(0);
+
+  // Detect theme
+  useEffect(() => {
+    const update = () =>
+      setIsDark(document.documentElement.classList.contains("dark"));
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   // ---------------------------------------------------------------------------
   // Data fetching
@@ -239,9 +313,9 @@ export default function PaperTradingPage() {
 
   const fetchPortfolio = useCallback(async () => {
     try {
-      const res = await fetch('/api/paper-trading');
+      const res = await fetch("/api/paper-trading");
       if (res.ok) {
-        const data = await res.json() as Portfolio;
+        const data = (await res.json()) as Portfolio;
         setPortfolio(data);
       }
     } catch {
@@ -251,9 +325,9 @@ export default function PaperTradingPage() {
 
   const fetchSignals = useCallback(async () => {
     try {
-      const res = await fetch('/api/signals');
+      const res = await fetch("/api/signals");
       if (res.ok) {
-        const data = await res.json() as { signals: Signal[] };
+        const data = (await res.json()) as { signals: Signal[] };
         setSignals((data.signals ?? []).slice(0, 5));
       }
     } catch {
@@ -262,7 +336,9 @@ export default function PaperTradingPage() {
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchPortfolio(), fetchSignals()]).then(() => setLoading(false));
+    Promise.all([fetchPortfolio(), fetchSignals()]).then(() =>
+      setLoading(false),
+    );
   }, [fetchPortfolio, fetchSignals]);
 
   // ---------------------------------------------------------------------------
@@ -293,19 +369,23 @@ export default function PaperTradingPage() {
       if (!price) continue;
       let reason: string | null = null;
       if (pos.stopLoss !== undefined) {
-        if (pos.direction === 'BUY' && price <= pos.stopLoss) reason = 'stopLoss';
-        if (pos.direction === 'SELL' && price >= pos.stopLoss) reason = 'stopLoss';
+        if (pos.direction === "BUY" && price <= pos.stopLoss)
+          reason = "stopLoss";
+        if (pos.direction === "SELL" && price >= pos.stopLoss)
+          reason = "stopLoss";
       }
       if (pos.takeProfit !== undefined && reason === null) {
-        if (pos.direction === 'BUY' && price >= pos.takeProfit) reason = 'takeProfit';
-        if (pos.direction === 'SELL' && price <= pos.takeProfit) reason = 'takeProfit';
+        if (pos.direction === "BUY" && price >= pos.takeProfit)
+          reason = "takeProfit";
+        if (pos.direction === "SELL" && price <= pos.takeProfit)
+          reason = "takeProfit";
       }
       if (reason !== null) {
         (async () => {
           try {
-            await fetch('/api/paper-trading/close', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+            await fetch("/api/paper-trading/close", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ positionId: pos.id, exitPrice: price }),
             });
             fetchPortfolio();
@@ -330,9 +410,9 @@ export default function PaperTradingPage() {
       followedSignalIds.current.add(sig.id);
       (async () => {
         try {
-          await fetch('/api/paper-trading/follow-signal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          await fetch("/api/paper-trading/follow-signal", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               id: sig.id,
               symbol: sig.symbol,
@@ -357,8 +437,8 @@ export default function PaperTradingPage() {
 
   useEffect(() => {
     if (!canvasRef.current || !portfolio) return;
-    drawEquityCurve(canvasRef.current, portfolio.equityCurve, tooltip);
-  }, [portfolio, tooltip]);
+    drawEquityCurve(canvasRef.current, portfolio.equityCurve, tooltip, isDark);
+  }, [portfolio, tooltip, isDark]);
 
   // ---------------------------------------------------------------------------
   // Actions
@@ -368,10 +448,14 @@ export default function PaperTradingPage() {
     setActionLoading(true);
     try {
       const bal = portfolio?.balance ?? 10000;
-      await fetch('/api/paper-trading/open', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol, direction, quantity: Math.round(bal * sizePct) }),
+      await fetch("/api/paper-trading/open", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol,
+          direction,
+          quantity: Math.round(bal * sizePct),
+        }),
       });
       await fetchPortfolio();
     } catch {
@@ -385,9 +469,9 @@ export default function PaperTradingPage() {
     const pos = portfolio?.positions.find((p) => p.id === positionId);
     const exitPrice = pos ? prices[pos.symbol] : undefined;
     try {
-      await fetch('/api/paper-trading/close', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/paper-trading/close", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ positionId, exitPrice }),
       });
       await fetchPortfolio();
@@ -399,7 +483,7 @@ export default function PaperTradingPage() {
   const handleCloseAll = async () => {
     setActionLoading(true);
     try {
-      await fetch('/api/paper-trading/close-all', { method: 'POST' });
+      await fetch("/api/paper-trading/close-all", { method: "POST" });
       await fetchPortfolio();
     } catch {
       // ignore
@@ -412,7 +496,7 @@ export default function PaperTradingPage() {
     setShowReset(false);
     setActionLoading(true);
     try {
-      await fetch('/api/paper-trading/reset', { method: 'POST' });
+      await fetch("/api/paper-trading/reset", { method: "POST" });
       followedSignalIds.current.clear();
       await fetchPortfolio();
     } catch {
@@ -425,9 +509,9 @@ export default function PaperTradingPage() {
   const handleFollowSignal = async (sig: Signal) => {
     setActionLoading(true);
     try {
-      await fetch('/api/paper-trading/follow-signal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/paper-trading/follow-signal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: sig.id,
           symbol: sig.symbol,
@@ -454,7 +538,7 @@ export default function PaperTradingPage() {
   const startBal = portfolio?.startingBalance ?? 10000;
   const openPnl = (portfolio?.positions ?? []).reduce((s, pos) => {
     const price = prices[pos.symbol] ?? pos.entryPrice;
-    const dirMult = pos.direction === 'BUY' ? 1 : -1;
+    const dirMult = pos.direction === "BUY" ? 1 : -1;
     const movePct = ((price - pos.entryPrice) / pos.entryPrice) * dirMult;
     return s + pos.quantity * movePct;
   }, 0);
@@ -478,9 +562,12 @@ export default function PaperTradingPage() {
     const x = e.clientX - rect.left;
     const pts = portfolio.equityCurve;
     if (pts.length < 2) return;
-    const PAD_L = 8, PAD_R = 8;
+    const PAD_L = 8,
+      PAD_R = 8;
     const cW = rect.width - PAD_L - PAD_R;
-    const nearestIdx = Math.round((Math.max(0, Math.min(x - PAD_L, cW)) / cW) * (pts.length - 1));
+    const nearestIdx = Math.round(
+      (Math.max(0, Math.min(x - PAD_L, cW)) / cW) * (pts.length - 1),
+    );
     tooltipNearestRef.current = nearestIdx;
     setTooltip({
       x,
@@ -500,16 +587,34 @@ export default function PaperTradingPage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] text-white font-sans">
+    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)] font-sans">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#050505]/90 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
-              <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-              <path d="M10 2v10M3 7l7 5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 20 20"
+              fill="none"
+              className="text-emerald-400"
+            >
+              <path
+                d="M10 2L3 7v6l7 5 7-5V7L10 2z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M10 2v10M3 7l7 5 7-5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
             </svg>
-            <span className="text-sm font-semibold">Trade<span className="text-emerald-400">Claw</span></span>
+            <span className="text-sm font-semibold">
+              Trade<span className="text-emerald-400">Claw</span>
+            </span>
           </Link>
           <div className="hidden md:flex items-center gap-1">
             {NAV_PAGES.map((page) => (
@@ -517,68 +622,86 @@ export default function PaperTradingPage() {
                 key={page.href}
                 href={page.href}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                  page.href === '/paper-trading'
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+                  page.href === "/paper-trading"
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]"
                 }`}
               >
                 {page.label}
               </Link>
             ))}
           </div>
-          <button
-            onClick={() => setShowReset(true)}
-            className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors"
-          >
-            Reset account
-          </button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle className="text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]" />
+            <button
+              onClick={() => setShowReset(true)}
+              className="text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+            >
+              Reset account
+            </button>
+          </div>
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6 space-y-6">
-
         {/* Account summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: 'Balance', value: fmtMoney(bal), color: 'text-white' },
             {
-              label: 'Equity',
+              label: "Balance",
+              value: fmtMoney(bal),
+              color: "text-[var(--foreground)]",
+            },
+            {
+              label: "Equity",
               value: fmtMoney(equity),
-              color: equity >= startBal ? 'text-emerald-400' : 'text-red-400',
+              color: equity >= startBal ? "text-emerald-400" : "text-red-400",
             },
             {
-              label: 'Open P&L',
+              label: "Open P&L",
               value: fmtSignedMoney(openPnl),
-              color: openPnl >= 0 ? 'text-emerald-400' : 'text-red-400',
+              color: openPnl >= 0 ? "text-emerald-400" : "text-red-400",
             },
             {
-              label: 'Total Return',
-              value: `${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`,
-              color: totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400',
+              label: "Total Return",
+              value: `${totalReturn >= 0 ? "+" : ""}${totalReturn.toFixed(2)}%`,
+              color: totalReturn >= 0 ? "text-emerald-400" : "text-red-400",
             },
           ].map(({ label, value, color }) => (
-            <div key={label} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 text-center">
-              <div className={`text-xl font-bold font-mono tabular-nums ${color}`}>{value}</div>
-              <div className="text-[11px] text-zinc-600 uppercase tracking-wider mt-1">{label}</div>
+            <div
+              key={label}
+              className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-2xl p-4 text-center"
+            >
+              <div
+                className={`text-xl font-bold font-mono tabular-nums ${color}`}
+              >
+                {value}
+              </div>
+              <div className="text-[11px] text-[var(--text-secondary)] uppercase tracking-wider mt-1">
+                {label}
+              </div>
             </div>
           ))}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
           {/* Order form */}
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-4">
-            <div className="text-xs font-semibold text-white">Place order</div>
+          <div className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-2xl p-5 space-y-4">
+            <div className="text-xs font-semibold text-[var(--foreground)]">
+              Place order
+            </div>
 
             <div>
-              <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Symbol</label>
+              <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">
+                Symbol
+              </label>
               <select
                 value={symbol}
                 onChange={(e) => setSymbol(e.target.value)}
-                className="w-full bg-white/5 border border-white/8 rounded-xl px-3 py-2 text-sm text-zinc-300 outline-none focus:border-emerald-500/30"
+                className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-xl px-3 py-2 text-sm text-[var(--foreground)] outline-none focus:border-emerald-500/30"
               >
                 {SYMBOLS.map((s) => (
-                  <option key={s} value={s} className="bg-zinc-900">
+                  <option key={s} value={s}>
                     {s} — {fmtPrice(prices[s] ?? BASE_PRICES[s] ?? 0)}
                   </option>
                 ))}
@@ -586,18 +709,20 @@ export default function PaperTradingPage() {
             </div>
 
             <div>
-              <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Direction</label>
+              <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">
+                Direction
+              </label>
               <div className="grid grid-cols-2 gap-1.5">
-                {(['BUY', 'SELL'] as const).map((d) => (
+                {(["BUY", "SELL"] as const).map((d) => (
                   <button
                     key={d}
                     onClick={() => setDirection(d)}
                     className={`py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
                       direction === d
-                        ? d === 'BUY'
-                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
-                          : 'bg-red-500/15 text-red-400 border border-red-500/25'
-                        : 'bg-white/5 text-zinc-600 border border-white/5 hover:text-zinc-400'
+                        ? d === "BUY"
+                          ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25"
+                          : "bg-red-500/15 text-red-400 border border-red-500/25"
+                        : "bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)] hover:text-[var(--foreground)]"
                     }`}
                   >
                     {d}
@@ -607,7 +732,9 @@ export default function PaperTradingPage() {
             </div>
 
             <div>
-              <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Position size</label>
+              <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">
+                Position size
+              </label>
               <div className="flex gap-1.5">
                 {SIZE_PCTS.map((s, i) => (
                   <button
@@ -615,30 +742,30 @@ export default function PaperTradingPage() {
                     onClick={() => setSizePct(s)}
                     className={`flex-1 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 ${
                       sizePct === s
-                        ? 'bg-white/10 text-white border border-white/15'
-                        : 'bg-white/5 text-zinc-600 border border-white/5 hover:text-zinc-400'
+                        ? "bg-[var(--border)] text-[var(--foreground)] border border-[var(--glass-border-accent)]"
+                        : "bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)] hover:text-[var(--foreground)]"
                     }`}
                   >
                     {SIZE_LABELS[i]}
                   </button>
                 ))}
               </div>
-              <div className="text-[10px] text-zinc-700 font-mono mt-1.5">
+              <div className="text-[10px] text-[var(--text-secondary)] font-mono mt-1.5">
                 ~{fmtMoney(Math.round(bal * sizePct))} committed
               </div>
             </div>
 
             <div className="pt-1">
-              <div className="text-[10px] text-zinc-700 font-mono mb-2">
+              <div className="text-[10px] text-[var(--text-secondary)] font-mono mb-2">
                 Current: {fmtPrice(prices[symbol] ?? BASE_PRICES[symbol] ?? 0)}
               </div>
               <button
                 onClick={handleOpenPosition}
                 disabled={actionLoading || loading}
                 className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.98] disabled:opacity-50 ${
-                  direction === 'BUY'
-                    ? 'bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/20'
-                    : 'bg-red-500/15 border border-red-500/25 text-red-400 hover:bg-red-500/20'
+                  direction === "BUY"
+                    ? "bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/20"
+                    : "bg-red-500/15 border border-red-500/25 text-red-400 hover:bg-red-500/20"
                 }`}
               >
                 {direction} {SIZE_LABELS[SIZE_PCTS.indexOf(sizePct)]} of balance
@@ -647,17 +774,19 @@ export default function PaperTradingPage() {
           </div>
 
           {/* Open positions */}
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5">
+          <div className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-xs font-semibold text-white">
-                Open positions{' '}
-                <span className="text-zinc-700 ml-1">({portfolio?.positions.length ?? 0})</span>
+              <div className="text-xs font-semibold text-[var(--foreground)]">
+                Open positions{" "}
+                <span className="text-[var(--text-secondary)] ml-1">
+                  ({portfolio?.positions.length ?? 0})
+                </span>
               </div>
               {(portfolio?.positions.length ?? 0) > 0 && (
                 <button
                   onClick={handleCloseAll}
                   disabled={actionLoading}
-                  className="text-[10px] text-zinc-600 hover:text-red-400 transition-colors border border-white/5 hover:border-red-500/20 px-2 py-1 rounded-lg disabled:opacity-50"
+                  className="text-[10px] text-[var(--text-secondary)] hover:text-red-400 transition-colors border border-[var(--border)] hover:border-red-500/20 px-2 py-1 rounded-lg disabled:opacity-50"
                 >
                   Close all
                 </button>
@@ -665,51 +794,71 @@ export default function PaperTradingPage() {
             </div>
 
             {loading ? (
-              <div className="text-center py-12 text-xs text-zinc-700">Loading…</div>
+              <div className="text-center py-12 text-xs text-[var(--text-secondary)]">
+                Loading…
+              </div>
             ) : (portfolio?.positions.length ?? 0) === 0 ? (
-              <div className="text-center py-12 text-xs text-zinc-700">No open positions</div>
+              <div className="text-center py-12 text-xs text-[var(--text-secondary)]">
+                No open positions
+              </div>
             ) : (
               <div className="space-y-2">
                 {portfolio!.positions.map((pos) => {
                   const price = prices[pos.symbol] ?? pos.entryPrice;
-                  const dirMult = pos.direction === 'BUY' ? 1 : -1;
-                  const movePct = ((price - pos.entryPrice) / pos.entryPrice) * dirMult;
+                  const dirMult = pos.direction === "BUY" ? 1 : -1;
+                  const movePct =
+                    ((price - pos.entryPrice) / pos.entryPrice) * dirMult;
                   const pnl = pos.quantity * movePct;
                   return (
-                    <div key={pos.id} className="bg-white/[0.02] rounded-xl p-3 border border-white/5">
+                    <div
+                      key={pos.id}
+                      className="bg-[var(--background)] rounded-xl p-3 border border-[var(--border)]"
+                    >
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-semibold text-white">{pos.symbol}</span>
+                          <span className="text-xs font-mono font-semibold text-[var(--foreground)]">
+                            {pos.symbol}
+                          </span>
                           <span
                             className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                              pos.direction === 'BUY'
-                                ? 'bg-emerald-500/10 text-emerald-400'
-                                : 'bg-red-500/10 text-red-400'
+                              pos.direction === "BUY"
+                                ? "bg-emerald-500/10 text-emerald-400"
+                                : "bg-red-500/10 text-red-400"
                             }`}
                           >
                             {pos.direction}
                           </span>
-                          <span className="text-[10px] text-zinc-700 font-mono">{fmtMoney(pos.quantity)}</span>
+                          <span className="text-[10px] text-[var(--text-secondary)] font-mono">
+                            {fmtMoney(pos.quantity)}
+                          </span>
                         </div>
                         <button
                           onClick={() => handleClose(pos.id)}
-                          className="text-[10px] text-zinc-600 hover:text-red-400 transition-colors border border-white/5 hover:border-red-500/20 px-2 py-1 rounded-lg"
+                          className="text-[10px] text-[var(--text-secondary)] hover:text-red-400 transition-colors border border-[var(--border)] hover:border-red-500/20 px-2 py-1 rounded-lg"
                         >
                           Close
                         </button>
                       </div>
                       <div className="flex items-center justify-between text-[10px] font-mono">
-                        <span className="text-zinc-700">
+                        <span className="text-[var(--text-secondary)]">
                           {fmtPrice(pos.entryPrice)} → {fmtPrice(price)}
                         </span>
-                        <span className={pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                        <span
+                          className={
+                            pnl >= 0 ? "text-emerald-400" : "text-red-400"
+                          }
+                        >
                           {fmtSignedMoney(pnl)}
                         </span>
                       </div>
                       {(pos.stopLoss ?? pos.takeProfit) && (
-                        <div className="flex items-center gap-3 mt-1 text-[9px] font-mono text-zinc-700">
-                          {pos.stopLoss && <span>SL {fmtPrice(pos.stopLoss)}</span>}
-                          {pos.takeProfit && <span>TP {fmtPrice(pos.takeProfit)}</span>}
+                        <div className="flex items-center gap-3 mt-1 text-[9px] font-mono text-[var(--text-secondary)]">
+                          {pos.stopLoss && (
+                            <span>SL {fmtPrice(pos.stopLoss)}</span>
+                          )}
+                          {pos.takeProfit && (
+                            <span>TP {fmtPrice(pos.takeProfit)}</span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -720,20 +869,26 @@ export default function PaperTradingPage() {
           </div>
 
           {/* Signal integration */}
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-4">
+          <div className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-2xl p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <div className="text-xs font-semibold text-white">Signal feed</div>
+              <div className="text-xs font-semibold text-[var(--foreground)]">
+                Signal feed
+              </div>
               <label className="flex items-center gap-2 cursor-pointer">
-                <span className="text-[10px] text-zinc-600">Auto-follow</span>
+                <span className="text-[10px] text-[var(--text-secondary)]">
+                  Auto-follow
+                </span>
                 <div
                   onClick={() => setAutoFollow((v) => !v)}
                   className={`w-8 h-4 rounded-full transition-colors relative ${
-                    autoFollow ? 'bg-emerald-500/50' : 'bg-white/10'
+                    autoFollow ? "bg-emerald-500/50" : "bg-[var(--border)]"
                   }`}
                 >
                   <div
-                    className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${
-                      autoFollow ? 'translate-x-4' : 'translate-x-0.5'
+                    className={`absolute top-0.5 w-3 h-3 rounded-full transition-transform ${
+                      autoFollow
+                        ? "translate-x-4 bg-white"
+                        : "translate-x-0.5 bg-[var(--text-secondary)]"
                     }`}
                   />
                 </div>
@@ -741,24 +896,33 @@ export default function PaperTradingPage() {
             </div>
 
             {signals.length === 0 ? (
-              <div className="text-center py-8 text-xs text-zinc-700">No signals available</div>
+              <div className="text-center py-8 text-xs text-[var(--text-secondary)]">
+                No signals available
+              </div>
             ) : (
               <div className="space-y-2">
                 {signals.map((sig) => (
-                  <div key={sig.id} className="bg-white/[0.02] rounded-xl p-3 border border-white/5">
+                  <div
+                    key={sig.id}
+                    className="bg-[var(--background)] rounded-xl p-3 border border-[var(--border)]"
+                  >
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-semibold text-white">{sig.symbol}</span>
+                        <span className="text-xs font-mono font-semibold text-[var(--foreground)]">
+                          {sig.symbol}
+                        </span>
                         <span
                           className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                            sig.direction === 'BUY'
-                              ? 'bg-emerald-500/10 text-emerald-400'
-                              : 'bg-red-500/10 text-red-400'
+                            sig.direction === "BUY"
+                              ? "bg-emerald-500/10 text-emerald-400"
+                              : "bg-red-500/10 text-red-400"
                           }`}
                         >
                           {sig.direction}
                         </span>
-                        <span className="text-[10px] text-zinc-700">{sig.timeframe}</span>
+                        <span className="text-[10px] text-[var(--text-secondary)]">
+                          {sig.timeframe}
+                        </span>
                       </div>
                       <button
                         onClick={() => handleFollowSignal(sig)}
@@ -768,19 +932,21 @@ export default function PaperTradingPage() {
                         Follow
                       </button>
                     </div>
-                    <div className="grid grid-cols-3 gap-1 text-[9px] font-mono text-zinc-700">
+                    <div className="grid grid-cols-3 gap-1 text-[9px] font-mono text-[var(--text-secondary)]">
                       <span>E {fmtPrice(sig.entry)}</span>
                       <span>SL {fmtPrice(sig.stopLoss)}</span>
                       <span>TP {fmtPrice(sig.takeProfit)}</span>
                     </div>
                     <div className="mt-1">
-                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-1 bg-[var(--border)] rounded-full overflow-hidden">
                         <div
                           className="h-full bg-emerald-500/50 rounded-full"
                           style={{ width: `${sig.confidence}%` }}
                         />
                       </div>
-                      <div className="text-[9px] text-zinc-700 font-mono mt-0.5">{sig.confidence}% confidence</div>
+                      <div className="text-[9px] text-[var(--text-secondary)] font-mono mt-0.5">
+                        {sig.confidence}% confidence
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -791,11 +957,13 @@ export default function PaperTradingPage() {
 
         {/* Equity curve + Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white/[0.02] border border-white/5 rounded-2xl p-5">
+          <div className="lg:col-span-2 bg-[var(--glass-bg)] border border-[var(--border)] rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-xs font-semibold text-white">Equity curve</div>
+              <div className="text-xs font-semibold text-[var(--foreground)]">
+                Equity curve
+              </div>
               {tooltip.visible && (
-                <div className="text-[10px] font-mono text-zinc-500">
+                <div className="text-[10px] font-mono text-[var(--text-secondary)]">
                   {tooltip.date} — {fmtMoney(tooltip.equity)}
                 </div>
               )}
@@ -810,46 +978,103 @@ export default function PaperTradingPage() {
             </div>
           </div>
 
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5">
-            <div className="text-xs font-semibold text-white mb-4">Performance stats</div>
+          <div className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-2xl p-5">
+            <div className="text-xs font-semibold text-[var(--foreground)] mb-4">
+              Performance stats
+            </div>
             {!stats || stats.totalTrades === 0 ? (
-              <div className="text-center py-8 text-xs text-zinc-700">No trades yet</div>
+              <div className="text-center py-8 text-xs text-[var(--text-secondary)]">
+                No trades yet
+              </div>
             ) : (
               <div className="grid grid-cols-2 gap-2">
-                <StatCard label="Win rate" value={`${stats.winRate}%`} color={stats.winRate >= 50 ? 'text-emerald-400' : 'text-red-400'} />
-                <StatCard label="Total trades" value={String(stats.totalTrades)} />
-                <StatCard label="Avg P&L" value={fmtSignedMoney(stats.avgPnl)} color={stats.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'} />
-                <StatCard label="Profit factor" value={String(stats.profitFactor)} color={stats.profitFactor >= 1 ? 'text-emerald-400' : 'text-red-400'} />
-                <StatCard label="Sharpe" value={String(stats.sharpeRatio)} color={stats.sharpeRatio >= 1 ? 'text-emerald-400' : 'text-zinc-400'} />
-                <StatCard label="Max drawdown" value={`${stats.maxDrawdown}%`} color={stats.maxDrawdown > 20 ? 'text-red-400' : 'text-zinc-400'} />
-                <StatCard label="Best trade" value={fmtMoney(stats.bestTrade)} color="text-emerald-400" />
-                <StatCard label="Worst trade" value={fmtMoney(stats.worstTrade)} color="text-red-400" />
+                <StatCard
+                  label="Win rate"
+                  value={`${stats.winRate}%`}
+                  color={
+                    stats.winRate >= 50 ? "text-emerald-400" : "text-red-400"
+                  }
+                />
+                <StatCard
+                  label="Total trades"
+                  value={String(stats.totalTrades)}
+                />
+                <StatCard
+                  label="Avg P&L"
+                  value={fmtSignedMoney(stats.avgPnl)}
+                  color={
+                    stats.avgPnl >= 0 ? "text-emerald-400" : "text-red-400"
+                  }
+                />
+                <StatCard
+                  label="Profit factor"
+                  value={String(stats.profitFactor)}
+                  color={
+                    stats.profitFactor >= 1
+                      ? "text-emerald-400"
+                      : "text-red-400"
+                  }
+                />
+                <StatCard
+                  label="Sharpe"
+                  value={String(stats.sharpeRatio)}
+                  color={
+                    stats.sharpeRatio >= 1
+                      ? "text-emerald-400"
+                      : "text-[var(--text-secondary)]"
+                  }
+                />
+                <StatCard
+                  label="Max drawdown"
+                  value={`${stats.maxDrawdown}%`}
+                  color={
+                    stats.maxDrawdown > 20
+                      ? "text-red-400"
+                      : "text-[var(--text-secondary)]"
+                  }
+                />
+                <StatCard
+                  label="Best trade"
+                  value={fmtMoney(stats.bestTrade)}
+                  color="text-emerald-400"
+                />
+                <StatCard
+                  label="Worst trade"
+                  value={fmtMoney(stats.worstTrade)}
+                  color="text-red-400"
+                />
               </div>
             )}
           </div>
         </div>
 
         {/* Trade history */}
-        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5">
+        <div className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-xs font-semibold text-white">
-              Trade history{' '}
-              <span className="text-zinc-700 ml-1">({histTotal})</span>
+            <div className="text-xs font-semibold text-[var(--foreground)]">
+              Trade history{" "}
+              <span className="text-[var(--text-secondary)] ml-1">
+                ({histTotal})
+              </span>
             </div>
             {histPages > 1 && (
-              <div className="flex items-center gap-2 text-[10px] text-zinc-600">
+              <div className="flex items-center gap-2 text-[10px] text-[var(--text-secondary)]">
                 <button
                   onClick={() => setHistPage((p) => Math.max(0, p - 1))}
                   disabled={histPage === 0}
-                  className="px-2 py-1 rounded-lg border border-white/5 hover:border-white/10 disabled:opacity-30 transition-colors"
+                  className="px-2 py-1 rounded-lg border border-[var(--border)] hover:border-[var(--glass-border-accent)] disabled:opacity-30 transition-colors"
                 >
                   ←
                 </button>
-                <span className="font-mono">{histPage + 1}/{histPages}</span>
+                <span className="font-mono">
+                  {histPage + 1}/{histPages}
+                </span>
                 <button
-                  onClick={() => setHistPage((p) => Math.min(histPages - 1, p + 1))}
+                  onClick={() =>
+                    setHistPage((p) => Math.min(histPages - 1, p + 1))
+                  }
                   disabled={histPage >= histPages - 1}
-                  className="px-2 py-1 rounded-lg border border-white/5 hover:border-white/10 disabled:opacity-30 transition-colors"
+                  className="px-2 py-1 rounded-lg border border-[var(--border)] hover:border-[var(--glass-border-accent)] disabled:opacity-30 transition-colors"
                 >
                   →
                 </button>
@@ -858,41 +1083,65 @@ export default function PaperTradingPage() {
           </div>
 
           {histTotal === 0 ? (
-            <div className="text-center py-8 text-xs text-zinc-700">No closed trades yet</div>
+            <div className="text-center py-8 text-xs text-[var(--text-secondary)]">
+              No closed trades yet
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-[11px] font-mono">
                 <thead>
-                  <tr className="text-zinc-700 uppercase text-[9px] tracking-wider border-b border-white/5">
+                  <tr className="text-[var(--text-secondary)] uppercase text-[9px] tracking-wider border-b border-[var(--border)]">
                     <th className="pb-2 text-left font-normal">Symbol</th>
                     <th className="pb-2 text-left font-normal">Dir</th>
                     <th className="pb-2 text-right font-normal">Entry</th>
                     <th className="pb-2 text-right font-normal">Exit</th>
                     <th className="pb-2 text-right font-normal">P&L</th>
                     <th className="pb-2 text-right font-normal">%</th>
-                    <th className="pb-2 text-right font-normal hidden md:table-cell">Duration</th>
-                    <th className="pb-2 text-right font-normal hidden md:table-cell">Reason</th>
+                    <th className="pb-2 text-right font-normal hidden md:table-cell">
+                      Duration
+                    </th>
+                    <th className="pb-2 text-right font-normal hidden md:table-cell">
+                      Reason
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {histSlice.map((t: Trade) => (
-                    <tr key={t.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                      <td className="py-2 text-zinc-300">{t.symbol}</td>
-                      <td className={`py-2 font-bold ${t.direction === 'BUY' ? 'text-emerald-500' : 'text-red-500'}`}>
+                    <tr
+                      key={t.id}
+                      className="border-b border-[var(--border)] hover:bg-[var(--glass-bg)] transition-colors"
+                    >
+                      <td className="py-2 text-[var(--foreground)]">
+                        {t.symbol}
+                      </td>
+                      <td
+                        className={`py-2 font-bold ${t.direction === "BUY" ? "text-emerald-500" : "text-red-500"}`}
+                      >
                         {t.direction}
                       </td>
-                      <td className="py-2 text-right text-zinc-500">{fmtPrice(t.entryPrice)}</td>
-                      <td className="py-2 text-right text-zinc-500">{fmtPrice(t.exitPrice)}</td>
-                      <td className={`py-2 text-right tabular-nums ${t.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <td className="py-2 text-right text-[var(--text-secondary)]">
+                        {fmtPrice(t.entryPrice)}
+                      </td>
+                      <td className="py-2 text-right text-[var(--text-secondary)]">
+                        {fmtPrice(t.exitPrice)}
+                      </td>
+                      <td
+                        className={`py-2 text-right tabular-nums ${t.pnl >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                      >
                         {fmtSignedMoney(t.pnl)}
                       </td>
-                      <td className={`py-2 text-right tabular-nums ${t.pnlPercent >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                        {t.pnlPercent >= 0 ? '+' : ''}{t.pnlPercent.toFixed(2)}%
+                      <td
+                        className={`py-2 text-right tabular-nums ${t.pnlPercent >= 0 ? "text-emerald-600" : "text-red-600"}`}
+                      >
+                        {t.pnlPercent >= 0 ? "+" : ""}
+                        {t.pnlPercent.toFixed(2)}%
                       </td>
-                      <td className="py-2 text-right text-zinc-700 hidden md:table-cell">
+                      <td className="py-2 text-right text-[var(--text-secondary)] hidden md:table-cell">
                         {fmtTradeDuration(t.openedAt, t.closedAt)}
                       </td>
-                      <td className="py-2 text-right text-zinc-700 hidden md:table-cell">{t.exitReason}</td>
+                      <td className="py-2 text-right text-[var(--text-secondary)] hidden md:table-cell">
+                        {t.exitReason}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -904,17 +1153,23 @@ export default function PaperTradingPage() {
 
       {/* Reset modal */}
       {showReset && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-[#0e0e0e] border border-white/10 rounded-2xl p-6 w-full max-w-sm mx-4">
-            <div className="text-sm font-semibold text-white mb-2">Reset paper account?</div>
-            <div className="text-xs text-zinc-500 mb-6">
-              This will wipe all positions, history, and equity curve. Your balance resets to{' '}
-              <span className="text-white font-mono">$10,000</span>. This cannot be undone.
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl">
+            <div className="text-sm font-semibold text-[var(--foreground)] mb-2">
+              Reset paper account?
+            </div>
+            <div className="text-xs text-[var(--text-secondary)] mb-6">
+              This will wipe all positions, history, and equity curve. Your
+              balance resets to{" "}
+              <span className="text-[var(--foreground)] font-mono">
+                $10,000
+              </span>
+              . This cannot be undone.
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowReset(false)}
-                className="flex-1 py-2.5 rounded-xl text-sm text-zinc-400 border border-white/10 hover:border-white/20 transition-colors"
+                className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-secondary)] border border-[var(--border)] hover:border-[var(--glass-border-accent)] transition-colors"
               >
                 Cancel
               </button>
