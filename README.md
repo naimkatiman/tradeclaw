@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://tradeclaw.win/dashboard">
-  <img src="apps/web/public/demo.gif" alt="TradeClaw Dashboard Demo" width="100%" />
+  <img src="apps/web/public/tradeclaw-demo.gif" alt="TradeClaw Dashboard Demo" width="100%" />
 </a>
 
 <h1>TradeClaw ⚡</h1>

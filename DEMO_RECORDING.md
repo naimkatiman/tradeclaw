@@ -85,13 +85,13 @@ Target: **< 3 MB** for best GitHub rendering.
 
 ## Where to Put It
 
-1. Place the file at `apps/web/public/demo.gif`
+1. Place the file at `apps/web/public/tradeclaw-demo.gif`
 2. Update `README.md` to reference it:
 
 ```markdown
 ## 🎬 Demo
 
-![TradeClaw Live Demo](apps/web/public/demo.gif)
+![TradeClaw Live Demo](apps/web/public/tradeclaw-demo.gif)
 ```
 
 Or host on a CDN and use a direct URL for faster loads.
