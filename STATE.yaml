@@ -730,3 +730,40 @@ next_actions:
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
   - "Measure TC-060 impact with audited live signal logging and forward hit-rate / net-PnL tracking."
   - "Replace seed-heavy accuracy UX with live-only metrics once enough TC-061 records accumulate."
+
+  # ── Phase 13: Distribution + Developer Ecosystem ──
+
+  - id: TC-064
+    title: "GitHub Actions star-triggered social post — auto-tweet/post when milestone stars hit"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-065
+    title: "TradeClaw MCP server — Model Context Protocol server so AI assistants can fetch live signals"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: packages/tradeclaw-mcp/ — bin/server.js (stdio MCP entry, --base-url/--help flags),
+      lib/index.js (4 MCP tools: get_signals, get_leaderboard, get_health, explain_signal),
+      lib/tradeclaw-client.js (fetch wrapper for /api/v1 endpoints), package.json, README.md.
+      README.md updated with Option 3 MCP config snippet for Claude Desktop. All tools return
+      rich markdown. Supports TRADECLAW_BASE_URL env for self-hosted instances. 2026-03-28
+
+  - id: TC-066
+    title: "Landing page performance score — Lighthouse 100 optimization, sub-1s LCP, Core Web Vitals green"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-067
+    title: "Signal confidence calibration page — /calibration shows if 80% confidence signals win 80% of time"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-068
+    title: "Dev.to / Hashnode viral article — 'I built an open-source AI trading signal platform in 7 days'"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""

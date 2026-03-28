@@ -58,6 +58,19 @@ npx tradeclaw leaderboard --period 7d
 npx tradeclaw-demo
 ```
 
+**Option 3 — MCP server (for Claude Desktop / Cursor / Cline):**
+```json
+{
+  "mcpServers": {
+    "tradeclaw": {
+      "command": "npx",
+      "args": ["tradeclaw-mcp"]
+    }
+  }
+}
+```
+Add to `claude_desktop_config.json`, restart Claude, then ask: *"What's the current BTC signal?"*
+
 No installation. No config. No Docker. Fetches live AI signals instantly.
 
 ---

@@ -1,0 +1,35 @@
+{
+  "name": "tradeclaw-mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol (MCP) server for TradeClaw — fetch live AI trading signals in any MCP-compatible AI assistant",
+  "bin": {
+    "tradeclaw-mcp": "./bin/server.js"
+  },
+  "main": "./lib/index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "trading",
+    "signals",
+    "forex",
+    "crypto",
+    "bitcoin",
+    "algo-trading",
+    "tradeclaw",
+    "claude",
+    "ai-assistant"
+  ],
+  "homepage": "https://tradeclaw.win",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naimkatiman/tradeclaw",
+    "directory": "packages/tradeclaw-mcp"
+  },
+  "license": "MIT"
+}
