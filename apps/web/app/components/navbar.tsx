@@ -37,7 +37,7 @@ export function Navbar() {
         aria-label="Main navigation"
       >
         <div
-          className={`glass-nav rounded-full px-5 py-2.5 flex items-center justify-between gap-6 w-full max-w-4xl transition-all duration-700 ${
+          className={`glass-nav rounded-full px-5 py-2.5 flex items-center justify-between gap-4 w-full max-w-7xl transition-all duration-700 ${
             scrolled ? "shadow-[0_0_40px_rgba(16,185,129,0.06)]" : ""
           }`}
         >
@@ -69,7 +69,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-6 text-xs font-medium text-[var(--text-secondary)]">
+          <div className="hidden md:flex items-center gap-3 text-xs font-medium text-[var(--text-secondary)]">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
