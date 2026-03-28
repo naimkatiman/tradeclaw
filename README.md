@@ -4,6 +4,10 @@
 
 <br/>
 
+[![BTC Signal](https://tradeclaw.win/api/badge)](https://tradeclaw.win)
+[![ETH Signal](https://tradeclaw.win/api/badge?pair=ETHUSD)](https://tradeclaw.win)
+[![Gold Signal](https://tradeclaw.win/api/badge?pair=XAUUSD)](https://tradeclaw.win)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Stars](https://img.shields.io/github/stars/naimkatiman/tradeclaw?style=social)](https://github.com/naimkatiman/tradeclaw/stargazers)
 [![Forks](https://img.shields.io/github/forks/naimkatiman/tradeclaw?style=social)](https://github.com/naimkatiman/tradeclaw/forks)
@@ -283,6 +287,22 @@ npm run build      # Production build
 - **Reddit:** [r/tradeclaw](https://reddit.com/r/tradeclaw)
 - **Twitter/X:** [@tradeclaw_io](https://twitter.com/tradeclaw_io)
 - **Issues:** [GitHub Issues](https://github.com/naimkatiman/tradeclaw/issues)
+
+---
+
+## Live Signal Badges
+
+Embed live trading signal badges directly in your GitHub README or website — no API key required.
+
+```markdown
+[![BTC Signal](https://tradeclaw.win/api/badge/BTCUSD)](https://tradeclaw.win)
+[![ETH Signal](https://tradeclaw.win/api/badge/ETHUSD)](https://tradeclaw.win)
+[![Gold Signal](https://tradeclaw.win/api/badge/XAUUSD)](https://tradeclaw.win)
+```
+
+**URL format:** `https://tradeclaw.win/api/badge/{PAIR}?tf={H1|H4|D1}`
+
+Badges update every 5 minutes, showing direction (BUY/SELL), confidence %, and pair. Hover for RSI tooltip. Browse all pairs and copy snippets at **[tradeclaw.win/badge](https://tradeclaw.win/badge)**.
 
 ---
 
