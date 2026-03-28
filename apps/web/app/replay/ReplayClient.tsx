@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { ReplayChart } from '../components/charts';
+import { generateBars as genBars } from '../lib/chart-utils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -33,42 +35,7 @@ type PlayState = 'idle' | 'playing' | 'paused' | 'done';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function generateBars(signal: SignalRecord, count = 80): PriceBar[] {
-  const bars: PriceBar[] = [];
-  let price = signal.entryPrice;
-  const step = 3600 * 1000; // 1h per bar
-  const vol = price * 0.004;
-  let seed = signal.timestamp % 1e9;
-  const rand = () => {
-    seed = (seed * 1664525 + 1013904223) & 0xffffffff;
-    return (seed >>> 0) / 0xffffffff;
-  };
-
-  // pre-signal bars (show buildup)
-  for (let i = -30; i < count; i++) {
-    const drift =
-      i >= 0 && i < 40
-        ? signal.direction === 'BUY'
-          ? 0.0006
-          : -0.0006
-        : 0;
-    const change = (rand() - 0.48 + drift) * vol;
-    const open = price;
-    price = Math.max(price + change, price * 0.98);
-    const range = rand() * vol * 0.8;
-    const high = Math.max(open, price) + range * 0.5;
-    const low = Math.min(open, price) - range * 0.5;
-    bars.push({
-      time: signal.timestamp + i * step,
-      open,
-      high,
-      low,
-      close: price,
-      volume: rand() * 1000 + 200,
-    });
-  }
-  return bars;
-}
+// generateBars is now imported from chart-utils
 
 function formatPrice(p: number): string {
   if (p >= 1000) return p.toFixed(0);
@@ -87,214 +54,7 @@ function timeAgo(ms: number): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-// ─── Canvas Chart ────────────────────────────────────────────────────────────
-
-function drawChart(
-  canvas: HTMLCanvasElement,
-  bars: PriceBar[],
-  currentIdx: number,
-  signal: SignalRecord,
-  theme: { bg: string; surface: string; border: string; emerald: string; rose: string; text: string; muted: string },
-) {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-  const dpr = window.devicePixelRatio || 1;
-  const W = canvas.offsetWidth;
-  const H = canvas.offsetHeight;
-  canvas.width = W * dpr;
-  canvas.height = H * dpr;
-  ctx.scale(dpr, dpr);
-
-  const visibleBars = bars.slice(0, currentIdx + 1);
-  if (visibleBars.length < 2) return;
-
-  const pad = { top: 20, right: 60, bottom: 40, left: 12 };
-  const chartW = W - pad.left - pad.right;
-  const chartH = H - pad.top - pad.bottom;
-
-  // price range
-  let minP = Infinity;
-  let maxP = -Infinity;
-  visibleBars.forEach((b) => {
-    minP = Math.min(minP, b.low);
-    maxP = Math.max(maxP, b.high);
-  });
-  // pad range 10%
-  const range = maxP - minP || 1;
-  minP -= range * 0.08;
-  maxP += range * 0.08;
-
-  const xScale = (i: number) => pad.left + (i / (bars.length - 1)) * chartW;
-  const yScale = (p: number) => pad.top + ((maxP - p) / (maxP - minP)) * chartH;
-
-  // BG
-  ctx.fillStyle = theme.bg;
-  ctx.fillRect(0, 0, W, H);
-
-  // Grid lines
-  ctx.strokeStyle = theme.border;
-  ctx.lineWidth = 0.5;
-  for (let i = 0; i <= 4; i++) {
-    const y = pad.top + (i / 4) * chartH;
-    ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(W - pad.right, y);
-    ctx.stroke();
-    const p = maxP - (i / 4) * (maxP - minP);
-    ctx.fillStyle = theme.muted;
-    ctx.font = `10px -apple-system, sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.fillText(formatPrice(p), W - 4, y + 3);
-  }
-
-  // TP/SL lines
-  if (signal.tp1) {
-    ctx.strokeStyle = theme.emerald;
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 4]);
-    const y = yScale(signal.tp1);
-    ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(W - pad.right, y);
-    ctx.stroke();
-    ctx.fillStyle = theme.emerald;
-    ctx.font = `10px -apple-system, sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.fillText('TP ' + formatPrice(signal.tp1), W - 4, y - 3);
-  }
-  if (signal.sl) {
-    ctx.strokeStyle = theme.rose;
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 4]);
-    const y = yScale(signal.sl);
-    ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(W - pad.right, y);
-    ctx.stroke();
-    ctx.fillStyle = theme.rose;
-    ctx.font = `10px -apple-system, sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.fillText('SL ' + formatPrice(signal.sl), W - 4, y + 11);
-  }
-  ctx.setLineDash([]);
-
-  // Entry price line
-  const entryY = yScale(signal.entryPrice);
-  ctx.strokeStyle = signal.direction === 'BUY' ? theme.emerald : theme.rose;
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([6, 3]);
-  ctx.beginPath();
-  ctx.moveTo(pad.left, entryY);
-  ctx.lineTo(W - pad.right, entryY);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Area fill under price line
-  const closePath: [number, number][] = visibleBars.map((b, i) => [xScale(i), yScale(b.close)]);
-  if (closePath.length > 1) {
-    const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
-    const color = signal.direction === 'BUY' ? '16, 185, 129' : '244, 63, 94';
-    grad.addColorStop(0, `rgba(${color}, 0.15)`);
-    grad.addColorStop(1, `rgba(${color}, 0)`);
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.moveTo(closePath[0][0], closePath[0][1]);
-    closePath.forEach(([x, y]) => ctx.lineTo(x, y));
-    ctx.lineTo(closePath[closePath.length - 1][0], pad.top + chartH);
-    ctx.lineTo(closePath[0][0], pad.top + chartH);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  // Candles
-  const barWidth = Math.max(2, (chartW / bars.length) * 0.6);
-  visibleBars.forEach((b, i) => {
-    const x = xScale(i);
-    const isGreen = b.close >= b.open;
-    const color = isGreen ? theme.emerald : theme.rose;
-    ctx.fillStyle = color;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    // wick
-    ctx.beginPath();
-    ctx.moveTo(x, yScale(b.high));
-    ctx.lineTo(x, yScale(b.low));
-    ctx.stroke();
-    // body
-    const bodyTop = yScale(Math.max(b.open, b.close));
-    const bodyBot = yScale(Math.min(b.open, b.close));
-    const bodyH = Math.max(1, bodyBot - bodyTop);
-    ctx.fillRect(x - barWidth / 2, bodyTop, barWidth, bodyH);
-  });
-
-  // Signal entry marker (vertical line + label)
-  const signalBarIdx = 30; // signal fires at bar 30 (0-indexed in pre-signal)
-  if (currentIdx >= signalBarIdx) {
-    const x = xScale(signalBarIdx);
-    ctx.strokeStyle = signal.direction === 'BUY' ? theme.emerald : theme.rose;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x, pad.top);
-    ctx.lineTo(x, pad.top + chartH);
-    ctx.stroke();
-
-    // Triangle marker
-    const markerY = yScale(signal.entryPrice);
-    const size = 8;
-    ctx.fillStyle = signal.direction === 'BUY' ? theme.emerald : theme.rose;
-    ctx.beginPath();
-    if (signal.direction === 'BUY') {
-      ctx.moveTo(x, markerY - size);
-      ctx.lineTo(x - size, markerY + size);
-      ctx.lineTo(x + size, markerY + size);
-    } else {
-      ctx.moveTo(x, markerY + size);
-      ctx.lineTo(x - size, markerY - size);
-      ctx.lineTo(x + size, markerY - size);
-    }
-    ctx.closePath();
-    ctx.fill();
-
-    // SIGNAL label
-    ctx.fillStyle = signal.direction === 'BUY' ? theme.emerald : theme.rose;
-    ctx.font = `bold 11px -apple-system, sans-serif`;
-    ctx.textAlign = 'left';
-    ctx.fillText(signal.direction, x + 6, pad.top + 14);
-  }
-
-  // Current price cursor line
-  if (visibleBars.length > 0) {
-    const last = visibleBars[visibleBars.length - 1];
-    const cy = yScale(last.close);
-    ctx.strokeStyle = theme.text;
-    ctx.lineWidth = 0.5;
-    ctx.setLineDash([2, 4]);
-    ctx.beginPath();
-    ctx.moveTo(pad.left, cy);
-    ctx.lineTo(W - pad.right, cy);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    // price label box
-    ctx.fillStyle = theme.text;
-    ctx.fillRect(W - pad.right + 2, cy - 9, 52, 18);
-    ctx.fillStyle = theme.bg;
-    ctx.font = `bold 10px -apple-system, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText(formatPrice(last.close), W - pad.right + 28, cy + 3);
-  }
-
-  // Time axis labels
-  ctx.fillStyle = theme.muted;
-  ctx.font = `9px -apple-system, sans-serif`;
-  ctx.textAlign = 'center';
-  [0, 20, 40, 60, 79].forEach((i) => {
-    if (i < bars.length) {
-      const x = xScale(i);
-      const d = new Date(bars[i].time);
-      ctx.fillText(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), x, H - 6);
-    }
-  });
-}
+// ─── Canvas chart replaced by ReplayChart (lightweight-charts) ──────────────
 
 // ─── RSI mini chart ──────────────────────────────────────────────────────────
 
@@ -490,33 +250,37 @@ export default function ReplayClient() {
   const [playState, setPlayState] = useState<PlayState>('idle');
   const [currentBar, setCurrentBar] = useState(0);
   const [speed, setSpeed] = useState(80); // ms per bar
-  const chartRef = useRef<HTMLCanvasElement>(null);
   const rsiRef = useRef<HTMLCanvasElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const signal = signals[selectedIdx];
-  const bars = generateBars(signal);
+  const bars = useMemo(
+    () => genBars(signal.entryPrice, signal.direction, signal.timestamp),
+    [signal.entryPrice, signal.direction, signal.timestamp],
+  );
   const totalBars = bars.length;
 
-  const redraw = useCallback(() => {
-    if (chartRef.current) {
-      drawChart(chartRef.current, bars, currentBar, signal, THEME);
-    }
+  // RSI still uses canvas
+  const redrawRSI = useCallback(() => {
     if (rsiRef.current) {
-      drawRSI(rsiRef.current, bars, currentBar, THEME);
+      // Convert bars back to PriceBar format for RSI
+      const priceBars: PriceBar[] = bars.map(b => ({
+        time: (b.time as number) * 1000,
+        open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume,
+      }));
+      drawRSI(rsiRef.current, priceBars, currentBar, THEME);
     }
-  }, [bars, currentBar, signal]);
+  }, [bars, currentBar]);
 
   useEffect(() => {
-    redraw();
-  }, [redraw]);
+    redrawRSI();
+  }, [redrawRSI]);
 
-  // Handle resize
   useEffect(() => {
-    const handler = () => redraw();
+    const handler = () => redrawRSI();
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
-  }, [redraw]);
+  }, [redrawRSI]);
 
   // Playback engine
   useEffect(() => {
@@ -712,9 +476,16 @@ export default function ReplayClient() {
 
           {/* Main chart */}
           <div style={{ flex: 1, minHeight: 0, padding: '0.75rem 1rem 0' }}>
-            <canvas
-              ref={chartRef}
-              style={{ width: '100%', height: '100%', display: 'block' }}
+            <ReplayChart
+              bars={bars}
+              visibleCount={currentBar + 1}
+              signal={{
+                direction: signal.direction,
+                entryPrice: signal.entryPrice,
+                tp1: signal.tp1,
+                sl: signal.sl,
+              }}
+              height={400}
             />
           </div>
 

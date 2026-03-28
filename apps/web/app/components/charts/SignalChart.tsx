@@ -1,7 +1,14 @@
 'use client';
 
 import { useCallback } from 'react';
-import { type IChartApi, LineStyle } from 'lightweight-charts';
+import {
+  CandlestickSeries,
+  HistogramSeries,
+  LineStyle,
+  createSeriesMarkers,
+  type IChartApi,
+  type LineWidth,
+} from 'lightweight-charts';
 import LWChart from './LWChart';
 import { useChartTheme } from './use-chart-theme';
 import type { OHLCVBar, PriceLineData } from './types';
@@ -14,7 +21,7 @@ interface SignalChartProps {
   takeProfit1: number;
   takeProfit2?: number;
   takeProfit3?: number;
-  signalTime?: number; // UTCTimestamp of signal entry
+  signalTime?: number;
   height?: number;
 }
 
@@ -33,8 +40,7 @@ export default function SignalChart({
 
   const onChartReady = useCallback(
     (chart: IChartApi) => {
-      // Candlestick series
-      const candleSeries = chart.addCandlestickSeries({
+      const candleSeries = chart.addSeries(CandlestickSeries, {
         upColor: theme.upColor,
         downColor: theme.downColor,
         wickUpColor: theme.wickUpColor,
@@ -43,8 +49,7 @@ export default function SignalChart({
       });
       candleSeries.setData(bars);
 
-      // Volume histogram
-      const volumeSeries = chart.addHistogramSeries({
+      const volumeSeries = chart.addSeries(HistogramSeries, {
         priceFormat: { type: 'volume' },
         priceScaleId: 'volume',
       });
@@ -59,7 +64,6 @@ export default function SignalChart({
         })),
       );
 
-      // Price lines
       const lines: PriceLineData[] = [
         { price: entry, color: '#ffffff', title: 'Entry', lineStyle: LineStyle.Dashed, lineWidth: 1 },
         { price: stopLoss, color: theme.downColor, title: 'SL', lineStyle: LineStyle.Dashed, lineWidth: 1 },
@@ -72,7 +76,7 @@ export default function SignalChart({
         candleSeries.createPriceLine({
           price: l.price,
           color: l.color,
-          lineWidth: l.lineWidth ?? 1,
+          lineWidth: (l.lineWidth ?? 1) as LineWidth,
           lineStyle: l.lineStyle ?? LineStyle.Dashed,
           axisLabelVisible: true,
           title: l.title,
@@ -82,9 +86,9 @@ export default function SignalChart({
       // Signal marker
       const markerTime = signalTime ?? bars[Math.min(30, bars.length - 1)]?.time;
       if (markerTime) {
-        candleSeries.setMarkers([
+        createSeriesMarkers(candleSeries, [
           {
-            time: markerTime,
+            time: markerTime as unknown as import('lightweight-charts').Time,
             position: direction === 'BUY' ? 'belowBar' : 'aboveBar',
             color: direction === 'BUY' ? theme.upColor : theme.downColor,
             shape: direction === 'BUY' ? 'arrowUp' : 'arrowDown',

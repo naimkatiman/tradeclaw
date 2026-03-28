@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import type { ScreenerResult, ScreenerMeta } from '../api/screener/route';
+import { SparklineChart } from '../components/charts';
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -44,72 +45,7 @@ function confTextColor(v: number): string {
   return 'text-rose-400';
 }
 
-// ─── Sparkline Canvas ─────────────────────────────────────────
-
-function Sparkline({ prices, direction }: { prices: number[]; direction: 'BUY' | 'SELL' }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const w = canvas.width;
-    const h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
-
-    // Not enough data points to draw a sparkline
-    if (prices.length < 2) {
-      ctx.strokeStyle = '#3f3f46'; // zinc-700
-      ctx.lineWidth = 1;
-      ctx.setLineDash([3, 3]);
-      ctx.beginPath();
-      ctx.moveTo(0, h / 2);
-      ctx.lineTo(w, h / 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = '#52525b'; // zinc-600
-      ctx.font = '9px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('No data', w / 2, h / 2 - 4);
-      return;
-    }
-
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    const range = max - min || 1;
-    const pad = 2;
-
-    const points = prices.map((p, i) => ({
-      x: pad + (i / (prices.length - 1)) * (w - pad * 2),
-      y: h - pad - ((p - min) / range) * (h - pad * 2),
-    }));
-
-    const color = direction === 'BUY' ? '#10b981' : '#f43f5e';
-
-    ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) {
-      ctx.lineTo(points[i].x, points[i].y);
-    }
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Fill area
-    ctx.lineTo(points[points.length - 1].x, h);
-    ctx.lineTo(points[0].x, h);
-    ctx.closePath();
-    const grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, `${color}30`);
-    grad.addColorStop(1, `${color}00`);
-    ctx.fillStyle = grad;
-    ctx.fill();
-  }, [prices, direction]);
-
-  return <canvas ref={canvasRef} width={80} height={30} className="opacity-90" />;
-}
+// ─── Sparkline (lightweight-charts) ──────────────────────────
 
 // ─── Sort Icon ────────────────────────────────────────────────
 
@@ -688,7 +624,7 @@ export default function ScreenerClient() {
 
                     {/* Sparkline */}
                     <td className="px-4 py-3">
-                      <Sparkline prices={r.sparkline} direction={r.direction} />
+                      <SparklineChart prices={r.sparkline} direction={r.direction} />
                     </td>
 
                     {/* Timeframe */}

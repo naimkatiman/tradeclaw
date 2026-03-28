@@ -1,7 +1,14 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { createChart, type IChartApi, CrosshairMode, ColorType } from 'lightweight-charts';
+import {
+  createChart,
+  AreaSeries,
+  CrosshairMode,
+  ColorType,
+  type IChartApi,
+  type UTCTimestamp,
+} from 'lightweight-charts';
 
 interface SparklineChartProps {
   prices: number[];
@@ -40,7 +47,7 @@ export default function SparklineChart({
 
     chartRef.current = chart;
 
-    const series = chart.addAreaSeries({
+    const series = chart.addSeries(AreaSeries, {
       lineColor,
       topColor,
       bottomColor: 'transparent',
@@ -53,7 +60,7 @@ export default function SparklineChart({
     if (prices.length >= 2) {
       series.setData(
         prices.map((value, i) => ({
-          time: (i + 1) as unknown as import('lightweight-charts').UTCTimestamp,
+          time: (i + 1) as UTCTimestamp,
           value,
         })),
       );

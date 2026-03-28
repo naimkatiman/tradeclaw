@@ -5,8 +5,7 @@
 // and open.er-api.com (forex). Signals come from the real TA engine.
 
 import { NextRequest } from 'next/server';
-import { getLivePrices, SYMBOLS } from '../../lib/signals';
-import { getSignals, type TradingSignal } from '../../lib/signals';
+import { getLivePrices, SYMBOLS, getSignals, type TradingSignal } from '../../../lib/signals';
 
 /* ── Known symbols (used to validate ?pairs= query param) ── */
 const KNOWN_SYMBOLS = new Set(SYMBOLS.map(s => s.symbol));

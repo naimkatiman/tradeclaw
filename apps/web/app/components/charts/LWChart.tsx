@@ -83,7 +83,6 @@ export default function LWChart({ theme, height = 400, autoSize = true, onChartR
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Re-apply theme when it changes
   useEffect(() => {
     if (chartRef.current) applyTheme(chartRef.current, theme);
   }, [theme, applyTheme]);

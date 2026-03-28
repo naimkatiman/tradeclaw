@@ -1,7 +1,12 @@
 'use client';
 
 import { useCallback, useRef, useEffect } from 'react';
-import { type IChartApi, type ISeriesApi } from 'lightweight-charts';
+import {
+  CandlestickSeries,
+  HistogramSeries,
+  type IChartApi,
+  type ISeriesApi,
+} from 'lightweight-charts';
 import LWChart from './LWChart';
 import { useChartTheme } from './use-chart-theme';
 import type { OHLCVBar } from './types';
@@ -21,7 +26,8 @@ export default function FullChart({ symbol, bars, latestBar, height = 600 }: Ful
 
   const onChartReady = useCallback(
     (chart: IChartApi) => {
-      chart.applyOptions({
+      // watermark is supported at runtime but not in v5 typedefs
+      (chart as unknown as { applyOptions: (o: Record<string, unknown>) => void }).applyOptions({
         watermark: {
           visible: true,
           text: symbol,
@@ -30,7 +36,7 @@ export default function FullChart({ symbol, bars, latestBar, height = 600 }: Ful
         },
       });
 
-      const candleSeries = chart.addCandlestickSeries({
+      const candleSeries = chart.addSeries(CandlestickSeries, {
         upColor: theme.upColor,
         downColor: theme.downColor,
         wickUpColor: theme.wickUpColor,
@@ -39,7 +45,7 @@ export default function FullChart({ symbol, bars, latestBar, height = 600 }: Ful
       });
       candleRef.current = candleSeries;
 
-      const volumeSeries = chart.addHistogramSeries({
+      const volumeSeries = chart.addSeries(HistogramSeries, {
         priceFormat: { type: 'volume' },
         priceScaleId: 'volume',
       });
@@ -63,7 +69,6 @@ export default function FullChart({ symbol, bars, latestBar, height = 600 }: Ful
     [bars, symbol, theme],
   );
 
-  // Handle real-time updates
   useEffect(() => {
     if (!latestBar || !initRef.current) return;
     candleRef.current?.update(latestBar);

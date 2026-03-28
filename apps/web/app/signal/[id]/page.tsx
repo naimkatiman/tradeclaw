@@ -262,6 +262,17 @@ export default async function SignalPage(
           </div>
         </div>
 
+        {/* Price Chart */}
+        <SignalChartSection
+          entry={signal.entry}
+          stopLoss={signal.stopLoss}
+          takeProfit1={signal.takeProfit1}
+          takeProfit2={signal.takeProfit2}
+          takeProfit3={signal.takeProfit3}
+          direction={signal.direction}
+          timestamp={signal.timestamp}
+        />
+
         {/* AI Analysis Panel */}
         <AIAnalysisPanel symbol={signal.symbol} timeframe={signal.timeframe} />
 

@@ -985,3 +985,35 @@ next_actions:
     status: done
     owner: pm-tradeclaw
     notes: "LiveHeroSignals server component — fetches real signals at page render, ISR 60s revalidate. Live signal strip below hero with confidence bars + direction badges. Committed 2033a945. 2026-03-28"
+
+  # ── Phase 18: Viral Hooks + Community Conversion ──
+
+  - id: TC-089
+    title: "Waitlist + launch announcement page — /waitlist with email capture, countdown timer, and referral loop so early visitors become advocates"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-090
+    title: "Interactive signal quiz — /quiz gamified 5-question 'What kind of trader are you?' that ends with a recommended TradeClaw setup + star CTA"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-091
+    title: "GitHub README video thumbnail — replace static banner with a YouTube-style click-to-play image linking to a Loom/YouTube demo video placeholder for credibility"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-092
+    title: "/api/widget endpoint + embeddable portfolio tracker — show live P&L from paper trading in any external site as a badge or card"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-093
+    title: "TradeClaw Discord bot — bot.js that posts live signals to a Discord server on demand + slash commands (/signal, /leaderboard, /health) + invite link on site"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""

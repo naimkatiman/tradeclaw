@@ -1,7 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useRef } from 'react';
-import { type IChartApi, type ISeriesApi, LineStyle } from 'lightweight-charts';
+import {
+  CandlestickSeries,
+  HistogramSeries,
+  LineStyle,
+  createSeriesMarkers,
+  type IChartApi,
+  type ISeriesApi,
+  type ISeriesMarkersPluginApi,
+  type LineWidth,
+  type Time,
+} from 'lightweight-charts';
 import LWChart from './LWChart';
 import { useChartTheme } from './use-chart-theme';
 import type { OHLCVBar } from './types';
@@ -23,12 +33,13 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400 }
   const candleRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volumeRef = useRef<ISeriesApi<'Histogram'> | null>(null);
   const chartApiRef = useRef<IChartApi | null>(null);
+  const markersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
 
   const onChartReady = useCallback(
     (chart: IChartApi) => {
       chartApiRef.current = chart;
 
-      const candleSeries = chart.addCandlestickSeries({
+      const candleSeries = chart.addSeries(CandlestickSeries, {
         upColor: theme.upColor,
         downColor: theme.downColor,
         wickUpColor: theme.wickUpColor,
@@ -37,7 +48,7 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400 }
       });
       candleRef.current = candleSeries;
 
-      const volumeSeries = chart.addHistogramSeries({
+      const volumeSeries = chart.addSeries(HistogramSeries, {
         priceFormat: { type: 'volume' },
         priceScaleId: 'volume',
       });
@@ -46,12 +57,14 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400 }
       });
       volumeRef.current = volumeSeries;
 
-      // Price lines
+      // Create markers plugin
+      markersRef.current = createSeriesMarkers(candleSeries);
+
       if (signal.tp1) {
         candleSeries.createPriceLine({
           price: signal.tp1,
           color: theme.upColor,
-          lineWidth: 1,
+          lineWidth: 1 as LineWidth,
           lineStyle: LineStyle.Dashed,
           axisLabelVisible: true,
           title: 'TP',
@@ -61,7 +74,7 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400 }
         candleSeries.createPriceLine({
           price: signal.sl,
           color: theme.downColor,
-          lineWidth: 1,
+          lineWidth: 1 as LineWidth,
           lineStyle: LineStyle.Dashed,
           axisLabelVisible: true,
           title: 'SL',
@@ -70,7 +83,7 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400 }
       candleSeries.createPriceLine({
         price: signal.entryPrice,
         color: signal.direction === 'BUY' ? theme.upColor : theme.downColor,
-        lineWidth: 1,
+        lineWidth: 1 as LineWidth,
         lineStyle: LineStyle.LargeDashed,
         axisLabelVisible: true,
         title: 'Entry',
@@ -79,7 +92,6 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400 }
     [theme, signal],
   );
 
-  // Update visible data when visibleCount changes
   useEffect(() => {
     const candle = candleRef.current;
     const vol = volumeRef.current;
@@ -95,10 +107,9 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400 }
       })),
     );
 
-    // Signal entry marker at bar index 30
     const signalBarIdx = Math.min(30, visible.length - 1);
-    if (visibleCount > 30 && visible[signalBarIdx]) {
-      candle.setMarkers([
+    if (visibleCount > 30 && visible[signalBarIdx] && markersRef.current) {
+      markersRef.current.setMarkers([
         {
           time: visible[signalBarIdx].time,
           position: signal.direction === 'BUY' ? 'belowBar' : 'aboveBar',
@@ -109,7 +120,6 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400 }
       ]);
     }
 
-    // Keep live edge visible
     chartApiRef.current?.timeScale().scrollToPosition(2, false);
   }, [bars, visibleCount, signal, theme]);
 
