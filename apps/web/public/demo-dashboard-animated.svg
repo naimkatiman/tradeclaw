@@ -1,0 +1,327 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" width="900" height="540">
+  <style>
+    @keyframes cardFadeIn1 {
+      0%,2% { opacity: 0; transform: translateY(20px); }
+      6%,88% { opacity: 1; transform: translateY(0); }
+      94%,100% { opacity: 0; transform: translateY(20px); }
+    }
+    @keyframes cardFadeIn2 {
+      0%,6% { opacity: 0; transform: translateY(20px); }
+      10%,88% { opacity: 1; transform: translateY(0); }
+      94%,100% { opacity: 0; transform: translateY(20px); }
+    }
+    @keyframes cardFadeIn3 {
+      0%,10% { opacity: 0; transform: translateY(20px); }
+      14%,88% { opacity: 1; transform: translateY(0); }
+      94%,100% { opacity: 0; transform: translateY(20px); }
+    }
+    @keyframes confBar87 {
+      0%,8% { width: 0; }
+      16%,86% { width: 148px; }
+      94%,100% { width: 0; }
+    }
+    @keyframes confBar72 {
+      0%,12% { width: 0; }
+      20%,86% { width: 122px; }
+      94%,100% { width: 0; }
+    }
+    @keyframes confBar91 {
+      0%,16% { width: 0; }
+      24%,86% { width: 155px; }
+      94%,100% { width: 0; }
+    }
+    @keyframes scrollTicker {
+      0% { transform: translateX(900px); }
+      100% { transform: translateX(-1600px); }
+    }
+    @keyframes pulseGlow {
+      0%,100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+    @keyframes fadeInGeneral {
+      0%,1% { opacity: 0; }
+      5%,90% { opacity: 1; }
+      96%,100% { opacity: 0; }
+    }
+    @keyframes countUp1 {
+      0%,10% { opacity: 0; }
+      15%,88% { opacity: 1; }
+      94%,100% { opacity: 0; }
+    }
+    @keyframes miniChart {
+      0% { d: path("M0,30 Q15,28 30,25 T60,20 T90,15 T120,18 T150,10"); }
+      50% { d: path("M0,30 Q15,22 30,28 T60,15 T90,22 T120,12 T150,8"); }
+      100% { d: path("M0,30 Q15,28 30,25 T60,20 T90,15 T120,18 T150,10"); }
+    }
+    @keyframes chartPulse {
+      0%,100% { stroke-opacity: 0.6; }
+      50% { stroke-opacity: 1; }
+    }
+
+    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, Helvetica, Arial, sans-serif; }
+
+    .card1 { opacity: 0; animation: cardFadeIn1 16s ease infinite; }
+    .card2 { opacity: 0; animation: cardFadeIn2 16s ease infinite; }
+    .card3 { opacity: 0; animation: cardFadeIn3 16s ease infinite; }
+
+    .bar1 { animation: confBar87 16s ease infinite; }
+    .bar2 { animation: confBar72 16s ease infinite; }
+    .bar3 { animation: confBar91 16s ease infinite; }
+
+    .header { opacity: 0; animation: fadeInGeneral 16s ease infinite; }
+    .stats { opacity: 0; animation: countUp1 16s ease infinite; }
+    .sidebar { opacity: 0; animation: fadeInGeneral 16s ease infinite; animation-delay: 0.3s; }
+
+    .live-dot { animation: pulseGlow 2s ease infinite; }
+    .ticker-group { animation: scrollTicker 20s linear infinite; }
+    .chart-line { animation: chartPulse 3s ease infinite; }
+  </style>
+
+  <defs>
+    <linearGradient id="dashBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#080c10"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+    <linearGradient id="cardBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#161b22"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+    <linearGradient id="redGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f43f5e"/>
+      <stop offset="100%" stop-color="#fb7185"/>
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#60a5fa"/>
+    </linearGradient>
+    <clipPath id="tickerClip">
+      <rect x="0" y="0" width="900" height="36"/>
+    </clipPath>
+    <clipPath id="dashClip">
+      <rect x="0" y="0" width="900" height="540" rx="12"/>
+    </clipPath>
+  </defs>
+
+  <!-- Main background -->
+  <rect width="900" height="540" rx="12" fill="url(#dashBg)" stroke="#21262d" stroke-width="1"/>
+
+  <g clip-path="url(#dashClip)">
+
+  <!-- Top ticker bar -->
+  <rect width="900" height="36" fill="#0b0f14" opacity="0.9"/>
+  <g clip-path="url(#tickerClip)">
+    <g class="ticker-group">
+      <text y="23" fill="#3fb950" font-size="12" font-weight="500">
+        <tspan x="0">BTCUSD $67,842 +2.4%</tspan>
+        <tspan x="200" fill="#f85149">EURUSD 1.0842 -0.3%</tspan>
+        <tspan x="400" fill="#3fb950">XAUUSD $2,342 +1.1%</tspan>
+        <tspan x="600" fill="#f85149">GBPUSD 1.2634 -0.5%</tspan>
+        <tspan x="800" fill="#3fb950">ETHUSD $3,456 +3.2%</tspan>
+        <tspan x="1000" fill="#3fb950">SOLUSD $142.8 +5.1%</tspan>
+        <tspan x="1200" fill="#f85149">USDJPY 151.24 -0.2%</tspan>
+        <tspan x="1400" fill="#3fb950">XRPUSD $0.624 +1.8%</tspan>
+      </text>
+    </g>
+  </g>
+
+  <!-- Header bar -->
+  <g class="header">
+    <rect x="0" y="36" width="900" height="52" fill="#0d1117"/>
+    <rect x="0" y="87" width="900" height="1" fill="#21262d"/>
+
+    <!-- Logo -->
+    <text x="24" y="68" fill="#e6edf3" font-size="18" font-weight="700">TradeClaw</text>
+    <text x="132" y="68" fill="#10b981" font-size="11" font-weight="600">PRO</text>
+
+    <!-- Nav items -->
+    <text x="200" y="67" fill="#8b949e" font-size="13">Dashboard</text>
+    <text x="290" y="67" fill="#8b949e" font-size="13">Signals</text>
+    <text x="365" y="67" fill="#8b949e" font-size="13">Backtest</text>
+    <text x="445" y="67" fill="#8b949e" font-size="13">Leaderboard</text>
+
+    <!-- Live indicator -->
+    <circle cx="830" cy="63" r="4" fill="#10b981" class="live-dot"/>
+    <text x="840" y="67" fill="#10b981" font-size="11" font-weight="600">LIVE</text>
+  </g>
+
+  <!-- Stats row -->
+  <g class="stats">
+    <!-- Stat card 1 -->
+    <rect x="24" y="100" width="200" height="72" rx="8" fill="#161b22" stroke="#21262d" stroke-width="1"/>
+    <text x="40" y="122" fill="#8b949e" font-size="11">Active Signals</text>
+    <text x="40" y="152" fill="#e6edf3" font-size="28" font-weight="700">12</text>
+    <text x="80" y="152" fill="#3fb950" font-size="12"> +3 today</text>
+
+    <!-- Stat card 2 -->
+    <rect x="240" y="100" width="200" height="72" rx="8" fill="#161b22" stroke="#21262d" stroke-width="1"/>
+    <text x="256" y="122" fill="#8b949e" font-size="11">Win Rate (7d)</text>
+    <text x="256" y="152" fill="#e6edf3" font-size="28" font-weight="700">78.4%</text>
+
+    <!-- Stat card 3 -->
+    <rect x="456" y="100" width="200" height="72" rx="8" fill="#161b22" stroke="#21262d" stroke-width="1"/>
+    <text x="472" y="122" fill="#8b949e" font-size="11">Avg Confidence</text>
+    <text x="472" y="152" fill="#e6edf3" font-size="28" font-weight="700">81.2%</text>
+
+    <!-- Stat card 4 -->
+    <rect x="672" y="100" width="204" height="72" rx="8" fill="#161b22" stroke="#21262d" stroke-width="1"/>
+    <text x="688" y="122" fill="#8b949e" font-size="11">Pairs Scanned</text>
+    <text x="688" y="152" fill="#e6edf3" font-size="28" font-weight="700">15</text>
+    <text x="722" y="152" fill="#8b949e" font-size="12"> assets</text>
+  </g>
+
+  <!-- Signal Card 1: XAUUSD BUY -->
+  <g class="card1">
+    <rect x="24" y="188" width="272" height="155" rx="10" fill="url(#cardBg)" stroke="#21262d" stroke-width="1"/>
+
+    <!-- Card header -->
+    <rect x="24" y="188" width="272" height="40" rx="10" fill="#10b98115"/>
+    <rect x="24" y="218" width="272" height="10" fill="#10b98115"/>
+    <text x="40" y="213" fill="#e6edf3" font-size="15" font-weight="700">XAUUSD</text>
+    <text x="118" y="213" fill="#8b949e" font-size="11">Gold / USD</text>
+    <rect x="240" y="200" width="42" height="20" rx="4" fill="#10b981"/>
+    <text x="261" y="214" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">BUY</text>
+
+    <!-- Confidence bar -->
+    <text x="40" y="250" fill="#8b949e" font-size="11">Confidence</text>
+    <rect x="40" y="256" width="170" height="6" rx="3" fill="#21262d"/>
+    <rect x="40" y="256" class="bar1" height="6" rx="3" fill="url(#greenGrad)" width="0"/>
+    <text x="220" y="264" fill="#10b981" font-size="12" font-weight="600">87%</text>
+
+    <!-- Details -->
+    <text x="40" y="290" fill="#8b949e" font-size="10">Entry</text>
+    <text x="40" y="305" fill="#e6edf3" font-size="13" font-weight="600">2,342.50</text>
+    <text x="120" y="290" fill="#8b949e" font-size="10">TP1</text>
+    <text x="120" y="305" fill="#10b981" font-size="13" font-weight="600">2,358.80</text>
+    <text x="200" y="290" fill="#8b949e" font-size="10">SL</text>
+    <text x="200" y="305" fill="#f85149" font-size="13" font-weight="600">2,331.20</text>
+
+    <!-- Mini chart -->
+    <path d="M40,330 Q60,325 80,320 T120,310 T160,315 T200,305 T240,298 T270,292" fill="none" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" class="chart-line" opacity="0.7"/>
+  </g>
+
+  <!-- Signal Card 2: EURUSD SELL -->
+  <g class="card2">
+    <rect x="312" y="188" width="272" height="155" rx="10" fill="url(#cardBg)" stroke="#21262d" stroke-width="1"/>
+
+    <rect x="312" y="188" width="272" height="40" rx="10" fill="#f43f5e15"/>
+    <rect x="312" y="218" width="272" height="10" fill="#f43f5e15"/>
+    <text x="328" y="213" fill="#e6edf3" font-size="15" font-weight="700">EURUSD</text>
+    <text x="406" y="213" fill="#8b949e" font-size="11">Euro / USD</text>
+    <rect x="528" y="200" width="42" height="20" rx="4" fill="#f43f5e"/>
+    <text x="549" y="214" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">SELL</text>
+
+    <text x="328" y="250" fill="#8b949e" font-size="11">Confidence</text>
+    <rect x="328" y="256" width="170" height="6" rx="3" fill="#21262d"/>
+    <rect x="328" y="256" class="bar2" height="6" rx="3" fill="url(#redGrad)" width="0"/>
+    <text x="508" y="264" fill="#f43f5e" font-size="12" font-weight="600">72%</text>
+
+    <text x="328" y="290" fill="#8b949e" font-size="10">Entry</text>
+    <text x="328" y="305" fill="#e6edf3" font-size="13" font-weight="600">1.0842</text>
+    <text x="408" y="290" fill="#8b949e" font-size="10">TP1</text>
+    <text x="408" y="305" fill="#10b981" font-size="13" font-weight="600">1.0798</text>
+    <text x="488" y="290" fill="#8b949e" font-size="10">SL</text>
+    <text x="488" y="305" fill="#f85149" font-size="13" font-weight="600">1.0871</text>
+
+    <path d="M328,292 Q348,298 368,305 T408,315 T448,310 T488,320 T528,325 T558,330" fill="none" stroke="#f43f5e" stroke-width="1.5" stroke-linecap="round" class="chart-line" opacity="0.7"/>
+  </g>
+
+  <!-- Signal Card 3: BTCUSD BUY -->
+  <g class="card3">
+    <rect x="600" y="188" width="276" height="155" rx="10" fill="url(#cardBg)" stroke="#21262d" stroke-width="1"/>
+
+    <rect x="600" y="188" width="276" height="40" rx="10" fill="#10b98115"/>
+    <rect x="600" y="218" width="276" height="10" fill="#10b98115"/>
+    <text x="616" y="213" fill="#e6edf3" font-size="15" font-weight="700">BTCUSD</text>
+    <text x="694" y="213" fill="#8b949e" font-size="11">Bitcoin / USD</text>
+    <rect x="822" y="200" width="42" height="20" rx="4" fill="#10b981"/>
+    <text x="843" y="214" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">BUY</text>
+
+    <text x="616" y="250" fill="#8b949e" font-size="11">Confidence</text>
+    <rect x="616" y="256" width="170" height="6" rx="3" fill="#21262d"/>
+    <rect x="616" y="256" class="bar3" height="6" rx="3" fill="url(#greenGrad)" width="0"/>
+    <text x="796" y="264" fill="#10b981" font-size="12" font-weight="600">91%</text>
+
+    <text x="616" y="290" fill="#8b949e" font-size="10">Entry</text>
+    <text x="616" y="305" fill="#e6edf3" font-size="13" font-weight="600">67,842</text>
+    <text x="700" y="290" fill="#8b949e" font-size="10">TP1</text>
+    <text x="700" y="305" fill="#10b981" font-size="13" font-weight="600">69,150</text>
+    <text x="784" y="290" fill="#8b949e" font-size="10">SL</text>
+    <text x="784" y="305" fill="#f85149" font-size="13" font-weight="600">66,980</text>
+
+    <path d="M616,330 Q636,322 656,318 T696,310 T736,305 T776,298 T816,290 T846,285" fill="none" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" class="chart-line" opacity="0.7"/>
+  </g>
+
+  <!-- Bottom section: Recent signals table -->
+  <g class="sidebar">
+    <rect x="24" y="358" width="852" height="168" rx="10" fill="#161b22" stroke="#21262d" stroke-width="1"/>
+
+    <text x="40" y="384" fill="#e6edf3" font-size="14" font-weight="600">Recent Signals</text>
+    <circle cx="145" cy="380" r="4" fill="#10b981" class="live-dot"/>
+    <text x="155" y="384" fill="#10b981" font-size="10">Live</text>
+
+    <!-- Table header -->
+    <text x="40" y="410" fill="#8b949e" font-size="11">Pair</text>
+    <text x="140" y="410" fill="#8b949e" font-size="11">Direction</text>
+    <text x="240" y="410" fill="#8b949e" font-size="11">Confidence</text>
+    <text x="360" y="410" fill="#8b949e" font-size="11">Entry</text>
+    <text x="470" y="410" fill="#8b949e" font-size="11">TP1</text>
+    <text x="570" y="410" fill="#8b949e" font-size="11">Stop Loss</text>
+    <text x="680" y="410" fill="#8b949e" font-size="11">Timeframe</text>
+    <text x="780" y="410" fill="#8b949e" font-size="11">Status</text>
+    <rect x="40" y="416" width="820" height="1" fill="#21262d"/>
+
+    <!-- Row 1 -->
+    <text x="40" y="438" fill="#e6edf3" font-size="12" font-weight="500">SOLUSD</text>
+    <rect x="140" y="425" width="36" height="18" rx="3" fill="#10b981"/>
+    <text x="158" y="438" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">BUY</text>
+    <text x="240" y="438" fill="#10b981" font-size="12">84%</text>
+    <text x="360" y="438" fill="#8b949e" font-size="12">142.80</text>
+    <text x="470" y="438" fill="#10b981" font-size="12">148.50</text>
+    <text x="570" y="438" fill="#f85149" font-size="12">139.20</text>
+    <text x="680" y="438" fill="#8b949e" font-size="12">H1</text>
+    <circle cx="790" cy="434" r="3" fill="#10b981"/>
+    <text x="800" y="438" fill="#10b981" font-size="11">Active</text>
+
+    <!-- Row 2 -->
+    <text x="40" y="462" fill="#e6edf3" font-size="12" font-weight="500">USDJPY</text>
+    <rect x="140" y="449" width="36" height="18" rx="3" fill="#f43f5e"/>
+    <text x="158" y="462" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">SELL</text>
+    <text x="240" y="462" fill="#f43f5e" font-size="12">68%</text>
+    <text x="360" y="462" fill="#8b949e" font-size="12">151.24</text>
+    <text x="470" y="462" fill="#10b981" font-size="12">150.40</text>
+    <text x="570" y="462" fill="#f85149" font-size="12">151.85</text>
+    <text x="680" y="462" fill="#8b949e" font-size="12">H4</text>
+    <circle cx="790" cy="458" r="3" fill="#10b981"/>
+    <text x="800" y="462" fill="#10b981" font-size="11">Active</text>
+
+    <!-- Row 3 -->
+    <text x="40" y="486" fill="#e6edf3" font-size="12" font-weight="500">ETHUSD</text>
+    <rect x="140" y="473" width="36" height="18" rx="3" fill="#10b981"/>
+    <text x="158" y="486" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">BUY</text>
+    <text x="240" y="486" fill="#10b981" font-size="12">76%</text>
+    <text x="360" y="486" fill="#8b949e" font-size="12">3,456.00</text>
+    <text x="470" y="486" fill="#10b981" font-size="12">3,580.00</text>
+    <text x="570" y="486" fill="#f85149" font-size="12">3,390.00</text>
+    <text x="680" y="486" fill="#8b949e" font-size="12">H1</text>
+    <circle cx="790" cy="482" r="3" fill="#d29922"/>
+    <text x="800" y="486" fill="#d29922" font-size="11">TP1 Hit</text>
+
+    <!-- Row 4 -->
+    <text x="40" y="510" fill="#e6edf3" font-size="12" font-weight="500">XAGUSD</text>
+    <rect x="140" y="497" width="36" height="18" rx="3" fill="#10b981"/>
+    <text x="158" y="510" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">BUY</text>
+    <text x="240" y="510" fill="#10b981" font-size="12">79%</text>
+    <text x="360" y="510" fill="#8b949e" font-size="12">27.42</text>
+    <text x="470" y="510" fill="#10b981" font-size="12">28.10</text>
+    <text x="570" y="510" fill="#f85149" font-size="12">26.95</text>
+    <text x="680" y="510" fill="#8b949e" font-size="12">D1</text>
+    <circle cx="790" cy="506" r="3" fill="#10b981"/>
+    <text x="800" y="510" fill="#10b981" font-size="11">Active</text>
+  </g>
+
+  </g>
+</svg>

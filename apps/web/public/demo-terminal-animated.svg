@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <style>
+    @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+    @keyframes typeLine {
+      0%,3% { width: 0; opacity: 1; }
+      8% { width: 100%; opacity: 1; }
+      95% { opacity: 1; }
+      100% { opacity: 1; }
+    }
+    @keyframes fadeInLine {
+      0%,100% { opacity: 0; transform: translateY(6px); }
+      5%,90% { opacity: 1; transform: translateY(0); }
+      95% { opacity: 0; transform: translateY(0); }
+    }
+    @keyframes pulseGlow {
+      0%,100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+    @keyframes scrollTicker {
+      0% { transform: translateX(800px); }
+      100% { transform: translateX(-1200px); }
+    }
+    @keyframes barFill87 {
+      0%,8% { width: 0; }
+      15%,88% { width: 130px; }
+      95%,100% { width: 0; }
+    }
+    @keyframes barFill72 {
+      0%,14% { width: 0; }
+      21%,88% { width: 108px; }
+      95%,100% { width: 0; }
+    }
+    @keyframes barFill91 {
+      0%,20% { width: 0; }
+      27%,88% { width: 136px; }
+      95%,100% { width: 0; }
+    }
+    @keyframes barFill65 {
+      0%,26% { width: 0; }
+      33%,88% { width: 97px; }
+      95%,100% { width: 0; }
+    }
+
+    text { font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, 'Courier New', monospace; }
+
+    .term-prompt { opacity: 0; }
+    .term-output { opacity: 0; }
+
+    .p1 { animation: fadeInLine 20s ease infinite; animation-delay: 0s; }
+    .o1 { animation: fadeInLine 20s ease infinite; animation-delay: 1.2s; }
+    .o2 { animation: fadeInLine 20s ease infinite; animation-delay: 1.8s; }
+    .o3 { animation: fadeInLine 20s ease infinite; animation-delay: 2.0s; }
+
+    .s1 { animation: fadeInLine 20s ease infinite; animation-delay: 3.0s; }
+    .s2 { animation: fadeInLine 20s ease infinite; animation-delay: 3.4s; }
+    .s3 { animation: fadeInLine 20s ease infinite; animation-delay: 3.8s; }
+    .s4 { animation: fadeInLine 20s ease infinite; animation-delay: 4.2s; }
+
+    .r1 { animation: fadeInLine 20s ease infinite; animation-delay: 5.0s; }
+    .r2 { animation: fadeInLine 20s ease infinite; animation-delay: 5.4s; }
+    .r3 { animation: fadeInLine 20s ease infinite; animation-delay: 5.8s; }
+    .r4 { animation: fadeInLine 20s ease infinite; animation-delay: 6.2s; }
+    .r5 { animation: fadeInLine 20s ease infinite; animation-delay: 6.6s; }
+
+    .f1 { animation: fadeInLine 20s ease infinite; animation-delay: 7.4s; }
+    .f2 { animation: fadeInLine 20s ease infinite; animation-delay: 7.8s; }
+
+    .cursor { animation: blink 1s step-end infinite; }
+
+    .bar1 { animation: barFill87 20s ease infinite; animation-delay: 3.2s; }
+    .bar2 { animation: barFill72 20s ease infinite; animation-delay: 3.6s; }
+    .bar3 { animation: barFill91 20s ease infinite; animation-delay: 4.0s; }
+    .bar4 { animation: barFill65 20s ease infinite; animation-delay: 4.4s; }
+  </style>
+
+  <defs>
+    <linearGradient id="termBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#161b22"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+    <clipPath id="termClip">
+      <rect x="0" y="32" width="800" height="468" rx="0"/>
+    </clipPath>
+  </defs>
+
+  <!-- Window frame -->
+  <rect width="800" height="500" rx="12" fill="url(#termBg)" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Title bar -->
+  <rect width="800" height="36" rx="12" fill="#1c2128"/>
+  <rect x="0" y="24" width="800" height="12" fill="#1c2128"/>
+  <circle cx="20" cy="18" r="6" fill="#f85149"/>
+  <circle cx="40" cy="18" r="6" fill="#d29922"/>
+  <circle cx="60" cy="18" r="6" fill="#3fb950"/>
+  <text x="400" y="22" fill="#8b949e" font-size="12" text-anchor="middle" font-weight="500">tradeclaw — signals</text>
+
+  <!-- Terminal content -->
+  <g clip-path="url(#termClip)">
+
+    <!-- Prompt line 1: command -->
+    <g class="term-prompt p1">
+      <text x="20" y="65" fill="#3fb950" font-size="13.5">$</text>
+      <text x="35" y="65" fill="#e6edf3" font-size="13.5">npx tradeclaw signals</text>
+    </g>
+
+    <!-- Output: loading -->
+    <g class="term-output o1">
+      <text x="20" y="90" fill="#8b949e" font-size="12.5">Fetching live signals from tradeclaw.win...</text>
+    </g>
+    <g class="term-output o2">
+      <text x="20" y="110" fill="#8b949e" font-size="12.5">Connected. Analyzing 15 pairs across 4 timeframes.</text>
+    </g>
+    <g class="term-output o3">
+      <text x="20" y="135" fill="#58a6ff" font-size="13" font-weight="600">TradeClaw Signal Engine v2.4.0</text>
+      <text x="310" y="135" fill="#8b949e" font-size="11">│ Updated: just now</text>
+    </g>
+
+    <!-- Header divider -->
+    <g class="term-output o3">
+      <text x="20" y="155" fill="#30363d" font-size="12">────────────────────────────────────────────────────────────────────────</text>
+    </g>
+
+    <!-- Signal table header -->
+    <g class="term-output s1">
+      <text x="20" y="175" fill="#8b949e" font-size="12" font-weight="600">  PAIR       DIR    CONF   ENTRY         TP1           SL</text>
+    </g>
+
+    <!-- Signal 1: XAUUSD BUY -->
+    <g class="term-output s2">
+      <text x="20" y="198" fill="#e6edf3" font-size="13">  XAUUSD</text>
+      <text x="120" y="198" fill="#3fb950" font-size="13" font-weight="700">BUY</text>
+      <text x="180" y="198" fill="#3fb950" font-size="13">87%</text>
+      <rect x="215" y="188" class="bar1" height="10" rx="2" fill="#3fb950" opacity="0.3" width="0"/>
+      <text x="360" y="198" fill="#8b949e" font-size="12">2,342.50      2,358.80      2,331.20</text>
+    </g>
+
+    <!-- Signal 2: EURUSD SELL -->
+    <g class="term-output s3">
+      <text x="20" y="221" fill="#e6edf3" font-size="13">  EURUSD</text>
+      <text x="120" y="221" fill="#f85149" font-size="13" font-weight="700">SELL</text>
+      <text x="180" y="221" fill="#f85149" font-size="13">72%</text>
+      <rect x="215" y="211" class="bar2" height="10" rx="2" fill="#f85149" opacity="0.3" width="0"/>
+      <text x="360" y="221" fill="#8b949e" font-size="12">1.0842        1.0798        1.0871</text>
+    </g>
+
+    <!-- Signal 3: BTCUSD BUY -->
+    <g class="term-output s4">
+      <text x="20" y="244" fill="#e6edf3" font-size="13">  BTCUSD</text>
+      <text x="120" y="244" fill="#3fb950" font-size="13" font-weight="700">BUY</text>
+      <text x="180" y="244" fill="#3fb950" font-size="13">91%</text>
+      <rect x="215" y="234" class="bar3" height="10" rx="2" fill="#3fb950" opacity="0.3" width="0"/>
+      <text x="360" y="244" fill="#8b949e" font-size="12">67,842.00     69,150.00     66,980.00</text>
+    </g>
+
+    <!-- Signal 4: GBPUSD SELL -->
+    <g class="term-output r1">
+      <text x="20" y="267" fill="#e6edf3" font-size="13">  GBPUSD</text>
+      <text x="120" y="267" fill="#f85149" font-size="13" font-weight="700">SELL</text>
+      <text x="180" y="267" fill="#f85149" font-size="13">65%</text>
+      <rect x="215" y="257" class="bar4" height="10" rx="2" fill="#f85149" opacity="0.3" width="0"/>
+      <text x="360" y="267" fill="#8b949e" font-size="12">1.2634        1.2589        1.2668</text>
+    </g>
+
+    <!-- Divider -->
+    <g class="term-output r2">
+      <text x="20" y="292" fill="#30363d" font-size="12">────────────────────────────────────────────────────────────────────────</text>
+    </g>
+
+    <!-- Detail block -->
+    <g class="term-output r3">
+      <text x="20" y="315" fill="#58a6ff" font-size="12" font-weight="600">Top signal: BTCUSD</text>
+      <text x="170" y="315" fill="#8b949e" font-size="12">│ Timeframe: H1 │ Alignment: 4/4</text>
+    </g>
+    <g class="term-output r4">
+      <text x="20" y="338" fill="#8b949e" font-size="12">  RSI: </text>
+      <text x="65" y="338" fill="#3fb950" font-size="12">32.4 (oversold)</text>
+      <text x="220" y="338" fill="#8b949e" font-size="12">MACD: </text>
+      <text x="265" y="338" fill="#3fb950" font-size="12">bullish cross</text>
+      <text x="390" y="338" fill="#8b949e" font-size="12">EMA: </text>
+      <text x="430" y="338" fill="#3fb950" font-size="12">price above 50/200</text>
+    </g>
+    <g class="term-output r5">
+      <text x="20" y="361" fill="#8b949e" font-size="12">  Fibonacci: </text>
+      <text x="105" y="361" fill="#d2a8ff" font-size="12">61.8% retracement held</text>
+      <text x="330" y="361" fill="#8b949e" font-size="12">Bollinger: </text>
+      <text x="415" y="361" fill="#d2a8ff" font-size="12">lower band bounce</text>
+    </g>
+
+    <!-- Footer -->
+    <g class="term-output f1">
+      <text x="20" y="395" fill="#30363d" font-size="12">────────────────────────────────────────────────────────────────────────</text>
+    </g>
+    <g class="term-output f2">
+      <text x="20" y="418" fill="#3fb950" font-size="12">4 signals generated</text>
+      <text x="180" y="418" fill="#8b949e" font-size="12">│ 15 pairs scanned │ Avg confidence: 78.7%</text>
+    </g>
+
+    <!-- Final prompt with blinking cursor -->
+    <g class="term-output f2">
+      <text x="20" y="450" fill="#3fb950" font-size="13.5">$</text>
+      <rect x="35" y="438" width="8" height="16" fill="#3fb950" class="cursor"/>
+    </g>
+
+    <!-- Live indicator -->
+    <circle cx="770" cy="52" r="4" fill="#3fb950" class="term-output o1" style="animation: pulseGlow 2s ease infinite;">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="752" y="56" fill="#3fb950" font-size="9" text-anchor="end" class="term-output o1">LIVE</text>
+
+  </g>
+</svg>
