@@ -4,6 +4,7 @@ import { useCallback, useRef, useEffect } from 'react';
 import {
   CandlestickSeries,
   HistogramSeries,
+  createTextWatermark,
   type IChartApi,
   type ISeriesApi,
 } from 'lightweight-charts';
@@ -26,14 +27,20 @@ export default function FullChart({ symbol, bars, latestBar, height = 600 }: Ful
 
   const onChartReady = useCallback(
     (chart: IChartApi) => {
-      // watermark is supported at runtime but not in v5 typedefs
-      (chart as unknown as { applyOptions: (o: Record<string, unknown>) => void }).applyOptions({
-        watermark: {
-          visible: true,
-          text: symbol,
-          color: 'rgba(255,255,255,0.04)',
-          fontSize: 48,
-        },
+      // Reset refs on remount (strict mode)
+      candleRef.current = null;
+      volumeRef.current = null;
+      initRef.current = false;
+
+      // v5 watermark API
+      createTextWatermark(chart.panes()[0], {
+        lines: [
+          {
+            text: symbol,
+            color: 'rgba(255,255,255,0.04)',
+            fontSize: 48,
+          },
+        ],
       });
 
       const candleSeries = chart.addSeries(CandlestickSeries, {
@@ -54,21 +61,37 @@ export default function FullChart({ symbol, bars, latestBar, height = 600 }: Ful
       });
       volumeRef.current = volumeSeries;
 
-      candleSeries.setData(bars);
-      volumeSeries.setData(
-        bars.map((b) => ({
-          time: b.time,
-          value: b.volume,
-          color: b.close >= b.open ? theme.volumeUpColor : theme.volumeDownColor,
-        })),
-      );
-
-      chart.timeScale().fitContent();
       initRef.current = true;
     },
-    [bars, symbol, theme],
+    // symbol used for watermark text at init; theme for initial series colors
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [symbol],
   );
 
+  // Set/update bar data and theme colors
+  useEffect(() => {
+    const candle = candleRef.current;
+    const vol = volumeRef.current;
+    if (!candle || !vol || !initRef.current) return;
+
+    candle.applyOptions({
+      upColor: theme.upColor,
+      downColor: theme.downColor,
+      wickUpColor: theme.wickUpColor,
+      wickDownColor: theme.wickDownColor,
+    });
+
+    candle.setData(bars);
+    vol.setData(
+      bars.map((b) => ({
+        time: b.time,
+        value: b.volume,
+        color: b.close >= b.open ? theme.volumeUpColor : theme.volumeDownColor,
+      })),
+    );
+  }, [bars, theme]);
+
+  // Real-time updates
   useEffect(() => {
     if (!latestBar || !initRef.current) return;
     candleRef.current?.update(latestBar);

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { applySlippage, getSlippageConfig } from './slippage';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -214,10 +215,19 @@ export function openPosition(opts: {
   stopLoss?: number;
   takeProfit?: number;
   entryPrice?: number;
+  slippageEnabled?: boolean;
 }): { portfolio: Portfolio; position: Position } {
   const portfolio = getPortfolio();
   const basePrice = BASE_PRICES[opts.symbol] ?? 100;
-  const entryPrice = opts.entryPrice ?? fmt(basePrice, basePrice);
+  const rawEntry = opts.entryPrice ?? fmt(basePrice, basePrice);
+
+  // Apply entry slippage (works against the trader)
+  const slippageConfig = getSlippageConfig(opts.symbol);
+  const useSlippage = opts.slippageEnabled !== false;
+  const entryPrice = useSlippage
+    ? fmt(applySlippage(rawEntry, opts.direction, 'entry', slippageConfig), basePrice)
+    : rawEntry;
+
   const quantity = opts.quantity ?? Math.round(portfolio.balance * 0.05);
   const atr = entryPrice * 0.005;
 
@@ -261,9 +271,13 @@ export function closePosition(
 
   const position = portfolio.positions[posIdx];
   const basePrice = BASE_PRICES[position.symbol] ?? 100;
-  const currentPrice =
+  const rawExit =
     exitPrice ??
     fmt(position.entryPrice * (1 + (Math.random() - 0.5) * 0.003), basePrice);
+
+  // Apply exit slippage (works against the trader)
+  const slippageConfig = getSlippageConfig(position.symbol);
+  const currentPrice = fmt(applySlippage(rawExit, position.direction, 'exit', slippageConfig), basePrice);
 
   const dirMult = position.direction === 'BUY' ? 1 : -1;
   const movePct = ((currentPrice - position.entryPrice) / position.entryPrice) * dirMult;

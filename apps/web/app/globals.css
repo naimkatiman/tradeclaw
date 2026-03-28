@@ -138,6 +138,22 @@ body {
   animation: pulseDot 2s ease-in-out infinite;
 }
 
+/* Quiz slide transitions */
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-left {
+  animation: slideLeft 300ms ease-out both;
+}
+.animate-slide-right {
+  animation: slideRight 300ms ease-out both;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 4px;

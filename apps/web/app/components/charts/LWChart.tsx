@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { createChart, type IChartApi } from 'lightweight-charts';
 import type { ChartTheme } from './types';
 
@@ -15,7 +15,10 @@ export default function LWChart({ theme, height = 400, autoSize = true, onChartR
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const onReadyRef = useRef(onChartReady);
-  onReadyRef.current = onChartReady;
+
+  useLayoutEffect(() => {
+    onReadyRef.current = onChartReady;
+  });
 
   const applyTheme = useCallback((chart: IChartApi, t: ChartTheme) => {
     chart.applyOptions({

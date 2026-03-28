@@ -32,6 +32,8 @@ export interface IndicatorSummary {
   stochastic: { k: number; d: number; signal: 'oversold' | 'neutral' | 'overbought' };
   support: number[];
   resistance: number[];
+  adx?: { value: number; trending: boolean; plusDI: number; minusDI: number };
+  volume?: { current: number; average: number; ratio: number; confirmed: boolean };
 }
 
 // Symbol configurations with current market prices (Mar 2026)

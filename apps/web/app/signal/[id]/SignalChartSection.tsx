@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import { SignalChart } from '../../components/charts';
 import { generateBars } from '../../lib/chart-utils';
-import type { UTCTimestamp } from 'lightweight-charts';
 
 interface SignalChartSectionProps {
   entry: number;
@@ -26,7 +25,7 @@ export function SignalChartSection({
 }: SignalChartSectionProps) {
   const ts = new Date(timestamp).getTime();
   const bars = useMemo(() => generateBars(entry, direction, ts), [entry, direction, ts]);
-  const signalTime = bars[Math.min(30, bars.length - 1)]?.time as UTCTimestamp;
+  const signalTime = bars[Math.min(30, bars.length - 1)]?.time;
 
   return (
     <div className="glass-card rounded-2xl p-4 mb-4">

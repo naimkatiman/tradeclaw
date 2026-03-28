@@ -58,9 +58,10 @@ export default function SparklineChart({
     });
 
     if (prices.length >= 2) {
+      const baseTime = Math.floor(Date.now() / 1000) - prices.length * 3600;
       series.setData(
         prices.map((value, i) => ({
-          time: (i + 1) as UTCTimestamp,
+          time: (baseTime + i * 3600) as UTCTimestamp,
           value,
         })),
       );

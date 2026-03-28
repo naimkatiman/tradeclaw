@@ -9,7 +9,6 @@ import {
   type IChartApi,
   type ISeriesApi,
   type ISeriesMarkersPluginApi,
-  type LineWidth,
   type Time,
 } from 'lightweight-charts';
 import LWChart from './LWChart';
@@ -34,9 +33,16 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400 }
   const volumeRef = useRef<ISeriesApi<'Histogram'> | null>(null);
   const chartApiRef = useRef<IChartApi | null>(null);
   const markersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+  const priceLinesRef = useRef<ReturnType<ISeriesApi<'Candlestick'>['createPriceLine']>[]>([]);
 
   const onChartReady = useCallback(
     (chart: IChartApi) => {
+      // Clear stale refs from previous chart (strict mode remount)
+      candleRef.current = null;
+      volumeRef.current = null;
+      markersRef.current = null;
+      priceLinesRef.current = [];
+
       chartApiRef.current = chart;
 
       const candleSeries = chart.addSeries(CandlestickSeries, {
@@ -57,41 +63,65 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400 }
       });
       volumeRef.current = volumeSeries;
 
-      // Create markers plugin
       markersRef.current = createSeriesMarkers(candleSeries);
-
-      if (signal.tp1) {
-        candleSeries.createPriceLine({
-          price: signal.tp1,
-          color: theme.upColor,
-          lineWidth: 1 as LineWidth,
-          lineStyle: LineStyle.Dashed,
-          axisLabelVisible: true,
-          title: 'TP',
-        });
-      }
-      if (signal.sl) {
-        candleSeries.createPriceLine({
-          price: signal.sl,
-          color: theme.downColor,
-          lineWidth: 1 as LineWidth,
-          lineStyle: LineStyle.Dashed,
-          axisLabelVisible: true,
-          title: 'SL',
-        });
-      }
-      candleSeries.createPriceLine({
-        price: signal.entryPrice,
-        color: signal.direction === 'BUY' ? theme.upColor : theme.downColor,
-        lineWidth: 1 as LineWidth,
-        lineStyle: LineStyle.LargeDashed,
-        axisLabelVisible: true,
-        title: 'Entry',
-      });
     },
-    [theme, signal],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
+  // Update price lines when signal or theme changes
+  useEffect(() => {
+    const candle = candleRef.current;
+    if (!candle) return;
+
+    // Remove old price lines
+    for (const pl of priceLinesRef.current) {
+      candle.removePriceLine(pl);
+    }
+
+    const newLines: ReturnType<ISeriesApi<'Candlestick'>['createPriceLine']>[] = [];
+
+    if (signal.tp1) {
+      newLines.push(candle.createPriceLine({
+        price: signal.tp1,
+        color: theme.upColor,
+        lineWidth: 1,
+        lineStyle: LineStyle.Dashed,
+        axisLabelVisible: true,
+        title: 'TP',
+      }));
+    }
+    if (signal.sl) {
+      newLines.push(candle.createPriceLine({
+        price: signal.sl,
+        color: theme.downColor,
+        lineWidth: 1,
+        lineStyle: LineStyle.Dashed,
+        axisLabelVisible: true,
+        title: 'SL',
+      }));
+    }
+    newLines.push(candle.createPriceLine({
+      price: signal.entryPrice,
+      color: signal.direction === 'BUY' ? theme.upColor : theme.downColor,
+      lineWidth: 1,
+      lineStyle: LineStyle.LargeDashed,
+      axisLabelVisible: true,
+      title: 'Entry',
+    }));
+
+    priceLinesRef.current = newLines;
+
+    // Update candlestick series colors
+    candle.applyOptions({
+      upColor: theme.upColor,
+      downColor: theme.downColor,
+      wickUpColor: theme.wickUpColor,
+      wickDownColor: theme.wickDownColor,
+    });
+  }, [signal, theme]);
+
+  // Update visible data and markers on each tick
   useEffect(() => {
     const candle = candleRef.current;
     const vol = volumeRef.current;

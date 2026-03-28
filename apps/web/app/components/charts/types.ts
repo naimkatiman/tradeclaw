@@ -1,4 +1,4 @@
-import type { UTCTimestamp } from 'lightweight-charts';
+import type { UTCTimestamp, LineStyle, LineWidth } from 'lightweight-charts';
 
 export interface OHLCVBar {
   time: UTCTimestamp;
@@ -19,8 +19,8 @@ export interface PriceLineData {
   price: number;
   color: string;
   title: string;
-  lineStyle?: number; // 0=solid, 1=dotted, 2=dashed, 3=large-dashed
-  lineWidth?: number;
+  lineStyle?: LineStyle;
+  lineWidth?: LineWidth;
 }
 
 export interface ChartTheme {

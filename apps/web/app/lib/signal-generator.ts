@@ -218,6 +218,19 @@ function passesDirectionGate(
     return { passes: false, confidenceBoost: 0 };
   }
 
+  // ADX directional confirmation: +DI > -DI for BUY, -DI > +DI for SELL
+  const { adx } = indicators;
+  const plusDI = adx.current.plusDI;
+  const minusDI = adx.current.minusDI;
+  if (!isNaN(plusDI) && !isNaN(minusDI)) {
+    if (direction === 'BUY' && minusDI > plusDI) {
+      return { passes: false, confidenceBoost: 0 };
+    }
+    if (direction === 'SELL' && plusDI > minusDI) {
+      return { passes: false, confidenceBoost: 0 };
+    }
+  }
+
   if (direction === 'BUY') {
     if (macd.current.histogram <= 0 || quality.ema20Slope <= 0 || quality.ema50Slope < 0) {
       return { passes: false, confidenceBoost: 0 };
@@ -378,6 +391,35 @@ function scoreIndicators(indicators: AllIndicators): ScoreResult {
     }
   }
 
+  // ── ADX Trend Strength Bonus ────────────────────────────
+  const adxCurrent = indicators.adx.current;
+  if (!isNaN(adxCurrent.adx) && adxCurrent.adx > 40) {
+    // Strong trend bonus — add to the dominant direction
+    if (buyScore > sellScore) {
+      buyScore += 5;
+      buyCategories.trend += 5;
+      reasons.push(`Strong trend (ADX=${adxCurrent.adx.toFixed(1)})`);
+    } else if (sellScore > buyScore) {
+      sellScore += 5;
+      sellCategories.trend += 5;
+      reasons.push(`Strong trend (ADX=${adxCurrent.adx.toFixed(1)})`);
+    }
+  }
+
+  // ── Volume Confirmation Bonus ─────────────────────────
+  const vol = indicators.volume;
+  if (!vol.isSynthetic && vol.ratio >= 2.0) {
+    const volumeBonus = vol.ratio >= 3.0 ? 5 : 3;
+    if (buyScore > sellScore) {
+      buyScore += volumeBonus;
+      buyCategories.momentum += volumeBonus;
+    } else if (sellScore > buyScore) {
+      sellScore += volumeBonus;
+      sellCategories.momentum += volumeBonus;
+    }
+    reasons.push(`High volume (${vol.ratio.toFixed(1)}x avg)`);
+  }
+
   return { buyScore, sellScore, reasons, buyCategories, sellCategories };
 }
 
@@ -395,6 +437,10 @@ function buildIndicatorSummary(
 
   const rsiVal = isNaN(rsi.current) ? 50 : rsi.current;
   const emaCurrent = ema.current;
+
+  const { adx, volume } = indicators;
+  const adxVal = adx.current.adx;
+  const volumeData = volume;
 
   return {
     rsi: {
@@ -432,6 +478,22 @@ function buildIndicatorSummary(
     resistance: nearestResistance.length > 0
       ? nearestResistance.map(v => +v.toFixed(5))
       : [+(currentPrice * 1.01).toFixed(5), +(currentPrice * 1.02).toFixed(5)],
+    adx: !isNaN(adxVal)
+      ? {
+          value: +adxVal.toFixed(2),
+          trending: adxVal >= 25,
+          plusDI: +(adx.current.plusDI || 0).toFixed(2),
+          minusDI: +(adx.current.minusDI || 0).toFixed(2),
+        }
+      : undefined,
+    volume: !volumeData.isSynthetic
+      ? {
+          current: +volumeData.currentVolume.toFixed(0),
+          average: +volumeData.currentSMA.toFixed(0),
+          ratio: +volumeData.ratio.toFixed(2),
+          confirmed: volumeData.ratio >= 1.5,
+        }
+      : undefined,
   };
 }
 
@@ -456,6 +518,14 @@ export function generateSignalsFromTA(
   const currentPrice = closes[closes.length - 1];
 
   if (!currentPrice || isNaN(currentPrice)) return [];
+
+  // ── ADX Gate: suppress signals in ranging markets (ADX < 25) ──
+  const adxValue = indicators.adx.current.adx;
+  if (!isNaN(adxValue) && adxValue < 25) return [];
+
+  // ── Volume Gate: require above-average volume for confirmation ──
+  const { volume } = indicators;
+  if (!volume.isSynthetic && volume.ratio > 0 && volume.ratio < 1.5) return [];
 
   const signals: TradingSignal[] = [];
   const indicatorSummary = buildIndicatorSummary(indicators, currentPrice);

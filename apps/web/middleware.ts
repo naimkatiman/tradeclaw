@@ -140,12 +140,24 @@ export function middleware(request: NextRequest) {
         adminSecretWarningLogged = true;
       }
     } else {
+      // Check Bearer header (for external API calls)
       const authHeader = request.headers.get("authorization");
-      const token = authHeader?.startsWith("Bearer ")
+      const bearerToken = authHeader?.startsWith("Bearer ")
         ? authHeader.slice(7)
         : null;
 
-      if (token !== adminSecret) {
+      // Check httpOnly cookie (for browser sessions)
+      const cookieToken = request.cookies.get("tc_admin")?.value ?? null;
+
+      if (bearerToken !== adminSecret && cookieToken !== adminSecret) {
+        // If it's a browser request (Accept: text/html), redirect to login
+        const accept = request.headers.get("accept") ?? "";
+        if (accept.includes("text/html")) {
+          const loginUrl = new URL("/admin/login", request.url);
+          loginUrl.searchParams.set("redirect", pathname);
+          return NextResponse.redirect(loginUrl);
+        }
+
         const res = NextResponse.json(
           { error: "Unauthorized" },
           { status: 401 },

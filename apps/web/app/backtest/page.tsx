@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { calculateRSI, calculateMACD, calculateEMAs } from '../lib/ta-engine';
+import { applySlippage, getSlippageConfig } from '../../lib/slippage';
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -70,6 +71,7 @@ interface BacktestParams {
   strategy: string;
   initialBalance: number;
   riskPercent: number;
+  slippage: boolean;
 }
 
 // ─── Constants ───────────────────────────────────────────────
@@ -232,16 +234,27 @@ async function runBacktest(params: BacktestParams): Promise<BacktestResult> {
   const trades: Trade[] = [];
   const monthlyPnlMap = new Map<string, number>();
 
+  const slippageConfig = getSlippageConfig(params.symbol);
+
   signals.forEach((signal, idx) => {
-    const entry = signal.price;
+    const rawEntry = signal.price;
+    // Apply entry slippage if enabled
+    const entry = params.slippage
+      ? applySlippage(rawEntry, signal.direction, 'entry', slippageConfig)
+      : rawEntry;
     const atr = calcATR(priceData, signal.barIndex);
     const outcome = resolveTradeOutcome(priceData, signal.barIndex, signal.direction, entry, atr);
+
+    // Apply exit slippage if enabled
+    const exitPrice = params.slippage
+      ? applySlippage(outcome.exit, signal.direction, 'exit', slippageConfig)
+      : outcome.exit;
 
     const riskAmount = balance * (params.riskPercent / 100);
     // PnL based on actual price movement scaled by risk
     const pricePnl = signal.direction === 'BUY'
-      ? outcome.exit - entry
-      : entry - outcome.exit;
+      ? exitPrice - entry
+      : entry - exitPrice;
     const pnl = atr > 0 ? (pricePnl / atr) * riskAmount : 0;
     const pnlPct = (pnl / balance) * 100;
     balance += pnl;
@@ -256,7 +269,7 @@ async function runBacktest(params: BacktestParams): Promise<BacktestResult> {
       symbol: params.symbol,
       direction: signal.direction,
       entry: +fmt(entry),
-      exit: +fmt(outcome.exit),
+      exit: +fmt(exitPrice),
       pnl: +pnl.toFixed(2),
       pnlPct: +pnlPct.toFixed(2),
       bars: outcome.bars,
@@ -844,6 +857,7 @@ export default function BacktestPage() {
     strategy: 'EMA Crossover + RSI',
     initialBalance: 10000,
     riskPercent: 1,
+    slippage: true,
   });
   const [result, setResult] = useState<BacktestResult | null>(null);
   const [running, setRunning] = useState(false);
@@ -866,6 +880,7 @@ export default function BacktestPage() {
         strategy: strategyName,
         initialBalance: 10000,
         riskPercent: 1,
+        slippage: true,
       };
       setParams(newParams);
       setLoadedStrategyName(strategyName);
@@ -1012,6 +1027,21 @@ export default function BacktestPage() {
                   className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30 font-mono"
                 />
               </div>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={params.slippage}
+                  onChange={e => setParams(p => ({ ...p, slippage: e.target.checked }))}
+                  className="w-3.5 h-3.5 accent-emerald-500 rounded"
+                />
+                <span className="text-[10px] text-zinc-400">Realistic slippage</span>
+                {params.slippage && (
+                  <span className="text-[9px] text-zinc-600">
+                    ({['BTCUSD','ETHUSD','XRPUSD'].includes(params.symbol) ? '0.3%' : ['XAUUSD','XAGUSD'].includes(params.symbol) ? '0.1%' : '0.04%'} round-trip)
+                  </span>
+                )}
+              </label>
 
               <button
                 onClick={handleRun}
