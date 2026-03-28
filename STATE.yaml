@@ -594,9 +594,13 @@ tasks:
 
   - id: TC-055
     title: "Signal accuracy leaderboard public API — /api/v1 RESTful endpoint with OpenAPI, showcase on landing"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/v1 (index with endpoint docs + examples), /api/v1/signals (filtered, CORS),
+      /api/v1/leaderboard (sorted by hitRate/totalSignals/avgConfidence), /api/v1/health,
+      /api/v1/badge/[pair] (shields.io JSON format). 5 new dynamic routes. Build passes 105 pages.
+      Committed a3ea644c. 2026-03-28
 
   - id: TC-056
     title: "TradeClaw CLI tool — npx tradeclaw <command> for signal fetch, backtest, strategy commands in terminal"
@@ -617,5 +621,4 @@ tasks:
     notes: ""
 
 next_actions:
-  - "TC-053 done. Phase 11 tasks TC-054 through TC-058 defined."
-  - "Next: TC-054 GitHub trending optimization."
+  - "TC-053, TC-054, TC-055 done. Next: TC-056 TradeClaw CLI."
