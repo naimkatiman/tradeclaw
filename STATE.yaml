@@ -873,9 +873,9 @@ next_actions:
 
   - id: TC-074
     title: "GitHub star velocity page — /stargazers shows live star growth chart + shareable milestone badges"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Covered by existing /stars page (StarsClient.tsx, TC-058). Live star counter, milestone progress, confetti, share kit. 2026-03-28"
 
   - id: TC-075
     title: "CodeSandbox / StackBlitz one-click playground — run TradeClaw signal engine in browser without cloning"
