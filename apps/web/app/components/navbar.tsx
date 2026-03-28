@@ -23,6 +23,7 @@ const NAV_LINKS = [
   { href: '/marketplace', label: 'Marketplace' },
   { href: '/api-keys', label: 'API Keys' },
   { href: '/heatmap', label: 'Heatmap 🌡️' },
+  { href: '/vs-tradingview', label: 'vs TradingView' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
 
