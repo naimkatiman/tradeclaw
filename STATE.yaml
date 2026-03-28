@@ -970,9 +970,9 @@ next_actions:
 
   - id: TC-086
     title: "/api/v2 SDK — publish tradeclaw-js npm package (fetch signals, leaderboard, health) so devs can npm install tradeclaw"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "packages/tradeclaw-js — TradeclawClient class, full TypeScript types, signals/leaderboard/health/badge methods. npm install tradeclaw-js. Committed f6df66f6. 2026-03-28"
 
   - id: TC-087
     title: "Viral tweet thread asset pack — /threads page with 7-tweet breakdown of TradeClaw architecture + copy buttons"
