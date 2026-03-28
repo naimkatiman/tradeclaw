@@ -25,20 +25,25 @@ export async function GET() {
     .sort((a, b) => Math.abs(b.unrealisedPnl) - Math.abs(a.unrealisedPnl))
     .slice(0, 3);
 
+  const pnl = +(equity - STARTING_BALANCE).toFixed(2);
+
   return NextResponse.json(
     {
       balance: +balance.toFixed(2),
       equity,
       openPnl: +openPnl.toFixed(2),
+      pnl,
       totalReturn: +totalReturn.toFixed(2),
+      totalReturnPct: +totalReturn.toFixed(2),
+      currency: 'USD',
       winRate: portfolio.stats.winRate,
       openPositions: portfolio.positions.length,
       top3Positions: top3,
-      lastUpdated: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     },
     {
       headers: {
-        'Cache-Control': 'no-cache, max-age=30',
+        'Cache-Control': 'public, max-age=300',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',

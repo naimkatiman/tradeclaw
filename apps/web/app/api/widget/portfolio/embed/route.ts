@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   const border = theme === 'dark' ? '#30363d' : '#d0d7de';
   const textPrimary = theme === 'dark' ? '#e6edf3' : '#1f2328';
   const textSecondary = theme === 'dark' ? '#8b949e' : '#656d76';
-  const pnlColor = isPositive ? '#3fb950' : '#f85149';
+  const pnlColor = isPositive ? '#10b981' : '#f43f5e';
   const brandColor = '#3fb950';
 
   const html = `<!DOCTYPE html>
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 <title>TradeClaw Portfolio</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:${bg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:${textPrimary};width:320px;height:200px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+body{background:${bg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:${textPrimary};width:320px;height:160px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .card{width:296px;background:${cardBg};border:1px solid ${border};border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .header{display:flex;align-items:center;justify-content:space-between}
 .title{font-size:11px;font-weight:600;color:${textSecondary};text-transform:uppercase;letter-spacing:0.5px}
@@ -83,7 +83,16 @@ body{background:${bg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',He
     </a>
   </div>
 </div>
-<script>setTimeout(function(){location.reload()},30000)</script>
+<script>
+(function refresh(){
+  setTimeout(function(){
+    fetch(location.href).then(function(r){return r.text()}).then(function(html){
+      document.open();document.write(html);document.close();
+    }).catch(function(){});
+    refresh();
+  },60000);
+})();
+</script>
 </body>
 </html>`;
 
@@ -92,6 +101,8 @@ body{background:${bg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',He
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-cache, max-age=30',
       'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
       'X-Frame-Options': 'ALLOWALL',
     },
   });

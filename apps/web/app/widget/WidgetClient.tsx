@@ -1,18 +1,26 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Code, Copy, Check, Sun, Moon, ExternalLink, Star } from 'lucide-react';
+import Link from 'next/link';
+import { Code, Copy, Check, Sun, Moon, ExternalLink, Star, Terminal, Braces } from 'lucide-react';
 
 const BASE_URL = 'https://tradeclaw.win';
 
 type Theme = 'dark' | 'light';
 type SizePreset = 'compact' | 'standard' | 'large';
+type Tab = 'iframe' | 'javascript' | 'json';
 
 const SIZES: Record<SizePreset, { w: number; h: number; label: string }> = {
   compact: { w: 280, h: 160, label: 'Compact' },
-  standard: { w: 320, h: 200, label: 'Standard' },
+  standard: { w: 320, h: 160, label: 'Standard' },
   large: { w: 400, h: 280, label: 'Large' },
 };
+
+const TABS: { key: Tab; label: string; icon: typeof Code }[] = [
+  { key: 'iframe', label: 'Iframe Embed', icon: ExternalLink },
+  { key: 'javascript', label: 'JavaScript Embed', icon: Terminal },
+  { key: 'json', label: 'JSON API', icon: Braces },
+];
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -54,13 +62,53 @@ function CodeSnippet({ code, label }: { code: string; label: string }) {
 export function WidgetClient() {
   const [theme, setTheme] = useState<Theme>('dark');
   const [size, setSize] = useState<SizePreset>('standard');
+  const [activeTab, setActiveTab] = useState<Tab>('iframe');
 
   const { w, h } = SIZES[size];
   const embedUrl = `${BASE_URL}/api/widget/portfolio/embed?theme=${theme}`;
-  const badgeUrl = `${BASE_URL}/api/widget/portfolio/badge`;
 
   const iframeCode = `<iframe src="${embedUrl}" width="${w}" height="${h}" frameborder="0" style="border-radius:12px;overflow:hidden"></iframe>`;
-  const badgeMarkdown = `[![TradeClaw Portfolio](https://img.shields.io/endpoint?url=${encodeURIComponent(badgeUrl)}&style=for-the-badge)](${BASE_URL}/paper-trading)`;
+
+  const jsCode = `<div id="tradeclaw-widget"></div>
+<script>
+(function() {
+  var el = document.getElementById('tradeclaw-widget');
+  function load() {
+    fetch('${BASE_URL}/api/widget/portfolio')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        var color = d.totalReturnPct >= 0 ? '#10b981' : '#f43f5e';
+        var sign = d.totalReturnPct >= 0 ? '+' : '';
+        el.innerHTML = '<div style="font-family:system-ui;padding:16px;border-radius:12px;background:#161b22;border:1px solid #30363d;width:320px">'
+          + '<div style="color:#8b949e;font-size:11px;text-transform:uppercase">TradeClaw Portfolio</div>'
+          + '<div style="color:#e6edf3;font-size:22px;font-weight:700;margin:8px 0">$' + d.equity.toLocaleString() + '</div>'
+          + '<div style="color:' + color + ';font-size:14px;font-weight:600">' + sign + d.totalReturnPct + '% (' + d.currency + ')</div>'
+          + '</div>';
+      });
+  }
+  load();
+  setInterval(load, 60000);
+})();
+</script>`;
+
+  const jsonCode = `// Fetch portfolio data
+const res = await fetch('${BASE_URL}/api/widget/portfolio');
+const data = await res.json();
+
+// Response shape:
+// {
+//   balance: 10000.00,
+//   equity: 10250.00,
+//   openPnl: 250.00,
+//   pnl: 250.00,
+//   totalReturn: 2.50,
+//   totalReturnPct: 2.50,
+//   currency: "USD",
+//   winRate: 65,
+//   openPositions: 3,
+//   top3Positions: [...],
+//   updatedAt: "2026-03-29T..."
+// }`;
 
   return (
     <main className="min-h-screen pt-24 pb-16 px-4">
@@ -77,7 +125,7 @@ export function WidgetClient() {
           </h1>
           <p className="text-[var(--text-secondary)] max-w-xl mx-auto text-sm leading-relaxed">
             Show live P&amp;L from your paper trading on any website, blog, or README.
-            Auto-refreshing every 30 seconds. No API key required.
+            Auto-refreshing every 60 seconds. No API key required.
           </p>
         </div>
 
@@ -145,44 +193,74 @@ export function WidgetClient() {
           </div>
           <p className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Live preview — auto-refreshes every 30s
+            Live preview — auto-refreshes every 60s
           </p>
         </div>
 
-        {/* Code snippets */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="border border-white/10 rounded-xl p-6 space-y-5 bg-white/[0.02]">
-            <div>
-              <h3 className="text-sm font-semibold flex items-center gap-2">
-                <ExternalLink className="w-4 h-4 text-emerald-400" />
-                Iframe Embed
-              </h3>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">
-                Paste into any HTML page, blog, or Notion embed block.
-              </p>
-            </div>
-            <CodeSnippet label="HTML" code={iframeCode} />
+        {/* Tabs */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5 border border-white/10 w-fit mx-auto">
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+                  activeTab === tab.key
+                    ? 'bg-white/15 text-white'
+                    : 'text-[var(--text-secondary)] hover:text-white'
+                }`}
+              >
+                <tab.icon className="w-3.5 h-3.5" />
+                {tab.label}
+              </button>
+            ))}
           </div>
 
           <div className="border border-white/10 rounded-xl p-6 space-y-5 bg-white/[0.02]">
-            <div>
-              <h3 className="text-sm font-semibold flex items-center gap-2">
-                <Code className="w-4 h-4 text-emerald-400" />
-                Shields.io Badge
-              </h3>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">
-                Dynamic badge for GitHub README or any markdown file.
-              </p>
-            </div>
-            <div className="rounded-lg bg-[#0d1117] border border-[#30363d] p-4 flex items-center justify-center">
-              <img
-                src={`https://img.shields.io/endpoint?url=${encodeURIComponent(badgeUrl)}&style=for-the-badge`}
-                alt="TradeClaw Portfolio Badge"
-                height={28}
-                className="h-7"
-              />
-            </div>
-            <CodeSnippet label="Markdown" code={badgeMarkdown} />
+            {activeTab === 'iframe' && (
+              <>
+                <div>
+                  <h3 className="text-sm font-semibold flex items-center gap-2">
+                    <ExternalLink className="w-4 h-4 text-emerald-400" />
+                    Iframe Embed
+                  </h3>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">
+                    Paste into any HTML page, blog, or Notion embed block.
+                  </p>
+                </div>
+                <CodeSnippet label="HTML" code={iframeCode} />
+              </>
+            )}
+
+            {activeTab === 'javascript' && (
+              <>
+                <div>
+                  <h3 className="text-sm font-semibold flex items-center gap-2">
+                    <Terminal className="w-4 h-4 text-emerald-400" />
+                    JavaScript Embed
+                  </h3>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">
+                    Drop-in script that fetches live data and renders a card. Auto-refreshes every 60s.
+                  </p>
+                </div>
+                <CodeSnippet label="HTML + JS" code={jsCode} />
+              </>
+            )}
+
+            {activeTab === 'json' && (
+              <>
+                <div>
+                  <h3 className="text-sm font-semibold flex items-center gap-2">
+                    <Braces className="w-4 h-4 text-emerald-400" />
+                    JSON API
+                  </h3>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">
+                    Fetch raw portfolio data to build your own UI. CORS enabled for all origins.
+                  </p>
+                </div>
+                <CodeSnippet label="JavaScript" code={jsonCode} />
+              </>
+            )}
           </div>
         </div>
 
@@ -226,13 +304,13 @@ export function WidgetClient() {
 
         {/* Footer */}
         <p className="text-center text-xs text-[var(--text-secondary)]">
-          Widget auto-refreshes every 30s · Data from paper trading engine ·{' '}
-          <a
+          Widget auto-refreshes every 60s · Data from paper trading engine ·{' '}
+          <Link
             href="/paper-trading"
             className="text-emerald-400 hover:text-emerald-300 transition-colors"
           >
             Start paper trading &rarr;
-          </a>
+          </Link>
         </p>
       </div>
     </main>
