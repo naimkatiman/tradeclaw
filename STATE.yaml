@@ -996,9 +996,9 @@ next_actions:
 
   - id: TC-090
     title: "Interactive signal quiz — /quiz gamified 5-question 'What kind of trader are you?' that ends with a recommended TradeClaw setup + star CTA"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Complete: QuizClient.tsx (5 questions, 4 profiles, recommended config, star CTA, share buttons, localStorage). Build passes 135 pages. Committed 9844eaba. 2026-03-29"
 
   - id: TC-091
     title: "GitHub README video thumbnail — replace static banner with a YouTube-style click-to-play image linking to a Loom/YouTube demo video placeholder for credibility"

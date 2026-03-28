@@ -1,6 +1,8 @@
 <div align="center">
 
-<img src="apps/web/public/demo-signals-animated.svg" alt="TradeClaw — Live AI trading signals" width="100%" />
+<a href="https://github.com/naimkatiman/tradeclaw">
+  <img src="apps/web/public/demo-video-thumbnail.svg" alt="Watch TradeClaw Demo — Click to Play" width="100%" />
+</a>
 
 <h1>TradeClaw ⚡</h1>
 <p><strong>Open-source AI trading signal platform. Self-hosted. Free forever.</strong></p>
