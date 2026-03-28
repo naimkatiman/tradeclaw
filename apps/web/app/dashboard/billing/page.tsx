@@ -163,13 +163,13 @@ function UpgradeCard({ tier, currentTier, userId, onError }: UpgradeCardProps) {
 // ---------------------------------------------------------------------------
 
 export default function BillingPage() {
-  // In a real app, read tier + userId from session/auth context.
-  // For now we expose a demo view that works without auth.
-  const userId = ''; // TODO: replace with session userId
-  const currentTier: Tier = 'free'; // TODO: replace with getUserTier(userId)
+  // Demo view — in production, read tier + userId from session/auth context.
+  const userId = '';
+  const currentTier: Tier = 'free';
 
   const plan = PLANS[currentTier];
   const [error, setError] = useState<string | null>(null);
+  const isDemo = !userId;
   const [portalLoading, setPortalLoading] = useState(false);
 
   async function openPortal() {
@@ -207,6 +207,12 @@ export default function BillingPage() {
           </svg>
           Back to Dashboard
         </Link>
+
+        {isDemo && (
+          <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+            <strong>Demo Mode</strong> — Sign in to view your subscription and manage billing.
+          </div>
+        )}
 
         <h1 className="text-2xl font-bold text-white">Billing &amp; Subscription</h1>
         <p className="mt-1 text-sm text-zinc-400">

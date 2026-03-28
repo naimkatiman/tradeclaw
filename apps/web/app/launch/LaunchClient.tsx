@@ -265,20 +265,17 @@ export function LaunchClient() {
           </div>
 
           {/* Official PH embed badge */}
-          {/* TODO: Replace PLACEHOLDER in post_id with actual PH post numeric ID once listing is live */}
           <div className="flex justify-center">
             <a
               href="https://www.producthunt.com/posts/tradeclaw"
               target="_blank"
               rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full bg-zinc-800 border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=tradeclaw&theme=dark"
-                alt="TradeClaw — Product Hunt"
-                width={250}
-                height={54}
-              />
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M13.604 8.4h-3.405V12h3.405c.996 0 1.801-.805 1.801-1.8S14.6 8.4 13.604 8.4zM12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zm1.604 14.4h-3.405V18H7.8V6h5.804c2.319 0 4.2 1.881 4.2 4.2s-1.881 4.2-4.2 4.2z" />
+              </svg>
+              View on Product Hunt
             </a>
           </div>
         </div>

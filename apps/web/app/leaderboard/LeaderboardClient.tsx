@@ -238,6 +238,7 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
 export default function LeaderboardClient() {
   const [data, setData] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<Period>('30d');
   const [sortBy, setSortBy] = useState<SortKey>('hitRate');
   const [sortAsc, setSortAsc] = useState(false);
@@ -245,10 +246,11 @@ export default function LeaderboardClient() {
 
   const fetchData = useCallback(() => {
     setLoading(true);
+    setError(null);
     fetch(`/api/leaderboard?period=${period}&sort=${sortBy}`)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((d: LeaderboardData) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch((err) => { setError(err instanceof Error ? err.message : 'Failed to load leaderboard data'); setLoading(false); });
   }, [period, sortBy]);
 
   useEffect(() => { setTimeout(() => fetchData(), 0); }, [fetchData]);
@@ -369,6 +371,12 @@ export default function LeaderboardClient() {
             Share Leaderboard
           </button>
         </div>
+
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
+            Failed to load leaderboard data: {error}
+          </div>
+        )}
 
         {/* Table */}
         <div className="glass-card rounded-2xl overflow-x-auto">

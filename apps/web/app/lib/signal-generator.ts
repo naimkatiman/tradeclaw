@@ -49,6 +49,12 @@ const WEIGHTS = {
 } as const;
 
 const SIGNAL_THRESHOLD = 55; // Minimum score to generate a signal
+const MIN_DIRECTIONAL_EDGE = 12;
+const MIN_TREND_STRENGTH = 0.2;
+const MIN_ATR_PCT = 0.0008;
+const MIN_BB_WIDTH = 0.5;
+const MIN_RISK_ATR = 0.8;
+const MAX_RISK_ATR = 2.5;
 
 let signalCounter = 0;
 
@@ -63,6 +69,178 @@ interface ScoreResult {
   reasons: string[];
   buyCategories: { momentum: number; trend: number; volatility: number };
   sellCategories: { momentum: number; trend: number; volatility: number };
+}
+
+interface MarketQuality {
+  atr: number;
+  atrPct: number;
+  bandwidth: number;
+  trendStrength: number;
+  ema20Slope: number;
+  ema50Slope: number;
+  macdStrength: number;
+  isChoppy: boolean;
+}
+
+interface DirectionGateResult {
+  passes: boolean;
+  confidenceBoost: number;
+}
+
+function getLastValidValues(values: number[], count: number): number[] {
+  const valid = values.filter(v => !isNaN(v));
+  return valid.slice(-count);
+}
+
+function calculatePercentSlope(values: number[], lookback: number = 5): number {
+  const sample = getLastValidValues(values, lookback + 1);
+  if (sample.length < 2) return 0;
+
+  const first = sample[0];
+  const last = sample[sample.length - 1];
+  if (!first || isNaN(first) || isNaN(last)) return 0;
+
+  return (last - first) / Math.abs(first);
+}
+
+function calculateATR(indicators: AllIndicators, period: number = 14): number {
+  const highs = indicators.highs.slice(-(period + 1));
+  const lows = indicators.lows.slice(-(period + 1));
+  const closes = indicators.closes.slice(-(period + 2));
+
+  if (highs.length < period || lows.length < period || closes.length < period + 1) {
+    const currentPrice = indicators.closes[indicators.closes.length - 1] ?? 0;
+    return currentPrice * 0.01;
+  }
+
+  let atr = 0;
+  for (let i = 0; i < period; i++) {
+    const high = highs[i + highs.length - period];
+    const low = lows[i + lows.length - period];
+    const prevClose = closes[i + closes.length - period - 1] ?? highs[i + highs.length - period];
+    const tr = Math.max(
+      high - low,
+      Math.abs(high - prevClose),
+      Math.abs(low - prevClose),
+    );
+    atr += tr;
+  }
+
+  const currentPrice = indicators.closes[indicators.closes.length - 1] ?? 0;
+  return atr / period || currentPrice * 0.01;
+}
+
+function findNearestSupport(levels: number[], currentPrice: number): number | undefined {
+  const belowPrice = levels.filter(level => level < currentPrice);
+  if (belowPrice.length === 0) return undefined;
+  return Math.max(...belowPrice);
+}
+
+function findNearestResistance(levels: number[], currentPrice: number): number | undefined {
+  const abovePrice = levels.filter(level => level > currentPrice);
+  if (abovePrice.length === 0) return undefined;
+  return Math.min(...abovePrice);
+}
+
+function getNearestLevels(
+  levels: number[],
+  currentPrice: number,
+  side: 'support' | 'resistance',
+  count: number,
+): number[] {
+  const filtered = levels.filter(level =>
+    side === 'support' ? level < currentPrice : level > currentPrice,
+  );
+
+  return filtered
+    .sort((a, b) => Math.abs(currentPrice - a) - Math.abs(currentPrice - b))
+    .slice(0, count);
+}
+
+function analyzeMarketQuality(
+  indicators: AllIndicators,
+  currentPrice: number,
+  atr: number,
+): MarketQuality {
+  const { ema, macd, bollinger } = indicators;
+  const ema20Slope = calculatePercentSlope(ema.ema20, 5);
+  const ema50Slope = calculatePercentSlope(ema.ema50, 5);
+  const ema20 = ema.current.ema20;
+  const ema50 = ema.current.ema50;
+  const ema200 = ema.current.ema200;
+
+  const emaSpread =
+    (!isNaN(ema20) && !isNaN(ema50) ? Math.abs(ema20 - ema50) : 0) +
+    (!isNaN(ema50) && !isNaN(ema200) ? Math.abs(ema50 - ema200) * 0.5 : 0);
+
+  const atrPct = currentPrice > 0 ? atr / currentPrice : 0;
+  const trendStrength = atr > 0 ? emaSpread / atr : 0;
+  const bandwidth = isNaN(bollinger.current.bandwidth) ? 0 : bollinger.current.bandwidth;
+  const macdStrength = atr > 0 ? Math.abs(macd.current.histogram) / atr : 0;
+
+  return {
+    atr,
+    atrPct,
+    bandwidth,
+    trendStrength,
+    ema20Slope,
+    ema50Slope,
+    macdStrength,
+    isChoppy:
+      trendStrength < MIN_TREND_STRENGTH &&
+      Math.abs(ema20Slope) < 0.002 &&
+      Math.abs(ema50Slope) < 0.001 &&
+      atrPct < MIN_ATR_PCT &&
+      bandwidth < MIN_BB_WIDTH,
+  };
+}
+
+function passesDirectionGate(
+  direction: 'BUY' | 'SELL',
+  indicators: AllIndicators,
+  quality: MarketQuality,
+  score: number,
+  opposingScore: number,
+): DirectionGateResult {
+  const { rsi, macd, stochastic } = indicators;
+  const scoreEdge = score - opposingScore;
+
+  if (scoreEdge < MIN_DIRECTIONAL_EDGE || quality.isChoppy) {
+    return { passes: false, confidenceBoost: 0 };
+  }
+
+  if (quality.trendStrength < MIN_TREND_STRENGTH || quality.atrPct < MIN_ATR_PCT) {
+    return { passes: false, confidenceBoost: 0 };
+  }
+
+  if (direction === 'BUY') {
+    if (macd.current.histogram <= 0 || quality.ema20Slope <= 0 || quality.ema50Slope < 0) {
+      return { passes: false, confidenceBoost: 0 };
+    }
+    if (!isNaN(rsi.current) && (rsi.current < 43 || rsi.current > 74)) {
+      return { passes: false, confidenceBoost: 0 };
+    }
+    if (stochastic.current.k > 92 && stochastic.current.d > 88) {
+      return { passes: false, confidenceBoost: 0 };
+    }
+  } else {
+    if (macd.current.histogram >= 0 || quality.ema20Slope >= 0 || quality.ema50Slope > 0) {
+      return { passes: false, confidenceBoost: 0 };
+    }
+    if (!isNaN(rsi.current) && (rsi.current > 57 || rsi.current < 26)) {
+      return { passes: false, confidenceBoost: 0 };
+    }
+    if (stochastic.current.k < 8 && stochastic.current.d < 12) {
+      return { passes: false, confidenceBoost: 0 };
+    }
+  }
+
+  const confidenceBoost = Math.min(
+    12,
+    Math.round(scoreEdge / 3 + quality.trendStrength * 2 + quality.macdStrength * 10),
+  );
+
+  return { passes: true, confidenceBoost };
 }
 
 /**
@@ -207,6 +385,8 @@ function buildIndicatorSummary(
 ): IndicatorSummary {
   const { rsi, macd, ema, bollinger, stochastic, highs, lows } = indicators;
   const swingLevels = findSwingLevels(highs, lows);
+  const nearestSupport = getNearestLevels(swingLevels.support, currentPrice, 'support', 2);
+  const nearestResistance = getNearestLevels(swingLevels.resistance, currentPrice, 'resistance', 2);
 
   const rsiVal = isNaN(rsi.current) ? 50 : rsi.current;
   const emaCurrent = ema.current;
@@ -241,11 +421,11 @@ function buildIndicatorSummary(
       d: +stochastic.current.d.toFixed(2),
       signal: stochastic.current.k < 20 ? 'oversold' : stochastic.current.k > 80 ? 'overbought' : 'neutral',
     },
-    support: swingLevels.support.length > 0
-      ? swingLevels.support.slice(0, 2).map(v => +v.toFixed(5))
+    support: nearestSupport.length > 0
+      ? nearestSupport.map(v => +v.toFixed(5))
       : [+(currentPrice * 0.99).toFixed(5), +(currentPrice * 0.98).toFixed(5)],
-    resistance: swingLevels.resistance.length > 0
-      ? swingLevels.resistance.slice(0, 2).map(v => +v.toFixed(5))
+    resistance: nearestResistance.length > 0
+      ? nearestResistance.map(v => +v.toFixed(5))
       : [+(currentPrice * 1.01).toFixed(5), +(currentPrice * 1.02).toFixed(5)],
   };
 }
@@ -274,37 +454,34 @@ export function generateSignalsFromTA(
   const signals: TradingSignal[] = [];
   const indicatorSummary = buildIndicatorSummary(indicators, currentPrice);
   const swingLevels = findSwingLevels(indicators.highs, indicators.lows);
-
-  // Calculate ATR for dynamic SL/TP
-  const recentHighs = indicators.highs.slice(-14);
-  const recentLows = indicators.lows.slice(-14);
-  const recentCloses = closes.slice(-15);
-  let atr = 0;
-  for (let i = 0; i < recentHighs.length; i++) {
-    const tr = Math.max(
-      recentHighs[i] - recentLows[i],
-      Math.abs(recentHighs[i] - (recentCloses[i] ?? recentHighs[i])),
-      Math.abs(recentLows[i] - (recentCloses[i] ?? recentLows[i]))
-    );
-    atr += tr;
-  }
-  atr = atr / recentHighs.length || currentPrice * 0.01;
+  const atr = calculateATR(indicators);
+  const marketQuality = analyzeMarketQuality(indicators, currentPrice, atr);
 
   // Generate BUY signal
   const buyingCategoryCount = [buyCategories.momentum, buyCategories.trend, buyCategories.volatility]
     .filter(v => v > 0).length;
-  if (buyScore >= SIGNAL_THRESHOLD && buyScore > sellScore && buyingCategoryCount >= 2) {
-    const confidence = Math.min(95, Math.max(50, buyScore));
+  const buyGate = passesDirectionGate('BUY', indicators, marketQuality, buyScore, sellScore);
+  if (buyScore >= SIGNAL_THRESHOLD && buyScore > sellScore && buyingCategoryCount >= 2 && buyGate.passes) {
+    const confidence = Math.min(95, Math.max(52, Math.round(buyScore + buyGate.confidenceBoost)));
     const slDistance = atr * 1.5;
     const entry = +currentPrice.toFixed(5);
 
-    // Use swing low for SL if available, otherwise ATR-based
-    const nearestSupport = swingLevels.support[0];
+    const nearestSupport = findNearestSupport(swingLevels.support, currentPrice);
+    const atrStop = currentPrice - slDistance;
     const stopLoss = nearestSupport && nearestSupport < currentPrice
-      ? +Math.min(nearestSupport, currentPrice - slDistance).toFixed(5)
-      : +(currentPrice - slDistance).toFixed(5);
+      ? +Math.max(nearestSupport, atrStop).toFixed(5)
+      : +atrStop.toFixed(5);
 
     const riskDistance = entry - stopLoss;
+    const nearestResistance = findNearestResistance(swingLevels.resistance, currentPrice);
+
+    if (riskDistance < atr * MIN_RISK_ATR || riskDistance > atr * MAX_RISK_ATR) {
+      return signals;
+    }
+
+    if (nearestResistance && nearestResistance <= entry + riskDistance * 1.1) {
+      return signals;
+    }
 
     signals.push({
       id: generateSignalId(),
@@ -327,18 +504,28 @@ export function generateSignalsFromTA(
   // Generate SELL signal
   const sellingCategoryCount = [sellCategories.momentum, sellCategories.trend, sellCategories.volatility]
     .filter(v => v > 0).length;
-  if (sellScore >= SIGNAL_THRESHOLD && sellScore > buyScore && sellingCategoryCount >= 2) {
-    const confidence = Math.min(95, Math.max(50, sellScore));
+  const sellGate = passesDirectionGate('SELL', indicators, marketQuality, sellScore, buyScore);
+  if (sellScore >= SIGNAL_THRESHOLD && sellScore > buyScore && sellingCategoryCount >= 2 && sellGate.passes) {
+    const confidence = Math.min(95, Math.max(52, Math.round(sellScore + sellGate.confidenceBoost)));
     const slDistance = atr * 1.5;
     const entry = +currentPrice.toFixed(5);
 
-    // Use swing high for SL if available, otherwise ATR-based
-    const nearestResistance = swingLevels.resistance[0];
+    const nearestResistance = findNearestResistance(swingLevels.resistance, currentPrice);
+    const atrStop = currentPrice + slDistance;
     const stopLoss = nearestResistance && nearestResistance > currentPrice
-      ? +Math.max(nearestResistance, currentPrice + slDistance).toFixed(5)
-      : +(currentPrice + slDistance).toFixed(5);
+      ? +Math.min(nearestResistance, atrStop).toFixed(5)
+      : +atrStop.toFixed(5);
 
     const riskDistance = stopLoss - entry;
+    const nearestSupport = findNearestSupport(swingLevels.support, currentPrice);
+
+    if (riskDistance < atr * MIN_RISK_ATR || riskDistance > atr * MAX_RISK_ATR) {
+      return signals;
+    }
+
+    if (nearestSupport && nearestSupport >= entry - riskDistance * 1.1) {
+      return signals;
+    }
 
     signals.push({
       id: generateSignalId(),

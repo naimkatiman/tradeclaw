@@ -11,6 +11,7 @@ interface OHLCVCandle {
   high: number;
   low: number;
   close: number;
+  volume?: number;
 }
 
 interface SignalPoint {
@@ -31,6 +32,7 @@ interface Trade {
   win: boolean;
   entryBar: number;
   monthKey: string;
+  exitReason: 'TP' | 'SL' | 'EOD';
 }
 
 interface MonthReturn {
@@ -59,14 +61,13 @@ interface BacktestResult {
   ema50: number[];
   signals: SignalPoint[];
   monthlyReturns: MonthReturn[];
+  dataSource: string;
 }
 
 interface BacktestParams {
   symbol: string;
   timeframe: string;
   strategy: string;
-  startDate: string;
-  endDate: string;
   initialBalance: number;
   riskPercent: number;
 }
@@ -76,68 +77,116 @@ interface BacktestParams {
 const SYMBOLS = ['XAUUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'XAGUSD', 'AUDUSD'];
 const TIMEFRAMES = ['M15', 'H1', 'H4', 'D1'];
 const STRATEGIES = ['EMA Crossover + RSI', 'MACD Divergence', 'Bollinger Breakout', 'ATR Trend Follow'];
-const BASE_PRICES: Record<string, number> = {
-  XAUUSD: 2180, BTCUSD: 87500, ETHUSD: 3400, EURUSD: 1.083,
-  GBPUSD: 1.264, USDJPY: 151.2, XAGUSD: 24.8, AUDUSD: 0.654,
-};
-
-function seededRandom(seed: number): number {
-  const x = Math.sin(seed + 1) * 10000;
-  return x - Math.floor(x);
-}
 
 function fmt(v: number): string {
   return v < 10 ? v.toFixed(5) : v < 100 ? v.toFixed(3) : v.toFixed(2);
 }
 
-// ─── Price Data Generator ────────────────────────────────────
+// ─── Fetch Real OHLCV from API ──────────────────────────────
 
-function generatePriceData(params: BacktestParams): OHLCVCandle[] {
-  const seed = params.symbol.charCodeAt(0) * 31 + params.strategy.length * 7;
-  const basePrice = BASE_PRICES[params.symbol] || 100;
-  const numCandles = 300;
-  const candles: OHLCVCandle[] = [];
+async function fetchOHLCV(symbol: string, timeframe: string): Promise<{ candles: OHLCVCandle[]; source: string }> {
+  const res = await fetch(`/api/backtest?symbol=${encodeURIComponent(symbol)}&timeframe=${encodeURIComponent(timeframe)}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: 'Network error' }));
+    throw new Error(body.error || `Failed to fetch data (${res.status})`);
+  }
+  const data = await res.json();
+  return { candles: data.candles, source: data.source };
+}
 
-  const start = new Date(params.startDate).getTime();
-  const end = new Date(params.endDate).getTime();
-  const timeStep = Math.max((end - start) / numCandles, 3600000);
+// ─── Price-Based Trade Outcome ──────────────────────────────
 
-  let price = basePrice;
-  const vol = basePrice * 0.009;
+/**
+ * Determines trade outcome using real candle high/low prices.
+ * Walks forward bar-by-bar from the signal bar, checking whether
+ * TP or SL is hit first based on actual price wicks.
+ */
+function resolveTradeOutcome(
+  priceData: OHLCVCandle[],
+  signalBar: number,
+  direction: 'BUY' | 'SELL',
+  entry: number,
+  atr: number,
+  maxBars: number = 20,
+): { win: boolean; exit: number; bars: number; exitReason: 'TP' | 'SL' | 'EOD' } {
+  const tpDistance = atr * 2.0; // 2:1 reward-to-risk
+  const slDistance = atr;
 
-  for (let i = 0; i < numCandles; i++) {
-    const r1 = seededRandom(seed + i * 11);
-    const r2 = seededRandom(seed + i * 11 + 1);
-    const r3 = seededRandom(seed + i * 11 + 2);
+  const tp = direction === 'BUY' ? entry + tpDistance : entry - tpDistance;
+  const sl = direction === 'BUY' ? entry - slDistance : entry + slDistance;
 
-    // Slight upward drift + random walk
-    const change = (r1 - 0.49) * 2 * vol;
-    const open = price;
-    price = Math.max(price + change, price * 0.5);
-    const close = price;
+  for (let offset = 1; offset <= maxBars; offset++) {
+    const barIdx = signalBar + offset;
+    if (barIdx >= priceData.length) break;
 
-    const highExtra = r2 * vol * 0.7;
-    const lowExtra = r3 * vol * 0.7;
-    const high = Math.max(open, close) + highExtra;
-    const low = Math.min(open, close) - lowExtra;
+    const candle = priceData[barIdx];
 
-    candles.push({
-      timestamp: start + i * timeStep,
-      open: +fmt(open),
-      high: +fmt(high),
-      low: +fmt(Math.max(low, price * 0.001)),
-      close: +fmt(close),
-    });
+    if (direction === 'BUY') {
+      // Check SL first (worst case) — did the low wick hit SL?
+      if (candle.low <= sl) {
+        return { win: false, exit: sl, bars: offset, exitReason: 'SL' };
+      }
+      // Did the high wick hit TP?
+      if (candle.high >= tp) {
+        return { win: true, exit: tp, bars: offset, exitReason: 'TP' };
+      }
+    } else {
+      // SELL: check SL first — did the high wick hit SL?
+      if (candle.high >= sl) {
+        return { win: false, exit: sl, bars: offset, exitReason: 'SL' };
+      }
+      // Did the low wick hit TP?
+      if (candle.low <= tp) {
+        return { win: true, exit: tp, bars: offset, exitReason: 'TP' };
+      }
+    }
   }
 
-  return candles;
+  // Neither TP nor SL hit within maxBars — close at last bar's close
+  const exitBar = Math.min(signalBar + maxBars, priceData.length - 1);
+  const exitPrice = priceData[exitBar].close;
+  const pnlRaw = direction === 'BUY' ? exitPrice - entry : entry - exitPrice;
+  return {
+    win: pnlRaw > 0,
+    exit: exitPrice,
+    bars: exitBar - signalBar,
+    exitReason: 'EOD',
+  };
+}
+
+/**
+ * Calculate ATR (Average True Range) for a given bar index.
+ */
+function calcATR(priceData: OHLCVCandle[], barIndex: number, period: number = 14): number {
+  const start = Math.max(1, barIndex - period + 1);
+  let sum = 0;
+  let count = 0;
+  for (let i = start; i <= barIndex; i++) {
+    const high = priceData[i].high;
+    const low = priceData[i].low;
+    const prevClose = priceData[i - 1].close;
+    const tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
+    sum += tr;
+    count++;
+  }
+  return count > 0 ? sum / count : priceData[barIndex].close * 0.005;
 }
 
 // ─── Backtest Engine ─────────────────────────────────────────
 
-function runBacktest(params: BacktestParams): BacktestResult {
-  const seed = params.symbol.charCodeAt(0) * 31 + params.strategy.length * 7 + params.timeframe.length * 13;
-  const priceData = generatePriceData(params);
+async function runBacktest(params: BacktestParams): Promise<BacktestResult> {
+  // Fetch real OHLCV data
+  const { candles: rawCandles, source } = await fetchOHLCV(params.symbol, params.timeframe);
+
+  const priceData: OHLCVCandle[] = rawCandles.map(c => ({
+    timestamp: c.timestamp,
+    open: c.open,
+    high: c.high,
+    low: c.low,
+    close: c.close,
+    volume: c.volume,
+  }));
+
   const closes = priceData.map(c => c.close);
 
   // Real TA indicators
@@ -177,32 +226,23 @@ function runBacktest(params: BacktestParams): BacktestResult {
     }
   }
 
-  // Build trades from signals
+  // Build trades from signals using real price-based outcomes
   let balance = params.initialBalance;
   const equityCurve: number[] = [balance];
   const trades: Trade[] = [];
   const monthlyPnlMap = new Map<string, number>();
 
   signals.forEach((signal, idx) => {
-    const r = seededRandom(seed + idx * 17 + 5);
-    const r2 = seededRandom(seed + idx * 17 + 6);
-    const win = r > 0.42;
-    const atr = priceData[signal.barIndex].close * 0.005;
-    const exitBars = Math.floor(2 + seededRandom(seed + idx * 17 + 7) * 15);
-
     const entry = signal.price;
-    let exit: number;
-    if (win) {
-      const rr = 1.2 + r2 * 1.8;
-      exit = signal.direction === 'BUY' ? entry + atr * rr : entry - atr * rr;
-    } else {
-      exit = signal.direction === 'BUY' ? entry - atr : entry + atr;
-    }
+    const atr = calcATR(priceData, signal.barIndex);
+    const outcome = resolveTradeOutcome(priceData, signal.barIndex, signal.direction, entry, atr);
 
     const riskAmount = balance * (params.riskPercent / 100);
-    const pnl = win
-      ? riskAmount * (1.2 + seededRandom(seed + idx * 17 + 8) * 1.8)
-      : -riskAmount;
+    // PnL based on actual price movement scaled by risk
+    const pricePnl = signal.direction === 'BUY'
+      ? outcome.exit - entry
+      : entry - outcome.exit;
+    const pnl = atr > 0 ? (pricePnl / atr) * riskAmount : 0;
     const pnlPct = (pnl / balance) * 100;
     balance += pnl;
     if (balance < 0) balance = 0;
@@ -216,32 +256,28 @@ function runBacktest(params: BacktestParams): BacktestResult {
       symbol: params.symbol,
       direction: signal.direction,
       entry: +fmt(entry),
-      exit: +fmt(exit),
+      exit: +fmt(outcome.exit),
       pnl: +pnl.toFixed(2),
       pnlPct: +pnlPct.toFixed(2),
-      bars: exitBars,
-      win,
+      bars: outcome.bars,
+      win: outcome.win,
       entryBar: signal.barIndex,
       monthKey,
+      exitReason: outcome.exitReason,
     });
 
     equityCurve.push(+balance.toFixed(2));
   });
 
-  // Build full monthly returns grid
+  // Build monthly returns from actual trade timestamps
   const monthlyReturns: MonthReturn[] = [];
-  const startD = new Date(params.startDate);
-  const endD = new Date(params.endDate);
-  for (
-    let d = new Date(startD.getFullYear(), startD.getMonth(), 1);
-    d <= endD;
-    d = new Date(d.getFullYear(), d.getMonth() + 1, 1)
-  ) {
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  const allMonthKeys = [...monthlyPnlMap.keys()].sort();
+  for (const key of allMonthKeys) {
+    const [yearStr, moStr] = key.split('-');
     const pnl = monthlyPnlMap.get(key) ?? 0;
     monthlyReturns.push({
-      year: d.getFullYear(),
-      month: d.getMonth() + 1,
+      year: parseInt(yearStr),
+      month: parseInt(moStr),
       returnPct: +((pnl / params.initialBalance) * 100).toFixed(2),
     });
   }
@@ -286,16 +322,17 @@ function runBacktest(params: BacktestParams): BacktestResult {
     ema50,
     signals,
     monthlyReturns,
+    dataSource: source,
   };
 }
 
 // ─── CSV Export ──────────────────────────────────────────────
 
 function exportCSV(trades: Trade[], symbol: string) {
-  const headers = ['#', 'Symbol', 'Direction', 'Entry Price', 'Exit Price', 'P&L ($)', 'P&L (%)', 'Bars', 'Result'];
+  const headers = ['#', 'Symbol', 'Direction', 'Entry Price', 'Exit Price', 'P&L ($)', 'P&L (%)', 'Bars', 'Result', 'Exit Reason'];
   const rows = trades.map(t => [
     t.id, t.symbol, t.direction, t.entry, t.exit,
-    t.pnl.toFixed(2), t.pnlPct.toFixed(2), t.bars, t.win ? 'Win' : 'Loss',
+    t.pnl.toFixed(2), t.pnlPct.toFixed(2), t.bars, t.win ? 'Win' : 'Loss', t.exitReason,
   ]);
   const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
@@ -753,7 +790,7 @@ function MonthlyHeatmap({ monthlyReturns }: { monthlyReturns: MonthReturn[] }) {
                           lineHeight: 1.2,
                         }}
                       >
-                        {val !== null ? (val > 0 ? '+' : '') + val.toFixed(1) + '%' : '—'}
+                        {val !== null ? (val > 0 ? '+' : '') + val.toFixed(1) + '%' : '\u2014'}
                       </div>
                     </td>
                   );
@@ -779,6 +816,23 @@ function MetricCard({ label, value, sub, color = 'text-white' }: { label: string
   );
 }
 
+// ─── Data Source Badge ───────────────────────────────────────
+
+function DataSourceBadge({ source }: { source: string }) {
+  const labels: Record<string, { text: string; color: string }> = {
+    binance: { text: 'Binance', color: 'text-yellow-400 border-yellow-500/20 bg-yellow-500/10' },
+    yahoo: { text: 'Yahoo Finance', color: 'text-purple-400 border-purple-500/20 bg-purple-500/10' },
+    synthetic: { text: 'Synthetic', color: 'text-zinc-400 border-zinc-500/20 bg-zinc-500/10' },
+  };
+  const config = labels[source] || labels.synthetic;
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold border ${config.color}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current" />
+      {config.text}
+    </span>
+  );
+}
+
 // ─── Main Page ───────────────────────────────────────────────
 
 type Tab = 'equity' | 'price' | 'indicators' | 'trades';
@@ -788,13 +842,12 @@ export default function BacktestPage() {
     symbol: 'XAUUSD',
     timeframe: 'H1',
     strategy: 'EMA Crossover + RSI',
-    startDate: '2024-01-01',
-    endDate: '2024-12-31',
     initialBalance: 10000,
     riskPercent: 1,
   });
   const [result, setResult] = useState<BacktestResult | null>(null);
   const [running, setRunning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('equity');
   const [loadedStrategyName, setLoadedStrategyName] = useState<string | null>(null);
 
@@ -811,32 +864,39 @@ export default function BacktestPage() {
         symbol,
         timeframe,
         strategy: strategyName,
-        startDate: '2024-01-01',
-        endDate: '2024-12-31',
         initialBalance: 10000,
         riskPercent: 1,
       };
       setParams(newParams);
       setLoadedStrategyName(strategyName);
       setRunning(true);
-      setTimeout(() => {
-        const r = runBacktest(newParams);
-        setResult(r);
-        setRunning(false);
-        setActiveTab('equity');
-      }, 600);
+      setError(null);
+      runBacktest(newParams)
+        .then(r => {
+          setResult(r);
+          setActiveTab('equity');
+        })
+        .catch(err => {
+          setError(err instanceof Error ? err.message : 'Backtest failed');
+        })
+        .finally(() => setRunning(false));
     } catch { /* ignore invalid param */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRun = useCallback(() => {
     setRunning(true);
-    setTimeout(() => {
-      const r = runBacktest(params);
-      setResult(r);
-      setRunning(false);
-      setActiveTab('equity');
-    }, 600);
+    setError(null);
+    setResult(null);
+    runBacktest(params)
+      .then(r => {
+        setResult(r);
+        setActiveTab('equity');
+      })
+      .catch(err => {
+        setError(err instanceof Error ? err.message : 'Backtest failed');
+      })
+      .finally(() => setRunning(false));
   }, [params]);
 
   const update = (key: keyof BacktestParams, value: string | number) =>
@@ -852,6 +912,10 @@ export default function BacktestPage() {
   return (
     <div className="min-h-[100dvh] bg-[#050505] text-white">
       <div className="max-w-6xl mx-auto px-4 py-6 pb-20 md:pb-6">
+        <div className="mb-4 rounded-lg border border-emerald-500/20 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-300">
+          <strong>Live Backtest</strong> — Uses real market data from Binance and Yahoo Finance. Trade outcomes are determined by actual candle price action (TP/SL against real highs and lows).
+        </div>
+
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
@@ -860,8 +924,9 @@ export default function BacktestPage() {
               <path d="M2 14H14" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
             </svg>
             <h1 className="text-sm font-semibold text-white tracking-tight">Backtesting Engine</h1>
+            {result && <DataSourceBadge source={result.dataSource} />}
           </div>
-          <p className="text-[11px] text-zinc-600">Replay strategies against historical data — equity curve, price chart, indicators, trade log</p>
+          <p className="text-[11px] text-zinc-600">Replay strategies against real historical data — equity curve, price chart, indicators, trade log</p>
         </div>
 
         {loadedStrategyName && (
@@ -925,27 +990,6 @@ export default function BacktestPage() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Start</label>
-                  <input
-                    type="date"
-                    value={params.startDate}
-                    onChange={e => update('startDate', e.target.value)}
-                    className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-[10px] text-zinc-300 outline-none focus:border-emerald-500/30 font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">End</label>
-                  <input
-                    type="date"
-                    value={params.endDate}
-                    onChange={e => update('endDate', e.target.value)}
-                    className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-[10px] text-zinc-300 outline-none focus:border-emerald-500/30 font-mono"
-                  />
-                </div>
-              </div>
-
               <div>
                 <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Initial Balance ($)</label>
                 <input
@@ -977,7 +1021,7 @@ export default function BacktestPage() {
                 {running ? (
                   <>
                     <span className="w-3 h-3 border border-emerald-500/40 border-t-emerald-400 rounded-full animate-spin" />
-                    Running...
+                    Fetching data...
                   </>
                 ) : (
                   <>
@@ -1014,7 +1058,7 @@ export default function BacktestPage() {
 
           {/* Results */}
           <div className="space-y-4">
-            {!result && !running && (
+            {!result && !running && !error && (
               <div className="glass-card rounded-2xl p-12 flex flex-col items-center justify-center text-center">
                 <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-3">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -1023,14 +1067,34 @@ export default function BacktestPage() {
                   </svg>
                 </div>
                 <div className="text-sm text-zinc-500 font-medium">Configure and run a backtest</div>
-                <div className="text-xs text-zinc-700 mt-1">Results will appear here</div>
+                <div className="text-xs text-zinc-700 mt-1">Uses real OHLCV data from Binance and Yahoo Finance</div>
+              </div>
+            )}
+
+            {error && !running && (
+              <div className="glass-card rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+                <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mb-3">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="#EF4444" strokeWidth="1.5"/>
+                    <path d="M15 9L9 15M9 9L15 15" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div className="text-sm text-red-400 font-medium mb-1">Backtest Failed</div>
+                <div className="text-xs text-zinc-500 max-w-md">{error}</div>
+                <button
+                  onClick={handleRun}
+                  className="mt-4 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                >
+                  Retry
+                </button>
               </div>
             )}
 
             {running && (
               <div className="glass-card rounded-2xl p-12 flex flex-col items-center justify-center text-center">
                 <div className="w-8 h-8 border border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin mb-3" />
-                <div className="text-xs text-zinc-500">Replaying signals against {params.symbol} {params.timeframe}...</div>
+                <div className="text-xs text-zinc-500">Fetching real OHLCV data for {params.symbol} {params.timeframe}...</div>
+                <div className="text-[10px] text-zinc-700 mt-1">Connecting to Binance / Yahoo Finance</div>
               </div>
             )}
 
@@ -1179,6 +1243,7 @@ export default function BacktestPage() {
                               <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">P&amp;L</th>
                               <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">%</th>
                               <th className="px-4 py-2.5 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Bars</th>
+                              <th className="px-4 py-2.5 text-center text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Exit</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1199,6 +1264,15 @@ export default function BacktestPage() {
                                   {trade.pnlPct >= 0 ? '+' : ''}{trade.pnlPct.toFixed(2)}%
                                 </td>
                                 <td className="px-4 py-2 text-right font-mono text-zinc-600">{trade.bars}</td>
+                                <td className="px-4 py-2 text-center">
+                                  <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${
+                                    trade.exitReason === 'TP' ? 'text-emerald-400 bg-emerald-500/10' :
+                                    trade.exitReason === 'SL' ? 'text-red-400 bg-red-500/10' :
+                                    'text-zinc-400 bg-zinc-500/10'
+                                  }`}>
+                                    {trade.exitReason}
+                                  </span>
+                                </td>
                               </tr>
                             ))}
                           </tbody>

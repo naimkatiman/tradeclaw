@@ -292,10 +292,17 @@ export async function getSignals(params: {
   const allSyntheticSymbols = new Set<string>();
 
   try {
-    for (const tf of timeframesToCheck) {
-      const { signals, syntheticSymbols } = await generateRealSignals(symbols, tf);
-      allSignals.push(...signals);
-      for (const s of syntheticSymbols) allSyntheticSymbols.add(s);
+    const settled = await Promise.allSettled(
+      timeframesToCheck.map(async (tf) => {
+        const result = await generateRealSignals(symbols, tf);
+        return { timeframe: tf, ...result };
+      }),
+    );
+
+    for (const result of settled) {
+      if (result.status !== 'fulfilled') continue;
+      allSignals.push(...result.value.signals);
+      for (const s of result.value.syntheticSymbols) allSyntheticSymbols.add(s);
     }
   } catch {
     // TA engine crashed — return empty rather than misleading random signals

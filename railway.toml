@@ -3,7 +3,7 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "node .next/standalone/server.js"
+startCommand = "node server.js"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
@@ -16,6 +16,10 @@ name = "tradeclaw"
   NODE_ENV = "production"
   NEXT_TELEMETRY_DISABLED = "1"
   PORT = "3000"
+  DATABASE_URL = "${{db.DATABASE_URL}}"
+  REDIS_URL = "${{redis.REDIS_URL}}"
+  AUTH_SECRET = "${{shared.AUTH_SECRET}}"
+  APP_URL = "${{shared.APP_URL}}"
 
 [[services]]
 name = "db"
@@ -24,6 +28,7 @@ image = "timescale/timescaledb:latest-pg16"
   [services.variables]
   POSTGRES_DB = "tradeclaw"
   POSTGRES_USER = "tradeclaw"
+  POSTGRES_PASSWORD = "${{shared.DB_PASSWORD}}"
 
 [[services]]
 name = "redis"

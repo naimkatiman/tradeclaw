@@ -69,6 +69,7 @@ export function AccuracyClient() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [pair, setPair] = useState('ALL');
   const [direction, setDirection] = useState<'ALL' | 'BUY' | 'SELL'>('ALL');
   const [outcome, setOutcome] = useState<string>('ALL');
@@ -88,14 +89,15 @@ export function AccuracyClient() {
 
     try {
       const res = await fetch(`/api/signals/history?${params}`);
-      if (!res.ok) throw new Error('Failed');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: APIResponse = await res.json();
       if (id !== fetchRef.current) return;
       setRecords(data.records);
       setStats(data.stats);
       setTotal(data.total);
-    } catch {
-      // silent
+      setError(null);
+    } catch (err) {
+      if (id === fetchRef.current) setError(err instanceof Error ? err.message : 'Failed to load signal history');
     } finally {
       if (id === fetchRef.current) setLoading(false);
     }
@@ -113,6 +115,12 @@ export function AccuracyClient() {
           <span className="font-semibold">Disclaimer:</span> Rows marked <span className="font-mono text-zinc-400 bg-zinc-800 px-1 rounded">Example</span> are simulated seed data used to demonstrate the interface and are <strong>excluded from all accuracy statistics</strong>. Only <span className="font-mono text-emerald-400 bg-emerald-500/10 px-1 rounded">Live tracked</span> signals represent real outcomes verified against market prices. Past performance is not indicative of future results. This is not financial advice.
         </p>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
+          Failed to load signal history: {error}
+        </div>
+      )}
 
       {/* Header */}
       <div>

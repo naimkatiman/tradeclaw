@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface BrokerConfig {
   id: string;
@@ -36,59 +36,35 @@ interface Position {
   openTime: string;
 }
 
+type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
+
 const STORAGE_KEY = 'tc-brokers';
 
-function seededRandom(seed: number) {
-  const x = Math.sin(seed + 1) * 10000;
-  return x - Math.floor(x);
-}
-
-function mockAccountInfo(seed: number): AccountInfo {
-  const balance = 10000 + seededRandom(seed) * 40000;
-  const profit = (seededRandom(seed + 1) - 0.4) * balance * 0.15;
-  const equity = balance + profit;
-  const margin = equity * (0.05 + seededRandom(seed + 2) * 0.15);
-  const freeMargin = equity - margin;
+function mapAccountInfo(raw: Record<string, unknown>): AccountInfo {
   return {
-    balance: Math.round(balance * 100) / 100,
-    equity: Math.round(equity * 100) / 100,
-    margin: Math.round(margin * 100) / 100,
-    freeMargin: Math.round(freeMargin * 100) / 100,
-    marginLevel: Math.round((equity / margin) * 100 * 100) / 100,
-    profit: Math.round(profit * 100) / 100,
-    currency: 'USD',
-    leverage: [50, 100, 200, 500][Math.floor(seededRandom(seed + 3) * 4)],
-    name: `Account ${Math.floor(seededRandom(seed + 4) * 900000 + 100000)}`,
+    balance: Number(raw.balance) || 0,
+    equity: Number(raw.equity) || 0,
+    margin: Number(raw.margin) || 0,
+    freeMargin: Number(raw.freeMargin) || 0,
+    marginLevel: Number(raw.marginLevel) || 0,
+    profit: Number(raw.profit) || 0,
+    currency: String(raw.currency || 'USD'),
+    leverage: Number(raw.leverage) || 0,
+    name: String(raw.name || raw.login || 'Account'),
   };
 }
 
-function mockPositions(seed: number): Position[] {
-  const symbols = ['XAUUSD', 'EURUSD', 'BTCUSD', 'GBPUSD', 'USDJPY'];
-  const count = Math.floor(seededRandom(seed) * 5) + 1;
-  return Array.from({ length: count }, (_, i) => {
-    const r = seededRandom(seed + i * 13);
-    const r2 = seededRandom(seed + i * 13 + 1);
-    const r3 = seededRandom(seed + i * 13 + 2);
-    const symbol = symbols[Math.floor(r * symbols.length)];
-    const isBuy = r2 > 0.5;
-    const basePrices: Record<string, number> = {
-      XAUUSD: 2180, EURUSD: 1.083, BTCUSD: 87500, GBPUSD: 1.264, USDJPY: 151.2,
-    };
-    const openPrice = basePrices[symbol] * (0.998 + r3 * 0.004);
-    const currentPrice = openPrice * (0.997 + seededRandom(seed + i * 13 + 3) * 0.006);
-    const volume = [0.01, 0.05, 0.1, 0.5, 1.0][Math.floor(r * 5)];
-    const profit = (currentPrice - openPrice) * (isBuy ? 1 : -1) * volume * 1000;
-    return {
-      id: `pos-${seed}-${i}`,
-      symbol,
-      type: isBuy ? 'POSITION_TYPE_BUY' : 'POSITION_TYPE_SELL',
-      volume,
-      openPrice: Math.round(openPrice * 100000) / 100000,
-      currentPrice: Math.round(currentPrice * 100000) / 100000,
-      profit: Math.round(profit * 100) / 100,
-      openTime: new Date(Date.now() - Math.floor(r3 * 86400000 * 7)).toISOString(),
-    };
-  });
+function mapPosition(raw: Record<string, unknown>): Position {
+  return {
+    id: String(raw.id || raw.positionId || ''),
+    symbol: String(raw.symbol || ''),
+    type: raw.type === 'POSITION_TYPE_SELL' ? 'POSITION_TYPE_SELL' : 'POSITION_TYPE_BUY',
+    volume: Number(raw.volume) || 0,
+    openPrice: Number(raw.openPrice) || 0,
+    currentPrice: Number(raw.currentPrice) || 0,
+    profit: Number(raw.profit) || 0,
+    openTime: String(raw.openTime || raw.time || new Date().toISOString()),
+  };
 }
 
 function fmt(n: number, decimals = 2) {
@@ -105,10 +81,52 @@ function MetricBox({ label, value, sub, color }: { label: string; value: string;
   );
 }
 
-function StatusDot({ connected }: { connected: boolean }) {
+function StatusDot({ status }: { status: ConnectionStatus }) {
+  const colorMap: Record<ConnectionStatus, string> = {
+    connected: 'bg-emerald-400',
+    connecting: 'bg-amber-400 animate-pulse',
+    error: 'bg-red-400',
+    disconnected: 'bg-zinc-600',
+  };
+  return <span className={`inline-block w-2 h-2 rounded-full ${colorMap[status]}`} />;
+}
+
+function ConnectionBadge({ status, error }: { status: ConnectionStatus; error?: string }) {
+  const config: Record<ConnectionStatus, { bg: string; border: string; text: string; label: string }> = {
+    connected: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/25', text: 'text-emerald-400', label: 'Live Connection' },
+    connecting: { bg: 'bg-amber-500/10', border: 'border-amber-500/25', text: 'text-amber-400', label: 'Connecting...' },
+    error: { bg: 'bg-red-500/10', border: 'border-red-500/25', text: 'text-red-400', label: error || 'Connection Error' },
+    disconnected: { bg: 'bg-zinc-500/10', border: 'border-zinc-500/25', text: 'text-zinc-400', label: 'Disconnected' },
+  };
+  const c = config[status];
   return (
-    <span className={`inline-block w-2 h-2 rounded-full ${connected ? 'bg-emerald-400' : 'bg-zinc-600'}`} />
+    <div className={`rounded-lg border ${c.border} ${c.bg} px-4 py-2.5 text-sm ${c.text} flex items-center gap-2`}>
+      <StatusDot status={status} />
+      <span className="font-medium">{c.label}</span>
+    </div>
   );
+}
+
+async function fetchBrokerData(token: string, accountId: string): Promise<{
+  accountInfo: AccountInfo;
+  positions: Position[];
+}> {
+  const res = await fetch('/api/broker', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, accountId }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || `Request failed with status ${res.status}`);
+  }
+
+  return {
+    accountInfo: mapAccountInfo(data.accountInfo),
+    positions: Array.isArray(data.positions) ? data.positions.map((p: Record<string, unknown>) => mapPosition(p)) : [],
+  };
 }
 
 export default function BrokerPage() {
@@ -117,9 +135,11 @@ export default function BrokerPage() {
   const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [connecting, setConnecting] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [loadingAccount, setLoadingAccount] = useState(false);
   const [error, setError] = useState('');
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   const [form, setForm] = useState({
     label: '',
@@ -148,32 +168,66 @@ export default function BrokerPage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   };
 
-  const loadAccountData = useCallback((broker: BrokerConfig) => {
+  const loadAccountData = useCallback(async (broker: BrokerConfig) => {
     setLoadingAccount(true);
     setError('');
-    // Simulate MetaApi call with seeded mock data
-    setTimeout(() => {
-      const seed = broker.accountId.charCodeAt(0) * 31 + broker.token.length * 7;
-      setAccountInfo(mockAccountInfo(seed));
-      setPositions(mockPositions(seed));
+    setConnectionStatus('connecting');
+
+    try {
+      const { accountInfo: info, positions: pos } = await fetchBrokerData(broker.token, broker.accountId);
+      setAccountInfo(info);
+      setPositions(pos);
+      setConnectionStatus('connected');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load account data';
+      setError(message);
+      setConnectionStatus('error');
+      setAccountInfo(null);
+      setPositions([]);
+    } finally {
       setLoadingAccount(false);
-    }, 800);
+    }
   }, []);
 
   useEffect(() => {
     if (!activeBrokerId) return;
     const broker = brokers.find(b => b.id === activeBrokerId);
-    if (broker?.connected) setTimeout(() => loadAccountData(broker!), 0);
+    if (broker?.connected) {
+      loadAccountData(broker);
+    }
   }, [activeBrokerId, brokers, loadAccountData]);
 
-  const handleConnect = () => {
+  const handleTestConnection = async () => {
+    if (!form.token.trim() || !form.accountId.trim()) {
+      setTestResult({ ok: false, message: 'Token and Account ID are required' });
+      return;
+    }
+    setTestingConnection(true);
+    setTestResult(null);
+
+    try {
+      await fetchBrokerData(form.token, form.accountId);
+      setTestResult({ ok: true, message: 'Connection successful — credentials verified' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Connection failed';
+      setTestResult({ ok: false, message });
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
+  const handleConnect = async () => {
     if (!form.token.trim() || !form.accountId.trim()) {
       setError('MetaApi token and account ID are required.');
       return;
     }
-    setConnecting(true);
+    setConnectionStatus('connecting');
     setError('');
-    setTimeout(() => {
+
+    try {
+      // Verify connection before saving
+      await fetchBrokerData(form.token, form.accountId);
+
       const newBroker: BrokerConfig = {
         id: `broker-${Date.now()}`,
         label: form.label || `${form.platform.toUpperCase()} Account`,
@@ -187,10 +241,21 @@ export default function BrokerPage() {
       const updated = [...brokers, newBroker];
       save(updated);
       setActiveBrokerId(newBroker.id);
-      setConnecting(false);
       setShowAddForm(false);
       setForm({ label: '', token: '', accountId: '', server: '', platform: 'mt5' });
-    }, 1200);
+      setTestResult(null);
+      setConnectionStatus('connected');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to connect';
+      setError(message);
+      setConnectionStatus('error');
+    }
+  };
+
+  const handleReconnect = (broker: BrokerConfig) => {
+    const updated = brokers.map(b => b.id === broker.id ? { ...b, connected: true } : b);
+    save(updated);
+    setActiveBrokerId(broker.id);
   };
 
   const handleDisconnect = (id: string) => {
@@ -200,6 +265,7 @@ export default function BrokerPage() {
       setActiveBrokerId(null);
       setAccountInfo(null);
       setPositions([]);
+      setConnectionStatus('disconnected');
     }
   };
 
@@ -210,6 +276,14 @@ export default function BrokerPage() {
       setActiveBrokerId(null);
       setAccountInfo(null);
       setPositions([]);
+      setConnectionStatus('disconnected');
+    }
+  };
+
+  const handleRefresh = () => {
+    const broker = brokers.find(b => b.id === activeBrokerId);
+    if (broker?.connected) {
+      loadAccountData(broker);
     }
   };
 
@@ -218,6 +292,13 @@ export default function BrokerPage() {
   return (
     <div className="min-h-[100dvh] bg-[#050505] text-white">
       <div className="max-w-5xl mx-auto px-4 py-8">
+
+        {/* Connection status banner */}
+        {activeBroker && (
+          <div className="mb-4">
+            <ConnectionBadge status={connectionStatus} error={error || undefined} />
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -299,18 +380,35 @@ export default function BrokerPage() {
               <p className="mt-3 text-xs text-red-400">{error}</p>
             )}
 
+            {testResult && (
+              <p className={`mt-3 text-xs ${testResult.ok ? 'text-emerald-400' : 'text-red-400'}`}>
+                {testResult.message}
+              </p>
+            )}
+
             <div className="mt-4 flex items-center gap-3">
               <button
+                onClick={handleTestConnection}
+                disabled={testingConnection}
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-white/5 border border-white/10 text-zinc-300 hover:bg-white/10 transition-colors disabled:opacity-50"
+              >
+                {testingConnection ? 'Testing...' : 'Test Connection'}
+              </button>
+              <button
                 onClick={handleConnect}
-                disabled={connecting}
+                disabled={connectionStatus === 'connecting'}
                 className="px-5 py-2 rounded-xl text-sm font-semibold bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/25 transition-colors disabled:opacity-50"
               >
-                {connecting ? 'Connecting...' : 'Connect'}
+                {connectionStatus === 'connecting' ? 'Connecting...' : 'Connect'}
               </button>
               <span className="text-[10px] text-zinc-600">
-                Uses MetaApi cloud — get your token at metaapi.cloud
+                Token is proxied server-side — never sent from your browser directly
               </span>
             </div>
+
+            <p className="mt-3 text-[10px] text-zinc-700">
+              Note: For production deployments, store tokens server-side via environment variables instead of localStorage.
+            </p>
           </div>
         )}
 
@@ -326,7 +424,7 @@ export default function BrokerPage() {
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <StatusDot connected={broker.connected} />
+                  <StatusDot status={broker.connected ? (activeBrokerId === broker.id ? connectionStatus : 'connected') : 'disconnected'} />
                   <div>
                     <span className="text-sm font-semibold text-white">{broker.label}</span>
                     <span className="ml-2 text-[10px] text-zinc-600 font-mono uppercase">{broker.platform}</span>
@@ -347,12 +445,20 @@ export default function BrokerPage() {
                       Disconnect
                     </button>
                   ) : (
-                    <button
-                      onClick={e => { e.stopPropagation(); handleRemove(broker.id); }}
-                      className="text-[10px] text-zinc-500 hover:text-red-400 px-2 py-1 rounded border border-transparent hover:border-red-500/20 transition-colors"
-                    >
-                      Remove
-                    </button>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={e => { e.stopPropagation(); handleReconnect(broker); }}
+                        className="text-[10px] text-zinc-500 hover:text-emerald-400 px-2 py-1 rounded border border-transparent hover:border-emerald-500/20 transition-colors"
+                      >
+                        Reconnect
+                      </button>
+                      <button
+                        onClick={e => { e.stopPropagation(); handleRemove(broker.id); }}
+                        className="text-[10px] text-zinc-500 hover:text-red-400 px-2 py-1 rounded border border-transparent hover:border-red-500/20 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -363,15 +469,34 @@ export default function BrokerPage() {
         {/* Account Dashboard */}
         {activeBroker && activeBroker.connected && (
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <StatusDot connected />
-              <span className="text-xs text-zinc-400 font-semibold">{activeBroker.label}</span>
-              <span className="text-[10px] text-zinc-600 font-mono uppercase">{activeBroker.platform}</span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <StatusDot status={connectionStatus} />
+                <span className="text-xs text-zinc-400 font-semibold">{activeBroker.label}</span>
+                <span className="text-[10px] text-zinc-600 font-mono uppercase">{activeBroker.platform}</span>
+              </div>
+              <button
+                onClick={handleRefresh}
+                disabled={loadingAccount}
+                className="text-[10px] text-zinc-500 hover:text-emerald-400 px-3 py-1.5 rounded-lg border border-white/5 hover:border-emerald-500/20 transition-colors disabled:opacity-50"
+              >
+                {loadingAccount ? 'Refreshing...' : 'Refresh'}
+              </button>
             </div>
 
             {loadingAccount ? (
               <div className="glass-card p-8 flex items-center justify-center">
                 <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+              </div>
+            ) : error && !accountInfo ? (
+              <div className="glass-card p-8 text-center">
+                <p className="text-sm text-red-400 mb-2">{error}</p>
+                <button
+                  onClick={handleRefresh}
+                  className="text-xs text-zinc-500 hover:text-emerald-400 transition-colors"
+                >
+                  Try again
+                </button>
               </div>
             ) : accountInfo && (
               <>
@@ -485,7 +610,7 @@ export default function BrokerPage() {
             <li><span className="text-zinc-400 font-semibold">2.</span> Add your MT4/MT5 broker credentials in the MetaApi dashboard</li>
             <li><span className="text-zinc-400 font-semibold">3.</span> Copy your API token and deployed account ID</li>
             <li><span className="text-zinc-400 font-semibold">4.</span> Paste both above — TradeClaw connects via the MetaApi cloud bridge</li>
-            <li><span className="text-zinc-400 font-semibold">5.</span> For production use, set <span className="text-zinc-400 font-mono">METAAPI_TOKEN</span> in server env and proxy via <span className="text-zinc-400 font-mono">/api/broker</span></li>
+            <li><span className="text-zinc-400 font-semibold">5.</span> Your token is proxied through <span className="text-zinc-400 font-mono">/api/broker</span> server-side — it never leaves the server in production</li>
           </ol>
         </div>
       </div>

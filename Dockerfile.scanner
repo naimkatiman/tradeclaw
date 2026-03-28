@@ -1,4 +1,21 @@
 # Scanner worker — runs signal analysis on configured intervals
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+COPY packages/core/package.json ./packages/core/
+RUN npm ci
+
+COPY packages/core/ ./packages/core/
+
+# Build TypeScript to JavaScript
+RUN npx tsc --project packages/core/tsconfig.json 2>/dev/null || \
+    npx tsc packages/core/src/index.ts --outDir packages/core/dist \
+      --module Node16 --moduleResolution Node16 --target ES2022 \
+      --esModuleInterop --declaration --skipLibCheck
+
+# ── Production stage ─────────────────────────────────────────────────────────
 FROM node:22-alpine
 
 WORKDIR /app
@@ -6,14 +23,13 @@ WORKDIR /app
 RUN addgroup -g 1001 -S tradeclaw && \
     adduser -S tradeclaw -u 1001
 
-COPY package.json package-lock.json ./
-COPY packages/core/package.json ./packages/core/
-RUN npm ci --omit=dev
+COPY --from=builder /app/package.json /app/package-lock.json ./
+COPY --from=builder /app/packages/core/ ./packages/core/
 
-COPY packages/core/ ./packages/core/
+RUN npm ci --omit=dev
 
 USER tradeclaw
 
 ENV NODE_ENV=production
 
-CMD ["node", "packages/core/scanner.js"]
+CMD ["node", "packages/core/dist/index.js"]

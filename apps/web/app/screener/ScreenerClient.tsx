@@ -55,19 +55,34 @@ function Sparkline({ prices, direction }: { prices: number[]; direction: 'BUY' |
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const data = prices.length >= 2 ? prices : generateFakePrices(prices[0] ?? 1, direction);
     const w = canvas.width;
     const h = canvas.height;
-
     ctx.clearRect(0, 0, w, h);
 
-    const min = Math.min(...data);
-    const max = Math.max(...data);
+    // Not enough data points to draw a sparkline
+    if (prices.length < 2) {
+      ctx.strokeStyle = '#3f3f46'; // zinc-700
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#52525b'; // zinc-600
+      ctx.font = '9px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('No data', w / 2, h / 2 - 4);
+      return;
+    }
+
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
     const range = max - min || 1;
     const pad = 2;
 
-    const points = data.map((p, i) => ({
-      x: pad + (i / (data.length - 1)) * (w - pad * 2),
+    const points = prices.map((p, i) => ({
+      x: pad + (i / (prices.length - 1)) * (w - pad * 2),
       y: h - pad - ((p - min) / range) * (h - pad * 2),
     }));
 
@@ -94,14 +109,6 @@ function Sparkline({ prices, direction }: { prices: number[]; direction: 'BUY' |
   }, [prices, direction]);
 
   return <canvas ref={canvasRef} width={80} height={30} className="opacity-90" />;
-}
-
-function generateFakePrices(base: number, direction: 'BUY' | 'SELL'): number[] {
-  const trend = direction === 'BUY' ? 1 : -1;
-  return Array.from({ length: 20 }, (_, i) => {
-    const noise = (Math.random() - 0.5) * base * 0.01;
-    return base + trend * (i / 20) * base * 0.02 + noise;
-  });
 }
 
 // ─── Sort Icon ────────────────────────────────────────────────
@@ -374,6 +381,10 @@ export default function ScreenerClient() {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-8">
+        <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-950/50 px-4 py-3 text-sm text-emerald-300">
+          <strong>Live Data</strong> — Real-time market data from Binance and Yahoo Finance.
+        </div>
+
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
