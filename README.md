@@ -46,6 +46,22 @@ No installation. No config. No Docker. Just one command — spins up a local dem
 
 ---
 
+## API Access
+
+Get a free API key at **[tradeclaw.win/api-keys](https://tradeclaw.win/api-keys)**.
+
+```bash
+curl -H "X-API-Key: tc_live_YOUR_KEY" \
+  https://tradeclaw.win/api/signals
+```
+
+- **1,000 requests/hour** free
+- Scoped permissions: signals, leaderboard, screener
+- Self-host for unlimited access
+- Full docs: [tradeclaw.win/api-docs](https://tradeclaw.win/api-docs)
+
+---
+
 ## Why TradeClaw?
 
 Most trading dashboards are **expensive, cloud-locked, and dumb** (no AI, just charts). TradeClaw is different:
