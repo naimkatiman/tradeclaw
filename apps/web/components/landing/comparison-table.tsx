@@ -5,7 +5,7 @@ interface ComparisonRow {
   tradeclaw: FeatureValue;
   tradingview: FeatureValue;
   threecommas: FeatureValue;
-  cryptohopper: FeatureValue;
+  openclaw: FeatureValue;
 }
 
 const ROWS: ComparisonRow[] = [
@@ -14,69 +14,88 @@ const ROWS: ComparisonRow[] = [
     tradeclaw: "Free",
     tradingview: "$60/mo",
     threecommas: "$49/mo",
-    cryptohopper: "$107/mo",
+    openclaw: "Free",
   },
   {
     feature: "Open Source",
     tradeclaw: true,
     tradingview: false,
     threecommas: false,
-    cryptohopper: false,
+    openclaw: true,
   },
   {
-    feature: "Self-Hosted",
+    feature: "Purpose-Built for Trading",
+    tradeclaw: true,
+    tradingview: true,
+    threecommas: true,
+    openclaw: false,
+  },
+  {
+    feature: "Auditable TA Engine",
     tradeclaw: true,
     tradingview: false,
     threecommas: false,
-    cryptohopper: false,
+    openclaw: false,
   },
   {
     feature: "AI Signals",
     tradeclaw: true,
     tradingview: false,
     threecommas: false,
-    cryptohopper: true,
+    openclaw: "Via plugins",
   },
   {
     feature: "Multi-Asset (Forex + Crypto + Metals)",
     tradeclaw: true,
     tradingview: true,
     threecommas: false,
-    cryptohopper: false,
+    openclaw: "Via plugins",
+  },
+  {
+    feature: "One-Click Docker Deploy",
+    tradeclaw: true,
+    tradingview: false,
+    threecommas: false,
+    openclaw: false,
   },
   {
     feature: "Custom Strategies",
     tradeclaw: true,
     tradingview: true,
     threecommas: true,
-    cryptohopper: true,
+    openclaw: true,
   },
   {
-    feature: "API Access",
+    feature: "API + SDK + MCP Server",
     tradeclaw: true,
     tradingview: true,
     threecommas: true,
-    cryptohopper: true,
+    openclaw: false,
   },
   {
-    feature: "Signal Sharing",
+    feature: "No Malicious Plugin Risk",
     tradeclaw: true,
-    tradingview: false,
-    threecommas: false,
-    cryptohopper: false,
+    tradingview: true,
+    threecommas: true,
+    openclaw: false,
   },
   {
     feature: "No Data Lock-in",
     tradeclaw: true,
     tradingview: false,
     threecommas: false,
-    cryptohopper: false,
+    openclaw: true,
   },
 ];
 
 function Cell({ value }: { value: FeatureValue }) {
   if (typeof value === "string") {
-    return <span>{value}</span>;
+    const isPartial = value === "Via plugins";
+    return (
+      <span className={isPartial ? "text-[11px] italic opacity-70" : ""}>
+        {value}
+      </span>
+    );
   }
   return value ? (
     <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-emerald-500/15 text-emerald-400">
@@ -113,12 +132,13 @@ export function ComparisonTable() {
             Compare
           </div>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[var(--foreground)]">
-            Why pay for signals that{" "}
-            <span className="text-emerald-400">should be free?</span>
+            Purpose-built beats{" "}
+            <span className="text-emerald-400">general-purpose</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base text-[var(--text-secondary)]">
-            TradeClaw is the only open-source platform combining AI signals, a
-            beautiful UI, and multi-asset support.
+            Generic AI agents aren&apos;t great at trading. TradeClaw is the only
+            open-source platform with auditable TA, multi-asset signals, and
+            one-click deployment.
           </p>
         </div>
 
@@ -153,8 +173,8 @@ export function ComparisonTable() {
                 </th>
                 <th className="px-4 py-4 text-center text-[var(--text-secondary)] font-medium w-[17%]">
                   <div className="flex flex-col items-center gap-1">
-                    <span>Cryptohopper</span>
-                    <span className="text-[10px] text-[var(--text-secondary)]">$107/mo</span>
+                    <span>OpenClaw</span>
+                    <span className="text-[10px] text-[var(--text-secondary)]">Free (generic agent)</span>
                   </div>
                 </th>
               </tr>
@@ -191,7 +211,7 @@ export function ComparisonTable() {
                   </td>
                   <td className="px-4 py-3.5 text-center text-[var(--text-secondary)]">
                     <div className="flex justify-center">
-                      <Cell value={row.cryptohopper} />
+                      <Cell value={row.openclaw} />
                     </div>
                   </td>
                 </tr>
@@ -200,8 +220,10 @@ export function ComparisonTable() {
           </table>
         </div>
 
-        <p className="mt-4 text-center text-xs text-[var(--text-secondary)]">
-          Prices as of March 2026. Subject to change.
+        <p className="mt-6 text-center text-xs text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
+          92% of traders using generic AI agents for trading lost money in 2025.
+          Purpose-built tools with transparent, auditable technical analysis
+          outperform black-box agent plugins. Prices as of March 2026.
         </p>
       </div>
     </section>

@@ -12,6 +12,7 @@ import { HintBadge, PageHint } from '../../components/feature-highlights';
 import { SignalChart } from '../components/charts';
 import { generateBars } from '../lib/chart-utils';
 import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
+import { MarketContextPanel } from '../components/market-context-panel';
 import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
 import { SignalLedger } from '../components/signal-ledger';
 import { LatestOutcomes } from '../components/latest-outcomes';
@@ -413,6 +414,9 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
         <div className="mb-6">
           <AccuracyStatsBar />
         </div>
+
+        {/* Market context — sentiment, BTC on-chain, DeFi TVL */}
+        <MarketContextPanel />
 
         {/* Stats */}
         <div data-tour-id="dashboard-stats" className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
