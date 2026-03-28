@@ -108,7 +108,7 @@ function generateFakePrices(base: number, direction: 'BUY' | 'SELL'): number[] {
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return (
-    <span className={`ml-1 text-[8px] inline-block ${active ? 'text-emerald-400' : 'text-zinc-700'}`}>
+    <span className={`ml-1 text-[8px] inline-block ${active ? 'text-emerald-400' : 'text-[var(--text-secondary)]'}`}>
       {active ? (dir === 'asc' ? '▲' : '▼') : '⬍'}
     </span>
   );
@@ -121,7 +121,7 @@ function MACDBar({ value }: { value: number }) {
   const color = value >= 0 ? 'bg-emerald-500' : 'bg-rose-500';
   return (
     <div className="flex items-center gap-1">
-      <div className="relative h-3 w-12 bg-white/5 rounded-sm overflow-hidden flex items-center">
+      <div className="relative h-3 w-12 bg-[var(--border)] rounded-sm overflow-hidden flex items-center">
         <div
           className={`absolute h-full rounded-sm ${color} transition-all duration-300`}
           style={{ width: `${abs}%` }}
@@ -139,7 +139,7 @@ function MACDBar({ value }: { value: number }) {
 function ConfidenceBar({ value }: { value: number }) {
   return (
     <div className="flex items-center gap-2 min-w-[90px]">
-      <div className="relative flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+      <div className="relative flex-1 h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
         <div
           className={`absolute h-full rounded-full bg-gradient-to-r ${confColor(value)} transition-all duration-700`}
           style={{ width: `${value}%` }}
@@ -174,9 +174,9 @@ function SignalBadge({ direction }: { direction: 'BUY' | 'SELL' }) {
 function StatCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
   return (
     <div className="glass-card rounded-xl p-3 flex flex-col gap-1">
-      <div className="text-[10px] text-zinc-600 uppercase tracking-wider">{label}</div>
-      <div className={`text-base font-bold font-mono tabular-nums ${color ?? 'text-white'}`}>{value}</div>
-      {sub && <div className="text-[10px] text-zinc-700">{sub}</div>}
+      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">{label}</div>
+      <div className={`text-base font-bold font-mono tabular-nums ${color ?? 'text-[var(--foreground)]'}`}>{value}</div>
+      {sub && <div className="text-[10px] text-[var(--text-secondary)]">{sub}</div>}
     </div>
   );
 }
@@ -192,8 +192,8 @@ function RangeSlider({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{label}</span>
-        <span className="text-[10px] font-mono text-zinc-400">{valueMin}–{valueMax}</span>
+        <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">{label}</span>
+        <span className="text-[10px] font-mono text-[var(--text-secondary)]">{valueMin}–{valueMax}</span>
       </div>
       <div className="flex items-center gap-2">
         <input
@@ -219,7 +219,7 @@ function FilterPill<T extends string>({
   value: T; options: { value: T; label: string }[]; onChange: (v: T) => void;
 }) {
   return (
-    <div className="flex gap-1 bg-white/[0.03] rounded-lg p-1 border border-white/5">
+    <div className="flex gap-1 bg-[var(--glass-bg)] rounded-lg p-1 border border-[var(--border)]">
       {options.map(o => (
         <button
           key={o.value}
@@ -227,7 +227,7 @@ function FilterPill<T extends string>({
           className={`px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all duration-150 ${
             value === o.value
               ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
-              : 'text-zinc-600 hover:text-zinc-400'
+              : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
           }`}
         >
           {o.label}
@@ -241,10 +241,10 @@ function FilterPill<T extends string>({
 
 function SkeletonRow() {
   return (
-    <tr className="border-b border-white/[0.03]">
+    <tr className="border-b border-[var(--border)]">
       {Array.from({ length: 8 }).map((_, i) => (
         <td key={i} className="px-4 py-3">
-          <div className="h-4 bg-white/5 rounded animate-pulse" style={{ width: `${40 + Math.random() * 40}%` }} />
+          <div className="h-4 bg-[var(--glass-bg)] rounded animate-pulse" style={{ width: `${40 + Math.random() * 40}%` }} />
         </td>
       ))}
     </tr>
@@ -352,9 +352,9 @@ export default function ScreenerClient() {
     });
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] text-white">
+    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
       {/* Nav */}
-      <nav className="sticky top-0 z-40 border-b border-white/5 bg-[#050505]/90 backdrop-blur-xl">
+      <nav className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
@@ -364,9 +364,9 @@ export default function ScreenerClient() {
             <span className="text-sm font-semibold">Trade<span className="text-emerald-400">Claw</span></span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-xs text-zinc-600 hover:text-zinc-300 transition-colors hidden sm:block">Live Signals</Link>
-            <Link href="/multi-timeframe" className="text-xs text-zinc-600 hover:text-zinc-300 transition-colors hidden sm:block">Multi-TF</Link>
-            <Link href="/leaderboard" className="text-xs text-zinc-600 hover:text-zinc-300 transition-colors hidden sm:block">Leaderboard</Link>
+            <Link href="/dashboard" className="text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors hidden sm:block">Live Signals</Link>
+            <Link href="/multi-timeframe" className="text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors hidden sm:block">Multi-TF</Link>
+            <Link href="/leaderboard" className="text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors hidden sm:block">Leaderboard</Link>
           </div>
         </div>
       </nav>
@@ -381,13 +381,13 @@ export default function ScreenerClient() {
             </svg>
             <h1 className="text-xl font-bold tracking-tight">Asset Screener</h1>
           </div>
-          <p className="text-xs text-zinc-600">
+          <p className="text-xs text-[var(--text-secondary)]">
             Scan all {12} assets for setups matching your custom criteria · Powered by real TA engine
           </p>
         </div>
 
         {/* Filter Bar */}
-        <div className="glass-card rounded-2xl p-4 mb-6 border border-white/5">
+        <div className="glass-card rounded-2xl p-4 mb-6 border border-[var(--border)]">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             {/* RSI Range */}
             <RangeSlider
@@ -402,8 +402,8 @@ export default function ScreenerClient() {
             {/* Confidence Threshold */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Min Confidence</span>
-                <span className="text-[10px] font-mono text-zinc-400">{filters.minConfidence}%</span>
+                <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Min Confidence</span>
+                <span className="text-[10px] font-mono text-[var(--text-secondary)]">{filters.minConfidence}%</span>
               </div>
               <input
                 type="range" min={0} max={100} value={filters.minConfidence}
@@ -414,7 +414,7 @@ export default function ScreenerClient() {
 
             {/* Timeframe */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Timeframe</span>
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Timeframe</span>
               <FilterPill<Timeframe>
                 value={filters.timeframe}
                 options={[
@@ -428,7 +428,7 @@ export default function ScreenerClient() {
 
             {/* MACD Filter */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider">MACD</span>
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">MACD</span>
               <FilterPill<MACDFilter>
                 value={filters.macdFilter}
                 options={[
@@ -442,7 +442,7 @@ export default function ScreenerClient() {
 
             {/* EMA Filter */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider">EMA Position</span>
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">EMA Position</span>
               <FilterPill<EMAFilter>
                 value={filters.emaFilter}
                 options={[
@@ -457,7 +457,7 @@ export default function ScreenerClient() {
 
             {/* Direction Filter */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Direction</span>
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Direction</span>
               <FilterPill<DirectionFilter>
                 value={filters.direction}
                 options={[
@@ -478,7 +478,7 @@ export default function ScreenerClient() {
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-medium border transition-all ${
                   watchlistOnly
                     ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                    : 'bg-white/[0.03] border-white/5 text-zinc-500 hover:text-zinc-300'
+                    : 'bg-[var(--glass-bg)] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                 }`}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill={watchlistOnly ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -531,7 +531,7 @@ export default function ScreenerClient() {
               color={meta.strongest?.direction === 'BUY' ? 'text-emerald-400' : meta.strongest?.direction === 'SELL' ? 'text-rose-400' : 'text-zinc-400'}
             />
             <div className="glass-card rounded-xl p-3 flex flex-col gap-1">
-              <div className="text-[10px] text-zinc-600 uppercase tracking-wider">Bias</div>
+              <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Bias</div>
               <div className="flex items-center gap-2 mt-0.5">
                 {meta.mostBullish && (
                   <span className="text-[10px] text-emerald-400 font-mono">▲ {meta.mostBullish}</span>
@@ -540,7 +540,7 @@ export default function ScreenerClient() {
                   <span className="text-[10px] text-rose-400 font-mono">▼ {meta.mostBearish}</span>
                 )}
                 {!meta.mostBullish && !meta.mostBearish && (
-                  <span className="text-[10px] text-zinc-700">—</span>
+                  <span className="text-[10px] text-[var(--text-secondary)]">—</span>
                 )}
               </div>
             </div>
@@ -549,55 +549,55 @@ export default function ScreenerClient() {
 
         {/* Results Table */}
         {!hasScanned ? (
-          <div className="glass-card rounded-2xl flex flex-col items-center justify-center py-20 border border-white/5">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-zinc-700 mb-4">
+          <div className="glass-card rounded-2xl flex flex-col items-center justify-center py-20 border border-[var(--border)]">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-[var(--text-secondary)] mb-4">
               <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.5" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
-            <p className="text-zinc-600 text-sm font-medium">Set your filters and tap Scan Now</p>
-            <p className="text-zinc-800 text-xs mt-1">Scans {12} assets across forex, crypto & metals</p>
+            <p className="text-[var(--text-secondary)] text-sm font-medium">Set your filters and tap Scan Now</p>
+            <p className="text-[var(--text-secondary)] opacity-50 text-xs mt-1">Scans {12} assets across forex, crypto & metals</p>
           </div>
         ) : (
-          <div className="glass-card rounded-2xl overflow-x-auto border border-white/5">
+          <div className="glass-card rounded-2xl overflow-x-auto border border-[var(--border)]">
             <table className="w-full min-w-[900px]">
               <thead>
-                <tr className="border-b border-white/5">
+                <tr className="border-b border-[var(--border)]">
                   <th className="px-4 py-3 text-left w-8" />
                   <th
-                    className="px-4 py-3 text-left text-[10px] text-zinc-600 uppercase tracking-wider font-medium cursor-pointer hover:text-zinc-400 select-none"
+                    className="px-4 py-3 text-left text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--foreground)] select-none"
                     onClick={() => handleSort('symbol')}
                   >
                     Symbol<SortIcon active={sortKey === 'symbol'} dir={sortDir} />
                   </th>
                   <th
-                    className="px-4 py-3 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium cursor-pointer hover:text-zinc-400 select-none"
+                    className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--foreground)] select-none"
                     onClick={() => handleSort('price')}
                   >
                     Price<SortIcon active={sortKey === 'price'} dir={sortDir} />
                   </th>
-                  <th className="px-4 py-3 text-center text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Signal</th>
+                  <th className="px-4 py-3 text-center text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Signal</th>
                   <th
-                    className="px-4 py-3 text-[10px] text-zinc-600 uppercase tracking-wider font-medium cursor-pointer hover:text-zinc-400 select-none min-w-[120px]"
+                    className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--foreground)] select-none min-w-[120px]"
                     onClick={() => handleSort('confidence')}
                   >
                     Confidence<SortIcon active={sortKey === 'confidence'} dir={sortDir} />
                   </th>
                   <th
-                    className="px-4 py-3 text-right text-[10px] text-zinc-600 uppercase tracking-wider font-medium cursor-pointer hover:text-zinc-400 select-none"
+                    className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--foreground)] select-none"
                     onClick={() => handleSort('rsi')}
                   >
                     RSI<SortIcon active={sortKey === 'rsi'} dir={sortDir} />
                   </th>
                   <th
-                    className="px-4 py-3 text-[10px] text-zinc-600 uppercase tracking-wider font-medium cursor-pointer hover:text-zinc-400 select-none"
+                    className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--foreground)] select-none"
                     onClick={() => handleSort('macdHistogram')}
                   >
                     MACD<SortIcon active={sortKey === 'macdHistogram'} dir={sortDir} />
                   </th>
-                  <th className="px-4 py-3 text-[10px] text-zinc-600 uppercase tracking-wider font-medium">EMA Status</th>
-                  <th className="px-4 py-3 text-center text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Chart</th>
-                  <th className="px-4 py-3 text-[10px] text-zinc-600 uppercase tracking-wider font-medium">TF</th>
-                  <th className="px-4 py-3 text-[10px] text-zinc-600 uppercase tracking-wider font-medium">Actions</th>
+                  <th className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">EMA Status</th>
+                  <th className="px-4 py-3 text-center text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Chart</th>
+                  <th className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">TF</th>
+                  <th className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -607,14 +607,14 @@ export default function ScreenerClient() {
                 {!loading && sorted.map(r => (
                   <tr
                     key={`${r.symbol}-${r.signalId}`}
-                    className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
+                    className="border-b border-[var(--border)] hover:bg-[var(--glass-bg)] transition-colors"
                   >
                     {/* Watchlist star */}
                     <td className="px-4 py-3">
                       <button
                         onClick={() => toggleWatchlist(r.symbol)}
                         className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
-                          watchlist.has(r.symbol) ? 'text-amber-400' : 'text-zinc-700 hover:text-zinc-500'
+                          watchlist.has(r.symbol) ? 'text-amber-400' : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                         }`}
                         title={watchlist.has(r.symbol) ? 'Remove from watchlist' : 'Add to watchlist'}
                       >
@@ -627,13 +627,13 @@ export default function ScreenerClient() {
                     {/* Symbol */}
                     <td className="px-4 py-3">
                       <div className="flex flex-col">
-                        <span className="text-sm font-mono font-bold text-white">{r.symbol}</span>
-                        <span className="text-[10px] text-zinc-600">{r.name}</span>
+                        <span className="text-sm font-mono font-bold text-[var(--foreground)]">{r.symbol}</span>
+                        <span className="text-[10px] text-[var(--text-secondary)]">{r.name}</span>
                       </div>
                     </td>
 
                     {/* Price */}
-                    <td className="px-4 py-3 text-right font-mono text-sm text-zinc-300 tabular-nums">
+                    <td className="px-4 py-3 text-right font-mono text-sm text-[var(--foreground)] tabular-nums">
                       {fmtPrice(r.price)}
                     </td>
 
@@ -650,7 +650,7 @@ export default function ScreenerClient() {
                     {/* RSI */}
                     <td className="px-4 py-3 text-right">
                       <span className={`text-xs font-mono tabular-nums ${
-                        r.rsi < 30 ? 'text-emerald-400' : r.rsi > 70 ? 'text-rose-400' : 'text-zinc-400'
+                        r.rsi < 30 ? 'text-emerald-400' : r.rsi > 70 ? 'text-rose-400' : 'text-[var(--text-secondary)]'
                       }`}>
                         {r.rsi.toFixed(1)}
                       </span>
@@ -667,7 +667,7 @@ export default function ScreenerClient() {
                         r.emaStatus === 'Golden Cross' ? 'text-emerald-400 bg-emerald-500/10' :
                         r.emaStatus === 'Death Cross' ? 'text-rose-400 bg-rose-500/10' :
                         r.emaStatus === 'Above EMA20' ? 'text-sky-400 bg-sky-500/10' :
-                        'text-zinc-500 bg-white/5'
+                        'text-[var(--text-secondary)] bg-[var(--glass-bg)]'
                       }`}>
                         {r.emaStatus}
                       </span>
@@ -680,7 +680,7 @@ export default function ScreenerClient() {
 
                     {/* Timeframe */}
                     <td className="px-4 py-3">
-                      <span className="text-[10px] font-mono text-zinc-500 bg-white/5 px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--glass-bg)] px-1.5 py-0.5 rounded">
                         {r.timeframe}
                       </span>
                     </td>
@@ -690,13 +690,13 @@ export default function ScreenerClient() {
                       <div className="flex items-center gap-1.5">
                         <Link
                           href={`/signal/${r.signalId}`}
-                          className="px-2 py-1 rounded-lg bg-white/[0.04] border border-white/5 text-[10px] text-zinc-400 hover:text-zinc-200 hover:border-white/10 transition-colors whitespace-nowrap"
+                          className="px-2 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-[10px] text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:border-[var(--glass-border-accent)] transition-colors whitespace-nowrap"
                         >
                           View
                         </Link>
                         <Link
                           href={`/alerts?symbol=${r.symbol}`}
-                          className="px-2 py-1 rounded-lg bg-white/[0.04] border border-white/5 text-[10px] text-zinc-400 hover:text-zinc-200 hover:border-white/10 transition-colors whitespace-nowrap"
+                          className="px-2 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-[10px] text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:border-[var(--glass-border-accent)] transition-colors whitespace-nowrap"
                         >
                           Alert
                         </Link>
@@ -705,7 +705,7 @@ export default function ScreenerClient() {
                           className={`px-2 py-1 rounded-lg border text-[10px] transition-colors whitespace-nowrap ${
                             watchlist.has(r.symbol)
                               ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
-                              : 'bg-white/[0.04] border-white/5 text-zinc-400 hover:text-zinc-200 hover:border-white/10'
+                              : 'bg-[var(--glass-bg)] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:border-[var(--glass-border-accent)]'
                           }`}
                         >
                           {watchlist.has(r.symbol) ? '★ Watch' : '☆ Watch'}
@@ -716,7 +716,7 @@ export default function ScreenerClient() {
                 ))}
                 {!loading && sorted.length === 0 && hasScanned && (
                   <tr>
-                    <td colSpan={11} className="py-16 text-center text-zinc-700 text-xs">
+                    <td colSpan={11} className="py-16 text-center text-[var(--text-secondary)] text-xs">
                       No assets match your filters. Try loosening the criteria.
                     </td>
                   </tr>
@@ -728,7 +728,7 @@ export default function ScreenerClient() {
 
         {/* Footer hint */}
         {hasScanned && !loading && (
-          <p className="mt-4 text-[10px] text-zinc-800 text-center">
+          <p className="mt-4 text-[10px] text-[var(--text-secondary)] opacity-40 text-center">
             {meta && `Scanned at ${new Date(meta.scannedAt).toLocaleTimeString()} · `}
             Click column headers to sort · ★ to add to watchlist
           </p>

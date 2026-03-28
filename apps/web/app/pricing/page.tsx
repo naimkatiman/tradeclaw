@@ -114,7 +114,7 @@ function XIcon() {
       height="14"
       viewBox="0 0 14 14"
       fill="none"
-      className="inline-block text-zinc-600"
+      className="inline-block text-[var(--text-secondary)]"
     >
       <path
         d="M3 3l8 8M11 3l-8 8"
@@ -129,7 +129,7 @@ function XIcon() {
 function renderValue(val: string | boolean) {
   if (val === false) return <XIcon />;
   if (val === true) return <CheckIcon />;
-  return <span className="text-sm text-zinc-300">{val}</span>;
+  return <span className="text-sm text-[var(--foreground)]">{val}</span>;
 }
 
 // ---------------------------------------------------------------------------
@@ -164,8 +164,8 @@ function PlanCard({
     <div
       className={`relative flex flex-col rounded-2xl border p-6 ${
         accent
-          ? 'border-emerald-500/40 bg-emerald-950/20 shadow-[0_0_40px_rgba(16,185,129,0.08)]'
-          : 'border-white/[0.06] bg-white/[0.03]'
+          ? 'border-emerald-500/40 bg-emerald-500/5 shadow-[0_0_40px_rgba(16,185,129,0.08)]'
+          : 'border-[var(--border)] bg-[var(--glass-bg)]'
       }`}
     >
       {badge && (
@@ -177,24 +177,24 @@ function PlanCard({
       )}
 
       <div className="mb-4">
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
           {name}
         </p>
         <div className="mt-2 flex items-end gap-1">
-          <span className="text-4xl font-bold text-white">{price}</span>
+          <span className="text-4xl font-bold text-[var(--foreground)]">{price}</span>
           {price !== 'Free' && (
-            <span className="mb-1 text-sm text-zinc-400">/mo</span>
+            <span className="mb-1 text-sm text-[var(--text-secondary)]">/mo</span>
           )}
         </div>
         {annual && (
-          <p className="mt-1 text-xs text-zinc-500">{annual}</p>
+          <p className="mt-1 text-xs text-[var(--text-secondary)]">{annual}</p>
         )}
-        <p className="mt-3 text-sm text-zinc-400">{description}</p>
+        <p className="mt-3 text-sm text-[var(--text-secondary)]">{description}</p>
       </div>
 
       <ul className="mb-6 flex flex-col gap-2">
         {highlights.map((h) => (
-          <li key={h} className="flex items-start gap-2 text-sm text-zinc-300">
+          <li key={h} className="flex items-start gap-2 text-sm text-[var(--foreground)]">
             <span className="mt-0.5 shrink-0 text-emerald-400">
               <CheckIcon />
             </span>
@@ -209,7 +209,7 @@ function PlanCard({
           className={`block w-full rounded-lg py-2.5 text-center text-sm font-semibold transition-all ${
             accent
               ? 'bg-emerald-500 text-black hover:bg-emerald-400'
-              : 'border border-white/10 text-white hover:border-white/20 hover:bg-white/5'
+              : 'border border-[var(--border)] text-[var(--foreground)] hover:border-[var(--glass-border-accent)] hover:bg-[var(--glass-bg)]'
           }`}
         >
           {ctaLabel}
@@ -295,16 +295,16 @@ export default function PricingPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#050505] pt-28 pb-24 px-4">
+      <main className="min-h-screen bg-[var(--background)] pt-28 pb-24 px-4">
         {/* Header */}
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
             Pricing
           </p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+          <h1 className="mt-3 text-4xl font-bold tracking-tight text-[var(--foreground)] sm:text-5xl">
             Stop renting your edge.
           </h1>
-          <p className="mt-4 text-lg text-zinc-400">
+          <p className="mt-4 text-lg text-[var(--text-secondary)]">
             Start free. Upgrade when you&apos;re ready for real-time signals,
             private groups, and full analytics.
           </p>
@@ -319,7 +319,7 @@ export default function PricingPage() {
 
         {/* Annual callout */}
         <div className="mx-auto mt-6 max-w-5xl">
-          <p className="text-center text-sm text-zinc-500">
+          <p className="text-center text-sm text-[var(--text-secondary)]">
             Save 17% with annual billing &mdash; switch anytime from your
             billing dashboard.
           </p>
@@ -327,23 +327,23 @@ export default function PricingPage() {
 
         {/* Full comparison table */}
         <div className="mx-auto mt-20 max-w-5xl">
-          <h2 className="mb-6 text-xl font-semibold text-white">
+          <h2 className="mb-6 text-xl font-semibold text-[var(--foreground)]">
             Full feature comparison
           </h2>
-          <div className="overflow-x-auto rounded-2xl border border-white/[0.06]">
+          <div className="overflow-x-auto rounded-2xl border border-[var(--border)]">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                  <th className="py-3 pl-6 pr-4 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+                <tr className="border-b border-[var(--border)] bg-[var(--glass-bg)]">
+                  <th className="py-3 pl-6 pr-4 text-left text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                     Feature
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                     Free
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-emerald-400">
                     Pro
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                     Elite
                   </th>
                 </tr>
@@ -352,11 +352,11 @@ export default function PricingPage() {
                 {FEATURES.map((feature, i) => (
                   <tr
                     key={feature.label}
-                    className={`border-b border-white/[0.04] ${
-                      i % 2 === 0 ? '' : 'bg-white/[0.01]'
+                    className={`border-b border-[var(--border)] ${
+                      i % 2 === 0 ? '' : 'bg-[var(--glass-bg)]'
                     }`}
                   >
-                    <td className="py-3 pl-6 pr-4 font-medium text-zinc-300">
+                    <td className="py-3 pl-6 pr-4 font-medium text-[var(--foreground)]">
                       {feature.label}
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -377,7 +377,7 @@ export default function PricingPage() {
 
         {/* FAQ */}
         <div className="mx-auto mt-20 max-w-2xl">
-          <h2 className="mb-6 text-xl font-semibold text-white">FAQ</h2>
+          <h2 className="mb-6 text-xl font-semibold text-[var(--foreground)]">FAQ</h2>
           <div className="flex flex-col gap-4">
             {[
               {
@@ -399,10 +399,10 @@ export default function PricingPage() {
             ].map(({ q, a }) => (
               <div
                 key={q}
-                className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5"
+                className="rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] p-5"
               >
-                <p className="font-medium text-white">{q}</p>
-                <p className="mt-2 text-sm text-zinc-400">{a}</p>
+                <p className="font-medium text-[var(--foreground)]">{q}</p>
+                <p className="mt-2 text-sm text-[var(--text-secondary)]">{a}</p>
               </div>
             ))}
           </div>
@@ -410,7 +410,7 @@ export default function PricingPage() {
 
         {/* CTA */}
         <div className="mx-auto mt-20 max-w-xl text-center">
-          <p className="text-zinc-400">
+          <p className="text-[var(--text-secondary)]">
             Questions?{' '}
             <a
               href="https://t.me/tradeclawwin"

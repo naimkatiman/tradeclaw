@@ -131,7 +131,7 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
   }, [pair]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-[var(--background)]/60 backdrop-blur-sm">
       <div className="glass-card rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col border border-[var(--border)]">
         {/* header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
