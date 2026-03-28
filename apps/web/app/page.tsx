@@ -11,6 +11,7 @@ import { DeploySection } from "../components/landing/deploy-section";
 import { SiteFooter } from "../components/landing/site-footer";
 import { LiveDemoSection } from "../components/landing/live-demo-section";
 import { LiveDemoEmbed } from "../components/landing/live-demo-embed";
+import { LiveHeroSignals } from "../components/landing/live-hero-signals";
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
       <Navbar />
       <main>
         <ABHero />
+        <LiveHeroSignals />
         <div className="flex justify-center pb-4">
           <StarsBadge />
         </div>

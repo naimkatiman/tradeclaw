@@ -976,9 +976,9 @@ next_actions:
 
   - id: TC-087
     title: "Viral tweet thread asset pack — /threads page with 7-tweet breakdown of TradeClaw architecture + copy buttons"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "4 thread templates (architecture/self-hosting/signals/launch), 7 tweets each, copy + tweet buttons. Committed 4c1d2a6f. 2026-03-28"
 
   - id: TC-088
     title: "Landing page above-the-fold score — hero shows LIVE signal data (pair + direction + confidence) fetched from /api/signals on server side for instant wow"
