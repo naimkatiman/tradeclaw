@@ -22,8 +22,7 @@ export async function POST(request: NextRequest) {
   try {
     const result = importServerData(body as ExportPayload, mode);
     return NextResponse.json({ success: true, result });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Import failed';
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: 'Import failed' }, { status: 500 });
   }
 }

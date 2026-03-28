@@ -1,0 +1,46 @@
+{
+  "name": "tradeclaw-js",
+  "version": "0.1.0",
+  "description": "JavaScript/TypeScript SDK for TradeClaw — open-source AI trading signal platform",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "trading",
+    "signals",
+    "forex",
+    "crypto",
+    "technical-analysis",
+    "rsi",
+    "macd",
+    "ema",
+    "bitcoin",
+    "gold",
+    "self-hosted",
+    "open-source"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/naimkatiman/tradeclaw.git",
+    "directory": "packages/tradeclaw-js"
+  },
+  "homepage": "https://tradeclaw.win",
+  "bugs": {
+    "url": "https://github.com/naimkatiman/tradeclaw/issues"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

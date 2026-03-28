@@ -1,17 +1,18 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../lib/signals';
 
 const VALID_SYMBOLS = new Set(SYMBOLS.map(s => s.symbol));
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  try {
+    const { searchParams, origin } = new URL(request.url);
 
-  const rawPair = searchParams.get('pair')?.toUpperCase() ?? 'BTCUSD';
-  const pair = VALID_SYMBOLS.has(rawPair) ? rawPair : 'BTCUSD';
+    const rawPair = searchParams.get('pair')?.toUpperCase() ?? 'BTCUSD';
+    const pair = VALID_SYMBOLS.has(rawPair) ? rawPair : 'BTCUSD';
 
-  // The JS script reads data-* attributes from the script tag itself,
-  // falling back to the URL query param for the pair.
-  const script = `(function(){
+    // The JS script reads data-* attributes from the script tag itself,
+    // falling back to the URL query param for the pair.
+    const script = `(function(){
   var s=document.currentScript;
   var pair=(s&&s.getAttribute('data-pair'))||${JSON.stringify(pair)};
   var theme=(s&&s.getAttribute('data-theme'))||'dark';
@@ -29,11 +30,14 @@ export async function GET(request: NextRequest) {
   else{document.currentScript&&document.currentScript.parentNode&&document.currentScript.parentNode.appendChild(iframe);}
 })();`;
 
-  return new Response(script, {
-    headers: {
-      'Content-Type': 'application/javascript; charset=utf-8',
-      'Cache-Control': 'public, max-age=300, s-maxage=300',
-      'Access-Control-Allow-Origin': '*',
-    },
-  });
+    return new Response(script, {
+      headers: {
+        'Content-Type': 'application/javascript; charset=utf-8',
+        'Cache-Control': 'public, max-age=300, s-maxage=300',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

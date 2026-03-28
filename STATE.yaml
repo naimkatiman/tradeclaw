@@ -958,15 +958,15 @@ next_actions:
 
   - id: TC-084
     title: "Stunning /showcase page — real-world use cases with mock screenshots, testimonials, and 'Deploy yours' CTAs"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "ShowcaseClient.tsx (3 trader use cases, live signal feed, tech stack grid, deploy CTA). Fixed api/v1/route.ts syntax. Committed e70ca419. 2026-03-28"
 
   - id: TC-085
     title: "README overhaul — one hero GIF at top (use demo-signals-animated.svg), tighten to 120 lines, killer first 10 lines"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Rewrote README to 96 clean lines. Hero animated SVG, badge row, 3 quick start options, features table, comparison table, CTA. Committed 0ff96262. 2026-03-28"
 
   - id: TC-086
     title: "/api/v2 SDK — publish tradeclaw-js npm package (fetch signals, leaderboard, health) so devs can npm install tradeclaw"

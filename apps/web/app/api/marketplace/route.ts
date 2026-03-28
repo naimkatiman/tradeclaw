@@ -319,17 +319,21 @@ export const INTEGRATIONS = [
 ];
 
 export async function GET() {
-  return NextResponse.json({
-    integrations: INTEGRATIONS.map(({ id, name, emoji, description, category, categoryColor, tags }) => ({
-      id,
-      name,
-      emoji,
-      description,
-      category,
-      categoryColor,
-      tags,
-    })),
-    total: INTEGRATIONS.length,
-    webhookDispatchUrl: '/api/webhooks/dispatch',
-  });
+  try {
+    return NextResponse.json({
+      integrations: INTEGRATIONS.map(({ id, name, emoji, description, category, categoryColor, tags }) => ({
+        id,
+        name,
+        emoji,
+        description,
+        category,
+        categoryColor,
+        tags,
+      })),
+      total: INTEGRATIONS.length,
+      webhookDispatchUrl: '/api/webhooks/dispatch',
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

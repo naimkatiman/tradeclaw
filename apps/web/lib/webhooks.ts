@@ -179,6 +179,11 @@ export function updateWebhook(
   id: string,
   patch: Partial<Pick<WebhookConfig, 'name' | 'url' | 'secret' | 'enabled' | 'pairs' | 'minConfidence'>>
 ): WebhookConfig | null {
+  if (patch.url !== undefined) {
+    if (!patch.url || patch.url.length > 2048) throw new Error('URL must be between 1 and 2048 characters');
+    if (isUnsafeUrl(patch.url)) throw new Error('URL is not allowed: must be HTTPS and not target internal/private addresses');
+  }
+  if (patch.name !== undefined && patch.name.length > 100) throw new Error('Name must be 100 characters or fewer');
   const webhooks = readWebhooks();
   const wh = webhooks.find((w) => w.id === id);
   if (!wh) return null;
@@ -333,6 +338,10 @@ export async function deliverWebhook(
 ): Promise<{ success: boolean; statusCode: number | null; error: string | null }> {
   if (respectRateLimit && isRateLimited(wh.id)) {
     return { success: false, statusCode: null, error: 'Rate limited (5s cooldown)' };
+  }
+
+  if (isUnsafeUrl(wh.url)) {
+    return { success: false, statusCode: null, error: 'URL is not allowed: must be HTTPS and not target internal/private addresses' };
   }
 
   const delays = [1000, 4000, 16000];
