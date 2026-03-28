@@ -1,0 +1,40 @@
+{
+  "name": "tradeclaw",
+  "version": "0.4.0",
+  "description": "CLI for TradeClaw — fetch live AI trading signals from your terminal",
+  "bin": {
+    "tradeclaw": "./bin/cli.js"
+  },
+  "main": "./lib/index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "picocolors": "^1.0.0"
+  },
+  "keywords": [
+    "trading",
+    "signals",
+    "forex",
+    "crypto",
+    "bitcoin",
+    "algo-trading",
+    "cli",
+    "tradeclaw",
+    "technical-analysis",
+    "rsi",
+    "macd"
+  ],
+  "homepage": "https://tradeclaw.win",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naimkatiman/tradeclaw"
+  },
+  "license": "MIT",
+  "files": [
+    "bin/",
+    "lib/",
+    "README.md"
+  ]
+}

@@ -32,11 +32,19 @@
 
 ## ⚡ Try in 10 Seconds
 
+**Option 1 — CLI (signals in your terminal):**
+```bash
+npx tradeclaw signals
+npx tradeclaw signals --pair BTCUSD --direction BUY
+npx tradeclaw leaderboard --period 7d
+```
+
+**Option 2 — Local demo (browser):**
 ```bash
 npx tradeclaw-demo
 ```
 
-No installation. No config. No Docker. Just one command — spins up a local demo with live signals instantly.
+No installation. No config. No Docker. Fetches live AI signals instantly.
 
 ---
 
