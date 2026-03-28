@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-03-21T20:00:00+08:00
+updated: 2026-03-28T11:55:28+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -614,15 +614,82 @@ tasks:
 
   - id: TC-057
     title: "Video demo script + auto-generated GIF — ffmpeg terminal demo recording embedded in README"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: apps/web/public/demo-terminal.svg (800x480, animated typewriter terminal showing
+      npx tradeclaw signals with BUY/SELL colored rows), apps/web/public/demo-dashboard.svg
+      (900x500, signal cards sliding in with confidence bars, live stats), docs/demo/RECORDING_GUIDE.md.
+      README updated with SVG embeds. Build passes. Committed 3d5fd129. 2026-03-28
 
   - id: TC-058
     title: "Referral star campaign page — /star page with viral loop: share → get notified at 100/500/1000 milestones"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: /star page (StarClient.tsx) — hero with live star counter + progress bar,
+      milestone rewards table (100/250/500/1000 ⭐ feature pledges), share kit (Twitter/LinkedIn/
+      Reddit/Discord pre-written posts with copy+share), email notify (/api/star-notify, dedup JSON),
+      README badge section. Landing page hero got "Star on GitHub" CTA. README "Support the Project"
+      section added. Build passes. Committed e1acdfd1. 2026-03-28
+
+  # ── Phase 12: Sustained Growth + Ecosystem ──
+
+  - id: TC-059-B
+    title: "Real-time global signal heatmap — world map showing which assets are trending BUY/SELL"
     status: pending
     owner: pm-tradeclaw
     notes: ""
 
+  - id: TC-060
+    title: "TradeClaw vs TradingView live comparison — side-by-side signal output for same asset same time"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-061
+    title: "GitHub Discussions seeding — post 10 thoughtful discussion threads to bootstrap community"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-062
+    title: "Landing page A/B hero variants — 3 different hero messages, track which gets more GitHub clicks"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-063
+    title: "npx tradeclaw-demo enhancement — add web UI flag, auto-open browser, show live signal feed"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-059
+    title: "Profitability research — can users make money by following TradeClaw signals?"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: docs/SIGNAL_PROFITABILITY_RESEARCH.md added 2026-03-28. Reviewed FCA, CFTC,
+      SEC/Investor.gov and academic social-trading literature. Conclusion: cannot honestly claim
+      users will make money from following signals. Repo audit found signal-history seed data is
+      simulated and recordSignal() is not yet wired into live signal generation, so there is no
+      audited live follower P&L track record yet.
+
+  - id: TC-060
+    title: "Signal engine quality pass — stricter regime filters, smarter stops, parallel timeframe generation"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: strengthened apps/web/app/lib/signal-generator.ts on 2026-03-28 with market-quality
+      gating (ATR%, Bollinger bandwidth, EMA slope/trend-strength, MACD confirmation), tighter
+      confidence calibration, nearest support/resistance selection, and risk-distance guards to skip
+      weak or cramped setups. Fixed stop-loss selection bug so BUY/SELL stops prefer the closer valid
+      swing/ATR level instead of the farther one. Improved apps/web/app/lib/signals.ts by generating
+      requested timeframes in parallel. Verified with npm run build (passed outside sandbox due
+      Next/Google Fonts fetch requirement).
+
 next_actions:
-  - "TC-053 through TC-056 done. Next: TC-057 demo GIF / TC-058 star campaign page."
+  - "TC-059-B global signal heatmap, TC-060 live comparison page, TC-061 Discussions seeding."
+  - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
+  - "Measure TC-060 impact with audited live signal logging and forward hit-rate / net-PnL tracking."
