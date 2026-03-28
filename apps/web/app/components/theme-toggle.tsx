@@ -54,7 +54,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
         className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${className}`}
         aria-label="Toggle theme"
       >
-        <div className="w-3.5 h-3.5" />
+        <MoonIcon />
       </button>
     );
   }

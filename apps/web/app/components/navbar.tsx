@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { ThemeToggle } from './theme-toggle';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { ThemeToggle } from "./theme-toggle";
 
 const NAV_LINKS = [
-  { href: '#features', label: 'Features' },
-  { href: '#how-it-works', label: 'How it works' },
-  { href: '/compare', label: 'Compare' },
-  { href: '/awesome', label: 'Awesome' },
-  { href: '/contribute', label: 'Contribute 🤝' },
-  { href: '/launch', label: 'Launch 🚀' },
-  { href: '/share', label: 'Share ⭐' },
-  { href: '/stars', label: 'Stars 🌟' },
-  { href: '/hn', label: 'HN 🟠' },
-  { href: '/rss', label: 'RSS 📡' },
-  { href: '/demo', label: 'Demo 🟢' },
-  { href: '/replay', label: 'Replay ▶' },
-  { href: '/dashboard', label: 'Dashboard' },
+  { href: "#features", label: "Features" },
+  { href: "#how-it-works", label: "How it works" },
+  { href: "/compare", label: "Compare" },
+  { href: "/awesome", label: "Awesome" },
+  { href: "/contribute", label: "Contribute 🤝" },
+  { href: "/launch", label: "Launch 🚀" },
+  { href: "/share", label: "Share ⭐" },
+  { href: "/stars", label: "Stars 🌟" },
+  { href: "/hn", label: "HN 🟠" },
+  { href: "/rss", label: "RSS 📡" },
+  { href: "/demo", label: "Demo 🟢" },
+  { href: "/replay", label: "Replay ▶" },
+  { href: "/dashboard", label: "Dashboard" },
 ];
 
 export function Navbar() {
@@ -26,8 +26,8 @@ export function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 24);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
@@ -38,17 +38,30 @@ export function Navbar() {
       >
         <div
           className={`glass-nav rounded-full px-5 py-2.5 flex items-center justify-between gap-6 w-full max-w-4xl transition-all duration-700 ${
-            scrolled ? 'shadow-[0_0_40px_rgba(16,185,129,0.06)]' : ''
+            scrolled ? "shadow-[0_0_40px_rgba(16,185,129,0.06)]" : ""
           }`}
         >
           {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-1.5 shrink-0"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
-              <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-              <path d="M10 2v10M3 7l7 5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+          <Link href="/" className="flex items-center gap-1.5 shrink-0">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              className="text-emerald-400"
+            >
+              <path
+                d="M10 2L3 7v6l7 5 7-5V7L10 2z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M10 2v10M3 7l7 5 7-5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
             </svg>
             <span className="text-sm font-semibold tracking-tight">
               Trade<span className="text-emerald-400">Claw</span>
@@ -98,18 +111,18 @@ export function Navbar() {
               aria-expanded={menuOpen}
             >
               <span
-                className={`block h-px w-4 bg-white transition-all duration-300 origin-center ${
-                  menuOpen ? 'rotate-45 translate-y-[5px]' : ''
+                className={`block h-px w-4 bg-[var(--foreground)] transition-all duration-300 origin-center ${
+                  menuOpen ? "rotate-45 translate-y-[5px]" : ""
                 }`}
               />
               <span
-                className={`block h-px w-4 bg-white transition-all duration-300 ${
-                  menuOpen ? 'opacity-0' : ''
+                className={`block h-px w-4 bg-[var(--foreground)] transition-all duration-300 ${
+                  menuOpen ? "opacity-0" : ""
                 }`}
               />
               <span
-                className={`block h-px w-4 bg-white transition-all duration-300 origin-center ${
-                  menuOpen ? '-rotate-45 -translate-y-[5px]' : ''
+                className={`block h-px w-4 bg-[var(--foreground)] transition-all duration-300 origin-center ${
+                  menuOpen ? "-rotate-45 -translate-y-[5px]" : ""
                 }`}
               />
             </button>
@@ -128,7 +141,10 @@ export function Navbar() {
               key={link.href}
               href={link.href}
               className="text-2xl font-semibold text-white opacity-0 animate-fade-up"
-              style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'forwards' }}
+              style={{
+                animationDelay: `${i * 60}ms`,
+                animationFillMode: "forwards",
+              }}
               onClick={() => setMenuOpen(false)}
             >
               {link.label}

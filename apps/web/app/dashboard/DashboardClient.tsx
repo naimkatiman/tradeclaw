@@ -9,6 +9,7 @@ import { GuidedTourListener, TakeTourButton } from '../../components/guided-tour
 import { StarsWidget } from '../../components/stars-widget';
 import { HintBadge, PageHint } from '../../components/feature-highlights';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
+import { ThemeToggle } from '../components/theme-toggle';
 import type { TradingSignal } from '../lib/signals';
 import type { TFDirection } from '../lib/signal-generator';
 
@@ -46,7 +47,7 @@ function DirectionBadge({ direction }: { direction: 'BUY' | 'SELL' }) {
 function ConfidenceBar({ value }: { value: number }) {
   const color = value >= 80 ? '#10B981' : value >= 65 ? '#F59E0B' : '#EF4444';
   return (
-    <div className="relative h-1 w-full rounded-full bg-white/5">
+    <div className="relative h-1 w-full rounded-full bg-[var(--border)]">
       <div
         className="absolute h-1 rounded-full transition-all duration-700"
         style={{ width: `${value}%`, background: color }}
@@ -98,10 +99,10 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
         <div className="flex items-center gap-3">
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-semibold text-white font-mono tracking-tight">{signal.symbol}</span>
+              <span className="text-sm font-semibold text-[var(--foreground)] font-mono tracking-tight">{signal.symbol}</span>
               {signal.dataQuality === 'real' && <LiveBadge />}
             </div>
-            <div className="text-[11px] text-zinc-600 font-mono mt-0.5">{signal.timeframe} · {new Date(signal.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            <div className="text-[11px] text-[var(--text-secondary)] font-mono mt-0.5">{signal.timeframe} · {new Date(signal.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
             {tfDirections && tfDirections.length > 0 && (
               <div className="flex gap-1 mt-1.5 overflow-x-auto scrollbar-none">
                 {tfDirections.map(tf => <TFBadgeInline key={tf.timeframe} tf={tf} />)}
@@ -114,7 +115,7 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
           <button
             onClick={handleShare}
             title="Copy signal link"
-            className="flex items-center justify-center min-w-[44px] min-h-[44px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-all duration-200"
+            className="flex items-center justify-center min-w-[44px] min-h-[44px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)] transition-all duration-200"
           >
             {shareCopied ? (
               <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
@@ -134,7 +135,7 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
               signal.confidence >= 80 ? 'text-emerald-400' : signal.confidence >= 65 ? 'text-yellow-400' : 'text-red-400'
             }`}>{signal.confidence}%</div>
             <div className="flex items-center justify-end gap-1 mt-0.5">
-              <div className="text-[10px] text-zinc-600">confidence</div>
+              <div className="text-[10px] text-[var(--text-secondary)]">confidence</div>
               <HintBadge label="Signal confidence (0–100%). ≥80% = high conviction. Combines RSI, MACD, EMA, Stochastic, and BB signals." />
             </div>
           </div>
@@ -147,14 +148,14 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
       {/* Price levels */}
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 mt-4 text-center">
         {[
-          { label: 'Entry', value: signal.entry, color: 'text-white' },
+          { label: 'Entry', value: signal.entry, color: 'text-[var(--foreground)]' },
           { label: 'SL', value: signal.stopLoss, color: 'text-red-400' },
           { label: 'TP1', value: signal.takeProfit1, color: 'text-emerald-400' },
           { label: 'TP2', value: signal.takeProfit2, color: 'text-emerald-400' },
           { label: 'TP3', value: signal.takeProfit3, color: 'text-emerald-400' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="bg-white/[0.02] rounded-lg py-1.5 px-1">
-            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">{label}</div>
+          <div key={label} className="bg-[var(--glass-bg)] rounded-lg py-1.5 px-1">
+            <div className="text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">{label}</div>
             <div className={`text-[10px] font-mono font-semibold tabular-nums ${color}`}>{formatPrice(value)}</div>
           </div>
         ))}
@@ -172,39 +173,39 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
           const isBear = sig === 'bearish' || sig === 'overbought' || sig === 'down';
           return (
             <div key={label} className="flex items-center gap-1 text-[10px] font-mono">
-              <span className="text-zinc-600">{label}</span>
-              <span className={isBull ? 'text-emerald-400' : isBear ? 'text-red-400' : 'text-zinc-400'}>{value}</span>
+              <span className="text-[var(--text-secondary)]">{label}</span>
+              <span className={isBull ? 'text-emerald-400' : isBear ? 'text-red-400' : 'text-[var(--text-secondary)]'}>{value}</span>
             </div>
           );
         })}
         <div className="flex items-center gap-1 text-[10px] font-mono ml-auto">
-          <span className="text-zinc-700">{expanded ? '▴' : '▾'} details</span>
+          <span className="text-[var(--text-secondary)]">{expanded ? '▴' : '▾'} details</span>
         </div>
       </div>
 
       {/* Expanded details */}
       {expanded && (
-        <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-2 gap-4 text-xs">
+        <div className="mt-4 pt-4 border-t border-[var(--border)] grid grid-cols-2 gap-4 text-xs">
           <div>
-            <div className="text-zinc-600 mb-2 uppercase text-[10px] tracking-wider">EMA Stack</div>
+            <div className="text-[var(--text-secondary)] mb-2 uppercase text-[10px] tracking-wider">EMA Stack</div>
             <div className="space-y-1 font-mono">
-              <div className="flex justify-between"><span className="text-zinc-600">EMA20</span><span className="text-zinc-300">{formatPrice(signal.indicators.ema.ema20)}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-600">EMA50</span><span className="text-zinc-300">{formatPrice(signal.indicators.ema.ema50)}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-600">EMA200</span><span className="text-zinc-300">{formatPrice(signal.indicators.ema.ema200)}</span></div>
+              <div className="flex justify-between"><span className="text-[var(--text-secondary)]">EMA20</span><span className="text-[var(--foreground)]">{formatPrice(signal.indicators.ema.ema20)}</span></div>
+              <div className="flex justify-between"><span className="text-[var(--text-secondary)]">EMA50</span><span className="text-[var(--foreground)]">{formatPrice(signal.indicators.ema.ema50)}</span></div>
+              <div className="flex justify-between"><span className="text-[var(--text-secondary)]">EMA200</span><span className="text-[var(--foreground)]">{formatPrice(signal.indicators.ema.ema200)}</span></div>
             </div>
           </div>
           <div>
-            <div className="text-zinc-600 mb-2 uppercase text-[10px] tracking-wider">S/R Levels</div>
+            <div className="text-[var(--text-secondary)] mb-2 uppercase text-[10px] tracking-wider">S/R Levels</div>
             <div className="space-y-1 font-mono">
               {signal.indicators.support.map((s, i) => (
-                <div key={i} className="flex justify-between"><span className="text-zinc-600">S{i + 1}</span><span className="text-emerald-400">{formatPrice(s)}</span></div>
+                <div key={i} className="flex justify-between"><span className="text-[var(--text-secondary)]">S{i + 1}</span><span className="text-emerald-400">{formatPrice(s)}</span></div>
               ))}
               {signal.indicators.resistance.map((r, i) => (
-                <div key={i} className="flex justify-between"><span className="text-zinc-600">R{i + 1}</span><span className="text-red-400">{formatPrice(r)}</span></div>
+                <div key={i} className="flex justify-between"><span className="text-[var(--text-secondary)]">R{i + 1}</span><span className="text-red-400">{formatPrice(r)}</span></div>
               ))}
             </div>
           </div>
-          <div className="col-span-2 flex items-center justify-between text-[10px] font-mono text-zinc-700 pt-2 border-t border-white/5">
+          <div className="col-span-2 flex items-center justify-between text-[10px] font-mono text-[var(--text-secondary)] pt-2 border-t border-[var(--border)]">
             <span>{signal.id}</span>
             <span>BB Width: {signal.indicators.bollingerBands.bandwidth}%</span>
           </div>
@@ -214,11 +215,11 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
   );
 }
 
-function StatCard({ value, label, color = 'text-white' }: { value: string; label: string; color?: string }) {
+function StatCard({ value, label, color = 'text-[var(--foreground)]' }: { value: string; label: string; color?: string }) {
   return (
     <div className="glass-card rounded-2xl p-4 text-center">
       <div className={`text-2xl font-bold font-mono tabular-nums tracking-tight ${color}`}>{value}</div>
-      <div className="text-[11px] text-zinc-600 uppercase tracking-wider mt-1">{label}</div>
+      <div className="text-[11px] text-[var(--text-secondary)] uppercase tracking-wider mt-1">{label}</div>
     </div>
   );
 }
@@ -289,13 +290,13 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
     ? Math.round(signals.reduce((sum, s) => sum + s.confidence, 0) / signals.length)
     : 0;
   const bias = buyCount > sellCount ? 'BULL' : buyCount < sellCount ? 'BEAR' : 'NEUTRAL';
-  const biasColor = bias === 'BULL' ? 'text-emerald-400' : bias === 'BEAR' ? 'text-red-400' : 'text-zinc-400';
+  const biasColor = bias === 'BULL' ? 'text-emerald-400' : bias === 'BEAR' ? 'text-red-400' : 'text-[var(--text-secondary)]';
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] text-white">
+    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
       <GuidedTourListener />
       {/* Top nav */}
-      <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#050505]/90 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
@@ -315,7 +316,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                   page.href === '/dashboard'
                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
                 }`}
               >
                 {page.label}
@@ -326,20 +327,21 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           <div className="flex items-center gap-3">
             <StarsWidget />
             <TakeTourButton />
+            <ThemeToggle className="text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]" />
             <ConnectionStatus state={connectionState} />
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
               className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all duration-200 ${
                 autoRefresh
                   ? 'border-emerald-500/25 text-emerald-400 bg-emerald-500/8'
-                  : 'border-white/8 text-zinc-600'
+                  : 'border-[var(--border)] text-[var(--text-secondary)]'
               }`}
             >
-              <span className={`h-1.5 w-1.5 rounded-full ${autoRefresh ? 'bg-emerald-400 pulse-dot' : 'bg-zinc-600'}`} />
+              <span className={`h-1.5 w-1.5 rounded-full ${autoRefresh ? 'bg-emerald-400 pulse-dot' : 'bg-[var(--text-secondary)]'}`} />
               {autoRefresh ? 'Auto' : 'Paused'}
             </button>
             {lastUpdate && (
-              <span className="hidden sm:block text-xs text-zinc-700 font-mono">
+              <span className="hidden sm:block text-xs text-[var(--text-secondary)] font-mono">
                 {lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </span>
             )}
@@ -368,7 +370,6 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           <StatCard
             value={`${buyCount} / ${sellCount}`}
             label="Buy / Sell"
-            color="text-white"
           />
           <StatCard value={`${avgConfidence}%`} label="Avg confidence" />
           <StatCard value={bias} label="Market bias" color={biasColor} />
@@ -376,7 +377,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
 
         {/* Filters */}
         <div className="flex gap-3 mb-6 overflow-x-auto pb-1 scrollbar-none">
-          <div className="flex gap-0.5 bg-white/[0.03] border border-white/5 rounded-xl p-1 shrink-0">
+          <div className="flex gap-0.5 bg-[var(--glass-bg)] border border-[var(--border)] rounded-xl p-1 shrink-0">
             {TIMEFRAMES.map(tf => (
               <button
                 key={tf}
@@ -384,14 +385,14 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                 className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 ${
                   timeframe === tf
                     ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
-                    : 'text-zinc-600 hover:text-zinc-300'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                 }`}
               >
                 {tf}
               </button>
             ))}
           </div>
-          <div className="flex gap-0.5 bg-white/[0.03] border border-white/5 rounded-xl p-1 shrink-0">
+          <div className="flex gap-0.5 bg-[var(--glass-bg)] border border-[var(--border)] rounded-xl p-1 shrink-0">
             {(['ALL', 'BUY', 'SELL'] as const).map(d => (
               <button
                 key={d}
@@ -400,8 +401,8 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                   direction === d
                     ? d === 'BUY' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
                     : d === 'SELL' ? 'bg-red-500/15 text-red-400 border border-red-500/20'
-                    : 'bg-white/5 text-white border border-white/10'
-                    : 'text-zinc-600 hover:text-zinc-300'
+                    : 'bg-[var(--glass-bg)] text-[var(--foreground)] border border-[var(--border)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                 }`}
               >
                 {d}
@@ -410,7 +411,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           </div>
           <button
             onClick={fetchSignals}
-            className="px-4 py-1.5 rounded-xl text-xs border border-white/8 text-zinc-500 hover:text-zinc-300 hover:border-white/15 transition-all duration-200 font-mono shrink-0"
+            className="px-4 py-1.5 rounded-xl text-xs border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:border-[var(--glass-border-accent)] transition-all duration-200 font-mono shrink-0"
           >
             Refresh
           </button>
@@ -421,11 +422,11 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="glass-card rounded-2xl p-5 animate-pulse">
-                <div className="h-4 bg-white/5 rounded mb-4 w-1/2" />
-                <div className="h-1 bg-white/5 rounded mb-4" />
+                <div className="h-4 bg-[var(--border)] rounded mb-4 w-1/2" />
+                <div className="h-1 bg-[var(--border)] rounded mb-4" />
                 <div className="grid grid-cols-5 gap-1.5 mb-3">
                   {Array.from({ length: 5 }).map((_, j) => (
-                    <div key={j} className="h-10 bg-white/5 rounded-lg" />
+                    <div key={j} className="h-10 bg-[var(--border)] rounded-lg" />
                   ))}
                 </div>
               </div>
@@ -433,7 +434,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           </div>
         ) : signals.length === 0 ? (
           <div className="text-center py-24">
-            <div className="text-zinc-700 text-sm">No signals match the current filters</div>
+            <div className="text-[var(--text-secondary)] text-sm">No signals match the current filters</div>
             <button onClick={fetchSignals} className="mt-4 text-xs text-emerald-500 hover:text-emerald-400 transition-colors">
               Refresh signals
             </button>
@@ -448,8 +449,8 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
 
         {/* Footer */}
         <footer className="mt-16 pb-8 text-center">
-          <p className="text-xs text-zinc-800 font-mono">TradeClaw Signal Scanner · Open Source · Self-Hosted</p>
-          <p className="text-xs text-zinc-800 mt-1">Signal analysis is for educational purposes only. Not financial advice.</p>
+          <p className="text-xs text-[var(--text-secondary)] font-mono opacity-40">TradeClaw Signal Scanner · Open Source · Self-Hosted</p>
+          <p className="text-xs text-[var(--text-secondary)] opacity-40 mt-1">Signal analysis is for educational purposes only. Not financial advice.</p>
         </footer>
       </div>
       {/* Signal toasts */}
