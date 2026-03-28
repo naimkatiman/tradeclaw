@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readHistory, computeLeaderboard } from "../../../../lib/signal-history";
+import { readHistory, computeLeaderboard, resolveRealOutcomes } from "../../../../lib/signal-history";
 
 export const runtime = "nodejs";
 
@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
   const sortParam = searchParams.get("sort") ?? "hitRate";
 
   try {
+    await resolveRealOutcomes();
     const history = readHistory();
     const data = computeLeaderboard(history, period);
     const assets = data.assets ?? [];

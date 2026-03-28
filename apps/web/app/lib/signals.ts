@@ -249,7 +249,14 @@ async function generateRealSignals(
     // Calculate indicators and generate signals (generateSignalsFromTA returns [] for synthetic)
     const indicators = calculateAllIndicators(data.candles);
     const signalSource = data.source === 'synthetic' ? 'synthetic' : 'real';
-    const realSignals = generateSignalsFromTA(sym.symbol, indicators, timeframe, signalSource);
+    const signalTimestamp = data.candles[data.candles.length - 1]?.timestamp ?? Date.now();
+    const realSignals = generateSignalsFromTA(
+      sym.symbol,
+      indicators,
+      timeframe,
+      signalSource,
+      signalTimestamp,
+    );
 
     for (const sig of realSignals) {
       sig.source = 'real';
@@ -258,7 +265,6 @@ async function generateRealSignals(
 
     signals.push(...realSignals);
   }
-
   return { signals, syntheticSymbols };
 }
 

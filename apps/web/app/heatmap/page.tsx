@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
-import HeatmapClient from './HeatmapClient';
+import { HeatmapClient } from './HeatmapClient';
 
 export const metadata: Metadata = {
-  title: 'Global Signal Heatmap — Live Trading Signals | TradeClaw',
+  title: 'Signal Heatmap — Live BUY/SELL Visualization | TradeClaw',
   description:
-    'Real-time treemap visualization of AI-generated trading signals across crypto, forex, commodities and indices. See market sentiment at a glance.',
+    'Real-time global signal heatmap across 10 major trading pairs. See BUY/SELL signals, confidence levels, RSI and MACD at a glance.',
   openGraph: {
-    title: 'Global Signal Heatmap — Live Trading Signals',
+    title: 'Signal Heatmap — Live BUY/SELL Visualization',
     description:
-      'Bloomberg-style heatmap of AI trading signals across 20 global assets. BUY/SELL confidence, RSI, MACD — all in one view.',
+      'Real-time BUY/SELL signal heatmap across crypto, forex, and commodities. Confidence bars, RSI, MACD — all in one view.',
   },
 };
 

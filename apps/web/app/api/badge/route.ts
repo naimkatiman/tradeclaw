@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSignals, SYMBOLS } from '../../lib/signals';
+import { SYMBOLS } from '../../lib/signals';
 import { generateBadgeSvg, BADGE_SHORT_NAMES, type BadgeDirection } from '../../lib/badge';
+import { getTrackedSignals } from '../../../lib/tracked-signals';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
 
   if (symbolConfig) {
     try {
-      const { signals } = await getSignals({ symbol: pair, timeframe: tf });
+      const { signals } = await getTrackedSignals({ symbol: pair, timeframe: tf });
       const signal = signals[0];
       if (signal) {
         direction = signal.direction as BadgeDirection;

@@ -58,9 +58,14 @@ const MAX_RISK_ATR = 2.5;
 
 let signalCounter = 0;
 
-function generateSignalId(): string {
+function generateSignalId(
+  symbol: string,
+  timeframe: string,
+  direction: 'BUY' | 'SELL',
+  signalTimestamp: number,
+): string {
   signalCounter++;
-  return `SIG-${Date.now().toString(36).toUpperCase()}-${signalCounter.toString(36).toUpperCase().padStart(4, '0')}`;
+  return `SIG-${symbol}-${timeframe}-${direction}-${signalTimestamp.toString(36).toUpperCase()}`;
 }
 
 interface ScoreResult {
@@ -438,6 +443,7 @@ export function generateSignalsFromTA(
   indicators: AllIndicators,
   timeframe: string,
   source: 'real' | 'synthetic' = 'real',
+  signalTimestamp: number = Date.now(),
 ): TradingSignal[] {
   // Suppress signals on synthetic data
   if (source === 'synthetic') return [];
@@ -456,6 +462,7 @@ export function generateSignalsFromTA(
   const swingLevels = findSwingLevels(indicators.highs, indicators.lows);
   const atr = calculateATR(indicators);
   const marketQuality = analyzeMarketQuality(indicators, currentPrice, atr);
+  const publishedAt = new Date(signalTimestamp).toISOString();
 
   // Generate BUY signal
   const buyingCategoryCount = [buyCategories.momentum, buyCategories.trend, buyCategories.volatility]
@@ -484,7 +491,7 @@ export function generateSignalsFromTA(
     }
 
     signals.push({
-      id: generateSignalId(),
+      id: generateSignalId(symbol, timeframe, 'BUY', signalTimestamp),
       symbol,
       direction: 'BUY',
       confidence,
@@ -495,7 +502,7 @@ export function generateSignalsFromTA(
       takeProfit3: +(entry + riskDistance * 3.5).toFixed(5),
       indicators: indicatorSummary,
       timeframe,
-      timestamp: new Date().toISOString(),
+      timestamp: publishedAt,
       status: 'active',
       dataQuality: 'real',
     });
@@ -528,7 +535,7 @@ export function generateSignalsFromTA(
     }
 
     signals.push({
-      id: generateSignalId(),
+      id: generateSignalId(symbol, timeframe, 'SELL', signalTimestamp),
       symbol,
       direction: 'SELL',
       confidence,
@@ -539,7 +546,7 @@ export function generateSignalsFromTA(
       takeProfit3: +(entry - riskDistance * 3.5).toFixed(5),
       indicators: indicatorSummary,
       timeframe,
-      timestamp: new Date().toISOString(),
+      timestamp: publishedAt,
       status: 'active',
       dataQuality: 'real',
     });

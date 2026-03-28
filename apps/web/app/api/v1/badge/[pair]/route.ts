@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSignals } from "../../../../lib/signals";
+import { getTrackedSignals } from "../../../../../lib/tracked-signals";
 
 export const runtime = "nodejs";
 
@@ -11,7 +11,7 @@ export async function GET(
   const pairUpper = pair.toUpperCase();
 
   try {
-    const { signals } = await getSignals({});
+    const { signals } = await getTrackedSignals({});
     const signal = signals.find(
       (s) =>
         s.symbol === pairUpper ||

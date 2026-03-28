@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSignals, SYMBOLS } from '../../lib/signals';
+import { SYMBOLS } from '../../lib/signals';
+import { getTrackedSignals } from '../../../lib/tracked-signals';
 
 // Re-export types for consumers that imported from here
 export type { TradingSignal, IndicatorSummary } from '../../lib/signals';
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { signals, syntheticSymbols } = await getSignals({
+  const { signals, syntheticSymbols } = await getTrackedSignals({
     symbol: symbolFilter || undefined,
     timeframe: timeframeFilter || undefined,
     direction: directionFilter || undefined,

@@ -5,7 +5,7 @@ import {
   removeSubscriber,
   getSubscriber,
 } from '../../../../lib/telegram-subscribers';
-import { getSignals } from '../../../lib/signals';
+import { getTrackedSignals } from '../../../../lib/tracked-signals';
 
 const TELEGRAM_API = 'https://api.telegram.org';
 
@@ -136,7 +136,7 @@ async function handleUnsubscribe(chatId: number): Promise<void> {
 }
 
 async function handleSignals(chatId: number): Promise<void> {
-  const { signals } = await getSignals({ minConfidence: 70 });
+  const { signals } = await getTrackedSignals({ minConfidence: 70 });
   const top = signals.slice(0, 5);
 
   if (top.length === 0) {

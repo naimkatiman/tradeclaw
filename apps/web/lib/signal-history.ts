@@ -26,6 +26,18 @@ export interface SignalHistoryRecord {
   };
 }
 
+export interface TrackedSignalInput {
+  id: string;
+  symbol: string;
+  timeframe: string;
+  direction: 'BUY' | 'SELL';
+  confidence: number;
+  entry: number;
+  timestamp: string;
+  takeProfit1?: number;
+  stopLoss?: number;
+}
+
 export interface AssetStats {
   pair: string;
   totalSignals: number;
@@ -102,6 +114,7 @@ export function recordSignal(
   id?: string,
   tp1?: number,
   sl?: number,
+  timestamp?: number,
 ): void {
   const records = readHistory();
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
@@ -115,7 +128,7 @@ export function recordSignal(
     direction,
     confidence,
     entryPrice,
-    timestamp: Date.now(),
+    timestamp: timestamp ?? Date.now(),
     tp1,
     sl,
     isSimulated: false,
@@ -127,6 +140,44 @@ export function recordSignal(
 
   resolveOutcomesLazy(records);
   writeHistory(records);
+}
+
+export function recordSignals(signals: TrackedSignalInput[]): number {
+  if (signals.length === 0) return 0;
+
+  const records = readHistory();
+  const existingIds = new Set(records.map(r => r.id));
+  let inserted = 0;
+
+  for (const signal of signals) {
+    if (!signal.id || existingIds.has(signal.id)) continue;
+
+    const parsedTimestamp = Date.parse(signal.timestamp);
+    const timestamp = Number.isFinite(parsedTimestamp) ? parsedTimestamp : Date.now();
+
+    records.unshift({
+      id: signal.id,
+      pair: signal.symbol,
+      timeframe: signal.timeframe,
+      direction: signal.direction,
+      confidence: signal.confidence,
+      entryPrice: signal.entry,
+      timestamp,
+      tp1: signal.takeProfit1,
+      sl: signal.stopLoss,
+      isSimulated: false,
+      outcomes: { '4h': null, '24h': null },
+    });
+    existingIds.add(signal.id);
+    inserted++;
+  }
+
+  if (inserted === 0) return 0;
+
+  if (records.length > MAX_RECORDS) records.splice(MAX_RECORDS);
+  resolveOutcomesLazy(records);
+  writeHistory(records);
+  return inserted;
 }
 
 function resolveOutcomesLazy(records: SignalHistoryRecord[]): void {

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSignals, SYMBOLS } from '../../../lib/signals';
+import { SYMBOLS } from '../../../lib/signals';
 import { generateBadgeSvg, BADGE_SHORT_NAMES, type BadgeDirection } from '../../../lib/badge';
 import { getBadgeCache, setBadgeCache } from '../../../../lib/badge-cache';
+import { getTrackedSignals } from '../../../../lib/tracked-signals';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,7 @@ export async function GET(
 
   if (!cached && symbolConfig) {
     try {
-      const { signals } = await getSignals({ symbol: pair, timeframe: tf });
+      const { signals } = await getTrackedSignals({ symbol: pair, timeframe: tf });
       const signal = signals[0];
       if (signal) {
         cached = {

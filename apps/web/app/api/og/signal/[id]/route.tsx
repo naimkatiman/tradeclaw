@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { getSignals } from '../../../../lib/signals';
+import { getTrackedSignals } from '../../../../../lib/tracked-signals';
 
 export async function GET(
   _request: Request,
@@ -29,7 +29,7 @@ export async function GET(
   let timestamp = new Date().toISOString();
 
   try {
-    const { signals } = await getSignals({ symbol, timeframe, direction });
+    const { signals } = await getTrackedSignals({ symbol, timeframe, direction });
     if (signals.length > 0) {
       const sig = signals[0];
       entry = sig.entry;

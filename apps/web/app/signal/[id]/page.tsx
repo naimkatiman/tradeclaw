@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { getSignals } from '../../lib/signals';
+import { getTrackedSignals } from '../../../lib/tracked-signals';
 import { SignalShareButtons } from '../../components/signal-share-buttons';
 import { EmbedButton } from '../../components/embed-button';
 import { AIAnalysisPanel } from '../../components/ai-analysis-panel';
@@ -58,7 +58,7 @@ export default async function SignalPage(
 
   if (direction !== 'BUY' && direction !== 'SELL') notFound();
 
-  const { signals } = await getSignals({ symbol, timeframe, direction });
+  const { signals } = await getTrackedSignals({ symbol, timeframe, direction });
   if (signals.length === 0) notFound();
 
   const signal = signals[0];

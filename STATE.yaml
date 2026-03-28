@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-03-28T11:55:28+08:00
+updated: 2026-03-28T13:02:53+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -689,7 +689,20 @@ tasks:
       requested timeframes in parallel. Verified with npm run build (passed outside sandbox due
       Next/Google Fonts fetch requirement).
 
+  - id: TC-061
+    title: "Audited live signal tracking — persist emitted real signals and refresh leaderboard outcomes automatically"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: added apps/web/lib/tracked-signals.ts on 2026-03-28 as a server-only wrapper around
+      getSignals() that records emitted live signals into apps/web/lib/signal-history.ts using stable
+      candle-timestamp-based IDs. Updated dashboard and key API/OG/badge/screener/telegram/signal
+      routes to use tracked signal retrieval so real records are persisted once and deduplicated.
+      Leaderboard APIs now call resolveRealOutcomes() before computing stats, so accuracy pages and
+      performance summaries refresh without depending on /api/signals/history. npm run build passes.
+
 next_actions:
   - "TC-059-B global signal heatmap, TC-060 live comparison page, TC-061 Discussions seeding."
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
   - "Measure TC-060 impact with audited live signal logging and forward hit-rate / net-PnL tracking."
+  - "Replace seed-heavy accuracy UX with live-only metrics once enough TC-061 records accumulate."

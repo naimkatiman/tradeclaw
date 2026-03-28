@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSignals } from "../../../lib/signals";
+import { getTrackedSignals } from "../../../../lib/tracked-signals";
 
 export const runtime = "nodejs";
 
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "20", 10), 100);
 
   try {
-    const { signals: allSignals } = await getSignals({});
+    const { signals: allSignals } = await getTrackedSignals({});
     let filtered = allSignals;
 
     if (pair) {

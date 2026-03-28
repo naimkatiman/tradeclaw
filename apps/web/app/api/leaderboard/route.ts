@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readHistory, computeLeaderboard } from '../../../lib/signal-history';
+import { readHistory, computeLeaderboard, resolveRealOutcomes } from '../../../lib/signal-history';
 
 export async function GET(request: NextRequest) {
+  await resolveRealOutcomes();
   const { searchParams } = new URL(request.url);
 
   const rawPeriod = searchParams.get('period') ?? '30d';
