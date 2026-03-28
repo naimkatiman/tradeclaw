@@ -120,12 +120,13 @@ function fmtPrice(n: number): string {
 function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void }) {
   const [data, setData] = useState<PairDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchedAt, setFetchedAt] = useState(0);
 
   useEffect(() => {
-    setLoading(true);
+    setTimeout(() => setLoading(true), 0);
     fetch(`/api/leaderboard?pair=${pair}`)
       .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
+      .then(d => { setData(d); setFetchedAt(Date.now()); setLoading(false); })
       .catch(() => setLoading(false));
   }, [pair]);
 
@@ -202,7 +203,7 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
                             : <span className="text-red-400">{r.outcomes['24h'].pnlPct}%</span>}
                         </td>
                         <td className="px-3 py-2 text-right text-[10px] font-mono text-zinc-700">
-                          {fmtAge(Date.now() - r.timestamp)}
+                          {fmtAge(fetchedAt - r.timestamp)}
                         </td>
                       </tr>
                     ))}
@@ -250,7 +251,7 @@ export default function LeaderboardClient() {
       .catch(() => setLoading(false));
   }, [period, sortBy]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { setTimeout(() => fetchData(), 0); }, [fetchData]);
 
   function handleSort(key: SortKey) {
     if (sortBy === key) {

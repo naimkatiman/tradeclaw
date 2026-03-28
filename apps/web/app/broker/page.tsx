@@ -130,15 +130,17 @@ export default function BrokerPage() {
   });
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed: BrokerConfig[] = JSON.parse(raw);
-        setBrokers(parsed);
-        const active = parsed.find(b => b.connected);
-        if (active) setActiveBrokerId(active.id);
-      }
-    } catch { /* ignore */ }
+    setTimeout(() => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed: BrokerConfig[] = JSON.parse(raw);
+          setBrokers(parsed);
+          const active = parsed.find(b => b.connected);
+          if (active) setActiveBrokerId(active.id);
+        }
+      } catch { /* ignore */ }
+    }, 0);
   }, []);
 
   const save = (updated: BrokerConfig[]) => {
@@ -161,7 +163,7 @@ export default function BrokerPage() {
   useEffect(() => {
     if (!activeBrokerId) return;
     const broker = brokers.find(b => b.id === activeBrokerId);
-    if (broker?.connected) loadAccountData(broker);
+    if (broker?.connected) setTimeout(() => loadAccountData(broker!), 0);
   }, [activeBrokerId, brokers, loadAccountData]);
 
   const handleConnect = () => {

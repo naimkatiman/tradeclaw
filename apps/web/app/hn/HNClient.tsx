@@ -207,12 +207,14 @@ export function HNClient() {
 
   // Persist checklist to localStorage
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setChecked(JSON.parse(stored) as Record<string, boolean>);
-    } catch {
-      // ignore
-    }
+    setTimeout(() => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) setChecked(JSON.parse(stored) as Record<string, boolean>);
+      } catch {
+        // ignore
+      }
+    }, 0);
   }, []);
 
   const toggleCheck = (id: string) => {
@@ -271,7 +273,7 @@ export function HNClient() {
             Show HN Title — pick one
           </h2>
           <p className="text-sm text-[var(--text-secondary)]">
-            Titles must start with "Show HN:". Keep it under 80 characters. Be specific about the key differentiator (self-hosted, MIT, open-source).
+            Titles must start with &ldquo;Show HN:&rdquo;. Keep it under 80 characters. Be specific about the key differentiator (self-hosted, MIT, open-source).
           </p>
 
           <div className="space-y-3">
@@ -302,7 +304,7 @@ export function HNClient() {
             Show HN Body Text
           </h2>
           <p className="text-sm text-[var(--text-secondary)]">
-            Paste this into the "text" field when submitting. ~300 words. Cover what it is, why you built it, what&apos;s different, and what feedback you want.
+            Paste this into the &ldquo;text&rdquo; field when submitting. ~300 words. Cover what it is, why you built it, what&apos;s different, and what feedback you want.
           </p>
 
           <div className="glass-card rounded-xl overflow-hidden">

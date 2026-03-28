@@ -80,8 +80,10 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
 
   useEffect(() => {
     if (externalOpen) {
-      setStep(0);
-      setActive(true);
+      setTimeout(() => {
+        setStep(0);
+        setActive(true);
+      }, 0);
     }
   }, [externalOpen]);
 

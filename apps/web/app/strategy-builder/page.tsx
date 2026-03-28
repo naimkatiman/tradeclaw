@@ -217,14 +217,14 @@ export default function StrategyBuilderPage() {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [savedStrategies, setSavedStrategies] = useState<Strategy[]>([]);
 
-  useEffect(() => { loadSavedStrategies(); }, []);
-
   const loadSavedStrategies = () => {
     try {
       const stored = JSON.parse(localStorage.getItem('tc-strategies') || '[]') as Strategy[];
       setSavedStrategies(stored.slice(0, 20));
     } catch { /* ignore */ }
   };
+
+  useEffect(() => { setTimeout(() => loadSavedStrategies(), 0); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const validate = useCallback(() => {
     const errors = validateStrategy(strategy);

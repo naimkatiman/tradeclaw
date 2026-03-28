@@ -239,12 +239,14 @@ function FilterPill<T extends string>({
 
 // ─── Skeleton Row ─────────────────────────────────────────────
 
+const SKELETON_WIDTHS = Array.from({ length: 8 }, () => Math.floor(40 + Math.random() * 40));
+
 function SkeletonRow() {
   return (
     <tr className="border-b border-white/[0.03]">
-      {Array.from({ length: 8 }).map((_, i) => (
+      {SKELETON_WIDTHS.map((w, i) => (
         <td key={i} className="px-4 py-3">
-          <div className="h-4 bg-white/5 rounded animate-pulse" style={{ width: `${40 + Math.random() * 40}%` }} />
+          <div className="h-4 bg-white/5 rounded animate-pulse" style={{ width: `${w}%` }} />
         </td>
       ))}
     </tr>

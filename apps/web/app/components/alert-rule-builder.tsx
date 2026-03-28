@@ -80,11 +80,13 @@ export function AlertRuleBuilder() {
   const cooldownRef = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setRules(JSON.parse(stored));
-    } catch { /* ignore */ }
-    requestNotificationPermission();
+    setTimeout(() => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) setRules(JSON.parse(stored));
+      } catch { /* ignore */ }
+      requestNotificationPermission();
+    }, 0);
   }, []);
 
   const persist = (updated: AlertRule[]) => {

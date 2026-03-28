@@ -9,9 +9,11 @@ export function DemoBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem(DISMISSED_KEY)) {
-      setVisible(true);
-    }
+    setTimeout(() => {
+      if (!localStorage.getItem(DISMISSED_KEY)) {
+        setVisible(true);
+      }
+    }, 0);
   }, []);
 
   if (!visible) return null;

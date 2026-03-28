@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Footprints, Heart } from 'lucide-react';
 
 export function Footer() {
@@ -5,10 +6,10 @@ export function Footer() {
     <footer className="border-t border-white/5 bg-[#0d1117] px-6 py-12">
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center sm:flex-row sm:justify-between sm:text-left">
         <div>
-          <a href="/" className="inline-flex items-center gap-1.5 text-lg font-bold">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-lg font-bold">
             <Footprints className="h-5 w-5 text-emerald-400" /> Trade
             <span className="text-emerald-400">Claw</span>
-          </a>
+          </Link>
           <p className="mt-1 text-sm text-zinc-500">
             Open-source AI trading signals. Free forever.
           </p>

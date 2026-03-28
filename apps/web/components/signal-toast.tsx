@@ -99,24 +99,23 @@ export function SignalToast() {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const seenIds = useRef<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (signals.length === 0) return;
-    const latest = signals[0];
-    if (seenIds.current.has(latest.id)) return;
-    seenIds.current.add(latest.id);
-
-    setToasts(prev => [{ ...latest, dismissing: false }, ...prev].slice(0, MAX_TOASTS));
-
-    const timer = setTimeout(() => dismiss(latest.id), AUTO_DISMISS_MS);
-    return () => clearTimeout(timer);
-  }, [signals]); // eslint-disable-line react-hooks/exhaustive-deps
-
   function dismiss(id: string) {
     setToasts(prev => prev.map(t => t.id === id ? { ...t, dismissing: true } : t));
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 300);
   }
+
+  useEffect(() => {
+    if (signals.length === 0) return;
+    const latest = signals[0];
+    if (seenIds.current.has(latest.id)) return;
+    seenIds.current.add(latest.id);
+
+    const t0 = setTimeout(() => setToasts(prev => [{ ...latest, dismissing: false }, ...prev].slice(0, MAX_TOASTS)), 0);
+    const timer = setTimeout(() => dismiss(latest.id), AUTO_DISMISS_MS);
+    return () => { clearTimeout(t0); clearTimeout(timer); };
+  }, [signals]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (toasts.length === 0) return null;
 

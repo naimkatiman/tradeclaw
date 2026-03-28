@@ -310,7 +310,7 @@ export function MarketplaceClient() {
         ) : (
           <div className="text-center py-16 text-[var(--text-secondary)]">
             <div className="text-4xl mb-3">🔍</div>
-            <p className="text-sm">No integrations found for "{search}"</p>
+            <p className="text-sm">No integrations found for &ldquo;{search}&rdquo;</p>
           </div>
         )}
 

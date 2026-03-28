@@ -87,7 +87,7 @@ export function PluginsClient() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchPlugins(); }, [fetchPlugins]);
+  useEffect(() => { setTimeout(() => fetchPlugins(), 0); }, [fetchPlugins]);
 
   const resetForm = () => {
     setName('');

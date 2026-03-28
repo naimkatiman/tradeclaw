@@ -465,12 +465,14 @@ export function ShareClient() {
 
   // Load share tracking from localStorage
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setShared(JSON.parse(stored));
-    } catch {
-      // ignore
-    }
+    setTimeout(() => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) setShared(JSON.parse(stored));
+      } catch {
+        // ignore
+      }
+    }, 0);
   }, []);
 
   // Fetch live GitHub star count

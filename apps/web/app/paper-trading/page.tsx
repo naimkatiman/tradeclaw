@@ -78,7 +78,7 @@ function fmtTradeDuration(openedAt: string, closedAt: string): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-let _priceSeeds: Record<string, number> = {};
+const _priceSeeds: Record<string, number> = {};
 function noisyPrice(sym: string, base: number): number {
   const prev = _priceSeeds[sym] ?? base;
   const drift = (Math.sin(Date.now() / 3000 + sym.charCodeAt(0)) * 0.0005);

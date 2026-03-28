@@ -17,10 +17,12 @@ export function TelegramSettings() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setConfig(JSON.parse(stored));
-    } catch { /* ignore */ }
+    setTimeout(() => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) setConfig(JSON.parse(stored));
+      } catch { /* ignore */ }
+    }, 0);
   }, []);
 
   const save = (updates: Partial<TelegramConfig>) => {

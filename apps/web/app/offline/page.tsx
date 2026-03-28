@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function OfflinePage() {
   return (
     <div className="min-h-[100dvh] bg-[#050505] text-white flex items-center justify-center px-4">
@@ -14,12 +16,12 @@ export default function OfflinePage() {
         <p className="text-sm text-zinc-600 leading-relaxed mb-6">
           TradeClaw needs a connection to fetch live signals and prices. Check your network and try again.
         </p>
-        <a
+        <Link
           href="/"
           className="inline-block px-6 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 text-sm font-semibold hover:bg-emerald-500/20 transition-all"
         >
           Try again
-        </a>
+        </Link>
       </div>
     </div>
   );

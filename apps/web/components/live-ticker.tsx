@@ -34,10 +34,11 @@ function TickerItem({ pair, tick }: TickerItemProps) {
   useEffect(() => {
     const prev = prevRef.current;
     if (Math.abs(tick.price - prev) < 0.000001) return;
-    setFlash(tick.price > prev ? 'up' : 'down');
     prevRef.current = tick.price;
+    const dir = tick.price > prev ? 'up' : 'down';
+    const t0 = setTimeout(() => setFlash(dir), 0);
     const t = setTimeout(() => setFlash(null), 600);
-    return () => clearTimeout(t);
+    return () => { clearTimeout(t0); clearTimeout(t); };
   }, [tick.price]);
 
   const priceColor =
