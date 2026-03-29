@@ -86,7 +86,7 @@ function generateFakeDigest(weekStart: number, weekEnd: number): WeeklyDigest {
   // Re-assign ranks after sort and strip internal field
   topSignals.forEach((s, i) => {
     s.rank = i + 1;
-    delete (s as Record<string, unknown>)['_hitRate'];
+    delete (s as unknown as Record<string, unknown>)['_hitRate'];
   });
 
   const dailyWinRates = Array.from({ length: 7 }, () =>
