@@ -60,6 +60,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/status', label: 'Status', icon: Activity },
       { href: '/digest', label: 'Digest', icon: Clock },
       { href: '/wrapped', label: 'Wrapped', icon: Gift },
+      { href: '/github-action', label: 'GitHub Action', icon: GitBranch },
     ],
   },
   {
@@ -90,7 +91,6 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/quiz', label: 'Trader Quiz', icon: HelpCircle },
       { href: '/contributors', label: 'Contributors', icon: Trophy },
       { href: '/security', label: 'Security', icon: Shield },
-      { href: '/action', label: 'GitHub Action', icon: GitBranch },
     ],
   },
 ];
