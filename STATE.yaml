@@ -791,15 +791,67 @@ tasks:
 
   - id: TC-098
     title: "Self-hostable Telegram channel bot — /api/telegram/broadcast endpoint + cron trigger every 4h to auto-post top signals to a configured Telegram channel with rich formatting"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: lib/telegram-broadcast.ts (broadcastTopSignals, MarkdownV2 formatter, file-based
+      state persistence, top-3 signal fetch). POST+GET /api/telegram/broadcast (manual trigger +
+      status). GET /api/cron/telegram (Vercel cron with CRON_SECRET auth). vercel.json cron:
+      0 */4 * * *. /telegram page: Auto-Broadcast card (stats row, channel override input,
+      Broadcast Now button, sample message preview, API endpoints). /docs/telegram: Channel
+      Auto-Broadcast section (env vars table, 3-step setup, API reference, cron schedule note).
+      Lint clean. Build passes. 2026-03-29
+
+  - id: TC-099
+    title: "CCXT multi-exchange integration page — /exchanges with 24 exchange cards, connect modal, live balance demo"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: /api/exchanges route (GET returns 24 exchanges, POST mock test connection with
+      balance). /exchanges/page.tsx (server, metadata + OG). /exchanges/ExchangesClient.tsx
+      (hero with 100+ headline, 4-col exchange grid with letter icons + brand colors + tags,
+      search filter, connect modal with API key/secret/passphrase inputs, test connection,
+      localStorage save, CCXT capabilities 4-card section, 3-step how-it-works, bottom CTA).
+      Navbar: Exchanges link in Trading group with Globe icon. Sitemap updated.
+      Lint clean. Build passes. 2026-03-29
+
+  # ── Phase 20: Maximum Viral Reach + Developer Credibility ──
+
+  - id: TC-099
+    title: "CCXT multi-exchange integration page — /exchanges showing 20+ supported exchanges via CCXT with one-click connect UI, live balance fetch demo, and 'supports 100+ exchanges' headline"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-100
+    title: "TradingView Pine Script importer — /pine-to-tradeclaw page where users paste Pine Script and get equivalent TradeClaw strategy JSON (RSI/EMA/MACD condition parser), viral for 50M TradingView users"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-101
+    title: "Security & trust dashboard — /security page with live npm audit results display, CSP headers checker, dependency vulnerability count badge, OWASP checklist, and security.txt file"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-102
+    title: "Market sentiment dashboard — /sentiment page with crypto Fear & Greed index (alternative.me API), BTC dominance, global market cap, trending coins, 24h volume heatmap — zero-auth wow factor"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-103
+    title: "'Roast my strategy' AI page — /roast where users paste their strategy JSON or describe it in plain text and get a detailed AI critique with improvement suggestions, risk score, and edge assessment — viral engagement hook"
     status: pending
     owner: pm-tradeclaw
     notes: ""
 
 next_actions:
-  - "Phase 19 defined (TC-094 to TC-098). Start with TC-094 next run."
+  - "Phase 20 defined (TC-099 to TC-103). Start with TC-099 next run."
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
   - "Replace seed-heavy accuracy UX with live-only metrics once enough tracked signal records accumulate."
-  - "Add test suite (currently zero tests for 108+ pages)."
+  - "Add test suite (currently zero tests for 100+ pages)."
   - "Migrate file-based JSON storage to PostgreSQL for production self-hosters."
   - "Deploy live demo instance and validate Docker Compose end-to-end."
 

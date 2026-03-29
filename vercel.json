@@ -2,5 +2,8 @@
   "framework": "nextjs",
   "rootDirectory": "apps/web",
   "buildCommand": "npm run build",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "crons": [
+    { "path": "/api/cron/telegram", "schedule": "0 */4 * * *" }
+  ]
 }

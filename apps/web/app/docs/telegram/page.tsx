@@ -211,6 +211,109 @@ _Generated at 14:30 UTC_`}
         </div>
       </section>
 
+      {/* Channel Auto-Broadcast */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold text-white mb-4">Channel Auto-Broadcast</h2>
+        <p className="text-zinc-400 mb-5 leading-relaxed">
+          TradeClaw can automatically post the top 3 signals to a public or private Telegram
+          channel every 4 hours. This is powered by a Vercel Cron job and requires two
+          additional environment variables.
+        </p>
+
+        <div className="rounded-xl border border-white/6 overflow-hidden mb-6">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-white/6 bg-white/[0.02]">
+                <th className="px-4 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wide">Variable</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wide">Required</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wide">Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { key: 'TELEGRAM_CHANNEL_ID', req: true, desc: 'Channel username (@mychannel) or numeric ID (-100...)' },
+                { key: 'CRON_SECRET', req: false, desc: 'Bearer token for cron auth — Vercel sets this automatically' },
+              ].map(row => (
+                <tr key={row.key} className="border-b border-white/4 last:border-0">
+                  <td className="px-4 py-3 text-sm font-mono text-emerald-400">{row.key}</td>
+                  <td className="px-4 py-3 text-sm">
+                    {row.req
+                      ? <span className="text-xs font-medium text-red-400 bg-red-500/10 border border-red-500/15 px-2 py-0.5 rounded">Required</span>
+                      : <span className="text-xs font-medium text-zinc-500 bg-white/[0.03] border border-white/5 px-2 py-0.5 rounded">Optional</span>}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-zinc-500">{row.desc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="space-y-3 mb-6">
+          {[
+            {
+              step: '1',
+              title: 'Create a Telegram channel',
+              body: 'Create a public or private channel. Add your bot as an administrator with permission to post messages.',
+            },
+            {
+              step: '2',
+              title: 'Get the channel ID',
+              body: 'For public channels, use @yourchannel. For private channels, forward a message to @userinfobot to get the numeric ID (starts with -100).',
+            },
+            {
+              step: '3',
+              title: 'Set the environment variable',
+              body: 'Add TELEGRAM_CHANNEL_ID to your .env file. The cron job will pick it up automatically.',
+            },
+          ].map(s => (
+            <div key={s.step} className="flex gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+              <div className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-xs font-bold text-emerald-400">{s.step}</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-zinc-200 mb-1">{s.title}</p>
+                <p className="text-xs text-zinc-500 leading-relaxed">{s.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <CodeBlock
+          language="bash"
+          filename=".env.local"
+          code={`TELEGRAM_CHANNEL_ID=@your_channel_name
+# or for private channels:
+# TELEGRAM_CHANNEL_ID=-1001234567890`}
+        />
+
+        <div className="mt-6 rounded-xl border border-white/6 overflow-hidden">
+          {[
+            { method: 'POST', path: '/api/telegram/broadcast', desc: 'Trigger an immediate broadcast of top 3 signals to the configured channel.' },
+            { method: 'GET', path: '/api/telegram/broadcast', desc: 'Check broadcast status: last time, next scheduled time, total count.' },
+            { method: 'GET', path: '/api/cron/telegram', desc: 'Vercel Cron endpoint — called every 4 hours automatically.' },
+          ].map(ep => (
+            <div key={ep.path + ep.method} className="p-4 border-b border-white/4 last:border-0">
+              <div className="flex items-center gap-2.5 mb-1">
+                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border shrink-0 ${ep.method === 'GET' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : 'bg-blue-500/15 text-blue-400 border-blue-500/25'}`}>
+                  {ep.method}
+                </span>
+                <code className="text-sm font-mono text-zinc-200">{ep.path}</code>
+              </div>
+              <p className="text-sm text-zinc-500">{ep.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-xl border border-white/5 bg-white/[0.02] p-4">
+          <p className="text-sm font-medium text-zinc-300 mb-2">Vercel Cron Schedule</p>
+          <p className="text-sm text-zinc-500">
+            The broadcast runs on the schedule <code className="text-emerald-400 bg-white/5 px-1.5 py-0.5 rounded text-xs">0 */4 * * *</code> (every
+            4 hours at minute 0). You can also trigger it manually from the /telegram settings
+            page or by calling POST /api/telegram/broadcast.
+          </p>
+        </div>
+      </section>
+
       <PageNav prev={prev} next={next} githubPath="apps/web/app/docs/telegram/page.tsx" />
     </article>
   );
