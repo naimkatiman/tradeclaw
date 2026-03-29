@@ -659,7 +659,7 @@ export function generateSignalsFromTA(
       timeframe,
       timestamp: publishedAt,
       status: 'active',
-      dataQuality: 'real',
+      dataQuality: source,
     });
   }
 

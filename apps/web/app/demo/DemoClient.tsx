@@ -659,7 +659,7 @@ export default function DemoClient() {
 
   const fetchSignals = useCallback(async () => {
     try {
-      const res = await fetch('/api/signals?minConfidence=50');
+      const res = await fetch('/api/signals?minConfidence=70');
       if (!res.ok) throw new Error('fetch failed');
       const data = await res.json();
       const apiSignals: ApiSignal[] = data.signals || [];

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 const NAV_PAGES = [
   { href: '/dashboard', label: 'Signals' },
+  { href: '/screener', label: 'Screener' },
   { href: '/paper-trading', label: 'Paper Trade' },
   { href: '/backtest', label: 'Backtest' },
   { href: '/leaderboard', label: 'Leaderboard' },
@@ -15,9 +16,11 @@ const NAV_PAGES = [
 export function PageNavBar() {
   const pathname = usePathname();
 
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
+
   return (
     <nav className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
         <Link href="/" className="flex items-center gap-1.5 shrink-0">
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
             <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
@@ -32,8 +35,9 @@ export function PageNavBar() {
             <Link
               key={page.href}
               href={page.href}
+              aria-current={isActive(page.href) ? 'page' : undefined}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                pathname === page.href
+                isActive(page.href)
                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                   : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
               }`}
@@ -42,8 +46,6 @@ export function PageNavBar() {
             </Link>
           ))}
         </div>
-
-        <div className="flex-1" />
       </div>
     </nav>
   );

@@ -11,12 +11,12 @@ const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
  * POST /api/signals/record
  *
  * Generate current signals via the real TA engine, then persist every
- * signal with confidence >= 60 that does not already have a recent
+ * signal with confidence >= 70 that does not already have a recent
  * duplicate (same symbol + direction within the last 2 hours).
  */
 export async function POST(): Promise<Response> {
   try {
-    const { signals } = await getSignals({ minConfidence: 60 });
+    const { signals } = await getSignals({ minConfidence: 70 });
 
     let recorded = 0;
 

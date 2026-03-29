@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import { PageNavBar } from '../../components/PageNavBar';
 import type { Portfolio, Trade, EquityPoint } from '../../lib/paper-trading';
 
 // ---------------------------------------------------------------------------
@@ -41,13 +42,6 @@ const BASE_PRICES: Record<string, number> = {
   XRPUSD: 0.615, USDCAD: 1.365,
 };
 
-const NAV_PAGES = [
-  { href: '/dashboard', label: 'Signals' },
-  { href: '/paper-trading', label: 'Paper Trade' },
-  { href: '/backtest', label: 'Backtest' },
-  { href: '/leaderboard', label: 'Leaderboard' },
-  { href: '/strategy-builder', label: 'Strategy' },
-];
 
 const HIST_PAGE_SIZE = 8;
 
@@ -502,39 +496,17 @@ export default function PaperTradingPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)] font-sans">
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-1.5 shrink-0">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
-              <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-              <path d="M10 2v10M3 7l7 5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-            </svg>
-            <span className="text-sm font-semibold">Trade<span className="text-emerald-400">Claw</span></span>
-          </Link>
-          <div className="hidden md:flex items-center gap-1">
-            {NAV_PAGES.map((page) => (
-              <Link
-                key={page.href}
-                href={page.href}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                  page.href === '/paper-trading'
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
-                }`}
-              >
-                {page.label}
-              </Link>
-            ))}
-          </div>
-          <button
-            onClick={() => setShowReset(true)}
-            className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
-          >
-            Reset account
-          </button>
-        </div>
-      </nav>
+      <PageNavBar />
+
+      {/* Page controls */}
+      <div className="max-w-7xl mx-auto px-4 h-12 flex items-center justify-end border-b border-[var(--border)] bg-[var(--background)]/50">
+        <button
+          onClick={() => setShowReset(true)}
+          className="text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+        >
+          Reset account
+        </button>
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6 space-y-6">
 

@@ -205,7 +205,7 @@ export default function ScreenerClient() {
     rsiMax: 80,
     macdFilter: 'any',
     emaFilter: 'any',
-    minConfidence: 60,
+    minConfidence: 70,
     timeframe: 'H1',
     direction: 'all',
   });

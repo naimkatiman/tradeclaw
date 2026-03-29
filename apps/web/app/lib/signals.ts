@@ -251,7 +251,7 @@ async function generateRealSignals(
       syntheticSymbols.push(sym.symbol);
     }
 
-    // Calculate indicators and generate signals (generateSignalsFromTA returns [] for synthetic)
+    // Calculate indicators and generate signals with source transparency
     const indicators = calculateAllIndicators(data.candles);
     const signalSource = data.source === 'synthetic' ? 'synthetic' : 'real';
     const signalTimestamp = data.candles[data.candles.length - 1]?.timestamp ?? Date.now();
@@ -264,8 +264,8 @@ async function generateRealSignals(
     );
 
     for (const sig of realSignals) {
-      sig.source = 'real';
-      sig.dataQuality = 'real';
+      sig.source = signalSource === 'synthetic' ? 'fallback' : 'real';
+      // dataQuality is already set by generateSignalsFromTA based on actual data source
     }
 
     signals.push(...realSignals);
