@@ -884,9 +884,14 @@ tasks:
 
   - id: TC-104
     title: "Signal of the Week digest — /weekly page auto-generated report of top 5 signals from the past 7 days with P&L breakdown, accuracy stats, and social share kit"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: lib/weekly-digest.ts (getWeeklyDigest, top-5 ranking, daily win rates, seeded PRNG fallback).
+      GET /api/weekly (revalidate 3600, CORS *). /weekly page (server metadata + WeeklyClient.tsx).
+      WeeklyClient: 4 stats cards, Mon-Sun canvas bar chart, top-5 ranked signal cards with rank badges,
+      BUY/SELL badges, confidence bars, P&L display, social share kit, GitHub star CTA.
+      Navbar + mobile-nav + sitemap updated. 0 lint errors. Build passes. Committed eb97d2d4. 2026-03-30
 
   - id: TC-105
     title: "Open Graph social preview generator — /og-preview page where community members can generate custom social cards (with their pair + signal + name) to share on Twitter/LinkedIn, boosting organic reach"
