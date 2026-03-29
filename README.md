@@ -33,8 +33,10 @@
 # Option 1: Docker (recommended)
 git clone https://github.com/naimkatiman/tradeclaw
 cd tradeclaw
-cp .env.example .env   # fill in DB_PASSWORD and AUTH_SECRET
-docker compose up
+cp .env.example .env
+sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=$(openssl rand -hex 16)/" .env
+sed -i "s/^AUTH_SECRET=.*/AUTH_SECRET=$(openssl rand -hex 32)/" .env
+docker compose up -d
 
 # Option 2: npx demo (no install)
 npx tradeclaw-demo

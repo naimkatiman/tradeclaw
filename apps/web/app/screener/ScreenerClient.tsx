@@ -61,7 +61,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 
 function MACDBar({ value }: { value: number }) {
   const abs = Math.min(Math.abs(value) * 2000, 100);
-  const color = value >= 0 ? 'bg-emerald-500' : 'bg-rose-500';
+  const color = value > 0 ? 'bg-emerald-400' : 'bg-red-400';
   return (
     <div className="flex items-center gap-1">
       <div className="relative h-3 w-12 bg-[var(--glass-bg)] rounded-sm overflow-hidden flex items-center">
@@ -70,7 +70,7 @@ function MACDBar({ value }: { value: number }) {
           style={{ width: `${abs}%` }}
         />
       </div>
-      <span className={`text-[10px] font-mono tabular-nums ${value >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+      <span className={`text-[10px] font-mono tabular-nums ${value > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
         {value >= 0 ? '+' : ''}{value.toFixed(4)}
       </span>
     </div>

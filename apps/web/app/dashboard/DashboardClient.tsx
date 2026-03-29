@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
 import { LiveTicker } from '../../components/live-ticker';
@@ -23,6 +23,9 @@ import type { TFDirection } from '../lib/signal-generator';
 
 const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];
 
+const DEFAULT_TITLE = 'TradeClaw — Live Signals';
+const BUY_CONFIDENCE_THRESHOLD = 65;
+
 const TIMEFRAMES = ['ALL', 'M5', 'M15', 'H1', 'H4', 'D1'];
 
 const NAV_PAGES = [
@@ -33,6 +36,15 @@ const NAV_PAGES = [
   { href: '/strategy-builder', label: 'Strategy' },
   { href: '/multi-timeframe', label: 'Multi-TF' },
 ];
+
+const ASSET_CLASSES = {
+  ALL: ['XAUUSD', 'XAGUSD', 'BTCUSD', 'ETHUSD', 'SOLUSD', 'DOGEUSD', 'BNBUSD', 'XRPUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF'],
+  CRYPTO: ['BTCUSD', 'ETHUSD', 'SOLUSD', 'DOGEUSD', 'BNBUSD', 'XRPUSD'],
+  FOREX: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF'],
+  METALS: ['XAUUSD', 'XAGUSD'],
+};
+
+type AssetClass = keyof typeof ASSET_CLASSES;
 
 function formatPrice(p: number): string {
   if (p >= 1000) return p.toFixed(2);
@@ -85,6 +97,43 @@ function LiveBadge() {
       <span className="h-1 w-1 rounded-full bg-emerald-400 pulse-dot" />
       LIVE
     </span>
+  );
+}
+
+function CopyValueButton({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await navigator.clipboard.writeText(value);
+    setCopied(true);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      title={copied ? 'Copied!' : `Copy ${value}`}
+      className="relative inline-flex items-center justify-center w-4 h-4 rounded hover:bg-white/10 transition-colors group"
+    >
+      {copied ? (
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+          <path d="M2 8l4 4 8-8" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ) : (
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" className="text-zinc-600 group-hover:text-zinc-300 transition-colors">
+          <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+          <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" strokeWidth="1.4" />
+        </svg>
+      )}
+      {copied && (
+        <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[8px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap pointer-events-none">
+          Copied!
+        </span>
+      )}
+    </button>
   );
 }
 
@@ -165,7 +214,12 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
         ].map(({ label, value, color }) => (
           <div key={label} className="bg-white/[0.02] rounded-lg py-1.5 px-1">
             <div className="text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">{label}</div>
-            <div className={`text-[10px] font-mono font-semibold tabular-nums ${color}`}>{formatPrice(value)}</div>
+            <div className={`flex items-center justify-center gap-0.5 text-[10px] font-mono font-semibold tabular-nums ${color}`}>
+              {formatPrice(value)}
+              {(label === 'SL' || label.startsWith('TP')) && (
+                <CopyValueButton value={formatPrice(value)} />
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -241,6 +295,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
   const [loading, setLoading] = useState(!initialSignals || initialSignals.length === 0);
   const [timeframe, setTimeframe] = useState('ALL');
   const [direction, setDirection] = useState<'ALL' | 'BUY' | 'SELL'>('ALL');
+  const [assetClass, setAssetClass] = useState<AssetClass>('ALL');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(initialSignals && initialSignals.length > 0 ? new Date() : null);
 
@@ -285,13 +340,28 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
   // Re-fetch when filters change
   useEffect(() => {
     fetchSignals();
-  }, [timeframe, direction]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [timeframe, direction, assetClass]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!autoRefresh) return;
     const interval = setInterval(fetchSignals, 10000);
     return () => clearInterval(interval);
   }, [autoRefresh, fetchSignals]);
+
+  // Update browser tab title with BUY signal count
+  useEffect(() => {
+    const highConfBuyCount = signals.filter(
+      s => s.direction === 'BUY' && s.confidence >= BUY_CONFIDENCE_THRESHOLD
+    ).length;
+
+    document.title = highConfBuyCount > 0
+      ? `(${highConfBuyCount} BUY) ${DEFAULT_TITLE}`
+      : DEFAULT_TITLE;
+
+    return () => {
+      document.title = DEFAULT_TITLE;
+    };
+  }, [signals]);
 
   const buyCount = signals.filter(s => s.direction === 'BUY').length;
   const sellCount = signals.filter(s => s.direction === 'SELL').length;
@@ -464,6 +534,21 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               </button>
             ))}
           </div>
+          <div className="flex gap-0.5 bg-white/[0.03] border border-[var(--border)] rounded-xl p-1 shrink-0">
+            {(Object.keys(ASSET_CLASSES) as AssetClass[]).map(ac => (
+              <button
+                key={ac}
+                onClick={() => setAssetClass(ac)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 ${
+                  assetClass === ac
+                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
+                }`}
+              >
+                {ac}
+              </button>
+            ))}
+          </div>
           <button
             onClick={fetchSignals}
             className="px-4 py-1.5 rounded-xl text-xs border border-white/8 text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:border-[var(--border)] transition-all duration-200 font-mono shrink-0"
@@ -473,34 +558,43 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
         </div>
 
         {/* Signal grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="glass-card rounded-2xl p-5 animate-pulse">
-                <div className="h-4 bg-[var(--glass-bg)] rounded mb-4 w-1/2" />
-                <div className="h-1 bg-[var(--glass-bg)] rounded mb-4" />
-                <div className="grid grid-cols-5 gap-1.5 mb-3">
-                  {Array.from({ length: 5 }).map((_, j) => (
-                    <div key={j} className="h-10 bg-[var(--glass-bg)] rounded-lg" />
-                  ))}
-                </div>
+        {(() => {
+          const filteredSignals = signals.filter(s => ASSET_CLASSES[assetClass].includes(s.symbol));
+          if (loading) {
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="glass-card rounded-2xl p-5 animate-pulse">
+                    <div className="h-4 bg-[var(--glass-bg)] rounded mb-4 w-1/2" />
+                    <div className="h-1 bg-[var(--glass-bg)] rounded mb-4" />
+                    <div className="grid grid-cols-5 gap-1.5 mb-3">
+                      {Array.from({ length: 5 }).map((_, j) => (
+                        <div key={j} className="h-10 bg-[var(--glass-bg)] rounded-lg" />
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        ) : signals.length === 0 ? (
-          <div className="text-center py-24">
-            <div className="text-[var(--text-secondary)] text-sm">No signals match the current filters</div>
-            <button onClick={fetchSignals} className="mt-4 text-xs text-emerald-500 hover:text-emerald-400 transition-colors">
-              Refresh signals
-            </button>
-          </div>
-        ) : (
-          <div data-tour-id="signal-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {signals.map(signal => (
-              <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} />
-            ))}
-          </div>
-        )}
+            );
+          }
+          if (filteredSignals.length === 0) {
+            return (
+              <div className="text-center py-24">
+                <div className="text-[var(--text-secondary)] text-sm">No signals match the current filters</div>
+                <button onClick={fetchSignals} className="mt-4 text-xs text-emerald-500 hover:text-emerald-400 transition-colors">
+                  Refresh signals
+                </button>
+              </div>
+            );
+          }
+          return (
+            <div data-tour-id="signal-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {filteredSignals.map(signal => (
+                <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} />
+              ))}
+            </div>
+          );
+        })()}
 
         {/* Equity curve chart */}
         <div className="mt-8">

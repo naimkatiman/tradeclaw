@@ -42,6 +42,9 @@ export const SYMBOLS = [
   { symbol: 'XAGUSD', name: 'Silver', pip: 0.001, basePrice: 71.36, volatility: 0.8 },
   { symbol: 'BTCUSD', name: 'Bitcoin', pip: 0.01, basePrice: 70798.0, volatility: 2000 },
   { symbol: 'ETHUSD', name: 'Ethereum', pip: 0.01, basePrice: 2147.53, volatility: 100 },
+  { symbol: 'SOLUSD', name: 'Solana', pip: 0.01, basePrice: 142.80, volatility: 8 },
+  { symbol: 'DOGEUSD', name: 'Dogecoin', pip: 0.00001, basePrice: 0.178, volatility: 0.008 },
+  { symbol: 'BNBUSD', name: 'BNB', pip: 0.01, basePrice: 608.50, volatility: 25 },
   { symbol: 'XRPUSD', name: 'XRP', pip: 0.0001, basePrice: 1.40, volatility: 0.03 },
   { symbol: 'EURUSD', name: 'EUR/USD', pip: 0.0001, basePrice: 1.1559, volatility: 0.005 },
   { symbol: 'GBPUSD', name: 'GBP/USD', pip: 0.0001, basePrice: 1.3352, volatility: 0.006 },
@@ -184,7 +187,7 @@ export async function getLivePrices(): Promise<Map<string, number>> {
   const map = new Map<string, number>();
 
   const [cryptoResult, forexResult, xauResult, xagResult] = await Promise.allSettled([
-    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,ripple,solana&vs_currencies=usd', {
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,ripple,solana,dogecoin,binancecoin&vs_currencies=usd', {
       signal: AbortSignal.timeout(5000),
     }).then(r => r.ok ? r.json() as Promise<Record<string, {usd: number}>> : null),
     fetch('https://open.er-api.com/v6/latest/USD', { signal: AbortSignal.timeout(5000) })

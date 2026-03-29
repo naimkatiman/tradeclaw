@@ -710,7 +710,7 @@ function IndicatorsCanvas({
       const x = toX(i) - barW / 2;
       const y0 = zeroY;
       const y1 = toMacdY(h);
-      ctx.fillStyle = h >= 0 ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)';
+      ctx.fillStyle = h > 0 ? 'rgba(52,211,153,0.6)' : 'rgba(248,113,113,0.6)';
       ctx.fillRect(x, Math.min(y0, y1), barW, Math.abs(y1 - y0));
     }
 

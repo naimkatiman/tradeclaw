@@ -83,6 +83,66 @@ function Sparkline({ hits }: { hits: boolean[] }) {
   );
 }
 
+function SkeletonBar({ width }: { width: string }) {
+  return <div className={`h-[3px] rounded-full bg-white/[0.06] animate-pulse`} style={{ width }} />;
+}
+
+function LeaderboardSkeleton({ rows = 8 }: { rows?: number }) {
+  return (
+    <>
+      {Array.from({ length: rows }).map((_, i) => (
+        <tr key={i} className="border-b border-white/[0.03]">
+          {/* Rank */}
+          <td className="px-4 py-3 w-10">
+            <div className="w-6 h-6 rounded-full bg-white/[0.06] animate-pulse" />
+          </td>
+          {/* Pair */}
+          <td className="px-4 py-3">
+            <div className="h-4 w-20 rounded bg-white/[0.06] animate-pulse" />
+          </td>
+          {/* Signals */}
+          <td className="px-4 py-3 text-right">
+            <div className="h-3 w-8 rounded bg-white/[0.06] animate-pulse ml-auto" />
+          </td>
+          {/* 4h Hit Rate */}
+          <td className="px-4 py-3 w-36">
+            <div className="flex items-center gap-2">
+              <SkeletonBar width="60%" />
+              <div className="h-3 w-10 rounded bg-white/[0.06] animate-pulse" />
+            </div>
+          </td>
+          {/* 24h Hit Rate */}
+          <td className="px-4 py-3 w-36">
+            <div className="flex items-center gap-2">
+              <SkeletonBar width="45%" />
+              <div className="h-3 w-10 rounded bg-white/[0.06] animate-pulse" />
+            </div>
+          </td>
+          {/* Avg Conf */}
+          <td className="px-4 py-3 w-32">
+            <div className="flex items-center gap-2">
+              <SkeletonBar width="50%" />
+              <div className="h-3 w-8 rounded bg-white/[0.06] animate-pulse" />
+            </div>
+          </td>
+          {/* Avg P&L */}
+          <td className="px-4 py-3 text-right">
+            <div className="h-3 w-12 rounded bg-white/[0.06] animate-pulse ml-auto" />
+          </td>
+          {/* Trend */}
+          <td className="px-4 py-3">
+            <div className="flex justify-center gap-0.5">
+              {Array.from({ length: 6 }).map((_, j) => (
+                <div key={j} className="w-1.5 h-3 rounded-[2px] bg-white/[0.06] animate-pulse" />
+              ))}
+            </div>
+          </td>
+        </tr>
+      ))}
+    </>
+  );
+}
+
 function SortIcon({ active, asc }: { active: boolean; asc: boolean }) {
   return (
     <span className={`ml-1 inline-block text-[8px] ${active ? 'text-emerald-400' : 'text-[var(--text-secondary)]'}`}>
@@ -404,11 +464,7 @@ export default function LeaderboardClient() {
               </tr>
             </thead>
             <tbody>
-              {loading && (
-                <tr>
-                  <td colSpan={8} className="py-16 text-center text-[var(--text-secondary)] text-xs">Loading…</td>
-                </tr>
-              )}
+              {loading && <LeaderboardSkeleton />}
               {!loading && assets.map((asset, idx) => (
                 <tr
                   key={asset.pair}

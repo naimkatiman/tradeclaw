@@ -15,6 +15,7 @@ export type TradingSymbol =
   | 'USDCAD'
   | 'SOLUSD'
   | 'BNBUSD'
+  | 'DOGEUSD'
   | 'ADAUSD'
   | 'DOTUSD'
   | 'LINKUSD';
