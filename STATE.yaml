@@ -1018,6 +1018,6 @@ next_actions:
 
   - id: TC-093
     title: "TradeClaw Discord bot — bot.js that posts live signals to a Discord server on demand + slash commands (/signal, /leaderboard, /health) + invite link on site"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Done 2026-03-29. packages/tradeclaw-discord/ (discord.js v14, 6 slash commands, auto-broadcast, embed formatting) + /discord invite page (hero, commands table, signal preview, 3-step setup, Docker snippet). Navbar link added. Build passes. 0 lint errors. Committed 2af4a23e."
