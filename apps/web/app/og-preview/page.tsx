@@ -4,7 +4,7 @@ import { OGPreviewClient } from './OGPreviewClient';
 export const metadata: Metadata = {
   title: 'OG Preview Generator — TradeClaw',
   description:
-    'Generate a custom Open Graph social card with your name, favourite trading pair, and live AI signal. Share on Twitter, LinkedIn, or Reddit to grow the TradeClaw community.',
+    'Create your TradeClaw signal card — share AI trading signals on social media',
   openGraph: {
     title: 'Create Your TradeClaw Signal Preview Card',
     description:

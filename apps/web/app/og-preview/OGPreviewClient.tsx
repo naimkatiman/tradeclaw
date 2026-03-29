@@ -25,20 +25,21 @@ interface Signal {
   price?: number;
   rsi?: number;
   macd?: number;
+  ema?: number;
   tp?: number;
   sl?: number;
 }
 
-type Theme = 'dark' | 'light' | 'neon';
+type Theme = 'dark' | 'purple' | 'gold';
 type DirectionOverride = 'auto' | 'BUY' | 'SELL';
 
-const PAIRS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'BNBUSD', 'SOLUSD'];
+const PAIRS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'BNBUSD'];
 const TIMEFRAMES = ['H1', 'H4', 'D1'];
 
-const THEMES: { id: Theme; label: string; bg: string }[] = [
-  { id: 'dark', label: 'Dark', bg: 'bg-zinc-900 text-white' },
-  { id: 'light', label: 'Light', bg: 'bg-zinc-100 text-zinc-900' },
-  { id: 'neon', label: 'Neon', bg: 'bg-[#0a0014] text-purple-300' },
+const THEMES: { id: Theme; label: string }[] = [
+  { id: 'dark', label: 'Dark' },
+  { id: 'purple', label: 'Dark Purple' },
+  { id: 'gold', label: 'Dark Gold' },
 ];
 
 // ─── Toast hook ───────────────────────────────────────────────────────────────
@@ -59,12 +60,12 @@ function getThemeColors(theme: Theme, isBuy: boolean) {
   const accentDim = isBuy ? '#059669' : '#e11d48';
 
   switch (theme) {
-    case 'light':
-      return { bg0: '#f9fafb', bg1: '#f3f4f6', text: '#111827', subText: '#6b7280', border: '#e5e7eb', accent, accentDim };
-    case 'neon':
-      return { bg0: '#0a0014', bg1: '#0d0020', text: '#e9d5ff', subText: '#a78bfa', border: '#4c1d95', accent: isBuy ? '#34d399' : '#f472b6', accentDim: isBuy ? '#10b981' : '#ec4899' };
+    case 'purple':
+      return { bg0: '#0d0015', bg1: '#150025', text: '#e9d5ff', subText: '#a78bfa', border: '#4c1d95', accent: isBuy ? '#34d399' : '#f472b6', accentDim: isBuy ? '#10b981' : '#ec4899' };
+    case 'gold':
+      return { bg0: '#0f0c06', bg1: '#1a1408', text: '#fef3c7', subText: '#d97706', border: '#78350f', accent: isBuy ? '#10b981' : '#f43f5e', accentDim };
     default: // dark
-      return { bg0: '#070c10', bg1: '#0e1520', text: '#f1f5f9', subText: '#94a3b8', border: '#1e293b', accent, accentDim };
+      return { bg0: '#0a0a0a', bg1: '#0e1520', text: '#f1f5f9', subText: '#94a3b8', border: '#1e293b', accent, accentDim };
   }
 }
 
@@ -73,6 +74,7 @@ function drawCard(
   signal: Signal,
   name: string,
   theme: Theme,
+  tagline: string,
 ) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -179,14 +181,12 @@ function drawCard(
   roundRect(ctx, barX, barY, barW * (signal.confidence / 100), barH, 4);
   ctx.fill();
 
-  // ── Price / RSI / MACD metrics (right side) ──
+  // ── RSI / MACD / EMA metrics (right side) ──
   const metaX = 560, metaY = 180;
   const metrics: { label: string; value: string }[] = [
-    { label: 'PRICE', value: signal.price ? `$${signal.price.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : '—' },
     { label: 'RSI', value: signal.rsi !== undefined ? signal.rsi.toFixed(1) : '—' },
     { label: 'MACD', value: signal.macd !== undefined ? (signal.macd >= 0 ? '+' : '') + signal.macd.toFixed(4) : '—' },
-    { label: 'TP', value: signal.tp ? `$${signal.tp.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : '—' },
-    { label: 'SL', value: signal.sl ? `$${signal.sl.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : '—' },
+    { label: 'EMA', value: signal.ema !== undefined ? signal.ema.toFixed(2) : '—' },
   ];
 
   metrics.forEach((m, i) => {
@@ -224,13 +224,22 @@ function drawCard(
   ctx.stroke();
   ctx.globalAlpha = 1;
 
+  // ── Custom tagline ──
+  if (tagline.trim()) {
+    ctx.font = 'italic 16px sans-serif';
+    ctx.fillStyle = C.subText;
+    ctx.globalAlpha = 0.85;
+    ctx.fillText(`"${tagline.trim()}"`, 56, 480);
+    ctx.globalAlpha = 1;
+  }
+
   // ── Footer bar ──
   ctx.fillStyle = C.border;
   ctx.fillRect(0, H - 68, W, 68);
 
   ctx.font = '500 13px monospace';
   ctx.fillStyle = C.subText;
-  ctx.fillText('tradeclaw.win  ·  Open-source AI trading signals  ·  ⭐ Star us on GitHub', 56, H - 30);
+  ctx.fillText('tradeclaw.win  ·  Open-source AI trading signals  ·  Star us on GitHub', 56, H - 30);
 
   // timestamp
   const ts = new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
@@ -268,6 +277,7 @@ export function OGPreviewClient() {
   const [timeframe, setTimeframe] = useState('H1');
   const [theme, setTheme] = useState<Theme>('dark');
   const [dirOverride, setDirOverride] = useState<DirectionOverride>('auto');
+  const [tagline, setTagline] = useState('');
   const [signal, setSignal] = useState<Signal | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -296,8 +306,7 @@ export function OGPreviewClient() {
         price: p.startsWith('BTC') ? 67420 : p.startsWith('ETH') ? 3540 : 2340,
         rsi: 54.2,
         macd: 0.0023,
-        tp: p.startsWith('BTC') ? 69200 : 3600,
-        sl: p.startsWith('BTC') ? 65800 : 3480,
+        ema: p.startsWith('BTC') ? 66850 : p.startsWith('ETH') ? 3510 : 2310,
       };
       setSignal(fallback);
     } finally {
@@ -310,9 +319,9 @@ export function OGPreviewClient() {
   // ── Re-draw when inputs change ──
   useEffect(() => {
     if (canvasRef.current && signal) {
-      drawCard(canvasRef.current, signal, name, theme);
+      drawCard(canvasRef.current, signal, name, theme, tagline);
     }
-  }, [signal, name, theme]);
+  }, [signal, name, theme, tagline]);
 
   // ── Download PNG ──
   const handleDownload = useCallback(() => {
@@ -501,6 +510,21 @@ export function OGPreviewClient() {
                   className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-emerald-500/50 transition-colors"
                 />
               </div>
+              <div>
+                <label className="text-xs text-[var(--text-secondary)] mb-1.5 block" htmlFor="og-tagline">
+                  Custom tagline (optional)
+                </label>
+                <input
+                  id="og-tagline"
+                  type="text"
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
+                  placeholder="e.g. Trading smarter with AI"
+                  maxLength={60}
+                  className="w-full bg-[var(--glass-bg)] border border-[var(--border)] rounded-xl px-3 py-2 text-sm outline-none focus:border-emerald-500/50 transition-colors"
+                />
+                <span className="text-[10px] text-[var(--text-secondary)] mt-1 block">{tagline.length}/60</span>
+              </div>
             </div>
 
             {/* Signal config */}
@@ -606,8 +630,8 @@ export function OGPreviewClient() {
                     { label: 'Direction', value: signal.direction },
                     { label: 'Confidence', value: `${signal.confidence}%` },
                     { label: 'RSI', value: signal.rsi !== undefined ? signal.rsi.toFixed(1) : '—' },
-                    { label: 'Price', value: signal.price ? `$${signal.price.toLocaleString()}` : '—' },
-                    { label: 'Timeframe', value: signal.timeframe },
+                    { label: 'MACD', value: signal.macd !== undefined ? signal.macd.toFixed(4) : '—' },
+                    { label: 'EMA', value: signal.ema !== undefined ? signal.ema.toFixed(2) : '—' },
                   ].map((item) => (
                     <div key={item.label} className="bg-[var(--glass-bg)] rounded-xl p-2.5">
                       <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest mb-0.5">{item.label}</div>
@@ -646,7 +670,98 @@ export function OGPreviewClient() {
             </div>
           </div>
         </div>
+
+        {/* ── Gallery: 6 example cards ── */}
+        <div className="mt-20">
+          <h2 className="text-2xl font-bold text-center mb-2">Example Signal Cards</h2>
+          <p className="text-center text-[var(--text-secondary)] text-sm mb-8">
+            See what the community is sharing
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {GALLERY_CARDS.map((card) => (
+              <div key={card.pair} className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] overflow-hidden">
+                <svg viewBox="0 0 1200 630" className="w-full" role="img" aria-label={`${card.pair} ${card.direction} signal card`}>
+                  <defs>
+                    <linearGradient id={`bg-${card.pair}`} x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor={card.bg0} />
+                      <stop offset="100%" stopColor={card.bg1} />
+                    </linearGradient>
+                  </defs>
+                  <rect width="1200" height="630" fill={`url(#bg-${card.pair})`} />
+                  {/* Grid pattern */}
+                  {Array.from({ length: 20 }).map((_, i) => (
+                    <line key={`v${i}`} x1={i * 60} y1="0" x2={i * 60} y2="630" stroke={card.border} strokeWidth="0.5" opacity="0.3" />
+                  ))}
+                  {Array.from({ length: 11 }).map((_, i) => (
+                    <line key={`h${i}`} x1="0" y1={i * 60} x2="1200" y2={i * 60} stroke={card.border} strokeWidth="0.5" opacity="0.3" />
+                  ))}
+                  {/* Brand */}
+                  <text x="56" y="64" fill={card.accent} fontFamily="monospace" fontWeight="bold" fontSize="22">TradeClaw</text>
+                  <text x="56" y="86" fill={card.subText} fontFamily="monospace" fontSize="13">AI Trading Signal Platform</text>
+                  {/* Pair */}
+                  <text x="56" y="210" fill={card.text} fontFamily="monospace" fontWeight="bold" fontSize="80">{card.pair}</text>
+                  <text x="58" y="240" fill={card.subText} fontFamily="monospace" fontWeight="600" fontSize="20">{card.tf} · AI Signal</text>
+                  {/* Direction badge */}
+                  <rect x="56" y="270" width="160" height="52" rx="12" fill={card.accent + '22'} stroke={card.accent} strokeWidth="1.5" />
+                  <text x="136" y="304" fill={card.accent} fontFamily="monospace" fontWeight="bold" fontSize="28" textAnchor="middle">{card.direction}</text>
+                  {/* Confidence */}
+                  <text x="56" y="358" fill={card.subText} fontFamily="sans-serif" fontWeight="500" fontSize="14">Confidence</text>
+                  <text x="56" y="406" fill={card.accent} fontFamily="monospace" fontWeight="bold" fontSize="42">{card.confidence}%</text>
+                  {/* Confidence bar */}
+                  <rect x="56" y="418" width="340" height="8" rx="4" fill={card.border} />
+                  <rect x="56" y="418" width={340 * card.confidence / 100} height="8" rx="4" fill={card.accent} />
+                  {/* Metrics */}
+                  {card.metrics.map((m, i) => (
+                    <g key={m.label}>
+                      <rect x="560" y={180 + i * 72} width="280" height="56" rx="10" fill={card.border} />
+                      <text x="576" y={202 + i * 72} fill={card.subText} fontFamily="monospace" fontWeight="600" fontSize="11">{m.label}</text>
+                      <text x="576" y={224 + i * 72} fill={card.text} fontFamily="monospace" fontWeight="bold" fontSize="19">{m.value}</text>
+                    </g>
+                  ))}
+                  {/* Footer */}
+                  <rect x="0" y="562" width="1200" height="68" fill={card.border} />
+                  <text x="56" y="600" fill={card.subText} fontFamily="monospace" fontWeight="500" fontSize="13">tradeclaw.win · Open-source AI trading signals · Star us on GitHub</text>
+                </svg>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </main>
   );
 }
+
+// ─── Gallery data ─────────────────────────────────────────────────────────────
+
+const GALLERY_CARDS = [
+  {
+    pair: 'BTCUSD', direction: 'BUY' as const, confidence: 87, tf: 'H4',
+    bg0: '#0a0a0a', bg1: '#0e1520', text: '#f1f5f9', subText: '#94a3b8', border: '#1e293b', accent: '#10b981',
+    metrics: [{ label: 'RSI', value: '62.4' }, { label: 'MACD', value: '+0.0034' }, { label: 'EMA', value: '67120.50' }],
+  },
+  {
+    pair: 'ETHUSD', direction: 'SELL' as const, confidence: 72, tf: 'D1',
+    bg0: '#0a0a0a', bg1: '#0e1520', text: '#f1f5f9', subText: '#94a3b8', border: '#1e293b', accent: '#f43f5e',
+    metrics: [{ label: 'RSI', value: '71.8' }, { label: 'MACD', value: '-0.0012' }, { label: 'EMA', value: '3480.25' }],
+  },
+  {
+    pair: 'XAUUSD', direction: 'BUY' as const, confidence: 91, tf: 'H1',
+    bg0: '#0d0015', bg1: '#150025', text: '#e9d5ff', subText: '#a78bfa', border: '#4c1d95', accent: '#34d399',
+    metrics: [{ label: 'RSI', value: '55.1' }, { label: 'MACD', value: '+0.0045' }, { label: 'EMA', value: '2342.80' }],
+  },
+  {
+    pair: 'EURUSD', direction: 'SELL' as const, confidence: 65, tf: 'H4',
+    bg0: '#0d0015', bg1: '#150025', text: '#e9d5ff', subText: '#a78bfa', border: '#4c1d95', accent: '#f472b6',
+    metrics: [{ label: 'RSI', value: '38.7' }, { label: 'MACD', value: '-0.0008' }, { label: 'EMA', value: '1.0842' }],
+  },
+  {
+    pair: 'USDJPY', direction: 'BUY' as const, confidence: 83, tf: 'D1',
+    bg0: '#0f0c06', bg1: '#1a1408', text: '#fef3c7', subText: '#d97706', border: '#78350f', accent: '#10b981',
+    metrics: [{ label: 'RSI', value: '58.3' }, { label: 'MACD', value: '+0.0019' }, { label: 'EMA', value: '151.45' }],
+  },
+  {
+    pair: 'BNBUSD', direction: 'BUY' as const, confidence: 76, tf: 'H1',
+    bg0: '#0f0c06', bg1: '#1a1408', text: '#fef3c7', subText: '#d97706', border: '#78350f', accent: '#10b981',
+    metrics: [{ label: 'RSI', value: '49.6' }, { label: 'MACD', value: '+0.0015' }, { label: 'EMA', value: '612.30' }],
+  },
+];
