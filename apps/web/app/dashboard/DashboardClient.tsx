@@ -24,7 +24,7 @@ import type { TFDirection } from '../lib/signal-generator';
 const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];
 
 const DEFAULT_TITLE = 'TradeClaw — Live Signals';
-const BUY_CONFIDENCE_THRESHOLD = 65;
+const BUY_CONFIDENCE_THRESHOLD = 70;
 
 const TIMEFRAMES = ['ALL', 'M5', 'M15', 'H1', 'H4', 'D1'];
 
@@ -102,7 +102,7 @@ function LiveBadge() {
 
 function CopyValueButton({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -304,7 +304,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       const params = new URLSearchParams();
       if (timeframe !== 'ALL') params.set('timeframe', timeframe);
       if (direction !== 'ALL') params.set('direction', direction);
-      params.set('minConfidence', '50');
+      params.set('minConfidence', '70');
 
       const [signalsRes, mtfRes] = await Promise.allSettled([
         fetch(`/api/signals?${params}`).then(r => r.json()),

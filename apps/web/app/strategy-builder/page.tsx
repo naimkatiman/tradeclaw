@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check } from 'lucide-react';
 import { ThemeToggle } from '../components/theme-toggle';
+import { PageNavBar } from '../../components/PageNavBar';
 
 type ConditionType = 'RSI' | 'MACD' | 'EMA_CROSS' | 'BB' | 'STOCH' | 'PRICE_ACTION';
 type ActionType = 'ENTRY_LONG' | 'ENTRY_SHORT' | 'EXIT' | 'ALERT';
@@ -350,6 +351,7 @@ export default function StrategyBuilderPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
+      <PageNavBar />
       <div className="max-w-4xl mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Header */}
         <div className="mb-6 flex items-start justify-between">

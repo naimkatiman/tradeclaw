@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import type { ScreenerResult, ScreenerMeta } from '../api/screener/route';
 import { SparklineChart } from '../components/charts';
+import { PageNavBar } from '../../components/PageNavBar';
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -298,23 +299,7 @@ export default function ScreenerClient() {
 
   return (
     <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
-      {/* Nav */}
-      <nav className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-1.5 shrink-0">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
-              <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-              <path d="M10 2v10M3 7l7 5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-            </svg>
-            <span className="text-sm font-semibold">Trade<span className="text-emerald-400">Claw</span></span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors hidden sm:block">Live Signals</Link>
-            <Link href="/multi-timeframe" className="text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors hidden sm:block">Multi-TF</Link>
-            <Link href="/leaderboard" className="text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors hidden sm:block">Leaderboard</Link>
-          </div>
-        </div>
-      </nav>
+      <PageNavBar />
 
       <div className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-8">
         <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-950/50 px-4 py-3 text-sm text-emerald-300">

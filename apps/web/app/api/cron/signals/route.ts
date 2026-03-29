@@ -28,7 +28,7 @@ function isAuthorized(request: NextRequest): boolean {
 // ── Record logic ──────────────────────────────────────────────
 
 async function recordNewSignals(): Promise<number> {
-  const { signals } = await getSignals({ minConfidence: 60 });
+  const { signals } = await getSignals({ minConfidence: 70 });
   let recorded = 0;
 
   for (const sig of signals) {

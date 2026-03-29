@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, startTransition } from 'react';
 import { calculateRSI, calculateMACD, calculateEMAs } from '../lib/ta-engine';
 import { applySlippage, getSlippageConfig } from '../../lib/slippage';
+import { PageNavBar } from '../../components/PageNavBar';
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -927,6 +928,7 @@ export default function BacktestPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
+      <PageNavBar />
       <div className="max-w-6xl mx-auto px-4 py-6 pb-20 md:pb-6">
         <div className="mb-4 rounded-lg border border-emerald-500/20 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-300">
           <strong>Live Backtest</strong> — Uses real market data from Binance and Yahoo Finance. Trade outcomes are determined by actual candle price action (TP/SL against real highs and lows).

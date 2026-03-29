@@ -1,5 +1,10 @@
 // @tradeclaw/core — shared types and utilities
 
+// Plugin system
+export type { OHLCV, IndicatorResult, IndicatorPlugin } from './plugins/types';
+export { PluginRegistry, pluginRegistry } from './plugins/registry';
+export type { AggregatedResult } from './plugins/registry';
+
 /** User roles for access control */
 export type UserRole = 'public' | 'registered' | 'admin';
 

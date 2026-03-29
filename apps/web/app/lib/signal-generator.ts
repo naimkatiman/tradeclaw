@@ -7,6 +7,7 @@ import type { AllIndicators } from './ta-engine';
 import { calculateAllIndicators, findSwingLevels } from './ta-engine';
 import type { TradingSignal, IndicatorSummary } from './signals';
 import { getOHLCV } from './ohlcv';
+import { isMarketOpen } from './market-hours';
 
 // ─── Multi-Timeframe Types ────────────────────────────────────
 
@@ -546,9 +547,6 @@ export function generateSignalsFromTA(
   source: 'real' | 'synthetic' = 'real',
   signalTimestamp: number = Date.now(),
 ): TradingSignal[] {
-  // Suppress signals on synthetic data
-  if (source === 'synthetic') return [];
-
   // Minimum candle count guard — require at least 50 candles for reliable signals
   if (indicators.closes.length < 50) return [];
 
@@ -557,6 +555,9 @@ export function generateSignalsFromTA(
   const currentPrice = closes[closes.length - 1];
 
   if (!currentPrice || isNaN(currentPrice)) return [];
+
+  // ── Market Hours Gate: suppress signals when markets are closed ──
+  if (!isMarketOpen(symbol, signalTimestamp)) return [];
 
   // ── ADX Gate: suppress signals in very flat markets (ADX < 15) ──
   const adxValue = indicators.adx.current.adx;
@@ -576,7 +577,8 @@ export function generateSignalsFromTA(
   // Require 2 categories for high confidence, 1 category for moderate signals
   const buyMinCategories = buyScore >= 40 ? 2 : 1;
   if (buyScore >= SIGNAL_THRESHOLD && buyScore > sellScore && buyingCategoryCount >= buyMinCategories && buyGate.passes) {
-    const confidence = Math.min(95, Math.max(52, Math.round(buyScore + buyGate.confidenceBoost)));
+    const [minConfidence, maxConfidence] = source === 'synthetic' ? [30, 50] : [70, 95];
+    const confidence = Math.min(maxConfidence, Math.max(minConfidence, Math.round(buyScore + buyGate.confidenceBoost)));
     const slDistance = atr * 1.5;
     const entry = +currentPrice.toFixed(5);
 
@@ -611,7 +613,7 @@ export function generateSignalsFromTA(
       timeframe,
       timestamp: publishedAt,
       status: 'active',
-      dataQuality: 'real',
+      dataQuality: source,
     });
   }
 
@@ -621,7 +623,8 @@ export function generateSignalsFromTA(
   const sellGate = passesDirectionGate('SELL', indicators, marketQuality, sellScore, buyScore);
   const sellMinCategories = sellScore >= 40 ? 2 : 1;
   if (sellScore >= SIGNAL_THRESHOLD && sellScore > buyScore && sellingCategoryCount >= sellMinCategories && sellGate.passes) {
-    const confidence = Math.min(95, Math.max(52, Math.round(sellScore + sellGate.confidenceBoost)));
+    const [minConfidence, maxConfidence] = source === 'synthetic' ? [30, 50] : [70, 95];
+    const confidence = Math.min(maxConfidence, Math.max(minConfidence, Math.round(sellScore + sellGate.confidenceBoost)));
     const slDistance = atr * 1.5;
     const entry = +currentPrice.toFixed(5);
 
