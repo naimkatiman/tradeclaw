@@ -11,6 +11,7 @@ const NAV_PAGES = [
   { href: '/leaderboard', label: 'Leaderboard' },
   { href: '/strategy-builder', label: 'Strategy' },
   { href: '/multi-timeframe', label: 'Multi-TF' },
+  { href: '/how-it-works', label: 'Getting Started' },
 ];
 
 export function PageNavBar() {

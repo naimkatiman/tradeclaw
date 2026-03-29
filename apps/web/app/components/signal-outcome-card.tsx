@@ -130,7 +130,13 @@ export function SignalOutcomeCard({ signal, compact = false }: SignalOutcomeCard
   }
 
   return (
-    <div className="glass-card rounded-2xl overflow-hidden min-w-[360px] max-w-[420px] w-full">
+    <div className="glass-card rounded-2xl overflow-hidden min-w-[360px] max-w-[420px] w-full relative">
+      {/* Target hit ribbon badge */}
+      {isWin && (
+        <div className="absolute top-3 right-3 z-10 bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 text-[9px] font-bold px-2 py-1 rounded-lg font-mono shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+          TARGET HIT
+        </div>
+      )}
       {/* Top accent bar */}
       <div
         className={`h-0.5 w-full ${

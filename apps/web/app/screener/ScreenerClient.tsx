@@ -80,18 +80,28 @@ function MACDBar({ value }: { value: number }) {
 
 // ─── Confidence Bar ───────────────────────────────────────────
 
-function ConfidenceBar({ value }: { value: number }) {
+function ConfidenceBar({ value, showExplainer = false }: { value: number; showExplainer?: boolean }) {
+  const explainer = value >= 75
+    ? 'Strong signal — high confluence'
+    : value >= 60
+      ? 'Moderate signal — partial agreement'
+      : 'Weak signal — limited confluence';
   return (
-    <div className="flex items-center gap-2 min-w-[90px]">
-      <div className="relative flex-1 h-1.5 rounded-full bg-[var(--glass-bg)] overflow-hidden">
-        <div
-          className={`absolute h-full rounded-full bg-gradient-to-r ${confColor(value)} transition-all duration-700`}
-          style={{ width: `${value}%` }}
-        />
+    <div>
+      <div className="flex items-center gap-2 min-w-[90px]">
+        <div className="relative flex-1 h-1.5 rounded-full bg-[var(--glass-bg)] overflow-hidden">
+          <div
+            className={`absolute h-full rounded-full bg-gradient-to-r ${confColor(value)} transition-all duration-700`}
+            style={{ width: `${value}%` }}
+          />
+        </div>
+        <span className={`text-[11px] font-mono font-semibold tabular-nums w-8 text-right ${confTextColor(value)}`}>
+          {value}%
+        </span>
       </div>
-      <span className={`text-[11px] font-mono font-semibold tabular-nums w-8 text-right ${confTextColor(value)}`}>
-        {value}%
-      </span>
+      {showExplainer && (
+        <p className="text-[9px] text-[var(--text-secondary)] mt-1 font-mono">{explainer}</p>
+      )}
     </div>
   );
 }
@@ -177,6 +187,92 @@ function FilterPill<T extends string>({
           {o.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+// ─── Mobile Screener Card ────────────────────────────────────
+
+function ScreenerCard({ r, watchlist, toggleWatchlist }: { r: ScreenerResult; watchlist: Set<string>; toggleWatchlist: (s: string) => void }) {
+  return (
+    <div className="glass-card rounded-xl p-4">
+      {/* Row 1: Symbol + Signal + Watchlist */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div>
+            <span className="text-sm font-mono font-bold text-[var(--foreground)]">{r.symbol}</span>
+            <span className="text-[10px] text-[var(--text-secondary)] ml-1.5">{r.name}</span>
+          </div>
+          <SignalBadge direction={r.direction} />
+        </div>
+        <button
+          onClick={() => toggleWatchlist(r.symbol)}
+          className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
+            watchlist.has(r.symbol) ? 'text-amber-400 bg-amber-500/10' : 'text-[var(--text-secondary)]'
+          }`}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill={watchlist.has(r.symbol) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Row 2: Price + Timeframe */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-lg font-mono font-bold text-[var(--foreground)] tabular-nums">{fmtPrice(r.price)}</span>
+        <span className="text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--glass-bg)] px-2 py-1 rounded">{r.timeframe}</span>
+      </div>
+
+      {/* Row 3: Confidence bar */}
+      <div className="mb-3">
+        <ConfidenceBar value={r.confidence} showExplainer />
+      </div>
+
+      {/* Row 4: Indicators grid */}
+      <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="bg-white/[0.02] rounded-lg py-1.5 px-2 text-center">
+          <div className="text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">RSI</div>
+          <span className={`text-xs font-mono tabular-nums font-semibold ${
+            r.rsi < 30 ? 'text-emerald-400' : r.rsi > 70 ? 'text-rose-400' : 'text-[var(--text-secondary)]'
+          }`}>{r.rsi.toFixed(1)}</span>
+        </div>
+        <div className="bg-white/[0.02] rounded-lg py-1.5 px-2 text-center">
+          <div className="text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">MACD</div>
+          <span className={`text-xs font-mono tabular-nums font-semibold ${r.macdHistogram > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            {r.macdHistogram >= 0 ? '+' : ''}{r.macdHistogram.toFixed(4)}
+          </span>
+        </div>
+        <div className="bg-white/[0.02] rounded-lg py-1.5 px-2 text-center">
+          <div className="text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">EMA</div>
+          <span className={`text-[10px] font-medium ${
+            r.emaStatus === 'Golden Cross' ? 'text-emerald-400' :
+            r.emaStatus === 'Death Cross' ? 'text-rose-400' :
+            r.emaStatus === 'Above EMA20' ? 'text-sky-400' :
+            'text-[var(--text-secondary)]'
+          }`}>{r.emaStatus}</span>
+        </div>
+      </div>
+
+      {/* Row 5: Sparkline */}
+      <div className="mb-3">
+        <SparklineChart prices={r.sparkline} direction={r.direction} />
+      </div>
+
+      {/* Row 6: Actions */}
+      <div className="flex items-center gap-2">
+        <Link
+          href={`/signal/${r.signalId}`}
+          className="flex-1 text-center px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold transition-colors hover:bg-emerald-500/20"
+        >
+          View Signal
+        </Link>
+        <Link
+          href={`/alerts?symbol=${r.symbol}`}
+          className="px-3 py-2 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] text-xs font-medium transition-colors hover:text-[var(--foreground)]"
+        >
+          Alert
+        </Link>
+      </div>
     </div>
   );
 }
@@ -481,7 +577,7 @@ export default function ScreenerClient() {
           </div>
         )}
 
-        {/* Results Table */}
+        {/* Results */}
         {!hasScanned ? (
           <div className="glass-card rounded-2xl flex flex-col items-center justify-center py-20 border border-[var(--border)]">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-[var(--text-secondary)] mb-4">
@@ -492,7 +588,63 @@ export default function ScreenerClient() {
             <p className="text-zinc-800 text-xs mt-1">Scans {12} assets across forex, crypto & metals</p>
           </div>
         ) : (
-          <div className="glass-card rounded-2xl overflow-x-auto border border-[var(--border)]">
+          <>
+            {/* Mobile sort dropdown */}
+            <div className="md:hidden mb-3 flex items-center gap-2">
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Sort by</span>
+              <select
+                value={sortKey}
+                onChange={e => { setSortKey(e.target.value as SortKey); setSortDir('desc'); }}
+                className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs font-mono text-[var(--foreground)] appearance-none"
+              >
+                <option value="confidence">Confidence</option>
+                <option value="symbol">Symbol</option>
+                <option value="price">Price</option>
+                <option value="rsi">RSI</option>
+                <option value="macdHistogram">MACD</option>
+              </select>
+              <button
+                onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+                className="px-2 py-1.5 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-xs font-mono text-[var(--text-secondary)]"
+              >
+                {sortDir === 'desc' ? '▼ High' : '▲ Low'}
+              </button>
+            </div>
+
+            {/* Mobile card view */}
+            <div className="md:hidden">
+              {loading && (
+                <div className="grid grid-cols-1 gap-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="glass-card rounded-xl p-4 animate-pulse">
+                      <div className="h-4 bg-[var(--glass-bg)] rounded mb-3 w-1/3" />
+                      <div className="h-6 bg-[var(--glass-bg)] rounded mb-3 w-1/2" />
+                      <div className="h-1.5 bg-[var(--glass-bg)] rounded mb-3" />
+                      <div className="grid grid-cols-3 gap-2 mb-3">
+                        {Array.from({ length: 3 }).map((_, j) => (
+                          <div key={j} className="h-10 bg-[var(--glass-bg)] rounded-lg" />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {!loading && sorted.length === 0 && hasScanned && (
+                <div className="text-center py-16 text-[var(--text-secondary)] text-xs">
+                  No assets match your filters. Try loosening the criteria.
+                </div>
+              )}
+              {!loading && sorted.length > 0 && (
+                <div className="grid grid-cols-1 gap-3">
+                  {sorted.map(r => (
+                    <ScreenerCard key={`${r.symbol}-${r.signalId}`} r={r} watchlist={watchlist} toggleWatchlist={toggleWatchlist} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Desktop table view */}
+          <div className="hidden md:block glass-card rounded-2xl overflow-x-auto border border-[var(--border)]">
             <table className="w-full min-w-[900px]">
               <thead>
                 <tr className="border-b border-[var(--border)]">
@@ -658,6 +810,7 @@ export default function ScreenerClient() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {/* Footer hint */}

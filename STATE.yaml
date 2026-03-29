@@ -855,9 +855,15 @@ tasks:
 
   - id: TC-102
     title: "Market sentiment dashboard — /sentiment page with crypto Fear & Greed index (alternative.me API), BTC dominance, global market cap, trending coins, 24h volume heatmap — zero-auth wow factor"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/sentiment (Promise.allSettled from alternative.me + CoinGecko, 5-min revalidate,
+      full mock fallbacks). SentimentClient.tsx — SVG Fear&Greed radial gauge (4 color zones + needle),
+      30-day sparkline bars, 4 global market stat cards (market cap/volume/BTC%/ETH%), stacked dominance
+      bar (BTC/ETH/ALT), 7 trending coin cards, 5x2 volume heatmap colored by 24h change, 30-day F&G
+      history bar chart, 5-min auto-refresh + manual refresh. Navbar Trading group + mobile nav + sitemap
+      updated. 1093 lines. 0 lint errors. Build passes. Committed faf5006c. 2026-03-29
 
   - id: TC-103
     title: "'Roast my strategy' AI page — /roast where users paste their strategy JSON or describe it in plain text and get a detailed AI critique with improvement suggestions, risk score, and edge assessment — viral engagement hook"

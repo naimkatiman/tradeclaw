@@ -14,6 +14,7 @@ import { LiveDemoEmbed } from "../components/landing/live-demo-embed";
 import { LiveHeroSignals } from "../components/landing/live-hero-signals";
 import { AccuracyStatsBar } from "./components/accuracy-stats-bar";
 import { LatestOutcomes } from "./components/latest-outcomes";
+import { EquityCurve } from "./components/equity-curve";
 
 export default function Home() {
   return (
@@ -24,6 +25,10 @@ export default function Home() {
         <LiveHeroSignals />
         <div className="max-w-5xl mx-auto px-4 py-4">
           <AccuracyStatsBar inline />
+        </div>
+        {/* Equity curve — proof the signals work */}
+        <div className="max-w-5xl mx-auto px-4 py-4">
+          <EquityCurve />
         </div>
         <div className="flex justify-center pb-4">
           <StarsBadge />

@@ -37,9 +37,14 @@ function OutcomeBadge({ record }: { record: SignalHistoryRecord }) {
   }
   if (outcome.hit) {
     return (
-      <span className="inline-flex items-center gap-1 text-emerald-400">
-        <Check className="w-3.5 h-3.5" />
-        <span className="text-xs font-mono">Win</span>
+      <span className="inline-flex items-center gap-1.5">
+        <span className="inline-flex items-center gap-1 text-emerald-400">
+          <Check className="w-3.5 h-3.5" />
+          <span className="text-xs font-mono">Win</span>
+        </span>
+        <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-bold px-1.5 py-0.5 rounded font-mono">
+          TARGET HIT
+        </span>
       </span>
     );
   }

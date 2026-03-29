@@ -17,7 +17,7 @@ const PRIMARY_LINKS: NavLink[] = [
   { href: '/screener', label: 'Signals' },
   { href: '/demo', label: 'Live Demo' },
   { href: '/backtest', label: 'Backtest' },
-  { href: '/api-docs', label: 'API Docs' },
+  { href: '/how-it-works', label: 'Getting Started' },
   { href: '/compare', label: 'Compare' },
 ];
 

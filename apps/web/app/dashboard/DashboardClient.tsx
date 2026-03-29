@@ -23,6 +23,41 @@ import type { TFDirection } from '../lib/signal-generator';
 
 const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];
 
+function OnboardingBanner() {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    try {
+      const dismissed = localStorage.getItem('tc_onboarding_dismissed');
+      const tourDone = localStorage.getItem('tc_tour_done');
+      if (!dismissed && !tourDone) setVisible(true);
+    } catch { /* ignore */ }
+  }, []);
+  if (!visible) return null;
+  const dismiss = () => {
+    setVisible(false);
+    try { localStorage.setItem('tc_onboarding_dismissed', '1'); } catch { /* ignore */ }
+  };
+  return (
+    <div className="border-b border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
+      <div className="max-w-7xl mx-auto flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-emerald-400 mb-1">Welcome to TradeClaw! Here&apos;s how to read signals:</p>
+          <ul className="text-xs text-[var(--text-secondary)] space-y-0.5 font-mono">
+            <li><span className="text-emerald-400">Green = BUY</span>, <span className="text-red-400">Red = SELL</span> — direction of the trade</li>
+            <li>Confidence above <span className="text-emerald-400 font-bold">70%</span> = strong signal with high indicator agreement</li>
+            <li>Click any signal card for full indicator breakdown (EMA, RSI, MACD, S/R levels)</li>
+          </ul>
+        </div>
+        <button onClick={dismiss} className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors shrink-0 mt-0.5">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const DEFAULT_TITLE = 'TradeClaw — Live Signals';
 const BUY_CONFIDENCE_THRESHOLD = 70;
 
@@ -56,14 +91,24 @@ function DirectionBadge({ direction }: { direction: 'BUY' | 'SELL' }) {
   );
 }
 
-function ConfidenceBar({ value }: { value: number }) {
+function ConfidenceBar({ value, showExplainer = false }: { value: number; showExplainer?: boolean }) {
   const color = value >= 80 ? '#10B981' : value >= 65 ? '#F59E0B' : '#EF4444';
+  const explainer = value >= 80
+    ? 'Strong signal — high indicator confluence'
+    : value >= 65
+      ? 'Moderate signal — partial indicator agreement'
+      : 'Weak signal — limited confluence';
   return (
-    <div className="relative h-1 w-full rounded-full bg-[var(--glass-bg)]">
-      <div
-        className="absolute h-1 rounded-full transition-all duration-700"
-        style={{ width: `${value}%`, background: color }}
-      />
+    <div>
+      <div className="relative h-1 w-full rounded-full bg-[var(--glass-bg)]">
+        <div
+          className="absolute h-1 rounded-full transition-all duration-700"
+          style={{ width: `${value}%`, background: color }}
+        />
+      </div>
+      {showExplainer && (
+        <p className="text-[9px] text-[var(--text-secondary)] mt-1 font-mono">{explainer}</p>
+      )}
     </div>
   );
 }
@@ -193,7 +238,7 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
       </div>
 
       {/* Confidence bar */}
-      <ConfidenceBar value={signal.confidence} />
+      <ConfidenceBar value={signal.confidence} showExplainer />
 
       {/* Price levels */}
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 mt-4 text-center">
@@ -367,6 +412,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
     <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
       <GuidedTourListener />
       <PageNavBar />
+      <OnboardingBanner />
 
       {/* Dashboard controls */}
       <div className="max-w-7xl mx-auto px-4 h-12 flex items-center justify-end gap-3 border-b border-[var(--border)] bg-[var(--background)]/50">
@@ -444,9 +490,9 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6">
         <PageHint message="Demo mode: all signals use live-simulated market data. Explore freely — no account needed." />
 
-        {/* Accuracy stats bar */}
-        <div className="mb-6">
-          <AccuracyStatsBar />
+        {/* Accuracy stats bar — prominent inline version */}
+        <div className="mb-4">
+          <AccuracyStatsBar inline />
         </div>
 
         {/* Market context — sentiment, BTC on-chain, DeFi TVL */}
