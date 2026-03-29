@@ -1,0 +1,168 @@
+{
+  "balance": 9975.94,
+  "startingBalance": 10000,
+  "positions": [],
+  "history": [
+    {
+      "id": "pt_seed_0",
+      "symbol": "USDJPY",
+      "direction": "BUY",
+      "entryPrice": 150.75,
+      "exitPrice": 153.67,
+      "quantity": 500,
+      "pnl": 9.68,
+      "pnlPercent": 1.94,
+      "openedAt": "2026-03-20T20:36:17.639Z",
+      "closedAt": "2026-03-20T21:36:17.639Z",
+      "exitReason": "manual"
+    },
+    {
+      "id": "pt_seed_1",
+      "symbol": "BTCUSD",
+      "direction": "BUY",
+      "entryPrice": 87908.48,
+      "exitPrice": 87467.16,
+      "quantity": 500,
+      "pnl": -2.51,
+      "pnlPercent": -0.5,
+      "openedAt": "2026-03-21T20:36:17.639Z",
+      "closedAt": "2026-03-21T21:36:17.639Z",
+      "exitReason": "manual"
+    },
+    {
+      "id": "pt_seed_2",
+      "symbol": "XAGUSD",
+      "direction": "SELL",
+      "entryPrice": 24.83997,
+      "exitPrice": 24.40892,
+      "quantity": 500,
+      "pnl": -8.68,
+      "pnlPercent": -1.74,
+      "openedAt": "2026-03-22T20:36:17.639Z",
+      "closedAt": "2026-03-22T21:36:17.639Z",
+      "exitReason": "manual"
+    },
+    {
+      "id": "pt_seed_3",
+      "symbol": "ETHUSD",
+      "direction": "BUY",
+      "entryPrice": 3409.67,
+      "exitPrice": 3395.51,
+      "quantity": 500,
+      "pnl": -2.08,
+      "pnlPercent": -0.42,
+      "openedAt": "2026-03-23T20:36:17.639Z",
+      "closedAt": "2026-03-23T21:36:17.639Z",
+      "exitReason": "manual"
+    },
+    {
+      "id": "pt_seed_4",
+      "symbol": "XAUUSD",
+      "direction": "SELL",
+      "entryPrice": 2178.87,
+      "exitPrice": 2140.28,
+      "quantity": 500,
+      "pnl": -8.86,
+      "pnlPercent": -1.77,
+      "openedAt": "2026-03-24T20:36:17.639Z",
+      "closedAt": "2026-03-24T21:36:17.639Z",
+      "exitReason": "manual"
+    },
+    {
+      "id": "pt_seed_5",
+      "symbol": "EURUSD",
+      "direction": "BUY",
+      "entryPrice": 1.08542,
+      "exitPrice": 1.0732,
+      "quantity": 499,
+      "pnl": -5.62,
+      "pnlPercent": -1.13,
+      "openedAt": "2026-03-25T20:36:17.639Z",
+      "closedAt": "2026-03-25T21:36:17.639Z",
+      "exitReason": "manual"
+    },
+    {
+      "id": "pt_seed_6",
+      "symbol": "XAGUSD",
+      "direction": "SELL",
+      "entryPrice": 24.70577,
+      "exitPrice": 24.932,
+      "quantity": 499,
+      "pnl": 4.57,
+      "pnlPercent": 0.92,
+      "openedAt": "2026-03-26T20:36:17.639Z",
+      "closedAt": "2026-03-26T21:36:17.639Z",
+      "exitReason": "manual"
+    },
+    {
+      "id": "pt_seed_7",
+      "symbol": "XAUUSD",
+      "direction": "SELL",
+      "entryPrice": 2179.57,
+      "exitPrice": 2133.45,
+      "quantity": 499,
+      "pnl": -10.56,
+      "pnlPercent": -2.12,
+      "openedAt": "2026-03-27T20:36:17.639Z",
+      "closedAt": "2026-03-27T21:36:17.639Z",
+      "exitReason": "manual"
+    }
+  ],
+  "equityCurve": [
+    {
+      "timestamp": "2026-03-19T21:36:17.639Z",
+      "equity": 10000,
+      "balance": 10000
+    },
+    {
+      "timestamp": "2026-03-20T21:36:17.639Z",
+      "equity": 10009.68,
+      "balance": 10009.68
+    },
+    {
+      "timestamp": "2026-03-21T21:36:17.639Z",
+      "equity": 10007.17,
+      "balance": 10007.17
+    },
+    {
+      "timestamp": "2026-03-22T21:36:17.639Z",
+      "equity": 9998.49,
+      "balance": 9998.49
+    },
+    {
+      "timestamp": "2026-03-23T21:36:17.639Z",
+      "equity": 9996.41,
+      "balance": 9996.41
+    },
+    {
+      "timestamp": "2026-03-24T21:36:17.639Z",
+      "equity": 9987.55,
+      "balance": 9987.55
+    },
+    {
+      "timestamp": "2026-03-25T21:36:17.639Z",
+      "equity": 9981.93,
+      "balance": 9981.93
+    },
+    {
+      "timestamp": "2026-03-26T21:36:17.639Z",
+      "equity": 9986.5,
+      "balance": 9986.5
+    },
+    {
+      "timestamp": "2026-03-27T21:36:17.639Z",
+      "equity": 9975.94,
+      "balance": 9975.94
+    }
+  ],
+  "stats": {
+    "totalTrades": 8,
+    "winRate": 25,
+    "avgPnl": -3.01,
+    "bestTrade": 9.68,
+    "worstTrade": -10.56,
+    "sharpeRatio": -7.21,
+    "maxDrawdown": 0.3,
+    "profitFactor": 0.37
+  }
+}
