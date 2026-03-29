@@ -30,7 +30,7 @@ export const SYMBOLS = [
   { symbol: 'USDCHF', name: 'USD/CHF', pip: 0.0001, basePrice: 0.7922, volatility: 0.004 },
 ];
 
-export const TIMEFRAMES = ['M15', 'H1', 'H4', 'D1'];
+export const TIMEFRAMES = ['M15', 'H1', 'H4', 'D1'] as const;
 
 // generateSignalId and clamp are now imported from @tradeclaw/signals
 
