@@ -1,0 +1,29 @@
+name: Deploy with Signal Gate
+on:
+  push:
+    branches: [main]
+
+jobs:
+  signal-check:
+    runs-on: ubuntu-latest
+    outputs:
+      signal: ${{ steps.tc.outputs.signal }}
+      confidence: ${{ steps.tc.outputs.confidence }}
+    steps:
+      - name: Check BTC signal
+        uses: naimkatiman/tradeclaw/packages/tradeclaw-action@main
+        id: tc
+        with:
+          pair: BTCUSD
+          timeframe: H4
+          min_confidence: 60
+
+  deploy:
+    needs: signal-check
+    if: needs.signal-check.outputs.signal == 'BUY'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy
+        run: echo "Deploying — BTC signal is BUY with ${{ needs.signal-check.outputs.confidence }}% confidence"

@@ -1,0 +1,44 @@
+name: PR Signal Comment
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  signal-report:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Fetch BTC signal
+        uses: naimkatiman/tradeclaw/packages/tradeclaw-action@main
+        id: btc
+        with:
+          pair: BTCUSD
+
+      - name: Fetch ETH signal
+        uses: naimkatiman/tradeclaw/packages/tradeclaw-action@main
+        id: eth
+        with:
+          pair: ETHUSD
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              '## TradeClaw Signal Report',
+              '',
+              '| Pair | Signal | Confidence | RSI |',
+              '|------|--------|-----------|-----|',
+              `| BTCUSD | ${{ steps.btc.outputs.signal }} | ${{ steps.btc.outputs.confidence }}% | ${{ steps.btc.outputs.rsi }} |`,
+              `| ETHUSD | ${{ steps.eth.outputs.signal }} | ${{ steps.eth.outputs.confidence }}% | ${{ steps.eth.outputs.rsi }} |`,
+              '',
+              '> Powered by [TradeClaw](https://tradeclaw.win)',
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });

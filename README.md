@@ -13,6 +13,7 @@
 [![Last Commit](https://img.shields.io/github/last-commit/naimkatiman/tradeclaw?color=10b981)](https://github.com/naimkatiman/tradeclaw/commits/main)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](https://hub.docker.com)
 [![Demo](https://img.shields.io/badge/Demo-Live-10b981?logo=vercel)](https://tradeclaw.win/dashboard)
+[![GitHub Action](https://img.shields.io/badge/Action-Marketplace-2088FF?logo=github-actions)](https://github.com/marketplace/actions/tradeclaw-signal)
 
 **[🚀 Live Demo](https://tradeclaw.win/dashboard)** · **[📡 API Docs](https://tradeclaw.win/api-docs)** · **[🤝 Contribute](https://tradeclaw.win/contribute)**
 
@@ -125,6 +126,26 @@ Embed real-time BTC, ETH, and Gold signal badges directly in your README — aut
 ```
 
 URL format: `https://tradeclaw.win/api/badge/{PAIR}?tf={H1|H4|D1}` · [All badge pairs &rarr;](https://tradeclaw.win/badge)
+
+## GitHub Action
+
+Fetch live signals in your CI/CD pipeline:
+
+```yaml
+- name: Get BTC signal
+  uses: naimkatiman/tradeclaw/packages/tradeclaw-action@main
+  id: signal
+  with:
+    pair: BTCUSD
+    timeframe: H1
+    min_confidence: 70
+
+- name: Deploy if confident
+  if: success()
+  run: npm run deploy
+```
+
+Gate deployments on market conditions, run scheduled signal checks, scan multiple pairs with matrix strategy. [Action docs &rarr;](https://tradeclaw.win/action) &middot; [Marketplace &rarr;](https://github.com/marketplace/actions/tradeclaw-signal)
 
 ## Discord Bot
 

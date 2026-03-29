@@ -895,9 +895,12 @@ tasks:
 
   - id: TC-105
     title: "Open Graph social preview generator — /og-preview page where community members can generate custom social cards (with their pair + signal + name) to share on Twitter/LinkedIn, boosting organic reach"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /og-preview page enhanced with Dark/Dark Purple/Dark Gold themes, RSI/MACD/EMA
+      indicator rows on canvas, custom tagline input (60 char max), 6-card gallery section,
+      navbar Signal Card link (Share2 icon), 0 lint errors. Build passes. Committed dce4a034. 2026-03-30
 
   - id: TC-106
     title: "TradeClaw GitHub Action — publish tradeclaw-action to GitHub Marketplace so CI pipelines can fetch live signals (e.g. 'alert on BTC sell signal in CI'), viral dev discovery vector"

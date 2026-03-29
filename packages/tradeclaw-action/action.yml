@@ -1,0 +1,50 @@
+name: 'TradeClaw Signal'
+description: 'Fetch live AI trading signals from TradeClaw in your CI/CD pipeline'
+author: 'naimkatiman'
+branding:
+  icon: 'trending-up'
+  color: 'green'
+
+inputs:
+  pair:
+    description: 'Trading pair (e.g. BTCUSD, ETHUSD, XAUUSD)'
+    required: true
+    default: 'BTCUSD'
+  timeframe:
+    description: 'Signal timeframe (M5, M15, H1, H4, D1)'
+    required: false
+    default: 'H1'
+  base_url:
+    description: 'TradeClaw instance URL'
+    required: false
+    default: 'https://tradeclaw.win'
+  fail_on_signal:
+    description: 'Fail the step if a signal matches (e.g. SELL). Set to "none" to never fail.'
+    required: false
+    default: 'none'
+  signal_direction:
+    description: 'Only pass if signal matches this direction (BUY or SELL). Leave empty to accept any.'
+    required: false
+    default: ''
+  min_confidence:
+    description: 'Minimum confidence threshold (0-100). Step fails if signal confidence is below this.'
+    required: false
+    default: '0'
+
+outputs:
+  signal:
+    description: 'Signal direction (BUY, SELL, or NEUTRAL)'
+  confidence:
+    description: 'Signal confidence percentage (0-100)'
+  pair:
+    description: 'Trading pair that was queried'
+  timeframe:
+    description: 'Timeframe that was queried'
+  rsi:
+    description: 'Current RSI value'
+  direction:
+    description: 'Alias for signal output'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

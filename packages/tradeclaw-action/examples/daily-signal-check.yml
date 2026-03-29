@@ -1,0 +1,23 @@
+name: Daily Signal Check
+on:
+  schedule:
+    - cron: '0 8 * * 1-5'  # 8 AM UTC, weekdays
+  workflow_dispatch:
+
+jobs:
+  check-signals:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pair: [BTCUSD, ETHUSD, XAUUSD, EURUSD]
+    steps:
+      - name: Fetch ${{ matrix.pair }} signal
+        uses: naimkatiman/tradeclaw/packages/tradeclaw-action@main
+        id: signal
+        with:
+          pair: ${{ matrix.pair }}
+          timeframe: D1
+
+      - name: Log result
+        run: |
+          echo "${{ matrix.pair }}: ${{ steps.signal.outputs.signal }} (${{ steps.signal.outputs.confidence }}%)"
