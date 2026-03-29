@@ -746,8 +746,40 @@ tasks:
       groups. Mobile nav slide-up sheet reorganized into sectioned categories with headers.
       All routes preserved. Build passes 108 pages. 2026-03-28
 
+  # ── Phase 19: Sustained Virality + Trust ──
+
+  - id: TC-094
+    title: "Live signal Notion integration — /notion page + /api/notion/sync endpoint that exports signals to a Notion database (copy-paste token setup)"
+    status: done
+    owner: pm-tradeclaw
+    notes: "Built 2026-03-29. /notion page, /api/notion/sync POST, /api/notion/schema GET, navbar link, docs."
+
+  - id: TC-095
+    title: "GitHub README interactive badges — dynamic SVG badges showing live BTC/ETH/XAU signal direction + confidence, auto-refresh via shields.io custom endpoint"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-096
+    title: "TradeClaw Zapier integration page — /zapier page with step-by-step Zap templates (Signal → Email, Signal → Google Sheets, Signal → Slack) and one-click Zapier invite links"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-097
+    title: "Backtesting results showcase — /results page with pre-computed backtest results for 5 strategies on BTC/ETH/XAUUSD showing realistic P&L curves, Sharpe ratio, max drawdown — honest but compelling social proof"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-098
+    title: "Self-hostable Telegram channel bot — /api/telegram/broadcast endpoint + cron trigger every 4h to auto-post top signals to a configured Telegram channel with rich formatting"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
 next_actions:
-  - "TC-069/070/071 done. Phase 14 in progress. Next: define Phase 15 viral tasks."
+  - "Phase 19 defined (TC-094 to TC-098). Start with TC-094 next run."
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
   - "Replace seed-heavy accuracy UX with live-only metrics once enough tracked signal records accumulate."
   - "Add test suite (currently zero tests for 108+ pages)."
