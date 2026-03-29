@@ -3,6 +3,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
 
+  // Transpile workspace packages
+  transpilePackages: ["@tradeclaw/signals"],
+
+  // Turbopack: resolve .js to .ts for workspace packages using Node16 resolution
+  turbopack: {
+    resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
+  },
+
   // Skip TypeScript type-check during build (tsc runs separately via lint/CI)
   typescript: {
     ignoreBuildErrors: true,

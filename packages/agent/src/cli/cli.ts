@@ -66,7 +66,7 @@ program
     console.log(`  Min confidence:   ${config.minConfidence}%`);
     console.log(`  Symbols:          ${config.symbols.join(', ')}`);
     console.log(`  Timeframes:       ${config.timeframes.join(', ')}`);
-    console.log(`  Channels:         ${config.channels.filter(c => c.enabled).map(c => c.type).join(', ') || 'none'}`);
+    console.log(`  Channels:         ${config.channels.filter((c: { enabled: boolean }) => c.enabled).map((c: { type: string }) => c.type).join(', ') || 'none'}`);
     console.log(`  Skills:           ${config.skills.join(', ') || 'none'}`);
     console.log('');
   });

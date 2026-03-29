@@ -132,8 +132,8 @@ function computeIndicators(
   const stochSignal: IndicatorSummary['stochastic']['signal'] =
     stoch.k < 20 ? 'oversold' : stoch.k > 80 ? 'overbought' : 'neutral';
 
-  const support = findSupportLevels(low, 3).map(p => roundPrice(p, symbol));
-  const resistance = findResistanceLevels(high, 3).map(p => roundPrice(p, symbol));
+  const support = findSupportLevels(low, 3).map((p: number) => roundPrice(p, symbol));
+  const resistance = findResistanceLevels(high, 3).map((p: number) => roundPrice(p, symbol));
 
   return {
     rsi: { value: Number(rsiValue.toFixed(1)), signal: rsiSignal },

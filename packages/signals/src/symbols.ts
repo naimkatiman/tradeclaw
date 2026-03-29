@@ -1,4 +1,4 @@
-import type { SymbolConfig } from './types';
+import type { SymbolConfig } from './types.js';
 
 export const SYMBOLS: Record<string, SymbolConfig> = {
   XAUUSD: {
