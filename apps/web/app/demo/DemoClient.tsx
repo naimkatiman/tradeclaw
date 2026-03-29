@@ -97,6 +97,75 @@ const SYMBOL_NAMES: Record<string, string> = {
   AUDUSD: 'AUD/USD', USDCAD: 'USD/CAD', NZDUSD: 'NZD/USD', USDCHF: 'USD/CHF',
 };
 
+const FALLBACK_SIGNALS: ApiSignal[] = [
+  {
+    id: 'fb-btcusd-001', symbol: 'BTCUSD', direction: 'BUY', confidence: 78,
+    entry: 84250, stopLoss: 82100, takeProfit1: 86500, takeProfit2: 88000, takeProfit3: 91000,
+    indicators: {
+      rsi: { value: 58, signal: 'neutral' }, macd: { histogram: 120, signal: 'bullish' },
+      ema: { trend: 'up', ema20: 83800, ema50: 82500, ema200: 78000 },
+      bollingerBands: { position: 'middle', bandwidth: 0.04 }, stochastic: { k: 65, d: 60, signal: 'neutral' },
+      support: [82000, 80500], resistance: [86000, 88000],
+    },
+    timeframe: 'H4', timestamp: new Date().toISOString(), status: 'active', source: 'fallback', dataQuality: 'synthetic',
+  },
+  {
+    id: 'fb-ethusd-001', symbol: 'ETHUSD', direction: 'BUY', confidence: 72,
+    entry: 1920, stopLoss: 1850, takeProfit1: 1980, takeProfit2: 2050, takeProfit3: 2150,
+    indicators: {
+      rsi: { value: 52, signal: 'neutral' }, macd: { histogram: 8.5, signal: 'bullish' },
+      ema: { trend: 'up', ema20: 1900, ema50: 1870, ema200: 1750 },
+      bollingerBands: { position: 'middle', bandwidth: 0.05 }, stochastic: { k: 55, d: 50, signal: 'neutral' },
+      support: [1850, 1800], resistance: [2000, 2100],
+    },
+    timeframe: 'H1', timestamp: new Date().toISOString(), status: 'active', source: 'fallback', dataQuality: 'synthetic',
+  },
+  {
+    id: 'fb-xauusd-001', symbol: 'XAUUSD', direction: 'BUY', confidence: 82,
+    entry: 3075.50, stopLoss: 3045.00, takeProfit1: 3110.00, takeProfit2: 3140.00, takeProfit3: 3180.00,
+    indicators: {
+      rsi: { value: 62, signal: 'neutral' }, macd: { histogram: 2.3, signal: 'bullish' },
+      ema: { trend: 'up', ema20: 3060, ema50: 3020, ema200: 2850 },
+      bollingerBands: { position: 'upper', bandwidth: 0.03 }, stochastic: { k: 72, d: 68, signal: 'neutral' },
+      support: [3045, 3020], resistance: [3100, 3150],
+    },
+    timeframe: 'H4', timestamp: new Date().toISOString(), status: 'active', source: 'fallback', dataQuality: 'synthetic',
+  },
+  {
+    id: 'fb-eurusd-001', symbol: 'EURUSD', direction: 'SELL', confidence: 68,
+    entry: 1.0835, stopLoss: 1.0890, takeProfit1: 1.0780, takeProfit2: 1.0730, takeProfit3: 1.0680,
+    indicators: {
+      rsi: { value: 42, signal: 'neutral' }, macd: { histogram: -0.0008, signal: 'bearish' },
+      ema: { trend: 'down', ema20: 1.0850, ema50: 1.0880, ema200: 1.0920 },
+      bollingerBands: { position: 'lower', bandwidth: 0.008 }, stochastic: { k: 35, d: 40, signal: 'neutral' },
+      support: [1.0780, 1.0720], resistance: [1.0880, 1.0920],
+    },
+    timeframe: 'H1', timestamp: new Date().toISOString(), status: 'active', source: 'fallback', dataQuality: 'synthetic',
+  },
+  {
+    id: 'fb-gbpusd-001', symbol: 'GBPUSD', direction: 'BUY', confidence: 65,
+    entry: 1.2935, stopLoss: 1.2870, takeProfit1: 1.2990, takeProfit2: 1.3040, takeProfit3: 1.3100,
+    indicators: {
+      rsi: { value: 55, signal: 'neutral' }, macd: { histogram: 0.0005, signal: 'bullish' },
+      ema: { trend: 'up', ema20: 1.2920, ema50: 1.2890, ema200: 1.2750 },
+      bollingerBands: { position: 'middle', bandwidth: 0.007 }, stochastic: { k: 58, d: 54, signal: 'neutral' },
+      support: [1.2870, 1.2820], resistance: [1.2990, 1.3050],
+    },
+    timeframe: 'H4', timestamp: new Date().toISOString(), status: 'active', source: 'fallback', dataQuality: 'synthetic',
+  },
+  {
+    id: 'fb-usdjpy-001', symbol: 'USDJPY', direction: 'SELL', confidence: 74,
+    entry: 150.850, stopLoss: 151.500, takeProfit1: 150.200, takeProfit2: 149.600, takeProfit3: 148.800,
+    indicators: {
+      rsi: { value: 68, signal: 'overbought' }, macd: { histogram: -0.15, signal: 'bearish' },
+      ema: { trend: 'down', ema20: 151.00, ema50: 151.50, ema200: 149.80 },
+      bollingerBands: { position: 'upper', bandwidth: 0.01 }, stochastic: { k: 78, d: 75, signal: 'overbought' },
+      support: [150.00, 149.50], resistance: [151.50, 152.00],
+    },
+    timeframe: 'H1', timestamp: new Date().toISOString(), status: 'active', source: 'fallback', dataQuality: 'synthetic',
+  },
+];
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -596,7 +665,14 @@ export default function DemoClient() {
       const apiSignals: ApiSignal[] = data.signals || [];
 
       if (apiSignals.length === 0) {
-        setError(true);
+        // Use fallback signals instead of showing error
+        const mapped = FALLBACK_SIGNALS.map(mapApiSignal);
+        setPrev(signals);
+        setSignals(mapped);
+        setError(false);
+        setTick(t => t + 1);
+        countdownRef.current = REFRESH_INTERVAL;
+        setCountdown(REFRESH_INTERVAL);
         return;
       }
 
@@ -608,13 +684,20 @@ export default function DemoClient() {
       countdownRef.current = REFRESH_INTERVAL;
       setCountdown(REFRESH_INTERVAL);
     } catch {
-      setError(true);
+      // On fetch failure, use fallback signals so the demo always shows data
+      const mapped = FALLBACK_SIGNALS.map(mapApiSignal);
+      setPrev(signals);
+      setSignals(mapped);
+      setError(false);
+      setTick(t => t + 1);
+      countdownRef.current = REFRESH_INTERVAL;
+      setCountdown(REFRESH_INTERVAL);
     } finally {
       setLoading(false);
     }
   }, [signals]);
 
-  useEffect(() => { fetchSignals(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+  useEffect(() => { fetchSignals(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const interval = setInterval(fetchSignals, REFRESH_INTERVAL * 1000);

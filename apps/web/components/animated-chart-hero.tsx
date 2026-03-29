@@ -238,7 +238,6 @@ export function AnimatedChartHero({
 
     function drawSignalBadge(badge: SignalBadge) {
       const isBuy = badge.type === "BUY";
-      const accent = isBuy ? COLORS.emerald : { r: 244, g: 63, b: 94 };
       const accentStr = isBuy ? "rgba(16,185,129" : "rgba(244,63,94";
 
       ctx.save();

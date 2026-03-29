@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readHistory, resolveRealOutcomes, type SignalHistoryRecord } from '../../../../lib/signal-history';
+import { readHistory, resolveRealOutcomes } from '../../../../lib/signal-history';
 
 export async function GET(request: NextRequest) {
   try {

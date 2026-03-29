@@ -64,7 +64,6 @@ export default async function SignalPage(
 
   const signal = signals[0];
   const isBuy = signal.direction === 'BUY';
-  const accentClass = isBuy ? 'text-emerald-400' : 'text-red-400';
   const signalPath = `/signal/${symbol}-${timeframe}-${direction}`;
 
   return (

@@ -332,7 +332,7 @@ export function ExplainClient() {
           <div className="glass-card rounded-2xl p-5">
             <h3 className="text-[11px] text-zinc-600 uppercase tracking-wider mb-3">Recent Analyses</h3>
             <div className="space-y-2">
-              {history.map((h, i) => (
+              {history.map((h) => (
                 <button
                   key={`${h.symbol}-${h.timeframe}-${h.timestamp}`}
                   onClick={() => loadFromHistory(h)}

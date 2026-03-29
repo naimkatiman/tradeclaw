@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 
 interface AIAnalysisPanelProps {
   symbol: string;
@@ -191,7 +191,7 @@ function renderMarkdown(md: string) {
   return elements;
 }
 
-export function AIAnalysisPanel({ symbol, timeframe, signalId }: AIAnalysisPanelProps) {
+export function AIAnalysisPanel({ symbol, timeframe }: AIAnalysisPanelProps) {
   const [markdown, setMarkdown] = useState('');
   const [summary, setSummary] = useState('');
   const [confluenceScore, setConfluenceScore] = useState(0);

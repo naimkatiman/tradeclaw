@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle } from 'lucide-react';
+import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import type { LucideIcon } from 'lucide-react';
 
@@ -39,6 +39,8 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/alerts', label: 'Alerts' },
       { href: '/accuracy', label: 'Accuracy' },
       { href: '/calibration', label: 'Calibration' },
+      { href: '/broker-sim', label: 'Broker Sim', icon: Plug },
+      { href: '/today', label: 'Signal of the Day', icon: Zap },
     ],
   },
   {
@@ -51,6 +53,8 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/marketplace', label: 'Marketplace' },
       { href: '/api-keys', label: 'API Keys' },
       { href: '/status', label: 'Status', icon: Activity },
+      { href: '/digest', label: 'Digest', icon: Clock },
+      { href: '/wrapped', label: 'Wrapped', icon: Gift },
     ],
   },
   {
@@ -77,6 +81,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/vs-tradingview', label: 'vs TradingView' },
       { href: '/discord', label: 'Discord Bot', icon: MessageCircle },
       { href: '/quiz', label: 'Trader Quiz', icon: HelpCircle },
+      { href: '/contributors', label: 'Contributors', icon: Trophy },
     ],
   },
 ];
@@ -246,7 +251,7 @@ export function Navbar() {
       {/* Mobile menu overlay */}
       {menuOpen && (
         <div
-          className="fixed inset-0 z-40 backdrop-blur-2xl bg-black/85 flex flex-col items-center justify-center gap-8"
+          className="fixed inset-0 z-[60] backdrop-blur-2xl bg-black/85 flex flex-col items-center justify-center gap-8"
           onClick={() => setMenuOpen(false)}
         >
           {ALL_NAV_LINKS.map((link, i) => (

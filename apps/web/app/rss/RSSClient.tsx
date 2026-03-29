@@ -238,16 +238,19 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
 
           {/* RSS badge */}
           <div className="mt-4 flex items-center gap-3 flex-wrap">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://img.shields.io/badge/RSS-Live%20Signals-orange?logo=rss&logoColor=white"
               alt="RSS Live Signals"
               height="20"
             />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://img.shields.io/badge/Atom-Feed-blue?logo=atom&logoColor=white"
               alt="Atom Feed"
               height="20"
             />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://img.shields.io/badge/JSON%20Feed-1.1-purple?logo=json&logoColor=white"
               alt="JSON Feed 1.1"

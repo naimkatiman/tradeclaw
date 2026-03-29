@@ -11,7 +11,6 @@ import {
   Code2,
   Server,
   TrendingUp,
-  Users,
   Globe,
   Copy,
   Check,
@@ -171,7 +170,8 @@ export function ShowcaseClient() {
   const [stars, setStars] = useState<number | null>(null);
   const [signals, setSignals] = useState<Signal[]>([]);
   const [copied, setCopied] = useState(false);
-  const [tick, setTick] = useState(0);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_tick, setTick] = useState(0);
 
   useEffect(() => {
     fetch('/api/github-stars')

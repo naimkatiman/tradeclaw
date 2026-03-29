@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import type { Portfolio, Position, Trade, EquityPoint } from '../../lib/paper-trading';
+import type { Portfolio, Trade, EquityPoint } from '../../lib/paper-trading';
 
 // ---------------------------------------------------------------------------
 // Types

@@ -225,7 +225,7 @@ export default function StrategyBuilderPage() {
     } catch { /* ignore */ }
   };
 
-  useEffect(() => { setTimeout(() => loadSavedStrategies(), 0); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setTimeout(() => loadSavedStrategies(), 0); }, []);
 
   const validate = useCallback(() => {
     const errors = validateStrategy(strategy);

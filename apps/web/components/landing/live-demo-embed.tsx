@@ -50,7 +50,7 @@ function SparklineChart({ pair }: { pair: string }) {
     pts.forEach((pt, i) => {
       const x = (i / (pts.length - 1)) * width;
       const y = height - ((pt.price - min) / range) * (height - 6) - 3;
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      if (i === 0) { ctx.moveTo(x, y); } else { ctx.lineTo(x, y); }
     });
     const lastX = width;
     const lastY = height - ((prices[prices.length - 1] - min) / range) * (height - 6) - 3;
@@ -66,7 +66,7 @@ function SparklineChart({ pair }: { pair: string }) {
     pts.forEach((pt, i) => {
       const x = (i / (pts.length - 1)) * width;
       const y = height - ((pt.price - min) / range) * (height - 6) - 3;
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      if (i === 0) { ctx.moveTo(x, y); } else { ctx.lineTo(x, y); }
     });
     ctx.strokeStyle = color;
     ctx.lineWidth = 1.5;

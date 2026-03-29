@@ -83,7 +83,7 @@ export function usePriceStream(pairs: string[]): {
       mountedRef.current = false;
       esRef.current?.close();
     };
-  }, [pairsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pairsKey]);
 
   return { prices, state };
 }
@@ -144,7 +144,7 @@ export function useSignalStream(): {
       mountedRef.current = false;
       esRef.current?.close();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   return { signals, state };
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, startTransition } from 'react';
 import { calculateRSI, calculateMACD, calculateEMAs } from '../lib/ta-engine';
 import { applySlippage, getSlippageConfig } from '../../lib/slippage';
 
@@ -882,10 +882,12 @@ export default function BacktestPage() {
         riskPercent: 1,
         slippage: true,
       };
-      setParams(newParams);
-      setLoadedStrategyName(strategyName);
-      setRunning(true);
-      setError(null);
+      startTransition(() => {
+        setParams(newParams);
+        setLoadedStrategyName(strategyName);
+        setRunning(true);
+        setError(null);
+      });
       runBacktest(newParams)
         .then(r => {
           setResult(r);
@@ -896,7 +898,6 @@ export default function BacktestPage() {
         })
         .finally(() => setRunning(false));
     } catch { /* ignore invalid param */ }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRun = useCallback(() => {

@@ -215,6 +215,7 @@ fetch('${jsonUrl}')
             <div className="border border-white/10 rounded-xl p-6 space-y-5 bg-white/[0.02]">
               <div>
                 <h3 className="text-sm font-semibold flex items-center gap-2">
+                  {/* eslint-disable-next-line jsx-a11y/alt-text */}
                   <Image className="w-4 h-4 text-emerald-400" />
                   SVG Badge
                 </h3>

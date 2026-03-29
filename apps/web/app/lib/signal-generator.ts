@@ -56,15 +56,12 @@ const MIN_BB_WIDTH = 0.3;
 const MIN_RISK_ATR = 0.5;
 const MAX_RISK_ATR = 3.5;
 
-let signalCounter = 0;
-
 function generateSignalId(
   symbol: string,
   timeframe: string,
   direction: 'BUY' | 'SELL',
   signalTimestamp: number,
 ): string {
-  signalCounter++;
   return `SIG-${symbol}-${timeframe}-${direction}-${signalTimestamp.toString(36).toUpperCase()}`;
 }
 
@@ -564,10 +561,6 @@ export function generateSignalsFromTA(
   // ── ADX Gate: suppress signals in very flat markets (ADX < 15) ──
   const adxValue = indicators.adx.current.adx;
   if (!isNaN(adxValue) && adxValue < 15) return [];
-
-  // Volume is informational only — the current candle is often still forming,
-  // making ratio unreliable as a hard gate.
-  const { volume } = indicators;
 
   const signals: TradingSignal[] = [];
   const indicatorSummary = buildIndicatorSummary(indicators, currentPrice);

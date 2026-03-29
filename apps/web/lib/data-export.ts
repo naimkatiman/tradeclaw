@@ -107,6 +107,7 @@ const PKG_VERSION = (() => {
 // ---------------------------------------------------------------------------
 
 function sanitiseWebhooks(webhooks: WebhookConfig[]): SanitisedWebhook[] {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return webhooks.map(({ secret, deliveryLog: _log, failCount: _fc, lastDelivery: _ld, ...rest }) => ({
     id: rest.id,
     name: rest.name,

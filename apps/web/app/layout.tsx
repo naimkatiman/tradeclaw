@@ -32,7 +32,7 @@ const jsonLd = [
     },
     description:
       "Self-hosted AI trading signals for forex, crypto, and metals. Free forever. Deploy in 5 minutes with Docker.",
-    url: "https://tradeclaw.com",
+    url: "https://tradeclaw.win",
   },
   {
     "@context": "https://schema.org",
@@ -43,7 +43,7 @@ const jsonLd = [
 ];
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tradeclaw.com"),
+  metadataBase: new URL("https://tradeclaw.win"),
   title: "TradeClaw — Open-Source AI Trading Signals",
   description:
     "Self-hosted AI trading signals for forex, crypto, and metals. Free forever. Deploy in 5 minutes with Docker.",
@@ -89,10 +89,10 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   alternates: {
     languages: {
-      "en": "https://tradeclaw.com",
-      "es": "https://tradeclaw.com/es",
-      "zh-CN": "https://tradeclaw.com/zh",
-      "x-default": "https://tradeclaw.com",
+      "en": "https://tradeclaw.win",
+      "es": "https://tradeclaw.win/es",
+      "zh-CN": "https://tradeclaw.win/zh",
+      "x-default": "https://tradeclaw.win",
     },
     types: {
       'application/rss+xml': [{ url: '/feed.xml', title: 'TradeClaw — Live AI Trading Signals (RSS)' }],

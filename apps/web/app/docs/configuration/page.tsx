@@ -8,24 +8,6 @@ export const metadata: Metadata = {
   description: 'All environment variables, Stripe setup, Telegram bot config, and database options.',
 };
 
-function EnvRow({ name, required, desc, example }: { name: string; required?: boolean; desc: string; example?: string }) {
-  return (
-    <tr className="border-b border-white/4 last:border-0">
-      <td className="py-3 pr-4 align-top">
-        <code className="text-xs text-emerald-300 font-mono whitespace-nowrap">{name}</code>
-        {required && (
-          <span className="ml-2 text-[10px] text-red-400 font-medium uppercase tracking-wide">required</span>
-        )}
-      </td>
-      <td className="py-3 pr-4 align-top text-sm text-zinc-400">{desc}</td>
-      {example && (
-        <td className="py-3 align-top">
-          <code className="text-xs text-zinc-500 font-mono">{example}</code>
-        </td>
-      )}
-    </tr>
-  );
-}
 
 export default function ConfigurationPage() {
   const { prev, next } = getPrevNext('/docs/configuration');

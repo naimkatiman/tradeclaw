@@ -11,7 +11,6 @@ import {
   Smartphone,
   Cloud,
   DollarSign,
-  Share2,
   Copy,
   ExternalLink,
   Gift,
@@ -23,8 +22,6 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-const REPO = 'naimkatiman/tradeclaw';
-const REPO_URL = `https://github.com/${REPO}`;
 const SPONSORS_URL = 'https://github.com/sponsors/naimkatiman';
 
 /* ─── Sponsorship Tiers ─── */

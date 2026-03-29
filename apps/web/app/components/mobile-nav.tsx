@@ -146,6 +146,24 @@ const MENU_SECTIONS: MenuSection[] = [
           </svg>
         ),
       },
+      {
+        href: '/broker-sim',
+        label: 'Broker Sim',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2v6m0 8v6M4.93 4.93l4.24 4.24m5.66 5.66l4.24 4.24M2 12h6m8 0h6M4.93 19.07l4.24-4.24m5.66-5.66l4.24-4.24" />
+          </svg>
+        ),
+      },
+      {
+        href: '/today',
+        label: 'Signal of Day',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
+        ),
+      },
     ],
   },
   {
@@ -235,6 +253,26 @@ const MENU_SECTIONS: MenuSection[] = [
             <rect x="3" y="17" width="4" height="4" rx="0.5" />
             <rect x="10" y="17" width="4" height="4" rx="0.5" />
             <rect x="17" y="17" width="4" height="4" rx="0.5" />
+          </svg>
+        ),
+      },
+      {
+        href: '/digest',
+        label: 'Digest',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        ),
+      },
+      {
+        href: '/wrapped',
+        label: 'Wrapped',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="8" width="18" height="13" rx="2" />
+            <path d="M12 8V3m0 0L8 7m4-4l4 4" />
           </svg>
         ),
       },

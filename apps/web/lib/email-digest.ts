@@ -1,4 +1,4 @@
-import { readHistory, computeLeaderboard, type SignalHistoryRecord, type LeaderboardData } from './signal-history';
+import { readHistory, computeLeaderboard } from './signal-history';
 
 export interface EmailDigestSignal {
   pair: string;

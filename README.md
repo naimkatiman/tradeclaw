@@ -33,6 +33,7 @@
 # Option 1: Docker (recommended)
 git clone https://github.com/naimkatiman/tradeclaw
 cd tradeclaw
+cp .env.example .env   # fill in DB_PASSWORD and AUTH_SECRET
 docker compose up
 
 # Option 2: npx demo (no install)

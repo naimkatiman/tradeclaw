@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import Link from "next/link";
 import type { Locale, Translations } from "../../lib/translations";
 import { LocaleSwitcher } from "./locale-switcher";
 

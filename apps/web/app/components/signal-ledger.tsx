@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp, Check, X, Clock } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, X } from 'lucide-react';
 import type { SignalHistoryRecord } from '../../lib/signal-history';
 
 function formatRelativeTime(timestamp: number): string {

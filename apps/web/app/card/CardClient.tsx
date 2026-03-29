@@ -35,12 +35,10 @@ export function CardClient() {
   const [signal, setSignal] = useState<Signal | null>(null);
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState(false);
-  const [fetchError, setFetchError] = useState(false);
   const { toast, show } = useToast();
 
   const fetchSignal = useCallback(async (p: string, tf: string) => {
     setLoading(true);
-    setFetchError(false);
     try {
       const res = await fetch(`/api/signals?pair=${p}&timeframe=${tf}&limit=1`);
       if (!res.ok) throw new Error('fetch failed');
@@ -53,7 +51,6 @@ export function CardClient() {
       }
     } catch {
       setSignal(null);
-      setFetchError(true);
     } finally {
       setLoading(false);
     }

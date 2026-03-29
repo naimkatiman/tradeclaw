@@ -87,7 +87,7 @@ export default function TelegramSettingsPage() {
     setWebhookResult(null);
 
     try {
-      const res = await fetch(
+      await fetch(
         `/api/telegram/status`,
         // We call the Telegram API directly via the browser using the status endpoint pattern
         // Instead, POST to a small inline handler — we'll use the existing route.ts endpoint

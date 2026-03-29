@@ -191,6 +191,7 @@ export function PortfolioWidgetClient() {
               Dynamic badge for your GitHub README. Updates automatically.
             </p>
             <div className="rounded-lg bg-[#0d1117] border border-[#30363d] p-4 flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`https://img.shields.io/endpoint?url=${encodeURIComponent(badgeUrl)}&style=for-the-badge`}
                 alt="TradeClaw Portfolio Badge"

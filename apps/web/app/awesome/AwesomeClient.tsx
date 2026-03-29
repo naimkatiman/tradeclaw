@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 
 type SubmissionStatus = 'Listed' | 'Submitted' | 'Pending' | 'Planned';
 

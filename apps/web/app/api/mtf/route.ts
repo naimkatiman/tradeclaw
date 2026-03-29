@@ -4,7 +4,6 @@ import { SYMBOLS } from '../../lib/signals';
 
 export const dynamic = 'force-dynamic';
 
-const MTF_TIMEFRAMES = ['H1', 'H4', 'D1'] as const;
 
 interface TimeframeSignal {
   timeframe: string;

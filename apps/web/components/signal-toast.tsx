@@ -115,7 +115,7 @@ export function SignalToast() {
     const t0 = setTimeout(() => setToasts(prev => [{ ...latest, dismissing: false }, ...prev].slice(0, MAX_TOASTS)), 0);
     const timer = setTimeout(() => dismiss(latest.id), AUTO_DISMISS_MS);
     return () => { clearTimeout(t0); clearTimeout(timer); };
-  }, [signals]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [signals]);
 
   if (toasts.length === 0) return null;
 
