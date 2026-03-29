@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react';
 
 interface TimeframeSignal {
   timeframe: string;
+<<<<<<< HEAD
   direction: 'BUY' | 'SELL';
+=======
+  direction: 'BUY' | 'SELL' | 'NEUTRAL';
+>>>>>>> origin/main
   confidence: number;
   rsi: number;
   macd: string;
@@ -21,7 +25,11 @@ interface MTFAnalysis {
   alignedTimeframes: number;
 }
 
+<<<<<<< HEAD
 const TIMEFRAMES = ['M5', 'M15', 'H1', 'H4', 'D1'];
+=======
+const TIMEFRAMES = ['H1', 'H4', 'D1'];
+>>>>>>> origin/main
 
 function ConfluenceBar({ value, direction }: { value: number; direction: string }) {
   const color = direction === 'BUY' ? '#10B981' : direction === 'SELL' ? '#EF4444' : '#6B7280';
@@ -37,14 +45,29 @@ function ConfluenceBar({ value, direction }: { value: number; direction: string 
 
 function TFCell({ signal }: { signal: TimeframeSignal }) {
   const isBuy = signal.direction === 'BUY';
+<<<<<<< HEAD
+=======
+  const isNeutral = signal.direction === 'NEUTRAL';
+>>>>>>> origin/main
   return (
     <div className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all duration-300 ${
       isBuy
         ? 'bg-emerald-500/8 border-emerald-500/15'
+<<<<<<< HEAD
         : 'bg-red-500/8 border-red-500/15'
     }`}>
       <div className="text-[9px] text-zinc-600 font-mono uppercase">{signal.timeframe}</div>
       <div className={`text-xs font-bold tracking-wider ${isBuy ? 'text-emerald-400' : 'text-red-400'}`}>
+=======
+        : isNeutral
+        ? 'bg-zinc-500/8 border-zinc-500/15'
+        : 'bg-red-500/8 border-red-500/15'
+    }`}>
+      <div className="text-[9px] text-zinc-600 font-mono uppercase">{signal.timeframe}</div>
+      <div className={`text-xs font-bold tracking-wider ${
+        isBuy ? 'text-emerald-400' : isNeutral ? 'text-zinc-400' : 'text-red-400'
+      }`}>
+>>>>>>> origin/main
         {signal.direction}
       </div>
       <div className="text-[10px] font-mono text-zinc-500">{signal.confidence}%</div>
@@ -96,7 +119,11 @@ export function MTFPanel({ symbol }: { symbol?: string }) {
 
       {loading ? (
         <div className="space-y-3">
+<<<<<<< HEAD
           <div className="grid grid-cols-5 gap-2">
+=======
+          <div className="grid grid-cols-3 gap-2">
+>>>>>>> origin/main
             {TIMEFRAMES.map(tf => (
               <div key={tf} className="h-16 bg-white/5 rounded-xl animate-pulse" />
             ))}
@@ -106,7 +133,11 @@ export function MTFPanel({ symbol }: { symbol?: string }) {
       ) : analysis ? (
         <div className="space-y-4">
           {/* TF grid */}
+<<<<<<< HEAD
           <div className="grid grid-cols-5 gap-2">
+=======
+          <div className="grid grid-cols-3 gap-2">
+>>>>>>> origin/main
             {analysis.timeframes.map(tf => (
               <TFCell key={tf.timeframe} signal={tf} />
             ))}

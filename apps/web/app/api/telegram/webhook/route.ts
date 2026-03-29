@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
+<<<<<<< HEAD
   readSubscribers,
+=======
+>>>>>>> origin/main
   addSubscriber,
   removeSubscriber,
   getSubscriber,

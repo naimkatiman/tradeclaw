@@ -1,9 +1,18 @@
 /**
+<<<<<<< HEAD
  * Technical Analysis Engine — pure math, zero dependencies
  * All standard TA indicators implemented from scratch
  */
 
 import type { OHLCV } from "./ohlcv";
+=======
+ * Technical Analysis Engine — pure math, hand-rolled + trading-signals for ADX
+ * All standard TA indicators implemented from scratch except ADX (uses library)
+ */
+
+import type { OHLCV } from "./ohlcv";
+import { ADX as LibADX } from "trading-signals";
+>>>>>>> origin/main
 
 // ─── Result Types ────────────────────────────────────────────
 
@@ -40,15 +49,42 @@ export interface StochasticResult {
   current: { k: number; d: number };
 }
 
+<<<<<<< HEAD
+=======
+export interface ADXResult {
+  adx: number[]; // ADX values (NaN for insufficient data)
+  plusDI: number[];
+  minusDI: number[];
+  current: { adx: number; plusDI: number; minusDI: number };
+}
+
+export interface VolumeResult {
+  sma: number[]; // Volume SMA values
+  currentVolume: number;
+  currentSMA: number;
+  ratio: number; // currentVolume / currentSMA (>1 = above average)
+  isSynthetic: boolean; // true if volume data looks synthetic/unreliable
+}
+
+>>>>>>> origin/main
 export interface AllIndicators {
   rsi: RSIResult;
   macd: MACDResult;
   ema: EMAResult;
   bollinger: BollingerResult;
   stochastic: StochasticResult;
+<<<<<<< HEAD
   closes: number[];
   highs: number[];
   lows: number[];
+=======
+  adx: ADXResult;
+  volume: VolumeResult;
+  closes: number[];
+  highs: number[];
+  lows: number[];
+  volumes: number[];
+>>>>>>> origin/main
 }
 
 // ─── Helper Functions ────────────────────────────────────────
@@ -426,6 +462,103 @@ export function findSwingLevels(
   };
 }
 
+<<<<<<< HEAD
+=======
+// ─── ADX (Average Directional Index) ────────────────────────
+
+/**
+ * Calculate ADX using the trading-signals library (Wilder smoothing).
+ * ADX measures trend strength: <20 weak, 20-25 emerging, >25 trending, >40 strong trend.
+ * +DI/-DI indicate trend direction.
+ */
+export function calculateADX(
+  highs: number[],
+  lows: number[],
+  closes: number[],
+  period: number = 14,
+): ADXResult {
+  const len = closes.length;
+  const adxValues: number[] = new Array(len).fill(NaN);
+  const plusDIValues: number[] = new Array(len).fill(NaN);
+  const minusDIValues: number[] = new Array(len).fill(NaN);
+
+  if (len < period * 2 + 1) {
+    return {
+      adx: adxValues,
+      plusDI: plusDIValues,
+      minusDI: minusDIValues,
+      current: { adx: NaN, plusDI: NaN, minusDI: NaN },
+    };
+  }
+
+  try {
+    const adxIndicator = new LibADX(period);
+
+    for (let i = 0; i < len; i++) {
+      adxIndicator.update({ high: highs[i], low: lows[i], close: closes[i] }, false);
+
+      try {
+        const adxVal = adxIndicator.getResult();
+        adxValues[i] = Number(adxVal);
+        plusDIValues[i] = Number(adxIndicator.pdi);
+        minusDIValues[i] = Number(adxIndicator.mdi);
+      } catch {
+        // Not enough data yet — keep NaN
+      }
+    }
+  } catch {
+    // Library error — return NaN values
+  }
+
+  const lastAdx = adxValues.filter((v) => !isNaN(v));
+  const lastPlus = plusDIValues.filter((v) => !isNaN(v));
+  const lastMinus = minusDIValues.filter((v) => !isNaN(v));
+
+  return {
+    adx: adxValues,
+    plusDI: plusDIValues,
+    minusDI: minusDIValues,
+    current: {
+      adx: lastAdx.length > 0 ? lastAdx[lastAdx.length - 1] : NaN,
+      plusDI: lastPlus.length > 0 ? lastPlus[lastPlus.length - 1] : NaN,
+      minusDI: lastMinus.length > 0 ? lastMinus[lastMinus.length - 1] : NaN,
+    },
+  };
+}
+
+// ─── Volume SMA ─────────────────────────────────────────────
+
+/**
+ * Calculate Volume SMA and determine if volume data is synthetic.
+ * Synthetic detection: if all volumes are within 10% of each other or all zero.
+ */
+export function calculateVolumeSMA(volumes: number[], period: number = 20): VolumeResult {
+  const sma = calcSMA(volumes, period);
+  const currentVolume = volumes.length > 0 ? volumes[volumes.length - 1] : 0;
+  const validSMA = sma.filter((v) => !isNaN(v));
+  const currentSMA = validSMA.length > 0 ? validSMA[validSMA.length - 1] : 0;
+
+  // Detect synthetic/unreliable volume data
+  let isSynthetic = false;
+  if (volumes.length > 0) {
+    const nonZero = volumes.filter((v) => v > 0);
+    if (nonZero.length === 0) {
+      isSynthetic = true;
+    } else {
+      const mean = nonZero.reduce((s, v) => s + v, 0) / nonZero.length;
+      if (mean > 0) {
+        const allClose = nonZero.every((v) => Math.abs(v - mean) / mean < 0.1);
+        isSynthetic = allClose;
+      }
+    }
+  }
+
+  const ratio = currentSMA > 0 ? currentVolume / currentSMA : 0;
+
+  return { sma, currentVolume, currentSMA, ratio, isSynthetic };
+}
+
+>>>>>>> origin/main
 // ─── Main Entry Point ────────────────────────────────────────
 
 /**
@@ -435,6 +568,10 @@ export function calculateAllIndicators(candles: OHLCV[]): AllIndicators {
   const closes = candles.map((c) => c.close);
   const highs = candles.map((c) => c.high);
   const lows = candles.map((c) => c.low);
+<<<<<<< HEAD
+=======
+  const volumes = candles.map((c) => c.volume);
+>>>>>>> origin/main
 
   return {
     rsi: calculateRSI(closes),
@@ -442,8 +579,17 @@ export function calculateAllIndicators(candles: OHLCV[]): AllIndicators {
     ema: calculateEMAs(closes),
     bollinger: calculateBollingerBands(closes),
     stochastic: calculateStochastic(highs, lows, closes),
+<<<<<<< HEAD
     closes,
     highs,
     lows,
+=======
+    adx: calculateADX(highs, lows, closes),
+    volume: calculateVolumeSMA(volumes),
+    closes,
+    highs,
+    lows,
+    volumes,
+>>>>>>> origin/main
   };
 }

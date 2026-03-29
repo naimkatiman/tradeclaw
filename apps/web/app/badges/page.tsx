@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import type { Metadata } from 'next';
 import { BadgesClient } from '../../components/badges-client';
 
@@ -9,4 +10,10 @@ export const metadata: Metadata = {
 
 export default function BadgesPage() {
   return <BadgesClient />;
+=======
+import { redirect } from 'next/navigation';
+
+export default function BadgesRedirect() {
+  redirect('/badge');
+>>>>>>> origin/main
 }

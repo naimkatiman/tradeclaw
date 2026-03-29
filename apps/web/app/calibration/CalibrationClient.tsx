@@ -185,7 +185,11 @@ export function CalibrationClient() {
     setLoading(false);
   }
 
+<<<<<<< HEAD
   useEffect(() => { load(); }, []);
+=======
+  useEffect(() => { setTimeout(() => load(), 0); }, []);
+>>>>>>> origin/main
 
   if (loading) {
     return (
@@ -367,7 +371,11 @@ export function CalibrationClient() {
             Methodology
           </h2>
           <div className="space-y-2 text-zinc-400">
+<<<<<<< HEAD
             <p><strong className="text-zinc-300">Outcome definition:</strong> A signal is a "win" if price hits Take Profit 1 before Stop Loss within 24 hours of signal generation.</p>
+=======
+            <p><strong className="text-zinc-300">Outcome definition:</strong> A signal is a &quot;win&quot; if price hits Take Profit 1 before Stop Loss within 24 hours of signal generation.</p>
+>>>>>>> origin/main
             <p><strong className="text-zinc-300">Brier Score:</strong> Mean squared error between confidence (0-1) and outcome (0 or 1). Score of 0 = perfect, 0.25 = random, 1.0 = perfectly wrong.</p>
             <p><strong className="text-zinc-300">ECE (Expected Calibration Error):</strong> Weighted average of the difference between predicted confidence and actual win rate across buckets. Below 5% is considered well-calibrated.</p>
             <p><strong className="text-zinc-300">Data source:</strong> {data.isSimulated ? 'Simulated seed data until sufficient live signals accumulate.' : 'Live tracked signals from the TradeClaw signal engine.'}</p>

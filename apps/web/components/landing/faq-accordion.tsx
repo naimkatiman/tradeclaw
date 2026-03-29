@@ -39,6 +39,7 @@ export function FAQAccordion() {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
 
   return (
+<<<<<<< HEAD
     <section className="px-6 py-24 bg-[#0a0a0a]">
       <div className="mx-auto max-w-3xl">
         <div className="text-center mb-14">
@@ -46,6 +47,15 @@ export function FAQAccordion() {
             FAQ
           </div>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-white">
+=======
+    <section className="px-6 py-24 bg-[var(--bg-card)]">
+      <div className="mx-auto max-w-3xl">
+        <div className="text-center mb-14">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--glass-bg)] px-3.5 py-1.5 text-xs uppercase tracking-widest text-[var(--text-secondary)]">
+            FAQ
+          </div>
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[var(--foreground)]">
+>>>>>>> origin/main
             Frequently asked{" "}
             <span className="text-emerald-400">questions</span>
           </h2>
@@ -60,7 +70,11 @@ export function FAQAccordion() {
                 className={`overflow-hidden rounded-xl border transition-colors duration-200 ${
                   isOpen
                     ? "border-emerald-500/20 bg-emerald-500/[0.03]"
+<<<<<<< HEAD
                     : "border-white/6 bg-[#050505]"
+=======
+                    : "border-[var(--border)] bg-[var(--background)]"
+>>>>>>> origin/main
                 }`}
               >
                 <button
@@ -70,7 +84,11 @@ export function FAQAccordion() {
                 >
                   <span
                     className={`text-sm font-medium transition-colors duration-200 ${
+<<<<<<< HEAD
                       isOpen ? "text-white" : "text-zinc-300"
+=======
+                      isOpen ? "text-[var(--foreground)]" : "text-[var(--text-secondary)]"
+>>>>>>> origin/main
                     }`}
                   >
                     {faq.question}
@@ -79,7 +97,11 @@ export function FAQAccordion() {
                     className={`ml-4 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-all duration-200 ${
                       isOpen
                         ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 rotate-45"
+<<<<<<< HEAD
                         : "border-white/10 bg-white/[0.03] text-zinc-600"
+=======
+                        : "border-[var(--border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]"
+>>>>>>> origin/main
                     }`}
                   >
                     <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
@@ -100,7 +122,11 @@ export function FAQAccordion() {
                     opacity: isOpen ? 1 : 0,
                   }}
                 >
+<<<<<<< HEAD
                   <p className="px-6 pb-5 text-sm text-zinc-500 leading-relaxed">
+=======
+                  <p className="px-6 pb-5 text-sm text-[var(--text-secondary)] leading-relaxed">
+>>>>>>> origin/main
                     {faq.answer}
                   </p>
                 </div>

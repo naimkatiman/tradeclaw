@@ -1,6 +1,13 @@
 'use client';
 
+<<<<<<< HEAD
 import { useEffect, useRef, useState, useCallback } from 'react';
+=======
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import Link from 'next/link';
+import { ReplayChart } from '../components/charts';
+import { generateBars as genBars } from '../lib/chart-utils';
+>>>>>>> origin/main
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -33,6 +40,7 @@ type PlayState = 'idle' | 'playing' | 'paused' | 'done';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+<<<<<<< HEAD
 function generateBars(signal: SignalRecord, count = 80): PriceBar[] {
   const bars: PriceBar[] = [];
   let price = signal.entryPrice;
@@ -69,6 +77,9 @@ function generateBars(signal: SignalRecord, count = 80): PriceBar[] {
   }
   return bars;
 }
+=======
+// generateBars is now imported from chart-utils
+>>>>>>> origin/main
 
 function formatPrice(p: number): string {
   if (p >= 1000) return p.toFixed(0);
@@ -87,6 +98,7 @@ function timeAgo(ms: number): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
+<<<<<<< HEAD
 // ─── Canvas Chart ────────────────────────────────────────────────────────────
 
 function drawChart(
@@ -295,6 +307,9 @@ function drawChart(
     }
   });
 }
+=======
+// ─── Canvas chart replaced by ReplayChart (lightweight-charts) ──────────────
+>>>>>>> origin/main
 
 // ─── RSI mini chart ──────────────────────────────────────────────────────────
 
@@ -406,6 +421,7 @@ const THEME = {
   muted: '#64748b',
 };
 
+<<<<<<< HEAD
 const SEED_SIGNALS: SignalRecord[] = [
   {
     id: 'BTCUSD-H1-BUY',
@@ -486,10 +502,69 @@ const SEED_SIGNALS: SignalRecord[] = [
 
 export default function ReplayClient() {
   const [signals] = useState<SignalRecord[]>(SEED_SIGNALS);
+=======
+/** Map a symbol code like "BTCUSD" to a display pair like "BTC/USD". */
+function symbolToPair(sym: string): string {
+  // Commodity symbols
+  if (sym.startsWith('XAU')) return 'XAU/' + sym.slice(3);
+  if (sym.startsWith('XAG')) return 'XAG/' + sym.slice(3);
+  // Crypto: 3-char base
+  if (sym.startsWith('BTC') || sym.startsWith('ETH') || sym.startsWith('XRP'))
+    return sym.slice(0, 3) + '/' + sym.slice(3);
+  // Forex: 6-char pairs
+  if (sym.length === 6) return sym.slice(0, 3) + '/' + sym.slice(3);
+  return sym;
+}
+
+interface ApiSignal {
+  id: string;
+  symbol: string;
+  direction: 'BUY' | 'SELL';
+  confidence: number;
+  entry: number;
+  stopLoss: number;
+  takeProfit1: number;
+  timeframe: string;
+  timestamp: string;
+  status: string;
+}
+
+function apiSignalToRecord(s: ApiSignal): SignalRecord {
+  const ts = new Date(s.timestamp).getTime();
+  const tp1Distance = Math.abs(s.takeProfit1 - s.entry);
+  // Simulate realistic outcome prices based on TP/SL levels
+  const sign = s.direction === 'BUY' ? 1 : -1;
+  const price4h = s.entry + sign * tp1Distance * 0.4;
+  const price24h = s.entry + sign * tp1Distance * 0.75;
+  const pnl4h = ((price4h - s.entry) / s.entry) * 100 * sign;
+  const pnl24h = ((price24h - s.entry) / s.entry) * 100 * sign;
+
+  return {
+    id: s.id,
+    pair: symbolToPair(s.symbol),
+    timeframe: s.timeframe,
+    direction: s.direction,
+    confidence: s.confidence,
+    entryPrice: s.entry,
+    timestamp: ts,
+    tp1: s.takeProfit1,
+    sl: s.stopLoss,
+    outcomes: {
+      '4h': { price: price4h, pnlPct: pnl4h, hit: pnl4h > 0 },
+      '24h': { price: price24h, pnlPct: pnl24h, hit: pnl24h > 0 },
+    },
+  };
+}
+
+export default function ReplayClient() {
+  const [signals, setSignals] = useState<SignalRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+>>>>>>> origin/main
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [playState, setPlayState] = useState<PlayState>('idle');
   const [currentBar, setCurrentBar] = useState(0);
   const [speed, setSpeed] = useState(80); // ms per bar
+<<<<<<< HEAD
   const chartRef = useRef<HTMLCanvasElement>(null);
   const rsiRef = useRef<HTMLCanvasElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -517,6 +592,60 @@ export default function ReplayClient() {
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, [redraw]);
+=======
+  const rsiRef = useRef<HTMLCanvasElement>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Fetch real signals on mount
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchSignals() {
+      try {
+        const res = await fetch('/api/signals');
+        if (!res.ok) throw new Error('Failed to fetch signals');
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data.signals) && data.signals.length > 0) {
+          setSignals(data.signals.map((s: ApiSignal) => apiSignalToRecord(s)));
+        }
+      } catch {
+        // Silently handle — signals stays empty, user sees empty state
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchSignals();
+    return () => { cancelled = true; };
+  }, []);
+
+  const signal = signals[selectedIdx] ?? null;
+  const bars = useMemo(
+    () => signal ? genBars(signal.entryPrice, signal.direction, signal.timestamp) : [],
+    [signal],
+  );
+  const totalBars = bars.length;
+
+  // RSI still uses canvas
+  const redrawRSI = useCallback(() => {
+    if (rsiRef.current) {
+      // Convert bars back to PriceBar format for RSI
+      const priceBars: PriceBar[] = bars.map(b => ({
+        time: (b.time as number) * 1000,
+        open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume,
+      }));
+      drawRSI(rsiRef.current, priceBars, currentBar, THEME);
+    }
+  }, [bars, currentBar]);
+
+  useEffect(() => {
+    redrawRSI();
+  }, [redrawRSI]);
+
+  useEffect(() => {
+    const handler = () => redrawRSI();
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, [redrawRSI]);
+>>>>>>> origin/main
 
   // Playback engine
   useEffect(() => {
@@ -566,6 +695,7 @@ export default function ReplayClient() {
     setCurrentBar(0);
   }
 
+<<<<<<< HEAD
   const liveBar = bars[currentBar];
   const pnl = liveBar ? ((liveBar.close - signal.entryPrice) / signal.entryPrice) * 100 * (signal.direction === 'BUY' ? 1 : -1) : 0;
   const signalFired = currentBar >= 30;
@@ -573,6 +703,47 @@ export default function ReplayClient() {
   const hitSL = signal.sl && liveBar && (signal.direction === 'BUY' ? liveBar.low <= signal.sl : liveBar.high >= signal.sl);
 
   const progressPct = ((currentBar / (totalBars - 1)) * 100).toFixed(1);
+=======
+  const liveBar = bars[currentBar] ?? null;
+  const pnl = liveBar && signal ? ((liveBar.close - signal.entryPrice) / signal.entryPrice) * 100 * (signal.direction === 'BUY' ? 1 : -1) : 0;
+  const signalFired = currentBar >= 30;
+  const hitTP = signal && signal.tp1 && liveBar && (signal.direction === 'BUY' ? liveBar.high >= signal.tp1 : liveBar.low <= signal.tp1);
+  const hitSL = signal && signal.sl && liveBar && (signal.direction === 'BUY' ? liveBar.low <= signal.sl : liveBar.high >= signal.sl);
+
+  const progressPct = totalBars > 1 ? ((currentBar / (totalBars - 1)) * 100).toFixed(1) : '0';
+
+  // Loading state
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: THEME.bg, color: THEME.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Loading signals...</div>
+          <div style={{ fontSize: '0.8rem', color: THEME.muted }}>Fetching real trading signals from the engine</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state — no signals available
+  if (!signal) {
+    return (
+      <div style={{ minHeight: '100vh', background: THEME.bg, color: THEME.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', maxWidth: 420 }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>No signals available for replay</div>
+          <div style={{ fontSize: '0.85rem', color: THEME.muted, lineHeight: 1.5 }}>
+            No signals available for replay — signals will appear as they are generated
+          </div>
+          <Link
+            href="/"
+            style={{ display: 'inline-block', marginTop: '1.5rem', fontSize: '0.85rem', color: THEME.emerald, textDecoration: 'none', padding: '8px 20px', border: `1px solid ${THEME.emerald}40`, borderRadius: '8px' }}
+          >
+            Back to Dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
+>>>>>>> origin/main
 
   return (
     <div style={{ minHeight: '100vh', background: THEME.bg, color: THEME.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
@@ -712,9 +883,22 @@ export default function ReplayClient() {
 
           {/* Main chart */}
           <div style={{ flex: 1, minHeight: 0, padding: '0.75rem 1rem 0' }}>
+<<<<<<< HEAD
             <canvas
               ref={chartRef}
               style={{ width: '100%', height: '100%', display: 'block' }}
+=======
+            <ReplayChart
+              bars={bars}
+              visibleCount={currentBar + 1}
+              signal={{
+                direction: signal.direction,
+                entryPrice: signal.entryPrice,
+                tp1: signal.tp1,
+                sl: signal.sl,
+              }}
+              height={400}
+>>>>>>> origin/main
             />
           </div>
 

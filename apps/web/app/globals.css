@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+<<<<<<< HEAD
+=======
+@custom-variant dark (&:where(.dark, .dark *));
+
+>>>>>>> origin/main
 /* Light theme (default) */
 :root {
   --background: #fafafa;
@@ -7,16 +12,29 @@
   --text-secondary: #6b7280;
   --bg-card: #ffffff;
   --border: #e5e7eb;
+<<<<<<< HEAD
   --accent: #10B981;
   --accent-muted: rgba(16, 185, 129, 0.12);
   --accent-glow: rgba(16, 185, 129, 0.06);
   --sell: #EF4444;
+=======
+  --accent: #10b981;
+  --accent-muted: rgba(16, 185, 129, 0.12);
+  --accent-glow: rgba(16, 185, 129, 0.06);
+  --sell: #ef4444;
+>>>>>>> origin/main
   --sell-muted: rgba(239, 68, 68, 0.12);
   --glass-bg: rgba(0, 0, 0, 0.02);
   --glass-border: rgba(0, 0, 0, 0.08);
   --glass-border-accent: rgba(16, 185, 129, 0.2);
   --glass-nav-bg: rgba(250, 250, 250, 0.88);
+<<<<<<< HEAD
   --glass-nav-shadow: 0 1px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+=======
+  --hero-grid-dot: rgba(0, 0, 0, 0.05);
+  --glass-nav-shadow:
+    0 1px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+>>>>>>> origin/main
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -28,16 +46,29 @@
   --text-secondary: #a1a1aa;
   --bg-card: #0a0a0a;
   --border: #1a1a1a;
+<<<<<<< HEAD
   --accent: #10B981;
   --accent-muted: rgba(16, 185, 129, 0.15);
   --accent-glow: rgba(16, 185, 129, 0.08);
   --sell: #EF4444;
+=======
+  --accent: #10b981;
+  --accent-muted: rgba(16, 185, 129, 0.15);
+  --accent-glow: rgba(16, 185, 129, 0.08);
+  --sell: #ef4444;
+>>>>>>> origin/main
   --sell-muted: rgba(239, 68, 68, 0.15);
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.06);
   --glass-border-accent: rgba(16, 185, 129, 0.2);
   --glass-nav-bg: rgba(5, 5, 5, 0.8);
+<<<<<<< HEAD
   --glass-nav-shadow: 0 1px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+=======
+  --glass-nav-shadow:
+    0 1px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --hero-grid-dot: rgba(255, 255, 255, 0.04);
+>>>>>>> origin/main
 }
 
 * {
@@ -68,16 +99,30 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border);
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.04);
+<<<<<<< HEAD
   transition: border-color 500ms cubic-bezier(0.32, 0.72, 0, 1),
               box-shadow 500ms cubic-bezier(0.32, 0.72, 0, 1),
               transform 500ms cubic-bezier(0.32, 0.72, 0, 1);
+=======
+  transition:
+    border-color 500ms cubic-bezier(0.32, 0.72, 0, 1),
+    box-shadow 500ms cubic-bezier(0.32, 0.72, 0, 1),
+    transform 500ms cubic-bezier(0.32, 0.72, 0, 1);
+>>>>>>> origin/main
 }
 
 .glass-card:hover {
   border-color: var(--glass-border-accent);
+<<<<<<< HEAD
   box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.1),
               inset 0 1px 1px rgba(255, 255, 255, 0.06),
               0 8px 32px rgba(16, 185, 129, 0.06);
+=======
+  box-shadow:
+    0 0 0 1px rgba(16, 185, 129, 0.1),
+    inset 0 1px 1px rgba(255, 255, 255, 0.06),
+    0 8px 32px rgba(16, 185, 129, 0.06);
+>>>>>>> origin/main
   transform: translateY(-1px);
 }
 
@@ -90,8 +135,14 @@ body {
 
 /* Emerald glow effects */
 .glow-emerald {
+<<<<<<< HEAD
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.15),
               0 0 40px rgba(16, 185, 129, 0.05);
+=======
+  box-shadow:
+    0 0 20px rgba(16, 185, 129, 0.15),
+    0 0 40px rgba(16, 185, 129, 0.05);
+>>>>>>> origin/main
 }
 
 .text-glow-emerald {
@@ -108,8 +159,17 @@ body {
 }
 
 @keyframes ticker {
+<<<<<<< HEAD
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+=======
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+>>>>>>> origin/main
 }
 
 /* Fade up entry animation */
@@ -130,14 +190,45 @@ body {
 
 /* Pulse dot */
 @keyframes pulseDot {
+<<<<<<< HEAD
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(0.8); }
+=======
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+>>>>>>> origin/main
 }
 
 .pulse-dot {
   animation: pulseDot 2s ease-in-out infinite;
 }
 
+<<<<<<< HEAD
+=======
+/* Quiz slide transitions */
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-left {
+  animation: slideLeft 300ms ease-out both;
+}
+.animate-slide-right {
+  animation: slideRight 300ms ease-out both;
+}
+
+>>>>>>> origin/main
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
@@ -167,7 +258,13 @@ body {
 .stagger-item {
   opacity: 0;
   transform: translateY(10px);
+<<<<<<< HEAD
   transition: opacity 400ms ease, transform 400ms ease;
+=======
+  transition:
+    opacity 400ms ease,
+    transform 400ms ease;
+>>>>>>> origin/main
 }
 
 .stagger-item.visible {
@@ -177,7 +274,11 @@ body {
 
 /* Grain overlay (fixed, no interaction) */
 .grain-overlay::before {
+<<<<<<< HEAD
   content: '';
+=======
+  content: "";
+>>>>>>> origin/main
   position: fixed;
   inset: 0;
   z-index: 100;

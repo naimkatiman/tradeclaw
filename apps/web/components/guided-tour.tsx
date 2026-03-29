@@ -168,12 +168,15 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
     }
   }, [active, step, updateSpotlight]);
 
+<<<<<<< HEAD
   const close = useCallback(() => {
     setActive(false);
     if (dontShowAgain) localStorage.setItem(TOUR_DONE_KEY, '1');
     onClose?.();
   }, [dontShowAgain, onClose]);
 
+=======
+>>>>>>> origin/main
   const skip = useCallback(() => {
     localStorage.setItem(TOUR_DONE_KEY, '1');
     setActive(false);

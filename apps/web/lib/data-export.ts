@@ -12,7 +12,11 @@ import path from 'path';
 import { readAlerts, type PriceAlert } from './price-alerts';
 import { getPortfolio, type Portfolio } from './paper-trading';
 import { readWebhooks, type WebhookConfig } from './webhooks';
+<<<<<<< HEAD
 import { listPlugins, type PluginIndicator } from './plugin-system';
+=======
+import { listPlugins, validatePluginCode, type PluginIndicator } from './plugin-system';
+>>>>>>> origin/main
 import { readSubscribers, type TelegramSubscriber } from './telegram-subscribers';
 
 // ---------------------------------------------------------------------------
@@ -107,6 +111,10 @@ const PKG_VERSION = (() => {
 // ---------------------------------------------------------------------------
 
 function sanitiseWebhooks(webhooks: WebhookConfig[]): SanitisedWebhook[] {
+<<<<<<< HEAD
+=======
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+>>>>>>> origin/main
   return webhooks.map(({ secret, deliveryLog: _log, failCount: _fc, lastDelivery: _ld, ...rest }) => ({
     id: rest.id,
     name: rest.name,
@@ -319,15 +327,32 @@ export function importServerData(payload: ExportPayload, mode: 'merge' | 'replac
 
   // ── Plugins ──────────────────────────────────────────────────────────────
   const currentPluginIds = new Set(current.plugins.map(p => p.id));
+<<<<<<< HEAD
   const incomingPlugins = Array.isArray(data.plugins) ? (data.plugins as PluginIndicator[]) : [];
+=======
+  const allIncomingPlugins = Array.isArray(data.plugins) ? (data.plugins as PluginIndicator[]) : [];
+  // Validate plugin code before importing — reject any that fail validation
+  const incomingPlugins = allIncomingPlugins.filter(p => {
+    if (!p.code) return false;
+    const { valid } = validatePluginCode(p.code);
+    return valid;
+  });
+>>>>>>> origin/main
   let finalPlugins: PluginIndicator[];
   let skippedPlugins = 0;
 
   if (mode === 'replace') {
     finalPlugins = incomingPlugins;
+<<<<<<< HEAD
   } else {
     const newPlugins = incomingPlugins.filter(p => !currentPluginIds.has(p.id));
     skippedPlugins = incomingPlugins.length - newPlugins.length;
+=======
+    skippedPlugins = allIncomingPlugins.length - incomingPlugins.length;
+  } else {
+    const newPlugins = incomingPlugins.filter(p => !currentPluginIds.has(p.id));
+    skippedPlugins = allIncomingPlugins.length - newPlugins.length;
+>>>>>>> origin/main
     finalPlugins = [...current.plugins, ...newPlugins];
   }
   writeJson(path.join(DATA_DIR, 'plugins.json'), finalPlugins);

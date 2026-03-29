@@ -42,15 +42,25 @@ function TickerItem({ pair, tick }: TickerItemProps) {
   }, [tick.price]);
 
   const priceColor =
+<<<<<<< HEAD
     flash === 'up' ? 'text-emerald-400' :
     flash === 'down' ? 'text-rose-400' :
     'text-white';
+=======
+    flash === 'up' ? 'text-emerald-500' :
+    flash === 'down' ? 'text-rose-500' :
+    'text-[var(--foreground)]';
+>>>>>>> origin/main
 
   const changeColor = tick.change24h >= 0 ? 'text-emerald-500' : 'text-rose-500';
 
   return (
     <span className="inline-flex items-center gap-1.5 text-[11px] font-mono shrink-0 select-none">
+<<<<<<< HEAD
       <span className="text-zinc-500">{SYMBOL_LABELS[pair] ?? pair}</span>
+=======
+      <span className="text-[var(--text-secondary)]">{SYMBOL_LABELS[pair] ?? pair}</span>
+>>>>>>> origin/main
       <span className={`font-semibold tabular-nums transition-colors duration-300 ${priceColor}`}>
         {formatTickerPrice(pair, tick.price)}
       </span>
@@ -71,10 +81,17 @@ export function LiveTicker({ prices, pairs }: LiveTickerProps) {
 
   if (activePairs.length === 0) {
     return (
+<<<<<<< HEAD
       <div className="bg-[#050505] border-b border-white/5 h-10 flex items-center px-4">
         <div className="flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-zinc-700 animate-pulse" />
           <span className="text-[11px] text-zinc-700 font-mono">Connecting to market data…</span>
+=======
+      <div className="bg-[var(--background)] border-b border-[var(--border)] h-10 flex items-center px-4">
+        <div className="flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--border)] animate-pulse" />
+          <span className="text-[11px] text-[var(--text-secondary)] font-mono">Connecting to market data…</span>
+>>>>>>> origin/main
         </div>
       </div>
     );
@@ -84,7 +101,11 @@ export function LiveTicker({ prices, pairs }: LiveTickerProps) {
   const items = [...activePairs, ...activePairs];
 
   return (
+<<<<<<< HEAD
     <div className="bg-[#050505] border-b border-white/[0.06] h-10 overflow-hidden flex items-center">
+=======
+    <div className="bg-[var(--background)] border-b border-[var(--border)] h-10 overflow-hidden flex items-center">
+>>>>>>> origin/main
       {/* LIVE badge */}
       <div className="shrink-0 h-full flex items-center bg-emerald-500/10 border-r border-emerald-500/20 px-3 gap-1.5">
         <span className="relative flex h-1.5 w-1.5">

@@ -1,0 +1,22 @@
+{
+  "name": "tradeclaw-cli",
+  "version": "0.1.0",
+  "description": "CLI tool for TradeClaw signal fetching",
+  "type": "module",
+  "bin": {
+    "tradeclaw": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

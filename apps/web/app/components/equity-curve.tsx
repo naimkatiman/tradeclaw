@@ -1,0 +1,428 @@
+'use client';
+
+import { useEffect, useRef, useState, useCallback } from 'react';
+
+interface EquityPoint {
+  timestamp: number;
+  pnlPct: number;
+  cumulativePnl: number;
+  symbol: string;
+  direction: 'BUY' | 'SELL';
+}
+
+interface EquitySummary {
+  totalReturn: number;
+  maxDrawdown: number;
+  winRate: number;
+  totalSignals: number;
+  sharpeRatio: number | null;
+}
+
+interface TooltipData {
+  x: number;
+  y: number;
+  date: string;
+  signalCount: number;
+  cumulativePnl: number;
+  symbol: string;
+  direction: string;
+}
+
+const HYPOTHETICAL_START = 10_000;
+
+function formatDate(ts: number): string {
+  return new Date(ts).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+function formatDateTime(ts: number): string {
+  return new Date(ts).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function drawChart(
+  canvas: HTMLCanvasElement,
+  points: EquityPoint[],
+  onHover: (data: TooltipData | null) => void,
+): (() => void) | undefined {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.scale(dpr, dpr);
+
+  const padLeft = 60;
+  const padRight = 16;
+  const padTop = 16;
+  const padBottom = 32;
+  const chartW = w - padLeft - padRight;
+  const chartH = h - padTop - padBottom;
+
+  // Clear
+  ctx.clearRect(0, 0, w, h);
+
+  if (points.length === 0) {
+    // Empty state: dashed line at 0%
+    ctx.setLineDash([6, 4]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    const midY = padTop + chartH / 2;
+    ctx.beginPath();
+    ctx.moveTo(padLeft, midY);
+    ctx.lineTo(padLeft + chartW, midY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.font = '12px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(
+      'Performance tracking will begin once signals are recorded and verified',
+      w / 2,
+      midY + 24,
+    );
+    return;
+  }
+
+  // Compute ranges
+  const values = points.map(p => p.cumulativePnl);
+  const minVal = Math.min(0, ...values);
+  const maxVal = Math.max(0, ...values);
+  const range = maxVal - minVal || 1;
+  const padding = range * 0.1;
+  const yMin = minVal - padding;
+  const yMax = maxVal + padding;
+  const yRange = yMax - yMin;
+
+  const tMin = points[0].timestamp;
+  const tMax = points[points.length - 1].timestamp;
+  const tRange = tMax - tMin || 1;
+
+  function toX(ts: number): number {
+    return padLeft + ((ts - tMin) / tRange) * chartW;
+  }
+
+  function toY(val: number): number {
+    return padTop + (1 - (val - yMin) / yRange) * chartH;
+  }
+
+  // Grid lines and labels
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'right';
+
+  const ySteps = 5;
+  for (let i = 0; i <= ySteps; i++) {
+    const val = yMin + (yRange / ySteps) * i;
+    const y = toY(val);
+    ctx.beginPath();
+    ctx.moveTo(padLeft, y);
+    ctx.lineTo(padLeft + chartW, y);
+    ctx.stroke();
+    ctx.fillText(`${val >= 0 ? '+' : ''}${val.toFixed(1)}%`, padLeft - 6, y + 3);
+  }
+
+  // Zero line
+  const zeroY = toY(0);
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padLeft, zeroY);
+  ctx.lineTo(padLeft + chartW, zeroY);
+  ctx.stroke();
+
+  // X-axis labels
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  const labelCount = Math.min(6, points.length);
+  for (let i = 0; i < labelCount; i++) {
+    const idx = Math.round((i / (labelCount - 1)) * (points.length - 1));
+    const p = points[idx];
+    const x = toX(p.timestamp);
+    ctx.fillText(formatDate(p.timestamp), x, h - 6);
+  }
+
+  // Build path segments — split into positive and negative for coloring
+  // Draw area fills first, then line on top
+
+  // Positive area fill (above zero line)
+  const greenGrad = ctx.createLinearGradient(0, padTop, 0, padTop + chartH);
+  greenGrad.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
+  greenGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+  const redGrad = ctx.createLinearGradient(0, padTop, 0, padTop + chartH);
+  redGrad.addColorStop(0, 'rgba(239, 68, 68, 0.0)');
+  redGrad.addColorStop(1, 'rgba(239, 68, 68, 0.20)');
+
+  // Draw filled area from line to zero line
+  ctx.beginPath();
+  ctx.moveTo(toX(points[0].timestamp), zeroY);
+  for (const p of points) {
+    ctx.lineTo(toX(p.timestamp), toY(p.cumulativePnl));
+  }
+  ctx.lineTo(toX(points[points.length - 1].timestamp), zeroY);
+  ctx.closePath();
+
+  // Use green if overall positive, red if negative, split fill
+  // Simple approach: clip above/below zero and fill separately
+  ctx.save();
+  ctx.clip();
+  // Green fill above zero
+  ctx.fillStyle = greenGrad;
+  ctx.fillRect(padLeft, padTop, chartW, zeroY - padTop);
+  // Red fill below zero
+  ctx.fillStyle = redGrad;
+  ctx.fillRect(padLeft, zeroY, chartW, padTop + chartH - zeroY);
+  ctx.restore();
+
+  // Draw the line itself, colored per segment
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+
+  for (let i = 1; i < points.length; i++) {
+    const prev = points[i - 1];
+    const curr = points[i];
+    const x1 = toX(prev.timestamp);
+    const y1 = toY(prev.cumulativePnl);
+    const x2 = toX(curr.timestamp);
+    const y2 = toY(curr.cumulativePnl);
+
+    // Color based on whether the segment is above or below zero
+    const midVal = (prev.cumulativePnl + curr.cumulativePnl) / 2;
+    ctx.strokeStyle = midVal >= 0 ? '#10B981' : '#EF4444';
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  // Draw dots at each data point
+  for (const p of points) {
+    const x = toX(p.timestamp);
+    const y = toY(p.cumulativePnl);
+    ctx.beginPath();
+    ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = p.cumulativePnl >= 0 ? '#10B981' : '#EF4444';
+    ctx.fill();
+  }
+
+  // Hover handler
+  const handleMouseMove = (e: MouseEvent) => {
+    const bounds = canvas.getBoundingClientRect();
+    const mx = e.clientX - bounds.left;
+
+    if (mx < padLeft || mx > padLeft + chartW) {
+      onHover(null);
+      return;
+    }
+
+    // Find closest point
+    let closest = points[0];
+    let closestDist = Infinity;
+    let closestIdx = 0;
+    for (let i = 0; i < points.length; i++) {
+      const px = toX(points[i].timestamp);
+      const dist = Math.abs(px - mx);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closest = points[i];
+        closestIdx = i;
+      }
+    }
+
+    onHover({
+      x: toX(closest.timestamp),
+      y: toY(closest.cumulativePnl),
+      date: formatDateTime(closest.timestamp),
+      signalCount: closestIdx + 1,
+      cumulativePnl: closest.cumulativePnl,
+      symbol: closest.symbol,
+      direction: closest.direction,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    onHover(null);
+  };
+
+  canvas.addEventListener('mousemove', handleMouseMove);
+  canvas.addEventListener('mouseleave', handleMouseLeave);
+
+  return () => {
+    canvas.removeEventListener('mousemove', handleMouseMove);
+    canvas.removeEventListener('mouseleave', handleMouseLeave);
+  };
+}
+
+export function EquityCurve() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [points, setPoints] = useState<EquityPoint[]>([]);
+  const [summary, setSummary] = useState<EquitySummary | null>(null);
+  const [tooltip, setTooltip] = useState<TooltipData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch('/api/signals/equity');
+        if (!res.ok) return;
+        const data = await res.json();
+        setPoints(data.points ?? []);
+        setSummary(data.summary ?? null);
+      } catch {
+        // silent
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  const handleHover = useCallback((data: TooltipData | null) => {
+    setTooltip(data);
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || loading) return;
+
+    const cleanup = drawChart(canvas, points, handleHover);
+
+    const handleResize = () => {
+      drawChart(canvas, points, handleHover);
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      cleanup?.();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [points, loading, handleHover]);
+
+  const currentValue = summary
+    ? +(HYPOTHETICAL_START * (1 + summary.totalReturn / 100)).toFixed(0)
+    : HYPOTHETICAL_START;
+
+  return (
+    <section className="glass-card rounded-2xl p-5 mb-6">
+      {/* Header */}
+      <div className="mb-4">
+        <h2 className="text-sm font-semibold text-white tracking-tight">
+          Signal Performance — Auto Paper-Traded
+        </h2>
+        <p className="text-[11px] text-zinc-600 mt-0.5">
+          Every signal is paper-traded with equal risk. Results verified against real market data.
+        </p>
+      </div>
+
+      {/* Stats overlay */}
+      {summary && !loading && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          <div className="bg-white/[0.02] rounded-lg py-2 px-3">
+            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Starting</div>
+            <div className="text-xs font-mono font-semibold text-zinc-400 tabular-nums">
+              ${HYPOTHETICAL_START.toLocaleString()}
+            </div>
+          </div>
+          <div className="bg-white/[0.02] rounded-lg py-2 px-3">
+            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Current</div>
+            <div className={`text-xs font-mono font-semibold tabular-nums ${
+              summary.totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'
+            }`}>
+              ${currentValue.toLocaleString()}
+              <span className="text-[9px] ml-1">
+                ({summary.totalReturn >= 0 ? '+' : ''}{summary.totalReturn}%)
+              </span>
+            </div>
+          </div>
+          <div className="bg-white/[0.02] rounded-lg py-2 px-3">
+            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Max Drawdown</div>
+            <div className="text-xs font-mono font-semibold text-red-400 tabular-nums">
+              -{summary.maxDrawdown}%
+            </div>
+          </div>
+          <div className="bg-white/[0.02] rounded-lg py-2 px-3">
+            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">
+              {summary.sharpeRatio !== null ? 'Sharpe Ratio' : 'Win Rate'}
+            </div>
+            <div className={`text-xs font-mono font-semibold tabular-nums ${
+              summary.sharpeRatio !== null
+                ? (summary.sharpeRatio >= 1 ? 'text-emerald-400' : summary.sharpeRatio >= 0 ? 'text-zinc-400' : 'text-red-400')
+                : (summary.winRate >= 50 ? 'text-emerald-400' : 'text-red-400')
+            }`}>
+              {summary.sharpeRatio !== null ? summary.sharpeRatio : `${summary.winRate}%`}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chart */}
+      <div className="relative" style={{ height: 220 }}>
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="h-5 w-5 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin" />
+          </div>
+        )}
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full"
+          style={{ display: loading ? 'none' : 'block' }}
+        />
+
+        {/* Tooltip */}
+        {tooltip && (
+          <div
+            className="absolute pointer-events-none z-10 bg-zinc-900/95 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono shadow-lg"
+            style={{
+              left: Math.min(tooltip.x + 12, (canvasRef.current?.getBoundingClientRect().width ?? 300) - 180),
+              top: Math.max(tooltip.y - 60, 4),
+            }}
+          >
+            <div className="text-zinc-400 mb-1">{tooltip.date}</div>
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-600">Signal #{tooltip.signalCount}</span>
+              <span className="text-zinc-500">{tooltip.symbol}</span>
+              <span className={tooltip.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}>
+                {tooltip.direction}
+              </span>
+            </div>
+            <div className={`font-semibold mt-0.5 ${tooltip.cumulativePnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              {tooltip.cumulativePnl >= 0 ? '+' : ''}{tooltip.cumulativePnl}% cumulative
+            </div>
+          </div>
+        )}
+
+        {/* Crosshair line */}
+        {tooltip && canvasRef.current && (
+          <div
+            className="absolute top-0 bottom-8 w-px bg-white/10 pointer-events-none"
+            style={{ left: tooltip.x }}
+          />
+        )}
+      </div>
+
+      {/* Footer info */}
+      {summary && summary.totalSignals > 0 && (
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5 text-[10px] font-mono text-zinc-700">
+          <span>{summary.totalSignals} verified signals</span>
+          <span>Win rate: {summary.winRate}%</span>
+        </div>
+      )}
+    </section>
+  );
+}

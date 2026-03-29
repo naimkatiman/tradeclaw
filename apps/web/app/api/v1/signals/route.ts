@@ -3,6 +3,35 @@ import { getTrackedSignals } from "../../../../lib/tracked-signals";
 
 export const runtime = "nodejs";
 
+<<<<<<< HEAD
+=======
+const FALLBACK_SYMBOLS = [
+  { symbol: "BTCUSD", direction: "BUY" as const, confidence: 78, entry: 84250, tp: 86500, sl: 82100, rsi: 58, macd: 120, timeframe: "H4" },
+  { symbol: "ETHUSD", direction: "BUY" as const, confidence: 72, entry: 1920, tp: 1980, sl: 1850, rsi: 52, macd: 8.5, timeframe: "H1" },
+  { symbol: "XAUUSD", direction: "BUY" as const, confidence: 82, entry: 3075.5, tp: 3110, sl: 3045, rsi: 62, macd: 2.3, timeframe: "H4" },
+  { symbol: "EURUSD", direction: "SELL" as const, confidence: 68, entry: 1.0835, tp: 1.078, sl: 1.089, rsi: 42, macd: -0.0008, timeframe: "H1" },
+  { symbol: "GBPUSD", direction: "BUY" as const, confidence: 65, entry: 1.2935, tp: 1.299, sl: 1.287, rsi: 55, macd: 0.0005, timeframe: "H4" },
+  { symbol: "USDJPY", direction: "SELL" as const, confidence: 74, entry: 150.85, tp: 150.2, sl: 151.5, rsi: 68, macd: -0.15, timeframe: "H1" },
+];
+
+function buildFallbackResponse(now: string) {
+  return FALLBACK_SYMBOLS.map((s) => ({
+    id: `fb-${s.symbol.toLowerCase()}-${Date.now()}`,
+    pair: s.symbol,
+    direction: s.direction,
+    confidence: s.confidence,
+    timeframe: s.timeframe,
+    price: s.entry,
+    tp: s.tp,
+    sl: s.sl,
+    rsi: s.rsi,
+    macd: s.macd,
+    generatedAt: now,
+    shareUrl: `https://tradeclaw.win/signal/${s.symbol}-${s.timeframe}-${s.direction}`,
+  }));
+}
+
+>>>>>>> origin/main
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const pair = searchParams.get("pair")?.toUpperCase();
@@ -10,6 +39,16 @@ export async function GET(req: NextRequest) {
   const timeframe = searchParams.get("timeframe")?.toUpperCase();
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "20", 10), 100);
 
+<<<<<<< HEAD
+=======
+  const now = new Date().toISOString();
+  const headers = {
+    "Cache-Control": "public, s-maxage=300",
+    "X-TradeClaw-Version": "v1",
+    "Access-Control-Allow-Origin": "*",
+  };
+
+>>>>>>> origin/main
   try {
     const { signals: allSignals } = await getTrackedSignals({});
     let filtered = allSignals;
@@ -25,13 +64,29 @@ export async function GET(req: NextRequest) {
 
     const results = filtered.slice(0, limit);
 
+<<<<<<< HEAD
+=======
+    // If no signals after filtering, return fallback signals
+    if (results.length === 0) {
+      const fallback = buildFallbackResponse(now);
+      return NextResponse.json(
+        { ok: true, version: "v1", fallback: true, count: fallback.length, total: fallback.length, generatedAt: now, signals: fallback },
+        { headers }
+      );
+    }
+
+>>>>>>> origin/main
     return NextResponse.json(
       {
         ok: true,
         version: "v1",
         count: results.length,
         total: filtered.length,
+<<<<<<< HEAD
         generatedAt: new Date().toISOString(),
+=======
+        generatedAt: now,
+>>>>>>> origin/main
         signals: results.map((s) => ({
           id: s.id,
           pair: s.symbol,
@@ -47,6 +102,7 @@ export async function GET(req: NextRequest) {
           shareUrl: `https://tradeclaw.win/signal/${s.symbol}-${s.timeframe}-${s.direction}`,
         })),
       },
+<<<<<<< HEAD
       {
         headers: {
           "Cache-Control": "public, s-maxage=300",
@@ -57,5 +113,16 @@ export async function GET(req: NextRequest) {
     );
   } catch {
     return NextResponse.json({ ok: false, error: "Failed to generate signals" }, { status: 500 });
+=======
+      { headers }
+    );
+  } catch {
+    // On error, return fallback signals instead of a 500
+    const fallback = buildFallbackResponse(now);
+    return NextResponse.json(
+      { ok: true, version: "v1", fallback: true, count: fallback.length, total: fallback.length, generatedAt: now, signals: fallback },
+      { headers }
+    );
+>>>>>>> origin/main
   }
 }

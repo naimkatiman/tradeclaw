@@ -44,6 +44,7 @@ export function CardClient() {
       if (!res.ok) throw new Error('fetch failed');
       const data = await res.json();
       const sig = (data.signals || [])[0];
+<<<<<<< HEAD
       if (sig) setSignal(sig);
     } catch {
       // fallback synthetic signal
@@ -54,6 +55,15 @@ export function CardClient() {
         price: p.startsWith('BTC') ? 84250 : p.startsWith('ETH') ? 3218 : p.startsWith('XAU') ? 2651 : 1.0842,
         rsi: 45 + Math.floor(Math.random() * 30),
       });
+=======
+      if (sig) {
+        setSignal(sig);
+      } else {
+        throw new Error('no signal returned');
+      }
+    } catch {
+      setSignal(null);
+>>>>>>> origin/main
     } finally {
       setLoading(false);
     }
@@ -475,7 +485,11 @@ export function CardClient() {
             <div className="mt-4 rounded-xl p-4 border border-white/5 bg-zinc-900/30">
               <p className="text-xs text-zinc-500 leading-relaxed">
                 <span className="text-emerald-400 font-semibold">💡 Tip:</span> Download your card and post it on Twitter/X, Discord, or Telegram with{' '}
+<<<<<<< HEAD
                 <span className="text-white font-mono text-[11px]">#TradeClaw</span>. Tag us and we'll retweet!
+=======
+                <span className="text-white font-mono text-[11px]">#TradeClaw</span>. Tag us and we&apos;ll retweet!
+>>>>>>> origin/main
                 The more people who see it, the faster we reach 1,000 ⭐.
               </p>
             </div>

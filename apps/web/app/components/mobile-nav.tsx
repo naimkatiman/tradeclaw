@@ -30,6 +30,7 @@ const MAIN_NAV = [
     ),
   },
   {
+<<<<<<< HEAD
     href: '/leaderboard',
     label: 'Leaders',
     icon: (
@@ -40,6 +41,14 @@ const MAIN_NAV = [
         <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
         <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
         <path d="M18 2H6v7a6 6 0 0 0 12 0V2z" />
+=======
+    href: '/how-it-works',
+    label: 'Guide',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+>>>>>>> origin/main
       </svg>
     ),
   },
@@ -146,6 +155,51 @@ const MENU_SECTIONS: MenuSection[] = [
           </svg>
         ),
       },
+<<<<<<< HEAD
+=======
+      {
+        href: '/results',
+        label: 'Results',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+            <path d="M4 22h16" />
+            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2z" />
+          </svg>
+        ),
+      },
+      {
+        href: '/broker-sim',
+        label: 'Broker Sim',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2v6m0 8v6M4.93 4.93l4.24 4.24m5.66 5.66l4.24 4.24M2 12h6m8 0h6M4.93 19.07l4.24-4.24m5.66-5.66l4.24-4.24" />
+          </svg>
+        ),
+      },
+      {
+        href: '/today',
+        label: 'Signal of Day',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
+        ),
+      },
+      {
+        href: '/sentiment',
+        label: 'Sentiment',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+            <polyline points="16 7 22 7 22 13" />
+          </svg>
+        ),
+      },
+>>>>>>> origin/main
     ],
   },
   {
@@ -182,6 +236,19 @@ const MENU_SECTIONS: MenuSection[] = [
         ),
       },
       {
+<<<<<<< HEAD
+=======
+        href: '/pine-to-tradeclaw',
+        label: 'Pine Importer',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+          </svg>
+        ),
+      },
+      {
+>>>>>>> origin/main
         href: '/plugins',
         label: 'Plugins',
         icon: (
@@ -193,6 +260,20 @@ const MENU_SECTIONS: MenuSection[] = [
         ),
       },
       {
+<<<<<<< HEAD
+=======
+        href: '/widgets',
+        label: 'Widgets',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+        ),
+      },
+      {
+>>>>>>> origin/main
         href: '/performance',
         label: 'Performance',
         icon: (
@@ -202,6 +283,18 @@ const MENU_SECTIONS: MenuSection[] = [
         ),
       },
       {
+<<<<<<< HEAD
+=======
+        href: '/status',
+        label: 'Status',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+        ),
+      },
+      {
+>>>>>>> origin/main
         href: '/correlation',
         label: 'Correlation',
         icon: (
@@ -218,6 +311,29 @@ const MENU_SECTIONS: MenuSection[] = [
           </svg>
         ),
       },
+<<<<<<< HEAD
+=======
+      {
+        href: '/digest',
+        label: 'Digest',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        ),
+      },
+      {
+        href: '/wrapped',
+        label: 'Wrapped',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="8" width="18" height="13" rx="2" />
+            <path d="M12 8V3m0 0L8 7m4-4l4 4" />
+          </svg>
+        ),
+      },
+>>>>>>> origin/main
     ],
   },
   {
@@ -234,7 +350,11 @@ const MENU_SECTIONS: MenuSection[] = [
         ),
       },
       {
+<<<<<<< HEAD
         href: '/badges',
+=======
+        href: '/badge',
+>>>>>>> origin/main
         label: 'Signal Badges',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -278,6 +398,20 @@ const MENU_SECTIONS: MenuSection[] = [
     label: 'More',
     items: [
       {
+<<<<<<< HEAD
+=======
+        href: '/quiz',
+        label: 'Trader Quiz',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        ),
+      },
+      {
+>>>>>>> origin/main
         href: '/demo',
         label: 'Demo',
         icon: (
@@ -337,6 +471,68 @@ const MENU_SECTIONS: MenuSection[] = [
         ),
       },
       {
+<<<<<<< HEAD
+=======
+        href: '/discord',
+        label: 'Discord Bot',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 12a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM15 12a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z" />
+            <path d="M7.5 7.5c3-1 6-1 9 0M7 16.5c3 1 7 1 10 0" />
+          </svg>
+        ),
+      },
+      {
+        href: '/slack',
+        label: 'Slack',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="4" y1="9" x2="20" y2="9" />
+            <line x1="4" y1="15" x2="20" y2="15" />
+            <line x1="10" y1="3" x2="8" y2="21" />
+            <line x1="16" y1="3" x2="14" y2="21" />
+          </svg>
+        ),
+      },
+      {
+        href: '/zapier',
+        label: 'Zapier',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
+        ),
+      },
+      {
+        href: '/waitlist',
+        label: 'Waitlist',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        ),
+      },
+      {
+        href: '/sponsor',
+        label: 'Sponsor',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7 7-7z" />
+          </svg>
+        ),
+      },
+      {
+        href: '/security',
+        label: 'Security',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        ),
+      },
+      {
+>>>>>>> origin/main
         href: '/settings/webhooks',
         label: 'Settings',
         icon: (

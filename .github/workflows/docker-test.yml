@@ -36,11 +36,34 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
+<<<<<<< HEAD
+=======
+      - name: Create .env for CI
+        run: |
+          cat > .env << 'EOF'
+          DB_PASSWORD=ci_test_password_123
+          DB_USER=tradeclaw
+          DB_NAME=tradeclaw
+          AUTH_SECRET=ci_test_auth_secret_32_chars_min_x
+          APP_URL=http://localhost:3000
+          NEXT_PUBLIC_APP_URL=http://localhost:3000
+          NODE_ENV=production
+          EOF
+
+>>>>>>> origin/main
       - name: Start containers
         run: |
           docker compose up -d --build
         env:
           DOCKER_BUILDKIT: 1
+<<<<<<< HEAD
+=======
+          DB_PASSWORD: ci_test_password_123
+          DB_USER: tradeclaw
+          DB_NAME: tradeclaw
+          AUTH_SECRET: ci_test_auth_secret_32_chars_min_x
+          APP_URL: http://localhost:3000
+>>>>>>> origin/main
 
       - name: Wait for health endpoint
         run: |
@@ -56,7 +79,25 @@ jobs:
       - name: Show container logs on failure
         if: failure()
         run: docker compose logs
+<<<<<<< HEAD
+=======
+        env:
+          DB_PASSWORD: ci_test_password_123
+          DB_USER: tradeclaw
+          DB_NAME: tradeclaw
+          AUTH_SECRET: ci_test_auth_secret_32_chars_min_x
+          APP_URL: http://localhost:3000
+>>>>>>> origin/main
 
       - name: Teardown
         if: always()
         run: docker compose down --volumes --remove-orphans
+<<<<<<< HEAD
+=======
+        env:
+          DB_PASSWORD: ci_test_password_123
+          DB_USER: tradeclaw
+          DB_NAME: tradeclaw
+          AUTH_SECRET: ci_test_auth_secret_32_chars_min_x
+          APP_URL: http://localhost:3000
+>>>>>>> origin/main

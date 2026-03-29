@@ -1,5 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+<<<<<<< HEAD
+=======
+import { applySlippage, getSlippageConfig } from './slippage';
+>>>>>>> origin/main
 
 // ---------------------------------------------------------------------------
 // Types
@@ -113,10 +117,17 @@ export function getPortfolio(): Portfolio {
       const raw = fs.readFileSync(PT_FILE, 'utf-8');
       return JSON.parse(raw) as Portfolio;
     } catch {
+<<<<<<< HEAD
       // Corrupt — fall through to seed
     }
   }
   const portfolio = generateSeedPortfolio();
+=======
+      // Corrupt — fall through to empty portfolio
+    }
+  }
+  const portfolio = emptyPortfolio();
+>>>>>>> origin/main
   writePortfolio(portfolio);
   return portfolio;
 }
@@ -131,6 +142,7 @@ function writePortfolio(portfolio: Portfolio): void {
 }
 
 // ---------------------------------------------------------------------------
+<<<<<<< HEAD
 // Seed data — 8 historical trades so the page looks alive on first load
 // ---------------------------------------------------------------------------
 
@@ -139,10 +151,16 @@ function seededRandom(seed: number): number {
   return x - Math.floor(x);
 }
 
+=======
+// Empty portfolio — clean slate for new users
+// ---------------------------------------------------------------------------
+
+>>>>>>> origin/main
 function fmt(v: number, price: number): number {
   return +v.toFixed(price >= 100 ? 2 : 5);
 }
 
+<<<<<<< HEAD
 function generateSeedPortfolio(): Portfolio {
   const SYMBOLS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'XAGUSD', 'AUDUSD'];
   const now = Date.now();
@@ -203,6 +221,18 @@ function generateSeedPortfolio(): Portfolio {
     history,
     equityCurve,
     stats: calculateStats(history, STARTING_BALANCE, equityCurve),
+=======
+function emptyPortfolio(): Portfolio {
+  return {
+    balance: STARTING_BALANCE,
+    startingBalance: STARTING_BALANCE,
+    positions: [],
+    history: [],
+    equityCurve: [
+      { timestamp: new Date().toISOString(), equity: STARTING_BALANCE, balance: STARTING_BALANCE },
+    ],
+    stats: emptyStats(),
+>>>>>>> origin/main
   };
 }
 
@@ -268,12 +298,29 @@ export function openPosition(opts: {
   signalId?: string;
   stopLoss?: number;
   takeProfit?: number;
+<<<<<<< HEAD
 }): { portfolio: Portfolio; position: Position } {
   const portfolio = getPortfolio();
   const basePrice = BASE_PRICES[opts.symbol] ?? 100;
   // Small random noise around base price
   const noise = (Math.random() - 0.5) * 0.002;
   const entryPrice = fmt(basePrice * (1 + noise), basePrice);
+=======
+  entryPrice?: number;
+  slippageEnabled?: boolean;
+}): { portfolio: Portfolio; position: Position } {
+  const portfolio = getPortfolio();
+  const basePrice = BASE_PRICES[opts.symbol] ?? 100;
+  const rawEntry = opts.entryPrice ?? fmt(basePrice, basePrice);
+
+  // Apply entry slippage (works against the trader)
+  const slippageConfig = getSlippageConfig(opts.symbol);
+  const useSlippage = opts.slippageEnabled !== false;
+  const entryPrice = useSlippage
+    ? fmt(applySlippage(rawEntry, opts.direction, 'entry', slippageConfig), basePrice)
+    : rawEntry;
+
+>>>>>>> origin/main
   const quantity = opts.quantity ?? Math.round(portfolio.balance * 0.05);
   const atr = entryPrice * 0.005;
 
@@ -317,10 +364,21 @@ export function closePosition(
 
   const position = portfolio.positions[posIdx];
   const basePrice = BASE_PRICES[position.symbol] ?? 100;
+<<<<<<< HEAD
   const currentPrice =
     exitPrice ??
     fmt(position.entryPrice * (1 + (Math.random() - 0.5) * 0.003), basePrice);
 
+=======
+  const rawExit =
+    exitPrice ??
+    fmt(position.entryPrice * (1 + (Math.random() - 0.5) * 0.003), basePrice);
+
+  // Apply exit slippage (works against the trader)
+  const slippageConfig = getSlippageConfig(position.symbol);
+  const currentPrice = fmt(applySlippage(rawExit, position.direction, 'exit', slippageConfig), basePrice);
+
+>>>>>>> origin/main
   const dirMult = position.direction === 'BUY' ? 1 : -1;
   const movePct = ((currentPrice - position.entryPrice) / position.entryPrice) * dirMult;
   const pnl = +(position.quantity * movePct).toFixed(2);

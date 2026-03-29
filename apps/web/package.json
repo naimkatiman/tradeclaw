@@ -9,12 +9,22 @@
     "lint": "eslint"
   },
   "dependencies": {
+<<<<<<< HEAD
+=======
+    "lightweight-charts": "^5.1.0",
+>>>>>>> origin/main
     "lucide-react": "^1.7.0",
     "next": "16.2.0",
     "next-themes": "^0.4.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+<<<<<<< HEAD
     "stripe": "^21.0.1"
+=======
+    "stripe": "^21.0.1",
+    "trading-signals": "^7.4.3",
+    "@tradeclaw/signals": "*"
+>>>>>>> origin/main
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -1,5 +1,13 @@
 // @tradeclaw/core — shared types and utilities
 
+<<<<<<< HEAD
+=======
+// Plugin system
+export type { OHLCV, IndicatorResult, IndicatorPlugin } from './plugins/types';
+export { PluginRegistry, pluginRegistry } from './plugins/registry';
+export type { AggregatedResult } from './plugins/registry';
+
+>>>>>>> origin/main
 /** User roles for access control */
 export type UserRole = 'public' | 'registered' | 'admin';
 
@@ -15,6 +23,10 @@ export type TradingSymbol =
   | 'USDCAD'
   | 'SOLUSD'
   | 'BNBUSD'
+<<<<<<< HEAD
+=======
+  | 'DOGEUSD'
+>>>>>>> origin/main
   | 'ADAUSD'
   | 'DOTUSD'
   | 'LINKUSD';

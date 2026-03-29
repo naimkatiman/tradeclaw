@@ -70,7 +70,11 @@ export function AnimatedHero() {
         </div>
 
         {/* Headline */}
+<<<<<<< HEAD
         <h1 className="text-5xl font-bold leading-[1.08] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-white">
+=======
+        <h1 className="text-5xl font-bold leading-[1.08] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-[var(--foreground)]">
+>>>>>>> origin/main
           AI Trading Signals.
           <br />
           <span className="text-emerald-400 text-glow-emerald">
@@ -80,7 +84,11 @@ export function AnimatedHero() {
         </h1>
 
         {/* Subtitle */}
+<<<<<<< HEAD
         <p className="mx-auto mt-6 max-w-2xl text-base text-zinc-400 leading-relaxed sm:text-lg">
+=======
+        <p className="mx-auto mt-6 max-w-2xl text-base text-[var(--text-secondary)] leading-relaxed sm:text-lg">
+>>>>>>> origin/main
           Real-time BUY/SELL signals for forex, crypto, and commodities.
           Self-hosted, private, and free — no subscription, no lock-in, no
           data sent to third parties.
@@ -88,9 +96,15 @@ export function AnimatedHero() {
 
         {/* Live signal ticker */}
         <div className="relative mt-10 overflow-hidden rounded-xl border border-white/8 bg-[#0a0a0a]">
+<<<<<<< HEAD
           <div className="flex items-center gap-2 border-b border-white/5 px-4 py-2">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
             <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-600">
+=======
+          <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--text-secondary)]">
+>>>>>>> origin/main
               Live signal feed
             </span>
           </div>
@@ -129,12 +143,20 @@ export function AnimatedHero() {
             href={GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
+<<<<<<< HEAD
             className="flex items-center gap-2.5 rounded-full border border-white/12 px-7 py-3 text-sm font-semibold text-white transition-all duration-200 hover:border-white/20 hover:bg-white/5 active:scale-[0.98]"
+=======
+            className="flex items-center gap-2.5 rounded-full border border-[var(--border)] px-7 py-3 text-sm font-semibold text-white transition-all duration-200 hover:border-white/20 hover:bg-[var(--glass-bg)] active:scale-[0.98]"
+>>>>>>> origin/main
           >
             <GitHubIcon />
             View on GitHub
             {stars !== null && (
+<<<<<<< HEAD
               <span className="ml-0.5 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono tabular-nums text-zinc-400">
+=======
+              <span className="ml-0.5 rounded-full bg-[var(--glass-bg)] px-2 py-0.5 text-[10px] font-mono tabular-nums text-[var(--text-secondary)]">
+>>>>>>> origin/main
                 {stars.toLocaleString()}
               </span>
             )}
@@ -151,7 +173,11 @@ export function AnimatedHero() {
         </div>
 
         {/* Trust badges */}
+<<<<<<< HEAD
         <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-zinc-600">
+=======
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-[var(--text-secondary)]">
+>>>>>>> origin/main
           {[
             "MIT License",
             "12+ asset pairs",
@@ -162,7 +188,11 @@ export function AnimatedHero() {
             <span key={badge} className="flex items-center gap-2">
               <span>{badge}</span>
               {i < arr.length - 1 && (
+<<<<<<< HEAD
                 <span className="h-1 w-1 rounded-full bg-zinc-800" />
+=======
+                <span className="h-1 w-1 rounded-full bg-[var(--bg-card)]" />
+>>>>>>> origin/main
               )}
             </span>
           ))}
@@ -186,7 +216,11 @@ function SignalPill({
   const isBuy = direction === "BUY";
   return (
     <div className="flex items-center gap-3 rounded-lg border border-white/6 bg-white/[0.025] px-3.5 py-2.5 shrink-0">
+<<<<<<< HEAD
       <span className="text-xs font-mono font-semibold text-white">
+=======
+      <span className="text-xs font-mono font-semibold text-[var(--foreground)]">
+>>>>>>> origin/main
         {symbol}
       </span>
       <span
@@ -198,15 +232,25 @@ function SignalPill({
       >
         {direction}
       </span>
+<<<<<<< HEAD
       <span className="text-[10px] font-mono text-zinc-500">{price}</span>
       <div className="flex items-center gap-1">
         <div className="h-0.5 w-12 rounded-full bg-white/5">
+=======
+      <span className="text-[10px] font-mono text-[var(--text-secondary)]">{price}</span>
+      <div className="flex items-center gap-1">
+        <div className="h-0.5 w-12 rounded-full bg-[var(--glass-bg)]">
+>>>>>>> origin/main
           <div
             className={`h-0.5 rounded-full ${isBuy ? "bg-emerald-400" : "bg-rose-400"}`}
             style={{ width: `${confidence}%` }}
           />
         </div>
+<<<<<<< HEAD
         <span className="text-[9px] font-mono text-zinc-600">
+=======
+        <span className="text-[9px] font-mono text-[var(--text-secondary)]">
+>>>>>>> origin/main
           {confidence}%
         </span>
       </div>

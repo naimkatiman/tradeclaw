@@ -108,7 +108,12 @@ export async function cancelSubscription(
 export async function updateSubscriptionStatus(
   stripeSubscriptionId: string,
   status: SubscriptionRecord['status'],
+<<<<<<< HEAD
   currentPeriodEnd?: Date
+=======
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _currentPeriodEnd?: Date
+>>>>>>> origin/main
 ): Promise<void> {
   console.log('[db stub] updateSubscriptionStatus', stripeSubscriptionId, status);
 }

@@ -101,6 +101,7 @@ function ensureDataDir(): void {
   }
 }
 
+<<<<<<< HEAD
 function seededRand(seed: number): () => number {
   let s = (seed >>> 0) || 1;
   return () => {
@@ -109,6 +110,8 @@ function seededRand(seed: number): () => number {
   };
 }
 
+=======
+>>>>>>> origin/main
 function formatUptime(ms: number): string {
   const totalSec = Math.floor(ms / 1000);
   const minutes = Math.floor(totalSec / 60) % 60;
@@ -119,6 +122,7 @@ function formatUptime(ms: number): string {
   return `${minutes}m`;
 }
 
+<<<<<<< HEAD
 // ─── Seed ────────────────────────────────────────────────────────────────────
 
 function generateSeedData(): PerformanceData {
@@ -206,6 +210,32 @@ function generateSeedData(): PerformanceData {
     startedAt: now - 3 * 24 * 60 * 60 * 1000,
     lastRestartAt: now - 3 * 24 * 60 * 60 * 1000,
     sseConnections: Math.floor(3 + r() * 6),
+=======
+/** Capture a real memory snapshot from the current Node.js process. */
+function captureMemoryPoint(): MemoryPoint {
+  const mem = process.memoryUsage();
+  return {
+    timestamp: Date.now(),
+    rss: mem.rss,
+    heapUsed: mem.heapUsed,
+    heapTotal: mem.heapTotal,
+  };
+}
+
+/** Create an empty PerformanceData with real timestamps and one real memory snapshot. */
+function createEmptyData(): PerformanceData {
+  const now = Date.now();
+  return {
+    latency: [],
+    apiRoutes: [],
+    throughput: [],
+    memory: [captureMemoryPoint()],
+    cache: { hits: 0, misses: 0 },
+    signals: { byPair: {}, byTimeframe: {}, buy: 0, sell: 0, total: 0 },
+    startedAt: now,
+    lastRestartAt: now,
+    sseConnections: 0,
+>>>>>>> origin/main
     lastUpdated: now,
   };
 }
@@ -219,6 +249,7 @@ export function readMetrics(): PerformanceData {
       const raw = fs.readFileSync(METRICS_FILE, 'utf-8');
       return JSON.parse(raw) as PerformanceData;
     } catch {
+<<<<<<< HEAD
       // corrupt file — fall through to seed
     }
   }
@@ -229,6 +260,18 @@ export function readMetrics(): PerformanceData {
     // ignore write failures
   }
   return seed;
+=======
+      // corrupt file — fall through to empty data
+    }
+  }
+  const empty = createEmptyData();
+  try {
+    fs.writeFileSync(METRICS_FILE, JSON.stringify(empty, null, 2));
+  } catch {
+    // ignore write failures
+  }
+  return empty;
+>>>>>>> origin/main
 }
 
 function writeMetrics(data: PerformanceData): void {
@@ -271,7 +314,22 @@ export function recordMetric(
 }
 
 export function getMetrics(): PerformanceData {
+<<<<<<< HEAD
   return readMetrics();
+=======
+  const data = readMetrics();
+
+  // Always append a fresh memory snapshot so the dashboard shows real memory
+  const memPoint = captureMemoryPoint();
+  data.memory.push(memPoint);
+  if (data.memory.length > MAX_POINTS) {
+    data.memory = data.memory.slice(-MAX_POINTS);
+  }
+  data.lastUpdated = Date.now();
+  writeMetrics(data);
+
+  return data;
+>>>>>>> origin/main
 }
 
 export function getSystemHealth(): SystemHealth {
@@ -283,8 +341,13 @@ export function getSystemHealth(): SystemHealth {
   const heapTotalMb = +(mem.heapTotal / 1024 / 1024).toFixed(1);
   const heapPct = +((mem.heapUsed / mem.heapTotal) * 100).toFixed(1);
 
+<<<<<<< HEAD
   const now = Date.now();
   const uptimeMs = now - data.startedAt;
+=======
+  const uptimeMs = process.uptime() * 1000;
+  const startedAt = data.startedAt || Date.now() - uptimeMs;
+>>>>>>> origin/main
   const lastThroughput = data.throughput[data.throughput.length - 1];
 
   return {
@@ -298,8 +361,13 @@ export function getSystemHealth(): SystemHealth {
       heapPct,
     },
     uptime: {
+<<<<<<< HEAD
       startedAt: data.startedAt,
       lastRestartAt: data.lastRestartAt,
+=======
+      startedAt,
+      lastRestartAt: data.lastRestartAt || startedAt,
+>>>>>>> origin/main
       uptimeMs,
       uptimeFormatted: formatUptime(uptimeMs),
     },
@@ -312,9 +380,14 @@ export function getSystemHealth(): SystemHealth {
 }
 
 export function resetMetrics(): void {
+<<<<<<< HEAD
   const seed = generateSeedData();
   const now = Date.now();
   seed.startedAt = now;
   seed.lastRestartAt = now;
   writeMetrics(seed);
+=======
+  const empty = createEmptyData();
+  writeMetrics(empty);
+>>>>>>> origin/main
 }

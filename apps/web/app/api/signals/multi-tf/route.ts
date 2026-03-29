@@ -5,6 +5,7 @@ import { SYMBOLS } from '../../../lib/signals';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+<<<<<<< HEAD
   const { searchParams } = new URL(request.url);
   const pairFilter = searchParams.get('pair')?.toUpperCase();
 
@@ -42,4 +43,47 @@ export async function GET(request: NextRequest) {
     summary: { bullish, bearish, conflicted, allAligned },
     results,
   });
+=======
+  try {
+    const { searchParams } = new URL(request.url);
+    const pairFilter = searchParams.get('pair')?.toUpperCase();
+
+    if (pairFilter && !SYMBOLS.some(s => s.symbol === pairFilter)) {
+      return NextResponse.json(
+        { error: `Unknown symbol: ${pairFilter}`, available: SYMBOLS.map(s => s.symbol) },
+        { status: 400 }
+      );
+    }
+
+    const targetSymbols = pairFilter
+      ? SYMBOLS.filter(s => s.symbol === pairFilter)
+      : SYMBOLS;
+
+    const settled = await Promise.allSettled(
+      targetSymbols.map(s => generateMultiTFSignal(s.symbol))
+    );
+
+    const results = settled
+      .filter(
+        (r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof generateMultiTFSignal>>> =>
+          r.status === 'fulfilled' && r.value !== null
+      )
+      .map(r => r.value!);
+
+    // Build summary stats
+    const bullish = results.filter(r => r.dominantDirection === 'BUY').length;
+    const bearish = results.filter(r => r.dominantDirection === 'SELL').length;
+    const conflicted = results.filter(r => r.isConflicted).length;
+    const allAligned = results.filter(r => r.agreementCount === 3).length;
+
+    return NextResponse.json({
+      timestamp: new Date().toISOString(),
+      count: results.length,
+      summary: { bullish, bearish, conflicted, allAligned },
+      results,
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+>>>>>>> origin/main
 }

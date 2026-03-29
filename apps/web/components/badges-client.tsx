@@ -81,6 +81,10 @@ function BadgeCard({
           <h3 className="text-sm font-semibold">{name}</h3>
           <span className="text-xs text-[var(--text-secondary)] font-mono">{symbol}</span>
         </div>
+<<<<<<< HEAD
+=======
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+>>>>>>> origin/main
         <img
           src={badgeUrlWithCacheBust}
           alt={`${name} signal badge`}
@@ -93,6 +97,10 @@ function BadgeCard({
       {/* GitHub README dark bg preview */}
       <div className="rounded-lg bg-[#0d1117] border border-[#30363d] px-4 py-3 flex items-center gap-3">
         <span className="text-xs text-[#8b949e] font-mono">README.md</span>
+<<<<<<< HEAD
+=======
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+>>>>>>> origin/main
         <img
           src={badgeUrlWithCacheBust}
           alt={`${name} signal`}
@@ -147,6 +155,10 @@ export function BadgesClient() {
           <div className="flex flex-col items-center gap-3 pt-2">
             <div className="flex flex-wrap justify-center gap-2">
               {['BTCUSD', 'ETHUSD', 'XAUUSD'].map(sym => (
+<<<<<<< HEAD
+=======
+                // eslint-disable-next-line @next/next/no-img-element
+>>>>>>> origin/main
                 <img
                   key={sym}
                   src={`/api/badge/${sym}?tf=${timeframe}&_=${cacheBust}`}

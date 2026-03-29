@@ -10,8 +10,20 @@
   "scripts": {
     "dev": "npm run dev --workspace=apps/web",
     "build": "npm run build --workspace=apps/web",
+<<<<<<< HEAD
     "lint": "npm run lint --workspace=apps/web",
     "start": "npm run start --workspace=apps/web",
+=======
+    "build:signals": "npm run build --workspace=packages/signals",
+    "build:agent": "npm run build --workspace=packages/agent",
+    "build:all": "npm run build:signals && npm run build:agent && npm run build",
+    "lint": "npm run lint --workspace=apps/web",
+    "start": "npm run start --workspace=apps/web",
+    "agent": "npx tsx packages/agent/src/cli/cli.ts",
+    "agent:start": "npx tsx packages/agent/src/cli/cli.ts start",
+    "agent:scan": "npx tsx packages/agent/src/cli/cli.ts scan",
+    "agent:server": "npx tsx packages/agent/src/server/server.ts",
+>>>>>>> origin/main
     "test": "jest"
   },
   "repository": {

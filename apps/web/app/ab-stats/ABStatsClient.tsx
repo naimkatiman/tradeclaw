@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+<<<<<<< HEAD
+=======
+import Link from "next/link";
+>>>>>>> origin/main
 
 type Variant = "a" | "b" | "c";
 const VARIANTS: Variant[] = ["a", "b", "c"];
@@ -26,9 +30,17 @@ export function ABStatsClient() {
     const imp = JSON.parse(localStorage.getItem("tc_ab_impressions") || '{"a":0,"b":0,"c":0}');
     const clk = JSON.parse(localStorage.getItem("tc_ab_clicks") || '{"a":0,"b":0,"c":0}');
     const v = localStorage.getItem("tc_ab_variant") as Variant | null;
+<<<<<<< HEAD
     setImpressions(imp);
     setClicks(clk);
     setMyVariant(v);
+=======
+    setTimeout(() => {
+      setImpressions(imp);
+      setClicks(clk);
+      setMyVariant(v);
+    }, 0);
+>>>>>>> origin/main
   }, []);
 
   const totalImpressions = VARIANTS.reduce((s, v) => s + (impressions[v] || 0), 0);
@@ -166,12 +178,20 @@ export function ABStatsClient() {
           >
             Reset All Stats
           </button>
+<<<<<<< HEAD
           <a
+=======
+          <Link
+>>>>>>> origin/main
             href="/"
             className="rounded-lg border border-white/10 bg-white/4 px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
           >
             Back to Homepage
+<<<<<<< HEAD
           </a>
+=======
+          </Link>
+>>>>>>> origin/main
         </div>
 
         <p className="mt-6 text-xs text-zinc-700">

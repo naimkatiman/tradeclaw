@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+<<<<<<< HEAD
 import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown } from 'lucide-react';
+=======
+import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Shield, TrendingUp, Flame, Image } from 'lucide-react';
+>>>>>>> origin/main
 import { ThemeToggle } from './theme-toggle';
 import type { LucideIcon } from 'lucide-react';
 
@@ -17,7 +21,11 @@ const PRIMARY_LINKS: NavLink[] = [
   { href: '/screener', label: 'Signals' },
   { href: '/demo', label: 'Live Demo' },
   { href: '/backtest', label: 'Backtest' },
+<<<<<<< HEAD
   { href: '/api-docs', label: 'API Docs' },
+=======
+  { href: '/how-it-works', label: 'Getting Started' },
+>>>>>>> origin/main
   { href: '/compare', label: 'Compare' },
 ];
 
@@ -39,34 +47,81 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/alerts', label: 'Alerts' },
       { href: '/accuracy', label: 'Accuracy' },
       { href: '/calibration', label: 'Calibration' },
+<<<<<<< HEAD
+=======
+      { href: '/results', label: 'Results', icon: Trophy },
+      { href: '/broker-sim', label: 'Broker Sim', icon: Plug },
+      { href: '/exchanges', label: 'Exchanges', icon: Globe },
+      { href: '/today', label: 'Signal of the Day', icon: Zap },
+      { href: '/sentiment', label: 'Sentiment', icon: TrendingUp },
+>>>>>>> origin/main
     ],
   },
   {
     label: 'Tools',
     links: [
       { href: '/strategy-builder', label: 'Strategy Builder' },
+<<<<<<< HEAD
       { href: '/plugins', label: 'Plugins' },
       { href: '/badge', label: 'Badges' },
       { href: '/badges', label: 'Badges Gallery' },
       { href: '/marketplace', label: 'Marketplace' },
       { href: '/api-keys', label: 'API Keys' },
+=======
+      { href: '/pine-to-tradeclaw', label: 'Pine Importer', icon: Code },
+      { href: '/roast', label: 'Roast Strategy', icon: Flame },
+      { href: '/plugins', label: 'Plugins' },
+      { href: '/badge', label: 'Badges Gallery' },
+      { href: '/widgets', label: 'Widgets', icon: LayoutDashboard },
+      { href: '/marketplace', label: 'Marketplace' },
+      { href: '/api-keys', label: 'API Keys' },
+      { href: '/status', label: 'Status', icon: Activity },
+      { href: '/digest', label: 'Digest', icon: Clock },
+      { href: '/wrapped', label: 'Wrapped', icon: Gift },
+>>>>>>> origin/main
     ],
   },
   {
     label: 'Community',
     links: [
       { href: '/blog', label: 'Blog' },
+<<<<<<< HEAD
       { href: '/contribute', label: 'Contribute', icon: Handshake },
       { href: '/awesome', label: 'Awesome Lists' },
       { href: '/card', label: 'Signal Card' },
       { href: '/playground', label: 'Playground' },
+=======
+      { href: '/widget', label: 'Widget', icon: MonitorSmartphone },
+      { href: '/showcase', label: 'Showcase', icon: Users },
+      { href: '/contribute', label: 'Contribute', icon: Handshake },
+      { href: '/sponsor', label: 'Sponsor', icon: Heart },
+      { href: '/awesome', label: 'Awesome Lists' },
+      { href: '/card', label: 'Signal Card' },
+      { href: '/og-preview', label: 'OG Preview', icon: Image },
+      { href: '/playground', label: 'Playground' },
+      { href: '/email-digest', label: 'Email Digest', icon: Mail },
+      { href: '/slack', label: 'Slack', icon: Hash },
+      { href: '/threads', label: 'Tweet Threads' },
+>>>>>>> origin/main
       { href: '/share', label: 'Share', icon: Star },
       { href: '/star', label: 'Star Us', icon: Star },
       { href: '/stars', label: 'Stars', icon: Sparkles },
       { href: '/hn', label: 'HN', icon: Circle },
       { href: '/rss', label: 'RSS', icon: Radio },
+<<<<<<< HEAD
       { href: '/launch', label: 'Launch', icon: Rocket },
       { href: '/vs-tradingview', label: 'vs TradingView' },
+=======
+      { href: '/waitlist', label: 'Waitlist', icon: Clock },
+      { href: '/launch', label: 'Launch', icon: Rocket },
+      { href: '/vs-tradingview', label: 'vs TradingView' },
+      { href: '/discord', label: 'Discord Bot', icon: MessageCircle },
+      { href: '/notion', label: 'Notion Sync', icon: Database },
+      { href: '/zapier', label: 'Zapier', icon: Zap },
+      { href: '/quiz', label: 'Trader Quiz', icon: HelpCircle },
+      { href: '/contributors', label: 'Contributors', icon: Trophy },
+      { href: '/security', label: 'Security', icon: Shield },
+>>>>>>> origin/main
     ],
   },
 ];
@@ -158,10 +213,17 @@ export function Navbar() {
               </button>
 
               {moreOpen && (
+<<<<<<< HEAD
                 <div className="absolute top-full right-0 mt-3 w-[480px] rounded-2xl border border-white/10 backdrop-blur-2xl bg-black/80 shadow-2xl shadow-black/40 p-5 grid grid-cols-3 gap-6">
                   {MORE_GROUPS.map((group) => (
                     <div key={group.label}>
                       <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold mb-2 block">
+=======
+                <div className="absolute top-full right-0 mt-3 w-[480px] rounded-2xl border border-[var(--border)] backdrop-blur-2xl bg-[var(--bg-card)]/95 shadow-2xl shadow-black/40 p-5 grid grid-cols-3 gap-6">
+                  {MORE_GROUPS.map((group) => (
+                    <div key={group.label}>
+                      <span className="text-[10px] uppercase tracking-widest text-[var(--text-secondary)] font-semibold mb-2 block">
+>>>>>>> origin/main
                         {group.label}
                       </span>
                       <div className="flex flex-col gap-1">
@@ -170,7 +232,11 @@ export function Navbar() {
                             key={link.href}
                             href={link.href}
                             onClick={() => setMoreOpen(false)}
+<<<<<<< HEAD
                             className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-white/5 transition-colors duration-200"
+=======
+                            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--glass-bg)] transition-colors duration-200"
+>>>>>>> origin/main
                           >
                             {link.icon && <link.icon className="w-3 h-3" />}
                             {link.label}
@@ -236,7 +302,11 @@ export function Navbar() {
       {/* Mobile menu overlay */}
       {menuOpen && (
         <div
+<<<<<<< HEAD
           className="fixed inset-0 z-40 backdrop-blur-2xl bg-black/85 flex flex-col items-center justify-center gap-8"
+=======
+          className="fixed inset-0 z-[60] backdrop-blur-2xl bg-black/85 flex flex-col items-center justify-center gap-8"
+>>>>>>> origin/main
           onClick={() => setMenuOpen(false)}
         >
           {ALL_NAV_LINKS.map((link, i) => (

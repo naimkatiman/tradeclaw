@@ -5,6 +5,7 @@ import { getMultiOHLCV } from './ohlcv';
 import { calculateAllIndicators } from './ta-engine';
 import { generateSignalsFromTA } from './signal-generator';
 
+<<<<<<< HEAD
 // Signal types
 export interface TradingSignal {
   id: string;
@@ -33,6 +34,13 @@ export interface IndicatorSummary {
   support: number[];
   resistance: number[];
 }
+=======
+// Signal types — shared from @tradeclaw/signals
+import type { TradingSignal, IndicatorSummary } from '@tradeclaw/signals';
+import { generateSignalId, clamp } from '@tradeclaw/signals';
+export type { TradingSignal, IndicatorSummary } from '@tradeclaw/signals';
+export { generateSignalId, clamp } from '@tradeclaw/signals';
+>>>>>>> origin/main
 
 // Symbol configurations with current market prices (Mar 2026)
 export const SYMBOLS = [
@@ -40,6 +48,12 @@ export const SYMBOLS = [
   { symbol: 'XAGUSD', name: 'Silver', pip: 0.001, basePrice: 71.36, volatility: 0.8 },
   { symbol: 'BTCUSD', name: 'Bitcoin', pip: 0.01, basePrice: 70798.0, volatility: 2000 },
   { symbol: 'ETHUSD', name: 'Ethereum', pip: 0.01, basePrice: 2147.53, volatility: 100 },
+<<<<<<< HEAD
+=======
+  { symbol: 'SOLUSD', name: 'Solana', pip: 0.01, basePrice: 142.80, volatility: 8 },
+  { symbol: 'DOGEUSD', name: 'Dogecoin', pip: 0.00001, basePrice: 0.178, volatility: 0.008 },
+  { symbol: 'BNBUSD', name: 'BNB', pip: 0.01, basePrice: 608.50, volatility: 25 },
+>>>>>>> origin/main
   { symbol: 'XRPUSD', name: 'XRP', pip: 0.0001, basePrice: 1.40, volatility: 0.03 },
   { symbol: 'EURUSD', name: 'EUR/USD', pip: 0.0001, basePrice: 1.1559, volatility: 0.005 },
   { symbol: 'GBPUSD', name: 'GBP/USD', pip: 0.0001, basePrice: 1.3352, volatility: 0.006 },
@@ -50,6 +64,7 @@ export const SYMBOLS = [
   { symbol: 'USDCHF', name: 'USD/CHF', pip: 0.0001, basePrice: 0.7922, volatility: 0.004 },
 ];
 
+<<<<<<< HEAD
 export const TIMEFRAMES = ['M15', 'H1', 'H4', 'D1'];
 
 export function generateSignalId(): string {
@@ -59,6 +74,11 @@ export function generateSignalId(): string {
 export function clamp(val: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, val));
 }
+=======
+export const TIMEFRAMES = ['M15', 'H1', 'H4', 'D1'] as const;
+
+// generateSignalId and clamp are now imported from @tradeclaw/signals
+>>>>>>> origin/main
 
 // ─── Fallback: Random signal generation (original code) ─────
 
@@ -182,7 +202,11 @@ export async function getLivePrices(): Promise<Map<string, number>> {
   const map = new Map<string, number>();
 
   const [cryptoResult, forexResult, xauResult, xagResult] = await Promise.allSettled([
+<<<<<<< HEAD
     fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,ripple,solana&vs_currencies=usd', {
+=======
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,ripple,solana,dogecoin,binancecoin&vs_currencies=usd', {
+>>>>>>> origin/main
       signal: AbortSignal.timeout(5000),
     }).then(r => r.ok ? r.json() as Promise<Record<string, {usd: number}>> : null),
     fetch('https://open.er-api.com/v6/latest/USD', { signal: AbortSignal.timeout(5000) })
@@ -246,7 +270,11 @@ async function generateRealSignals(
       syntheticSymbols.push(sym.symbol);
     }
 
+<<<<<<< HEAD
     // Calculate indicators and generate signals (generateSignalsFromTA returns [] for synthetic)
+=======
+    // Calculate indicators and generate signals with source transparency
+>>>>>>> origin/main
     const indicators = calculateAllIndicators(data.candles);
     const signalSource = data.source === 'synthetic' ? 'synthetic' : 'real';
     const signalTimestamp = data.candles[data.candles.length - 1]?.timestamp ?? Date.now();
@@ -259,8 +287,13 @@ async function generateRealSignals(
     );
 
     for (const sig of realSignals) {
+<<<<<<< HEAD
       sig.source = 'real';
       sig.dataQuality = 'real';
+=======
+      sig.source = signalSource === 'synthetic' ? 'fallback' : 'real';
+      // dataQuality is already set by generateSignalsFromTA based on actual data source
+>>>>>>> origin/main
     }
 
     signals.push(...realSignals);
@@ -292,7 +325,11 @@ export async function getSignals(params: {
   // Determine timeframes to analyze
   const timeframesToCheck = timeframeFilter
     ? [timeframeFilter.toUpperCase()]
+<<<<<<< HEAD
     : ['H1', 'H4']; // Default: check H1 and H4
+=======
+    : ['M15', 'H1', 'H4', 'D1']; // Default: check all timeframes
+>>>>>>> origin/main
 
   let allSignals: TradingSignal[] = [];
   const allSyntheticSymbols = new Set<string>();

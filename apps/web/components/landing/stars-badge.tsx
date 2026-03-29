@@ -31,7 +31,11 @@ export function StarsBadge() {
       </svg>
       {stars !== null ? (
         <span>
+<<<<<<< HEAD
           <span className="font-bold text-white">{stars.toLocaleString()}</span> stars
+=======
+          <span className="font-bold text-[var(--foreground)]">{stars.toLocaleString()}</span> stars
+>>>>>>> origin/main
         </span>
       ) : (
         <span className="text-[var(--text-secondary)]">Loading stars…</span>

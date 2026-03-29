@@ -33,12 +33,20 @@ export function HintBadge({ label, className = '' }: HintBadgeProps) {
       </button>
       {open && (
         <span
+<<<<<<< HEAD
           className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2.5 rounded-lg bg-zinc-900 border border-white/10 text-[11px] text-zinc-300 leading-snug pointer-events-none z-50 shadow-xl"
+=======
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2.5 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 text-[11px] text-gray-600 dark:text-zinc-300 leading-snug pointer-events-none z-50 shadow-xl"
+>>>>>>> origin/main
           role="tooltip"
         >
           {label}
           {/* Arrow */}
+<<<<<<< HEAD
           <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-zinc-900" />
+=======
+          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-200 dark:border-t-zinc-900" />
+>>>>>>> origin/main
         </span>
       )}
     </span>
@@ -67,7 +75,11 @@ export function PageHint({ message }: PageHintProps) {
   if (!DEMO_MODE || dismissed) return null;
 
   return (
+<<<<<<< HEAD
     <div className="flex items-center justify-between gap-3 px-4 py-2 mx-4 mt-4 rounded-xl bg-emerald-500/5 border border-emerald-500/15 text-xs text-zinc-400">
+=======
+    <div className="flex items-center justify-between gap-3 px-4 py-2 mx-4 mt-4 rounded-xl bg-emerald-500/5 border border-emerald-500/15 text-xs text-gray-500 dark:text-zinc-400">
+>>>>>>> origin/main
       <div className="flex items-center gap-2">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500 shrink-0">
           <circle cx="12" cy="12" r="10" />
@@ -77,7 +89,11 @@ export function PageHint({ message }: PageHintProps) {
       </div>
       <button
         onClick={() => setDismissed(true)}
+<<<<<<< HEAD
         className="text-zinc-700 hover:text-zinc-500 transition-colors shrink-0"
+=======
+        className="text-gray-400 hover:text-gray-600 dark:text-zinc-700 dark:hover:text-zinc-500 transition-colors shrink-0"
+>>>>>>> origin/main
         aria-label="Dismiss hint"
       >
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

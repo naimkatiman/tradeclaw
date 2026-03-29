@@ -84,6 +84,7 @@ export function readHistory(): SignalHistoryRecord[] {
       const raw = fs.readFileSync(HISTORY_FILE, 'utf-8');
       return JSON.parse(raw) as SignalHistoryRecord[];
     } catch {
+<<<<<<< HEAD
       // Corrupt file — fall through to seed
     }
   }
@@ -94,6 +95,12 @@ export function readHistory(): SignalHistoryRecord[] {
     // ignore write failures
   }
   return seed;
+=======
+      // Corrupt file — return empty
+    }
+  }
+  return [];
+>>>>>>> origin/main
 }
 
 function writeHistory(records: SignalHistoryRecord[]): void {
@@ -138,7 +145,10 @@ export function recordSignal(
   records.unshift(newRecord);
   if (records.length > MAX_RECORDS) records.splice(MAX_RECORDS);
 
+<<<<<<< HEAD
   resolveOutcomesLazy(records);
+=======
+>>>>>>> origin/main
   writeHistory(records);
 }
 
@@ -175,11 +185,15 @@ export function recordSignals(signals: TrackedSignalInput[]): number {
   if (inserted === 0) return 0;
 
   if (records.length > MAX_RECORDS) records.splice(MAX_RECORDS);
+<<<<<<< HEAD
   resolveOutcomesLazy(records);
+=======
+>>>>>>> origin/main
   writeHistory(records);
   return inserted;
 }
 
+<<<<<<< HEAD
 function resolveOutcomesLazy(records: SignalHistoryRecord[]): void {
   const now = Date.now();
   for (const r of records) {
@@ -193,6 +207,8 @@ function resolveOutcomesLazy(records: SignalHistoryRecord[]): void {
   }
 }
 
+=======
+>>>>>>> origin/main
 function resolveFromCandles(r: SignalHistoryRecord, candles: OHLCV[]): SignalOutcome | null {
   if (!r.tp1 || !r.sl || candles.length === 0) return null;
 
@@ -264,6 +280,7 @@ export async function resolveRealOutcomes(): Promise<void> {
   if (changed) writeHistory(records);
 }
 
+<<<<<<< HEAD
 function seededRandom(seed: number): number {
   const x = Math.sin(seed + 1) * 10000;
   return x - Math.floor(x);
@@ -293,6 +310,62 @@ function simulateOutcome(r: SignalHistoryRecord, window: '4h' | '24h'): SignalOu
         )
       : 0;
   return { price, pnlPct: movePct, hit };
+=======
+// ──────────────────────────────────────────────
+// Query helpers for cron resolution pipeline
+// ──────────────────────────────────────────────
+
+/**
+ * Return all records where both 4h and 24h outcomes are still null
+ * (i.e. completely unresolved). Excludes simulated records.
+ */
+export function getPendingRecords(): SignalHistoryRecord[] {
+  const records = readHistory();
+  return records.filter(
+    r => !r.isSimulated && (r.outcomes['4h'] === null || r.outcomes['24h'] === null),
+  );
+}
+
+/**
+ * Check whether a record already exists for the given symbol + direction
+ * within the specified time window (milliseconds from now).
+ */
+export function getRecentRecordForSymbol(
+  symbol: string,
+  direction: 'BUY' | 'SELL',
+  withinMs: number,
+): SignalHistoryRecord | undefined {
+  const cutoff = Date.now() - withinMs;
+  const records = readHistory();
+  return records.find(
+    r => r.pair === symbol && r.direction === direction && r.timestamp >= cutoff,
+  );
+}
+
+/**
+ * Bulk-update records by id. Merges provided partial fields into each matching record.
+ * Returns the number of records updated.
+ */
+export function updateRecords(
+  updates: Array<{ id: string; patch: Partial<SignalHistoryRecord> }>,
+): number {
+  if (updates.length === 0) return 0;
+
+  const records = readHistory();
+  const patchMap = new Map(updates.map(u => [u.id, u.patch]));
+  let changed = 0;
+
+  for (const r of records) {
+    const patch = patchMap.get(r.id);
+    if (patch) {
+      Object.assign(r, patch);
+      changed++;
+    }
+  }
+
+  if (changed > 0) writeHistory(records);
+  return changed;
+>>>>>>> origin/main
 }
 
 // ──────────────────────────────────────────────
@@ -409,6 +482,7 @@ export function computeLeaderboard(
   };
 }
 
+<<<<<<< HEAD
 // ──────────────────────────────────────────────
 // Seed data
 // ──────────────────────────────────────────────
@@ -460,3 +534,5 @@ function generateSeedData(): SignalHistoryRecord[] {
 
   return records.sort((a, b) => b.timestamp - a.timestamp);
 }
+=======
+>>>>>>> origin/main

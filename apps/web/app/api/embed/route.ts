@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 import { NextRequest } from 'next/server';
+=======
+import { NextRequest, NextResponse } from 'next/server';
+>>>>>>> origin/main
 import { SYMBOLS } from '../../lib/signals';
 
 const VALID_SYMBOLS = new Set(SYMBOLS.map(s => s.symbol));
 
 export async function GET(request: NextRequest) {
+<<<<<<< HEAD
   const { searchParams, origin } = new URL(request.url);
 
   const rawPair = searchParams.get('pair')?.toUpperCase() ?? 'BTCUSD';
@@ -12,6 +17,17 @@ export async function GET(request: NextRequest) {
   // The JS script reads data-* attributes from the script tag itself,
   // falling back to the URL query param for the pair.
   const script = `(function(){
+=======
+  try {
+    const { searchParams, origin } = new URL(request.url);
+
+    const rawPair = searchParams.get('pair')?.toUpperCase() ?? 'BTCUSD';
+    const pair = VALID_SYMBOLS.has(rawPair) ? rawPair : 'BTCUSD';
+
+    // The JS script reads data-* attributes from the script tag itself,
+    // falling back to the URL query param for the pair.
+    const script = `(function(){
+>>>>>>> origin/main
   var s=document.currentScript;
   var pair=(s&&s.getAttribute('data-pair'))||${JSON.stringify(pair)};
   var theme=(s&&s.getAttribute('data-theme'))||'dark';
@@ -29,6 +45,7 @@ export async function GET(request: NextRequest) {
   else{document.currentScript&&document.currentScript.parentNode&&document.currentScript.parentNode.appendChild(iframe);}
 })();`;
 
+<<<<<<< HEAD
   return new Response(script, {
     headers: {
       'Content-Type': 'application/javascript; charset=utf-8',
@@ -36,4 +53,16 @@ export async function GET(request: NextRequest) {
       'Access-Control-Allow-Origin': '*',
     },
   });
+=======
+    return new Response(script, {
+      headers: {
+        'Content-Type': 'application/javascript; charset=utf-8',
+        'Cache-Control': 'public, max-age=300, s-maxage=300',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+>>>>>>> origin/main
 }

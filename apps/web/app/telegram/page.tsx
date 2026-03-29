@@ -1,6 +1,10 @@
 'use client';
 
+<<<<<<< HEAD
 import { useEffect, useState } from 'react';
+=======
+import { useEffect, useState, useCallback } from 'react';
+>>>>>>> origin/main
 import { Send } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -22,6 +26,19 @@ interface BotStatus {
   timestamp?: string;
 }
 
+<<<<<<< HEAD
+=======
+interface BroadcastStatus {
+  configured: boolean;
+  channelId: string | null;
+  lastBroadcastTime: string | null;
+  lastMessageId: number | null;
+  lastError: string | null;
+  broadcastCount: number;
+  nextBroadcast: string | null;
+}
+
+>>>>>>> origin/main
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -36,6 +53,25 @@ export default function TelegramSettingsPage() {
   const [webhookSetting, setWebhookSetting] = useState(false);
   const [webhookResult, setWebhookResult] = useState<{ ok: boolean; message: string } | null>(null);
 
+<<<<<<< HEAD
+=======
+  // Broadcast state
+  const [broadcast, setBroadcast] = useState<BroadcastStatus | null>(null);
+  const [broadcastChannelId, setBroadcastChannelId] = useState('');
+  const [broadcasting, setBroadcasting] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const fetchBroadcastStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/telegram/broadcast');
+      const data = (await res.json()) as BroadcastStatus;
+      setBroadcast(data);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+>>>>>>> origin/main
   useEffect(() => {
     const appUrl =
       typeof window !== 'undefined'
@@ -43,7 +79,12 @@ export default function TelegramSettingsPage() {
         : '';
     setWebhookUrl(`${appUrl}/api/telegram/webhook`);
     fetchStatus();
+<<<<<<< HEAD
   }, []);
+=======
+    fetchBroadcastStatus();
+  }, [fetchBroadcastStatus]);
+>>>>>>> origin/main
 
   async function fetchStatus() {
     setLoading(true);
@@ -87,7 +128,11 @@ export default function TelegramSettingsPage() {
     setWebhookResult(null);
 
     try {
+<<<<<<< HEAD
       const res = await fetch(
+=======
+      await fetch(
+>>>>>>> origin/main
         `/api/telegram/status`,
         // We call the Telegram API directly via the browser using the status endpoint pattern
         // Instead, POST to a small inline handler — we'll use the existing route.ts endpoint
@@ -104,6 +149,37 @@ export default function TelegramSettingsPage() {
     }
   }
 
+<<<<<<< HEAD
+=======
+  async function handleBroadcastNow() {
+    setBroadcasting(true);
+    setBroadcastResult(null);
+
+    try {
+      const body: Record<string, string> = {};
+      if (broadcastChannelId.trim()) body.channelId = broadcastChannelId.trim();
+
+      const res = await fetch('/api/telegram/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = (await res.json()) as { ok: boolean; error?: string; messageId?: number };
+      setBroadcastResult({
+        ok: data.ok,
+        message: data.ok
+          ? `Broadcast sent (message #${data.messageId})`
+          : (data.error ?? 'Broadcast failed'),
+      });
+      if (data.ok) fetchBroadcastStatus();
+    } catch {
+      setBroadcastResult({ ok: false, message: 'Network error' });
+    } finally {
+      setBroadcasting(false);
+    }
+  }
+
+>>>>>>> origin/main
   // ---------------------------------------------------------------------------
   // Render helpers
   // ---------------------------------------------------------------------------
@@ -377,6 +453,118 @@ export default function TelegramSettingsPage() {
           )}
         </Card>
 
+<<<<<<< HEAD
+=======
+        {/* Auto-Broadcast */}
+        <Card>
+          <h2 className="font-medium mb-1">Channel Auto-Broadcast</h2>
+          <p className="text-sm text-zinc-500 mb-4">
+            Automatically post top signals to a Telegram channel every 4 hours. Set
+            TELEGRAM_CHANNEL_ID in your .env or override below.
+          </p>
+
+          <div className="space-y-4">
+            {/* Status row */}
+            {broadcast && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div>
+                  <Label>Total Broadcasts</Label>
+                  <p className="text-2xl font-bold tabular-nums text-emerald-400">
+                    {broadcast.broadcastCount}
+                  </p>
+                </div>
+                <div>
+                  <Label>Last Broadcast</Label>
+                  <p className="text-sm text-zinc-400">
+                    {broadcast.lastBroadcastTime
+                      ? new Date(broadcast.lastBroadcastTime).toLocaleString()
+                      : 'Never'}
+                  </p>
+                </div>
+                <div>
+                  <Label>Next Broadcast</Label>
+                  <p className="text-sm text-zinc-400">
+                    {broadcast.nextBroadcast
+                      ? new Date(broadcast.nextBroadcast).toLocaleString()
+                      : 'Not scheduled'}
+                  </p>
+                </div>
+                <div>
+                  <Label>Channel</Label>
+                  <p className="text-sm text-zinc-400 font-mono">
+                    {broadcast.channelId ?? 'Not set'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {broadcast?.lastError && (
+              <div className="bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-3">
+                <p className="text-sm text-red-400">{broadcast.lastError}</p>
+              </div>
+            )}
+
+            {/* Channel ID override + Broadcast Now */}
+            <div>
+              <Label>Channel ID Override</Label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={broadcastChannelId}
+                  onChange={(ev) => setBroadcastChannelId(ev.target.value)}
+                  placeholder="@channel or -100... (leave empty to use env)"
+                  className="flex-1 bg-[#111] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm font-mono text-zinc-300 focus:outline-none focus:border-emerald-500/50"
+                />
+                <button
+                  onClick={handleBroadcastNow}
+                  disabled={broadcasting}
+                  className="px-4 py-2 bg-emerald-500 text-black text-sm font-medium rounded-lg hover:bg-emerald-400 transition-colors disabled:opacity-40 whitespace-nowrap"
+                >
+                  {broadcasting ? 'Sending...' : 'Broadcast Now'}
+                </button>
+              </div>
+            </div>
+
+            {broadcastResult && (
+              <div
+                className={`rounded-lg px-4 py-3 text-sm ${
+                  broadcastResult.ok
+                    ? 'bg-emerald-500/5 border border-emerald-500/20 text-emerald-400'
+                    : 'bg-red-500/5 border border-red-500/20 text-red-400'
+                }`}
+              >
+                {broadcastResult.message}
+              </div>
+            )}
+
+            {/* Sample message preview */}
+            <div>
+              <Label>Message Preview</Label>
+              <div className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg p-4 text-sm text-zinc-400 font-mono whitespace-pre-wrap leading-relaxed">
+{`📡 TradeClaw Signal Broadcast
+━━━━━━━━━━━━━━━━━━━━
+
+🟢 BUY XAUUSD | 87% confidence
+💰 Entry: $2,345.50
+🎯 TP: $2,360.00 / $2,374.50 / $2,389.00
+🛑 SL: $2,331.00
+📊 RSI 32.4 | MACD ✅
+
+🔴 SELL EURUSD | 79% confidence
+💰 Entry: $1.1559
+🎯 TP: $1.1520 / $1.1490 / $1.1460
+🛑 SL: $1.1595
+📊 RSI 71.2 | MACD ⚠️
+
+━━━━━━━━━━━━━━━━━━━━
+🤖 TradeClaw | github.com/naimkatiman/tradeclaw
+⚠️ Not financial advice. DYOR.`}
+              </div>
+            </div>
+          </div>
+        </Card>
+
+>>>>>>> origin/main
         {/* Bot Commands Reference */}
         <Card>
           <h2 className="font-medium mb-4">Bot Commands Reference</h2>
@@ -418,6 +606,24 @@ export default function TelegramSettingsPage() {
                 path: '/api/telegram/status',
                 desc: 'Bot connection status, webhook info, and subscriber count',
               },
+<<<<<<< HEAD
+=======
+              {
+                method: 'POST',
+                path: '/api/telegram/broadcast',
+                desc: 'Trigger a channel broadcast of top 3 signals',
+              },
+              {
+                method: 'GET',
+                path: '/api/telegram/broadcast',
+                desc: 'Broadcast status — last time, next time, count',
+              },
+              {
+                method: 'GET',
+                path: '/api/cron/telegram',
+                desc: 'Vercel cron endpoint — auto-broadcasts every 4 hours',
+              },
+>>>>>>> origin/main
             ].map(({ method, path, desc }) => (
               <div key={path} className="flex items-start gap-3">
                 <span

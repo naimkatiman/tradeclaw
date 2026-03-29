@@ -319,6 +319,7 @@ export const INTEGRATIONS = [
 ];
 
 export async function GET() {
+<<<<<<< HEAD
   return NextResponse.json({
     integrations: INTEGRATIONS.map(({ id, name, emoji, description, category, categoryColor, tags }) => ({
       id,
@@ -332,4 +333,23 @@ export async function GET() {
     total: INTEGRATIONS.length,
     webhookDispatchUrl: '/api/webhooks/dispatch',
   });
+=======
+  try {
+    return NextResponse.json({
+      integrations: INTEGRATIONS.map(({ id, name, emoji, description, category, categoryColor, tags }) => ({
+        id,
+        name,
+        emoji,
+        description,
+        category,
+        categoryColor,
+        tags,
+      })),
+      total: INTEGRATIONS.length,
+      webhookDispatchUrl: '/api/webhooks/dispatch',
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+>>>>>>> origin/main
 }

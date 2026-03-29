@@ -11,6 +11,13 @@ import { DeploySection } from "../components/landing/deploy-section";
 import { SiteFooter } from "../components/landing/site-footer";
 import { LiveDemoSection } from "../components/landing/live-demo-section";
 import { LiveDemoEmbed } from "../components/landing/live-demo-embed";
+<<<<<<< HEAD
+=======
+import { LiveHeroSignals } from "../components/landing/live-hero-signals";
+import { AccuracyStatsBar } from "./components/accuracy-stats-bar";
+import { LatestOutcomes } from "./components/latest-outcomes";
+import { EquityCurve } from "./components/equity-curve";
+>>>>>>> origin/main
 
 export default function Home() {
   return (
@@ -18,11 +25,29 @@ export default function Home() {
       <Navbar />
       <main>
         <ABHero />
+<<<<<<< HEAD
+=======
+        <LiveHeroSignals />
+        <div className="max-w-5xl mx-auto px-4 py-4">
+          <AccuracyStatsBar inline />
+        </div>
+        {/* Equity curve — proof the signals work */}
+        <div className="max-w-5xl mx-auto px-4 py-4">
+          <EquityCurve />
+        </div>
+>>>>>>> origin/main
         <div className="flex justify-center pb-4">
           <StarsBadge />
         </div>
         <LiveDemoEmbed />
         <LiveDemoSection />
+<<<<<<< HEAD
+=======
+        {/* Signal outcome social proof */}
+        <div className="max-w-5xl mx-auto px-4">
+          <LatestOutcomes limit={3} compact title="TradeClaw Said X -- Here's What Happened" />
+        </div>
+>>>>>>> origin/main
         <SocialProof />
         <HowItWorks />
         <ComparisonTable />

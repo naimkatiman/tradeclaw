@@ -67,6 +67,7 @@ function generateId(): string {
   return `alert_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 }
 
+<<<<<<< HEAD
 function generateSeedData(): PriceAlert[] {
   const now = Date.now();
   const h = (ms: number) => new Date(now - ms).toISOString();
@@ -156,6 +157,8 @@ function generateSeedData(): PriceAlert[] {
   ];
 }
 
+=======
+>>>>>>> origin/main
 // ---------------------------------------------------------------------------
 // Read / Write
 // ---------------------------------------------------------------------------
@@ -168,6 +171,7 @@ export function readAlerts(): PriceAlert[] {
       const data = JSON.parse(raw) as AlertsData;
       return data.alerts ?? [];
     } catch {
+<<<<<<< HEAD
       // Corrupt file — fall through to seed
     }
   }
@@ -179,6 +183,12 @@ export function readAlerts(): PriceAlert[] {
     // ignore write failures
   }
   return seed;
+=======
+      // Corrupt file — return empty
+    }
+  }
+  return [];
+>>>>>>> origin/main
 }
 
 function writeAlerts(alerts: PriceAlert[]): void {

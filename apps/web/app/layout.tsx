@@ -32,7 +32,11 @@ const jsonLd = [
     },
     description:
       "Self-hosted AI trading signals for forex, crypto, and metals. Free forever. Deploy in 5 minutes with Docker.",
+<<<<<<< HEAD
     url: "https://tradeclaw.com",
+=======
+    url: "https://tradeclaw.win",
+>>>>>>> origin/main
   },
   {
     "@context": "https://schema.org",
@@ -43,7 +47,11 @@ const jsonLd = [
 ];
 
 export const metadata: Metadata = {
+<<<<<<< HEAD
   metadataBase: new URL("https://tradeclaw.com"),
+=======
+  metadataBase: new URL("https://tradeclaw.win"),
+>>>>>>> origin/main
   title: "TradeClaw — Open-Source AI Trading Signals",
   description:
     "Self-hosted AI trading signals for forex, crypto, and metals. Free forever. Deploy in 5 minutes with Docker.",
@@ -88,6 +96,15 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   alternates: {
+<<<<<<< HEAD
+=======
+    languages: {
+      "en": "https://tradeclaw.win",
+      "es": "https://tradeclaw.win/es",
+      "zh-CN": "https://tradeclaw.win/zh",
+      "x-default": "https://tradeclaw.win",
+    },
+>>>>>>> origin/main
     types: {
       'application/rss+xml': [{ url: '/feed.xml', title: 'TradeClaw — Live AI Trading Signals (RSS)' }],
       'application/atom+xml': [{ url: '/atom.xml', title: 'TradeClaw — Live AI Trading Signals (Atom)' }],

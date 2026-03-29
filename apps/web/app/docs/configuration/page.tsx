@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   description: 'All environment variables, Stripe setup, Telegram bot config, and database options.',
 };
 
+<<<<<<< HEAD
 function EnvRow({ name, required, desc, example }: { name: string; required?: boolean; desc: string; example?: string }) {
   return (
     <tr className="border-b border-white/4 last:border-0">
@@ -26,6 +27,8 @@ function EnvRow({ name, required, desc, example }: { name: string; required?: bo
     </tr>
   );
 }
+=======
+>>>>>>> origin/main
 
 export default function ConfigurationPage() {
   const { prev, next } = getPrevNext('/docs/configuration');

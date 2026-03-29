@@ -74,9 +74,15 @@ function fmt(n: number, decimals = 2) {
 function MetricBox({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
   return (
     <div className="glass-card p-4 flex flex-col gap-1">
+<<<<<<< HEAD
       <span className="text-[10px] text-zinc-500 uppercase tracking-widest">{label}</span>
       <span className={`text-xl font-mono font-bold tabular-nums ${color || 'text-white'}`}>{value}</span>
       {sub && <span className="text-[10px] text-zinc-600">{sub}</span>}
+=======
+      <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest">{label}</span>
+      <span className={`text-xl font-mono font-bold tabular-nums ${color || 'text-[var(--foreground)]'}`}>{value}</span>
+      {sub && <span className="text-[10px] text-[var(--text-secondary)]">{sub}</span>}
+>>>>>>> origin/main
     </div>
   );
 }
@@ -96,7 +102,11 @@ function ConnectionBadge({ status, error }: { status: ConnectionStatus; error?: 
     connected: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/25', text: 'text-emerald-400', label: 'Live Connection' },
     connecting: { bg: 'bg-amber-500/10', border: 'border-amber-500/25', text: 'text-amber-400', label: 'Connecting...' },
     error: { bg: 'bg-red-500/10', border: 'border-red-500/25', text: 'text-red-400', label: error || 'Connection Error' },
+<<<<<<< HEAD
     disconnected: { bg: 'bg-zinc-500/10', border: 'border-zinc-500/25', text: 'text-zinc-400', label: 'Disconnected' },
+=======
+    disconnected: { bg: 'bg-zinc-500/10', border: 'border-zinc-500/25', text: 'text-[var(--text-secondary)]', label: 'Disconnected' },
+>>>>>>> origin/main
   };
   const c = config[status];
   return (
@@ -290,7 +300,11 @@ export default function BrokerPage() {
   const activeBroker = brokers.find(b => b.id === activeBrokerId);
 
   return (
+<<<<<<< HEAD
     <div className="min-h-[100dvh] bg-[#050505] text-white">
+=======
+    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
+>>>>>>> origin/main
       <div className="max-w-5xl mx-auto px-4 py-8">
 
         {/* Connection status banner */}
@@ -304,7 +318,11 @@ export default function BrokerPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Broker Connections</h1>
+<<<<<<< HEAD
             <p className="text-sm text-zinc-500 mt-1">Connect MT4/MT5 accounts via MetaApi</p>
+=======
+            <p className="text-sm text-[var(--text-secondary)] mt-1">Connect MT4/MT5 accounts via MetaApi</p>
+>>>>>>> origin/main
           </div>
           <button
             onClick={() => setShowAddForm(v => !v)}
@@ -317,19 +335,32 @@ export default function BrokerPage() {
         {/* Add Broker Form */}
         {showAddForm && (
           <div className="glass-card p-6 mb-6">
+<<<<<<< HEAD
             <h2 className="text-sm font-semibold text-zinc-300 mb-4 uppercase tracking-wider">New Connection</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] text-zinc-500 uppercase tracking-widest">Label</label>
                 <input
                   className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-emerald-500/40"
+=======
+            <h2 className="text-sm font-semibold text-[var(--foreground)] mb-4 uppercase tracking-wider">New Connection</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest">Label</label>
+                <input
+                  className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-emerald-500/40"
+>>>>>>> origin/main
                   placeholder="My MT5 Account"
                   value={form.label}
                   onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
                 />
               </div>
               <div className="flex flex-col gap-1">
+<<<<<<< HEAD
                 <label className="text-[10px] text-zinc-500 uppercase tracking-widest">Platform</label>
+=======
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest">Platform</label>
+>>>>>>> origin/main
                 <div className="flex gap-2">
                   {(['mt4', 'mt5'] as const).map(p => (
                     <button
@@ -338,7 +369,11 @@ export default function BrokerPage() {
                       className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${
                         form.platform === p
                           ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+<<<<<<< HEAD
                           : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/20'
+=======
+                          : 'bg-[var(--glass-bg)] border-[var(--border)] text-[var(--text-secondary)] hover:border-white/20'
+>>>>>>> origin/main
                       }`}
                     >
                       {p.toUpperCase()}
@@ -347,9 +382,15 @@ export default function BrokerPage() {
                 </div>
               </div>
               <div className="flex flex-col gap-1">
+<<<<<<< HEAD
                 <label className="text-[10px] text-zinc-500 uppercase tracking-widest">MetaApi Token</label>
                 <input
                   className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-emerald-500/40 font-mono"
+=======
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest">MetaApi Token</label>
+                <input
+                  className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-emerald-500/40 font-mono"
+>>>>>>> origin/main
                   placeholder="eyJhbGciOiJSUzI1NiIs..."
                   type="password"
                   value={form.token}
@@ -357,18 +398,30 @@ export default function BrokerPage() {
                 />
               </div>
               <div className="flex flex-col gap-1">
+<<<<<<< HEAD
                 <label className="text-[10px] text-zinc-500 uppercase tracking-widest">Account ID</label>
                 <input
                   className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-emerald-500/40 font-mono"
+=======
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest">Account ID</label>
+                <input
+                  className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-emerald-500/40 font-mono"
+>>>>>>> origin/main
                   placeholder="account-id-from-metaapi"
                   value={form.accountId}
                   onChange={e => setForm(f => ({ ...f, accountId: e.target.value }))}
                 />
               </div>
               <div className="flex flex-col gap-1 sm:col-span-2">
+<<<<<<< HEAD
                 <label className="text-[10px] text-zinc-500 uppercase tracking-widest">Broker Server (optional)</label>
                 <input
                   className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-emerald-500/40 font-mono"
+=======
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest">Broker Server (optional)</label>
+                <input
+                  className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--foreground)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-emerald-500/40 font-mono"
+>>>>>>> origin/main
                   placeholder="e.g. ICMarkets-Demo"
                   value={form.server}
                   onChange={e => setForm(f => ({ ...f, server: e.target.value }))}
@@ -390,7 +443,11 @@ export default function BrokerPage() {
               <button
                 onClick={handleTestConnection}
                 disabled={testingConnection}
+<<<<<<< HEAD
                 className="px-4 py-2 rounded-xl text-sm font-semibold bg-white/5 border border-white/10 text-zinc-300 hover:bg-white/10 transition-colors disabled:opacity-50"
+=======
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--glass-bg)] transition-colors disabled:opacity-50"
+>>>>>>> origin/main
               >
                 {testingConnection ? 'Testing...' : 'Test Connection'}
               </button>
@@ -401,12 +458,20 @@ export default function BrokerPage() {
               >
                 {connectionStatus === 'connecting' ? 'Connecting...' : 'Connect'}
               </button>
+<<<<<<< HEAD
               <span className="text-[10px] text-zinc-600">
+=======
+              <span className="text-[10px] text-[var(--text-secondary)]">
+>>>>>>> origin/main
                 Token is proxied server-side — never sent from your browser directly
               </span>
             </div>
 
+<<<<<<< HEAD
             <p className="mt-3 text-[10px] text-zinc-700">
+=======
+            <p className="mt-3 text-[10px] text-[var(--text-secondary)]">
+>>>>>>> origin/main
               Note: For production deployments, store tokens server-side via environment variables instead of localStorage.
             </p>
           </div>
@@ -420,27 +485,46 @@ export default function BrokerPage() {
                 key={broker.id}
                 onClick={() => broker.connected && setActiveBrokerId(broker.id)}
                 className={`glass-card p-4 flex items-center justify-between cursor-pointer transition-all ${
+<<<<<<< HEAD
                   activeBrokerId === broker.id ? 'border-emerald-500/25' : 'hover:border-white/10'
+=======
+                  activeBrokerId === broker.id ? 'border-emerald-500/25' : 'hover:border-[var(--border)]'
+>>>>>>> origin/main
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <StatusDot status={broker.connected ? (activeBrokerId === broker.id ? connectionStatus : 'connected') : 'disconnected'} />
                   <div>
+<<<<<<< HEAD
                     <span className="text-sm font-semibold text-white">{broker.label}</span>
                     <span className="ml-2 text-[10px] text-zinc-600 font-mono uppercase">{broker.platform}</span>
                     {broker.server && (
                       <span className="ml-2 text-[10px] text-zinc-600">{broker.server}</span>
+=======
+                    <span className="text-sm font-semibold text-[var(--foreground)]">{broker.label}</span>
+                    <span className="ml-2 text-[10px] text-[var(--text-secondary)] font-mono uppercase">{broker.platform}</span>
+                    {broker.server && (
+                      <span className="ml-2 text-[10px] text-[var(--text-secondary)]">{broker.server}</span>
+>>>>>>> origin/main
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+<<<<<<< HEAD
                   <span className={`text-[10px] ${broker.connected ? 'text-emerald-500' : 'text-zinc-600'}`}>
+=======
+                  <span className={`text-[10px] ${broker.connected ? 'text-emerald-500' : 'text-[var(--text-secondary)]'}`}>
+>>>>>>> origin/main
                     {broker.connected ? 'Connected' : 'Disconnected'}
                   </span>
                   {broker.connected ? (
                     <button
                       onClick={e => { e.stopPropagation(); handleDisconnect(broker.id); }}
+<<<<<<< HEAD
                       className="text-[10px] text-zinc-500 hover:text-red-400 px-2 py-1 rounded border border-transparent hover:border-red-500/20 transition-colors"
+=======
+                      className="text-[10px] text-[var(--text-secondary)] hover:text-red-400 px-2 py-1 rounded border border-transparent hover:border-red-500/20 transition-colors"
+>>>>>>> origin/main
                     >
                       Disconnect
                     </button>
@@ -448,13 +532,21 @@ export default function BrokerPage() {
                     <div className="flex gap-1">
                       <button
                         onClick={e => { e.stopPropagation(); handleReconnect(broker); }}
+<<<<<<< HEAD
                         className="text-[10px] text-zinc-500 hover:text-emerald-400 px-2 py-1 rounded border border-transparent hover:border-emerald-500/20 transition-colors"
+=======
+                        className="text-[10px] text-[var(--text-secondary)] hover:text-emerald-400 px-2 py-1 rounded border border-transparent hover:border-emerald-500/20 transition-colors"
+>>>>>>> origin/main
                       >
                         Reconnect
                       </button>
                       <button
                         onClick={e => { e.stopPropagation(); handleRemove(broker.id); }}
+<<<<<<< HEAD
                         className="text-[10px] text-zinc-500 hover:text-red-400 px-2 py-1 rounded border border-transparent hover:border-red-500/20 transition-colors"
+=======
+                        className="text-[10px] text-[var(--text-secondary)] hover:text-red-400 px-2 py-1 rounded border border-transparent hover:border-red-500/20 transition-colors"
+>>>>>>> origin/main
                       >
                         Remove
                       </button>
@@ -472,13 +564,22 @@ export default function BrokerPage() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <StatusDot status={connectionStatus} />
+<<<<<<< HEAD
                 <span className="text-xs text-zinc-400 font-semibold">{activeBroker.label}</span>
                 <span className="text-[10px] text-zinc-600 font-mono uppercase">{activeBroker.platform}</span>
+=======
+                <span className="text-xs text-[var(--text-secondary)] font-semibold">{activeBroker.label}</span>
+                <span className="text-[10px] text-[var(--text-secondary)] font-mono uppercase">{activeBroker.platform}</span>
+>>>>>>> origin/main
               </div>
               <button
                 onClick={handleRefresh}
                 disabled={loadingAccount}
+<<<<<<< HEAD
                 className="text-[10px] text-zinc-500 hover:text-emerald-400 px-3 py-1.5 rounded-lg border border-white/5 hover:border-emerald-500/20 transition-colors disabled:opacity-50"
+=======
+                className="text-[10px] text-[var(--text-secondary)] hover:text-emerald-400 px-3 py-1.5 rounded-lg border border-[var(--border)] hover:border-emerald-500/20 transition-colors disabled:opacity-50"
+>>>>>>> origin/main
               >
                 {loadingAccount ? 'Refreshing...' : 'Refresh'}
               </button>
@@ -493,7 +594,11 @@ export default function BrokerPage() {
                 <p className="text-sm text-red-400 mb-2">{error}</p>
                 <button
                   onClick={handleRefresh}
+<<<<<<< HEAD
                   className="text-xs text-zinc-500 hover:text-emerald-400 transition-colors"
+=======
+                  className="text-xs text-[var(--text-secondary)] hover:text-emerald-400 transition-colors"
+>>>>>>> origin/main
                 >
                   Try again
                 </button>
@@ -515,21 +620,37 @@ export default function BrokerPage() {
                   />
                   <MetricBox label="Margin" value={`$${fmt(accountInfo.margin)}`} />
                   <MetricBox label="Free Margin" value={`$${fmt(accountInfo.freeMargin)}`} />
+<<<<<<< HEAD
                   <MetricBox label="Margin Level" value={`${fmt(accountInfo.marginLevel)}%`} sub={`1:${accountInfo.leverage}`} color="text-zinc-300" />
+=======
+                  <MetricBox label="Margin Level" value={`${fmt(accountInfo.marginLevel)}%`} sub={`1:${accountInfo.leverage}`} color="text-[var(--foreground)]" />
+>>>>>>> origin/main
                 </div>
 
                 {/* Open Positions */}
                 <div className="glass-card p-4">
+<<<<<<< HEAD
                   <h2 className="text-[10px] text-zinc-500 uppercase tracking-widest mb-4">
                     Open Positions ({positions.length})
                   </h2>
                   {positions.length === 0 ? (
                     <p className="text-xs text-zinc-600 text-center py-4">No open positions</p>
+=======
+                  <h2 className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest mb-4">
+                    Open Positions ({positions.length})
+                  </h2>
+                  {positions.length === 0 ? (
+                    <p className="text-xs text-[var(--text-secondary)] text-center py-4">No open positions</p>
+>>>>>>> origin/main
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead>
+<<<<<<< HEAD
                           <tr className="text-zinc-600 border-b border-white/5">
+=======
+                          <tr className="text-[var(--text-secondary)] border-b border-[var(--border)]">
+>>>>>>> origin/main
                             <th className="text-left pb-2 font-normal">Symbol</th>
                             <th className="text-left pb-2 font-normal">Direction</th>
                             <th className="text-right pb-2 font-normal">Volume</th>
@@ -546,7 +667,11 @@ export default function BrokerPage() {
                             const fmtPrice = (n: number) => n >= 1000 ? n.toFixed(2) : n.toFixed(5);
                             return (
                               <tr key={pos.id} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
+<<<<<<< HEAD
                                 <td className="py-2 font-mono font-semibold text-white">{pos.symbol}</td>
+=======
+                                <td className="py-2 font-mono font-semibold text-[var(--foreground)]">{pos.symbol}</td>
+>>>>>>> origin/main
                                 <td className="py-2">
                                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                                     isBuy
@@ -556,6 +681,7 @@ export default function BrokerPage() {
                                     {isBuy ? 'BUY' : 'SELL'}
                                   </span>
                                 </td>
+<<<<<<< HEAD
                                 <td className="py-2 text-right font-mono text-zinc-300">{pos.volume}</td>
                                 <td className="py-2 text-right font-mono text-zinc-400">{fmtPrice(pos.openPrice)}</td>
                                 <td className="py-2 text-right font-mono text-zinc-300">{fmtPrice(pos.currentPrice)}</td>
@@ -563,6 +689,15 @@ export default function BrokerPage() {
                                   {posProfit >= 0 ? '+' : ''}{fmt(posProfit)}
                                 </td>
                                 <td className="py-2 text-right text-zinc-600">
+=======
+                                <td className="py-2 text-right font-mono text-[var(--foreground)]">{pos.volume}</td>
+                                <td className="py-2 text-right font-mono text-[var(--text-secondary)]">{fmtPrice(pos.openPrice)}</td>
+                                <td className="py-2 text-right font-mono text-[var(--foreground)]">{fmtPrice(pos.currentPrice)}</td>
+                                <td className={`py-2 text-right font-mono font-semibold ${posProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                  {posProfit >= 0 ? '+' : ''}{fmt(posProfit)}
+                                </td>
+                                <td className="py-2 text-right text-[var(--text-secondary)]">
+>>>>>>> origin/main
                                   {new Date(pos.openTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                                 </td>
                               </tr>
@@ -581,8 +716,13 @@ export default function BrokerPage() {
         {/* Empty state */}
         {brokers.length === 0 && !showAddForm && (
           <div className="glass-card p-12 flex flex-col items-center gap-4 text-center">
+<<<<<<< HEAD
             <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-2xl">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-600">
+=======
+            <div className="w-12 h-12 rounded-2xl bg-[var(--glass-bg)] flex items-center justify-center text-2xl">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[var(--text-secondary)]">
+>>>>>>> origin/main
                 <rect x="2" y="7" width="20" height="14" rx="2" />
                 <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
                 <line x1="12" y1="12" x2="12" y2="16" />
@@ -590,8 +730,13 @@ export default function BrokerPage() {
               </svg>
             </div>
             <div>
+<<<<<<< HEAD
               <p className="text-sm font-semibold text-zinc-300">No brokers connected</p>
               <p className="text-xs text-zinc-600 mt-1">Add an MT4 or MT5 account via MetaApi to see live data</p>
+=======
+              <p className="text-sm font-semibold text-[var(--foreground)]">No brokers connected</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Add an MT4 or MT5 account via MetaApi to see live data</p>
+>>>>>>> origin/main
             </div>
             <button
               onClick={() => setShowAddForm(true)}
@@ -604,6 +749,7 @@ export default function BrokerPage() {
 
         {/* MetaApi setup guide */}
         <div className="mt-8 glass-card p-5">
+<<<<<<< HEAD
           <h2 className="text-[10px] text-zinc-500 uppercase tracking-widest mb-3">MetaApi Setup</h2>
           <ol className="flex flex-col gap-2 text-xs text-zinc-500">
             <li><span className="text-zinc-400 font-semibold">1.</span> Create a free account at <span className="text-zinc-400 font-mono">metaapi.cloud</span></li>
@@ -611,6 +757,15 @@ export default function BrokerPage() {
             <li><span className="text-zinc-400 font-semibold">3.</span> Copy your API token and deployed account ID</li>
             <li><span className="text-zinc-400 font-semibold">4.</span> Paste both above — TradeClaw connects via the MetaApi cloud bridge</li>
             <li><span className="text-zinc-400 font-semibold">5.</span> Your token is proxied through <span className="text-zinc-400 font-mono">/api/broker</span> server-side — it never leaves the server in production</li>
+=======
+          <h2 className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest mb-3">MetaApi Setup</h2>
+          <ol className="flex flex-col gap-2 text-xs text-[var(--text-secondary)]">
+            <li><span className="text-[var(--text-secondary)] font-semibold">1.</span> Create a free account at <span className="text-[var(--text-secondary)] font-mono">metaapi.cloud</span></li>
+            <li><span className="text-[var(--text-secondary)] font-semibold">2.</span> Add your MT4/MT5 broker credentials in the MetaApi dashboard</li>
+            <li><span className="text-[var(--text-secondary)] font-semibold">3.</span> Copy your API token and deployed account ID</li>
+            <li><span className="text-[var(--text-secondary)] font-semibold">4.</span> Paste both above — TradeClaw connects via the MetaApi cloud bridge</li>
+            <li><span className="text-[var(--text-secondary)] font-semibold">5.</span> Your token is proxied through <span className="text-[var(--text-secondary)] font-mono">/api/broker</span> server-side — it never leaves the server in production</li>
+>>>>>>> origin/main
           </ol>
         </div>
       </div>

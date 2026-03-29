@@ -1,5 +1,17 @@
 import type { Metadata } from 'next';
+<<<<<<< HEAD
 import { ShareClient } from './ShareClient';
+=======
+import dynamic from 'next/dynamic';
+
+const ShareClient = dynamic(() => import('./ShareClient').then(m => ({ default: m.ShareClient })), {
+  loading: () => (
+    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  ),
+});
+>>>>>>> origin/main
 
 export const metadata: Metadata = {
   title: 'Share TradeClaw — Help Us Reach 1,000 GitHub Stars',

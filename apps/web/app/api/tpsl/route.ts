@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+<<<<<<< HEAD
+=======
+import { getOHLCV, type OHLCV } from '../../lib/ohlcv';
+>>>>>>> origin/main
 
 // ATR-based stop loss + Fibonacci extension TPs
 // Fibonacci extension levels: 1.618, 2.618, 4.236
@@ -87,6 +91,37 @@ function generateSRLevels(entry: number, atr: number): SupportResistanceLevel[] 
   return levels.sort((a, b) => a.price - b.price);
 }
 
+<<<<<<< HEAD
+=======
+/**
+ * Calculate ATR (Average True Range) from OHLCV candles.
+ * True Range = max(high - low, |high - prevClose|, |low - prevClose|)
+ * ATR = simple average of true ranges over `period` periods.
+ */
+function calculateATRFromCandles(candles: OHLCV[], period: number = 14): number | null {
+  if (candles.length < period + 1) return null;
+
+  // Use the most recent candles
+  const recent = candles.slice(-(period + 1));
+  let sum = 0;
+
+  for (let i = 1; i < recent.length; i++) {
+    const high = recent[i].high;
+    const low = recent[i].low;
+    const prevClose = recent[i - 1].close;
+    const tr = Math.max(
+      high - low,
+      Math.abs(high - prevClose),
+      Math.abs(low - prevClose),
+    );
+    sum += tr;
+  }
+
+  const atr = sum / period;
+  return atr > 0 ? atr : null;
+}
+
+>>>>>>> origin/main
 function snapToNearestSR(price: number, srLevels: SupportResistanceLevel[], tolerance: number): number {
   let nearest = price;
   let minDist = Infinity;
@@ -117,8 +152,29 @@ export async function GET(request: NextRequest) {
 
   const entry = entryParam ? parseFloat(entryParam) : config.basePrice;
 
+<<<<<<< HEAD
   // ATR-based SL: 1.5x ATR
   const atr = config.atrEstimate * (0.85 + Math.random() * 0.3);
+=======
+  // Fetch real OHLCV data and calculate ATR
+  let atr: number;
+  try {
+    const { candles, source } = await getOHLCV(symbol, 'H1');
+    const realATR = calculateATRFromCandles(candles);
+    if (realATR !== null) {
+      atr = realATR;
+    } else {
+      console.warn(`[tpsl] ATR calculation returned null for ${symbol} (source: ${source}, candles: ${candles.length}), using fallback estimate`);
+      atr = config.atrEstimate;
+    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'unknown error';
+    console.warn(`[tpsl] Failed to fetch OHLCV for ${symbol}: ${message}, using fallback ATR estimate`);
+    atr = config.atrEstimate;
+  }
+
+  // ATR-based SL: 1.5x ATR
+>>>>>>> origin/main
   const slDistance = atr * 1.5;
 
   const srLevels = generateSRLevels(entry, atr);

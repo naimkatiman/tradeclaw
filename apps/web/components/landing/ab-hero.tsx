@@ -378,9 +378,17 @@ export function ABHero() {
 
   useEffect(() => {
     const v = assignVariant();
+<<<<<<< HEAD
     setVariant(v);
     trackImpression(v);
     setMounted(true);
+=======
+    setTimeout(() => {
+      setVariant(v);
+      trackImpression(v);
+      setMounted(true);
+    }, 0);
+>>>>>>> origin/main
 
     // Expose stats to devtools
     (window as unknown as { __tcABStats: () => ABStats }).__tcABStats = () => {

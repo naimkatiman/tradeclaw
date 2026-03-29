@@ -36,7 +36,11 @@ export default function HowWeScoreSignalsPage() {
         <div className="prose prose-invert prose-zinc max-w-none space-y-6 text-sm leading-7">
 
           <p className="text-base text-zinc-300">
+<<<<<<< HEAD
             Most AI trading signal tools are black boxes — you get a "BUY" label and a confidence percentage, with no explanation of how it was computed. TradeClaw is different: the entire scoring engine is open source, and this post walks through exactly how every signal gets generated.
+=======
+            Most AI trading signal tools are black boxes — you get a &quot;BUY&quot; label and a confidence percentage, with no explanation of how it was computed. TradeClaw is different: the entire scoring engine is open source, and this post walks through exactly how every signal gets generated.
+>>>>>>> origin/main
           </p>
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">The Big Picture: A Points System</h2>
@@ -74,7 +78,11 @@ export default function HowWeScoreSignalsPage() {
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">Step 1: Compute Both Directions</h2>
           <p className="text-zinc-300">
+<<<<<<< HEAD
             For every asset and timeframe, TradeClaw computes a BUY score <em>and</em> a SELL score independently. Whichever score is higher and exceeds a minimum threshold (55% confidence) becomes the signal. If neither exceeds the threshold, no signal is emitted — "no opinion" is a valid output.
+=======
+            For every asset and timeframe, TradeClaw computes a BUY score <em>and</em> a SELL score independently. Whichever score is higher and exceeds a minimum threshold (55% confidence) becomes the signal. If neither exceeds the threshold, no signal is emitted — &quot;no opinion&quot; is a valid output.
+>>>>>>> origin/main
           </p>
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">Step 2: Quality Gates (Filters)</h2>
@@ -104,12 +112,21 @@ export default function HowWeScoreSignalsPage() {
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">Multi-Timeframe Confluence</h2>
           <p className="text-zinc-300">
+<<<<<<< HEAD
             TradeClaw also generates signals across H1, H4, and D1 timeframes and checks for confluence. When all three timeframes agree, confidence gets a +15% boost. When they disagree, confidence is reduced and the signal is flagged as "conflicted."
           </p>
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">Limitations We're Honest About</h2>
           <ul className="space-y-2 text-zinc-400 list-disc list-inside">
             <li>All indicators are <strong className="text-white">lagging</strong> — they react to price, they don't predict it</li>
+=======
+            TradeClaw also generates signals across H1, H4, and D1 timeframes and checks for confluence. When all three timeframes agree, confidence gets a +15% boost. When they disagree, confidence is reduced and the signal is flagged as &quot;conflicted.&quot;
+          </p>
+
+          <h2 className="text-lg font-semibold text-white mt-8 mb-3">Limitations We&apos;re Honest About</h2>
+          <ul className="space-y-2 text-zinc-400 list-disc list-inside">
+            <li>All indicators are <strong className="text-white">lagging</strong> — they react to price, they don&apos;t predict it</li>
+>>>>>>> origin/main
             <li>Crypto and forex have <strong className="text-white">different characteristics</strong> — RSI(14) behaves differently on 1-hour BTC vs daily EUR/USD</li>
             <li>The scoring weights are <strong className="text-white">manually tuned</strong>, not machine-learned from backtested data (yet)</li>
             <li>No fundamental analysis, news, or macro factors are considered</li>
@@ -117,7 +134,11 @@ export default function HowWeScoreSignalsPage() {
 
           <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-5 mt-6">
             <p className="text-zinc-300 text-sm">
+<<<<<<< HEAD
               <strong className="text-white">The algorithm is 100% open source.</strong> If you think the weights are wrong, the quality gates are too loose, or the indicators should be different — submit a PR. That's the whole point.
+=======
+              <strong className="text-white">The algorithm is 100% open source.</strong> If you think the weights are wrong, the quality gates are too loose, or the indicators should be different — submit a PR. That&apos;s the whole point.
+>>>>>>> origin/main
             </p>
             <a href="https://github.com/naimkatiman/tradeclaw" className="text-emerald-400 hover:underline text-sm mt-2 inline-block" target="_blank" rel="noreferrer">
               View source on GitHub →

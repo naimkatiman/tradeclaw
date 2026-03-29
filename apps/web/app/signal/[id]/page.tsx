@@ -6,6 +6,10 @@ import { SignalShareButtons } from '../../components/signal-share-buttons';
 import { EmbedButton } from '../../components/embed-button';
 import { AIAnalysisPanel } from '../../components/ai-analysis-panel';
 import { SetAlertButton } from '../../components/set-alert-button';
+<<<<<<< HEAD
+=======
+import { SignalChartSection } from './SignalChartSection';
+>>>>>>> origin/main
 
 function formatPrice(p: number): string {
   if (p >= 1000) return p.toFixed(2);
@@ -63,7 +67,10 @@ export default async function SignalPage(
 
   const signal = signals[0];
   const isBuy = signal.direction === 'BUY';
+<<<<<<< HEAD
   const accentClass = isBuy ? 'text-emerald-400' : 'text-red-400';
+=======
+>>>>>>> origin/main
   const signalPath = `/signal/${symbol}-${timeframe}-${direction}`;
 
   return (
@@ -261,6 +268,20 @@ export default async function SignalPage(
           </div>
         </div>
 
+<<<<<<< HEAD
+=======
+        {/* Price Chart */}
+        <SignalChartSection
+          entry={signal.entry}
+          stopLoss={signal.stopLoss}
+          takeProfit1={signal.takeProfit1}
+          takeProfit2={signal.takeProfit2}
+          takeProfit3={signal.takeProfit3}
+          direction={signal.direction}
+          timestamp={signal.timestamp}
+        />
+
+>>>>>>> origin/main
         {/* AI Analysis Panel */}
         <AIAnalysisPanel symbol={signal.symbol} timeframe={signal.timeframe} />
 

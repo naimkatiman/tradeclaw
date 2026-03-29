@@ -8,6 +8,7 @@ const PERIOD_POINTS: Record<string, number> = {
 };
 
 export async function GET(req: NextRequest) {
+<<<<<<< HEAD
   const { searchParams } = new URL(req.url);
   const period = searchParams.get('period') ?? '6h';
   const count = PERIOD_POINTS[period] ?? 72;
@@ -21,4 +22,23 @@ export async function GET(req: NextRequest) {
     period,
     count,
   });
+=======
+  try {
+    const { searchParams } = new URL(req.url);
+    const period = searchParams.get('period') ?? '6h';
+    const count = PERIOD_POINTS[period] ?? 72;
+
+    const data = getMetrics();
+
+    return NextResponse.json({
+      latency: data.latency.slice(-count),
+      throughput: data.throughput.slice(-count),
+      memory: data.memory.slice(-count),
+      period,
+      count,
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+>>>>>>> origin/main
 }

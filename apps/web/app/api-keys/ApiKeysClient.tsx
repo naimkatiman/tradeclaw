@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Zap, KeyRound, BarChart2, Container } from 'lucide-react';
+<<<<<<< HEAD
 import type { LucideIcon } from 'lucide-react';
+=======
+>>>>>>> origin/main
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

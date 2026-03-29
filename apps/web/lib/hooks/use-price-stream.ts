@@ -83,7 +83,11 @@ export function usePriceStream(pairs: string[]): {
       mountedRef.current = false;
       esRef.current?.close();
     };
+<<<<<<< HEAD
   }, [pairsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+=======
+  }, [pairsKey]);
+>>>>>>> origin/main
 
   return { prices, state };
 }
@@ -144,7 +148,11 @@ export function useSignalStream(): {
       mountedRef.current = false;
       esRef.current?.close();
     };
+<<<<<<< HEAD
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+=======
+  }, []);
+>>>>>>> origin/main
 
   return { signals, state };
 }

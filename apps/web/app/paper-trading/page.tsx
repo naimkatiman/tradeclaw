@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+<<<<<<< HEAD
 import type { Portfolio, Position, Trade, EquityPoint } from '../../lib/paper-trading';
+=======
+import { PageNavBar } from '../../components/PageNavBar';
+import type { Portfolio, Trade, EquityPoint } from '../../lib/paper-trading';
+>>>>>>> origin/main
 
 // ---------------------------------------------------------------------------
 // Types
@@ -41,6 +46,7 @@ const BASE_PRICES: Record<string, number> = {
   XRPUSD: 0.615, USDCAD: 1.365,
 };
 
+<<<<<<< HEAD
 const NAV_PAGES = [
   { href: '/dashboard', label: 'Signals' },
   { href: '/paper-trading', label: 'Paper Trade' },
@@ -48,6 +54,8 @@ const NAV_PAGES = [
   { href: '/leaderboard', label: 'Leaderboard' },
   { href: '/strategy-builder', label: 'Strategy' },
 ];
+=======
+>>>>>>> origin/main
 
 const HIST_PAGE_SIZE = 8;
 
@@ -55,7 +63,12 @@ const HIST_PAGE_SIZE = 8;
 // Helpers
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 function fmtPrice(n: number): string {
+=======
+function fmtPrice(n: number | undefined | null): string {
+  if (n == null || isNaN(n)) return '—';
+>>>>>>> origin/main
   return n >= 1000 ? n.toFixed(2) : n >= 1 ? n.toFixed(4) : n.toFixed(5);
 }
 
@@ -198,12 +211,21 @@ interface StatCardProps {
   color?: string;
 }
 
+<<<<<<< HEAD
 function StatCard({ label, value, sub, color = 'text-white' }: StatCardProps) {
   return (
     <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3">
       <div className={`text-base font-mono font-bold tabular-nums ${color}`}>{value}</div>
       {sub && <div className="text-[10px] text-zinc-600 font-mono mt-0.5">{sub}</div>}
       <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-1">{label}</div>
+=======
+function StatCard({ label, value, sub, color = 'text-[var(--foreground)]' }: StatCardProps) {
+  return (
+    <div className="bg-white/[0.02] border border-[var(--border)] rounded-xl p-3">
+      <div className={`text-base font-mono font-bold tabular-nums ${color}`}>{value}</div>
+      {sub && <div className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5">{sub}</div>}
+      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mt-1">{label}</div>
+>>>>>>> origin/main
     </div>
   );
 }
@@ -500,6 +522,7 @@ export default function PaperTradingPage() {
   // ---------------------------------------------------------------------------
 
   return (
+<<<<<<< HEAD
     <div className="min-h-[100dvh] bg-[#050505] text-white font-sans">
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#050505]/90 backdrop-blur-xl">
@@ -534,13 +557,31 @@ export default function PaperTradingPage() {
           </button>
         </div>
       </nav>
+=======
+    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)] font-sans">
+      <PageNavBar />
+
+      {/* Page controls */}
+      <div className="max-w-7xl mx-auto px-4 h-12 flex items-center justify-end border-b border-[var(--border)] bg-[var(--background)]/50">
+        <button
+          onClick={() => setShowReset(true)}
+          className="text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+        >
+          Reset account
+        </button>
+      </div>
+>>>>>>> origin/main
 
       <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6 space-y-6">
 
         {/* Account summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
+<<<<<<< HEAD
             { label: 'Balance', value: fmtMoney(bal), color: 'text-white' },
+=======
+            { label: 'Balance', value: fmtMoney(bal), color: 'text-[var(--foreground)]' },
+>>>>>>> origin/main
             {
               label: 'Equity',
               value: fmtMoney(equity),
@@ -553,6 +594,7 @@ export default function PaperTradingPage() {
             },
             {
               label: 'Total Return',
+<<<<<<< HEAD
               value: `${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`,
               color: totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400',
             },
@@ -560,6 +602,15 @@ export default function PaperTradingPage() {
             <div key={label} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 text-center">
               <div className={`text-xl font-bold font-mono tabular-nums ${color}`}>{value}</div>
               <div className="text-[11px] text-zinc-600 uppercase tracking-wider mt-1">{label}</div>
+=======
+              value: `${totalReturn >= 0 ? '+' : ''}${(totalReturn ?? 0).toFixed(2)}%`,
+              color: totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400',
+            },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="bg-white/[0.03] border border-[var(--border)] rounded-2xl p-4 text-center">
+              <div className={`text-xl font-bold font-mono tabular-nums ${color}`}>{value}</div>
+              <div className="text-[11px] text-[var(--text-secondary)] uppercase tracking-wider mt-1">{label}</div>
+>>>>>>> origin/main
             </div>
           ))}
         </div>
@@ -567,6 +618,7 @@ export default function PaperTradingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Order form */}
+<<<<<<< HEAD
           <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-4">
             <div className="text-xs font-semibold text-white">Place order</div>
 
@@ -576,6 +628,17 @@ export default function PaperTradingPage() {
                 value={symbol}
                 onChange={(e) => setSymbol(e.target.value)}
                 className="w-full bg-white/5 border border-white/8 rounded-xl px-3 py-2 text-sm text-zinc-300 outline-none focus:border-emerald-500/30"
+=======
+          <div className="bg-white/[0.02] border border-[var(--border)] rounded-2xl p-5 space-y-4">
+            <div className="text-xs font-semibold text-[var(--foreground)]">Place order</div>
+
+            <div>
+              <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Symbol</label>
+              <select
+                value={symbol}
+                onChange={(e) => setSymbol(e.target.value)}
+                className="w-full bg-[var(--glass-bg)] border border-white/8 rounded-xl px-3 py-2 text-sm text-[var(--foreground)] outline-none focus:border-emerald-500/30"
+>>>>>>> origin/main
               >
                 {SYMBOLS.map((s) => (
                   <option key={s} value={s} className="bg-zinc-900">
@@ -586,7 +649,11 @@ export default function PaperTradingPage() {
             </div>
 
             <div>
+<<<<<<< HEAD
               <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Direction</label>
+=======
+              <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Direction</label>
+>>>>>>> origin/main
               <div className="grid grid-cols-2 gap-1.5">
                 {(['BUY', 'SELL'] as const).map((d) => (
                   <button
@@ -597,7 +664,11 @@ export default function PaperTradingPage() {
                         ? d === 'BUY'
                           ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
                           : 'bg-red-500/15 text-red-400 border border-red-500/25'
+<<<<<<< HEAD
                         : 'bg-white/5 text-zinc-600 border border-white/5 hover:text-zinc-400'
+=======
+                        : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)] hover:text-[var(--text-secondary)]'
+>>>>>>> origin/main
                     }`}
                   >
                     {d}
@@ -607,7 +678,11 @@ export default function PaperTradingPage() {
             </div>
 
             <div>
+<<<<<<< HEAD
               <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Position size</label>
+=======
+              <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Position size</label>
+>>>>>>> origin/main
               <div className="flex gap-1.5">
                 {SIZE_PCTS.map((s, i) => (
                   <button
@@ -615,21 +690,34 @@ export default function PaperTradingPage() {
                     onClick={() => setSizePct(s)}
                     className={`flex-1 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 ${
                       sizePct === s
+<<<<<<< HEAD
                         ? 'bg-white/10 text-white border border-white/15'
                         : 'bg-white/5 text-zinc-600 border border-white/5 hover:text-zinc-400'
+=======
+                        ? 'bg-[var(--glass-bg)] text-[var(--foreground)] border border-[var(--border)]'
+                        : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)] hover:text-[var(--text-secondary)]'
+>>>>>>> origin/main
                     }`}
                   >
                     {SIZE_LABELS[i]}
                   </button>
                 ))}
               </div>
+<<<<<<< HEAD
               <div className="text-[10px] text-zinc-700 font-mono mt-1.5">
+=======
+              <div className="text-[10px] text-[var(--text-secondary)] font-mono mt-1.5">
+>>>>>>> origin/main
                 ~{fmtMoney(Math.round(bal * sizePct))} committed
               </div>
             </div>
 
             <div className="pt-1">
+<<<<<<< HEAD
               <div className="text-[10px] text-zinc-700 font-mono mb-2">
+=======
+              <div className="text-[10px] text-[var(--text-secondary)] font-mono mb-2">
+>>>>>>> origin/main
                 Current: {fmtPrice(prices[symbol] ?? BASE_PRICES[symbol] ?? 0)}
               </div>
               <button
@@ -647,17 +735,29 @@ export default function PaperTradingPage() {
           </div>
 
           {/* Open positions */}
+<<<<<<< HEAD
           <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="text-xs font-semibold text-white">
                 Open positions{' '}
                 <span className="text-zinc-700 ml-1">({portfolio?.positions.length ?? 0})</span>
+=======
+          <div className="bg-white/[0.02] border border-[var(--border)] rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-xs font-semibold text-[var(--foreground)]">
+                Open positions{' '}
+                <span className="text-[var(--text-secondary)] ml-1">({portfolio?.positions.length ?? 0})</span>
+>>>>>>> origin/main
               </div>
               {(portfolio?.positions.length ?? 0) > 0 && (
                 <button
                   onClick={handleCloseAll}
                   disabled={actionLoading}
+<<<<<<< HEAD
                   className="text-[10px] text-zinc-600 hover:text-red-400 transition-colors border border-white/5 hover:border-red-500/20 px-2 py-1 rounded-lg disabled:opacity-50"
+=======
+                  className="text-[10px] text-[var(--text-secondary)] hover:text-red-400 transition-colors border border-[var(--border)] hover:border-red-500/20 px-2 py-1 rounded-lg disabled:opacity-50"
+>>>>>>> origin/main
                 >
                   Close all
                 </button>
@@ -665,9 +765,15 @@ export default function PaperTradingPage() {
             </div>
 
             {loading ? (
+<<<<<<< HEAD
               <div className="text-center py-12 text-xs text-zinc-700">Loading…</div>
             ) : (portfolio?.positions.length ?? 0) === 0 ? (
               <div className="text-center py-12 text-xs text-zinc-700">No open positions</div>
+=======
+              <div className="text-center py-12 text-xs text-[var(--text-secondary)]">Loading…</div>
+            ) : (portfolio?.positions.length ?? 0) === 0 ? (
+              <div className="text-center py-12 text-xs text-[var(--text-secondary)]">No open positions</div>
+>>>>>>> origin/main
             ) : (
               <div className="space-y-2">
                 {portfolio!.positions.map((pos) => {
@@ -676,10 +782,17 @@ export default function PaperTradingPage() {
                   const movePct = ((price - pos.entryPrice) / pos.entryPrice) * dirMult;
                   const pnl = pos.quantity * movePct;
                   return (
+<<<<<<< HEAD
                     <div key={pos.id} className="bg-white/[0.02] rounded-xl p-3 border border-white/5">
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-mono font-semibold text-white">{pos.symbol}</span>
+=======
+                    <div key={pos.id} className="bg-white/[0.02] rounded-xl p-3 border border-[var(--border)]">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono font-semibold text-[var(--foreground)]">{pos.symbol}</span>
+>>>>>>> origin/main
                           <span
                             className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                               pos.direction === 'BUY'
@@ -689,17 +802,29 @@ export default function PaperTradingPage() {
                           >
                             {pos.direction}
                           </span>
+<<<<<<< HEAD
                           <span className="text-[10px] text-zinc-700 font-mono">{fmtMoney(pos.quantity)}</span>
                         </div>
                         <button
                           onClick={() => handleClose(pos.id)}
                           className="text-[10px] text-zinc-600 hover:text-red-400 transition-colors border border-white/5 hover:border-red-500/20 px-2 py-1 rounded-lg"
+=======
+                          <span className="text-[10px] text-[var(--text-secondary)] font-mono">{fmtMoney(pos.quantity)}</span>
+                        </div>
+                        <button
+                          onClick={() => handleClose(pos.id)}
+                          className="text-[10px] text-[var(--text-secondary)] hover:text-red-400 transition-colors border border-[var(--border)] hover:border-red-500/20 px-2 py-1 rounded-lg"
+>>>>>>> origin/main
                         >
                           Close
                         </button>
                       </div>
                       <div className="flex items-center justify-between text-[10px] font-mono">
+<<<<<<< HEAD
                         <span className="text-zinc-700">
+=======
+                        <span className="text-[var(--text-secondary)]">
+>>>>>>> origin/main
                           {fmtPrice(pos.entryPrice)} → {fmtPrice(price)}
                         </span>
                         <span className={pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}>
@@ -707,7 +832,11 @@ export default function PaperTradingPage() {
                         </span>
                       </div>
                       {(pos.stopLoss ?? pos.takeProfit) && (
+<<<<<<< HEAD
                         <div className="flex items-center gap-3 mt-1 text-[9px] font-mono text-zinc-700">
+=======
+                        <div className="flex items-center gap-3 mt-1 text-[9px] font-mono text-[var(--text-secondary)]">
+>>>>>>> origin/main
                           {pos.stopLoss && <span>SL {fmtPrice(pos.stopLoss)}</span>}
                           {pos.takeProfit && <span>TP {fmtPrice(pos.takeProfit)}</span>}
                         </div>
@@ -720,6 +849,7 @@ export default function PaperTradingPage() {
           </div>
 
           {/* Signal integration */}
+<<<<<<< HEAD
           <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div className="text-xs font-semibold text-white">Signal feed</div>
@@ -729,6 +859,17 @@ export default function PaperTradingPage() {
                   onClick={() => setAutoFollow((v) => !v)}
                   className={`w-8 h-4 rounded-full transition-colors relative ${
                     autoFollow ? 'bg-emerald-500/50' : 'bg-white/10'
+=======
+          <div className="bg-white/[0.02] border border-[var(--border)] rounded-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-semibold text-[var(--foreground)]">Signal feed</div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <span className="text-[10px] text-[var(--text-secondary)]">Auto-follow</span>
+                <div
+                  onClick={() => setAutoFollow((v) => !v)}
+                  className={`w-8 h-4 rounded-full transition-colors relative ${
+                    autoFollow ? 'bg-emerald-500/50' : 'bg-[var(--glass-bg)]'
+>>>>>>> origin/main
                   }`}
                 >
                   <div
@@ -741,6 +882,7 @@ export default function PaperTradingPage() {
             </div>
 
             {signals.length === 0 ? (
+<<<<<<< HEAD
               <div className="text-center py-8 text-xs text-zinc-700">No signals available</div>
             ) : (
               <div className="space-y-2">
@@ -749,6 +891,16 @@ export default function PaperTradingPage() {
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-mono font-semibold text-white">{sig.symbol}</span>
+=======
+              <div className="text-center py-8 text-xs text-[var(--text-secondary)]">No signals available</div>
+            ) : (
+              <div className="space-y-2">
+                {signals.map((sig) => (
+                  <div key={sig.id} className="bg-white/[0.02] rounded-xl p-3 border border-[var(--border)]">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono font-semibold text-[var(--foreground)]">{sig.symbol}</span>
+>>>>>>> origin/main
                         <span
                           className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                             sig.direction === 'BUY'
@@ -758,7 +910,11 @@ export default function PaperTradingPage() {
                         >
                           {sig.direction}
                         </span>
+<<<<<<< HEAD
                         <span className="text-[10px] text-zinc-700">{sig.timeframe}</span>
+=======
+                        <span className="text-[10px] text-[var(--text-secondary)]">{sig.timeframe}</span>
+>>>>>>> origin/main
                       </div>
                       <button
                         onClick={() => handleFollowSignal(sig)}
@@ -768,19 +924,31 @@ export default function PaperTradingPage() {
                         Follow
                       </button>
                     </div>
+<<<<<<< HEAD
                     <div className="grid grid-cols-3 gap-1 text-[9px] font-mono text-zinc-700">
+=======
+                    <div className="grid grid-cols-3 gap-1 text-[9px] font-mono text-[var(--text-secondary)]">
+>>>>>>> origin/main
                       <span>E {fmtPrice(sig.entry)}</span>
                       <span>SL {fmtPrice(sig.stopLoss)}</span>
                       <span>TP {fmtPrice(sig.takeProfit)}</span>
                     </div>
                     <div className="mt-1">
+<<<<<<< HEAD
                       <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+=======
+                      <div className="h-1 bg-[var(--glass-bg)] rounded-full overflow-hidden">
+>>>>>>> origin/main
                         <div
                           className="h-full bg-emerald-500/50 rounded-full"
                           style={{ width: `${sig.confidence}%` }}
                         />
                       </div>
+<<<<<<< HEAD
                       <div className="text-[9px] text-zinc-700 font-mono mt-0.5">{sig.confidence}% confidence</div>
+=======
+                      <div className="text-[9px] text-[var(--text-secondary)] font-mono mt-0.5">{sig.confidence}% confidence</div>
+>>>>>>> origin/main
                     </div>
                   </div>
                 ))}
@@ -791,11 +959,19 @@ export default function PaperTradingPage() {
 
         {/* Equity curve + Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<<<<<<< HEAD
           <div className="lg:col-span-2 bg-white/[0.02] border border-white/5 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="text-xs font-semibold text-white">Equity curve</div>
               {tooltip.visible && (
                 <div className="text-[10px] font-mono text-zinc-500">
+=======
+          <div className="lg:col-span-2 bg-white/[0.02] border border-[var(--border)] rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-xs font-semibold text-[var(--foreground)]">Equity curve</div>
+              {tooltip.visible && (
+                <div className="text-[10px] font-mono text-[var(--text-secondary)]">
+>>>>>>> origin/main
                   {tooltip.date} — {fmtMoney(tooltip.equity)}
                 </div>
               )}
@@ -810,18 +986,30 @@ export default function PaperTradingPage() {
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5">
             <div className="text-xs font-semibold text-white mb-4">Performance stats</div>
             {!stats || stats.totalTrades === 0 ? (
               <div className="text-center py-8 text-xs text-zinc-700">No trades yet</div>
+=======
+          <div className="bg-white/[0.02] border border-[var(--border)] rounded-2xl p-5">
+            <div className="text-xs font-semibold text-[var(--foreground)] mb-4">Performance stats</div>
+            {!stats || stats.totalTrades === 0 ? (
+              <div className="text-center py-8 text-xs text-[var(--text-secondary)]">No trades yet</div>
+>>>>>>> origin/main
             ) : (
               <div className="grid grid-cols-2 gap-2">
                 <StatCard label="Win rate" value={`${stats.winRate}%`} color={stats.winRate >= 50 ? 'text-emerald-400' : 'text-red-400'} />
                 <StatCard label="Total trades" value={String(stats.totalTrades)} />
                 <StatCard label="Avg P&L" value={fmtSignedMoney(stats.avgPnl)} color={stats.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'} />
                 <StatCard label="Profit factor" value={String(stats.profitFactor)} color={stats.profitFactor >= 1 ? 'text-emerald-400' : 'text-red-400'} />
+<<<<<<< HEAD
                 <StatCard label="Sharpe" value={String(stats.sharpeRatio)} color={stats.sharpeRatio >= 1 ? 'text-emerald-400' : 'text-zinc-400'} />
                 <StatCard label="Max drawdown" value={`${stats.maxDrawdown}%`} color={stats.maxDrawdown > 20 ? 'text-red-400' : 'text-zinc-400'} />
+=======
+                <StatCard label="Sharpe" value={String(stats.sharpeRatio)} color={stats.sharpeRatio >= 1 ? 'text-emerald-400' : 'text-[var(--text-secondary)]'} />
+                <StatCard label="Max drawdown" value={`${stats.maxDrawdown}%`} color={stats.maxDrawdown > 20 ? 'text-red-400' : 'text-[var(--text-secondary)]'} />
+>>>>>>> origin/main
                 <StatCard label="Best trade" value={fmtMoney(stats.bestTrade)} color="text-emerald-400" />
                 <StatCard label="Worst trade" value={fmtMoney(stats.worstTrade)} color="text-red-400" />
               </div>
@@ -830,6 +1018,7 @@ export default function PaperTradingPage() {
         </div>
 
         {/* Trade history */}
+<<<<<<< HEAD
         <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="text-xs font-semibold text-white">
@@ -842,6 +1031,20 @@ export default function PaperTradingPage() {
                   onClick={() => setHistPage((p) => Math.max(0, p - 1))}
                   disabled={histPage === 0}
                   className="px-2 py-1 rounded-lg border border-white/5 hover:border-white/10 disabled:opacity-30 transition-colors"
+=======
+        <div className="bg-white/[0.02] border border-[var(--border)] rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-xs font-semibold text-[var(--foreground)]">
+              Trade history{' '}
+              <span className="text-[var(--text-secondary)] ml-1">({histTotal})</span>
+            </div>
+            {histPages > 1 && (
+              <div className="flex items-center gap-2 text-[10px] text-[var(--text-secondary)]">
+                <button
+                  onClick={() => setHistPage((p) => Math.max(0, p - 1))}
+                  disabled={histPage === 0}
+                  className="px-2 py-1 rounded-lg border border-[var(--border)] hover:border-[var(--border)] disabled:opacity-30 transition-colors"
+>>>>>>> origin/main
                 >
                   ←
                 </button>
@@ -849,7 +1052,11 @@ export default function PaperTradingPage() {
                 <button
                   onClick={() => setHistPage((p) => Math.min(histPages - 1, p + 1))}
                   disabled={histPage >= histPages - 1}
+<<<<<<< HEAD
                   className="px-2 py-1 rounded-lg border border-white/5 hover:border-white/10 disabled:opacity-30 transition-colors"
+=======
+                  className="px-2 py-1 rounded-lg border border-[var(--border)] hover:border-[var(--border)] disabled:opacity-30 transition-colors"
+>>>>>>> origin/main
                 >
                   →
                 </button>
@@ -858,12 +1065,29 @@ export default function PaperTradingPage() {
           </div>
 
           {histTotal === 0 ? (
+<<<<<<< HEAD
             <div className="text-center py-8 text-xs text-zinc-700">No closed trades yet</div>
+=======
+            <div className="text-center py-12 space-y-2">
+              <div className="text-xs text-[var(--text-secondary)]">No trades yet</div>
+              <div className="text-[11px] text-[var(--text-secondary)]">
+                Open a position from the order form or{' '}
+                <Link href="/dashboard" className="text-emerald-500 hover:text-emerald-400 underline underline-offset-2 transition-colors">
+                  follow a signal
+                </Link>{' '}
+                to start paper trading.
+              </div>
+            </div>
+>>>>>>> origin/main
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-[11px] font-mono">
                 <thead>
+<<<<<<< HEAD
                   <tr className="text-zinc-700 uppercase text-[9px] tracking-wider border-b border-white/5">
+=======
+                  <tr className="text-[var(--text-secondary)] uppercase text-[9px] tracking-wider border-b border-[var(--border)]">
+>>>>>>> origin/main
                     <th className="pb-2 text-left font-normal">Symbol</th>
                     <th className="pb-2 text-left font-normal">Dir</th>
                     <th className="pb-2 text-right font-normal">Entry</th>
@@ -877,6 +1101,7 @@ export default function PaperTradingPage() {
                 <tbody>
                   {histSlice.map((t: Trade) => (
                     <tr key={t.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+<<<<<<< HEAD
                       <td className="py-2 text-zinc-300">{t.symbol}</td>
                       <td className={`py-2 font-bold ${t.direction === 'BUY' ? 'text-emerald-500' : 'text-red-500'}`}>
                         {t.direction}
@@ -893,6 +1118,24 @@ export default function PaperTradingPage() {
                         {fmtTradeDuration(t.openedAt, t.closedAt)}
                       </td>
                       <td className="py-2 text-right text-zinc-700 hidden md:table-cell">{t.exitReason}</td>
+=======
+                      <td className="py-2 text-[var(--foreground)]">{t.symbol}</td>
+                      <td className={`py-2 font-bold ${t.direction === 'BUY' ? 'text-emerald-500' : 'text-red-500'}`}>
+                        {t.direction}
+                      </td>
+                      <td className="py-2 text-right text-[var(--text-secondary)]">{fmtPrice(t.entryPrice)}</td>
+                      <td className="py-2 text-right text-[var(--text-secondary)]">{fmtPrice(t.exitPrice)}</td>
+                      <td className={`py-2 text-right tabular-nums ${t.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {fmtSignedMoney(t.pnl)}
+                      </td>
+                      <td className={`py-2 text-right tabular-nums ${(t.pnlPercent ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {(t.pnlPercent ?? 0) >= 0 ? '+' : ''}{(t.pnlPercent ?? 0).toFixed(2)}%
+                      </td>
+                      <td className="py-2 text-right text-[var(--text-secondary)] hidden md:table-cell">
+                        {fmtTradeDuration(t.openedAt, t.closedAt)}
+                      </td>
+                      <td className="py-2 text-right text-[var(--text-secondary)] hidden md:table-cell">{t.exitReason}</td>
+>>>>>>> origin/main
                     </tr>
                   ))}
                 </tbody>
@@ -905,16 +1148,28 @@ export default function PaperTradingPage() {
       {/* Reset modal */}
       {showReset && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+<<<<<<< HEAD
           <div className="bg-[#0e0e0e] border border-white/10 rounded-2xl p-6 w-full max-w-sm mx-4">
             <div className="text-sm font-semibold text-white mb-2">Reset paper account?</div>
             <div className="text-xs text-zinc-500 mb-6">
               This will wipe all positions, history, and equity curve. Your balance resets to{' '}
               <span className="text-white font-mono">$10,000</span>. This cannot be undone.
+=======
+          <div className="bg-[#0e0e0e] border border-[var(--border)] rounded-2xl p-6 w-full max-w-sm mx-4">
+            <div className="text-sm font-semibold text-[var(--foreground)] mb-2">Reset paper account?</div>
+            <div className="text-xs text-[var(--text-secondary)] mb-6">
+              This will wipe all positions, history, and equity curve. Your balance resets to{' '}
+              <span className="text-[var(--foreground)] font-mono">$10,000</span>. This cannot be undone.
+>>>>>>> origin/main
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowReset(false)}
+<<<<<<< HEAD
                 className="flex-1 py-2.5 rounded-xl text-sm text-zinc-400 border border-white/10 hover:border-white/20 transition-colors"
+=======
+                className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-secondary)] border border-[var(--border)] hover:border-white/20 transition-colors"
+>>>>>>> origin/main
               >
                 Cancel
               </button>

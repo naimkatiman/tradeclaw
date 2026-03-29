@@ -8,4 +8,13 @@ module.exports = {
   transform: {
     ...tsJestTransformCfg,
   },
+<<<<<<< HEAD
+=======
+  moduleDirectories: ["node_modules", "apps/web/node_modules"],
+  globals: {
+    "ts-jest": {
+      tsconfig: "apps/web/tsconfig.json",
+    },
+  },
+>>>>>>> origin/main
 };

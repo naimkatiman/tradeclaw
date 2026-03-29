@@ -4,3 +4,7 @@ node_modules/
 
 # Signal history data (root-level only)
 /data/
+<<<<<<< HEAD
+=======
+.env.social
+>>>>>>> origin/main
