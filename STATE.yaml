@@ -756,9 +756,14 @@ tasks:
 
   - id: TC-095
     title: "GitHub README interactive badges — dynamic SVG badges showing live BTC/ETH/XAU signal direction + confidence, auto-refresh via shields.io custom endpoint"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/badges bulk endpoint (all 10 pairs, CORS *, 5-min cache).
+      README.md updated with Live Signal Badges section — 4 live badges (BTC/ETH/XAU/EUR),
+      markdown snippets for direct SVG + shields.io endpoint formats, URL format docs.
+      /api/badge/[pair]/json (shields.io) and /api/badge/[pair] (SVG) were already live.
+      Build passes 158 pages. 0 lint errors. Committed 9ebdbebc. 2026-03-29
 
   - id: TC-096
     title: "TradeClaw Zapier integration page — /zapier page with step-by-step Zap templates (Signal → Email, Signal → Google Sheets, Signal → Slack) and one-click Zapier invite links"
