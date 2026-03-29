@@ -106,7 +106,7 @@ Add TradeClaw to your Discord server for live trading signals:
 ```bash
 cd packages/tradeclaw-discord
 npm install
-DISCORD_TOKEN=your_token node bin/bot.js
+DISCORD_BOT_TOKEN=your_token node bin/bot.js
 ```
 
 **Slash commands:** `/signal`, `/leaderboard`, `/health`, `/subscribe`, `/unsubscribe`, `/help`

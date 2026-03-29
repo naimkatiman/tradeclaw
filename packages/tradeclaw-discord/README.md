@@ -10,7 +10,7 @@ cd packages/tradeclaw-discord
 npm install
 
 # 2. Set your bot token
-export DISCORD_TOKEN=your_bot_token_here
+export DISCORD_BOT_TOKEN=your_bot_token_here
 
 # 3. Run
 npm start
@@ -41,9 +41,10 @@ https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&scope=bot+applicat
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `DISCORD_TOKEN` | Yes | — | Bot token from Discord Developer Portal |
+| `DISCORD_BOT_TOKEN` | Yes | — | Bot token from Discord Developer Portal |
+| `DISCORD_CLIENT_ID` | No | — | Application client ID (for invite URL generation) |
 | `TRADECLAW_BASE_URL` | No | `https://tradeclaw.win` | TradeClaw API base URL |
-| `BROADCAST_INTERVAL` | No | `30` | Minutes between auto-broadcasts |
+| `BROADCAST_INTERVAL` | No | `5` | Minutes between auto-broadcasts |
 
 ## Docker
 
@@ -52,7 +53,7 @@ https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&scope=bot+applicat
 tradeclaw-discord:
   build: ./packages/tradeclaw-discord
   environment:
-    - DISCORD_TOKEN=${DISCORD_TOKEN}
+    - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
     - TRADECLAW_BASE_URL=http://web:3000
   restart: unless-stopped
 ```

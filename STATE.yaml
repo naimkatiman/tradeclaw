@@ -1008,9 +1008,13 @@ next_actions:
 
   - id: TC-092
     title: "/api/widget endpoint + embeddable portfolio tracker — show live P&L from paper trading in any external site as a badge or card"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/widget/portfolio (JSON: balance/equity/totalReturn/totalReturnPct/pnl/winRate/openPositions/currency/updatedAt,
+      CORS *, 5-min cache). /api/widget/portfolio/embed (self-contained 320x160 HTML card, emerald/rose colors,
+      60s JS fetch refresh). /widget page with WidgetClient.tsx — live preview, 3 snippet tabs (iframe/JS/JSON API)
+      with copy buttons. Added to navbar Community group. Build passes. 0 lint errors. Committed 1461e6dd. 2026-03-29
 
   - id: TC-093
     title: "TradeClaw Discord bot — bot.js that posts live signals to a Discord server on demand + slash commands (/signal, /leaderboard, /health) + invite link on site"

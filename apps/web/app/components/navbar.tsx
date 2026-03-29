@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone } from 'lucide-react';
+import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import type { LucideIcon } from 'lucide-react';
 
@@ -75,7 +75,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/waitlist', label: 'Waitlist', icon: Clock },
       { href: '/launch', label: 'Launch', icon: Rocket },
       { href: '/vs-tradingview', label: 'vs TradingView' },
-      { href: '/discord', label: 'Discord Bot' },
+      { href: '/discord', label: 'Discord Bot', icon: MessageCircle },
       { href: '/quiz', label: 'Trader Quiz', icon: HelpCircle },
     ],
   },

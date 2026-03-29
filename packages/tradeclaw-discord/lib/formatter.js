@@ -5,8 +5,8 @@
 const { EmbedBuilder } = require('discord.js');
 
 const COLORS = {
-  BUY: 0x10b981,   // emerald-500
-  SELL: 0xef4444,   // red-500
+  BUY: 0x00ff88,   // neon green
+  SELL: 0xff4444,   // bright red
   INFO: 0x6366f1,   // indigo-500
   WARN: 0xf59e0b,   // amber-500
 };
@@ -95,7 +95,7 @@ function subscribeEmbed(pair, minConfidence) {
     .setColor(COLORS.BUY)
     .setTitle('\u{1F514} Subscribed to Signal Broadcasts')
     .setDescription(
-      `This channel will receive trading signals every 30 minutes.\n\n` +
+      `This channel will receive trading signals every 5 minutes.\n\n` +
       `**Pair filter:** ${pair || 'All pairs'}\n` +
       `**Min confidence:** ${minConfidence || 60}%\n\n` +
       `Use \`/unsubscribe\` to stop.`

@@ -1,8 +1,11 @@
 {
   "name": "tradeclaw-discord",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Discord bot for TradeClaw — live trading signals, slash commands, and auto-broadcast",
-  "main": "bin/bot.js",
+  "main": "lib/index.js",
+  "bin": {
+    "tradeclaw-discord": "bin/bot.js"
+  },
   "scripts": {
     "start": "node bin/bot.js"
   },
