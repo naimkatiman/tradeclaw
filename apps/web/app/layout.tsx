@@ -7,6 +7,7 @@ import { PWAInstallPrompt } from "./components/pwa-install";
 import { DemoBanner } from "./components/demo-banner";
 import { ThemeProvider } from "./components/theme-provider";
 import { MilestoneCelebrationModal } from "../components/milestone-modal";
+import { OnboardingChecklist } from "../components/onboarding-checklist";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -127,6 +128,7 @@ export default function RootLayout({
           <MobileNav />
           <PWAInstallPrompt />
           <MilestoneCelebrationModal />
+          <OnboardingChecklist />
         </ThemeProvider>
       </body>
     </html>
