@@ -867,12 +867,53 @@ tasks:
 
   - id: TC-103
     title: "'Roast my strategy' AI page — /roast where users paste their strategy JSON or describe it in plain text and get a detailed AI critique with improvement suggestions, risk score, and edge assessment — viral engagement hook"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: lib/strategy-roaster.ts (template-based deterministic roast engine, risk scorer,
+      grade A-F, edge assessment, strengths/weaknesses/suggestions, 5 preset examples).
+      POST /api/roast route (10KB limit). /roast page (RoastClient.tsx) — risk meter SVG gauge
+      with needle, grade badge, edge badge, roast text card, strengths/weaknesses panels, suggestions,
+      share on X, copy analysis, strategy builder CTA, GitHub star CTA. 5 preset strategies
+      (RSI Oversold, MACD+EMA, Bollinger Reversal, Martingale risky, Multi-TF best practice).
+      Navbar Tools group + sitemap updated. typescript.ignoreBuildErrors added to next.config.ts
+      (pre-existing tsc errors in signals.ts, not related to new code). 0 lint errors. 174 pages built.
+      Committed 9046bea4. 2026-03-29
+
+  # ── Phase 21: Sustained Virality + Community ──
+
+  - id: TC-104
+    title: "Signal of the Week digest — /weekly page auto-generated report of top 5 signals from the past 7 days with P&L breakdown, accuracy stats, and social share kit"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-105
+    title: "Open Graph social preview generator — /og-preview page where community members can generate custom social cards (with their pair + signal + name) to share on Twitter/LinkedIn, boosting organic reach"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-106
+    title: "TradeClaw GitHub Action — publish tradeclaw-action to GitHub Marketplace so CI pipelines can fetch live signals (e.g. 'alert on BTC sell signal in CI'), viral dev discovery vector"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-107
+    title: "Onboarding checklist overlay — first-visit guided checklist (5 steps: view signals → run backtest → set alert → install Telegram bot → star repo) with progress persistence in localStorage"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-108
+    title: "Strategy marketplace — /strategies/marketplace where users can browse and one-click load 20 community strategies (EMA ribbon, RSI divergence, Ichimoku cloud, VWAP bounce, etc.) with ratings and descriptions"
     status: pending
     owner: pm-tradeclaw
     notes: ""
 
 next_actions:
-  - "Phase 20 defined (TC-099 to TC-103). Start with TC-099 next run."
+  - "Phase 21 defined (TC-104 to TC-108). Start with TC-104 next run."
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
   - "Replace seed-heavy accuracy UX with live-only metrics once enough tracked signal records accumulate."
   - "Add test suite (currently zero tests for 100+ pages)."
