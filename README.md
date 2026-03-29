@@ -100,6 +100,30 @@ Share your paper trading performance anywhere with embeddable widgets:
 
 JSON API: `GET /api/widget/portfolio` — returns balance, equity, P&L, win rate. [Widget gallery &rarr;](https://tradeclaw.win/widgets)
 
+## Live Signal Badges
+
+Embed real-time BTC, ETH, and Gold signal badges directly in your README — auto-refresh every 5 minutes, no API key required.
+
+[![BTC Signal](https://tradeclaw.win/api/badge/BTCUSD)](https://tradeclaw.win/signal/BTCUSD-H1-BUY)
+[![ETH Signal](https://tradeclaw.win/api/badge/ETHUSD)](https://tradeclaw.win/signal/ETHUSD-H1-BUY)
+[![Gold Signal](https://tradeclaw.win/api/badge/XAUUSD)](https://tradeclaw.win/signal/XAUUSD-H1-BUY)
+[![EUR/USD Signal](https://tradeclaw.win/api/badge/EURUSD)](https://tradeclaw.win/signal/EURUSD-H1-BUY)
+
+```markdown
+<!-- Paste into any README — shows live BUY/SELL with confidence % -->
+[![BTC Signal](https://tradeclaw.win/api/badge/BTCUSD)](https://tradeclaw.win)
+[![ETH Signal](https://tradeclaw.win/api/badge/ETHUSD)](https://tradeclaw.win)
+[![Gold Signal](https://tradeclaw.win/api/badge/XAUUSD)](https://tradeclaw.win)
+```
+
+```markdown
+<!-- Or via shields.io (cache-busting friendly) -->
+[![BTC Signal](https://img.shields.io/endpoint?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fbadge%2FBTCUSD%2Fjson)](https://tradeclaw.win)
+[![ETH Signal](https://img.shields.io/endpoint?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fbadge%2FETHUSD%2Fjson)](https://tradeclaw.win)
+```
+
+URL format: `https://tradeclaw.win/api/badge/{PAIR}?tf={H1|H4|D1}` · [All badge pairs &rarr;](https://tradeclaw.win/badge)
+
 ## Discord Bot
 
 Add TradeClaw to your Discord server for live trading signals:
