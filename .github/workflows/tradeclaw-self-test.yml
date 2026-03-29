@@ -1,0 +1,39 @@
+name: TradeClaw Self-Test
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/tradeclaw-action/**'
+  pull_request:
+    paths:
+      - 'packages/tradeclaw-action/**'
+
+jobs:
+  self-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check BTC signal
+        uses: ./packages/tradeclaw-action
+        id: btc
+        with:
+          pair: BTCUSD
+          timeframe: H1
+
+      - name: Verify outputs
+        run: |
+          echo "signal_found=${{ steps.btc.outputs.signal_found }}"
+          echo "signal_direction=${{ steps.btc.outputs.signal_direction }}"
+          echo "signal_confidence=${{ steps.btc.outputs.signal_confidence }}"
+
+          # Verify output format
+          if [[ "${{ steps.btc.outputs.signal_found }}" != "true" && "${{ steps.btc.outputs.signal_found }}" != "false" ]]; then
+            echo "::error::signal_found must be true or false"
+            exit 1
+          fi
+
+          echo "### Self-Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Signal found: ${{ steps.btc.outputs.signal_found }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Direction: ${{ steps.btc.outputs.signal_direction }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Confidence: ${{ steps.btc.outputs.signal_confidence }}%" >> $GITHUB_STEP_SUMMARY

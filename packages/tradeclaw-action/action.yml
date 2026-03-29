@@ -1,50 +1,97 @@
-name: 'TradeClaw Signal'
-description: 'Fetch live AI trading signals from TradeClaw in your CI/CD pipeline'
-author: 'naimkatiman'
+name: "TradeClaw Signal Check"
+description: "Fetch live AI trading signals from TradeClaw and use them in your CI/CD pipeline"
+author: "TradeClaw"
 branding:
-  icon: 'trending-up'
-  color: 'green'
-
+  icon: "trending-up"
+  color: "green"
 inputs:
   pair:
-    description: 'Trading pair (e.g. BTCUSD, ETHUSD, XAUUSD)'
-    required: true
-    default: 'BTCUSD'
+    description: "Trading pair (e.g. BTCUSD, ETHUSD, XAUUSD)"
+    required: false
+    default: "BTCUSD"
   timeframe:
-    description: 'Signal timeframe (M5, M15, H1, H4, D1)'
+    description: "Signal timeframe (H1, H4, D1)"
     required: false
-    default: 'H1'
-  base_url:
-    description: 'TradeClaw instance URL'
-    required: false
-    default: 'https://tradeclaw.win'
-  fail_on_signal:
-    description: 'Fail the step if a signal matches (e.g. SELL). Set to "none" to never fail.'
-    required: false
-    default: 'none'
-  signal_direction:
-    description: 'Only pass if signal matches this direction (BUY or SELL). Leave empty to accept any.'
-    required: false
-    default: ''
-  min_confidence:
-    description: 'Minimum confidence threshold (0-100). Step fails if signal confidence is below this.'
-    required: false
-    default: '0'
-
-outputs:
-  signal:
-    description: 'Signal direction (BUY, SELL, or NEUTRAL)'
-  confidence:
-    description: 'Signal confidence percentage (0-100)'
-  pair:
-    description: 'Trading pair that was queried'
-  timeframe:
-    description: 'Timeframe that was queried'
-  rsi:
-    description: 'Current RSI value'
+    default: "H1"
   direction:
-    description: 'Alias for signal output'
-
+    description: "Filter by direction (BUY, SELL, ALL)"
+    required: false
+    default: "ALL"
+  min_confidence:
+    description: "Minimum confidence threshold (0-100)"
+    required: false
+    default: "70"
+  base_url:
+    description: "TradeClaw instance URL"
+    required: false
+    default: "https://tradeclaw.win"
+outputs:
+  signal_found:
+    description: "Whether a matching signal was found (true/false)"
+    value: ${{ steps.fetch.outputs.signal_found }}
+  signal_direction:
+    description: "Signal direction (BUY or SELL)"
+    value: ${{ steps.fetch.outputs.signal_direction }}
+  signal_confidence:
+    description: "Signal confidence percentage"
+    value: ${{ steps.fetch.outputs.signal_confidence }}
+  signal_json:
+    description: "Full signal JSON"
+    value: ${{ steps.fetch.outputs.signal_json }}
 runs:
-  using: 'node20'
-  main: 'dist/index.js'
+  using: "composite"
+  steps:
+    - name: Fetch TradeClaw Signal
+      id: fetch
+      shell: bash
+      run: |
+        RESPONSE=$(curl -sf "${{ inputs.base_url }}/api/v1/signals?pair=${{ inputs.pair }}&timeframe=${{ inputs.timeframe }}&limit=1" 2>/dev/null || echo "error")
+
+        if [ "$RESPONSE" = "error" ] || [ -z "$RESPONSE" ]; then
+          echo "signal_found=false" >> $GITHUB_OUTPUT
+          echo "signal_direction=" >> $GITHUB_OUTPUT
+          echo "signal_confidence=0" >> $GITHUB_OUTPUT
+          echo "signal_json={}" >> $GITHUB_OUTPUT
+          echo "::warning::TradeClaw API unavailable"
+          exit 0
+        fi
+
+        SIGNAL_COUNT=$(echo "$RESPONSE" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d.get('data',d) if isinstance(d,dict) else d))" 2>/dev/null || echo "0")
+
+        if [ "$SIGNAL_COUNT" = "0" ]; then
+          echo "signal_found=false" >> $GITHUB_OUTPUT
+          echo "signal_direction=" >> $GITHUB_OUTPUT
+          echo "signal_confidence=0" >> $GITHUB_OUTPUT
+          echo "signal_json={}" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        DIRECTION=$(echo "$RESPONSE" | python3 -c "import json,sys; d=json.load(sys.stdin); arr=d.get('data',d) if isinstance(d,dict) else d; print(arr[0].get('direction',''))" 2>/dev/null)
+        CONFIDENCE=$(echo "$RESPONSE" | python3 -c "import json,sys; d=json.load(sys.stdin); arr=d.get('data',d) if isinstance(d,dict) else d; print(int(arr[0].get('confidence',0)*100) if arr[0].get('confidence',0)<=1 else int(arr[0].get('confidence',0)))" 2>/dev/null || echo "0")
+        SIGNAL_JSON=$(echo "$RESPONSE" | python3 -c "import json,sys; d=json.load(sys.stdin); arr=d.get('data',d) if isinstance(d,dict) else d; print(json.dumps(arr[0]))" 2>/dev/null || echo "{}")
+
+        # Filter by direction
+        FILTER="${{ inputs.direction }}"
+        if [ "$FILTER" != "ALL" ] && [ "$DIRECTION" != "$FILTER" ]; then
+          echo "signal_found=false" >> $GITHUB_OUTPUT
+          echo "signal_direction=$DIRECTION" >> $GITHUB_OUTPUT
+          echo "signal_confidence=$CONFIDENCE" >> $GITHUB_OUTPUT
+          echo "signal_json=$SIGNAL_JSON" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Filter by confidence
+        MIN_CONF="${{ inputs.min_confidence }}"
+        if [ "$CONFIDENCE" -lt "$MIN_CONF" ] 2>/dev/null; then
+          echo "signal_found=false" >> $GITHUB_OUTPUT
+          echo "signal_direction=$DIRECTION" >> $GITHUB_OUTPUT
+          echo "signal_confidence=$CONFIDENCE" >> $GITHUB_OUTPUT
+          echo "signal_json=$SIGNAL_JSON" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        echo "signal_found=true" >> $GITHUB_OUTPUT
+        echo "signal_direction=$DIRECTION" >> $GITHUB_OUTPUT
+        echo "signal_confidence=$CONFIDENCE" >> $GITHUB_OUTPUT
+        echo "signal_json=$SIGNAL_JSON" >> $GITHUB_OUTPUT
+        echo "Signal found: ${{ inputs.pair }} $DIRECTION @ ${CONFIDENCE}% confidence"

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ActionClient } from '../action/ActionClient';
+import { GHActionClient } from './GHActionClient';
 
 export const metadata: Metadata = {
   title: 'TradeClaw GitHub Action — Live Trading Signals in CI/CD',
@@ -14,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function GithubActionPage() {
-  return <ActionClient />;
+  return <GHActionClient />;
 }

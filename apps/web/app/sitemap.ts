@@ -31,5 +31,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/roast`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/og-preview`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/github-action`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/strategies/marketplace`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
   ];
 }
