@@ -27,5 +27,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/heatmap`, lastModified: new Date(), changeFrequency: "daily", priority: 0.6 },
     { url: `${base}/pine-to-tradeclaw`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/security`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
+    { url: `${base}/sentiment`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.7 },
   ];
 }
