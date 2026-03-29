@@ -819,15 +819,29 @@ tasks:
 
   - id: TC-099
     title: "CCXT multi-exchange integration page — /exchanges showing 20+ supported exchanges via CCXT with one-click connect UI, live balance fetch demo, and 'supports 100+ exchanges' headline"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/exchanges (GET 24 exchanges, POST mock test-connection). /exchanges page
+      with ExchangesClient.tsx — hero, 24-exchange grid with brand colors + connect modal (API keys,
+      passphrase, test+save), CCXT capabilities, how-it-works. Navbar Trading group + sitemap updated.
+      1247 lines added. Build passes. 0 lint errors. Committed 4c5bf06e. 2026-03-29
 
   - id: TC-100
     title: "TradingView Pine Script importer — /pine-to-tradeclaw page where users paste Pine Script and get equivalent TradeClaw strategy JSON (RSI/EMA/MACD condition parser), viral for 50M TradingView users"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: lib/pine-parser.ts (regex-based Pine v4/v5 parser — extracts RSI, EMA, SMA, MACD,
+      BB, Stoch indicators, crossover/crossunder/comparison conditions, strategy.entry/exit direction,
+      alertcondition, variable tracking, 5 preset scripts). /api/pine-import POST route (50KB limit,
+      returns strategy JSON + detected indicators/conditions/direction + warnings + unsupported).
+      /pine-to-tradeclaw/page.tsx (server, SEO metadata) + PineImportClient.tsx (hero, preset buttons,
+      monospace textarea, convert button, result panel with indicator/condition/warning/unsupported chips,
+      strategy JSON with copy, Open in Strategy Builder via ?import=base64, share button, GitHub star CTA).
+      Strategy builder updated with lazy useState initializer to accept ?import=base64 param.
+      Navbar: Pine Importer in Tools group with Code icon. Mobile nav: Pine Importer in Tools section.
+      Sitemap updated. Lint clean. Build passes. 2026-03-29
 
   - id: TC-101
     title: "Security & trust dashboard — /security page with live npm audit results display, CSP headers checker, dependency vulnerability count badge, OWASP checklist, and security.txt file"

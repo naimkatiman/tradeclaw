@@ -204,15 +204,30 @@ export default function StrategyBuilderPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [strategy, setStrategy] = useState<Strategy>({
-    id: uid(),
-    name: 'My Strategy',
-    symbol: 'XAUUSD',
-    timeframe: 'H1',
-    blocks: [
-      { id: uid(), type: 'IF', condition: { indicator: 'RSI', operator: '<', value: 30 } },
-      { id: uid(), type: 'THEN', action: { type: 'ENTRY_LONG' } },
-    ],
+  const [strategy, setStrategy] = useState<Strategy>(() => {
+    // Check for ?import=base64 query param from Pine Importer (SSR-safe: returns default)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const importParam = params.get('import');
+      if (importParam) {
+        try {
+          const decoded = JSON.parse(atob(importParam)) as Strategy;
+          if (decoded.name && Array.isArray(decoded.blocks)) {
+            return { ...decoded, id: decoded.id || uid() };
+          }
+        } catch { /* ignore invalid import */ }
+      }
+    }
+    return {
+      id: uid(),
+      name: 'My Strategy',
+      symbol: 'XAUUSD',
+      timeframe: 'H1',
+      blocks: [
+        { id: uid(), type: 'IF', condition: { indicator: 'RSI', operator: '<', value: 30 } },
+        { id: uid(), type: 'THEN', action: { type: 'ENTRY_LONG' } },
+      ],
+    };
   });
   const [saved, setSaved] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
