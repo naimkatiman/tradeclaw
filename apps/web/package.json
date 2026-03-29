@@ -16,7 +16,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "stripe": "^21.0.1",
-    "trading-signals": "^7.4.3"
+    "trading-signals": "^7.4.3",
+    "@tradeclaw/signals": "*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

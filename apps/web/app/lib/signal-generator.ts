@@ -547,6 +547,7 @@ export function generateSignalsFromTA(
   source: 'real' | 'synthetic' = 'real',
   signalTimestamp: number = Date.now(),
 ): TradingSignal[] {
+  const tf = timeframe as TradingSignal['timeframe'];
   // Minimum candle count guard — require at least 50 candles for reliable signals
   if (indicators.closes.length < 50) return [];
 
@@ -610,7 +611,7 @@ export function generateSignalsFromTA(
       takeProfit2: +(entry + riskDistance * 2.5).toFixed(5),
       takeProfit3: +(entry + riskDistance * 3.5).toFixed(5),
       indicators: indicatorSummary,
-      timeframe,
+      timeframe: tf,
       timestamp: publishedAt,
       status: 'active',
       dataQuality: source,
@@ -656,7 +657,7 @@ export function generateSignalsFromTA(
       takeProfit2: +(entry - riskDistance * 2.5).toFixed(5),
       takeProfit3: +(entry - riskDistance * 3.5).toFixed(5),
       indicators: indicatorSummary,
-      timeframe,
+      timeframe: tf,
       timestamp: publishedAt,
       status: 'active',
       dataQuality: source,

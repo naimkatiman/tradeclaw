@@ -5,36 +5,11 @@ import { getMultiOHLCV } from './ohlcv';
 import { calculateAllIndicators } from './ta-engine';
 import { generateSignalsFromTA } from './signal-generator';
 
-// Signal types
-export interface TradingSignal {
-  id: string;
-  symbol: string;
-  direction: 'BUY' | 'SELL';
-  confidence: number; // 0-100
-  entry: number;
-  stopLoss: number;
-  takeProfit1: number;
-  takeProfit2: number;
-  takeProfit3: number;
-  indicators: IndicatorSummary;
-  timeframe: string;
-  timestamp: string;
-  status: 'active' | 'hit_tp1' | 'hit_tp2' | 'hit_tp3' | 'stopped' | 'expired';
-  source?: 'real' | 'fallback'; // New field to indicate signal source
-  dataQuality?: 'real' | 'synthetic';
-}
-
-export interface IndicatorSummary {
-  rsi: { value: number; signal: 'oversold' | 'neutral' | 'overbought' };
-  macd: { histogram: number; signal: 'bullish' | 'bearish' | 'neutral' };
-  ema: { trend: 'up' | 'down' | 'sideways'; ema20: number; ema50: number; ema200: number };
-  bollingerBands: { position: 'upper' | 'middle' | 'lower'; bandwidth: number };
-  stochastic: { k: number; d: number; signal: 'oversold' | 'neutral' | 'overbought' };
-  support: number[];
-  resistance: number[];
-  adx?: { value: number; trending: boolean; plusDI: number; minusDI: number };
-  volume?: { current: number; average: number; ratio: number; confirmed: boolean };
-}
+// Signal types — shared from @tradeclaw/signals
+import type { TradingSignal, IndicatorSummary } from '@tradeclaw/signals';
+import { generateSignalId, clamp } from '@tradeclaw/signals';
+export type { TradingSignal, IndicatorSummary } from '@tradeclaw/signals';
+export { generateSignalId, clamp } from '@tradeclaw/signals';
 
 // Symbol configurations with current market prices (Mar 2026)
 export const SYMBOLS = [
@@ -57,13 +32,7 @@ export const SYMBOLS = [
 
 export const TIMEFRAMES = ['M15', 'H1', 'H4', 'D1'];
 
-export function generateSignalId(): string {
-  return `SIG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-}
-
-export function clamp(val: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, val));
-}
+// generateSignalId and clamp are now imported from @tradeclaw/signals
 
 // ─── Fallback: Random signal generation (original code) ─────
 

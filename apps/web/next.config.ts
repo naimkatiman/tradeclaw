@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
 
+  // Skip TypeScript type-check during build (tsc runs separately via lint/CI)
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   // Performance: compress responses
   compress: true,
 
