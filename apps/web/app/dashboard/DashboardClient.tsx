@@ -24,14 +24,13 @@ import type { TFDirection } from '../lib/signal-generator';
 const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];
 
 function OnboardingBanner() {
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
+  const [visible, setVisible] = useState(() => {
     try {
       const dismissed = localStorage.getItem('tc_onboarding_dismissed');
       const tourDone = localStorage.getItem('tc_tour_done');
-      if (!dismissed && !tourDone) setVisible(true);
-    } catch { /* ignore */ }
-  }, []);
+      return !dismissed && !tourDone;
+    } catch { return false; }
+  });
   if (!visible) return null;
   const dismiss = () => {
     setVisible(false);
