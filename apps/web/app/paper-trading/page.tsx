@@ -55,7 +55,8 @@ const HIST_PAGE_SIZE = 8;
 // Helpers
 // ---------------------------------------------------------------------------
 
-function fmtPrice(n: number): string {
+function fmtPrice(n: number | undefined | null): string {
+  if (n == null || isNaN(n)) return '—';
   return n >= 1000 ? n.toFixed(2) : n >= 1 ? n.toFixed(4) : n.toFixed(5);
 }
 
@@ -553,7 +554,7 @@ export default function PaperTradingPage() {
             },
             {
               label: 'Total Return',
-              value: `${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`,
+              value: `${totalReturn >= 0 ? '+' : ''}${(totalReturn ?? 0).toFixed(2)}%`,
               color: totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400',
             },
           ].map(({ label, value, color }) => (
@@ -895,8 +896,8 @@ export default function PaperTradingPage() {
                       <td className={`py-2 text-right tabular-nums ${t.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {fmtSignedMoney(t.pnl)}
                       </td>
-                      <td className={`py-2 text-right tabular-nums ${t.pnlPercent >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                        {t.pnlPercent >= 0 ? '+' : ''}{t.pnlPercent.toFixed(2)}%
+                      <td className={`py-2 text-right tabular-nums ${(t.pnlPercent ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {(t.pnlPercent ?? 0) >= 0 ? '+' : ''}{(t.pnlPercent ?? 0).toFixed(2)}%
                       </td>
                       <td className="py-2 text-right text-[var(--text-secondary)] hidden md:table-cell">
                         {fmtTradeDuration(t.openedAt, t.closedAt)}

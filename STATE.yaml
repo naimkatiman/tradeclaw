@@ -845,9 +845,13 @@ tasks:
 
   - id: TC-101
     title: "Security & trust dashboard — /security page with live npm audit results display, CSP headers checker, dependency vulnerability count badge, OWASP checklist, and security.txt file"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
-    notes: "Started 2026-03-29. Claude Code spawned."
+    notes: >
+      Complete: /.well-known/security.txt RFC 9116 endpoint, /api/security/audit (OWASP scores + mock audit JSON),
+      /api/security/headers (CSP/CORS config), /security page (SecurityDashboardClient.tsx) with OWASP Top 10
+      checklist (8 pass/2 warn), security headers display, vulnerability audit card, responsible disclosure section.
+      Navbar Community group + mobile nav More + sitemap updated. Lint clean. Build passes. 2026-03-29
 
   - id: TC-102
     title: "Market sentiment dashboard — /sentiment page with crypto Fear & Greed index (alternative.me API), BTC dominance, global market cap, trending coins, 24h volume heatmap — zero-auth wow factor"
