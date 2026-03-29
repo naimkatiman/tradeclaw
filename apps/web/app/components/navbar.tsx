@@ -39,6 +39,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/alerts', label: 'Alerts' },
       { href: '/accuracy', label: 'Accuracy' },
       { href: '/calibration', label: 'Calibration' },
+      { href: '/results', label: 'Results', icon: Trophy },
       { href: '/broker-sim', label: 'Broker Sim', icon: Plug },
       { href: '/today', label: 'Signal of the Day', icon: Zap },
     ],

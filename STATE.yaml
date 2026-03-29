@@ -767,15 +767,27 @@ tasks:
 
   - id: TC-096
     title: "TradeClaw Zapier integration page — /zapier page with step-by-step Zap templates (Signal → Email, Signal → Google Sheets, Signal → Slack) and one-click Zapier invite links"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: apps/web/app/zapier/page.tsx (server, metadata) + ZapierClient.tsx (hero with Zapier
+      orange #FF4A00 branding, 3 Zap template cards with expand/collapse setup guides, how-it-works
+      4-step flow, webhook setup 5-step guide, JSON payload reference with copy button + field legend,
+      Make.com callout linking to /marketplace, CTA footer with Zapier sign-up + webhooks settings).
+      Navbar Community group + mobile nav More section updated. Build passes. 0 lint errors. Committed 96bfe2c6. 2026-03-29
 
   - id: TC-097
     title: "Backtesting results showcase — /results page with pre-computed backtest results for 5 strategies on BTC/ETH/XAUUSD showing realistic P&L curves, Sharpe ratio, max drawdown — honest but compelling social proof"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: lib/backtest-results.ts (5 strategies × 3 assets, seeded PRNG equity curve generator,
+      monthly returns builder, typed interfaces). /results page (server metadata + dynamic client import).
+      ResultsClient.tsx — hero with disclaimer, strategy tabs, asset pills, 5 metric cards (return/winRate/
+      sharpe/drawdown/trades), canvas equity curve (DPR-aware, gradient fill, grid, labels), monthly returns
+      heatmap (12 months, green/red color coding), comparison table (sortable by Sharpe/Return/Win%),
+      backtest CTA linking to /backtest?strategy=X, GitHub star CTA. Navbar Trading group + mobile nav
+      Trading section updated. Build passes. 0 lint errors. 2026-03-29
 
   - id: TC-098
     title: "Self-hostable Telegram channel bot — /api/telegram/broadcast endpoint + cron trigger every 4h to auto-post top signals to a configured Telegram channel with rich formatting"
