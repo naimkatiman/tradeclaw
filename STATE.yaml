@@ -935,15 +935,15 @@ tasks:
 
   - id: TC-110
     title: "GitHub README score widget — /readme-score grades any GitHub repo README quality (checks demo GIF, badges, install, contributing guide, star CTA) — viral dev tool"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Complete: /readme-score client-side grader, 10 checks, A+→F grading, share on X, preset repos. Navbar updated. Committed a8849bb9. 2026-03-30"
 
   - id: TC-111
     title: "Signal confidence heatmap calendar — /calendar GitHub contribution-style heatmap of daily signal accuracy, color-coded by win rate — compelling visual proof"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Complete: /calendar 12-month GitHub-style heatmap, win rate color coding, hover tooltips, best/worst day cards, share + star CTA. Committed a8849bb9. 2026-03-30"
 
   - id: TC-112
     title: "Live pair comparison chart — /compare/[pairA]/[pairB] side-by-side price+signal charts for two assets, shareable URL"
@@ -957,8 +957,40 @@ tasks:
     owner: pm-tradeclaw
     notes: "Complete: /today page with TodayClient.tsx already built. 2026-03-30"
 
+  # ── Phase 23: Real Distribution + Actual Star Acquisition ──
+
+  - id: TC-114
+    title: "Publish Dev.to article via API — post docs/devto-article.md to dev.to/naimkatiman using Dev.to API key, with cover image URL, canonical URL, and proper tags. Create /devto page on site showing article embed + live stats (reactions/reads)."
+    status: done
+    owner: pm-tradeclaw
+    notes: "Complete: Published article id=3428122 to Dev.to. Created /api/devto-stats route (cached 60s), /devto page with hero, live stats, preview, share buttons, GitHub CTA. Added Dev.to Article to navbar + mobile nav. 2026-03-30"
+
+  - id: TC-115
+    title: "Sticky star-progress footer bar — add a non-intrusive sticky bottom bar on every page (except embed routes) showing live GitHub stars / 1000 with a progress bar, milestone label, and 'Star on GitHub' CTA button. Should animate in after 5s and be dismissible (localStorage). Pure CSS, no jitter."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-116
+    title: "Twitter/X viral thread auto-poster page — /post-thread page: renders the 7-tweet TradeClaw architecture thread (from /threads data), with a 'Post to X' button per tweet that opens twitter.com/intent/tweet pre-filled. Also add a one-click 'Open All in Tabs' button for power users. Include thread scheduling tips."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-117
+    title: "'Who's using TradeClaw?' wall — /users page: self-reported user wall (localStorage + /api/users POST/GET with file-based JSON), show avatar initials, use case blurb, country flag emoji. Shows count of self-reported users. Share kit: 'I use TradeClaw for X — add yourself'. Viral social proof."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-118
+    title: "Docker Hub publish script + /hub page — scripts/dockerhub-publish.sh that builds multi-platform image (linux/amd64,linux/arm64) and pushes tradeclaw/tradeclaw:latest. /hub page showing docker pull tradeclaw/tradeclaw, platform support badges, layer count, image size. DockerHub = passive discoverability for self-hosters."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
 next_actions:
-  - "Phase 22 defined (TC-109 to TC-113). Start with TC-109 next run."
+  - "Phase 23 defined (TC-114 to TC-118). Start with TC-114 next run."
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
   - "Replace seed-heavy accuracy UX with live-only metrics once enough tracked signal records accumulate."
   - "Add test suite (currently zero tests for 100+ pages)."
