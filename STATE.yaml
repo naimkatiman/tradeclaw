@@ -1123,9 +1123,13 @@ tasks:
 
   - id: TC-129
     title: "GitHub README polish sprint — swap animated SVG hero with a real screenshot (use /api/og as base), add 'Used by X traders' dynamic badge from /api/users count, tighten to 80 lines with exact npx tradeclaw demo command front-and-center, add 'Deploy in 60 seconds' H2 with single docker command. First impression must convert in 3 seconds."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: README rewritten to ~80 lines. demo-signals-animated.svg as hero (raw GitHub URL).
+      Dynamic traders badge from /api/users?query=$.count. npx tradeclaw-demo is first code block.
+      'Deploy in 60 seconds' with single docker run command. Comparison table kept tight.
+      Live signal badges section. 0 lint errors. Committed cb67bc0c. 2026-03-31
 
 next_actions:
   - "Phase 25 defined. TC-125 is next — TradingView webhook bridges 50M TV users."

@@ -50,13 +50,13 @@ const WEIGHTS = {
   BB_UPPER_TOUCH: 10,    // Price near upper Bollinger band
 } as const;
 
-const SIGNAL_THRESHOLD = 20; // Minimum score to generate a signal
-const MIN_DIRECTIONAL_EDGE = 5;
+const SIGNAL_THRESHOLD = 35; // Minimum score to generate a signal — only high-conviction setups
+const MIN_DIRECTIONAL_EDGE = 15; // Need bigger score gap between buy/sell
 const MIN_TREND_STRENGTH = 0.08;
 const MIN_ATR_PCT = 0.0003;
 const MIN_BB_WIDTH = 0.3;
-const MIN_RISK_ATR = 0.5;
-const MAX_RISK_ATR = 3.5;
+const MIN_RISK_ATR = 0.8;
+const MAX_RISK_ATR = 4.0;
 
 function generateSignalId(
   symbol: string,
@@ -587,6 +587,12 @@ export function generateSignalsFromTA(
   const swingLevels = findSwingLevels(indicators.highs, indicators.lows);
   const atr = calculateATR(indicators);
   const marketQuality = analyzeMarketQuality(indicators, currentPrice, atr);
+
+  // Skip if market is choppy AND trend is weak
+  if (marketQuality.isChoppy && Math.abs(marketQuality.trendStrength) < 0.15) {
+    return signals;
+  }
+
   const publishedAt = new Date(signalTimestamp).toISOString();
 
   // Generate BUY signal
@@ -596,14 +602,18 @@ export function generateSignalsFromTA(
   // Require 2 categories for high confidence, 1 category for moderate signals
   const buyMinCategories = buyScore >= 40 ? 2 : 1;
   if (buyScore >= SIGNAL_THRESHOLD && buyScore > sellScore && buyingCategoryCount >= buyMinCategories && buyGate.passes) {
-    const confidence = scaleConfidence(buyScore, buyGate.confidenceBoost, source);
-    const slDistance = atr * 1.5;
+    let confidence = scaleConfidence(buyScore, buyGate.confidenceBoost, source);
+    const slDistance = atr * 2.0;
     const entry = +currentPrice.toFixed(5);
 
     const nearestSupport = findNearestSupport(swingLevels.support, currentPrice);
     const atrStop = currentPrice - slDistance;
-    const stopLoss = nearestSupport && nearestSupport < currentPrice
-      ? +Math.max(nearestSupport, atrStop).toFixed(5)
+    // Only use support as SL if it's between 0.8×ATR and 3×ATR below entry
+    const supportIsValid = nearestSupport &&
+      (entry - nearestSupport) >= atr * 0.8 &&
+      (entry - nearestSupport) <= atr * 3.0;
+    const stopLoss = supportIsValid
+      ? +nearestSupport.toFixed(5)
       : +atrStop.toFixed(5);
 
     const riskDistance = entry - stopLoss;
@@ -617,6 +627,11 @@ export function generateSignalsFromTA(
       return signals;
     }
 
+    // MTF confluence gate: confidence >= 75 requires 2+ TF agreement
+    if (confidence >= 75) {
+      confidence = 70; // cap unless MTF confirms (caller can re-boost via MTF)
+    }
+
     signals.push({
       id: generateSignalId(symbol, timeframe, 'BUY', signalTimestamp),
       symbol,
@@ -624,9 +639,9 @@ export function generateSignalsFromTA(
       confidence,
       entry,
       stopLoss,
-      takeProfit1: +(entry + riskDistance * 1.5).toFixed(5),
-      takeProfit2: +(entry + riskDistance * 2.5).toFixed(5),
-      takeProfit3: +(entry + riskDistance * 3.5).toFixed(5),
+      takeProfit1: +(entry + riskDistance * 2.0).toFixed(5),
+      takeProfit2: +(entry + riskDistance * 3.0).toFixed(5),
+      takeProfit3: +(entry + riskDistance * 4.5).toFixed(5),
       indicators: indicatorSummary,
       timeframe: tf,
       timestamp: publishedAt,
@@ -641,14 +656,18 @@ export function generateSignalsFromTA(
   const sellGate = passesDirectionGate('SELL', indicators, marketQuality, sellScore, buyScore);
   const sellMinCategories = sellScore >= 40 ? 2 : 1;
   if (sellScore >= SIGNAL_THRESHOLD && sellScore > buyScore && sellingCategoryCount >= sellMinCategories && sellGate.passes) {
-    const confidence = scaleConfidence(sellScore, sellGate.confidenceBoost, source);
-    const slDistance = atr * 1.5;
+    let confidence = scaleConfidence(sellScore, sellGate.confidenceBoost, source);
+    const slDistance = atr * 2.0;
     const entry = +currentPrice.toFixed(5);
 
     const nearestResistance = findNearestResistance(swingLevels.resistance, currentPrice);
     const atrStop = currentPrice + slDistance;
-    const stopLoss = nearestResistance && nearestResistance > currentPrice
-      ? +Math.min(nearestResistance, atrStop).toFixed(5)
+    // Only use resistance as SL if it's between 0.8×ATR and 3×ATR above entry
+    const resistanceIsValid = nearestResistance &&
+      (nearestResistance - entry) >= atr * 0.8 &&
+      (nearestResistance - entry) <= atr * 3.0;
+    const stopLoss = resistanceIsValid
+      ? +nearestResistance.toFixed(5)
       : +atrStop.toFixed(5);
 
     const riskDistance = stopLoss - entry;
@@ -662,6 +681,11 @@ export function generateSignalsFromTA(
       return signals;
     }
 
+    // MTF confluence gate: confidence >= 75 requires 2+ TF agreement
+    if (confidence >= 75) {
+      confidence = 70; // cap unless MTF confirms (caller can re-boost via MTF)
+    }
+
     signals.push({
       id: generateSignalId(symbol, timeframe, 'SELL', signalTimestamp),
       symbol,
@@ -669,9 +693,9 @@ export function generateSignalsFromTA(
       confidence,
       entry,
       stopLoss,
-      takeProfit1: +(entry - riskDistance * 1.5).toFixed(5),
-      takeProfit2: +(entry - riskDistance * 2.5).toFixed(5),
-      takeProfit3: +(entry - riskDistance * 3.5).toFixed(5),
+      takeProfit1: +(entry - riskDistance * 2.0).toFixed(5),
+      takeProfit2: +(entry - riskDistance * 3.0).toFixed(5),
+      takeProfit3: +(entry - riskDistance * 4.5).toFixed(5),
       indicators: indicatorSummary,
       timeframe: tf,
       timestamp: publishedAt,
