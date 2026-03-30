@@ -8,6 +8,7 @@ import { DemoBanner } from "./components/demo-banner";
 import { ThemeProvider } from "./components/theme-provider";
 import { MilestoneCelebrationModal } from "../components/milestone-modal";
 import { OnboardingChecklist } from "../components/onboarding";
+import { StarProgressBar } from "../components/star-progress-bar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -129,6 +130,7 @@ export default function RootLayout({
           <PWAInstallPrompt />
           <MilestoneCelebrationModal />
           <OnboardingChecklist />
+          <StarProgressBar />
         </ThemeProvider>
       </body>
     </html>
