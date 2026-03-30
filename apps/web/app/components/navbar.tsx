@@ -100,6 +100,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/vs-tradingview', label: 'vs TradingView' },
       { href: '/demo/telegram', label: 'Telegram Demo', icon: Play },
       { href: '/discord', label: 'Discord Bot', icon: MessageCircle },
+      { href: '/discord/server', label: 'Discord Community', icon: MessageCircle },
       { href: '/devto', label: 'Dev.to Article', icon: BookOpen },
       { href: '/notion', label: 'Notion Sync', icon: Database },
       { href: '/zapier', label: 'Zapier', icon: Zap },

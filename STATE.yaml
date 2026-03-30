@@ -1141,9 +1141,15 @@ tasks:
 
   - id: TC-131
     title: "Advanced broker integration docs hub — /brokers page with Binance, Alpaca, OANDA, Kraken, Bybit cards, each with real code examples (Python/Node), signal routing diagram, and 'connect your broker' CTA"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /brokers page (BrokersClient.tsx) — 8 broker cards (Binance, Alpaca, OANDA,
+      Kraken, Bybit, IBKR, Coinbase, TD Ameritrade/Schwab) with asset badges, feature bullets,
+      collapsible Python+Node.js code tabs, View Docs external links. Signal routing diagram
+      (TradeClaw → webhooks → receiver → broker API → order). Generic Node.js webhook snippet.
+      Connect broker CTA linking to /settings/webhooks. Navbar Trading group (Building2 icon) +
+      mobile-nav + sitemap updated. Build passes. Committed 10502a88. 2026-03-31
 
   - id: TC-132
     title: "TradeClaw Discord community page — /discord/server page with invite link generator, webhook setup guide, signal preview card embed, and auto-join incentive (access to live signals channel)"
