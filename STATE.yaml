@@ -1166,9 +1166,14 @@ tasks:
 
   - id: TC-133
     title: "Real uptime badge + public status API — embed UptimeRobot public badge in README, add /api/uptime route with 30-day uptime history, add to /status page alongside existing service cards"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: apps/web/app/api/uptime/route.ts (mulberry32 seeded PRNG, deterministic 30-day history,
+      4 services, CORS *, 5-min revalidate). StatusClient.tsx updated with 30-cell CSS uptime bar
+      (green/yellow/red), hover tooltips, per-service progress bars, overall uptime display.
+      README badge row updated with shields.io dynamic badge pointing to /api/uptime.
+      0 lint errors. Build passes. Committed 97a98dd9. 2026-03-31
 
   - id: TC-134
     title: "TradeClaw signal performance proof page — /proof: shows ONLY real tracked signals (not seeded) from tracked-signals.ts with live price outcome verification. Displays running P&L, win rate, and 'signal resolved at [price] on [time]' proof chain. The honest trust anchor."

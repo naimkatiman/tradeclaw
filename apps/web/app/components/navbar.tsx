@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, UserCheck, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Shield, TrendingUp, Flame, Share2, GitBranch, ShoppingBag, Calendar, BookOpen, Box, Newspaper, BarChart2, Calculator, Map, Briefcase, FlaskConical, Building2 } from 'lucide-react';
+import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, UserCheck, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Shield, ShieldCheck, TrendingUp, Flame, Share2, GitBranch, ShoppingBag, Calendar, BookOpen, Box, Newspaper, BarChart2, Calculator, Map, Briefcase, FlaskConical, Building2 } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import type { LucideIcon } from 'lucide-react';
 
@@ -66,6 +66,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/strategies/marketplace', label: 'Marketplace', icon: ShoppingBag },
       { href: '/readme-score', label: 'README Score', icon: Star },
       { href: '/api-keys', label: 'API Keys' },
+      { href: '/proof', label: 'Signal Proof', icon: ShieldCheck },
       { href: '/status', label: 'Status', icon: Activity },
       { href: '/digest', label: 'Digest', icon: Clock },
       { href: '/wrapped', label: 'Wrapped', icon: Gift },
