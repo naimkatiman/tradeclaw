@@ -77,7 +77,8 @@ export function MilestoneCelebrationModal() {
         const currentStars = data.stars;
         if (mounted) setStars(currentStars);
 
-        const lastSeen = parseInt(localStorage.getItem(LS_KEY) ?? '0', 10);
+        let lastSeen = 0;
+        try { lastSeen = parseInt(localStorage.getItem(LS_KEY) ?? '0', 10); } catch { /* ignore */ }
         const reached = [...MILESTONES].reverse().find((m) => currentStars >= m.threshold);
 
         if (reached && reached.threshold > lastSeen) {
@@ -92,7 +93,7 @@ export function MilestoneCelebrationModal() {
 
   const dismiss = () => {
     if (milestone) {
-      localStorage.setItem(LS_KEY, String(milestone.threshold));
+      try { localStorage.setItem(LS_KEY, String(milestone.threshold)); } catch { /* ignore */ }
     }
     setVisible(false);
   };

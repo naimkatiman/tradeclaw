@@ -14,14 +14,18 @@ export function PWAInstallPrompt() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // Check if already dismissed recently
-    const lastDismissed = localStorage.getItem('pwa-install-dismissed');
-    if (lastDismissed && Date.now() - parseInt(lastDismissed) < 7 * 86400000) {
-      return;
-    }
+    try {
+      // Check if already dismissed recently
+      const lastDismissed = localStorage.getItem('pwa-install-dismissed');
+      if (lastDismissed && Date.now() - parseInt(lastDismissed) < 7 * 86400000) {
+        return;
+      }
+    } catch { /* localStorage unavailable */ }
 
     // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) return;
+    try {
+      if (window.matchMedia('(display-mode: standalone)').matches) return;
+    } catch { /* matchMedia unavailable */ }
 
     const handler = (e: Event) => {
       e.preventDefault();
@@ -47,7 +51,7 @@ export function PWAInstallPrompt() {
   const handleDismiss = () => {
     setDismissed(true);
     setShowBanner(false);
-    localStorage.setItem('pwa-install-dismissed', String(Date.now()));
+    try { localStorage.setItem('pwa-install-dismissed', String(Date.now())); } catch { /* ignore */ }
   };
 
   if (!showBanner || dismissed || !deferredPrompt) return null;

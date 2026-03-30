@@ -10,16 +10,18 @@ export function DemoBanner() {
 
   useEffect(() => {
     setTimeout(() => {
-      if (!localStorage.getItem(DISMISSED_KEY)) {
-        setVisible(true);
-      }
+      try {
+        if (!localStorage.getItem(DISMISSED_KEY)) {
+          setVisible(true);
+        }
+      } catch { /* localStorage unavailable */ }
     }, 0);
   }, []);
 
   if (!visible) return null;
 
   const dismiss = () => {
-    localStorage.setItem(DISMISSED_KEY, '1');
+    try { localStorage.setItem(DISMISSED_KEY, '1'); } catch { /* ignore */ }
     setVisible(false);
   };
 

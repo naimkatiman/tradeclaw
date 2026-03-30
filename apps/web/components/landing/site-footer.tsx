@@ -113,7 +113,7 @@ export function SiteFooter() {
 
         {/* Bottom bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-[var(--border)] pt-6 sm:flex-row">
-          <p className="text-[11px] text-[var(--text-secondary)]">
+          <p className="text-[11px] text-[var(--text-secondary)]" suppressHydrationWarning>
             © {new Date().getFullYear()} TradeClaw. Released under the{" "}
             <a
               href={`${GITHUB_URL}/blob/main/LICENSE`}

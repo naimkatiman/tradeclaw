@@ -27,13 +27,15 @@ export function StarProgressBar() {
     if (isEmbed) return;
 
     // Check dismiss cooldown
-    const raw = localStorage.getItem(DISMISS_KEY);
-    if (raw) {
-      const ts = parseInt(raw, 10);
-      if (!isNaN(ts) && Date.now() - ts < DISMISS_TTL_MS) {
-        return;
+    try {
+      const raw = localStorage.getItem(DISMISS_KEY);
+      if (raw) {
+        const ts = parseInt(raw, 10);
+        if (!isNaN(ts) && Date.now() - ts < DISMISS_TTL_MS) {
+          return;
+        }
       }
-    }
+    } catch { /* localStorage unavailable */ }
 
     let cancelled = false;
     let showTimer: ReturnType<typeof setTimeout> | null = null;
@@ -68,7 +70,7 @@ export function StarProgressBar() {
   const dismiss = () => {
     setEntered(false);
     setTimeout(() => setVisible(false), 300);
-    localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch { /* ignore */ }
   };
 
   if (isEmbed || !visible || stars === null) return null;
