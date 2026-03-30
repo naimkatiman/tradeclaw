@@ -91,6 +91,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/waitlist', label: 'Waitlist', icon: Clock },
       { href: '/launch', label: 'Launch', icon: Rocket },
       { href: '/vs-tradingview', label: 'vs TradingView' },
+      { href: '/demo/telegram', label: 'Telegram Demo', icon: Play },
       { href: '/discord', label: 'Discord Bot', icon: MessageCircle },
       { href: '/devto', label: 'Dev.to Article', icon: BookOpen },
       { href: '/notion', label: 'Notion Sync', icon: Database },
