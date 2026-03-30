@@ -4,9 +4,10 @@
  * 24 providers across 8 categories:
  *
  * CRYPTO (no key):     CoinGecko*, Binance*, CoinCap, Kraken, CryptoCompare†
- * FOREX (mixed):       OANDA†, Stooq*, open.er-api*, Frankfurter, fawazahmed0
+ * FOREX (mixed):       Swissquote, OANDA†, Stooq*, open.er-api*, Frankfurter, fawazahmed0
  * STOCKS (free key):   Finnhub†, Twelve Data†, FMP†
- * COMMODITIES (no key): Stooq*, Free Gold API
+ * COMMODITIES (no key): TradingView⚠, Stooq*, Free Gold API
+ * INDICES (no key):    TradingView⚠, Stooq*
  * MACRO (mixed):       FRED†, World Bank, IMF
  * DEFI (no key):       DeFi Llama
  * SENTIMENT (no key):  Fear & Greed Index
@@ -51,6 +52,19 @@ export {
   fetchOandaPrices,
   isOandaSymbol,
 } from './oanda';
+
+export {
+  fetchSwissquotePrice,
+  fetchSwissquotePrices,
+  isSwissquoteSymbol,
+} from './swissquote';
+
+export {
+  fetchTradingViewPrices,
+  isTradingViewSymbol,
+  getTVCommoditySymbols,
+  getTVIndexSymbols,
+} from './tradingview';
 
 export {
   fetchFinnhubQuotes,
@@ -108,7 +122,10 @@ export function getProviderRegistry(): ProviderStatus[] {
     { name: 'Kraken', category: 'crypto', status: 'ok', lastCheck: Date.now(), requiresKey: false, rateLimit: '15 req/sec', docs: 'https://docs.kraken.com/api/' },
     { name: 'CryptoCompare', category: 'crypto', status: 'ok', lastCheck: Date.now(), requiresKey: false, rateLimit: '100k calls/month', docs: 'https://min-api.cryptocompare.com/' },
 
-    // Forex — OANDA (key required)
+    // Forex — Swissquote (no key, real-time bid/ask)
+    { name: 'Swissquote', category: 'forex', status: 'ok', lastCheck: Date.now(), requiresKey: false, rateLimit: 'generous', docs: 'https://forex-data-feed.swissquote.com/' },
+
+    // Forex — OANDA (key required, OHLCV candles)
     { name: 'OANDA', category: 'forex', status: process.env.OANDA_API_TOKEN ? 'ok' : 'down', lastCheck: Date.now(), requiresKey: true, rateLimit: '120 req/sec', docs: 'https://developer.oanda.com/rest-live-v20/introduction/' },
 
     // Forex — no key
@@ -121,6 +138,9 @@ export function getProviderRegistry(): ProviderStatus[] {
     { name: 'Finnhub', category: 'stocks', status: process.env.FINNHUB_API_KEY ? 'ok' : 'down', lastCheck: Date.now(), requiresKey: true, rateLimit: '60 req/min', docs: 'https://finnhub.io/' },
     { name: 'Twelve Data', category: 'stocks', status: process.env.TWELVE_DATA_API_KEY ? 'ok' : 'down', lastCheck: Date.now(), requiresKey: true, rateLimit: '800 req/day', docs: 'https://twelvedata.com/' },
     { name: 'FMP', category: 'stocks', status: process.env.FMP_API_KEY ? 'ok' : 'down', lastCheck: Date.now(), requiresKey: true, rateLimit: '250 req/day', docs: 'https://financialmodelingprep.com/' },
+
+    // Commodities & Indices — TradingView Scanner (no key, unofficial)
+    { name: 'TradingView Scanner', category: 'commodities', status: 'ok', lastCheck: Date.now(), requiresKey: false, rateLimit: 'unknown (unofficial)', docs: 'https://scanner.tradingview.com/' },
 
     // Commodities — no key
     { name: 'Free Gold API', category: 'commodities', status: 'ok', lastCheck: Date.now(), requiresKey: false, rateLimit: 'generous', docs: 'https://freegoldapi.com/' },

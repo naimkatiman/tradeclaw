@@ -1028,9 +1028,9 @@ tasks:
 
   - id: TC-120
     title: "Crypto news + signal confluence page — /news combining CoinGecko trending with TradeClaw signal direction per asset"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Complete: /api/news (CoinGecko trending + signal match, 5-min cache, mock fallback), /news page (NewsClient.tsx — hero, confluence stat bar, 3-col coin cards with BUY/SELL badges + confidence bars, auto-refresh 5min, share tweet, star CTA). Navbar Trading group + mobile nav + sitemap updated. 0 lint errors. Build passes. Committed ead2b989. 2026-03-30"
 
   - id: TC-121
     title: "Live Telegram demo — /demo/telegram page where visitor enters chat ID and receives an instant live signal from the bot"

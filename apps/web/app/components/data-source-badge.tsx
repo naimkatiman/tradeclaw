@@ -4,7 +4,7 @@
 // Data Source Badge — shows where price data originates
 // ---------------------------------------------------------------------------
 
-type DataSource = 'Binance' | 'OANDA' | 'Yahoo Finance' | 'CoinGecko' | 'TA Engine';
+type DataSource = 'Binance' | 'Swissquote' | 'OANDA' | 'TradingView' | 'Yahoo Finance' | 'CoinGecko' | 'TA Engine';
 
 interface DataSourceBadgeProps {
   source: DataSource;
@@ -16,10 +16,20 @@ const SOURCE_CONFIG: Record<DataSource, { color: string; border: string; bg: str
     border: 'rgba(245,158,11,0.3)',
     bg: 'rgba(245,158,11,0.1)',
   },
+  Swissquote: {
+    color: '#06b6d4',
+    border: 'rgba(6,182,212,0.3)',
+    bg: 'rgba(6,182,212,0.1)',
+  },
   OANDA: {
     color: '#10b981',
     border: 'rgba(16,185,129,0.3)',
     bg: 'rgba(16,185,129,0.1)',
+  },
+  TradingView: {
+    color: '#2962ff',
+    border: 'rgba(41,98,255,0.3)',
+    bg: 'rgba(41,98,255,0.1)',
   },
   'Yahoo Finance': {
     color: '#a78bfa',
@@ -47,7 +57,9 @@ export function getDataSource(symbol: string): DataSource {
       s.startsWith(c),
     )
   )
-    return 'OANDA';
+    return 'Swissquote';
+  if (['SPX', 'NDX', 'DJI', 'DAX', 'FTSE', 'NKX', 'HSI', 'VIX', 'WTI', 'BRN', 'NG', 'HG', 'PL', 'PA'].some(c => s.startsWith(c)))
+    return 'TradingView';
   return 'TA Engine';
 }
 
