@@ -56,14 +56,20 @@ const DEFAULT_STATE: OnboardingState = { completed: [], dismissed: false };
 /*  External-store helpers (SSR-safe)                                  */
 /* ------------------------------------------------------------------ */
 
+let cachedSnapshot: OnboardingState = DEFAULT_STATE;
+let cachedRaw: string | null = null;
+
 function getSnapshot(): OnboardingState {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (raw) return JSON.parse(raw) as OnboardingState;
+    if (raw !== cachedRaw) {
+      cachedRaw = raw;
+      cachedSnapshot = raw ? (JSON.parse(raw) as OnboardingState) : DEFAULT_STATE;
+    }
   } catch {
     /* empty */
   }
-  return DEFAULT_STATE;
+  return cachedSnapshot;
 }
 
 function getServerSnapshot(): OnboardingState {
@@ -80,7 +86,10 @@ function subscribe(listener: () => void) {
 }
 
 function updateState(next: OnboardingState) {
-  localStorage.setItem(LS_KEY, JSON.stringify(next));
+  const raw = JSON.stringify(next);
+  localStorage.setItem(LS_KEY, raw);
+  cachedRaw = raw;
+  cachedSnapshot = next;
   listeners.forEach((l) => l());
 }
 
