@@ -1068,12 +1068,51 @@ tasks:
 
   - id: TC-124
     title: "TradeClaw changelog + roadmap vote page — /roadmap with public upvote system (localStorage), 'Coming next' based on votes, viral product-led growth hook"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: lib/roadmap-data.ts (20 typed roadmap items across 4 categories: Trading/Developer/
+      Community/Infrastructure, with seed votes + priority). /roadmap/page.tsx (server, metadata).
+      RoadmapClient.tsx — hero stats (item count, total votes, your votes), top-3 Coming Next cards,
+      category + status filter tabs, sortable item list with upvote buttons (localStorage dedup),
+      confetti pop on vote, vote bounce animation, share on X pre-written tweet, GitHub star CTA,
+      &quot;Suggest a feature&quot; GitHub Discussion CTA. Navbar Community group + mobile nav + sitemap updated.
+      0 lint errors. Build passes. Committed 9e5443c0. 2026-03-30
+
+  # ── Phase 25: Star Acceleration + Real Distribution ──
+
+  - id: TC-125
+    title: "TradingView Pine Script alert receiver — /api/tradingview/webhook accepts Pine Script webhook alerts (JSON payload) and routes to Telegram/Discord/browser notifications. /tradingview-alerts docs page with setup guide, Pine Script template snippets, and live alert log. Bridges TradeClaw to TradingView's 50M users."
+    status: done
+    owner: pm-tradeclaw
+    notes: "Complete: lib/tradingview-alerts.ts (normalizeSymbol/normalizeAction/CRUD/stats/seed), POST /api/tradingview/webhook (rate limit 60/min/IP, Telegram+Discord routing), GET /api/tradingview/alerts, /tradingview-alerts page (TVAlertsClient.tsx: hero, webhook URL card, stats bar, live alert log 30s refresh, accordion setup guide 4 steps, 3 Pine Script templates with copy). Navbar TV Alerts + sitemap. Committed edd82d43. 2026-03-30."
+
+  - id: TC-126
+    title: "Multi-language README pack — README.zh.md (Chinese), README.ja.md (Japanese), README.ko.md (Korean) with full translations of hero/features/quickstart. LANGUAGES.md translation index. Add language badge row to main README linking each translation. Targets Chinese/Japanese/Korean GitHub communities who heavily star OSS."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-127
+    title: "Strategy performance tournament — /tournament page: 5 built-in strategies (RSI Reversion, MACD Trend, EMA Ribbon, BB Squeeze, Multi-TF Confluence) compete in a 90-day backtest league bracket. Visual bracket diagram, daily P&L race chart (canvas), live winner badge, share tournament result card. High shareability."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-128
+    title: "Live portfolio signal scanner — /portfolio page: user inputs their holdings (e.g. BTC 0.5, ETH 2, XAU 10g) with localStorage persistence, gets a real-time TradeClaw signal alignment score per asset (BUY = good, SELL = caution, HOLD = neutral), portfolio-wide signal consensus gauge, export as JSON. Practical utility drives word-of-mouth."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-129
+    title: "GitHub README polish sprint — swap animated SVG hero with a real screenshot (use /api/og as base), add 'Used by X traders' dynamic badge from /api/users count, tighten to 80 lines with exact npx tradeclaw demo command front-and-center, add 'Deploy in 60 seconds' H2 with single docker command. First impression must convert in 3 seconds."
     status: pending
     owner: pm-tradeclaw
     notes: ""
 
 next_actions:
-  - "TC-120 in progress. Phase 24 defined."
+  - "Phase 25 defined. TC-125 is next — TradingView webhook bridges 50M TV users."
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
   - "Replace seed-heavy accuracy UX with live-only metrics once enough tracked signal records accumulate."
   - "Add test suite (currently zero tests for 100+ pages)."
