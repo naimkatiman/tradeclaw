@@ -1057,9 +1057,14 @@ tasks:
 
   - id: TC-123
     title: "Interactive confidence calculator — /confidence slider tool showing exactly how TradeClaw computes confidence scores, dev-friendly explainer"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /confidence page (ConfidenceClient.tsx, 300+ lines) — live score display (0-100
+      with color coding: rose/amber/emerald/purple), 6 indicator sliders (RSI/MACD/EMA/BB/Stoch/Volume)
+      with weights, contribution bars, expandable hints, 3 presets (Strong BUY/Conflicted/Perfect Setup),
+      formula breakdown panel, quality gate callout, TypeScript code snippet with copy button, 3 CTAs.
+      Added to navbar Tools group + sitemap. Build passes 194+ pages. 0 lint errors. Committed a413559a. 2026-03-30
 
   - id: TC-124
     title: "TradeClaw changelog + roadmap vote page — /roadmap with public upvote system (localStorage), 'Coming next' based on votes, viral product-led growth hook"
