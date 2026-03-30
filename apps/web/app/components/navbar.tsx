@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Shield, TrendingUp, Flame, Share2, GitBranch, ShoppingBag } from 'lucide-react';
+import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Shield, TrendingUp, Flame, Share2, GitBranch, ShoppingBag, Calendar } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import type { LucideIcon } from 'lucide-react';
 
@@ -38,6 +38,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/correlation', label: 'Correlation' },
       { href: '/alerts', label: 'Alerts' },
       { href: '/accuracy', label: 'Accuracy' },
+      { href: '/calendar', label: 'Calendar', icon: Calendar },
       { href: '/calibration', label: 'Calibration' },
       { href: '/results', label: 'Results', icon: Trophy },
       { href: '/broker-sim', label: 'Broker Sim', icon: Plug },
@@ -57,6 +58,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/widgets', label: 'Widgets', icon: LayoutDashboard },
       { href: '/marketplace', label: 'Webhook Mkt' },
       { href: '/strategies/marketplace', label: 'Marketplace', icon: ShoppingBag },
+      { href: '/readme-score', label: 'README Score', icon: Star },
       { href: '/api-keys', label: 'API Keys' },
       { href: '/status', label: 'Status', icon: Activity },
       { href: '/digest', label: 'Digest', icon: Clock },

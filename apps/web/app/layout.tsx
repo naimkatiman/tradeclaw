@@ -7,7 +7,7 @@ import { PWAInstallPrompt } from "./components/pwa-install";
 import { DemoBanner } from "./components/demo-banner";
 import { ThemeProvider } from "./components/theme-provider";
 import { MilestoneCelebrationModal } from "../components/milestone-modal";
-import { OnboardingChecklist } from "../components/onboarding-checklist";
+import { OnboardingChecklist } from "../components/onboarding";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

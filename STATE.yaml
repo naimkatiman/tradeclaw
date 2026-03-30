@@ -904,24 +904,61 @@ tasks:
 
   - id: TC-106
     title: "TradeClaw GitHub Action — publish tradeclaw-action to GitHub Marketplace so CI pipelines can fetch live signals (e.g. 'alert on BTC sell signal in CI'), viral dev discovery vector"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: packages/tradeclaw-action/action.yml (composite action, bash/curl, inputs: pair/timeframe/direction/min_confidence/base_url,
+      outputs: signal_found/direction/confidence/json). packages/tradeclaw-action/README.md (4 use cases).
+      examples/check-btc-signal.yml. .github/workflows/tradeclaw-self-test.yml (dogfooding CI).
+      apps/web/app/github-action/page.tsx + GHActionClient.tsx (hero, how-it-works, 4 YAML snippets,
+      inputs/outputs tables, marketplace badge, star CTA). 0 lint errors. Build passes. Committed 1d30b75f. 2026-03-30
 
   - id: TC-107
     title: "Onboarding checklist overlay — first-visit guided checklist (5 steps: view signals → run backtest → set alert → install Telegram bot → star repo) with progress persistence in localStorage"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Complete: OnboardingChecklist.tsx + OnboardingChecklistLoader.tsx in apps/web/components/onboarding/. 5 steps, localStorage persistence, minimizable, confetti on completion. Already in layout.tsx. 2026-03-30"
 
   - id: TC-108
     title: "Strategy marketplace — /strategies/marketplace where users can browse and one-click load 20 community strategies (EMA ribbon, RSI divergence, Ichimoku cloud, VWAP bounce, etc.) with ratings and descriptions"
+    status: done
+    owner: pm-tradeclaw
+    notes: "Complete: /strategies/marketplace with MarketplaceClient.tsx. 20 community strategies, ratings, one-click load to strategy builder. 2026-03-30"
+
+  # ── Phase 22: Star Acceleration Sprint ──
+
+  - id: TC-109
+    title: "TradeClaw Wrapped — /wrapped Spotify-style year-in-review: total signals, best pair, top win rate, most active day, shareable cards with canvas PNG export"
+    status: done
+    owner: pm-tradeclaw
+    notes: "Complete: /wrapped page with WrappedClient.tsx already built. 2026-03-30"
+
+  - id: TC-110
+    title: "GitHub README score widget — /readme-score grades any GitHub repo README quality (checks demo GIF, badges, install, contributing guide, star CTA) — viral dev tool"
     status: pending
     owner: pm-tradeclaw
     notes: ""
 
+  - id: TC-111
+    title: "Signal confidence heatmap calendar — /calendar GitHub contribution-style heatmap of daily signal accuracy, color-coded by win rate — compelling visual proof"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-112
+    title: "Live pair comparison chart — /compare/[pairA]/[pairB] side-by-side price+signal charts for two assets, shareable URL"
+    status: done
+    owner: pm-tradeclaw
+    notes: "Complete: /compare page with CompareClient.tsx already built. 2026-03-30"
+
+  - id: TC-113
+    title: "TradeClaw Today digest — /today shows today's top signal, market sentiment, upcoming high-impact events, and a single recommended trade — daily shareable visual"
+    status: done
+    owner: pm-tradeclaw
+    notes: "Complete: /today page with TodayClient.tsx already built. 2026-03-30"
+
 next_actions:
-  - "Phase 21 defined (TC-104 to TC-108). Start with TC-104 next run."
+  - "Phase 22 defined (TC-109 to TC-113). Start with TC-109 next run."
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
   - "Replace seed-heavy accuracy UX with live-only metrics once enough tracked signal records accumulate."
   - "Add test suite (currently zero tests for 100+ pages)."
