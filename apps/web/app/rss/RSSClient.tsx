@@ -4,10 +4,7 @@ import { useState } from 'react';
 import { Rss, Copy, Check, ExternalLink, Zap, Clock, TrendingUp, TrendingDown, X } from 'lucide-react';
 import type { SignalHistoryRecord } from '../../lib/signal-history';
 
-const BASE_URL =
-  typeof window !== 'undefined'
-    ? window.location.origin
-    : process.env.NEXT_PUBLIC_APP_URL || 'https://tradeclaw.win';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://tradeclaw.win';
 
 interface FeedLink {
   label: string;

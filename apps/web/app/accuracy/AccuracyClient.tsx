@@ -257,7 +257,7 @@ export function AccuracyClient() {
                   <tr key={i} className="border-b border-zinc-800/30">
                     {Array.from({ length: 10 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
-                        <div className="h-4 bg-zinc-800/50 rounded animate-pulse" style={{ width: `${50 + Math.random() * 50}%` }} />
+                        <div className="h-4 bg-zinc-800/50 rounded animate-pulse" style={{ width: `${[62, 78, 55, 70, 85, 60, 73, 68, 80, 65][j % 10]}%` }} />
                       </td>
                     ))}
                   </tr>

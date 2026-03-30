@@ -1,5 +1,5 @@
 // TradeClaw Service Worker — PWA + Push Notifications + Offline
-const CACHE_NAME = 'tradeclaw-v2';
+const CACHE_NAME = 'tradeclaw-v3';
 const STATIC_ASSETS = [
   '/',
   '/dashboard',
@@ -37,6 +37,9 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
+
+  // Only handle http/https — skip chrome-extension://, etc.
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') return;
 
   // SSE streams — never cache
   if (url.pathname.includes('/api/prices/stream') || url.pathname.includes('/api/stream/')) {

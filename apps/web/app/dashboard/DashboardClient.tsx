@@ -24,13 +24,16 @@ import type { TFDirection } from '../lib/signal-generator';
 const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];
 
 function OnboardingBanner() {
-  const [visible, setVisible] = useState(() => {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
     try {
       const dismissed = localStorage.getItem('tc_onboarding_dismissed');
       const tourDone = localStorage.getItem('tc_tour_done');
-      return !dismissed && !tourDone;
-    } catch { return false; }
-  });
+      if (!dismissed && !tourDone) setVisible(true);
+    } catch { /* ignore */ }
+  }, []);
+
   if (!visible) return null;
   const dismiss = () => {
     setVisible(false);
@@ -333,7 +336,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
   const [direction, setDirection] = useState<'ALL' | 'BUY' | 'SELL'>('ALL');
   const [assetClass, setAssetClass] = useState<AssetClass>('ALL');
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(initialSignals && initialSignals.length > 0 ? new Date() : null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   const fetchSignals = useCallback(async () => {
     try {
@@ -365,6 +368,13 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       setLoading(false);
     }
   }, [timeframe, direction]);
+
+  // Set initial lastUpdate on mount (avoids hydration mismatch from new Date())
+  useEffect(() => {
+    if (initialSignals && initialSignals.length > 0) {
+      setLastUpdate(new Date());
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Only fetch on mount if we don't have initial signals
   useEffect(() => {

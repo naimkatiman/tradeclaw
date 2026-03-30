@@ -647,7 +647,7 @@ function syntaxHighlight(json: string): string {
 
 function genCurl(endpoint: Endpoint, params: Record<string, string>, body: string): string {
   const isBody = endpoint.method !== 'GET';
-  const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  const base = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const url = new URL(endpoint.path, base);
   if (!isBody) {
     Object.entries(params).forEach(([k, v]) => { if (v) url.searchParams.set(k, v); });
@@ -664,7 +664,7 @@ function genCurl(endpoint: Endpoint, params: Record<string, string>, body: strin
 
 function genPython(endpoint: Endpoint, params: Record<string, string>, body: string): string {
   const isBody = endpoint.method !== 'GET';
-  const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  const base = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const url = `${base}${endpoint.path}`;
   const lines = ['import requests', ''];
   const filled = Object.fromEntries(Object.entries(params).filter(([, v]) => v));
@@ -683,7 +683,7 @@ function genPython(endpoint: Endpoint, params: Record<string, string>, body: str
 
 function genJs(endpoint: Endpoint, params: Record<string, string>, body: string): string {
   const isBody = endpoint.method !== 'GET';
-  const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  const base = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const filled = Object.fromEntries(Object.entries(params).filter(([, v]) => v));
   let urlExpr = `"${base}${endpoint.path}"`;
   if (!isBody && Object.keys(filled).length > 0) {

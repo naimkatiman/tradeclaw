@@ -1110,9 +1110,16 @@ tasks:
 
   - id: TC-128
     title: "Live portfolio signal scanner — /portfolio page: user inputs their holdings (e.g. BTC 0.5, ETH 2, XAU 10g) with localStorage persistence, gets a real-time TradeClaw signal alignment score per asset (BUY = good, SELL = caution, HOLD = neutral), portfolio-wide signal consensus gauge, export as JSON. Practical utility drives word-of-mouth."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /portfolio page (PortfolioClient.tsx) — add-holding form (10 asset pairs, qty input),
+      localStorage persistence, holdings table with DirectionBadge (BUY/SELL/HOLD), confidence bar,
+      Entry/TP/SL/RSI display, alignment icon (CheckCircle/AlertCircle/Minus), remove button.
+      Portfolio consensus gauge: buy/sell/hold counts + split bar with bullish% + risk-on/off label.
+      Auto-refresh every 60s. Export JSON snapshot (holdings + signals + consensus). GitHub star CTA.
+      Navbar Trading group + mobile nav Trading section + sitemap updated. 0 lint errors. Build passes.
+      Committed ee6cc8f3. 2026-03-31
 
   - id: TC-129
     title: "GitHub README polish sprint — swap animated SVG hero with a real screenshot (use /api/og as base), add 'Used by X traders' dynamic badge from /api/users count, tighten to 80 lines with exact npx tradeclaw demo command front-and-center, add 'Deploy in 60 seconds' H2 with single docker command. First impression must convert in 3 seconds."

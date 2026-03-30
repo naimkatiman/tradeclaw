@@ -79,11 +79,11 @@ export function StatusClient() {
   const [data, setData] = useState<StatusData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [showIncidents, setShowIncidents] = useState(true);
-  const monitoringStarted = useRef<string>(new Date().toISOString());
+  const monitoringStarted = useRef<string>('');
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -104,6 +104,7 @@ export function StatusClient() {
   }, []);
 
   useEffect(() => {
+    monitoringStarted.current = new Date().toISOString();
     fetchStatus();
     const interval = setInterval(fetchStatus, 30_000);
     return () => clearInterval(interval);
@@ -157,7 +158,7 @@ export function StatusClient() {
             </div>
             <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
               <span>
-                Refreshed {formatTime(lastRefresh.toISOString())}
+                Refreshed {lastRefresh ? formatTime(lastRefresh.toISOString()) : '...'}
               </span>
               <button
                 onClick={fetchStatus}
@@ -318,7 +319,7 @@ export function StatusClient() {
             <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
               <span className="flex items-center gap-1.5">
                 <Clock className="h-3 w-3" />
-                Monitoring started {formatDate(monitoringStarted.current)}
+                Monitoring started {monitoringStarted.current ? formatDate(monitoringStarted.current) : '...'}
               </span>
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">

@@ -279,7 +279,7 @@ function ScreenerCard({ r, watchlist, toggleWatchlist }: { r: ScreenerResult; wa
 
 // ─── Skeleton Row ─────────────────────────────────────────────
 
-const SKELETON_WIDTHS = Array.from({ length: 8 }, () => Math.floor(40 + Math.random() * 40));
+const SKELETON_WIDTHS = [60, 45, 72, 55, 68, 40, 58, 75];
 
 function SkeletonRow() {
   return (

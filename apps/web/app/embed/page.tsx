@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SYMBOLS } from '../lib/signals';
 
 const PAIRS = SYMBOLS.map(s => s.symbol);
@@ -34,7 +34,8 @@ export default function EmbedDocsPage() {
   const [selectedPair, setSelectedPair] = useState(DEFAULT_PAIR);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tradeclaw.com';
+  const [origin, setOrigin] = useState('https://tradeclaw.com');
+  useEffect(() => { setOrigin(window.location.origin); }, []);
 
   const iframeCode = `<iframe
   src="${origin}/embed/${selectedPair}?theme=${theme}"
