@@ -253,6 +253,15 @@ const MENU_SECTIONS: MenuSection[] = [
         ),
       },
       {
+        href: '/indicators/builder',
+        label: 'Indicator Builder',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18" />
+          </svg>
+        ),
+      },
+      {
         href: '/pine-to-tradeclaw',
         label: 'Pine Importer',
         icon: (

@@ -1131,13 +1131,43 @@ tasks:
       'Deploy in 60 seconds' with single docker run command. Comparison table kept tight.
       Live signal badges section. 0 lint errors. Committed cb67bc0c. 2026-03-31
 
+  # ── Phase 26: Star Acceleration Sprint ──
+
+  - id: TC-130
+    title: "Custom indicator formula builder — /indicators/builder page with visual formula editor (RSI/MACD/EMA operations), live test against mock candles, save as plugin, share URL"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-131
+    title: "Advanced broker integration docs hub — /brokers page with Binance, Alpaca, OANDA, Kraken, Bybit cards, each with real code examples (Python/Node), signal routing diagram, and 'connect your broker' CTA"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-132
+    title: "TradeClaw Discord community page — /discord/server page with invite link generator, webhook setup guide, signal preview card embed, and auto-join incentive (access to live signals channel)"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-133
+    title: "Real uptime badge + public status API — embed UptimeRobot public badge in README, add /api/uptime route with 30-day uptime history, add to /status page alongside existing service cards"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-134
+    title: "TradeClaw signal performance proof page — /proof: shows ONLY real tracked signals (not seeded) from tracked-signals.ts with live price outcome verification. Displays running P&L, win rate, and 'signal resolved at [price] on [time]' proof chain. The honest trust anchor."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
 next_actions:
-  - "Phase 25 defined. TC-125 is next — TradingView webhook bridges 50M TV users."
-  - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
-  - "Replace seed-heavy accuracy UX with live-only metrics once enough tracked signal records accumulate."
-  - "Add test suite (currently zero tests for 100+ pages)."
+  - "Phase 26 defined. TC-130 is next — custom indicator builder fills biggest feature gap."
   - "Migrate file-based JSON storage to PostgreSQL for production self-hosters."
   - "Deploy live demo instance and validate Docker Compose end-to-end."
+  - "Add test suite (currently zero tests for 100+ pages)."
 
   # ── Phase 13: Distribution + Developer Ecosystem ──
 

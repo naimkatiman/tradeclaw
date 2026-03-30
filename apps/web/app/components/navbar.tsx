@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, UserCheck, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Shield, TrendingUp, Flame, Share2, GitBranch, ShoppingBag, Calendar, BookOpen, Box, Newspaper, BarChart2, Calculator, Map, Briefcase } from 'lucide-react';
+import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, UserCheck, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Shield, TrendingUp, Flame, Share2, GitBranch, ShoppingBag, Calendar, BookOpen, Box, Newspaper, BarChart2, Calculator, Map, Briefcase, FlaskConical } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import type { LucideIcon } from 'lucide-react';
 
@@ -55,6 +55,7 @@ const MORE_GROUPS: DropdownGroup[] = [
     label: 'Tools',
     links: [
       { href: '/strategy-builder', label: 'Strategy Builder' },
+      { href: '/indicators/builder', label: 'Indicator Builder', icon: FlaskConical },
       { href: '/pine-to-tradeclaw', label: 'Pine Importer', icon: Code },
       { href: '/roast', label: 'Roast Strategy', icon: Flame },
       { href: '/plugins', label: 'Plugins' },
