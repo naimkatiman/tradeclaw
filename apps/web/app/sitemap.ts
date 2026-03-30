@@ -23,6 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/star`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.5 },
     { url: `${base}/paper-trading`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/exchanges`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/brokers`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/screener`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/heatmap`, lastModified: new Date(), changeFrequency: "daily", priority: 0.6 },
     { url: `${base}/pine-to-tradeclaw`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },

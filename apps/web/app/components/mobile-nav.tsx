@@ -157,6 +157,15 @@ const MENU_SECTIONS: MenuSection[] = [
         ),
       },
       {
+        href: '/brokers',
+        label: 'Brokers',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="9" width="18" height="12" rx="2" /><path d="M3 9l9-7 9 7" />
+          </svg>
+        ),
+      },
+      {
         href: '/broker-sim',
         label: 'Broker Sim',
         icon: (

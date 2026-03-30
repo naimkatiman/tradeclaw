@@ -1135,9 +1135,9 @@ tasks:
 
   - id: TC-130
     title: "Custom indicator formula builder — /indicators/builder page with visual formula editor (RSI/MACD/EMA operations), live test against mock candles, save as plugin, share URL"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Complete: BuilderClient.tsx (771 lines) — 10 indicators (RSI/MACD/EMA/SMA/BB/Stoch/ATR/Close/Volume), 6 operations (+/-/*/÷/normalize/abs), live 60-candle test, MiniChart canvas, signal+strength display, 3 presets (RSI Divergence/MACD+EMA/Volatility Squeeze), save-as-plugin JSON copy, share URL (base64), formula pre-load from URL param. IndicatorBuilderLoader for ssr:false. Navbar+mobile-nav+sitemap updated. 0 lint errors. Build passes 202 pages. Committed 0bebf709. 2026-03-31"
 
   - id: TC-131
     title: "Advanced broker integration docs hub — /brokers page with Binance, Alpaca, OANDA, Kraken, Bybit cards, each with real code examples (Python/Node), signal routing diagram, and 'connect your broker' CTA"
