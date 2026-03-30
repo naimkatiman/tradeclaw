@@ -117,11 +117,10 @@ function BadgeCard({
 
 export function BadgesClient() {
   const [timeframe, setTimeframe] = useState('H1');
-  const [cacheBust, setCacheBust] = useState(0);
+  const [cacheBust, setCacheBust] = useState(() => Date.now());
 
   useEffect(() => {
-    setCacheBust(Date.now());
-    const timer = setInterval(() => setCacheBust(Date.now()), 5 * 60 * 1000);
+    const timer = setInterval(() => setCacheBust(prev => prev + 1), 5 * 60 * 1000);
     return () => clearInterval(timer);
   }, []);
 
