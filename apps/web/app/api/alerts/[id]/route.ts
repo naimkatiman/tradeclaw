@@ -12,7 +12,7 @@ export async function GET(
     const alert = getAlert(id);
     if (!alert) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json({ alert });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -40,7 +40,7 @@ export async function PATCH(
     const alert = updateAlert(id, updates as Parameters<typeof updateAlert>[1]);
     if (!alert) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json({ alert });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -54,7 +54,7 @@ export async function DELETE(
     const ok = deleteAlert(id);
     if (!ok) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json({ success: true });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     }
 
     return buildResponse(signal);
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

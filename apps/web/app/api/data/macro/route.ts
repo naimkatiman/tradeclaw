@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       ...results,
       timestamp: new Date().toISOString(),
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -34,7 +34,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       error: result.error ?? null,
       timestamp: new Date().toISOString(),
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       count: rateMap.size,
       timestamp: new Date().toISOString(),
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

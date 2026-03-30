@@ -116,45 +116,49 @@ jobs:
                 // Label already exists, ignore
               }
 
+              const issueBody = [
+                `## 🎉 TradeClaw just hit **${milestone} GitHub stars**!`,
+                '',
+                `Thank you to all **${stars} stargazers**! Here's your social post kit to help spread the word.`,
+                '',
+                '---',
+                '',
+                '### 🐦 Tweet / X Post',
+                '```',
+                tweets[milestone] || '',
+                '```',
+                '',
+                '### 📱 Reddit',
+                'Post to [r/algotrading](https://reddit.com/r/algotrading) and [r/selfhosted](https://reddit.com/r/selfhosted):',
+                '```',
+                redditPosts[milestone] || `TradeClaw just hit ${milestone} stars! https://github.com/naimkatiman/tradeclaw`,
+                '```',
+                '',
+                '### 💬 Discord Embed',
+                '```json',
+                JSON.stringify(discordEmbeds.default, null, 2),
+                '```',
+                '',
+                '---',
+                '',
+                `### 🎯 Next Milestone: ${nextMilestone} Stars (${progress}% there!)`,
+                '',
+                'Help us reach it:',
+                '- ⭐ Share this repo link: https://github.com/naimkatiman/tradeclaw',
+                '- 📝 Write a blog post or tutorial',
+                '- 🐦 Post the tweet above',
+                '- 📣 Mention in r/algotrading, r/selfhosted, r/CryptoCurrency',
+                '- 💬 Post in Discord/Slack trading communities',
+                '',
+                '**Thank you for being part of this!** 🚀',
+              ].join('\n');
+
               await github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 title: `🌟 ${milestone} Stars Milestone — Social Post Kit`,
                 labels: ['announcement', 'milestone-reached'],
-                body: `## 🎉 TradeClaw just hit **${milestone} GitHub stars**!
-
-Thank you to all **${stars} stargazers**! Here's your social post kit to help spread the word.
-
----
-
-### 🐦 Tweet / X Post
-\`\`\`
-${tweets[milestone] || ''}
-\`\`\`
-
-### 📱 Reddit
-Post to [r/algotrading](https://reddit.com/r/algotrading) and [r/selfhosted](https://reddit.com/r/selfhosted):
-\`\`\`
-${redditPosts[milestone] || `TradeClaw just hit ${milestone} stars! https://github.com/naimkatiman/tradeclaw`}
-\`\`\`
-
-### 💬 Discord Embed
-\`\`\`json
-${JSON.stringify(discordEmbeds.default, null, 2)}
-\`\`\`
-
----
-
-### 🎯 Next Milestone: ${nextMilestone} Stars (${progress}% there!)
-
-Help us reach it:
-- ⭐ Share this repo link: https://github.com/naimkatiman/tradeclaw
-- 📝 Write a blog post or tutorial
-- 🐦 Post the tweet above
-- 📣 Mention in r/algotrading, r/selfhosted, r/CryptoCurrency
-- 💬 Post in Discord/Slack trading communities
-
-**Thank you for being part of this!** 🚀`,
+                body: issueBody,
               });
             }
 

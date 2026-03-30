@@ -10,7 +10,7 @@ export async function GET() {
   try {
     const plugins = listPlugins();
     return NextResponse.json({ plugins, total: plugins.length });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

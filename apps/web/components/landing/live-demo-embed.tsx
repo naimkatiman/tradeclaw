@@ -160,7 +160,6 @@ function timeAgo(iso: string): string {
 export function LiveDemoEmbed() {
   const [signals, setSignals] = useState<Signal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     async function fetchSignals() {
@@ -179,7 +178,6 @@ export function LiveDemoEmbed() {
     fetchSignals();
     const interval = setInterval(() => {
       fetchSignals();
-      setTick((t) => t + 1);
     }, 30000);
     return () => clearInterval(interval);
   }, []);

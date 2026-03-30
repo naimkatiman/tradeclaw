@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       history: days > 1 ? data : undefined,
       timestamp: new Date().toISOString(),
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

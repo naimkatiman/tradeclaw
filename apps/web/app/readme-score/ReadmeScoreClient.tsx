@@ -58,9 +58,9 @@ function getGrade(score: number): { grade: string; color: string } {
   return { grade: 'F', color: 'text-rose-400' };
 }
 
-function analyzeReadme(content: string, repoUrl: string): CheckResult[] {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function analyzeReadme(content: string, _repoUrl: string): CheckResult[] {
   const lower = content.toLowerCase();
-  const _repoName = repoUrl.replace('https://github.com/', '').replace(/\/$/, '');
 
   return [
     {

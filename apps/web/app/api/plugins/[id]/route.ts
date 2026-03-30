@@ -13,7 +13,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
     const plugin = getPlugin(id);
     if (!plugin) return NextResponse.json({ error: 'Plugin not found' }, { status: 404 });
     return NextResponse.json({ plugin });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -52,7 +52,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     const ok = deletePlugin(id);
     if (!ok) return NextResponse.json({ error: 'Plugin not found' }, { status: 404 });
     return NextResponse.json({ ok: true });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
