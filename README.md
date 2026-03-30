@@ -1,10 +1,12 @@
 <div align="center">
 
+<img src="docs/assets/logo.svg" alt="TradeClaw logo" width="88" height="88" />
+
 <a href="https://tradeclaw.win/dashboard">
   <img src="apps/web/public/tradeclaw-demo.gif" alt="TradeClaw Dashboard Demo" width="100%" />
 </a>
 
-<h1>TradeClaw ⚡</h1>
+<h1>TradeClaw</h1>
 <p><strong>Open-source AI trading signal platform. Self-hosted. Free forever.</strong></p>
 <p>RSI · MACD · EMA · Bollinger · Stochastic — all in one dashboard. Deploy in 2 minutes.</p>
 

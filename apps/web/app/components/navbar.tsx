@@ -80,6 +80,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/email-digest', label: 'Email Digest', icon: Mail },
       { href: '/slack', label: 'Slack', icon: Hash },
       { href: '/threads', label: 'Tweet Threads' },
+      { href: '/post-thread', label: 'Post Thread' },
       { href: '/share', label: 'Share', icon: Star },
       { href: '/star', label: 'Star Us', icon: Star },
       { href: '/stars', label: 'Stars', icon: Sparkles },

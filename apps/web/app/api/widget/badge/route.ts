@@ -4,31 +4,32 @@ import { getPortfolio, STARTING_BALANCE, BASE_PRICES } from '../../../../lib/pap
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const portfolio = getPortfolio();
-  const balance = portfolio.balance;
+  try {
+    const portfolio = getPortfolio();
+    const balance = portfolio.balance;
 
-  const openPnl = portfolio.positions.reduce((sum, pos) => {
-    const currentPrice = BASE_PRICES[pos.symbol] ?? pos.entryPrice;
-    const dirMult = pos.direction === 'BUY' ? 1 : -1;
-    const movePct = ((currentPrice - pos.entryPrice) / pos.entryPrice) * dirMult;
-    return sum + pos.quantity * movePct;
-  }, 0);
+    const openPnl = portfolio.positions.reduce((sum, pos) => {
+      const currentPrice = BASE_PRICES[pos.symbol] ?? pos.entryPrice;
+      const dirMult = pos.direction === 'BUY' ? 1 : -1;
+      const movePct = ((currentPrice - pos.entryPrice) / pos.entryPrice) * dirMult;
+      return sum + pos.quantity * movePct;
+    }, 0);
 
-  const equity = balance + openPnl;
-  const totalReturn = ((equity - STARTING_BALANCE) / STARTING_BALANCE) * 100;
-  const sign = totalReturn >= 0 ? '+' : '';
-  const label = 'TradeClaw Portfolio';
-  const value = `${sign}${totalReturn.toFixed(1)}%`;
-  const isPositive = totalReturn >= 0;
+    const equity = balance + openPnl;
+    const totalReturn = ((equity - STARTING_BALANCE) / STARTING_BALANCE) * 100;
+    const sign = totalReturn >= 0 ? '+' : '';
+    const label = 'TradeClaw Portfolio';
+    const value = `${sign}${totalReturn.toFixed(1)}%`;
+    const isPositive = totalReturn >= 0;
 
-  const labelColor = '#555';
-  const valueColor = isPositive ? '#3fb950' : '#e5534b';
-  const labelWidth = 130;
-  const valueWidth = 80;
-  const totalWidth = labelWidth + valueWidth;
-  const height = 20;
+    const labelColor = '#555';
+    const valueColor = isPositive ? '#3fb950' : '#e5534b';
+    const labelWidth = 130;
+    const valueWidth = 80;
+    const totalWidth = labelWidth + valueWidth;
+    const height = 20;
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}" role="img" aria-label="${label}: ${value}">
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}" role="img" aria-label="${label}: ${value}">
   <title>${label}: ${value}</title>
   <linearGradient id="s" x2="0" y2="100%">
     <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
@@ -50,15 +51,18 @@ export async function GET() {
   </g>
 </svg>`;
 
-  return new NextResponse(svg, {
-    headers: {
-      'Content-Type': 'image/svg+xml',
-      'Cache-Control': 'no-cache, max-age=60',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
+    return new NextResponse(svg, {
+      headers: {
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'no-cache, max-age=60',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
 
 export async function OPTIONS() {

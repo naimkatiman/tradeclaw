@@ -31,25 +31,29 @@ function buildResponse(signal: TradingSignal) {
 
 // GET /api/explain?symbol=XAUUSD&timeframe=H1
 export async function GET(req: NextRequest) {
-  const { searchParams } = req.nextUrl;
-  const symbol = searchParams.get('symbol')?.toUpperCase();
-  const timeframe = searchParams.get('timeframe') || 'H1';
+  try {
+    const { searchParams } = req.nextUrl;
+    const symbol = searchParams.get('symbol')?.toUpperCase();
+    const timeframe = searchParams.get('timeframe') || 'H1';
 
-  if (!symbol) {
-    return NextResponse.json({ error: 'symbol query parameter is required' }, { status: 400 });
+    if (!symbol) {
+      return NextResponse.json({ error: 'symbol query parameter is required' }, { status: 400 });
+    }
+
+    const { signals } = await getTrackedSignals({ symbol, timeframe });
+    const signal = signals[0] ?? null;
+
+    if (!signal) {
+      return NextResponse.json(
+        { error: `No active signal found for ${symbol} on ${timeframe}` },
+        { status: 404 }
+      );
+    }
+
+    return buildResponse(signal);
+  } catch (err) {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-
-  const { signals } = await getTrackedSignals({ symbol, timeframe });
-  const signal = signals[0] ?? null;
-
-  if (!signal) {
-    return NextResponse.json(
-      { error: `No active signal found for ${symbol} on ${timeframe}` },
-      { status: 404 }
-    );
-  }
-
-  return buildResponse(signal);
 }
 
 export async function POST(req: NextRequest) {

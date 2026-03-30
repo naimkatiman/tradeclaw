@@ -39,7 +39,7 @@ export async function GET() {
       headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
     }
 
-    const res = await fetch('https://api.github.com/repos/naimkatiman/tradeclaw', { headers });
+    const res = await fetch('https://api.github.com/repos/naimkatiman/tradeclaw', { headers, signal: AbortSignal.timeout(5000) });
 
     if (!res.ok) {
       throw new Error(`GitHub API error: ${res.status}`);

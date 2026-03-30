@@ -66,7 +66,7 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
     return (
       <div className="bg-[#0a0a0a] border border-white/5 rounded-xl px-5 py-4">
         <p className="text-xs text-zinc-600 font-mono text-center">
-          No verified signals yet — signals are recorded and verified against real market data every hour.
+          No resolved signals yet — published 70%+ signals are checked against live market candles every hour.
         </p>
       </div>
     );

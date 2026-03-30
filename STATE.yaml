@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-03-28T14:30:00+08:00
+updated: 2026-03-30T11:36:40+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -967,9 +967,13 @@ tasks:
 
   - id: TC-115
     title: "Sticky star-progress footer bar — add a non-intrusive sticky bottom bar on every page (except embed routes) showing live GitHub stars / 1000 with a progress bar, milestone label, and 'Star on GitHub' CTA button. Should animate in after 5s and be dismissible (localStorage). Pure CSS, no jitter."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: apps/web/components/star-progress-bar.tsx — client component, usePathname() guard
+      for /embed routes, 5s delayed slide-up CSS animation, emerald progress bar (stars/1000%),
+      next milestone label, Star on GitHub CTA (a href new tab), 24h dismiss cooldown (localStorage).
+      Added to layout.tsx. 0 lint errors. Build passes 184 pages. Committed 6a676497. 2026-03-30.
 
   - id: TC-116
     title: "Twitter/X viral thread auto-poster page — /post-thread page: renders the 7-tweet TradeClaw architecture thread (from /threads data), with a 'Post to X' button per tweet that opens twitter.com/intent/tweet pre-filled. Also add a one-click 'Open All in Tabs' button for power users. Include thread scheduling tips."
@@ -989,8 +993,21 @@ tasks:
     owner: pm-tradeclaw
     notes: ""
 
+  - id: TC-119
+    title: "Brand consistency + live signal polish — unify TradeClaw icon across favicon/README/landing, use live candle wording for outcomes, and split 70%+ published signals from sub-70 watchlist setups."
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: unified claw mark across apps/web/public/icon.svg, docs/assets/logo.svg,
+      app/icon.tsx, apple-icon.tsx, landing hero lockup, and README top section. Added metadata
+      icon links so the favicon uses the same mark. Signal confidence now scales organically
+      instead of clamping real setups to 70, while only 70%+ setups are published/tracked/badged.
+      Sub-70 real setups are surfaced as an "On watch" strip on the landing page. Latest outcomes
+      copy now reflects live candle resolution, and outcome verification uses more direct candle
+      granularity by timeframe. Build passes 184 pages. 2026-03-30.
+
 next_actions:
-  - "Phase 23 defined (TC-114 to TC-118). Start with TC-114 next run."
+  - "Phase 23 defined (TC-116 to TC-119). Start with TC-116 next run."
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
   - "Replace seed-heavy accuracy UX with live-only metrics once enough tracked signal records accumulate."
   - "Add test suite (currently zero tests for 100+ pages)."

@@ -11,6 +11,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { AnimatedChartHero } from "../animated-chart-hero";
+import { TradeClawIconArtwork } from "../brand/tradeclaw-icon-artwork";
 
 const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
 
@@ -90,6 +91,22 @@ function SignalPill({
   );
 }
 
+function HeroBrandLockup() {
+  return (
+    <div className="mb-6 flex justify-center">
+      <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-black/35 px-4 py-2.5 shadow-[0_0_40px_rgba(16,185,129,0.08)] backdrop-blur-md">
+        <TradeClawIconArtwork className="h-10 w-10 shrink-0" />
+        <div className="text-left">
+          <div className="text-[10px] font-medium uppercase tracking-[0.28em] text-zinc-500">
+            TradeClaw
+          </div>
+          <div className="text-xs text-zinc-300">Open-source signal engine</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Variant A: Original — "AI Trading Signals. Open Source. Self-Hosted." ─── */
 function HeroVariantA({
   stars,
@@ -100,6 +117,7 @@ function HeroVariantA({
 }) {
   return (
     <div className="relative z-10 mx-auto max-w-4xl">
+      <HeroBrandLockup />
       <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-white/3 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-400">
         <span className="inline-flex items-center gap-1 text-emerald-400">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -175,6 +193,7 @@ function HeroVariantB({
 }) {
   return (
     <div className="relative z-10 mx-auto max-w-4xl">
+      <HeroBrandLockup />
       <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-white/3 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-400">
         <span className="inline-flex items-center gap-1 text-purple-400">
           <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-pulse" />
@@ -281,6 +300,7 @@ function HeroVariantC({
 }) {
   return (
     <div className="relative z-10 mx-auto max-w-4xl">
+      <HeroBrandLockup />
       <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-white/3 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-400">
         <span className="inline-flex items-center gap-1 text-yellow-400">
           <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />

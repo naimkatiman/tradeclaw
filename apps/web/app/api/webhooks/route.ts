@@ -8,13 +8,17 @@ import {
 
 // GET /api/webhooks — list all
 export async function GET() {
-  const webhooks = readWebhooks();
-  // Strip secrets from the response
-  const safe = webhooks.map(({ secret: _secret, ...rest }) => ({
-    ...rest,
-    hasSecret: Boolean(_secret),
-  }));
-  return NextResponse.json({ webhooks: safe });
+  try {
+    const webhooks = readWebhooks();
+    // Strip secrets from the response
+    const safe = webhooks.map(({ secret: _secret, ...rest }) => ({
+      ...rest,
+      hasSecret: Boolean(_secret),
+    }));
+    return NextResponse.json({ webhooks: safe });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
 
 // POST /api/webhooks — create

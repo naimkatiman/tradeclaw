@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(notionBody),
+          signal: AbortSignal.timeout(10000),
         });
 
         if (!res.ok) {

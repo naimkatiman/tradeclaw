@@ -36,36 +36,49 @@ const EXCHANGES: ExchangeMeta[] = [
 ];
 
 export async function GET() {
-  return NextResponse.json({
-    exchanges: EXCHANGES,
-    total: EXCHANGES.length,
-    ccxtSupported: 100,
-  });
+  try {
+    return NextResponse.json({
+      exchanges: EXCHANGES,
+      total: EXCHANGES.length,
+      ccxtSupported: 100,
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json() as { exchangeId?: string; apiKey?: string; secret?: string };
-
-  if (!body.exchangeId || !body.apiKey || !body.secret) {
-    return NextResponse.json(
-      { success: false, error: 'Missing exchangeId, apiKey, or secret' },
-      { status: 400 },
-    );
+  let body: { exchangeId?: string; apiKey?: string; secret?: string };
+  try {
+    body = await req.json() as { exchangeId?: string; apiKey?: string; secret?: string };
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
-  const exchange = EXCHANGES.find((e) => e.id === body.exchangeId);
-  if (!exchange) {
-    return NextResponse.json(
-      { success: false, error: 'Unknown exchange' },
-      { status: 400 },
-    );
-  }
+  try {
+    if (!body.exchangeId || !body.apiKey || !body.secret) {
+      return NextResponse.json(
+        { success: false, error: 'Missing exchangeId, apiKey, or secret' },
+        { status: 400 },
+      );
+    }
 
-  return NextResponse.json({
-    success: true,
-    exchange: exchange.name,
-    balance: { BTC: '0.0423', USDT: '1240.50', ETH: '1.8721' },
-    latencyMs: 142,
-    timestamp: new Date().toISOString(),
-  });
+    const exchange = EXCHANGES.find((e) => e.id === body.exchangeId);
+    if (!exchange) {
+      return NextResponse.json(
+        { success: false, error: 'Unknown exchange' },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      exchange: exchange.name,
+      balance: { BTC: '0.0423', USDT: '1240.50', ETH: '1.8721' },
+      latencyMs: 142,
+      timestamp: new Date().toISOString(),
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

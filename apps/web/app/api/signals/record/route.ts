@@ -4,6 +4,7 @@ import {
   recordSignal,
   getRecentRecordForSymbol,
 } from '../../../../lib/signal-history';
+import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 
@@ -11,12 +12,12 @@ const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
  * POST /api/signals/record
  *
  * Generate current signals via the real TA engine, then persist every
- * signal with confidence >= 70 that does not already have a recent
+ * published signal that does not already have a recent
  * duplicate (same symbol + direction within the last 2 hours).
  */
 export async function POST(): Promise<Response> {
   try {
-    const { signals } = await getSignals({ minConfidence: 70 });
+    const { signals } = await getSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
 
     let recorded = 0;
 

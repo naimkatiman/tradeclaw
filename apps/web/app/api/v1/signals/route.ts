@@ -4,9 +4,9 @@ import { getTrackedSignals } from "../../../../lib/tracked-signals";
 export const runtime = "nodejs";
 
 const FALLBACK_SYMBOLS = [
-  { symbol: "BTCUSD", direction: "BUY" as const, confidence: 78, entry: 84250, tp: 86500, sl: 82100, rsi: 58, macd: 120, timeframe: "H4" },
-  { symbol: "ETHUSD", direction: "BUY" as const, confidence: 72, entry: 1920, tp: 1980, sl: 1850, rsi: 52, macd: 8.5, timeframe: "H1" },
-  { symbol: "XAUUSD", direction: "BUY" as const, confidence: 82, entry: 3075.5, tp: 3110, sl: 3045, rsi: 62, macd: 2.3, timeframe: "H4" },
+  { symbol: "BTCUSD", direction: "BUY" as const, confidence: 78, entry: 87500, tp: 89800, sl: 85200, rsi: 58, macd: 120, timeframe: "H4" },
+  { symbol: "ETHUSD", direction: "BUY" as const, confidence: 72, entry: 2050, tp: 2120, sl: 1980, rsi: 52, macd: 8.5, timeframe: "H1" },
+  { symbol: "XAUUSD", direction: "BUY" as const, confidence: 82, entry: 4520, tp: 4580, sl: 4460, rsi: 62, macd: 2.3, timeframe: "H4" },
   { symbol: "EURUSD", direction: "SELL" as const, confidence: 68, entry: 1.0835, tp: 1.078, sl: 1.089, rsi: 42, macd: -0.0008, timeframe: "H1" },
   { symbol: "GBPUSD", direction: "BUY" as const, confidence: 65, entry: 1.2935, tp: 1.299, sl: 1.287, rsi: 55, macd: 0.0005, timeframe: "H4" },
   { symbol: "USDJPY", direction: "SELL" as const, confidence: 74, entry: 150.85, tp: 150.2, sl: 151.5, rsi: 68, macd: -0.15, timeframe: "H1" },

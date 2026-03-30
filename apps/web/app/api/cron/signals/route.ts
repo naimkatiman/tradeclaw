@@ -5,10 +5,12 @@ import {
   recordSignal,
   getRecentRecordForSymbol,
   getPendingRecords,
+  getOutcomeResolutionTimeframe,
   updateRecords,
   type SignalHistoryRecord,
   type SignalOutcome,
 } from '../../../../lib/signal-history';
+import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
@@ -28,7 +30,7 @@ function isAuthorized(request: NextRequest): boolean {
 // ── Record logic ──────────────────────────────────────────────
 
 async function recordNewSignals(): Promise<number> {
-  const { signals } = await getSignals({ minConfidence: 70 });
+  const { signals } = await getSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
   let recorded = 0;
 
   for (const sig of signals) {
@@ -100,7 +102,10 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number 
     if (!record.tp1 || !record.sl) continue;
 
     try {
-      const { candles } = await getOHLCV(record.pair, 'H1');
+      const { candles } = await getOHLCV(
+        record.pair,
+        getOutcomeResolutionTimeframe(record.timeframe),
+      );
       const newOutcomes = { ...record.outcomes };
       let changed = false;
 

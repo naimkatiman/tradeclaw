@@ -110,6 +110,7 @@ async function sendTelegramMessage(
         parse_mode: 'MarkdownV2',
         disable_web_page_preview: true,
       }),
+      signal: AbortSignal.timeout(8000),
     });
 
     const data = (await res.json()) as { ok: boolean; description?: string };

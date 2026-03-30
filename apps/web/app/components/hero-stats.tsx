@@ -7,16 +7,19 @@ export function HeroStats() {
   const [signalCount, setSignalCount] = useState<number | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     fetch("https://api.github.com/repos/naimkatiman/tradeclaw")
       .then((r) => r.json())
       .then((d: unknown) => {
         if (
+          mounted &&
           d &&
           typeof d === "object" &&
           "stargazers_count" in d &&
           typeof d.stargazers_count === "number"
         ) {
-          setStars(d.stargazers_count);
+          if (mounted) setStars(d.stargazers_count);
         }
       })
       .catch(() => {});
@@ -25,15 +28,18 @@ export function HeroStats() {
       .then((r) => r.json())
       .then((d: unknown) => {
         if (
+          mounted &&
           d &&
           typeof d === "object" &&
           "count" in d &&
           typeof d.count === "number"
         ) {
-          setSignalCount(d.count);
+          if (mounted) setSignalCount(d.count);
         }
       })
       .catch(() => {});
+
+    return () => { mounted = false; };
   }, []);
 
   return (

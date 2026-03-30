@@ -106,10 +106,10 @@ export const revalidate = 300;
 
 export async function GET() {
   const [fngResult, globalResult, trendingResult, marketsResult] = await Promise.allSettled([
-    fetch('https://api.alternative.me/fng/?limit=30', { next: { revalidate: 300 } }).then(r => r.json()) as Promise<FearGreedResponse>,
-    fetch('https://api.coingecko.com/api/v3/global', { next: { revalidate: 300 } }).then(r => r.json()) as Promise<CoinGeckoGlobalData>,
-    fetch('https://api.coingecko.com/api/v3/search/trending', { next: { revalidate: 300 } }).then(r => r.json()) as Promise<TrendingResponse>,
-    fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false', { next: { revalidate: 300 } }).then(r => r.json()) as Promise<MarketCoin[]>,
+    fetch('https://api.alternative.me/fng/?limit=30', { next: { revalidate: 300 }, signal: AbortSignal.timeout(5000) }).then(r => r.json()) as Promise<FearGreedResponse>,
+    fetch('https://api.coingecko.com/api/v3/global', { next: { revalidate: 300 }, signal: AbortSignal.timeout(5000) }).then(r => r.json()) as Promise<CoinGeckoGlobalData>,
+    fetch('https://api.coingecko.com/api/v3/search/trending', { next: { revalidate: 300 }, signal: AbortSignal.timeout(5000) }).then(r => r.json()) as Promise<TrendingResponse>,
+    fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false', { next: { revalidate: 300 }, signal: AbortSignal.timeout(5000) }).then(r => r.json()) as Promise<MarketCoin[]>,
   ]);
 
   // Fear & Greed

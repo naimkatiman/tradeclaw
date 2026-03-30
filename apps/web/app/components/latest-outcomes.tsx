@@ -52,7 +52,7 @@ interface LatestOutcomesProps {
 export function LatestOutcomes({
   limit = 5,
   compact = false,
-  title = 'Recent Signal Outcomes -- Verified Against Real Market Data',
+  title = 'Recent signal outcomes',
 }: LatestOutcomesProps) {
   const [outcomes, setOutcomes] = useState<SignalOutcomeData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +62,8 @@ export function LatestOutcomes({
     async function fetchOutcomes() {
       try {
         // Fetch resolved signals (both wins and losses to show honest results)
-        const res = await fetch(`/api/signals/history?limit=${limit * 2}`);
+        const historyFetchLimit = Math.min(limit * 6, 60);
+        const res = await fetch(`/api/signals/history?limit=${historyFetchLimit}`);
         if (!res.ok) return;
         const data = await res.json();
         const records: HistoryApiRecord[] = data.records ?? [];
@@ -100,10 +101,10 @@ export function LatestOutcomes({
         <h2 className="text-sm font-semibold text-white mb-4 px-1">{title}</h2>
         <div className="glass-card rounded-2xl p-8 text-center">
           <p className="text-sm text-zinc-500">
-            Signal outcomes will appear here once signals are verified against real market data.
+            Outcomes appear here after the 4h or 24h window closes and live candles resolve TP or SL.
           </p>
           <p className="text-xs text-zinc-700 mt-2 font-mono">
-            Signals are checked every 4 hours.
+            Live candle checks run automatically.
           </p>
         </div>
       </section>
@@ -113,8 +114,14 @@ export function LatestOutcomes({
   return (
     <section className="py-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 px-1">
-        <h2 className="text-sm font-semibold text-white">{title}</h2>
+      <div className="flex items-center justify-between mb-4 px-1 gap-3">
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-semibold text-white">{title}</h2>
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/80" />
+            Live candle resolution
+          </span>
+        </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => scroll('left')}

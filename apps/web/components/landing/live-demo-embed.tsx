@@ -282,7 +282,7 @@ export function LiveDemoEmbed() {
                   ))
                 : signals.slice(0, 4).map((sig, i) => (
                     <div
-                      key={`${sig.symbol}-${sig.timeframe}-${tick}`}
+                      key={`${sig.symbol}-${sig.timeframe}`}
                       className="rounded-lg p-3 border border-white/5 flex items-center justify-between group hover:border-white/10 transition-all duration-300"
                       style={{
                         background: 'rgba(255,255,255,0.02)',

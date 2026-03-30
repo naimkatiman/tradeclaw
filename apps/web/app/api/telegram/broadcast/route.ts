@@ -48,22 +48,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 // ---------------------------------------------------------------------------
 
 export async function GET(): Promise<NextResponse> {
-  const state = readBroadcastState();
-  const channelId = process.env.TELEGRAM_CHANNEL_ID ?? null;
-  const configured = !!(process.env.TELEGRAM_BOT_TOKEN && channelId);
+  try {
+    const state = readBroadcastState();
+    const channelId = process.env.TELEGRAM_CHANNEL_ID ?? null;
+    const configured = !!(process.env.TELEGRAM_BOT_TOKEN && channelId);
 
-  const lastTime = state.lastBroadcastTime ? new Date(state.lastBroadcastTime) : null;
-  const nextBroadcast = lastTime
-    ? new Date(lastTime.getTime() + 4 * 60 * 60 * 1000).toISOString()
-    : null;
+    const lastTime = state.lastBroadcastTime ? new Date(state.lastBroadcastTime) : null;
+    const nextBroadcast = lastTime
+      ? new Date(lastTime.getTime() + 4 * 60 * 60 * 1000).toISOString()
+      : null;
 
-  return NextResponse.json({
-    configured,
-    channelId: channelId ? `${channelId.slice(0, 4)}...` : null,
-    lastBroadcastTime: state.lastBroadcastTime,
-    lastMessageId: state.lastMessageId,
-    lastError: state.lastError,
-    broadcastCount: state.broadcastCount,
-    nextBroadcast,
-  });
+    return NextResponse.json({
+      configured,
+      channelId: channelId ? `${channelId.slice(0, 4)}...` : null,
+      lastBroadcastTime: state.lastBroadcastTime,
+      lastMessageId: state.lastMessageId,
+      lastError: state.lastError,
+      broadcastCount: state.broadcastCount,
+      nextBroadcast,
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

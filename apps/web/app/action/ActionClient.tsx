@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Copy, Check, Terminal, Zap, Shield, BarChart3, Clock, GitBranch, ExternalLink } from 'lucide-react';
+import { Copy, Check, Terminal, Zap, Shield, BarChart3, Clock, GitBranch } from 'lucide-react';
 
 function GithubIcon({ className }: { className?: string }) {
   return (

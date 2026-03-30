@@ -32,10 +32,14 @@ export async function GET(request: NextRequest) {
         .filter(r => r.pair === pairFilter)
         .slice(0, 50);
 
-      return NextResponse.json({ asset, records: pairRecords });
+      return NextResponse.json({ asset, records: pairRecords }, {
+        headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
+      });
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
+    });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

@@ -8,26 +8,27 @@ function esc(s: string): string {
 }
 
 export async function GET(request: NextRequest) {
-  const theme = request.nextUrl.searchParams.get('theme') === 'light' ? 'light' : 'dark';
-  const portfolio = getPortfolio();
-  const balance = portfolio.balance;
-  const totalReturn = ((balance - STARTING_BALANCE) / STARTING_BALANCE) * 100;
-  const winRate = portfolio.stats.winRate;
-  const openPositions = portfolio.positions.length;
+  try {
+    const theme = request.nextUrl.searchParams.get('theme') === 'light' ? 'light' : 'dark';
+    const portfolio = getPortfolio();
+    const balance = portfolio.balance;
+    const totalReturn = ((balance - STARTING_BALANCE) / STARTING_BALANCE) * 100;
+    const winRate = portfolio.stats.winRate;
+    const openPositions = portfolio.positions.length;
 
-  const isPositive = totalReturn >= 0;
-  const arrow = isPositive ? '\u25B2' : '\u25BC';
-  const pnlSign = isPositive ? '+' : '';
+    const isPositive = totalReturn >= 0;
+    const arrow = isPositive ? '\u25B2' : '\u25BC';
+    const pnlSign = isPositive ? '+' : '';
 
-  const bg = theme === 'dark' ? '#0d1117' : '#ffffff';
-  const cardBg = theme === 'dark' ? '#161b22' : '#f6f8fa';
-  const border = theme === 'dark' ? '#30363d' : '#d0d7de';
-  const textPrimary = theme === 'dark' ? '#e6edf3' : '#1f2328';
-  const textSecondary = theme === 'dark' ? '#8b949e' : '#656d76';
-  const pnlColor = isPositive ? '#10b981' : '#f43f5e';
-  const brandColor = '#3fb950';
+    const bg = theme === 'dark' ? '#0d1117' : '#ffffff';
+    const cardBg = theme === 'dark' ? '#161b22' : '#f6f8fa';
+    const border = theme === 'dark' ? '#30363d' : '#d0d7de';
+    const textPrimary = theme === 'dark' ? '#e6edf3' : '#1f2328';
+    const textSecondary = theme === 'dark' ? '#8b949e' : '#656d76';
+    const pnlColor = isPositive ? '#10b981' : '#f43f5e';
+    const brandColor = '#3fb950';
 
-  const html = `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -96,14 +97,17 @@ body{background:${bg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',He
 </body>
 </html>`;
 
-  return new NextResponse(html, {
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'no-cache, max-age=30',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'X-Frame-Options': 'ALLOWALL',
-    },
-  });
+    return new NextResponse(html, {
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-cache, max-age=30',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'X-Frame-Options': 'ALLOWALL',
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

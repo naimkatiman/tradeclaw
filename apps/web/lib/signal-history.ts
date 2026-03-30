@@ -67,6 +67,21 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const HISTORY_FILE = path.join(DATA_DIR, 'signal-history.json');
 const MAX_RECORDS = 10000;
 
+export function getOutcomeResolutionTimeframe(timeframe: string): string {
+  switch (timeframe.toUpperCase()) {
+    case 'M15':
+      return 'M15';
+    case 'H1':
+      return 'H1';
+    case 'H4':
+      return 'H1';
+    case 'D1':
+      return 'H4';
+    default:
+      return 'H1';
+  }
+}
+
 function ensureDataDir(): void {
   try {
     if (!fs.existsSync(DATA_DIR)) {
@@ -218,7 +233,7 @@ export async function resolveRealOutcomes(): Promise<void> {
     if (!needs4h && !needs24h) continue;
 
     try {
-      const { candles } = await getOHLCV(r.pair, 'H1');
+      const { candles } = await getOHLCV(r.pair, getOutcomeResolutionTimeframe(r.timeframe));
 
       if (needs4h) {
         const windowEnd = r.timestamp + 4 * 3600 * 1000;
@@ -412,4 +427,3 @@ export function computeLeaderboard(
     },
   };
 }
-

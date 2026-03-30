@@ -88,6 +88,14 @@ export const metadata: Metadata = {
       "Self-hosted AI trading signals for forex, crypto & metals. Free forever. Star on GitHub.",
     images: ["/api/og"],
   },
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: [{ url: '/icon.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/apple-icon', sizes: '180x180', type: 'image/png' }],
+  },
   manifest: "/manifest.json",
   alternates: {
     languages: {

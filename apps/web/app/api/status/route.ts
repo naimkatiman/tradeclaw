@@ -29,11 +29,11 @@ export async function GET() {
 
   const services = await Promise.all([
     checkService('Signal Engine', async () => {
-      const res = await fetch(`${baseUrl}/api/v1/signals?limit=1`, { cache: 'no-store' });
+      const res = await fetch(`${baseUrl}/api/v1/signals?limit=1`, { cache: 'no-store', signal: AbortSignal.timeout(3000) });
       if (!res.ok) throw new Error('Signal engine unavailable');
     }),
     checkService('API', async () => {
-      const res = await fetch(`${baseUrl}/api/health`, { cache: 'no-store' });
+      const res = await fetch(`${baseUrl}/api/health`, { cache: 'no-store', signal: AbortSignal.timeout(3000) });
       if (!res.ok) throw new Error('API unavailable');
     }),
     checkService('Database', async () => {
@@ -60,7 +60,7 @@ export async function GET() {
 
   let lastSignal: { pair: string; timestamp: string } | null = null;
   try {
-    const res = await fetch(`${baseUrl}/api/v1/signals?limit=1`, { cache: 'no-store' });
+    const res = await fetch(`${baseUrl}/api/v1/signals?limit=1`, { cache: 'no-store', signal: AbortSignal.timeout(3000) });
     if (res.ok) {
       const data = await res.json();
       const sig = data.signals?.[0] ?? data.data?.[0] ?? data[0];

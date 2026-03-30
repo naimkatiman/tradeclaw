@@ -35,8 +35,8 @@ export async function GET(): Promise<NextResponse> {
 
   try {
     const [meRes, webhookRes] = await Promise.all([
-      fetch(`${TELEGRAM_API}/bot${token}/getMe`),
-      fetch(`${TELEGRAM_API}/bot${token}/getWebhookInfo`),
+      fetch(`${TELEGRAM_API}/bot${token}/getMe`, { signal: AbortSignal.timeout(5000) }),
+      fetch(`${TELEGRAM_API}/bot${token}/getWebhookInfo`, { signal: AbortSignal.timeout(5000) }),
     ]);
 
     const meData = (await meRes.json()) as { ok: boolean; result?: TelegramBotInfo; description?: string };

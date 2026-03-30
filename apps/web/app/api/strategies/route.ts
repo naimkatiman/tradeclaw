@@ -188,10 +188,14 @@ const PRESET_STRATEGIES: Strategy[] = [
 ];
 
 export async function GET() {
-  return NextResponse.json({
-    count: PRESET_STRATEGIES.length,
-    strategies: PRESET_STRATEGIES,
-  });
+  try {
+    return NextResponse.json({
+      count: PRESET_STRATEGIES.length,
+      strategies: PRESET_STRATEGIES,
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {

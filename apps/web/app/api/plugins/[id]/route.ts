@@ -8,10 +8,14 @@ import {
 } from '../../../../lib/plugin-system';
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const plugin = getPlugin(id);
-  if (!plugin) return NextResponse.json({ error: 'Plugin not found' }, { status: 404 });
-  return NextResponse.json({ plugin });
+  try {
+    const { id } = await params;
+    const plugin = getPlugin(id);
+    if (!plugin) return NextResponse.json({ error: 'Plugin not found' }, { status: 404 });
+    return NextResponse.json({ plugin });
+  } catch (err) {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -43,8 +47,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const ok = deletePlugin(id);
-  if (!ok) return NextResponse.json({ error: 'Plugin not found' }, { status: 404 });
-  return NextResponse.json({ ok: true });
+  try {
+    const { id } = await params;
+    const ok = deletePlugin(id);
+    if (!ok) return NextResponse.json({ error: 'Plugin not found' }, { status: 404 });
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

@@ -11,16 +11,21 @@ export function StarsWidget() {
   const [stars, setStars] = useState<number | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     const fetchStars = () => {
       fetch('/api/github-stars')
         .then((r) => r.json())
-        .then((data: GitHubStats) => setStars(data.stars))
+        .then((data: GitHubStats) => { if (mounted) setStars(data.stars); })
         .catch(() => {});
     };
 
     fetchStars();
     const interval = setInterval(fetchStars, 60_000);
-    return () => clearInterval(interval);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   return (

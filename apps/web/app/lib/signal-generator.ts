@@ -8,6 +8,7 @@ import { calculateAllIndicators, findSwingLevels } from './ta-engine';
 import type { TradingSignal, IndicatorSummary } from './signals';
 import { getOHLCV } from './ohlcv';
 import { isMarketOpen } from './market-hours';
+import { WATCHLIST_MIN_CONFIDENCE } from '../../lib/signal-thresholds';
 
 // ─── Multi-Timeframe Types ────────────────────────────────────
 
@@ -88,6 +89,23 @@ interface MarketQuality {
 interface DirectionGateResult {
   passes: boolean;
   confidenceBoost: number;
+}
+
+function scaleConfidence(
+  score: number,
+  confidenceBoost: number,
+  source: 'real' | 'synthetic',
+): number {
+  const adjustedScore = score + confidenceBoost;
+
+  if (source === 'synthetic') {
+    return Math.min(
+      WATCHLIST_MIN_CONFIDENCE - 1,
+      Math.max(35, Math.round(32 + adjustedScore * 0.42)),
+    );
+  }
+
+  return Math.min(95, Math.max(48, Math.round(42 + adjustedScore * 0.62)));
 }
 
 function getLastValidValues(values: number[], count: number): number[] {
@@ -578,8 +596,7 @@ export function generateSignalsFromTA(
   // Require 2 categories for high confidence, 1 category for moderate signals
   const buyMinCategories = buyScore >= 40 ? 2 : 1;
   if (buyScore >= SIGNAL_THRESHOLD && buyScore > sellScore && buyingCategoryCount >= buyMinCategories && buyGate.passes) {
-    const [minConfidence, maxConfidence] = source === 'synthetic' ? [30, 50] : [70, 95];
-    const confidence = Math.min(maxConfidence, Math.max(minConfidence, Math.round(buyScore + buyGate.confidenceBoost)));
+    const confidence = scaleConfidence(buyScore, buyGate.confidenceBoost, source);
     const slDistance = atr * 1.5;
     const entry = +currentPrice.toFixed(5);
 
@@ -624,8 +641,7 @@ export function generateSignalsFromTA(
   const sellGate = passesDirectionGate('SELL', indicators, marketQuality, sellScore, buyScore);
   const sellMinCategories = sellScore >= 40 ? 2 : 1;
   if (sellScore >= SIGNAL_THRESHOLD && sellScore > buyScore && sellingCategoryCount >= sellMinCategories && sellGate.passes) {
-    const [minConfidence, maxConfidence] = source === 'synthetic' ? [30, 50] : [70, 95];
-    const confidence = Math.min(maxConfidence, Math.max(minConfidence, Math.round(sellScore + sellGate.confidenceBoost)));
+    const confidence = scaleConfidence(sellScore, sellGate.confidenceBoost, source);
     const slDistance = atr * 1.5;
     const entry = +currentPrice.toFixed(5);
 

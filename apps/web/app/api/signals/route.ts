@@ -39,6 +39,8 @@ export async function GET(request: NextRequest) {
       filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence },
       signals,
       syntheticSymbols,
+    }, {
+      headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60' },
     });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

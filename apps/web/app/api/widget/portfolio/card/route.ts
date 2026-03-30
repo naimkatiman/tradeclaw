@@ -26,28 +26,29 @@ function buildSparkline(curve: EquityPoint[], width: number, height: number): st
 }
 
 export async function GET() {
-  const portfolio = getPortfolio();
-  const balance = portfolio.balance;
-  const totalReturn = ((balance - STARTING_BALANCE) / STARTING_BALANCE) * 100;
-  const winRate = portfolio.stats.winRate;
-  const totalTrades = portfolio.stats.totalTrades;
-  const equityCurve = portfolio.equityCurve;
+  try {
+    const portfolio = getPortfolio();
+    const balance = portfolio.balance;
+    const totalReturn = ((balance - STARTING_BALANCE) / STARTING_BALANCE) * 100;
+    const winRate = portfolio.stats.winRate;
+    const totalTrades = portfolio.stats.totalTrades;
+    const equityCurve = portfolio.equityCurve;
 
-  // Use last 30 data points for sparkline
-  const sparkData = equityCurve.slice(-30);
-  const sparkW = 140;
-  const sparkH = 40;
-  const sparkPoints = buildSparkline(sparkData, sparkW, sparkH);
+    // Use last 30 data points for sparkline
+    const sparkData = equityCurve.slice(-30);
+    const sparkW = 140;
+    const sparkH = 40;
+    const sparkPoints = buildSparkline(sparkData, sparkW, sparkH);
 
-  const returnSign = totalReturn >= 0 ? '+' : '';
-  const accentColor = totalReturn >= 0 ? '#10b981' : '#f43f5e';
-  const sparkGradId = 'sparkGrad';
+    const returnSign = totalReturn >= 0 ? '+' : '';
+    const accentColor = totalReturn >= 0 ? '#10b981' : '#f43f5e';
+    const sparkGradId = 'sparkGrad';
 
-  const balanceStr = `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const returnStr = `${returnSign}${totalReturn.toFixed(1)}%`;
-  const winRateStr = `${winRate.toFixed(0)}%`;
+    const balanceStr = `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const returnStr = `${returnSign}${totalReturn.toFixed(1)}%`;
+    const winRateStr = `${winRate.toFixed(0)}%`;
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120" role="img" aria-label="${esc(`TradeClaw Portfolio: ${balanceStr}, Return ${returnStr}, Win Rate ${winRateStr}`)}">
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120" role="img" aria-label="${esc(`TradeClaw Portfolio: ${balanceStr}, Return ${returnStr}, Win Rate ${winRateStr}`)}">
   <defs>
     <linearGradient id="${sparkGradId}" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="${accentColor}" stop-opacity="0.3"/>
@@ -95,12 +96,15 @@ export async function GET() {
   </g>
 </svg>`;
 
-  return new NextResponse(svg, {
-    headers: {
-      'Content-Type': 'image/svg+xml',
-      'Cache-Control': 'no-cache, max-age=300',
-      'X-Content-Type-Options': 'nosniff',
-      'Access-Control-Allow-Origin': '*',
-    },
-  });
+    return new NextResponse(svg, {
+      headers: {
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'no-cache, max-age=300',
+        'X-Content-Type-Options': 'nosniff',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

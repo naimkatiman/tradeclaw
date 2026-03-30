@@ -2,16 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAlerts, createAlert, SUPPORTED_SYMBOLS } from '../../../lib/price-alerts';
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const status = searchParams.get('status') as 'active' | 'triggered' | 'expired' | null;
-  const symbol = searchParams.get('symbol');
+  try {
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get('status') as 'active' | 'triggered' | 'expired' | null;
+    const symbol = searchParams.get('symbol');
 
-  const alerts = getAlerts({
-    status: status ?? undefined,
-    symbol: symbol ?? undefined,
-  });
+    const alerts = getAlerts({
+      status: status ?? undefined,
+      symbol: symbol ?? undefined,
+    });
 
-  return NextResponse.json({ alerts, count: alerts.length });
+    return NextResponse.json({ alerts, count: alerts.length });
+  } catch (err) {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {

@@ -10,7 +10,6 @@ import {
   Share2,
   Info,
   CheckCircle2,
-  XCircle,
   BarChart3,
 } from 'lucide-react';
 import { Navbar } from '../components/navbar';
@@ -102,7 +101,6 @@ function getDayColor(winRate: number | null): string {
 export function CalendarClient() {
   const allDays = useMemo(() => generateCalendarData(), []);
   const [hoveredDay, setHoveredDay] = useState<DayData | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
 
   // Group by week for heatmap display
   const weeks = useMemo(() => {

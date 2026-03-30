@@ -68,21 +68,26 @@ export function MilestoneCelebrationModal() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
     fetch('/api/github-stars')
       .then((r) => r.json())
       .then((data: GitHubStats) => {
+        if (!mounted) return;
         const currentStars = data.stars;
-        setStars(currentStars);
+        if (mounted) setStars(currentStars);
 
         const lastSeen = parseInt(localStorage.getItem(LS_KEY) ?? '0', 10);
         const reached = [...MILESTONES].reverse().find((m) => currentStars >= m.threshold);
 
         if (reached && reached.threshold > lastSeen) {
-          setMilestone(reached);
-          setVisible(true);
+          if (mounted) setMilestone(reached);
+          if (mounted) setVisible(true);
         }
       })
       .catch(() => {});
+
+    return () => { mounted = false; };
   }, []);
 
   const dismiss = () => {

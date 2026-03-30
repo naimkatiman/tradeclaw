@@ -60,7 +60,7 @@ function getGrade(score: number): { grade: string; color: string } {
 
 function analyzeReadme(content: string, repoUrl: string): CheckResult[] {
   const lower = content.toLowerCase();
-  const repoName = repoUrl.replace('https://github.com/', '').replace(/\/$/, '');
+  const _repoName = repoUrl.replace('https://github.com/', '').replace(/\/$/, '');
 
   return [
     {

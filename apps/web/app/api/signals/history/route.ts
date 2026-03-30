@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const cacheHeaders = { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' };
     return NextResponse.json({
       records: page,
       total,
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
         bestSignal,
         streak,
       },
-    });
+    }, { headers: cacheHeaders });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

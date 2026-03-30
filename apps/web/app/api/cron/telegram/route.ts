@@ -15,22 +15,26 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
   }
 
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const channelId = process.env.TELEGRAM_CHANNEL_ID;
+  try {
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const channelId = process.env.TELEGRAM_CHANNEL_ID;
 
-  if (!botToken || !channelId) {
-    return NextResponse.json(
-      { ok: false, error: 'TELEGRAM_BOT_TOKEN or TELEGRAM_CHANNEL_ID not configured' },
-      { status: 503 },
-    );
+    if (!botToken || !channelId) {
+      return NextResponse.json(
+        { ok: false, error: 'TELEGRAM_BOT_TOKEN or TELEGRAM_CHANNEL_ID not configured' },
+        { status: 503 },
+      );
+    }
+
+    const result = await broadcastTopSignals(channelId, botToken);
+
+    return NextResponse.json({
+      ok: result.success,
+      messageId: result.messageId ?? null,
+      error: result.error ?? null,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-
-  const result = await broadcastTopSignals(channelId, botToken);
-
-  return NextResponse.json({
-    ok: result.success,
-    messageId: result.messageId ?? null,
-    error: result.error ?? null,
-    timestamp: new Date().toISOString(),
-  });
 }

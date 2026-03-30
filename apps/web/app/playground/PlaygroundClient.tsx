@@ -84,16 +84,6 @@ const btcCloses: number[] = Array.from({ length: 60 }, (_, i) => {
 
 const result = scoreSignal(btcCloses);
 
-console.log("=== TradeClaw Signal Engine ===");
-console.log(\`Asset:      BTCUSD H1\`);
-console.log(\`Direction:  \${result.direction}\`);
-console.log(\`Confidence: \${result.confidence.toFixed(1)}%\`);
-console.log(\`RSI (14):   \${result.rsi.toFixed(1)}\`);
-console.log(\`EMA20>50:   \${result.ema20Above50}\`);
-console.log(\`Last Price: \${btcCloses[btcCloses.length - 1].toFixed(2)}\`);
-console.log("");
-console.log("Modify btcCloses[] above to test your own data!");
-console.log("Star us: github.com/naimkatiman/tradeclaw ⭐");
 `;
 
 const EXAMPLES = [
@@ -139,10 +129,6 @@ const prices = Array.from({ length: 60 }, (_, i) =>
 );
 
 const result = calculateMACD(prices);
-console.log('MACD:', result.macd.toFixed(4));
-console.log('Signal:', result.signal.toFixed(4));
-console.log('Histogram:', result.histogram.toFixed(4));
-console.log('Trend:', result.isBullish ? '📈 Bullish' : '📉 Bearish');
 `,
   },
   {
@@ -170,12 +156,6 @@ const prices = Array.from({ length: 50 }, (_, i) =>
 );
 
 const bb = bollingerBands(prices);
-console.log('Upper Band:', bb.upper.toFixed(2));
-console.log('Middle (SMA):', bb.middle.toFixed(2));
-console.log('Lower Band:', bb.lower.toFixed(2));
-console.log('Bandwidth:', (bb.bandwidth * 100).toFixed(2) + '%');
-console.log('%B:', bb.percentB.toFixed(3));
-console.log('Squeeze:', bb.isSqueeze ? '⚡ Yes — watch for breakout' : '🔓 No');
 `,
   },
 ];

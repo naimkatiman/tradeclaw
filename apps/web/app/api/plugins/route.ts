@@ -7,8 +7,12 @@ import {
 } from '../../../lib/plugin-system';
 
 export async function GET() {
-  const plugins = listPlugins();
-  return NextResponse.json({ plugins, total: plugins.length });
+  try {
+    const plugins = listPlugins();
+    return NextResponse.json({ plugins, total: plugins.length });
+  } catch (err) {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {

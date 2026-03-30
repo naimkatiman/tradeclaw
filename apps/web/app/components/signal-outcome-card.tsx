@@ -121,7 +121,7 @@ export function SignalOutcomeCard({ signal, compact = false }: SignalOutcomeCard
           {isPending && (
             <div className="flex items-center gap-1 text-amber-400">
               <Clock className="w-3.5 h-3.5" />
-              <span className="text-xs font-mono">Verifying...</span>
+              <span className="text-xs font-mono">Watching live candles</span>
             </div>
           )}
         </div>
@@ -253,7 +253,7 @@ export function SignalOutcomeCard({ signal, compact = false }: SignalOutcomeCard
                   {pnlDisplay}
                 </div>
               ) : (
-                <div className="text-sm text-zinc-600 font-mono">Awaiting verification</div>
+                <div className="text-sm text-zinc-600 font-mono">Awaiting live candle resolution</div>
               )}
 
               {/* Resolved date */}

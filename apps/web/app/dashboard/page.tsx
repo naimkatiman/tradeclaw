@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { DashboardClient } from './DashboardClient';
 import { getTrackedSignals } from '../../lib/tracked-signals';
+import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../lib/signal-thresholds';
 
 export const metadata: Metadata = {
   title: 'Dashboard — TradeClaw',
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   // Pre-fetch signals server-side to avoid flash of empty state
-  const { signals: initialSignals, syntheticSymbols: initialSyntheticSymbols } = await getTrackedSignals({ minConfidence: 70 });
+  const { signals: initialSignals, syntheticSymbols: initialSyntheticSymbols } = await getTrackedSignals({
+    minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE,
+  });
 
   return <DashboardClient initialSignals={initialSignals} initialSyntheticSymbols={initialSyntheticSymbols} />;
 }

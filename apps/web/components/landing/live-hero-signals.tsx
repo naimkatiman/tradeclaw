@@ -5,6 +5,10 @@
  */
 
 import Link from 'next/link';
+import {
+  PUBLISHED_SIGNAL_MIN_CONFIDENCE,
+  WATCHLIST_MIN_CONFIDENCE,
+} from '../../lib/signal-thresholds';
 
 interface Signal {
   pair?: string;
@@ -13,13 +17,14 @@ interface Signal {
   confidence: number;
   timeframe?: string;
   price?: number;
+  dataQuality?: 'real' | 'synthetic';
 }
 
 async function fetchLiveSignals(): Promise<Signal[]> {
   try {
     // Use internal URL for server-side fetch (same process)
     const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
-    const res = await fetch(`${base}/api/signals?limit=8`, {
+    const res = await fetch(`${base}/api/signals?limit=16`, {
       next: { revalidate: 60 }, // revalidate every 60s
     });
     if (!res.ok) return [];
@@ -41,7 +46,18 @@ const FALLBACK: Signal[] = [
 
 export async function LiveHeroSignals() {
   const rawSignals = await fetchLiveSignals();
-  const signals = (rawSignals.length >= 4 ? rawSignals : FALLBACK).slice(0, 8);
+  const realSignals = rawSignals.filter((signal) => signal.dataQuality !== 'synthetic');
+  const publishedSignals = realSignals.filter(
+    (signal) => signal.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE,
+  );
+  const watchlistSignals = realSignals.filter(
+    (signal) =>
+      signal.confidence >= WATCHLIST_MIN_CONFIDENCE &&
+      signal.confidence < PUBLISHED_SIGNAL_MIN_CONFIDENCE,
+  );
+
+  const signals = (publishedSignals.length >= 4 ? publishedSignals : FALLBACK).slice(0, 8);
+  const watchlist = watchlistSignals.slice(0, 4);
 
   return (
     <section className="relative px-4 pb-6 -mt-4">
@@ -64,7 +80,9 @@ export async function LiveHeroSignals() {
                 }}
               />
               <style>{`@keyframes lhsPulse{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
-              <span className="text-white/60 text-xs font-medium">Live signals — updated every 60s</span>
+              <span className="text-white/60 text-xs font-medium">
+                Live signals — {PUBLISHED_SIGNAL_MIN_CONFIDENCE}%+ only
+              </span>
             </div>
             <Link
               href="/dashboard"
@@ -125,6 +143,31 @@ export async function LiveHeroSignals() {
               View all →
             </Link>
           </div>
+
+          {watchlist.length > 0 && (
+            <div className="border-t border-white/8 px-4 py-2.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/35">
+                  On watch
+                </span>
+                <span className="text-[10px] text-white/25">
+                  Building setups below {PUBLISHED_SIGNAL_MIN_CONFIDENCE}% and not published as signals yet
+                </span>
+                {watchlist.map((sig) => {
+                  const pair = sig.pair ?? sig.symbol ?? 'UNKNOWN';
+                  return (
+                    <Link
+                      key={`${pair}-${sig.timeframe ?? 'H1'}-${sig.direction}-watch`}
+                      href={`/signal/${pair}-${sig.timeframe ?? 'H1'}-${sig.direction}`}
+                      className="rounded-full border border-white/8 bg-white/4 px-2.5 py-1 text-[11px] text-white/55 transition-colors hover:border-white/16 hover:text-white/80"
+                    >
+                      {pair} {sig.direction} {sig.confidence}%
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>

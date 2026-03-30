@@ -36,7 +36,7 @@ const SOURCE_CONFIG: Record<DataSource, { color: string; border: string; bg: str
 /** Derive the data source from a trading symbol string. */
 export function getDataSource(symbol: string): DataSource {
   const s = symbol.toUpperCase();
-  if (['BTC', 'ETH', 'XRP', 'SOL'].some(c => s.startsWith(c))) return 'Binance';
+  if (['BTC', 'ETH', 'XRP', 'SOL', 'DOGE', 'BNB', 'ADA', 'DOT', 'LINK', 'AVAX', 'ATOM', 'MATIC'].some(c => s.startsWith(c))) return 'Binance';
   if (
     ['XAU', 'XAG', 'EUR', 'GBP', 'USD', 'AUD', 'NZD', 'CAD', 'CHF'].some(c =>
       s.startsWith(c),

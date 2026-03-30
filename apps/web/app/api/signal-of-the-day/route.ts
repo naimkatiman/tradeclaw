@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
+import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../lib/signal-thresholds';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const { signals } = await getTrackedSignals({});
+    const { signals } = await getTrackedSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
 
     if (signals.length === 0) {
       return NextResponse.json(
