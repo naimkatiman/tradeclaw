@@ -11,6 +11,7 @@
 [![Traders](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fusers&query=%24.count&label=traders&color=10b981&style=flat-square)](https://tradeclaw.win/users)
 [![Docker](https://img.shields.io/badge/Docker-Hub-2496ED?logo=docker&style=flat-square)](https://hub.docker.com/r/tradeclaw/tradeclaw)
 [![Demo](https://img.shields.io/badge/Demo-Live-10b981?logo=vercel&style=flat-square)](https://tradeclaw.win/dashboard)
+[![Uptime](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fuptime&query=%24.overallUptime&suffix=%25+uptime&label=status&color=brightgreen&style=flat-square)](https://tradeclaw.win/status)
 
 **[🚀 Live Demo](https://tradeclaw.win/dashboard)** · **[📡 API](https://tradeclaw.win/api-docs)** · **[📖 Docs](https://tradeclaw.win/docs)** · **[🤝 Contribute](https://tradeclaw.win/contribute)**
 

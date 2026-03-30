@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   XCircle,
-  Clock,
   Zap,
   Database,
   Radio,
@@ -18,6 +17,7 @@ import {
   ChevronDown,
   ChevronUp,
   Inbox,
+  BarChart3,
 } from 'lucide-react';
 
 interface ServiceStatus {
@@ -35,6 +35,25 @@ interface StatusData {
   services: ServiceStatus[];
   lastSignal: { pair: string; timestamp: string } | null;
   timestamp: string;
+}
+
+interface UptimeDayEntry {
+  date: string;
+  uptime: number;
+  incidents: number;
+}
+
+interface UptimeServiceEntry {
+  name: string;
+  uptime30d: number;
+  status: 'operational' | 'degraded' | 'outage';
+}
+
+interface UptimeData {
+  overallUptime: number;
+  uptimeHistory: UptimeDayEntry[];
+  services: UptimeServiceEntry[];
+  lastCheck: string;
 }
 
 const STATUS_CONFIG = {
@@ -67,14 +86,6 @@ function formatTime(iso: string): string {
   });
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
 export function StatusClient() {
   const [data, setData] = useState<StatusData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,6 +94,7 @@ export function StatusClient() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [showIncidents, setShowIncidents] = useState(true);
+  const [uptimeData, setUptimeData] = useState<UptimeData | null>(null);
   const monitoringStarted = useRef<string>('');
 
   const fetchStatus = useCallback(async () => {
@@ -111,6 +123,15 @@ export function StatusClient() {
   }, [fetchStatus]);
 
   useEffect(() => {
+    fetch('/api/uptime')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json: UptimeData | null) => {
+        if (json) setUptimeData(json);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     const saved = localStorage.getItem('tradeclaw-status-email');
     if (saved) setSubscribed(true);
   }, []);
@@ -129,12 +150,6 @@ export function StatusClient() {
       ? STATUS_CONFIG.outage
       : STATUS_CONFIG.operational;
   const StatusIcon = statusCfg.Icon;
-
-  const currentDayStatus: 'operational' | 'degraded' | 'outage' = data
-    ? data.status
-    : error
-      ? 'outage'
-      : 'operational';
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -291,48 +306,100 @@ export function StatusClient() {
           </section>
         )}
 
-        {/* Uptime Monitoring */}
+        {/* Uptime Monitoring — 30-Day History */}
         <section>
           <h3 className="text-sm font-medium text-[var(--text-secondary)] uppercase tracking-widest mb-4">
-            Uptime Monitoring
+            30-Day Uptime
           </h3>
-          <div className="glass-card rounded-xl p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div
-                className={`h-4 w-4 rounded-sm ${
-                  currentDayStatus === 'operational'
-                    ? 'bg-emerald-500/60'
-                    : currentDayStatus === 'degraded'
-                      ? 'bg-yellow-500/60'
-                      : 'bg-rose-500/60'
-                }`}
-                title={`Today: ${currentDayStatus}`}
-              />
-              <span className="text-sm font-medium">
-                Today — {currentDayStatus === 'operational'
-                  ? 'Operational'
-                  : currentDayStatus === 'degraded'
-                    ? 'Degraded'
-                    : 'Outage'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
-              <span className="flex items-center gap-1.5">
-                <Clock className="h-3 w-3" />
-                Monitoring started {monitoringStarted.current ? formatDate(monitoringStarted.current) : '...'}
-              </span>
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-sm bg-emerald-500/60" /> Operational
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-sm bg-yellow-500/60" /> Degraded
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-sm bg-rose-500/60" /> Outage
+          <div className="glass-card rounded-xl p-4 space-y-4">
+            {/* Overall uptime */}
+            {uptimeData && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <BarChart3 className="h-4 w-4 text-emerald-400" />
+                  <span className="text-sm font-medium">
+                    Overall: {uptimeData.overallUptime}% uptime
+                  </span>
+                </div>
+                <span className="text-xs text-[var(--text-secondary)]">
+                  Last check: {uptimeData.lastCheck ? formatTime(uptimeData.lastCheck) : '—'}
                 </span>
               </div>
+            )}
+
+            {/* 30-day bar */}
+            <div>
+              <div className="grid grid-cols-30 gap-[2px]" style={{ gridTemplateColumns: 'repeat(30, 1fr)' }}>
+                {uptimeData ? (
+                  uptimeData.uptimeHistory.map((day) => {
+                    const color =
+                      day.uptime >= 99
+                        ? 'bg-emerald-500/70 hover:bg-emerald-500'
+                        : day.uptime >= 95
+                          ? 'bg-yellow-500/70 hover:bg-yellow-500'
+                          : 'bg-rose-500/70 hover:bg-rose-500';
+                    return (
+                      <div
+                        key={day.date}
+                        className={`h-8 rounded-sm ${color} transition-colors cursor-default`}
+                        title={`${day.date}: ${day.uptime}% uptime${day.incidents > 0 ? `, ${day.incidents} incident${day.incidents > 1 ? 's' : ''}` : ''}`}
+                      />
+                    );
+                  })
+                ) : (
+                  Array.from({ length: 30 }).map((_, i) => (
+                    <div key={i} className="h-8 rounded-sm bg-white/5 animate-pulse" />
+                  ))
+                )}
+              </div>
+              <div className="flex items-center justify-between mt-2 text-xs text-[var(--text-secondary)]">
+                <span>30 days ago</span>
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-sm bg-emerald-500/70" /> &ge;99%
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-sm bg-yellow-500/70" /> &ge;95%
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-sm bg-rose-500/70" /> &lt;95%
+                  </span>
+                </div>
+                <span>Today</span>
+              </div>
             </div>
+
+            {/* Per-service 30-day uptime */}
+            {uptimeData && (
+              <div className="space-y-2 pt-2 border-t border-[var(--border)]">
+                {uptimeData.services.map((svc) => {
+                  const SvcIcon = SERVICE_ICONS[svc.name] ?? Server;
+                  const barColor =
+                    svc.uptime30d >= 99
+                      ? 'bg-emerald-500'
+                      : svc.uptime30d >= 95
+                        ? 'bg-yellow-500'
+                        : 'bg-rose-500';
+                  return (
+                    <div key={svc.name} className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 w-32 shrink-0">
+                        <SvcIcon className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
+                        <span className="text-xs font-medium truncate">{svc.name}</span>
+                      </div>
+                      <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${barColor} transition-all`}
+                          style={{ width: `${Math.min(svc.uptime30d, 100)}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-mono text-[var(--text-secondary)] w-16 text-right">
+                        {svc.uptime30d}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
 

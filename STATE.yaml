@@ -1153,9 +1153,16 @@ tasks:
 
   - id: TC-132
     title: "TradeClaw Discord community page — /discord/server page with invite link generator, webhook setup guide, signal preview card embed, and auto-join incentive (access to live signals channel)"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /discord/server page (DiscordServerClient.tsx) — Discord-branded hero (#5865F2),
+      invite card with copy+join buttons, mock Discord signal embed preview (dark chrome with
+      BUY/SELL embed), 6 channel cards (#live-signals/#strategies/#support/#announcements/#showcase/#general),
+      5-step webhook setup guide linking to /settings/webhooks, star milestone rewards table
+      (10/50/100/500/1000 stars), 3 benefits cards, GitHub star + Discord join CTA footer.
+      Navbar Community group + mobile-nav More + sitemap updated. 0 lint errors. Build passes 204 pages.
+      Committed af367432. 2026-03-31
 
   - id: TC-133
     title: "Real uptime badge + public status API — embed UptimeRobot public badge in README, add /api/uptime route with 30-day uptime history, add to /status page alongside existing service cards"
