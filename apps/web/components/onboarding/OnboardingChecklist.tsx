@@ -99,6 +99,8 @@ const DEFAULT_STORE: OnboardingStore = {
 };
 
 let storeListeners: Array<() => void> = [];
+let cachedStoreSnapshot: OnboardingStore = DEFAULT_STORE;
+let cachedStoreRaw: string = "";
 
 function subscribeStore(listener: () => void) {
   storeListeners = [...storeListeners, listener];
@@ -108,22 +110,32 @@ function subscribeStore(listener: () => void) {
 }
 
 function emitChange() {
+  // Invalidate cache so the next getStoreSnapshot returns fresh data
+  cachedStoreRaw = "";
   storeListeners.forEach((l) => l());
 }
 
 function getStoreSnapshot(): OnboardingStore {
   try {
-    const visitedRaw = localStorage.getItem(LS_VISITED);
-    const manualRaw = localStorage.getItem(LS_MANUAL_CHECKS);
-    return {
-      visitedRoutes: visitedRaw ? (JSON.parse(visitedRaw) as string[]) : [],
-      manualChecks: manualRaw ? (JSON.parse(manualRaw) as number[]) : [],
-      onboarded: localStorage.getItem(LS_ONBOARDED) === "true",
-      minimized: localStorage.getItem("tc-onboarding-minimized") === "true",
-    };
+    const visitedRaw = localStorage.getItem(LS_VISITED) ?? "";
+    const manualRaw = localStorage.getItem(LS_MANUAL_CHECKS) ?? "";
+    const onboardedRaw = localStorage.getItem(LS_ONBOARDED) ?? "";
+    const minimizedRaw = localStorage.getItem("tc-onboarding-minimized") ?? "";
+    const raw = `${visitedRaw}|${manualRaw}|${onboardedRaw}|${minimizedRaw}`;
+
+    if (raw !== cachedStoreRaw) {
+      cachedStoreRaw = raw;
+      cachedStoreSnapshot = {
+        visitedRoutes: visitedRaw ? (JSON.parse(visitedRaw) as string[]) : [],
+        manualChecks: manualRaw ? (JSON.parse(manualRaw) as number[]) : [],
+        onboarded: onboardedRaw === "true",
+        minimized: minimizedRaw === "true",
+      };
+    }
   } catch {
     return DEFAULT_STORE;
   }
+  return cachedStoreSnapshot;
 }
 
 function getServerStoreSnapshot(): OnboardingStore {
