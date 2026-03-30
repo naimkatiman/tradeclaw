@@ -47,6 +47,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/sentiment', label: 'Sentiment', icon: TrendingUp },
       { href: '/news', label: 'News', icon: Newspaper },
       { href: '/consensus', label: 'Consensus', icon: BarChart2 },
+      { href: '/tradingview-alerts', label: 'TV Alerts', icon: Zap },
     ],
   },
   {
