@@ -835,6 +835,7 @@ function MetricCard({ label, value, sub, color = 'text-[var(--foreground)]' }: {
 function DataSourceBadge({ source }: { source: string }) {
   const labels: Record<string, { text: string; color: string }> = {
     binance: { text: 'Binance', color: 'text-yellow-400 border-yellow-500/20 bg-yellow-500/10' },
+    oanda: { text: 'OANDA', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10' },
     yahoo: { text: 'Yahoo Finance', color: 'text-purple-400 border-purple-500/20 bg-purple-500/10' },
     synthetic: { text: 'Synthetic', color: 'text-[var(--text-secondary)] border-zinc-500/20 bg-zinc-500/10' },
   };

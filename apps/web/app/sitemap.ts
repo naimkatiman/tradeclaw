@@ -34,5 +34,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/strategies/marketplace`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/users`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/hub`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/news`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.7 },
   ];
 }

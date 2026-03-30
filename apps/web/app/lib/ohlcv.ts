@@ -4,9 +4,9 @@
  * Forex/Metals: Yahoo Finance → Twelve Data (fallback chain)
  */
 
-import { fetchKrakenOHLCV, fetchCryptoCompareOHLCV, fetchTwelveDataOHLCV } from './data-providers';
+import { fetchKrakenOHLCV, fetchCryptoCompareOHLCV, fetchTwelveDataOHLCV, fetchOandaOHLCV, isOandaSymbol } from './data-providers';
 
-export type OHLCVSource = 'binance' | 'yahoo' | 'kraken' | 'cryptocompare' | 'twelvedata' | 'synthetic';
+export type OHLCVSource = 'binance' | 'oanda' | 'yahoo' | 'kraken' | 'cryptocompare' | 'twelvedata' | 'synthetic';
 
 export interface OHLCV {
   timestamp: number;
@@ -300,7 +300,7 @@ export async function getOHLCV(symbol: string, timeframe: string = 'H1'): Promis
   const cacheKey = getCacheKey(symbol, timeframe);
   const cached = getFromCache(cacheKey);
   if (cached) {
-    const source: OHLCVSource = BINANCE_SYMBOLS[symbol] ? 'binance' : YAHOO_SYMBOLS[symbol] ? 'yahoo' : 'synthetic';
+    const source: OHLCVSource = BINANCE_SYMBOLS[symbol] ? 'binance' : isOandaSymbol(symbol) ? 'oanda' : YAHOO_SYMBOLS[symbol] ? 'yahoo' : 'synthetic';
     return { candles: cached, source };
   }
 
@@ -311,6 +311,16 @@ export async function getOHLCV(symbol: string, timeframe: string = 'H1'): Promis
     if (BINANCE_SYMBOLS[symbol]) {
       candles = await fetchBinanceOHLCV(symbol, timeframe);
       if (candles.length > 0) source = 'binance';
+    } else if (isOandaSymbol(symbol)) {
+      // OANDA first for forex/metals (requires API token)
+      candles = await fetchOandaOHLCV(symbol, timeframe);
+      if (candles.length > 0) source = 'oanda';
+
+      // Fallback to Yahoo if OANDA unavailable or returned insufficient data
+      if (candles.length < 50 && YAHOO_SYMBOLS[symbol]) {
+        candles = await fetchYahooOHLCV(symbol, timeframe);
+        if (candles.length > 0) source = 'yahoo';
+      }
     } else if (YAHOO_SYMBOLS[symbol]) {
       candles = await fetchYahooOHLCV(symbol, timeframe);
       if (candles.length > 0) source = 'yahoo';

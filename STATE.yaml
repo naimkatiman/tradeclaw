@@ -1024,8 +1024,40 @@ tasks:
       copy now reflects live candle resolution, and outcome verification uses more direct candle
       granularity by timeframe. Build passes 184 pages. 2026-03-30.
 
+  # ── Phase 24: Real Traction + Unique Data Hooks ──
+
+  - id: TC-120
+    title: "Crypto news + signal confluence page — /news combining CoinGecko trending with TradeClaw signal direction per asset"
+    status: in_progress
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-121
+    title: "Live Telegram demo — /demo/telegram page where visitor enters chat ID and receives an instant live signal from the bot"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-122
+    title: "Signal consensus dashboard — /consensus showing buy/sell vote ratio across all assets with 24h trend direction, social sharing"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-123
+    title: "Interactive confidence calculator — /confidence slider tool showing exactly how TradeClaw computes confidence scores, dev-friendly explainer"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-124
+    title: "TradeClaw changelog + roadmap vote page — /roadmap with public upvote system (localStorage), 'Coming next' based on votes, viral product-led growth hook"
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
 next_actions:
-  - "TC-118 done. TC-119 (brand consistency) is done. All Phase 23 tasks complete — define Phase 24 next run."
+  - "TC-120 in progress. Phase 24 defined."
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
   - "Replace seed-heavy accuracy UX with live-only metrics once enough tracked signal records accumulate."
   - "Add test suite (currently zero tests for 100+ pages)."

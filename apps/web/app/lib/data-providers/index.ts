@@ -4,7 +4,7 @@
  * 24 providers across 8 categories:
  *
  * CRYPTO (no key):     CoinGecko*, Binance*, CoinCap, Kraken, CryptoCompare†
- * FOREX (no key):      Stooq*, open.er-api*, Frankfurter, fawazahmed0
+ * FOREX (mixed):       OANDA†, Stooq*, open.er-api*, Frankfurter, fawazahmed0
  * STOCKS (free key):   Finnhub†, Twelve Data†, FMP†
  * COMMODITIES (no key): Stooq*, Free Gold API
  * MACRO (mixed):       FRED†, World Bank, IMF
@@ -45,6 +45,12 @@ export {
   fetchFrankfurterHistory,
   fetchFawazRates,
 } from './forex';
+
+export {
+  fetchOandaOHLCV,
+  fetchOandaPrices,
+  isOandaSymbol,
+} from './oanda';
 
 export {
   fetchFinnhubQuotes,
@@ -101,6 +107,9 @@ export function getProviderRegistry(): ProviderStatus[] {
     { name: 'CoinCap', category: 'crypto', status: 'ok', lastCheck: Date.now(), requiresKey: false, rateLimit: '200 req/min', docs: 'https://docs.coincap.io/' },
     { name: 'Kraken', category: 'crypto', status: 'ok', lastCheck: Date.now(), requiresKey: false, rateLimit: '15 req/sec', docs: 'https://docs.kraken.com/api/' },
     { name: 'CryptoCompare', category: 'crypto', status: 'ok', lastCheck: Date.now(), requiresKey: false, rateLimit: '100k calls/month', docs: 'https://min-api.cryptocompare.com/' },
+
+    // Forex — OANDA (key required)
+    { name: 'OANDA', category: 'forex', status: process.env.OANDA_API_TOKEN ? 'ok' : 'down', lastCheck: Date.now(), requiresKey: true, rateLimit: '120 req/sec', docs: 'https://developer.oanda.com/rest-live-v20/introduction/' },
 
     // Forex — no key
     { name: 'Stooq', category: 'forex', status: 'ok', lastCheck: Date.now(), requiresKey: false, rateLimit: 'generous', docs: 'https://stooq.com/' },

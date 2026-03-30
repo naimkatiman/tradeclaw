@@ -4,7 +4,7 @@
 // Data Source Badge — shows where price data originates
 // ---------------------------------------------------------------------------
 
-type DataSource = 'Binance' | 'Yahoo Finance' | 'CoinGecko' | 'TA Engine';
+type DataSource = 'Binance' | 'OANDA' | 'Yahoo Finance' | 'CoinGecko' | 'TA Engine';
 
 interface DataSourceBadgeProps {
   source: DataSource;
@@ -15,6 +15,11 @@ const SOURCE_CONFIG: Record<DataSource, { color: string; border: string; bg: str
     color: '#f59e0b',
     border: 'rgba(245,158,11,0.3)',
     bg: 'rgba(245,158,11,0.1)',
+  },
+  OANDA: {
+    color: '#10b981',
+    border: 'rgba(16,185,129,0.3)',
+    bg: 'rgba(16,185,129,0.1)',
   },
   'Yahoo Finance': {
     color: '#a78bfa',
@@ -42,7 +47,7 @@ export function getDataSource(symbol: string): DataSource {
       s.startsWith(c),
     )
   )
-    return 'Yahoo Finance';
+    return 'OANDA';
   return 'TA Engine';
 }
 
