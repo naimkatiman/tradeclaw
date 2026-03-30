@@ -1034,9 +1034,14 @@ tasks:
 
   - id: TC-121
     title: "Live Telegram demo — /demo/telegram page where visitor enters chat ID and receives an instant live signal from the bot"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /demo/telegram page (TelegramDemoClient.tsx) — 3-step instructions, chat ID input,
+      pair selector (6 pairs), POST /api/demo/telegram (rate-limited 1/min per chatId, Telegram Bot API
+      send, MarkdownV2 formatter inline, friendly error messages). Success state shows signal preview
+      (direction, confidence bar, entry/TP/SL). Error state with clear guidance. Navbar Community group
+      updated. Sitemap updated. 0 lint errors. Build passes 191 pages. Committed ba48dd73. 2026-03-30
 
   - id: TC-122
     title: "Signal consensus dashboard — /consensus showing buy/sell vote ratio across all assets with 24h trend direction, social sharing"
