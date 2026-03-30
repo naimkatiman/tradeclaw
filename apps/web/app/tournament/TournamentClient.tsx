@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import Link from 'next/link';
 import { Star, Share2, Trophy, TrendingUp, BarChart2, Target } from 'lucide-react';
 
 /* ---------- types ---------- */
