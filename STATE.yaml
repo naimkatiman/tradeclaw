@@ -1045,9 +1045,15 @@ tasks:
 
   - id: TC-122
     title: "Signal consensus dashboard — /consensus showing buy/sell vote ratio across all assets with 24h trend direction, social sharing"
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/consensus (aggregates H1+H4 signals per pair, buyRatio, dominantDirection, trend24h,
+      overallBullish%, mostBullish/Bearish/Conflicted). /consensus page (ConsensusClient.tsx) — hero with
+      BullBearGauge (split progress bar), 3-card summary (most bullish/bearish/split), total signal counts,
+      per-asset grid (buy+sell bars side-by-side, ratio badge, 24h trend icon), share on X (pre-written tweet),
+      copy link, auto-refresh 60s, GitHub star CTA. Navbar Trading group + mobile nav Trading section + sitemap
+      updated. BarChart2 icon. 0 lint errors. Build passes 193 pages. Committed 9e25470b. 2026-03-30
 
   - id: TC-123
     title: "Interactive confidence calculator — /confidence slider tool showing exactly how TradeClaw computes confidence scores, dev-friendly explainer"
