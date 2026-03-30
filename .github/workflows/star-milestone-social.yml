@@ -16,6 +16,8 @@ jobs:
     permissions:
       issues: write
       contents: read
+    # Only run if triggered by repo owner to avoid permission errors from external stargazers
+    if: github.actor == github.repository_owner || github.event_name == 'workflow_dispatch'
     steps:
       - name: Check star count and generate social content
         uses: actions/github-script@v7
