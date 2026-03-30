@@ -1089,9 +1089,13 @@ tasks:
 
   - id: TC-126
     title: "Multi-language README pack — README.zh.md (Chinese), README.ja.md (Japanese), README.ko.md (Korean) with full translations of hero/features/quickstart. LANGUAGES.md translation index. Add language badge row to main README linking each translation. Targets Chinese/Japanese/Korean GitHub communities who heavily star OSS."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: README.zh.md (Simplified Chinese), README.ja.md (Japanese), README.ko.md (Korean)
+      — all with translated hero, features table, quick start, comparison table, live signal badges,
+      contribute CTA. LANGUAGES.md translation index with guidelines + ISO codes table.
+      README.md already had language row (added in prior run). 0 lint errors. Committed 8ce358a9. 2026-03-30
 
   - id: TC-127
     title: "Strategy performance tournament — /tournament page: 5 built-in strategies (RSI Reversion, MACD Trend, EMA Ribbon, BB Squeeze, Multi-TF Confluence) compete in a 90-day backtest league bracket. Visual bracket diagram, daily P&L race chart (canvas), live winner badge, share tournament result card. High shareability."
