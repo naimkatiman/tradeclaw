@@ -990,9 +990,14 @@ tasks:
 
   - id: TC-117
     title: "'Who's using TradeClaw?' wall — /users page: self-reported user wall (localStorage + /api/users POST/GET with file-based JSON), show avatar initials, use case blurb, country flag emoji. Shows count of self-reported users. Share kit: 'I use TradeClaw for X — add yourself'. Viral social proof."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: lib/user-wall.ts (file-based JSON CRUD, 8 seed users), POST/GET /api/users route,
+      /users page (UsersClient.tsx) — hero with count, add-yourself form (name/useCase/country emoji picker),
+      avatar initials with gradient colors, user wall grid (3-col responsive), share kit (Twitter/LinkedIn
+      pre-written posts with copy+open buttons). Navbar Community group + sitemap updated.
+      0 lint errors. Build passes 185 pages. Committed cbb371aa. 2026-03-30
 
   - id: TC-118
     title: "Docker Hub publish script + /hub page — scripts/dockerhub-publish.sh that builds multi-platform image (linux/amd64,linux/arm64) and pushes tradeclaw/tradeclaw:latest. /hub page showing docker pull tradeclaw/tradeclaw, platform support badges, layer count, image size. DockerHub = passive discoverability for self-hosters."

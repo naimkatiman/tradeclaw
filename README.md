@@ -13,7 +13,7 @@
 [![Stars](https://img.shields.io/github/stars/naimkatiman/tradeclaw?style=social)](https://github.com/naimkatiman/tradeclaw/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Last Commit](https://img.shields.io/github/last-commit/naimkatiman/tradeclaw?color=10b981)](https://github.com/naimkatiman/tradeclaw/commits/main)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](https://hub.docker.com)
+[![Docker](https://img.shields.io/badge/Docker-Hub-2496ED?logo=docker)](https://hub.docker.com/r/tradeclaw/tradeclaw)
 [![Demo](https://img.shields.io/badge/Demo-Live-10b981?logo=vercel)](https://tradeclaw.win/dashboard)
 [![GitHub Action](https://img.shields.io/badge/Action-Marketplace-2088FF?logo=github-actions)](https://github.com/marketplace/actions/tradeclaw-signal)
 
@@ -33,7 +33,12 @@
 ## Quick Start
 
 ```bash
-# Option 1: Docker (recommended)
+# Option 1: Docker Hub (fastest — no clone needed)
+docker pull tradeclaw/tradeclaw
+docker run -p 3000:3000 tradeclaw/tradeclaw
+# → hub.docker.com/r/tradeclaw/tradeclaw (linux/amd64 + linux/arm64)
+
+# Option 1b: Docker Compose (with .env)
 git clone https://github.com/naimkatiman/tradeclaw
 cd tradeclaw
 cp .env.example .env

@@ -318,6 +318,16 @@ const MENU_SECTIONS: MenuSection[] = [
           </svg>
         ),
       },
+      {
+        href: '/hub',
+        label: 'Docker Hub',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
+            <path d="M16 3h-8l-2 4h12l-2-4z" />
+          </svg>
+        ),
+      },
     ],
   },
   {
