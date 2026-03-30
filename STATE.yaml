@@ -977,9 +977,16 @@ tasks:
 
   - id: TC-116
     title: "Twitter/X viral thread auto-poster page — /post-thread page: renders the 7-tweet TradeClaw architecture thread (from /threads data), with a 'Post to X' button per tweet that opens twitter.com/intent/tweet pre-filled. Also add a one-click 'Open All in Tabs' button for power users. Include thread scheduling tips."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /post-thread page (PostThreadClient.tsx + page.tsx). 4 thread templates
+      (Architecture/Self-hosting/Signal Engine/Launch), 7 tweets each with numbered labels (1/7).
+      Per-tweet: "Post this tweet" → twitter.com/intent/tweet pre-filled, Copy button with checkmark
+      feedback. Thread-level: "Post Thread (1st)" opens first tweet, "Open All in Tabs" opens all 7
+      staggered 200ms apart with popup note, "Copy All" copies full thread. Scheduling tips section
+      (collapsible) with 4 cards: best days, best times, spacing, engagement boost + pro tip callout.
+      Added to navbar Community group. Build passes. 0 lint errors. Committed e2cd9478. 2026-03-30
 
   - id: TC-117
     title: "'Who's using TradeClaw?' wall — /users page: self-reported user wall (localStorage + /api/users POST/GET with file-based JSON), show avatar initials, use case blurb, country flag emoji. Shows count of self-reported users. Share kit: 'I use TradeClaw for X — add yourself'. Viral social proof."

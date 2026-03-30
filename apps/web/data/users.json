@@ -1,0 +1,58 @@
+[
+  {
+    "id": "u_001",
+    "name": "Alex K.",
+    "useCase": "Automated BTC/ETH swing trading — TradeClaw signals feed my Telegram bot which triggers paper trades before I go live.",
+    "country": "🇩🇪",
+    "createdAt": "2026-03-20T08:12:00Z"
+  },
+  {
+    "id": "u_002",
+    "name": "Priya S.",
+    "useCase": "Running TradeClaw on a Raspberry Pi to monitor XAUUSD and EURUSD. It pings me on Telegram when confidence hits 80%+.",
+    "country": "🇮🇳",
+    "createdAt": "2026-03-22T14:33:00Z"
+  },
+  {
+    "id": "u_003",
+    "name": "Marcus T.",
+    "useCase": "Using the backtest module to validate my RSI divergence strategy before committing real capital. Saved me from a bad trade.",
+    "country": "🇺🇸",
+    "createdAt": "2026-03-23T09:45:00Z"
+  },
+  {
+    "id": "u_004",
+    "name": "Yuki W.",
+    "useCase": "Self-hosting on a VPS for JPY pairs. The multi-timeframe confluence view is exactly what I was building myself — glad I found this.",
+    "country": "🇯🇵",
+    "createdAt": "2026-03-24T16:20:00Z"
+  },
+  {
+    "id": "u_005",
+    "name": "Carlos M.",
+    "useCase": "Teaching algorithmic trading at university — TradeClaw is my go-to live demo for RSI/MACD implementation.",
+    "country": "🇧🇷",
+    "createdAt": "2026-03-25T11:00:00Z"
+  },
+  {
+    "id": "u_006",
+    "name": "Emma L.",
+    "useCase": "Paper trading simulator for learning futures without risk. The equity curve visualization really helped me understand drawdowns.",
+    "country": "🇬🇧",
+    "createdAt": "2026-03-26T13:15:00Z"
+  },
+  {
+    "id": "u_007",
+    "name": "Dev R.",
+    "useCase": "Built a custom plugin for VWAP + volume divergence using the plugin system. Works great for intraday setups.",
+    "country": "🇸🇬",
+    "createdAt": "2026-03-27T07:55:00Z"
+  },
+  {
+    "id": "u_008",
+    "name": "Finn O.",
+    "useCase": "Monitoring gold and silver signals for portfolio hedging. The screener filters save me 2 hours of chart work daily.",
+    "country": "🇦🇺",
+    "createdAt": "2026-03-28T10:30:00Z"
+  }
+]

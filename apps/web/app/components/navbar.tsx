@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Shield, TrendingUp, Flame, Share2, GitBranch, ShoppingBag, Calendar, BookOpen } from 'lucide-react';
+import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, UserCheck, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Shield, TrendingUp, Flame, Share2, GitBranch, ShoppingBag, Calendar, BookOpen } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import type { LucideIcon } from 'lucide-react';
 
@@ -96,6 +96,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/quiz', label: 'Trader Quiz', icon: HelpCircle },
       { href: '/contributors', label: 'Contributors', icon: Trophy },
       { href: '/security', label: 'Security', icon: Shield },
+      { href: '/users', label: 'User Wall', icon: UserCheck },
     ],
   },
 ];
