@@ -101,12 +101,12 @@ function DirectionBadge({ direction }: { direction: 'BUY' | 'SELL' | 'HOLD' }) {
 
 function AlignmentIcon({ direction }: { direction: 'BUY' | 'SELL' | 'HOLD' }) {
   if (direction === 'BUY') {
-    return <CheckCircle className="w-5 h-5 text-emerald-400" title="Signal: BUY — good for longs" />;
+    return <CheckCircle className="w-5 h-5 text-emerald-400" />;
   }
   if (direction === 'SELL') {
-    return <AlertCircle className="w-5 h-5 text-rose-400" title="Signal: SELL — caution" />;
+    return <AlertCircle className="w-5 h-5 text-rose-400" />;
   }
-  return <Minus className="w-5 h-5 text-zinc-500" title="No strong signal" />;
+  return <Minus className="w-5 h-5 text-zinc-500" />;
 }
 
 function ConfidenceBar({ value }: { value: number }) {
