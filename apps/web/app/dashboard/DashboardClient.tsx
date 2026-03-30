@@ -496,7 +496,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       })()}
 
       <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6">
-        <PageHint message="Demo mode: all signals use live-simulated market data. Explore freely — no account needed." />
+        <PageHint message="Signals are generated from live market data via the TA engine. Synthetic fallbacks are clearly labeled when APIs are unavailable." />
 
         {/* Accuracy stats bar — prominent inline version */}
         <div className="mb-4">

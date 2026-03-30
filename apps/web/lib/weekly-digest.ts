@@ -22,91 +22,7 @@ export interface WeeklyDigest {
   stats: WeeklyStats;
 }
 
-// Seeded PRNG (mulberry32) for deterministic fake data
-function mulberry32(seed: number): () => number {
-  return () => {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-const FAKE_PAIRS = ['XAUUSD', 'BTCUSD', 'EURUSD', 'GBPJPY', 'ETHUSD'];
-const FAKE_TIMEFRAMES = ['H1', 'H4', 'D1'];
-
-function generateFakeDigest(weekStart: number, weekEnd: number): WeeklyDigest {
-  const seed = Math.floor(weekStart / 86400000); // deterministic per week
-  const rng = mulberry32(seed);
-
-  const topSignals: RankedSignal[] = FAKE_PAIRS.map((pair, i) => {
-    const direction: 'BUY' | 'SELL' = rng() > 0.5 ? 'BUY' : 'SELL';
-    const confidence = 60 + Math.floor(rng() * 35);
-    const entryPrice = pair === 'XAUUSD' ? 2300 + rng() * 200
-      : pair === 'BTCUSD' ? 60000 + rng() * 20000
-      : pair === 'ETHUSD' ? 3000 + rng() * 1000
-      : 1 + rng() * 0.5;
-    const pnlPercent = +((-2 + rng() * 6).toFixed(2));
-    const pipMultiplier = pair.includes('JPY') ? 100 : pair === 'XAUUSD' ? 10 : pair.includes('USD') && !pair.startsWith('BTC') && !pair.startsWith('ETH') ? 10000 : 1;
-    const pnlPips = Math.round(pnlPercent * pipMultiplier / 100 * entryPrice);
-    const hitRate = 40 + rng() * 50;
-
-    return {
-      rank: i + 1,
-      id: `fake-weekly-${pair}-${seed}`,
-      pair,
-      timeframe: FAKE_TIMEFRAMES[Math.floor(rng() * FAKE_TIMEFRAMES.length)],
-      direction,
-      confidence,
-      entryPrice: +entryPrice.toFixed(pair.includes('USD') && !pair.startsWith('BTC') && !pair.startsWith('ETH') ? 5 : 2),
-      timestamp: weekStart + Math.floor(rng() * (weekEnd - weekStart)),
-      tp1: undefined,
-      sl: undefined,
-      isSimulated: true,
-      outcomes: {
-        '4h': { price: entryPrice * (1 + pnlPercent / 200), pnlPct: +(pnlPercent / 2).toFixed(2), hit: pnlPercent > 0 },
-        '24h': { price: entryPrice * (1 + pnlPercent / 100), pnlPct: pnlPercent, hit: pnlPercent > 0 },
-      },
-      pnlPips,
-      pnlPercent,
-      // Sort key for ranking
-      _hitRate: hitRate,
-    } as RankedSignal & { _hitRate: number };
-  });
-
-  // Sort by hitRate desc, then confidence desc (matching the spec)
-  topSignals.sort((a, b) => {
-    const aHit = (a as unknown as { _hitRate: number })._hitRate;
-    const bHit = (b as unknown as { _hitRate: number })._hitRate;
-    if (bHit !== aHit) return bHit - aHit;
-    return b.confidence - a.confidence;
-  });
-
-  // Re-assign ranks after sort and strip internal field
-  topSignals.forEach((s, i) => {
-    s.rank = i + 1;
-    delete (s as unknown as Record<string, unknown>)['_hitRate'];
-  });
-
-  const dailyWinRates = Array.from({ length: 7 }, () =>
-    +(30 + rng() * 50).toFixed(1),
-  ) as WeeklyStats['dailyWinRates'];
-
-  return {
-    weekStart,
-    weekEnd,
-    topSignals,
-    stats: {
-      totalSignals: 20 + Math.floor(rng() * 60),
-      winRate: +(45 + rng() * 30).toFixed(1),
-      bestPair: topSignals[0].pair,
-      worstPair: topSignals[topSignals.length - 1].pair,
-      avgConfidence: Math.round(topSignals.reduce((s, t) => s + t.confidence, 0) / topSignals.length),
-      dailyWinRates,
-    },
-  };
-}
+// Fake digest generator removed — empty digest returned when insufficient real data
 
 function getWeekBounds(): { weekStart: number; weekEnd: number } {
   const now = new Date();
@@ -130,7 +46,20 @@ export function getWeeklyDigest(): WeeklyDigest {
   );
 
   if (weekRecords.length < 5) {
-    return generateFakeDigest(weekStart, weekEnd);
+    // Not enough real data — return empty digest instead of fake numbers
+    return {
+      weekStart,
+      weekEnd,
+      topSignals: [],
+      stats: {
+        totalSignals: weekRecords.length,
+        winRate: 0,
+        bestPair: '—',
+        worstPair: '—',
+        avgConfidence: 0,
+        dailyWinRates: [0, 0, 0, 0, 0, 0, 0] as WeeklyStats['dailyWinRates'],
+      },
+    };
   }
 
   // Compute per-pair hit rates for ranking

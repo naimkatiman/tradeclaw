@@ -310,8 +310,8 @@ export function CalendarClient() {
         <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4 mb-6 flex gap-3">
           <Info className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />
           <p className="text-xs text-[var(--text-secondary)]">
-            Data shown uses seeded simulation for demonstration. Live signal tracking is actively being built into
-            production infrastructure. Signal performance is not guaranteed — all trading involves risk.
+            Calendar data is populated from recorded signal history. If no signals have been recorded yet, the calendar will be empty.
+            Signal performance is not guaranteed — all trading involves risk.
             See <Link href="/accuracy" className="text-emerald-400 hover:underline">/accuracy</Link> for methodology.
           </p>
         </div>

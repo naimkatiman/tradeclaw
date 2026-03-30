@@ -23,9 +23,7 @@ const FALLBACK_PRICES: Record<string, number> = {
   USDJPY: 159.53,
 };
 
-function addNoise(price: number, pct = 0.002): number {
-  return +(price * (1 + (Math.random() - 0.5) * pct)).toFixed(price > 100 ? 2 : 5);
-}
+// No noise injection — fallback prices are exact last-known values, clearly marked as stale
 
 export async function GET() {
   try {
@@ -127,7 +125,7 @@ export async function GET() {
     };
     for (const [symbol, base] of Object.entries(fallbackBase)) {
       if (!prices[symbol]) {
-        prices[symbol] = { price: addNoise(base), change24h: 0, source: 'fallback' };
+        prices[symbol] = { price: base, change24h: 0, source: 'fallback' };
       }
     }
 
@@ -143,7 +141,7 @@ export async function GET() {
     // Return fallback prices if everything fails
     const fallback: Record<string, { price: number; change24h: number; source: string }> = {};
     for (const [sym, price] of Object.entries(FALLBACK_PRICES)) {
-      fallback[sym] = { price: addNoise(price), change24h: 0, source: 'fallback' };
+      fallback[sym] = { price, change24h: 0, source: 'fallback' };
     }
     return NextResponse.json({
       timestamp: new Date().toISOString(),

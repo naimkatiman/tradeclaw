@@ -36,11 +36,8 @@ const SYMBOLS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'XA
 const SIZE_PCTS = [0.01, 0.02, 0.05, 0.10];
 const SIZE_LABELS = ['1%', '2%', '5%', '10%'];
 
-const BASE_PRICES: Record<string, number> = {
-  BTCUSD: 87500, ETHUSD: 3400, XAUUSD: 2180, EURUSD: 1.083,
-  GBPUSD: 1.264, USDJPY: 151.2, XAGUSD: 24.8, AUDUSD: 0.654,
-  XRPUSD: 0.615, USDCAD: 1.365,
-};
+// Prices are fetched live from /api/prices — no hardcoded fallbacks
+const INITIAL_PRICES: Record<string, number> = {};
 
 
 const HIST_PAGE_SIZE = 8;
@@ -73,15 +70,7 @@ function fmtTradeDuration(openedAt: string, closedAt: string): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-const _priceSeeds: Record<string, number> = {};
-function noisyPrice(sym: string, base: number): number {
-  const prev = _priceSeeds[sym] ?? base;
-  const drift = (Math.sin(Date.now() / 3000 + sym.charCodeAt(0)) * 0.0005);
-  const noise = (Math.random() - 0.5) * 0.002;
-  const next = prev * (1 + drift + noise);
-  _priceSeeds[sym] = next;
-  return +next.toFixed(next >= 100 ? 2 : 5);
-}
+// Prices fetched from /api/prices at regular intervals — no synthetic noise
 
 // ---------------------------------------------------------------------------
 // Canvas equity curve
@@ -209,7 +198,8 @@ function StatCard({ label, value, sub, color = 'text-[var(--foreground)]' }: Sta
 
 export default function PaperTradingPage() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [prices, setPrices] = useState<Record<string, number>>(BASE_PRICES);
+  const [prices, setPrices] = useState<Record<string, number>>(INITIAL_PRICES);
+  const [priceSource, setPriceSource] = useState<string>('loading');
   const [signals, setSignals] = useState<Signal[]>([]);
 
   // Form state
@@ -261,21 +251,30 @@ export default function PaperTradingPage() {
   }, [fetchPortfolio, fetchSignals]);
 
   // ---------------------------------------------------------------------------
-  // Price simulation
+  // Live price fetching from /api/prices
   // ---------------------------------------------------------------------------
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      setPrices((prev) => {
-        const next: Record<string, number> = {};
-        for (const sym of SYMBOLS) {
-          next[sym] = noisyPrice(sym, prev[sym] ?? BASE_PRICES[sym] ?? 1);
-        }
-        return next;
-      });
-    }, 2500);
-    return () => clearInterval(id);
+  const fetchPrices = useCallback(async () => {
+    try {
+      const res = await fetch('/api/prices');
+      if (!res.ok) return;
+      const data = await res.json() as { prices: Record<string, { price: number; source: string }>, stale?: boolean };
+      const next: Record<string, number> = {};
+      for (const [sym, info] of Object.entries(data.prices)) {
+        next[sym] = info.price;
+      }
+      setPrices(next);
+      setPriceSource(data.stale ? 'fallback' : 'live');
+    } catch {
+      setPriceSource('unavailable');
+    }
   }, []);
+
+  useEffect(() => {
+    fetchPrices();
+    const id = setInterval(fetchPrices, 15000);
+    return () => clearInterval(id);
+  }, [fetchPrices]);
 
   // ---------------------------------------------------------------------------
   // Auto SL/TP close
@@ -508,6 +507,14 @@ export default function PaperTradingPage() {
         </button>
       </div>
 
+      {priceSource === 'fallback' && (
+        <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-2">
+          <p className="max-w-7xl mx-auto text-xs text-amber-400/80 font-mono">
+            &#x26A0;&#xFE0F; Using cached prices — live price feed unavailable
+          </p>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 py-6 pb-20 md:pb-6 space-y-6">
 
         {/* Account summary */}
@@ -552,7 +559,7 @@ export default function PaperTradingPage() {
               >
                 {SYMBOLS.map((s) => (
                   <option key={s} value={s} className="bg-zinc-900">
-                    {s} — {fmtPrice(prices[s] ?? BASE_PRICES[s] ?? 0)}
+                    {s} — {fmtPrice(prices[s] ?? INITIAL_PRICES[s] ?? 0)}
                   </option>
                 ))}
               </select>
@@ -603,7 +610,7 @@ export default function PaperTradingPage() {
 
             <div className="pt-1">
               <div className="text-[10px] text-[var(--text-secondary)] font-mono mb-2">
-                Current: {fmtPrice(prices[symbol] ?? BASE_PRICES[symbol] ?? 0)}
+                Current: {fmtPrice(prices[symbol] ?? INITIAL_PRICES[symbol] ?? 0)}
               </div>
               <button
                 onClick={handleOpenPosition}
@@ -713,8 +720,14 @@ export default function PaperTradingPage() {
               </label>
             </div>
 
+            {priceSource === 'fallback' && (
+              <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 mb-3">
+                <p className="text-[10px] text-amber-400/80 font-mono">&#x26A0;&#xFE0F; Using cached prices — live feed unavailable</p>
+              </div>
+            )}
+
             {signals.length === 0 ? (
-              <div className="text-center py-8 text-xs text-[var(--text-secondary)]">No signals available</div>
+              <div className="text-center py-8 text-xs text-[var(--text-secondary)]">Waiting for first live signal to start paper trading</div>
             ) : (
               <div className="space-y-2">
                 {signals.map((sig) => (

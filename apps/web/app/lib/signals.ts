@@ -34,8 +34,12 @@ export const TIMEFRAMES = ['M15', 'H1', 'H4', 'D1'] as const;
 
 // generateSignalId and clamp are now imported from @tradeclaw/signals
 
-// ─── Fallback: Random signal generation (original code) ─────
+// ─── DEPRECATED: Random signal fallback ─────────────────────
+// These functions generate synthetic indicators using Math.random().
+// They are NOT used by getSignals() — the live path uses the real TA engine.
+// Kept only for offline/dev testing. Never show output as real data.
 
+/** @deprecated Use calculateAllIndicators() from ta-engine instead */
 export function generateIndicators(price: number, direction: 'BUY' | 'SELL', volatility: number): IndicatorSummary {
   const rsiValue = direction === 'BUY'
     ? clamp(25 + Math.random() * 20, 15, 45)
@@ -87,6 +91,7 @@ export function generateIndicators(price: number, direction: 'BUY' | 'SELL', vol
   };
 }
 
+/** @deprecated Use getSignals() which routes through the real TA engine */
 export function generateSignal(symbolConfig: typeof SYMBOLS[0], livePrice?: number): TradingSignal {
   const direction = Math.random() > 0.5 ? 'BUY' : 'SELL';
   const base = livePrice ?? symbolConfig.basePrice;

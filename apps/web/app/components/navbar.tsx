@@ -41,7 +41,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/calendar', label: 'Calendar', icon: Calendar },
       { href: '/calibration', label: 'Calibration' },
       { href: '/results', label: 'Results', icon: Trophy },
-      { href: '/broker-sim', label: 'Broker Sim', icon: Plug },
+      { href: '/broker-sim', label: 'Broker Sim (Demo)', icon: Plug },
       { href: '/exchanges', label: 'Exchanges', icon: Globe },
       { href: '/today', label: 'Signal of the Day', icon: Zap },
       { href: '/sentiment', label: 'Sentiment', icon: TrendingUp },

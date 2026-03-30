@@ -130,8 +130,16 @@ export function AccuracyClient() {
         </p>
       </div>
 
+      {/* Empty state when no real data yet */}
+      {stats && stats.totalSignals === 0 && !loading && (
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 px-6 py-12 text-center">
+          <p className="text-sm text-zinc-400 mb-1">No signal history yet</p>
+          <p className="text-xs text-zinc-600">Accuracy tracking will populate as signals are recorded. Visit the <a href="/dashboard" className="text-emerald-400 hover:underline">Dashboard</a> to start generating signals.</p>
+        </div>
+      )}
+
       {/* Stats Cards */}
-      {stats && (
+      {stats && stats.totalSignals > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard label="Total Signals" value={stats.totalSignals.toString()} />
           <StatCard
@@ -157,7 +165,7 @@ export function AccuracyClient() {
       )}
 
       {/* Win Rate Bar */}
-      {stats && stats.resolved > 0 && (
+      {stats && stats.totalSignals > 0 && stats.resolved > 0 && (
         <div className="glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-zinc-500 uppercase tracking-wider">Win / Loss Distribution</span>
