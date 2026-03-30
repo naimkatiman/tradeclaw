@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace=apps/web",
-    "build": "npm run build --workspace=apps/web",
+    "build": "npm run build --workspace=packages/signals && npm run build --workspace=apps/web",
     "build:signals": "npm run build --workspace=packages/signals",
     "build:agent": "npm run build --workspace=packages/agent",
     "build:all": "npm run build:signals && npm run build:agent && npm run build",

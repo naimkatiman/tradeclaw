@@ -1099,9 +1099,14 @@ tasks:
 
   - id: TC-127
     title: "Strategy performance tournament — /tournament page: 5 built-in strategies (RSI Reversion, MACD Trend, EMA Ribbon, BB Squeeze, Multi-TF Confluence) compete in a 90-day backtest league bracket. Visual bracket diagram, daily P&L race chart (canvas), live winner badge, share tournament result card. High shareability."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: lib/tournament-data.ts (5 strategies, seeded PRNG 90-day simulation, ranked 1-5 by totalReturn).
+      GET /api/tournament (revalidate 3600, CORS *). /tournament page (TournamentClient.tsx) —
+      trophy podium (CSS animated 1st/2nd/3rd), full bracket table, 800x300 DPR-aware canvas P&L race chart
+      (5 color-coded equity curves), winner highlight card, share tweet CTA, GitHub star CTA.
+      Trophy icon in navbar Tools group + mobile nav + sitemap. 0 lint errors. Build passes. Committed 78bf3bfc. 2026-03-30
 
   - id: TC-128
     title: "Live portfolio signal scanner — /portfolio page: user inputs their holdings (e.g. BTC 0.5, ETH 2, XAU 10g) with localStorage persistence, gets a real-time TradeClaw signal alignment score per asset (BUY = good, SELL = caution, HOLD = neutral), portfolio-wide signal consensus gauge, export as JSON. Practical utility drives word-of-mouth."

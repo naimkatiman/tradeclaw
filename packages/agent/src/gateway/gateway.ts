@@ -18,6 +18,7 @@ export class Gateway {
   private skillLoader: SkillLoader;
   private latestSignals: TradingSignal[] = [];
   private startTime: Date | null = null;
+  private initialized = false;
 
   constructor() {
     const skillsDir = join(process.cwd(), 'skills');
@@ -56,9 +57,12 @@ export class Gateway {
   }
 
   async scanOnce(configPath?: string): Promise<TradingSignal[]> {
-    this.config = await loadConfig(configPath);
-    await this.initChannels();
-    await this.initSkills();
+    if (!this.initialized) {
+      this.config = await loadConfig(configPath);
+      await this.initChannels();
+      await this.initSkills();
+      this.initialized = true;
+    }
 
     const signals = await this.performScan();
     return signals;

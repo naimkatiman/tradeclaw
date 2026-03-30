@@ -8,6 +8,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/core/package.json ./packages/core/
+COPY packages/signals/package.json ./packages/signals/
 
 RUN npm ci
 
