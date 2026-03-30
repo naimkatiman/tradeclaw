@@ -1001,9 +1001,15 @@ tasks:
 
   - id: TC-118
     title: "Docker Hub publish script + /hub page — scripts/dockerhub-publish.sh that builds multi-platform image (linux/amd64,linux/arm64) and pushes tradeclaw/tradeclaw:latest. /hub page showing docker pull tradeclaw/tradeclaw, platform support badges, layer count, image size. DockerHub = passive discoverability for self-hosters."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: scripts/dockerhub-publish.sh (bash, --dry-run/--help flags, buildx multi-platform,
+      date tag, color-coded output, OCI labels). apps/web/app/hub/page.tsx + HubClient.tsx
+      (hero with pull command + copy, platform badges, Docker Hub link, quick-start 3 commands,
+      image details table, 3 benefits, tag strategy, publish-your-own section, GitHub star CTA).
+      Navbar Tools group + mobile-nav Tools section + sitemap + README Docker Hub badge/section updated.
+      Build passes 187 pages. 0 lint errors. Committed 1ce3db5c. 2026-03-30
 
   - id: TC-119
     title: "Brand consistency + live signal polish — unify TradeClaw icon across favicon/README/landing, use live candle wording for outcomes, and split 70%+ published signals from sub-70 watchlist setups."
@@ -1019,7 +1025,7 @@ tasks:
       granularity by timeframe. Build passes 184 pages. 2026-03-30.
 
 next_actions:
-  - "Phase 23 defined (TC-116 to TC-119). Start with TC-116 next run."
+  - "TC-118 done. TC-119 (brand consistency) is done. All Phase 23 tasks complete — define Phase 24 next run."
   - "If profitability claims are needed later, build audited forward-performance tracking for live signals."
   - "Replace seed-heavy accuracy UX with live-only metrics once enough tracked signal records accumulate."
   - "Add test suite (currently zero tests for 100+ pages)."
