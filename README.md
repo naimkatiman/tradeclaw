@@ -19,6 +19,8 @@
 
 **[🚀 Live Demo](https://tradeclaw.win/dashboard)** · **[📡 API Docs](https://tradeclaw.win/api-docs)** · **[🤝 Contribute](https://tradeclaw.win/contribute)**
 
+🌍 **English** | [中文](README.zh.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [All languages](LANGUAGES.md)
+
 </div>
 
 ---
