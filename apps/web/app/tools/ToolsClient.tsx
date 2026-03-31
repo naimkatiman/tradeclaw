@@ -361,7 +361,7 @@ export default function ToolsClient() {
   const router = useRouter();
   const initialTab = (searchParams.get("tool") as TabKey) || "rsi";
   const [activeTab, setActiveTab] = useState<TabKey>(TABS.some((t) => t.key === initialTab) ? initialTab : "rsi");
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const updateURL = useCallback(
     (tab: TabKey) => {
