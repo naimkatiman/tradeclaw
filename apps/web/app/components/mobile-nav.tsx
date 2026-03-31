@@ -419,6 +419,17 @@ const MENU_SECTIONS: MenuSection[] = [
           </svg>
         ),
       },
+      {
+        href: '/examples',
+        label: 'Bot Examples',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 16l4-4-4-4" />
+            <path d="M6 8l-4 4 4 4" />
+            <path d="M14.5 4l-5 16" />
+          </svg>
+        ),
+      },
     ],
   },
   {

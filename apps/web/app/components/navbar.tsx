@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, UserCheck, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Shield, ShieldCheck, TrendingUp, Flame, Share2, GitBranch, ShoppingBag, Calendar, BookOpen, Box, Newspaper, BarChart2, Calculator, Map, Briefcase, FlaskConical, Building2 } from 'lucide-react';
+import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, UserCheck, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Code2, Shield, ShieldCheck, TrendingUp, Flame, Share2, GitBranch, ShoppingBag, Calendar, BookOpen, Box, Newspaper, BarChart2, Calculator, Map, Briefcase, FlaskConical, Building2 } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import type { LucideIcon } from 'lucide-react';
 
@@ -74,6 +74,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/hub', label: 'Docker Hub', icon: Box },
       { href: '/confidence', label: 'Confidence Calc', icon: Calculator },
       { href: '/tools', label: 'Calculators', icon: Calculator },
+      { href: '/examples', label: 'Bot Examples', icon: Code2 },
       { href: '/tournament', label: 'Tournament', icon: Trophy },
     ],
   },
