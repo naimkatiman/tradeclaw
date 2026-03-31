@@ -11,7 +11,8 @@ const SYMBOL_MAP: Record<string, string> = {
   cardano: 'ADAUSD',
 };
 
-// Fallback prices when APIs are unavailable — updated Mar 2026
+// Fallback prices when ALL APIs are unavailable — snapshot date below
+const FALLBACK_DATE = '2026-03-15';
 const FALLBACK_PRICES: Record<string, number> = {
   BTCUSD: 70798,
   ETHUSD: 2147.53,
@@ -135,7 +136,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       count: Object.keys(prices).length,
       prices,
-      ...(hasFallback && { stale: true }),
+      ...(hasFallback && { stale: true, fallbackDate: FALLBACK_DATE }),
     });
   } catch {
     // Return fallback prices if everything fails
@@ -148,6 +149,7 @@ export async function GET() {
       count: Object.keys(fallback).length,
       prices: fallback,
       stale: true,
+      fallbackDate: FALLBACK_DATE,
     });
   }
 }

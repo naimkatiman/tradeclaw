@@ -112,6 +112,14 @@ export async function GET() {
     fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false', { next: { revalidate: 300 }, signal: AbortSignal.timeout(5000) }).then(r => r.json()) as Promise<MarketCoin[]>,
   ]);
 
+  // Track which data sources are live vs fallback
+  const sources: Record<string, 'live' | 'mock'> = {
+    fearGreed: 'mock',
+    globalMarket: 'mock',
+    trendingCoins: 'mock',
+    topCoins: 'mock',
+  };
+
   // Fear & Greed
   let fearGreed = { value: Number(MOCK_FEAR_GREED.value), classification: MOCK_FEAR_GREED.value_classification };
   let fearGreedHistory = generateMockHistory().map(e => ({ value: Number(e.value), classification: e.value_classification, timestamp: Number(e.timestamp) }));
@@ -119,6 +127,7 @@ export async function GET() {
     const d = fngResult.value.data;
     fearGreed = { value: Number(d[0].value), classification: d[0].value_classification };
     fearGreedHistory = d.map(e => ({ value: Number(e.value), classification: e.value_classification, timestamp: Number(e.timestamp) }));
+    sources.fearGreed = 'live';
   }
 
   // Global market
@@ -135,6 +144,7 @@ export async function GET() {
       altcoinDominance: Math.round((100 - btcDom - ethDom) * 10) / 10,
       marketCapChange24h: g.market_cap_change_percentage_24h_usd ?? 2.3,
     };
+    sources.globalMarket = 'live';
   }
 
   // Trending coins
@@ -147,13 +157,17 @@ export async function GET() {
       thumb: c.item.thumb,
       score: c.item.score,
     }));
+    sources.trendingCoins = 'live';
   }
 
   // Top coins
   let topCoins = MOCK_TOP_COINS;
   if (marketsResult.status === 'fulfilled' && Array.isArray(marketsResult.value) && marketsResult.value.length) {
     topCoins = marketsResult.value.slice(0, 10);
+    sources.topCoins = 'live';
   }
 
-  return NextResponse.json({ fearGreed, fearGreedHistory, globalMarket, trendingCoins, topCoins });
+  const hasMock = Object.values(sources).some(s => s === 'mock');
+
+  return NextResponse.json({ fearGreed, fearGreedHistory, globalMarket, trendingCoins, topCoins, sources, ...(hasMock && { mock: true }) });
 }

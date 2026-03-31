@@ -13,6 +13,7 @@ export interface ConsensusEntry {
   avgBuyConfidence: number;
   avgSellConfidence: number;
   trend24h: 'UP' | 'DOWN' | 'FLAT'; // vs 24h prior snapshot
+  source: 'live' | 'synthetic'; // whether data comes from real signals or is algorithmically generated
 }
 
 export interface ConsensusResponse {
@@ -24,6 +25,7 @@ export interface ConsensusResponse {
   totalBuySignals: number;
   totalSellSignals: number;
   updatedAt: string;
+  hasSynthetic: boolean; // true if any entries use synthetic fallback data
 }
 
 const CONSENSUS_PAIRS = [
@@ -76,6 +78,7 @@ export async function GET() {
           avgBuyConfidence: 65 + (seed % 20),
           avgSellConfidence: 60 + ((seed * 2) % 20),
           trend24h: getTrend24h(pair, buyRatio),
+          source: 'synthetic' as const,
         };
       }
 
@@ -104,6 +107,7 @@ export async function GET() {
         avgBuyConfidence: Math.round(avgBuyConfidence),
         avgSellConfidence: Math.round(avgSellConfidence),
         trend24h: getTrend24h(pair, buyRatio),
+        source: 'live' as const,
       };
     });
 
@@ -120,6 +124,8 @@ export async function GET() {
       Math.abs(a.buyRatio - 0.5) - Math.abs(b.buyRatio - 0.5)
     )[0]?.pair ?? 'EURUSD';
 
+    const hasSynthetic = entries.some(e => e.source === 'synthetic');
+
     const response: ConsensusResponse = {
       entries,
       overallBullish,
@@ -129,6 +135,7 @@ export async function GET() {
       totalBuySignals,
       totalSellSignals,
       updatedAt: new Date().toISOString(),
+      hasSynthetic,
     };
 
     return NextResponse.json(response, {
