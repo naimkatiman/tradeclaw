@@ -52,7 +52,7 @@ const WEIGHTS = {
 
 const SIGNAL_THRESHOLD = 25; // Minimum score to generate a signal
 const MIN_CONFIDENCE = 58; // Below 58% is noise — do not emit
-const MIN_DIRECTIONAL_EDGE = 15; // Need bigger score gap between buy/sell
+const MIN_DIRECTIONAL_EDGE = 8; // Need bigger score gap between buy/sell
 const MIN_TREND_STRENGTH = 0.08;
 const MIN_ATR_PCT = 0.0003;
 const MIN_BB_WIDTH = 0.3;
@@ -227,7 +227,7 @@ function passesDirectionGate(
   const { rsi, macd, stochastic } = indicators;
   const scoreEdge = score - opposingScore;
 
-  if (scoreEdge < MIN_DIRECTIONAL_EDGE || quality.isChoppy) {
+  if (scoreEdge < MIN_DIRECTIONAL_EDGE) {  // removed isChoppy gate — too aggressive
     return { passes: false, confidenceBoost: 0 };
   }
 
@@ -590,8 +590,8 @@ export function generateSignalsFromTA(
   const marketQuality = analyzeMarketQuality(indicators, currentPrice, atr);
 
   // Skip if market is choppy AND trend is weak
-  if (marketQuality.isChoppy && Math.abs(marketQuality.trendStrength) < 0.15) {
-    return signals;
+  if (marketQuality.isChoppy && Math.abs(marketQuality.trendStrength) < 0.05) {
+    return signals;  // only block extreme chop
   }
 
   const publishedAt = new Date(signalTimestamp).toISOString();
