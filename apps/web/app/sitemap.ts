@@ -48,5 +48,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/proof`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.9 },
     { url: `${base}/tools`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/examples`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/report`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
   ];
 }
