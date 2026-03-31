@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, UserCheck, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Code2, Shield, ShieldCheck, TrendingUp, Flame, Share2, GitBranch, ShoppingBag, Calendar, BookOpen, Box, Newspaper, BarChart2, Calculator, Map, Briefcase, FlaskConical, Building2 } from 'lucide-react';
+import { Play, Thermometer, ChevronDown, Activity, ShoppingBag, Briefcase, FlaskConical } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { TradeClawLogo } from '../../components/tradeclaw-logo';
 import type { LucideIcon } from 'lucide-react';
@@ -16,10 +16,7 @@ interface NavLink {
 const PRIMARY_LINKS: NavLink[] = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/screener', label: 'Signals' },
-  { href: '/demo', label: 'Live Demo' },
   { href: '/backtest', label: 'Backtest' },
-  { href: '/how-it-works', label: 'Getting Started' },
-  { href: '/compare', label: 'Compare' },
 ];
 
 interface DropdownGroup {
@@ -31,88 +28,23 @@ const MORE_GROUPS: DropdownGroup[] = [
   {
     label: 'Trading',
     links: [
-      { href: '/how-it-works', label: 'How It Works' },
       { href: '/heatmap', label: 'Heatmap', icon: Thermometer },
-      { href: '/multi-timeframe', label: 'Multi-Timeframe' },
       { href: '/paper-trading', label: 'Paper Trading' },
-      { href: '/replay', label: 'Replay', icon: Play },
-      { href: '/correlation', label: 'Correlation' },
       { href: '/alerts', label: 'Alerts' },
-      { href: '/accuracy', label: 'Accuracy' },
-      { href: '/calendar', label: 'Calendar', icon: Calendar },
-      { href: '/calibration', label: 'Calibration' },
-      { href: '/results', label: 'Results', icon: Trophy },
-      { href: '/broker-sim', label: 'Broker Sim (Demo)', icon: Plug },
-      { href: '/exchanges', label: 'Exchanges', icon: Globe },
-      { href: '/brokers', label: 'Brokers', icon: Building2 },
-      { href: '/today', label: 'Signal of the Day', icon: Zap },
-      { href: '/sentiment', label: 'Sentiment', icon: TrendingUp },
-      { href: '/news', label: 'News', icon: Newspaper },
-      { href: '/consensus', label: 'Consensus', icon: BarChart2 },
-      { href: '/tradingview-alerts', label: 'TV Alerts', icon: Zap },
-      { href: '/portfolio', label: 'Portfolio Scanner', icon: Briefcase },
+      { href: '/multi-timeframe', label: 'Multi-TF' },
+      { href: '/replay', label: 'Replay', icon: Play },
+      { href: '/portfolio', label: 'Portfolio', icon: Briefcase },
     ],
   },
   {
     label: 'Tools',
     links: [
       { href: '/strategy-builder', label: 'Strategy Builder' },
-      { href: '/indicators/builder', label: 'Indicator Builder', icon: FlaskConical },
-      { href: '/pine-to-tradeclaw', label: 'Pine Importer', icon: Code },
-      { href: '/roast', label: 'Roast Strategy', icon: Flame },
-      { href: '/plugins', label: 'Plugins' },
-      { href: '/badge', label: 'Badges Gallery' },
-      { href: '/widgets', label: 'Widgets', icon: LayoutDashboard },
-      { href: '/marketplace', label: 'Webhook Mkt' },
-      { href: '/strategies/marketplace', label: 'Marketplace', icon: ShoppingBag },
-      { href: '/readme-score', label: 'README Score', icon: Star },
+      { href: '/indicators/builder', label: 'Indicators', icon: FlaskConical },
       { href: '/api-keys', label: 'API Keys' },
-      { href: '/proof', label: 'Signal Proof', icon: ShieldCheck },
+      { href: '/strategies/marketplace', label: 'Marketplace', icon: ShoppingBag },
+      { href: '/plugins', label: 'Plugins' },
       { href: '/status', label: 'Status', icon: Activity },
-      { href: '/digest', label: 'Digest', icon: Clock },
-      { href: '/wrapped', label: 'Wrapped', icon: Gift },
-      { href: '/github-action', label: 'GitHub Action', icon: GitBranch },
-      { href: '/hub', label: 'Docker Hub', icon: Box },
-      { href: '/confidence', label: 'Confidence Calc', icon: Calculator },
-      { href: '/tools', label: 'Calculators', icon: Calculator },
-      { href: '/examples', label: 'Bot Examples', icon: Code2 },
-      { href: '/tournament', label: 'Tournament', icon: Trophy },
-    ],
-  },
-  {
-    label: 'Community',
-    links: [
-      { href: '/blog', label: 'Blog' },
-      { href: '/widget', label: 'Widget', icon: MonitorSmartphone },
-      { href: '/showcase', label: 'Showcase', icon: Users },
-      { href: '/contribute', label: 'Contribute', icon: Handshake },
-      { href: '/sponsor', label: 'Sponsor', icon: Heart },
-      { href: '/awesome', label: 'Awesome Lists' },
-      { href: '/og-preview', label: 'Signal Card', icon: Share2 },
-      { href: '/playground', label: 'Playground' },
-      { href: '/email-digest', label: 'Email Digest', icon: Mail },
-      { href: '/slack', label: 'Slack', icon: Hash },
-      { href: '/threads', label: 'Tweet Threads' },
-      { href: '/post-thread', label: 'Post Thread' },
-      { href: '/share', label: 'Share', icon: Star },
-      { href: '/star', label: 'Star Us', icon: Star },
-      { href: '/stars', label: 'Stars', icon: Sparkles },
-      { href: '/hn', label: 'HN', icon: Circle },
-      { href: '/rss', label: 'RSS', icon: Radio },
-      { href: '/waitlist', label: 'Waitlist', icon: Clock },
-      { href: '/launch', label: 'Launch', icon: Rocket },
-      { href: '/vs-tradingview', label: 'vs TradingView' },
-      { href: '/demo/telegram', label: 'Telegram Demo', icon: Play },
-      { href: '/discord', label: 'Discord Bot', icon: MessageCircle },
-      { href: '/discord/server', label: 'Discord Community', icon: MessageCircle },
-      { href: '/devto', label: 'Dev.to Article', icon: BookOpen },
-      { href: '/notion', label: 'Notion Sync', icon: Database },
-      { href: '/zapier', label: 'Zapier', icon: Zap },
-      { href: '/quiz', label: 'Trader Quiz', icon: HelpCircle },
-      { href: '/contributors', label: 'Contributors', icon: Trophy },
-      { href: '/security', label: 'Security', icon: Shield },
-      { href: '/users', label: 'User Wall', icon: UserCheck },
-      { href: '/roadmap', label: 'Roadmap', icon: Map },
     ],
   },
 ];
@@ -180,12 +112,6 @@ export function Navbar() {
                 href={link.href}
                 className="hover:text-[var(--foreground)] transition-colors duration-300 flex items-center gap-1.5"
               >
-                {link.label === 'Live Demo' && (
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
-                  </span>
-                )}
                 {link.label}
               </Link>
             ))}
@@ -201,7 +127,7 @@ export function Navbar() {
               </button>
 
               {moreOpen && (
-                <div className="absolute top-full right-0 mt-3 w-[480px] rounded-2xl border border-[var(--border)] backdrop-blur-2xl bg-[var(--bg-card)]/95 shadow-2xl shadow-black/40 p-5 grid grid-cols-3 gap-6">
+                <div className="absolute top-full right-0 mt-3 w-[340px] rounded-2xl border border-[var(--border)] backdrop-blur-2xl bg-[var(--bg-card)]/95 shadow-2xl shadow-black/40 p-5 grid grid-cols-2 gap-6">
                   {MORE_GROUPS.map((group) => (
                     <div key={group.label}>
                       <span className="text-[10px] uppercase tracking-widest text-[var(--text-secondary)] font-semibold mb-2 block">

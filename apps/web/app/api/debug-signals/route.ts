@@ -15,7 +15,7 @@ export async function GET() {
     const signals = generateSignalsFromTA("BTCUSD", indicators, "H1", "real", Date.now());
     return NextResponse.json({
       ohlcv: { count: candles.length, source, lastClose: candles.at(-1)?.close },
-      indicators: { rsi: indicators.rsi?.value, macd: indicators.macd?.histogram, ema20: indicators.ema?.ema20 },
+      indicators: { rsi: indicators.rsi?.current, macd: indicators.macd?.histogram, ema20: indicators.ema?.ema20 },
       rawScores: { buyScore: signals.length > 0 ? "has signals" : "no signals" },
       signals: signals.length,
       signalDetails: signals.map(s => ({ direction: s.direction, confidence: s.confidence })),

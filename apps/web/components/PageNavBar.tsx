@@ -5,14 +5,13 @@ import { usePathname } from 'next/navigation';
 import { TradeClawLogo } from './tradeclaw-logo';
 
 const NAV_PAGES = [
-  { href: '/dashboard', label: 'Signals' },
-  { href: '/screener', label: 'Screener' },
-  { href: '/paper-trading', label: 'Paper Trade' },
-  { href: '/backtest', label: 'Backtest' },
-  { href: '/leaderboard', label: 'Leaderboard' },
-  { href: '/strategy-builder', label: 'Strategy' },
-  { href: '/multi-timeframe', label: 'Multi-TF' },
-  { href: '/how-it-works', label: 'Getting Started' },
+  { href: '/dashboard', label: 'Signals', tourId: undefined },
+  { href: '/screener', label: 'Screener', tourId: undefined },
+  { href: '/leaderboard', label: 'Leaderboard', tourId: 'nav-leaderboard' as const },
+  { href: '/backtest', label: 'Backtest', tourId: undefined },
+  { href: '/strategy-builder', label: 'Strategy', tourId: 'nav-strategy-builder' as const },
+  { href: '/multi-timeframe', label: 'Multi-TF', tourId: 'nav-multi-timeframe' as const },
+  { href: '/paper-trading', label: 'Paper Trade', tourId: 'nav-paper-trading' as const },
 ];
 
 export function PageNavBar() {
@@ -35,6 +34,7 @@ export function PageNavBar() {
               key={page.href}
               href={page.href}
               aria-current={isActive(page.href) ? 'page' : undefined}
+              {...(page.tourId ? { 'data-tour-id': page.tourId } : {})}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                 isActive(page.href)
                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
