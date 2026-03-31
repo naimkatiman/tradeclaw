@@ -53,8 +53,8 @@ const WEIGHTS = {
 const SIGNAL_THRESHOLD = 25; // Minimum score to generate a signal
 const MIN_CONFIDENCE = 58; // Below 58% is noise — do not emit
 const MIN_DIRECTIONAL_EDGE = 8; // Need bigger score gap between buy/sell
-const MIN_TREND_STRENGTH = 0.08;
-const MIN_ATR_PCT = 0.0003;
+const MIN_TREND_STRENGTH = 0.03;  // reduced — 0.08 blocked signals in sideways markets
+const MIN_ATR_PCT = 0.0001;  // reduced threshold
 const MIN_BB_WIDTH = 0.3;
 const MIN_RISK_ATR = 0.8;
 const MAX_RISK_ATR = 4.0;
@@ -231,9 +231,7 @@ function passesDirectionGate(
     return { passes: false, confidenceBoost: 0 };
   }
 
-  if (quality.trendStrength < MIN_TREND_STRENGTH || quality.atrPct < MIN_ATR_PCT) {
-    return { passes: false, confidenceBoost: 0 };
-  }
+  // Note: trendStrength/atrPct gate removed — too aggressive in low-vol markets
 
   // ADX directional confirmation: +DI > -DI for BUY, -DI > +DI for SELL
   // Penalizes confidence instead of hard-rejecting
