@@ -23,7 +23,7 @@
 
 > RSI · MACD · EMA · Bollinger · Stochastic — 5-indicator confluence. Live signals for BTC, ETH, Gold, Forex. Deploy in 60 seconds, no subscription required.
 
-![TradeClaw Signals Demo](https://raw.githubusercontent.com/naimkatiman/tradeclaw/main/apps/web/public/demo-signals-animated.svg)
+![TradeClaw Signals Demo](https://raw.githubusercontent.com/naimkatiman/tradeclaw/main/apps/web/public/demo.gif)
 
 ## Try it now — no install
 
