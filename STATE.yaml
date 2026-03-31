@@ -1221,9 +1221,9 @@ tasks:
 
   - id: TC-138
     title: "Self-hosting cost benchmark page — /benchmark: 'TradeClaw on a $4/mo VPS vs $200/mo SaaS'. Animated cost comparison (TradeClaw=free vs TradingView/$60/mo vs 3Commas/$99/mo vs Cryptohopper/$99/mo). Annual savings calculator (input: which SaaS you use). Viral for r/selfhosted and HN crowd."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Complete: /benchmark page with animated cost cards, annual savings calculator, feature comparison table, social proof kit (Reddit/Twitter copy buttons), Deploy CTA. Navbar/sitemap updated. 0 lint errors. Committed 2911a561. 2026-04-01"
 
   - id: TC-139
     title: "Live activity feed widget — /live page with real-time marquee of signals being generated across all assets (SSE-powered), 'X signals fired in last hour' live counter, and an embeddable <script> widget for external blogs/sites. Makes TradeClaw feel alive. Landing page integration."
