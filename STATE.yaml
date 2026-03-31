@@ -1192,9 +1192,9 @@ tasks:
 
   - id: TC-135
     title: "Mini-tools collection — /tools page with 5 standalone calculators: RSI calculator, Position Size calculator, Risk:Reward calculator, Pip calculator, Fibonacci levels. Each shareable via URL params. Drives organic search traffic and Reddit/Twitter shareability."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Complete: /tools page (ToolsClient.tsx, 528 lines) with 5 tab-based calculators (RSI, Position Size, R:R, Pip, Fibonacci). URL params shareable. Navbar/mobile-nav/sitemap wired. 0 lint errors. Build passes 207 pages. Committed 5d1e4ccf. 2026-03-31"
 
   - id: TC-136
     title: "Copy-paste trading bot examples — /examples page with 5 working bots (Python, Node.js, bash, curl, Go) that use TradeClaw's public API to fetch signals and send Telegram alerts. Real runnable code devs can copy. Each example is a GitHub Gist-style card with syntax highlighting and run instructions."
