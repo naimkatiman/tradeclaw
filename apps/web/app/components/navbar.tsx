@@ -73,6 +73,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/github-action', label: 'GitHub Action', icon: GitBranch },
       { href: '/hub', label: 'Docker Hub', icon: Box },
       { href: '/confidence', label: 'Confidence Calc', icon: Calculator },
+      { href: '/tools', label: 'Calculators', icon: Calculator },
       { href: '/tournament', label: 'Tournament', icon: Trophy },
     ],
   },

@@ -1177,15 +1177,54 @@ tasks:
 
   - id: TC-134
     title: "TradeClaw signal performance proof page — /proof: shows ONLY real tracked signals (not seeded) from tracked-signals.ts with live price outcome verification. Displays running P&L, win rate, and 'signal resolved at [price] on [time]' proof chain. The honest trust anchor."
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: /api/proof endpoint (filters isSimulated:false, computes win rates 4h/24h,
+      running P&L, open/resolved counts). /proof page (ProofClient.tsx) — hero with ShieldCheck,
+      4 stat cards, filter tabs (all/BUY/SELL/resolved/open), sort (newest/confidence/pnl),
+      per-signal outcome badges showing resolved price + P&L%, proof chain summary card,
+      methodology transparency note. Empty state for when no real signals yet tracked.
+      Navbar Tools group + mobile-nav + sitemap updated. 0 lint errors. Build passes 206 pages.
+      Committed b9f69f41. 2026-03-31
+
+  # ── Phase 27: Star Acceleration — Real Utility + Distribution ──
+
+  - id: TC-135
+    title: "Mini-tools collection — /tools page with 5 standalone calculators: RSI calculator, Position Size calculator, Risk:Reward calculator, Pip calculator, Fibonacci levels. Each shareable via URL params. Drives organic search traffic and Reddit/Twitter shareability."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-136
+    title: "Copy-paste trading bot examples — /examples page with 5 working bots (Python, Node.js, bash, curl, Go) that use TradeClaw's public API to fetch signals and send Telegram alerts. Real runnable code devs can copy. Each example is a GitHub Gist-style card with syntax highlighting and run instructions."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-137
+    title: "Weekly GitHub pulse — .github/workflows/weekly-report.yml that auto-creates a GitHub Discussion every Monday with weekly stats (signals generated, top asset, accuracy, new contributors). Makes repo look alive to GitHub trending algorithm. Plus /report page showing same stats."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-138
+    title: "Self-hosting cost benchmark page — /benchmark: 'TradeClaw on a $4/mo VPS vs $200/mo SaaS'. Animated cost comparison (TradeClaw=free vs TradingView/$60/mo vs 3Commas/$99/mo vs Cryptohopper/$99/mo). Annual savings calculator (input: which SaaS you use). Viral for r/selfhosted and HN crowd."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-139
+    title: "Live activity feed widget — /live page with real-time marquee of signals being generated across all assets (SSE-powered), 'X signals fired in last hour' live counter, and an embeddable <script> widget for external blogs/sites. Makes TradeClaw feel alive. Landing page integration."
     status: pending
     owner: pm-tradeclaw
     notes: ""
 
 next_actions:
-  - "Phase 26 defined. TC-130 is next — custom indicator builder fills biggest feature gap."
+  - "Phase 27 defined. TC-135 is next — mini-tools collection for organic search traffic."
   - "Migrate file-based JSON storage to PostgreSQL for production self-hosters."
   - "Deploy live demo instance and validate Docker Compose end-to-end."
-  - "Add test suite (currently zero tests for 100+ pages)."
+  - "Add test suite (currently zero tests for 200+ pages)."
 
   # ── Phase 13: Distribution + Developer Ecosystem ──
 

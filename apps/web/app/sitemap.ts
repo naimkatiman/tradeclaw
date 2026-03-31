@@ -46,5 +46,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/indicators/builder`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/discord/server`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/proof`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.9 },
+    { url: `${base}/tools`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
   ];
 }
