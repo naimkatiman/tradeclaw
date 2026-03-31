@@ -46,13 +46,13 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/plugins', label: 'Plugins' },
       { href: '/status', label: 'Status', icon: Activity },
       { href: '/benchmark', label: 'Cost Benchmark', icon: Server },
+      { href: '/live', label: 'Live Feed', icon: Activity },
     ],
   },
   {
     label: 'Community',
     links: [
       { href: '/report', label: 'Weekly Report', icon: BarChart2 },
-      { href: '/live', label: 'Live Feed' },
       { href: '/share', label: 'Share' },
       { href: '/contribute', label: 'Contribute' },
       { href: '/discord/server', label: 'Discord' },
