@@ -16,6 +16,8 @@ import {
   ChevronUp,
   ExternalLink,
   Zap,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -56,14 +58,15 @@ interface FeatureRow {
 }
 
 const FEATURE_ROWS: FeatureRow[] = [
-  { feature: 'Live Signals', tc: true, tv: 'partial', threeC: true, ch: true },
-  { feature: 'Backtesting', tc: true, tv: true, threeC: 'partial', ch: 'partial' },
-  { feature: 'Custom Indicators', tc: true, tv: true, threeC: false, ch: false },
-  { feature: 'API Access', tc: true, tv: 'partial', threeC: true, ch: true },
-  { feature: 'No Rate Limits', tc: true, tv: false, threeC: false, ch: false },
+  { feature: 'Open Source', tc: true, tv: false, threeC: false, ch: false },
   { feature: 'Self-hosted', tc: true, tv: false, threeC: false, ch: false },
-  { feature: 'Privacy (your data stays yours)', tc: true, tv: false, threeC: false, ch: false },
-  { feature: 'Monthly Cost', tc: true, tv: false, threeC: false, ch: false },
+  { feature: 'No Subscription', tc: true, tv: false, threeC: false, ch: false },
+  { feature: 'Unlimited Signals', tc: true, tv: 'partial', threeC: true, ch: true },
+  { feature: 'API Access', tc: true, tv: 'partial', threeC: true, ch: true },
+  { feature: 'Custom Indicators', tc: true, tv: true, threeC: false, ch: false },
+  { feature: 'Telegram Bot', tc: true, tv: false, threeC: true, ch: 'partial' },
+  { feature: 'Docker Deploy', tc: true, tv: false, threeC: false, ch: false },
+  { feature: 'No Data Sharing', tc: true, tv: false, threeC: false, ch: false },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -140,6 +143,30 @@ function SupportIcon({ value }: { value: Support }) {
   return <XCircle className="w-4 h-4 text-rose-400" />;
 }
 
+function CopyButton({ text, label }: { text: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard not available */
+    }
+  }, [text]);
+
+  return (
+    <button
+      onClick={() => void handleCopy()}
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-[var(--border)] text-xs text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-colors"
+    >
+      {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+      {copied ? 'Copied!' : label ?? 'Copy'}
+    </button>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Main                                                               */
 /* ------------------------------------------------------------------ */
@@ -157,12 +184,14 @@ export default function BenchmarkClient() {
   const savings = saasAnnual;
   const freeVPSMonths = savings > 0 ? Math.round(savings / 4) : 0;
 
+  const tweetText = `I just found out I can replace my $${saas.monthlyUSD}/mo ${saas.name} subscription with TradeClaw — free, open-source, self-hosted on a $4/mo VPS.\n\nThat saves me $${Math.round(saasAnnual)}/year.\n\nhttps://github.com/naimkatiman/tradeclaw\n\n#selfhosted #algotrading #opensource`;
+
+  const redditText = `I just replaced my $${saas.monthlyUSD}/mo ${saas.name} subscription with TradeClaw — a free, open-source, self-hosted trading platform.\n\nIt runs on a $4/mo VPS (Hetzner) or even Oracle Cloud Free Tier. Saves me $${Math.round(saasAnnual)}/year.\n\nFeatures: live signals, backtesting, custom indicators, Telegram bot, Docker deploy.\n\ngithub.com/naimkatiman/tradeclaw`;
+
   const handleShare = useCallback(() => {
-    const tweet = encodeURIComponent(
-      `I just found out I can replace my $${saas.monthlyUSD}/mo ${saas.name} subscription with TradeClaw — free, open-source, self-hosted on a $4/mo VPS.\n\nThat saves me $${Math.round(saasAnnual)}/year.\n\nhttps://github.com/naimkatiman/tradeclaw\n\n#selfhosted #algotrading #opensource`,
-    );
+    const tweet = encodeURIComponent(tweetText);
     window.open(`https://twitter.com/intent/tweet?text=${tweet}`, '_blank');
-  }, [saas, saasAnnual]);
+  }, [tweetText]);
 
   return (
     <main className="min-h-screen pt-24 pb-24 px-4 md:px-6 max-w-5xl mx-auto">
@@ -388,36 +417,54 @@ export default function BenchmarkClient() {
         </table>
       </section>
 
-      {/* ── Share / Viral Section ── */}
+      {/* ── Social Proof Kit ── */}
       <section className="glass rounded-3xl p-6 md:p-8 border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 via-transparent to-yellow-500/5 mb-8">
-        <div className="text-center">
-          <h2 className="text-lg font-semibold mb-4 flex items-center justify-center gap-2">
-            <Share2 className="w-4 h-4 text-emerald-400" />
-            Spread the Word
-          </h2>
-          <div className="glass rounded-2xl p-5 border border-[var(--border)] max-w-xl mx-auto mb-6 text-left">
-            <p className="text-sm text-[var(--text-secondary)] italic">
-              &quot;I just replaced my ${saas.monthlyUSD}/mo {saas.name} subscription with TradeClaw — free, open-source, self-hosted on a $4/mo VPS. That saves me ${Math.round(saasAnnual)}/year.&quot;
+        <h2 className="text-lg font-semibold mb-6 flex items-center justify-center gap-2">
+          <Share2 className="w-4 h-4 text-emerald-400" />
+          Social Proof Kit
+        </h2>
+
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
+          {/* Pre-written tweet */}
+          <div className="glass rounded-2xl p-5 border border-[var(--border)]">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-medium text-[#1DA1F2]">Post on X</span>
+              <CopyButton text={tweetText} />
+            </div>
+            <p className="text-sm text-[var(--text-secondary)] italic leading-relaxed">
+              {tweetText}
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button
-              onClick={handleShare}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#1DA1F2]/20 border border-[#1DA1F2]/30 text-[#1DA1F2] hover:bg-[#1DA1F2]/30 text-sm font-semibold transition-colors"
-            >
-              <Share2 className="w-4 h-4" />
-              Share on X
-            </button>
-            <a
-              href="https://github.com/naimkatiman/tradeclaw"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30 text-sm font-semibold transition-colors"
-            >
-              <Star className="w-4 h-4" />
-              Star on GitHub
-            </a>
+
+          {/* Pre-written Reddit post */}
+          <div className="glass rounded-2xl p-5 border border-[var(--border)]">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-medium text-[#FF4500]">Post on r/selfhosted</span>
+              <CopyButton text={redditText} />
+            </div>
+            <p className="text-sm text-[var(--text-secondary)] italic leading-relaxed whitespace-pre-line">
+              {redditText}
+            </p>
           </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            onClick={handleShare}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#1DA1F2]/20 border border-[#1DA1F2]/30 text-[#1DA1F2] hover:bg-[#1DA1F2]/30 text-sm font-semibold transition-colors"
+          >
+            <Share2 className="w-4 h-4" />
+            Share on X
+          </button>
+          <Link
+            href="https://github.com/naimkatiman/tradeclaw"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30 text-sm font-semibold transition-colors"
+          >
+            <Star className="w-4 h-4" />
+            Star on GitHub
+          </Link>
         </div>
       </section>
 
@@ -494,7 +541,7 @@ export default function BenchmarkClient() {
           <p className="text-xs text-[var(--text-secondary)] mb-4">
             Free, open-source, self-hostable. A GitHub star costs nothing and helps more developers find TradeClaw.
           </p>
-          <a
+          <Link
             href="https://github.com/naimkatiman/tradeclaw"
             target="_blank"
             rel="noopener noreferrer"
@@ -502,7 +549,7 @@ export default function BenchmarkClient() {
           >
             <Star className="w-3 h-3" />
             Star on GitHub
-          </a>
+          </Link>
         </div>
       </div>
     </main>
