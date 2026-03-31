@@ -50,8 +50,8 @@ const WEIGHTS = {
   BB_UPPER_TOUCH: 10,    // Price near upper Bollinger band
 } as const;
 
-const SIGNAL_THRESHOLD = 35; // Minimum score to generate a signal — only high-conviction setups
-const MIN_CONFIDENCE = 65; // Below 65% is noise — do not emit
+const SIGNAL_THRESHOLD = 25; // Minimum score to generate a signal
+const MIN_CONFIDENCE = 58; // Below 58% is noise — do not emit
 const MIN_DIRECTIONAL_EDGE = 15; // Need bigger score gap between buy/sell
 const MIN_TREND_STRENGTH = 0.08;
 const MIN_ATR_PCT = 0.0003;
