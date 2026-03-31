@@ -35,14 +35,7 @@ async function fetchLiveSignals(): Promise<Signal[]> {
   }
 }
 
-const FALLBACK: Signal[] = [
-  { pair: 'BTCUSD', direction: 'BUY', confidence: 87, timeframe: 'H1' },
-  { pair: 'XAUUSD', direction: 'SELL', confidence: 74, timeframe: 'H4' },
-  { pair: 'ETHUSD', direction: 'BUY', confidence: 81, timeframe: 'H1' },
-  { pair: 'EURUSD', direction: 'SELL', confidence: 68, timeframe: 'D1' },
-  { pair: 'GBPUSD', direction: 'BUY', confidence: 79, timeframe: 'H1' },
-  { pair: 'XAGUSD', direction: 'SELL', confidence: 72, timeframe: 'H4' },
-];
+const PLACEHOLDER_PAIRS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'XAGUSD'];
 
 export async function LiveHeroSignals() {
   const rawSignals = await fetchLiveSignals();
@@ -56,7 +49,8 @@ export async function LiveHeroSignals() {
       signal.confidence < PUBLISHED_SIGNAL_MIN_CONFIDENCE,
   );
 
-  const signals = (publishedSignals.length >= 4 ? publishedSignals : FALLBACK).slice(0, 8);
+  const hasRealSignals = publishedSignals.length >= 1;
+  const signals = hasRealSignals ? publishedSignals.slice(0, 8) : [];
   const watchlist = watchlistSignals.slice(0, 4);
 
   return (
@@ -94,54 +88,89 @@ export async function LiveHeroSignals() {
 
           {/* Signal row */}
           <div className="flex items-center gap-0 overflow-x-auto scrollbar-hide">
-            {signals.map((sig, i) => {
-              const pair = sig.pair ?? sig.symbol ?? 'UNKNOWN';
-              const isBuy = sig.direction === 'BUY';
-              return (
-                <Link
-                  key={`${pair}-${i}`}
-                  href={`/signal/${pair}-${sig.timeframe ?? 'H1'}-${sig.direction}`}
-                  className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-r border-white/6 hover:bg-white/5 transition-colors group"
-                >
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <span className="text-white text-xs font-bold tracking-wide">{pair.replace('USD', '/USD').replace('EUR', 'EUR/')}</span>
-                      <span
-                        className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                          isBuy
-                            ? 'bg-emerald-500/20 text-emerald-400'
-                            : 'bg-rose-500/20 text-rose-400'
-                        }`}
-                      >
-                        {sig.direction}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div
-                        className="h-1 rounded-full overflow-hidden"
-                        style={{ width: 48, background: 'rgba(255,255,255,0.08)' }}
-                      >
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${sig.confidence}%`,
-                            background: isBuy ? '#10b981' : '#f43f5e',
-                            transition: 'width 0.5s ease',
-                          }}
-                        />
+            {hasRealSignals ? (
+              <>
+                {signals.map((sig, i) => {
+                  const pair = sig.pair ?? sig.symbol ?? 'UNKNOWN';
+                  const isBuy = sig.direction === 'BUY';
+                  return (
+                    <Link
+                      key={`${pair}-${i}`}
+                      href={`/signal/${pair}-${sig.timeframe ?? 'H1'}-${sig.direction}`}
+                      className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-r border-white/6 hover:bg-white/5 transition-colors group"
+                    >
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="text-white text-xs font-bold tracking-wide">{pair.replace('USD', '/USD').replace('EUR', 'EUR/')}</span>
+                          <span
+                            className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                              isBuy
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : 'bg-rose-500/20 text-rose-400'
+                            }`}
+                          >
+                            {sig.direction}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className="h-1 rounded-full overflow-hidden"
+                            style={{ width: 48, background: 'rgba(255,255,255,0.08)' }}
+                          >
+                            <div
+                              className="h-full rounded-full"
+                              style={{
+                                width: `${sig.confidence}%`,
+                                background: isBuy ? '#10b981' : '#f43f5e',
+                                transition: 'width 0.5s ease',
+                              }}
+                            />
+                          </div>
+                          <span className="text-white/40 text-[10px]">{sig.confidence}%</span>
+                        </div>
                       </div>
-                      <span className="text-white/40 text-[10px]">{sig.confidence}%</span>
+                    </Link>
+                  );
+                })}
+                <Link
+                  href="/screener"
+                  className="flex-shrink-0 flex items-center gap-1 px-4 py-3 text-emerald-400 hover:text-emerald-300 text-xs transition-colors whitespace-nowrap"
+                >
+                  View all →
+                </Link>
+              </>
+            ) : (
+              <>
+                {PLACEHOLDER_PAIRS.map((pair) => (
+                  <div
+                    key={pair}
+                    className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-r border-white/6"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-white/40 text-xs font-bold tracking-wide">{pair.replace('USD', '/USD')}</span>
+                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-white/5 text-white/25">
+                          ...
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="h-1 rounded-full overflow-hidden animate-pulse"
+                          style={{ width: 48, background: 'rgba(255,255,255,0.08)' }}
+                        >
+                          <div className="h-full rounded-full bg-emerald-500/30" style={{ width: '40%' }} />
+                        </div>
+                        <span className="text-white/25 text-[10px]">—</span>
+                      </div>
                     </div>
                   </div>
-                </Link>
-              );
-            })}
-            <Link
-              href="/screener"
-              className="flex-shrink-0 flex items-center gap-1 px-4 py-3 text-emerald-400 hover:text-emerald-300 text-xs transition-colors whitespace-nowrap"
-            >
-              View all →
-            </Link>
+                ))}
+                <div className="flex-shrink-0 flex items-center gap-1.5 px-4 py-3 text-white/40 text-xs whitespace-nowrap">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
+                  Generating signals...
+                </div>
+              </>
+            )}
           </div>
 
           {watchlist.length > 0 && (

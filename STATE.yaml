@@ -1198,9 +1198,14 @@ tasks:
 
   - id: TC-136
     title: "Copy-paste trading bot examples — /examples page with 5 working bots (Python, Node.js, bash, curl, Go) that use TradeClaw's public API to fetch signals and send Telegram alerts. Real runnable code devs can copy. Each example is a GitHub Gist-style card with syntax highlighting and run instructions."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: apps/web/app/examples/page.tsx + ExamplesClient.tsx (451 lines).
+      5 bot cards (Python/Node.js/Bash/cURL/Go), copy button per card, collapse/expand
+      (12 lines preview + Show full code), language color badges, prerequisites + run instructions.
+      Navbar Tools group + mobile-nav + sitemap updated. 0 lint errors. Build passes.
+      Committed 95638e30. 2026-03-31
 
   - id: TC-137
     title: "Weekly GitHub pulse — .github/workflows/weekly-report.yml that auto-creates a GitHub Discussion every Monday with weekly stats (signals generated, top asset, accuracy, new contributors). Makes repo look alive to GitHub trending algorithm. Plus /report page showing same stats."

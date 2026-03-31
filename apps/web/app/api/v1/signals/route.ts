@@ -3,30 +3,35 @@ import { getTrackedSignals } from "../../../../lib/tracked-signals";
 
 export const runtime = "nodejs";
 
-const FALLBACK_SYMBOLS = [
-  { symbol: "BTCUSD", direction: "BUY" as const, confidence: 78, entry: 87500, tp: 89800, sl: 85200, rsi: 58, macd: 120, timeframe: "H4" },
-  { symbol: "ETHUSD", direction: "BUY" as const, confidence: 72, entry: 2050, tp: 2120, sl: 1980, rsi: 52, macd: 8.5, timeframe: "H1" },
-  { symbol: "XAUUSD", direction: "BUY" as const, confidence: 82, entry: 4520, tp: 4580, sl: 4460, rsi: 62, macd: 2.3, timeframe: "H4" },
-  { symbol: "EURUSD", direction: "SELL" as const, confidence: 68, entry: 1.0835, tp: 1.078, sl: 1.089, rsi: 42, macd: -0.0008, timeframe: "H1" },
-  { symbol: "GBPUSD", direction: "BUY" as const, confidence: 65, entry: 1.2935, tp: 1.299, sl: 1.287, rsi: 55, macd: 0.0005, timeframe: "H4" },
-  { symbol: "USDJPY", direction: "SELL" as const, confidence: 74, entry: 150.85, tp: 150.2, sl: 151.5, rsi: 68, macd: -0.15, timeframe: "H1" },
-];
+const DEFAULT_SYMBOLS = ["BTCUSD", "ETHUSD", "XAUUSD", "XAGUSD", "EURUSD", "GBPUSD"];
+const DEFAULT_TIMEFRAMES = ["H1", "H4"];
 
-function buildFallbackResponse(now: string) {
-  return FALLBACK_SYMBOLS.map((s) => ({
-    id: `fb-${s.symbol.toLowerCase()}-${Date.now()}`,
+function mapSignal(s: {
+  id: string;
+  symbol: string;
+  direction: string;
+  confidence: number;
+  timeframe: string;
+  entry: number;
+  takeProfit1: number;
+  stopLoss: number;
+  indicators?: { rsi?: { value: number }; macd?: { histogram: number } };
+  timestamp: string;
+}) {
+  return {
+    id: s.id,
     pair: s.symbol,
     direction: s.direction,
     confidence: s.confidence,
     timeframe: s.timeframe,
     price: s.entry,
-    tp: s.tp,
-    sl: s.sl,
-    rsi: s.rsi,
-    macd: s.macd,
-    generatedAt: now,
+    tp: s.takeProfit1,
+    sl: s.stopLoss,
+    rsi: s.indicators?.rsi?.value,
+    macd: s.indicators?.macd?.histogram,
+    generatedAt: s.timestamp,
     shareUrl: `https://tradeclaw.win/signal/${s.symbol}-${s.timeframe}-${s.direction}`,
-  }));
+  };
 }
 
 export async function GET(req: NextRequest) {
@@ -38,64 +43,57 @@ export async function GET(req: NextRequest) {
 
   const now = new Date().toISOString();
   const headers = {
-    "Cache-Control": "public, s-maxage=300",
+    "Cache-Control": "public, s-maxage=60",
     "X-TradeClaw-Version": "v1",
     "Access-Control-Allow-Origin": "*",
   };
 
   try {
-    const { signals: allSignals } = await getTrackedSignals({});
-    let filtered = allSignals;
+    // Strategy: query per-symbol to maximize signal yield.
+    // The bulk call often returns 0 because some symbols fail silently.
+    const symbolsToQuery = pair ? [pair.replace("/", "")] : DEFAULT_SYMBOLS;
+    const timeframesToQuery = timeframe ? [timeframe] : DEFAULT_TIMEFRAMES;
 
-    if (pair) {
-      const pairNorm = pair.replace("/", "");
-      filtered = filtered.filter(
-        (s) => s.symbol === pair || s.symbol === pairNorm || s.symbol.replace("/", "") === pairNorm
-      );
+    const allResults = await Promise.allSettled(
+      symbolsToQuery.flatMap((sym) =>
+        timeframesToQuery.map((tf) =>
+          getTrackedSignals({ symbol: sym, timeframe: tf })
+        )
+      )
+    );
+
+    let allSignals = allResults
+      .filter((r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof getTrackedSignals>>> => r.status === "fulfilled")
+      .flatMap((r) => r.value.signals);
+
+    if (direction) allSignals = allSignals.filter((s) => s.direction === direction);
+
+    // Deduplicate by symbol+timeframe+direction (keep highest confidence)
+    const seen = new Map<string, typeof allSignals[0]>();
+    for (const s of allSignals) {
+      const key = `${s.symbol}-${s.timeframe}-${s.direction}`;
+      const existing = seen.get(key);
+      if (!existing || s.confidence > existing.confidence) {
+        seen.set(key, s);
+      }
     }
-    if (direction) filtered = filtered.filter((s) => s.direction === direction);
-    if (timeframe) filtered = filtered.filter((s) => s.timeframe === timeframe);
-
-    const results = filtered.slice(0, limit);
-
-    // If no signals after filtering, return fallback signals
-    if (results.length === 0) {
-      const fallback = buildFallbackResponse(now);
-      return NextResponse.json(
-        { ok: true, version: "v1", fallback: true, count: fallback.length, total: fallback.length, generatedAt: now, signals: fallback },
-        { headers }
-      );
-    }
+    const deduped = [...seen.values()].sort((a, b) => b.confidence - a.confidence);
+    const results = deduped.slice(0, limit);
 
     return NextResponse.json(
       {
         ok: true,
         version: "v1",
         count: results.length,
-        total: filtered.length,
+        total: deduped.length,
         generatedAt: now,
-        signals: results.map((s) => ({
-          id: s.id,
-          pair: s.symbol,
-          direction: s.direction,
-          confidence: s.confidence,
-          timeframe: s.timeframe,
-          price: s.entry,
-          tp: s.takeProfit1,
-          sl: s.stopLoss,
-          rsi: s.indicators?.rsi?.value,
-          macd: s.indicators?.macd?.histogram,
-          generatedAt: s.timestamp,
-          shareUrl: `https://tradeclaw.win/signal/${s.symbol}-${s.timeframe}-${s.direction}`,
-        })),
+        signals: results.map(mapSignal),
       },
       { headers }
     );
   } catch {
-    // On error, return fallback signals instead of a 500
-    const fallback = buildFallbackResponse(now);
     return NextResponse.json(
-      { ok: true, version: "v1", fallback: true, count: fallback.length, total: fallback.length, generatedAt: now, signals: fallback },
+      { ok: true, version: "v1", count: 0, total: 0, generatedAt: now, signals: [] },
       { headers }
     );
   }

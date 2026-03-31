@@ -42,12 +42,12 @@ function OnboardingBanner() {
     <div className="border-b border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
       <div className="max-w-7xl mx-auto flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-emerald-400 mb-1">Welcome to TradeClaw! Here&apos;s how to read signals:</p>
-          <ul className="text-xs text-[var(--text-secondary)] space-y-0.5 font-mono">
-            <li><span className="text-emerald-400">Green = BUY</span>, <span className="text-red-400">Red = SELL</span> — direction of the trade</li>
-            <li>Confidence above <span className="text-emerald-400 font-bold">70%</span> = strong signal with high indicator agreement</li>
-            <li>Click any signal card for full indicator breakdown (EMA, RSI, MACD, S/R levels)</li>
-          </ul>
+          <p className="text-sm font-semibold text-emerald-400 mb-1.5">3 steps to start trading:</p>
+          <ol className="text-xs text-[var(--text-secondary)] space-y-1 font-mono list-decimal list-inside">
+            <li><span className="text-emerald-400">See live signals</span> — <span className="text-emerald-400">BUY</span>/<span className="text-red-400">SELL</span> with confidence score. Only 65%+ signals are shown.</li>
+            <li><span className="text-emerald-400">Click any signal</span> — see entry, TP, SL, and full indicator breakdown (RSI, MACD, EMA, S/R).</li>
+            <li><span className="text-emerald-400">Self-host in 2 min</span> — <code className="bg-white/5 px-1.5 py-0.5 rounded text-emerald-400">docker compose up -d</code> and run your own signal engine.</li>
+          </ol>
         </div>
         <button onClick={dismiss} className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors shrink-0 mt-0.5">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -387,11 +387,12 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
     fetchSignals();
   }, [timeframe, direction, assetClass]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Poll faster (15s) when no signals, normal rate (30s) when signals exist
   useEffect(() => {
     if (!autoRefresh) return;
-    const interval = setInterval(fetchSignals, 10000);
+    const interval = setInterval(fetchSignals, signals.length === 0 ? 15000 : 30000);
     return () => clearInterval(interval);
-  }, [autoRefresh, fetchSignals]);
+  }, [autoRefresh, fetchSignals, signals.length]);
 
   // Update browser tab title with BUY signal count
   useEffect(() => {
@@ -597,10 +598,19 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           }
           if (filteredSignals.length === 0) {
             return (
-              <div className="text-center py-24">
-                <div className="text-[var(--text-secondary)] text-sm">No signals match the current filters</div>
-                <button onClick={fetchSignals} className="mt-4 text-xs text-emerald-500 hover:text-emerald-400 transition-colors">
-                  Refresh signals
+              <div className="text-center py-16">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/8 border border-emerald-500/20 mb-4">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 pulse-dot" />
+                  <span className="text-emerald-400 text-sm font-mono">Generating signals...</span>
+                </div>
+                <p className="text-[var(--text-secondary)] text-sm mb-1">
+                  The TA engine is analyzing live market data. This takes up to 30 seconds on first load.
+                </p>
+                <p className="text-[var(--text-secondary)] text-xs mb-4">
+                  Auto-retrying every 15s. Signals appear when the market is active and setups meet the quality threshold.
+                </p>
+                <button onClick={fetchSignals} className="px-4 py-2 rounded-xl text-xs border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/10 transition-all duration-200 font-mono">
+                  Retry now
                 </button>
               </div>
             );

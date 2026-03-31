@@ -51,6 +51,7 @@ const WEIGHTS = {
 } as const;
 
 const SIGNAL_THRESHOLD = 35; // Minimum score to generate a signal — only high-conviction setups
+const MIN_CONFIDENCE = 65; // Below 65% is noise — do not emit
 const MIN_DIRECTIONAL_EDGE = 15; // Need bigger score gap between buy/sell
 const MIN_TREND_STRENGTH = 0.08;
 const MIN_ATR_PCT = 0.0003;
@@ -632,6 +633,9 @@ export function generateSignalsFromTA(
       confidence = 70; // cap unless MTF confirms (caller can re-boost via MTF)
     }
 
+    // Quality gate: below MIN_CONFIDENCE is noise
+    if (confidence < MIN_CONFIDENCE) return signals;
+
     signals.push({
       id: generateSignalId(symbol, timeframe, 'BUY', signalTimestamp),
       symbol,
@@ -685,6 +689,9 @@ export function generateSignalsFromTA(
     if (confidence >= 75) {
       confidence = 70; // cap unless MTF confirms (caller can re-boost via MTF)
     }
+
+    // Quality gate: below MIN_CONFIDENCE is noise
+    if (confidence < MIN_CONFIDENCE) return signals;
 
     signals.push({
       id: generateSignalId(symbol, timeframe, 'SELL', signalTimestamp),
