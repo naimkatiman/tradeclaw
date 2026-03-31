@@ -52,6 +52,7 @@ const MORE_GROUPS: DropdownGroup[] = [
     label: 'Community',
     links: [
       { href: '/report', label: 'Weekly Report', icon: BarChart2 },
+      { href: '/live', label: 'Live Feed' },
       { href: '/share', label: 'Share' },
       { href: '/contribute', label: 'Contribute' },
       { href: '/discord/server', label: 'Discord' },
