@@ -92,26 +92,31 @@ const PRESETS = [
   },
 ];
 
-/* ── color helpers ────────────────────────────────────────────────────── */
+/* ── confidence tiers (granular, matching signal-generator thresholds) ── */
+const CONFIDENCE_TIERS = [
+  { min: 90, label: 'Exceptional',  color: 'text-fuchsia-400',  bg: 'bg-fuchsia-500/20 border-fuchsia-500/30',  tag: 'Top-tier setup' },
+  { min: 80, label: 'Very Strong',  color: 'text-purple-400',   bg: 'bg-purple-500/20 border-purple-500/30',    tag: 'High conviction' },
+  { min: 73, label: 'Strong',       color: 'text-emerald-400',  bg: 'bg-emerald-500/20 border-emerald-500/30',  tag: 'Auto-broadcast' },
+  { min: 65, label: 'Moderate',     color: 'text-sky-400',      bg: 'bg-sky-500/20 border-sky-500/30',          tag: 'Published' },
+  { min: 58, label: 'Low',          color: 'text-amber-400',    bg: 'bg-amber-500/20 border-amber-500/30',      tag: 'Published (marginal)' },
+  { min: 55, label: 'Weak',         color: 'text-orange-400',   bg: 'bg-orange-500/20 border-orange-500/30',    tag: 'Watchlist only' },
+  { min: 0,  label: 'Very Weak',    color: 'text-rose-400',     bg: 'bg-rose-500/20 border-rose-500/30',        tag: 'Filtered out' },
+] as const;
+
+function getTier(score: number) {
+  return CONFIDENCE_TIERS.find(t => score >= t.min) ?? CONFIDENCE_TIERS[CONFIDENCE_TIERS.length - 1];
+}
+
 function getScoreColor(score: number): string {
-  if (score >= 85) return 'text-purple-400';
-  if (score >= 75) return 'text-emerald-400';
-  if (score >= 60) return 'text-amber-400';
-  return 'text-rose-400';
+  return getTier(score).color;
 }
 
 function getScoreLabel(score: number): string {
-  if (score >= 85) return 'Very Strong';
-  if (score >= 75) return 'Strong';
-  if (score >= 60) return 'Moderate';
-  return 'Weak';
+  return getTier(score).label;
 }
 
 function getScoreBg(score: number): string {
-  if (score >= 85) return 'bg-purple-500/20 border-purple-500/30';
-  if (score >= 75) return 'bg-emerald-500/20 border-emerald-500/30';
-  if (score >= 60) return 'bg-amber-500/20 border-amber-500/30';
-  return 'bg-rose-500/20 border-rose-500/30';
+  return getTier(score).bg;
 }
 
 function getIndicatorColorClass(color: string): string {
@@ -139,26 +144,25 @@ function getSliderAccentClass(color: string): string {
 }
 
 /* ── code snippet ─────────────────────────────────────────────────────── */
-const CODE_SNIPPET = `// TradeClaw Confidence Scoring Formula
-// Each indicator returns a normalized score 0–100
-function computeConfidence(indicators: IndicatorScores): number {
-  const { rsi, macd, ema, bb, stoch, volume } = indicators;
+const CODE_SNIPPET = `// TradeClaw Confidence Scoring Formula (matches signal-generator.ts)
+// 5 indicators scored 0–max points, total raw max = 90
+const WEIGHTS = {
+  RSI: 20,   MACD: 25,  EMA: 20,
+  STOCH: 15, BB: 10,    // total = 90
+};
 
-  // Weighted sum (weights sum to 1.0)
-  const raw =
-    rsi    * 0.20 +
-    macd   * 0.20 +
-    ema    * 0.20 +
-    bb     * 0.15 +
-    stoch  * 0.15 +
-    volume * 0.10;
+// Raw score → confidence % (scaled to 48–95 range)
+function scaleConfidence(rawScore: number): number {
+  return Math.min(95, Math.max(48, Math.round(42 + rawScore * 0.62)));
+}
 
-  // Quality gate: signals below 60 are not published
-  const confidence = Math.round(raw);
-  if (confidence < 60) return 0; // filtered
-
-  return Math.min(confidence, 99); // cap at 99
-}`;
+// Thresholds (granular tiers):
+//  < 55  → filtered entirely
+//  55–57 → watchlist only
+//  58–64 → published (marginal)
+//  65–72 → published (moderate)
+//  73+   → auto-broadcast to Telegram & webhooks
+//  75+   → capped at 70 unless multi-TF confluence confirms`;
 
 /* ── main component ───────────────────────────────────────────────────── */
 export default function ConfidenceClient() {
@@ -176,7 +180,8 @@ export default function ConfidenceClient() {
   /* compute live confidence */
   const computedRaw = INDICATORS.reduce((sum, ind) => sum + scores[ind.key] * ind.weight, 0);
   const confidence = Math.round(computedRaw);
-  const published = confidence >= 60;
+  const published = confidence >= 58;
+  const tier = getTier(confidence);
 
   /* handlers */
   const handleSlider = useCallback((key: string, value: number) => {
@@ -229,20 +234,18 @@ export default function ConfidenceClient() {
               <span className={`text-xl font-semibold ${getScoreColor(confidence)}`}>
                 {getScoreLabel(confidence)}
               </span>
-              {published ? (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-medium border border-emerald-500/30">
-                  ✓ Published
-                </span>
-              ) : (
-                <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-xs font-medium border border-rose-500/30">
-                  ✗ Filtered Out
-                </span>
-              )}
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getScoreBg(confidence)}`}>
+                {tier.tag}
+              </span>
             </div>
             <p className="text-[var(--text-secondary)] text-sm mt-1">
-              {published
-                ? 'This signal would be published and tracked'
-                : 'Score below 60 — filtered before publishing'}
+              {confidence >= 73
+                ? 'Auto-broadcast to Telegram & webhooks'
+                : confidence >= 58
+                  ? 'Published but not auto-broadcast'
+                  : confidence >= 55
+                    ? 'Watchlist only — not published'
+                    : 'Below 55 — filtered out entirely'}
             </p>
           </div>
         </div>
@@ -375,7 +378,7 @@ export default function ConfidenceClient() {
             </span>
             <span className={`font-bold text-lg ${getScoreColor(confidence)}`}>{confidence}</span>
             <span className="text-[var(--text-secondary)] ml-2">
-              {published ? '✓ published' : '✗ filtered (< 60)'}
+              {confidence >= 73 ? '✓ auto-broadcast' : confidence >= 58 ? '✓ published' : confidence >= 55 ? '◐ watchlist' : '✗ filtered'}
             </span>
           </div>
 
@@ -396,15 +399,26 @@ export default function ConfidenceClient() {
           </div>
         </div>
 
-        {/* ── Quality gate note ── */}
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 flex gap-3">
-          <Zap className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-          <div className="text-sm text-[var(--text-secondary)]">
-            <span className="text-amber-400 font-medium">Quality Gate: </span>
-            Scores below 60 are filtered out before publishing. Sub-70 setups appear as
-            &quot;On Watch&quot; on the landing page but are not tracked in the accuracy leaderboard.
-            Only signals with confidence ≥ 70 are auto-broadcast to Telegram and webhooks.
+        {/* ── Confidence tiers legend ── */}
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Zap className="w-4 h-4 text-amber-400" />
+            <h2 className="text-sm font-semibold">Confidence Tiers</h2>
           </div>
+          <div className="grid gap-2">
+            {CONFIDENCE_TIERS.map((t) => (
+              <div key={t.label} className="flex items-center gap-3 text-xs">
+                <span className={`w-2 h-2 rounded-full ${t.bg.split(' ')[0].replace('/20', '')}`} />
+                <span className={`font-semibold w-20 ${t.color}`}>{t.min}%+</span>
+                <span className={`font-medium ${t.color}`}>{t.label}</span>
+                <span className="text-[var(--text-secondary)] ml-auto">{t.tag}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-[var(--text-secondary)] mt-4 border-t border-[var(--border)] pt-3">
+            Signals ≥ 75% are capped at 70% unless multi-timeframe confluence (H1 + H4 + D1 agreement) confirms the setup.
+            With confluence, confidence gets a +15% boost.
+          </p>
         </div>
 
         {/* ── Code snippet ── */}

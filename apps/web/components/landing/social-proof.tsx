@@ -12,28 +12,29 @@ interface Stat {
 
 const STATS: Stat[] = [
   {
-    label: "GitHub Stars",
-    target: 847,
-    suffix: "+",
-    description: "Developers starred the repo",
+    label: "TA Indicators",
+    target: 7,
+    suffix: "",
+    description: "RSI, MACD, EMA, Bollinger, ATR, Volume, Multi-TF",
   },
   {
-    label: "Signals Generated",
-    target: 52000,
-    suffix: "+",
-    description: "AI signals produced to date",
-  },
-  {
-    label: "Supported Assets",
+    label: "Assets Tracked",
     target: 12,
     suffix: "",
     description: "Forex, crypto & commodity pairs",
   },
   {
-    label: "Active Instances",
-    target: 430,
-    suffix: "+",
-    description: "Self-hosted deployments worldwide",
+    label: "Cost to Run",
+    target: 0,
+    suffix: "",
+    prefix: "$",
+    description: "Free & open source, self-host forever",
+  },
+  {
+    label: "Setup Time",
+    target: 5,
+    suffix: " min",
+    description: "Docker Compose — one command deploy",
   },
 ];
 
@@ -106,11 +107,11 @@ export function SocialProof() {
       <div className="mx-auto max-w-5xl">
         <div className="text-center mb-14">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--glass-bg)] px-3.5 py-1.5 text-xs uppercase tracking-widest text-[var(--text-secondary)]">
-            By the numbers
+            What you get
           </div>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[var(--foreground)]">
-            Trusted by traders{" "}
-            <span className="text-emerald-400">worldwide</span>
+            Everything built in,{" "}
+            <span className="text-emerald-400">nothing hidden</span>
           </h2>
         </div>
 

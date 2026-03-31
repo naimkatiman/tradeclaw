@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 import type { Metadata } from 'next';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
 import { SignalShareButtons } from '../../components/signal-share-buttons';
@@ -72,10 +73,7 @@ export default async function SignalPage(
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#050505]/90 backdrop-blur-xl">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
-              <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-              <path d="M10 2v10M3 7l7 5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-            </svg>
+            <TradeClawLogo className="h-4 w-4 shrink-0" id="signal" />
             <span className="text-sm font-semibold">Trade<span className="text-emerald-400">Claw</span></span>
           </Link>
           <div className="flex items-center gap-3">

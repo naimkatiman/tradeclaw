@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPortfolio, STARTING_BALANCE } from '../../../../../lib/paper-trading';
+import { TRADECLAW_LOGO_SVG } from '../../../../../components/tradeclaw-logo';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,9 +74,7 @@ body{background:${bg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',He
   </div>
   <div class="footer">
     <a href="https://github.com/naimkatiman/tradeclaw" target="_blank" rel="noopener" class="brand">
-      <svg viewBox="0 0 20 20" fill="none" stroke="${brandColor}" stroke-width="1.5" stroke-linejoin="round">
-        <path d="M10 2L3 7v6l7 5 7-5V7L10 2z"/><path d="M10 2v10M3 7l7 5 7-5"/>
-      </svg>
+      ${TRADECLAW_LOGO_SVG(16, 'widget')}
       TradeClaw
     </a>
     <a href="https://github.com/naimkatiman/tradeclaw" target="_blank" rel="noopener" class="star">

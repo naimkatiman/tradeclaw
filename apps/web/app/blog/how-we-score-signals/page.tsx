@@ -56,11 +56,11 @@ export default function HowWeScoreSignalsPage() {
               <tbody className="text-zinc-300">
                 {[
                   ['RSI (14)', '20', 'Overbought / oversold momentum'],
-                  ['MACD (12/26/9)', '20', 'Trend direction & momentum change'],
+                  ['MACD (12/26/9)', '25', 'Trend direction & momentum change'],
                   ['EMA (20/50/200)', '20', 'Price vs moving average alignment'],
-                  ['Bollinger Bands (20, 2σ)', '15', 'Price at extremes of volatility range'],
                   ['Stochastic (14/3/3)', '15', 'K/D position and crossover'],
-                  ['Total', '90', '→ Normalised to 50–98% confidence'],
+                  ['Bollinger Bands (20, 2σ)', '10', 'Price at extremes of volatility range'],
+                  ['Total', '90', '→ Scaled to 48–95% confidence'],
                 ].map(([ind, pts, desc]) => (
                   <tr key={ind} className={`border-b border-zinc-800/50 ${ind === 'Total' ? 'bg-zinc-800/30 font-semibold' : ''}`}>
                     <td className="px-4 py-2 font-mono">{ind}</td>
@@ -74,7 +74,7 @@ export default function HowWeScoreSignalsPage() {
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">Step 1: Compute Both Directions</h2>
           <p className="text-zinc-300">
-            For every asset and timeframe, TradeClaw computes a BUY score <em>and</em> a SELL score independently. Whichever score is higher and exceeds a minimum threshold (55% confidence) becomes the signal. If neither exceeds the threshold, no signal is emitted — &quot;no opinion&quot; is a valid output.
+            For every asset and timeframe, TradeClaw computes a BUY score <em>and</em> a SELL score independently. Whichever score is higher and exceeds the minimum threshold (58% confidence) becomes the signal. Signals between 55–57% appear on the watchlist only. If neither exceeds 55%, no signal is emitted — &quot;no opinion&quot; is a valid output.
           </p>
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">Step 2: Quality Gates (Filters)</h2>
@@ -91,10 +91,10 @@ export default function HowWeScoreSignalsPage() {
             Raw score (0–90) → confidence (50–98%). The formula:
           </p>
           <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-4 font-mono text-sm text-zinc-300">
-            confidence = 50 + (rawScore / 90) × 48
+            confidence = min(95, max(48, round(42 + rawScore × 0.62)))
           </div>
           <p className="text-zinc-400">
-            Why cap at 98%? No deterministic indicator combination can justify 100% certainty. Claiming 100% confidence would be dishonest.
+            Why cap at 95%? No deterministic indicator combination can justify 100% certainty. The floor of 48% prevents meaninglessly low scores from cluttering the output.
           </p>
 
           <h2 className="text-lg font-semibold text-white mt-8 mb-3">Is It Actually Calibrated?</h2>

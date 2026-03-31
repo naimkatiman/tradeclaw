@@ -1,4 +1,5 @@
 import { readHistory, computeLeaderboard } from './signal-history';
+import { TRADECLAW_LOGO_SVG } from '../components/tradeclaw-logo';
 
 export interface EmailDigestSignal {
   pair: string;
@@ -149,10 +150,7 @@ export function generateEmailDigest(options: EmailDigestOptions = {}): string {
       <table align="center" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
         <tr>
           <td style="padding-right:8px;vertical-align:middle;">
-            <svg width="28" height="28" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" stroke="#10b981" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M10 2v10M3 7l7 5 7-5" stroke="#10b981" stroke-width="1.5" stroke-linejoin="round"/>
-            </svg>
+            ${TRADECLAW_LOGO_SVG(28, 'email')}
           </td>
           <td style="vertical-align:middle;">
             <span style="font-size:22px;font-weight:700;color:#ffffff;">Trade</span><span style="font-size:22px;font-weight:700;color:#10b981;">Claw</span>

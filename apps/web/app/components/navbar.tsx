@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Handshake, Rocket, Star, Sparkles, Circle, Radio, Play, Thermometer, ChevronDown, Mail, Activity, Hash, Heart, Users, UserCheck, Clock, HelpCircle, LayoutDashboard, MonitorSmartphone, MessageCircle, Gift, Plug, Zap, Trophy, Database, Globe, Code, Code2, Shield, ShieldCheck, TrendingUp, Flame, Share2, GitBranch, ShoppingBag, Calendar, BookOpen, Box, Newspaper, BarChart2, Calculator, Map, Briefcase, FlaskConical, Building2 } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
+import { TradeClawLogo } from '../../components/tradeclaw-logo';
 import type { LucideIcon } from 'lucide-react';
 
 interface NavLink {
@@ -165,10 +166,7 @@ export function Navbar() {
             href="/"
             className="flex items-center gap-1.5 shrink-0"
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
-              <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-              <path d="M10 2v10M3 7l7 5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-            </svg>
+            <TradeClawLogo id="nav" />
             <span className="text-sm font-semibold tracking-tight">
               Trade<span className="text-emerald-400">Claw</span>
             </span>

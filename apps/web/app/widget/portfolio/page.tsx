@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 
 interface PositionSummary {
   symbol: string;
@@ -245,18 +246,7 @@ export default function PortfolioWidgetPage() {
               gap: 4,
             }}
           >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 20 20"
-              fill="none"
-              stroke={brand}
-              strokeWidth="1.5"
-              strokeLinejoin="round"
-            >
-              <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" />
-              <path d="M10 2v10M3 7l7 5 7-5" />
-            </svg>
+            <TradeClawLogo className="h-3 w-3 shrink-0" id="portfolio" />
             TradeClaw
           </a>
           <span style={{ fontSize: 9, color: textSecondary }}>

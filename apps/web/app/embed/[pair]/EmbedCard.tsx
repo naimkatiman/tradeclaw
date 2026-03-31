@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 import type { TradingSignal } from '../../lib/signals';
 
 interface Props {
@@ -292,10 +293,7 @@ export function EmbedCard({ pair, theme }: Props) {
               display: 'flex', alignItems: 'center', gap: '3px',
             }}
           >
-            <svg width="8" height="8" viewBox="0 0 20 20" fill="none">
-              <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-              <path d="M10 2v10M3 7l7 5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-            </svg>
+            <TradeClawLogo className="h-2 w-2 shrink-0" id="embedcard" />
             Powered by TradeClaw
           </a>
         </div>

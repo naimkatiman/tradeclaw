@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 import { FullChart } from '../../components/charts';
 import { generateBars } from '../../lib/chart-utils';
 import { SYMBOLS } from '../../lib/signals';
@@ -38,10 +39,7 @@ export default function ChartClient({ symbol }: ChartClientProps) {
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-1.5 shrink-0">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
-                <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                <path d="M10 2v10M3 7l7 5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-              </svg>
+              <TradeClawLogo className="h-4 w-4 shrink-0" id="chart" />
               <span className="text-sm font-semibold">Trade<span className="text-emerald-400">Claw</span></span>
             </Link>
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { TradeClawLogo } from '../../components/tradeclaw-logo';
 import { Code, Copy, Check, Play, Share2, Star, AlertTriangle, FileCode, ArrowRight, Sparkles } from 'lucide-react';
 import { ThemeToggle } from '../components/theme-toggle';
 import { PINE_PRESETS } from '../../lib/pine-parser';
@@ -80,10 +81,7 @@ export default function PineImportClient() {
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
         <Link href="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
-            <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-            <path d="M10 2v10M3 7l7 5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-          </svg>
+          <TradeClawLogo className="h-5 w-5 shrink-0" id="pine" />
           Trade<span className="text-emerald-400">Claw</span>
         </Link>
         <ThemeToggle />

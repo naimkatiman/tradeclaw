@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { TradeClawLogo } from '../../components/tradeclaw-logo';
 import { SYMBOLS } from '../lib/signals';
 
 const PAIRS = SYMBOLS.map(s => s.symbol);
@@ -59,10 +60,7 @@ export default function EmbedDocsPage() {
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#050505]/90 backdrop-blur-xl">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-emerald-400">
-              <path d="M10 2L3 7v6l7 5 7-5V7L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-              <path d="M10 2v10M3 7l7 5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-            </svg>
+            <TradeClawLogo className="h-4 w-4 shrink-0" id="embed" />
             <span className="text-sm font-semibold">Trade<span className="text-emerald-400">Claw</span></span>
             <span className="ml-2 text-xs text-zinc-600 font-mono">/ embed</span>
           </div>
