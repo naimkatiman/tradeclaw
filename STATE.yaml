@@ -1209,9 +1209,15 @@ tasks:
 
   - id: TC-137
     title: "Weekly GitHub pulse — .github/workflows/weekly-report.yml that auto-creates a GitHub Discussion every Monday with weekly stats (signals generated, top asset, accuracy, new contributors). Makes repo look alive to GitHub trending algorithm. Plus /report page showing same stats."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: .github/workflows/weekly-report.yml (cron Mon 09:00 UTC + workflow_dispatch,
+      dry_run input, github-script creates Discussion in General category with seeded weekly stats,
+      job summary table). /api/report (revalidate 3600, seeded PRNG per ISO week, CORS *).
+      /report page (ReportClient.tsx — 4 stat cards, Mon-Sun canvas bar chart, top asset card,
+      GitHub Discussions link, star CTA). Navbar Community group added with Weekly Report + BarChart2 icon.
+      Sitemap updated. 0 lint errors. Build passes. Committed 98387bef. 2026-04-01
 
   - id: TC-138
     title: "Self-hosting cost benchmark page — /benchmark: 'TradeClaw on a $4/mo VPS vs $200/mo SaaS'. Animated cost comparison (TradeClaw=free vs TradingView/$60/mo vs 3Commas/$99/mo vs Cryptohopper/$99/mo). Annual savings calculator (input: which SaaS you use). Viral for r/selfhosted and HN crowd."
