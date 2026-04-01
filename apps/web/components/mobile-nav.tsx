@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Mail, Bell } from 'lucide-react';
+import { Mail, Bell, BookOpen } from 'lucide-react';
 
 interface MobileNavProps {
   onClose?: () => void;
@@ -15,6 +15,7 @@ const MOBILE_LINKS = [
   { href: '/paper-trading', label: 'Paper Trading' },
   { href: '/portfolio', label: 'Portfolio' },
   { href: '/leaderboard', label: 'Leaderboard' },
+  { href: '/commentary', label: 'Commentary', icon: BookOpen },
   { href: '/subscribe', label: 'Weekly Digest', icon: Mail },
   { href: '/notifications', label: 'Alerts', icon: Bell },
   { href: '/discord/server', label: 'Discord' },

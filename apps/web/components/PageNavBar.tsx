@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mail, Bell } from 'lucide-react';
+import { Mail, Bell, BookOpen } from 'lucide-react';
 import { TradeClawLogo } from './tradeclaw-logo';
 
 const NAV_PAGES = [
@@ -60,6 +60,18 @@ export function PageNavBar() {
           >
             <Mail className="w-3 h-3" />
             Digest
+          </Link>
+          <Link
+            href="/commentary"
+            aria-current={isActive('/commentary') ? 'page' : undefined}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 inline-flex items-center gap-1.5 ${
+              isActive('/commentary')
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
+            }`}
+          >
+            <BookOpen className="w-3 h-3" />
+            Commentary
           </Link>
           <Link
             href="/notifications"

@@ -1300,9 +1300,15 @@ tasks:
 
   - id: TC-145
     title: "Signal pattern library — /patterns page: 12 classic candlestick + indicator patterns (Head & Shoulders, Double Top, RSI Divergence, MACD crossover, Golden Cross, etc.) with animated SVG diagram, TradeClaw signal correlation stats, and copy-to-Discord embed. High SEO + educational shareability."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /patterns page (PatternsClient.tsx, 470+ lines). 12 patterns across 3 categories
+      (Indicator/Price Action/Candlestick). Each card has animated inline SVG diagram (CSS draw-in
+      effect), reliability bar, direction badge (BUY/SELL/EITHER), auto-detection badge, expand/collapse
+      full description + how-to-trade, share on X, copy link. Category + direction filter tabs.
+      GET /api/patterns (CORS *, static export). Mobile nav Tools section + sitemap updated.
+      0 lint errors. Committed aae34a03. 2026-04-01
 
   - id: TC-146
     title: "AI-powered market commentary — /commentary page: daily auto-generated market summary (template-based, no LLM API cost) covering top movers, signal consensus, fear/greed, key levels. RSS feed at /commentary/feed.xml. Drives return visits and SEO."
