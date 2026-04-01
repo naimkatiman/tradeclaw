@@ -1417,12 +1417,51 @@ tasks:
 
   - id: TC-154
     title: "AI trade journal — /journal page where users log trades (pair, entry, exit, notes) with localStorage, auto-enriched with TradeClaw signal context for that asset/timeframe at entry time. Weekly P&L summary export. Sticky daily utility → retention → stars."
-    status: in-progress
+    status: done
     owner: pm-tradeclaw
-    notes: "Next task"
+    notes: >
+      Complete: lib/trade-journal.ts (localStorage CRUD, getEntries/addEntry/updateEntry/deleteEntry,
+      getWeeklySummary, calculatePnl). /journal page (JournalLoader.tsx + JournalClient.tsx) —
+      Add Trade modal (pair/direction/entry price/notes/tags, auto-fetches signal context from /api/signals),
+      Close Trade modal (exit price, live P&L preview), weekly summary card (trades/P&L/winRate/W-L record,
+      win-loss bar, best/worst trade), filter tabs (all/open/closed/BUY/SELL), sortable table with expand
+      rows showing notes+tags+signal context, signal match badge (Match/Against), JSON export.
+      Navbar + mobile nav already wired. Build passes. 0 lint errors. Committed f3ce6ac4. 2026-04-02
+
+  # ── Phase 31: Star Acceleration — Real Engagement + Distribution ──
+
+  - id: TC-155
+    title: "Community signal voting — /vote page where visitors vote BUY/SELL/HOLD per asset (localStorage dedup + /api/votes file-based JSON), live vote bars vs TradeClaw signal agreement, weekly reset, shareable result card. Drives return visits + social proof."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-156
+    title: "Trading glossary SEO hub — /glossary with 50 trading terms (RSI, MACD, Fibonacci, Sharpe, Drawdown, etc.) each with definition, TradeClaw relevance callout, and link to relevant page. Alphabetical nav + search. SEO goldmine for organic traffic from traders."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-157
+    title: "Stars-for-features pledge wall — /pledge page: pledge specific features unlocked at 100/250/500/1000 stars (e.g. 'PostgreSQL at 100 stars', 'Mobile app at 500 stars'). Visitors sign pledge (name + email, /api/pledges file-based). Shows pledge count per milestone. Drives explicit star motivation."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-158
+    title: "Fly.io one-click deploy — fly.toml + Dockerfile.fly + docs/FLYIO.md + /fly page on site. Fly.io developer community actively shares deploy configs. Adds 3rd major deploy option alongside Railway+Docker."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-159
+    title: "Daily signal digest auto-poster to Telegram channel — /api/cron/daily-digest (Vercel cron 08:00 UTC) posts formatted top-3 signals with emoji to TELEGRAM_CHANNEL_ID. /digest/preview page shows today's digest. .env.example updated with TELEGRAM_CHANNEL_ID. Keeps channel alive = organic Telegram discovery."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
 
 next_actions:
-  - "Phase 27 defined. TC-135 is next — mini-tools collection for organic search traffic."
+  - "Phase 31 defined. TC-155 is next — community signal voting for return visits + social proof."
   - "Migrate file-based JSON storage to PostgreSQL for production self-hosters."
   - "Deploy live demo instance and validate Docker Compose end-to-end."
   - "Add test suite (currently zero tests for 200+ pages)."

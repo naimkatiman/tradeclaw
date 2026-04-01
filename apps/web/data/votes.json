@@ -1,0 +1,15 @@
+{
+  "pairs": {
+    "BTCUSD": { "BUY": 142, "SELL": 67, "HOLD": 38 },
+    "ETHUSD": { "BUY": 98, "SELL": 85, "HOLD": 44 },
+    "XAUUSD": { "BUY": 156, "SELL": 41, "HOLD": 29 },
+    "XAGUSD": { "BUY": 73, "SELL": 52, "HOLD": 31 },
+    "EURUSD": { "BUY": 61, "SELL": 88, "HOLD": 53 },
+    "GBPUSD": { "BUY": 79, "SELL": 64, "HOLD": 41 },
+    "USDJPY": { "BUY": 55, "SELL": 102, "HOLD": 48 },
+    "AAPL": { "BUY": 121, "SELL": 45, "HOLD": 37 },
+    "TSLA": { "BUY": 89, "SELL": 94, "HOLD": 52 },
+    "SPX500": { "BUY": 108, "SELL": 56, "HOLD": 41 }
+  },
+  "weekStart": "2026-03-30"
+}

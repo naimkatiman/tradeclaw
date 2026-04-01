@@ -68,5 +68,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/notion/signals`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/badges/readme`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/journal`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/vote`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
   ];
 }

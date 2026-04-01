@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mail, Bell, BookOpen, BadgeCheck, NotebookPen } from 'lucide-react';
+import { Mail, Bell, BookOpen, BadgeCheck, NotebookPen, BarChart2 } from 'lucide-react';
 import { TradeClawLogo } from './tradeclaw-logo';
 
 const NAV_PAGES = [
@@ -49,6 +49,18 @@ export function PageNavBar() {
 
         {/* Community */}
         <div className="hidden md:flex items-center gap-1 ml-auto">
+          <Link
+            href="/vote"
+            aria-current={isActive('/vote') ? 'page' : undefined}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 inline-flex items-center gap-1.5 ${
+              isActive('/vote')
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
+            }`}
+          >
+            <BarChart2 className="w-3 h-3" />
+            Vote
+          </Link>
           <Link
             href="/subscribe"
             aria-current={isActive('/subscribe') ? 'page' : undefined}
