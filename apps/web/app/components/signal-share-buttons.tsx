@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import type { TradingSignal } from '../lib/signals';
 
 interface Props {
@@ -73,6 +74,15 @@ export function SignalShareButtons({ signal, signalPath }: Props) {
         >
           {copied ? 'Copied!' : 'Copy Link'}
         </button>
+      </div>
+      <div className="mt-2">
+        <Link
+          href={`/alert/${encodeURIComponent(signalPath.replace('/signal/', ''))}`}
+          className="block w-full py-2.5 rounded-xl text-xs font-semibold text-center transition-colors
+            bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/15"
+        >
+          📱 Mobile Share &amp; QR Code
+        </Link>
       </div>
     </div>
   );
