@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Play, Thermometer, ChevronDown, Activity, ShoppingBag, Briefcase, FlaskConical, BarChart2, Server, Star } from 'lucide-react';
+import { Play, Thermometer, ChevronDown, Activity, ShoppingBag, Briefcase, FlaskConical, BarChart2, Server, Star, Rocket } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { TradeClawLogo } from '../../components/tradeclaw-logo';
 import type { LucideIcon } from 'lucide-react';
@@ -57,6 +57,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/share', label: 'Share' },
       { href: '/contribute', label: 'Contribute' },
       { href: '/discord/server', label: 'Discord' },
+      { href: '/producthunt', label: 'Product Hunt', icon: Rocket },
     ],
   },
 ];

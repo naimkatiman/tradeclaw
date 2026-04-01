@@ -1240,9 +1240,16 @@ tasks:
 
   - id: TC-140
     title: "GitHub star heatmap calendar embed — /api/star-history returns weekly star growth data, /star-history page with GitHub-contribution-style calendar, shareable PNG via canvas download. Drives social proof on every share."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/star-history (real GitHub stargazer API with seeded PRNG fallback, 52-week weekly breakdown,
+      peakWeek, recentGrowth, CORS *). /api/widget/stars (embeddable 300x200 HTML card with live star count +
+      progress bar). /star-history page (StarHistoryClient.tsx) — GitHub-contribution-style 52×7 day grid with
+      emerald color scale, hover tooltips, milestone markers (⭐10/25/50/100/250/500/1000), PNG download via
+      canvas, Share on X tweet, cumulative growth canvas chart with gradient fill + milestone dots, embed snippet
+      for /api/widget/stars. Navbar Community group Star History link added. Sitemap updated.
+      0 lint errors. Build passes. Committed 314e8650. 2026-04-01
 
   - id: TC-141
     title: "TradeClaw on Product Hunt — /producthunt landing redirect + POST to PH API to schedule launch. Auto-generate hunter kit (tagline, first comment, gallery captions). PH launch drives massive star spikes."
