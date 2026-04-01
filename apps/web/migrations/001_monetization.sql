@@ -3,6 +3,17 @@
 -- Run against your PostgreSQL database.
 
 -- ---------------------------------------------------------------------------
+-- Create users table if it does not already exist (fresh Docker installs)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS users (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email      VARCHAR(255) UNIQUE NOT NULL,
+  name       VARCHAR(255),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- ---------------------------------------------------------------------------
 -- Extend existing users table
 -- ---------------------------------------------------------------------------
 ALTER TABLE users

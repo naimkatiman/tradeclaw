@@ -1338,9 +1338,16 @@ tasks:
 
   - id: TC-148
     title: "Signal alert mobile deep-link — /alert/[id] page that renders a signal detail optimized for mobile share (WhatsApp/Telegram link preview with rich OG). QR code generator for each signal. Viral sharing from mobile traders."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /alert/[id] server page with full OG metadata (WhatsApp/Telegram/Twitter optimized).
+      AlertDetailClient.tsx — mobile-first layout (max-w-md), signal hero card (direction/confidence/
+      entry/TP/SL/RSI/MACD/EMA), WhatsApp deep-link, Telegram share, Twitter/X share, copy link.
+      qr-code.tsx — canvas QR via qrcode npm, emerald on dark theme, download PNG. Collapsible QR
+      section with smooth expand. "Set Price Alert" + "Full Analysis" action buttons. GitHub star CTA.
+      SignalShareButtons updated with "Mobile Share & QR Code" link to /alert/[id].
+      qrcode + @types/qrcode installed. Build passes. 0 lint errors. Committed d1eda6fb. 2026-04-01
 
   - id: TC-149
     title: "Contributor leaderboard — /contributors page showing GitHub contributors (fetched via /api/github/contributors), commit count, PRs merged, with 'Top Contributor' badge for #1. Monthly reset. Gamifies contributions → more PRs → more GitHub activity → trending."

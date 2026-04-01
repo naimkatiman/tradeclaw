@@ -101,54 +101,56 @@ jobs:
 
             const dailyTable = daily.map(d => `| ${d.day} | ${d.count} |`).join('\n');
 
-            const body = `## 📊 TradeClaw Weekly Pulse — Week of ${weekLabel}
-
-> Auto-generated every Monday. [View live report →](https://tradeclaw.win/report)
-
----
-
-### 🎯 This Week at a Glance
-
-| Metric | Value |
-|--------|-------|
-| ⚡ Signals Generated | **${totalSignals}** |
-| 🎯 Win Rate | **${winRate}%** |
-| 🏆 Top Asset | **${topAsset}** (${topAccuracy}% accuracy) |
-| 🔄 Active Contributors | **${newContributors}** |
-| ⭐ Total Stars | **${stars}** |
-| 🍴 Forks | **${forks}** |
-| 🟢 Uptime | **${uptime}%** |
-
----
-
-### 📅 Signals Per Day
-
-| Day | Count |
-|-----|-------|
-${dailyTable}
-
----
-
-### ⭐ Star Progress
-
-\`\`\`
-${stars}/1000  [${progressBar}]  ${Math.round((stars / 1000) * 100)}%
-\`\`\`
-
-**${1000 - stars} more stars** to reach our 1,000 milestone! If you find TradeClaw useful, please give it a ⭐ — it costs nothing and helps other developers discover the project.
-
----
-
-### 🔗 Quick Links
-
-- [📈 Live Signals](https://tradeclaw.win/dashboard) — real-time signal feed
-- [🏆 Leaderboard](https://tradeclaw.win/leaderboard) — accuracy by asset
-- [📊 Full Report](https://tradeclaw.win/report) — this week's stats
-- [🤝 Contribute](https://tradeclaw.win/contribute) — good first issues
-
----
-
-*Feel free to share your results from following TradeClaw signals this week! What worked? What didn&apos;t? Let the community know below.*`;
+            const body = [
+              `## 📊 TradeClaw Weekly Pulse — Week of ${weekLabel}`,
+              '',
+              `> Auto-generated every Monday. [View live report →](https://tradeclaw.win/report)`,
+              '',
+              '---',
+              '',
+              '### 🎯 This Week at a Glance',
+              '',
+              '| Metric | Value |',
+              '|--------|-------|',
+              `| ⚡ Signals Generated | **${totalSignals}** |`,
+              `| 🎯 Win Rate | **${winRate}%** |`,
+              `| 🏆 Top Asset | **${topAsset}** (${topAccuracy}% accuracy) |`,
+              `| 🔄 Active Contributors | **${newContributors}** |`,
+              `| ⭐ Total Stars | **${stars}** |`,
+              `| 🍴 Forks | **${forks}** |`,
+              `| 🟢 Uptime | **${uptime}%** |`,
+              '',
+              '---',
+              '',
+              '### 📅 Signals Per Day',
+              '',
+              '| Day | Count |',
+              '|-----|-------|',
+              dailyTable,
+              '',
+              '---',
+              '',
+              '### ⭐ Star Progress',
+              '',
+              '```',
+              `${stars}/1000  [${progressBar}]  ${Math.round((stars / 1000) * 100)}%`,
+              '```',
+              '',
+              `**${1000 - stars} more stars** to reach our 1,000 milestone! If you find TradeClaw useful, please give it a ⭐ — it costs nothing and helps other developers discover the project.`,
+              '',
+              '---',
+              '',
+              '### 🔗 Quick Links',
+              '',
+              '- [📈 Live Signals](https://tradeclaw.win/dashboard) — real-time signal feed',
+              '- [🏆 Leaderboard](https://tradeclaw.win/leaderboard) — accuracy by asset',
+              '- [📊 Full Report](https://tradeclaw.win/report) — this week\'s stats',
+              '- [🤝 Contribute](https://tradeclaw.win/contribute) — good first issues',
+              '',
+              '---',
+              '',
+              '*Feel free to share your results from following TradeClaw signals this week! What worked? What didn\'t? Let the community know below.*',
+            ].join('\n');
 
             if (context.payload?.inputs?.dry_run === 'true') {
               core.info('=== DRY RUN — Discussion body ===');

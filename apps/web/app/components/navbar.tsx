@@ -57,6 +57,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/star-history', label: 'Star History', icon: Star },
       { href: '/share', label: 'Share' },
       { href: '/contribute', label: 'Contribute' },
+      { href: '/contributors', label: 'Contributors' },
       { href: '/discord/server', label: 'Discord' },
       { href: '/producthunt', label: 'Product Hunt', icon: Rocket },
       { href: '/subscribe', label: 'Weekly Digest', icon: Mail },

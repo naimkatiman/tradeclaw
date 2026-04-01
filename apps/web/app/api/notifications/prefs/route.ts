@@ -4,7 +4,7 @@ import { getPushSubscription, updateSubscriptionPrefs } from '../../../../lib/pu
 const DEFAULT_PREFS = {
   pairs: ['BTCUSD', 'ETHUSD', 'XAUUSD'],
   thresholds: {} as Record<string, number>,
-  directions: {} as Record<string, string>,
+  directions: {} as Record<string, 'BUY' | 'SELL' | 'both'>,
   masterEnabled: true,
 };
 
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { endpoint, prefs } = body as {
       endpoint?: string;
-      prefs?: { pairs?: string[]; thresholds?: Record<string, number>; directions?: Record<string, string>; masterEnabled?: boolean };
+      prefs?: { pairs?: string[]; thresholds?: Record<string, number>; directions?: Record<string, 'BUY' | 'SELL' | 'both'>; masterEnabled?: boolean };
     };
 
     if (!endpoint) {

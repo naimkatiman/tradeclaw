@@ -81,6 +81,7 @@ export async function addSubscriber(
     return { ok: true, count, subscriber: existing };
   }
   const subscriber: EmailSubscriber = {
+    id: randomUUID(),
     email: email.toLowerCase().trim(),
     pairs,
     minConfidence,

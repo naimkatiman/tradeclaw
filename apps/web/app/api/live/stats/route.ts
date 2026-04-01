@@ -17,7 +17,7 @@ export async function GET() {
     // Count by pair
     const pairCount: Record<string, number> = {};
     for (const s of last24h) {
-      pairCount[s.symbol] = (pairCount[s.symbol] ?? 0) + 1;
+      pairCount[s.pair] = (pairCount[s.pair] ?? 0) + 1;
     }
     const topPair = Object.entries(pairCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'BTCUSD';
 

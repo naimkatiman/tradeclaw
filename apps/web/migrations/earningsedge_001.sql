@@ -42,13 +42,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Row Level Security
-ALTER TABLE ee_users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ee_analyses ENABLE ROW LEVEL SECURITY;
+-- Row Level Security (Supabase only — skip when auth schema is absent)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'auth') THEN
+    ALTER TABLE ee_users ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE ee_analyses ENABLE ROW LEVEL SECURITY;
 
--- Service role can do everything (used by API routes with admin client)
-CREATE POLICY "service_role_all_ee_users" ON ee_users
-  FOR ALL USING (auth.role() = 'service_role');
-
-CREATE POLICY "service_role_all_ee_analyses" ON ee_analyses
-  FOR ALL USING (auth.role() = 'service_role');
+    EXECUTE $p$
+      CREATE POLICY "service_role_all_ee_users" ON ee_users
+        FOR ALL USING (auth.role() = 'service_role')
+    $p$;
+    EXECUTE $p$
+      CREATE POLICY "service_role_all_ee_analyses" ON ee_analyses
+        FOR ALL USING (auth.role() = 'service_role')
+    $p$;
+  END IF;
+END
+$$;

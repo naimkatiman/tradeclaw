@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { subscription, prefs } = body as {
       subscription?: { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
-      prefs?: { pairs?: string[]; thresholds?: Record<string, number>; directions?: Record<string, string>; masterEnabled?: boolean };
+      prefs?: { pairs?: string[]; thresholds?: Record<string, number>; directions?: Record<string, 'BUY' | 'SELL' | 'both'>; masterEnabled?: boolean };
     };
 
     if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {

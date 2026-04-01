@@ -9,7 +9,7 @@ export async function GET() {
     const { signals } = await getTrackedSignals({});
 
     const latest = signals
-      .sort((a, b) => b.timestamp - a.timestamp)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 20)
       .map((s) => ({
         id: s.id,
@@ -17,8 +17,8 @@ export async function GET() {
         direction: s.direction,
         confidence: s.confidence,
         entry: s.entry,
-        tp: s.tp,
-        sl: s.sl,
+        tp: s.takeProfit1,
+        sl: s.stopLoss,
         timeframe: s.timeframe,
         timestamp: s.timestamp,
       }));
