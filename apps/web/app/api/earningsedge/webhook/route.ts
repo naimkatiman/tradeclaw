@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { handleWebhookEvent } from '@/lib/earningsedge/stripe';
-import { upsertUser } from '@/lib/earningsedge/db';
+import { upsertUser, getUserByStripeCustomer, updateUserTier } from '@/lib/earningsedge/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,12 +30,11 @@ export async function POST(request: NextRequest) {
 
     if (event.type === 'customer.subscription.deleted' && event.customerId) {
       try {
-        // Downgrade to free
-        await upsertUser({
-          stripe_customer_id: event.customerId,
-          tier: 'free',
-          stripe_subscription_id: null,
-        });
+        // Look up user by Stripe customer ID, then downgrade to free
+        const existing = await getUserByStripeCustomer(event.customerId);
+        if (existing) {
+          await updateUserTier(existing.email, 'free', event.customerId);
+        }
       } catch {
         console.error('[earningsedge] Failed to downgrade user after subscription deletion');
       }
