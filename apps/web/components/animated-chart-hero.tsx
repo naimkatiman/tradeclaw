@@ -72,16 +72,14 @@ export function AnimatedChartHero({
 
     // Polyfill roundRect for older browsers (Chrome <99, Firefox <112)
     if (typeof ctx.roundRect !== "function") {
-      (ctx as unknown as Record<string, unknown>).roundRect = function (
-        this: CanvasRenderingContext2D,
-        x: number, y: number, w: number, h: number, r: number | number[]
-      ) {
+      const polyCtx = ctx as unknown as Record<string, unknown>;
+      polyCtx.roundRect = (x: number, y: number, w: number, h: number, r: number | number[]) => {
         const radius = typeof r === "number" ? r : (r[0] ?? 0);
-        this.moveTo(x + radius, y);
-        this.arcTo(x + w, y, x + w, y + h, radius);
-        this.arcTo(x + w, y + h, x, y + h, radius);
-        this.arcTo(x, y + h, x, y, radius);
-        this.arcTo(x, y, x + w, y, radius);
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + w, y, x + w, y + h, radius);
+        ctx.arcTo(x + w, y + h, x, y + h, radius);
+        ctx.arcTo(x, y + h, x, y, radius);
+        ctx.arcTo(x, y, x + w, y, radius);
       };
     }
 

@@ -10,14 +10,18 @@ export default function EarningsEdgeDashboard() {
   const [history, setHistory] = useState<EarningsAnalysis[]>([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem(HISTORY_KEY);
-    if (stored) {
-      try {
-        setHistory(JSON.parse(stored) as EarningsAnalysis[]);
-      } catch {
-        setHistory([]);
+    function loadHistory() {
+      const stored = localStorage.getItem(HISTORY_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as EarningsAnalysis[];
+          setHistory(parsed);
+        } catch {
+          // ignore parse errors
+        }
       }
     }
+    loadHistory();
   }, []);
 
   function clearHistory() {

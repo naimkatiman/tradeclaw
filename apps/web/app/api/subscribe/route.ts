@@ -35,11 +35,13 @@ export async function POST(req: NextRequest) {
   }
 
   const minConfidence = typeof body.minConfidence === 'number'
-    ? Math.max(50, Math.min(90, Math.round(body.minConfidence)))
+    ? Math.max(50, Math.min(95, Math.round(body.minConfidence)))
     : 70;
 
+  const frequency = body.frequency === 'daily' ? 'daily' as const : 'weekly' as const;
+
   try {
-    const result = await addSubscriber(email, pairs, minConfidence);
+    const result = await addSubscriber(email, pairs, minConfidence, frequency);
     return NextResponse.json({ ok: true, count: result.count }, { status: 201 });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

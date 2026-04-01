@@ -181,7 +181,7 @@ export default function EarningsEdgeLanding() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {TESTIMONIALS.map((t, i) => (
             <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-6">
-              <p className="text-gray-300 text-sm mb-4 italic">"{t.text}"</p>
+              <p className="text-gray-300 text-sm mb-4 italic">&quot;{t.text}&quot;</p>
               <p className="text-gray-500 text-xs">— {t.author}</p>
             </div>
           ))}

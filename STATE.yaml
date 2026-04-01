@@ -1275,9 +1275,9 @@ tasks:
 
   - id: TC-143
     title: "Signal alert email digest — /api/digest/preview returns weekly HTML email; /subscribe page captures email + pair preferences (file-based JSON); README badge + landing page CTA. Email subscribers = retained users who star and share."
-    status: pending
+    status: in-progress
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Claude Code running 2026-04-01. /api/digest/preview, /api/subscribe, /subscribe page, landing CTA."
 
   - id: TC-144
     title: "Real-time signal notification center — /notifications page with browser push subscription management (Service Worker push API), per-pair toggles, confidence threshold slider, test notification button. Push notifications drive daily active users and star conversions."

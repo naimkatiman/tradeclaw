@@ -6,6 +6,7 @@ export const revalidate = 0;
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const period = searchParams.get('period') === '30d' ? '30d' : '7d';
+  const format = searchParams.get('format');
   const accept = req.headers.get('accept') ?? '';
 
   const headers: Record<string, string> = {
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
     'Access-Control-Allow-Origin': '*',
   };
 
-  if (accept.includes('application/json')) {
+  if (format === 'json' || accept.includes('application/json')) {
     const data = getEmailDigestData({ period, topN: 5 });
     return NextResponse.json(data, { headers });
   }

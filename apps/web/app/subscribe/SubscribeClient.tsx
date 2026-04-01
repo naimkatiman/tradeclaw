@@ -26,6 +26,7 @@ export default function SubscribeClient() {
   const [email, setEmail] = useState('');
   const [selectedPairs, setSelectedPairs] = useState<string[]>(['BTCUSD', 'ETHUSD', 'XAUUSD']);
   const [confidence, setConfidence] = useState(70);
+  const [frequency, setFrequency] = useState<'daily' | 'weekly'>('weekly');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -62,7 +63,7 @@ export default function SubscribeClient() {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, pairs: selectedPairs, minConfidence: confidence }),
+        body: JSON.stringify({ email, pairs: selectedPairs, minConfidence: confidence, frequency }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -212,6 +213,29 @@ export default function SubscribeClient() {
               </div>
             </div>
 
+            {/* Frequency */}
+            <div>
+              <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">
+                Digest frequency
+              </label>
+              <div className="flex gap-3">
+                {(['daily', 'weekly'] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFrequency(f)}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
+                      frequency === f
+                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                        : 'border-[var(--border)] text-[var(--text-secondary)] hover:border-emerald-500/40'
+                    }`}
+                  >
+                    {f === 'daily' ? 'Daily' : 'Weekly'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Confidence slider */}
             <div>
               <label htmlFor="confidence" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
@@ -221,7 +245,7 @@ export default function SubscribeClient() {
                 id="confidence"
                 type="range"
                 min={50}
-                max={90}
+                max={95}
                 step={5}
                 value={confidence}
                 onChange={(e) => setConfidence(Number(e.target.value))}
@@ -230,7 +254,7 @@ export default function SubscribeClient() {
               <div className="flex justify-between text-[10px] text-[var(--text-secondary)] mt-1">
                 <span>50%</span>
                 <span>70%</span>
-                <span>90%</span>
+                <span>95%</span>
               </div>
             </div>
 

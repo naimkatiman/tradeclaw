@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
 const TWITTER_URL = "https://x.com/tradeclaw";
 const DISCORD_URL = "https://discord.gg/tradeclaw";
@@ -96,19 +98,41 @@ export function SiteFooter() {
               <ul className="space-y-2.5">
                 {group.links.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.href}
-                      target={link.external ? "_blank" : undefined}
-                      rel={link.external ? "noopener noreferrer" : undefined}
-                      className="text-xs text-[var(--text-secondary)] transition-colors hover:text-[var(--foreground)]"
-                    >
-                      {link.label}
-                    </a>
+                    {link.external ? (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-[var(--text-secondary)] transition-colors hover:text-[var(--foreground)]"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-xs text-[var(--text-secondary)] transition-colors hover:text-[var(--foreground)]"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
             </div>
           ))}
+        </div>
+
+        {/* Email CTA */}
+        <div className="mt-10 flex items-center justify-center gap-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-6 py-5">
+          <p className="text-sm text-[var(--text-secondary)]">
+            AI signals in your inbox — free forever.
+          </p>
+          <Link
+            href="/subscribe"
+            className="shrink-0 rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-600"
+          >
+            Get Weekly Signals
+          </Link>
         </div>
 
         {/* Bottom bar */}

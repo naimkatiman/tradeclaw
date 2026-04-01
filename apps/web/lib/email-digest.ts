@@ -95,6 +95,37 @@ export function getEmailDigestData(options: EmailDigestOptions = {}): EmailDiges
 export function generateEmailDigest(options: EmailDigestOptions = {}): string {
   const data = getEmailDigestData(options);
 
+  const topPair = data.leaderboard[0]?.pair ?? '—';
+  const avgConfidence = data.topSignals.length > 0
+    ? Math.round(data.topSignals.reduce((sum, s) => sum + s.confidence, 0) / data.topSignals.length)
+    : 0;
+
+  const statsSummaryRow = `
+  <tr>
+    <td style="padding:0 24px 24px 24px;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;background-color:#0d1421;border-radius:8px;border:1px solid #1f2937;" bgcolor="#0d1421">
+        <tr>
+          <td style="padding:16px 12px;text-align:center;width:25%;">
+            <p style="margin:0;font-size:20px;font-weight:700;color:#10b981;">${data.accuracy.totalSignals}</p>
+            <p style="margin:4px 0 0 0;font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">Total Signals</p>
+          </td>
+          <td style="padding:16px 12px;text-align:center;width:25%;">
+            <p style="margin:0;font-size:20px;font-weight:700;color:#10b981;">${data.accuracy.hitRate24h}%</p>
+            <p style="margin:4px 0 0 0;font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">Win Rate</p>
+          </td>
+          <td style="padding:16px 12px;text-align:center;width:25%;">
+            <p style="margin:0;font-size:20px;font-weight:700;color:#ffffff;">${topPair}</p>
+            <p style="margin:4px 0 0 0;font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">Top Pair</p>
+          </td>
+          <td style="padding:16px 12px;text-align:center;width:25%;">
+            <p style="margin:0;font-size:20px;font-weight:700;color:#ffffff;">${avgConfidence}%</p>
+            <p style="margin:4px 0 0 0;font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">Avg Confidence</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>`;
+
   const signalRows = data.topSignals.length > 0
     ? data.topSignals.map(s => {
         const dirBg = s.direction === 'BUY' ? '#10b981' : '#ef4444';
@@ -141,8 +172,8 @@ export function generateEmailDigest(options: EmailDigestOptions = {}): string {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TradeClaw Weekly Signal Digest</title>
 </head>
-<body style="margin:0;padding:0;background-color:#0d1117;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
-<table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse:collapse;max-width:600px;margin:0 auto;" bgcolor="#0d1117">
+<body style="margin:0;padding:0;background-color:#0a0f1a;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse:collapse;max-width:600px;margin:0 auto;" bgcolor="#0a0f1a">
 
   <!-- Header -->
   <tr>
@@ -162,10 +193,13 @@ export function generateEmailDigest(options: EmailDigestOptions = {}): string {
     </td>
   </tr>
 
+  <!-- Stats Summary -->
+  ${statsSummaryRow}
+
   <!-- Top Signals -->
   <tr>
     <td style="padding:0 24px 24px 24px;">
-      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;background-color:#111827;border-radius:8px;" bgcolor="#111827">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;background-color:#0d1421;border-radius:8px;" bgcolor="#0d1421">
         <tr>
           <td colspan="6" style="padding:16px 12px 8px 12px;">
             <span style="font-size:13px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:1px;">Top ${data.topSignals.length} Signals</span>
@@ -187,7 +221,7 @@ export function generateEmailDigest(options: EmailDigestOptions = {}): string {
   <!-- Accuracy Stats -->
   <tr>
     <td style="padding:0 24px 24px 24px;">
-      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;background-color:#111827;border-radius:8px;" bgcolor="#111827">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;background-color:#0d1421;border-radius:8px;" bgcolor="#0d1421">
         <tr>
           <td colspan="3" style="padding:16px 12px 12px 12px;">
             <span style="font-size:13px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:1px;">Accuracy</span>
@@ -225,7 +259,7 @@ export function generateEmailDigest(options: EmailDigestOptions = {}): string {
   <!-- Leaderboard -->
   <tr>
     <td style="padding:0 24px 24px 24px;">
-      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;background-color:#111827;border-radius:8px;" bgcolor="#111827">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;background-color:#0d1421;border-radius:8px;" bgcolor="#0d1421">
         <tr>
           <td colspan="4" style="padding:16px 12px 8px 12px;">
             <span style="font-size:13px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:1px;">Leaderboard</span>

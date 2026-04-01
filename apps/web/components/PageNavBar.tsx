@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Mail } from 'lucide-react';
 import { TradeClawLogo } from './tradeclaw-logo';
 
 const NAV_PAGES = [
@@ -44,6 +45,22 @@ export function PageNavBar() {
               {page.label}
             </Link>
           ))}
+        </div>
+
+        {/* Community */}
+        <div className="hidden md:flex items-center gap-1 ml-auto">
+          <Link
+            href="/subscribe"
+            aria-current={isActive('/subscribe') ? 'page' : undefined}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 inline-flex items-center gap-1.5 ${
+              isActive('/subscribe')
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
+            }`}
+          >
+            <Mail className="w-3 h-3" />
+            Digest
+          </Link>
         </div>
       </div>
     </nav>

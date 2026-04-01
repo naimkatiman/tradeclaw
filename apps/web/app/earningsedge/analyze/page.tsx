@@ -326,7 +326,7 @@ function AnalysisResult({ analysis }: { analysis: EarningsAnalysis }) {
           </span>
         </div>
         <p className="text-sm text-gray-300 mb-3 italic">
-          "{analysis.managementTone.forwardGuidance}"
+          &quot;{analysis.managementTone.forwardGuidance}&quot;
         </p>
         <div className="space-y-1">
           {analysis.managementTone.keySignals.map((signal, i) => (
