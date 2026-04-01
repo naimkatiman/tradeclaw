@@ -1326,9 +1326,15 @@ tasks:
 
   - id: TC-147
     title: "TradeClaw Replit template — replit.nix + .replit config + docs/REPLIT.md so users can fork-and-run TradeClaw on Replit in one click. Replit has 20M users. Add 'Run on Replit' badge to README."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: replit.nix (Node.js 20 Nix env), .replit (run command, port 3000, env vars),
+      docs/REPLIT.md (fork guide, what works, limitations, production path). /replit page
+      (ReplitClient.tsx) — orange Replit-branded hero, Fork on Replit CTA, 3-step guide,
+      what-works/limitations split cards, production Docker CTA, GitHub star CTA.
+      Navbar Tools group + sitemap updated. Run on Replit badge added to README.
+      0 lint errors. Build passes. Committed 094ff283. 2026-04-01
 
   - id: TC-148
     title: "Signal alert mobile deep-link — /alert/[id] page that renders a signal detail optimized for mobile share (WhatsApp/Telegram link preview with rich OG). QR code generator for each signal. Viral sharing from mobile traders."
