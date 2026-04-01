@@ -58,6 +58,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/contribute', label: 'Contribute' },
       { href: '/discord/server', label: 'Discord' },
       { href: '/producthunt', label: 'Product Hunt', icon: Rocket },
+      { href: '/start', label: 'Setup Guide', icon: Rocket },
     ],
   },
 ];

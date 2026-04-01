@@ -13,7 +13,7 @@
 [![Demo](https://img.shields.io/badge/Demo-Live-10b981?logo=vercel&style=flat-square)](https://tradeclaw.win/dashboard)
 [![Uptime](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fuptime&query=%24.overallUptime&suffix=%25+uptime&label=status&color=brightgreen&style=flat-square)](https://tradeclaw.win/status)
 
-**[🚀 Live Demo](https://tradeclaw.win/dashboard)** · **[📡 API](https://tradeclaw.win/api-docs)** · **[📖 Docs](https://tradeclaw.win/docs)** · **[🤝 Contribute](https://tradeclaw.win/contribute)**
+**[🚀 Live Demo](https://tradeclaw.win/dashboard)** · **[⚡ Get Started](https://tradeclaw.win/start)** · **[📡 API](https://tradeclaw.win/api-docs)** · **[📖 Docs](https://tradeclaw.win/docs)** · **[🤝 Contribute](https://tradeclaw.win/contribute)**
 
 🌍 [中文](README.zh.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
 
@@ -32,6 +32,8 @@ npx tradeclaw-demo
 ```
 
 Opens a full live demo at `http://localhost:3001` — signals, leaderboard, backtest, all running locally.
+
+👉 **[Interactive Setup Guide →](https://tradeclaw.win/start)**
 
 ## Deploy in 60 seconds
 

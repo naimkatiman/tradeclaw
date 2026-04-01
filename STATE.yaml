@@ -1253,9 +1253,14 @@ tasks:
 
   - id: TC-141
     title: "TradeClaw on Product Hunt — /producthunt landing redirect + POST to PH API to schedule launch. Auto-generate hunter kit (tagline, first comment, gallery captions). PH launch drives massive star spikes."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /producthunt page (PHClient.tsx + PHLoader.tsx + page.tsx) — PH orange hero (#DA552F),
+      official PH badge embed, upvote button, hunter kit with 3 taglines/description/topics/first-comment/
+      6 gallery captions (all copy-to-clipboard), social share (Twitter/LinkedIn pre-written posts),
+      7-item launch checklist (localStorage), GitHub star CTA. /api/ph-kit GET endpoint (CORS *).
+      Navbar Community group + sitemap updated. 0 lint errors. Build passes. Committed 5f5986ca. 2026-04-01
 
   - id: TC-142
     title: "Interactive onboarding tour for first-time GitHub visitors — /start page with 5-step 'Get Started' wizard (clone → configure → run → see signals → share). GitHub README link to /start as primary CTA. Reduces friction = more stars."

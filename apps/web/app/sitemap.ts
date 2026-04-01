@@ -54,5 +54,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/embed/live`, lastModified: new Date(), changeFrequency: "always", priority: 0.5 },
     { url: `${base}/star-history`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/producthunt`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${base}/start`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
   ];
 }
