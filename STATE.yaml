@@ -1312,9 +1312,17 @@ tasks:
 
   - id: TC-146
     title: "AI-powered market commentary — /commentary page: daily auto-generated market summary (template-based, no LLM API cost) covering top movers, signal consensus, fear/greed, key levels. RSS feed at /commentary/feed.xml. Drives return visits and SEO."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: apps/web/app/lib/market-commentary.ts (seeded PRNG, 5+ headline/summary templates,
+      topMovers/signalConsensus/fearGreed/keyLevels typed output). 3 API routes: GET /api/commentary
+      (today, revalidate 3600, CORS *), GET /api/commentary/[date] (specific YYYY-MM-DD),
+      GET /api/commentary/archive (last 7 days). /commentary/feed.xml Atom RSS feed. /commentary page
+      (server metadata + CommentaryClient.tsx) — hero, headline card, consensus bar, fear/greed score,
+      top movers grid, key levels table, bias+outlook cards, RSS button, 7-day archive, GitHub star CTA,
+      5min auto-refresh. Navbar Community group + mobile-nav + sitemap updated. 0 lint errors. Build
+      passes. Committed 694805c1. 2026-04-01
 
   - id: TC-147
     title: "TradeClaw Replit template — replit.nix + .replit config + docs/REPLIT.md so users can fork-and-run TradeClaw on Replit in one click. Replit has 20M users. Add 'Run on Replit' badge to README."

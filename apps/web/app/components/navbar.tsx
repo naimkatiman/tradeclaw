@@ -47,6 +47,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/status', label: 'Status', icon: Activity },
       { href: '/benchmark', label: 'Cost Benchmark', icon: Server },
       { href: '/live', label: 'Live Feed', icon: Activity },
+      { href: '/replit', label: 'Run on Replit' },
     ],
   },
   {

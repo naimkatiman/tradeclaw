@@ -1,0 +1,14 @@
+run = "npm install && npm run dev --workspace=apps/web"
+language = "nodejs"
+entrypoint = "apps/web/app/page.tsx"
+
+[nix]
+channel = "stable-24_05"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+
+[env]
+NEXT_PUBLIC_APP_URL = "https://$REPL_SLUG.$REPL_OWNER.repl.co"
+NEXT_TELEMETRY_DISABLED = "1"
