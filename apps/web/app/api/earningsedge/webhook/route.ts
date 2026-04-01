@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { handleWebhookEvent } from '@/lib/earningsedge/stripe';
-import { upsertUser } from '@/lib/earningsedge/supabase';
+import { upsertUser } from '@/lib/earningsedge/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
           stripe_subscription_id: event.subscriptionId,
         });
       } catch {
-        // Supabase might not be configured — log and continue
+        // DB might not be configured — log and continue
         console.error('[earningsedge] Failed to upsert user after checkout');
       }
     }
