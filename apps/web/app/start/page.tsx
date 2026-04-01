@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import dynamic from 'next/dynamic';
-
-const StartClient = dynamic(() => import('./StartClient'), { ssr: false });
+import StartLoader from './StartLoader';
 
 export const metadata: Metadata = {
   title: 'Get Started — TradeClaw',
@@ -14,5 +12,5 @@ export const metadata: Metadata = {
 };
 
 export default function StartPage() {
-  return <StartClient />;
+  return <StartLoader />;
 }
