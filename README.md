@@ -12,6 +12,8 @@
 [![Docker](https://img.shields.io/badge/Docker-Hub-2496ED?logo=docker&style=flat-square)](https://hub.docker.com/r/tradeclaw/tradeclaw)
 [![Demo](https://img.shields.io/badge/Demo-Live-10b981?logo=vercel&style=flat-square)](https://tradeclaw.win/dashboard)
 [![Uptime](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fuptime&query=%24.overallUptime&suffix=%25+uptime&label=status&color=brightgreen&style=flat-square)](https://tradeclaw.win/status)
+[![Subscribers](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fsubscribe&query=%24.count&label=subscribers&color=10b981&style=flat-square)](https://tradeclaw.win/subscribe)
+[![Weekly Digest](https://img.shields.io/badge/%F0%9F%93%A7_Weekly_Digest-Subscribe-10b981?style=flat-square)](https://tradeclaw.win/subscribe)
 
 **[🚀 Live Demo](https://tradeclaw.win/dashboard)** · **[⚡ Get Started](https://tradeclaw.win/start)** · **[📡 API](https://tradeclaw.win/api-docs)** · **[📖 Docs](https://tradeclaw.win/docs)** · **[🤝 Contribute](https://tradeclaw.win/contribute)**
 

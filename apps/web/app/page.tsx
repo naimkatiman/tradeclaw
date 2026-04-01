@@ -7,6 +7,7 @@ import { LiveDemoEmbed } from "../components/landing/live-demo-embed";
 import { LiveHeroSignals } from "../components/landing/live-hero-signals";
 import { LiveActivityStrip } from "../components/landing/live-activity-strip";
 import { AccuracyStatsBar } from "./components/accuracy-stats-bar";
+import { EmailCTA } from "../components/landing/email-cta";
 
 export default function Home() {
   return (
@@ -21,6 +22,7 @@ export default function Home() {
         <LiveActivityStrip />
         <LiveDemoEmbed />
         <HowItWorks />
+        <EmailCTA />
         <FAQAccordion />
       </main>
       <SiteFooter />

@@ -1264,9 +1264,14 @@ tasks:
 
   - id: TC-142
     title: "Interactive onboarding tour for first-time GitHub visitors — /start page with 5-step 'Get Started' wizard (clone → configure → run → see signals → share). GitHub README link to /start as primary CTA. Reduces friction = more stars."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /start page (StartClient.tsx + StartLoader.tsx + page.tsx). 5-step wizard
+      (Clone/Configure/Run/See Signals/Share), localStorage progress persistence, resume banner,
+      tabbed code blocks, step sidebar with time estimates, mobile progress dots, confetti on
+      completion, GitHub star CTA with live progress bar, Twitter + Reddit pre-written posts.
+      Build passes. 0 lint errors. Committed 133214e4. 2026-04-01
 
   - id: TC-143
     title: "Signal alert email digest — /api/digest/preview returns weekly HTML email; /subscribe page captures email + pair preferences (file-based JSON); README badge + landing page CTA. Email subscribers = retained users who star and share."

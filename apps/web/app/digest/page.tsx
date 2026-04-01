@@ -13,13 +13,13 @@ const DigestClient = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: 'Signal Digest — TradeClaw',
+  title: 'Weekly Digest — TradeClaw',
   description:
-    'Daily JSON digest of top trading signals. Ready for n8n, Make, Zapier, or any cron job. Free API endpoint with setup guides.',
+    'Preview the weekly email digest with top trading signals, accuracy stats, and leaderboard highlights.',
   openGraph: {
-    title: 'Signal Digest API — TradeClaw',
+    title: 'Weekly Signal Digest — TradeClaw',
     description:
-      'JSON daily digest of top signals, ready for any automation platform. Free, open, no auth needed.',
+      'Preview the weekly email our subscribers receive every Monday with top BUY/SELL signals.',
     type: 'website',
   },
 };

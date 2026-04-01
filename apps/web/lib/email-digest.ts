@@ -71,7 +71,7 @@ export function getEmailDigestData(options: EmailDigestOptions = {}): EmailDiges
     hit24h: r.outcomes['24h']?.hit ?? null,
   }));
 
-  const topLeaderboard = leaderboard.assets.slice(0, 5).map((a, i) => ({
+  const topLeaderboard = leaderboard.assets.slice(0, 3).map((a, i) => ({
     rank: i + 1,
     pair: a.pair,
     hitRate: a.hitRate24h,
@@ -97,18 +97,18 @@ export function generateEmailDigest(options: EmailDigestOptions = {}): string {
 
   const signalRows = data.topSignals.length > 0
     ? data.topSignals.map(s => {
-        const dirColor = s.direction === 'BUY' ? '#10b981' : '#ef4444';
+        const dirBg = s.direction === 'BUY' ? '#10b981' : '#ef4444';
         const pnlColor = (s.pnl24h ?? 0) >= 0 ? '#10b981' : '#ef4444';
         const pnlText = s.pnl24h !== null ? `${s.pnl24h >= 0 ? '+' : ''}${s.pnl24h}%` : '—';
         const hitIcon = s.hit24h === true ? '&#10003;' : s.hit24h === false ? '&#10007;' : '—';
         const hitColor = s.hit24h === true ? '#10b981' : s.hit24h === false ? '#ef4444' : '#6b7280';
 
         return `<tr>
-  <td style="padding:10px 12px;color:#e5e7eb;font-size:14px;border-bottom:1px solid #1f2937;">${s.pair}</td>
+  <td style="padding:10px 12px;color:#e6edf3;font-size:14px;border-bottom:1px solid #1f2937;">${s.pair}</td>
   <td style="padding:10px 12px;border-bottom:1px solid #1f2937;">
-    <span style="display:inline-block;background-color:${dirColor};color:#ffffff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;">${s.direction}</span>
+    <span style="display:inline-block;background-color:${dirBg};color:#ffffff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;">${s.direction}</span>
   </td>
-  <td style="padding:10px 12px;color:#e5e7eb;font-size:14px;text-align:center;border-bottom:1px solid #1f2937;">${s.confidence}%</td>
+  <td style="padding:10px 12px;color:#e6edf3;font-size:14px;text-align:center;border-bottom:1px solid #1f2937;">${s.confidence}%</td>
   <td style="padding:10px 12px;color:#9ca3af;font-size:13px;text-align:right;border-bottom:1px solid #1f2937;">${formatPrice(s.entryPrice)}</td>
   <td style="padding:10px 12px;color:${pnlColor};font-size:14px;font-weight:600;text-align:right;border-bottom:1px solid #1f2937;">${pnlText}</td>
   <td style="padding:10px 12px;color:${hitColor};font-size:16px;text-align:center;border-bottom:1px solid #1f2937;">${hitIcon}</td>
@@ -120,11 +120,11 @@ export function generateEmailDigest(options: EmailDigestOptions = {}): string {
     const barWidth = Math.max(Math.round(l.hitRate), 5);
     return `<tr>
   <td style="padding:8px 12px;color:#9ca3af;font-size:13px;border-bottom:1px solid #1f2937;">#${l.rank}</td>
-  <td style="padding:8px 12px;color:#e5e7eb;font-size:14px;font-weight:600;border-bottom:1px solid #1f2937;">${l.pair}</td>
+  <td style="padding:8px 12px;color:#e6edf3;font-size:14px;font-weight:600;border-bottom:1px solid #1f2937;">${l.pair}</td>
   <td style="padding:8px 12px;border-bottom:1px solid #1f2937;">
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;"><tr>
       <td style="padding:0;"><div style="background-color:#1f2937;border-radius:4px;height:8px;width:100%;"><div style="background-color:#10b981;border-radius:4px;height:8px;width:${barWidth}%;"></div></div></td>
-      <td style="padding:0 0 0 8px;color:#e5e7eb;font-size:13px;white-space:nowrap;width:50px;text-align:right;">${l.hitRate}%</td>
+      <td style="padding:0 0 0 8px;color:#e6edf3;font-size:13px;white-space:nowrap;width:50px;text-align:right;">${l.hitRate}%</td>
     </tr></table>
   </td>
   <td style="padding:8px 12px;color:#6b7280;font-size:13px;text-align:center;border-bottom:1px solid #1f2937;">${l.totalSignals}</td>
@@ -141,8 +141,8 @@ export function generateEmailDigest(options: EmailDigestOptions = {}): string {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TradeClaw Weekly Signal Digest</title>
 </head>
-<body style="margin:0;padding:0;background-color:#0a0a0a;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
-<table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse:collapse;max-width:600px;margin:0 auto;" bgcolor="#0a0a0a">
+<body style="margin:0;padding:0;background-color:#0d1117;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse:collapse;max-width:600px;margin:0 auto;" bgcolor="#0d1117">
 
   <!-- Header -->
   <tr>
@@ -157,7 +157,7 @@ export function generateEmailDigest(options: EmailDigestOptions = {}): string {
           </td>
         </tr>
       </table>
-      <p style="margin:8px 0 0 0;font-size:16px;font-weight:600;color:#e5e7eb;">Weekly Signal Digest</p>
+      <p style="margin:8px 0 0 0;font-size:16px;font-weight:600;color:#e6edf3;">Weekly Signal Digest</p>
       <p style="margin:4px 0 0 0;font-size:13px;color:#6b7280;">${data.dateRange}</p>
     </td>
   </tr>
@@ -267,7 +267,7 @@ export function generateEmailDigest(options: EmailDigestOptions = {}): string {
         &nbsp;&middot;&nbsp;
         <a href="https://github.com/naimkatiman/tradeclaw" style="color:#6b7280;text-decoration:underline;">GitHub</a>
         &nbsp;&middot;&nbsp;
-        <a href="#" style="color:#6b7280;text-decoration:underline;">Unsubscribe</a>
+        <a href="{{UNSUBSCRIBE_URL}}" style="color:#6b7280;text-decoration:underline;">Unsubscribe</a>
       </p>
     </td>
   </tr>
