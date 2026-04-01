@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-03-30T11:36:40+08:00
+updated: 2026-04-01T07:34:00+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -1227,6 +1227,43 @@ tasks:
 
   - id: TC-139
     title: "Live activity feed widget — /live page with real-time marquee of signals being generated across all assets (SSE-powered), 'X signals fired in last hour' live counter, and an embeddable <script> widget for external blogs/sites. Makes TradeClaw feel alive. Landing page integration."
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: /api/live-feed (GET, last 20 signals, CORS *), /api/live/stats (hourly breakdown,
+      topPair, signalsLastHour/24h), /api/widget/live (embeddable JS iframe injector),
+      /live/widget (self-contained iframe marquee page). LiveClient.tsx + LiveActivityWidget
+      already existed with correct route wiring. live-activity-strip.tsx already on landing page.
+      Build passes 216 pages. 0 lint errors. Committed 7682d83e. 2026-04-01
+
+  # ── Phase 28: Maximum Star Velocity ──
+
+  - id: TC-140
+    title: "GitHub star heatmap calendar embed — /api/star-history returns weekly star growth data, /star-history page with GitHub-contribution-style calendar, shareable PNG via canvas download. Drives social proof on every share."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-141
+    title: "TradeClaw on Product Hunt — /producthunt landing redirect + POST to PH API to schedule launch. Auto-generate hunter kit (tagline, first comment, gallery captions). PH launch drives massive star spikes."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-142
+    title: "Interactive onboarding tour for first-time GitHub visitors — /start page with 5-step 'Get Started' wizard (clone → configure → run → see signals → share). GitHub README link to /start as primary CTA. Reduces friction = more stars."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-143
+    title: "Signal alert email digest — /api/digest/preview returns weekly HTML email; /subscribe page captures email + pair preferences (file-based JSON); README badge + landing page CTA. Email subscribers = retained users who star and share."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-144
+    title: "Real-time signal notification center — /notifications page with browser push subscription management (Service Worker push API), per-pair toggles, confidence threshold slider, test notification button. Push notifications drive daily active users and star conversions."
     status: pending
     owner: pm-tradeclaw
     notes: ""
