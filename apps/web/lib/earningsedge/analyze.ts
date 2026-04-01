@@ -35,7 +35,7 @@ Be concise, factual, and focused on what matters most for trading decisions.
 Always respond with valid JSON matching the exact schema requested. Do not include markdown formatting or code blocks in your response — return raw JSON only.`;
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL = 'google/gemini-2.5-flash-lite-preview';
+const MODEL = 'google/gemini-3.1-flash-lite-preview';
 
 export async function analyzeTranscript(
   transcript: string,
