@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mail, Bell, BookOpen } from 'lucide-react';
+import { Mail, Bell, BookOpen, BadgeCheck } from 'lucide-react';
 import { TradeClawLogo } from './tradeclaw-logo';
 
 const NAV_PAGES = [
@@ -72,6 +72,18 @@ export function PageNavBar() {
           >
             <BookOpen className="w-3 h-3" />
             Commentary
+          </Link>
+          <Link
+            href="/badges/readme"
+            aria-current={isActive('/badges/readme') ? 'page' : undefined}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 inline-flex items-center gap-1.5 ${
+              isActive('/badges/readme')
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
+            }`}
+          >
+            <BadgeCheck className="w-3 h-3" />
+            Badges
           </Link>
           <Link
             href="/notifications"

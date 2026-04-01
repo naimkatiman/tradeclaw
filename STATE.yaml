@@ -1394,9 +1394,15 @@ tasks:
 
   - id: TC-152
     title: "Signal alert Webhooks to Notion — /api/notion/signal-sync endpoint that pushes each new signal as a Notion database row (pair, direction, confidence, entry, TP, SL, timestamp). /notion/signals page with setup guide + live sync status. Notion has 100M users — viral via template sharing."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /notion/signals page (NotionSignalsClient.tsx) — hero with security badges, 4-step
+      setup guide, sync form (token+databaseId+pair/direction/confidence/limit filters), Sync Now button,
+      live result display with error list, collapsible schema table (10 properties), cURL API reference
+      with copy button, links to /notion + /marketplace + /api-docs, GitHub star CTA. Token stored in
+      localStorage only — never persisted server-side. Reuses existing /api/notion/sync endpoint.
+      Sitemap updated. Build passes 248 pages. 0 lint errors. Committed 8b4d3987. 2026-04-02
 
   - id: TC-153
     title: "TradeClaw GitHub README badges generator — /badges/readme page: user picks their fork URL, gets copy-paste badge markdown showing their instance's live signal (custom endpoint). Viral because every fork adds a live badge to their own README."
