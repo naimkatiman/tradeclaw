@@ -1286,6 +1286,44 @@ tasks:
 
   - id: TC-144
     title: "Real-time signal notification center — /notifications page with browser push subscription management (Service Worker push API), per-pair toggles, confidence threshold slider, test notification button. Push notifications drive daily active users and star conversions."
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: apps/web/app/notifications/ (page.tsx + NotificationsLoader.tsx + NotificationsClient.tsx).
+      Full browser push UI: permission toggle, per-pair BUY/SELL/both toggles + confidence threshold slider,
+      master enable/disable, test notification button (client-side Notification API), notification history
+      log (localStorage), subscription stats. /api/notifications/subscribe (file-based JSON), /api/notifications/test,
+      /api/notifications/status, /api/notifications/prefs. lib/push-subscriptions.ts. Navbar Bell icon +
+      sitemap + mobile-nav already wired. 0 lint errors. Committed 762a0743. 2026-04-01
+
+  # ── Phase 29: Maximum Star Velocity — Real Utility + Credibility ──
+
+  - id: TC-145
+    title: "Signal pattern library — /patterns page: 12 classic candlestick + indicator patterns (Head & Shoulders, Double Top, RSI Divergence, MACD crossover, Golden Cross, etc.) with animated SVG diagram, TradeClaw signal correlation stats, and copy-to-Discord embed. High SEO + educational shareability."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-146
+    title: "AI-powered market commentary — /commentary page: daily auto-generated market summary (template-based, no LLM API cost) covering top movers, signal consensus, fear/greed, key levels. RSS feed at /commentary/feed.xml. Drives return visits and SEO."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-147
+    title: "TradeClaw Replit template — replit.nix + .replit config + docs/REPLIT.md so users can fork-and-run TradeClaw on Replit in one click. Replit has 20M users. Add 'Run on Replit' badge to README."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-148
+    title: "Signal alert mobile deep-link — /alert/[id] page that renders a signal detail optimized for mobile share (WhatsApp/Telegram link preview with rich OG). QR code generator for each signal. Viral sharing from mobile traders."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-149
+    title: "Contributor leaderboard — /contributors page showing GitHub contributors (fetched via /api/github/contributors), commit count, PRs merged, with 'Top Contributor' badge for #1. Monthly reset. Gamifies contributions → more PRs → more GitHub activity → trending."
     status: pending
     owner: pm-tradeclaw
     notes: ""
