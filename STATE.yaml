@@ -1351,6 +1351,43 @@ tasks:
 
   - id: TC-149
     title: "Contributor leaderboard — /contributors page showing GitHub contributors (fetched via /api/github/contributors), commit count, PRs merged, with 'Top Contributor' badge for #1. Monthly reset. Gamifies contributions → more PRs → more GitHub activity → trending."
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete: /api/github/contributors route (real GH API + seed fallback, CORS *, 5-min cache).
+      /contributors page (ContributorsClient.tsx) already existed — rank badges (Crown/Medal),
+      contribution bar gradient, stat pills (PRs/merged/issues), contrib.rocks wall, Join CTA.
+      Added to navbar Community group + sitemap. 243 pages build passes. 0 lint errors.
+      Committed 9a62c73f. 2026-04-01
+
+  # ── Phase 30: Viral + Trust Amplifiers ──
+
+  - id: TC-150
+    title: "Real backtesting with user-uploaded OHLCV CSV — /backtest/upload page where users drag-drop a CSV (date,open,high,low,close,volume) and run TradeClaw signal engine on their own historical data. Download results as CSV. Drives Reddit/quant community sharing."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-151
+    title: "GitHub Sponsors integration — /api/sponsors route fetching GitHub Sponsors data (public tier), /sponsors page with tier wall, sponsor avatars, 'Sponsor TradeClaw' CTA. Social proof for OSS sustainability."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-152
+    title: "Signal alert Webhooks to Notion — /api/notion/signal-sync endpoint that pushes each new signal as a Notion database row (pair, direction, confidence, entry, TP, SL, timestamp). /notion/signals page with setup guide + live sync status. Notion has 100M users — viral via template sharing."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-153
+    title: "TradeClaw GitHub README badges generator — /badges/readme page: user picks their fork URL, gets copy-paste badge markdown showing their instance's live signal (custom endpoint). Viral because every fork adds a live badge to their own README."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-154
+    title: "AI trade journal — /journal page where users log trades (pair, entry, exit, notes) with localStorage, auto-enriched with TradeClaw signal context for that asset/timeframe at entry time. Weekly P&L summary export. Sticky daily utility → retention → stars."
     status: pending
     owner: pm-tradeclaw
     notes: ""
