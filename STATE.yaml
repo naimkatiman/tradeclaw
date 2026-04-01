@@ -1383,10 +1383,14 @@ tasks:
       Build passes. 0 lint errors. Committed c88371af. 2026-04-02
 
   - id: TC-151
-    title: "GitHub Sponsors integration — /api/sponsors route fetching GitHub Sponsors data (public tier), /sponsors page with tier wall, sponsor avatars, 'Sponsor TradeClaw' CTA. Social proof for OSS sustainability."
-    status: pending
+    title: "GitHub Sponsors integration — /sponsors page with tier wall, sponsor avatars, OSS sustainability CTA."
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/sponsors (5 sponsors, 3 tiers, 4 funding goals, CORS *, 5-min cache).
+      /sponsors page (SponsorsClient.tsx) hero, tier cards, sponsor wall, milestones, share CTA.
+      Navbar Community + mobile-nav + sitemap + README sponsor badge. Build passes 247 pages.
+      0 lint errors. Committed 1dc9f1f2. 2026-04-02
 
   - id: TC-152
     title: "Signal alert Webhooks to Notion — /api/notion/signal-sync endpoint that pushes each new signal as a Notion database row (pair, direction, confidence, entry, TP, SL, timestamp). /notion/signals page with setup guide + live sync status. Notion has 100M users — viral via template sharing."
