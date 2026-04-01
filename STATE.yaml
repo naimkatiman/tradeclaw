@@ -1279,6 +1279,12 @@ tasks:
     owner: pm-tradeclaw
     notes: "Claude Code running 2026-04-01. /api/digest/preview, /api/subscribe, /subscribe page, landing CTA."
 
+  - id: TC-145
+    title: "Technical architecture deep dive post — signal engine + backtesting + self-hosting"
+    status: done
+    owner: pm-tradeclaw
+    notes: "Added docs/blog/tradeclaw-architecture.md (1000-word technical overview) on 2026-04-01."
+
   - id: TC-144
     title: "Real-time signal notification center — /notifications page with browser push subscription management (Service Worker push API), per-pair toggles, confidence threshold slider, test notification button. Push notifications drive daily active users and star conversions."
     status: pending
