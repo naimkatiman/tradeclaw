@@ -28,6 +28,7 @@ async function getNewsData() {
   return {
     trending: [],
     updatedAt: new Date().toISOString(),
+    error: true,
   };
 }
 

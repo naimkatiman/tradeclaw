@@ -14,7 +14,7 @@ import {
   findResistanceLevels,
   clamp,
   formatNumber,
-} from '../index';
+} from '../index.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -233,7 +233,7 @@ describe('findSupportLevels', () => {
   it('levels are all from the input array values', () => {
     const lows = [100, 95, 98, 90, 93, 88, 92, 86, 89, 84];
     const levels = findSupportLevels(lows, 3);
-    levels.forEach((level) => {
+    levels.forEach((level: number) => {
       expect(lows).toContain(level);
     });
   });
@@ -253,7 +253,7 @@ describe('findResistanceLevels', () => {
   it('levels are all from the input array values', () => {
     const highs = [100, 105, 102, 110, 107, 112, 108, 115, 111, 118];
     const levels = findResistanceLevels(highs, 3);
-    levels.forEach((level) => {
+    levels.forEach((level: number) => {
       expect(highs).toContain(level);
     });
   });

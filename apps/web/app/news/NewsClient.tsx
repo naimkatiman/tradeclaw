@@ -14,6 +14,7 @@ import {
   Crown,
   BarChart3,
   Zap,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface TrendingCoin {
@@ -35,6 +36,7 @@ interface NewsData {
   trending: TrendingCoin[];
   updatedAt: string;
   mock?: boolean;
+  error?: boolean;
 }
 
 function SignalBadge({ signal }: { signal: TrendingCoin['signal'] }) {
@@ -154,15 +156,22 @@ function CoinCard({ coin }: { coin: TrendingCoin }) {
 export default function NewsClient({ initial }: { initial: NewsData }) {
   const [data, setData] = useState<NewsData>(initial);
   const [loading, setLoading] = useState(false);
+  const [hasError, setHasError] = useState(initial.error ?? false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
+    setHasError(false);
     try {
       const res = await fetch('/api/news');
       if (res.ok) {
         const json = await res.json();
         setData(json);
+        setHasError(false);
+      } else {
+        setHasError(true);
       }
+    } catch {
+      setHasError(true);
     } finally {
       setLoading(false);
     }
@@ -234,6 +243,27 @@ export default function NewsClient({ initial }: { initial: NewsData }) {
             Refresh
           </button>
         </div>
+
+        {/* Error State */}
+        {hasError && data.trending.length === 0 && (
+          <div className="mb-10 rounded-xl border border-amber-500/30 bg-amber-500/5 p-6 text-center">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <AlertTriangle className="h-5 w-5 text-amber-400" />
+              <span className="text-sm font-medium text-amber-400">Unable to load news</span>
+            </div>
+            <p className="text-xs text-zinc-400 mb-4">
+              Check your connection or try again later.
+            </p>
+            <button
+              onClick={refresh}
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-4 py-2 text-sm font-medium text-amber-400 hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              {loading ? 'Retrying...' : 'Try Again'}
+            </button>
+          </div>
+        )}
 
         {/* Coin Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">

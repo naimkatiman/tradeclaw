@@ -3,7 +3,7 @@
  * Covers: EMA, RSI, MACD, Bollinger Bands, Stochastic, S/R levels
  * Run: npm test (from repo root)
  */
-import { calculateEMA, calculateRSI, calculateMACD, calculateBollingerBands, calculateStochastic, findSupportLevels, findResistanceLevels, clamp, formatNumber, } from '../index';
+import { calculateEMA, calculateRSI, calculateMACD, calculateBollingerBands, calculateStochastic, findSupportLevels, findResistanceLevels, clamp, formatNumber, } from '../index.js';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function repeat(value, n) {
     return Array(n).fill(value);
