@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/zh`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/demo`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/backtest`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
+    { url: `${base}/backtest/upload`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/blog/rsi-explained`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/blog/how-we-score-signals`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },

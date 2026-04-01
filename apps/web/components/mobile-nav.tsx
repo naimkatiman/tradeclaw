@@ -11,6 +11,7 @@ const MOBILE_LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/screener', label: 'Signals' },
   { href: '/backtest', label: 'Backtest' },
+  { href: '/backtest/upload', label: 'Upload CSV Backtest' },
   { href: '/heatmap', label: 'Heatmap' },
   { href: '/paper-trading', label: 'Paper Trading' },
   { href: '/portfolio', label: 'Portfolio' },

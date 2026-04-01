@@ -1074,6 +1074,7 @@ export default function BacktestPage() {
             <div className="glass-card rounded-2xl p-4 space-y-1">
               <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-2">Quick nav</div>
               {[
+                { label: 'Upload CSV Data', href: '/backtest/upload' },
                 { label: 'Dashboard', href: '/dashboard' },
                 { label: 'Paper Trading', href: '/paper-trading' },
                 { label: 'Leaderboard', href: '/leaderboard' },
