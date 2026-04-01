@@ -1275,9 +1275,14 @@ tasks:
 
   - id: TC-143
     title: "Signal alert email digest — /api/digest/preview returns weekly HTML email; /subscribe page captures email + pair preferences (file-based JSON); README badge + landing page CTA. Email subscribers = retained users who star and share."
-    status: in-progress
+    status: done
     owner: pm-tradeclaw
-    notes: "Claude Code running 2026-04-01. /api/digest/preview, /api/subscribe, /subscribe page, landing CTA."
+    notes: >
+      Complete: 7 enhancements to existing feature — frequency: daily|weekly field added to
+      EmailSubscriber + POST route + SubscribeClient UI. /api/digest/preview supports ?format=json.
+      email-digest.ts redesigned with #0a0f1a/#0d1421/#10b981 colors + stats row. PageNavBar
+      Community group gets Digest/Mail link. site-footer.tsx gets "Get Weekly Signals" Link CTA.
+      0 lint errors. Build passes. Committed c7f4d547. 2026-04-01
 
   - id: TC-144
     title: "Real-time signal notification center — /notifications page with browser push subscription management (Service Worker push API), per-pair toggles, confidence threshold slider, test notification button. Push notifications drive daily active users and star conversions."

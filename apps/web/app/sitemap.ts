@@ -57,5 +57,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/start`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/subscribe`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/digest`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/notifications`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
   ];
 }
