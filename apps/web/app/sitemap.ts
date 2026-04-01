@@ -57,6 +57,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/producthunt`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/start`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/subscribe`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/sponsors`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/digest`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/notifications`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/patterns`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },

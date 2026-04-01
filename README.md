@@ -15,6 +15,7 @@
 [![Subscribers](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fsubscribe&query=%24.count&label=subscribers&color=10b981&style=flat-square)](https://tradeclaw.win/subscribe)
 [![Weekly Digest](https://img.shields.io/badge/%F0%9F%93%A7_Weekly_Digest-Subscribe-10b981?style=flat-square)](https://tradeclaw.win/subscribe)
 [![Run on Replit](https://replit.com/badge/github/naimkatiman/tradeclaw)](https://replit.com/github/naimkatiman/tradeclaw)
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-rose?style=flat-square)](https://github.com/sponsors/naimkatiman)
 
 **[🚀 Live Demo](https://tradeclaw.win/dashboard)** · **[⚡ Get Started](https://tradeclaw.win/start)** · **[📡 API](https://tradeclaw.win/api-docs)** · **[📖 Docs](https://tradeclaw.win/docs)** · **[🤝 Contribute](https://tradeclaw.win/contribute)**
 

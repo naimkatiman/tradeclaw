@@ -1370,9 +1370,17 @@ tasks:
 
   - id: TC-150
     title: "Real backtesting with user-uploaded OHLCV CSV — /backtest/upload page where users drag-drop a CSV (date,open,high,low,close,volume) and run TradeClaw signal engine on their own historical data. Download results as CSV. Drives Reddit/quant community sharing."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /backtest/upload page (UploadBacktestClient.tsx — drag-drop zone, client-side CSV
+      parser with auto-header detection, 5-row preview table, POST /api/backtest/upload).
+      API route runs RSI/MACD/EMA signal detection on uploaded candles (up to 10,000 rows),
+      resolves TP/SL outcomes against uploaded price action, returns stats (winRate/totalPnlPct/
+      maxDrawdown/sharpeRatio) + equityCurve + trade-by-trade results. Results: 7 stat cards,
+      canvas equity curve, trade log table (up to 100 rows), Download CSV button, Share on X.
+      Upload CSV link added to /backtest quick-nav. Mobile nav + sitemap updated.
+      Build passes. 0 lint errors. Committed c88371af. 2026-04-02
 
   - id: TC-151
     title: "GitHub Sponsors integration — /api/sponsors route fetching GitHub Sponsors data (public tier), /sponsors page with tier wall, sponsor avatars, 'Sponsor TradeClaw' CTA. Social proof for OSS sustainability."
