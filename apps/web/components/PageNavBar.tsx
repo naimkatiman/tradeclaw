@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mail, Bell, BookOpen, BadgeCheck } from 'lucide-react';
+import { Mail, Bell, BookOpen, BadgeCheck, NotebookPen } from 'lucide-react';
 import { TradeClawLogo } from './tradeclaw-logo';
 
 const NAV_PAGES = [
@@ -96,6 +96,18 @@ export function PageNavBar() {
           >
             <Bell className="w-3 h-3" />
             Alerts
+          </Link>
+          <Link
+            href="/journal"
+            aria-current={isActive('/journal') ? 'page' : undefined}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 inline-flex items-center gap-1.5 ${
+              isActive('/journal')
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
+            }`}
+          >
+            <NotebookPen className="w-3 h-3" />
+            Journal
           </Link>
         </div>
       </div>

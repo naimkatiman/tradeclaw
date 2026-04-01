@@ -1406,15 +1406,20 @@ tasks:
 
   - id: TC-153
     title: "TradeClaw GitHub README badges generator — /badges/readme page: user picks their fork URL, gets copy-paste badge markdown showing their instance's live signal (custom endpoint). Viral because every fork adds a live badge to their own README."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /badges/readme page (BadgesReadmeClient.tsx + loader). Official instance badge gallery
+      with style picker (flat/square/big/plastic), copy-per-badge + Copy All blocks. Custom fork URL
+      input with live preview via shields.io endpoint pointing to user's instance. 6 pairs (BTC/ETH/XAU/EUR/GBP/JPY).
+      Example README snippet section. Share on X + GitHub star CTA. Navbar BadgeCheck icon + mobile nav +
+      sitemap updated. Build passes 249 pages. 0 lint errors. Committed 49bdbf8f. 2026-04-02
 
   - id: TC-154
     title: "AI trade journal — /journal page where users log trades (pair, entry, exit, notes) with localStorage, auto-enriched with TradeClaw signal context for that asset/timeframe at entry time. Weekly P&L summary export. Sticky daily utility → retention → stars."
-    status: pending
+    status: in-progress
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Next task"
 
 next_actions:
   - "Phase 27 defined. TC-135 is next — mini-tools collection for organic search traffic."
