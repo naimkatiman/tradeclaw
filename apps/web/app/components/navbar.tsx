@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Play, Thermometer, ChevronDown, Activity, ShoppingBag, Briefcase, FlaskConical, BarChart2, Server, Star, Rocket, Mail, Heart, HandHeart } from 'lucide-react';
+import { Play, Thermometer, ChevronDown, Activity, ShoppingBag, Briefcase, FlaskConical, BarChart2, Server, Star, Rocket, Mail, Heart, HandHeart, Cloud } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { TradeClawLogo } from '../../components/tradeclaw-logo';
 import type { LucideIcon } from 'lucide-react';
@@ -48,6 +48,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/benchmark', label: 'Cost Benchmark', icon: Server },
       { href: '/live', label: 'Live Feed', icon: Activity },
       { href: '/replit', label: 'Run on Replit' },
+      { href: '/fly', label: 'Fly.io Deploy', icon: Cloud },
     ],
   },
   {

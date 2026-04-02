@@ -1468,9 +1468,18 @@ tasks:
 
   - id: TC-158
     title: "Fly.io one-click deploy — fly.toml + Dockerfile.fly + docs/FLYIO.md + /fly page on site. Fly.io developer community actively shares deploy configs. Adds 3rd major deploy option alongside Railway+Docker."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: fly.toml (app config: sin region, 256MB, healthcheck /api/health, auto_stop_machines,
+      min_machines_running=0). Dockerfile.fly (multi-stage, non-root user, tini init, curl for health).
+      docs/FLYIO.md (full guide: install flyctl, auth, launch, deploy, env vars table, scaling,
+      cost estimate $0-5/mo, volumes, troubleshooting). /fly page (FlyClient.tsx + page.tsx): hero
+      with #7C3AED purple branding, Deploy to Fly.io CTA, 3-step quick start with copy buttons,
+      cost comparison cards (free vs paid), fly.toml preview with copy, Why Fly.io 3-card section,
+      other deploy options (Railway/Docker/Replit), GitHub star CTA. README.md: Run on Fly.io
+      shields.io badge added. Navbar Tools group + mobile-nav + sitemap updated. 0 lint errors.
+      Build passes 257 pages. 2026-04-02
 
   - id: TC-159
     title: "Daily signal digest auto-poster to Telegram channel — /api/cron/daily-digest (Vercel cron 08:00 UTC) posts formatted top-3 signals with emoji to TELEGRAM_CHANNEL_ID. /digest/preview page shows today's digest. .env.example updated with TELEGRAM_CHANNEL_ID. Keeps channel alive = organic Telegram discovery."
