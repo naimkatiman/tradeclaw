@@ -110,6 +110,20 @@ npx tradeclaw health
 
 Check **[good first issues](https://github.com/naimkatiman/tradeclaw/labels/good%20first%20issue)** and **[contribution guide](https://tradeclaw.win/contribute)**.
 
+## Contributors
+
+Thanks to everyone who helps make TradeClaw better. If you’re looking to contribute, start with `CONTRIBUTING.md`.
+
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or edit this section -->
+<a href="https://github.com/all-contributors/all-contributors">
+  <img src="https://img.shields.io/badge/all_contributors-0-orange.svg?style=flat-square" />
+</a>
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or edit this section -->
+<!-- prettier-ignore -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
 ```
 ⭐ Star this repo to help others discover TradeClaw
 ```
