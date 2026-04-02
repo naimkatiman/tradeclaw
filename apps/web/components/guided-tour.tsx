@@ -1,53 +1,69 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+
+/* ------------------------------------------------------------------ */
+/*  Storage keys                                                       */
+/* ------------------------------------------------------------------ */
 
 const TOUR_DONE_KEY = 'tc_tour_done';
 const TOUR_AUTO_KEY = 'tc_tour_auto_shown';
+const TOUR_STEP_KEY = 'tc_tour_step';
+const TOUR_NEVER_KEY = 'tc_tour_never';
+
+/* ------------------------------------------------------------------ */
+/*  Tour steps — targeting REAL dashboard elements                     */
+/* ------------------------------------------------------------------ */
 
 interface TourStep {
   targetId: string | null;
   title: string;
   description: string;
+  position?: 'bottom' | 'top' | 'auto';
 }
 
 const STEPS: TourStep[] = [
   {
     targetId: 'dashboard-stats',
-    title: 'Real-time signal overview',
-    description: 'Signals generated live by 5 technical indicators — RSI, MACD, EMA, Stochastic, and Bollinger Bands. Refreshes every 10 seconds.',
+    title: 'Your market snapshot',
+    description:
+      'See active signals, buy/sell ratio, average confidence, and market bias at a glance. Use this to gauge overall sentiment before diving in.',
   },
   {
     targetId: 'signal-grid',
-    title: 'Signal cards',
-    description: 'Each card shows direction, confidence score, and precise entry/exit levels. Click any card to expand full indicator detail.',
+    title: 'Explore live signals',
+    description:
+      'Click any card to expand full indicator details — entry, stop loss, take profits, and RSI/MACD/EMA breakdowns. Every signal is transparent.',
   },
   {
-    targetId: 'nav-leaderboard',
-    title: 'Signal accuracy tracker',
-    description: 'Track every signal\'s outcome with full transparency. No cherry-picked results — every trade is logged with proof.',
+    targetId: 'dashboard-filters',
+    title: 'Filter by what matters',
+    description:
+      'Narrow signals by timeframe, direction (BUY/SELL), or asset class. Focus on your preferred market in one click.',
   },
   {
-    targetId: 'nav-multi-timeframe',
-    title: 'Multi-timeframe confluence',
-    description: 'See alignment across H1, H4, and D1 timeframes. The strongest signals agree across all timeframes.',
+    targetId: 'auto-refresh-toggle',
+    title: 'Stay in sync',
+    description:
+      'Toggle auto-refresh to get signals updated every 30 seconds. Pause it when you want to study a signal without it changing.',
   },
   {
-    targetId: 'nav-strategy-builder',
-    title: 'Strategy builder',
-    description: 'Build custom strategies with visual drag-and-drop. Chain indicators, set filters, and automate alerts without code.',
-  },
-  {
-    targetId: 'nav-paper-trading',
-    title: 'Paper trading',
-    description: 'Practice with a $10K virtual portfolio. Test strategies risk-free before going live with real capital.',
+    targetId: 'accuracy-stats',
+    title: 'Track signal accuracy',
+    description:
+      'Check historical accuracy rates. No cherry-picking — every signal outcome is logged with full transparency.',
   },
   {
     targetId: null,
-    title: 'Ready to deploy?',
-    description: 'One command: docker compose up — and you\'re running your own AI trading platform. 100% open source, no vendor lock-in.',
+    title: 'Ready to go deeper?',
+    description:
+      'Try the Backtest page to test strategies on historical data, or set up Telegram alerts to never miss a signal. Happy trading!',
   },
 ];
+
+/* ------------------------------------------------------------------ */
+/*  Spotlight geometry                                                  */
+/* ------------------------------------------------------------------ */
 
 interface SpotlightRect {
   top: number;
@@ -56,99 +72,126 @@ interface SpotlightRect {
   height: number;
 }
 
+type TooltipPlacement = 'bottom' | 'top' | 'center';
+
+/* ------------------------------------------------------------------ */
+/*  Component props                                                    */
+/* ------------------------------------------------------------------ */
+
 interface GuidedTourProps {
   open?: boolean;
   onClose?: () => void;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Main GuidedTour                                                    */
+/* ------------------------------------------------------------------ */
+
 export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
   const [active, setActive] = useState(false);
   const [step, setStep] = useState(0);
   const [spotlightRect, setSpotlightRect] = useState<SpotlightRect | null>(null);
-  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const [placement, setPlacement] = useState<TooltipPlacement>('bottom');
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const done = localStorage.getItem(TOUR_DONE_KEY);
-    const autoShown = localStorage.getItem(TOUR_AUTO_KEY);
-    if (!done && !autoShown) {
-      localStorage.setItem(TOUR_AUTO_KEY, '1');
-      const timer = setTimeout(() => setActive(true), 1200);
-      return () => clearTimeout(timer);
-    }
+  /* ---- Helpers ---- */
+
+  const saveTourProgress = useCallback((stepIndex: number) => {
+    try {
+      localStorage.setItem(TOUR_STEP_KEY, String(stepIndex));
+    } catch { /* ignore */ }
   }, []);
 
+  const clearTourProgress = useCallback(() => {
+    try {
+      localStorage.removeItem(TOUR_STEP_KEY);
+    } catch { /* ignore */ }
+  }, []);
+
+  const getSavedStep = useCallback((): number => {
+    try {
+      const saved = localStorage.getItem(TOUR_STEP_KEY);
+      if (saved !== null) {
+        const parsed = parseInt(saved, 10);
+        if (parsed >= 0 && parsed < STEPS.length) return parsed;
+      }
+    } catch { /* ignore */ }
+    return 0;
+  }, []);
+
+  const markTourDone = useCallback(() => {
+    try {
+      localStorage.setItem(TOUR_DONE_KEY, '1');
+      clearTourProgress();
+    } catch { /* ignore */ }
+  }, [clearTourProgress]);
+
+  const markNeverShow = useCallback(() => {
+    try {
+      localStorage.setItem(TOUR_NEVER_KEY, '1');
+      markTourDone();
+    } catch { /* ignore */ }
+  }, [markTourDone]);
+
+  /* ---- Dispatch onboarding event when tour completes ---- */
+  const dispatchTourComplete = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('tc:tour-complete'));
+  }, []);
+
+  /* ---- Auto-show on first visit (2s delay, dashboard only) ---- */
   useEffect(() => {
-    if (externalOpen) {
-      setTimeout(() => {
+    try {
+      const never = localStorage.getItem(TOUR_NEVER_KEY);
+      const done = localStorage.getItem(TOUR_DONE_KEY);
+      const autoShown = localStorage.getItem(TOUR_AUTO_KEY);
+      if (never || done || autoShown) return;
+
+      // Only auto-show on dashboard
+      if (!window.location.pathname.startsWith('/dashboard')) return;
+
+      localStorage.setItem(TOUR_AUTO_KEY, '1');
+      const timer = setTimeout(() => {
         setStep(0);
         setActive(true);
-      }, 0);
-    }
-  }, [externalOpen]);
-
-  const computePosition = useCallback((rect: SpotlightRect | null) => {
-    const pad = 8;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const tooltipW = Math.min(320, vw - 32);
-
-    if (!rect) {
-      setTooltipStyle({
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: tooltipW,
-        zIndex: 9999,
-      });
-      return;
-    }
-
-    const spaceBelow = vh - (rect.top + rect.height + pad);
-    const centeredLeft = Math.min(
-      Math.max(rect.left, 16),
-      vw - tooltipW - 16,
-    );
-
-    if (spaceBelow >= 180) {
-      setTooltipStyle({
-        position: 'fixed',
-        top: rect.top + rect.height + pad + 12,
-        left: centeredLeft,
-        width: tooltipW,
-        zIndex: 9999,
-      });
-    } else {
-      setTooltipStyle({
-        position: 'fixed',
-        bottom: vh - rect.top + 12,
-        left: centeredLeft,
-        width: tooltipW,
-        zIndex: 9999,
-      });
-    }
+      }, 2000);
+      return () => clearTimeout(timer);
+    } catch { /* ignore */ }
   }, []);
 
+  /* ---- External open (from TakeTourButton) ---- */
+  useEffect(() => {
+    if (externalOpen) {
+      const savedStep = getSavedStep();
+      const tourDone = localStorage.getItem(TOUR_DONE_KEY);
+      // If tour was completed, restart. If mid-tour, resume.
+      setStep(tourDone ? 0 : savedStep);
+      setActive(true);
+    }
+  }, [externalOpen, getSavedStep]);
+
+  /* ---- Compute spotlight + tooltip placement ---- */
   const updateSpotlight = useCallback((currentStep: number) => {
     const targetId = STEPS[currentStep]?.targetId;
     if (!targetId) {
       setSpotlightRect(null);
-      computePosition(null);
+      setPlacement('center');
       return;
     }
     const el = document.querySelector(`[data-tour-id="${targetId}"]`);
     if (!el) {
       setSpotlightRect(null);
-      computePosition(null);
+      setPlacement('center');
       return;
     }
     const domRect = el.getBoundingClientRect();
     if (domRect.width === 0 && domRect.height === 0) {
       setSpotlightRect(null);
-      computePosition(null);
+      setPlacement('center');
       return;
     }
+
     const rect: SpotlightRect = {
       top: domRect.top,
       left: domRect.left,
@@ -156,53 +199,215 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
       height: domRect.height,
     };
     setSpotlightRect(rect);
-    computePosition(rect);
-    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, [computePosition]);
 
-  useEffect(() => {
-    if (active) {
-      // Small delay after step change so any scroll/layout has settled
-      const timer = setTimeout(() => updateSpotlight(step), 80);
-      return () => clearTimeout(timer);
+    // Decide placement
+    const vh = window.innerHeight;
+    const spaceBelow = vh - (rect.top + rect.height);
+    const spaceAbove = rect.top;
+    const tooltipHeight = 220; // estimated
+
+    if (spaceBelow >= tooltipHeight + 24) {
+      setPlacement('bottom');
+    } else if (spaceAbove >= tooltipHeight + 24) {
+      setPlacement('top');
+    } else {
+      setPlacement('bottom');
     }
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, []);
+
+  /* ---- Recalculate on step change ---- */
+  useEffect(() => {
+    if (!active) return;
+    setTransitioning(true);
+    const timer = setTimeout(() => {
+      updateSpotlight(step);
+      saveTourProgress(step);
+      setTransitioning(false);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [active, step, updateSpotlight, saveTourProgress]);
+
+  /* ---- Recalculate on resize ---- */
+  useEffect(() => {
+    if (!active) return;
+    const handler = () => updateSpotlight(step);
+    window.addEventListener('resize', handler);
+    window.addEventListener('scroll', handler, true);
+    return () => {
+      window.removeEventListener('resize', handler);
+      window.removeEventListener('scroll', handler, true);
+    };
   }, [active, step, updateSpotlight]);
 
-  const skip = useCallback(() => {
-    localStorage.setItem(TOUR_DONE_KEY, '1');
+  /* ---- Keyboard navigation ---- */
+  useEffect(() => {
+    if (!active) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        close();
+      } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        e.preventDefault();
+        next();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (step > 0) setStep(s => s - 1);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  });
+
+  /* ---- Actions ---- */
+  const close = useCallback(() => {
+    // Save progress so user can resume
+    saveTourProgress(step);
     setActive(false);
     onClose?.();
-  }, [onClose]);
+  }, [step, saveTourProgress, onClose]);
 
-  const next = () => {
+  const next = useCallback(() => {
     if (step < STEPS.length - 1) {
       setStep(s => s + 1);
     } else {
-      if (dontShowAgain) localStorage.setItem(TOUR_DONE_KEY, '1');
+      // Tour complete
+      if (dontShowAgain) {
+        markNeverShow();
+      } else {
+        markTourDone();
+      }
+      clearTourProgress();
+      dispatchTourComplete();
       setActive(false);
       onClose?.();
     }
-  };
+  }, [step, dontShowAgain, markNeverShow, markTourDone, clearTourProgress, dispatchTourComplete, onClose]);
+
+  const skip = useCallback(() => {
+    // Save progress for resume
+    saveTourProgress(step);
+    setActive(false);
+    onClose?.();
+  }, [step, saveTourProgress, onClose]);
 
   if (!active) return null;
 
   const currentStep = STEPS[step];
   const isLast = step === STEPS.length - 1;
-  const pad = 8;
+  const pad = 10;
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  /* ---- Tooltip style computation ---- */
+  const getTooltipStyle = (): React.CSSProperties => {
+    const tooltipW = Math.min(340, (typeof window !== 'undefined' ? window.innerWidth : 400) - 32);
+
+    // Mobile: bottom sheet
+    if (isMobile) {
+      return {
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        width: '100%',
+        maxWidth: '100%',
+        zIndex: 9999,
+        borderRadius: '20px 20px 0 0',
+      };
+    }
+
+    // Centered (no target)
+    if (!spotlightRect || placement === 'center') {
+      return {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: tooltipW,
+        zIndex: 9999,
+      };
+    }
+
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1024;
+
+    // Horizontal: center tooltip under/above the target, clamped to viewport
+    let leftPos = spotlightRect.left + spotlightRect.width / 2 - tooltipW / 2;
+    leftPos = Math.max(16, Math.min(leftPos, vw - tooltipW - 16));
+
+    if (placement === 'top') {
+      return {
+        position: 'fixed',
+        bottom: (typeof window !== 'undefined' ? window.innerHeight : 800) - spotlightRect.top + pad + 8,
+        left: leftPos,
+        width: tooltipW,
+        zIndex: 9999,
+      };
+    }
+
+    // bottom
+    return {
+      position: 'fixed',
+      top: spotlightRect.top + spotlightRect.height + pad + 8,
+      left: leftPos,
+      width: tooltipW,
+      zIndex: 9999,
+    };
+  };
+
+  /* ---- Arrow style ---- */
+  const getArrowStyle = (): React.CSSProperties | null => {
+    if (isMobile || !spotlightRect || placement === 'center') return null;
+
+    const tooltipW = Math.min(340, (typeof window !== 'undefined' ? window.innerWidth : 400) - 32);
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    let leftPos = spotlightRect.left + spotlightRect.width / 2 - tooltipW / 2;
+    leftPos = Math.max(16, Math.min(leftPos, vw - tooltipW - 16));
+    const arrowLeft = spotlightRect.left + spotlightRect.width / 2 - leftPos;
+    const clampedArrowLeft = Math.max(20, Math.min(arrowLeft, tooltipW - 20));
+
+    if (placement === 'top') {
+      return {
+        position: 'absolute',
+        bottom: -6,
+        left: clampedArrowLeft,
+        transform: 'translateX(-50%) rotate(45deg)',
+        width: 12,
+        height: 12,
+        background: 'rgb(24 24 27)',
+        borderRight: '1px solid rgba(16, 185, 129, 0.3)',
+        borderBottom: '1px solid rgba(16, 185, 129, 0.3)',
+      };
+    }
+
+    return {
+      position: 'absolute',
+      top: -6,
+      left: clampedArrowLeft,
+      transform: 'translateX(-50%) rotate(45deg)',
+      width: 12,
+      height: 12,
+      background: 'rgb(24 24 27)',
+      borderLeft: '1px solid rgba(16, 185, 129, 0.3)',
+      borderTop: '1px solid rgba(16, 185, 129, 0.3)',
+    };
+  };
+
+  const arrowStyle = getArrowStyle();
 
   return (
     <>
-      {/* Dark overlay */}
+      {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-        style={{ zIndex: 9997 }}
-        onClick={spotlightRect ? undefined : skip}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+        style={{ zIndex: 9997, opacity: transitioning ? 0.4 : 1 }}
+        onClick={skip}
+        aria-hidden="true"
       />
 
-      {/* Spotlight cutout */}
+      {/* Spotlight cutout with pulse animation */}
       {spotlightRect && (
         <div
-          className="fixed rounded-xl pointer-events-none transition-all duration-300"
+          className="fixed rounded-xl pointer-events-none"
           style={{
             zIndex: 9998,
             top: spotlightRect.top - pad,
@@ -210,25 +415,43 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
             width: spotlightRect.width + pad * 2,
             height: spotlightRect.height + pad * 2,
             boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.65)',
-            border: '1.5px solid rgba(16, 185, 129, 0.45)',
+            border: '1.5px solid rgba(16, 185, 129, 0.5)',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            animation: 'tc-spotlight-pulse 2s ease-in-out infinite',
           }}
         />
       )}
 
       {/* Tooltip */}
       <div
-        className="bg-zinc-900 border border-emerald-500/30 rounded-xl shadow-2xl p-5 transition-all duration-300"
-        style={tooltipStyle}
+        ref={tooltipRef}
+        role="dialog"
+        aria-label={`Tour step ${step + 1} of ${STEPS.length}`}
+        aria-modal="true"
+        className={`bg-zinc-900 border border-emerald-500/30 shadow-2xl shadow-black/40 transition-all duration-400 ${
+          isMobile ? 'p-6 pt-4' : 'rounded-xl p-5'
+        } ${transitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+        style={getTooltipStyle()}
       >
+        {/* Arrow */}
+        {arrowStyle && <div style={arrowStyle} />}
+
+        {/* Mobile drag handle */}
+        {isMobile && (
+          <div className="flex justify-center mb-3">
+            <div className="w-8 h-1 rounded-full bg-zinc-700" />
+          </div>
+        )}
+
         {/* Header row */}
         <div className="flex items-center justify-between mb-3">
           <span className="text-[11px] text-zinc-500 font-mono tabular-nums">
-            {step + 1} of {STEPS.length}
+            Step {step + 1} of {STEPS.length}
           </span>
           <button
             onClick={skip}
-            className="text-zinc-600 hover:text-zinc-400 transition-colors"
-            aria-label="Skip tour"
+            className="text-zinc-600 hover:text-zinc-400 transition-colors p-1 -mr-1 rounded-lg hover:bg-white/5"
+            aria-label="Close tour"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -237,12 +460,22 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
           </button>
         </div>
 
-        {/* Progress bar */}
-        <div className="h-0.5 w-full rounded-full bg-white/5 mb-4">
-          <div
-            className="h-0.5 rounded-full bg-emerald-500 transition-all duration-300"
-            style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
-          />
+        {/* Step dots */}
+        <div className="flex items-center gap-1.5 mb-4">
+          {STEPS.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setStep(i)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                i === step
+                  ? 'w-6 bg-emerald-500'
+                  : i < step
+                    ? 'w-2 bg-emerald-500/40'
+                    : 'w-2 bg-zinc-700'
+              }`}
+              aria-label={`Go to step ${i + 1}`}
+            />
+          ))}
         </div>
 
         <h3 className="text-sm font-semibold text-white mb-1.5">{currentStep.title}</h3>
@@ -264,50 +497,55 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
           {step > 0 ? (
             <button
               onClick={() => setStep(s => s - 1)}
-              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
             >
               ← Back
             </button>
           ) : (
             <button
               onClick={skip}
-              className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+              className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
             >
-              Skip
+              Skip tour
             </button>
           )}
           <button
             onClick={next}
-            className="text-xs px-4 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/25 transition-colors font-medium"
+            className="text-xs px-5 py-2.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/25 transition-all duration-200 font-medium"
           >
-            {isLast ? 'Get started' : 'Next →'}
+            {isLast ? 'Finish tour' : 'Next →'}
           </button>
         </div>
+
+        {/* Keyboard hint (desktop only) */}
+        {!isMobile && (
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-zinc-800">
+            <span className="text-[10px] text-zinc-700">
+              ← → to navigate · Esc to close
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Final step CTA */}
-      {isLast && (
-        <div
-          className="fixed bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-900/90 border border-white/10 text-xs text-zinc-400 font-mono"
-          style={{ zIndex: 9999 }}
-        >
-          <span className="text-emerald-400">$</span>
-          <span>docker compose up</span>
-        </div>
-      )}
+      {/* Spotlight pulse keyframes */}
+      <style>{`
+        @keyframes tc-spotlight-pulse {
+          0%, 100% { border-color: rgba(16, 185, 129, 0.5); box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65), 0 0 0 0 rgba(16, 185, 129, 0); }
+          50% { border-color: rgba(16, 185, 129, 0.8); box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65), 0 0 20px 4px rgba(16, 185, 129, 0.15); }
+        }
+      `}</style>
     </>
   );
 }
 
-/** Button that triggers the guided tour. Dispatches a custom event. */
-export function TakeTourButton({ className = '' }: { className?: string }) {
-  const [, setTick] = useState(0);
+/* ------------------------------------------------------------------ */
+/*  TakeTourButton                                                     */
+/* ------------------------------------------------------------------ */
 
+export function TakeTourButton({ className = '' }: { className?: string }) {
   const handleClick = () => {
     // Reset auto-shown flag so the tour can re-trigger
-    localStorage.removeItem(TOUR_AUTO_KEY);
-    // We use a tick to force GuidedTour to pick up the externalOpen change
-    setTick(t => t + 1);
+    try { localStorage.removeItem(TOUR_AUTO_KEY); } catch { /* ignore */ }
     window.dispatchEvent(new CustomEvent('tc:start-tour'));
   };
 
@@ -325,7 +563,10 @@ export function TakeTourButton({ className = '' }: { className?: string }) {
   );
 }
 
-/** Wrapper that listens for the custom event and opens the tour. */
+/* ------------------------------------------------------------------ */
+/*  GuidedTourListener                                                 */
+/* ------------------------------------------------------------------ */
+
 export function GuidedTourListener() {
   const [open, setOpen] = useState(false);
 

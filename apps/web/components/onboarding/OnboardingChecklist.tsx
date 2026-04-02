@@ -281,6 +281,16 @@ export function OnboardingChecklist() {
     }
   }, [pathname, mounted, store.onboarded]);
 
+  /* Listen for guided tour completion → mark "View your first signal" as visited */
+  useEffect(() => {
+    if (!mounted || store.onboarded) return;
+    const handler = () => {
+      addVisitedRoute("/dashboard");
+    };
+    window.addEventListener("tc:tour-complete", handler);
+    return () => window.removeEventListener("tc:tour-complete", handler);
+  }, [mounted, store.onboarded]);
+
   /* Compute completion */
   const isStepComplete = useCallback(
     (step: Step): boolean => {

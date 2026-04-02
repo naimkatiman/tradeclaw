@@ -454,11 +454,12 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       <OnboardingBanner />
 
       {/* Dashboard controls */}
-      <div className="max-w-7xl mx-auto px-4 h-12 flex items-center justify-end gap-3 border-b border-[var(--border)] bg-[var(--background)]/50">
+      <div data-tour-id="dashboard-controls" className="max-w-7xl mx-auto px-4 h-12 flex items-center justify-end gap-3 border-b border-[var(--border)] bg-[var(--background)]/50">
         <StarsWidget />
         <TakeTourButton />
         <ConnectionStatus state={connectionState} />
         <button
+          data-tour-id="auto-refresh-toggle"
           onClick={() => setAutoRefresh(!autoRefresh)}
           className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all duration-200 ${
             autoRefresh
@@ -530,7 +531,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
 {/* Hints removed for cleaner UI */}
 
         {/* Accuracy stats bar — prominent inline version */}
-        <div className="mb-4">
+        <div data-tour-id="accuracy-stats" className="mb-4">
           <AccuracyStatsBar inline />
         </div>
 
@@ -547,7 +548,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
         </div>
 
         {/* Filters */}
-        <div className="flex gap-3 mb-6 overflow-x-auto pb-1 scrollbar-none">
+        <div data-tour-id="dashboard-filters" className="flex gap-3 mb-6 overflow-x-auto pb-1 scrollbar-none">
           <div className="flex gap-0.5 bg-white/[0.03] border border-[var(--border)] rounded-xl p-1 shrink-0">
             {TIMEFRAMES.map(tf => (
               <button
