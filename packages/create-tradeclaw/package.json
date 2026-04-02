@@ -1,0 +1,35 @@
+{
+  "name": "create-tradeclaw",
+  "version": "1.0.0",
+  "description": "Set up a self-hosted TradeClaw AI trading signal platform in seconds",
+  "bin": {
+    "create-tradeclaw": "./index.js"
+  },
+  "main": "./index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "trading",
+    "signals",
+    "forex",
+    "crypto",
+    "bitcoin",
+    "algo-trading",
+    "self-hosted",
+    "ai",
+    "tradeclaw",
+    "create",
+    "scaffold"
+  ],
+  "homepage": "https://tradeclaw.win",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naimkatiman/tradeclaw"
+  },
+  "author": "Naim Katiman",
+  "license": "MIT"
+}
