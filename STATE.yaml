@@ -1446,15 +1446,25 @@ tasks:
 
   - id: TC-156
     title: "Trading glossary SEO hub — /glossary with 50 trading terms (RSI, MACD, Fibonacci, Sharpe, Drawdown, etc.) each with definition, TradeClaw relevance callout, and link to relevant page. Alphabetical nav + search. SEO goldmine for organic traffic from traders."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: "Complete: lib/glossary-data.ts (50 terms, 5 categories), /api/glossary route, /glossary page with GlossaryClient.tsx — alphabetical nav, search, category filter, TradeClaw relevance callouts, links to relevant pages. Navbar+mobile-nav+sitemap updated. Fixed ssr:false dynamic import error. Build passes. Committed 5d4a354e. 2026-04-02"
 
   - id: TC-157
     title: "Stars-for-features pledge wall — /pledge page: pledge specific features unlocked at 100/250/500/1000 stars (e.g. 'PostgreSQL at 100 stars', 'Mobile app at 500 stars'). Visitors sign pledge (name + email, /api/pledges file-based). Shows pledge count per milestone. Drives explicit star motivation."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: lib/pledges.ts (file-based JSON CRUD, data/pledges.json, getPledges/addPledge/getStats,
+      maskEmail, 8 seed pledges, 4 milestones: PostgreSQL@100/Multi-Exchange@250/Mobile@500/AI Copilot@1000).
+      GET+POST /api/pledges (CORS *, POST validates name+email+milestoneStars, dedup by email).
+      /pledge page (PledgeClient.tsx) — hero with live star counter from /api/github-stars, overall
+      progress bar, 4 milestone cards (color-coded: emerald/purple/amber/rose) with feature icon +
+      description + pledge count badge + progress bar + Pledge button → modal (name+email form,
+      validation, success state with GitHub star CTA). Pledger wall (recent 10, masked emails,
+      avatar initials, milestone badge, date). Share on X pre-written tweet + GitHub star CTA.
+      Navbar Community group (HandHeart icon) + mobile-nav Tools section + sitemap updated.
+      0 lint errors. Build passes. 2026-04-02
 
   - id: TC-158
     title: "Fly.io one-click deploy — fly.toml + Dockerfile.fly + docs/FLYIO.md + /fly page on site. Fly.io developer community actively shares deploy configs. Adds 3rd major deploy option alongside Railway+Docker."

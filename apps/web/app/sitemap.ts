@@ -70,5 +70,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/journal`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/vote`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/glossary`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/pledge`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
   ];
 }
