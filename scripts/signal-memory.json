@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "description": "Signal outcome memory for adaptive learning",
+  "signals": [],
+  "stats": {
+    "total_signals": 0,
+    "resolved_signals": 0,
+    "tp1_hit": 0,
+    "sl_hit": 0,
+    "expired": 0,
+    "win_rate": 0,
+    "current_confidence_threshold": 70,
+    "last_updated": null
+  },
+  "config": {
+    "min_confidence_threshold": 70,
+    "escalated_confidence_threshold": 75,
+    "win_rate_escalation_trigger": 0.60,
+    "win_rate_success_trigger": 0.80,
+    "signal_expiry_hours": 4
+  }
+}
