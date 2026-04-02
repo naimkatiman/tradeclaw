@@ -4,3 +4,68 @@
 [2026-04-02T16:20:25+08:00] FAIL #4 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
 [2026-04-02T16:25:19+08:00] FAIL #5 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
 [2026-04-02T16:37:00+08:00] FAIL #6 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T16:42:08+08:00] FAIL #7 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T16:47:09+08:00] FAIL #8 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T16:58:40+08:00] FAIL #9 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T17:03:23+08:00] FAIL #10 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T17:08:21+08:00] FAIL #11 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T17:18:20+08:00] FAIL #12 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T17:23:22+08:00] FAIL #13 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T17:24:18+08:00] NOTIFY ATTEMPTED — 13 consecutive failures. Could not deliver Telegram alert (no personal chat ID configured).
+[2026-04-02T17:28:20+08:00] FAIL #15 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T17:33:24+08:00] FAIL #16 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T17:38:20+08:00] FAIL #17 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T17:43:21+08:00] FAIL #18 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T17:48:32+08:00] FAIL #19 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T17:53:02+08:00] FAIL #20 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T17:58:35+08:00] FAIL #21 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T18:03:40+08:00] FAIL #22 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T18:08:17+08:00] FAIL #22 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T18:12:00+08:00] FAIL #23 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T18:18:25+08:00] FAIL #24 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T18:23:31+08:00] FAIL #25 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T18:28:30+08:00] FAIL #25 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T18:33:37+08:00] FAIL #26 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T18:38:44+08:00] FAIL #27 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T18:43:16+08:00] FAIL #28 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T18:48:15+08:00] FAIL #29 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T18:53:15+08:00] FAIL #30 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T18:58:22+08:00] FAIL #31 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T19:03:24+08:00] FAIL #32 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T19:08:28+08:00] FAIL #33 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T19:13:26+08:00] FAIL #34 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T19:18:24+08:00] FAIL #35 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T19:23:18+08:00] FAIL #36 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T19:28:28+08:00] FAIL #37 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T19:28:53+08:00] NOTIFIED — Alert sent to Naim after 37 consecutive failures.
+[2026-04-02T19:33:25+08:00] FAIL #38 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T19:38:15+08:00] FAIL #39 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T19:43:15+08:00] FAIL #40 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[] FAIL #41 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T19:48:20+08:00] FAIL #41 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T19:52 MYT] FAIL — TradingView API 429 (rate limited) — all 10 symbols returned no data, 0 signals generated
+[2026-04-02T19:52 MYT] FAIL #42 — TradingView API 429 (rate limited) — all 10 symbols, 0 signals. 3+ consecutive failures. Notification triggered.
+[2026-04-02T19:57 MYT] FAIL #43 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T20:09:30+08:00] FAIL #44 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T20:14:32+08:00] FAIL #45 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 20:19:33 MYT] FAIL #46 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 20:24 MYT] FAIL #47 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 20:39 MYT] FAIL #48 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 20:44 MYT] FAIL #49 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 20:49 MYT] FAIL #50 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 20:54 MYT] FAIL #51 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 21:10 MYT] FAIL #52 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 21:15 MYT] FAIL #53 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T13:21:20Z] WARN: TradingView 429 rate-limit — all 10 symbols returned 0 signals (all TFs throttled)
+[2026-04-02 21:26 MYT] FAIL #54 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 21:31 MYT] FAIL #55 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 21:36 MYT] FAIL #56 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 21:41 MYT] FAIL #57 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 21:51 MYT] FAIL #58 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 21:56 MYT] FAIL #59 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 22:01 MYT] FAIL #60 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 22:06 MYT] FAIL #61 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 22:11 MYT] FAIL #62 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 22:16 MYT] FAIL #63 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 22:21 MYT] FAIL #64 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02 22:31 MYT] FAIL #65 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
