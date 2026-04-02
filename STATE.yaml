@@ -1527,9 +1527,14 @@ tasks:
 
   - id: TC-162
     title: "GitHub Profile README widget — /profile-widget page: dynamic SVG at /api/widget/profile?pair=BTCUSD showing live signal + confidence badge that any GitHub user can embed in their profile README. Viral because 100M GitHub profiles exist."
-    status: in-progress
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: /api/widget/profile route (495x195 SVG, dark/light themes, direction color,
+      confidence bar, entry price, RSI, pair display). /profile-widget page (configurator,
+      pair selector, theme toggle, live preview, 3 snippet formats, 4-step how-to guide,
+      5-pair showcase grid, GitHub star CTA). Navbar Tools group + sitemap updated.
+      0 lint errors. Build passes 263 pages. Committed d8cae8a3. 2026-04-02
 
   - id: TC-163
     title: "Supabase one-click setup — /supabase page + docs/SUPABASE.md: migration guide from file-based JSON to Supabase (Postgres). schema.sql, SUPABASE_URL/ANON_KEY env config, one-liner migration script. Production-ready self-hosting = star conversions from serious devs."

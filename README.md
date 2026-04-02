@@ -16,6 +16,7 @@
 [![Weekly Digest](https://img.shields.io/badge/%F0%9F%93%A7_Weekly_Digest-Subscribe-10b981?style=flat-square)](https://tradeclaw.win/subscribe)
 [![Run on Replit](https://replit.com/badge/github/naimkatiman/tradeclaw)](https://replit.com/github/naimkatiman/tradeclaw)
 [![Run on Fly.io](https://img.shields.io/badge/Run_on-Fly.io-7C3AED?logo=fly.io&style=flat-square)](https://tradeclaw.win/fly)
+[![Supabase Ready](https://img.shields.io/badge/Supabase-Ready-3ECF8E?logo=supabase&style=flat-square)](https://tradeclaw.win/supabase)
 [![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-rose?style=flat-square)](https://github.com/sponsors/naimkatiman)
 
 **[🚀 Live Demo](https://tradeclaw.win/dashboard)** · **[⚡ Get Started](https://tradeclaw.win/start)** · **[📡 API](https://tradeclaw.win/api-docs)** · **[📖 Docs](https://tradeclaw.win/docs)** · **[🤝 Contribute](https://tradeclaw.win/contribute)**
@@ -50,6 +51,8 @@ Open [http://localhost:3000](http://localhost:3000) — done.
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/naimkatiman/tradeclaw)
 [![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/naimkatiman/tradeclaw/tree/main/apps/web)
+
+**[Supabase Setup Guide](https://tradeclaw.win/supabase)** — upgrade from JSON to Postgres with one command.
 
 Or with Docker Compose (adds persistent data):
 
