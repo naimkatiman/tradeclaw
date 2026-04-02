@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-04-01T07:34:00+08:00
+updated: 2026-04-02T09:34:00+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -1494,8 +1494,69 @@ tasks:
       GET /api/digest/daily-preview (JSON for preview UI). .env.example updated with TELEGRAM_CHANNEL_ID.
       Navbar Community group + mobile-nav + sitemap updated. 0 lint errors. Build passes. 2026-04-02
 
+  - id: TC-160
+    title: "Signal alert SMS via Twilio — /sms page + /api/sms/subscribe + /api/cron/sms-alerts"
+    status: done
+    owner: pm-tc-160-161
+    notes: >
+      Complete: lib/sms-subscribers.ts (file-based JSON CRUD, 3 seed subscribers, dedup by phone).
+      /api/sms/subscribe GET+POST (stats + subscribe/unsubscribe, phone validation, pair validation).
+      /api/sms/send POST (Twilio REST API raw fetch, no SDK, Basic auth, form-urlencoded).
+      /api/cron/sms-alerts GET (Vercel cron every 6h, fetches /api/signals, matches subscribers,
+      sends top-3 matching signals per subscriber via /api/sms/send). /sms page (SmsClient.tsx —
+      phone input, pair toggles, confidence slider, subscribe form, sample SMS preview, unsubscribe,
+      stats bar, feature cards, GitHub CTA). vercel.json cron added: 0 */6 * * *.
+      .env.example updated with TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER.
+      Navbar Community group + mobile-nav + sitemap updated. 0 lint errors. Build passes.
+      Committed 5fcdb351. 2026-04-02
+
+  - id: TC-161
+    title: "TradeClaw API rate limit dashboard — /api-usage page with quota bars, rate limit viz, per-key stats"
+    status: done
+    owner: pm-tc-160-161
+    notes: >
+      Complete: /api-usage page (APIUsageClient.tsx — API key input, fetches GET /api/keys/usage/[key],
+      SVG gauge chart for daily usage %, request counters for hourly/daily/total, countdown timer to
+      rate limit reset, per-endpoint breakdown quota bars (signals/leaderboard/health/badge),
+      rate limit explainer cards (free tier 100/day, pro tier 1000/day coming soon), CTA to
+      /api-keys for key generation, GitHub star CTA). Navbar Tools group (BarChart2 icon) +
+      mobile-nav Tools section + sitemap updated. 0 lint errors. Build passes.
+      Committed e9c1d4ce. 2026-04-02
+
+  # ── Phase 32: Star Acceleration — Ecosystem Hooks + Viral Distribution ──
+
+  - id: TC-162
+    title: "GitHub Profile README widget — /profile-widget page: dynamic SVG at /api/widget/profile?pair=BTCUSD showing live signal + confidence badge that any GitHub user can embed in their profile README. Viral because 100M GitHub profiles exist."
+    status: in-progress
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-163
+    title: "Supabase one-click setup — /supabase page + docs/SUPABASE.md: migration guide from file-based JSON to Supabase (Postgres). schema.sql, SUPABASE_URL/ANON_KEY env config, one-liner migration script. Production-ready self-hosting = star conversions from serious devs."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-164
+    title: "Community strategy backtesting leaderboard — /strategies/leaderboard: users paste strategy JSON, it gets auto-backtested server-side (90-day seeded PRNG), ranked by Sharpe ratio in file-based JSON. Top 10 public board. Share your rank on X. Drives community engagement + organic stars."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-165
+    title: "AI signal copilot chat — /copilot: template-based conversational bot (no LLM API cost) that answers questions about current signals, which pair looks strongest, risk management. Uses live /api/signals data. Chat UI with signal card previews inline. Drives 10min+ sessions."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
+  - id: TC-166
+    title: "TradeClaw Chrome extension — packages/tradeclaw-extension/: manifest.json v3, popup.html showing live BTC/ETH/XAU signal badges (direction + confidence), options page for custom base URL + pair selection, /api/widget/extension JSON endpoint. /chrome-extension page with screenshot, install guide, ZIP download. Chrome Web Store = passive discovery."
+    status: pending
+    owner: pm-tradeclaw
+    notes: ""
+
 next_actions:
-  - "Phase 31 defined. TC-155 is next — community signal voting for return visits + social proof."
+  - "Phase 32 defined. TC-162 spawned — GitHub Profile README widget (most viral hook)."
   - "Migrate file-based JSON storage to PostgreSQL for production self-hosters."
   - "Deploy live demo instance and validate Docker Compose end-to-end."
   - "Add test suite (currently zero tests for 200+ pages)."

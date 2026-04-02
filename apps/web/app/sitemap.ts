@@ -72,6 +72,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/glossary`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/pledge`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/fly`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${base}/profile-widget`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/digest/preview`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/sms`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/api-usage`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
