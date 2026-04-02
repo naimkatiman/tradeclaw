@@ -3,3 +3,4 @@
 [2026-04-02T16:15:10+08:00] FAIL #3 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
 [2026-04-02T16:20:25+08:00] FAIL #4 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
 [2026-04-02T16:25:19+08:00] FAIL #5 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.
+[2026-04-02T16:37:00+08:00] FAIL #6 — TradingView API 429 rate limit on all 4 TFs for all 10 symbols. 0/10 signals generated.

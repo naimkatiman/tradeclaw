@@ -255,9 +255,15 @@ def init_db():
             timeframe TEXT, confluence_score INTEGER,
             entry REAL, tp1 REAL, tp2 REAL, sl REAL,
             source TEXT, fired_at TEXT,
+            fired_at_minute TEXT,
             outcome TEXT DEFAULT NULL,
             accuracy INTEGER DEFAULT NULL
         )
+    """)
+    # Unique constraint: same symbol+signal+timeframe cannot fire twice in same minute
+    conn.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_dedup
+        ON signals (symbol, signal, timeframe, fired_at_minute)
     """)
     conn.commit()
     return conn
@@ -304,14 +310,16 @@ def main():
     if confluence_signals:
         for s in confluence_signals:
             try:
+                # fired_at_minute = truncate to minute for dedup
+                fired_minute = s["timestamp"][:16]  # "2026-04-02T08:35"
                 conn.execute("""
                     INSERT OR IGNORE INTO signals
-                    (id, symbol, signal, confidence, timeframe, confluence_score, entry, tp1, tp2, sl, source, fired_at)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                    (id, symbol, signal, confidence, timeframe, confluence_score, entry, tp1, tp2, sl, source, fired_at, fired_at_minute)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """, (s["id"], s["symbol"], s["signal"], s["confidence"],
                       s["timeframe"], s.get("confluence_score", 1),
                       s["entry"], s["tp1"], s.get("tp2"), s["sl"],
-                      s["source"], s["timestamp"]))
+                      s["source"], s["timestamp"], fired_minute))
             except Exception:
                 pass
         conn.commit()
