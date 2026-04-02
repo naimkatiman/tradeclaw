@@ -5,6 +5,7 @@
   "outputDirectory": ".next",
   "crons": [
     { "path": "/api/cron/telegram", "schedule": "0 */4 * * *" },
-    { "path": "/api/cron/daily-digest", "schedule": "0 8 * * *" }
+    { "path": "/api/cron/daily-digest", "schedule": "0 8 * * *" },
+    { "path": "/api/cron/sms-alerts", "schedule": "0 */6 * * *" }
   ]
 }
