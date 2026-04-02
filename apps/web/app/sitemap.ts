@@ -74,5 +74,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/fly`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/digest/preview`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/sms`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/api-usage`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
   ];
 }

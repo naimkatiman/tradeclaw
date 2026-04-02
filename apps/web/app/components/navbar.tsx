@@ -42,6 +42,7 @@ const MORE_GROUPS: DropdownGroup[] = [
       { href: '/strategy-builder', label: 'Strategy Builder' },
       { href: '/indicators/builder', label: 'Indicators', icon: FlaskConical },
       { href: '/api-keys', label: 'API Keys' },
+      { href: '/api-usage', label: 'API Usage', icon: BarChart2 },
       { href: '/strategies/marketplace', label: 'Marketplace', icon: ShoppingBag },
       { href: '/plugins', label: 'Plugins' },
       { href: '/status', label: 'Status', icon: Activity },
