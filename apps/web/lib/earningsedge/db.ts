@@ -2,7 +2,7 @@
  * EarningsEdge — Railway PostgreSQL client
  * Replaces Supabase with direct pg connection
  */
-import { Pool, type PoolClient } from 'pg';
+import { Pool } from 'pg';
 
 let pool: Pool | null = null;
 

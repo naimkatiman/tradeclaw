@@ -166,6 +166,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
       const savedStep = getSavedStep();
       const tourDone = localStorage.getItem(TOUR_DONE_KEY);
       // If tour was completed, restart. If mid-tour, resume.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync with external open prop
       setStep(tourDone ? 0 : savedStep);
       setActive(true);
     }
@@ -220,6 +221,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
   /* ---- Recalculate on step change ---- */
   useEffect(() => {
     if (!active) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: transition state for step animation
     setTransitioning(true);
     const timer = setTimeout(() => {
       updateSpotlight(step);
@@ -240,24 +242,6 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
       window.removeEventListener('scroll', handler, true);
     };
   }, [active, step, updateSpotlight]);
-
-  /* ---- Keyboard navigation ---- */
-  useEffect(() => {
-    if (!active) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        close();
-      } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
-        e.preventDefault();
-        next();
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        if (step > 0) setStep(s => s - 1);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  });
 
   /* ---- Actions ---- */
   const close = useCallback(() => {
@@ -290,6 +274,24 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
     setActive(false);
     onClose?.();
   }, [step, saveTourProgress, onClose]);
+
+  /* ---- Keyboard navigation ---- */
+  useEffect(() => {
+    if (!active) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        close();
+      } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        e.preventDefault();
+        next();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (step > 0) setStep(s => s - 1);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  });
 
   if (!active) return null;
 
@@ -368,27 +370,29 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
     if (placement === 'top') {
       return {
         position: 'absolute',
-        bottom: -6,
+        bottom: -8,
         left: clampedArrowLeft,
         transform: 'translateX(-50%) rotate(45deg)',
-        width: 12,
-        height: 12,
+        width: 16,
+        height: 16,
         background: 'rgb(24 24 27)',
-        borderRight: '1px solid rgba(16, 185, 129, 0.3)',
-        borderBottom: '1px solid rgba(16, 185, 129, 0.3)',
+        borderRight: '2px solid rgba(16, 185, 129, 0.5)',
+        borderBottom: '2px solid rgba(16, 185, 129, 0.5)',
+        boxShadow: '3px 3px 8px rgba(16, 185, 129, 0.15)',
       };
     }
 
     return {
       position: 'absolute',
-      top: -6,
+      top: -8,
       left: clampedArrowLeft,
       transform: 'translateX(-50%) rotate(45deg)',
-      width: 12,
-      height: 12,
+      width: 16,
+      height: 16,
       background: 'rgb(24 24 27)',
-      borderLeft: '1px solid rgba(16, 185, 129, 0.3)',
-      borderTop: '1px solid rgba(16, 185, 129, 0.3)',
+      borderLeft: '2px solid rgba(16, 185, 129, 0.5)',
+      borderTop: '2px solid rgba(16, 185, 129, 0.5)',
+      boxShadow: '-3px -3px 8px rgba(16, 185, 129, 0.15)',
     };
   };
 
@@ -435,6 +439,23 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
       >
         {/* Arrow */}
         {arrowStyle && <div style={arrowStyle} />}
+
+        {/* Connector line from arrow to spotlight */}
+        {spotlightRect && placement !== 'center' && !isMobile && arrowStyle && (
+          <div
+            style={{
+              position: 'absolute',
+              left: arrowStyle.left as number,
+              transform: 'translateX(-50%)',
+              width: 0,
+              pointerEvents: 'none' as const,
+              ...(placement === 'bottom'
+                ? { top: -(pad + 8), height: pad + 8, borderLeft: '1.5px dashed rgba(16, 185, 129, 0.4)' }
+                : { bottom: -(pad + 8), height: pad + 8, borderLeft: '1.5px dashed rgba(16, 185, 129, 0.4)' }
+              ),
+            }}
+          />
+        )}
 
         {/* Mobile drag handle */}
         {isMobile && (

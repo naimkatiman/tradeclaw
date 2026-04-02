@@ -13,9 +13,6 @@ import {
   BarChart2,
   Send,
   Wrench,
-  Lightbulb,
-  BellRing,
-  Users,
   Layers,
   FileText,
   Crosshair,
@@ -99,6 +96,7 @@ export function PageNavBar() {
 
   // Close dropdown on route change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync dropdown state with route
     setMoreOpen(false);
   }, [pathname]);
 
