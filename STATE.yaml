@@ -1432,9 +1432,17 @@ tasks:
 
   - id: TC-155
     title: "Community signal voting — /vote page where visitors vote BUY/SELL/HOLD per asset (localStorage dedup + /api/votes file-based JSON), live vote bars vs TradeClaw signal agreement, weekly reset, shareable result card. Drives return visits + social proof."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: apps/web/lib/votes.ts (file-based JSON CRUD, getCurrentWeek ISO week string,
+      castVote/getVotes/getStats, seed data for 10 pairs). GET/POST /api/votes + GET /api/votes/stats
+      (CORS *). /vote page (VoteClient.tsx) — hero with weekly vote count, 10-pair asset grid
+      (BTCUSD/ETHUSD/XAUUSD/XAGUSD/EURUSD/GBPUSD/USDJPY/AAPL/TSLA/SPX500), BUY/SELL/HOLD buttons
+      with localStorage week-based dedup, post-vote bars showing BUY%/SELL%/HOLD%, TradeClaw signal
+      alignment badge (Aligned/Divergence), sticky stats bar (total votes/most bullish/most bearish),
+      weekly reset countdown to next Monday, share on X pre-written tweet, GitHub star CTA.
+      Commit b0b3cbbc. 2026-04-02
 
   - id: TC-156
     title: "Trading glossary SEO hub — /glossary with 50 trading terms (RSI, MACD, Fibonacci, Sharpe, Drawdown, etc.) each with definition, TradeClaw relevance callout, and link to relevant page. Alphabetical nav + search. SEO goldmine for organic traffic from traders."

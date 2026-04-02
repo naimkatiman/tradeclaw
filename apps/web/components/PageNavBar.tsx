@@ -121,6 +121,18 @@ export function PageNavBar() {
             <NotebookPen className="w-3 h-3" />
             Journal
           </Link>
+          <Link
+            href="/glossary"
+            aria-current={isActive('/glossary') ? 'page' : undefined}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 inline-flex items-center gap-1.5 ${
+              isActive('/glossary')
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
+            }`}
+          >
+            <BookOpen className="w-3 h-3" />
+            Glossary
+          </Link>
         </div>
       </div>
     </nav>

@@ -16,6 +16,7 @@ const MOBILE_LINKS = [
   { href: '/paper-trading', label: 'Paper Trading' },
   { href: '/portfolio', label: 'Portfolio' },
   { href: '/leaderboard', label: 'Leaderboard' },
+  { href: '/glossary', label: 'Glossary', icon: BookOpen },
   { href: '/commentary', label: 'Commentary', icon: BookOpen },
   { href: '/subscribe', label: 'Weekly Digest', icon: Mail },
   { href: '/notifications', label: 'Alerts', icon: Bell },
