@@ -54,7 +54,13 @@ tasks:
     title: CONTRIBUTING.md + issue templates + community files
     status: done
     owner: zaky
-    notes: "CONTRIBUTING.md written 2026-03-21 by daily self-improvement cron."
+    notes: >
+      Updated `CONTRIBUTING.md` with fuller local setup, coding standards, PR workflow, and
+      testing instructions. Added `.github/ISSUE_TEMPLATE/bug_report.md`,
+      `.github/ISSUE_TEMPLATE/feature_request.md` and `.github/ISSUE_TEMPLATE/question.md`,
+      updated `.github/PULL_REQUEST_TEMPLATE.md`, and added a `README.md` Contributors section
+      with all-contributors markers + `.all-contributorsrc`. Added `hacktoberfest` topic to
+      `prerak2612/tradeclaw` once `gh` authentication was available.
 
   # ── Phase 2: Real Signal Engine + Viral Features ──
 
