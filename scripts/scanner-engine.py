@@ -15,6 +15,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import pandas as pd
+import requests
 from tradingview_screener import Query, Column
 
 SCRIPT_DIR = Path(__file__).parent
@@ -23,6 +24,21 @@ DATA_DIR = PROJECT_DIR / "data"
 DB_PATH = SCRIPT_DIR / "signals.db"
 OUTPUT_FILE = DATA_DIR / "signals-live.json"
 MIN_CONFIDENCE = 70
+
+# ─── Candle-Close Detection ────────────────────────────────────
+# Timeframe boundaries in minutes. A candle is "closed" if current time
+# is within CANDLE_CLOSE_TOLERANCE of a boundary.
+CANDLE_PERIODS = {"M5": 5, "M15": 15, "H1": 60, "H4": 240}
+CANDLE_CLOSE_TOLERANCE_MIN = 2  # within 2 minutes of close = "closed"
+INCOMPLETE_CANDLE_PENALTY = 8   # confidence penalty for incomplete candles
+
+# ─── Binance Cross-Validation ──────────────────────────────────
+BINANCE_PRICE_MAP = {
+    "BTCUSDT": "BTCUSDT", "ETHUSDT": "ETHUSDT", "XRPUSDT": "XRPUSDT",
+    "SOLUSDT": "SOLUSDT", "BNBUSDT": "BNBUSDT",
+}
+BINANCE_PRICE_DIVERGENCE_THRESHOLD = 0.005  # 0.5% divergence = warning
+BINANCE_CROSS_VALIDATION_BONUS = 3  # bonus when Binance confirms price
 
 # Target symbols per market
 TARGET_SYMBOLS = {
@@ -52,6 +68,96 @@ RSI_COLS = {
     "H1": "RSI|60",
     "H4": "RSI|240",
 }
+
+
+def get_candle_status(now: datetime) -> dict[str, str]:
+    """
+    For each timeframe, determine if the candle is 'closed' or 'incomplete'.
+    A candle is considered closed if we're within CANDLE_CLOSE_TOLERANCE_MIN
+    of a period boundary.
+    """
+    minute = now.minute + now.second / 60
+    hour_minute = now.hour * 60 + minute
+    statuses = {}
+    for tf, period in CANDLE_PERIODS.items():
+        minutes_into_candle = hour_minute % period
+        minutes_until_close = period - minutes_into_candle
+        if minutes_into_candle <= CANDLE_CLOSE_TOLERANCE_MIN or minutes_until_close <= CANDLE_CLOSE_TOLERANCE_MIN:
+            statuses[tf] = "closed"
+        else:
+            statuses[tf] = "incomplete"
+    return statuses
+
+
+def fetch_binance_prices() -> dict[str, float]:
+    """Fetch current prices from Binance for cross-validation."""
+    prices = {}
+    try:
+        resp = requests.get(
+            "https://api.binance.com/api/v3/ticker/price",
+            params={"symbols": json.dumps(list(BINANCE_PRICE_MAP.values()))},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            for item in resp.json():
+                prices[item["symbol"]] = float(item["price"])
+    except Exception as e:
+        print(f"  [WARN] Binance price fetch failed: {e}")
+    return prices
+
+
+def cross_validate_price(symbol: str, tv_price: float, binance_prices: dict[str, float]) -> dict:
+    """
+    Compare TradingView price with Binance price.
+    Returns validation result with divergence info.
+    """
+    binance_sym = BINANCE_PRICE_MAP.get(symbol)
+    if not binance_sym or binance_sym not in binance_prices:
+        return {"validated": False, "reason": "no_binance_data"}
+
+    binance_price = binance_prices[binance_sym]
+    if tv_price == 0:
+        return {"validated": False, "reason": "no_tv_price"}
+
+    divergence = abs(tv_price - binance_price) / tv_price
+    return {
+        "validated": True,
+        "binance_price": round(binance_price, 6),
+        "tv_price": round(tv_price, 6),
+        "divergence_pct": round(divergence * 100, 3),
+        "price_confirmed": divergence < BINANCE_PRICE_DIVERGENCE_THRESHOLD,
+    }
+
+
+def get_win_rates(conn: sqlite3.Connection) -> dict[str, dict]:
+    """
+    Calculate historical win rate per symbol+direction from signals.db.
+    Returns: { "BTCUSDT_BUY": { "wins": 5, "losses": 2, "total": 7, "win_rate": 71.4 }, ... }
+    """
+    rates = {}
+    try:
+        cursor = conn.execute("""
+            SELECT symbol, signal,
+                   COUNT(*) as total,
+                   SUM(CASE WHEN outcome = 'TP1_HIT' THEN 1 ELSE 0 END) as wins,
+                   SUM(CASE WHEN outcome = 'SL_HIT' THEN 1 ELSE 0 END) as losses
+            FROM signals
+            WHERE outcome IS NOT NULL AND outcome != 'EXPIRED'
+            GROUP BY symbol, signal
+        """)
+        for row in cursor.fetchall():
+            symbol, direction, total, wins, losses = row
+            key = f"{symbol}_{direction}"
+            win_rate = round((wins / total) * 100, 1) if total > 0 else 0
+            rates[key] = {
+                "wins": wins,
+                "losses": losses,
+                "total": total,
+                "win_rate": win_rate,
+            }
+    except Exception:
+        pass  # Table may not have outcome column populated yet
+    return rates
 
 
 def rec_to_signal(value):
@@ -113,11 +219,16 @@ def fetch_market(market, info):
         return None
 
 
-def calculate_confluence(row, symbol_name):
+def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None, binance_validation=None):
     """
     Confluence = multiple TFs agreeing on same direction.
+    Enhanced with candle-close filtering, win-rate weighting, and cross-validation.
     Returns (confluence_signal, individual_tf_signals) or (None, [])
     """
+    candle_statuses = candle_statuses or {}
+    win_rates = win_rates or {}
+    binance_validation = binance_validation or {}
+
     tf_directions = {}
     for tf, col in TF_COLS.items():
         val = row.get(col)
@@ -153,7 +264,32 @@ def calculate_confluence(row, symbol_name):
         rsi_h1 = row.get("RSI|60") or 50
         rsi_bonus = 5 if (direction == "BUY" and rsi_h1 < 35) or (direction == "SELL" and rsi_h1 > 65) else 0
 
-        confidence = min(base + bonus + rsi_bonus, 95)
+        # ── Candle-close penalty ──
+        # If majority of agreeing TFs have incomplete candles, penalize
+        incomplete_count = sum(1 for tf in agreeing if candle_statuses.get(tf) == "incomplete")
+        candle_penalty = 0
+        if incomplete_count > len(agreeing) / 2:
+            candle_penalty = INCOMPLETE_CANDLE_PENALTY
+        candle_status_label = "closed" if incomplete_count == 0 else f"{incomplete_count}/{len(agreeing)} incomplete"
+
+        # ── Win-rate weighting ──
+        # If we have historical data, adjust confidence based on past performance
+        wr_key = f"{symbol_name}_{direction}"
+        win_rate_data = win_rates.get(wr_key)
+        wr_bonus = 0
+        if win_rate_data and win_rate_data["total"] >= 5:
+            wr = win_rate_data["win_rate"]
+            if wr >= 70:
+                wr_bonus = 5   # historically strong signal
+            elif wr < 45:
+                wr_bonus = -5  # historically weak — penalize
+
+        # ── Binance cross-validation bonus ──
+        cross_bonus = 0
+        if binance_validation.get("price_confirmed"):
+            cross_bonus = BINANCE_CROSS_VALIDATION_BONUS
+
+        confidence = min(base + bonus + rsi_bonus - candle_penalty + wr_bonus + cross_bonus, 95)
 
         if confidence < MIN_CONFIDENCE:
             confluence = None
@@ -179,6 +315,15 @@ def calculate_confluence(row, symbol_name):
             if (direction == "BUY" and macd_h1 > 0) or (direction == "SELL" and macd_h1 < 0):
                 reasons.append(f"MACD H1 confirms {direction}")
 
+            if candle_penalty > 0:
+                reasons.append(f"Candle incomplete ({candle_status_label}) — confidence reduced")
+            if wr_bonus > 0:
+                reasons.append(f"Strong historical win rate: {win_rate_data['win_rate']}%")
+            elif wr_bonus < 0:
+                reasons.append(f"Weak historical win rate: {win_rate_data['win_rate']}%")
+            if cross_bonus > 0:
+                reasons.append("Binance price cross-validated")
+
             confluence = {
                 "id": f"SIG-{symbol_name}-{n}TF-{uuid4().hex[:8].upper()}",
                 "symbol": symbol_name,
@@ -192,6 +337,7 @@ def calculate_confluence(row, symbol_name):
                 "tp2": tp2,
                 "sl": sl,
                 "reasons": reasons,
+                "candle_status": candle_status_label,
                 "indicators": {
                     "rsi_m5":  round(row.get("RSI|5") or 0, 2),
                     "rsi_h1":  round(rsi_h1, 2),
@@ -200,6 +346,8 @@ def calculate_confluence(row, symbol_name):
                     "ema_trend": "up" if (row.get("EMA20|60") or 0) > (row.get("EMA50|60") or 0) else "down",
                     "stoch_k": round(row.get("Stoch.K|60") or 50, 2),
                 },
+                "win_rate": win_rate_data if win_rate_data else None,
+                "cross_validation": binance_validation if binance_validation.get("validated") else None,
                 "source": "tradingview_screener",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "expires_in_minutes": 60 if n >= 3 else 30,
@@ -270,9 +418,23 @@ def init_db():
 
 
 def main():
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] TradeClaw Scanner Engine v4")
+    now = datetime.now(timezone.utc)
+    print(f"[{now.strftime('%H:%M:%S')}] TradeClaw Scanner Engine v5 — Reliability Edition")
 
     conn = init_db()
+
+    # ── Pre-fetch: candle status, win rates, Binance prices ──
+    candle_statuses = get_candle_status(now)
+    print(f"  Candle status: {candle_statuses}")
+
+    win_rates = get_win_rates(conn)
+    if win_rates:
+        print(f"  Win rates loaded: {len(win_rates)} symbol/direction combos")
+
+    binance_prices = fetch_binance_prices()
+    if binance_prices:
+        print(f"  Binance prices: {len(binance_prices)} symbols fetched")
+
     confluence_signals = []
     all_signals = []
     total_checked = 0
@@ -301,7 +463,16 @@ def main():
             seen_symbols.add(symbol_name)
             total_checked += 1
 
-            conf, indiv = calculate_confluence(row, symbol_name)
+            # Cross-validate price with Binance
+            tv_price = row.get("close", 0) or 0
+            bv = cross_validate_price(symbol_name, tv_price, binance_prices)
+
+            conf, indiv = calculate_confluence(
+                row, symbol_name,
+                candle_statuses=candle_statuses,
+                win_rates=win_rates,
+                binance_validation=bv,
+            )
             if conf:
                 confluence_signals.append(conf)
             all_signals.extend(indiv)
@@ -310,8 +481,7 @@ def main():
     if confluence_signals:
         for s in confluence_signals:
             try:
-                # fired_at_minute = truncate to minute for dedup
-                fired_minute = s["timestamp"][:16]  # "2026-04-02T08:35"
+                fired_minute = s["timestamp"][:16]
                 conn.execute("""
                     INSERT OR IGNORE INTO signals
                     (id, symbol, signal, confidence, timeframe, confluence_score, entry, tp1, tp2, sl, source, fired_at, fired_at_minute)
@@ -324,20 +494,34 @@ def main():
                 pass
         conn.commit()
 
+    # ── Compute aggregate win rates for output ──
+    aggregate_win_rates = {}
+    for key, data in win_rates.items():
+        if data["total"] >= 3:  # only show if meaningful sample
+            aggregate_win_rates[key] = data
+
     # Save to JSON
     DATA_DIR.mkdir(exist_ok=True)
     output = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": now.isoformat(),
+        "engine_version": "v5-reliability",
         "min_confidence": MIN_CONFIDENCE,
         "count": len(confluence_signals),
         "confluence_signals": confluence_signals,
         "all_signals": all_signals,
+        "reliability": {
+            "candle_statuses": candle_statuses,
+            "binance_prices_available": len(binance_prices),
+            "win_rates": aggregate_win_rates,
+            "incomplete_candle_penalty": INCOMPLETE_CANDLE_PENALTY,
+            "cross_validation_bonus": BINANCE_CROSS_VALIDATION_BONUS,
+        },
         "stats": {
             "symbols_checked": total_checked,
             "confluence_signals": len(confluence_signals),
             "individual_signals": len(all_signals),
             "data_errors": errors,
-            "engine": "tradingview_screener_v4",
+            "engine": "v5-reliability",
         },
     }
 
@@ -346,7 +530,11 @@ def main():
 
     print(f"\nDone: {len(confluence_signals)} confluence | {len(all_signals)} individual | {errors} errors")
     for s in confluence_signals:
-        print(f"  ★ {s['symbol']} {s['signal']} {s['confidence']}% — {s['timeframe']}")
+        cs = s.get("candle_status", "unknown")
+        wr = s.get("win_rate")
+        wr_str = f" | WR:{wr['win_rate']}%" if wr else ""
+        cv = " | Binance✓" if s.get("cross_validation", {}).get("price_confirmed") else ""
+        print(f"  ★ {s['symbol']} {s['signal']} {s['confidence']}% — {s['timeframe']} [candle:{cs}{wr_str}{cv}]")
 
 
 if __name__ == "__main__":

@@ -86,6 +86,8 @@ export async function GET(req: NextRequest) {
             total: signals.length,
             generatedAt: liveData.generatedAt,
             source: "live-file",
+            engineVersion: liveData.engineVersion ?? "v4",
+            reliability: liveData.reliability ?? null,
             signals: results.map(mapLiveSignalToV1),
           },
           { headers: { ...headers, "X-Signal-Source": "live-file" } }

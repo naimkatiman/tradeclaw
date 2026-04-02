@@ -1,8 +1,8 @@
 // SSE endpoint for real-time price ticks + signal events
 // GET /api/prices/stream?pairs=BTCUSD,ETHUSD
 //
-// Polls real market data from CoinGecko (crypto), Stooq (metals),
-// and open.er-api.com (forex). Signals come from the real TA engine.
+// Uses Binance WebSocket for sub-second crypto prices, Stooq for metals,
+// and open.er-api.com for forex. Signals come from the real TA engine.
 
 import { NextRequest } from 'next/server';
 import { getLivePrices, SYMBOLS, getSignals, type TradingSignal } from '../../../lib/signals';
@@ -150,9 +150,50 @@ function formatPrice(pair: string, price: number): number {
 }
 
 /* ── Intervals ── */
-const PRICE_POLL_MS = 8_000;    // fetch prices every 8s
+const PRICE_POLL_MS = 15_000;   // forex/metals poll every 15s (crypto via WebSocket)
 const SIGNAL_POLL_MS = 45_000;  // fetch signals every 45s
 const HEARTBEAT_MS = 15_000;    // heartbeat every 15s
+
+/* ── Binance REST for fast crypto prices (2s poll, no ws dependency) ── */
+const BINANCE_SYMBOL_MAP: Record<string, string> = {
+  BTCUSDT: 'BTCUSD',
+  ETHUSDT: 'ETHUSD',
+  XRPUSDT: 'XRPUSD',
+  SOLUSDT: 'SOLUSD',
+  BNBUSDT: 'BNBUSD',
+};
+const BINANCE_CRYPTO_POLL_MS = 2_000;  // 2s — Binance allows 1200 req/min
+
+interface BinanceTicker {
+  symbol: string;
+  lastPrice: string;
+  priceChangePercent: string;
+  highPrice: string;
+  lowPrice: string;
+}
+
+async function fetchBinancePrices(): Promise<Map<string, { price: number; change24h: number }>> {
+  const result = new Map<string, { price: number; change24h: number }>();
+  try {
+    const symbols = Object.keys(BINANCE_SYMBOL_MAP);
+    const resp = await fetch(
+      `https://api.binance.com/api/v3/ticker/24hr?symbols=${JSON.stringify(symbols)}`,
+      { signal: AbortSignal.timeout(3000), cache: 'no-store' },
+    );
+    if (!resp.ok) return result;
+    const tickers: BinanceTicker[] = await resp.json();
+    for (const t of tickers) {
+      const pair = BINANCE_SYMBOL_MAP[t.symbol];
+      if (!pair) continue;
+      const price = parseFloat(t.lastPrice);
+      const change24h = parseFloat(t.priceChangePercent);
+      if (!isNaN(price) && price > 0) {
+        result.set(pair, { price, change24h: +change24h.toFixed(2) });
+      }
+    }
+  } catch { /* fail silently, next poll will retry */ }
+  return result;
+}
 
 /* ── GET handler ── */
 export async function GET(req: NextRequest) {
@@ -187,7 +228,6 @@ export async function GET(req: NextRequest) {
       send('connected', { pairs: requestedPairs, ts: Date.now() });
 
       // ── Initial data push (immediate) ──
-      // Use getLivePrices for a fast first push, then switch to fetchRealPrices for richer data
       void (async () => {
         try {
           const livePrices = await getLivePrices();
@@ -203,6 +243,7 @@ export async function GET(req: NextRequest) {
               high24h: formatPrice(pair, state.high),
               low24h: formatPrice(pair, state.low),
               timestamp: Date.now(),
+              source: 'initial',
             });
           }
         } catch {
@@ -210,14 +251,43 @@ export async function GET(req: NextRequest) {
         }
       })();
 
-      // ── Price poll interval ──
-      const priceInterval = setInterval(() => {
+      // ── Binance fast poll for crypto prices (2s) ──
+      const cryptoPairs = new Set(Object.values(BINANCE_SYMBOL_MAP));
+      const cryptoInterval = setInterval(() => {
         if (closed) return;
+        void (async () => {
+          try {
+            const prices = await fetchBinancePrices();
+            if (closed) return;
+            for (const pair of requestedPairs) {
+              if (!cryptoPairs.has(pair)) continue;
+              const data = prices.get(pair);
+              if (!data) continue;
+              const state = updatePriceState(pair, data.price);
+              send('price', {
+                pair,
+                price: formatPrice(pair, state.price),
+                change24h: data.change24h,
+                high24h: formatPrice(pair, state.high),
+                low24h: formatPrice(pair, state.low),
+                timestamp: Date.now(),
+                source: 'binance',
+              });
+            }
+          } catch { /* next poll */ }
+        })();
+      }, BINANCE_CRYPTO_POLL_MS);
+
+      // ── Poll interval for forex/metals only (crypto handled by Binance) ──
+      const nonCryptoPairs = requestedPairs.filter(p => !cryptoPairs.has(p));
+
+      const priceInterval = setInterval(() => {
+        if (closed || nonCryptoPairs.length === 0) return;
         void (async () => {
           try {
             const prices = await fetchRealPrices();
             if (closed) return;
-            for (const pair of requestedPairs) {
+            for (const pair of nonCryptoPairs) {
               const data = prices.get(pair);
               if (!data) continue;
               const state = updatePriceState(pair, data.price);
@@ -231,6 +301,7 @@ export async function GET(req: NextRequest) {
                 high24h: formatPrice(pair, state.high),
                 low24h: formatPrice(pair, state.low),
                 timestamp: Date.now(),
+                source: 'poll',
               });
             }
           } catch {
@@ -309,6 +380,7 @@ export async function GET(req: NextRequest) {
       // ── Cleanup on abort ──
       req.signal.addEventListener('abort', () => {
         closed = true;
+        clearInterval(cryptoInterval);
         clearInterval(priceInterval);
         clearInterval(signalInterval);
         clearInterval(heartbeatInterval);
