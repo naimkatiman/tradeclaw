@@ -1483,9 +1483,16 @@ tasks:
 
   - id: TC-159
     title: "Daily signal digest auto-poster to Telegram channel — /api/cron/daily-digest (Vercel cron 08:00 UTC) posts formatted top-3 signals with emoji to TELEGRAM_CHANNEL_ID. /digest/preview page shows today's digest. .env.example updated with TELEGRAM_CHANNEL_ID. Keeps channel alive = organic Telegram discovery."
-    status: pending
+    status: done
     owner: pm-tradeclaw
-    notes: ""
+    notes: >
+      Complete: lib/daily-digest.ts (getDailyDigest + digestToPlainText, MarkdownV2 formatter with
+      confidence bars █░░, 📈/📉 emoji, entry/TP/SL). GET+POST /api/cron/daily-digest (CRON_SECRET
+      auth, posts top-3 to TELEGRAM_CHANNEL_ID, returns {sent,count,channel}). vercel.json cron
+      added: 0 8 * * *. /digest/preview page (DigestPreviewClient.tsx — Telegram-style dark preview
+      card, Send to Channel Now button, copy text, signal cards, setup guide with env var docs).
+      GET /api/digest/daily-preview (JSON for preview UI). .env.example updated with TELEGRAM_CHANNEL_ID.
+      Navbar Community group + mobile-nav + sitemap updated. 0 lint errors. Build passes. 2026-04-02
 
 next_actions:
   - "Phase 31 defined. TC-155 is next — community signal voting for return visits + social proof."
