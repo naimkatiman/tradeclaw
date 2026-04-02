@@ -124,9 +124,7 @@ Thanks to everyone who helps make TradeClaw better. If you’re looking to contr
 <!-- prettier-ignore -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-```
 ⭐ Star this repo to help others discover TradeClaw
-```
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=github-sponsors&style=flat-square)](https://github.com/sponsors/naimkatiman)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black&style=flat-square)](https://buymeacoffee.com/naimkatiman)
