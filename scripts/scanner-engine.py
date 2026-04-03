@@ -140,6 +140,7 @@ def cross_validate_price(symbol: str, tv_price: float, binance_prices: dict[str,
 def get_win_rates(conn: sqlite3.Connection) -> dict[str, dict]:
     """
     Calculate historical win rate per symbol+direction from signals.db.
+    Uses average accuracy (graduated 0-1) as win rate metric.
     Returns: { "BTCUSDT_BUY": { "wins": 5, "losses": 2, "total": 7, "win_rate": 71.4 }, ... }
     """
     rates = {}
@@ -147,21 +148,21 @@ def get_win_rates(conn: sqlite3.Connection) -> dict[str, dict]:
         cursor = conn.execute("""
             SELECT symbol, signal,
                    COUNT(*) as total,
-                   SUM(CASE WHEN outcome = 'TP1_HIT' THEN 1 ELSE 0 END) as wins,
-                   SUM(CASE WHEN outcome = 'SL_HIT' THEN 1 ELSE 0 END) as losses
+                   SUM(CASE WHEN accuracy >= 0.5 THEN 1 ELSE 0 END) as wins,
+                   SUM(CASE WHEN accuracy < 0.5 THEN 1 ELSE 0 END) as losses,
+                   ROUND(AVG(accuracy) * 100, 1) as avg_accuracy
             FROM signals
-            WHERE outcome IS NOT NULL AND outcome != 'EXPIRED'
+            WHERE outcome IS NOT NULL AND outcome != 'LEGACY'
             GROUP BY symbol, signal
         """)
         for row in cursor.fetchall():
-            symbol, direction, total, wins, losses = row
+            symbol, direction, total, wins, losses, avg_acc = row
             key = f"{symbol}_{direction}"
-            win_rate = round((wins / total) * 100, 1) if total > 0 else 0
             rates[key] = {
                 "wins": wins,
                 "losses": losses,
                 "total": total,
-                "win_rate": win_rate,
+                "win_rate": avg_acc or 0,
             }
     except Exception:
         pass  # Table may not have outcome column populated yet
@@ -202,6 +203,7 @@ def fetch_market(market, info):
             "MACD.macd|60", "MACD.signal|60",
             "MACD.macd|240", "MACD.signal|240",
             "EMA20|60", "EMA50|60", "EMA200|60",
+            "EMA20|240", "EMA50|240", "EMA200|240",
             "BB.upper|60", "BB.lower|60",
             "Stoch.K|60",
             "Recommend.All|5", "Recommend.All|15",
@@ -255,8 +257,26 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
         return None, []
 
     agreeing = buy_tfs if buy_tfs else sell_tfs
-    if len(agreeing) < 2:
-        confluence = None  # Not enough confluence for main signal
+    direction_candidate = "BUY" if buy_tfs else ("SELL" if sell_tfs else None)
+
+    # ── H4 Trend Alignment Filter (most important fix) ──
+    # Only trade WITH the dominant H4 trend — never against EMA200 H4
+    if direction_candidate and len(agreeing) >= 2:
+        close = row.get("close", 0) or 0
+        ema200_h4 = row.get("EMA200|240")
+        ema50_h4 = row.get("EMA50|240")
+        if close > 0 and ema200_h4 and ema200_h4 > 0:
+            h4_trend = "up" if close > ema200_h4 else "down"
+            # If signal goes against H4 EMA200 trend — skip
+            if direction_candidate == "BUY" and h4_trend == "down":
+                return None, []  # Price below EMA200 H4 — no BUY
+            if direction_candidate == "SELL" and h4_trend == "up":
+                return None, []  # Price above EMA200 H4 — no SELL
+
+    # Require at least one higher TF (H1 or H4) in agreeing set — filters M5/M15 noise
+    has_htf = any(tf in agreeing for tf in ["H1", "H4"])
+    if len(agreeing) < 2 or not has_htf:
+        confluence = None
     else:
         direction = "BUY" if buy_tfs else "SELL"
 
@@ -305,14 +325,16 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
             entry = row.get("close", 0) or 0
             atr = row.get("ATR") or (entry * 0.01)
 
+            # TP/SL scaled for 4h outcome window:
+            # TP1 = 0.5x ATR (achievable), TP2 = 1.0x ATR, SL = 0.75x ATR
             if direction == "BUY":
-                tp1 = round(entry + atr * 1.5, 6)
-                tp2 = round(entry + atr * 2.5, 6)
-                sl  = round(entry - atr * 1.0, 6)
+                tp1 = round(entry + atr * 0.5, 6)
+                tp2 = round(entry + atr * 1.0, 6)
+                sl  = round(entry - atr * 0.75, 6)
             else:
-                tp1 = round(entry - atr * 1.5, 6)
-                tp2 = round(entry - atr * 2.5, 6)
-                sl  = round(entry + atr * 1.0, 6)
+                tp1 = round(entry - atr * 0.5, 6)
+                tp2 = round(entry - atr * 1.0, 6)
+                sl  = round(entry + atr * 0.75, 6)
 
             reasons = [f"TF confluence: {', '.join(agreeing)} all {direction}"]
             if rsi_bonus:
@@ -379,11 +401,11 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
         tf_conf = min(base + (5 if tf in (agreeing or []) else 0), 95)
 
         if sig == "BUY":
-            tp1i = round(entry + (atr or entry*0.01) * 1.5, 6)
-            sli  = round(entry - (atr or entry*0.01) * 1.0, 6)
+            tp1i = round(entry + (atr or entry*0.01) * 0.5, 6)
+            sli  = round(entry - (atr or entry*0.01) * 0.75, 6)
         else:
-            tp1i = round(entry - (atr or entry*0.01) * 1.5, 6)
-            sli  = round(entry + (atr or entry*0.01) * 1.0, 6)
+            tp1i = round(entry - (atr or entry*0.01) * 0.5, 6)
+            sli  = round(entry + (atr or entry*0.01) * 0.75, 6)
 
         individual.append({
             "id": f"SIG-{symbol_name}-{tf}-{uuid4().hex[:8].upper()}",
@@ -485,10 +507,27 @@ def main():
                 confluence_signals.append(conf)
             all_signals.extend(indiv)
 
-    # Save to SQLite
+    # Save to SQLite — with cooldown deduplication
+    # Skip if same symbol+direction already fired within COOLDOWN_HOURS
+    COOLDOWN_HOURS = 4
+    saved = 0
+    skipped = 0
     if confluence_signals:
         for s in confluence_signals:
             try:
+                # Check cooldown: was this symbol+direction fired recently?
+                recent = conn.execute("""
+                    SELECT id, fired_at FROM signals
+                    WHERE symbol = ? AND signal = ?
+                      AND fired_at > datetime('now', ?)
+                    ORDER BY fired_at DESC LIMIT 1
+                """, (s["symbol"], s["signal"], f"-{COOLDOWN_HOURS} hours")).fetchone()
+
+                if recent:
+                    skipped += 1
+                    print(f"  [COOLDOWN] {s['symbol']} {s['signal']} — already fired at {recent[1][:16]}, skipping")
+                    continue
+
                 fired_minute = s["timestamp"][:16]
                 conn.execute("""
                     INSERT OR IGNORE INTO signals
@@ -498,9 +537,11 @@ def main():
                       s["timeframe"], s.get("confluence_score", 1),
                       s["entry"], s["tp1"], s.get("tp2"), s["sl"],
                       s["source"], s["timestamp"], fired_minute))
+                saved += 1
             except Exception:
                 pass
         conn.commit()
+    print(f"  Saved: {saved} | Cooldown-skipped: {skipped}")
 
     # ── Compute aggregate win rates for output ──
     aggregate_win_rates = {}

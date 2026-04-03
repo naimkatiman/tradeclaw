@@ -80,6 +80,10 @@ def check_outcomes():
     now = datetime.now(timezone.utc)
     cutoff = now - timedelta(hours=OUTCOME_WINDOW_HOURS)
 
+    # Re-evaluate LEGACY signals too (they were marked by old checker)
+    conn.execute("UPDATE signals SET outcome = NULL WHERE outcome = 'LEGACY'")
+    conn.commit()
+
     # Get signals old enough to check, still without outcome
     pending = conn.execute("""
         SELECT id, symbol, signal, entry, tp1, tp2, sl, fired_at
@@ -87,7 +91,7 @@ def check_outcomes():
         WHERE outcome IS NULL
           AND fired_at < ?
         ORDER BY fired_at ASC
-        LIMIT 50
+        LIMIT 100
     """, (cutoff.isoformat(),)).fetchall()
 
     print(f"[{now.strftime('%H:%M:%S')}] Checking {len(pending)} pending signals...")
@@ -104,7 +108,8 @@ def check_outcomes():
         sl    = row["sl"]
         sig   = row["signal"]
 
-        # Determine outcome based on current price vs entry
+        # Determine outcome based on current price vs entry/tp1/sl
+        # Accuracy is graduated: TP1_HIT=1, SL_HIT=0, EXPIRED=proportional
         if sig == "BUY":
             if price >= tp1:
                 outcome = "TP1_HIT"
@@ -113,10 +118,12 @@ def check_outcomes():
                 outcome = "SL_HIT"
                 accuracy = 0
             else:
-                # Still open — check if price moved favorably
-                pnl_pct = (price - entry) / entry * 100
-                outcome = "EXPIRED_PROFIT" if pnl_pct > 0 else "EXPIRED_LOSS"
-                accuracy = 1 if pnl_pct > 0 else 0
+                # Graduated: how far toward TP1 did price get? (0.0 = at entry, 1.0 = at TP1)
+                tp_range = tp1 - entry
+                progress = (price - entry) / tp_range if tp_range != 0 else 0
+                progress = max(0.0, min(1.0, progress))  # clamp 0-1
+                outcome = "EXPIRED_PROFIT" if price > entry else "EXPIRED_LOSS"
+                accuracy = round(progress, 2)
         else:  # SELL
             if price <= tp1:
                 outcome = "TP1_HIT"
@@ -125,9 +132,11 @@ def check_outcomes():
                 outcome = "SL_HIT"
                 accuracy = 0
             else:
-                pnl_pct = (entry - price) / entry * 100
-                outcome = "EXPIRED_PROFIT" if pnl_pct > 0 else "EXPIRED_LOSS"
-                accuracy = 1 if pnl_pct > 0 else 0
+                tp_range = entry - tp1
+                progress = (entry - price) / tp_range if tp_range != 0 else 0
+                progress = max(0.0, min(1.0, progress))
+                outcome = "EXPIRED_PROFIT" if price < entry else "EXPIRED_LOSS"
+                accuracy = round(progress, 2)
 
         conn.execute("""
             UPDATE signals SET outcome = ?, accuracy = ? WHERE id = ?
@@ -143,34 +152,40 @@ def check_outcomes():
         rates = conn.execute("""
             SELECT symbol, signal,
                    COUNT(*) as total,
-                   SUM(accuracy) as wins,
-                   ROUND(SUM(accuracy) * 100.0 / COUNT(*), 1) as win_rate
+                   SUM(CASE WHEN accuracy >= 0.5 THEN 1 ELSE 0 END) as wins,
+                   ROUND(AVG(accuracy) * 100, 1) as avg_accuracy
             FROM signals
-            WHERE outcome IS NOT NULL
+            WHERE outcome IS NOT NULL AND outcome != 'LEGACY'
             GROUP BY symbol, signal
-            ORDER BY win_rate DESC
+            ORDER BY avg_accuracy DESC
         """).fetchall()
 
         for r in rates:
-            print(f"  {r['symbol']} {r['signal']}: {r['win_rate']}% ({r['wins']}/{r['total']})")
+            print(f"  {r['symbol']} {r['signal']}: {r['avg_accuracy']}% avg accuracy ({r['wins']}/{r['total']} wins)")
 
         # Adaptive threshold: if overall win rate < 60%, tighten to 75%
         overall = conn.execute("""
-            SELECT ROUND(AVG(accuracy) * 100, 1) as overall_win_rate,
-                   COUNT(*) as total
+            SELECT ROUND(AVG(accuracy) * 100, 1) as avg_accuracy,
+                   COUNT(*) as total,
+                   SUM(CASE WHEN accuracy >= 0.5 THEN 1 ELSE 0 END) as wins
             FROM signals WHERE outcome IS NOT NULL
         """).fetchone()
 
         if overall and overall["total"] >= 10:
-            wr = overall["overall_win_rate"]
-            print(f"\nOverall win rate: {wr}% ({overall['total']} signals)")
-            if wr < 60:
-                print("⚠️  Win rate below 60% — recommend raising confidence threshold to 75%")
-                # Write threshold recommendation
+            acc = overall["avg_accuracy"]
+            print(f"\nOverall avg accuracy: {acc}% ({overall['wins']}/{overall['total']} wins)")
+            if acc < 40:
+                print("⚠️  Accuracy below 40% — raising confidence threshold to 80%")
+                threshold_file = SCRIPT_DIR / "confidence_threshold.txt"
+                threshold_file.write_text("80")
+            elif acc < 55:
+                print("⚠️  Accuracy below 55% — raising confidence threshold to 75%")
                 threshold_file = SCRIPT_DIR / "confidence_threshold.txt"
                 threshold_file.write_text("75")
-            elif wr > 80:
-                print("✅ Win rate above 80% — engine performing well")
+            elif acc > 70:
+                print("✅ Accuracy above 70% — engine performing well, lowering threshold to 70%")
+                threshold_file = SCRIPT_DIR / "confidence_threshold.txt"
+                threshold_file.write_text("70")
     else:
         print("No signals updated this run.")
 

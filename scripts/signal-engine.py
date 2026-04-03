@@ -157,15 +157,15 @@ def analyze_symbol(tv_symbol: str, symbol_info: dict) -> dict | None:
         print(f"  No price data available", file=sys.stderr)
         return None
 
-    # Calculate TP/SL based on ATR
+    # Calculate TP/SL — scaled for 4h outcome window
     if direction == "BUY":
-        tp1 = round(entry + atr * 1.5, 5)
-        tp2 = round(entry + atr * 2.5, 5)
-        sl = round(entry - atr * 1.0, 5)
+        tp1 = round(entry + atr * 0.5, 5)
+        tp2 = round(entry + atr * 1.0, 5)
+        sl = round(entry - atr * 0.75, 5)
     else:
-        tp1 = round(entry - atr * 1.5, 5)
-        tp2 = round(entry - atr * 2.5, 5)
-        sl = round(entry + atr * 1.0, 5)
+        tp1 = round(entry - atr * 0.5, 5)
+        tp2 = round(entry - atr * 1.0, 5)
+        sl = round(entry + atr * 0.75, 5)
 
     # Build reasons list
     reasons = [
