@@ -259,19 +259,24 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
     agreeing = buy_tfs if buy_tfs else sell_tfs
     direction_candidate = "BUY" if buy_tfs else ("SELL" if sell_tfs else None)
 
-    # ── H4 Trend Alignment Filter (most important fix) ──
-    # Only trade WITH the dominant H4 trend — never against EMA200 H4
+    # ── H4 Trend Alignment Filter ──
+    # Trade WITH the dominant H4 trend:
+    #   BUY  → only when price ABOVE EMA200 H4 (uptrend)
+    #   SELL → only when price BELOW EMA200 H4 (downtrend)
+    # Exception: allow counter-trend if RSI is extremely oversold/overbought (mean reversion)
     if direction_candidate and len(agreeing) >= 2:
         close = row.get("close", 0) or 0
         ema200_h4 = row.get("EMA200|240")
-        ema50_h4 = row.get("EMA50|240")
+        rsi_h4 = row.get("RSI|240") or 50
         if close > 0 and ema200_h4 and ema200_h4 > 0:
-            h4_trend = "up" if close > ema200_h4 else "down"
-            # If signal goes against H4 EMA200 trend — skip
-            if direction_candidate == "BUY" and h4_trend == "down":
-                return None, []  # Price below EMA200 H4 — no BUY
-            if direction_candidate == "SELL" and h4_trend == "up":
-                return None, []  # Price above EMA200 H4 — no SELL
+            price_above_ema200 = close > ema200_h4
+            # Block counter-trend signals unless RSI is extreme (oversold BUY or overbought SELL)
+            if direction_candidate == "BUY" and not price_above_ema200:
+                if rsi_h4 > 35:  # Not oversold enough to justify counter-trend BUY
+                    return None, []
+            if direction_candidate == "SELL" and price_above_ema200:
+                if rsi_h4 < 65:  # Not overbought enough to justify counter-trend SELL
+                    return None, []
 
     # Require at least one higher TF (H1 or H4) in agreeing set — filters M5/M15 noise
     has_htf = any(tf in agreeing for tf in ["H1", "H4"])
@@ -483,11 +488,18 @@ def main():
 
         print(f"got {len(df)} rows")
 
+        # Group rows by symbol — pick the one with most TF confluence per symbol
+        best_rows = {}
         for _, row in df.iterrows():
             raw_name = str(row.get("name", ""))
-            symbol_name = raw_name.replace("BINANCE:", "").replace("FX:", "").replace("OANDA:", "").replace("FXCM:", "")
+            sym = raw_name.replace("BINANCE:", "").replace("FX:", "").replace("OANDA:", "").replace("FXCM:", "")
+            # Count how many TFs have a clear signal (not neutral)
+            tf_count = sum(1 for col in TF_COLS.values() if row.get(col) is not None and abs(row.get(col, 0)) >= 0.5)
+            if sym not in best_rows or tf_count > best_rows[sym][1]:
+                best_rows[sym] = (row, tf_count)
 
-            # Skip duplicates (same symbol from different exchanges)
+        for symbol_name, (row, _) in best_rows.items():
+            # Skip symbols already processed in a prior market scan
             if symbol_name in seen_symbols:
                 continue
             seen_symbols.add(symbol_name)
