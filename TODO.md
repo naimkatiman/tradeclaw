@@ -1,17 +1,16 @@
-# TradeClaw — Next Tasks
-_Updated: 2026-04-03_
+# TradeClaw — Task Status
+_Updated: 2026-04-03 02:17 MYT_
 
-## Pending (in order)
+## Completed ✅
 
-- [ ] **Candle-close filter** — Only emit signals near candle boundaries (M15 close, H1 close). Reduces mid-candle noise.
-- [ ] **Historical win rate per symbol/direction** — Pull from signals.db, inject into signal output as `win_rate` field. Basis for trust score.
-- [ ] **Binance API cross-validation** — Secondary source alongside TV screener. If both agree → confidence bonus. If they diverge → confidence penalty.
-- [ ] **SSE live price endpoint** — `/api/sse/prices` streaming Binance/forex prices to frontend in real-time.
-- [ ] **Enhanced confidence scoring** — Weight confidence by historical win rate + cross-validation bonus. Formula: `final_confidence = base_confluence + win_rate_bonus + cross_validation_bonus`.
-- [ ] **Build & verify** — `npm run build` must pass. All modules compile clean.
+- [x] **Candle-close filter** — Scanner v5 checks candle status per TF, only emits near boundaries
+- [x] **Historical win rate per symbol/direction** — `win_rate` field in signal output, sourced from signals.db
+- [x] **Binance API cross-validation** — Secondary price confirmation, confidence bonus when both agree
+- [x] **SSE live price endpoint** — `/api/prices/stream` streaming Binance/forex prices to frontend
+- [x] **Enhanced confidence scoring** — win_rate weighted + cross-validation bonus applied
+- [x] **Build & verify** — `npm run build` passes clean ✅
 
-## Rules for this sprint
-- Research → Plan → Execute → Review → Iterate
-- One task at a time, verified before next
-- Write files first, exec second
-- No feature additions — only these 6 tasks
+## Next Sprint (TBD)
+- [ ] Outcome tracker — auto-check if past signals hit TP or SL, update signals.db
+- [ ] Win rate display on frontend signal cards
+- [ ] Alert user on Telegram when 4-TF confluence signal fires

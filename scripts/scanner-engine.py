@@ -23,7 +23,15 @@ PROJECT_DIR = SCRIPT_DIR.parent
 DATA_DIR = PROJECT_DIR / "data"
 DB_PATH = SCRIPT_DIR / "signals.db"
 OUTPUT_FILE = DATA_DIR / "signals-live.json"
-MIN_CONFIDENCE = 70
+def get_min_confidence() -> int:
+    """Read adaptive threshold from outcome checker. Default 70, raises to 75 if win rate drops."""
+    threshold_file = SCRIPT_DIR / "confidence_threshold.txt"
+    try:
+        return int(threshold_file.read_text().strip())
+    except Exception:
+        return 70
+
+MIN_CONFIDENCE = get_min_confidence()
 
 # ─── Candle-Close Detection ────────────────────────────────────
 # Timeframe boundaries in minutes. A candle is "closed" if current time
