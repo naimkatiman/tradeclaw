@@ -41,10 +41,33 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const res = await fetch('/api/signals/history?limit=1');
-        if (!res.ok) return;
-        const data = await res.json();
-        setStats(data.stats ?? null);
+        // Try real win-rates API first (from signals.db outcome tracker)
+        const res = await fetch('/api/v1/win-rates');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.overall && data.overall.total > 0) {
+            setStats({
+              totalSignals: data.overall.total,
+              resolved: data.overall.total - (data.pending_signals ?? 0),
+              wins: data.overall.wins ?? 0,
+              losses: (data.overall.total ?? 0) - (data.overall.wins ?? 0),
+              winRate: data.overall.win_rate ?? 0,
+              totalPnlPct: 0,
+              avgPnlPct: 0,
+              avgConfidence: 0,
+              bestSignal: data.win_rates?.[0]
+                ? { pair: data.win_rates[0].symbol, pnlPct: data.win_rates[0].win_rate }
+                : null,
+              streak: 0,
+            });
+            return;
+          }
+        }
+        // Fallback to old history API
+        const res2 = await fetch('/api/signals/history?limit=1');
+        if (!res2.ok) return;
+        const data2 = await res2.json();
+        setStats(data2.stats ?? null);
       } catch {
         // silent
       } finally {

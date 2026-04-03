@@ -173,6 +173,43 @@ function CopyValueButton({ value }: { value: string }) {
   );
 }
 
+function WinRateBadge({ winRate }: { winRate: { wins: number; losses: number; total: number; win_rate: number } }) {
+  if (winRate.total < 3) return null; // Not enough data
+  const wr = winRate.win_rate;
+  const color = wr >= 70 ? 'text-emerald-400 border-emerald-500/25 bg-emerald-500/8'
+    : wr >= 50 ? 'text-yellow-400 border-yellow-500/25 bg-yellow-500/8'
+    : 'text-red-400 border-red-500/25 bg-red-500/8';
+  return (
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono border ${color}`}>
+      <span className="opacity-60">WR</span>
+      <span className="font-bold">{wr}%</span>
+      <span className="opacity-40 text-[8px]">{winRate.wins}/{winRate.total}</span>
+    </span>
+  );
+}
+
+function ConfluencePills({ timeframe }: { timeframe: string }) {
+  // Parse e.g. "3TF (M5, H1, H4)" or "4TF (M5, M15, H1, H4)"
+  const match = timeframe.match(/(\d)TF\s*\(([^)]+)\)/);
+  if (!match) return null;
+  const count = parseInt(match[1]);
+  const tfs = match[2].split(',').map(t => t.trim());
+  const color = count === 4 ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/8'
+    : count === 3 ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/8'
+    : 'text-zinc-400 border-zinc-500/30 bg-zinc-500/8';
+  return (
+    <div className="flex items-center gap-1 flex-wrap">
+      <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-mono border ${color}`}>
+        {'●'.repeat(count)}{'○'.repeat(4 - count)}
+        <span className="ml-0.5 opacity-60">{count}TF</span>
+      </span>
+      {tfs.map(tf => (
+        <span key={tf} className="px-1 py-0.5 rounded text-[9px] font-mono bg-white/[0.03] border border-white/[0.06] text-zinc-400">{tf}</span>
+      ))}
+    </div>
+  );
+}
+
 function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirections?: TFDirection[] }) {
   const [expanded, setExpanded] = useState(false);
   const [chartVisible, setChartVisible] = useState(false);
@@ -198,6 +235,16 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
               <DataSourceBadge source={getDataSource(signal.symbol)} />
             </div>
             <div className="text-[11px] text-[var(--text-secondary)] font-mono mt-0.5">{signal.timeframe} · {formatSignalTimestamp(signal.timestamp)}</div>
+            {/* Confluence pills — show TF agreement visually */}
+            <div className="mt-1.5">
+              <ConfluencePills timeframe={signal.timeframe} />
+            </div>
+            {/* Win rate badge — only shows when we have enough data */}
+            {(signal as TradingSignal & { win_rate?: { wins: number; losses: number; total: number; win_rate: number } }).win_rate && (
+              <div className="mt-1">
+                <WinRateBadge winRate={(signal as TradingSignal & { win_rate: { wins: number; losses: number; total: number; win_rate: number } }).win_rate} />
+              </div>
+            )}
             {tfDirections && tfDirections.length > 0 && (
               <div className="flex gap-1 mt-1.5 overflow-x-auto scrollbar-none">
                 {tfDirections.map(tf => <TFBadgeInline key={tf.timeframe} tf={tf} />)}

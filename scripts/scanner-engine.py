@@ -541,7 +541,7 @@ def main():
         cs = s.get("candle_status", "unknown")
         wr = s.get("win_rate")
         wr_str = f" | WR:{wr['win_rate']}%" if wr else ""
-        cv = " | Binance✓" if s.get("cross_validation", {}).get("price_confirmed") else ""
+        cv = " | Binance✓" if (s.get("cross_validation") or {}).get("price_confirmed") else ""
         print(f"  ★ {s['symbol']} {s['signal']} {s['confidence']}% — {s['timeframe']} [candle:{cs}{wr_str}{cv}]")
 
 
