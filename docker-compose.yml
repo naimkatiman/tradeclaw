@@ -88,6 +88,29 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  ws-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.ws-server
+    ports:
+      - "${WS_SERVER_PORT:-4000}:4000"
+    environment:
+      DATABASE_URL: postgres://${DB_USER:-tradeclaw}:${DB_PASSWORD:?Set DB_PASSWORD in .env}@db:5432/${DB_NAME:-tradeclaw}
+      REDIS_URL: redis://redis:6379
+      WS_SERVER_PORT: "4000"
+      NODE_ENV: production
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
 volumes:
   db_data:
   redis_data:
