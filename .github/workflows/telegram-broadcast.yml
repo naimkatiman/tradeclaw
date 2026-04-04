@@ -29,12 +29,22 @@ jobs:
           bot_token = os.environ['TELEGRAM_BOT_TOKEN']
           channel_id = os.environ['TELEGRAM_CHANNEL_ID']
 
+          from datetime import datetime, timezone
+
           with open('/tmp/tradeclaw-digest.json', 'r', encoding='utf-8') as f:
               digest = json.load(f)
 
-          signals = digest.get('topSignals', [])[:3]
+          weekend_skip = {'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'NZDUSD'}
+          is_weekend = datetime.now(timezone.utc).weekday() >= 5
+
+          signals = digest.get('topSignals', [])
+          if is_weekend:
+              signals = [s for s in signals if s.get('symbol') not in weekend_skip]
+          signals = signals[:3]
+
           if not signals:
-              text = '📅 TradeClaw Daily Signal Digest\n\nNo high-confidence signals today. Markets quiet.'
+              print('No weekend-safe fallback digest signals to broadcast.')
+              raise SystemExit(0)
           else:
               lines = ['📡 TradeClaw Signal Broadcast', '━━━━━━━━━━━━━━━━━━━━']
               for i, s in enumerate(signals, 1):

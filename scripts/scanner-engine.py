@@ -9,6 +9,7 @@ Architecture:
 """
 
 import json
+import os
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,6 +24,7 @@ PROJECT_DIR = SCRIPT_DIR.parent
 DATA_DIR = PROJECT_DIR / "data"
 DB_PATH = SCRIPT_DIR / "signals.db"
 OUTPUT_FILE = DATA_DIR / "signals-live.json"
+TELEGRAM_STATE_FILE = DATA_DIR / "telegram-alert-state.json"
 def get_min_confidence() -> int:
     """Read adaptive threshold from outcome checker. Default 70, raises to 75 if win rate drops."""
     threshold_file = SCRIPT_DIR / "confidence_threshold.txt"
@@ -429,20 +431,51 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
     return confluence, individual
 
 
+def read_telegram_state() -> dict:
+    try:
+        if TELEGRAM_STATE_FILE.exists():
+            return json.loads(TELEGRAM_STATE_FILE.read_text())
+    except Exception:
+        pass
+    return {"posted_ids": []}
+
+
+
+def write_telegram_state(state: dict):
+    try:
+        DATA_DIR.mkdir(exist_ok=True)
+        TELEGRAM_STATE_FILE.write_text(json.dumps(state, indent=2))
+    except Exception:
+        pass
+
+
+
 def send_telegram_alert(signals: list):
-    """Send Telegram alert when 3+ TF confluence signal fires"""
+    """Send immediate Telegram alert from the generator side when 3TF+ confluence signal fires."""
     if not signals:
         return
 
-    # Only alert for 3TF+ signals
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHANNEL_ID")
+    enabled = os.getenv("TRADECLAW_TELEGRAM_REALTIME_ENABLED", "1")
+
+    if enabled != "1" or not bot_token or not chat_id:
+        print("  [TG] Generator-side realtime hook disabled or missing Telegram env")
+        return
+
     high_conf = [s for s in signals if s.get("confluence_score", 0) >= 3]
     if not high_conf:
         return
 
-    bot_token = "8430628547:AAEwRtXzGxwF0m4E32ZnsFmfOrjUZ_rB4Bs"
-    chat_id = "-1003573287283"
+    state = read_telegram_state()
+    posted_ids = set(state.get("posted_ids", []))
+    updated = False
 
     for s in high_conf[:3]:  # Max 3 alerts per run
+        signal_id = s.get("id")
+        if signal_id in posted_ids:
+            continue
+
         direction_emoji = "🟢" if s["signal"] == "BUY" else "🔴"
         confidence_bar = "●" * s["confluence_score"] + "○" * (4 - s["confluence_score"])
 
@@ -459,14 +492,23 @@ _{" | ".join(s.get("reasons", [])[:2])}_
 ⚡ [View on TradeClaw](https://tradeclaw.win/dashboard)"""
 
         try:
-            requests.post(
+            response = requests.post(
                 f"https://api.telegram.org/bot{bot_token}/sendMessage",
                 json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown", "disable_web_page_preview": True},
                 timeout=5,
             )
-            print(f"  [TG] Sent alert: {s['symbol']} {s['signal']}")
+            if response.ok:
+                posted_ids.add(signal_id)
+                updated = True
+                print(f"  [TG] Sent generator alert: {s['symbol']} {s['signal']}")
+            else:
+                print(f"  [TG] Failed to send alert: {response.text}")
         except Exception as e:
             print(f"  [TG] Failed to send alert: {e}")
+
+    if updated:
+        state["posted_ids"] = list(posted_ids)[-500:]
+        write_telegram_state(state)
 
 
 def init_db():
