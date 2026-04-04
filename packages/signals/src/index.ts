@@ -62,6 +62,32 @@ export interface ChannelConfig {
   webhookUrl?: string;
 }
 
+// ─── WebSocket Market Data Types ─────────────────────
+
+export type SymbolCategory = 'crypto' | 'forex' | 'metals';
+
+export interface NormalizedTick {
+  symbol: string;
+  bid: number;
+  ask: number;
+  mid: number;
+  timestamp: number;
+  provider: string;
+}
+
+export interface SubscriptionMessage {
+  action: 'subscribe' | 'unsubscribe';
+  symbols: string[];
+}
+
+export type WsClientMessage = SubscriptionMessage;
+
+export type WsServerMessage =
+  | { type: 'tick'; data: NormalizedTick }
+  | { type: 'subscribed'; symbols: string[] }
+  | { type: 'unsubscribed'; symbols: string[] }
+  | { type: 'error'; message: string };
+
 // ─── Utilities ─────────────────────────────────────────
 
 /**
@@ -467,6 +493,15 @@ export function getSymbolConfig(symbol: string): SymbolConfig | undefined {
 
 export function getAllSymbols(): string[] {
   return Object.keys(SYMBOLS);
+}
+
+export function getSymbolCategory(symbol: string): SymbolCategory {
+  const metals = ['XAUUSD', 'XAGUSD'];
+  const crypto = ['BTCUSD', 'ETHUSD', 'SOLUSD', 'DOGEUSD', 'BNBUSD', 'XRPUSD'];
+  const s = symbol.toUpperCase();
+  if (metals.includes(s)) return 'metals';
+  if (crypto.includes(s)) return 'crypto';
+  return 'forex';
 }
 
 /**

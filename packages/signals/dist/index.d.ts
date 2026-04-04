@@ -81,6 +81,33 @@ export interface ChannelConfig {
     discordWebhookUrl?: string;
     webhookUrl?: string;
 }
+export type SymbolCategory = 'crypto' | 'forex' | 'metals';
+export interface NormalizedTick {
+    symbol: string;
+    bid: number;
+    ask: number;
+    mid: number;
+    timestamp: number;
+    provider: string;
+}
+export interface SubscriptionMessage {
+    action: 'subscribe' | 'unsubscribe';
+    symbols: string[];
+}
+export type WsClientMessage = SubscriptionMessage;
+export type WsServerMessage = {
+    type: 'tick';
+    data: NormalizedTick;
+} | {
+    type: 'subscribed';
+    symbols: string[];
+} | {
+    type: 'unsubscribed';
+    symbols: string[];
+} | {
+    type: 'error';
+    message: string;
+};
 /**
  * Generate a unique signal ID.
  */
@@ -154,6 +181,7 @@ export declare function findResistanceLevels(high: number[], count?: number): nu
 export declare const SYMBOLS: Record<string, SymbolConfig>;
 export declare function getSymbolConfig(symbol: string): SymbolConfig | undefined;
 export declare function getAllSymbols(): string[];
+export declare function getSymbolCategory(symbol: string): SymbolCategory;
 /**
  * Update a symbol's base price at runtime (e.g. after fetching live prices).
  */

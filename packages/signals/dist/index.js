@@ -345,6 +345,16 @@ export function getSymbolConfig(symbol) {
 export function getAllSymbols() {
     return Object.keys(SYMBOLS);
 }
+export function getSymbolCategory(symbol) {
+    const metals = ['XAUUSD', 'XAGUSD'];
+    const crypto = ['BTCUSD', 'ETHUSD', 'SOLUSD', 'DOGEUSD', 'BNBUSD', 'XRPUSD'];
+    const s = symbol.toUpperCase();
+    if (metals.includes(s))
+        return 'metals';
+    if (crypto.includes(s))
+        return 'crypto';
+    return 'forex';
+}
 /**
  * Update a symbol's base price at runtime (e.g. after fetching live prices).
  */

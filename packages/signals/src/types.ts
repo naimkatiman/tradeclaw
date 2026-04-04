@@ -61,3 +61,29 @@ export interface ChannelConfig {
   discordWebhookUrl?: string;
   webhookUrl?: string;
 }
+
+// ─── WebSocket Market Data Types ─────────────────────
+
+export type SymbolCategory = 'crypto' | 'forex' | 'metals';
+
+export interface NormalizedTick {
+  symbol: string;
+  bid: number;
+  ask: number;
+  mid: number;
+  timestamp: number;
+  provider: string;
+}
+
+export interface SubscriptionMessage {
+  action: 'subscribe' | 'unsubscribe';
+  symbols: string[];
+}
+
+export type WsClientMessage = SubscriptionMessage;
+
+export type WsServerMessage =
+  | { type: 'tick'; data: NormalizedTick }
+  | { type: 'subscribed'; symbols: string[] }
+  | { type: 'unsubscribed'; symbols: string[] }
+  | { type: 'error'; message: string };
