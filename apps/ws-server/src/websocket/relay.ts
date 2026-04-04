@@ -5,6 +5,8 @@ import { getAllSymbols } from '@tradeclaw/signals';
 import { SubscriptionManager } from './subscriptions.js';
 import type { ProviderManager } from './manager.js';
 import type { RedisService } from '../services/redis.js';
+import { wsAuth } from '../middleware/auth.js';
+import { checkConnectionRate, MessageRateLimiter, startCleanup } from '../middleware/rate-limit.js';
 
 interface RelayOptions extends FastifyPluginOptions {
   providerManager: ProviderManager;
@@ -13,6 +15,7 @@ interface RelayOptions extends FastifyPluginOptions {
 
 const MAX_BUFFERED_AMOUNT = 64 * 1024; // 64KB backpressure threshold
 const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const MAX_SUBSCRIPTIONS_PER_CLIENT = 20;
 const validSymbols = new Set(getAllSymbols());
 
 let clientCounter = 0;
@@ -22,6 +25,10 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
   const subs = new SubscriptionManager();
   const clients: Map<string, WebSocket> = new Map();
   const idleTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+  const rateLimiter = new MessageRateLimiter();
+
+  // Start rate-limit cleanup timer
+  startCleanup();
 
   // Connect to all symbols on startup
   const allSymbols = getAllSymbols();
@@ -46,8 +53,14 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
     }
   });
 
-  // WebSocket route
-  app.get('/ws', { websocket: true }, (socket, request) => {
+  // WebSocket route — auth preHandler + connection rate limiting
+  app.get('/ws', { websocket: true, preHandler: [wsAuth] }, (socket, request) => {
+    // Connection rate limiting (per IP)
+    if (!checkConnectionRate(request.ip)) {
+      socket.close(4029, 'Too many connections');
+      return;
+    }
+
     const clientId = `c_${++clientCounter}_${Date.now().toString(36)}`;
     clients.set(clientId, socket);
     resetIdleTimer(clientId);
@@ -55,6 +68,12 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
     app.log.info({ clientId, ip: request.ip }, 'Client connected');
 
     socket.on('message', (data) => {
+      // Message rate limiting (per client)
+      if (!rateLimiter.check(clientId)) {
+        sendError(socket, 'Rate limited — too many messages');
+        return;
+      }
+
       resetIdleTimer(clientId);
 
       let msg: WsClientMessage;
@@ -78,7 +97,14 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
       }
 
       if (msg.action === 'subscribe') {
-        const subscribed = subs.subscribe(clientId, validRequested);
+        // Enforce per-client subscription cap
+        const currentCount = subs.getClientSymbols(clientId).length;
+        const allowed = validRequested.slice(0, MAX_SUBSCRIPTIONS_PER_CLIENT - currentCount);
+        if (allowed.length === 0) {
+          sendError(socket, `Subscription limit reached (max ${MAX_SUBSCRIPTIONS_PER_CLIENT} symbols)`);
+          return;
+        }
+        const subscribed = subs.subscribe(clientId, allowed);
         const response: WsServerMessage = { type: 'subscribed', symbols: subscribed };
         socket.send(JSON.stringify(response));
         app.log.info({ clientId, symbols: subscribed }, 'Client subscribed');
@@ -95,6 +121,7 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
     socket.on('close', () => {
       subs.removeClient(clientId);
       clients.delete(clientId);
+      rateLimiter.remove(clientId);
       clearIdleTimer(clientId);
       app.log.info({ clientId }, 'Client disconnected');
     });
@@ -103,6 +130,7 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
       app.log.error({ clientId, err }, 'Client socket error');
       subs.removeClient(clientId);
       clients.delete(clientId);
+      rateLimiter.remove(clientId);
       clearIdleTimer(clientId);
     });
   });

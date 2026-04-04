@@ -5,6 +5,7 @@ const { Pool } = pg;
 
 const BATCH_SIZE = 100;
 const FLUSH_INTERVAL_MS = 1_000;
+const MAX_BUFFER_SIZE = 10_000;
 
 export class DatabaseService {
   private pool: pg.Pool | null = null;
@@ -85,8 +86,11 @@ export class DatabaseService {
         params,
       );
     } catch {
-      // Re-add failed batch for next flush
+      // Re-add failed batch, but cap total buffer to prevent memory exhaustion
       this.buffer.unshift(...batch);
+      if (this.buffer.length > MAX_BUFFER_SIZE) {
+        this.buffer.splice(MAX_BUFFER_SIZE);
+      }
     }
   }
 

@@ -1,8 +1,13 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-const AUTH_SECRET = process.env.AUTH_SECRET || '';
+const AUTH_SECRET = process.env.AUTH_SECRET;
 const IS_DEV = process.env.NODE_ENV !== 'production';
+
+// Fail fast in production if secret is missing
+if (!IS_DEV && !AUTH_SECRET) {
+  throw new Error('AUTH_SECRET environment variable is required in production');
+}
 
 interface TokenPayload {
   sub: string;
@@ -10,8 +15,14 @@ interface TokenPayload {
   iat: number;
 }
 
+declare module 'fastify' {
+  interface FastifyRequest {
+    userId?: string;
+  }
+}
+
 export async function wsAuth(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-  // Skip auth in development
+  // Skip auth in development when no secret is configured
   if (IS_DEV && !AUTH_SECRET) return;
 
   const query = request.query as { token?: string };
@@ -28,8 +39,7 @@ export async function wsAuth(request: FastifyRequest, reply: FastifyReply): Prom
     return;
   }
 
-  // Attach user info to request
-  (request as any).userId = payload.sub;
+  request.userId = payload.sub;
 }
 
 function verifyToken(token: string): TokenPayload | null {
@@ -38,7 +48,7 @@ function verifyToken(token: string): TokenPayload | null {
     if (parts.length !== 3) return null;
 
     const [header, payload, signature] = parts;
-    const expected = createHmac('sha256', AUTH_SECRET)
+    const expected = createHmac('sha256', AUTH_SECRET!)
       .update(`${header}.${payload}`)
       .digest('base64url');
 
