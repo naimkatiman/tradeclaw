@@ -210,7 +210,7 @@ function ConfluencePills({ timeframe }: { timeframe: string }) {
   );
 }
 
-function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirections?: TFDirection[] }) {
+function SignalCard({ signal, tfDirections, onSelect }: { signal: TradingSignal; tfDirections?: TFDirection[]; onSelect?: (signal: TradingSignal) => void }) {
   const [expanded, setExpanded] = useState(false);
   const [chartVisible, setChartVisible] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
@@ -224,7 +224,7 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
   };
 
   return (
-    <article className="glass-card rounded-2xl p-5 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+    <article className="glass-card rounded-2xl p-5 cursor-pointer" onClick={() => { setExpanded(!expanded); onSelect?.(signal); }}>
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -393,6 +393,100 @@ function SignalCard({ signal, tfDirections }: { signal: TradingSignal; tfDirecti
   );
 }
 
+interface HistoryRecord {
+  id: string;
+  pair: string;
+  direction: 'BUY' | 'SELL';
+  confidence: number;
+  entryPrice: number;
+  timestamp: number;
+  outcomes: {
+    '4h': { hit: boolean; pnlPct: number } | null;
+    '24h': { hit: boolean; pnlPct: number } | null;
+  };
+}
+
+function SignalHistory() {
+  const [records, setRecords] = useState<HistoryRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/signals/history?limit=20')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.records) setRecords(data.records);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return null;
+  if (records.length === 0) return null;
+
+  return (
+    <section className="mt-8">
+      <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-3">Signal Track Record</h2>
+      <div className="glass-card rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs font-mono">
+            <thead>
+              <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
+                <th className="px-4 py-2.5 text-left font-medium">Pair</th>
+                <th className="px-3 py-2.5 text-center font-medium">Dir</th>
+                <th className="px-3 py-2.5 text-center font-medium">Conf</th>
+                <th className="px-3 py-2.5 text-right font-medium">Entry</th>
+                <th className="px-3 py-2.5 text-center font-medium">4h</th>
+                <th className="px-3 py-2.5 text-center font-medium">24h</th>
+                <th className="px-4 py-2.5 text-right font-medium">P&L</th>
+              </tr>
+            </thead>
+            <tbody>
+              {records.map(r => {
+                const outcome24h = r.outcomes['24h'];
+                const outcome4h = r.outcomes['4h'];
+                const pnl = outcome24h?.pnlPct ?? outcome4h?.pnlPct ?? null;
+                return (
+                  <tr key={r.id} className="border-b border-[var(--border)] last:border-0 hover:bg-white/[0.02] transition-colors">
+                    <td className="px-4 py-2.5 text-[var(--foreground)] font-semibold">{r.pair}</td>
+                    <td className="px-3 py-2.5 text-center">
+                      <span className={r.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}>{r.direction}</span>
+                    </td>
+                    <td className="px-3 py-2.5 text-center tabular-nums">{r.confidence}%</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">{formatPrice(r.entryPrice)}</td>
+                    <td className="px-3 py-2.5 text-center">
+                      {outcome4h == null ? (
+                        <span className="text-zinc-600">—</span>
+                      ) : outcome4h.hit ? (
+                        <span className="text-emerald-400">TP</span>
+                      ) : (
+                        <span className="text-red-400">SL</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5 text-center">
+                      {outcome24h == null ? (
+                        <span className="text-zinc-600">pending</span>
+                      ) : outcome24h.hit ? (
+                        <span className="text-emerald-400">TP</span>
+                      ) : (
+                        <span className="text-red-400">SL</span>
+                      )}
+                    </td>
+                    <td className={`px-4 py-2.5 text-right tabular-nums font-semibold ${
+                      pnl == null ? 'text-zinc-600' : pnl >= 0 ? 'text-emerald-400' : 'text-red-400'
+                    }`}>
+                      {pnl == null ? '—' : `${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}%`}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function StatCard({ value, label, color = 'text-[var(--foreground)]' }: { value: string; label: string; color?: string }) {
   return (
     <div className="glass-card rounded-2xl p-4 text-center">
@@ -413,6 +507,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
   const [assetClass, setAssetClass] = useState<AssetClass>('ALL');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [selectedSignal, setSelectedSignal] = useState<TradingSignal | null>(null);
 
   const fetchSignals = useCallback(async () => {
     try {
@@ -536,11 +631,12 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
         </div>
       )}
 
-      {/* Hero chart — shows highest-confidence signal */}
+      {/* Hero chart — shows selected signal or highest-confidence */}
       {(() => {
-        const topSignal = signals.length > 0
-          ? [...signals].sort((a, b) => b.confidence - a.confidence)[0]
-          : null;
+        const topSignal = selectedSignal
+          ?? (signals.length > 0
+            ? [...signals].sort((a, b) => b.confidence - a.confidence)[0]
+            : null);
         if (!topSignal) return null;
         const ts = new Date(topSignal.timestamp).getTime();
         const bars = generateBars(topSignal.entry, topSignal.direction, ts);
@@ -550,7 +646,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
             <div className="absolute top-3 left-4 right-4 z-10 flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono tracking-widest">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
-                TOP SIGNAL
+                {selectedSignal ? 'SELECTED' : 'TOP SIGNAL'}
               </div>
               <span className="text-xs font-mono font-semibold text-[var(--foreground)]">{topSignal.symbol}</span>
               <span className="text-xs font-mono text-[var(--text-secondary)]">{topSignal.timeframe}</span>
@@ -693,11 +789,14 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           return (
             <div data-tour-id="signal-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {filteredSignals.map(signal => (
-                <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} />
+                <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={setSelectedSignal} />
               ))}
             </div>
           );
         })()}
+
+        {/* Signal history / track record */}
+        <SignalHistory />
 
         {/* Footer */}
         <footer className="mt-16 pb-8 text-center">

@@ -28,6 +28,36 @@ OUTPUT_FILE = DATA_DIR / "signals-live.json"
 
 MIN_CONFIDENCE = 70  # Only emit signals >= 70%
 
+# Asset class mapping for market hours filtering
+FOREX_SYMBOLS = {"EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "NZDUSD", "USDCHF"}
+METALS_SYMBOLS = {"XAUUSD", "XAGUSD"}
+
+
+def is_market_open(symbol: str) -> bool:
+    """Check if the market is currently open for the given symbol."""
+    now = datetime.now(timezone.utc)
+    day = now.weekday()  # 0=Mon, 6=Sun
+    hour = now.hour
+
+    if symbol in FOREX_SYMBOLS:
+        # Forex: Sunday 22:00 UTC - Friday 23:59 UTC
+        if day == 6:  # Sunday
+            return hour >= 22
+        if day == 5:  # Saturday
+            return False
+        # Mon-Fri: open all day
+        return True
+
+    if symbol in METALS_SYMBOLS:
+        # Metals: Mon-Fri 8:00-21:00 UTC
+        if day >= 5:  # Sat-Sun
+            return False
+        return 8 <= hour < 21
+
+    # Crypto: 24/7
+    return True
+
+
 # TradingView symbol mapping: internal -> TV format
 SYMBOLS = [
     {"symbol": "BTCUSD", "name": "Bitcoin", "tv_symbol": "BINANCE:BTCUSDT"},
@@ -234,6 +264,11 @@ def main():
         tv_symbol = sym_config["tv_symbol"]
         print(f"\nAnalyzing {symbol} ({tv_symbol})...")
         stats["symbols_checked"] += 1
+
+        if not is_market_open(symbol):
+            print(f"  SKIPPED: {symbol} market is closed")
+            stats["no_confluence"] += 1
+            continue
 
         try:
             signal = analyze_symbol(tv_symbol, sym_config)

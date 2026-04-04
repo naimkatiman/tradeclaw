@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useWebSocketPrices } from './use-websocket-prices';
 
 export interface PriceTick {
   pair: string;
@@ -24,7 +25,43 @@ export type PricesMap = Map<string, PriceTick>;
 
 const BACKOFF_DELAYS = [1000, 2000, 5000, 10000, 30000];
 
+/**
+ * Live price stream with automatic WebSocket → SSE fallback.
+ *
+ * 1. Tries the ws-server (port 4000) for sub-second updates
+ * 2. If WS fails to connect within 5s, falls back to SSE polling
+ * 3. If WS disconnects later, SSE takes over seamlessly
+ */
 export function usePriceStream(pairs: string[]): {
+  prices: PricesMap;
+  state: ConnectionState;
+} {
+  const ws = useWebSocketPrices(pairs);
+  const sse = useSsePriceStream(pairs);
+
+  // WS is primary — use it when connected or still attempting first connect
+  if (ws.state === 'connected') {
+    return ws;
+  }
+
+  // While WS is connecting and SSE has data, show SSE data
+  if (ws.state === 'connecting' && sse.prices.size > 0) {
+    return sse;
+  }
+
+  // WS disconnected — fall back to SSE
+  if (ws.state === 'disconnected') {
+    return sse;
+  }
+
+  // Both connecting, no data yet
+  return ws;
+}
+
+/**
+ * SSE-based price stream (original implementation, now used as fallback).
+ */
+function useSsePriceStream(pairs: string[]): {
   prices: PricesMap;
   state: ConnectionState;
 } {
