@@ -15,7 +15,13 @@ const CRYPTO_SLIPPAGE: SlippageConfig = { enabled: true, pctEntry: 0.15, pctExit
 const FOREX_SLIPPAGE: SlippageConfig = { enabled: true, pctEntry: 0.02, pctExit: 0.02 };
 const METALS_SLIPPAGE: SlippageConfig = { enabled: true, pctEntry: 0.05, pctExit: 0.05 };
 
-const CRYPTO_SYMBOLS = ['BTCUSD', 'ETHUSD', 'XRPUSD', 'SOLUSD'];
+const CRYPTO_SYMBOLS = [
+  'BTCUSD', 'ETHUSD', 'XRPUSD', 'SOLUSD', 'DOGEUSD', 'BNBUSD',
+  'ADAUSD', 'AVAXUSD', 'DOTUSD', 'LINKUSD', 'MATICUSD', 'ATOMUSD',
+  'UNIUSD', 'LTCUSD', 'BCHUSD', 'NEARUSD', 'APTUSD', 'ARBUSD',
+  'OPUSD', 'FILUSD', 'INJUSD', 'SUIUSD', 'SEIUSD', 'TIAUSD',
+  'RENDERUSD', 'FETUSD', 'AABORUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
+];
 const METALS_SYMBOLS = ['XAUUSD', 'XAGUSD'];
 
 /**

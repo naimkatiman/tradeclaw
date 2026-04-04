@@ -20,7 +20,12 @@ function getISOWeek(date: Date): number {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
-const ASSETS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'BNBUSD', 'SOLUSD', 'ADAUSD'];
+const ASSETS = [
+  'BTCUSD', 'ETHUSD', 'SOLUSD', 'BNBUSD', 'XRPUSD', 'DOGEUSD',
+  'ADAUSD', 'AVAXUSD', 'DOTUSD', 'LINKUSD', 'LTCUSD', 'BCHUSD',
+  'NEARUSD', 'SUIUSD', 'INJUSD', 'PEPEUSD', 'SHIBUSD',
+  'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY',
+];
 
 export async function GET() {
   const now = new Date();

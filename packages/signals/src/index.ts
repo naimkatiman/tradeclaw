@@ -497,7 +497,13 @@ export function getAllSymbols(): string[] {
 
 export function getSymbolCategory(symbol: string): SymbolCategory {
   const metals = ['XAUUSD', 'XAGUSD'];
-  const crypto = ['BTCUSD', 'ETHUSD', 'SOLUSD', 'DOGEUSD', 'BNBUSD', 'XRPUSD'];
+  const crypto = [
+    'BTCUSD', 'ETHUSD', 'SOLUSD', 'DOGEUSD', 'BNBUSD', 'XRPUSD',
+    'ADAUSD', 'AVAXUSD', 'DOTUSD', 'LINKUSD', 'MATICUSD', 'ATOMUSD',
+    'UNIUSD', 'LTCUSD', 'BCHUSD', 'NEARUSD', 'APTUSD', 'ARBUSD',
+    'OPUSD', 'FILUSD', 'INJUSD', 'SUIUSD', 'SEIUSD', 'TIAUSD',
+    'RENDERUSD', 'FETUSD', 'AABORUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
+  ];
   const s = symbol.toUpperCase();
   if (metals.includes(s)) return 'metals';
   if (crypto.includes(s)) return 'crypto';

@@ -2,13 +2,44 @@ import { NextResponse } from 'next/server';
 import { fetchCoinCapPrices, fetchKrakenPrices, fetchFrankfurterRates, fetchFreeGoldPrice, fetchFreeSilverPrice } from '../../lib/data-providers';
 
 // Free price APIs - no key needed
-const CRYPTO_SYMBOLS = ['bitcoin', 'ethereum', 'ripple', 'solana', 'cardano'];
+const CRYPTO_SYMBOLS = [
+  'bitcoin', 'ethereum', 'ripple', 'solana', 'cardano', 'binancecoin',
+  'polkadot', 'dogecoin', 'avalanche-2', 'chainlink', 'matic-network', 'cosmos',
+  'uniswap', 'litecoin', 'bitcoin-cash', 'near', 'aptos', 'arbitrum',
+  'optimism', 'filecoin', 'injective-protocol', 'sui', 'sei-v2', 'celestia',
+  'render-token', 'fetch-ai', 'aave', 'pepe', 'shiba-inu', 'dogwifcoin',
+];
 const SYMBOL_MAP: Record<string, string> = {
   bitcoin: 'BTCUSD',
   ethereum: 'ETHUSD',
   ripple: 'XRPUSD',
   solana: 'SOLUSD',
   cardano: 'ADAUSD',
+  binancecoin: 'BNBUSD',
+  polkadot: 'DOTUSD',
+  dogecoin: 'DOGEUSD',
+  'avalanche-2': 'AVAXUSD',
+  chainlink: 'LINKUSD',
+  'matic-network': 'MATICUSD',
+  cosmos: 'ATOMUSD',
+  uniswap: 'UNIUSD',
+  litecoin: 'LTCUSD',
+  'bitcoin-cash': 'BCHUSD',
+  near: 'NEARUSD',
+  aptos: 'APTUSD',
+  arbitrum: 'ARBUSD',
+  optimism: 'OPUSD',
+  filecoin: 'FILUSD',
+  'injective-protocol': 'INJUSD',
+  sui: 'SUIUSD',
+  'sei-v2': 'SEIUSD',
+  celestia: 'TIAUSD',
+  'render-token': 'RENDERUSD',
+  'fetch-ai': 'FETUSD',
+  aave: 'AABORUSD',
+  pepe: 'PEPEUSD',
+  'shiba-inu': 'SHIBUSD',
+  dogwifcoin: 'WIFUSD',
 };
 
 // Fallback prices when ALL APIs are unavailable — snapshot date below
@@ -77,7 +108,14 @@ export async function GET() {
     );
 
     // Fallback chain: CoinCap → Kraken (crypto), Frankfurter (forex), Free Gold API (metals)
-    const missingCrypto = ['BTCUSD', 'ETHUSD', 'XRPUSD', 'SOLUSD', 'ADAUSD'].filter(s => !prices[s]);
+    const allCrypto = [
+      'BTCUSD', 'ETHUSD', 'XRPUSD', 'SOLUSD', 'ADAUSD', 'BNBUSD',
+      'DOTUSD', 'DOGEUSD', 'AVAXUSD', 'LINKUSD', 'MATICUSD', 'ATOMUSD',
+      'UNIUSD', 'LTCUSD', 'BCHUSD', 'NEARUSD', 'APTUSD', 'ARBUSD',
+      'OPUSD', 'FILUSD', 'INJUSD', 'SUIUSD', 'SEIUSD', 'TIAUSD',
+      'RENDERUSD', 'FETUSD', 'AABORUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
+    ];
+    const missingCrypto = allCrypto.filter(s => !prices[s]);
     const missingForex = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF'].filter(s => !prices[s]);
     const missingMetals = ['XAUUSD', 'XAGUSD'].filter(s => !prices[s]);
 

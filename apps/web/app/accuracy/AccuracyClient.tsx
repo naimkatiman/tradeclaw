@@ -46,7 +46,12 @@ interface APIResponse {
 }
 
 /* ── Constants ── */
-const PAIRS = ['ALL', 'BTCUSD', 'ETHUSD', 'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'BNBUSD', 'SOLUSD'];
+const PAIRS = [
+  'ALL', 'BTCUSD', 'ETHUSD', 'SOLUSD', 'BNBUSD', 'XRPUSD', 'DOGEUSD',
+  'ADAUSD', 'AVAXUSD', 'DOTUSD', 'LINKUSD', 'LTCUSD', 'BCHUSD',
+  'NEARUSD', 'SUIUSD', 'INJUSD', 'PEPEUSD', 'SHIBUSD',
+  'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD',
+];
 const OUTCOMES = ['ALL', 'win', 'loss', 'pending'] as const;
 
 /* ── Helpers ── */

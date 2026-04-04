@@ -85,7 +85,12 @@ function useCopy(timeoutMs = 2000) {
   return { copied, copy };
 }
 
-const PAIRS = ['All', 'BTCUSDT', 'ETHUSDT', 'XAUUSD', 'SOLUSDT', 'BNBUSDT', 'EURUSD', 'GBPUSD', 'USDJPY'];
+const PAIRS = [
+  'All', 'BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT',
+  'ADAUSDT', 'AVAXUSDT', 'DOTUSDT', 'LINKUSDT', 'LTCUSDT', 'BCHUSDT',
+  'NEARUSDT', 'SUIUSDT', 'INJUSDT', 'PEPEUSDT', 'SHIBUSDT',
+  'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY',
+];
 const DIRECTIONS = ['All', 'BUY', 'SELL'];
 
 /* ─── Main component ─────────────────────────────────────────────────── */
