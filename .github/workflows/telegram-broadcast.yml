@@ -1,0 +1,19 @@
+name: Telegram Broadcast
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+
+jobs:
+  broadcast-signals:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post top signals to Telegram channel
+        run: |
+          curl -sf -X POST https://tradeclaw.win/api/telegram/broadcast \
+            -H "Content-Type: application/json" \
+            -d '{
+              "botToken": "${{ secrets.TRADECLAW_TELEGRAM_BOT_TOKEN }}",
+              "channelId": "${{ secrets.TRADECLAW_TELEGRAM_CHANNEL_ID }}"
+            }'
