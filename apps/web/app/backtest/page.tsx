@@ -1,9 +1,30 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, startTransition } from 'react';
+import dynamic from 'next/dynamic';
 import { calculateRSI, calculateMACD, calculateEMAs } from '../lib/ta-engine';
 import { applySlippage, getSlippageConfig } from '../../lib/slippage';
 import { PageNavBar } from '../../components/PageNavBar';
+
+// Lazy-load heavy chart components with ssr: false for canvas
+const ChartSkeleton = () => (
+  <div className="animate-pulse bg-white/5 rounded-xl h-64 flex items-center justify-center">
+    <div className="text-xs text-zinc-500">Loading chart...</div>
+  </div>
+);
+
+const EquityCurveCanvas = dynamic(
+  () => import('./charts').then(mod => ({ default: mod.EquityCurveCanvas })),
+  { ssr: false, loading: ChartSkeleton }
+);
+const PriceChartCanvas = dynamic(
+  () => import('./charts').then(mod => ({ default: mod.PriceChartCanvas })),
+  { ssr: false, loading: ChartSkeleton }
+);
+const IndicatorsCanvas = dynamic(
+  () => import('./charts').then(mod => ({ default: mod.IndicatorsCanvas })),
+  { ssr: false, loading: ChartSkeleton }
+);
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -392,7 +413,7 @@ function useCanvas(draw: (ctx: CanvasRenderingContext2D, W: number, H: number) =
 
 // ─── Equity Curve Canvas ─────────────────────────────────────
 
-function EquityCurveCanvas({ curve, startBalance }: { curve: number[]; startBalance: number }) {
+function _InlineEquityCurveCanvas({ curve, startBalance }: { curve: number[]; startBalance: number }) {
   const canvasRef = useCanvas((ctx, W, H) => {
     if (curve.length < 2) return;
     const pad = { top: 16, right: 16, bottom: 28, left: 52 };
@@ -461,146 +482,11 @@ function EquityCurveCanvas({ curve, startBalance }: { curve: number[]; startBala
   return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
 }
 
-// ─── Price Chart Canvas ──────────────────────────────────────
-
-function PriceChartCanvas({
-  priceData, ema20, ema50, signals,
-}: {
-  priceData: OHLCVCandle[];
-  ema20: number[];
-  ema50: number[];
-  signals: SignalPoint[];
-}) {
-  const canvasRef = useCanvas((ctx, W, H) => {
-    if (priceData.length < 2) return;
-    const pad = { top: 16, right: 16, bottom: 28, left: 60 };
-    const cW = W - pad.left - pad.right;
-    const cH = H - pad.top - pad.bottom;
-
-    const closes = priceData.map(c => c.close);
-    const validEma20 = ema20.filter(v => !isNaN(v));
-    const validEma50 = ema50.filter(v => !isNaN(v));
-    const allPrices = [
-      ...closes,
-      ...validEma20,
-      ...validEma50,
-    ];
-
-    const min = Math.min(...allPrices) * 0.997;
-    const max = Math.max(...allPrices) * 1.003;
-    const range = max - min || 1;
-    const n = priceData.length;
-
-    const toX = (i: number) => pad.left + (i / (n - 1)) * cW;
-    const toY = (v: number) => pad.top + cH - ((v - min) / range) * cH;
-
-    // Grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-    ctx.lineWidth = 1;
-    for (let g = 0; g <= 4; g++) {
-      const y = pad.top + (g / 4) * cH;
-      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
-    }
-
-    // EMA50
-    ctx.beginPath();
-    let started = false;
-    for (let i = 0; i < n; i++) {
-      if (isNaN(ema50[i])) continue;
-      if (!started) { ctx.moveTo(toX(i), toY(ema50[i])); started = true; }
-      else ctx.lineTo(toX(i), toY(ema50[i]));
-    }
-    ctx.strokeStyle = 'rgba(251,191,36,0.5)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // EMA20
-    ctx.beginPath();
-    started = false;
-    for (let i = 0; i < n; i++) {
-      if (isNaN(ema20[i])) continue;
-      if (!started) { ctx.moveTo(toX(i), toY(ema20[i])); started = true; }
-      else ctx.lineTo(toX(i), toY(ema20[i]));
-    }
-    ctx.strokeStyle = 'rgba(99,102,241,0.6)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Price line
-    ctx.beginPath();
-    ctx.moveTo(toX(0), toY(closes[0]));
-    for (let i = 1; i < n; i++) ctx.lineTo(toX(i), toY(closes[i]));
-    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Signal markers — triangles
-    signals.forEach(sig => {
-      const x = toX(sig.barIndex);
-      const y = toY(sig.price);
-      const size = 7;
-      ctx.beginPath();
-      if (sig.direction === 'BUY') {
-        // Up triangle below price
-        ctx.moveTo(x, y + size * 2.2);
-        ctx.lineTo(x - size, y + size * 2.2 + size * 1.6);
-        ctx.lineTo(x + size, y + size * 2.2 + size * 1.6);
-        ctx.fillStyle = '#10B981';
-      } else {
-        // Down triangle above price
-        ctx.moveTo(x, y - size * 2.2);
-        ctx.lineTo(x - size, y - size * 2.2 - size * 1.6);
-        ctx.lineTo(x + size, y - size * 2.2 - size * 1.6);
-        ctx.fillStyle = '#EF4444';
-      }
-      ctx.closePath();
-      ctx.fill();
-    });
-
-    // Y-axis labels
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.font = '10px monospace';
-    ctx.textAlign = 'right';
-    for (let g = 0; g <= 4; g++) {
-      const v = min + (range * (4 - g)) / 4;
-      const y = pad.top + (g / 4) * cH;
-      ctx.fillText(fmt(v), pad.left - 4, y + 4);
-    }
-
-    // X-axis labels
-    ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    [0, 0.25, 0.5, 0.75, 1].forEach(p => {
-      const i = Math.floor(p * (n - 1));
-      const d = new Date(priceData[i].timestamp);
-      const label = `${d.getMonth() + 1}/${String(d.getDate()).padStart(2, '0')}`;
-      ctx.fillText(label, toX(i), pad.top + cH + 18);
-    });
-
-    // Legend
-    const legendItems = [
-      { color: 'rgba(255,255,255,0.6)', label: 'Price' },
-      { color: 'rgba(99,102,241,0.6)', label: 'EMA20' },
-      { color: 'rgba(251,191,36,0.5)', label: 'EMA50' },
-    ];
-    ctx.font = '9px monospace';
-    ctx.textAlign = 'left';
-    let lx = pad.left + 4;
-    legendItems.forEach(({ color, label }) => {
-      ctx.fillStyle = color;
-      ctx.fillRect(lx, pad.top + 4, 16, 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
-      ctx.fillText(label, lx + 20, pad.top + 10);
-      lx += 65;
-    });
-  }, [priceData, ema20, ema50, signals]);
-
-  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
-}
+// PriceChartCanvas is dynamically imported from ./charts.tsx
 
 // ─── Indicators Canvas ───────────────────────────────────────
 
-function IndicatorsCanvas({
+function _InlineIndicatorsCanvas({
   rsiValues, macdLine, macdSignalLine, macdHistogram,
 }: {
   rsiValues: number[];
