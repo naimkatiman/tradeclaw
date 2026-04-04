@@ -14,6 +14,13 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TRADECLAW_TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL_ID: ${{ secrets.TRADECLAW_TELEGRAM_CHANNEL_ID }}
         run: |
+          set -euo pipefail
+
+          curl -fsSL \
+            -A "TradeClawBot/1.0 (+https://github.com/naimkatiman/tradeclaw)" \
+            https://tradeclaw.win/api/digest/daily \
+            -o /tmp/tradeclaw-digest.json
+
           python3 - <<'PY'
           import json
           import os
@@ -22,8 +29,8 @@ jobs:
           bot_token = os.environ['TELEGRAM_BOT_TOKEN']
           channel_id = os.environ['TELEGRAM_CHANNEL_ID']
 
-          with urllib.request.urlopen('https://tradeclaw.win/api/digest/daily', timeout=20) as resp:
-              digest = json.load(resp)
+          with open('/tmp/tradeclaw-digest.json', 'r', encoding='utf-8') as f:
+              digest = json.load(f)
 
           signals = digest.get('topSignals', [])[:3]
           if not signals:
