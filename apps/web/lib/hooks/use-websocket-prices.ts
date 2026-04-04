@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import type { PriceTick, ConnectionState, PricesMap } from './use-price-stream';
 
 interface NormalizedTick {
@@ -46,99 +46,94 @@ export function useWebSocketPrices(pairs: string[]): {
 } {
   const [prices, setPrices] = useState<PricesMap>(new Map());
   const [state, setState] = useState<ConnectionState>('connecting');
-  const wsRef = useRef<WebSocket | null>(null);
-  const retryRef = useRef(0);
-  const mountedRef = useRef(true);
   const pairsKey = [...pairs].sort().join(',');
 
-  // Track session open/high/low per symbol for change calculation
-  const sessionRef = useRef<Map<string, { open: number; high: number; low: number }>>(new Map());
-
-  const connect = useCallback(() => {
-    if (!mountedRef.current) return;
-
-    wsRef.current?.close();
-    setState('connecting');
-
-    const baseUrl = getWsUrl();
-    const ws = new WebSocket(`${baseUrl}/ws`);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      if (!mountedRef.current) { ws.close(); return; }
-      setState('connected');
-      retryRef.current = 0;
-
-      // Subscribe to requested pairs
-      const symbols = pairsKey.split(',').filter(Boolean);
-      if (symbols.length > 0) {
-        ws.send(JSON.stringify({ action: 'subscribe', symbols }));
-      }
-    };
-
-    ws.onmessage = (event) => {
-      if (!mountedRef.current) return;
-
-      let msg: WsServerMessage;
-      try {
-        msg = JSON.parse(event.data);
-      } catch {
-        return;
-      }
-
-      if (msg.type === 'tick') {
-        const { symbol, mid, timestamp } = msg.data;
-
-        // Update session tracking
-        let session = sessionRef.current.get(symbol);
-        if (!session) {
-          session = { open: mid, high: mid, low: mid };
-          sessionRef.current.set(symbol, session);
-        }
-        if (mid > session.high) session.high = mid;
-        if (mid < session.low) session.low = mid;
-
-        const change24h = session.open > 0
-          ? ((mid - session.open) / session.open) * 100
-          : 0;
-
-        const tick: PriceTick = {
-          pair: symbol,
-          price: mid,
-          change24h,
-          high24h: session.high,
-          low24h: session.low,
-          timestamp,
-        };
-
-        setPrices(prev => new Map(prev).set(symbol, tick));
-      }
-    };
-
-    ws.onclose = () => {
-      if (!mountedRef.current) return;
-      setState('disconnected');
-      const delay = BACKOFF_DELAYS[Math.min(retryRef.current, BACKOFF_DELAYS.length - 1)];
-      retryRef.current++;
-      setTimeout(connect, delay);
-    };
-
-    ws.onerror = () => {
-      // onclose will fire after onerror, reconnect handled there
-    };
-  }, [pairsKey]);
-
   useEffect(() => {
-    mountedRef.current = true;
-    retryRef.current = 0;
-    sessionRef.current.clear();
+    let mounted = true;
+    let retryCount = 0;
+    let ws: WebSocket | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    const sessionMap = new Map<string, { open: number; high: number; low: number }>();
+
+    function connect() {
+      if (!mounted) return;
+
+      ws?.close();
+      setState('connecting');
+
+      const baseUrl = getWsUrl();
+      ws = new WebSocket(`${baseUrl}/ws`);
+
+      ws.onopen = () => {
+        if (!mounted) { ws?.close(); return; }
+        setState('connected');
+        retryCount = 0;
+
+        const symbols = pairsKey.split(',').filter(Boolean);
+        if (symbols.length > 0) {
+          ws!.send(JSON.stringify({ action: 'subscribe', symbols }));
+        }
+      };
+
+      ws.onmessage = (event) => {
+        if (!mounted) return;
+
+        let msg: WsServerMessage;
+        try {
+          msg = JSON.parse(event.data);
+        } catch {
+          return;
+        }
+
+        if (msg.type === 'tick') {
+          const { symbol, mid, timestamp } = msg.data;
+
+          let session = sessionMap.get(symbol);
+          if (!session) {
+            session = { open: mid, high: mid, low: mid };
+            sessionMap.set(symbol, session);
+          }
+          if (mid > session.high) session.high = mid;
+          if (mid < session.low) session.low = mid;
+
+          const change24h = session.open > 0
+            ? ((mid - session.open) / session.open) * 100
+            : 0;
+
+          const tick: PriceTick = {
+            pair: symbol,
+            price: mid,
+            change24h,
+            high24h: session.high,
+            low24h: session.low,
+            timestamp,
+          };
+
+          setPrices(prev => new Map(prev).set(symbol, tick));
+        }
+      };
+
+      ws.onclose = () => {
+        if (!mounted) return;
+        setState('disconnected');
+        const delay = BACKOFF_DELAYS[Math.min(retryCount, BACKOFF_DELAYS.length - 1)];
+        retryCount++;
+        retryTimer = setTimeout(connect, delay);
+      };
+
+      ws.onerror = () => {
+        // onclose will fire after onerror, reconnect handled there
+      };
+    }
+
     connect();
 
     return () => {
-      mountedRef.current = false;
-      wsRef.current?.close();
+      mounted = false;
+      if (retryTimer) clearTimeout(retryTimer);
+      ws?.close();
     };
-  }, [connect]);
+  }, [pairsKey]);
 
   return { prices, state };
 }
