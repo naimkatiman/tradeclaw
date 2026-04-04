@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSignals } from '../../../lib/signals';
 import { getOHLCV } from '../../../lib/ohlcv';
+import { isMarketOpen } from '../../../lib/market-hours';
 import {
   recordSignal,
   getRecentRecordForSymbol,
@@ -47,6 +48,9 @@ async function recordNewSignals(): Promise<NewlyRecordedSignal[]> {
 
   for (const sig of signals) {
     if (sig.dataQuality !== 'real') continue;
+
+    // Skip signals for markets that are currently closed (e.g. forex on weekends)
+    if (!isMarketOpen(sig.symbol)) continue;
 
     const existing = getRecentRecordForSymbol(sig.symbol, sig.direction, TWO_HOURS_MS);
     if (existing) continue;

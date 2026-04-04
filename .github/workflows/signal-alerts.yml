@@ -26,6 +26,7 @@ jobs:
           import json
           import os
           import urllib.request
+          from datetime import datetime, timezone
 
           with open('/tmp/tradeclaw-cron-signals.json', 'r', encoding='utf-8') as f:
               payload = json.load(f)
@@ -33,6 +34,15 @@ jobs:
           new_signals = payload.get('newSignals', [])
           if not new_signals:
               print('No new signals recorded.')
+              raise SystemExit(0)
+
+          # Filter out forex/metals on weekends (markets closed Sat-Sun)
+          weekend_skip = {'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF'}
+          is_weekend = datetime.now(timezone.utc).weekday() >= 5
+          if is_weekend:
+              new_signals = [s for s in new_signals if s.get('symbol') not in weekend_skip]
+          if not new_signals:
+              print('No signals to post (market closed).')
               raise SystemExit(0)
 
           bot_token = os.environ['TELEGRAM_BOT_TOKEN']

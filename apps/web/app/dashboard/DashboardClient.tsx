@@ -10,6 +10,8 @@ import { ConnectionStatus } from '../../components/connection-status';
 import { GuidedTourListener, TakeTourButton } from '../../components/guided-tour';
 import { StarsWidget } from '../../components/stars-widget';
 import { HintBadge } from '../../components/feature-highlights';
+import { VisitStreak } from '../../components/visit-streak';
+import { ReEngagementBanner } from '../../components/re-engagement-banner';
 import { SignalChart, FullChart } from '../components/charts';
 import { generateBars } from '../lib/chart-utils';
 import { SYMBOLS } from '../lib/signals';
@@ -608,9 +610,11 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       <GuidedTourListener />
       <PageNavBar />
       <OnboardingBanner />
+      <ReEngagementBanner />
 
       {/* Dashboard controls */}
       <div data-tour-id="dashboard-controls" className="max-w-7xl mx-auto px-4 h-12 flex items-center justify-end gap-3 border-b border-[var(--border)] bg-[var(--background)]/50">
+        <VisitStreak />
         <StarsWidget />
         <TakeTourButton />
         <ConnectionStatus state={connectionState} />

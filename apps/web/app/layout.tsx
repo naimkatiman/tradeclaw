@@ -7,6 +7,7 @@ import { PWAInstallPrompt } from "./components/pwa-install";
 import { DemoBanner } from "./components/demo-banner";
 import { ThemeProvider } from "./components/theme-provider";
 import { MilestoneCelebrationModal } from "../components/milestone-modal";
+import { FeatureUnlockBanner } from "../components/feature-unlock-banner";
 import { OnboardingChecklist } from "../components/onboarding";
 import { StarProgressBar } from "../components/star-progress-bar";
 
@@ -137,6 +138,7 @@ export default function RootLayout({
           <MobileNav />
           <PWAInstallPrompt />
           <MilestoneCelebrationModal />
+          <FeatureUnlockBanner />
           <OnboardingChecklist />
           <StarProgressBar />
         </ThemeProvider>
