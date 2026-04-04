@@ -655,18 +655,49 @@ export default function DemoClient() {
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('Signals');
+  const [isLive, setIsLive] = useState(false);
   const countdownRef = useRef(REFRESH_INTERVAL);
 
   const fetchSignals = useCallback(async () => {
     try {
-      const res = await fetch('/api/signals?minConfidence=70');
+      // Primary: Fetch from v1 API (reads from Python-generated signals-live.json)
+      const res = await fetch('/api/v1/signals?limit=20');
       if (!res.ok) throw new Error('fetch failed');
       const data = await res.json();
-      const apiSignals: ApiSignal[] = data.signals || [];
 
-      if (apiSignals.length === 0) {
-        // Use fallback signals instead of showing error
-        const mapped = FALLBACK_SIGNALS.map(mapApiSignal);
+      // Check if data is from live-file source (real Python signals)
+      const isRealData = data.source === 'live-file' && data.signals?.length > 0;
+      setIsLive(isRealData);
+
+      if (data.signals?.length > 0) {
+        // Map v1 API response to internal Signal format
+        const mapped: Signal[] = data.signals.map((s: {
+          id: string;
+          pair: string;
+          direction: string;
+          confidence: number;
+          price: number;
+          tp: number;
+          sl: number;
+          rsi?: number;
+          timeframe: string;
+          generatedAt: string;
+        }) => ({
+          id: s.id,
+          symbol: s.pair,
+          asset: SYMBOL_NAMES[s.pair] || s.pair,
+          direction: s.direction as 'BUY' | 'SELL',
+          confidence: s.confidence,
+          entry: s.price,
+          tp1: s.tp,
+          tp2: s.tp * (s.direction === 'BUY' ? 1.02 : 0.98), // Estimate TP2
+          sl: s.sl,
+          rsi: s.rsi ?? 50,
+          trend: `${s.timeframe} confluence signal`,
+          timeframe: s.timeframe,
+          timestamp: s.generatedAt,
+          source: isRealData ? 'Live signals' : 'TA engine',
+        }));
         setPrev(signals);
         setSignals(mapped);
         setError(false);
@@ -676,7 +707,9 @@ export default function DemoClient() {
         return;
       }
 
-      const mapped = apiSignals.map(mapApiSignal);
+      // No signals from v1 API — use fallback
+      setIsLive(false);
+      const mapped = FALLBACK_SIGNALS.map(mapApiSignal);
       setPrev(signals);
       setSignals(mapped);
       setError(false);
@@ -685,6 +718,7 @@ export default function DemoClient() {
       setCountdown(REFRESH_INTERVAL);
     } catch {
       // On fetch failure, use fallback signals so the demo always shows data
+      setIsLive(false);
       const mapped = FALLBACK_SIGNALS.map(mapApiSignal);
       setPrev(signals);
       setSignals(mapped);
@@ -755,8 +789,20 @@ export default function DemoClient() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 pb-20">
-        <div className="mb-4 rounded-lg border border-emerald-700 bg-emerald-950 px-4 py-3 text-sm text-emerald-200">
-          <strong>Live Signals</strong> — Data from real market feeds. Self-host for full access.
+        <div className="mb-4 rounded-lg border border-emerald-700 bg-emerald-950 px-4 py-3 text-sm text-emerald-200 flex items-center justify-between">
+          <span>
+            <strong>Live Signals</strong> — Data from real market feeds. Self-host for full access.
+          </span>
+          <span
+            className="text-[10px] font-bold px-2.5 py-1 rounded-full animate-pulse"
+            style={{
+              background: isLive ? 'rgba(16,185,129,0.2)' : 'rgba(251,191,36,0.2)',
+              color: isLive ? '#10b981' : '#fbbf24',
+              border: `1px solid ${isLive ? 'rgba(16,185,129,0.4)' : 'rgba(251,191,36,0.4)'}`,
+            }}
+          >
+            {isLive ? '● LIVE' : '● DEMO'}
+          </span>
         </div>
 
         {/* Header */}

@@ -93,8 +93,8 @@ function getSignalsFilePath(): string {
   // In production, the file should be in the data directory at project root
   // In development, it's at tradeclaw/data/signals-live.json
   const possiblePaths = [
-    join(process.cwd(), 'data', 'signals-live.json'),
-    join(process.cwd(), '..', '..', 'data', 'signals-live.json'),
+    join(/* turbopackIgnore: true */ process.cwd(), 'data', 'signals-live.json'),
+    join(/* turbopackIgnore: true */ process.cwd(), '..', '..', 'data', 'signals-live.json'),
     '/home/naim/.openclaw/workspace/tradeclaw/data/signals-live.json',
   ];
 

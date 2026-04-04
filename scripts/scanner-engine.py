@@ -429,6 +429,46 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
     return confluence, individual
 
 
+def send_telegram_alert(signals: list):
+    """Send Telegram alert when 3+ TF confluence signal fires"""
+    if not signals:
+        return
+
+    # Only alert for 3TF+ signals
+    high_conf = [s for s in signals if s.get("confluence_score", 0) >= 3]
+    if not high_conf:
+        return
+
+    bot_token = "8430628547:AAEwRtXzGxwF0m4E32ZnsFmfOrjUZ_rB4Bs"
+    chat_id = "-1003573287283"
+
+    for s in high_conf[:3]:  # Max 3 alerts per run
+        direction_emoji = "🟢" if s["signal"] == "BUY" else "🔴"
+        confidence_bar = "●" * s["confluence_score"] + "○" * (4 - s["confluence_score"])
+
+        msg = f"""{direction_emoji} *{s["symbol"]} {s["signal"]}* — {s["confidence"]}% confidence
+
+{confidence_bar} {s["timeframe"]}
+
+Entry: `{s["entry"]}`
+TP1: `{s["tp1"]}`
+SL: `{s["sl"]}`
+
+_{" | ".join(s.get("reasons", [])[:2])}_
+
+⚡ [View on TradeClaw](https://tradeclaw.win/dashboard)"""
+
+        try:
+            requests.post(
+                f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown", "disable_web_page_preview": True},
+                timeout=5,
+            )
+            print(f"  [TG] Sent alert: {s['symbol']} {s['signal']}")
+        except Exception as e:
+            print(f"  [TG] Failed to send alert: {e}")
+
+
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     conn.execute("""
@@ -588,6 +628,10 @@ def main():
 
     with open(OUTPUT_FILE, "w") as f:
         json.dump(output, f, indent=2)
+
+    # Send Telegram alerts for 3TF+ signals
+    if confluence_signals:
+        send_telegram_alert(confluence_signals)
 
     print(f"\nDone: {len(confluence_signals)} confluence | {len(all_signals)} individual | {errors} errors")
     for s in confluence_signals:
