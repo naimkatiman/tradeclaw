@@ -29,9 +29,21 @@ function isAuthorized(request: NextRequest): boolean {
 
 // ── Record logic ──────────────────────────────────────────────
 
-async function recordNewSignals(): Promise<number> {
+type NewlyRecordedSignal = {
+  id: string;
+  symbol: string;
+  timeframe: string;
+  direction: 'BUY' | 'SELL';
+  confidence: number;
+  entry: number;
+  takeProfit1: number;
+  stopLoss: number;
+  timestamp: number;
+};
+
+async function recordNewSignals(): Promise<NewlyRecordedSignal[]> {
   const { signals } = await getSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
-  let recorded = 0;
+  const recorded: NewlyRecordedSignal[] = [];
 
   for (const sig of signals) {
     if (sig.dataQuality !== 'real') continue;
@@ -39,7 +51,8 @@ async function recordNewSignals(): Promise<number> {
     const existing = getRecentRecordForSymbol(sig.symbol, sig.direction, TWO_HOURS_MS);
     if (existing) continue;
 
-    const id = `${sig.symbol}-${sig.timeframe}-${Date.now()}`;
+    const timestamp = Date.now();
+    const id = `${sig.symbol}-${sig.timeframe}-${timestamp}`;
     recordSignal(
       sig.symbol,
       sig.timeframe,
@@ -49,9 +62,20 @@ async function recordNewSignals(): Promise<number> {
       id,
       sig.takeProfit1,
       sig.stopLoss,
-      Date.now(),
+      timestamp,
     );
-    recorded++;
+
+    recorded.push({
+      id,
+      symbol: sig.symbol,
+      timeframe: sig.timeframe,
+      direction: sig.direction,
+      confidence: sig.confidence,
+      entry: sig.entry,
+      takeProfit1: sig.takeProfit1,
+      stopLoss: sig.stopLoss,
+      timestamp,
+    });
   }
 
   return recorded;
@@ -156,12 +180,13 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
 
   try {
-    const recorded = await recordNewSignals();
+    const newSignals = await recordNewSignals();
     const { resolved, pending } = await resolveOldSignals();
 
     return NextResponse.json({
       ok: true,
-      recorded,
+      recorded: newSignals.length,
+      newSignals,
       resolved,
       pending,
       timestamp: new Date().toISOString(),

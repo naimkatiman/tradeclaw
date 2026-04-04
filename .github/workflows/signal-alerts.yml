@@ -1,0 +1,74 @@
+name: Signal Alerts
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  post-new-signals:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect new signals and post immediate Telegram alerts
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TRADECLAW_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TRADECLAW_TELEGRAM_CHANNEL_ID }}
+        run: |
+          set -euo pipefail
+
+          curl -fsSL -X POST https://tradeclaw.win/api/cron/signals \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -o /tmp/tradeclaw-cron-signals.json
+
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          with open('/tmp/tradeclaw-cron-signals.json', 'r', encoding='utf-8') as f:
+              payload = json.load(f)
+
+          new_signals = payload.get('newSignals', [])
+          if not new_signals:
+              print('No new signals recorded.')
+              raise SystemExit(0)
+
+          bot_token = os.environ['TELEGRAM_BOT_TOKEN']
+          channel_id = os.environ['TELEGRAM_CHANNEL_ID']
+
+          def send_message(text: str):
+              body = json.dumps({
+                  'chat_id': channel_id,
+                  'text': text,
+                  'disable_web_page_preview': True,
+              }).encode('utf-8')
+              req = urllib.request.Request(
+                  f'https://api.telegram.org/bot{bot_token}/sendMessage',
+                  data=body,
+                  headers={'Content-Type': 'application/json'},
+                  method='POST',
+              )
+              with urllib.request.urlopen(req, timeout=20) as resp:
+                  result = json.load(resp)
+              if not result.get('ok'):
+                  raise SystemExit(f'Telegram send failed: {result}')
+              print('Sent immediate alert:', result['result']['message_id'])
+
+          for signal in new_signals:
+              emoji = '📈' if signal.get('direction') == 'BUY' else '📉'
+              text = '\n'.join([
+                  '⚡️ New TradeClaw Signal',
+                  '',
+                  f"{emoji} {signal.get('direction')} {signal.get('symbol')} · {signal.get('timeframe')}",
+                  f"Confidence: {signal.get('confidence')}%",
+                  f"Entry: ${signal.get('entry')}",
+                  f"TP1: ${signal.get('takeProfit1')}",
+                  f"SL: ${signal.get('stopLoss')}",
+                  '',
+                  'tradeclaw.win',
+                  '⚠️ Not financial advice. DYOR.',
+              ])
+              send_message(text)
+          PY
