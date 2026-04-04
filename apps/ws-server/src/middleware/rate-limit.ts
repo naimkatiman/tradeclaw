@@ -1,5 +1,3 @@
-import type { WebSocket } from 'ws';
-
 const CONNECTION_WINDOW_MS = 60_000;
 const MAX_CONNECTIONS_PER_IP = 5;
 const MAX_MESSAGES_PER_SECOND = 10;
@@ -42,10 +40,23 @@ export class MessageRateLimiter {
   }
 }
 
-// Cleanup stale entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, entry] of connectionCounts) {
-    if (now > entry.resetAt) connectionCounts.delete(ip);
+// Cleanup stale entries periodically — unref so it doesn't keep process alive
+let cleanupTimer: ReturnType<typeof setInterval> | null = null;
+
+export function startCleanup(): void {
+  if (cleanupTimer) return;
+  cleanupTimer = setInterval(() => {
+    const now = Date.now();
+    for (const [ip, entry] of connectionCounts) {
+      if (now > entry.resetAt) connectionCounts.delete(ip);
+    }
+  }, 60_000);
+  cleanupTimer.unref();
+}
+
+export function stopCleanup(): void {
+  if (cleanupTimer) {
+    clearInterval(cleanupTimer);
+    cleanupTimer = null;
   }
-}, 60_000);
+}

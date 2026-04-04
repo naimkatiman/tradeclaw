@@ -99,6 +99,7 @@ services:
       REDIS_URL: redis://redis:6379
       WS_SERVER_PORT: "4000"
       NODE_ENV: production
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env}
     depends_on:
       redis:
         condition: service_healthy

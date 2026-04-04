@@ -6,6 +6,7 @@ import { symbolsRoutes } from './routes/symbols.js';
 import { relayPlugin } from './websocket/relay.js';
 import { ProviderManager } from './websocket/manager.js';
 import { RedisService } from './services/redis.js';
+import { DatabaseService } from './services/db.js';
 
 const PORT = parseInt(process.env.WS_SERVER_PORT || '4000', 10);
 const HOST = process.env.WS_SERVER_HOST || '0.0.0.0';
@@ -23,11 +24,22 @@ async function main() {
   // Redis (optional — degrades gracefully)
   const redis = new RedisService(process.env.REDIS_URL);
 
+  // Database (optional — degrades gracefully)
+  const db = new DatabaseService(process.env.DATABASE_URL);
+  if (process.env.DATABASE_URL) {
+    await db.ensureTable();
+  }
+
   // Provider manager — connects to upstream market data
   const providerManager = new ProviderManager(app.log, redis);
 
+  // Store ticks in database
+  providerManager.onTick((tick) => db.addTick(tick));
+
   // Plugins
-  await app.register(fastifyWebsocket);
+  await app.register(fastifyWebsocket, {
+    options: { maxPayload: 4096 },
+  });
 
   // Routes
   await app.register(healthRoutes, { prefix: '/', providerManager, redis });
@@ -38,6 +50,7 @@ async function main() {
   const shutdown = async () => {
     app.log.info('Shutting down...');
     await providerManager.disconnectAll();
+    await db.disconnect();
     redis.disconnect();
     await app.close();
     process.exit(0);

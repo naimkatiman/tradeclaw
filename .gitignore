@@ -14,4 +14,4 @@ scripts/signals.db
 apps/web/data/signal-history.json
 
 # Build output
-dist/
+**/dist/

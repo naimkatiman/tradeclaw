@@ -8,7 +8,8 @@ type TickHandler = (tick: NormalizedTick) => void;
 export class RedisService {
   private pub: Redis | null = null;
   private sub: Redis | null = null;
-  private connected = false;
+  private pubConnected = false;
+  private subConnected = false;
   private tickHandlers: Set<TickHandler> = new Set();
 
   constructor(url?: string) {
@@ -18,8 +19,12 @@ export class RedisService {
       this.pub = new Redis(url, { maxRetriesPerRequest: 3, lazyConnect: true });
       this.sub = new Redis(url, { maxRetriesPerRequest: 3, lazyConnect: true });
 
-      this.pub.on('connect', () => { this.connected = true; });
-      this.pub.on('error', () => { this.connected = false; });
+      this.pub.on('ready', () => { this.pubConnected = true; });
+      this.pub.on('close', () => { this.pubConnected = false; });
+      this.pub.on('error', () => {});
+
+      this.sub.on('ready', () => { this.subConnected = true; });
+      this.sub.on('close', () => { this.subConnected = false; });
       this.sub.on('error', () => {});
 
       // Connect
@@ -43,7 +48,7 @@ export class RedisService {
   }
 
   async publishTick(tick: NormalizedTick): Promise<void> {
-    if (!this.pub || !this.connected) return;
+    if (!this.pub || !this.pubConnected) return;
     const channel = `${TICK_CHANNEL_PREFIX}${tick.symbol}`;
     await this.pub.publish(channel, JSON.stringify(tick));
   }
@@ -57,12 +62,13 @@ export class RedisService {
   }
 
   isConnected(): boolean {
-    return this.connected;
+    return this.pubConnected && this.subConnected;
   }
 
   disconnect(): void {
     this.pub?.disconnect();
     this.sub?.disconnect();
-    this.connected = false;
+    this.pubConnected = false;
+    this.subConnected = false;
   }
 }

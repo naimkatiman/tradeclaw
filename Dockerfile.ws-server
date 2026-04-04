@@ -18,7 +18,7 @@ COPY packages/signals/ packages/signals/
 COPY apps/ws-server/ apps/ws-server/
 
 # Build
-RUN npm run build --workspace=packages/signals 2>/dev/null || true
+RUN npm run build --workspace=packages/signals
 RUN npm run build --workspace=apps/ws-server
 
 ## Stage 2: Production
