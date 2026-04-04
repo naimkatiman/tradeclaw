@@ -106,7 +106,7 @@ jobs:
         run: |
           git config user.name "TradeClaw Bot"
           git config user.email "bot@tradeclaw.win"
-          git add data/
+          git add -f data/
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else

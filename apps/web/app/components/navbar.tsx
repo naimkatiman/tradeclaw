@@ -229,15 +229,15 @@ export function Navbar() {
       {/* Mobile menu overlay */}
       {menuOpen && (
         <div
-          className="fixed inset-0 z-[60] backdrop-blur-2xl bg-black/85 flex flex-col items-center justify-center gap-8"
+          className="fixed inset-0 z-[60] backdrop-blur-2xl bg-black/85 flex flex-col items-center overflow-y-auto overscroll-contain py-24 gap-6 px-6"
           onClick={() => setMenuOpen(false)}
         >
           {ALL_NAV_LINKS.map((link, i) => (
             <Link
               key={link.href}
               href={link.href}
-              className="flex items-center gap-2 text-2xl font-semibold text-white opacity-0 animate-fade-up"
-              style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'forwards' }}
+              className="flex items-center gap-2 text-xl font-semibold text-white opacity-0 animate-fade-up shrink-0"
+              style={{ animationDelay: `${i * 40}ms`, animationFillMode: 'forwards' }}
               onClick={() => setMenuOpen(false)}
             >
               {link.icon && <link.icon className="w-5 h-5" />}

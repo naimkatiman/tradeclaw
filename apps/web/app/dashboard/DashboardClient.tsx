@@ -547,7 +547,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
         const signalTime = bars[Math.min(30, bars.length - 1)]?.time;
         return (
           <div className="relative border-b border-[var(--border)]">
-            <div className="absolute top-3 left-4 z-10 flex items-center gap-2">
+            <div className="absolute top-3 left-4 right-4 z-10 flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono tracking-widest">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
                 TOP SIGNAL

@@ -244,7 +244,7 @@ export function LiveDemoEmbed() {
           {/* Dashboard content */}
           <div className="p-5">
             {/* Sparklines row */}
-            <div className="grid grid-cols-3 gap-3 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
               {SPARKLINE_PAIRS.map((pair) => (
                 <div
                   key={pair}
@@ -301,7 +301,7 @@ export function LiveDemoEmbed() {
             </div>
 
             {/* CTA row */}
-            <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-between">
+            <div className="mt-5 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3">
               <span className="text-xs text-zinc-600">
                 {signals.length} signals • 10 pairs • 3 timeframes
               </span>

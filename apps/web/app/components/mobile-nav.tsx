@@ -318,17 +318,17 @@ export function MobileNav() {
           <div className="fixed bottom-0 left-0 right-0 z-[70] md:hidden rounded-t-2xl border-t border-[var(--border)] max-h-[85vh] overflow-y-auto" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)', background: 'var(--bg-card)' }}>
             {/* Handle */}
             <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full bg-white/20" />
+              <div className="w-10 h-1 rounded-full bg-[var(--border)]" />
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-white/5">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)]">
               <span className="text-sm font-semibold">More</span>
               <div className="flex items-center gap-1">
-                <ThemeToggle className="text-zinc-400 hover:text-zinc-200 hover:bg-white/10" />
+                <ThemeToggle className="text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]" />
                 <button
                   onClick={() => setMenuOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-zinc-400"
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--glass-bg)] text-[var(--text-secondary)]"
                 >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -342,7 +342,7 @@ export function MobileNav() {
             <div className="p-4 space-y-5">
               {MENU_SECTIONS.map((section) => (
                 <div key={section.label}>
-                  <span className="text-[10px] uppercase tracking-widest text-zinc-600 font-semibold px-1 mb-2 block">
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-secondary)] font-semibold px-1 mb-2 block">
                     {section.label}
                   </span>
                   <div className="grid grid-cols-2 gap-2">
@@ -356,7 +356,7 @@ export function MobileNav() {
                           className={`flex items-center gap-3 px-4 py-3 rounded-xl min-h-[52px] transition-colors ${
                             isActive
                               ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                              : 'bg-white/[0.03] text-zinc-400 border border-white/5 active:bg-white/10'
+                              : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)] active:bg-[var(--accent-muted)]'
                           }`}
                         >
                           {item.icon}

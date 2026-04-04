@@ -123,8 +123,8 @@ export function SiteFooter() {
         </div>
 
         {/* Email CTA */}
-        <div className="mt-10 flex items-center justify-center gap-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-6 py-5">
-          <p className="text-sm text-[var(--text-secondary)]">
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-6 py-5">
+          <p className="text-sm text-[var(--text-secondary)] text-center sm:text-left">
             AI signals in your inbox — free forever.
           </p>
           <Link
