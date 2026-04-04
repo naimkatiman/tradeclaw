@@ -33,3 +33,23 @@ image = "timescale/timescaledb:latest-pg16"
 [[services]]
 name = "redis"
 image = "redis:7-alpine"
+
+[[services]]
+name = "ws-server"
+
+  [services.build]
+  builder = "DOCKERFILE"
+  dockerfilePath = "Dockerfile.ws-server"
+
+  [services.deploy]
+  healthcheckPath = "/health"
+  healthcheckTimeout = 30
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 3
+
+  [services.variables]
+  NODE_ENV = "production"
+  WS_SERVER_PORT = "4000"
+  PORT = "4000"
+  DATABASE_URL = "${{db.DATABASE_URL}}"
+  REDIS_URL = "${{redis.REDIS_URL}}"
