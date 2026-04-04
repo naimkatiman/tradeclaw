@@ -8,3 +8,7 @@ node_modules/
 
 # Worktrees
 .worktrees/
+
+# Generated data
+scripts/signals.db
+apps/web/data/signal-history.json
