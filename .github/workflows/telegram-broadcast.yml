@@ -9,11 +9,58 @@ jobs:
   broadcast-signals:
     runs-on: ubuntu-latest
     steps:
-      - name: Post top signals to Telegram channel
+      - name: Fetch live signals and post to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TRADECLAW_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TRADECLAW_TELEGRAM_CHANNEL_ID }}
         run: |
-          curl -sf -X POST https://tradeclaw.win/api/telegram/broadcast \
-            -H "Content-Type: application/json" \
-            -d '{
-              "botToken": "${{ secrets.TRADECLAW_TELEGRAM_BOT_TOKEN }}",
-              "channelId": "${{ secrets.TRADECLAW_TELEGRAM_CHANNEL_ID }}"
-            }'
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          bot_token = os.environ['TELEGRAM_BOT_TOKEN']
+          channel_id = os.environ['TELEGRAM_CHANNEL_ID']
+
+          with urllib.request.urlopen('https://tradeclaw.win/api/digest/daily', timeout=20) as resp:
+              digest = json.load(resp)
+
+          signals = digest.get('topSignals', [])[:3]
+          if not signals:
+              text = '📅 TradeClaw Daily Signal Digest\n\nNo high-confidence signals today. Markets quiet.'
+          else:
+              lines = ['📡 TradeClaw Signal Broadcast', '━━━━━━━━━━━━━━━━━━━━']
+              for i, s in enumerate(signals, 1):
+                  emoji = '📈' if s.get('direction') == 'BUY' else '📉'
+                  lines.extend([
+                      '',
+                      f"{emoji} #{i} {s.get('direction')} {s.get('symbol')}",
+                      f"Confidence: {s.get('confidence')}%",
+                      f"Entry: ${s.get('entry')}",
+                      f"TP1: ${s.get('takeProfit1')}",
+                      f"SL: ${s.get('stopLoss')}",
+                  ])
+              lines.extend(['', '━━━━━━━━━━━━━━━━━━━━', '🤖 TradeClaw | tradeclaw.win', '⚠️ Not financial advice. DYOR.'])
+              text = '\n'.join(lines)
+
+          payload = json.dumps({
+              'chat_id': channel_id,
+              'text': text,
+              'disable_web_page_preview': True,
+          }).encode('utf-8')
+
+          req = urllib.request.Request(
+              f'https://api.telegram.org/bot{bot_token}/sendMessage',
+              data=payload,
+              headers={'Content-Type': 'application/json'},
+              method='POST',
+          )
+
+          with urllib.request.urlopen(req, timeout=20) as resp:
+              result = json.load(resp)
+
+          if not result.get('ok'):
+              raise SystemExit(f"Telegram send failed: {result}")
+
+          print('Sent Telegram message:', result['result']['message_id'])
+          PY
