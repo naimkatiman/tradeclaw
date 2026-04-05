@@ -376,6 +376,8 @@ export function findResistanceLevels(high: number[], count: number = 3): number[
   return pivots.slice(0, count);
 }
 
+export { calculateADX } from './adx.js';
+
 // ─── Symbols ──────────────────────────────────────────
 
 
