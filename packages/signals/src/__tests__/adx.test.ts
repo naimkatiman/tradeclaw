@@ -1,4 +1,4 @@
-import { calculateADX } from '../adx.js';
+import { calculateADX } from '../index.js';
 
 function repeat(value: number, n: number): number[] {
   return Array(n).fill(value);
