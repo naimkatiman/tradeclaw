@@ -400,9 +400,11 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
 
   return (
     <>
-      {/* Overlay */}
+      {/* Overlay — transparent when spotlight is visible (box-shadow does the dimming) */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+        className={`fixed inset-0 transition-opacity duration-300 ${
+          spotlightRect ? '' : 'bg-black/60 backdrop-blur-sm'
+        }`}
         style={{ zIndex: 9997, opacity: transitioning ? 0.4 : 1 }}
         onClick={skip}
         aria-hidden="true"
