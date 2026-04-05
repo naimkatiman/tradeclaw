@@ -334,7 +334,7 @@ function MiniChart({ values }: { values: number[] }) {
     ctx.beginPath();
     valid.forEach((v, i) => {
       const x = i * xStep, y = toY(v);
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      if (i === 0) { ctx.moveTo(x, y); } else { ctx.lineTo(x, y); }
     });
     ctx.lineTo((valid.length - 1) * xStep, h);
     ctx.lineTo(0, h);
@@ -348,7 +348,7 @@ function MiniChart({ values }: { values: number[] }) {
     ctx.lineWidth = 2;
     valid.forEach((v, i) => {
       const x = i * xStep, y = toY(v);
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      if (i === 0) { ctx.moveTo(x, y); } else { ctx.lineTo(x, y); }
     });
     ctx.stroke();
   }, [values]);

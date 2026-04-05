@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { recordVisit, getStreak, type StreakData } from '../lib/visit-streak';
+import { useState } from 'react';
+import { recordVisit, type StreakData } from '../lib/visit-streak';
 
 const MILESTONES: Record<number, string> = {
   3: 'Getting started!',
@@ -19,13 +19,11 @@ function getMilestoneLabel(streak: number): string | null {
 }
 
 export function VisitStreak() {
-  const [streak, setStreak] = useState<StreakData | null>(null);
+  const [streak] = useState<StreakData | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return recordVisit();
+  });
   const [showTooltip, setShowTooltip] = useState(false);
-
-  useEffect(() => {
-    const data = recordVisit();
-    setStreak(data);
-  }, []);
 
   if (!streak || streak.currentStreak === 0) return null;
 

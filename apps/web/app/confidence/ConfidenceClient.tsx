@@ -180,7 +180,6 @@ export default function ConfidenceClient() {
   /* compute live confidence */
   const computedRaw = INDICATORS.reduce((sum, ind) => sum + scores[ind.key] * ind.weight, 0);
   const confidence = Math.round(computedRaw);
-  const _published = confidence >= 58;
   const tier = getTier(confidence);
 
   /* handlers */

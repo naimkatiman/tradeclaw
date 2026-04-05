@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Users, Star, Copy, Check, ChevronRight, Send, Globe, ExternalLink } from 'lucide-react';
+import { Users, Star, Copy, Check, ChevronRight, Send, ExternalLink } from 'lucide-react';
 
 interface UserEntry {
   id: string;

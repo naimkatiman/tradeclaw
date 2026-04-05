@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 
 const FIRST_VISIT_KEY = 'tc-first-visit';
@@ -47,32 +47,43 @@ function dismiss(day: number): void {
   } catch { /* ignore */ }
 }
 
+function computeActiveUnlock(): UnlockItem | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    if (!localStorage.getItem(FIRST_VISIT_KEY)) {
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      localStorage.setItem(FIRST_VISIT_KEY, today);
+    }
+  } catch { /* ignore */ }
+
+  const days = getDaysSinceFirst();
+  for (let i = UNLOCKS.length - 1; i >= 0; i--) {
+    const u = UNLOCKS[i]!;
+    if (days >= u.day && !isDismissed(u.day)) return u;
+  }
+  return null;
+}
+
 export function FeatureUnlockBanner() {
-  const [active, setActive] = useState<UnlockItem | null>(null);
+  const [active, setActive] = useState<UnlockItem | null>(computeActiveUnlock);
   const [visible, setVisible] = useState(false);
 
+  // Slide in after mount if there is an active unlock
   useEffect(() => {
-    // Ensure first visit is recorded
-    try {
-      if (!localStorage.getItem(FIRST_VISIT_KEY)) {
-        const d = new Date();
-        const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        localStorage.setItem(FIRST_VISIT_KEY, today);
-      }
-    } catch { /* ignore */ }
-
-    const days = getDaysSinceFirst();
-
-    // Find the highest-day unlock that qualifies and hasn't been dismissed
-    for (let i = UNLOCKS.length - 1; i >= 0; i--) {
-      const u = UNLOCKS[i]!;
-      if (days >= u.day && !isDismissed(u.day)) {
-        setActive(u);
-        // Slide in after a brief delay
-        requestAnimationFrame(() => setVisible(true));
-        break;
-      }
+    if (active) {
+      requestAnimationFrame(() => setVisible(true));
     }
+  }, [active]);
+
+  const handleDismiss = useCallback(() => {
+    setVisible(false);
+    setTimeout(() => {
+      setActive((prev) => {
+        if (prev) dismiss(prev.day);
+        return null;
+      });
+    }, 300);
   }, []);
 
   // Auto-dismiss after 10s
@@ -82,15 +93,7 @@ export function FeatureUnlockBanner() {
       handleDismiss();
     }, 10000);
     return () => clearTimeout(timer);
-  }, [active]);
-
-  function handleDismiss() {
-    setVisible(false);
-    setTimeout(() => {
-      if (active) dismiss(active.day);
-      setActive(null);
-    }, 300);
-  }
+  }, [active, handleDismiss]);
 
   if (!active) return null;
 

@@ -111,5 +111,6 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "chore(signals): update signal log $(date -u +%Y-%m-%d-%H%M)"
+            git pull --rebase origin main || true
             git push
           fi

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -279,6 +280,7 @@ export default function PHClient() {
           {/* Gallery captions */}
           <div className="glass rounded-2xl p-5 border border-[var(--border)] mb-4">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
+              {/* eslint-disable-next-line jsx-a11y/alt-text -- lucide icon, not <img> */}
               <Image className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
               Gallery Captions
             </h3>

@@ -52,8 +52,6 @@ export default function PortfolioWidgetPage() {
   const border = isDark ? '#30363d' : '#d0d7de';
   const textPrimary = isDark ? '#e6edf3' : '#1f2328';
   const textSecondary = isDark ? '#8b949e' : '#656d76';
-  const brand = '#3fb950';
-
   if (error && !data) {
     return (
       <div

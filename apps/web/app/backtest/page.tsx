@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback, startTransition } from 'react';
+import { useState, useEffect, useCallback, startTransition } from 'react';
 import dynamic from 'next/dynamic';
 import { calculateRSI, calculateMACD, calculateEMAs } from '../lib/ta-engine';
 import { applySlippage, getSlippageConfig } from '../../lib/slippage';
@@ -379,37 +379,6 @@ function exportCSV(trades: Trade[], symbol: string) {
   URL.revokeObjectURL(url);
 }
 
-// ─── Canvas Hook ─────────────────────────────────────────────
-
-function useCanvas(draw: (ctx: CanvasRenderingContext2D, W: number, H: number) => void, deps: unknown[]) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const render = () => {
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) return;
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, rect.width, rect.height);
-      draw(ctx, rect.width, rect.height);
-    };
-
-    render();
-    const ro = new ResizeObserver(render);
-    ro.observe(canvas);
-    return () => ro.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
-
-  return canvasRef;
-}
 
 // PriceChartCanvas is dynamically imported from ./charts.tsx
 

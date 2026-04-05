@@ -1,43 +1,36 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { getStreak } from '../lib/visit-streak';
 
 const DISMISS_KEY = 'tc-reengagement-dismissed';
 
-function daysSinceLastVisit(): number {
-  const streak = getStreak();
-  if (!streak.lastVisit) return 0;
-  const lastDate = new Date(streak.lastVisit + 'T00:00:00').getTime();
-  return Math.floor((Date.now() - lastDate) / 86400000);
+function computeReEngagement(): { visible: boolean; daysAway: number } {
+  if (typeof window === 'undefined') return { visible: false, daysAway: 0 };
+  try {
+    const raw = localStorage.getItem('tc-visit-streak');
+    if (!raw) return { visible: false, daysAway: 0 };
+    const data = JSON.parse(raw) as { lastVisit?: string };
+    if (!data.lastVisit) return { visible: false, daysAway: 0 };
+
+    const lastDate = new Date(data.lastVisit + 'T00:00:00').getTime();
+    const away = Math.floor((Date.now() - lastDate) / 86400000);
+    if (away < 3) return { visible: false, daysAway: 0 };
+
+    const dismissed = localStorage.getItem(DISMISS_KEY);
+    if (dismissed === data.lastVisit) return { visible: false, daysAway: 0 };
+
+    return { visible: true, daysAway: away };
+  } catch {
+    return { visible: false, daysAway: 0 };
+  }
 }
 
 export function ReEngagementBanner() {
-  const [visible, setVisible] = useState(false);
-  const [daysAway, setDaysAway] = useState(0);
-
-  useEffect(() => {
-    try {
-      // Check before recordVisit updates the lastVisit — so read raw value
-      const raw = localStorage.getItem('tc-visit-streak');
-      if (!raw) return;
-      const data = JSON.parse(raw) as { lastVisit?: string };
-      if (!data.lastVisit) return;
-
-      const lastDate = new Date(data.lastVisit + 'T00:00:00').getTime();
-      const away = Math.floor((Date.now() - lastDate) / 86400000);
-
-      if (away < 3) return;
-
-      // Only show once per return
-      const dismissed = localStorage.getItem(DISMISS_KEY);
-      if (dismissed === data.lastVisit) return; // already dismissed for this absence
-
-      setDaysAway(away);
-      setVisible(true);
-    } catch { /* ignore */ }
-  }, []);
+  const [state] = useState(computeReEngagement);
+  const [visible, setVisible] = useState(state.visible);
+  const daysAway = state.daysAway;
 
   function handleDismiss() {
     setVisible(false);

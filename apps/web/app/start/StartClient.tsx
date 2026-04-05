@@ -28,15 +28,6 @@ interface StepProgress {
   completedSteps: number[];
 }
 
-interface Step {
-  id: number;
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  subtitle: string;
-  estimatedTime: string;
-  content: React.ReactNode;
-}
-
 function CopyButton({ text, label }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   const handleCopy = () => {
@@ -500,7 +491,6 @@ export default function StartClient() {
               <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-4">Steps</p>
               <div className="space-y-1">
                 {STEPS_META.map((step, i) => {
-                  const Icon = step.icon;
                   const isCompleted = completedSteps.includes(i);
                   const isCurrent = currentStep === i;
                   return (
