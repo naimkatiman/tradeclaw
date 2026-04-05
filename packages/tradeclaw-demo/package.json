@@ -1,7 +1,10 @@
 {
-  "name": "tradeclaw-demo",
+  "name": "@naimkatiman/tradeclaw-demo",
   "version": "0.2.0",
   "description": "Spin up a TradeClaw AI trading signals demo in 10 seconds",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "bin": {
     "tradeclaw-demo": "./bin/cli.js"
   },

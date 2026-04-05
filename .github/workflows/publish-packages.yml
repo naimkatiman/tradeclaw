@@ -1,0 +1,87 @@
+name: Publish Packages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Publish to GitHub Packages
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          - tradeclaw-cli
+          - tradeclaw-js
+          - tradeclaw-demo
+          - tradeclaw-mcp
+          - tradeclaw-discord
+          - agent
+          - create-tradeclaw
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+
+      - name: Check if package has changes
+        id: check
+        run: |
+          PKG_DIR="packages/${{ matrix.package }}"
+          if [ ! -f "$PKG_DIR/package.json" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Get package name and version
+          PKG_NAME=$(node -p "require('./$PKG_DIR/package.json').name")
+          PKG_VERSION=$(node -p "require('./$PKG_DIR/package.json').version")
+          echo "name=$PKG_NAME" >> $GITHUB_OUTPUT
+          echo "version=$PKG_VERSION" >> $GITHUB_OUTPUT
+
+          # Check if this version is already published
+          if npm view "$PKG_NAME@$PKG_VERSION" version --registry=https://npm.pkg.github.com 2>/dev/null; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⏭️ $PKG_NAME@$PKG_VERSION already published"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "📦 Will publish $PKG_NAME@$PKG_VERSION"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        if: steps.check.outputs.skip != 'true'
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build package (if build script exists)
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          PKG_DIR="packages/${{ matrix.package }}"
+          if node -p "!!require('./$PKG_DIR/package.json').scripts?.build" | grep -q true; then
+            npm run build --workspace="$PKG_DIR"
+          fi
+
+      - name: Publish
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          cd "packages/${{ matrix.package }}"
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          echo "### 📦 Published ${{ steps.check.outputs.name }}@${{ steps.check.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Install: \`npm install ${{ steps.check.outputs.name }} --registry=https://npm.pkg.github.com\`" >> $GITHUB_STEP_SUMMARY

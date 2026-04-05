@@ -1,7 +1,10 @@
 {
-  "name": "create-tradeclaw",
+  "name": "@naimkatiman/create-tradeclaw",
   "version": "1.0.0",
   "description": "Set up a self-hosted TradeClaw AI trading signal platform in seconds",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "bin": {
     "create-tradeclaw": "./index.js"
   },

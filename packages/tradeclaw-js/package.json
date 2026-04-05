@@ -1,7 +1,10 @@
 {
-  "name": "tradeclaw-js",
+  "name": "@naimkatiman/tradeclaw-js",
   "version": "0.1.0",
   "description": "JavaScript/TypeScript SDK for TradeClaw — open-source AI trading signal platform",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

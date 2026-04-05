@@ -1,7 +1,10 @@
 {
-  "name": "tradeclaw",
+  "name": "@naimkatiman/tradeclaw",
   "version": "0.4.0",
   "description": "CLI for TradeClaw — fetch live AI trading signals from your terminal",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "bin": {
     "tradeclaw": "./bin/cli.js"
   },

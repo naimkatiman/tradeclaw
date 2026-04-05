@@ -1,8 +1,11 @@
 {
-  "name": "tradeclaw-agent",
+  "name": "@naimkatiman/tradeclaw-agent",
   "version": "0.2.0",
   "type": "module",
   "description": "Self-hosted AI trading signal agent. Runs on your machine. Delivers signals to Telegram, Discord, or any webhook. Free forever.",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "main": "dist/index.js",
   "exports": {
     ".": {

@@ -1,7 +1,10 @@
 {
-  "name": "tradeclaw-mcp",
+  "name": "@naimkatiman/tradeclaw-mcp",
   "version": "0.1.0",
   "description": "Model Context Protocol (MCP) server for TradeClaw — fetch live AI trading signals in any MCP-compatible AI assistant",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "bin": {
     "tradeclaw-mcp": "./bin/server.js"
   },
