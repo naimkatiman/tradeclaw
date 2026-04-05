@@ -19,6 +19,7 @@ export class Gateway {
   private latestSignals: TradingSignal[] = [];
   private startTime: Date | null = null;
   private initialized = false;
+  private channelWarned = false;
 
   constructor() {
     const skillsDir = join(process.cwd(), 'skills');
@@ -138,8 +139,10 @@ export class Gateway {
       }
     }
 
-    if (this.channels.length === 0) {
+    if (this.channels.length === 0 && !this.channelWarned) {
       console.warn('[gateway] No channels configured. Signals will only be logged to console.');
+      console.warn('[gateway] Set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID, DISCORD_WEBHOOK_URL, or WEBHOOK_URL env vars to enable delivery.');
+      this.channelWarned = true;
     }
   }
 

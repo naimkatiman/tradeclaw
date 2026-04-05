@@ -81,6 +81,11 @@ services:
       REDIS_URL: redis://redis:6379
       SCAN_INTERVAL: ${SCAN_INTERVAL:-60}
       SCAN_INSTRUMENTS: ${SCAN_INSTRUMENTS:-all}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      WEBHOOK_URL: ${WEBHOOK_URL:-}
+      MIN_CONFIDENCE: ${MIN_CONFIDENCE:-70}
     depends_on:
       db:
         condition: service_healthy
