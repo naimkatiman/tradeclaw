@@ -10,7 +10,7 @@ const DEFAULT_CONFIG: GatewayConfig = {
   symbols: ['XAUUSD', 'XAGUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD'],
   timeframes: ['H1', 'H4', 'D1'],
   channels: [],
-  skills: ['rsi-divergence', 'macd-crossover'],
+  skills: ['regime-detector', 'rsi-divergence', 'macd-crossover', 'sr-bounce', 'volatility-breakout'],
 };
 
 /** Build channel configs from environment variables. */

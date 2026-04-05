@@ -185,6 +185,52 @@ const PRESET_STRATEGIES: Strategy[] = [
       period: '30d',
     },
   },
+  {
+    id: 'strat-sr-bounce',
+    name: 'S/R Bounce Trader',
+    description: 'Buy on support, sell on resistance in ranging markets. ADX < 25 filter ensures non-trending conditions.',
+    indicators: [
+      { name: 'S/R Levels', params: { lookback: 50 }, condition: 'Price within 20% of support (BUY) or resistance (SELL)', weight: 0.35 },
+      { name: 'RSI', params: { period: 14, overbought: 70, oversold: 30 }, condition: 'RSI oversold at support (BUY) or overbought at resistance (SELL)', weight: 0.25 },
+      { name: 'Stochastic', params: { kPeriod: 14, dPeriod: 3, smooth: 3 }, condition: 'Stochastic confirms RSI extreme', weight: 0.2 },
+      { name: 'ADX', params: { period: 14, threshold: 25 }, condition: 'ADX < 25 confirms ranging market', weight: 0.2 },
+    ],
+    symbols: ['EURUSD', 'GBPUSD', 'AUDUSD', 'NZDUSD', 'USDCHF', 'XAUUSD'],
+    timeframes: ['M15', 'H1'],
+    riskManagement: {
+      maxRiskPercent: 1.5,
+      leverage: 50,
+      maxOpenTrades: 4,
+      tpMode: 'fixed' as const,
+      slMode: 'atr' as const,
+      fibLevels: [1.0, 1.618],
+    },
+    isActive: true,
+    createdAt: '2026-04-05T08:00:00Z',
+  },
+  {
+    id: 'strat-vol-breakout',
+    name: 'Volatility Breakout',
+    description: 'Bollinger squeeze breakout with ADX/DI confirmation. Catches expansion moves from compressed ranges.',
+    indicators: [
+      { name: 'Bollinger Bands', params: { period: 20, stdDev: 2 }, condition: 'Bandwidth < 2% (squeeze) then expansion with price outside bands', weight: 0.3 },
+      { name: 'ADX', params: { period: 14, threshold: 20 }, condition: 'ADX > 20 and rising — directional momentum building', weight: 0.3 },
+      { name: 'S/R Levels', params: { lookback: 50 }, condition: 'Price breaks above resistance (BUY) or below support (SELL)', weight: 0.25 },
+      { name: 'Volume', params: { avgPeriod: 20, threshold: 1.5 }, condition: 'Volume > 1.5x average confirms breakout', weight: 0.15 },
+    ],
+    symbols: ['XAUUSD', 'BTCUSD', 'ETHUSD', 'XRPUSD', 'GBPUSD'],
+    timeframes: ['H1', 'H4'],
+    riskManagement: {
+      maxRiskPercent: 2,
+      leverage: 50,
+      maxOpenTrades: 3,
+      tpMode: 'atr' as const,
+      slMode: 'support_resistance' as const,
+      fibLevels: [1.618, 2.618],
+    },
+    isActive: true,
+    createdAt: '2026-04-05T08:00:00Z',
+  },
 ];
 
 export async function GET() {
