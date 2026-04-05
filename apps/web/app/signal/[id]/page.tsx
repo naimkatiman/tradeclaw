@@ -8,6 +8,7 @@ import { EmbedButton } from '../../components/embed-button';
 import { AIAnalysisPanel } from '../../components/ai-analysis-panel';
 import { SetAlertButton } from '../../components/set-alert-button';
 import { SignalChartSection } from './SignalChartSection';
+import { SYMBOLS } from '../../lib/signals';
 
 function formatPrice(p: number): string {
   if (p >= 1000) return p.toFixed(2);
@@ -268,6 +269,7 @@ export default async function SignalPage(
           takeProfit3={signal.takeProfit3}
           direction={signal.direction}
           timestamp={signal.timestamp}
+          pip={SYMBOLS.find(s => s.symbol === signal.symbol)?.pip ?? 0.01}
         />
 
         {/* AI Analysis Panel */}

@@ -27,6 +27,8 @@ interface SignalChartProps {
   takeProfit3?: number;
   signalTime?: UTCTimestamp;
   height?: number;
+  /** pip size for price formatting (e.g. 0.0001 for forex, 0.01 for gold/crypto) */
+  pip?: number;
 }
 
 export default function SignalChart({
@@ -39,6 +41,7 @@ export default function SignalChart({
   takeProfit3,
   signalTime,
   height = 400,
+  pip = 0.01,
 }: SignalChartProps) {
   const theme = useChartTheme();
   const candleRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -51,12 +54,14 @@ export default function SignalChart({
     (chart: IChartApi) => {
       chartApiRef.current = chart;
 
+      const precision = Math.max(0, -Math.floor(Math.log10(pip)));
       const candleSeries = chart.addSeries(CandlestickSeries, {
         upColor: theme.upColor,
         downColor: theme.downColor,
         wickUpColor: theme.wickUpColor,
         wickDownColor: theme.wickDownColor,
         borderVisible: false,
+        priceFormat: { type: 'price', precision, minMove: pip },
       });
       candleRef.current = candleSeries;
 
@@ -71,9 +76,9 @@ export default function SignalChart({
 
       markersRef.current = createSeriesMarkers(candleSeries);
     },
-    // Init only — theme used for series colors which update via applyOptions below
+    // Re-init when pip changes (different symbol)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [pip],
   );
 
   // Update data, price lines, markers, and colors when props or theme change

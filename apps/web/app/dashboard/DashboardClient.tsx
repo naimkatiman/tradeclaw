@@ -401,7 +401,7 @@ function SignalCard({ signal, tfDirections, onSelect }: { signal: TradingSignal;
                 Full screen →
               </Link>
             </div>
-            <FullChart symbol={signal.symbol} bars={bars} height={220} />
+            <FullChart symbol={signal.symbol} bars={bars} height={220} pip={symbolConfig?.pip ?? 0.01} />
           </div>
         );
       })()}
@@ -735,6 +735,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               takeProfit3={topSignal.takeProfit3}
               signalTime={signalTime}
               height={300}
+              pip={SYMBOLS.find(s => s.symbol === topSignal.symbol)?.pip ?? 0.01}
             />
           </div>
         );

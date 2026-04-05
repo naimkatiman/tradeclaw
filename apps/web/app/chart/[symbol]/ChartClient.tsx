@@ -74,6 +74,7 @@ export default function ChartClient({ symbol }: ChartClientProps) {
           symbol={selectedSymbol}
           bars={bars}
           height={chartHeight}
+          pip={symbolConfig.pip}
         />
       </div>
     </div>

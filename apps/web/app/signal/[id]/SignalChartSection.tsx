@@ -12,6 +12,7 @@ interface SignalChartSectionProps {
   takeProfit3: number;
   direction: 'BUY' | 'SELL';
   timestamp: string;
+  pip?: number;
 }
 
 export function SignalChartSection({
@@ -22,6 +23,7 @@ export function SignalChartSection({
   takeProfit3,
   direction,
   timestamp,
+  pip = 0.01,
 }: SignalChartSectionProps) {
   const ts = new Date(timestamp).getTime();
   const bars = useMemo(() => generateBars(entry, direction, ts), [entry, direction, ts]);
@@ -40,6 +42,7 @@ export function SignalChartSection({
         takeProfit3={takeProfit3}
         signalTime={signalTime}
         height={360}
+        pip={pip}
       />
     </div>
   );

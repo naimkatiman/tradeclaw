@@ -25,9 +25,10 @@ interface ReplayChartProps {
     sl?: number;
   };
   height?: number;
+  pip?: number;
 }
 
-export default function ReplayChart({ bars, visibleCount, signal, height = 400 }: ReplayChartProps) {
+export default function ReplayChart({ bars, visibleCount, signal, height = 400, pip = 0.01 }: ReplayChartProps) {
   const theme = useChartTheme();
   const candleRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volumeRef = useRef<ISeriesApi<'Histogram'> | null>(null);
@@ -45,12 +46,14 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400 }
 
       chartApiRef.current = chart;
 
+      const precision = Math.max(0, -Math.floor(Math.log10(pip)));
       const candleSeries = chart.addSeries(CandlestickSeries, {
         upColor: theme.upColor,
         downColor: theme.downColor,
         wickUpColor: theme.wickUpColor,
         wickDownColor: theme.wickDownColor,
         borderVisible: false,
+        priceFormat: { type: 'price', precision, minMove: pip },
       });
       candleRef.current = candleSeries;
 
