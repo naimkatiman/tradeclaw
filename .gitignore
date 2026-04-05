@@ -15,3 +15,5 @@ apps/web/data/signal-history.json
 
 # Build output
 **/dist/
+
+/scripts/.venv
