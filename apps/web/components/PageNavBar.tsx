@@ -36,6 +36,7 @@ const PRIMARY_LINKS: { href: string; label: string }[] = [
   { href: '/screener', label: 'Screener' },
   { href: '/backtest', label: 'Backtest' },
   { href: '/leaderboard', label: 'Leaderboard' },
+  { href: '/track-record', label: 'Track Record' },
 ];
 
 const MORE_GROUPS: DropdownGroup[] = [

@@ -422,15 +422,33 @@ interface HistoryRecord {
   };
 }
 
+interface HistoryApiStats {
+  totalSignals: number;
+  resolved: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  totalPnlPct: number;
+  avgPnlPct: number;
+  streak: number;
+}
+
 function SignalHistory() {
   const [records, setRecords] = useState<HistoryRecord[]>([]);
+  const [historyStats, setHistoryStats] = useState<HistoryApiStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/signals/history?limit=20')
+    fetch('/api/signals/history?limit=40&sort=resolved-first')
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data?.records) setRecords(data.records);
+        if (data?.records) {
+          // Show up to 10 resolved + up to 5 pending = 15 max
+          const resolved = (data.records as HistoryRecord[]).filter((r: HistoryRecord) => r.outcomes['24h'] !== null).slice(0, 10);
+          const pending = (data.records as HistoryRecord[]).filter((r: HistoryRecord) => r.outcomes['24h'] === null).slice(0, 5);
+          setRecords([...resolved, ...pending]);
+        }
+        if (data?.stats) setHistoryStats(data.stats);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -442,6 +460,35 @@ function SignalHistory() {
   return (
     <section className="mt-8">
       <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-3">Signal Track Record</h2>
+
+      {/* Stats Banner */}
+      {historyStats && historyStats.resolved > 0 && (
+        <div className="flex items-center gap-4 mb-3 px-1 text-[10px] font-mono text-[var(--text-secondary)]">
+          <span>
+            <span className={historyStats.winRate >= 55 ? 'text-emerald-400' : historyStats.winRate >= 45 ? 'text-yellow-400' : 'text-red-400'}>
+              {historyStats.winRate}%
+            </span>{' '}
+            win rate
+          </span>
+          <span className="text-[var(--border)]">|</span>
+          <span>{historyStats.resolved} resolved</span>
+          <span className="text-[var(--border)]">|</span>
+          <span>
+            <span className={historyStats.streak > 0 ? 'text-emerald-400' : historyStats.streak < 0 ? 'text-red-400' : ''}>
+              {historyStats.streak > 0 ? '+' : ''}{historyStats.streak}
+            </span>{' '}
+            streak
+          </span>
+          <span className="text-[var(--border)]">|</span>
+          <span>
+            <span className={historyStats.totalPnlPct >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+              {historyStats.totalPnlPct >= 0 ? '+' : ''}{historyStats.totalPnlPct}%
+            </span>{' '}
+            total P&L
+          </span>
+        </div>
+      )}
+
       <div className="glass-card rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs font-mono">
@@ -471,7 +518,7 @@ function SignalHistory() {
                     <td className="px-3 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">{formatPrice(r.entryPrice)}</td>
                     <td className="px-3 py-2.5 text-center">
                       {outcome4h == null ? (
-                        <span className="text-zinc-600">—</span>
+                        <span className="text-zinc-600">���</span>
                       ) : outcome4h.hit ? (
                         <span className="text-emerald-400">TP</span>
                       ) : (
@@ -497,6 +544,11 @@ function SignalHistory() {
               })}
             </tbody>
           </table>
+        </div>
+        <div className="px-4 py-2.5 border-t border-[var(--border)]">
+          <Link href="/track-record" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors font-mono">
+            View Full Track Record →
+          </Link>
         </div>
       </div>
     </section>

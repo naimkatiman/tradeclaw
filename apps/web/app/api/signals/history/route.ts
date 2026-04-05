@@ -22,8 +22,15 @@ export async function GET(request: NextRequest) {
     if (outcome === 'loss') records = records.filter(r => r.outcomes['24h']?.hit === false);
     if (outcome === 'pending') records = records.filter(r => !r.outcomes['24h']);
 
-    // Sort by timestamp desc
-    records.sort((a, b) => b.timestamp - a.timestamp);
+    // Sort order: default is timestamp desc, 'resolved-first' prioritizes resolved signals
+    const sort = searchParams.get('sort');
+    if (sort === 'resolved-first') {
+      const resolved = records.filter(r => r.outcomes['24h'] !== null).sort((a, b) => b.timestamp - a.timestamp);
+      const pending = records.filter(r => r.outcomes['24h'] === null).sort((a, b) => b.timestamp - a.timestamp);
+      records = [...resolved, ...pending];
+    } else {
+      records.sort((a, b) => b.timestamp - a.timestamp);
+    }
 
     const total = records.length;
     const page = records.slice(offset, offset + limit);
