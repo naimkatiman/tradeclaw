@@ -6,6 +6,7 @@ import {
   calculateStochastic,
   findSupportLevels,
   findResistanceLevels,
+  calculateADX,
 } from '@tradeclaw/signals';
 import { getSymbolConfig, SYMBOLS } from '@tradeclaw/signals';
 import { fetchLivePrices } from './prices.js';
@@ -135,6 +136,8 @@ function computeIndicators(
   const support = findSupportLevels(low, 3).map((p: number) => roundPrice(p, symbol));
   const resistance = findResistanceLevels(high, 3).map((p: number) => roundPrice(p, symbol));
 
+  const adxResult = calculateADX(high, low, close, 14);
+
   return {
     rsi: { value: Number(rsiValue.toFixed(1)), signal: rsiSignal },
     macd: { histogram: Number(macdResult.histogram.toFixed(4)), signal: macdSignal },
@@ -152,6 +155,12 @@ function computeIndicators(
     },
     support,
     resistance,
+    adx: {
+      value: Number(adxResult.value.toFixed(1)),
+      trending: adxResult.trending,
+      plusDI: Number(adxResult.plusDI.toFixed(1)),
+      minusDI: Number(adxResult.minusDI.toFixed(1)),
+    },
   };
 }
 
