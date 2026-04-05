@@ -1,8 +1,14 @@
 /**
  * Generate a unique signal ID.
+ * Canonical format: SIG-{SYMBOL}-{TF}-{DIRECTION}-{timestamp36}{rand4}
  */
-export function generateSignalId(): string {
-  return `SIG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+export function generateSignalId(symbol?: string, timeframe?: string, direction?: string): string {
+  const ts = Date.now().toString(36).toUpperCase();
+  const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+  if (symbol && timeframe && direction) {
+    return `SIG-${symbol.toUpperCase()}-${timeframe.toUpperCase()}-${direction.toUpperCase()}-${ts}${rand}`;
+  }
+  return `SIG-${ts}-${rand}`;
 }
 
 /**

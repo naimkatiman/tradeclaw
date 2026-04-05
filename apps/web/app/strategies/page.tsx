@@ -177,9 +177,9 @@ export default function StrategiesPage() {
 
   useEffect(() => {
     fetch('/api/strategies')
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(data => {
-        setStrategies(data.strategies);
+        setStrategies(data?.strategies ?? []);
         setLoading(false);
       })
       .catch(() => setLoading(false));

@@ -440,7 +440,7 @@ function SignalHistory() {
 
   useEffect(() => {
     fetch('/api/signals/history?limit=40&sort=resolved-first')
-      .then(r => r.ok ? r.json() : null)
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(data => {
         if (data?.records) {
           // Show up to 10 resolved + up to 5 pending = 15 max
@@ -450,7 +450,7 @@ function SignalHistory() {
         }
         if (data?.stats) setHistoryStats(data.stats);
       })
-      .catch(() => {})
+      .catch(() => { /* history is supplementary — fail silently */ })
       .finally(() => setLoading(false));
   }, []);
 
@@ -585,8 +585,8 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       params.set('minConfidence', '50');
 
       const [signalsRes, mtfRes] = await Promise.allSettled([
-        fetch(`/api/signals?${params}`).then(r => r.json()),
-        fetch('/api/signals/multi-tf').then(r => r.json()),
+        fetch(`/api/signals?${params}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }),
+        fetch('/api/signals/multi-tf').then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }),
       ]);
 
       if (signalsRes.status === 'fulfilled') {
@@ -710,7 +710,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
         if (!topSignal) return null;
         const ts = new Date(topSignal.timestamp).getTime();
         const bars = generateBars(topSignal.entry, topSignal.direction, ts);
-        const signalTime = bars[Math.min(30, bars.length - 1)]?.time;
+        const signalTime = bars.length > 0 ? bars[Math.min(30, bars.length - 1)]?.time : undefined;
         return (
           <div className="relative border-b border-[var(--border)]">
             <div className="absolute top-3 left-4 right-4 z-10 flex flex-wrap items-center gap-2">

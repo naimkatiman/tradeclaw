@@ -130,7 +130,8 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400, 
     const vol = volumeRef.current;
     if (!candle || !vol) return;
 
-    const visible = bars.slice(0, visibleCount);
+    const safeCount = Math.max(0, Math.min(visibleCount, bars.length));
+    const visible = bars.slice(0, safeCount);
     candle.setData(visible);
     vol.setData(
       visible.map((b) => ({
@@ -141,7 +142,7 @@ export default function ReplayChart({ bars, visibleCount, signal, height = 400, 
     );
 
     const signalBarIdx = Math.min(30, visible.length - 1);
-    if (visibleCount > 30 && visible[signalBarIdx] && markersRef.current) {
+    if (visibleCount > 30 && visible.length > 30 && visible[signalBarIdx] && markersRef.current) {
       markersRef.current.setMarkers([
         {
           time: visible[signalBarIdx].time,

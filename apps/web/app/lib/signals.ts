@@ -34,111 +34,6 @@ export const TIMEFRAMES = ['M15', 'H1', 'H4', 'D1'] as const;
 
 // generateSignalId and clamp are now imported from @tradeclaw/signals
 
-// ─── DEPRECATED: Random signal fallback ─────────────────────
-// These functions generate synthetic indicators using Math.random().
-// They are NOT used by getSignals() — the live path uses the real TA engine.
-// Kept only for offline/dev testing. Never show output as real data.
-
-/** @deprecated Use calculateAllIndicators() from ta-engine instead */
-export function generateIndicators(price: number, direction: 'BUY' | 'SELL', volatility: number): IndicatorSummary {
-  const rsiValue = direction === 'BUY'
-    ? clamp(25 + Math.random() * 20, 15, 45)
-    : clamp(60 + Math.random() * 25, 55, 85);
-
-  const macdHist = direction === 'BUY'
-    ? +(Math.random() * 0.5 + 0.1).toFixed(4)
-    : +(-Math.random() * 0.5 - 0.1).toFixed(4);
-
-  const ema20 = direction === 'BUY' ? price * (1 - Math.random() * 0.005) : price * (1 + Math.random() * 0.005);
-  const ema50 = direction === 'BUY' ? price * (1 - Math.random() * 0.01) : price * (1 + Math.random() * 0.01);
-  const ema200 = direction === 'BUY' ? price * (1 - Math.random() * 0.02) : price * (1 + Math.random() * 0.02);
-
-  const stochK = direction === 'BUY'
-    ? clamp(15 + Math.random() * 15, 5, 30)
-    : clamp(70 + Math.random() * 20, 70, 95);
-
-  const support1 = price - volatility * (1 + Math.random());
-  const support2 = price - volatility * (2 + Math.random());
-  const resistance1 = price + volatility * (1 + Math.random());
-  const resistance2 = price + volatility * (2 + Math.random());
-
-  return {
-    rsi: {
-      value: +rsiValue.toFixed(2),
-      signal: rsiValue < 30 ? 'oversold' : rsiValue > 70 ? 'overbought' : 'neutral',
-    },
-    macd: {
-      histogram: macdHist,
-      signal: macdHist > 0 ? 'bullish' : macdHist < 0 ? 'bearish' : 'neutral',
-    },
-    ema: {
-      trend: direction === 'BUY' ? 'up' : 'down',
-      ema20: +ema20.toFixed(5),
-      ema50: +ema50.toFixed(5),
-      ema200: +ema200.toFixed(5),
-    },
-    bollingerBands: {
-      position: direction === 'BUY' ? 'lower' : 'upper',
-      bandwidth: +(volatility * 2 / price * 100).toFixed(4),
-    },
-    stochastic: {
-      k: +stochK.toFixed(2),
-      d: +(stochK - 2 + Math.random() * 4).toFixed(2),
-      signal: stochK < 20 ? 'oversold' : stochK > 80 ? 'overbought' : 'neutral',
-    },
-    support: [+support1.toFixed(5), +support2.toFixed(5)],
-    resistance: [+resistance1.toFixed(5), +resistance2.toFixed(5)],
-  };
-}
-
-/** @deprecated Use getSignals() which routes through the real TA engine */
-export function generateSignal(symbolConfig: typeof SYMBOLS[0], livePrice?: number): TradingSignal {
-  const direction = Math.random() > 0.5 ? 'BUY' : 'SELL';
-  const base = livePrice ?? symbolConfig.basePrice;
-  const priceOffset = (Math.random() - 0.5) * symbolConfig.volatility * 2;
-  const currentPrice = base + priceOffset;
-  const riskReward = 1.5 + Math.random() * 1.5;
-
-  const slDistance = symbolConfig.volatility * (0.3 + Math.random() * 0.4);
-  const tp1Distance = slDistance * riskReward;
-  const tp2Distance = tp1Distance * 1.618;
-  const tp3Distance = tp1Distance * 2.618;
-
-  const entry = +currentPrice.toFixed(5);
-  const stopLoss = direction === 'BUY'
-    ? +(entry - slDistance).toFixed(5)
-    : +(entry + slDistance).toFixed(5);
-  const takeProfit1 = direction === 'BUY'
-    ? +(entry + tp1Distance).toFixed(5)
-    : +(entry - tp1Distance).toFixed(5);
-  const takeProfit2 = direction === 'BUY'
-    ? +(entry + tp2Distance).toFixed(5)
-    : +(entry - tp2Distance).toFixed(5);
-  const takeProfit3 = direction === 'BUY'
-    ? +(entry + tp3Distance).toFixed(5)
-    : +(entry - tp3Distance).toFixed(5);
-
-  const confidence = Math.floor(55 + Math.random() * 40);
-  const timeframe = TIMEFRAMES[Math.floor(Math.random() * TIMEFRAMES.length)];
-
-  return {
-    id: generateSignalId(),
-    symbol: symbolConfig.symbol,
-    direction,
-    confidence,
-    entry,
-    stopLoss,
-    takeProfit1,
-    takeProfit2,
-    takeProfit3,
-    indicators: generateIndicators(currentPrice, direction, symbolConfig.volatility),
-    timeframe,
-    timestamp: new Date().toISOString(),
-    status: 'active',
-    source: 'fallback',
-  };
-}
-
 // ─── Live Price Fetching ─────────────────────────────────────
 
 async function fetchStooq(symbol: string): Promise<number | null> {
@@ -198,8 +93,8 @@ export async function getLivePrices(): Promise<Map<string, number>> {
 // ─── Main Signal Generation (Real TA Engine) ─────────────────
 
 /**
- * Generate signals using real technical analysis
- * Falls back to random generation if TA engine fails
+ * Generate signals using real technical analysis.
+ * Skips symbols with insufficient data — never produces synthetic signals.
  */
 async function generateRealSignals(
   symbols: typeof SYMBOLS,
@@ -249,7 +144,7 @@ async function generateRealSignals(
 
 /**
  * Main signal generation function — used by both API route and server components.
- * Now uses real TA when possible, falls back to random when not.
+ * Uses real TA engine only. Returns empty if no data available.
  */
 export async function getSignals(params: {
   symbol?: string;

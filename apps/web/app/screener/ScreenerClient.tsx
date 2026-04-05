@@ -355,6 +355,7 @@ export default function ScreenerClient() {
         direction: filters.direction,
       });
       const res = await fetch(`/api/screener?${params}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json() as { results: ScreenerResult[]; meta: ScreenerMeta };
       setResults(data.results);
       setMeta(data.meta);

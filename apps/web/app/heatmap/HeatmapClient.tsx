@@ -143,10 +143,9 @@ export function HeatmapClient() {
   const fetchData = useCallback(async () => {
     try {
       const res = await fetch('/api/heatmap');
-      if (res.ok) {
-        const json: HeatmapData = await res.json();
-        setData(json);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json: HeatmapData = await res.json();
+      setData(json);
     } finally {
       setLoading(false);
     }

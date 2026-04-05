@@ -137,6 +137,7 @@ export function SentimentClient() {
     if (isRefresh) setRefreshing(true);
     try {
       const res = await fetch('/api/sentiment');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json() as SentimentData;
       setData(json);
       setLastUpdated(new Date());

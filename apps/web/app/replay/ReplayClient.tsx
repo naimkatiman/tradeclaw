@@ -193,8 +193,9 @@ interface ApiSignal {
   status: string;
 }
 
-function apiSignalToRecord(s: ApiSignal): SignalRecord {
+function apiSignalToRecord(s: ApiSignal): SignalRecord | null {
   const ts = new Date(s.timestamp).getTime();
+  if (!s.entry || isNaN(ts)) return null;
   const tp1Distance = Math.abs(s.takeProfit1 - s.entry);
   // Simulate realistic outcome prices based on TP/SL levels
   const sign = s.direction === 'BUY' ? 1 : -1;
@@ -239,7 +240,7 @@ export default function ReplayClient() {
         if (!res.ok) throw new Error('Failed to fetch signals');
         const data = await res.json();
         if (!cancelled && Array.isArray(data.signals) && data.signals.length > 0) {
-          setSignals(data.signals.map((s: ApiSignal) => apiSignalToRecord(s)));
+          setSignals(data.signals.map((s: ApiSignal) => apiSignalToRecord(s)).filter((r: SignalRecord | null): r is SignalRecord => r !== null));
         }
       } catch {
         // Silently handle — signals stays empty, user sees empty state
@@ -329,7 +330,7 @@ export default function ReplayClient() {
   }
 
   const liveBar = bars[currentBar] ?? null;
-  const pnl = liveBar && signal ? ((liveBar.close - signal.entryPrice) / signal.entryPrice) * 100 * (signal.direction === 'BUY' ? 1 : -1) : 0;
+  const pnl = liveBar && signal && signal.entryPrice > 0 ? ((liveBar.close - signal.entryPrice) / signal.entryPrice) * 100 * (signal.direction === 'BUY' ? 1 : -1) : 0;
   const signalFired = currentBar >= 30;
   const hitTP = signal && signal.tp1 && liveBar && (signal.direction === 'BUY' ? liveBar.high >= signal.tp1 : liveBar.low <= signal.tp1);
   const hitSL = signal && signal.sl && liveBar && (signal.direction === 'BUY' ? liveBar.low <= signal.sl : liveBar.high >= signal.sl);

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../lib/signals';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
-import { readLiveSignals } from '../../../lib/read-live-signals';
+import { readLiveSignals } from '../../../lib/signals-live';
 
 // Re-export types for consumers that imported from here
 export type { TradingSignal, IndicatorSummary } from '../../lib/signals';
@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // === PRIMARY: Read from Python-generated signals-live.json ===
-    const liveData = readLiveSignals();
+    // === PRIMARY: Read from PostgreSQL (falls back to signals-live.json) ===
+    const liveData = await readLiveSignals();
 
     if (liveData && !liveData.isStale && liveData.signals.length > 0) {
       let signals = liveData.signals;

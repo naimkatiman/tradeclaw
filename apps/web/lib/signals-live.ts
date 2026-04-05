@@ -1,11 +1,13 @@
 /**
- * Reads signals from the Python-generated signals-live.json file
- * Falls back to the real-time TA engine if the file is stale or missing
+ * Reads live signals from Railway PostgreSQL.
+ * Falls back to reading signals-live.json if DB is unavailable.
+ * Single stale threshold: 15 minutes.
  */
 
 import 'server-only';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { getActiveSignals } from './signal-repo';
 
 export interface WinRateData {
   wins: number;
@@ -46,6 +48,9 @@ export interface LiveSignal {
     stoch_k?: number;
     volume_ratio?: number;
   };
+  tp3?: number;
+  agreeing_timeframes?: string[];
+  confluence_score?: number;
   win_rate?: WinRateData | null;
   cross_validation?: CrossValidation | null;
   source: string;
@@ -61,7 +66,7 @@ export interface ReliabilityData {
   cross_validation_bonus: number;
 }
 
-export interface LiveSignalsData {
+interface LiveSignalsData {
   generated_at: string;
   engine_version?: string;
   min_confidence: number;
@@ -82,29 +87,11 @@ export interface LiveSignalsData {
   all_signals?: LiveSignal[];
 }
 
-// Stale threshold: 20 minutes
-const STALE_THRESHOLD_MS = 20 * 60 * 1000;
+// Stale threshold: 15 minutes (consolidated from old 10min and 20min values)
+const STALE_THRESHOLD_MS = 15 * 60 * 1000;
 
 /**
- * Get the path to signals-live.json
- * Works both in development and production
- */
-function getSignalsFilePath(): string {
-  // In production, the file should be in the data directory at project root
-  // In development, it's at tradeclaw/data/signals-live.json
-  const possiblePaths = [
-    join(/* turbopackIgnore: true */ process.cwd(), 'data', 'signals-live.json'),
-    join(/* turbopackIgnore: true */ process.cwd(), '..', '..', 'data', 'signals-live.json'),
-    '/home/naim/.openclaw/workspace/tradeclaw/data/signals-live.json',
-  ];
-
-  // Return the first path (we'll handle missing file in the read)
-  return possiblePaths[0];
-}
-
-/**
- * Read and validate signals from the live file
- * Returns null if file is missing, stale, or invalid
+ * Read live signals — tries PostgreSQL first, falls back to JSON file.
  */
 export async function readLiveSignals(): Promise<{
   signals: LiveSignal[];
@@ -113,37 +100,68 @@ export async function readLiveSignals(): Promise<{
   reliability?: ReliabilityData;
   engineVersion?: string;
 } | null> {
-  const filePath = getSignalsFilePath();
-
+  // Try DB first
   try {
-    const content = await readFile(filePath, 'utf-8');
-    const data: LiveSignalsData = JSON.parse(content);
-
-    // Support both v4 (signals array) and v5 (confluence_signals + all_signals)
-    const signals = data.signals
-      ?? data.confluence_signals
-      ?? [];
-
-    if (!Array.isArray(signals)) {
-      return null;
+    if (process.env.DATABASE_URL) {
+      const result = await getActiveSignals();
+      if (result.signals.length > 0) {
+        return {
+          signals: result.signals,
+          isStale: result.isStale,
+          generatedAt: result.generatedAt,
+          engineVersion: result.engineVersion,
+        };
+      }
     }
-
-    // Check if data is stale
-    const generatedAt = new Date(data.generated_at);
-    const age = Date.now() - generatedAt.getTime();
-    const isStale = age > STALE_THRESHOLD_MS;
-
-    return {
-      signals,
-      isStale,
-      generatedAt: data.generated_at,
-      reliability: data.reliability,
-      engineVersion: data.engine_version,
-    };
   } catch {
-    // File doesn't exist or is invalid
-    return null;
+    // DB unavailable — fall through to file
   }
+
+  // Fallback: read from JSON file
+  return readLiveSignalsFromFile();
+}
+
+/**
+ * Fallback: read from signals-live.json file.
+ */
+async function readLiveSignalsFromFile(): Promise<{
+  signals: LiveSignal[];
+  isStale: boolean;
+  generatedAt: string | null;
+  reliability?: ReliabilityData;
+  engineVersion?: string;
+} | null> {
+  const possiblePaths = [
+    join(process.cwd(), 'data', 'signals-live.json'),
+    join(process.cwd(), '..', '..', 'data', 'signals-live.json'),
+    '/home/naim/.openclaw/workspace/tradeclaw/data/signals-live.json',
+  ];
+
+  for (const filePath of possiblePaths) {
+    try {
+      const content = await readFile(filePath, 'utf-8');
+      const data: LiveSignalsData = JSON.parse(content);
+
+      const signals = data.signals ?? data.confluence_signals ?? [];
+      if (!Array.isArray(signals)) continue;
+
+      const generatedAt = new Date(data.generated_at);
+      const age = Date.now() - generatedAt.getTime();
+      const isStale = age > STALE_THRESHOLD_MS;
+
+      return {
+        signals,
+        isStale,
+        generatedAt: data.generated_at,
+        reliability: data.reliability,
+        engineVersion: data.engine_version,
+      };
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -163,7 +181,6 @@ export function mapLiveSignalToV1(s: LiveSignal) {
     macd: s.indicators?.macd_histogram ?? s.indicators?.macd_h1 ?? 0,
     generatedAt: s.timestamp,
     shareUrl: `https://tradeclaw.win/signal/${s.symbol}-${s.timeframe}-${s.signal}`,
-    // v5 reliability fields
     candle_status: s.candle_status ?? null,
     win_rate: s.win_rate ?? null,
     cross_validation: s.cross_validation ?? null,

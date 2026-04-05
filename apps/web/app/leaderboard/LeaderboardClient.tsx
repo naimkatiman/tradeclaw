@@ -185,9 +185,9 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
   useEffect(() => {
     setTimeout(() => setLoading(true), 0);
     fetch(`/api/leaderboard?pair=${pair}`)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(d => { setData(d); setFetchedAt(Date.now()); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => { setData(null); setLoading(false); });
   }, [pair]);
 
   return (

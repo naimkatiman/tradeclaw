@@ -216,11 +216,12 @@ function evaluateSignal(indicators: IndicatorSummary): {
 
 /**
  * Generate a unique signal ID.
+ * Canonical format: SIG-{SYMBOL}-{TF}-{DIRECTION}-{timestamp36}{rand4}
  */
-function generateSignalId(symbol: string, timeframe: Timeframe): string {
-  const ts = Date.now().toString(36);
-  const rand = Math.random().toString(36).substring(2, 6);
-  return `${symbol}-${timeframe}-${ts}-${rand}`.toLowerCase();
+function generateSignalId(symbol: string, timeframe: Timeframe, direction: string = 'BUY'): string {
+  const ts = Date.now().toString(36).toUpperCase();
+  const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `SIG-${symbol.toUpperCase()}-${timeframe.toUpperCase()}-${direction.toUpperCase()}-${ts}${rand}`;
 }
 
 /**
@@ -267,7 +268,7 @@ export async function generateSignalsAsync(
     }
 
     signals.push({
-      id: generateSignalId(symbolName, timeframe),
+      id: generateSignalId(symbolName, timeframe, evaluation.direction),
       symbol: symbolName,
       direction: evaluation.direction,
       confidence: evaluation.confidence,
@@ -328,7 +329,7 @@ export function generateSignals(
     }
 
     signals.push({
-      id: generateSignalId(symbolName, timeframe),
+      id: generateSignalId(symbolName, timeframe, evaluation.direction),
       symbol: symbolName,
       direction: evaluation.direction,
       confidence: evaluation.confidence,

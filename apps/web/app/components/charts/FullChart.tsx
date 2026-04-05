@@ -4,9 +4,11 @@ import { useCallback, useRef, useEffect } from 'react';
 import {
   CandlestickSeries,
   HistogramSeries,
+  LineStyle,
   createTextWatermark,
   type IChartApi,
   type ISeriesApi,
+  type LineWidth,
 } from 'lightweight-charts';
 import LWChart from './LWChart';
 import { useChartTheme } from './use-chart-theme';
@@ -18,13 +20,19 @@ interface FullChartProps {
   latestBar?: OHLCVBar | null;
   height?: number;
   pip?: number;
+  /** Optional trade level lines */
+  entry?: number;
+  stopLoss?: number;
+  takeProfit1?: number;
+  takeProfit2?: number;
 }
 
-export default function FullChart({ symbol, bars, latestBar, height = 600, pip = 0.01 }: FullChartProps) {
+export default function FullChart({ symbol, bars, latestBar, height = 600, pip = 0.01, entry, stopLoss, takeProfit1, takeProfit2 }: FullChartProps) {
   const theme = useChartTheme();
   const candleRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volumeRef = useRef<ISeriesApi<'Histogram'> | null>(null);
   const initRef = useRef(false);
+  const priceLinesRef = useRef<ReturnType<ISeriesApi<'Candlestick'>['createPriceLine']>[]>([]);
 
   const onChartReady = useCallback(
     (chart: IChartApi) => {
@@ -93,6 +101,31 @@ export default function FullChart({ symbol, bars, latestBar, height = 600, pip =
       })),
     );
   }, [bars, theme]);
+
+  // Price lines for trade levels
+  useEffect(() => {
+    const candle = candleRef.current;
+    if (!candle || !initRef.current || !entry) return;
+
+    for (const pl of priceLinesRef.current) candle.removePriceLine(pl);
+    const lines: { price: number; color: string; title: string; style: number }[] = [
+      { price: entry, color: '#ffffff', title: 'Entry', style: LineStyle.Dashed },
+    ];
+    if (stopLoss) lines.push({ price: stopLoss, color: theme.downColor, title: 'SL', style: LineStyle.Dashed });
+    if (takeProfit1) lines.push({ price: takeProfit1, color: theme.upColor, title: 'TP1', style: LineStyle.Dashed });
+    if (takeProfit2) lines.push({ price: takeProfit2, color: theme.upColor, title: 'TP2', style: LineStyle.Dotted });
+
+    priceLinesRef.current = lines.map((l) =>
+      candle.createPriceLine({
+        price: l.price,
+        color: l.color,
+        lineWidth: 1 as LineWidth,
+        lineStyle: l.style,
+        axisLabelVisible: true,
+        title: l.title,
+      }),
+    );
+  }, [entry, stopLoss, takeProfit1, takeProfit2, theme]);
 
   // Real-time updates
   useEffect(() => {

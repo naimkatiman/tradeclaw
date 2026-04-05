@@ -10,9 +10,17 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   // Pre-fetch signals server-side to avoid flash of empty state
-  const { signals: initialSignals, syntheticSymbols: initialSyntheticSymbols } = await getTrackedSignals({
-    minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE,
-  });
+  let initialSignals: Awaited<ReturnType<typeof getTrackedSignals>>['signals'] = [];
+  let initialSyntheticSymbols: Awaited<ReturnType<typeof getTrackedSignals>>['syntheticSymbols'] = [];
+  try {
+    const result = await getTrackedSignals({
+      minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE,
+    });
+    initialSignals = result.signals;
+    initialSyntheticSymbols = result.syntheticSymbols;
+  } catch {
+    // Fall through with empty arrays — client will re-fetch
+  }
 
   return <DashboardClient initialSignals={initialSignals} initialSyntheticSymbols={initialSyntheticSymbols} />;
 }

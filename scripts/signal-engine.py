@@ -13,12 +13,19 @@ Confluence Rule: Need >= 2 TFs agreeing with no strong opposite signal
 """
 
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
 import tradingview_ta
+
+try:
+    import psycopg2
+    HAS_PSYCOPG2 = True
+except ImportError:
+    HAS_PSYCOPG2 = False
 
 # Configuration
 SCRIPT_DIR = Path(__file__).parent
@@ -215,7 +222,7 @@ def analyze_symbol(tv_symbol: str, symbol_info: dict) -> dict | None:
     stoch_k = primary.indicators.get("Stoch.K", 50) or 50
 
     return {
-        "id": f"SIG-{symbol_info['symbol']}-{n}TF-{uuid4().hex[:8].upper()}",
+        "id": f"SIG-{symbol_info['symbol']}-{agreeing[0]}-{direction}-{uuid4().hex[:8].upper()}",
         "symbol": symbol_info["symbol"],
         "name": symbol_info["name"],
         "signal": direction,
@@ -297,12 +304,50 @@ def main():
         "signals": signals,
     }
 
-    # Write to file
-    with open(OUTPUT_FILE, "w") as f:
-        json.dump(output, f, indent=2)
+    # Write to JSON file (fallback / debug)
+    if os.environ.get("WRITE_JSON_FALLBACK", "true").lower() == "true":
+        with open(OUTPUT_FILE, "w") as f:
+            json.dump(output, f, indent=2)
+        print(f"\nJSON written to: {OUTPUT_FILE}")
+
+    # Write to PostgreSQL (primary)
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url and HAS_PSYCOPG2 and signals:
+        try:
+            conn = psycopg2.connect(db_url, sslmode="require" if "railway.app" in db_url else "prefer")
+            cur = conn.cursor()
+            for s in signals:
+                cur.execute(
+                    """INSERT INTO live_signals (
+                        id, symbol, direction, confidence, timeframe, entry, stop_loss,
+                        tp1, tp2, reasons, indicators, source, engine_version, created_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (symbol, timeframe, direction, created_at) DO UPDATE SET
+                        confidence = EXCLUDED.confidence,
+                        entry = EXCLUDED.entry,
+                        stop_loss = EXCLUDED.stop_loss,
+                        tp1 = EXCLUDED.tp1,
+                        tp2 = EXCLUDED.tp2,
+                        indicators = EXCLUDED.indicators""",
+                    (
+                        s["id"], s["symbol"], s["signal"], s["confidence"],
+                        s["timeframe"], s["entry"], s["sl"],
+                        s["tp1"], s.get("tp2"), s.get("reasons", []),
+                        json.dumps(s.get("indicators", {})),
+                        s.get("source", "real"), "v3-confluence",
+                        output["generated_at"],
+                    ),
+                )
+            conn.commit()
+            cur.close()
+            conn.close()
+            print(f"DB: Wrote {len(signals)} signals to PostgreSQL")
+        except Exception as e:
+            print(f"DB ERROR: {e}", file=sys.stderr)
+    elif not db_url:
+        print("DB: DATABASE_URL not set, skipping DB write")
 
     print(f"\n{'=' * 60}")
-    print(f"Results written to: {OUTPUT_FILE}")
     print(f"Signals generated: {stats['signals_generated']}/{stats['symbols_checked']}")
     print(f"No confluence: {stats['no_confluence']}")
     print(f"Errors: {stats['errors']}")
