@@ -382,12 +382,14 @@ export function TrackRecordClient() {
             Join our Telegram channel for instant signal alerts with entry, TP, and SL levels.
           </p>
           <div className="flex gap-3 justify-center">
-            <Link
-              href="/telegram"
+            <a
+              href="https://t.me/tradeclawwin"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500/15 text-emerald-400 text-sm font-medium hover:bg-emerald-500/25 transition-colors"
             >
               Join Telegram
-            </Link>
+            </a>
             <Link
               href="/dashboard"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/[0.06] text-[var(--foreground)] text-sm font-medium hover:bg-white/[0.1] transition-colors"

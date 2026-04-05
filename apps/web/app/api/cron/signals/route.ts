@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSignals } from '../../../lib/signals';
 import { getOHLCV } from '../../../lib/ohlcv';
 import { isMarketOpen } from '../../../lib/market-hours';
+import { getActiveSignals } from '../../../../lib/signal-repo';
 import {
   recordSignalAsync,
   getRecentRecordForSymbolAsync,
@@ -42,14 +42,13 @@ type NewlyRecordedSignal = {
 };
 
 async function recordNewSignals(): Promise<NewlyRecordedSignal[]> {
-  const { signals } = await getSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
+  const { signals } = await getActiveSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
   const recorded: NewlyRecordedSignal[] = [];
 
   for (const sig of signals) {
-    if (sig.dataQuality !== 'real') continue;
     if (!isMarketOpen(sig.symbol)) continue;
 
-    const existing = await getRecentRecordForSymbolAsync(sig.symbol, sig.direction, TWO_HOURS_MS);
+    const existing = await getRecentRecordForSymbolAsync(sig.symbol, sig.signal, TWO_HOURS_MS);
     if (existing) continue;
 
     const timestamp = Date.now();
@@ -57,12 +56,12 @@ async function recordNewSignals(): Promise<NewlyRecordedSignal[]> {
     await recordSignalAsync(
       sig.symbol,
       sig.timeframe,
-      sig.direction,
+      sig.signal,
       sig.confidence,
       sig.entry,
       id,
-      sig.takeProfit1,
-      sig.stopLoss,
+      sig.tp1,
+      sig.sl,
       timestamp,
     );
 
@@ -70,11 +69,11 @@ async function recordNewSignals(): Promise<NewlyRecordedSignal[]> {
       id,
       symbol: sig.symbol,
       timeframe: sig.timeframe,
-      direction: sig.direction,
+      direction: sig.signal,
       confidence: sig.confidence,
       entry: sig.entry,
-      takeProfit1: sig.takeProfit1,
-      stopLoss: sig.stopLoss,
+      takeProfit1: sig.tp1,
+      stopLoss: sig.sl,
       timestamp,
     });
   }
