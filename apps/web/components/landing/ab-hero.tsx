@@ -201,7 +201,7 @@ function HeroVariantB({
         </span>
       </div>
       <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-purple-500/20 bg-purple-500/8 px-4 py-1.5 text-xs font-mono font-medium text-purple-400">
-        npx tradeclaw signals --pair BTCUSD
+        npx @naimkatiman/tradeclaw signals --pair BTCUSD
       </div>
 
       <h1 className="text-5xl font-bold leading-[1.08] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-white">

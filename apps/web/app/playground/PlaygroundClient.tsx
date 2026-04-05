@@ -323,7 +323,7 @@ export function PlaygroundClient() {
                 className="text-xs font-mono rounded-lg p-3 text-emerald-400"
                 style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(16,185,129,0.15)' }}
               >
-                {`npx tradeclaw signals\nnpx tradeclaw signals --pair BTCUSD\nnpx tradeclaw leaderboard`}
+                {`npx @naimkatiman/tradeclaw signals\nnpx @naimkatiman/tradeclaw signals --pair BTCUSD\nnpx @naimkatiman/tradeclaw leaderboard`}
               </pre>
               <p className="text-xs text-zinc-600 mt-2">No install needed. Fetches live signals instantly.</p>
             </div>

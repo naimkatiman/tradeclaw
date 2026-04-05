@@ -66,7 +66,7 @@ const USE_CASES: UseCase[] = [
       'Uses the REST API and CLI to pull signals into a custom Python bot. Sends webhooks to Discord for team alerts. Built a custom VWAP plugin using the plugin system.',
     features: [
       'REST API + API keys',
-      'npx tradeclaw CLI',
+      'npx @naimkatiman/tradeclaw CLI',
       'Webhook marketplace',
       'Custom JS plugins',
       'Discord integration',

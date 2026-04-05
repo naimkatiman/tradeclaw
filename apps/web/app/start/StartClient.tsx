@@ -179,7 +179,7 @@ function Step3() {
           },
           {
             label: '🚀 npx demo',
-            code: `npx tradeclaw-demo\n\n# Spins up a live demo in ~10 seconds\n# No install required`,
+            code: `npx @naimkatiman/tradeclaw-demo\n\n# Spins up a live demo in ~10 seconds\n# No install required`,
           },
         ]}
       />

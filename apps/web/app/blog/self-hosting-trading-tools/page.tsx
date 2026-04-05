@@ -105,7 +105,7 @@ docker compose up -d  # done`}</pre>
 
           <h3 className="font-semibold text-white mt-4 mb-2">Option 3: npx demo (test first)</h3>
           <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-4 font-mono text-xs text-zinc-300">
-            npx tradeclaw-demo
+            npx @naimkatiman/tradeclaw-demo
           </div>
           <p className="text-zinc-400">Runs a local Bloomberg-style demo in your browser with zero installation.</p>
 

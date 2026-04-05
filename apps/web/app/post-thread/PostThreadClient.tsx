@@ -55,7 +55,7 @@ const THREADS: Thread[] = [
         text: `3/ Architecture: no database.\n\nAll data lives in JSON files:\n\u2022 /data/signals.json \u2014 signal history\n\u2022 /data/alerts.json \u2014 price alerts\n\u2022 /data/api-keys.json \u2014 rate limits\n\u2022 /data/webhooks.json \u2014 webhook config\n\nFor self-hosters, this is ideal. One git clone and it just works.`,
       },
       {
-        text: `4/ Developer-first from day one:\n\n\u2022 REST API with API keys + rate limiting\n\u2022 npx tradeclaw signals CLI\n\u2022 JS SDK: npm install tradeclaw-js\n\u2022 MCP server (Claude Desktop compatible)\n\u2022 Plugin system (custom indicators as JS)\n\u2022 Webhook marketplace (Discord/Slack/Zapier)`,
+        text: `4/ Developer-first from day one:\n\n\u2022 REST API with API keys + rate limiting\n\u2022 npx @naimkatiman/tradeclaw signals CLI\n\u2022 JS SDK: npm install @naimkatiman/tradeclaw-js\n\u2022 MCP server (Claude Desktop compatible)\n\u2022 Plugin system (custom indicators as JS)\n\u2022 Webhook marketplace (Discord/Slack/Zapier)`,
       },
       {
         text: `5/ Deploy in 2 minutes:\n\ngit clone ${REPO_URL}\ncd tradeclaw\ndocker compose up\n\nOr one click:\n\u2192 Railway\n\u2192 Vercel\n\nNo API keys needed. Live prices via public Binance endpoints.`,
@@ -145,7 +145,7 @@ const THREADS: Thread[] = [
         text: `2/ The features that matter most:\n\n\ud83d\udcca 5-indicator confluence signals\n\ud83e\udd16 Telegram bot alerts\n\ud83c\udfae Paper trading simulator\n\ud83d\udcc8 Backtest engine with charts\n\ud83d\udce1 RSS/Atom signal feed\n\ud83d\udd0c Custom indicator plugins\n\nAll in one self-hosted dashboard.`,
       },
       {
-        text: `3/ For developers:\n\nnpx tradeclaw signals --pair BTCUSD\n\nnpm install tradeclaw-js\n\nMCP config for Claude Desktop:\n{ "command": "npx", "args": ["tradeclaw-mcp"] }\n\nFull REST API + Swagger docs at /api-docs.`,
+        text: `3/ For developers:\n\nnpx @naimkatiman/tradeclaw signals --pair BTCUSD\n\nnpm install @naimkatiman/tradeclaw-js\n\nMCP config for Claude Desktop:\n{ "command": "npx", "args": ["@naimkatiman/tradeclaw-mcp"] }\n\nFull REST API + Swagger docs at /api-docs.`,
       },
       {
         text: `4/ Deploy in literally 2 minutes:\n\ngit clone ${REPO_URL}\ndocker compose up\n\nOr click these buttons:\n\u2192 Railway (free tier)\n\u2192 Vercel\n\nNo API keys required to get started.`,

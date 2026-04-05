@@ -41,7 +41,7 @@ const THREADS: Thread[] = [
         text: `3/ Architecture: no database.\n\nAll data lives in JSON files:\n• /data/signals.json — signal history\n• /data/alerts.json — price alerts\n• /data/api-keys.json — rate limits\n• /data/webhooks.json — webhook config\n\nFor self-hosters, this is ideal. One \`git clone\` and it just works.`,
       },
       {
-        text: `4/ Developer-first from day one:\n\n• REST API with API keys + rate limiting\n• \`npx tradeclaw signals\` CLI\n• JS SDK: \`npm install tradeclaw-js\`\n• MCP server (Claude Desktop compatible)\n• Plugin system (custom indicators as JS)\n• Webhook marketplace (Discord/Slack/Zapier)`,
+        text: `4/ Developer-first from day one:\n\n• REST API with API keys + rate limiting\n• \`npx @naimkatiman/tradeclaw signals\` CLI\n• JS SDK: \`npm install @naimkatiman/tradeclaw-js\`\n• MCP server (Claude Desktop compatible)\n• Plugin system (custom indicators as JS)\n• Webhook marketplace (Discord/Slack/Zapier)`,
       },
       {
         text: `5/ Deploy in 2 minutes:\n\n\`\`\`bash\ngit clone ${REPO_URL}\ncd tradeclaw\ndocker compose up\n\`\`\`\n\nOr one click:\n→ Railway\n→ Vercel\n\nNo API keys needed. Live prices via public Binance endpoints.`,
@@ -131,7 +131,7 @@ const THREADS: Thread[] = [
         text: `2/ The features that matter most:\n\n📊 5-indicator confluence signals\n🤖 Telegram bot alerts\n🎮 Paper trading simulator\n📈 Backtest engine with charts\n📡 RSS/Atom signal feed\n🔌 Custom indicator plugins\n\nAll in one self-hosted dashboard.`,
       },
       {
-        text: `3/ For developers:\n\n\`\`\`bash\n# CLI\nnpx tradeclaw signals --pair BTCUSD\n\n# SDK\nnpm install tradeclaw-js\n\n# MCP (Claude Desktop)\n{ "command": "npx", "args": ["tradeclaw-mcp"] }\n\`\`\`\n\nFull REST API + Swagger docs at /api-docs.`,
+        text: `3/ For developers:\n\n\`\`\`bash\n# CLI\nnpx @naimkatiman/tradeclaw signals --pair BTCUSD\n\n# SDK\nnpm install @naimkatiman/tradeclaw-js\n\n# MCP (Claude Desktop)\n{ "command": "npx", "args": ["@naimkatiman/tradeclaw-mcp"] }\n\`\`\`\n\nFull REST API + Swagger docs at /api-docs.`,
       },
       {
         text: `4/ Deploy in literally 2 minutes:\n\n\`\`\`bash\ngit clone ${REPO_URL}\ndocker compose up\n\`\`\`\n\nOr click these buttons:\n→ Railway (free tier)\n→ Vercel\n\nNo API keys required to get started.`,

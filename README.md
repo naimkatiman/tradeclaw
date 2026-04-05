@@ -34,7 +34,7 @@
 ## Try it now — no install
 
 ```bash
-npx tradeclaw-demo
+npx @naimkatiman/tradeclaw-demo
 ```
 
 Opens a full live demo at `http://localhost:3001` — signals, leaderboard, backtest, all running locally.
@@ -89,12 +89,47 @@ Embed live BTC/ETH/Gold signals in any README — auto-refresh every 5 min, no A
 [![ETH Signal](https://tradeclaw.win/api/badge/ETHUSD)](https://tradeclaw.win)
 ```
 
-## CLI
+## Packages
+
+All packages are published to [GitHub Packages](https://github.com/naimkatiman/tradeclaw/packages).
+
+**Setup** — add to your project's `.npmrc`:
+
+```
+@naimkatiman:registry=https://npm.pkg.github.com
+```
+
+Then install:
 
 ```bash
-npx tradeclaw signals --pair BTCUSD --limit 5
-npx tradeclaw leaderboard --period 30d
-npx tradeclaw health
+npm install @naimkatiman/tradeclaw           # CLI
+npm install @naimkatiman/tradeclaw-js        # JS/TS SDK
+npm install @naimkatiman/tradeclaw-agent     # Self-hosted agent
+npm install @naimkatiman/tradeclaw-mcp       # MCP server for AI assistants
+npm install @naimkatiman/tradeclaw-discord   # Discord bot
+npm install @naimkatiman/tradeclaw-demo      # Local demo
+npx @naimkatiman/create-tradeclaw            # Scaffold a new instance
+```
+
+### CLI
+
+```bash
+npx @naimkatiman/tradeclaw signals --pair BTCUSD --limit 5
+npx @naimkatiman/tradeclaw leaderboard --period 30d
+npx @naimkatiman/tradeclaw health
+```
+
+### MCP Server (Claude Desktop)
+
+```json
+{
+  "mcpServers": {
+    "tradeclaw": {
+      "command": "npx",
+      "args": ["@naimkatiman/tradeclaw-mcp"]
+    }
+  }
+}
 ```
 
 ## GitHub Action
