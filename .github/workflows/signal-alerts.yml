@@ -47,8 +47,10 @@ jobs:
 
           bot_token = os.environ['TELEGRAM_BOT_TOKEN']
           channel_id = os.environ['TELEGRAM_CHANNEL_ID']
+          cron_secret = os.environ['CRON_SECRET']
 
-          def send_message(text: str):
+          def send_message(text: str) -> int:
+              """Send Telegram message, return message_id."""
               body = json.dumps({
                   'chat_id': channel_id,
                   'text': text,
@@ -64,7 +66,31 @@ jobs:
                   result = json.load(resp)
               if not result.get('ok'):
                   raise SystemExit(f'Telegram send failed: {result}')
-              print('Sent immediate alert:', result['result']['message_id'])
+              msg_id = result['result']['message_id']
+              print(f'Sent immediate alert: {msg_id}')
+              return msg_id
+
+          def mark_telegram_posted(signal_id: str, message_id: int):
+              """Callback to mark signal as posted in DB."""
+              try:
+                  body = json.dumps({
+                      'signalId': signal_id,
+                      'messageId': message_id,
+                  }).encode('utf-8')
+                  req = urllib.request.Request(
+                      'https://tradeclaw.win/api/cron/signals',
+                      data=body,
+                      headers={
+                          'Content-Type': 'application/json',
+                          'Authorization': f'Bearer {cron_secret}',
+                      },
+                      method='POST',
+                  )
+                  with urllib.request.urlopen(req, timeout=10) as resp:
+                      result = json.load(resp)
+                  print(f'  Marked {signal_id} as posted: {result}')
+              except Exception as e:
+                  print(f'  Warning: failed to mark {signal_id} as posted: {e}')
 
           for signal in new_signals:
               emoji = '📈' if signal.get('direction') == 'BUY' else '📉'
@@ -80,5 +106,10 @@ jobs:
                   'tradeclaw.win',
                   '⚠️ Not financial advice. DYOR.',
               ])
-              send_message(text)
+              msg_id = send_message(text)
+
+              # Write back to DB so track record knows this was posted
+              signal_id = signal.get('id', '')
+              if signal_id:
+                  mark_telegram_posted(signal_id, msg_id)
           PY

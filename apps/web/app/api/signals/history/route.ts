@@ -1,28 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readHistory, resolveRealOutcomes } from '../../../../lib/signal-history';
+import { readHistoryAsync, resolveRealOutcomes } from '../../../../lib/signal-history';
 
 export async function GET(request: NextRequest) {
   try {
-    // Resolve real outcomes for any pending non-simulated records
     await resolveRealOutcomes();
     const { searchParams } = new URL(request.url);
 
     const pair = searchParams.get('pair')?.toUpperCase();
     const direction = searchParams.get('direction')?.toUpperCase() as 'BUY' | 'SELL' | undefined;
-    const outcome = searchParams.get('outcome'); // 'win' | 'loss' | 'pending'
+    const outcome = searchParams.get('outcome');
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 200);
     const offset = parseInt(searchParams.get('offset') ?? '0');
 
-    let records = readHistory();
+    let records = await readHistoryAsync();
 
-    // Filters
     if (pair) records = records.filter(r => r.pair === pair);
     if (direction === 'BUY' || direction === 'SELL') records = records.filter(r => r.direction === direction);
     if (outcome === 'win') records = records.filter(r => r.outcomes['24h']?.hit === true);
     if (outcome === 'loss') records = records.filter(r => r.outcomes['24h']?.hit === false);
     if (outcome === 'pending') records = records.filter(r => !r.outcomes['24h']);
 
-    // Sort order: default is timestamp desc, 'resolved-first' prioritizes resolved signals
     const sort = searchParams.get('sort');
     if (sort === 'resolved-first') {
       const resolved = records.filter(r => r.outcomes['24h'] !== null).sort((a, b) => b.timestamp - a.timestamp);
@@ -35,7 +32,6 @@ export async function GET(request: NextRequest) {
     const total = records.length;
     const page = records.slice(offset, offset + limit);
 
-    // Compute aggregate stats — exclude simulated seed data
     const resolved = records.filter(r => r.outcomes['24h'] && !r.isSimulated);
     const wins = resolved.filter(r => r.outcomes['24h']!.hit);
     const totalPnl = resolved.reduce((sum, r) => sum + (r.outcomes['24h']?.pnlPct ?? 0), 0);
@@ -43,7 +39,6 @@ export async function GET(request: NextRequest) {
       ? records.reduce((sum, r) => sum + r.confidence, 0) / records.length
       : 0;
 
-    // Best signal by P&L %
     let bestSignal: { pair: string; pnlPct: number } | null = null;
     for (const r of resolved) {
       const pnl = r.outcomes['24h']?.pnlPct ?? 0;
@@ -52,7 +47,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Current streak (win/loss) — sorted newest first
     const sortedResolved = [...resolved].sort((a, b) => b.timestamp - a.timestamp);
     let streak = 0;
     if (sortedResolved.length > 0) {

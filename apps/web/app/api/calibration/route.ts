@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readHistory } from '@/lib/signal-history';
+import { readHistoryAsync } from '@/lib/signal-history';
 
 export const revalidate = 300; // 5-min cache
 
@@ -24,7 +24,7 @@ const BUCKETS = [
 
 export async function GET() {
   try {
-    const history = readHistory();
+    const history = await readHistoryAsync();
     // Only use resolved signals with 24h outcomes
     const resolved = history.filter(
       (s) => s.outcomes['24h'] !== null && s.confidence >= 0.5

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { readHistory } from '../../../../lib/signal-history';
+import { readHistoryAsync } from '../../../../lib/signal-history';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 60;
 
 export async function GET() {
   try {
-    const history = readHistory();
+    const history = await readHistoryAsync();
     const now = Date.now();
     const oneHour = 60 * 60 * 1000;
     const oneDay = 24 * oneHour;

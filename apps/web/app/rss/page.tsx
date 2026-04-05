@@ -1,4 +1,4 @@
-import { readHistory, type SignalHistoryRecord } from '../../lib/signal-history';
+import { readHistoryAsync, type SignalHistoryRecord } from '../../lib/signal-history';
 import { RSSClient } from './RSSClient';
 
 export const metadata = {
@@ -7,8 +7,8 @@ export const metadata = {
     'Subscribe to TradeClaw live trading signals via RSS, Atom, or JSON Feed. Get AI-generated forex, crypto, and metals signals in your favorite RSS reader.',
 };
 
-export default function RSSPage() {
-  const history = readHistory();
+export default async function RSSPage() {
+  const history = await readHistoryAsync();
   const recentSignals: SignalHistoryRecord[] = history.slice(0, 10);
   return <RSSClient recentSignals={recentSignals} />;
 }

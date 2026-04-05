@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readHistory, computeLeaderboard, resolveRealOutcomes } from "../../../../lib/signal-history";
+import { readHistoryAsync, computeLeaderboard, resolveRealOutcomes } from "../../../../lib/signal-history";
 
 export const runtime = "nodejs";
 
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
   try {
     await resolveRealOutcomes();
-    const history = readHistory();
+    const history = await readHistoryAsync();
     const data = computeLeaderboard(history, period);
     const assets = data.assets ?? [];
 

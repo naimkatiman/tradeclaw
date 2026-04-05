@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readHistory } from '../../../../lib/signal-history';
+import { readHistoryAsync } from '../../../../lib/signal-history';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let records = readHistory();
+    let records = await readHistoryAsync();
 
     // Apply filters
     if (body.pair) {

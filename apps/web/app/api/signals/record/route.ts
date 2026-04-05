@@ -1,20 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getSignals } from '../../../lib/signals';
 import {
-  recordSignal,
-  getRecentRecordForSymbol,
+  recordSignalAsync,
+  getRecentRecordForSymbolAsync,
 } from '../../../../lib/signal-history';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 
-/**
- * POST /api/signals/record
- *
- * Generate current signals via the real TA engine, then persist every
- * published signal that does not already have a recent
- * duplicate (same symbol + direction within the last 2 hours).
- */
 export async function POST(): Promise<Response> {
   try {
     const { signals } = await getSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
@@ -22,16 +15,14 @@ export async function POST(): Promise<Response> {
     let recorded = 0;
 
     for (const sig of signals) {
-      // Skip synthetic / fallback signals
       if (sig.dataQuality !== 'real') continue;
 
-      // De-duplicate: skip if a record for this symbol + direction exists within 2h
-      const existing = getRecentRecordForSymbol(sig.symbol, sig.direction, TWO_HOURS_MS);
+      const existing = await getRecentRecordForSymbolAsync(sig.symbol, sig.direction, TWO_HOURS_MS);
       if (existing) continue;
 
       const id = `${sig.symbol}-${sig.timeframe}-${Date.now()}`;
 
-      recordSignal(
+      await recordSignalAsync(
         sig.symbol,
         sig.timeframe,
         sig.direction,
@@ -54,6 +45,5 @@ export async function POST(): Promise<Response> {
 }
 
 export async function GET(): Promise<Response> {
-  // Allow GET for easy testing — delegates to POST logic
   return POST();
 }

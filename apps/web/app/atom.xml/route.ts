@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readHistory } from '../../lib/signal-history';
+import { readHistoryAsync } from '../../lib/signal-history';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://tradeclaw.win';
 
@@ -22,7 +22,7 @@ function toIso(ts: number): string {
 }
 
 export async function GET() {
-  const history = readHistory();
+  const history = await readHistoryAsync();
   const signals = history.slice(0, 50);
   const updated =
     signals.length > 0 ? toIso(signals[0].timestamp) : new Date().toISOString();

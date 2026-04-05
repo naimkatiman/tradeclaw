@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readHistory } from '../../../lib/signal-history';
+import { readHistoryAsync } from '../../../lib/signal-history';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 60;
@@ -15,19 +15,18 @@ export interface ProofSignal {
   sl?: number;
   timestamp: number;
   isSimulated: boolean;
+  telegramPostedAt?: number;
   outcome4h: {
     resolved: boolean;
     hit: boolean | null;
     price: number | null;
     pnlPct: number | null;
-    resolvedAt?: number;
   };
   outcome24h: {
     resolved: boolean;
     hit: boolean | null;
     price: number | null;
     pnlPct: number | null;
-    resolvedAt?: number;
   };
 }
 
@@ -45,16 +44,10 @@ export interface ProofStats {
   lastUpdated: number;
 }
 
-export interface ProofResponse {
-  stats: ProofStats;
-  signals: ProofSignal[];
-}
-
 export async function GET() {
   try {
-    const history = readHistory();
+    const history = await readHistoryAsync();
 
-    // Filter: only non-simulated (real) signals
     const realSignals = history.filter((r) => r.isSimulated === false);
 
     const mapped: ProofSignal[] = realSignals.map((r) => {
@@ -72,6 +65,7 @@ export async function GET() {
         sl: r.sl,
         timestamp: r.timestamp,
         isSimulated: r.isSimulated ?? false,
+        telegramPostedAt: r.telegramPostedAt,
         outcome4h: {
           resolved: o4h !== null,
           hit: o4h ? o4h.hit : null,
@@ -87,7 +81,6 @@ export async function GET() {
       };
     });
 
-    // Compute stats
     const resolved4h = mapped.filter((s) => s.outcome4h.resolved);
     const resolved24h = mapped.filter((s) => s.outcome24h.resolved);
     const wins4h = resolved4h.filter((s) => s.outcome4h.hit === true);
@@ -105,7 +98,6 @@ export async function GET() {
         (s.outcome24h.resolved && s.outcome24h.hit === false),
     );
 
-    // Running P&L from resolved 24h outcomes
     const pnlValues = resolved24h
       .map((s) => s.outcome24h.pnlPct ?? 0)
       .filter((v) => v !== 0);
@@ -143,7 +135,7 @@ export async function GET() {
 
     return NextResponse.json({ stats, signals: mapped.slice(0, 200) });
   } catch (err) {
-    console.error('proof API error', err);
-    return NextResponse.json({ error: 'Failed to load proof data' }, { status: 500 });
+    const message = err instanceof Error ? err.message : 'Failed to load proof data';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

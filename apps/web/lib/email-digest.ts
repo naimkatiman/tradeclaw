@@ -1,4 +1,4 @@
-import { readHistory, computeLeaderboard } from './signal-history';
+import { readHistoryAsync, computeLeaderboard } from './signal-history';
 import { TRADECLAW_LOGO_SVG } from '../components/tradeclaw-logo';
 
 export interface EmailDigestSignal {
@@ -44,11 +44,11 @@ function formatPrice(price: number): string {
   return price.toFixed(5);
 }
 
-export function getEmailDigestData(options: EmailDigestOptions = {}): EmailDigestData {
+export async function getEmailDigestData(options: EmailDigestOptions = {}): Promise<EmailDigestData> {
   const period = options.period ?? '7d';
   const topN = options.topN ?? 5;
 
-  const history = readHistory();
+  const history = await readHistoryAsync();
   const leaderboard = computeLeaderboard(history, period, 'hitRate');
 
   const now = Date.now();
@@ -92,8 +92,8 @@ export function getEmailDigestData(options: EmailDigestOptions = {}): EmailDiges
   };
 }
 
-export function generateEmailDigest(options: EmailDigestOptions = {}): string {
-  const data = getEmailDigestData(options);
+export async function generateEmailDigest(options: EmailDigestOptions = {}): Promise<string> {
+  const data = await getEmailDigestData(options);
 
   const topPair = data.leaderboard[0]?.pair ?? '—';
   const avgConfidence = data.topSignals.length > 0

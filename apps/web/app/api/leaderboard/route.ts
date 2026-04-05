@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readHistory, computeLeaderboard, resolveRealOutcomes } from '../../../lib/signal-history';
+import { readHistoryAsync, computeLeaderboard, resolveRealOutcomes } from '../../../lib/signal-history';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     const pairFilter = searchParams.get('pair')?.toUpperCase();
 
-    const history = readHistory();
+    const history = await readHistoryAsync();
     const data = computeLeaderboard(history, period, sortBy);
 
     if (pairFilter) {
@@ -27,7 +27,6 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: `No data for pair: ${pairFilter}` }, { status: 404 });
       }
 
-      // Return full signal history for this pair
       const pairRecords = history
         .filter(r => r.pair === pairFilter)
         .slice(0, 50);

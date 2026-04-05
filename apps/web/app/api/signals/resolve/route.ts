@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getOHLCV } from '../../../lib/ohlcv';
 import {
-  getPendingRecords,
-  updateRecords,
+  getPendingRecordsAsync,
+  updateRecordsAsync,
   type SignalHistoryRecord,
   type SignalOutcome,
 } from '../../../../lib/signal-history';
@@ -55,7 +55,7 @@ function resolveWindow(
  */
 export async function POST(): Promise<Response> {
   try {
-    const pending = getPendingRecords();
+    const pending = await getPendingRecordsAsync();
     const now = Date.now();
 
     const updates: Array<{ id: string; patch: Partial<SignalHistoryRecord> }> = [];
@@ -114,7 +114,7 @@ export async function POST(): Promise<Response> {
       }
     }
 
-    const resolved = updateRecords(updates);
+    const resolved = await updateRecordsAsync(updates);
     const stillPending = pending.length - resolved;
 
     return NextResponse.json({ resolved, stillPending });

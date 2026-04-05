@@ -3,11 +3,12 @@ import { getSignals } from '../../../lib/signals';
 import { getOHLCV } from '../../../lib/ohlcv';
 import { isMarketOpen } from '../../../lib/market-hours';
 import {
-  recordSignal,
-  getRecentRecordForSymbol,
-  getPendingRecords,
+  recordSignalAsync,
+  getRecentRecordForSymbolAsync,
+  getPendingRecordsAsync,
   getOutcomeResolutionTimeframe,
-  updateRecords,
+  updateRecordsAsync,
+  markTelegramPosted,
   type SignalHistoryRecord,
   type SignalOutcome,
 } from '../../../../lib/signal-history';
@@ -21,9 +22,7 @@ const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
 function isAuthorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
-  // If CRON_SECRET is not set, allow unauthenticated access (dev mode)
   if (!secret) return true;
-
   const header = request.headers.get('authorization');
   return header === `Bearer ${secret}`;
 }
@@ -48,16 +47,14 @@ async function recordNewSignals(): Promise<NewlyRecordedSignal[]> {
 
   for (const sig of signals) {
     if (sig.dataQuality !== 'real') continue;
-
-    // Skip signals for markets that are currently closed (e.g. forex on weekends)
     if (!isMarketOpen(sig.symbol)) continue;
 
-    const existing = getRecentRecordForSymbol(sig.symbol, sig.direction, TWO_HOURS_MS);
+    const existing = await getRecentRecordForSymbolAsync(sig.symbol, sig.direction, TWO_HOURS_MS);
     if (existing) continue;
 
     const timestamp = Date.now();
     const id = `${sig.symbol}-${sig.timeframe}-${timestamp}`;
-    recordSignal(
+    await recordSignalAsync(
       sig.symbol,
       sig.timeframe,
       sig.direction,
@@ -118,7 +115,7 @@ function resolveWindow(
 }
 
 async function resolveOldSignals(): Promise<{ resolved: number; pending: number }> {
-  const pending = getPendingRecords();
+  const pending = await getPendingRecordsAsync();
   const now = Date.now();
   const updates: Array<{ id: string; patch: Partial<SignalHistoryRecord> }> = [];
 
@@ -143,10 +140,7 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number 
           c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
         );
         const result = resolveWindow(record, window);
-        if (result) {
-          newOutcomes['4h'] = result;
-          changed = true;
-        }
+        if (result) { newOutcomes['4h'] = result; changed = true; }
       }
 
       if (needs24h) {
@@ -155,25 +149,32 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number 
           c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
         );
         const result = resolveWindow(record, window);
-        if (result) {
-          newOutcomes['24h'] = result;
-          changed = true;
-        }
+        if (result) { newOutcomes['24h'] = result; changed = true; }
       }
 
       if (changed) {
-        updates.push({
-          id: record.id,
-          patch: { outcomes: newOutcomes, lastVerified: now },
-        });
+        updates.push({ id: record.id, patch: { outcomes: newOutcomes, lastVerified: now } });
       }
-    } catch {
-      // Skip if OHLCV fetch fails for this symbol
-    }
+    } catch { /* skip */ }
   }
 
-  const resolved = updateRecords(updates);
+  const resolved = await updateRecordsAsync(updates);
   return { resolved, pending: pending.length - resolved };
+}
+
+// ── Telegram posted callback ──────────────────────────────────
+
+async function handleTelegramCallback(request: NextRequest): Promise<Response> {
+  try {
+    const body = await request.json() as { signalId?: string; messageId?: number };
+    if (body.signalId && body.messageId) {
+      await markTelegramPosted(body.signalId, body.messageId);
+      return NextResponse.json({ ok: true, marked: body.signalId });
+    }
+    return NextResponse.json({ error: 'Missing signalId or messageId' }, { status: 400 });
+  } catch {
+    return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
+  }
 }
 
 // ── Route handler ─────────────────────────────────────────────
@@ -202,5 +203,21 @@ export async function GET(request: NextRequest): Promise<Response> {
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // If body has signalId + messageId, it's a telegram posted callback
+  const contentType = request.headers.get('content-type') ?? '';
+  if (contentType.includes('application/json')) {
+    const cloned = request.clone();
+    try {
+      const body = await cloned.json() as Record<string, unknown>;
+      if (body.signalId && body.messageId) {
+        return handleTelegramCallback(request);
+      }
+    } catch { /* not JSON or no signalId — fall through to normal cron */ }
+  }
+
   return GET(request);
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readHistory, type SignalHistoryRecord } from '../../../../lib/signal-history';
+import { readHistoryAsync, type SignalHistoryRecord } from '../../../../lib/signal-history';
 
 export interface EquityPoint {
   timestamp: number;
@@ -78,7 +78,7 @@ function computeEquityCurve(records: SignalHistoryRecord[]): {
 
 export async function GET() {
   try {
-    const records = readHistory();
+    const records = await readHistoryAsync();
     const { points, summary } = computeEquityCurve(records);
 
     return NextResponse.json({ points, summary });

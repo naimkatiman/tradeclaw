@@ -12,11 +12,11 @@ export async function GET(request: NextRequest) {
     const period: '7d' | '30d' = rawPeriod === '30d' ? '30d' : '7d';
 
     if (format === 'json') {
-      const data = getEmailDigestData({ period });
+      const data = await getEmailDigestData({ period });
       return NextResponse.json(data);
     }
 
-    const html = generateEmailDigest({ period });
+    const html = await generateEmailDigest({ period });
     return new Response(html, {
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
     });

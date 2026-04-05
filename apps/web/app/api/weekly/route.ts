@@ -5,7 +5,7 @@ export const revalidate = 3600;
 
 export async function GET() {
   try {
-    const digest = getWeeklyDigest();
+    const digest = await getWeeklyDigest();
     return NextResponse.json(digest, {
       headers: { 'Access-Control-Allow-Origin': '*' },
     });
