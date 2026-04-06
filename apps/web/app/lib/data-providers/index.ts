@@ -60,6 +60,11 @@ export {
 } from './swissquote';
 
 export {
+  fetchStooqOHLCV,
+  isStooqSymbol,
+} from './stooq';
+
+export {
   fetchTradingViewPrices,
   isTradingViewSymbol,
   getTVCommoditySymbols,

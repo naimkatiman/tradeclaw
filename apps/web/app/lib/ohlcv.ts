@@ -1,12 +1,12 @@
 /**
  * OHLCV Data Fetcher — fetches historical candle data from free APIs
  * Crypto: Binance → Kraken → CryptoCompare (fallback chain)
- * Forex/Metals: Yahoo Finance → Twelve Data (fallback chain)
+ * Forex/Metals: Stooq (free CSV) → Kraken → synthetic (fallback chain)
  */
 
-import { fetchKrakenOHLCV, fetchCryptoCompareOHLCV, fetchTwelveDataOHLCV, fetchOandaOHLCV, isOandaSymbol } from './data-providers';
+import { fetchKrakenOHLCV, fetchCryptoCompareOHLCV, fetchStooqOHLCV, isStooqSymbol } from './data-providers';
 
-export type OHLCVSource = 'binance' | 'oanda' | 'yahoo' | 'kraken' | 'cryptocompare' | 'twelvedata' | 'synthetic';
+export type OHLCVSource = 'binance' | 'stooq' | 'kraken' | 'cryptocompare' | 'synthetic';
 
 export interface OHLCV {
   timestamp: number;
@@ -33,33 +33,12 @@ const BINANCE_SYMBOLS: Record<string, string> = {
   MATICUSD: 'MATICUSDT',
 };
 
-// Yahoo Finance symbols for forex/metals
-const YAHOO_SYMBOLS: Record<string, string> = {
-  XAUUSD: 'GC=F',       // Gold futures
-  XAGUSD: 'SI=F',       // Silver futures
-  EURUSD: 'EURUSD=X',
-  GBPUSD: 'GBPUSD=X',
-  USDJPY: 'JPY=X',
-  AUDUSD: 'AUDUSD=X',
-  USDCAD: 'CAD=X',
-  NZDUSD: 'NZDUSD=X',
-  USDCHF: 'CHF=X',
-};
-
 // Timeframe → Binance interval mapping
 const BINANCE_INTERVALS: Record<string, string> = {
   M15: '15m',
   H1: '1h',
   H4: '4h',
   D1: '1d',
-};
-
-// Timeframe → Yahoo Finance interval + range
-const YAHOO_CONFIG: Record<string, { interval: string; range: string }> = {
-  M15: { interval: '15m', range: '5d' },
-  H1: { interval: '1h', range: '30d' },
-  H4: { interval: '1h', range: '90d' }, // Yahoo doesn't have 4h, we'll aggregate
-  D1: { interval: '1d', range: '1y' },
 };
 
 // In-memory cache with TTL
@@ -118,76 +97,6 @@ async function fetchBinanceOHLCV(symbol: string, timeframe: string): Promise<OHL
     close: parseFloat(candle[4] as string),
     volume: parseFloat(candle[5] as string),
   }));
-}
-
-/**
- * Fetch OHLCV from Yahoo Finance chart API
- */
-async function fetchYahooOHLCV(symbol: string, timeframe: string): Promise<OHLCV[]> {
-  const yahooSymbol = YAHOO_SYMBOLS[symbol];
-  const config = YAHOO_CONFIG[timeframe];
-  if (!yahooSymbol || !config) return [];
-
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?interval=${config.interval}&range=${config.range}`;
-  
-  try {
-    const res = await fetch(url, {
-      signal: AbortSignal.timeout(10000),
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-    });
-    if (!res.ok) return [];
-    
-    const json = await res.json() as {
-      chart: {
-        result: Array<{
-          timestamp: number[];
-          indicators: {
-            quote: Array<{
-              open: (number | null)[];
-              high: (number | null)[];
-              low: (number | null)[];
-              close: (number | null)[];
-              volume: (number | null)[];
-            }>;
-          };
-        }>;
-      };
-    };
-    
-    const result = json?.chart?.result?.[0];
-    if (!result?.timestamp) return [];
-    
-    const { timestamp: timestamps } = result;
-    const quote = result.indicators.quote[0];
-    
-    const candles: OHLCV[] = [];
-    for (let i = 0; i < timestamps.length; i++) {
-      const o = quote.open[i];
-      const h = quote.high[i];
-      const l = quote.low[i];
-      const c = quote.close[i];
-      const v = quote.volume[i];
-      if (o != null && h != null && l != null && c != null) {
-        candles.push({
-          timestamp: timestamps[i] * 1000,
-          open: o,
-          high: h,
-          low: l,
-          close: c,
-          volume: v ?? 0,
-        });
-      }
-    }
-    
-    // For H4 timeframe, aggregate 1h candles into properly boundary-aligned 4h candles
-    if (timeframe === 'H4') {
-      return aggregateCandles(candles, 4, 4 * 3600 * 1000);
-    }
-    
-    return candles;
-  } catch {
-    return [];
-  }
 }
 
 /**
@@ -294,68 +203,70 @@ const FALLBACK_CONFIG: Record<string, { basePrice: number; volatility: number }>
 
 /**
  * Main entry point — fetch OHLCV data for a symbol and timeframe
- * Returns at least 200 candles when possible
+ * Crypto: Binance → Kraken → CryptoCompare
+ * Forex/Metals: Stooq (free CSV, no key)
+ * Last resort: synthetic
  */
 export async function getOHLCV(symbol: string, timeframe: string = 'H1'): Promise<{ candles: OHLCV[]; source: OHLCVSource }> {
   const cacheKey = getCacheKey(symbol, timeframe);
   const cached = getFromCache(cacheKey);
   if (cached) {
-    const source: OHLCVSource = BINANCE_SYMBOLS[symbol] ? 'binance' : isOandaSymbol(symbol) ? 'oanda' : YAHOO_SYMBOLS[symbol] ? 'yahoo' : 'synthetic';
+    const source: OHLCVSource = BINANCE_SYMBOLS[symbol] ? 'binance' : isStooqSymbol(symbol) ? 'stooq' : 'synthetic';
     return { candles: cached, source };
   }
 
   let candles: OHLCV[] = [];
   let source: OHLCVSource = 'synthetic';
 
-  try {
-    if (BINANCE_SYMBOLS[symbol]) {
+  // ── Crypto: Binance → Kraken → CryptoCompare ──────────────
+  if (BINANCE_SYMBOLS[symbol]) {
+    try {
       candles = await fetchBinanceOHLCV(symbol, timeframe);
       if (candles.length > 0) source = 'binance';
-    } else if (isOandaSymbol(symbol)) {
-      // OANDA first for forex/metals (requires API token)
-      candles = await fetchOandaOHLCV(symbol, timeframe);
-      if (candles.length > 0) source = 'oanda';
-
-      // Fallback to Yahoo if OANDA unavailable or returned insufficient data
-      if (candles.length < 50 && YAHOO_SYMBOLS[symbol]) {
-        candles = await fetchYahooOHLCV(symbol, timeframe);
-        if (candles.length > 0) source = 'yahoo';
-      }
-    } else if (YAHOO_SYMBOLS[symbol]) {
-      candles = await fetchYahooOHLCV(symbol, timeframe);
-      if (candles.length > 0) source = 'yahoo';
+    } catch {
+      // fall through
     }
-  } catch {
-    // Fall through to fallback providers
-  }
 
-  // Fallback chain: Kraken → CryptoCompare (crypto), Twelve Data (forex/metals)
-  if (candles.length < 50) {
-    try {
-      if (BINANCE_SYMBOLS[symbol]) {
+    if (candles.length < 50) {
+      try {
         candles = await fetchKrakenOHLCV(symbol, timeframe);
         if (candles.length > 0) source = 'kraken';
+      } catch {
+        // fall through
+      }
+    }
 
-        if (candles.length < 50) {
-          candles = await fetchCryptoCompareOHLCV(symbol, timeframe);
-          if (candles.length > 0) source = 'cryptocompare';
-        }
-      } else if (YAHOO_SYMBOLS[symbol]) {
-        const tfMap: Record<string, '15min' | '1h' | '4h' | '1day'> = {
-          M15: '15min', H1: '1h', H4: '4h', D1: '1day',
-        };
-        const tdInterval = tfMap[timeframe];
-        if (tdInterval) {
-          candles = await fetchTwelveDataOHLCV(symbol, tdInterval);
-          if (candles.length > 0) source = 'twelvedata';
+    if (candles.length < 50) {
+      try {
+        candles = await fetchCryptoCompareOHLCV(symbol, timeframe);
+        if (candles.length > 0) source = 'cryptocompare';
+      } catch {
+        // fall through
+      }
+    }
+  }
+
+  // ── Forex/Metals: Stooq (free, no API key) ────────────────
+  if (candles.length < 50 && isStooqSymbol(symbol)) {
+    try {
+      const lookback = timeframe === 'M15' ? 7 : timeframe === 'D1' ? 365 : 30;
+      candles = await fetchStooqOHLCV(symbol, timeframe, lookback);
+      if (candles.length > 0) source = 'stooq';
+
+      // For H4: aggregate H1 candles from Stooq
+      if (candles.length < 50 && timeframe === 'H4') {
+        candles = await fetchStooqOHLCV(symbol, 'H1', 60);
+        if (candles.length > 0) {
+          candles = aggregateCandles(candles, 4, 4 * 3600 * 1000);
+          source = 'stooq';
         }
       }
     } catch {
-      // Fall through to synthetic
+      // fall through
     }
   }
 
-  // Fallback to synthetic if all APIs fail
+  // ── Last resort: synthetic ─────────────────────────────────
   if (candles.length < 50) {
     const config = FALLBACK_CONFIG[symbol];
     if (config) {
