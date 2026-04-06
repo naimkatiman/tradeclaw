@@ -289,7 +289,7 @@ export function recordSignals(signals: TrackedSignalInput[]): number {
 
 // ── Outcome resolution ───────────────────────────────────────
 
-function resolveFromCandles(r: SignalHistoryRecord, candles: OHLCV[]): SignalOutcome | null {
+function resolveFromCandles(r: SignalHistoryRecord, candles: OHLCV[], windowComplete = false): SignalOutcome | null {
   if (!r.tp1 || !r.sl || candles.length === 0) return null;
 
   for (const candle of candles) {
@@ -313,6 +313,16 @@ function resolveFromCandles(r: SignalHistoryRecord, candles: OHLCV[]): SignalOut
       }
     }
   }
+
+  // Window fully elapsed but neither TP nor SL hit — close at last candle's price
+  if (windowComplete && candles.length > 0) {
+    const lastClose = candles[candles.length - 1].close;
+    const pnlPct = r.direction === 'BUY'
+      ? +((lastClose - r.entryPrice) / r.entryPrice * 100).toFixed(2)
+      : +((r.entryPrice - lastClose) / r.entryPrice * 100).toFixed(2);
+    return { price: lastClose, pnlPct, hit: pnlPct > 0 };
+  }
+
   return null;
 }
 
@@ -345,12 +355,12 @@ export async function resolveRealOutcomes(): Promise<void> {
         if (needs4h) {
           const windowEnd = r.timestamp + 4 * 3600 * 1000;
           const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-          outcome4h = resolveFromCandles(r, window);
+          outcome4h = resolveFromCandles(r, window, true);
         }
         if (needs24h) {
           const windowEnd = r.timestamp + 24 * 3600 * 1000;
           const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-          outcome24h = resolveFromCandles(r, window);
+          outcome24h = resolveFromCandles(r, window, true);
         }
 
         if ((needs4h && outcome4h) || (needs24h && outcome24h)) {
@@ -390,14 +400,14 @@ export async function resolveRealOutcomes(): Promise<void> {
       if (needs4h) {
         const windowEnd = r.timestamp + 4 * 3600 * 1000;
         const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-        r.outcomes['4h'] = resolveFromCandles(r, window);
+        r.outcomes['4h'] = resolveFromCandles(r, window, true);
         r.lastVerified = now;
         changed = true;
       }
       if (needs24h) {
         const windowEnd = r.timestamp + 24 * 3600 * 1000;
         const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-        r.outcomes['24h'] = resolveFromCandles(r, window);
+        r.outcomes['24h'] = resolveFromCandles(r, window, true);
         r.lastVerified = now;
         changed = true;
       }
@@ -410,10 +420,12 @@ export async function resolveRealOutcomes(): Promise<void> {
 
 export async function getPendingRecordsAsync(): Promise<SignalHistoryRecord[]> {
   if (useDb()) {
+    // Only look back 14 days — older signals lack candle data to resolve
     const rows = await query<HistoryRow>(
       `SELECT * FROM signal_history
        WHERE is_simulated = FALSE
          AND (outcome_4h IS NULL OR outcome_24h IS NULL)
+         AND created_at > NOW() - INTERVAL '14 days'
        ORDER BY created_at DESC`,
     );
     return rows.map(rowToRecord);

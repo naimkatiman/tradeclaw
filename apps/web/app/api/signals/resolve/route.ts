@@ -18,7 +18,8 @@ const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
  */
 function resolveWindow(
   record: SignalHistoryRecord,
-  candles: Array<{ high: number; low: number; timestamp: number }>,
+  candles: Array<{ high: number; low: number; close?: number; timestamp: number }>,
+  windowComplete: boolean,
 ): SignalOutcome | null {
   if (!record.tp1 || !record.sl) return null;
 
@@ -41,6 +42,17 @@ function resolveWindow(
         const pnlPct = +((record.entryPrice - record.sl) / record.entryPrice * 100).toFixed(2);
         return { price: record.sl, pnlPct, hit: false };
       }
+    }
+  }
+
+  // Window fully elapsed but neither TP nor SL hit — close at last candle's price
+  if (windowComplete && candles.length > 0) {
+    const lastClose = candles[candles.length - 1].close;
+    if (lastClose != null) {
+      const pnlPct = record.direction === 'BUY'
+        ? +((lastClose - record.entryPrice) / record.entryPrice * 100).toFixed(2)
+        : +((record.entryPrice - lastClose) / record.entryPrice * 100).toFixed(2);
+      return { price: lastClose, pnlPct, hit: pnlPct > 0 };
     }
   }
 
@@ -81,7 +93,7 @@ export async function POST(): Promise<Response> {
           const window = candles.filter(
             c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
           );
-          const result = resolveWindow(record, window);
+          const result = resolveWindow(record, window, true);
           if (result) {
             newOutcomes['4h'] = result;
             changed = true;
@@ -93,7 +105,7 @@ export async function POST(): Promise<Response> {
           const window = candles.filter(
             c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
           );
-          const result = resolveWindow(record, window);
+          const result = resolveWindow(record, window, true);
           if (result) {
             newOutcomes['24h'] = result;
             changed = true;

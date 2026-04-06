@@ -85,7 +85,8 @@ async function recordNewSignals(): Promise<NewlyRecordedSignal[]> {
 
 function resolveWindow(
   record: SignalHistoryRecord,
-  candles: Array<{ high: number; low: number }>,
+  candles: Array<{ high: number; low: number; close?: number }>,
+  windowComplete: boolean,
 ): SignalOutcome | null {
   if (!record.tp1 || !record.sl) return null;
 
@@ -110,6 +111,18 @@ function resolveWindow(
       }
     }
   }
+
+  // Window elapsed but neither TP nor SL hit — close at last candle's price
+  if (windowComplete && candles.length > 0) {
+    const lastClose = candles[candles.length - 1].close;
+    if (lastClose != null) {
+      const pnlPct = record.direction === 'BUY'
+        ? +((lastClose - record.entryPrice) / record.entryPrice * 100).toFixed(2)
+        : +((record.entryPrice - lastClose) / record.entryPrice * 100).toFixed(2);
+      return { price: lastClose, pnlPct, hit: pnlPct > 0 };
+    }
+  }
+
   return null;
 }
 
@@ -138,7 +151,7 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number 
         const window = candles.filter(
           c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
         );
-        const result = resolveWindow(record, window);
+        const result = resolveWindow(record, window, true);
         if (result) { newOutcomes['4h'] = result; changed = true; }
       }
 
@@ -147,7 +160,7 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number 
         const window = candles.filter(
           c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
         );
-        const result = resolveWindow(record, window);
+        const result = resolveWindow(record, window, true);
         if (result) { newOutcomes['24h'] = result; changed = true; }
       }
 
