@@ -71,6 +71,7 @@ export async function POST(): Promise<Response> {
     const now = Date.now();
 
     const updates: Array<{ id: string; patch: Partial<SignalHistoryRecord> }> = [];
+    const errors: string[] = [];
 
     for (const record of pending) {
       const age = now - record.timestamp;
@@ -82,54 +83,67 @@ export async function POST(): Promise<Response> {
       if (!needs4h && !needs24h) continue;
       if (!record.tp1 || !record.sl) continue;
 
+      let candles: Array<{ timestamp: number; high: number; low: number; close: number; open: number; volume: number }> = [];
+      let ohlcvFailed = false;
+
       try {
-        const { candles } = await getOHLCV(record.pair, 'H1');
+        const result = await getOHLCV(record.pair, 'H1');
+        candles = result.candles;
+      } catch (err) {
+        const msg = `OHLCV fetch failed for ${record.pair}: ${err instanceof Error ? err.message : String(err)}`;
+        console.error(`[signals/resolve] ${msg}`);
+        errors.push(msg);
+        ohlcvFailed = true;
+      }
 
-        const newOutcomes = { ...record.outcomes };
-        let changed = false;
+      const newOutcomes = { ...record.outcomes };
+      let changed = false;
 
-        if (needs4h) {
-          const windowEnd = record.timestamp + FOUR_HOURS_MS;
-          const window = candles.filter(
-            c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
-          );
-          const result = resolveWindow(record, window, true);
-          if (result) {
-            newOutcomes['4h'] = result;
-            changed = true;
-          }
+      if (needs4h) {
+        const windowEnd = record.timestamp + FOUR_HOURS_MS;
+        const window = candles.filter(
+          c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
+        );
+        const result = resolveWindow(record, window, true);
+        if (result) {
+          newOutcomes['4h'] = result;
+          changed = true;
+        } else if (ohlcvFailed && age >= FOUR_HOURS_MS * 2) {
+          newOutcomes['4h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
+          changed = true;
         }
+      }
 
-        if (needs24h) {
-          const windowEnd = record.timestamp + TWENTY_FOUR_HOURS_MS;
-          const window = candles.filter(
-            c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
-          );
-          const result = resolveWindow(record, window, true);
-          if (result) {
-            newOutcomes['24h'] = result;
-            changed = true;
-          }
+      if (needs24h) {
+        const windowEnd = record.timestamp + TWENTY_FOUR_HOURS_MS;
+        const window = candles.filter(
+          c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
+        );
+        const result = resolveWindow(record, window, true);
+        if (result) {
+          newOutcomes['24h'] = result;
+          changed = true;
+        } else if (ohlcvFailed && age >= TWENTY_FOUR_HOURS_MS * 2) {
+          newOutcomes['24h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
+          changed = true;
         }
+      }
 
-        if (changed) {
-          updates.push({
-            id: record.id,
-            patch: {
-              outcomes: newOutcomes,
-              lastVerified: now,
-            },
-          });
-        }
-      } catch {
-        // Skip this record if OHLCV fetch fails
+      if (changed) {
+        updates.push({
+          id: record.id,
+          patch: {
+            outcomes: newOutcomes,
+            lastVerified: now,
+          },
+        });
       }
     }
 
     const resolved = await updateRecordsAsync(updates);
     const stillPending = pending.length - resolved;
 
-    return NextResponse.json({ resolved, stillPending });
+    return NextResponse.json({ resolved, stillPending, errors: errors.length > 0 ? errors : undefined });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });

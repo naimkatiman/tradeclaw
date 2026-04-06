@@ -6,7 +6,6 @@ import {
   recordSignalAsync,
   getRecentRecordForSymbolAsync,
   getPendingRecordsAsync,
-  getOutcomeResolutionTimeframe,
   updateRecordsAsync,
   markTelegramPosted,
   type SignalHistoryRecord,
@@ -126,10 +125,11 @@ function resolveWindow(
   return null;
 }
 
-async function resolveOldSignals(): Promise<{ resolved: number; pending: number }> {
+async function resolveOldSignals(): Promise<{ resolved: number; pending: number; errors: string[] }> {
   const pending = await getPendingRecordsAsync();
   const now = Date.now();
   const updates: Array<{ id: string; patch: Partial<SignalHistoryRecord> }> = [];
+  const errors: string[] = [];
 
   for (const record of pending) {
     const age = now - record.timestamp;
@@ -138,40 +138,63 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number 
     if (!needs4h && !needs24h) continue;
     if (!record.tp1 || !record.sl) continue;
 
+    let candles: Array<{ timestamp: number; high: number; low: number; close: number; open: number; volume: number }> = [];
+    let ohlcvFailed = false;
+
     try {
-      const { candles } = await getOHLCV(
-        record.pair,
-        getOutcomeResolutionTimeframe(record.timeframe),
+      const result = await getOHLCV(record.pair, 'H1');
+      candles = result.candles;
+    } catch (err) {
+      const msg = `OHLCV fetch failed for ${record.pair}: ${err instanceof Error ? err.message : String(err)}`;
+      console.error(`[cron/signals] ${msg}`);
+      errors.push(msg);
+      ohlcvFailed = true;
+    }
+
+    const newOutcomes = { ...record.outcomes };
+    let changed = false;
+
+    if (needs4h) {
+      const windowEnd = record.timestamp + FOUR_HOURS_MS;
+      const window = candles.filter(
+        c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
       );
-      const newOutcomes = { ...record.outcomes };
-      let changed = false;
-
-      if (needs4h) {
-        const windowEnd = record.timestamp + FOUR_HOURS_MS;
-        const window = candles.filter(
-          c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
-        );
-        const result = resolveWindow(record, window, true);
-        if (result) { newOutcomes['4h'] = result; changed = true; }
+      const result = resolveWindow(record, window, true);
+      if (result) {
+        newOutcomes['4h'] = result;
+        changed = true;
+      } else if (ohlcvFailed && age >= FOUR_HOURS_MS * 2) {
+        // OHLCV unavailable and window long expired — mark as expired at entry price
+        newOutcomes['4h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
+        changed = true;
+        console.error(`[cron/signals] Force-expired 4h for ${record.id} (no OHLCV data)`);
       }
+    }
 
-      if (needs24h) {
-        const windowEnd = record.timestamp + TWENTY_FOUR_HOURS_MS;
-        const window = candles.filter(
-          c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
-        );
-        const result = resolveWindow(record, window, true);
-        if (result) { newOutcomes['24h'] = result; changed = true; }
+    if (needs24h) {
+      const windowEnd = record.timestamp + TWENTY_FOUR_HOURS_MS;
+      const window = candles.filter(
+        c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
+      );
+      const result = resolveWindow(record, window, true);
+      if (result) {
+        newOutcomes['24h'] = result;
+        changed = true;
+      } else if (ohlcvFailed && age >= TWENTY_FOUR_HOURS_MS * 2) {
+        // OHLCV unavailable and window long expired — mark as expired at entry price
+        newOutcomes['24h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
+        changed = true;
+        console.error(`[cron/signals] Force-expired 24h for ${record.id} (no OHLCV data)`);
       }
+    }
 
-      if (changed) {
-        updates.push({ id: record.id, patch: { outcomes: newOutcomes, lastVerified: now } });
-      }
-    } catch { /* skip */ }
+    if (changed) {
+      updates.push({ id: record.id, patch: { outcomes: newOutcomes, lastVerified: now } });
+    }
   }
 
   const resolved = await updateRecordsAsync(updates);
-  return { resolved, pending: pending.length - resolved };
+  return { resolved, pending: pending.length - resolved, errors };
 }
 
 // ── Telegram posted callback ──────────────────────────────────
@@ -198,7 +221,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
   try {
     const newSignals = await recordNewSignals();
-    const { resolved, pending } = await resolveOldSignals();
+    const { resolved, pending, errors } = await resolveOldSignals();
 
     return NextResponse.json({
       ok: true,
@@ -206,6 +229,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       newSignals,
       resolved,
       pending,
+      errors: errors.length > 0 ? errors : undefined,
       timestamp: new Date().toISOString(),
     });
   } catch (error: unknown) {
