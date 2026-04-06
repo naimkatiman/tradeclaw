@@ -182,4 +182,3 @@ Then add to `fly.toml`:
 - **[Railway](https://railway.app/new/template?template=https://github.com/naimkatiman/tradeclaw)** — One-click deploy
 - **[Docker](https://tradeclaw.win/hub)** — `docker run -p 3000:3000 tradeclaw/tradeclaw`
 - **[Replit](https://tradeclaw.win/replit)** — Fork and run in browser
-- **[Vercel](https://vercel.com/new/clone?repository-url=https://github.com/naimkatiman/tradeclaw/tree/main/apps/web)** — Serverless deploy

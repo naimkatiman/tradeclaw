@@ -48,7 +48,6 @@ npx tradeclaw signals --pair BTCUSD --limit 5
 [http://localhost:3000](http://localhost:3000)을 열면 — 대시보드가 바로 실행됩니다.
 
 [![Railway에 배포](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/naimkatiman/tradeclaw)
-[![Vercel에 배포](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/naimkatiman/tradeclaw/tree/main/apps/web)
 
 ## 주요 기능
 

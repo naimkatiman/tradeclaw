@@ -50,7 +50,6 @@ docker run -p 3000:3000 tradeclaw/tradeclaw
 Open [http://localhost:3000](http://localhost:3000) — done.
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/naimkatiman/tradeclaw)
-[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/naimkatiman/tradeclaw/tree/main/apps/web)
 
 **[Supabase Setup Guide](https://tradeclaw.win/supabase)** — upgrade from JSON to Postgres with one command.
 

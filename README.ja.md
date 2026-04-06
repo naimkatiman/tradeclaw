@@ -48,7 +48,6 @@ npx tradeclaw signals --pair BTCUSD --limit 5
 [http://localhost:3000](http://localhost:3000) を開く — ダッシュボードがすぐに起動します。
 
 [![Railway にデプロイ](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/naimkatiman/tradeclaw)
-[![Vercel にデプロイ](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/naimkatiman/tradeclaw/tree/main/apps/web)
 
 ## 機能一覧
 

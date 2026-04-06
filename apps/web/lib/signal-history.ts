@@ -82,15 +82,6 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const HISTORY_FILE = path.join(DATA_DIR, 'signal-history.json');
 const MAX_RECORDS = 10000;
 
-export function getOutcomeResolutionTimeframe(timeframe: string): string {
-  switch (timeframe.toUpperCase()) {
-    case 'M15': return 'M15';
-    case 'H1':  return 'H1';
-    case 'H4':  return 'H1';
-    case 'D1':  return 'H4';
-    default:    return 'H1';
-  }
-}
 
 // ── DB row → SignalHistoryRecord ─────────────────────────────
 
@@ -170,11 +161,6 @@ export async function readHistoryAsync(): Promise<SignalHistoryRecord[]> {
   return rows.map(rowToRecord);
 }
 
-/** Sync read — file only. Used by leaderboard/history routes that need sync access. */
-export function readHistory(): SignalHistoryRecord[] {
-  // DB path: we cache in-memory after first async load
-  return readHistoryFile();
-}
 
 // ── Record single signal ─────────────────────────────────────
 

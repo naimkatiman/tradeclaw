@@ -468,9 +468,8 @@ function DataSourceBadge({ source }: { source: string }) {
   const labels: Record<string, { text: string; color: string }> = {
     binance: { text: 'Binance', color: 'text-yellow-400 border-yellow-500/20 bg-yellow-500/10' },
     swissquote: { text: 'Swissquote', color: 'text-cyan-400 border-cyan-500/20 bg-cyan-500/10' },
-    oanda: { text: 'OANDA', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10' },
+    stooq: { text: 'Stooq', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10' },
     tradingview: { text: 'TradingView', color: 'text-blue-400 border-blue-500/20 bg-blue-500/10' },
-    yahoo: { text: 'Yahoo Finance', color: 'text-purple-400 border-purple-500/20 bg-purple-500/10' },
     synthetic: { text: 'Synthetic', color: 'text-[var(--text-secondary)] border-zinc-500/20 bg-zinc-500/10' },
   };
   const config = labels[source] || labels.synthetic;
@@ -566,7 +565,7 @@ export default function BacktestPage() {
       <PageNavBar />
       <div className="max-w-6xl mx-auto px-4 py-6 pb-20 md:pb-6">
         <div className="mb-4 rounded-lg border border-emerald-500/20 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-300">
-          <strong>Live Backtest</strong> — Uses real market data from Binance and Yahoo Finance. Trade outcomes are determined by actual candle price action (TP/SL against real highs and lows).
+          <strong>Live Backtest</strong> — Uses real market data from Binance and Stooq. Trade outcomes are determined by actual candle price action (TP/SL against real highs and lows).
         </div>
 
         {/* Header */}
@@ -736,7 +735,7 @@ export default function BacktestPage() {
                   </svg>
                 </div>
                 <div className="text-sm text-[var(--text-secondary)] font-medium">Configure and run a backtest</div>
-                <div className="text-xs text-[var(--text-secondary)] mt-1">Uses real OHLCV data from Binance and Yahoo Finance</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1">Uses real OHLCV data from Binance and Stooq</div>
               </div>
             )}
 
@@ -763,7 +762,7 @@ export default function BacktestPage() {
               <div className="glass-card rounded-2xl p-12 flex flex-col items-center justify-center text-center">
                 <div className="w-8 h-8 border border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin mb-3" />
                 <div className="text-xs text-[var(--text-secondary)]">Fetching real OHLCV data for {params.symbol} {params.timeframe}...</div>
-                <div className="text-[10px] text-[var(--text-secondary)] mt-1">Connecting to Binance / Yahoo Finance</div>
+                <div className="text-[10px] text-[var(--text-secondary)] mt-1">Connecting to Binance / Stooq</div>
               </div>
             )}
 

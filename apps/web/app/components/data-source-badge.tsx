@@ -4,7 +4,7 @@
 // Data Source Badge — shows where price data originates
 // ---------------------------------------------------------------------------
 
-type DataSource = 'Binance' | 'Swissquote' | 'OANDA' | 'TradingView' | 'Yahoo Finance' | 'CoinGecko' | 'TA Engine';
+type DataSource = 'Binance' | 'Swissquote' | 'Stooq' | 'TradingView' | 'CoinGecko' | 'TA Engine';
 
 interface DataSourceBadgeProps {
   source: DataSource;
@@ -21,7 +21,7 @@ const SOURCE_CONFIG: Record<DataSource, { color: string; border: string; bg: str
     border: 'rgba(6,182,212,0.3)',
     bg: 'rgba(6,182,212,0.1)',
   },
-  OANDA: {
+  Stooq: {
     color: '#10b981',
     border: 'rgba(16,185,129,0.3)',
     bg: 'rgba(16,185,129,0.1)',
@@ -30,11 +30,6 @@ const SOURCE_CONFIG: Record<DataSource, { color: string; border: string; bg: str
     color: '#2962ff',
     border: 'rgba(41,98,255,0.3)',
     bg: 'rgba(41,98,255,0.1)',
-  },
-  'Yahoo Finance': {
-    color: '#a78bfa',
-    border: 'rgba(167,139,250,0.3)',
-    bg: 'rgba(167,139,250,0.1)',
   },
   CoinGecko: {
     color: '#34d399',

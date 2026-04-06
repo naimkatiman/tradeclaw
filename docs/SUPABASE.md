@@ -172,10 +172,10 @@ CREATE POLICY "Service insert" ON signal_history
 2. Add your Supabase env vars to the Railway service
 3. Run schema.sql in your Supabase SQL Editor
 
-### Vercel
+### Railway
 
-1. Deploy on Vercel: [![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/naimkatiman/tradeclaw/tree/main/apps/web)
-2. Add Supabase env vars in Vercel project settings
+1. Deploy on Railway: [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/naimkatiman/tradeclaw)
+2. Add Supabase env vars in Railway project settings
 3. Run schema.sql in your Supabase SQL Editor
 
 ## Troubleshooting

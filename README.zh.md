@@ -48,7 +48,6 @@ npx tradeclaw signals --pair BTCUSD --limit 5
 打开 [http://localhost:3000](http://localhost:3000) — 仪表盘即刻运行。
 
 [![部署到 Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/naimkatiman/tradeclaw)
-[![部署到 Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/naimkatiman/tradeclaw/tree/main/apps/web)
 
 ## 功能特性
 
