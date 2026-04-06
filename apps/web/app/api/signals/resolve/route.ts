@@ -64,6 +64,10 @@ function resolveWindow(
  *
  * Read all pending signal records that are old enough (>= 4h for 4h window,
  * >= 24h for 24h window), fetch OHLCV candles, and resolve outcomes.
+ *
+ * If candle data doesn't cover the signal's time window (empty window),
+ * force-expire after 2x the window duration to prevent signals from being
+ * stuck in "pending" forever.
  */
 export async function POST(): Promise<Response> {
   try {
@@ -72,6 +76,9 @@ export async function POST(): Promise<Response> {
 
     const updates: Array<{ id: string; patch: Partial<SignalHistoryRecord> }> = [];
     const errors: string[] = [];
+
+    // Deduplicate OHLCV fetches by symbol
+    const ohlcvCache = new Map<string, { candles: Array<{ timestamp: number; high: number; low: number; close: number; open: number; volume: number }>; failed: boolean }>();
 
     for (const record of pending) {
       const age = now - record.timestamp;
@@ -83,18 +90,23 @@ export async function POST(): Promise<Response> {
       if (!needs4h && !needs24h) continue;
       if (!record.tp1 || !record.sl) continue;
 
-      let candles: Array<{ timestamp: number; high: number; low: number; close: number; open: number; volume: number }> = [];
-      let ohlcvFailed = false;
-
-      try {
-        const result = await getOHLCV(record.pair, 'H1');
-        candles = result.candles;
-      } catch (err) {
-        const msg = `OHLCV fetch failed for ${record.pair}: ${err instanceof Error ? err.message : String(err)}`;
-        console.error(`[signals/resolve] ${msg}`);
-        errors.push(msg);
-        ohlcvFailed = true;
+      // Fetch OHLCV once per symbol
+      if (!ohlcvCache.has(record.pair)) {
+        let candles: Array<{ timestamp: number; high: number; low: number; close: number; open: number; volume: number }> = [];
+        let failed = false;
+        try {
+          const result = await getOHLCV(record.pair, 'H1');
+          candles = result.candles;
+        } catch (err) {
+          const msg = `OHLCV fetch failed for ${record.pair}: ${err instanceof Error ? err.message : String(err)}`;
+          console.error(`[signals/resolve] ${msg}`);
+          errors.push(msg);
+          failed = true;
+        }
+        ohlcvCache.set(record.pair, { candles, failed });
       }
+
+      const { candles, failed: ohlcvFailed } = ohlcvCache.get(record.pair)!;
 
       const newOutcomes = { ...record.outcomes };
       let changed = false;
@@ -108,9 +120,14 @@ export async function POST(): Promise<Response> {
         if (result) {
           newOutcomes['4h'] = result;
           changed = true;
-        } else if (ohlcvFailed && age >= FOUR_HOURS_MS * 2) {
+        } else if (age >= FOUR_HOURS_MS * 2) {
+          // Force-expire: either OHLCV failed or candle window is empty
+          // (data doesn't cover signal time range). Mark as expired at entry.
           newOutcomes['4h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
           changed = true;
+          if (!ohlcvFailed && window.length === 0) {
+            console.warn(`[signals/resolve] Empty 4h candle window for ${record.id} (${candles.length} total candles, none in range)`);
+          }
         }
       }
 
@@ -123,9 +140,13 @@ export async function POST(): Promise<Response> {
         if (result) {
           newOutcomes['24h'] = result;
           changed = true;
-        } else if (ohlcvFailed && age >= TWENTY_FOUR_HOURS_MS * 2) {
+        } else if (age >= TWENTY_FOUR_HOURS_MS * 2) {
+          // Force-expire: candle data unavailable or doesn't cover the window.
           newOutcomes['24h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
           changed = true;
+          if (!ohlcvFailed && window.length === 0) {
+            console.warn(`[signals/resolve] Empty 24h candle window for ${record.id} (${candles.length} total candles, none in range)`);
+          }
         }
       }
 

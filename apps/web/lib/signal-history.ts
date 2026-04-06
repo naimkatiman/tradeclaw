@@ -335,14 +335,12 @@ export async function resolveRealOutcomes(): Promise<void> {
       if (!needs4h && !needs24h) continue;
 
       let candles: import('../app/lib/ohlcv').OHLCV[] = [];
-      let ohlcvFailed = false;
 
       try {
         const result = await getOHLCV(r.pair, 'H1');
         candles = result.candles;
       } catch (err) {
         console.error(`[signal-history] OHLCV fetch failed for ${r.pair}: ${err instanceof Error ? err.message : String(err)}`);
-        ohlcvFailed = true;
       }
 
       let outcome4h = r.outcomes['4h'];
@@ -352,18 +350,18 @@ export async function resolveRealOutcomes(): Promise<void> {
         const windowEnd = r.timestamp + FOUR_H;
         const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
         outcome4h = resolveFromCandles(r, window, true);
-        if (!outcome4h && ohlcvFailed && age >= FOUR_H * 2) {
+        if (!outcome4h && age >= FOUR_H * 2) {
+          // Force-expire: OHLCV failed or candle window empty
           outcome4h = { price: r.entryPrice, pnlPct: 0, hit: false };
-          console.error(`[signal-history] Force-expired 4h for ${r.id} (no OHLCV data)`);
         }
       }
       if (needs24h) {
         const windowEnd = r.timestamp + TWENTY_FOUR_H;
         const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
         outcome24h = resolveFromCandles(r, window, true);
-        if (!outcome24h && ohlcvFailed && age >= TWENTY_FOUR_H * 2) {
+        if (!outcome24h && age >= TWENTY_FOUR_H * 2) {
+          // Force-expire: OHLCV failed or candle window empty
           outcome24h = { price: r.entryPrice, pnlPct: 0, hit: false };
-          console.error(`[signal-history] Force-expired 24h for ${r.id} (no OHLCV data)`);
         }
       }
 
@@ -399,21 +397,19 @@ export async function resolveRealOutcomes(): Promise<void> {
     if (!needs4h && !needs24h) continue;
 
     let candles: import('../app/lib/ohlcv').OHLCV[] = [];
-    let ohlcvFailed = false;
 
     try {
       const result = await getOHLCV(r.pair, 'H1');
       candles = result.candles;
     } catch (err) {
       console.error(`[signal-history] OHLCV fetch failed for ${r.pair}: ${err instanceof Error ? err.message : String(err)}`);
-      ohlcvFailed = true;
     }
 
     if (needs4h) {
       const windowEnd = r.timestamp + FOUR_H;
       const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
       r.outcomes['4h'] = resolveFromCandles(r, window, true);
-      if (!r.outcomes['4h'] && ohlcvFailed && age >= FOUR_H * 2) {
+      if (!r.outcomes['4h'] && age >= FOUR_H * 2) {
         r.outcomes['4h'] = { price: r.entryPrice, pnlPct: 0, hit: false };
       }
       r.lastVerified = now;
@@ -423,7 +419,7 @@ export async function resolveRealOutcomes(): Promise<void> {
       const windowEnd = r.timestamp + TWENTY_FOUR_H;
       const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
       r.outcomes['24h'] = resolveFromCandles(r, window, true);
-      if (!r.outcomes['24h'] && ohlcvFailed && age >= TWENTY_FOUR_H * 2) {
+      if (!r.outcomes['24h'] && age >= TWENTY_FOUR_H * 2) {
         r.outcomes['24h'] = { price: r.entryPrice, pnlPct: 0, hit: false };
       }
       r.lastVerified = now;

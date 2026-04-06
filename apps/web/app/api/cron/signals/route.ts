@@ -44,8 +44,24 @@ async function recordNewSignals(): Promise<NewlyRecordedSignal[]> {
   const { signals } = await getActiveSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
   const recorded: NewlyRecordedSignal[] = [];
 
+  // Track symbols already recorded in this run to prevent dupes within a batch
+  const recordedThisRun = new Set<string>();
+
+  // Pick the best signal per symbol+direction (highest confidence)
+  const bestBySymDir = new Map<string, typeof signals[number]>();
   for (const sig of signals) {
+    const key = `${sig.symbol}:${sig.signal}`;
+    const existing = bestBySymDir.get(key);
+    if (!existing || sig.confidence > existing.confidence) {
+      bestBySymDir.set(key, sig);
+    }
+  }
+
+  for (const sig of bestBySymDir.values()) {
     if (!isMarketOpen(sig.symbol)) continue;
+
+    const dedupKey = `${sig.symbol}:${sig.signal}`;
+    if (recordedThisRun.has(dedupKey)) continue;
 
     const existing = await getRecentRecordForSymbolAsync(sig.symbol, sig.signal, TWO_HOURS_MS);
     if (existing) continue;
@@ -63,6 +79,8 @@ async function recordNewSignals(): Promise<NewlyRecordedSignal[]> {
       sig.sl,
       timestamp,
     );
+
+    recordedThisRun.add(dedupKey);
 
     recorded.push({
       id,
@@ -139,7 +157,6 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
     if (!record.tp1 || !record.sl) continue;
 
     let candles: Array<{ timestamp: number; high: number; low: number; close: number; open: number; volume: number }> = [];
-    let ohlcvFailed = false;
 
     try {
       const result = await getOHLCV(record.pair, 'H1');
@@ -148,7 +165,6 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
       const msg = `OHLCV fetch failed for ${record.pair}: ${err instanceof Error ? err.message : String(err)}`;
       console.error(`[cron/signals] ${msg}`);
       errors.push(msg);
-      ohlcvFailed = true;
     }
 
     const newOutcomes = { ...record.outcomes };
@@ -163,11 +179,10 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
       if (result) {
         newOutcomes['4h'] = result;
         changed = true;
-      } else if (ohlcvFailed && age >= FOUR_HOURS_MS * 2) {
-        // OHLCV unavailable and window long expired — mark as expired at entry price
+      } else if (age >= FOUR_HOURS_MS * 2) {
+        // Force-expire: OHLCV failed or candle window empty
         newOutcomes['4h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
         changed = true;
-        console.error(`[cron/signals] Force-expired 4h for ${record.id} (no OHLCV data)`);
       }
     }
 
@@ -180,11 +195,10 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
       if (result) {
         newOutcomes['24h'] = result;
         changed = true;
-      } else if (ohlcvFailed && age >= TWENTY_FOUR_HOURS_MS * 2) {
-        // OHLCV unavailable and window long expired — mark as expired at entry price
+      } else if (age >= TWENTY_FOUR_HOURS_MS * 2) {
+        // Force-expire: OHLCV failed or candle window empty
         newOutcomes['24h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
         changed = true;
-        console.error(`[cron/signals] Force-expired 24h for ${record.id} (no OHLCV data)`);
       }
     }
 
