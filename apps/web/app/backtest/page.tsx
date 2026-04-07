@@ -500,40 +500,46 @@ export default function BacktestPage() {
   const [activeTab, setActiveTab] = useState<Tab>('equity');
   const [loadedStrategyName, setLoadedStrategyName] = useState<string | null>(null);
 
+  // Auto-run backtest on mount — use URL params if provided, otherwise run with defaults
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
     const encoded = sp.get('strategy');
-    if (!encoded) return;
-    try {
-      const decoded = JSON.parse(atob(encoded)) as { name?: string; symbol?: string; timeframe?: string };
-      const symbol = typeof decoded.symbol === 'string' ? decoded.symbol : 'XAUUSD';
-      const timeframe = typeof decoded.timeframe === 'string' ? decoded.timeframe : 'H1';
-      const strategyName = typeof decoded.name === 'string' ? decoded.name : 'Custom Strategy';
-      const newParams: BacktestParams = {
-        symbol,
-        timeframe,
-        strategy: strategyName,
-        initialBalance: 10000,
-        riskPercent: 1,
-        slippage: true,
-      };
-      startTransition(() => {
-        setParams(newParams);
-        setLoadedStrategyName(strategyName);
-        setRunning(true);
-        setError(null);
-      });
-      runBacktest(newParams)
-        .then(r => {
-          setResult(r);
-          setActiveTab('equity');
-        })
-        .catch(err => {
-          setError(err instanceof Error ? err.message : 'Backtest failed');
-        })
-        .finally(() => setRunning(false));
-    } catch { /* ignore invalid param */ }
-  }, []);
+
+    let backtestParams = params;
+
+    if (encoded) {
+      try {
+        const decoded = JSON.parse(atob(encoded)) as { name?: string; symbol?: string; timeframe?: string };
+        const symbol = typeof decoded.symbol === 'string' ? decoded.symbol : 'XAUUSD';
+        const timeframe = typeof decoded.timeframe === 'string' ? decoded.timeframe : 'H1';
+        const strategyName = typeof decoded.name === 'string' ? decoded.name : 'Custom Strategy';
+        backtestParams = {
+          symbol,
+          timeframe,
+          strategy: strategyName,
+          initialBalance: 10000,
+          riskPercent: 1,
+          slippage: true,
+        };
+        startTransition(() => {
+          setParams(backtestParams);
+          setLoadedStrategyName(strategyName);
+        });
+      } catch { /* ignore invalid param, run with defaults */ }
+    }
+
+    setRunning(true);
+    setError(null);
+    runBacktest(backtestParams)
+      .then(r => {
+        setResult(r);
+        setActiveTab('equity');
+      })
+      .catch(err => {
+        setError(err instanceof Error ? err.message : 'Backtest failed');
+      })
+      .finally(() => setRunning(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRun = useCallback(() => {
     setRunning(true);

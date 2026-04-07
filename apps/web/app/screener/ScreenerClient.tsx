@@ -325,6 +325,11 @@ export default function ScreenerClient() {
     }
   }, []);
 
+  // Auto-scan on mount so users see results immediately
+  useEffect(() => {
+    scan();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   function saveWatchlist(next: Set<string>) {
     setWatchlist(next);
     try {

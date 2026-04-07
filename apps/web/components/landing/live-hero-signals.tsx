@@ -49,9 +49,13 @@ export async function LiveHeroSignals() {
       signal.confidence < PUBLISHED_SIGNAL_MIN_CONFIDENCE,
   );
 
-  const hasRealSignals = publishedSignals.length >= 1;
-  const signals = hasRealSignals ? publishedSignals.slice(0, 8) : [];
-  const watchlist = watchlistSignals.slice(0, 4);
+  // Show published signals if available, otherwise fall back to watchlist-tier signals
+  // so the hero never shows "Generating signals..." when real data exists
+  const hasRealSignals = publishedSignals.length >= 1 || watchlistSignals.length >= 1;
+  const signals = publishedSignals.length >= 1
+    ? publishedSignals.slice(0, 8)
+    : watchlistSignals.slice(0, 8);
+  const watchlist = publishedSignals.length >= 1 ? watchlistSignals.slice(0, 4) : [];
 
   return (
     <section className="relative px-4 pb-6 -mt-4">

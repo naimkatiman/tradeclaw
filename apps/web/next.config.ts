@@ -28,6 +28,17 @@ const nextConfig: NextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
+  // Redirects
+  async redirects() {
+    return [
+      {
+        source: '/signals',
+        destination: '/screener',
+        permanent: true,
+      },
+    ];
+  },
+
   // Security headers for better Lighthouse score
   async headers() {
     return [
