@@ -79,6 +79,217 @@ RSI_COLS = {
     "H4": "RSI|240",
 }
 
+# ─── Custom Strategy: EMA21 + VWAP + RSI + Supertrend (ATR proxy) ────────
+# Zaky's personal strategy adapted for programmatic screening.
+# TV screener has EMA20 (not 21) — difference is negligible.
+# Supertrend approximated: price vs EMA20 ± 2×ATR band.
+STRATEGY_COLS_H1 = {
+    "ema5": "EMA5|60", "ema10": "EMA10|60", "ema20": "EMA20|60",
+    "ema50": "EMA50|60", "rsi": "RSI|60", "vwap": "VWAP|60",
+    "atr": "ATR|60", "high": "high|60", "low": "low|60",
+}
+STRATEGY_COLS_H4 = {
+    "ema5": "EMA5|240", "ema10": "EMA10|240", "ema20": "EMA20|240",
+    "ema50": "EMA50|240", "rsi": "RSI|240",
+    "atr": "ATR|240", "high": "high|240", "low": "low|240",
+}
+
+
+def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None, binance_validation=None):
+    """
+    Zaky's EMA21 + VWAP + RSI + Supertrend(ATR) strategy.
+    Three timeframe variants: Scalper (H1 fast), Intraday (H1), Swing (H4).
+    Returns a signal dict or None.
+
+    BUY conditions (all must align):
+      1. Price > EMA20 (trend direction — EMA21 proxy)
+      2. Price > VWAP (intraday bias — skip if VWAP unavailable)
+      3. RSI > 40 and < 70 (momentum confirmation, not overbought)
+      4. Price > EMA20 - 2×ATR (above Supertrend proxy lower band = uptrend)
+      5. EMA5 > EMA10 > EMA20 (EMA fan alignment)
+
+    SELL is the mirror.
+    """
+    candle_statuses = candle_statuses or {}
+    win_rates = win_rates or {}
+    binance_validation = binance_validation or {}
+
+    close = row.get("close", 0) or 0
+    if close <= 0:
+        return None
+
+    signals = []
+
+    for tf_label, cols in [("H1", STRATEGY_COLS_H1), ("H4", STRATEGY_COLS_H4)]:
+        ema5  = row.get(cols["ema5"])
+        ema10 = row.get(cols["ema10"])
+        ema20 = row.get(cols["ema20"])
+        ema50 = row.get(cols.get("ema50", ""), None)
+        rsi   = row.get(cols["rsi"])
+        vwap  = row.get(cols.get("vwap", ""))  # H4 has no VWAP
+        atr   = row.get(cols["atr"])
+
+        if not all([ema5, ema10, ema20, rsi, atr]):
+            continue
+
+        # Supertrend proxy: upper = EMA20 + 2*ATR, lower = EMA20 - 2*ATR
+        st_upper = ema20 + 2 * atr
+        st_lower = ema20 - 2 * atr
+        st_trend_up = close > st_lower   # price above lower band = uptrend
+        st_trend_down = close < st_upper  # price below upper band = downtrend
+
+        # EMA fan alignment
+        ema_fan_bull = ema5 > ema10 > ema20
+        ema_fan_bear = ema5 < ema10 < ema20
+
+        # VWAP bias (skip if NaN / unavailable)
+        vwap_ok = True
+        vwap_bull = True
+        vwap_bear = True
+        if vwap and not (isinstance(vwap, float) and pd.isna(vwap)):
+            vwap_bull = close > vwap
+            vwap_bear = close < vwap
+        else:
+            vwap_ok = False
+
+        direction = None
+        reasons = []
+
+        # ── BUY conditions ──
+        if (close > ema20 and st_trend_up and ema_fan_bull
+                and 40 < rsi < 70 and vwap_bull):
+            direction = "BUY"
+            reasons.append(f"EMA fan aligned bullish ({tf_label})")
+            reasons.append(f"Price > EMA20 ({round(ema20, 2)})")
+            if vwap_ok:
+                reasons.append(f"Price > VWAP ({round(vwap, 2)})")
+            reasons.append(f"Supertrend proxy: uptrend (above {round(st_lower, 2)})")
+            reasons.append(f"RSI {round(rsi, 1)} — momentum confirmed")
+
+        # ── SELL conditions ──
+        elif (close < ema20 and st_trend_down and ema_fan_bear
+                and 30 < rsi < 60 and vwap_bear):
+            direction = "SELL"
+            reasons.append(f"EMA fan aligned bearish ({tf_label})")
+            reasons.append(f"Price < EMA20 ({round(ema20, 2)})")
+            if vwap_ok:
+                reasons.append(f"Price < VWAP ({round(vwap, 2)})")
+            reasons.append(f"Supertrend proxy: downtrend (below {round(st_upper, 2)})")
+            reasons.append(f"RSI {round(rsi, 1)} — momentum confirmed")
+
+        if not direction:
+            continue
+
+        # ── Confidence scoring ──
+        base_conf = 72  # strategy baseline (all conditions must pass to get here)
+
+        # Bonus: EMA50 alignment
+        ema50_bonus = 0
+        if ema50:
+            if direction == "BUY" and ema20 > ema50:
+                ema50_bonus = 4
+                reasons.append("EMA20 > EMA50 — strong trend")
+            elif direction == "SELL" and ema20 < ema50:
+                ema50_bonus = 4
+                reasons.append("EMA20 < EMA50 — strong trend")
+
+        # Bonus: RSI sweet spot
+        rsi_bonus = 0
+        if direction == "BUY" and 45 < rsi < 60:
+            rsi_bonus = 3
+        elif direction == "SELL" and 40 < rsi < 55:
+            rsi_bonus = 3
+
+        # Bonus: H4 agrees with H1 (multi-TF confirmation)
+        htf_bonus = 0
+        if tf_label == "H1":
+            h4_ema20 = row.get("EMA20|240")
+            h4_rsi = row.get("RSI|240") or 50
+            if h4_ema20 and direction == "BUY" and close > h4_ema20 and h4_rsi > 45:
+                htf_bonus = 5
+                reasons.append("H4 trend confirms BUY")
+            elif h4_ema20 and direction == "SELL" and close < h4_ema20 and h4_rsi < 55:
+                htf_bonus = 5
+                reasons.append("H4 trend confirms SELL")
+
+        # Candle status penalty
+        candle_penalty = 0
+        if candle_statuses.get(tf_label) == "incomplete":
+            candle_penalty = INCOMPLETE_CANDLE_PENALTY
+            reasons.append(f"Candle {tf_label} incomplete — confidence reduced")
+
+        # Win rate adjustment
+        wr_key = f"{symbol_name}_{direction}"
+        wr_data = win_rates.get(wr_key)
+        wr_bonus = 0
+        if wr_data and wr_data["total"] >= 5:
+            wr = wr_data["win_rate"]
+            if wr >= 70:
+                wr_bonus = 5
+                reasons.append(f"Strong win rate: {wr}%")
+            elif wr < 45:
+                wr_bonus = -5
+                reasons.append(f"Weak win rate: {wr}%")
+
+        # Cross-validation bonus
+        cross_bonus = 0
+        if binance_validation.get("price_confirmed"):
+            cross_bonus = BINANCE_CROSS_VALIDATION_BONUS
+            reasons.append("Binance price confirmed")
+
+        confidence = min(base_conf + ema50_bonus + rsi_bonus + htf_bonus - candle_penalty + wr_bonus + cross_bonus, 95)
+
+        if confidence < MIN_CONFIDENCE:
+            continue
+
+        # TP/SL from ATR
+        if direction == "BUY":
+            tp1 = round(close + atr * 0.5, 6)
+            tp2 = round(close + atr * 1.0, 6)
+            sl  = round(close - atr * 0.75, 6)
+        else:
+            tp1 = round(close - atr * 0.5, 6)
+            tp2 = round(close - atr * 1.0, 6)
+            sl  = round(close + atr * 0.75, 6)
+
+        sig = {
+            "id": f"SIG-{symbol_name}-ZS-{tf_label}-{uuid4().hex[:8].upper()}",
+            "symbol": symbol_name,
+            "signal": direction,
+            "confidence": round(confidence, 1),
+            "timeframe": f"ZakyStrategy {tf_label}",
+            "agreeing_timeframes": [tf_label],
+            "confluence_score": 2 + (1 if htf_bonus > 0 else 0),
+            "entry": round(close, 6),
+            "tp1": tp1,
+            "tp2": tp2,
+            "sl": sl,
+            "reasons": reasons,
+            "candle_status": candle_statuses.get(tf_label, "unknown"),
+            "indicators": {
+                "rsi": round(rsi, 2),
+                "ema5": round(ema5, 6),
+                "ema10": round(ema10, 6),
+                "ema20": round(ema20, 6),
+                "ema50": round(ema50, 6) if ema50 else None,
+                "vwap": round(vwap, 6) if (vwap and not (isinstance(vwap, float) and pd.isna(vwap))) else None,
+                "atr": round(atr, 6),
+                "st_upper": round(st_upper, 6),
+                "st_lower": round(st_lower, 6),
+            },
+            "win_rate": wr_data if wr_data else None,
+            "cross_validation": binance_validation if binance_validation.get("validated") else None,
+            "source": "zaky_strategy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "expires_in_minutes": 120 if tf_label == "H4" else 60,
+        }
+        signals.append(sig)
+
+    # Return best signal (highest confidence)
+    if not signals:
+        return None
+    return max(signals, key=lambda s: s["confidence"])
+
 
 def get_candle_status(now: datetime) -> dict[str, str]:
     """
@@ -204,10 +415,13 @@ def fetch_market(market, info):
             "RSI|5", "RSI|15", "RSI|60", "RSI|240",
             "MACD.macd|60", "MACD.signal|60",
             "MACD.macd|240", "MACD.signal|240",
-            "EMA20|60", "EMA50|60", "EMA200|60",
-            "EMA20|240", "EMA50|240", "EMA200|240",
+            "EMA5|60", "EMA10|60", "EMA20|60", "EMA50|60", "EMA200|60",
+            "EMA5|240", "EMA10|240", "EMA20|240", "EMA50|240", "EMA200|240",
             "BB.upper|60", "BB.lower|60",
             "Stoch.K|60",
+            "VWAP|60",
+            "ATR|60", "ATR|240",
+            "high|60", "low|60", "high|240", "low|240",
             "Recommend.All|5", "Recommend.All|15",
             "Recommend.All|60", "Recommend.All|240",
         ]
@@ -600,6 +814,16 @@ def main():
             if conf:
                 confluence_signals.append(conf)
             all_signals.extend(indiv)
+
+            # ── Zaky's custom strategy (EMA21+VWAP+RSI+Supertrend) ──
+            zs = zaky_strategy_signal(
+                row, symbol_name,
+                candle_statuses=candle_statuses,
+                win_rates=win_rates,
+                binance_validation=bv,
+            )
+            if zs:
+                confluence_signals.append(zs)
 
     # Save to SQLite — with cooldown deduplication
     # Skip if same symbol+direction already fired within COOLDOWN_HOURS

@@ -35,6 +35,20 @@ OUTPUT_FILE = DATA_DIR / "signals-live.json"
 
 MIN_CONFIDENCE = 70  # Only emit signals >= 70%
 
+# Weak days filter — Wednesday (2) and Saturday (5) have <45% hit rate
+WEAK_DAYS = {2, 5}  # 0=Mon, 6=Sun
+
+# Symbol performance tiers based on track-record audit (24h hit rate / cum PnL)
+# Tier 1: HR >= 70% — full confidence
+# Tier 2: HR 55-69% — slight confidence penalty (-3)
+# Tier 3: HR <= 50% — larger penalty (-7), needs higher confluence to pass
+SYMBOL_TIER = {
+    "XAUUSD": 1, "USDCAD": 1, "XAGUSD": 1, "EURUSD": 1,  # 70%+ HR
+    "AUDUSD": 2, "BTCUSD": 2, "ETHUSD": 2, "USDJPY": 2,   # 55-69% HR
+    "GBPUSD": 3, "XRPUSD": 3,                               # <=50% HR
+}
+TIER_CONFIDENCE_ADJUST = {1: 0, 2: -3, 3: -7}
+
 # Asset class mapping for market hours filtering
 FOREX_SYMBOLS = {"EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "NZDUSD", "USDCHF"}
 METALS_SYMBOLS = {"XAUUSD", "XAGUSD"}
@@ -179,8 +193,12 @@ def analyze_symbol(tv_symbol: str, symbol_info: dict) -> dict | None:
     vol_ratio = volume / vol_sma if vol_sma > 0 else 1
     vol_bonus = 3 if vol_ratio > 1.2 else 0
 
+    # Symbol tier adjustment — penalize historically weak symbols
+    tier = SYMBOL_TIER.get(symbol_info["symbol"], 2)
+    tier_adjust = TIER_CONFIDENCE_ADJUST.get(tier, 0)
+
     # Final confidence (capped at 95)
-    confidence = min(base + confluence_bonus + rsi_bonus + vol_bonus, 95)
+    confidence = min(base + confluence_bonus + rsi_bonus + vol_bonus + tier_adjust, 95)
 
     if confidence < MIN_CONFIDENCE:
         print(f"  Below threshold: {confidence}% < {MIN_CONFIDENCE}%", file=sys.stderr)
@@ -213,6 +231,8 @@ def analyze_symbol(tv_symbol: str, symbol_info: dict) -> dict | None:
         reasons.append(f"Strong {direction} signal on H1")
     if vol_bonus > 0:
         reasons.append(f"Volume {round(vol_ratio, 1)}x above average")
+    if tier_adjust != 0:
+        reasons.append(f"Tier {tier} symbol ({tier_adjust:+d}% adj)")
 
     # Get additional indicators for output
     macd_line = primary.indicators.get("MACD.macd", 0) or 0
@@ -249,7 +269,7 @@ def analyze_symbol(tv_symbol: str, symbol_info: dict) -> dict | None:
 
 def main():
     """Main signal generation loop"""
-    print(f"[{datetime.now(timezone.utc).isoformat()}] TradeClaw Signal Engine v3")
+    print(f"[{datetime.now(timezone.utc).isoformat()}] TradeClaw Signal Engine v3.1")
     print(f"4-TF Confluence: M5/M15/H1/H4")
     print(f"Minimum confidence: {MIN_CONFIDENCE}%")
     print("=" * 60)
@@ -277,6 +297,13 @@ def main():
             stats["no_confluence"] += 1
             continue
 
+        # Weak-day filter: Wed & Sat have <45% hit rate historically
+        now_utc = datetime.now(timezone.utc)
+        if now_utc.weekday() in WEAK_DAYS:
+            print(f"  SKIPPED: weak day ({now_utc.strftime('%A')})")
+            stats["no_confluence"] += 1
+            continue
+
         try:
             signal = analyze_symbol(tv_symbol, sym_config)
             if signal:
@@ -297,7 +324,7 @@ def main():
     # Build output
     output = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "engine_version": "v3-confluence",
+        "engine_version": "v3.1-optimized",
         "min_confidence": MIN_CONFIDENCE,
         "count": len(signals),
         "stats": stats,
@@ -334,7 +361,7 @@ def main():
                         s["timeframe"], s["entry"], s["sl"],
                         s["tp1"], s.get("tp2"), s.get("reasons", []),
                         json.dumps(s.get("indicators", {})),
-                        s.get("source", "real"), "v3-confluence",
+                        s.get("source", "real"), "v3.1-optimized",
                         output["generated_at"],
                     ),
                 )
