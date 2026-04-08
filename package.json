@@ -23,7 +23,8 @@
     "ws:build": "npm run build --workspace=apps/ws-server",
     "ws:start": "npm run start --workspace=apps/ws-server",
     "ws:test": "npm run test --workspace=apps/ws-server",
-    "test": "jest"
+    "test": "jest",
+    "test:e2e": "npm run test:e2e --workspace=apps/web"
   },
   "repository": {
     "type": "git",
