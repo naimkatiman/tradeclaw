@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
   const useLive = searchParams.get("source") !== "realtime"; // Default to live file
 
   const now = new Date().toISOString();
-  const headers = {
+  const headers: Record<string, string> = {
     "Cache-Control": "public, s-maxage=60",
     "X-TradeClaw-Version": "v1",
     "Access-Control-Allow-Origin": "*",
