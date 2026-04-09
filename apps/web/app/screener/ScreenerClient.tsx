@@ -636,8 +636,36 @@ export default function ScreenerClient() {
                 </div>
               )}
               {!loading && sorted.length === 0 && hasScanned && (
-                <div className="text-center py-16 text-[var(--text-secondary)] text-xs">
-                  No assets match your filters. Try loosening the criteria.
+                <div className="text-center py-16 px-4">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[var(--glass-bg)] border border-[var(--border)] mb-4">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-secondary)]">
+                      <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium text-[var(--foreground)] mb-1">No assets match your filters</p>
+                  <p className="text-xs text-[var(--text-secondary)] mb-4 max-w-sm mx-auto">
+                    Your current criteria are too restrictive. Try one of these:
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <button
+                      onClick={() => patchFilter('minConfidence', 50)}
+                      className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                    >
+                      Lower confidence to 50%
+                    </button>
+                    <button
+                      onClick={() => { patchFilter('rsiMin', 10); patchFilter('rsiMax', 90); }}
+                      className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                    >
+                      Widen RSI range
+                    </button>
+                    <button
+                      onClick={() => { patchFilter('direction', 'all'); patchFilter('macdFilter', 'any'); patchFilter('emaFilter', 'any'); }}
+                      className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                    >
+                      Reset all filters
+                    </button>
+                  </div>
                 </div>
               )}
               {!loading && sorted.length > 0 && (
@@ -808,8 +836,34 @@ export default function ScreenerClient() {
                 ))}
                 {!loading && sorted.length === 0 && hasScanned && (
                   <tr>
-                    <td colSpan={11} className="py-16 text-center text-[var(--text-secondary)] text-xs">
-                      No assets match your filters. Try loosening the criteria.
+                    <td colSpan={11} className="py-16 text-center">
+                      <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--glass-bg)] border border-[var(--border)] mb-3">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-secondary)]">
+                          <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-medium text-[var(--foreground)] mb-1">No assets match your filters</p>
+                      <p className="text-xs text-[var(--text-secondary)] mb-3">Try lowering confidence, widening RSI, or resetting filters.</p>
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => patchFilter('minConfidence', 50)}
+                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                        >
+                          Lower confidence to 50%
+                        </button>
+                        <button
+                          onClick={() => { patchFilter('rsiMin', 10); patchFilter('rsiMax', 90); }}
+                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                        >
+                          Widen RSI range
+                        </button>
+                        <button
+                          onClick={() => { patchFilter('direction', 'all'); patchFilter('macdFilter', 'any'); patchFilter('emaFilter', 'any'); }}
+                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                        >
+                          Reset all filters
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )}

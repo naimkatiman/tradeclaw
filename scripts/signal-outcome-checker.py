@@ -73,6 +73,47 @@ def get_current_price(symbol: str) -> Optional[float]:
     return None
 
 
+def get_price_range(symbol: str, fired_at: str) -> Optional[tuple]:
+    """
+    Get the HIGH and LOW price during the 4h window after signal fired.
+    Returns (high, low, current) or None.
+    Uses Binance klines for crypto, falls back to current price only for others.
+    """
+    binance_sym = BINANCE_MAP.get(symbol.upper())
+    if binance_sym:
+        try:
+            fired_dt = datetime.fromisoformat(fired_at.replace("Z", "+00:00"))
+            start_ms = int(fired_dt.timestamp() * 1000)
+            end_ms = start_ms + OUTCOME_WINDOW_HOURS * 3600 * 1000
+
+            r = requests.get(
+                "https://api.binance.com/api/v3/klines",
+                params={
+                    "symbol": binance_sym,
+                    "interval": "15m",  # 16 candles over 4h
+                    "startTime": start_ms,
+                    "endTime": end_ms,
+                    "limit": 20,
+                },
+                timeout=5,
+            )
+            if r.status_code == 200:
+                klines = r.json()
+                if klines:
+                    high = max(float(k[2]) for k in klines)
+                    low = min(float(k[3]) for k in klines)
+                    current = float(klines[-1][4])  # last close
+                    return (high, low, current)
+        except Exception:
+            pass
+
+    # Fallback: use current price as all three
+    price = get_current_price(symbol)
+    if price:
+        return (price, price, price)
+    return None
+
+
 def check_outcomes():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -98,51 +139,55 @@ def check_outcomes():
 
     updated = 0
     for row in pending:
-        price = get_current_price(row["symbol"])
-        if price is None:
+        price_range = get_price_range(row["symbol"], row["fired_at"])
+        if price_range is None:
             print(f"  {row['symbol']}: price unavailable, skipping")
             continue
 
+        high, low, current = price_range
         entry = row["entry"]
         tp1   = row["tp1"]
         sl    = row["sl"]
         sig   = row["signal"]
 
-        # Determine outcome based on current price vs entry/tp1/sl
-        # Accuracy is graduated: TP1_HIT=1, SL_HIT=0, EXPIRED=proportional
+        # Determine outcome using HIGH/LOW range (not just snapshot)
+        # This catches TP hits that occurred during the window but reversed
         if sig == "BUY":
-            if price >= tp1:
+            if high >= tp1:
+                # Price reached TP1 at some point during the window
                 outcome = "TP1_HIT"
                 accuracy = 1
-            elif price <= sl:
+            elif low <= sl:
                 outcome = "SL_HIT"
                 accuracy = 0
             else:
-                # Graduated: how far toward TP1 did price get? (0.0 = at entry, 1.0 = at TP1)
+                # Graduated: how far toward TP1 did price get? Use high water mark
                 tp_range = tp1 - entry
-                progress = (price - entry) / tp_range if tp_range != 0 else 0
-                progress = max(0.0, min(1.0, progress))  # clamp 0-1
-                outcome = "EXPIRED_PROFIT" if price > entry else "EXPIRED_LOSS"
+                progress = (high - entry) / tp_range if tp_range != 0 else 0
+                progress = max(0.0, min(1.0, progress))
+                outcome = "EXPIRED_PROFIT" if current > entry else "EXPIRED_LOSS"
                 accuracy = round(progress, 2)
         else:  # SELL
-            if price <= tp1:
+            if low <= tp1:
+                # Price dropped to TP1 at some point during the window
                 outcome = "TP1_HIT"
                 accuracy = 1
-            elif price >= sl:
+            elif high >= sl:
                 outcome = "SL_HIT"
                 accuracy = 0
             else:
                 tp_range = entry - tp1
-                progress = (entry - price) / tp_range if tp_range != 0 else 0
+                progress = (entry - low) / tp_range if tp_range != 0 else 0
                 progress = max(0.0, min(1.0, progress))
-                outcome = "EXPIRED_PROFIT" if price < entry else "EXPIRED_LOSS"
+                outcome = "EXPIRED_PROFIT" if current < entry else "EXPIRED_LOSS"
                 accuracy = round(progress, 2)
 
         conn.execute("""
             UPDATE signals SET outcome = ?, accuracy = ? WHERE id = ?
         """, (outcome, accuracy, row["id"]))
         updated += 1
-        print(f"  {row['symbol']} {sig} @ {entry:.4f} → {price:.4f} → {outcome}")
+        range_info = f"H={high:.4f} L={low:.4f} C={current:.4f}" if high != low else f"{current:.4f}"
+        print(f"  {row['symbol']} {sig} @ {entry:.4f} → [{range_info}] → {outcome}")
 
     conn.commit()
 

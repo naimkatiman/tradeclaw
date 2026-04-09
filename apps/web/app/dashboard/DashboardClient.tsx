@@ -226,17 +226,78 @@ function ConfluencePills({ timeframe }: { timeframe: string }) {
   );
 }
 
-function SignalCard({ signal, tfDirections, onSelect }: { signal: TradingSignal; tfDirections?: TFDirection[]; onSelect?: (signal: TradingSignal) => void }) {
+function SignalExplanation({ signal }: { signal: TradingSignal }) {
+  const reasons: string[] = [];
+  const { rsi, macd, ema, stochastic } = signal.indicators;
+
+  // Build 1-2 concise reasons from indicators
+  if (signal.direction === 'BUY') {
+    if (rsi.signal === 'oversold' || rsi.value < 35) reasons.push(`RSI at ${rsi.value.toFixed(0)} (oversold) — bounce likely`);
+    else if (rsi.value < 50) reasons.push(`RSI at ${rsi.value.toFixed(0)} — momentum building`);
+    if (macd.signal === 'bullish') reasons.push('MACD crossover bullish');
+    if (ema.trend === 'up') reasons.push('Price above EMA20 — uptrend intact');
+    if (stochastic.signal === 'oversold') reasons.push('Stochastic oversold — reversal setup');
+  } else {
+    if (rsi.signal === 'overbought' || rsi.value > 65) reasons.push(`RSI at ${rsi.value.toFixed(0)} (overbought) — pullback likely`);
+    else if (rsi.value > 50) reasons.push(`RSI at ${rsi.value.toFixed(0)} — momentum fading`);
+    if (macd.signal === 'bearish') reasons.push('MACD crossover bearish');
+    if (ema.trend === 'down') reasons.push('Price below EMA20 — downtrend intact');
+    if (stochastic.signal === 'overbought') reasons.push('Stochastic overbought — reversal setup');
+  }
+
+  if (signal.confidence >= 80) reasons.push(`${signal.confidence}% confidence — multi-indicator alignment`);
+
+  const display = reasons.slice(0, 2);
+  if (display.length === 0) return null;
+
+  return (
+    <div className="mt-2 px-2.5 py-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+      <div className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] mb-1 font-semibold">Why this signal?</div>
+      {display.map((r, i) => (
+        <div key={i} className="flex items-start gap-1.5 text-[10px] text-[var(--text-secondary)] leading-relaxed">
+          <span className="text-emerald-400 mt-0.5 shrink-0">&#x25B8;</span>
+          <span>{r}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavorite }: { signal: TradingSignal; tfDirections?: TFDirection[]; onSelect?: (signal: TradingSignal) => void; isFavorite?: boolean; onToggleFavorite?: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   const [chartVisible, setChartVisible] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
 
-  const handleShare = async (e: React.MouseEvent) => {
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
+
+  const signalUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://tradeclaw.win'}/signal/${signal.symbol}-${signal.timeframe}-${signal.direction}`;
+
+  const handleCopyLink = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = `${window.location.origin}/signal/${signal.symbol}-${signal.timeframe}-${signal.direction}`;
-    await navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(signalUrl);
     setShareCopied(true);
+    setShareMenuOpen(false);
     setTimeout(() => setShareCopied(false), 2000);
+  };
+
+  const handleShareX = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const emoji = signal.direction === 'BUY' ? '🟢' : '🔴';
+    const text = [
+      `${emoji} ${signal.direction} ${signal.symbol} — ${signal.confidence}% confidence`,
+      `Entry: $${formatPrice(signal.entry)}`,
+      `TP1: $${formatPrice(signal.takeProfit1)} | SL: $${formatPrice(signal.stopLoss)}`,
+      '',
+      `Live signals at ${signalUrl}`,
+      '#TradeClaw #Trading #Signals',
+    ].join('\n');
+    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank', 'width=550,height=420');
+    setShareMenuOpen(false);
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShareMenuOpen(!shareMenuOpen);
   };
 
   return (
@@ -270,6 +331,19 @@ function SignalCard({ signal, tfDirections, onSelect }: { signal: TradingSignal;
           <DirectionBadge direction={signal.direction} />
         </div>
         <div className="flex items-center gap-2">
+          {onToggleFavorite && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleFavorite(signal.id); }}
+              title={isFavorite ? 'Remove from watchlist' : 'Add to watchlist'}
+              className={`flex items-center justify-center min-w-[44px] min-h-[44px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg transition-all duration-200 ${
+                isFavorite ? 'text-yellow-400 bg-yellow-500/10' : 'text-[var(--text-secondary)] hover:text-yellow-400 hover:bg-[var(--glass-bg)]'
+              }`}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </button>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); setChartVisible(!chartVisible); }}
             title={chartVisible ? 'Hide chart' : 'Show chart'}
@@ -282,24 +356,38 @@ function SignalCard({ signal, tfDirections, onSelect }: { signal: TradingSignal;
               <polyline points="16 7 22 7 22 13" />
             </svg>
           </button>
-          <button
-            onClick={handleShare}
-            title="Copy signal link"
-            className="flex items-center justify-center min-w-[44px] min-h-[44px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)] transition-all duration-200"
-          >
-            {shareCopied ? (
-              <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                <path d="M2 8l4 4 8-8" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            ) : (
-              <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                <circle cx="12" cy="3" r="1.5" stroke="currentColor" strokeWidth="1.4" />
-                <circle cx="12" cy="13" r="1.5" stroke="currentColor" strokeWidth="1.4" />
-                <circle cx="4" cy="8" r="1.5" stroke="currentColor" strokeWidth="1.4" />
-                <path d="M10.5 3.8L5.5 7.2M5.5 8.8l5 3.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-              </svg>
+          <div className="relative">
+            <button
+              onClick={handleShare}
+              title="Share signal"
+              className="flex items-center justify-center min-w-[44px] min-h-[44px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)] transition-all duration-200"
+            >
+              {shareCopied ? (
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                  <path d="M2 8l4 4 8-8" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ) : (
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                  <circle cx="12" cy="3" r="1.5" stroke="currentColor" strokeWidth="1.4" />
+                  <circle cx="12" cy="13" r="1.5" stroke="currentColor" strokeWidth="1.4" />
+                  <circle cx="4" cy="8" r="1.5" stroke="currentColor" strokeWidth="1.4" />
+                  <path d="M10.5 3.8L5.5 7.2M5.5 8.8l5 3.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+              )}
+            </button>
+            {shareMenuOpen && (
+              <div className="absolute right-0 top-full mt-1 z-20 w-40 rounded-xl border border-[var(--border)] bg-zinc-900/95 backdrop-blur-md shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                <button onClick={handleShareX} className="flex items-center gap-2 w-full px-3 py-2.5 text-xs text-[var(--foreground)] hover:bg-white/[0.05] transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  Post on X
+                </button>
+                <button onClick={handleCopyLink} className="flex items-center gap-2 w-full px-3 py-2.5 text-xs text-[var(--foreground)] hover:bg-white/[0.05] transition-colors border-t border-white/[0.05]">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  Copy link
+                </button>
+              </div>
             )}
-          </button>
+          </div>
           <div className="text-right">
             <div className={`text-sm font-bold font-mono tabular-nums ${
               signal.confidence >= 80 ? 'text-emerald-400' : signal.confidence >= 65 ? 'text-yellow-400' : 'text-red-400'
@@ -314,6 +402,9 @@ function SignalCard({ signal, tfDirections, onSelect }: { signal: TradingSignal;
 
       {/* Confidence bar */}
       <ConfidenceBar value={signal.confidence} showExplainer />
+
+      {/* Why this signal? — 1-2 bullet reasons */}
+      <SignalExplanation signal={signal} />
 
       {/* Price levels */}
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 mt-4 text-center">
@@ -564,18 +655,66 @@ function StatCard({ value, label, color = 'text-[var(--foreground)]' }: { value:
   );
 }
 
+const SIGNAL_CACHE_KEY = 'tc_signals_cache';
+const SIGNAL_CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
+
+function getCachedSignals(): TradingSignal[] {
+  try {
+    const raw = localStorage.getItem(SIGNAL_CACHE_KEY);
+    if (!raw) return [];
+    const { signals, ts } = JSON.parse(raw) as { signals: TradingSignal[]; ts: number };
+    if (Date.now() - ts > SIGNAL_CACHE_MAX_AGE) return [];
+    return signals;
+  } catch { return []; }
+}
+
+function setCachedSignals(signals: TradingSignal[]) {
+  try {
+    if (signals.length > 0) {
+      localStorage.setItem(SIGNAL_CACHE_KEY, JSON.stringify({ signals: signals.slice(0, 20), ts: Date.now() }));
+    }
+  } catch { /* quota exceeded — ignore */ }
+}
+
 export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { initialSignals?: TradingSignal[]; initialSyntheticSymbols?: string[] }) {
   const { prices, state: connectionState } = usePriceStream(TICKER_PAIRS);
-  const [signals, setSignals] = useState<TradingSignal[]>(initialSignals || []);
+  const [signals, setSignals] = useState<TradingSignal[]>(() => {
+    if (initialSignals && initialSignals.length > 0) return initialSignals;
+    if (typeof window !== 'undefined') return getCachedSignals();
+    return [];
+  });
   const [syntheticSymbols, setSyntheticSymbols] = useState<string[]>(initialSyntheticSymbols || []);
   const [tfMap, setTfMap] = useState<Map<string, TFDirection[]>>(new Map());
-  const [loading, setLoading] = useState(!initialSignals || initialSignals.length === 0);
+  const [loading, setLoading] = useState(() => {
+    if (initialSignals && initialSignals.length > 0) return false;
+    if (typeof window !== 'undefined' && getCachedSignals().length > 0) return false;
+    return true;
+  });
   const [timeframe, setTimeframe] = useState('ALL');
   const [direction, setDirection] = useState<'ALL' | 'BUY' | 'SELL'>('ALL');
   const [assetClass, setAssetClass] = useState<AssetClass>('ALL');
+  const [highConfOnly, setHighConfOnly] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [selectedSignal, setSelectedSignal] = useState<TradingSignal | null>(null);
+  const [favorites, setFavorites] = useState<Set<string>>(() => {
+    try {
+      if (typeof window === 'undefined') return new Set<string>();
+      const raw = localStorage.getItem('tc_favorites');
+      return raw ? new Set(JSON.parse(raw) as string[]) : new Set<string>();
+    } catch { return new Set<string>(); }
+  });
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
+  const toggleFavorite = useCallback((signalId: string) => {
+    setFavorites(prev => {
+      const next = new Set(prev);
+      if (next.has(signalId)) next.delete(signalId);
+      else next.add(signalId);
+      try { localStorage.setItem('tc_favorites', JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
 
   const fetchSignals = useCallback(async () => {
     try {
@@ -592,6 +731,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       if (signalsRes.status === 'fulfilled') {
         setSignals(signalsRes.value.signals);
         setSyntheticSymbols(signalsRes.value.syntheticSymbols || []);
+        setCachedSignals(signalsRes.value.signals);
       }
       if (mtfRes.status === 'fulfilled' && mtfRes.value.results) {
         const map = new Map<string, TFDirection[]>();
@@ -818,9 +958,36 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           </button>
         </div>
 
+        {/* Quick filters */}
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
+          <button
+            onClick={() => setHighConfOnly(!highConfOnly)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 border shrink-0 ${
+              highConfOnly
+                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'
+                : 'text-[var(--text-secondary)] border-white/[0.06] hover:text-[var(--foreground)]'
+            }`}
+          >
+            High Confidence (&gt;80%)
+          </button>
+          <button
+            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 border shrink-0 flex items-center gap-1 ${
+              showFavoritesOnly
+                ? 'bg-yellow-500/15 text-yellow-400 border-yellow-500/20'
+                : 'text-[var(--text-secondary)] border-white/[0.06] hover:text-[var(--foreground)]'
+            }`}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill={showFavoritesOnly ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Watchlist {favorites.size > 0 ? `(${favorites.size})` : ''}
+          </button>
+        </div>
+
         {/* Signal grid */}
         {(() => {
-          const filteredSignals = signals.filter(s => ASSET_CLASSES[assetClass].includes(s.symbol));
+          let filteredSignals = signals.filter(s => ASSET_CLASSES[assetClass].includes(s.symbol));
+          if (highConfOnly) filteredSignals = filteredSignals.filter(s => s.confidence >= 80);
+          if (showFavoritesOnly) filteredSignals = filteredSignals.filter(s => favorites.has(s.id));
           const mainSignals = filteredSignals.filter(s => s.confidence >= 70);
           const potentialSignals = filteredSignals.filter(s => s.confidence >= 50 && s.confidence < 70);
 
@@ -838,6 +1005,38 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                     </div>
                   </div>
                 ))}
+              </div>
+            );
+          }
+          if (filteredSignals.length === 0 && signals.length > 0) {
+            // Signals exist but the current asset class filter hides all
+            return (
+              <div className="text-center py-16">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[var(--glass-bg)] border border-[var(--border)] mb-4">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-secondary)]">
+                    <path d="M3 3h7l2 2h9v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3z" />
+                    <path d="M12 11v4" /><path d="M12 17h.01" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-[var(--foreground)] mb-1">
+                  No {assetClass !== 'ALL' ? assetClass.toLowerCase() : ''} signals right now
+                </p>
+                <p className="text-xs text-[var(--text-secondary)] mb-4 max-w-md mx-auto">
+                  {signals.length} signal{signals.length !== 1 ? 's' : ''} active in other categories. Try switching asset class or check back when {assetClass === 'FOREX' ? 'forex sessions are open' : assetClass === 'METALS' ? 'metals markets are active' : 'more setups trigger'}.
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {assetClass !== 'ALL' && (
+                    <button
+                      onClick={() => setAssetClass('ALL' as AssetClass)}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/20 transition-all duration-200"
+                    >
+                      Show all assets
+                    </button>
+                  )}
+                  <button onClick={fetchSignals} className="px-4 py-2 rounded-xl text-xs border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-all duration-200 font-mono">
+                    Refresh
+                  </button>
+                </div>
               </div>
             );
           }
@@ -866,12 +1065,19 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               {mainSignals.length > 0 && (
                 <div data-tour-id="signal-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {mainSignals.map(signal => (
-                    <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={setSelectedSignal} />
+                    <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={setSelectedSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
                   ))}
                 </div>
               )}
               {mainSignals.length === 0 && (
-                <p className="text-center text-sm text-[var(--text-secondary)] py-8 font-mono">No high-confidence signals right now. Check potential setups below.</p>
+                <div className="text-center py-8 px-4">
+                  <p className="text-sm text-[var(--text-secondary)] mb-2 font-mono">No high-confidence (70%+) signals right now</p>
+                  {potentialSignals.length > 0 && (
+                    <p className="text-xs text-[var(--text-secondary)]">
+                      {potentialSignals.length} potential setup{potentialSignals.length !== 1 ? 's' : ''} (50-69%) below — these have partial indicator agreement and may strengthen.
+                    </p>
+                  )}
+                </div>
               )}
 
               {/* Telegram CTA */}
@@ -898,7 +1104,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                   <p className="text-xs text-[var(--text-secondary)] mb-3">Early-stage setups that haven&apos;t reached full confluence yet. Watch for confirmation before acting.</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 opacity-80">
                     {potentialSignals.map(signal => (
-                      <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={setSelectedSignal} />
+                      <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={setSelectedSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
                     ))}
                   </div>
                 </section>

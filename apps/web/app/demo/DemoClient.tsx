@@ -660,56 +660,65 @@ export default function DemoClient() {
 
   const fetchSignals = useCallback(async () => {
     try {
-      // Primary: Fetch from v1 API (reads from Python-generated signals-live.json)
-      const res = await fetch('/api/v1/signals?limit=20');
-      if (!res.ok) throw new Error('fetch failed');
-      const data = await res.json();
+      // Try demo endpoint first (deterministic daily-reset signals)
+      // then fall back to v1 API, then to hardcoded fallback
+      let mapped: Signal[] | null = null;
+      let live = false;
 
-      // Check if data is from live-file source (real Python signals)
-      const isRealData = data.source === 'live-file' && data.signals?.length > 0;
-      setIsLive(isRealData);
-
-      if (data.signals?.length > 0) {
-        // Map v1 API response to internal Signal format
-        const mapped: Signal[] = data.signals.map((s: {
-          id: string;
-          pair: string;
-          direction: string;
-          confidence: number;
-          price: number;
-          tp: number;
-          sl: number;
-          rsi?: number;
-          timeframe: string;
-          generatedAt: string;
-        }) => ({
-          id: s.id,
-          symbol: s.pair,
-          asset: SYMBOL_NAMES[s.pair] || s.pair,
-          direction: s.direction as 'BUY' | 'SELL',
-          confidence: s.confidence,
-          entry: s.price,
-          tp1: s.tp,
-          tp2: s.tp * (s.direction === 'BUY' ? 1.02 : 0.98), // Estimate TP2
-          sl: s.sl,
-          rsi: s.rsi ?? 50,
-          trend: `${s.timeframe} confluence signal`,
-          timeframe: s.timeframe,
-          timestamp: s.generatedAt,
-          source: isRealData ? 'Live signals' : 'TA engine',
-        }));
-        setPrev(signals);
-        setSignals(mapped);
-        setError(false);
-        setTick(t => t + 1);
-        countdownRef.current = REFRESH_INTERVAL;
-        setCountdown(REFRESH_INTERVAL);
-        return;
+      try {
+        const demoRes = await fetch('/api/demo/signals');
+        if (demoRes.ok) {
+          const demoData = await demoRes.json();
+          if (demoData.signals?.length > 0) {
+            mapped = demoData.signals.map((s: ApiSignal) => mapApiSignal(s));
+          }
+        }
+      } catch {
+        // demo endpoint unavailable, try v1
       }
 
-      // No signals from v1 API — use fallback
-      setIsLive(false);
-      const mapped = FALLBACK_SIGNALS.map(mapApiSignal);
+      if (!mapped) {
+        const res = await fetch('/api/v1/signals?limit=20');
+        if (res.ok) {
+          const data = await res.json();
+          live = data.source === 'live-file' && data.signals?.length > 0;
+          if (data.signals?.length > 0) {
+            mapped = data.signals.map((s: {
+              id: string;
+              pair: string;
+              direction: string;
+              confidence: number;
+              price: number;
+              tp: number;
+              sl: number;
+              rsi?: number;
+              timeframe: string;
+              generatedAt: string;
+            }) => ({
+              id: s.id,
+              symbol: s.pair,
+              asset: SYMBOL_NAMES[s.pair] || s.pair,
+              direction: s.direction as 'BUY' | 'SELL',
+              confidence: s.confidence,
+              entry: s.price,
+              tp1: s.tp,
+              tp2: s.tp * (s.direction === 'BUY' ? 1.02 : 0.98),
+              sl: s.sl,
+              rsi: s.rsi ?? 50,
+              trend: `${s.timeframe} confluence signal`,
+              timeframe: s.timeframe,
+              timestamp: s.generatedAt,
+              source: live ? 'Live signals' : 'TA engine',
+            }));
+          }
+        }
+      }
+
+      if (!mapped) {
+        mapped = FALLBACK_SIGNALS.map(mapApiSignal);
+      }
+
+      setIsLive(live);
       setPrev(signals);
       setSignals(mapped);
       setError(false);
@@ -717,7 +726,6 @@ export default function DemoClient() {
       countdownRef.current = REFRESH_INTERVAL;
       setCountdown(REFRESH_INTERVAL);
     } catch {
-      // On fetch failure, use fallback signals so the demo always shows data
       setIsLive(false);
       const mapped = FALLBACK_SIGNALS.map(mapApiSignal);
       setPrev(signals);

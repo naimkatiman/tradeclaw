@@ -1,0 +1,113 @@
+[
+  {
+    "id": "demo-key-1",
+    "key": "tc_live_cf5742cfb5d1f6aabdbe1c8759a5d994",
+    "name": "Demo Key — Signals only",
+    "email": "demo@tradeclaw.win",
+    "description": "Read-only access to trading signals endpoint.",
+    "scopes": [
+      "signals"
+    ],
+    "createdAt": 1774488327229,
+    "lastUsedAt": 1775525127229,
+    "requestCount": 340,
+    "rateLimit": 1000,
+    "status": "revoked",
+    "active": false,
+    "tier": "free"
+  },
+  {
+    "id": "demo-key-2",
+    "key": "tc_live_140164c7a6e6fcdd5fa4f5961c94487f",
+    "name": "Demo Key — Signals + Leaderboard",
+    "email": "demo@tradeclaw.win",
+    "description": "Signals and leaderboard access for a bot.",
+    "scopes": [
+      "signals",
+      "leaderboard"
+    ],
+    "createdAt": 1775093127229,
+    "lastUsedAt": 1775611527229,
+    "requestCount": 892,
+    "rateLimit": 1000,
+    "status": "revoked",
+    "active": false,
+    "tier": "free"
+  },
+  {
+    "id": "demo-key-3",
+    "key": "tc_live_3a5dbbf4e4fa0ae05a8d1db8011eccd3",
+    "name": "Demo Key — Full access",
+    "email": "demo@tradeclaw.win",
+    "description": "Full scope access: signals, leaderboard, screener.",
+    "scopes": [
+      "signals",
+      "leaderboard",
+      "screener"
+    ],
+    "createdAt": 1775438727229,
+    "lastUsedAt": 1775694327229,
+    "requestCount": 1247,
+    "rateLimit": 1000,
+    "status": "revoked",
+    "active": false,
+    "tier": "free"
+  },
+  {
+    "id": "3ec4f0d6d079f430",
+    "key": "tc_live_e9d4719663029a544cb146362ee268db",
+    "name": "e2e-test-key",
+    "email": "e2e@test.local",
+    "description": "",
+    "scopes": [
+      "signals",
+      "leaderboard",
+      "screener"
+    ],
+    "createdAt": 1775697927231,
+    "lastUsedAt": null,
+    "requestCount": 0,
+    "rateLimit": 1000,
+    "status": "active",
+    "active": true,
+    "tier": "free"
+  },
+  {
+    "id": "f77bf6a1b67756d2",
+    "key": "tc_live_18bf62db84a7df0bca710df178a64c69",
+    "name": "e2e-test-key",
+    "email": "e2e@test.local",
+    "description": "",
+    "scopes": [
+      "signals",
+      "leaderboard",
+      "screener"
+    ],
+    "createdAt": 1775698161248,
+    "lastUsedAt": null,
+    "requestCount": 0,
+    "rateLimit": 1000,
+    "status": "active",
+    "active": true,
+    "tier": "free"
+  },
+  {
+    "id": "defc462c3c4e8bed",
+    "key": "tc_live_d36411f4bbf6142d50f637e6ccac7f68",
+    "name": "e2e-test-key",
+    "email": "e2e@test.local",
+    "description": "",
+    "scopes": [
+      "signals",
+      "leaderboard",
+      "screener"
+    ],
+    "createdAt": 1775698318457,
+    "lastUsedAt": null,
+    "requestCount": 0,
+    "rateLimit": 1000,
+    "status": "active",
+    "active": true,
+    "tier": "free"
+  }
+]

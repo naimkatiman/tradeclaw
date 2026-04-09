@@ -42,9 +42,9 @@ test.describe('Screener Page', () => {
 test.describe('Dashboard Page', () => {
   test('loads dashboard', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
-    // Dashboard should render something
+    // Dashboard should render something (don't use networkidle — live connections keep it open)
     const body = page.locator('body');
     await expect(body).toBeVisible();
   });

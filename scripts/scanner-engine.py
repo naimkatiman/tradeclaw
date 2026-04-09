@@ -50,6 +50,16 @@ BINANCE_PRICE_MAP = {
 BINANCE_PRICE_DIVERGENCE_THRESHOLD = 0.005  # 0.5% divergence = warning
 BINANCE_CROSS_VALIDATION_BONUS = 3  # bonus when Binance confirms price
 
+# ─── SELL Signal Restrictions ─────────────────────────────────
+# SELL signals require 3+ TF confluence (BUY only needs 2)
+SELL_MIN_CONFLUENCE = 3
+# Blacklisted symbol+direction combos based on track-record audit:
+# These have <20% avg accuracy over 5+ signals — auto-skip
+BLACKLISTED_COMBOS = {
+    "SOLUSDT_SELL", "USDJPY_BUY", "XRPUSDT_SELL", "BTCUSDT_SELL",
+    "EURUSD_SELL", "GBPUSD_SELL", "ETHUSDT_SELL",
+}
+
 # Target symbols per market
 TARGET_SYMBOLS = {
     "crypto": {
@@ -155,8 +165,14 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
         direction = None
         reasons = []
 
+        # ── Blacklist check (skip known losers) ──
+        # Checked early before any analysis to save compute
+        buy_combo = f"{symbol_name}_BUY"
+        sell_combo = f"{symbol_name}_SELL"
+
         # ── BUY conditions ──
-        if (close > ema20 and st_trend_up and ema_fan_bull
+        if (buy_combo not in BLACKLISTED_COMBOS
+                and close > ema20 and st_trend_up and ema_fan_bull
                 and 40 < rsi < 70 and vwap_bull):
             direction = "BUY"
             reasons.append(f"EMA fan aligned bullish ({tf_label})")
@@ -167,7 +183,8 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
             reasons.append(f"RSI {round(rsi, 1)} — momentum confirmed")
 
         # ── SELL conditions ──
-        elif (close < ema20 and st_trend_down and ema_fan_bear
+        elif (sell_combo not in BLACKLISTED_COMBOS
+                and close < ema20 and st_trend_down and ema_fan_bear
                 and 30 < rsi < 60 and vwap_bear):
             direction = "SELL"
             reasons.append(f"EMA fan aligned bearish ({tf_label})")
@@ -242,14 +259,14 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
         if confidence < MIN_CONFIDENCE:
             continue
 
-        # TP/SL from ATR
+        # TP/SL from ATR — R:R = 1.33 (risk 0.75 ATR to gain 1.0 ATR)
         if direction == "BUY":
-            tp1 = round(close + atr * 0.5, 6)
-            tp2 = round(close + atr * 1.0, 6)
+            tp1 = round(close + atr * 1.0, 6)
+            tp2 = round(close + atr * 1.5, 6)
             sl  = round(close - atr * 0.75, 6)
         else:
-            tp1 = round(close - atr * 0.5, 6)
-            tp2 = round(close - atr * 1.0, 6)
+            tp1 = round(close - atr * 1.0, 6)
+            tp2 = round(close - atr * 1.5, 6)
             sl  = round(close + atr * 0.75, 6)
 
         sig = {
@@ -475,6 +492,16 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
     agreeing = buy_tfs if buy_tfs else sell_tfs
     direction_candidate = "BUY" if buy_tfs else ("SELL" if sell_tfs else None)
 
+    # ── Blacklist filter ──
+    if direction_candidate:
+        combo_key = f"{symbol_name}_{direction_candidate}"
+        if combo_key in BLACKLISTED_COMBOS:
+            return None, []
+
+    # ── SELL requires stricter confluence ──
+    if direction_candidate == "SELL" and len(agreeing) < SELL_MIN_CONFLUENCE:
+        return None, []
+
     # ── H4 Trend Alignment Filter ──
     # Trade WITH the dominant H4 trend:
     #   BUY  → only when price ABOVE EMA200 H4 (uptrend)
@@ -547,14 +574,14 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
             atr = row.get("ATR") or (entry * 0.01)
 
             # TP/SL scaled for 4h outcome window:
-            # TP1 = 0.5x ATR (achievable), TP2 = 1.0x ATR, SL = 0.75x ATR
+            # TP1 = 1.0x ATR, TP2 = 1.5x ATR, SL = 0.75x ATR → R:R = 1.33
             if direction == "BUY":
-                tp1 = round(entry + atr * 0.5, 6)
-                tp2 = round(entry + atr * 1.0, 6)
+                tp1 = round(entry + atr * 1.0, 6)
+                tp2 = round(entry + atr * 1.5, 6)
                 sl  = round(entry - atr * 0.75, 6)
             else:
-                tp1 = round(entry - atr * 0.5, 6)
-                tp2 = round(entry - atr * 1.0, 6)
+                tp1 = round(entry - atr * 1.0, 6)
+                tp2 = round(entry - atr * 1.5, 6)
                 sl  = round(entry + atr * 0.75, 6)
 
             reasons = [f"TF confluence: {', '.join(agreeing)} all {direction}"]
@@ -622,10 +649,10 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
         tf_conf = min(base + (5 if tf in (agreeing or []) else 0), 95)
 
         if sig == "BUY":
-            tp1i = round(entry + (atr or entry*0.01) * 0.5, 6)
+            tp1i = round(entry + (atr or entry*0.01) * 1.0, 6)
             sli  = round(entry - (atr or entry*0.01) * 0.75, 6)
         else:
-            tp1i = round(entry - (atr or entry*0.01) * 0.5, 6)
+            tp1i = round(entry - (atr or entry*0.01) * 1.0, 6)
             sli  = round(entry + (atr or entry*0.01) * 0.75, 6)
 
         individual.append({
@@ -827,19 +854,30 @@ def main():
 
     # Save to SQLite — with cooldown deduplication
     # Skip if same symbol+direction already fired within COOLDOWN_HOURS
-    COOLDOWN_HOURS = 4
+    # Dynamic cooldown: 8h base, 12h if last signal for this combo lost
+    COOLDOWN_HOURS_BASE = 8
     saved = 0
     skipped = 0
     if confluence_signals:
         for s in confluence_signals:
             try:
+                # Dynamic cooldown: extend to 12h if last signal was a loser
+                cooldown_hours = COOLDOWN_HOURS_BASE
+                last_outcome = conn.execute("""
+                    SELECT outcome, accuracy FROM signals
+                    WHERE symbol = ? AND signal = ? AND outcome IS NOT NULL
+                    ORDER BY fired_at DESC LIMIT 1
+                """, (s["symbol"], s["signal"])).fetchone()
+                if last_outcome and last_outcome[1] is not None and last_outcome[1] < 0.3:
+                    cooldown_hours = 12  # extend cooldown after a loss
+
                 # Check cooldown: was this symbol+direction fired recently?
                 recent = conn.execute("""
                     SELECT id, fired_at FROM signals
                     WHERE symbol = ? AND signal = ?
                       AND fired_at > datetime('now', ?)
                     ORDER BY fired_at DESC LIMIT 1
-                """, (s["symbol"], s["signal"], f"-{COOLDOWN_HOURS} hours")).fetchone()
+                """, (s["symbol"], s["signal"], f"-{cooldown_hours} hours")).fetchone()
 
                 if recent:
                     skipped += 1

@@ -1,0 +1,40 @@
+{
+  "latency": [],
+  "apiRoutes": [],
+  "throughput": [],
+  "memory": [
+    {
+      "timestamp": 1775698224806,
+      "rss": 1927946240,
+      "heapUsed": 653725904,
+      "heapTotal": 693473280
+    },
+    {
+      "timestamp": 1775698224806,
+      "rss": 1927946240,
+      "heapUsed": 653730200,
+      "heapTotal": 693473280
+    },
+    {
+      "timestamp": 1775698224834,
+      "rss": 1931878400,
+      "heapUsed": 660092432,
+      "heapTotal": 697147392
+    }
+  ],
+  "cache": {
+    "hits": 0,
+    "misses": 0
+  },
+  "signals": {
+    "byPair": {},
+    "byTimeframe": {},
+    "buy": 0,
+    "sell": 0,
+    "total": 0
+  },
+  "startedAt": 1775698224806,
+  "lastRestartAt": 1775698224806,
+  "sseConnections": 0,
+  "lastUpdated": 1775698224834
+}

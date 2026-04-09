@@ -77,18 +77,18 @@ test.describe('Signals API', () => {
 });
 
 test.describe('Auth-Protected API Endpoints', () => {
-  test('POST /api/webhooks returns 401 without auth', async ({ request }) => {
+  test('POST /api/webhooks returns 401 or 201 depending on auth config', async ({ request }) => {
     const res = await request.post('/api/webhooks', {
       data: { url: 'https://example.com/hook', events: ['signal.new'] },
     });
-    // Should be 401 if ADMIN_SECRET is set, or 200 in dev mode
-    expect([200, 401]).toContain(res.status());
+    // 401 if ADMIN_SECRET is set, 201 in dev mode (no secret)
+    expect([201, 401]).toContain(res.status());
   });
 
-  test('POST /api/keys returns 401 without auth', async ({ request }) => {
+  test('POST /api/keys returns 401 or 201 depending on auth config', async ({ request }) => {
     const res = await request.post('/api/keys', {
-      data: { name: 'test-key' },
+      data: { name: 'e2e-test-key', email: 'e2e@test.local' },
     });
-    expect([200, 401]).toContain(res.status());
+    expect([201, 401]).toContain(res.status());
   });
 });
