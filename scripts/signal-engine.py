@@ -33,7 +33,14 @@ PROJECT_DIR = SCRIPT_DIR.parent
 DATA_DIR = PROJECT_DIR / "data"
 OUTPUT_FILE = DATA_DIR / "signals-live.json"
 
-MIN_CONFIDENCE = 70  # Only emit signals >= 70%
+# Adaptive: read confidence_threshold.txt written by signal-outcome-checker.py
+# (falls back to 70 if file missing/invalid). Closes the feedback loop —
+# when accuracy tanks, checker writes 75/80 and engine actually honors it.
+try:
+    _threshold_file = Path(__file__).parent / "confidence_threshold.txt"
+    MIN_CONFIDENCE = int(_threshold_file.read_text().strip())
+except Exception:
+    MIN_CONFIDENCE = 70
 
 # Weak days filter — Wednesday (2) and Saturday (5) have <45% hit rate
 WEAK_DAYS = {2, 5}  # 0=Mon, 6=Sun
@@ -151,18 +158,35 @@ def analyze_symbol(tv_symbol: str, symbol_info: dict) -> dict | None:
         elif "SELL" in rec:
             sell_tfs.append(tf)
 
-    # Confluence rule: >= 2 TFs agreeing, 0 opposite
+    # Confluence rule: BUY needs >= 2 TFs, SELL needs >= 3 TFs (asymmetric).
+    # SELL hit-rate last 72h was 7% vs BUY 37% — we tightened SELLs because the
+    # engine was emitting counter-trend reversals into a strong uptrend. Revisit
+    # once SELL win rate climbs back above 40%.
     if len(buy_tfs) >= 2 and len(sell_tfs) == 0:
         direction = "BUY"
         agreeing = buy_tfs
-    elif len(sell_tfs) >= 2 and len(buy_tfs) == 0:
+    elif len(sell_tfs) >= 3 and len(buy_tfs) == 0:
         direction = "SELL"
         agreeing = sell_tfs
     else:
-        # Mixed or insufficient confluence
         total_checked = len([a for a in analyses.values() if a])
         print(f"  No confluence: BUY={buy_tfs}, SELL={sell_tfs} ({total_checked} TFs checked)", file=sys.stderr)
         return None
+
+    # H4 trend gate — refuse signals that fight the higher timeframe.
+    # Uses EMA20 vs EMA50 on H4 as the regime filter.
+    h4 = analyses.get("H4")
+    if h4 is not None:
+        h4_ema20 = h4.indicators.get("EMA20", 0) or 0
+        h4_ema50 = h4.indicators.get("EMA50", 0) or 0
+        if h4_ema20 and h4_ema50:
+            h4_uptrend = h4_ema20 > h4_ema50
+            if direction == "BUY" and not h4_uptrend:
+                print(f"  REJECTED: BUY against H4 downtrend (EMA20={h4_ema20:.4f} < EMA50={h4_ema50:.4f})", file=sys.stderr)
+                return None
+            if direction == "SELL" and h4_uptrend:
+                print(f"  REJECTED: SELL against H4 uptrend (EMA20={h4_ema20:.4f} > EMA50={h4_ema50:.4f})", file=sys.stderr)
+                return None
 
     # Get primary timeframe analysis (H1 preferred, H4 fallback)
     primary = analyses.get("H1") or analyses.get("H4")
@@ -212,14 +236,15 @@ def analyze_symbol(tv_symbol: str, symbol_info: dict) -> dict | None:
         print(f"  No price data available", file=sys.stderr)
         return None
 
-    # Calculate TP/SL — scaled for 4h outcome window
+    # Calculate TP/SL — 1.33:1 R:R (was inverted 0.67:1 which needed 60%+ win rate
+    # to break even). 24% measured TP-hit rate × 1.33 R:R is break-even at ~43%.
     if direction == "BUY":
-        tp1 = round(entry + atr * 0.5, 5)
-        tp2 = round(entry + atr * 1.0, 5)
+        tp1 = round(entry + atr * 1.0, 5)
+        tp2 = round(entry + atr * 2.0, 5)
         sl = round(entry - atr * 0.75, 5)
     else:
-        tp1 = round(entry - atr * 0.5, 5)
-        tp2 = round(entry - atr * 1.0, 5)
+        tp1 = round(entry - atr * 1.0, 5)
+        tp2 = round(entry - atr * 2.0, 5)
         sl = round(entry + atr * 0.75, 5)
 
     # Build reasons list

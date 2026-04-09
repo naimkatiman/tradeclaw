@@ -4,7 +4,7 @@ TradeClaw Signal Outcome Checker
 Runs hourly — checks if past signals hit TP1 or SL, updates signals.db
 
 Learning loop:
-  fired signal → wait 4h → check current price vs entry/tp1/sl → mark outcome
+  fired signal → wait OUTCOME_WINDOW_HOURS → check price vs entry/tp1/sl → mark outcome
   outcome data feeds win_rate → win_rate feeds confidence scoring
 """
 
@@ -19,8 +19,10 @@ import requests
 SCRIPT_DIR = Path(__file__).parent
 DB_PATH = SCRIPT_DIR / "signals.db"
 
-# How long to wait before checking outcome
-OUTCOME_WINDOW_HOURS = 4
+# How long to wait before checking outcome.
+# Was 4h; bumped to 8h because TP1 widened from 0.5*ATR → 1.0*ATR (see signal-engine.py).
+# The old 4h window was expiring ~35% of signals as EXPIRED_LOSS before they could reach TP.
+OUTCOME_WINDOW_HOURS = 8
 
 # Binance symbol mapping
 BINANCE_MAP = {
@@ -90,10 +92,10 @@ def get_price_range(symbol: str, fired_at: str) -> Optional[tuple]:
                 "https://api.binance.com/api/v3/klines",
                 params={
                     "symbol": binance_sym,
-                    "interval": "15m",  # 16 candles over 4h
+                    "interval": "15m",  # 32 candles over 8h
                     "startTime": start_ms,
                     "endTime": end_ms,
-                    "limit": 20,
+                    "limit": 40,
                 },
                 timeout=5,
             )

@@ -14,7 +14,6 @@ import {
   Send,
   Wrench,
   Layers,
-  FileText,
   Crosshair,
 } from 'lucide-react';
 import { TradeClawLogo } from './tradeclaw-logo';
@@ -53,7 +52,7 @@ const MORE_GROUPS: DropdownGroup[] = [
     links: [
       { href: '/commentary', label: 'Commentary', icon: BookOpen },
       { href: '/journal', label: 'Journal', icon: NotebookPen },
-      { href: '/glossary', label: 'Glossary', icon: FileText },
+      { href: '/glossary', label: 'Glossary', icon: BookOpen },
     ],
   },
   {
