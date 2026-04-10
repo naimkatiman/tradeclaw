@@ -1,10 +1,11 @@
-import { test as base, expect } from '@playwright/test';
+/* eslint-disable react-hooks/rules-of-hooks -- Playwright fixture `use` callback, not a React hook */
+import { test as base, expect, type Page } from '@playwright/test';
 
 /**
  * Extend base test with admin authentication fixture.
  * Uses the /api/auth/login endpoint to set the tc_admin cookie.
  */
-export const test = base.extend<{ adminPage: ReturnType<typeof base['page']> }>({
+export const test = base.extend<{ adminPage: Page }>({
   adminPage: async ({ page, context }, use) => {
     const secret = process.env.ADMIN_SECRET || 'test-secret';
 

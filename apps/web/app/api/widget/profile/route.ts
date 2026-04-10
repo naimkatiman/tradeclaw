@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
     if (signal) {
       direction = signal.direction;
       confidence = signal.confidence;
-      entryPrice = signal.entryPrice;
+      entryPrice = signal.entry;
       rsi = signal.indicators.rsi.value;
     }
   } catch {

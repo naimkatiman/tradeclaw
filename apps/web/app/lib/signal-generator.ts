@@ -48,7 +48,12 @@ const WEIGHTS = {
   STOCH_OVERBOUGHT: 15,  // Stochastic > 80 and K crossing below D
   BB_LOWER_TOUCH: 10,    // Price near lower Bollinger band
   BB_UPPER_TOUCH: 10,    // Price near upper Bollinger band
+  BB_SQUEEZE_BREAKOUT: 8, // Squeeze (compressed bands) + price breaking a band → volatility expansion
 } as const;
+
+// Bandwidth threshold (percentage of middle band) below which a squeeze is active.
+// Matches packages/signals/src/indicators.ts → DEFAULT_SQUEEZE_THRESHOLD.
+const BB_SQUEEZE_THRESHOLD = 4;
 
 const SIGNAL_THRESHOLD = 25; // Minimum score to generate a signal
 const MIN_CONFIDENCE = 58; // Below 58% is noise — do not emit
@@ -444,6 +449,26 @@ function scoreIndicators(indicators: AllIndicators): ScoreResult {
         sellCategories.volatility += WEIGHTS.BB_UPPER_TOUCH * 0.5;
         reasons.push('Price near upper Bollinger Band');
       }
+
+      // ── Bollinger Band Squeeze (volatility breakout) ─────
+      // When bands are compressed, a touch/break of either band is a high-probability
+      // breakout setup. Boost the side whose band the price is testing.
+      const bandwidthPct = bollinger.current.bandwidth;
+      const isSqueeze =
+        !isNaN(bandwidthPct) && bandwidthPct > 0 && bandwidthPct < BB_SQUEEZE_THRESHOLD;
+      if (isSqueeze) {
+        if (distToUpper < 0.15) {
+          buyScore += WEIGHTS.BB_SQUEEZE_BREAKOUT;
+          buyCategories.volatility += WEIGHTS.BB_SQUEEZE_BREAKOUT;
+          reasons.push(`BB squeeze breakout up (bw=${bandwidthPct.toFixed(2)}%)`);
+        } else if (distToLower < 0.15) {
+          sellScore += WEIGHTS.BB_SQUEEZE_BREAKOUT;
+          sellCategories.volatility += WEIGHTS.BB_SQUEEZE_BREAKOUT;
+          reasons.push(`BB squeeze breakdown (bw=${bandwidthPct.toFixed(2)}%)`);
+        } else {
+          reasons.push(`BB squeeze active (bw=${bandwidthPct.toFixed(2)}%)`);
+        }
+      }
     }
   }
 
@@ -523,6 +548,10 @@ function buildIndicatorSummary(
         ? (currentPrice > bollinger.current.middle ? 'upper' : 'lower')
         : 'middle',
       bandwidth: +(bollinger.current.bandwidth || 0).toFixed(4),
+      squeeze:
+        !isNaN(bollinger.current.bandwidth) &&
+        bollinger.current.bandwidth > 0 &&
+        bollinger.current.bandwidth < BB_SQUEEZE_THRESHOLD,
     },
     stochastic: {
       k: +stochastic.current.k.toFixed(2),

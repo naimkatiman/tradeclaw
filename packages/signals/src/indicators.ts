@@ -143,6 +143,44 @@ export function calculateBollingerBands(
 }
 
 /**
+ * Default Bollinger Band squeeze threshold (as a percentage of the middle band).
+ * A squeeze is considered active when `bandwidth` falls below this value.
+ * 4% matches the issue spec (0.04 when expressed as a ratio).
+ */
+export const DEFAULT_SQUEEZE_THRESHOLD = 4;
+
+/**
+ * Detect a Bollinger Band squeeze (bands compressed below a bandwidth threshold).
+ *
+ * A "squeeze" marks a low-volatility regime that frequently precedes a directional
+ * breakout. We compute the standard Bollinger Bands on the trailing price window
+ * and compare the returned bandwidth (already scaled as a percentage of the middle
+ * band) to `thresholdPct`.
+ *
+ * @param prices       Closing prices (oldest → newest).
+ * @param period       SMA period for the bands (default 20).
+ * @param multiplier   Std-dev multiplier for the bands (default 2).
+ * @param thresholdPct Bandwidth threshold, expressed as a percentage. Default 4%.
+ * @returns `{ squeeze, bandwidth, threshold }`
+ */
+export function detectBollingerSqueeze(
+  prices: number[],
+  period: number = 20,
+  multiplier: number = 2,
+  thresholdPct: number = DEFAULT_SQUEEZE_THRESHOLD
+): { squeeze: boolean; bandwidth: number; threshold: number } {
+  if (prices.length < period) {
+    return { squeeze: false, bandwidth: 0, threshold: thresholdPct };
+  }
+  const { bandwidth } = calculateBollingerBands(prices, period, multiplier);
+  return {
+    squeeze: bandwidth > 0 && bandwidth < thresholdPct,
+    bandwidth,
+    threshold: thresholdPct,
+  };
+}
+
+/**
  * Calculate Stochastic Oscillator (%K and %D).
  * %K = (Close - Lowest Low) / (Highest High - Lowest Low) * 100
  * %D = SMA of %K values

@@ -37,9 +37,14 @@ WORKDIR /app
 # Copy standalone output from builder (includes node_modules at root)
 COPY --from=builder /app/apps/web/.next/standalone ./
 
+# Entrypoint handles --help and env-var wiring before launching the server.
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 EXPOSE 3000
 
-CMD ["sh", "-c", "PORT=${PORT:-3000} node apps/web/server.js"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD []

@@ -27,7 +27,7 @@ export interface IndicatorSummary {
   rsi: { value: number; signal: 'oversold' | 'neutral' | 'overbought' };
   macd: { histogram: number; signal: 'bullish' | 'bearish' | 'neutral' };
   ema: { trend: 'up' | 'down' | 'sideways'; ema20: number; ema50: number; ema200: number };
-  bollingerBands: { position: 'upper' | 'middle' | 'lower'; bandwidth: number };
+  bollingerBands: { position: 'upper' | 'middle' | 'lower'; bandwidth: number; squeeze?: boolean };
   stochastic: { k: number; d: number; signal: 'oversold' | 'neutral' | 'overbought' };
   support: number[];
   resistance: number[];
@@ -168,6 +168,8 @@ export {
   calculateRSI,
   calculateMACD,
   calculateBollingerBands,
+  detectBollingerSqueeze,
+  DEFAULT_SQUEEZE_THRESHOLD,
   calculateStochastic,
   findSupportLevels,
   findResistanceLevels,

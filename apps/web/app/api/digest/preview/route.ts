@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data, { headers });
   }
 
-  const html = generateEmailDigest({ period, topN: 5 });
+  const html = await generateEmailDigest({ period, topN: 5 });
   return new NextResponse(html, {
     headers: {
       ...headers,

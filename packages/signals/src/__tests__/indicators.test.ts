@@ -9,6 +9,8 @@ import {
   calculateRSI,
   calculateMACD,
   calculateBollingerBands,
+  detectBollingerSqueeze,
+  DEFAULT_SQUEEZE_THRESHOLD,
   calculateStochastic,
   findSupportLevels,
   findResistanceLevels,
@@ -184,6 +186,57 @@ describe('calculateBollingerBands', () => {
     const narrow = calculateBollingerBands(prices, 20, 1);
     const wide = calculateBollingerBands(prices, 20, 3);
     expect(wide.upper - wide.lower).toBeGreaterThan(narrow.upper - narrow.lower);
+  });
+
+  it('reports bandwidth as a percentage of the middle band', () => {
+    // Tiny noise around 100 → very low bandwidth
+    const prices = Array.from({ length: 25 }, (_, i) =>
+      100 + (i % 2 === 0 ? 0.1 : -0.1)
+    );
+    const { bandwidth } = calculateBollingerBands(prices);
+    expect(bandwidth).toBeLessThan(1); // <1% of middle
+    expect(bandwidth).toBeGreaterThan(0);
+  });
+});
+
+// ─── Bollinger Band Squeeze ──────────────────────────────────────────────────
+
+describe('detectBollingerSqueeze', () => {
+  it('returns squeeze=false when not enough data', () => {
+    const result = detectBollingerSqueeze([100, 101, 99], 20);
+    expect(result.squeeze).toBe(false);
+    expect(result.bandwidth).toBe(0);
+    expect(result.threshold).toBe(DEFAULT_SQUEEZE_THRESHOLD);
+  });
+
+  it('detects a squeeze on a tight range series', () => {
+    // Prices oscillating in a ±0.1 band around 100 → bandwidth ≪ 4%
+    const prices = Array.from({ length: 25 }, (_, i) =>
+      100 + (i % 2 === 0 ? 0.1 : -0.1)
+    );
+    const result = detectBollingerSqueeze(prices);
+    expect(result.squeeze).toBe(true);
+    expect(result.bandwidth).toBeLessThan(DEFAULT_SQUEEZE_THRESHOLD);
+  });
+
+  it('does NOT report a squeeze on a wide-range series', () => {
+    // Prices oscillating ±10 around 100 → bandwidth well above 4%
+    const prices = Array.from({ length: 25 }, (_, i) =>
+      100 + (i % 2 === 0 ? 10 : -10)
+    );
+    const result = detectBollingerSqueeze(prices);
+    expect(result.squeeze).toBe(false);
+    expect(result.bandwidth).toBeGreaterThan(DEFAULT_SQUEEZE_THRESHOLD);
+  });
+
+  it('honors a custom threshold', () => {
+    const prices = Array.from({ length: 25 }, (_, i) =>
+      100 + (i % 2 === 0 ? 1 : -1)
+    );
+    const tight = detectBollingerSqueeze(prices, 20, 2, 10);
+    const loose = detectBollingerSqueeze(prices, 20, 2, 0.5);
+    expect(tight.squeeze).toBe(true);
+    expect(loose.squeeze).toBe(false);
   });
 });
 

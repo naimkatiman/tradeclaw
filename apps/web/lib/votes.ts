@@ -122,8 +122,8 @@ export function getVoteStats(): {
   let totalSell = 0;
   let maxBuyRatio = -1;
   let maxSellRatio = -1;
-  let mostBullishPair = PAIRS[0];
-  let mostBearishPair = PAIRS[0];
+  let mostBullishPair: string = PAIRS[0];
+  let mostBearishPair: string = PAIRS[0];
 
   for (const pair of PAIRS) {
     const v = data.pairs[pair] ?? { BUY: 0, SELL: 0, HOLD: 0 };

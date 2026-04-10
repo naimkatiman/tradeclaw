@@ -774,6 +774,27 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
     return () => clearInterval(interval);
   }, [autoRefresh, fetchSignals, signals.length]);
 
+  // Keyboard shortcut: Ctrl+R / Cmd+R triggers an in-app refresh instead of a full page reload.
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isRefreshKey =
+        (event.ctrlKey || event.metaKey) &&
+        !event.shiftKey &&
+        !event.altKey &&
+        (event.key === 'r' || event.key === 'R');
+      if (!isRefreshKey) return;
+
+      const target = event.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return;
+
+      event.preventDefault();
+      void fetchSignals();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [fetchSignals]);
+
   // Update browser tab title with BUY signal count
   useEffect(() => {
     const highConfBuyCount = signals.filter(

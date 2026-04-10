@@ -528,6 +528,7 @@ export default function BacktestPage() {
       } catch { /* ignore invalid param, run with defaults */ }
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial auto-run is an intentional one-shot effect on mount
     setRunning(true);
     setError(null);
     runBacktest(backtestParams)

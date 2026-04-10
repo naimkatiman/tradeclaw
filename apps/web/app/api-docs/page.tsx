@@ -35,7 +35,7 @@ interface OpenAPISpec {
 export default function ApiDocsPage() {
   const [spec, setSpec] = useState<OpenAPISpec | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [baseUrl] = useState(() => typeof window !== 'undefined' ? window.location.origin : '');
+  const [baseUrl, setBaseUrl] = useState(() => typeof window !== 'undefined' ? window.location.origin : '');
 
   useEffect(() => {
     fetch('/api/docs')

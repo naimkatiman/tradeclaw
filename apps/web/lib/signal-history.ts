@@ -76,7 +76,7 @@ export interface LeaderboardData {
 
 // ── Helpers ──────────────────────────────────────────────────
 
-const useDb = () => !!process.env.DATABASE_URL;
+const isDbEnabled = () => !!process.env.DATABASE_URL;
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const HISTORY_FILE = path.join(DATA_DIR, 'signal-history.json');
@@ -149,7 +149,7 @@ function writeHistoryFile(records: SignalHistoryRecord[]): void {
 // ── Read ─────────────────────────────────────────────────────
 
 export async function readHistoryAsync(): Promise<SignalHistoryRecord[]> {
-  if (!useDb()) return readHistoryFile();
+  if (!isDbEnabled()) return readHistoryFile();
 
   const rows = await query<HistoryRow>(
     `SELECT * FROM signal_history
@@ -178,7 +178,7 @@ export async function recordSignalAsync(
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
   const ts = timestamp ?? Date.now();
 
-  if (useDb()) {
+  if (isDbEnabled()) {
     await execute(
       `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -222,7 +222,7 @@ export function recordSignal(
 export async function recordSignalsAsync(signals: TrackedSignalInput[]): Promise<number> {
   if (signals.length === 0) return 0;
 
-  if (useDb()) {
+  if (isDbEnabled()) {
     let inserted = 0;
     for (const s of signals) {
       if (!s.id) continue;
@@ -317,7 +317,7 @@ export async function resolveRealOutcomes(): Promise<void> {
   const FOUR_H = 4 * 3600 * 1000;
   const TWENTY_FOUR_H = 24 * 3600 * 1000;
 
-  if (useDb()) {
+  if (isDbEnabled()) {
     const pending = await query<HistoryRow>(
       `SELECT * FROM signal_history
        WHERE is_simulated = FALSE
@@ -432,7 +432,7 @@ export async function resolveRealOutcomes(): Promise<void> {
 // ── Query helpers for cron pipeline ──────────────────────────
 
 export async function getPendingRecordsAsync(): Promise<SignalHistoryRecord[]> {
-  if (useDb()) {
+  if (isDbEnabled()) {
     // Only look back 14 days — older signals lack candle data to resolve
     const rows = await query<HistoryRow>(
       `SELECT * FROM signal_history
@@ -457,7 +457,7 @@ export async function getRecentRecordForSymbolAsync(
   direction: 'BUY' | 'SELL',
   withinMs: number,
 ): Promise<SignalHistoryRecord | undefined> {
-  if (useDb()) {
+  if (isDbEnabled()) {
     const cutoff = new Date(Date.now() - withinMs).toISOString();
     const row = await queryOne<HistoryRow>(
       `SELECT * FROM signal_history
@@ -487,7 +487,7 @@ export async function markTelegramPosted(
   signalId: string,
   messageId: number,
 ): Promise<void> {
-  if (!useDb()) return;
+  if (!isDbEnabled()) return;
   await execute(
     `UPDATE signal_history
      SET telegram_posted_at = NOW(), telegram_message_id = $2
@@ -503,7 +503,7 @@ export async function updateRecordsAsync(
 ): Promise<number> {
   if (updates.length === 0) return 0;
 
-  if (useDb()) {
+  if (isDbEnabled()) {
     let changed = 0;
     for (const { id, patch } of updates) {
       const sets: string[] = [];

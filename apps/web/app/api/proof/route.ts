@@ -30,6 +30,11 @@ export interface ProofSignal {
   };
 }
 
+export interface ProofResponse {
+  stats: ProofStats;
+  signals: ProofSignal[];
+}
+
 export interface ProofStats {
   totalSignals: number;
   realSignals: number;
