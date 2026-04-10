@@ -49,6 +49,9 @@ interface Signal {
   timeframe: string;
   timestamp: string;
   source: string;
+  macdSignal: string;
+  emaTrend: string;
+  stochasticSignal: string;
 }
 
 interface LeaderboardAsset {
@@ -202,6 +205,9 @@ function mapApiSignal(api: ApiSignal): Signal {
     timeframe: api.timeframe,
     timestamp: api.timestamp,
     source: api.dataQuality === 'real' ? 'Live market data' : api.source === 'real' ? 'TA engine' : 'Fallback',
+    macdSignal: api.indicators.macd.signal,
+    emaTrend: api.indicators.ema.trend,
+    stochasticSignal: api.indicators.stochastic.signal,
   };
 }
 
@@ -225,6 +231,62 @@ function timeAgo(iso: string): string {
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
+
+function getSessionFromTimestamp(iso: string): string {
+  const hour = new Date(iso).getUTCHours();
+  if (hour >= 0 && hour < 8) return 'Asian session';
+  if (hour >= 7 && hour < 16) return 'London session';
+  return 'New York session';
+}
+
+function WhyThisTrade({ sig }: { sig: Signal }) {
+  const isBuy = sig.direction === 'BUY';
+
+  // Build confirming factors from indicator data
+  const factors: string[] = [];
+
+  if (isBuy) {
+    if (sig.emaTrend === 'up') factors.push('EMA uptrend confirmed');
+    if (sig.macdSignal === 'bullish') factors.push('MACD bullish crossover');
+    if (sig.rsi < 35) factors.push(`RSI oversold at ${sig.rsi.toFixed(0)}`);
+    else if (sig.rsi < 50) factors.push(`RSI ${sig.rsi.toFixed(0)} with room to run`);
+    if (sig.stochasticSignal === 'oversold') factors.push('Stochastic oversold reversal');
+    if (sig.confidence >= 80) factors.push('Strong multi-indicator alignment');
+  } else {
+    if (sig.emaTrend === 'down') factors.push('EMA downtrend confirmed');
+    if (sig.macdSignal === 'bearish') factors.push('MACD bearish crossover');
+    if (sig.rsi > 65) factors.push(`RSI overbought at ${sig.rsi.toFixed(0)}`);
+    else if (sig.rsi > 50) factors.push(`RSI ${sig.rsi.toFixed(0)} losing momentum`);
+    if (sig.stochasticSignal === 'overbought') factors.push('Stochastic overbought reversal');
+    if (sig.confidence >= 80) factors.push('Strong multi-indicator alignment');
+  }
+
+  // Ensure we have at least one factor
+  if (factors.length === 0) {
+    factors.push(`${sig.confidence}% confidence from technical analysis`);
+  }
+
+  const topFactors = factors.slice(0, 3).join(', ');
+  const invalidation = `Setup invalidates ${isBuy ? 'below' : 'above'} ${formatPrice(sig.symbol, sig.sl)}`;
+  const session = `Best during ${getSessionFromTimestamp(sig.timestamp)}`;
+
+  return (
+    <div
+      className="mt-3 px-3 py-2 rounded-lg text-[11px] leading-relaxed"
+      style={{
+        background: 'var(--glass-bg)',
+        border: '1px solid var(--border)',
+        color: 'var(--text-secondary)',
+      }}
+    >
+      <div className="font-semibold text-[9px] uppercase tracking-wider mb-1" style={{ color: 'var(--text-secondary)' }}>
+        Why this trade
+      </div>
+      <div>{topFactors}.</div>
+      <div>{invalidation}. {session}.</div>
+    </div>
+  );
+}
 
 function ConfidenceBar({ value }: { value: number }) {
   const color = value >= 80 ? '#10b981' : value >= 70 ? '#f59e0b' : '#6b7280';
@@ -323,6 +385,7 @@ function SignalCard({ sig, prev }: { sig: Signal; prev?: Signal }) {
           {sig.source}
         </span>
       </div>
+      <WhyThisTrade sig={sig} />
       <ConfidenceBar value={sig.confidence} />
     </div>
   );
@@ -411,8 +474,8 @@ function LeaderboardTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/leaderboard')
-      .then(r => r.json())
+    fetch('/api/demo/leaderboard')
+      .then(r => (r.ok ? r.json() : fetch('/api/leaderboard').then(r2 => r2.json())))
       .then(d => { setData((d.assets || []).slice(0, 5)); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
@@ -656,6 +719,7 @@ export default function DemoClient() {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('Signals');
   const [isLive, setIsLive] = useState(false);
+  const [dataSource, setDataSource] = useState<'live' | 'demo' | 'fallback'>('fallback');
   const countdownRef = useRef(REFRESH_INTERVAL);
 
   const fetchSignals = useCallback(async () => {
@@ -664,6 +728,7 @@ export default function DemoClient() {
       // then fall back to v1 API, then to hardcoded fallback
       let mapped: Signal[] | null = null;
       let live = false;
+      let resolvedSource: 'live' | 'demo' | 'fallback' = 'fallback';
 
       try {
         const demoRes = await fetch('/api/demo/signals');
@@ -671,6 +736,7 @@ export default function DemoClient() {
           const demoData = await demoRes.json();
           if (demoData.signals?.length > 0) {
             mapped = demoData.signals.map((s: ApiSignal) => mapApiSignal(s));
+            resolvedSource = 'demo';
           }
         }
       } catch {
@@ -682,6 +748,7 @@ export default function DemoClient() {
         if (res.ok) {
           const data = await res.json();
           live = data.source === 'live-file' && data.signals?.length > 0;
+          resolvedSource = live ? 'live' : 'demo';
           if (data.signals?.length > 0) {
             mapped = data.signals.map((s: {
               id: string;
@@ -719,6 +786,7 @@ export default function DemoClient() {
       }
 
       setIsLive(live);
+      setDataSource(resolvedSource);
       setPrev(signals);
       setSignals(mapped);
       setError(false);
@@ -727,6 +795,7 @@ export default function DemoClient() {
       setCountdown(REFRESH_INTERVAL);
     } catch {
       setIsLive(false);
+      setDataSource('fallback');
       const mapped = FALLBACK_SIGNALS.map(mapApiSignal);
       setPrev(signals);
       setSignals(mapped);
@@ -797,19 +866,31 @@ export default function DemoClient() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 pb-20">
-        <div className="mb-4 rounded-lg border border-emerald-700 bg-emerald-950 px-4 py-3 text-sm text-emerald-200 flex items-center justify-between">
+        <div
+          className="mb-4 rounded-lg border px-4 py-3 text-sm flex items-center justify-between"
+          style={{
+            borderColor: dataSource === 'live' ? 'rgba(16,185,129,0.4)' : 'rgba(251,191,36,0.4)',
+            background: dataSource === 'live' ? 'rgba(6,78,59,0.5)' : 'rgba(69,52,10,0.5)',
+            color: dataSource === 'live' ? '#6ee7b7' : '#fde68a',
+          }}
+        >
           <span>
-            <strong>Live Signals</strong> — Data from real market feeds. Self-host for full access.
+            {dataSource === 'live' ? (
+              <><strong>Live Data</strong> — Signals from real market feeds.</>
+            ) : (
+              <><strong>Sample Data</strong> — Synthetic signals for demo purposes. Self-host for live data.</>
+            )}
           </span>
           <span
-            className="text-[10px] font-bold px-2.5 py-1 rounded-full animate-pulse"
+            className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ml-3"
             style={{
-              background: isLive ? 'rgba(16,185,129,0.2)' : 'rgba(251,191,36,0.2)',
-              color: isLive ? '#10b981' : '#fbbf24',
-              border: `1px solid ${isLive ? 'rgba(16,185,129,0.4)' : 'rgba(251,191,36,0.4)'}`,
+              background: dataSource === 'live' ? 'rgba(16,185,129,0.2)' : 'rgba(251,191,36,0.2)',
+              color: dataSource === 'live' ? '#10b981' : '#fbbf24',
+              border: `1px solid ${dataSource === 'live' ? 'rgba(16,185,129,0.4)' : 'rgba(251,191,36,0.4)'}`,
+              animation: dataSource === 'live' ? 'pulse 2s infinite' : 'none',
             }}
           >
-            {isLive ? '● LIVE' : '● DEMO'}
+            {dataSource === 'live' ? '● LIVE DATA' : dataSource === 'demo' ? '● SAMPLE DATA' : '● SAMPLE DATA'}
           </span>
         </div>
 
@@ -817,10 +898,17 @@ export default function DemoClient() {
         <div className="pt-12 pb-8 text-center">
           <div
             className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs mb-4"
-            style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', color: '#10b981' }}
+            style={{
+              background: dataSource === 'live' ? 'rgba(16,185,129,0.1)' : 'rgba(251,191,36,0.1)',
+              border: `1px solid ${dataSource === 'live' ? 'rgba(16,185,129,0.2)' : 'rgba(251,191,36,0.2)'}`,
+              color: dataSource === 'live' ? '#10b981' : '#fbbf24',
+            }}
           >
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Real signals \u00b7 No login required
+            <div
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: dataSource === 'live' ? '#34d399' : '#fbbf24', animation: dataSource === 'live' ? 'pulse 2s infinite' : 'none' }}
+            />
+            {dataSource === 'live' ? 'Real signals \u00b7 No login required' : 'Sample signals \u00b7 Signals reset daily'}
           </div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3" style={{ color: '#fff' }}>
             AI Signals, <span style={{ color: '#10b981' }}>Live</span>

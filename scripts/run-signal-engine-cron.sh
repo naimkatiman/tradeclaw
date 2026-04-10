@@ -1,29 +1,48 @@
 #!/usr/bin/env bash
-set -u
-cd /home/naim/.openclaw/workspace/tradeclaw || exit 99
-STATE_FILE="scripts/.scanner-engine-failcount"
+set -uo pipefail
+cd /home/naim/.openclaw/workspace/tradeclaw || exit 98
+STATE_FILE="scripts/.signal-engine-failures"
 LOG_FILE="scripts/signal-errors.log"
 TMP_OUT=$(mktemp)
+
+# ── 1. Generate new signals ──────────────────────────────────────
 if python3 scripts/scanner-engine.py >"$TMP_OUT" 2>&1; then
   printf "0" > "$STATE_FILE"
-  rm -f "$TMP_OUT"
-  exit 0
+  echo "STATUS=success"
 else
   status=$?
-  count=0
+  prev=0
   if [ -f "$STATE_FILE" ]; then
-    count=$(cat "$STATE_FILE" 2>/dev/null || printf "0")
+    prev=$(cat "$STATE_FILE" 2>/dev/null || echo 0)
   fi
-  case "$count" in ''|*[!0-9]*) count=0 ;; esac
-  count=$((count+1))
+  case "$prev" in
+    ''|*[!0-9]*) prev=0 ;;
+  esac
+  count=$((prev + 1))
   printf "%s" "$count" > "$STATE_FILE"
-  ts=$(TZ=Asia/Singapore date "+%Y-%m-%d %H:%M:%S %Z")
+  ts=$(TZ=Asia/Singapore date +"%Y-%m-%dT%H:%M:%S%z")
   {
-    printf "[%s] scanner-engine failed (exit %s, consecutive %s)\n" "$ts" "$status" "$count"
+    printf "[%s] FAIL #%s — scanner-engine.py exited with status %s\n" "$ts" "$count" "$status"
     cat "$TMP_OUT"
     printf "\n"
   } >> "$LOG_FILE"
-  cat "$TMP_OUT"
-  rm -f "$TMP_OUT"
-  exit "$status"
+  echo "STATUS=fail"
+  echo "FAIL_COUNT=$count"
+  echo "EXIT_CODE=$status"
+fi
+rm -f "$TMP_OUT"
+
+# ── 2. Resolve open signals against live market prices ───────────
+# Calls /api/signals/resolve to check if pending signals hit TP/SL.
+# Runs regardless of whether scanner-engine succeeded (old signals
+# still need resolution even if new generation failed).
+APP_URL="${APP_URL:-http://localhost:3000}"
+AUTH_HEADER=""
+if [ -n "${CRON_SECRET:-}" ]; then
+  AUTH_HEADER="-H \"Authorization: Bearer $CRON_SECRET\""
+fi
+
+resolve_out=$(eval curl -sf --max-time 30 "$AUTH_HEADER" "$APP_URL/api/signals/resolve" 2>&1) || true
+if [ -n "$resolve_out" ]; then
+  echo "RESOLVE=$resolve_out"
 fi

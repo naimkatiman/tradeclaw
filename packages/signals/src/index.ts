@@ -178,6 +178,21 @@ export {
 // ADX is only in ta-engine.ts — re-export the local scalar version for tests
 export { calculateADX } from './indicators-adx';
 
+// ─── ATR Calibration ──────────────────────────────────
+export {
+  calibrateAtrMultiplier,
+  DEFAULT_ATR_MULTIPLIER,
+  MIN_CALIBRATION_SAMPLES,
+  ATR_MULTIPLIER_GRID,
+} from './atr-calibration';
+export type {
+  OutcomeSample,
+  CalibrationOptions,
+  CalibrationResult,
+  CalibrationConfidence,
+  SampleOutcome,
+} from './atr-calibration';
+
 // ─── Symbols ──────────────────────────────────────────
 
 

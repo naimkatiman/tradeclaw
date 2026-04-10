@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, Check, X } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { Search, Check, X, Clock } from 'lucide-react';
+import { DataProvenanceBadge, getDataProvenance } from '@/components/data-provenance-badge';
+import { MetricMeta } from '@/components/metric-meta';
 
 /* ── Types ── */
 interface SignalOutcome {
@@ -112,6 +114,37 @@ export function AccuracyClient() {
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
+  const provenance = useMemo(
+    () => getDataProvenance({ records, ...(stats ?? {}) }),
+    [records, stats],
+  );
+
+  const openCount = useMemo(
+    () => records.filter((r) => r.outcomes['24h'] === null && !r.isSimulated).length,
+    [records],
+  );
+
+  const lastUpdated = useMemo(() => {
+    const verified = records
+      .map((r) => r.lastVerified ?? 0)
+      .filter((t) => t > 0);
+    if (verified.length > 0) return Math.max(...verified);
+    if (records.length > 0) return Math.max(...records.map((r) => r.timestamp));
+    return null;
+  }, [records]);
+
+  const timelineEvents = useMemo(() => {
+    return records
+      .filter((r) => !r.isSimulated)
+      .slice()
+      .sort((a, b) => {
+        const at = a.lastVerified ?? a.timestamp;
+        const bt = b.lastVerified ?? b.timestamp;
+        return bt - at;
+      })
+      .slice(0, 15);
+  }, [records]);
+
   return (
     <div className="space-y-6 pb-20 md:pb-6">
       {/* Disclaimer banner */}
@@ -129,10 +162,21 @@ export function AccuracyClient() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Signal Accuracy Tracker</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight">Signal Accuracy Tracker</h1>
+          <DataProvenanceBadge provenance={provenance} source="signal-history" />
+        </div>
         <p className="text-zinc-500 text-sm mt-1">
           Every signal recorded with timestamps, entry prices, and verified outcomes. Full transparency.
         </p>
+        {stats && stats.totalSignals > 0 && (
+          <MetricMeta
+            className="mt-2"
+            sampleSize={stats.resolved}
+            openCount={openCount}
+            lastUpdated={lastUpdated}
+          />
+        )}
       </div>
 
       {/* Empty state when no real data yet */}
@@ -167,6 +211,83 @@ export function AccuracyClient() {
           />
           <StatCard label="Resolved" value={`${stats.resolved}/${stats.totalSignals}`} />
         </div>
+      )}
+
+      {/* Recent Outcome Timeline — receipts view */}
+      {timelineEvents.length > 0 && (
+        <section className="glass-card rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xs uppercase tracking-wider text-zinc-500 font-mono font-semibold flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-emerald-400" />
+              Recent Outcomes
+            </h2>
+            <MetricMeta
+              align="right"
+              sampleSize={timelineEvents.length}
+              openCount={timelineEvents.filter((r) => r.outcomes['24h'] === null).length}
+              lastUpdated={lastUpdated}
+              sampleLabel="shown"
+            />
+          </div>
+          <ol className="relative border-l border-zinc-800/70 pl-4 space-y-2">
+            {timelineEvents.map((r) => {
+              const o24 = r.outcomes['24h'];
+              const o4 = r.outcomes['4h'];
+              const resolved = o24 ?? o4;
+              const status: 'win' | 'loss' | 'open' = resolved
+                ? resolved.hit ? 'win' : 'loss'
+                : 'open';
+              const dotColor =
+                status === 'win'
+                  ? 'bg-emerald-400'
+                  : status === 'loss'
+                    ? 'bg-rose-400'
+                    : 'bg-amber-400';
+              const ts = r.lastVerified ?? r.timestamp;
+              return (
+                <li key={r.id} className="relative">
+                  <span
+                    className={`absolute -left-[22px] top-1.5 w-2.5 h-2.5 rounded-full ring-2 ring-zinc-950 ${dotColor}`}
+                  />
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                    <span className="font-mono tabular-nums text-zinc-500 w-28">
+                      {formatTime(ts)}
+                    </span>
+                    <span className="font-semibold text-zinc-200 w-16">{r.pair}</span>
+                    <span
+                      className={`font-bold ${r.direction === 'BUY' ? 'text-emerald-400' : 'text-rose-400'}`}
+                    >
+                      {r.direction === 'BUY' ? '▲' : '▼'} {r.direction}
+                    </span>
+                    {status === 'open' ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-400">
+                        OPEN
+                      </span>
+                    ) : status === 'win' ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">
+                        <Check className="inline h-3 w-3" /> WIN
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/15 text-rose-400">
+                        <X className="inline h-3 w-3" /> LOSS
+                      </span>
+                    )}
+                    {resolved && (
+                      <span
+                        className={`font-mono tabular-nums ${
+                          resolved.pnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                        }`}
+                      >
+                        {resolved.pnlPct >= 0 ? '+' : ''}
+                        {resolved.pnlPct.toFixed(2)}%
+                      </span>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
       )}
 
       {/* Win Rate Bar */}

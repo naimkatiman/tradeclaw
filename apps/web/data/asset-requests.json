@@ -1,0 +1,76 @@
+{
+  "requests": [
+    {
+      "id": "solusd",
+      "symbol": "SOLUSD",
+      "displayName": "Solana / USD",
+      "category": "crypto",
+      "votes": 87,
+      "createdAt": "2025-11-01T00:00:00.000Z",
+      "notifySubscribers": []
+    },
+    {
+      "id": "spx500",
+      "symbol": "SPX500",
+      "displayName": "S&P 500 Index",
+      "category": "index",
+      "votes": 64,
+      "createdAt": "2025-11-01T00:00:00.000Z",
+      "notifySubscribers": []
+    },
+    {
+      "id": "nas100",
+      "symbol": "NAS100",
+      "displayName": "Nasdaq 100 Index",
+      "category": "index",
+      "votes": 58,
+      "createdAt": "2025-11-01T00:00:00.000Z",
+      "notifySubscribers": []
+    },
+    {
+      "id": "us30",
+      "symbol": "US30",
+      "displayName": "Dow Jones Industrial Avg",
+      "category": "index",
+      "votes": 29,
+      "createdAt": "2025-11-01T00:00:00.000Z",
+      "notifySubscribers": []
+    },
+    {
+      "id": "xagusd",
+      "symbol": "XAGUSD",
+      "displayName": "Silver / USD",
+      "category": "commodity",
+      "votes": 41,
+      "createdAt": "2025-11-01T00:00:00.000Z",
+      "notifySubscribers": []
+    },
+    {
+      "id": "nvda",
+      "symbol": "NVDA",
+      "displayName": "NVIDIA Corp",
+      "category": "stock",
+      "votes": 73,
+      "createdAt": "2025-11-01T00:00:00.000Z",
+      "notifySubscribers": []
+    },
+    {
+      "id": "tsla",
+      "symbol": "TSLA",
+      "displayName": "Tesla Inc",
+      "category": "stock",
+      "votes": 52,
+      "createdAt": "2025-11-01T00:00:00.000Z",
+      "notifySubscribers": []
+    },
+    {
+      "id": "dogeusd",
+      "symbol": "DOGEUSD",
+      "displayName": "Dogecoin / USD",
+      "category": "crypto",
+      "votes": 35,
+      "createdAt": "2025-11-01T00:00:00.000Z",
+      "notifySubscribers": []
+    }
+  ]
+}

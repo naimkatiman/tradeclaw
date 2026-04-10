@@ -9,6 +9,7 @@ import type { TradingSignal, IndicatorSummary } from './signals';
 import { getOHLCV } from './ohlcv';
 import { isMarketOpen } from './market-hours';
 import { WATCHLIST_MIN_CONFIDENCE } from '../../lib/signal-thresholds';
+import { getCachedAtrMultiplier } from './atr-calibration-cache';
 
 // ─── Multi-Timeframe Types ────────────────────────────────────
 
@@ -631,7 +632,7 @@ export function generateSignalsFromTA(
   const buyMinCategories = buyScore >= 40 ? 2 : 1;
   if (buyScore >= SIGNAL_THRESHOLD && buyScore > sellScore && buyingCategoryCount >= buyMinCategories && buyGate.passes) {
     let confidence = scaleConfidence(buyScore, buyGate.confidenceBoost, source);
-    const slDistance = atr * 2.0;
+    const slDistance = atr * getCachedAtrMultiplier(symbol);
     const entry = +currentPrice.toFixed(5);
 
     const nearestSupport = findNearestSupport(swingLevels.support, currentPrice);
@@ -688,7 +689,7 @@ export function generateSignalsFromTA(
   const sellMinCategories = sellScore >= 40 ? 2 : 1;
   if (sellScore >= SIGNAL_THRESHOLD && sellScore > buyScore && sellingCategoryCount >= sellMinCategories && sellGate.passes) {
     let confidence = scaleConfidence(sellScore, sellGate.confidenceBoost, source);
-    const slDistance = atr * 2.0;
+    const slDistance = atr * getCachedAtrMultiplier(symbol);
     const entry = +currentPrice.toFixed(5);
 
     const nearestResistance = findNearestResistance(swingLevels.resistance, currentPrice);
