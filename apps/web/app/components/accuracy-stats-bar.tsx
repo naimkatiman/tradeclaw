@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { DataProvenanceBadge, getDataProvenance } from '@/components/data-provenance-badge';
+import { MetricMeta } from '@/components/metric-meta';
 
 interface AccuracyStats {
   totalSignals: number;

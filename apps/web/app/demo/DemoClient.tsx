@@ -411,8 +411,8 @@ function LeaderboardTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/leaderboard')
-      .then(r => r.json())
+    fetch('/api/demo/leaderboard')
+      .then(r => (r.ok ? r.json() : fetch('/api/leaderboard').then(r2 => r2.json())))
       .then(d => { setData((d.assets || []).slice(0, 5)); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
