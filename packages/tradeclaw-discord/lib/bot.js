@@ -6,6 +6,7 @@ const { Client, GatewayIntentBits, REST, Routes, Collection } = require('discord
 const { commands } = require('./commands');
 const { SignalFetcher } = require('./signal-fetcher');
 const { signalEmbed, leaderboardEmbed, healthEmbed, helpEmbed, subscribeEmbed, unsubscribeEmbed } = require('./formatter');
+const { loadSubscriptions, saveSubscriptions } = require('./subscriptions');
 
 class TradeclawBot {
   constructor({ token, baseUrl, broadcastInterval }) {
@@ -13,7 +14,7 @@ class TradeclawBot {
     this.baseUrl = baseUrl;
     this.broadcastInterval = broadcastInterval;
     this.fetcher = new SignalFetcher(baseUrl);
-    this.subscriptions = new Map(); // channelId -> { pair, minConfidence }
+    this.subscriptions = loadSubscriptions(); // channelId -> { guildId, pair, minConfidence }
     this.startTime = Date.now();
 
     this.client = new Client({
@@ -29,6 +30,7 @@ class TradeclawBot {
       console.log(`[TradeClaw] Bot online as ${this.client.user.tag}`);
       console.log(`[TradeClaw] API: ${this.baseUrl}`);
       console.log(`[TradeClaw] Broadcast interval: ${this.broadcastInterval}m`);
+      console.log(`[TradeClaw] Loaded ${this.subscriptions.size} subscription(s) from disk`);
       this._startBroadcastLoop();
     });
 
@@ -69,7 +71,9 @@ class TradeclawBot {
         case 'subscribe': {
           const pair = interaction.options.getString('pair') || null;
           const minConfidence = interaction.options.getInteger('min_confidence') || 60;
-          this.subscriptions.set(interaction.channelId, { pair, minConfidence });
+          const guildId = interaction.guildId || null;
+          this.subscriptions.set(interaction.channelId, { guildId, pair, minConfidence });
+          saveSubscriptions(this.subscriptions);
           await interaction.reply({ embeds: [subscribeEmbed(pair, minConfidence)] });
           break;
         }
@@ -77,6 +81,7 @@ class TradeclawBot {
         case 'unsubscribe': {
           const had = this.subscriptions.delete(interaction.channelId);
           if (had) {
+            saveSubscriptions(this.subscriptions);
             await interaction.reply({ embeds: [unsubscribeEmbed()] });
           } else {
             await interaction.reply({ content: 'This channel is not subscribed to signals.', ephemeral: true });
@@ -112,6 +117,7 @@ class TradeclawBot {
           const channel = await this.client.channels.fetch(channelId);
           if (!channel || !channel.isTextBased()) {
             this.subscriptions.delete(channelId);
+            saveSubscriptions(this.subscriptions);
             continue;
           }
 

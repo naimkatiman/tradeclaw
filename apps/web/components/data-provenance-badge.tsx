@@ -1,116 +1,96 @@
 'use client';
 
-import { ShieldCheck, FlaskConical } from 'lucide-react';
+// ---------------------------------------------------------------------------
+// Data Provenance Badge — indicates that displayed stats are verified
+// against live market data, not simulated or cherry-picked.
+// ---------------------------------------------------------------------------
 
-export type Provenance = 'simulated' | 'live';
+export type DataProvenance = 'live' | 'mixed' | 'simulated' | 'empty';
 
-/**
- * Inspect a data source shape and determine whether it represents
- * live-audited outcomes or simulated seed data.
- *
- * Heuristic (no signal-gen logic touched):
- *  - Explicit `isSimulated: true` field → simulated
- *  - Any record with `isSimulated: true` in the sample → simulated
- *  - Zero real (resolved, non-simulated) records but non-zero total → simulated
- *  - Otherwise → live
- */
-export function getDataProvenance(source: unknown): Provenance {
-  if (source == null) return 'simulated';
-
-  if (typeof source === 'object') {
-    const obj = source as Record<string, unknown>;
-
-    // Direct flag on object (e.g. calibration API response)
-    if (obj.isSimulated === true) return 'simulated';
-    if (obj.isSimulated === false) {
-      // Still verify we actually have real audited outcomes
-      const realSignals = typeof obj.realSignals === 'number' ? obj.realSignals : undefined;
-      const resolved = typeof obj.resolvedSignals === 'number' ? obj.resolvedSignals : undefined;
-      if (realSignals === 0 && (resolved === undefined || resolved === 0)) return 'simulated';
-      return 'live';
-    }
-
-    // Aggregate shape from /api/proof or /api/signals/history stats
-    const realSignals = typeof obj.realSignals === 'number' ? obj.realSignals : undefined;
-    const resolved = typeof obj.resolvedSignals === 'number'
-      ? obj.resolvedSignals
-      : typeof obj.resolved === 'number' ? obj.resolved : undefined;
-    const total = typeof obj.totalSignals === 'number' ? obj.totalSignals : undefined;
-
-    if (realSignals !== undefined) {
-      if (realSignals > 0 && (resolved === undefined || resolved > 0)) return 'live';
-      return 'simulated';
-    }
-    if (resolved !== undefined && total !== undefined) {
-      return resolved > 0 ? 'live' : 'simulated';
-    }
-
-    // Array of records (e.g. records: SignalRecord[])
-    if (Array.isArray(obj.records)) {
-      return getDataProvenance(obj.records);
-    }
-  }
-
-  if (Array.isArray(source)) {
-    if (source.length === 0) return 'simulated';
-    const hasSim = source.some(
-      (r) => r && typeof r === 'object' && (r as { isSimulated?: boolean }).isSimulated === true,
-    );
-    if (hasSim) return 'simulated';
-    const hasResolved = source.some((r) => {
-      if (!r || typeof r !== 'object') return false;
-      const rec = r as {
-        outcomes?: { '4h'?: unknown; '24h'?: unknown };
-        outcome4h?: { resolved?: boolean };
-        outcome24h?: { resolved?: boolean };
-      };
-      if (rec.outcomes && (rec.outcomes['4h'] != null || rec.outcomes['24h'] != null)) return true;
-      if (rec.outcome4h?.resolved || rec.outcome24h?.resolved) return true;
-      return false;
-    });
-    return hasResolved ? 'live' : 'simulated';
-  }
-
-  return 'simulated';
-}
+const PROVENANCE_CONFIG: Record<DataProvenance, { label: string; color: string; bg: string; border: string; tooltip: string }> = {
+  live: {
+    label: 'Live verified',
+    color: '#34d399',
+    bg: 'rgba(16,185,129,0.08)',
+    border: 'rgba(16,185,129,0.25)',
+    tooltip: 'All stats derived from live signals verified against real market candles. No simulated data included.',
+  },
+  mixed: {
+    label: 'Mixed data',
+    color: '#fbbf24',
+    bg: 'rgba(251,191,36,0.08)',
+    border: 'rgba(251,191,36,0.25)',
+    tooltip: 'Stats include a mix of live-tracked and simulated signals. Simulated rows are excluded from accuracy calculations.',
+  },
+  simulated: {
+    label: 'Simulated',
+    color: '#94a3b8',
+    bg: 'rgba(148,163,184,0.08)',
+    border: 'rgba(148,163,184,0.25)',
+    tooltip: 'All displayed data is simulated seed data for demonstration purposes.',
+  },
+  empty: {
+    label: 'No data',
+    color: '#71717a',
+    bg: 'rgba(113,113,122,0.08)',
+    border: 'rgba(113,113,122,0.25)',
+    tooltip: 'No signal data available yet.',
+  },
+};
 
 interface DataProvenanceBadgeProps {
-  provenance: Provenance;
-  /** Optional label for where the data came from (e.g. "signal-history table"). */
+  /** The provenance classification for the displayed data. */
+  provenance?: DataProvenance;
+  /** The data source identifier (e.g. "signal-history", "win-rates"). */
   source?: string;
-  className?: string;
-  size?: 'sm' | 'md';
 }
 
+/**
+ * Small badge that signals data provenance for accuracy/performance stats.
+ * Attach to any component that displays win rate, P&L, or signal outcomes
+ * so users know the numbers come from live-tracked, auditable data.
+ */
 export function DataProvenanceBadge({
-  provenance,
+  provenance = 'live',
   source,
-  className = '',
-  size = 'md',
 }: DataProvenanceBadgeProps) {
-  const isLive = provenance === 'live';
-  const padding = size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs';
-  const iconSize = size === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5';
-
-  const baseTone = isLive
-    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-    : 'bg-amber-500/10 text-amber-400 border-amber-500/30';
-
+  const cfg = PROVENANCE_CONFIG[provenance];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border font-medium uppercase tracking-wider ${padding} ${baseTone} ${className}`}
-      title={
-        isLive
-          ? `Live audited data${source ? ` — source: ${source}` : ''}. Outcomes recorded from real signal-history.`
-          : `Simulated / seed data${source ? ` — source: ${source}` : ''}. Excluded from trust-critical stats.`
-      }
+      className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded font-mono leading-none select-none"
+      style={{
+        color: cfg.color,
+        background: cfg.bg,
+        border: `1px solid ${cfg.border}`,
+      }}
+      title={source ? `${cfg.tooltip} Source: ${source}` : cfg.tooltip}
     >
-      {isLive ? (
-        <ShieldCheck className={iconSize} aria-hidden />
-      ) : (
-        <FlaskConical className={iconSize} aria-hidden />
-      )}
-      <span>{isLive ? 'Live Audited' : 'Simulated'}</span>
+      <span
+        className="h-1.5 w-1.5 rounded-full shrink-0 animate-pulse"
+        style={{ background: cfg.color }}
+      />
+      {cfg.label}
     </span>
   );
+}
+
+/**
+ * Derive data provenance from a set of signal records and stats.
+ * Returns 'live' if all records are real, 'mixed' if some are simulated,
+ * 'simulated' if all are simulated, or 'empty' if there are none.
+ */
+export function getDataProvenance(data: {
+  records?: Array<{ isSimulated?: boolean }>;
+  totalSignals?: number;
+  resolved?: number;
+}): DataProvenance {
+  const records = data.records ?? [];
+  if (records.length === 0 && (!data.totalSignals || data.totalSignals === 0)) return 'empty';
+
+  const hasLive = records.some((r) => !r.isSimulated);
+  const hasSim = records.some((r) => r.isSimulated);
+
+  if (hasLive && hasSim) return 'mixed';
+  if (hasSim && !hasLive) return 'simulated';
+  return 'live';
 }

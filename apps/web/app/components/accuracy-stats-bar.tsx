@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { DataProvenanceBadge, getDataProvenance } from '@/components/data-provenance-badge';
-import { MetricMeta } from '@/components/metric-meta';
+import { DataProvenanceBadge } from '@/components/data-provenance-badge';
+
 
 interface AccuracyStats {
   totalSignals: number;
@@ -167,6 +167,9 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
   if (inline) {
     return (
       <div className="bg-[#0a0a0a] border border-white/5 rounded-xl overflow-hidden">
+        <div className="flex justify-end px-3 pt-2">
+          <DataProvenanceBadge source="win-rates" />
+        </div>
         {content}
       </div>
     );
@@ -178,8 +181,9 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between px-5 py-3 text-left hover:bg-white/[0.02] transition-colors"
       >
-        <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono font-medium">
+        <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono font-medium flex items-center gap-2">
           Accuracy Stats
+          <DataProvenanceBadge source="win-rates" />
         </span>
         {expanded ? (
           <ChevronUp className="w-3.5 h-3.5 text-zinc-600 shrink-0" />

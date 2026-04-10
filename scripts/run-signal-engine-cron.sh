@@ -4,6 +4,8 @@ cd /home/naim/.openclaw/workspace/tradeclaw || exit 98
 STATE_FILE="scripts/.signal-engine-failures"
 LOG_FILE="scripts/signal-errors.log"
 TMP_OUT=$(mktemp)
+
+# ── 1. Generate new signals ──────────────────────────────────────
 if python3 scripts/scanner-engine.py >"$TMP_OUT" 2>&1; then
   printf "0" > "$STATE_FILE"
   echo "STATUS=success"
@@ -29,3 +31,18 @@ else
   echo "EXIT_CODE=$status"
 fi
 rm -f "$TMP_OUT"
+
+# ── 2. Resolve open signals against live market prices ───────────
+# Calls /api/signals/resolve to check if pending signals hit TP/SL.
+# Runs regardless of whether scanner-engine succeeded (old signals
+# still need resolution even if new generation failed).
+APP_URL="${APP_URL:-http://localhost:3000}"
+AUTH_HEADER=""
+if [ -n "${CRON_SECRET:-}" ]; then
+  AUTH_HEADER="-H \"Authorization: Bearer $CRON_SECRET\""
+fi
+
+resolve_out=$(eval curl -sf --max-time 30 "$AUTH_HEADER" "$APP_URL/api/signals/resolve" 2>&1) || true
+if [ -n "$resolve_out" ]; then
+  echo "RESOLVE=$resolve_out"
+fi
