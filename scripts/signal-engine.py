@@ -27,6 +27,14 @@ try:
 except ImportError:
     HAS_PSYCOPG2 = False
 
+# HMM regime classification (optional — degrades gracefully)
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parent / "hmm-regime"))
+    from classify_regime import load_model as hmm_load_model, classify_regime as hmm_classify, get_asset_class
+    HAS_HMM = True
+except ImportError:
+    HAS_HMM = False
+
 # Configuration
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_DIR = SCRIPT_DIR.parent
@@ -106,6 +114,57 @@ TIMEFRAMES = {
     "H1": tradingview_ta.Interval.INTERVAL_1_HOUR,
     "H4": tradingview_ta.Interval.INTERVAL_4_HOURS,
 }
+
+
+def classify_symbol_regime(symbol: str, analysis) -> dict | None:
+    """Classify the current market regime for a symbol using HMM.
+
+    Since we don't have raw OHLCV bars from TradingView TA, we synthesize
+    the 4 features from available indicators:
+    - rolling_vol_20d: derived from ATR / close price
+    - returns_5d: approximated from close vs EMA5 or short-term momentum
+    - returns_20d: approximated from close vs EMA20
+    - volume_z_score: derived from volume / SMA20 ratio
+
+    Returns None if HMM is not available or classification fails.
+    """
+    if not HAS_HMM or analysis is None:
+        return None
+
+    try:
+        asset_class = get_asset_class(symbol)
+        model = hmm_load_model(asset_class)
+
+        indicators = analysis.indicators
+        close = indicators.get("close", 0) or 0
+        if close == 0:
+            return None
+
+        # Synthesize features from TradingView indicators
+        atr = indicators.get("ATR", 0) or 0
+        ema5 = indicators.get("EMA5", close) or close
+        ema20 = indicators.get("EMA20", close) or close
+        volume = indicators.get("volume", 0) or 0
+        vol_sma20 = indicators.get("SMA20", 1) or 1
+
+        # Feature 1: Rolling 20d volatility ~ ATR / close (annualized daily vol proxy)
+        rolling_vol_20d = atr / close if close > 0 else 0.02
+
+        # Feature 2: 5-day return ~ (close - EMA5) / EMA5
+        returns_5d = (close - ema5) / ema5 if ema5 > 0 else 0.0
+
+        # Feature 3: 20-day return ~ (close - EMA20) / EMA20
+        returns_20d = (close - ema20) / ema20 if ema20 > 0 else 0.0
+
+        # Feature 4: Volume z-score ~ (volume / SMA20_volume - 1), clamped
+        volume_z_score = (volume / vol_sma20 - 1.0) if vol_sma20 > 0 else 0.0
+
+        features = [rolling_vol_20d, returns_5d, returns_20d, volume_z_score]
+        result = hmm_classify(features, model)
+        return result
+    except Exception as e:
+        print(f"  HMM regime error for {symbol}: {e}", file=sys.stderr)
+        return None
 
 
 def analyze_symbol(tv_symbol: str, symbol_info: dict) -> dict | None:
@@ -266,7 +325,10 @@ def analyze_symbol(tv_symbol: str, symbol_info: dict) -> dict | None:
     ema50 = primary.indicators.get("EMA50", 0) or 0
     stoch_k = primary.indicators.get("Stoch.K", 50) or 50
 
-    return {
+    # Classify market regime via HMM (uses H1 analysis for feature extraction)
+    regime_result = classify_symbol_regime(symbol_info["symbol"], primary)
+
+    signal_output = {
         "id": f"SIG-{symbol_info['symbol']}-{agreeing[0]}-{direction}-{uuid4().hex[:8].upper()}",
         "symbol": symbol_info["symbol"],
         "name": symbol_info["name"],
@@ -290,6 +352,14 @@ def analyze_symbol(tv_symbol: str, symbol_info: dict) -> dict | None:
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "expires_in_minutes": 60 if n >= 3 else 30,
     }
+
+    # Attach regime info if available
+    if regime_result:
+        signal_output["regime"] = regime_result["regime"]
+        signal_output["regimeConfidence"] = regime_result["confidence"]
+        signal_output["regimeFeatures"] = regime_result["features"]
+
+    return signal_output
 
 
 def main():
@@ -391,9 +461,36 @@ def main():
                     ),
                 )
             conn.commit()
+
+            # Write regime classifications to market_regimes table
+            regime_count = 0
+            for s in signals:
+                if "regime" in s and "regimeConfidence" in s:
+                    try:
+                        cur.execute(
+                            """INSERT INTO market_regimes (symbol, regime, confidence, features, detected_at)
+                            VALUES (%s, %s, %s, %s, %s)""",
+                            (
+                                s["symbol"],
+                                s["regime"],
+                                s["regimeConfidence"],
+                                json.dumps(s.get("regimeFeatures", {})),
+                                output["generated_at"],
+                            ),
+                        )
+                        regime_count += 1
+                    except Exception as re:
+                        # Table may not exist yet — don't fail the whole run
+                        print(f"  Regime DB skip ({s['symbol']}): {re}", file=sys.stderr)
+                        conn.rollback()
+                        break  # If table doesn't exist, no point retrying other symbols
+
+            if regime_count > 0:
+                conn.commit()
+
             cur.close()
             conn.close()
-            print(f"DB: Wrote {len(signals)} signals to PostgreSQL")
+            print(f"DB: Wrote {len(signals)} signals + {regime_count} regime classifications to PostgreSQL")
         except Exception as e:
             print(f"DB ERROR: {e}", file=sys.stderr)
     elif not db_url:
@@ -403,11 +500,18 @@ def main():
     print(f"Signals generated: {stats['signals_generated']}/{stats['symbols_checked']}")
     print(f"No confluence: {stats['no_confluence']}")
     print(f"Errors: {stats['errors']}")
+    if HAS_HMM:
+        regime_signals = [s for s in signals if "regime" in s]
+        if regime_signals:
+            print(f"Regime tagged: {len(regime_signals)}/{len(signals)}")
+    else:
+        print("HMM regime: not available (numpy/classify_regime not installed)")
 
     if signals:
-        print(f"\n🎯 HIGH-CONFIDENCE SIGNALS:")
+        print(f"\nHIGH-CONFIDENCE SIGNALS:")
         for s in signals[:5]:
-            print(f"  {s['symbol']}: {s['signal']} {s['confidence']}% ({s['timeframe']})")
+            regime_tag = f" [{s['regime']}]" if "regime" in s else ""
+            print(f"  {s['symbol']}: {s['signal']} {s['confidence']}% ({s['timeframe']}){regime_tag}")
             print(f"    Reasons: {', '.join(s['reasons'][:2])}")
     else:
         print("\nNo signals met confluence requirements.")

@@ -46,3 +46,16 @@ export { createChannel } from './channels/base.js';
 export type { BaseSkill, SkillMeta } from './skills/base.js';
 export type { BaseChannel } from './channels/base.js';
 export type { TrackedSignal, HistorySummary } from './signals/tracker.js';
+
+// Broker abstraction layer
+export { AlpacaBroker, PaperBroker, ExecutionEngine } from './broker/index.js';
+export type {
+  IBroker,
+  AccountInfo,
+  Position,
+  OrderRequest,
+  OrderResult,
+  ExecutionSignal,
+  ExecutionContext,
+  ExecutionResult,
+} from './broker/index.js';

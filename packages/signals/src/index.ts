@@ -19,6 +19,8 @@ export interface TradingSignal {
   // Web-specific (optional)
   source?: 'real' | 'fallback';
   dataQuality?: 'real' | 'synthetic';
+  /** ATR stop calibration metadata — shows whether SL uses a per-symbol calibrated multiplier or the global default. */
+  atrCalibration?: { multiplier: number; confidence: 'low' | 'medium' | 'high' };
   // Agent-specific (optional)
   skill?: string;
 }
@@ -192,6 +194,61 @@ export type {
   CalibrationConfidence,
   SampleOutcome,
 } from './atr-calibration';
+
+// ─── Regime Classifier ───────────────────────────────
+export {
+  classifyRegime,
+  computeFeatures,
+  loadModel,
+  getDefaultModel,
+  computeGaussianLogPdf,
+  forwardAlgorithm,
+  viterbiDecode,
+} from './regime/index';
+export type {
+  MarketRegime,
+  RegimeClassification,
+  RegimeFeatures,
+  HMMModelParams,
+  PriceBar,
+} from './regime/index';
+
+// ─── Dynamic Allocation ─────────────────────────────
+export {
+  computeAllocation,
+  SYMBOL_TIER,
+  getSymbolTier,
+  getTierWeight,
+  REGIME_ALLOCATION_RULES,
+  getAllocationRules,
+} from './allocation/index';
+export type {
+  AllocationRules,
+  AllocationResult,
+  PortfolioState,
+  PositionSummary,
+  SignalInput,
+} from './allocation/index';
+
+// ─── Circuit Breakers & Risk Veto ───────────────────────
+export {
+  CircuitBreakerEngine,
+  DrawdownTracker,
+  vetoCheck,
+  DEFAULT_BREAKERS,
+} from './risk/index';
+export type {
+  BreakerType,
+  BreakerAction,
+  BreakerConfig,
+  BreakerState,
+  RiskState,
+  EquityPoint,
+  VetoResult,
+  TradeOutcome,
+  RiskMetrics,
+  VetoSignalInput,
+} from './risk/index';
 
 // ─── Symbols ──────────────────────────────────────────
 
