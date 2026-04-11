@@ -1,48 +1,34 @@
 #!/usr/bin/env bash
-set -uo pipefail
-cd /home/naim/.openclaw/workspace/tradeclaw || exit 98
-STATE_FILE="scripts/.signal-engine-failures"
-LOG_FILE="scripts/signal-errors.log"
-TMP_OUT=$(mktemp)
-
-# ── 1. Generate new signals ──────────────────────────────────────
-if python3 scripts/scanner-engine.py >"$TMP_OUT" 2>&1; then
-  printf "0" > "$STATE_FILE"
-  echo "STATUS=success"
+set -u
+cd /home/naim/.openclaw/workspace/tradeclaw || exit 1
+streak_file="scripts/.signal-engine-failure-streak"
+log_file="scripts/signal-errors.log"
+out_file="$(mktemp)"
+if python3 scripts/scanner-engine.py >"$out_file" 2>&1; then
+  printf "0" > "$streak_file"
+  rm -f "$out_file"
+  exit 0
 else
   status=$?
+  ts="$(TZ=Asia/Singapore date "+%Y-%m-%d %H:%M:%S %Z")"
+  {
+    printf "[%s] scanner-engine failed with exit %s\n" "$ts" "$status"
+    cat "$out_file"
+    printf "\n"
+  } >> "$log_file"
   prev=0
-  if [ -f "$STATE_FILE" ]; then
-    prev=$(cat "$STATE_FILE" 2>/dev/null || echo 0)
+  if [ -f "$streak_file" ]; then
+    prev="$(cat "$streak_file" 2>/dev/null || printf 0)"
   fi
   case "$prev" in
     ''|*[!0-9]*) prev=0 ;;
   esac
-  count=$((prev + 1))
-  printf "%s" "$count" > "$STATE_FILE"
-  ts=$(TZ=Asia/Singapore date +"%Y-%m-%dT%H:%M:%S%z")
-  {
-    printf "[%s] FAIL #%s — scanner-engine.py exited with status %s\n" "$ts" "$count" "$status"
-    cat "$TMP_OUT"
-    printf "\n"
-  } >> "$LOG_FILE"
-  echo "STATUS=fail"
-  echo "FAIL_COUNT=$count"
-  echo "EXIT_CODE=$status"
-fi
-rm -f "$TMP_OUT"
-
-# ── 2. Resolve open signals against live market prices ───────────
-# Calls /api/signals/resolve to check if pending signals hit TP/SL.
-# Runs regardless of whether scanner-engine succeeded (old signals
-# still need resolution even if new generation failed).
-APP_URL="${APP_URL:-http://localhost:3000}"
-AUTH_HEADER=""
-if [ -n "${CRON_SECRET:-}" ]; then
-  AUTH_HEADER="-H \"Authorization: Bearer $CRON_SECRET\""
-fi
-
-resolve_out=$(eval curl -sf --max-time 30 "$AUTH_HEADER" "$APP_URL/api/signals/resolve" 2>&1) || true
-if [ -n "$resolve_out" ]; then
-  echo "RESOLVE=$resolve_out"
+  streak=$((prev + 1))
+  printf "%s" "$streak" > "$streak_file"
+  cat "$out_file"
+  rm -f "$out_file"
+  if [ "$streak" -ge 3 ]; then
+    printf "\nCONSECUTIVE_FAILURES=%s\n" "$streak"
+  fi
+  exit "$status"
 fi
