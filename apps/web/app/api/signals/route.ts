@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../lib/signals';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
 import { readLiveSignals } from '../../../lib/signals-live';
+import { fetchRegimeMap, filterSignalsByRegime, getDominantRegime } from '../../../lib/regime-filter';
 
 // Re-export types for consumers that imported from here
 export type { TradingSignal, IndicatorSummary } from '../../lib/signals';
@@ -23,6 +24,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Fetch regime data for direction filtering
+    const regimeMap = await fetchRegimeMap();
+    const dominantRegime = getDominantRegime(regimeMap);
+
     // === PRIMARY: Read from PostgreSQL (falls back to signals-live.json) ===
     const liveData = await readLiveSignals();
 
@@ -37,7 +42,7 @@ export async function GET(request: NextRequest) {
       if (minConfluence > 0) signals = signals.filter(s => (s.confluence_score ?? 1) >= minConfluence);
 
       // Map to the format the frontend expects (TradingSignal shape)
-      const mapped = signals.map(s => ({
+      let mapped = signals.map(s => ({
         id: s.id,
         symbol: s.symbol,
         timeframe: s.timeframe,
@@ -63,6 +68,9 @@ export async function GET(request: NextRequest) {
         status: 'active',
       }));
 
+      // Regime filter: remove signals going against the current market regime
+      mapped = filterSignalsByRegime(mapped, regimeMap);
+
       return NextResponse.json({
         count: mapped.length,
         timestamp: new Date().toISOString(),
@@ -70,8 +78,9 @@ export async function GET(request: NextRequest) {
           source: 'tradingview-confluence',
           real: mapped.length,
           fallback: 0,
-          version: '3.0.0',
+          version: '3.1.0',
           generated_at: liveData.generatedAt,
+          regime: dominantRegime,
         },
         filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence, minConfluence },
         signals: mapped,
@@ -82,12 +91,15 @@ export async function GET(request: NextRequest) {
     }
 
     // === FALLBACK: Use existing TA engine if signals-live.json is missing/stale/empty ===
-    const { signals, syntheticSymbols } = await getTrackedSignals({
+    const { signals: rawSignals, syntheticSymbols } = await getTrackedSignals({
       symbol: symbolFilter || undefined,
       timeframe: timeframeFilter || undefined,
       direction: directionFilter || undefined,
       minConfidence,
     });
+
+    // Regime filter: remove signals going against the current market regime
+    const signals = filterSignalsByRegime(rawSignals, regimeMap);
 
     return NextResponse.json({
       count: signals.length,
@@ -95,8 +107,9 @@ export async function GET(request: NextRequest) {
       engine: {
         real: signals.filter(s => s.source === 'real').length,
         fallback: signals.filter(s => s.source === 'fallback').length,
-        version: '2.0.0',
+        version: '2.1.0',
         note: liveData?.isStale ? 'signals-live.json stale, using fallback engine' : 'signals-live.json not found or empty',
+        regime: dominantRegime,
       },
       filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence },
       signals,

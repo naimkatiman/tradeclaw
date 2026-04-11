@@ -286,15 +286,15 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
         if confidence < MIN_CONFIDENCE:
             continue
 
-        # TP/SL from ATR — R:R = 1.33 (risk 0.75 ATR to gain 1.0 ATR)
+        # TP/SL from ATR — R:R = 1:2 / 1:3 (risk 1.5 ATR to gain 3.0/4.5 ATR)
         if direction == "BUY":
-            tp1 = round(close + atr * 1.0, 6)
-            tp2 = round(close + atr * 1.5, 6)
-            sl  = round(close - atr * 0.75, 6)
+            tp1 = round(close + atr * 3.0, 6)
+            tp2 = round(close + atr * 4.5, 6)
+            sl  = round(close - atr * 1.5, 6)
         else:
-            tp1 = round(close - atr * 1.0, 6)
-            tp2 = round(close - atr * 1.5, 6)
-            sl  = round(close + atr * 0.75, 6)
+            tp1 = round(close - atr * 3.0, 6)
+            tp2 = round(close - atr * 4.5, 6)
+            sl  = round(close + atr * 1.5, 6)
 
         sig = {
             "id": f"SIG-{symbol_name}-ZS-{tf_label}-{uuid4().hex[:8].upper()}",
@@ -601,15 +601,15 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
             atr = row.get("ATR") or (entry * 0.01)
 
             # TP/SL scaled for 4h outcome window:
-            # TP1 = 1.0x ATR, TP2 = 1.5x ATR, SL = 0.75x ATR → R:R = 1.33
+            # TP1 = 3.0x ATR, TP2 = 4.5x ATR, SL = 1.5x ATR → R:R = 1:2 / 1:3
             if direction == "BUY":
-                tp1 = round(entry + atr * 1.0, 6)
-                tp2 = round(entry + atr * 1.5, 6)
-                sl  = round(entry - atr * 0.75, 6)
+                tp1 = round(entry + atr * 3.0, 6)
+                tp2 = round(entry + atr * 4.5, 6)
+                sl  = round(entry - atr * 1.5, 6)
             else:
-                tp1 = round(entry - atr * 1.0, 6)
-                tp2 = round(entry - atr * 1.5, 6)
-                sl  = round(entry + atr * 0.75, 6)
+                tp1 = round(entry - atr * 3.0, 6)
+                tp2 = round(entry - atr * 4.5, 6)
+                sl  = round(entry + atr * 1.5, 6)
 
             reasons = [f"TF confluence: {', '.join(agreeing)} all {direction}"]
             if rsi_bonus:

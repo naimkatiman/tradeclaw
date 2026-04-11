@@ -56,9 +56,9 @@ const WEIGHTS = {
 // Matches packages/signals/src/indicators.ts → DEFAULT_SQUEEZE_THRESHOLD.
 const BB_SQUEEZE_THRESHOLD = 4;
 
-const SIGNAL_THRESHOLD = 25; // Minimum score to generate a signal
-const MIN_CONFIDENCE = 58; // Below 58% is noise — do not emit
-const MIN_DIRECTIONAL_EDGE = 8; // Need bigger score gap between buy/sell
+const SIGNAL_THRESHOLD = 35; // Minimum score — require stronger indicator alignment
+const MIN_CONFIDENCE = 65; // Below 65% is noise — need real conviction to trade
+const MIN_DIRECTIONAL_EDGE = 12; // Bigger gap between buy/sell to avoid choppy entries
 const MIN_TREND_STRENGTH = 0.03;  // reduced — 0.08 blocked signals in sideways markets
 const MIN_ATR_PCT = 0.0001;  // reduced threshold
 const MIN_BB_WIDTH = 0.3;

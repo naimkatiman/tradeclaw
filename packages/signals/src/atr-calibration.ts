@@ -57,8 +57,8 @@ export interface CalibrationResult {
   score: number;
 }
 
-/** Current production default — matches `atr * 2.0` in signal-generator.ts. */
-export const DEFAULT_ATR_MULTIPLIER = 2.0;
+/** Production default — wider stop to survive intraday volatility. */
+export const DEFAULT_ATR_MULTIPLIER = 2.5;
 
 /** Minimum closed samples required to trust a calibration result. */
 export const MIN_CALIBRATION_SAMPLES = 15;

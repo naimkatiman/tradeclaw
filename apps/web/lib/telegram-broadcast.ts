@@ -6,6 +6,7 @@
  */
 
 import { getSignals, type TradingSignal } from '../app/lib/signals';
+import { fetchRegimeMap, filterSignalsByRegime, getDominantRegime } from './regime-filter';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -163,9 +164,13 @@ export async function broadcastTopSignals(
   channelId: string,
   botToken: string,
 ): Promise<BroadcastResult> {
-  // Fetch top signals (confidence >= 60, sorted desc by confidence)
-  const { signals } = await getSignals({ minConfidence: 60 });
-  const top = signals.slice(0, 3);
+  // Fetch top signals (confidence >= 65, sorted desc by confidence)
+  const { signals: rawSignals } = await getSignals({ minConfidence: 65 });
+
+  // Filter by market regime — don't broadcast BUY in BEAR market
+  const regimeMap = await fetchRegimeMap();
+  const filtered = filterSignalsByRegime(rawSignals, regimeMap);
+  const top = filtered.slice(0, 3);
 
   if (top.length === 0) {
     const result: BroadcastResult = { success: false, error: 'No signals above threshold to broadcast' };
