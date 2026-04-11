@@ -230,6 +230,26 @@ export type {
   SignalInput,
 } from './allocation/index';
 
+// ─── Circuit Breakers & Risk Veto ───────────────────────
+export {
+  CircuitBreakerEngine,
+  DrawdownTracker,
+  vetoCheck,
+  DEFAULT_BREAKERS,
+} from './risk/index';
+export type {
+  BreakerType,
+  BreakerAction,
+  BreakerConfig,
+  BreakerState,
+  RiskState,
+  EquityPoint,
+  VetoResult,
+  TradeOutcome,
+  RiskMetrics,
+  VetoSignalInput,
+} from './risk/index';
+
 // ─── Symbols ──────────────────────────────────────────
 
 
