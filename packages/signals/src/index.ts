@@ -213,6 +213,23 @@ export type {
   PriceBar,
 } from './regime/index';
 
+// ─── Dynamic Allocation ─────────────────────────────
+export {
+  computeAllocation,
+  SYMBOL_TIER,
+  getSymbolTier,
+  getTierWeight,
+  REGIME_ALLOCATION_RULES,
+  getAllocationRules,
+} from './allocation/index';
+export type {
+  AllocationRules,
+  AllocationResult,
+  PortfolioState,
+  PositionSummary,
+  SignalInput,
+} from './allocation/index';
+
 // ─── Symbols ──────────────────────────────────────────
 
 
