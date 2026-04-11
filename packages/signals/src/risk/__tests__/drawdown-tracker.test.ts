@@ -115,6 +115,28 @@ describe('DrawdownTracker', () => {
     });
   });
 
+  describe('zero and negative equity', () => {
+    it('records drawdownPct as 100 when equity is 0', () => {
+      const tracker = new DrawdownTracker();
+
+      tracker.recordEquity(100_000);
+      tracker.recordEquity(0);
+
+      const curve = tracker.getEquityCurve();
+      expect(curve[1].drawdownPct).toBe(100);
+    });
+
+    it('records drawdownPct as 100 when equity is negative', () => {
+      const tracker = new DrawdownTracker();
+
+      tracker.recordEquity(100_000);
+      tracker.recordEquity(-500);
+
+      const curve = tracker.getEquityCurve();
+      expect(curve[1].drawdownPct).toBe(100);
+    });
+  });
+
   describe('equity curve', () => {
     it('returns all recorded points', () => {
       const tracker = new DrawdownTracker();

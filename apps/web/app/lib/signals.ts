@@ -54,6 +54,8 @@ export async function getLivePrices(): Promise<Map<string, number>> {
     if (data.ethereum?.usd) map.set('ETHUSD', data.ethereum.usd);
     if (data.ripple?.usd) map.set('XRPUSD', data.ripple.usd);
     if (data.solana?.usd) map.set('SOLUSD', data.solana.usd);
+    if (data.dogecoin?.usd) map.set('DOGEUSD', data.dogecoin.usd);
+    if (data['binancecoin']?.usd) map.set('BNBUSD', data['binancecoin'].usd);
   }
 
   if (forexResult.status === 'fulfilled' && forexResult.value) {

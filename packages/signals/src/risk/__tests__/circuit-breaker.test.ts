@@ -3,7 +3,7 @@
  */
 
 import { CircuitBreakerEngine } from '../circuit-breaker';
-import { DEFAULT_BREAKERS } from '../breaker-config';
+import { DEFAULT_BREAKERS, getBreakersForRegime } from '../breaker-config';
 import type { BreakerConfig, RiskMetrics } from '../types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -177,11 +177,11 @@ describe('CircuitBreakerEngine', () => {
       engine.checkConsecutiveLosses(5);
       expect(engine.getActiveBreakers()).toHaveLength(1);
 
-      // Fake the triggeredAt to the past
-      const state = engine.getState('consecutive_losses')!;
-      (state as { triggeredAt: string }).triggeredAt = new Date(
-        Date.now() - 120_000,
-      ).toISOString();
+      // Fake the triggeredAt to the past via test helper
+      engine._setTriggeredAtForTest(
+        'consecutive_losses',
+        new Date(Date.now() - 120_000).toISOString(),
+      );
 
       // Evaluate should auto-resolve
       const risk = engine.evaluate(makeMetrics({ consecutiveLosses: 0 }));
@@ -189,6 +189,39 @@ describe('CircuitBreakerEngine', () => {
         (b) => b.type === 'consecutive_losses',
       );
       expect(resolved?.active).toBe(false);
+    });
+
+    it('re-trips in the same evaluate() call after cooldown expires', () => {
+      const shortCooldown: BreakerConfig[] = [
+        {
+          type: 'consecutive_losses',
+          threshold: 3,
+          action: 'halt_new',
+          cooldownMinutes: 0.001, // ~60ms
+          description: 'Test breaker',
+        },
+      ];
+
+      const engine = new CircuitBreakerEngine(shortCooldown);
+
+      // Trip it
+      engine.checkConsecutiveLosses(5);
+      expect(engine.getActiveBreakers()).toHaveLength(1);
+
+      // Fake the triggeredAt to the past so cooldown has expired
+      engine._setTriggeredAtForTest(
+        'consecutive_losses',
+        new Date(Date.now() - 120_000).toISOString(),
+      );
+
+      // Evaluate with metrics that still exceed threshold:
+      // auto-resolve clears the breaker, then checkThreshold re-trips it
+      const risk = engine.evaluate(makeMetrics({ consecutiveLosses: 5 }));
+      const breaker = risk.breakers.find(
+        (b) => b.type === 'consecutive_losses',
+      );
+      expect(breaker?.active).toBe(true);
+      expect(risk.canTrade).toBe(false);
     });
   });
 
@@ -300,6 +333,79 @@ describe('CircuitBreakerEngine', () => {
       // 5% should trip
       const tripped = engine.checkDailyDrawdown(-5);
       expect(tripped.active).toBe(true);
+    });
+  });
+
+  // ─── Regime-Adaptive Breakers ──────────────────────────────────────
+
+  describe('getBreakersForRegime()', () => {
+    it('bull regime has wider thresholds than default', () => {
+      const bullBreakers = getBreakersForRegime('bull');
+      const dailyDD = bullBreakers.find((b) => b.type === 'daily_drawdown')!;
+      const maxDD = bullBreakers.find((b) => b.type === 'max_drawdown')!;
+
+      expect(dailyDD.threshold).toBe(6); // vs default 3
+      expect(maxDD.threshold).toBe(25); // vs default 15
+    });
+
+    it('crash regime has tighter thresholds than default', () => {
+      const crashBreakers = getBreakersForRegime('crash');
+      const dailyDD = crashBreakers.find((b) => b.type === 'daily_drawdown')!;
+      const maxDD = crashBreakers.find((b) => b.type === 'max_drawdown')!;
+
+      expect(dailyDD.threshold).toBe(2); // vs default 3
+      expect(maxDD.threshold).toBe(10); // vs default 15
+    });
+
+    it('bull breakers allow 4% daily loss without tripping', () => {
+      const bullBreakers = getBreakersForRegime('bull');
+      const engine = new CircuitBreakerEngine(bullBreakers);
+
+      // 4% daily loss — trips default (3%) but NOT bull (6%)
+      const risk = engine.evaluate(makeMetrics({ dailyPnlPct: -4 }));
+      expect(risk.canTrade).toBe(true);
+    });
+
+    it('bull breakers still trip at 6% daily loss', () => {
+      const bullBreakers = getBreakersForRegime('bull');
+      const engine = new CircuitBreakerEngine(bullBreakers);
+
+      const risk = engine.evaluate(makeMetrics({ dailyPnlPct: -6 }));
+      expect(risk.canTrade).toBe(false);
+    });
+
+    it('correlation limit is 5 in bull regime', () => {
+      const bullBreakers = getBreakersForRegime('bull');
+      const engine = new CircuitBreakerEngine(bullBreakers);
+
+      // 4 correlated crypto BUYs — trips default (3) but NOT bull (5)
+      const risk = engine.evaluate(
+        makeMetrics({
+          openPositions: [
+            { symbol: 'BTCUSD', direction: 'BUY' },
+            { symbol: 'ETHUSD', direction: 'BUY' },
+            { symbol: 'SOLUSD', direction: 'BUY' },
+            { symbol: 'XRPUSD', direction: 'BUY' },
+          ],
+        }),
+      );
+      expect(risk.canTrade).toBe(true);
+    });
+  });
+
+  describe('evaluateForRegime()', () => {
+    it('uses regime-specific thresholds', () => {
+      // 4% daily loss trips default but not bull
+      const defaultRisk = new CircuitBreakerEngine().evaluate(
+        makeMetrics({ dailyPnlPct: -4 }),
+      );
+      const bullRisk = CircuitBreakerEngine.evaluateForRegime(
+        makeMetrics({ dailyPnlPct: -4 }),
+        'bull',
+      );
+
+      expect(defaultRisk.canTrade).toBe(false);
+      expect(bullRisk.canTrade).toBe(true);
     });
   });
 });

@@ -90,7 +90,31 @@ export function computeAllocation(
     };
   }
 
-  // Check 3: Would this exceed max portfolio exposure?
+  // Check 3: Portfolio equity must be positive
+  if (portfolio.totalEquity <= 0) {
+    return {
+      positionSizePct: 0,
+      leverageMultiplier: 1,
+      approved: false,
+      reason: 'Portfolio equity is zero or negative',
+      regime,
+      rules,
+    };
+  }
+
+  // Check 4: Positions value must not be negative
+  if (portfolio.positionsValue < 0) {
+    return {
+      positionSizePct: 0,
+      leverageMultiplier: 1,
+      approved: false,
+      reason: 'Invalid negative positions value',
+      regime,
+      rules,
+    };
+  }
+
+  // Check 5: Would this exceed max portfolio exposure?
   const currentExposurePct =
     portfolio.totalEquity > 0
       ? (portfolio.positionsValue / portfolio.totalEquity) * 100
@@ -135,6 +159,7 @@ export function computeAllocation(
     positionSizePct: Math.round(positionSizePct * 100) / 100,
     leverageMultiplier: rules.maxLeverage,
     approved: true,
+    reason: `${regime} regime: ${positionSizePct.toFixed(1)}% position, tier ${tier}`,
     regime,
     rules,
   };

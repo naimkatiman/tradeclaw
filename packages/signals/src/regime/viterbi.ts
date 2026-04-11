@@ -120,6 +120,10 @@ export function computeGaussianLogPdf(
   mean: number[],
   covariance: number[][],
 ): number {
+  if (x.some(v => !isFinite(v)) || mean.some(v => !isFinite(v))) {
+    return -1e6;
+  }
+
   const d = x.length;
   const diff = x.map((xi, i) => xi - mean[i]);
 
@@ -163,8 +167,10 @@ export function forwardAlgorithm(
   const N = params.n_states;
   if (T === 0) return [];
 
-  // Uniform initial state distribution
-  const logPi = Math.log(1 / N);
+  // Initial state distribution (uniform if not provided)
+  const logPi: number[] = params.initial_probs
+    ? params.initial_probs.map(p => (p > 0 ? Math.log(p) : -1e10))
+    : new Array(N).fill(Math.log(1 / N));
 
   // Pre-compute log transition matrix
   const logA: number[][] = params.transition_matrix.map(row =>
@@ -182,7 +188,7 @@ export function forwardAlgorithm(
       params.emission_means[i],
       params.emission_covariances[i],
     );
-    first[i] = logPi + logEmission;
+    first[i] = logPi[i] + logEmission;
   }
   logAlpha.push(first);
 
@@ -242,7 +248,10 @@ export function viterbiDecode(
   const N = params.n_states;
   if (T === 0) return [];
 
-  const logPi = Math.log(1 / N);
+  // Initial state distribution (uniform if not provided)
+  const logPi: number[] = params.initial_probs
+    ? params.initial_probs.map(p => (p > 0 ? Math.log(p) : -1e10))
+    : new Array(N).fill(Math.log(1 / N));
 
   const logA: number[][] = params.transition_matrix.map(row =>
     row.map(p => (p > 0 ? Math.log(p) : -1e10)),
@@ -258,7 +267,7 @@ export function viterbiDecode(
   const p0: number[] = new Array(N).fill(0);
   for (let i = 0; i < N; i++) {
     d0[i] =
-      logPi +
+      logPi[i] +
       computeGaussianLogPdf(
         observations[0],
         params.emission_means[i],

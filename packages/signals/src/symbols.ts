@@ -197,8 +197,8 @@ export const SYMBOLS: Record<string, SymbolConfig> = {
     basePrice: 2.20,
     volatility: 0.045,
   },
-  AABORUSD: {
-    symbol: 'AABORUSD',
+  AAVEUSD: {
+    symbol: 'AAVEUSD',
     name: 'Aave / US Dollar',
     pip: 0.01,
     basePrice: 180.00,
@@ -291,7 +291,7 @@ export function getSymbolCategory(symbol: string): SymbolCategory {
     'ADAUSD', 'AVAXUSD', 'DOTUSD', 'LINKUSD', 'MATICUSD', 'ATOMUSD',
     'UNIUSD', 'LTCUSD', 'BCHUSD', 'NEARUSD', 'APTUSD', 'ARBUSD',
     'OPUSD', 'FILUSD', 'INJUSD', 'SUIUSD', 'SEIUSD', 'TIAUSD',
-    'RENDERUSD', 'FETUSD', 'AABORUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
+    'RENDERUSD', 'FETUSD', 'AAVEUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
   ];
   const s = symbol.toUpperCase();
   if (metals.includes(s)) return 'metals';
@@ -299,12 +299,23 @@ export function getSymbolCategory(symbol: string): SymbolCategory {
   return 'forex';
 }
 
+// ─── Live Price Overrides (avoid mutating shared SYMBOLS) ────
+
+const livePriceOverrides = new Map<string, number>();
+
 /**
  * Update a symbol's base price at runtime (e.g. after fetching live prices).
+ * Stores the override in a separate Map instead of mutating the SYMBOLS object.
  */
 export function updateBasePrice(symbol: string, price: number): void {
-  const config = SYMBOLS[symbol.toUpperCase()];
-  if (config && price > 0) {
-    config.basePrice = price;
+  if (price > 0) {
+    livePriceOverrides.set(symbol.toUpperCase(), price);
   }
+}
+
+/**
+ * Get the effective base price for a symbol, preferring live overrides.
+ */
+export function getBasePrice(symbol: string): number {
+  return livePriceOverrides.get(symbol.toUpperCase()) ?? SYMBOLS[symbol.toUpperCase()]?.basePrice ?? 0;
 }

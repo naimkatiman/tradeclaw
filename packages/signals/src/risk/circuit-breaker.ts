@@ -5,8 +5,9 @@
  * breakers that halt, reduce, or close trading activity.
  */
 
+import type { MarketRegime } from '../regime/types';
 import { getSymbolCategory } from '../index';
-import { DEFAULT_BREAKERS } from './breaker-config';
+import { DEFAULT_BREAKERS, getBreakersForRegime } from './breaker-config';
 import type {
   BreakerConfig,
   BreakerState,
@@ -66,7 +67,10 @@ export class CircuitBreakerEngine {
       groups.set(key, (groups.get(key) ?? 0) + 1);
     }
 
-    const maxCorrelated = Math.max(0, ...groups.values());
+    let maxCorrelated = 0;
+    for (const v of groups.values()) {
+      if (v > maxCorrelated) maxCorrelated = v;
+    }
 
     if (maxCorrelated >= config.threshold) {
       return this.tripBreaker('correlation_limit', maxCorrelated);
@@ -83,7 +87,9 @@ export class CircuitBreakerEngine {
   // ─── Aggregate Evaluation ────────────────────────────────────────
 
   evaluate(metrics: RiskMetrics): RiskState {
-    // Auto-resolve expired cooldowns before evaluating
+    // IMPORTANT: auto-resolve MUST run before individual checks.
+    // This ensures breakers that have expired their cooldown are cleared
+    // before checkThreshold re-evaluates them, allowing immediate re-trip.
     this.autoResolveExpiredBreakers();
 
     this.checkDailyDrawdown(metrics.dailyPnlPct);
@@ -92,7 +98,22 @@ export class CircuitBreakerEngine {
     this.checkConsecutiveLosses(metrics.consecutiveLosses);
     this.checkCorrelationLimit(metrics.openPositions);
 
-    return this.buildRiskState(metrics);
+    return this.buildRiskState(undefined, metrics);
+  }
+
+  /**
+   * Evaluate with regime-adaptive thresholds.
+   * Creates a temporary engine with regime-specific breaker configs,
+   * runs the evaluation, and returns the result. The current engine
+   * state is not modified — this is a stateless query.
+   */
+  static evaluateForRegime(
+    metrics: RiskMetrics,
+    regime: MarketRegime,
+  ): RiskState {
+    const regimeBreakers = getBreakersForRegime(regime);
+    const engine = new CircuitBreakerEngine(regimeBreakers);
+    return engine.evaluate(metrics);
   }
 
   // ─── Accessors ────────────────────────────────────────────────────
@@ -102,7 +123,8 @@ export class CircuitBreakerEngine {
   }
 
   getState(type: BreakerType): BreakerState | undefined {
-    return this.state.get(type);
+    const s = this.state.get(type);
+    return s ? { ...s } : undefined;
   }
 
   // ─── Manual Resolution ────────────────────────────────────────────
@@ -120,6 +142,16 @@ export class CircuitBreakerEngine {
     };
     this.state.set(type, resolved);
     return resolved;
+  }
+
+  // ─── Test Helpers ──────────────────────────────────────────────────
+
+  /** @internal — only for tests. Overwrite triggeredAt on an active breaker. */
+  _setTriggeredAtForTest(type: BreakerType, triggeredAt: string): void {
+    const s = this.state.get(type);
+    if (s) {
+      s.triggeredAt = triggeredAt;
+    }
   }
 
   // ─── Internals ────────────────────────────────────────────────────
@@ -182,7 +214,7 @@ export class CircuitBreakerEngine {
     }
   }
 
-  private buildRiskState(metrics: RiskMetrics): RiskState {
+  buildRiskState(hwm?: number, metrics?: RiskMetrics): RiskState {
     const activeBreakers = this.getActiveBreakers();
     const activeTypes = activeBreakers.map((b) => b.type);
 
@@ -195,14 +227,14 @@ export class CircuitBreakerEngine {
     const canTrade = !hasCloseAll && !hasHaltNew;
 
     return {
-      breakers: [...this.state.values()],
+      breakers: [...this.state.values()].map(s => ({ ...s })),
       activeBreakers: activeTypes,
       canTrade,
       maxAllocationOverride: hasReduceAllocation ? 25 : undefined,
       equityCurve: [],
-      currentDrawdownPct: Math.abs(metrics.drawdownFromPeakPct),
-      highWaterMark: 0, // caller supplies via DrawdownTracker
-      consecutiveLosses: metrics.consecutiveLosses,
+      currentDrawdownPct: metrics ? Math.abs(metrics.drawdownFromPeakPct) : 0,
+      highWaterMark: hwm ?? 0,
+      consecutiveLosses: metrics?.consecutiveLosses ?? 0,
     };
   }
 }

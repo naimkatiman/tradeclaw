@@ -17,6 +17,11 @@ export class DrawdownTracker {
   // ─── Equity Tracking ──────────────────────────────────────────
 
   recordEquity(equity: number): void {
+    if (equity <= 0) {
+      this.equityCurve.push({ equity, timestamp: new Date().toISOString(), drawdownPct: 100 });
+      return;
+    }
+
     if (equity > this.hwm) {
       this.hwm = equity;
     }
@@ -83,33 +88,28 @@ export class DrawdownTracker {
 
   private getPnlPctSince(since: Date): number {
     const sinceMs = since.getTime();
-
-    // Find the first point at or after `since`
     let baseEquity: number | undefined;
-    for (const pt of this.equityCurve) {
-      const ptMs = new Date(pt.timestamp).getTime();
-      if (ptMs >= sinceMs) {
-        baseEquity = pt.equity;
+
+    // Base = last point BEFORE the period start (carry-over equity)
+    for (let i = this.equityCurve.length - 1; i >= 0; i--) {
+      const ptMs = new Date(this.equityCurve[i].timestamp).getTime();
+      if (ptMs < sinceMs) {
+        baseEquity = this.equityCurve[i].equity;
         break;
       }
     }
 
-    // Fall back to the last point before `since` if none found after
+    // If no prior point, use first point of the period
     if (baseEquity === undefined) {
-      for (let i = this.equityCurve.length - 1; i >= 0; i--) {
-        const ptMs = new Date(this.equityCurve[i].timestamp).getTime();
-        if (ptMs < sinceMs) {
-          baseEquity = this.equityCurve[i].equity;
-          break;
-        }
+      for (const pt of this.equityCurve) {
+        const ptMs = new Date(pt.timestamp).getTime();
+        if (ptMs >= sinceMs) { baseEquity = pt.equity; break; }
       }
     }
 
     if (baseEquity === undefined || baseEquity === 0) return 0;
-
-    const last = this.lastPoint();
+    const last = this.equityCurve[this.equityCurve.length - 1];
     if (!last) return 0;
-
     return ((last.equity - baseEquity) / baseEquity) * 100;
   }
 }

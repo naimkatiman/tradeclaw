@@ -87,16 +87,33 @@ export function calculateMACD(prices: number[]): {
     return { macd: 0, signal: 0, histogram: 0 };
   }
 
-  const macdValues: number[] = [];
   const fastPeriod = 12;
   const slowPeriod = 26;
   const signalPeriod = 9;
 
-  for (let end = slowPeriod; end <= prices.length; end++) {
-    const slice = prices.slice(0, end);
-    const fastEma = calculateEMA(slice, fastPeriod);
-    const slowEma = calculateEMA(slice, slowPeriod);
-    macdValues.push(fastEma - slowEma);
+  // Calculate MACD using incremental EMA
+  const k_fast = 2 / (fastPeriod + 1);
+  const k_slow = 2 / (slowPeriod + 1);
+
+  // Seed EMAs with SMA
+  let emaFast = 0;
+  for (let i = 0; i < fastPeriod; i++) emaFast += prices[i];
+  emaFast /= fastPeriod;
+
+  let emaSlow = 0;
+  for (let i = 0; i < slowPeriod; i++) emaSlow += prices[i];
+  emaSlow /= slowPeriod;
+
+  // Build up fast EMA to slowPeriod point
+  for (let i = fastPeriod; i < slowPeriod; i++) {
+    emaFast = prices[i] * k_fast + emaFast * (1 - k_fast);
+  }
+
+  const macdValues: number[] = [];
+  for (let i = slowPeriod; i < prices.length; i++) {
+    emaFast = prices[i] * k_fast + emaFast * (1 - k_fast);
+    emaSlow = prices[i] * k_slow + emaSlow * (1 - k_slow);
+    macdValues.push(emaFast - emaSlow);
   }
 
   const macdLine = macdValues[macdValues.length - 1];
