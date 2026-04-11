@@ -496,6 +496,21 @@ export async function markTelegramPosted(
   );
 }
 
+/**
+ * Look up the Telegram message_id for a signal so we can reply to it.
+ * Returns undefined if the signal was never posted to Telegram.
+ */
+export async function getSignalTelegramMessageId(
+  signalId: string,
+): Promise<number | undefined> {
+  if (!isDbEnabled()) return undefined;
+  const row = await queryOne<{ telegram_message_id: string | null }>(
+    `SELECT telegram_message_id FROM signal_history WHERE id = $1`,
+    [signalId],
+  );
+  return row?.telegram_message_id ? Number(row.telegram_message_id) : undefined;
+}
+
 // ── Bulk update (cron resolution) ────────────────────────────
 
 export async function updateRecordsAsync(

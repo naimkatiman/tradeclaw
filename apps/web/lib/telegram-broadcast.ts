@@ -1,12 +1,20 @@
 /**
- * Telegram Channel Broadcast — auto-posts top signals to a configured channel.
+ * Telegram Channel Broadcast — auto-posts signals and outcome replies.
  *
- * Used by the cron endpoint (/api/cron/telegram) and the manual broadcast
- * button on the /telegram settings page.
+ * Signal flow (like WolfX):
+ * 1. broadcastTopSignals() — posts each signal as a separate message,
+ *    saves message_id to signal_history for reply threading
+ * 2. broadcastOutcomeReply() — when TP/SL hits, replies to the original
+ *    signal message with the result
+ *
+ * Used by:
+ * - /api/cron/telegram (periodic signal broadcast)
+ * - /api/cron/position-monitor (outcome replies)
  */
 
 import { getSignals, type TradingSignal } from '../app/lib/signals';
-import { fetchRegimeMap, filterSignalsByRegime, getDominantRegime } from './regime-filter';
+import { fetchRegimeMap, filterSignalsByRegime } from './regime-filter';
+import { markTelegramPosted } from './signal-history';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -27,7 +35,21 @@ export interface BroadcastState {
 export interface BroadcastResult {
   success: boolean;
   messageId?: number;
+  messageIds?: number[];
   error?: string;
+  signalCount?: number;
+}
+
+export interface OutcomeReplyInput {
+  symbol: string;
+  direction: 'BUY' | 'SELL';
+  entryPrice: number;
+  exitPrice: number;
+  pnlPct: number;
+  reason: 'takeProfit' | 'stopLoss' | 'trailingStop';
+  tpLevel?: 1 | 2 | 3;
+  period?: string;
+  originalMessageId: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -72,71 +94,108 @@ function formatPrice(p: number): string {
   return p.toFixed(5);
 }
 
+function formatDuration(startMs: number, endMs: number): string {
+  const diffMs = endMs - startMs;
+  const mins = Math.floor(diffMs / 60_000);
+  if (mins < 60) return `${mins} min`;
+  const hrs = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  if (hrs < 24) return remMins > 0 ? `${hrs} hr ${remMins} min` : `${hrs} hr`;
+  const days = Math.floor(hrs / 24);
+  const remHrs = hrs % 24;
+  return remHrs > 0 ? `${days} day ${remHrs} hr` : `${days} day`;
+}
+
 // ---------------------------------------------------------------------------
-// Message formatter
+// Signal entry message (one per signal — like WolfX)
 // ---------------------------------------------------------------------------
 
-function formatSignalBlock(signal: TradingSignal, index: number): string {
-  const emoji = signal.direction === 'BUY' ? '\u{1F7E2}' : '\u{1F534}';
+function formatSignalEntry(signal: TradingSignal): string {
+  const dirEmoji = signal.direction === 'BUY' ? '\u{1F4C8}' : '\u{1F4C9}';
   const dirLabel = signal.direction;
 
   const lines: string[] = [
-    `${index > 0 ? '\n' : ''}${emoji} *${e(`${dirLabel} ${signal.symbol}`)}* \\| ${e(String(signal.confidence))}% confidence`,
-    `\u{1F4B0} Entry: \\$${e(formatPrice(signal.entry))}`,
-    `\u{1F3AF} TP: \\$${e(formatPrice(signal.takeProfit1))} / \\$${e(formatPrice(signal.takeProfit2))} / \\$${e(formatPrice(signal.takeProfit3))}`,
-    `\u{1F6D1} SL: \\$${e(formatPrice(signal.stopLoss))}`,
+    `\u{1F4E1} *${e('TradeClaw Signal')}*`,
+    '',
+    `${dirEmoji} *${e(dirLabel)} ${e(signal.symbol)} \\- ${e(signal.timeframe)}*`,
+    `Confidence: ${e(String(signal.confidence))}%`,
+    '',
+    `\u{1F539}Entry: \\$${e(formatPrice(signal.entry))}`,
+    '',
+    `\u{1F4B0}TP1 ${e(formatPrice(signal.takeProfit1))}`,
+    `\u{1F4B0}TP2 ${e(formatPrice(signal.takeProfit2))}`,
+    `\u{1F4B0}TP3 ${e(formatPrice(signal.takeProfit3))}`,
+    `\u{1F6AB}SL ${e(formatPrice(signal.stopLoss))}`,
+    '',
+    `[tradeclaw\\.win](https://tradeclaw.win)`,
+    `\u26A0\uFE0F _Not financial advice\\. DYOR\\._`,
   ];
-
-  // Indicator details
-  const parts: string[] = [];
-  if (signal.indicators.rsi) {
-    parts.push(`RSI ${e(signal.indicators.rsi.value.toFixed(1))}`);
-  }
-  if (signal.indicators.macd) {
-    const bias = signal.indicators.macd.signal === 'bullish' ? '\u2705' : signal.indicators.macd.signal === 'bearish' ? '\u26A0\uFE0F' : '\u2796';
-    parts.push(`MACD ${bias}`);
-  }
-  if (parts.length > 0) {
-    lines.push(`\u{1F4CA} ${parts.join(' \\| ')}`);
-  }
 
   return lines.join('\n');
 }
 
-function buildBroadcastMessage(signals: TradingSignal[]): string {
-  const header = `\u{1F4E1} *${e('TradeClaw Signal Broadcast')}*\n${e('\u2501'.repeat(20))}`;
+// ---------------------------------------------------------------------------
+// Outcome reply messages (TP hit / SL hit — replies to original)
+// ---------------------------------------------------------------------------
 
-  const blocks = signals.map((sig, i) => formatSignalBlock(sig, i));
+function formatTpHitReply(input: OutcomeReplyInput): string {
+  const pnl = Math.abs(input.pnlPct).toFixed(4);
+  const lines: string[] = [
+    `*${e(`#${input.symbol}`)} Take\\-Profit target ${input.tpLevel ?? ''}* \u2705`,
+    `Profit: ${e(pnl)}% \u{1F4C8}`,
+  ];
+  if (input.period) {
+    lines.push(`Period: ${e(input.period)} \u23F0`);
+  }
+  return lines.join('\n');
+}
 
-  const footer = [
-    '',
-    e('\u2501'.repeat(20)),
-    `\u{1F916} _TradeClaw_ \\| [GitHub](https://github.com/naimkatiman/tradeclaw) \\| _Auto\\-broadcast every 4h_`,
-    `\u26A0\uFE0F _Not financial advice\\. DYOR\\._`,
+function formatSlHitReply(input: OutcomeReplyInput): string {
+  const loss = Math.abs(input.pnlPct).toFixed(4);
+  return [
+    `*${e(`#${input.symbol}`)} Stop Target Hit* \u26D4`,
+    `Loss: ${e(loss)}% \u{1F4C9}`,
   ].join('\n');
+}
 
-  return [header, ...blocks, footer].join('\n');
+function formatTrailingStopReply(input: OutcomeReplyInput): string {
+  const pnl = Math.abs(input.pnlPct).toFixed(4);
+  const isProfit = input.pnlPct >= 0;
+  return [
+    `*${e(`#${input.symbol}`)} Closed at trailing stoploss after reaching take profit* \u26A0\uFE0F`,
+    isProfit
+      ? `Profit: ${e(pnl)}% \u{1F4C8}`
+      : `Loss: ${e(pnl)}% \u{1F4C9}`,
+  ].join('\n');
 }
 
 // ---------------------------------------------------------------------------
-// Telegram API call
+// Telegram API calls
 // ---------------------------------------------------------------------------
 
 async function sendToChannel(
   botToken: string,
   channelId: string,
   text: string,
+  replyToMessageId?: number,
 ): Promise<BroadcastResult> {
   try {
+    const body: Record<string, unknown> = {
+      chat_id: channelId,
+      text,
+      parse_mode: 'MarkdownV2',
+      disable_web_page_preview: true,
+    };
+
+    if (replyToMessageId) {
+      body.reply_to_message_id = replyToMessageId;
+      body.allow_sending_without_reply = true;
+    }
+
     const res = await fetch(`${TELEGRAM_API}/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: channelId,
-        text,
-        parse_mode: 'MarkdownV2',
-        disable_web_page_preview: true,
-      }),
+      body: JSON.stringify(body),
     });
 
     const data = (await res.json()) as {
@@ -153,21 +212,20 @@ async function sendToChannel(
 }
 
 // ---------------------------------------------------------------------------
-// Main broadcast function
+// Main broadcast function — one message per signal
 // ---------------------------------------------------------------------------
 
 /**
- * Fetch top 3 signals from the signal engine, format them as a rich
- * MarkdownV2 message, and post to the configured Telegram channel.
+ * Fetch top signals, post EACH as a separate message (like WolfX),
+ * and save message_id to signal_history for reply threading.
  */
 export async function broadcastTopSignals(
   channelId: string,
   botToken: string,
 ): Promise<BroadcastResult> {
-  // Fetch top signals (confidence >= 65, sorted desc by confidence)
   const { signals: rawSignals } = await getSignals({ minConfidence: 65 });
 
-  // Filter by market regime — don't broadcast BUY in BEAR market
+  // Filter by market regime
   const regimeMap = await fetchRegimeMap();
   const filtered = filterSignalsByRegime(rawSignals, regimeMap);
   const top = filtered.slice(0, 3);
@@ -180,16 +238,98 @@ export async function broadcastTopSignals(
     return result;
   }
 
-  const message = buildBroadcastMessage(top);
-  const result = await sendToChannel(botToken, channelId, message);
+  const messageIds: number[] = [];
+  let lastError: string | undefined;
+
+  // Send each signal as a separate message
+  for (const signal of top) {
+    const message = formatSignalEntry(signal);
+    const result = await sendToChannel(botToken, channelId, message);
+
+    if (result.success && result.messageId) {
+      messageIds.push(result.messageId);
+
+      // Save message_id to signal_history for reply threading
+      try {
+        await markTelegramPosted(signal.id, result.messageId);
+      } catch {
+        // Non-critical — reply threading won't work for this signal
+      }
+    } else {
+      lastError = result.error;
+    }
+  }
 
   // Persist state
   const state = readBroadcastState();
   state.lastBroadcastTime = new Date().toISOString();
-  state.lastError = result.error ?? null;
-  if (result.messageId) state.lastMessageId = result.messageId;
-  if (result.success) state.broadcastCount += 1;
+  state.lastError = lastError ?? null;
+  if (messageIds.length > 0) state.lastMessageId = messageIds[messageIds.length - 1];
+  state.broadcastCount += messageIds.length;
   writeBroadcastState(state);
 
-  return result;
+  return {
+    success: messageIds.length > 0,
+    messageIds,
+    messageId: messageIds[messageIds.length - 1],
+    signalCount: messageIds.length,
+    error: lastError,
+  };
 }
+
+// ---------------------------------------------------------------------------
+// Outcome reply — TP/SL result as reply to original signal message
+// ---------------------------------------------------------------------------
+
+/**
+ * Send a TP hit, SL hit, or trailing stop message as a reply
+ * to the original signal message in Telegram.
+ */
+export async function broadcastOutcomeReply(
+  channelId: string,
+  botToken: string,
+  input: OutcomeReplyInput,
+): Promise<BroadcastResult> {
+  let message: string;
+
+  switch (input.reason) {
+    case 'takeProfit':
+      message = formatTpHitReply(input);
+      break;
+    case 'stopLoss':
+      message = formatSlHitReply(input);
+      break;
+    case 'trailingStop':
+      message = formatTrailingStopReply(input);
+      break;
+  }
+
+  return sendToChannel(botToken, channelId, message, input.originalMessageId);
+}
+
+// ---------------------------------------------------------------------------
+// Helper — compute TP level from exit price
+// ---------------------------------------------------------------------------
+
+export function detectTpLevel(
+  direction: 'BUY' | 'SELL',
+  entry: number,
+  exitPrice: number,
+  tp1: number,
+  tp2: number,
+  tp3: number,
+): { level: 1 | 2 | 3; reason: 'takeProfit' } | null {
+  if (direction === 'BUY') {
+    if (exitPrice >= tp3) return { level: 3, reason: 'takeProfit' };
+    if (exitPrice >= tp2) return { level: 2, reason: 'takeProfit' };
+    if (exitPrice >= tp1) return { level: 1, reason: 'takeProfit' };
+  } else {
+    if (exitPrice <= tp3) return { level: 3, reason: 'takeProfit' };
+    if (exitPrice <= tp2) return { level: 2, reason: 'takeProfit' };
+    if (exitPrice <= tp1) return { level: 1, reason: 'takeProfit' };
+  }
+  return null;
+}
+
+// Re-export formatDuration for use by position monitor
+export { formatDuration };

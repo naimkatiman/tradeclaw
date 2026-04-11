@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPortfolio, closePosition, type Position } from '../../../../lib/paper-trading';
+import { getSignalTelegramMessageId } from '../../../../lib/signal-history';
+import {
+  broadcastOutcomeReply,
+  detectTpLevel,
+  formatDuration,
+  type OutcomeReplyInput,
+} from '../../../../lib/telegram-broadcast';
 
 // ── Auth guard ────────────────────────────────────────────────
 
@@ -169,6 +176,9 @@ export async function GET(request: NextRequest): Promise<Response> {
             exitPrice: check.exitPrice,
             pnl: result.trade.pnl,
           });
+
+          // Send Telegram reply to original signal message
+          await sendTelegramOutcomeReply(position, check, result.trade.pnlPercent);
         }
       }
     }
@@ -188,4 +198,55 @@ export async function GET(request: NextRequest): Promise<Response> {
 
 export async function POST(request: NextRequest): Promise<Response> {
   return GET(request);
+}
+
+// ── Telegram outcome reply ──────────────────────────────────
+
+async function sendTelegramOutcomeReply(
+  position: Position,
+  check: { reason: 'stopLoss' | 'takeProfit' | 'manual'; exitPrice: number },
+  pnlPct: number,
+): Promise<void> {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const channelId = process.env.TELEGRAM_CHANNEL_ID;
+  if (!botToken || !channelId) return;
+  if (!position.signalId) return;
+
+  // Look up the original Telegram message for this signal
+  const originalMessageId = await getSignalTelegramMessageId(position.signalId);
+  if (!originalMessageId) return;
+
+  const period = formatDuration(
+    new Date(position.openedAt).getTime(),
+    Date.now(),
+  );
+
+  let reason: OutcomeReplyInput['reason'];
+  let tpLevel: 1 | 2 | 3 | undefined;
+
+  if (check.reason === 'stopLoss') {
+    reason = 'stopLoss';
+  } else if (check.reason === 'takeProfit') {
+    reason = 'takeProfit';
+    // Try to detect which TP level was hit (if position has TP levels)
+    tpLevel = 1; // Default to TP1 — the position-monitor only tracks single TP
+  } else {
+    return; // manual close — no broadcast
+  }
+
+  try {
+    await broadcastOutcomeReply(channelId, botToken, {
+      symbol: position.symbol,
+      direction: position.direction,
+      entryPrice: position.entryPrice,
+      exitPrice: check.exitPrice,
+      pnlPct,
+      reason,
+      tpLevel,
+      period,
+      originalMessageId,
+    });
+  } catch {
+    // Non-critical — don't fail the position close
+  }
 }
