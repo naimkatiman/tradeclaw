@@ -11,12 +11,10 @@ interface HintBadgeProps {
 
 /**
  * A small "?" badge that shows a tooltip on hover.
- * Only renders when NEXT_PUBLIC_DEMO_MODE=true.
+ * Always visible — helps new traders understand metrics at a glance.
  */
 export function HintBadge({ label, className = '' }: HintBadgeProps) {
   const [open, setOpen] = useState(false);
-
-  if (!DEMO_MODE) return null;
 
   return (
     <span className={`relative inline-flex ${className}`}>

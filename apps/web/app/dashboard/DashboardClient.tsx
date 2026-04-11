@@ -17,6 +17,7 @@ import { generateBars } from '../lib/chart-utils';
 import { SYMBOLS } from '../lib/signals';
 import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
 import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
+import { SignalExportMenu } from '../components/signal-export-menu';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import type { TradingSignal } from '../lib/signals';
 import type { TFDirection } from '../lib/signal-generator';
@@ -306,10 +307,22 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-sm font-semibold text-[var(--foreground)] font-mono tracking-tight">{signal.symbol}</span>
               {signal.dataQuality === 'real' && <LiveBadge />}
               <DataSourceBadge source={getDataSource(signal.symbol)} />
+              {signal.dataQuality === 'synthetic' && (
+                <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">DEMO</span>
+              )}
+              {signal.atrCalibration && signal.atrCalibration.confidence !== 'low' && (
+                <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono font-bold border ${
+                  signal.atrCalibration.confidence === 'high'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                    : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                }`}>
+                  SL {signal.atrCalibration.multiplier}× ATR
+                </span>
+              )}
             </div>
             <div className="text-[11px] text-[var(--text-secondary)] font-mono mt-0.5">{signal.timeframe} · {formatSignalTimestamp(signal.timestamp)}</div>
             {/* Confluence pills — show TF agreement visually */}
@@ -409,14 +422,17 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
       {/* Price levels */}
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 mt-4 text-center">
         {[
-          { label: 'Entry', value: signal.entry, color: 'text-[var(--foreground)]' },
-          { label: 'SL', value: signal.stopLoss, color: 'text-red-400' },
-          { label: 'TP1', value: signal.takeProfit1, color: 'text-emerald-400' },
-          { label: 'TP2', value: signal.takeProfit2, color: 'text-emerald-400' },
-          { label: 'TP3', value: signal.takeProfit3, color: 'text-emerald-400' },
-        ].map(({ label, value, color }) => (
+          { label: 'Entry', value: signal.entry, color: 'text-[var(--foreground)]', hint: 'Price when the signal was generated.' },
+          { label: 'SL', value: signal.stopLoss, color: 'text-red-400', hint: 'Stop Loss = Entry ± (ATR × multiplier). ATR measures recent volatility — wider ATR means a wider stop to avoid noise.' },
+          { label: 'TP1', value: signal.takeProfit1, color: 'text-emerald-400', hint: 'Take Profit 1 — closest target at ~1.5× the risk distance. Highest probability of being hit.' },
+          { label: 'TP2', value: signal.takeProfit2, color: 'text-emerald-400', hint: 'Take Profit 2 — mid target at ~2.5× risk. Consider partial close at TP1 and let the rest run.' },
+          { label: 'TP3', value: signal.takeProfit3, color: 'text-emerald-400', hint: 'Take Profit 3 — stretch target at ~3.5× risk. Only hit in strong moves.' },
+        ].map(({ label, value, color, hint }) => (
           <div key={label} className="bg-white/[0.02] rounded-lg py-1.5 px-1">
-            <div className="text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">{label}</div>
+            <div className="flex items-center justify-center gap-0.5 text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">
+              {label}
+              <HintBadge label={hint} />
+            </div>
             <div className={`flex items-center justify-center gap-0.5 text-[10px] font-mono font-semibold tabular-nums ${color}`}>
               {formatPrice(value)}
               {(label === 'SL' || label.startsWith('TP')) && (
@@ -444,8 +460,9 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
             </div>
           );
         })}
-        <div className="flex items-center gap-1 text-[10px] font-mono ml-auto">
-          <span className="text-[var(--text-secondary)]">{expanded ? '▴' : '▾'} details</span>
+        <div className="flex items-center gap-1.5 ml-auto">
+          <SignalExportMenu signal={signal} />
+          <span className="text-[10px] font-mono text-[var(--text-secondary)]">{expanded ? '▴' : '▾'} details</span>
         </div>
       </div>
 
@@ -471,9 +488,19 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
               ))}
             </div>
           </div>
-          <div className="col-span-2 flex items-center justify-between text-[10px] font-mono text-[var(--text-secondary)] pt-2 border-t border-[var(--border)]">
+          <div className="col-span-2 flex items-center justify-between flex-wrap gap-2 text-[10px] font-mono text-[var(--text-secondary)] pt-2 border-t border-[var(--border)]">
             <span title={signal.id}>{shortSignalId(signal.id)}</span>
-            <span>BB Width: {signal.indicators.bollingerBands.bandwidth}%</span>
+            <div className="flex items-center gap-3">
+              {signal.atrCalibration && (
+                <span className={signal.atrCalibration.confidence === 'low' ? 'text-zinc-600' : 'text-blue-400'}>
+                  ATR Stop: {signal.atrCalibration.multiplier}× {signal.atrCalibration.confidence === 'low' ? '(default)' : `(${signal.atrCalibration.confidence})`}
+                </span>
+              )}
+              <span>BB Width: {signal.indicators.bollingerBands.bandwidth}%</span>
+              <span className={signal.dataQuality === 'real' ? 'text-emerald-400' : 'text-amber-400'}>
+                {signal.dataQuality === 'real' ? 'real-tracked' : 'demo-seeded'}
+              </span>
+            </div>
           </div>
         </div>
       )}

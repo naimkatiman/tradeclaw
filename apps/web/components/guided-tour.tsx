@@ -31,9 +31,9 @@ const STEPS: TourStep[] = [
   },
   {
     targetId: 'signal-grid',
-    title: 'Explore live signals',
+    title: 'Reading a signal card',
     description:
-      'Click any card to expand full indicator details — entry, stop loss, take profits, and RSI/MACD/EMA breakdowns. Every signal is transparent.',
+      'Each card shows: Confidence (how many indicators agree), Entry (price now), SL (auto-calculated stop using ATR volatility), and TP1–TP3 (profit targets at 1.5×, 2.5×, 3.5× risk). Tap the "?" icons for one-line explanations of each metric.',
   },
   {
     targetId: 'dashboard-filters',
@@ -57,7 +57,7 @@ const STEPS: TourStep[] = [
     targetId: null,
     title: 'Ready to go deeper?',
     description:
-      'Try the Backtest page to test strategies on historical data, or set up Telegram alerts to never miss a signal. Happy trading!',
+      'Try the Backtest page to test strategies on historical data, or set up Telegram alerts to never miss a signal. Tap the export button on any signal to copy it for Telegram, Discord, or TradingView. Happy trading!',
   },
 ];
 

@@ -9,7 +9,7 @@ import type { TradingSignal, IndicatorSummary } from './signals';
 import { getOHLCV } from './ohlcv';
 import { isMarketOpen } from './market-hours';
 import { WATCHLIST_MIN_CONFIDENCE } from '../../lib/signal-thresholds';
-import { getCachedAtrMultiplier } from './atr-calibration-cache';
+import { getCachedAtrMultiplier, getCachedAtrCalibration } from './atr-calibration-cache';
 
 // ─── Multi-Timeframe Types ────────────────────────────────────
 
@@ -664,6 +664,7 @@ export function generateSignalsFromTA(
     // Quality gate: below MIN_CONFIDENCE is noise
     if (confidence < MIN_CONFIDENCE) return signals;
 
+    const buyCalibration = getCachedAtrCalibration(symbol);
     signals.push({
       id: generateSignalId(symbol, timeframe, 'BUY', signalTimestamp),
       symbol,
@@ -679,6 +680,9 @@ export function generateSignalsFromTA(
       timestamp: publishedAt,
       status: 'active',
       dataQuality: source,
+      atrCalibration: buyCalibration
+        ? { multiplier: buyCalibration.multiplier, confidence: buyCalibration.confidence }
+        : { multiplier: 2.0, confidence: 'low' as const },
     });
   }
 
@@ -721,6 +725,7 @@ export function generateSignalsFromTA(
     // Quality gate: below MIN_CONFIDENCE is noise
     if (confidence < MIN_CONFIDENCE) return signals;
 
+    const sellCalibration = getCachedAtrCalibration(symbol);
     signals.push({
       id: generateSignalId(symbol, timeframe, 'SELL', signalTimestamp),
       symbol,
@@ -736,6 +741,9 @@ export function generateSignalsFromTA(
       timestamp: publishedAt,
       status: 'active',
       dataQuality: source,
+      atrCalibration: sellCalibration
+        ? { multiplier: sellCalibration.multiplier, confidence: sellCalibration.confidence }
+        : { multiplier: 2.0, confidence: 'low' as const },
     });
   }
 

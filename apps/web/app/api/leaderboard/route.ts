@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readHistoryAsync, computeLeaderboard, resolveRealOutcomes } from '../../../lib/signal-history';
+import { readHistoryAsync } from '../../../lib/signal-history';
+import { getLeaderboard } from '../../../lib/leaderboard-cache';
 
 export async function GET(request: NextRequest) {
   try {
-    await resolveRealOutcomes();
     const { searchParams } = new URL(request.url);
 
     const rawPeriod = searchParams.get('period') ?? '30d';
@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
 
     const pairFilter = searchParams.get('pair')?.toUpperCase();
 
-    const history = await readHistoryAsync();
-    const data = computeLeaderboard(history, period, sortBy);
+    // Serve from precomputed cache (resolves outcomes + computes on miss)
+    const data = await getLeaderboard(period, sortBy);
 
     if (pairFilter) {
       const asset = data.assets.find(a => a.pair === pairFilter);
@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: `No data for pair: ${pairFilter}` }, { status: 404 });
       }
 
+      const history = await readHistoryAsync();
       const pairRecords = history
         .filter(r => r.pair === pairFilter)
         .slice(0, 50);
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(data, {
-      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
+      headers: { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300' },
     });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

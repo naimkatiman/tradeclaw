@@ -19,6 +19,8 @@ export interface TradingSignal {
   // Web-specific (optional)
   source?: 'real' | 'fallback';
   dataQuality?: 'real' | 'synthetic';
+  /** ATR stop calibration metadata — shows whether SL uses a per-symbol calibrated multiplier or the global default. */
+  atrCalibration?: { multiplier: number; confidence: 'low' | 'medium' | 'high' };
   // Agent-specific (optional)
   skill?: string;
 }
