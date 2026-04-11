@@ -41,6 +41,13 @@ export async function GET() {
           description: "Dynamic badge endpoint (shields.io compatible) for any README",
           example: "/api/v1/badge/BTCUSD",
         },
+        regime: {
+          url: "/api/v1/regime",
+          description: "HMM-based market regime classification (crash/bear/neutral/bull/euphoria)",
+          params: {
+            symbol: "Filter by symbol (e.g. BTCUSD). Omit for all symbols.",
+          },
+        },
         health: {
           url: "/api/v1/health",
           description: "API health check — uptime, version, signal count",
