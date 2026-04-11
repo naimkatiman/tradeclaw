@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 import { FullChart } from '../../components/charts';
 import { generateBars } from '../../lib/chart-utils';
-import { SYMBOLS } from '../../lib/signals';
+import { SYMBOLS } from '../../lib/symbol-config';
 
 interface ChartClientProps {
   symbol: string;

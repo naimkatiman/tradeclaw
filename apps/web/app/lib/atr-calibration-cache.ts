@@ -17,7 +17,7 @@ import {
   type CalibrationResult,
   type OutcomeSample,
 } from '@tradeclaw/signals';
-import { readHistoryAsync, type SignalHistoryRecord } from '../../lib/signal-history';
+import type { SignalHistoryRecord } from '../../lib/signal-history';
 
 interface CachedEntry {
   result: CalibrationResult;
@@ -112,6 +112,8 @@ export function getCachedAtrCalibration(symbol: string): CalibrationResult | und
  * history. Should be called from a prewarm path (e.g. cron, api/calibration).
  */
 export async function refreshAtrCalibration(): Promise<Map<string, CalibrationResult>> {
+  // Dynamic import to avoid pulling fs/pg into client bundles
+  const { readHistoryAsync } = await import('../../lib/signal-history');
   const history = await readHistoryAsync();
   const bySymbol = new Map<string, OutcomeSample[]>();
 

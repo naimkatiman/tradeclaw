@@ -14,12 +14,12 @@ import { VisitStreak } from '../../components/visit-streak';
 import { ReEngagementBanner } from '../../components/re-engagement-banner';
 import { SignalChart, FullChart } from '../components/charts';
 import { generateBars } from '../lib/chart-utils';
-import { SYMBOLS } from '../lib/signals';
+import { SYMBOLS } from '../lib/symbol-config';
 import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
 import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
 import { SignalExportMenu } from '../components/signal-export-menu';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
-import type { TradingSignal } from '../lib/signals';
+import type { TradingSignal } from '@tradeclaw/signals';
 import type { TFDirection } from '../lib/signal-generator';
 
 const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];

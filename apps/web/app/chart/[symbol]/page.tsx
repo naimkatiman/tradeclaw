@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { SYMBOLS } from '../../lib/signals';
+import { SYMBOLS } from '../../lib/symbol-config';
 import ChartClient from './ChartClient';
 
 type Params = { symbol: string };

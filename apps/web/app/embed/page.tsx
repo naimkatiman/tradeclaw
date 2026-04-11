@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { TradeClawLogo } from '../../components/tradeclaw-logo';
-import { SYMBOLS } from '../lib/signals';
+import { SYMBOLS } from '../lib/symbol-config';
 
 const PAIRS = SYMBOLS.map(s => s.symbol);
 const DEFAULT_PAIR = 'BTCUSD';
