@@ -12,7 +12,7 @@ export function FeatureHighlights() {
               Neural network precision for every tick
             </h3>
             <p className="text-[var(--text-secondary)] leading-relaxed mb-6">
-              TradeClaw doesn't just rely on a single indicator. It aggregates RSI, MACD, EMA crosses, Bollinger Bands, and volume anomalies into a unified decision matrix. Our engine processes hundreds of data points per second to output a single, high-confidence signal.
+              TradeClaw doesn&apos;t just rely on a single indicator. It aggregates RSI, MACD, EMA crosses, Bollinger Bands, and volume anomalies into a unified decision matrix. Our engine processes hundreds of data points per second to output a single, high-confidence signal.
             </p>
             <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
               <li className="flex items-center gap-3">
@@ -218,7 +218,7 @@ export function FeatureHighlights() {
               Instant signal delivery. Zero lag.
             </h3>
             <p className="text-[var(--text-secondary)] leading-relaxed mb-6">
-              The moment our backend consensus algorithm flags a high-probability setup, it's pushed to your dashboard via WebSocket. No refreshing, no delayed webhooks. By running TradeClaw on your own server, you eliminate middleman latency entirely.
+              The moment our backend consensus algorithm flags a high-probability setup, it&apos;s pushed to your dashboard via WebSocket. No refreshing, no delayed webhooks. By running TradeClaw on your own server, you eliminate middleman latency entirely.
             </p>
             <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
               <li className="flex items-center gap-3">

@@ -176,9 +176,10 @@ export function ExecutionClient() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    let cancelled = false;
+    (async () => { if (!cancelled) await fetchData(); })();
     const interval = setInterval(fetchData, 30_000);
-    return () => clearInterval(interval);
+    return () => { cancelled = true; clearInterval(interval); };
   }, [fetchData]);
 
   return (

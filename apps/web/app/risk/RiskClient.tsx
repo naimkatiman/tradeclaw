@@ -360,9 +360,10 @@ export function RiskClient() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    let cancelled = false;
+    (async () => { if (!cancelled) await fetchData(); })();
     const interval = setInterval(fetchData, 60_000);
-    return () => clearInterval(interval);
+    return () => { cancelled = true; clearInterval(interval); };
   }, [fetchData]);
 
   const triggeredCount = breakers.filter((b) => b.status === 'triggered').length;

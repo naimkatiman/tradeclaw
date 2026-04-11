@@ -14,6 +14,7 @@ export { generateSignalId, clamp } from '@tradeclaw/signals';
 // Symbol configs live in symbol-config.ts (client-safe, no server imports).
 // Re-export here for backward compatibility with existing server-side consumers.
 export { SYMBOLS, TIMEFRAMES } from './symbol-config';
+import { SYMBOLS } from './symbol-config';
 
 // generateSignalId and clamp are now imported from @tradeclaw/signals
 
