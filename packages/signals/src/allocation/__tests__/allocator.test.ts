@@ -39,7 +39,7 @@ function makeSignal(overrides: Partial<SignalInput> = {}): SignalInput {
 // ─── Crash Regime ───────────────────────────────────────────────────────────
 
 describe('crash regime', () => {
-  it('blocks all allocations', () => {
+  it('blocks BUY direction', () => {
     const result = computeAllocation(
       makeSignal({ direction: 'BUY' }),
       'crash',
@@ -47,17 +47,28 @@ describe('crash regime', () => {
     );
     expect(result.approved).toBe(false);
     expect(result.positionSizePct).toBe(0);
-    expect(result.reason).toContain('blocks all new positions');
+    expect(result.reason).toContain('not allowed');
     expect(result.regime).toBe('crash');
   });
 
-  it('blocks SELL direction too', () => {
+  it('allows small SELL positions', () => {
     const result = computeAllocation(
-      makeSignal({ direction: 'SELL' }),
+      makeSignal({ direction: 'SELL', confidence: 80 }),
       'crash',
-      makePortfolio(),
+      makePortfolio({ positionsValue: 0 }),
     );
-    expect(result.approved).toBe(false);
+    expect(result.approved).toBe(true);
+    expect(result.positionSizePct).toBeLessThanOrEqual(3);
+  });
+
+  it('caps single position at 3%', () => {
+    const result = computeAllocation(
+      makeSignal({ direction: 'SELL', confidence: 100, symbol: 'XAUUSD' }),
+      'crash',
+      makePortfolio({ positionsValue: 0 }),
+    );
+    // Tier 1 at 100% confidence: 3% * 1.0 * 1.0 = 3%
+    expect(result.positionSizePct).toBeLessThanOrEqual(3);
   });
 });
 
@@ -84,14 +95,14 @@ describe('bear regime', () => {
     expect(result.positionSizePct).toBeGreaterThan(0);
   });
 
-  it('caps single position at 5%', () => {
+  it('caps single position at 8%', () => {
     const result = computeAllocation(
       makeSignal({ direction: 'SELL', confidence: 100, symbol: 'XAUUSD' }),
       'bear',
       makePortfolio({ positionsValue: 0 }),
     );
-    // Tier 1 at 100% confidence: 5% * 1.0 * 1.0 = 5%
-    expect(result.positionSizePct).toBeLessThanOrEqual(5);
+    // Tier 1 at 100% confidence: 8% * 1.0 * 1.0 = 8%
+    expect(result.positionSizePct).toBeLessThanOrEqual(8);
   });
 
   it('tightens stops', () => {
@@ -122,13 +133,13 @@ describe('neutral regime', () => {
     expect(sellResult.approved).toBe(true);
   });
 
-  it('has leverage of 1', () => {
+  it('has leverage of 1.5', () => {
     const result = computeAllocation(
       makeSignal(),
       'neutral',
       makePortfolio({ positionsValue: 0 }),
     );
-    expect(result.leverageMultiplier).toBe(1);
+    expect(result.leverageMultiplier).toBe(1.5);
   });
 });
 
@@ -180,19 +191,19 @@ describe('euphoria regime', () => {
     const euphoriaResult = computeAllocation(signal, 'euphoria', portfolio);
     const bullResult = computeAllocation(signal, 'bull', portfolio);
 
-    // Euphoria max single position is 10% vs bull 15%
+    // Euphoria max single position is 15% vs bull 20%
     expect(euphoriaResult.positionSizePct).toBeLessThan(bullResult.positionSizePct);
     // Euphoria leverage 1.5 vs bull 2
     expect(euphoriaResult.leverageMultiplier).toBeLessThan(bullResult.leverageMultiplier);
   });
 
-  it('enables tighter stops', () => {
+  it('does not tighten stops (let trend run)', () => {
     const result = computeAllocation(
       makeSignal(),
       'euphoria',
       makePortfolio({ positionsValue: 0 }),
     );
-    expect(result.rules.tightenStops).toBe(true);
+    expect(result.rules.tightenStops).toBe(false);
   });
 
   it('caps exposure lower than bull', () => {
@@ -250,25 +261,25 @@ describe('confidence scaling', () => {
 
 describe('maxExposure cap', () => {
   it('blocks allocation when exposure already at max', () => {
-    // Bull max exposure = 75%. Portfolio already at 75%.
+    // Bull max exposure = 85%. Portfolio already at 85%.
     const result = computeAllocation(
       makeSignal(),
       'bull',
-      makePortfolio({ totalEquity: 100_000, positionsValue: 75_000 }),
+      makePortfolio({ totalEquity: 100_000, positionsValue: 85_000 }),
     );
     expect(result.approved).toBe(false);
     expect(result.reason).toContain('already at or above max');
   });
 
   it('caps position size to remaining headroom', () => {
-    // Bull max exposure = 75%. Currently at 70%, so only 5% headroom.
+    // Bull max exposure = 85%. Currently at 80%, so only 5% headroom.
     const result = computeAllocation(
       makeSignal({ confidence: 100, symbol: 'XAUUSD' }),
       'bull',
-      makePortfolio({ totalEquity: 100_000, positionsValue: 70_000 }),
+      makePortfolio({ totalEquity: 100_000, positionsValue: 80_000 }),
     );
     expect(result.approved).toBe(true);
-    // Tier 1, 100% confidence would give 15% raw size, but capped at 5% headroom
+    // Tier 1, 100% confidence would give 20% raw size, but capped at 5% headroom
     expect(result.positionSizePct).toBeLessThanOrEqual(5);
   });
 
@@ -278,8 +289,28 @@ describe('maxExposure cap', () => {
       'bull',
       makePortfolio({ totalEquity: 0, positionsValue: 0 }),
     );
-    // 0 equity means 0% exposure, so still within limits
-    expect(result.approved).toBe(true);
+    expect(result.approved).toBe(false);
+    expect(result.reason).toContain('zero or negative');
+  });
+
+  it('blocks allocation when equity is negative', () => {
+    const result = computeAllocation(
+      makeSignal(),
+      'bull',
+      makePortfolio({ totalEquity: -1000, positionsValue: 0 }),
+    );
+    expect(result.approved).toBe(false);
+    expect(result.reason).toContain('zero or negative');
+  });
+
+  it('blocks allocation when positions value is negative', () => {
+    const result = computeAllocation(
+      makeSignal(),
+      'bull',
+      makePortfolio({ totalEquity: 100_000, positionsValue: -5000 }),
+    );
+    expect(result.approved).toBe(false);
+    expect(result.reason).toContain('negative positions value');
   });
 });
 
@@ -325,12 +356,12 @@ describe('tier weighting', () => {
       portfolio,
     );
 
-    // Tier 1 = 15% * 1.0 = 15%
-    // Tier 2 = 15% * 0.8 = 12%
-    // Tier 3 = 15% * 0.6 = 9%
-    expect(tier1.positionSizePct).toBe(15);
-    expect(tier2.positionSizePct).toBe(12);
-    expect(tier3.positionSizePct).toBe(9);
+    // Tier 1 = 20% * 1.0 = 20%
+    // Tier 2 = 20% * 0.8 = 16%
+    // Tier 3 = 20% * 0.6 = 12%
+    expect(tier1.positionSizePct).toBe(20);
+    expect(tier2.positionSizePct).toBe(16);
+    expect(tier3.positionSizePct).toBe(12);
 
     expect(tier1.positionSizePct).toBeGreaterThan(tier2.positionSizePct);
     expect(tier2.positionSizePct).toBeGreaterThan(tier3.positionSizePct);
@@ -364,10 +395,11 @@ describe('result shape', () => {
     expect(typeof result.leverageMultiplier).toBe('number');
     expect(typeof result.regime).toBe('string');
     expect(result.rules).toBeDefined();
-    expect(result.reason).toBeUndefined();
+    expect(typeof result.reason).toBe('string');
   });
 
   it('rejected result includes reason', () => {
+    // BUY not allowed in crash (only SELL)
     const result = computeAllocation(
       makeSignal({ direction: 'BUY' }),
       'crash',

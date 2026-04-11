@@ -69,10 +69,11 @@ function recordToSample(r: SignalHistoryRecord): OutcomeSample | null {
   } else {
     // Distinguish stop-out from flat close: if the recorded close price
     // reached or breached the stop, treat as stop; otherwise flat loss.
+    const tol = Math.max(1e-9, (r.sl || 1) * 1e-6);
     const hitStop =
       r.direction === 'BUY'
-        ? o.price <= r.sl + 1e-9
-        : o.price >= r.sl - 1e-9;
+        ? o.price <= r.sl + tol
+        : o.price >= r.sl - tol;
     outcome = hitStop ? 'stop' : 'loss';
   }
 
@@ -92,18 +93,26 @@ function recordToSample(r: SignalHistoryRecord): OutcomeSample | null {
  * default if cold / expired / low-confidence.
  */
 export function getCachedAtrMultiplier(symbol: string): number {
-  const entry = cache.get(symbol.toUpperCase());
+  const key = symbol.toUpperCase();
+  const entry = cache.get(key);
   if (!entry) return DEFAULT_ATR_MULTIPLIER;
-  if (Date.now() > entry.expiresAt) return DEFAULT_ATR_MULTIPLIER;
+  if (Date.now() > entry.expiresAt) {
+    cache.delete(key);
+    return DEFAULT_ATR_MULTIPLIER;
+  }
   if (entry.result.confidence === 'low') return DEFAULT_ATR_MULTIPLIER;
   return entry.result.multiplier;
 }
 
 /** Synchronous read of the full cached result (may return undefined). */
 export function getCachedAtrCalibration(symbol: string): CalibrationResult | undefined {
-  const entry = cache.get(symbol.toUpperCase());
+  const key = symbol.toUpperCase();
+  const entry = cache.get(key);
   if (!entry) return undefined;
-  if (Date.now() > entry.expiresAt) return undefined;
+  if (Date.now() > entry.expiresAt) {
+    cache.delete(key);
+    return undefined;
+  }
   return entry.result;
 }
 

@@ -73,7 +73,7 @@ const ASSET_CLASSES = {
     'ADAUSD', 'AVAXUSD', 'DOTUSD', 'LINKUSD', 'MATICUSD', 'ATOMUSD',
     'UNIUSD', 'LTCUSD', 'BCHUSD', 'NEARUSD', 'APTUSD', 'ARBUSD',
     'OPUSD', 'FILUSD', 'INJUSD', 'SUIUSD', 'SEIUSD', 'TIAUSD',
-    'RENDERUSD', 'FETUSD', 'AABORUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
+    'RENDERUSD', 'FETUSD', 'AAVEUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
     'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF',
   ],
   CRYPTO: [
@@ -81,7 +81,7 @@ const ASSET_CLASSES = {
     'ADAUSD', 'AVAXUSD', 'DOTUSD', 'LINKUSD', 'MATICUSD', 'ATOMUSD',
     'UNIUSD', 'LTCUSD', 'BCHUSD', 'NEARUSD', 'APTUSD', 'ARBUSD',
     'OPUSD', 'FILUSD', 'INJUSD', 'SUIUSD', 'SEIUSD', 'TIAUSD',
-    'RENDERUSD', 'FETUSD', 'AABORUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
+    'RENDERUSD', 'FETUSD', 'AAVEUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
   ],
   FOREX: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF'],
   METALS: ['XAUUSD', 'XAGUSD'],
@@ -496,7 +496,7 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
                   ATR Stop: {signal.atrCalibration.multiplier}× {signal.atrCalibration.confidence === 'low' ? '(default)' : `(${signal.atrCalibration.confidence})`}
                 </span>
               )}
-              <span>BB Width: {signal.indicators.bollingerBands.bandwidth}%</span>
+              <span>BB Width: {signal.indicators.bollingerBands.bandwidth.toFixed(2)}%</span>
               <span className={signal.dataQuality === 'real' ? 'text-emerald-400' : 'text-amber-400'}>
                 {signal.dataQuality === 'real' ? 'real-tracked' : 'demo-seeded'}
               </span>

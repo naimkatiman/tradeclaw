@@ -2,9 +2,13 @@
  * Regime-Based Allocation Rules
  *
  * Maps each market regime to its allocation constraints.
- * Crash blocks all new positions. Bear allows only shorts.
- * Bull allows larger positions with leverage. Euphoria tightens
- * from bull levels as a caution against reversals.
+ *
+ * Key design: biggest wins come in TRENDING markets (bull/euphoria).
+ * - Bull: max exposure + leverage, no tight stops → trades run to TP3
+ * - Euphoria: slightly cautious vs bull but still trend-following
+ * - Neutral: balanced, moderate sizing
+ * - Bear: defensive, shorts only, smaller positions
+ * - Crash: minimal exposure, shorts only, capital preservation
  */
 
 import type { MarketRegime } from '../regime/types';
@@ -12,42 +16,46 @@ import type { AllocationRules } from './types';
 
 export const REGIME_ALLOCATION_RULES: Record<MarketRegime, AllocationRules> = {
   crash: {
-    maxExposurePct: 0,
+    maxExposurePct: 10,
     maxLeverage: 1,
-    allowedDirections: [],
-    maxSinglePositionPct: 0,
+    allowedDirections: ['SELL'],
+    maxSinglePositionPct: 3,
     tightenStops: true,
   },
   bear: {
-    maxExposurePct: 25,
+    maxExposurePct: 30,
     maxLeverage: 1,
     allowedDirections: ['SELL'],
-    maxSinglePositionPct: 5,
+    maxSinglePositionPct: 8,
     tightenStops: true,
   },
   neutral: {
-    maxExposurePct: 50,
-    maxLeverage: 1,
+    maxExposurePct: 60,
+    maxLeverage: 1.5,
     allowedDirections: ['BUY', 'SELL'],
-    maxSinglePositionPct: 10,
+    maxSinglePositionPct: 12,
     tightenStops: false,
   },
   bull: {
-    maxExposurePct: 75,
+    maxExposurePct: 85,
     maxLeverage: 2,
+    allowedDirections: ['BUY', 'SELL'],
+    maxSinglePositionPct: 20,
+    tightenStops: false,
+  },
+  euphoria: {
+    maxExposurePct: 70,
+    maxLeverage: 1.5,
     allowedDirections: ['BUY', 'SELL'],
     maxSinglePositionPct: 15,
     tightenStops: false,
   },
-  euphoria: {
-    maxExposurePct: 50,
-    maxLeverage: 1.5,
-    allowedDirections: ['BUY', 'SELL'],
-    maxSinglePositionPct: 10,
-    tightenStops: true,
-  },
 };
 
 export function getAllocationRules(regime: MarketRegime): AllocationRules {
-  return REGIME_ALLOCATION_RULES[regime];
+  const rules = REGIME_ALLOCATION_RULES[regime];
+  if (!rules) {
+    return REGIME_ALLOCATION_RULES['crash'];
+  }
+  return rules;
 }

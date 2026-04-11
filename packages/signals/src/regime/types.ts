@@ -44,4 +44,6 @@ export interface HMMModelParams {
   asset_class: string;
   /** ISO timestamp of training time. */
   trained_at: string;
+  /** Optional initial state probabilities (length n_states). */
+  initial_probs?: number[];
 }

@@ -6,9 +6,10 @@ import {
   computeFeatures,
   getDefaultModel,
   classifyRegime,
+  setModel,
 } from '../classifier';
 import type { PriceBar } from '../classifier';
-import type { MarketRegime } from '../types';
+import type { HMMModelParams, MarketRegime } from '../types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -79,6 +80,18 @@ describe('computeFeatures', () => {
     const bars = generateBars(50, 100, -0.02, 0.001);
     const features = computeFeatures(bars);
     expect(features.returns20d).toBeLessThan(0);
+  });
+
+  it('throws when price history contains a zero price', () => {
+    const bars = generateBars(25, 100, 0, 0.01);
+    bars[10].close = 0;
+    expect(() => computeFeatures(bars)).toThrow('non-positive or non-finite');
+  });
+
+  it('throws when price history contains NaN', () => {
+    const bars = generateBars(25, 100, 0, 0.01);
+    bars[10].close = NaN;
+    expect(() => computeFeatures(bars)).toThrow('non-positive or non-finite');
   });
 });
 
@@ -196,5 +209,22 @@ describe('classifyRegime', () => {
       result.allProbabilities[result.regime],
       6,
     );
+  });
+
+  it('throws when model has a missing state label', () => {
+    // Build a model with only 3 of 5 state labels populated
+    const model = getDefaultModel('crypto');
+    const badModel: HMMModelParams = {
+      ...model,
+      state_labels: { '0': 'crash', '1': 'bear', '2': 'neutral' },
+    };
+    // Inject the bad model — setModel bypasses validation
+    setModel('crypto', badModel);
+
+    const bars = generateBars(50, 87000, 0, 0.01);
+    expect(() => classifyRegime('BTCUSD', bars)).toThrow();
+
+    // Restore valid model
+    setModel('crypto', model);
   });
 });

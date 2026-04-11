@@ -15,6 +15,10 @@ import type {
   RegimeFeatures,
 } from './types';
 
+// ─── Constants ──────────────────────────────────────────────────────────────
+
+const VALID_REGIMES = new Set<string>(['crash', 'bear', 'neutral', 'bull', 'euphoria']);
+
 // ─── Model Loading ───────────────────────────────────────────────────────────
 
 // Model cache to avoid re-parsing
@@ -48,6 +52,7 @@ export function loadModel(assetClass: 'crypto' | 'forex' | 'metals'): HMMModelPa
 
         if (fs.existsSync(modelPath)) {
           const model = JSON.parse(fs.readFileSync(modelPath, 'utf-8')) as HMMModelParams;
+          validateModel(model);
           modelCache.set(assetClass, model);
           return model;
         }
@@ -79,6 +84,69 @@ function findModelDir(path: typeof import('path'), fs: typeof import('fs')): str
     dir = parent;
   }
   return path.join(process.cwd(), 'scripts', 'hmm-regime', 'models');
+}
+
+/**
+ * Validate model dimensions and state labels.
+ * Throws if any constraint is violated.
+ */
+function validateModel(model: HMMModelParams): void {
+  const n = model.n_states;
+  const nFeatures = model.emission_means[0]?.length ?? 0;
+
+  // state_labels must have exactly n_states entries
+  const labelKeys = Object.keys(model.state_labels);
+  if (labelKeys.length !== n) {
+    throw new Error(`state_labels has ${labelKeys.length} entries, expected ${n}`);
+  }
+
+  // All state_labels must be valid and unique
+  const seenLabels = new Set<string>();
+  for (const key of labelKeys) {
+    const label = model.state_labels[key];
+    if (!VALID_REGIMES.has(label)) {
+      throw new Error(`Invalid state label "${label}" for state ${key}. Valid: ${[...VALID_REGIMES].join(', ')}`);
+    }
+    if (seenLabels.has(label)) {
+      throw new Error(`Duplicate state label "${label}" — each state must map to a unique regime`);
+    }
+    seenLabels.add(label);
+  }
+
+  // transition_matrix must be n_states x n_states
+  if (model.transition_matrix.length !== n) {
+    throw new Error(`transition_matrix has ${model.transition_matrix.length} rows, expected ${n}`);
+  }
+  for (let i = 0; i < n; i++) {
+    if (model.transition_matrix[i].length !== n) {
+      throw new Error(`transition_matrix row ${i} has ${model.transition_matrix[i].length} cols, expected ${n}`);
+    }
+  }
+
+  // emission_means must be n_states x n_features
+  if (model.emission_means.length !== n) {
+    throw new Error(`emission_means has ${model.emission_means.length} rows, expected ${n}`);
+  }
+  for (let i = 0; i < n; i++) {
+    if (model.emission_means[i].length !== nFeatures) {
+      throw new Error(`emission_means row ${i} has ${model.emission_means[i].length} cols, expected ${nFeatures}`);
+    }
+  }
+
+  // emission_covariances must be n_states x n_features x n_features
+  if (model.emission_covariances.length !== n) {
+    throw new Error(`emission_covariances has ${model.emission_covariances.length} entries, expected ${n}`);
+  }
+  for (let i = 0; i < n; i++) {
+    if (model.emission_covariances[i].length !== nFeatures) {
+      throw new Error(`emission_covariances[${i}] has ${model.emission_covariances[i].length} rows, expected ${nFeatures}`);
+    }
+    for (let j = 0; j < nFeatures; j++) {
+      if (model.emission_covariances[i][j].length !== nFeatures) {
+        throw new Error(`emission_covariances[${i}][${j}] has ${model.emission_covariances[i][j].length} cols, expected ${nFeatures}`);
+      }
+    }
+  }
 }
 
 /**
@@ -168,6 +236,10 @@ export function computeFeatures(priceHistory: PriceBar[]): RegimeFeatures {
   }
 
   const closes = priceHistory.map(b => b.close);
+
+  if (closes.some(c => c <= 0 || !isFinite(c))) {
+    throw new Error('Price history contains non-positive or non-finite close prices');
+  }
   const volumes = priceHistory.map(b => b.volume);
 
   // Log returns
@@ -237,6 +309,9 @@ export function classifyRegime(
   const bestState = viterbiPath[viterbiPath.length - 1];
 
   const regime = model.state_labels[String(bestState)];
+  if (!regime || !VALID_REGIMES.has(regime)) {
+    throw new Error(`No valid regime label for state index ${bestState}`);
+  }
   const confidence = probs[bestState];
 
   // Build probability record
@@ -247,8 +322,16 @@ export function classifyRegime(
     bull: 0,
     euphoria: 0,
   };
+  const seenProbLabels = new Set<string>();
   for (let i = 0; i < model.n_states; i++) {
     const label = model.state_labels[String(i)];
+    if (!label) {
+      throw new Error(`Missing state label for index ${i}`);
+    }
+    if (seenProbLabels.has(label)) {
+      throw new Error(`Duplicate state label "${label}" at index ${i} — model has conflicting state mappings`);
+    }
+    seenProbLabels.add(label);
     allProbabilities[label] = probs[i];
   }
 

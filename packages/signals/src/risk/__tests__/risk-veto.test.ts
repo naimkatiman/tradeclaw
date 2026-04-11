@@ -128,4 +128,75 @@ describe('vetoCheck', () => {
     expect(result.riskState.currentDrawdownPct).toBe(5);
     expect(result.riskState.consecutiveLosses).toBe(2);
   });
+
+  // ─── Regime-Aware Veto ──────────────────────────────────────────────
+
+  describe('regime-aware bypass', () => {
+    it('bypasses halt_new in bull regime with high confidence', () => {
+      const breaker = makeBreaker('daily_drawdown', 'halt_new');
+      const state = makeRiskState({}, [breaker]);
+      const highConfSignal = { symbol: 'BTCUSD', direction: 'BUY' as const, confidence: 85 };
+
+      const result = vetoCheck(highConfSignal, state, true, 'bull');
+
+      expect(result.approved).toBe(true);
+      expect(result.reason).toContain('bypassed');
+      expect(result.reason).toContain('bull');
+      expect(result.riskState.maxAllocationOverride).toBe(50);
+    });
+
+    it('bypasses halt_new in euphoria regime with high confidence', () => {
+      const breaker = makeBreaker('consecutive_losses', 'halt_new');
+      const state = makeRiskState({}, [breaker]);
+      const highConfSignal = { symbol: 'XAUUSD', direction: 'BUY' as const, confidence: 90 };
+
+      const result = vetoCheck(highConfSignal, state, true, 'euphoria');
+
+      expect(result.approved).toBe(true);
+      expect(result.reason).toContain('bypassed');
+    });
+
+    it('does NOT bypass halt_new in bull with low confidence', () => {
+      const breaker = makeBreaker('daily_drawdown', 'halt_new');
+      const state = makeRiskState({}, [breaker]);
+      const lowConfSignal = { symbol: 'BTCUSD', direction: 'BUY' as const, confidence: 60 };
+
+      const result = vetoCheck(lowConfSignal, state, true, 'bull');
+
+      expect(result.approved).toBe(false);
+      expect(result.vetoedBy).toBe('daily_drawdown');
+    });
+
+    it('does NOT bypass halt_new in bear regime even with high confidence', () => {
+      const breaker = makeBreaker('daily_drawdown', 'halt_new');
+      const state = makeRiskState({}, [breaker]);
+      const highConfSignal = { symbol: 'BTCUSD', direction: 'SELL' as const, confidence: 95 };
+
+      const result = vetoCheck(highConfSignal, state, true, 'bear');
+
+      expect(result.approved).toBe(false);
+      expect(result.vetoedBy).toBe('daily_drawdown');
+    });
+
+    it('never bypasses close_all regardless of regime', () => {
+      const breaker = makeBreaker('max_drawdown', 'close_all');
+      const state = makeRiskState({}, [breaker]);
+      const highConfSignal = { symbol: 'BTCUSD', direction: 'BUY' as const, confidence: 99 };
+
+      const result = vetoCheck(highConfSignal, state, true, 'bull');
+
+      expect(result.approved).toBe(false);
+      expect(result.reason).toBe('Max drawdown breaker active');
+    });
+
+    it('works without regime parameter (backward compatible)', () => {
+      const breaker = makeBreaker('daily_drawdown', 'halt_new');
+      const state = makeRiskState({}, [breaker]);
+
+      const result = vetoCheck(signal, state, true);
+
+      expect(result.approved).toBe(false);
+      expect(result.vetoedBy).toBe('daily_drawdown');
+    });
+  });
 });

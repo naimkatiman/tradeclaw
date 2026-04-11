@@ -5,6 +5,8 @@
  * and portfolio risk management.
  */
 
+import type { MarketRegime } from '../regime/types';
+
 export interface AllocationRules {
   /** Maximum % of portfolio that can be in open positions. */
   maxExposurePct: number;
@@ -28,7 +30,7 @@ export interface AllocationResult {
   /** Explanation if not approved. */
   reason?: string;
   /** Current regime driving this allocation. */
-  regime: string;
+  regime: MarketRegime;
   /** The rules being applied. */
   rules: AllocationRules;
 }

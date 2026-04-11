@@ -15,8 +15,8 @@ export type {
   RiskMetrics,
 } from './types';
 
-// Default config
-export { DEFAULT_BREAKERS } from './breaker-config';
+// Default config + regime-adaptive factory
+export { DEFAULT_BREAKERS, getBreakersForRegime } from './breaker-config';
 
 // Circuit breaker engine
 export { CircuitBreakerEngine } from './circuit-breaker';

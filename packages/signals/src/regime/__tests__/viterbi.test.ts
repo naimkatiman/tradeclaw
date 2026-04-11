@@ -68,6 +68,16 @@ describe('computeGaussianLogPdf', () => {
     expect(logPNear).toBeGreaterThan(logPFar);
   });
 
+  it('returns -1e6 for NaN input', () => {
+    const logP = computeGaussianLogPdf([NaN, 0], [0, 0], [[1, 0], [0, 1]]);
+    expect(logP).toBe(-1e6);
+  });
+
+  it('returns -1e6 for Infinity in mean', () => {
+    const logP = computeGaussianLogPdf([0], [Infinity], [[1]]);
+    expect(logP).toBe(-1e6);
+  });
+
   it('handles 4-D feature space (regime model dimensions)', () => {
     const mean = [0.02, 0.01, 0.03, 0.0];
     const cov = [
