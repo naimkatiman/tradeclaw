@@ -60,6 +60,33 @@ BLACKLISTED_COMBOS = {
     "EURUSD_SELL", "GBPUSD_SELL", "ETHUSDT_SELL",
 }
 
+# ─── Market Hours ─────────────────────────────────────────────
+FOREX_SYMBOLS = {"EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "NZDUSD", "USDCHF"}
+METALS_SYMBOLS = {"XAUUSD", "XAGUSD"}
+
+def is_market_open(symbol: str) -> bool:
+    """Check if the market is currently open for the given symbol."""
+    now = datetime.now(timezone.utc)
+    day = now.weekday()  # 0=Mon, 6=Sun
+    hour = now.hour
+
+    if symbol in FOREX_SYMBOLS:
+        # Forex: Sunday 22:00 UTC - Friday 23:59 UTC
+        if day == 6:  # Sunday
+            return hour >= 22
+        if day == 5:  # Saturday
+            return False
+        return True
+
+    if symbol in METALS_SYMBOLS:
+        # Metals: Mon-Fri 8:00-21:00 UTC
+        if day >= 5:  # Sat-Sun
+            return False
+        return 8 <= hour < 21
+
+    # Crypto: 24/7
+    return True
+
 # Target symbols per market
 TARGET_SYMBOLS = {
     "crypto": {
@@ -826,6 +853,12 @@ def main():
             if symbol_name in seen_symbols:
                 continue
             seen_symbols.add(symbol_name)
+
+            # Skip symbols whose market is closed (forex/metals on weekends)
+            if not is_market_open(symbol_name):
+                print(f"    [MARKET CLOSED] {symbol_name} — skipping")
+                continue
+
             total_checked += 1
 
             # Cross-validate price with Binance
