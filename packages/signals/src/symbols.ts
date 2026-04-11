@@ -1,4 +1,4 @@
-import type { SymbolConfig } from './types.js';
+import type { SymbolConfig, SymbolCategory } from './types.js';
 
 export const SYMBOLS: Record<string, SymbolConfig> = {
   XAUUSD: {
@@ -282,6 +282,21 @@ export function getSymbolConfig(symbol: string): SymbolConfig | undefined {
 
 export function getAllSymbols(): string[] {
   return Object.keys(SYMBOLS);
+}
+
+export function getSymbolCategory(symbol: string): SymbolCategory {
+  const metals = ['XAUUSD', 'XAGUSD'];
+  const crypto = [
+    'BTCUSD', 'ETHUSD', 'SOLUSD', 'DOGEUSD', 'BNBUSD', 'XRPUSD',
+    'ADAUSD', 'AVAXUSD', 'DOTUSD', 'LINKUSD', 'MATICUSD', 'ATOMUSD',
+    'UNIUSD', 'LTCUSD', 'BCHUSD', 'NEARUSD', 'APTUSD', 'ARBUSD',
+    'OPUSD', 'FILUSD', 'INJUSD', 'SUIUSD', 'SEIUSD', 'TIAUSD',
+    'RENDERUSD', 'FETUSD', 'AABORUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
+  ];
+  const s = symbol.toUpperCase();
+  if (metals.includes(s)) return 'metals';
+  if (crypto.includes(s)) return 'crypto';
+  return 'forex';
 }
 
 /**

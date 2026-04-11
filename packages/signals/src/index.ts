@@ -19,6 +19,8 @@ export interface TradingSignal {
   // Web-specific (optional)
   source?: 'real' | 'fallback';
   dataQuality?: 'real' | 'synthetic';
+  /** ATR stop calibration metadata — shows whether SL uses a per-symbol calibrated multiplier or the global default. */
+  atrCalibration?: { multiplier: number; confidence: 'low' | 'medium' | 'high' };
   // Agent-specific (optional)
   skill?: string;
 }
@@ -192,6 +194,24 @@ export type {
   CalibrationConfidence,
   SampleOutcome,
 } from './atr-calibration';
+
+// ─── Regime Classifier ───────────────────────────────
+export {
+  classifyRegime,
+  computeFeatures,
+  loadModel,
+  getDefaultModel,
+  computeGaussianLogPdf,
+  forwardAlgorithm,
+  viterbiDecode,
+} from './regime/index';
+export type {
+  MarketRegime,
+  RegimeClassification,
+  RegimeFeatures,
+  HMMModelParams,
+  PriceBar,
+} from './regime/index';
 
 // ─── Symbols ──────────────────────────────────────────
 
