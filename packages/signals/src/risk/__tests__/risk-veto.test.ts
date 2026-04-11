@@ -2,8 +2,8 @@
  * Risk Veto Layer — Unit Tests
  */
 
-import { vetoCheck } from '../risk-veto.js';
-import type { BreakerState, RiskState, BreakerType } from '../types.js';
+import { vetoCheck } from '../risk-veto';
+import type { BreakerState, RiskState, BreakerType } from '../types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 

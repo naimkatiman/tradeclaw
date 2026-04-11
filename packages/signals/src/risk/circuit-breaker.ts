@@ -5,15 +5,15 @@
  * breakers that halt, reduce, or close trading activity.
  */
 
-import { getSymbolCategory } from '../index.js';
-import { DEFAULT_BREAKERS } from './breaker-config.js';
+import { getSymbolCategory } from '../index';
+import { DEFAULT_BREAKERS } from './breaker-config';
 import type {
   BreakerConfig,
   BreakerState,
   BreakerType,
   RiskMetrics,
   RiskState,
-} from './types.js';
+} from './types';
 
 export class CircuitBreakerEngine {
   private readonly configs: Map<BreakerType, BreakerConfig>;

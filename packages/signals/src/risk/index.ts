@@ -13,17 +13,17 @@ export type {
   VetoResult,
   TradeOutcome,
   RiskMetrics,
-} from './types.js';
+} from './types';
 
 // Default config
-export { DEFAULT_BREAKERS } from './breaker-config.js';
+export { DEFAULT_BREAKERS } from './breaker-config';
 
 // Circuit breaker engine
-export { CircuitBreakerEngine } from './circuit-breaker.js';
+export { CircuitBreakerEngine } from './circuit-breaker';
 
 // Risk veto
-export { vetoCheck } from './risk-veto.js';
-export type { VetoSignalInput } from './risk-veto.js';
+export { vetoCheck } from './risk-veto';
+export type { VetoSignalInput } from './risk-veto';
 
 // Drawdown tracker
-export { DrawdownTracker } from './drawdown-tracker.js';
+export { DrawdownTracker } from './drawdown-tracker';

@@ -2,8 +2,8 @@
  * Drawdown Tracker — Unit Tests
  */
 
-import { DrawdownTracker } from '../drawdown-tracker.js';
-import type { TradeOutcome } from '../types.js';
+import { DrawdownTracker } from '../drawdown-tracker';
+import type { TradeOutcome } from '../types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 

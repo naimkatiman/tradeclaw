@@ -5,7 +5,7 @@
  * the current risk state produced by the circuit breaker engine.
  */
 
-import type { BreakerType, RiskState, VetoResult } from './types.js';
+import type { BreakerType, RiskState, VetoResult } from './types';
 
 export interface VetoSignalInput {
   symbol: string;

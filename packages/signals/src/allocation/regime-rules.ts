@@ -7,8 +7,8 @@
  * from bull levels as a caution against reversals.
  */
 
-import type { MarketRegime } from '../regime/types.js';
-import type { AllocationRules } from './types.js';
+import type { MarketRegime } from '../regime/types';
+import type { AllocationRules } from './types';
 
 export const REGIME_ALLOCATION_RULES: Record<MarketRegime, AllocationRules> = {
   crash: {

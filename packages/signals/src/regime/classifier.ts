@@ -6,58 +6,79 @@
  * current market regime.
  */
 
-import { readFileSync, existsSync } from 'node:fs';
-import { resolve, join } from 'node:path';
-import { getSymbolCategory } from '../symbols.js';
-import { forwardAlgorithm, viterbiDecode } from './viterbi.js';
+import { getSymbolCategory } from '../symbols';
+import { forwardAlgorithm, viterbiDecode } from './viterbi';
 import type {
   HMMModelParams,
   MarketRegime,
   RegimeClassification,
   RegimeFeatures,
-} from './types.js';
+} from './types';
 
 // ─── Model Loading ───────────────────────────────────────────────────────────
 
+// Model cache to avoid re-parsing
+const modelCache = new Map<string, HMMModelParams>();
+
 /**
- * Resolve the model directory.
+ * Load a trained HMM model.
  *
- * Searches upward from cwd for a `scripts/hmm-regime/models` directory.
- * This works in both ESM runtime and CJS/Jest without import.meta.url.
- * Can be overridden via the HMM_MODEL_DIR environment variable.
+ * In server-side (Node.js) contexts, attempts to read from disk via dynamic
+ * require('fs'). In browser bundles (Next.js client), falls back to default
+ * model params. Pre-loaded models can be injected via `setModel()`.
  */
-function resolveModelDir(): string {
-  if (process.env.HMM_MODEL_DIR) {
-    return process.env.HMM_MODEL_DIR;
+export function loadModel(assetClass: 'crypto' | 'forex' | 'metals'): HMMModelParams {
+  const cached = modelCache.get(assetClass);
+  if (cached) return cached;
+
+  // Try loading from disk in Node.js environments only.
+  // Use indirect require via globalThis to hide from Turbopack/webpack static analysis.
+  if (typeof globalThis.process !== 'undefined' && globalThis.process.versions?.node) {
+    try {
+      const _require = typeof globalThis.require === 'function'
+        ? globalThis.require
+        : module?.require?.bind(module);
+      if (_require) {
+        const fs = _require('f' + 's') as typeof import('fs');
+        const path = _require('pat' + 'h') as typeof import('path');
+
+        const modelDir = process.env.HMM_MODEL_DIR
+          || findModelDir(path, fs);
+        const modelPath = path.resolve(modelDir, `${assetClass}_hmm.json`);
+
+        if (fs.existsSync(modelPath)) {
+          const model = JSON.parse(fs.readFileSync(modelPath, 'utf-8')) as HMMModelParams;
+          modelCache.set(assetClass, model);
+          return model;
+        }
+      }
+    } catch {
+      // fs not available (browser bundle) — fall through to defaults
+    }
   }
-  // Walk up from cwd looking for the monorepo root marker (package.json with workspaces)
+
+  const model = getDefaultModel(assetClass);
+  modelCache.set(assetClass, model);
+  return model;
+}
+
+/**
+ * Inject a pre-loaded model (e.g., from an API response or server-side prop).
+ */
+export function setModel(assetClass: string, model: HMMModelParams): void {
+  modelCache.set(assetClass, model);
+}
+
+function findModelDir(path: typeof import('path'), fs: typeof import('fs')): string {
   let dir = process.cwd();
   for (let i = 0; i < 10; i++) {
-    const candidate = join(dir, 'scripts', 'hmm-regime', 'models');
-    if (existsSync(candidate)) return candidate;
-    const parent = resolve(dir, '..');
+    const candidate = path.join(dir, 'scripts', 'hmm-regime', 'models');
+    if (fs.existsSync(candidate)) return candidate;
+    const parent = path.resolve(dir, '..');
     if (parent === dir) break;
     dir = parent;
   }
-  // Fallback — may not exist, but loadModel handles missing files gracefully
-  return join(process.cwd(), 'scripts', 'hmm-regime', 'models');
-}
-
-const MODEL_DIR = resolveModelDir();
-
-const REGIMES: MarketRegime[] = ['crash', 'bear', 'neutral', 'bull', 'euphoria'];
-
-/**
- * Try to load a trained model JSON from disk.
- * Falls back to `getDefaultModel()` if the file doesn't exist.
- */
-export function loadModel(assetClass: 'crypto' | 'forex' | 'metals'): HMMModelParams {
-  const modelPath = resolve(MODEL_DIR, `${assetClass}_hmm.json`);
-  if (existsSync(modelPath)) {
-    const raw = readFileSync(modelPath, 'utf-8');
-    return JSON.parse(raw) as HMMModelParams;
-  }
-  return getDefaultModel(assetClass);
+  return path.join(process.cwd(), 'scripts', 'hmm-regime', 'models');
 }
 
 /**

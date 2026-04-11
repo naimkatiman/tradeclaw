@@ -2,9 +2,9 @@
  * Circuit Breaker Engine — Unit Tests
  */
 
-import { CircuitBreakerEngine } from '../circuit-breaker.js';
-import { DEFAULT_BREAKERS } from '../breaker-config.js';
-import type { BreakerConfig, RiskMetrics } from '../types.js';
+import { CircuitBreakerEngine } from '../circuit-breaker';
+import { DEFAULT_BREAKERS } from '../breaker-config';
+import type { BreakerConfig, RiskMetrics } from '../types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 

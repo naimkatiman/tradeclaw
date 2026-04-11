@@ -8,9 +8,9 @@
  * - Current portfolio exposure checks
  */
 
-import type { MarketRegime } from '../regime/types.js';
-import type { AllocationResult, PortfolioState } from './types.js';
-import { getAllocationRules } from './regime-rules.js';
+import type { MarketRegime } from '../regime/types';
+import type { AllocationResult, PortfolioState } from './types';
+import { getAllocationRules } from './regime-rules';
 
 // ─── Symbol Tier Map ────────────────────────────────────────────────────────
 

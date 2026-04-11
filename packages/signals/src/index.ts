@@ -201,6 +201,7 @@ export {
   computeFeatures,
   loadModel,
   getDefaultModel,
+  setModel,
   computeGaussianLogPdf,
   forwardAlgorithm,
   viterbiDecode,

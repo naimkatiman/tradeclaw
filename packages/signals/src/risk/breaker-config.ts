@@ -5,7 +5,7 @@
  * retail trading account. Override via constructor injection.
  */
 
-import type { BreakerConfig } from './types.js';
+import type { BreakerConfig } from './types';
 
 export const DEFAULT_BREAKERS: BreakerConfig[] = [
   {

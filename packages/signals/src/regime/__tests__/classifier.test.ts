@@ -6,9 +6,9 @@ import {
   computeFeatures,
   getDefaultModel,
   classifyRegime,
-} from '../classifier.js';
-import type { PriceBar } from '../classifier.js';
-import type { MarketRegime } from '../types.js';
+} from '../classifier';
+import type { PriceBar } from '../classifier';
+import type { MarketRegime } from '../types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

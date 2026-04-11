@@ -5,7 +5,7 @@
  * drawdown percentages, daily/weekly PnL, and consecutive loss streaks.
  */
 
-import type { EquityPoint, TradeOutcome } from './types.js';
+import type { EquityPoint, TradeOutcome } from './types';
 
 const MAX_EQUITY_POINTS = 1000;
 

@@ -9,7 +9,7 @@
  * Zero external dependencies — all linear algebra is inline.
  */
 
-import type { HMMModelParams } from './types.js';
+import type { HMMModelParams } from './types';
 
 // ─── Linear Algebra Helpers ──────────────────────────────────────────────────
 

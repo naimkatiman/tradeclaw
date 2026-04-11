@@ -7,11 +7,11 @@ import {
   getSymbolTier,
   getTierWeight,
   SYMBOL_TIER,
-} from '../allocator.js';
-import { REGIME_ALLOCATION_RULES } from '../regime-rules.js';
-import type { PortfolioState } from '../types.js';
-import type { MarketRegime } from '../../regime/types.js';
-import type { SignalInput } from '../allocator.js';
+} from '../allocator';
+import { REGIME_ALLOCATION_RULES } from '../regime-rules';
+import type { PortfolioState } from '../types';
+import type { MarketRegime } from '../../regime/types';
+import type { SignalInput } from '../allocator';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
