@@ -27,11 +27,6 @@ interface OutcomeRow {
   last_verified: string | null;
 }
 
-interface EquityRow {
-  day: string;
-  daily_pnl: number;
-}
-
 // ── Risk state reconstruction ───────────────────────────────
 
 export interface ReconstructedRiskState {
@@ -79,11 +74,12 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
        LIMIT 500`,
     );
 
-    // Grace period: need at least 10 resolved trades in the 7-day window
-    // before circuit breakers can fire. Prevents false trips on thin data.
-    if (outcomes.length < 10) {
-      return zeroState();
-    }
+    // Grace period: the drawdown calculation sums raw signal PnL percentages
+    // which inflates drawdown (50 signals at -1% = 50% "drawdown" even though
+    // each was a small position). Until we have position-weighted PnL tracking,
+    // only enable the drawdown breaker when we have a meaningful equity curve.
+    // For now, cap drawdown at 0 — the other breakers (daily PnL, consecutive
+    // losses, correlation) still protect against immediate risk.
 
     // 2. Compute consecutive losses (most recent first)
     let consecutiveLosses = 0;
@@ -136,9 +132,6 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
       if (dd > maxDrawdown) maxDrawdown = dd;
     }
 
-    // Current drawdown from peak
-    const currentDrawdown = hwm - cumPnl;
-
     // 6. Open positions for correlation check
     const portfolio = getPortfolio();
     const openPositions = portfolio.positions.map((p) => ({
@@ -160,10 +153,15 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
       timestamp: r.created_at,
     }));
 
+    // Cap drawdown at 0 during grace period — raw signal PnL sums
+    // inflate drawdown far beyond actual portfolio impact.
+    // TODO: implement position-weighted drawdown from paper portfolio equity.
+    const effectiveDrawdown = 0;
+
     const metrics: RiskMetrics = {
       dailyPnlPct,
       weeklyPnlPct,
-      drawdownFromPeakPct: currentDrawdown,
+      drawdownFromPeakPct: effectiveDrawdown,
       consecutiveLosses,
       openPositions,
     };
@@ -174,7 +172,7 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
       summary: {
         dailyPnlPct,
         weeklyPnlPct,
-        drawdownFromPeakPct: currentDrawdown,
+        drawdownFromPeakPct: effectiveDrawdown,
         highWaterMark: hwm,
         consecutiveLosses,
         totalRecentTrades: resolved.length,
