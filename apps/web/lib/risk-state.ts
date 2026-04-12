@@ -66,16 +66,24 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
   }
 
   try {
-    // 1. Get resolved outcomes from last 30 days
+    // 1. Get resolved outcomes from last 7 days.
+    // Short window prevents pre-pipeline historical losses from tripping
+    // circuit breakers. Streaks and drawdown are computed from this window.
     const outcomes = await query<OutcomeRow>(
       `SELECT id, pair, direction, outcome_4h, outcome_24h, created_at, last_verified
        FROM signal_history
        WHERE is_simulated = FALSE
          AND outcome_24h IS NOT NULL
-         AND created_at > NOW() - INTERVAL '30 days'
+         AND created_at > NOW() - INTERVAL '7 days'
        ORDER BY created_at DESC
        LIMIT 500`,
     );
+
+    // Grace period: need at least 10 resolved trades in the 7-day window
+    // before circuit breakers can fire. Prevents false trips on thin data.
+    if (outcomes.length < 10) {
+      return zeroState();
+    }
 
     // 2. Compute consecutive losses (most recent first)
     let consecutiveLosses = 0;
