@@ -23,6 +23,8 @@ export interface TradingSignal {
   atrCalibration?: { multiplier: number; confidence: 'low' | 'medium' | 'high' };
   // Agent-specific (optional)
   skill?: string;
+  /** Which strategy preset generated this signal. Matches SIGNAL_ENGINE_PRESET env var. */
+  strategyId?: string;
 }
 
 export interface IndicatorSummary {
