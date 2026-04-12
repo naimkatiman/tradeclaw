@@ -80,7 +80,8 @@ export async function runRiskPipeline(
 
   // Log risk metrics for debugging
   console.info(
-    `[risk-pipeline] regime=${regime} trades=${reconstructed.summary.totalRecentTrades} ` +
+    `[risk-pipeline] source=${reconstructed.summary.source} regime=${regime} ` +
+    `trades=${reconstructed.summary.totalRecentTrades} ` +
     `dailyPnl=${reconstructed.summary.dailyPnlPct.toFixed(2)}% ` +
     `weeklyPnl=${reconstructed.summary.weeklyPnlPct.toFixed(2)}% ` +
     `drawdown=${reconstructed.summary.drawdownFromPeakPct.toFixed(2)}% ` +
