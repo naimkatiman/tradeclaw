@@ -78,6 +78,16 @@ export async function runRiskPipeline(
   // Step 1: Reconstruct risk state from DB
   const reconstructed = await getRiskState();
 
+  // Log risk metrics for debugging
+  console.info(
+    `[risk-pipeline] regime=${regime} trades=${reconstructed.summary.totalRecentTrades} ` +
+    `dailyPnl=${reconstructed.summary.dailyPnlPct.toFixed(2)}% ` +
+    `weeklyPnl=${reconstructed.summary.weeklyPnlPct.toFixed(2)}% ` +
+    `drawdown=${reconstructed.summary.drawdownFromPeakPct.toFixed(2)}% ` +
+    `streak=${reconstructed.summary.consecutiveLosses} ` +
+    `winRate=${reconstructed.summary.winRate}%`,
+  );
+
   // Step 2: Evaluate circuit breakers with regime-adaptive thresholds
   const riskState = CircuitBreakerEngine.evaluateForRegime(
     reconstructed.metrics,
