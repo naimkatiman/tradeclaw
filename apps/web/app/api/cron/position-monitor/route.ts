@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPortfolio, closePosition, type Position } from '../../../../lib/paper-trading';
-import { getSignalTelegramMessageId } from '../../../../lib/signal-history';
+import { getSignalTelegramMessageId, recordTradeOutcomeToHistory } from '../../../../lib/signal-history';
 import {
   broadcastOutcomeReply,
-  detectTpLevel,
   formatDuration,
   type OutcomeReplyInput,
 } from '../../../../lib/telegram-broadcast';
@@ -176,6 +175,20 @@ export async function GET(request: NextRequest): Promise<Response> {
             exitPrice: check.exitPrice,
             pnl: result.trade.pnl,
           });
+
+          // Record outcome to signal_history for risk pipeline feedback loop
+          if (position.signalId) {
+            try {
+              await recordTradeOutcomeToHistory(
+                position.signalId,
+                check.exitPrice,
+                result.trade.pnlPercent,
+                check.reason === 'takeProfit',
+              );
+            } catch {
+              // Non-critical — risk state will still reconstruct from next cron cycle
+            }
+          }
 
           // Send Telegram reply to original signal message
           await sendTelegramOutcomeReply(position, check, result.trade.pnlPercent);

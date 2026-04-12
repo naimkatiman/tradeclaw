@@ -12,9 +12,12 @@
  * - /api/cron/position-monitor (outcome replies)
  */
 
-import { getSignals, type TradingSignal } from '../app/lib/signals';
+import { type TradingSignal } from '../app/lib/signals';
+import { readLiveSignals, type LiveSignal } from './signals-live';
+import { getTrackedSignals } from './tracked-signals';
 import { fetchRegimeMap, filterSignalsByRegime } from './regime-filter';
 import { markTelegramPosted } from './signal-history';
+import { runRiskPipeline, type RiskReport } from './risk-pipeline';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -30,6 +33,7 @@ export interface BroadcastState {
   lastMessageId: number | null;
   lastError: string | null;
   broadcastCount: number;
+  lastRiskReport?: RiskReport | null;
 }
 
 export interface BroadcastResult {
@@ -212,6 +216,41 @@ async function sendToChannel(
 }
 
 // ---------------------------------------------------------------------------
+// LiveSignal → TradingSignal mapper (Python engine → Telegram format)
+// ---------------------------------------------------------------------------
+
+function mapLiveToTradingSignal(s: LiveSignal): TradingSignal {
+  return {
+    id: s.id,
+    symbol: s.symbol,
+    timeframe: s.timeframe,
+    direction: s.signal,
+    confidence: s.confidence,
+    entry: s.entry,
+    stopLoss: s.sl,
+    takeProfit1: s.tp1,
+    takeProfit2: s.tp2,
+    takeProfit3: s.tp3 ?? s.tp2 * 1.5 - s.tp1 * 0.5,
+    reasons: s.reasons,
+    agreeing_timeframes: s.agreeing_timeframes,
+    confluence_score: s.confluence_score,
+    indicators: {
+      rsi: { value: s.indicators?.rsi ?? 50, signal: (s.indicators?.rsi ?? 50) < 30 ? 'oversold' as const : (s.indicators?.rsi ?? 50) > 70 ? 'overbought' as const : 'neutral' as const },
+      macd: { histogram: s.indicators?.macd_histogram ?? 0, signal: (s.indicators?.macd_histogram ?? 0) > 0 ? 'bullish' as const : (s.indicators?.macd_histogram ?? 0) < 0 ? 'bearish' as const : 'neutral' as const },
+      ema: { trend: s.indicators?.ema_trend ?? 'sideways' as const, ema20: 0, ema50: 0, ema200: 0 },
+      bollingerBands: { position: 'middle' as const, bandwidth: 0 },
+      stochastic: { k: s.indicators?.stochastic_k ?? s.indicators?.stoch_k ?? 50, d: 50, signal: (s.indicators?.stochastic_k ?? 50) < 20 ? 'oversold' as const : (s.indicators?.stochastic_k ?? 50) > 80 ? 'overbought' as const : 'neutral' as const },
+      support: [],
+      resistance: [],
+    },
+    source: 'real',
+    dataQuality: 'real',
+    timestamp: s.timestamp,
+    status: 'active',
+  } as TradingSignal;
+}
+
+// ---------------------------------------------------------------------------
 // Main broadcast function — one message per signal
 // ---------------------------------------------------------------------------
 
@@ -223,11 +262,22 @@ export async function broadcastTopSignals(
   channelId: string,
   botToken: string,
 ): Promise<BroadcastResult> {
-  const { signals: rawSignals } = await getSignals({ minConfidence: 65 });
-
-  // Filter by market regime
+  // Use the same Python engine source as the dashboard (DB → signals-live.json)
   const regimeMap = await fetchRegimeMap();
-  const filtered = filterSignalsByRegime(rawSignals, regimeMap);
+  let mapped: TradingSignal[] = [];
+
+  const liveData = await readLiveSignals();
+  if (liveData && !liveData.isStale && liveData.signals.length > 0) {
+    mapped = liveData.signals
+      .filter((s) => s.confidence >= 70)
+      .map(mapLiveToTradingSignal);
+  } else {
+    // Fallback: TS engine (same as dashboard fallback path)
+    const { signals: fallbackSignals } = await getTrackedSignals({ minConfidence: 70 });
+    mapped = fallbackSignals;
+  }
+
+  const filtered = filterSignalsByRegime(mapped, regimeMap);
   const top = filtered.slice(0, 3);
 
   if (top.length === 0) {
@@ -238,11 +288,55 @@ export async function broadcastTopSignals(
     return result;
   }
 
+  // ── Risk Pipeline Gate ──────────────────────────────────────
+  // Run allocator → circuit breakers → veto → LLM verify
+  const riskResult = await runRiskPipeline(
+    top.map((s) => ({
+      id: s.id,
+      symbol: s.symbol,
+      direction: s.direction,
+      confidence: s.confidence,
+      entry: s.entry,
+      stopLoss: s.stopLoss,
+      takeProfit1: s.takeProfit1,
+      takeProfit2: s.takeProfit2,
+      takeProfit3: s.takeProfit3,
+      timeframe: s.timeframe,
+    })),
+    regimeMap,
+  );
+
+  // Log risk report
+  if (riskResult.vetoed.length > 0) {
+    console.warn(
+      `[telegram-broadcast] Risk pipeline vetoed ${riskResult.vetoed.length} signal(s):`,
+      riskResult.vetoed.map((v) => `${v.signal.symbol}: ${v.reason}`).join('; '),
+    );
+  }
+  if (riskResult.report.llmVerification && !riskResult.report.llmVerification.concur) {
+    console.warn(
+      '[telegram-broadcast] LLM risk concerns:',
+      riskResult.report.llmVerification.concerns.join('; '),
+    );
+  }
+
+  // Only broadcast approved signals
+  const approvedIds = new Set(riskResult.approved.map((s) => s.id));
+  const approvedSignals = top.filter((s) => approvedIds.has(s.id));
+
+  if (approvedSignals.length === 0) {
+    const state = readBroadcastState();
+    state.lastError = 'All signals vetoed by risk pipeline';
+    state.lastRiskReport = riskResult.report;
+    writeBroadcastState(state);
+    return { success: false, error: 'All signals vetoed by risk pipeline' };
+  }
+
   const messageIds: number[] = [];
   let lastError: string | undefined;
 
-  // Send each signal as a separate message
-  for (const signal of top) {
+  // Send each approved signal as a separate message
+  for (const signal of approvedSignals) {
     const message = formatSignalEntry(signal);
     const result = await sendToChannel(botToken, channelId, message);
 
@@ -260,10 +354,11 @@ export async function broadcastTopSignals(
     }
   }
 
-  // Persist state
+  // Persist state + risk report
   const state = readBroadcastState();
   state.lastBroadcastTime = new Date().toISOString();
   state.lastError = lastError ?? null;
+  state.lastRiskReport = riskResult.report;
   if (messageIds.length > 0) state.lastMessageId = messageIds[messageIds.length - 1];
   state.broadcastCount += messageIds.length;
   writeBroadcastState(state);

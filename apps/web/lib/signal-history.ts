@@ -481,6 +481,33 @@ export function getRecentRecordForSymbol(
   );
 }
 
+// ── Trade outcome recording (risk pipeline feedback) ────────
+
+/**
+ * Record a trade outcome directly to signal_history.
+ * Called by position-monitor when a paper trade closes (TP/SL hit).
+ * This provides real-time feedback to the risk pipeline without
+ * waiting for the OHLCV-based resolution in the signals cron.
+ */
+export async function recordTradeOutcomeToHistory(
+  signalId: string,
+  exitPrice: number,
+  pnlPct: number,
+  isHit: boolean,
+): Promise<void> {
+  if (!isDbEnabled()) return;
+
+  const outcome: SignalOutcome = { price: exitPrice, pnlPct, hit: isHit };
+
+  await execute(
+    `UPDATE signal_history
+     SET outcome_24h = COALESCE(outcome_24h, $2),
+         last_verified = NOW()
+     WHERE id = $1`,
+    [signalId, JSON.stringify(outcome)],
+  );
+}
+
 // ── Telegram sync ────────────────────────────────────────────
 
 export async function markTelegramPosted(
