@@ -5,8 +5,9 @@
  */
 
 import { fetchKrakenOHLCV, fetchCryptoCompareOHLCV, fetchStooqOHLCV, isStooqSymbol } from './data-providers';
+import { fetchHubCandles, isHubEnabled } from './data-providers/market-data-hub';
 
-export type OHLCVSource = 'binance' | 'stooq' | 'kraken' | 'cryptocompare' | 'synthetic';
+export type OHLCVSource = 'market-data-hub' | 'binance' | 'stooq' | 'kraken' | 'cryptocompare' | 'synthetic';
 
 export interface OHLCV {
   timestamp: number;
@@ -218,8 +219,18 @@ export async function getOHLCV(symbol: string, timeframe: string = 'H1'): Promis
   let candles: OHLCV[] = [];
   let source: OHLCVSource = 'synthetic';
 
+  // ── Market Data Hub (hosted TradeClaw — Redis cache) ──────
+  if (isHubEnabled()) {
+    try {
+      candles = await fetchHubCandles(symbol, timeframe);
+      if (candles.length > 0) source = 'market-data-hub';
+    } catch {
+      // fall through to free APIs
+    }
+  }
+
   // ── Crypto: Binance → Kraken → CryptoCompare ──────────────
-  if (BINANCE_SYMBOLS[symbol]) {
+  if (candles.length < 50 && BINANCE_SYMBOLS[symbol]) {
     try {
       candles = await fetchBinanceOHLCV(symbol, timeframe);
       if (candles.length > 0) source = 'binance';

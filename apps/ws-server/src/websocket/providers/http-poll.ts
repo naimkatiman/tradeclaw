@@ -3,7 +3,10 @@ import type { NormalizedTick } from '@tradeclaw/signals';
 
 const DEFAULT_POLL_INTERVAL_MS = 5_000;
 
-// Free API sources for forex/metals
+// Market Data Hub (hosted TradeClaw — optional)
+const HUB_URL = process.env.MARKET_DATA_HUB_URL ?? '';
+
+// Free API sources for forex/metals (fallback when hub unavailable)
 const METALS_API = 'https://metals.live/api/v1/spot';
 const EXCHANGE_RATE_API = 'https://open.er-api.com/v6/latest/USD';
 
@@ -51,6 +54,16 @@ export class HttpPollProvider implements MarketDataProvider {
   }
 
   private async poll(): Promise<void> {
+    // Try Market Data Hub first (single request for all symbols)
+    if (HUB_URL) {
+      try {
+        const ok = await this.fetchFromHub();
+        if (ok) return; // Hub served all symbols — skip individual APIs
+      } catch {
+        // Fall through to free APIs
+      }
+    }
+
     const promises: Promise<void>[] = [];
 
     const hasMetals = Array.from(this.symbols).some(s => s === 'XAUUSD' || s === 'XAGUSD');
@@ -62,6 +75,30 @@ export class HttpPollProvider implements MarketDataProvider {
     if (hasForex) promises.push(this.fetchForex());
 
     await Promise.allSettled(promises);
+  }
+
+  private async fetchFromHub(): Promise<boolean> {
+    const res = await fetch(`${HUB_URL}/api/quotes`, {
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return false;
+
+    const quotes = await res.json() as Array<{
+      symbol: string;
+      price: number;
+      timestamp: number;
+    }>;
+    if (!quotes?.length) return false;
+
+    let matched = 0;
+    for (const q of quotes) {
+      const sym = q.symbol.replace('/', '');
+      if (this.symbols.has(sym) && q.price > 0) {
+        this.emitIfChanged(sym, q.price);
+        matched++;
+      }
+    }
+    return matched > 0;
   }
 
   private async fetchMetals(): Promise<void> {

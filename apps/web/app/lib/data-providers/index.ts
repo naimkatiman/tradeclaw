@@ -107,12 +107,24 @@ export {
   fetchBlockFeeHistory,
 } from './onchain';
 
+export {
+  isHubEnabled,
+  fetchHubCandles,
+  fetchHubQuotes,
+  fetchHubQuote,
+  fetchHubExchangeRates,
+} from './market-data-hub';
+
 // ─── Provider Registry ─────────────────────────────────────────────────────
 
 import type { ProviderStatus } from './types';
+import { isHubEnabled } from './market-data-hub';
 
 export function getProviderRegistry(): ProviderStatus[] {
   return [
+    // Market Data Hub — Redis cache (hosted TradeClaw only)
+    { name: 'Market Data Hub', category: 'crypto', status: isHubEnabled() ? 'ok' : 'down', lastCheck: Date.now(), requiresKey: false, rateLimit: 'internal (cached)', docs: '' },
+
     // Crypto — no key
     { name: 'CoinGecko', category: 'crypto', status: 'ok', lastCheck: Date.now(), requiresKey: false, rateLimit: '5-30 req/min', docs: 'https://www.coingecko.com/en/api' },
     { name: 'Binance', category: 'crypto', status: 'ok', lastCheck: Date.now(), requiresKey: false, rateLimit: '1200 weight/min', docs: 'https://developers.binance.com/docs/binance-spot-api-docs' },
