@@ -5,6 +5,15 @@ import dynamic from 'next/dynamic';
 import { calculateRSI, calculateMACD, calculateEMAs } from '../lib/ta-engine';
 import { applySlippage, getSlippageConfig } from '../../lib/slippage';
 import { PageNavBar } from '../../components/PageNavBar';
+import {
+  runBacktest as runBacktestPreset,
+  getPreset,
+  listPresets,
+  type BacktestResult as PresetBacktestResult,
+  type StrategyId,
+} from '@tradeclaw/strategies';
+import { MetricsTable } from './metrics-table';
+import { ComparisonChart } from './comparison-chart';
 
 // Lazy-load heavy chart components with ssr: false for canvas
 const ChartSkeleton = () => (
@@ -43,38 +52,14 @@ interface SignalPoint {
   price: number;
 }
 
-interface Trade {
-  id: number;
-  symbol: string;
-  direction: 'BUY' | 'SELL';
-  entry: number;
-  exit: number;
-  pnl: number;
-  pnlPct: number;
-  bars: number;
-  win: boolean;
-  entryBar: number;
-  monthKey: string;
-  exitReason: 'TP' | 'SL' | 'EOD';
-}
-
 interface MonthReturn {
   year: number;
   month: number;
   returnPct: number;
 }
 
-interface BacktestResult {
-  trades: Trade[];
-  totalTrades: number;
-  winRate: number;
-  profitFactor: number;
-  maxDrawdown: number;
-  sharpeRatio: number;
-  totalReturn: number;
-  equityCurve: number[];
-  startBalance: number;
-  endBalance: number;
+/** Extended result for the single-strategy drilldown view (price chart, indicators, etc.) */
+interface DrilldownExtras {
   priceData: OHLCVCandle[];
   rsiValues: number[];
   macdLine: number[];
@@ -118,256 +103,55 @@ async function fetchOHLCV(symbol: string, timeframe: string): Promise<{ candles:
   return { candles: data.candles, source: data.source };
 }
 
-// ─── Price-Based Trade Outcome ──────────────────────────────
+// ─── Compute TA indicators for drilldown view ────────────────
 
-/**
- * Determines trade outcome using real candle high/low prices.
- * Walks forward bar-by-bar from the signal bar, checking whether
- * TP or SL is hit first based on actual price wicks.
- */
-function resolveTradeOutcome(
+function computeDrilldownExtras(
   priceData: OHLCVCandle[],
-  signalBar: number,
-  direction: 'BUY' | 'SELL',
-  entry: number,
-  atr: number,
-  maxBars: number = 20,
-): { win: boolean; exit: number; bars: number; exitReason: 'TP' | 'SL' | 'EOD' } {
-  const tpDistance = atr * 2.0; // 2:1 reward-to-risk
-  const slDistance = atr;
+  presetResult: PresetBacktestResult,
+  source: string,
+): DrilldownExtras {
+  const closes = priceData.map(c => c.close);
+  const { values: rsiValues } = calculateRSI(closes, 14);
+  const { macdLine, signalLine, histogram } = calculateMACD(closes, 12, 26, 9);
+  const { ema20, ema50 } = calculateEMAs(closes);
 
-  const tp = direction === 'BUY' ? entry + tpDistance : entry - tpDistance;
-  const sl = direction === 'BUY' ? entry - slDistance : entry + slDistance;
-
-  for (let offset = 1; offset <= maxBars; offset++) {
-    const barIdx = signalBar + offset;
-    if (barIdx >= priceData.length) break;
-
-    const candle = priceData[barIdx];
-
-    if (direction === 'BUY') {
-      // Check SL first (worst case) — did the low wick hit SL?
-      if (candle.low <= sl) {
-        return { win: false, exit: sl, bars: offset, exitReason: 'SL' };
-      }
-      // Did the high wick hit TP?
-      if (candle.high >= tp) {
-        return { win: true, exit: tp, bars: offset, exitReason: 'TP' };
-      }
-    } else {
-      // SELL: check SL first — did the high wick hit SL?
-      if (candle.high >= sl) {
-        return { win: false, exit: sl, bars: offset, exitReason: 'SL' };
-      }
-      // Did the low wick hit TP?
-      if (candle.low <= tp) {
-        return { win: true, exit: tp, bars: offset, exitReason: 'TP' };
-      }
-    }
-  }
-
-  // Neither TP nor SL hit within maxBars — close at last bar's close
-  const exitBar = Math.min(signalBar + maxBars, priceData.length - 1);
-  const exitPrice = priceData[exitBar].close;
-  const pnlRaw = direction === 'BUY' ? exitPrice - entry : entry - exitPrice;
-  return {
-    win: pnlRaw > 0,
-    exit: exitPrice,
-    bars: exitBar - signalBar,
-    exitReason: 'EOD',
-  };
-}
-
-/**
- * Calculate ATR (Average True Range) for a given bar index.
- */
-function calcATR(priceData: OHLCVCandle[], barIndex: number, period: number = 14): number {
-  const start = Math.max(1, barIndex - period + 1);
-  let sum = 0;
-  let count = 0;
-  for (let i = start; i <= barIndex; i++) {
-    const high = priceData[i].high;
-    const low = priceData[i].low;
-    const prevClose = priceData[i - 1].close;
-    const tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
-    sum += tr;
-    count++;
-  }
-  return count > 0 ? sum / count : priceData[barIndex].close * 0.005;
-}
-
-// ─── Backtest Engine ─────────────────────────────────────────
-
-async function runBacktest(params: BacktestParams): Promise<BacktestResult> {
-  // Fetch real OHLCV data
-  const { candles: rawCandles, source } = await fetchOHLCV(params.symbol, params.timeframe);
-
-  const priceData: OHLCVCandle[] = rawCandles.map(c => ({
-    timestamp: c.timestamp,
-    open: c.open,
-    high: c.high,
-    low: c.low,
-    close: c.close,
-    volume: c.volume,
+  // Map BacktestTrade[] → SignalPoint[] for chart overlay
+  const signals: SignalPoint[] = presetResult.trades.map(t => ({
+    barIndex: t.entryBar,
+    direction: t.direction,
+    price: t.entry,
   }));
 
-  const closes = priceData.map(c => c.close);
-
-  // Real TA indicators
-  const rsiResult = calculateRSI(closes, 14);
-  const macdResult = calculateMACD(closes, 12, 26, 9);
-  const emaResult = calculateEMAs(closes);
-
-  const { values: rsiValues } = rsiResult;
-  const { macdLine, signalLine, histogram } = macdResult;
-  const { ema20, ema50 } = emaResult;
-
-  // Signal detection with indicator confluence
-  const signals: SignalPoint[] = [];
-  let lastSignalBar = -8;
-  const MIN_BAR = 55;
-
-  for (let i = MIN_BAR; i < priceData.length - 5; i++) {
-    if (i - lastSignalBar < 6) continue;
-
-    const rsi = rsiValues[i];
-    const macdH = histogram[i];
-    const prevMacdH = histogram[i - 1];
-    const e20 = ema20[i];
-    const e50 = ema50[i];
-
-    if (isNaN(rsi) || isNaN(macdH) || isNaN(prevMacdH) || isNaN(e20) || isNaN(e50)) continue;
-
-    const buySignal = rsi < 38 && e20 > e50 && macdH > prevMacdH;
-    const sellSignal = rsi > 62 && e20 < e50 && macdH < prevMacdH;
-
-    if (buySignal) {
-      signals.push({ barIndex: i, direction: 'BUY', price: priceData[i].close });
-      lastSignalBar = i;
-    } else if (sellSignal) {
-      signals.push({ barIndex: i, direction: 'SELL', price: priceData[i].close });
-      lastSignalBar = i;
-    }
-  }
-
-  // Build trades from signals using real price-based outcomes
-  let balance = params.initialBalance;
-  const equityCurve: number[] = [balance];
-  const trades: Trade[] = [];
+  // Build monthly returns from trade timestamps
   const monthlyPnlMap = new Map<string, number>();
-
-  const slippageConfig = getSlippageConfig(params.symbol);
-
-  signals.forEach((signal, idx) => {
-    const rawEntry = signal.price;
-    // Apply entry slippage if enabled
-    const entry = params.slippage
-      ? applySlippage(rawEntry, signal.direction, 'entry', slippageConfig)
-      : rawEntry;
-    const atr = calcATR(priceData, signal.barIndex);
-    const outcome = resolveTradeOutcome(priceData, signal.barIndex, signal.direction, entry, atr);
-
-    // Apply exit slippage if enabled
-    const exitPrice = params.slippage
-      ? applySlippage(outcome.exit, signal.direction, 'exit', slippageConfig)
-      : outcome.exit;
-
-    const riskAmount = balance * (params.riskPercent / 100);
-    // PnL based on actual price movement scaled by risk
-    const pricePnl = signal.direction === 'BUY'
-      ? exitPrice - entry
-      : entry - exitPrice;
-    const pnl = atr > 0 ? (pricePnl / atr) * riskAmount : 0;
-    const pnlPct = (pnl / balance) * 100;
-    balance += pnl;
-    if (balance < 0) balance = 0;
-
-    const date = new Date(priceData[signal.barIndex].timestamp);
+  for (const trade of presetResult.trades) {
+    const bar = priceData[trade.entryBar];
+    if (!bar) continue;
+    const date = new Date(bar.timestamp);
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    monthlyPnlMap.set(monthKey, (monthlyPnlMap.get(monthKey) ?? 0) + pnl);
-
-    trades.push({
-      id: idx + 1,
-      symbol: params.symbol,
-      direction: signal.direction,
-      entry: +fmt(entry),
-      exit: +fmt(exitPrice),
-      pnl: +pnl.toFixed(2),
-      pnlPct: +pnlPct.toFixed(2),
-      bars: outcome.bars,
-      win: outcome.win,
-      entryBar: signal.barIndex,
-      monthKey,
-      exitReason: outcome.exitReason,
-    });
-
-    equityCurve.push(+balance.toFixed(2));
-  });
-
-  // Build monthly returns from actual trade timestamps
+    monthlyPnlMap.set(monthKey, (monthlyPnlMap.get(monthKey) ?? 0) + trade.pnl);
+  }
   const monthlyReturns: MonthReturn[] = [];
-  const allMonthKeys = [...monthlyPnlMap.keys()].sort();
-  for (const key of allMonthKeys) {
+  for (const key of [...monthlyPnlMap.keys()].sort()) {
     const [yearStr, moStr] = key.split('-');
     const pnl = monthlyPnlMap.get(key) ?? 0;
     monthlyReturns.push({
       year: parseInt(yearStr),
       month: parseInt(moStr),
-      returnPct: +((pnl / params.initialBalance) * 100).toFixed(2),
+      returnPct: +((pnl / presetResult.startBalance) * 100).toFixed(2),
     });
   }
 
-  // Metrics
-  const wins = trades.filter(t => t.win);
-  const losses = trades.filter(t => !t.win);
-  const grossProfit = wins.reduce((s, t) => s + t.pnl, 0);
-  const grossLoss = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
-
-  let peak = params.initialBalance;
-  let maxDD = 0;
-  for (const eq of equityCurve) {
-    if (eq > peak) peak = eq;
-    const dd = (peak - eq) / peak;
-    if (dd > maxDD) maxDD = dd;
-  }
-
-  const returns = equityCurve.slice(1).map((eq, i) => (eq - equityCurve[i]) / equityCurve[i]);
-  const n = returns.length || 1;
-  const avgR = returns.reduce((a, b) => a + b, 0) / n;
-  const stdDev = Math.sqrt(returns.reduce((a, b) => a + (b - avgR) ** 2, 0) / n);
-  const sharpe = stdDev > 0 ? (avgR / stdDev) * Math.sqrt(252) : 0;
-
-  return {
-    trades,
-    totalTrades: trades.length,
-    winRate: trades.length > 0 ? +(wins.length / trades.length * 100).toFixed(1) : 0,
-    profitFactor: grossLoss > 0 ? +(grossProfit / grossLoss).toFixed(2) : 0,
-    maxDrawdown: +(maxDD * 100).toFixed(1),
-    sharpeRatio: +sharpe.toFixed(2),
-    totalReturn: +((balance - params.initialBalance) / params.initialBalance * 100).toFixed(2),
-    equityCurve,
-    startBalance: params.initialBalance,
-    endBalance: +balance.toFixed(2),
-    priceData,
-    rsiValues,
-    macdLine,
-    macdSignalLine: signalLine,
-    macdHistogram: histogram,
-    ema20,
-    ema50,
-    signals,
-    monthlyReturns,
-    dataSource: source,
-  };
+  return { priceData, rsiValues, macdLine, macdSignalLine: signalLine, macdHistogram: histogram, ema20, ema50, signals, monthlyReturns, dataSource: source };
 }
 
 // ─── CSV Export ──────────────────────────────────────────────
 
-function exportCSV(trades: Trade[], symbol: string) {
-  const headers = ['#', 'Symbol', 'Direction', 'Entry Price', 'Exit Price', 'P&L ($)', 'P&L (%)', 'Bars', 'Result', 'Exit Reason'];
+function exportCSV(trades: PresetBacktestResult['trades'], symbol: string) {
+  const headers = ['#', 'Symbol', 'Direction', 'Entry Price', 'Exit Price', 'P&L ($)', 'P&L (%)', 'Entry Bar', 'Exit Bar', 'Result', 'Exit Reason'];
   const rows = trades.map(t => [
-    t.id, t.symbol, t.direction, t.entry, t.exit,
-    t.pnl.toFixed(2), t.pnlPct.toFixed(2), t.bars, t.win ? 'Win' : 'Loss', t.exitReason,
+    t.id, symbol, t.direction, t.entry, t.exit,
+    t.pnl.toFixed(2), (t.pnlPct * 100).toFixed(2), t.entryBar, t.exitBar, t.win ? 'Win' : 'Loss', t.exitReason,
   ]);
   const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
@@ -378,9 +162,6 @@ function exportCSV(trades: Trade[], symbol: string) {
   a.click();
   URL.revokeObjectURL(url);
 }
-
-
-// PriceChartCanvas is dynamically imported from ./charts.tsx
 
 // ─── Monthly Heatmap ─────────────────────────────────────────
 
@@ -494,11 +275,72 @@ export default function BacktestPage() {
     riskPercent: 1,
     slippage: true,
   });
-  const [result, setResult] = useState<BacktestResult | null>(null);
+
+  // Single-preset result (for drilldown metrics cards, charts, trade log)
+  const [singleResult, setSingleResult] = useState<PresetBacktestResult | null>(null);
+  const [drilldown, setDrilldown] = useState<DrilldownExtras | null>(null);
+
+  // Multi-preset comparison
+  const [selectedPresets, setSelectedPresets] = useState<StrategyId[]>(['hmm-top3']);
+  const [comparisonResults, setComparisonResults] = useState<PresetBacktestResult[]>([]);
+
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('equity');
   const [loadedStrategyName, setLoadedStrategyName] = useState<string | null>(null);
+
+  const presetNames = Object.fromEntries(listPresets().map(p => [p.id, p.name]));
+
+  const runAll = useCallback(async (symbol: string, timeframe: string, presets: StrategyId[]) => {
+    setRunning(true);
+    setError(null);
+    setSingleResult(null);
+    setDrilldown(null);
+    setComparisonResults([]);
+
+    try {
+      const { candles, source } = await fetchOHLCV(symbol, timeframe);
+
+      // Normalize candles to OHLCV (volume is required in @tradeclaw/core)
+      const ohlcv = candles.map(c => ({
+        timestamp: c.timestamp,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close,
+        volume: c.volume ?? 0,
+      }));
+
+      // Run all selected presets concurrently (runBacktestPreset is sync but Promise.all keeps it uniform)
+      const settled = await Promise.allSettled(
+        presets.map(id =>
+          Promise.resolve(runBacktestPreset(ohlcv, getPreset(id)))
+        )
+      );
+
+      const results: PresetBacktestResult[] = [];
+      for (const outcome of settled) {
+        if (outcome.status === 'fulfilled') {
+          results.push(outcome.value);
+        }
+        // Failed presets are silently skipped in comparison table
+      }
+
+      setComparisonResults(results);
+
+      // Drilldown view: use first (or only) successful result
+      if (results.length > 0) {
+        const primary = results[0];
+        setSingleResult(primary);
+        setDrilldown(computeDrilldownExtras(candles, primary, source));
+        setActiveTab('equity');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Backtest failed');
+    } finally {
+      setRunning(false);
+    }
+  }, []);
 
   // Auto-run backtest on mount — use URL params if provided, otherwise run with defaults
   useEffect(() => {
@@ -528,34 +370,23 @@ export default function BacktestPage() {
       } catch { /* ignore invalid param, run with defaults */ }
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial auto-run is an intentional one-shot effect on mount
-    setRunning(true);
-    setError(null);
-    runBacktest(backtestParams)
-      .then(r => {
-        setResult(r);
-        setActiveTab('equity');
-      })
-      .catch(err => {
-        setError(err instanceof Error ? err.message : 'Backtest failed');
-      })
-      .finally(() => setRunning(false));
+    runAll(backtestParams.symbol, backtestParams.timeframe, selectedPresets);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRun = useCallback(() => {
-    setRunning(true);
-    setError(null);
-    setResult(null);
-    runBacktest(params)
-      .then(r => {
-        setResult(r);
-        setActiveTab('equity');
-      })
-      .catch(err => {
-        setError(err instanceof Error ? err.message : 'Backtest failed');
-      })
-      .finally(() => setRunning(false));
-  }, [params]);
+    runAll(params.symbol, params.timeframe, selectedPresets);
+  }, [params.symbol, params.timeframe, selectedPresets, runAll]);
+
+  const togglePreset = (id: StrategyId) => {
+    setSelectedPresets(prev => {
+      if (prev.includes(id)) {
+        // Keep at least one selected
+        if (prev.length === 1) return prev;
+        return prev.filter(p => p !== id);
+      }
+      return [...prev, id];
+    });
+  };
 
   const update = (key: keyof BacktestParams, value: string | number) =>
     setParams(p => ({ ...p, [key]: value }));
@@ -567,12 +398,17 @@ export default function BacktestPage() {
     { id: 'trades', label: 'Trade Log' },
   ];
 
+  // Normalize decimal metrics from @tradeclaw/strategies to display percentages
+  const displayWinRate = singleResult ? (singleResult.winRate * 100).toFixed(1) : '0';
+  const displayTotalReturn = singleResult ? (singleResult.totalReturn * 100).toFixed(2) : '0';
+  const displayMaxDrawdown = singleResult ? (singleResult.maxDrawdown * 100).toFixed(1) : '0';
+
   return (
     <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
       <PageNavBar />
       <div className="max-w-6xl mx-auto px-4 py-6 pb-20 md:pb-6">
         <div className="mb-4 rounded-lg border border-emerald-500/20 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-300">
-          <strong>Live Backtest</strong> — Uses real market data from Binance and Stooq. Trade outcomes are determined by actual candle price action (TP/SL against real highs and lows).
+          <strong>Live Backtest</strong> — Uses real market data from Binance and Stooq. Strategies use fixed 2%/1% TP/SL (via <code className="text-xs">@tradeclaw/strategies</code>).
         </div>
 
         {/* Header */}
@@ -583,7 +419,7 @@ export default function BacktestPage() {
               <path d="M2 14H14" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
             </svg>
             <h1 className="text-sm font-semibold text-[var(--foreground)] tracking-tight">Backtesting Engine</h1>
-            {result && <DataSourceBadge source={result.dataSource} />}
+            {drilldown && <DataSourceBadge source={drilldown.dataSource} />}
           </div>
           <p className="text-[11px] text-[var(--text-secondary)]">Replay strategies against real historical data — equity curve, price chart, indicators, trade log</p>
         </div>
@@ -647,6 +483,23 @@ export default function BacktestPage() {
                   )}
                   {STRATEGIES.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Preset Strategies</label>
+                <div className="space-y-1">
+                  {listPresets().map(p => (
+                    <label key={p.id} className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={selectedPresets.includes(p.id)}
+                        onChange={() => togglePreset(p.id)}
+                        className="w-3.5 h-3.5 accent-emerald-500 rounded"
+                      />
+                      <span className="text-[10px] text-[var(--text-secondary)] group-hover:text-[var(--foreground)] transition-colors">{p.name}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
               <div>
@@ -733,7 +586,7 @@ export default function BacktestPage() {
 
           {/* Results */}
           <div className="space-y-4">
-            {!result && !running && !error && (
+            {!singleResult && !running && !error && (
               <div className="glass-card rounded-2xl p-12 flex flex-col items-center justify-center text-center">
                 <div className="w-12 h-12 rounded-2xl bg-[var(--glass-bg)] flex items-center justify-center mb-3">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -773,46 +626,62 @@ export default function BacktestPage() {
               </div>
             )}
 
-            {result && !running && (
+            {comparisonResults.length > 0 && !running && (
               <>
-                {/* Metrics grid */}
+                {/* Comparison equity curve overlay */}
+                <div className="glass-card rounded-2xl p-4">
+                  <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-3">Equity Curve Comparison</div>
+                  <ComparisonChart results={comparisonResults} presetNames={presetNames} />
+                </div>
+
+                {/* Comparison metrics table */}
+                <div className="glass-card rounded-2xl p-4">
+                  <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-3">Strategy Comparison</div>
+                  <MetricsTable results={comparisonResults} presetNames={presetNames} />
+                </div>
+              </>
+            )}
+
+            {singleResult && !running && selectedPresets.length === 1 && (
+              <>
+                {/* Metrics grid — single preset drilldown */}
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   <MetricCard
                     label="Total Return"
-                    value={`${result.totalReturn > 0 ? '+' : ''}${result.totalReturn}%`}
-                    sub={`$${result.endBalance.toLocaleString()}`}
-                    color={result.totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'}
+                    value={`${singleResult.totalReturn >= 0 ? '+' : ''}${displayTotalReturn}%`}
+                    sub={`$${singleResult.endBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                    color={singleResult.totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'}
                   />
                   <MetricCard
                     label="Win Rate"
-                    value={`${result.winRate}%`}
-                    sub={`${result.totalTrades} trades`}
-                    color={result.winRate >= 50 ? 'text-emerald-400' : 'text-red-400'}
+                    value={`${displayWinRate}%`}
+                    sub={`${singleResult.totalTrades} trades`}
+                    color={singleResult.winRate >= 0.5 ? 'text-emerald-400' : 'text-red-400'}
                   />
                   <MetricCard
                     label="Profit Factor"
-                    value={`${result.profitFactor}x`}
-                    color={result.profitFactor >= 1.5 ? 'text-emerald-400' : result.profitFactor >= 1 ? 'text-yellow-400' : 'text-red-400'}
+                    value={Number.isFinite(singleResult.profitFactor) ? `${singleResult.profitFactor.toFixed(2)}x` : '∞'}
+                    color={singleResult.profitFactor >= 1.5 ? 'text-emerald-400' : singleResult.profitFactor >= 1 ? 'text-yellow-400' : 'text-red-400'}
                   />
                   <MetricCard
                     label="Max Drawdown"
-                    value={`${result.maxDrawdown}%`}
-                    color={result.maxDrawdown <= 10 ? 'text-emerald-400' : result.maxDrawdown <= 20 ? 'text-yellow-400' : 'text-red-400'}
+                    value={`${displayMaxDrawdown}%`}
+                    color={singleResult.maxDrawdown <= 0.1 ? 'text-emerald-400' : singleResult.maxDrawdown <= 0.2 ? 'text-yellow-400' : 'text-red-400'}
                   />
                   <MetricCard
                     label="Sharpe Ratio"
-                    value={`${result.sharpeRatio}`}
-                    color={result.sharpeRatio >= 1.5 ? 'text-emerald-400' : result.sharpeRatio >= 1 ? 'text-yellow-400' : 'text-red-400'}
+                    value={`${singleResult.sharpeRatio.toFixed(2)}`}
+                    color={singleResult.sharpeRatio >= 1.5 ? 'text-emerald-400' : singleResult.sharpeRatio >= 1 ? 'text-yellow-400' : 'text-red-400'}
                   />
                   <MetricCard
                     label="Signals"
-                    value={`${result.totalTrades}`}
-                    sub={`${result.signals.length} detected`}
+                    value={`${singleResult.totalTrades}`}
+                    sub={`${singleResult.trades.length} trades`}
                   />
                 </div>
 
                 {/* Monthly returns heatmap */}
-                <MonthlyHeatmap monthlyReturns={result.monthlyReturns} />
+                {drilldown && <MonthlyHeatmap monthlyReturns={drilldown.monthlyReturns} />}
 
                 {/* Tabs */}
                 <div className="glass-card rounded-2xl overflow-hidden">
@@ -835,18 +704,18 @@ export default function BacktestPage() {
                   {activeTab === 'equity' && (
                     <div className="p-5">
                       <div className="h-64">
-                        <EquityCurveCanvas curve={result.equityCurve} startBalance={result.startBalance} />
+                        <EquityCurveCanvas curve={singleResult.equityCurve} startBalance={singleResult.startBalance} />
                       </div>
                       <div className="flex items-center justify-between mt-3 text-[10px] font-mono text-[var(--text-secondary)]">
-                        <span>Start: ${result.startBalance.toLocaleString()}</span>
-                        <span className={result.endBalance >= result.startBalance ? 'text-emerald-400' : 'text-red-400'}>
-                          End: ${result.endBalance.toLocaleString()}
+                        <span>Start: ${singleResult.startBalance.toLocaleString()}</span>
+                        <span className={singleResult.endBalance >= singleResult.startBalance ? 'text-emerald-400' : 'text-red-400'}>
+                          End: ${singleResult.endBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </span>
                       </div>
                     </div>
                   )}
 
-                  {activeTab === 'price' && (
+                  {activeTab === 'price' && drilldown && (
                     <div className="p-5">
                       <div className="flex items-center gap-4 mb-3 text-[9px] text-[var(--text-secondary)]">
                         <span className="flex items-center gap-1.5">
@@ -855,20 +724,20 @@ export default function BacktestPage() {
                         <span className="flex items-center gap-1.5">
                           <span className="inline-block w-2 h-2 rounded-full bg-red-400" /> SELL signal
                         </span>
-                        <span className="ml-auto font-mono">{result.signals.length} signals on {result.priceData.length} bars</span>
+                        <span className="ml-auto font-mono">{drilldown.signals.length} signals on {drilldown.priceData.length} bars</span>
                       </div>
                       <div className="h-72">
                         <PriceChartCanvas
-                          priceData={result.priceData}
-                          ema20={result.ema20}
-                          ema50={result.ema50}
-                          signals={result.signals}
+                          priceData={drilldown.priceData}
+                          ema20={drilldown.ema20}
+                          ema50={drilldown.ema50}
+                          signals={drilldown.signals}
                         />
                       </div>
                     </div>
                   )}
 
-                  {activeTab === 'indicators' && (
+                  {activeTab === 'indicators' && drilldown && (
                     <div className="p-5">
                       <div className="flex items-center gap-4 mb-3 text-[9px] text-[var(--text-secondary)]">
                         <span className="flex items-center gap-1.5">
@@ -883,10 +752,10 @@ export default function BacktestPage() {
                       </div>
                       <div className="h-80">
                         <IndicatorsCanvas
-                          rsiValues={result.rsiValues}
-                          macdLine={result.macdLine}
-                          macdSignalLine={result.macdSignalLine}
-                          macdHistogram={result.macdHistogram}
+                          rsiValues={drilldown.rsiValues}
+                          macdLine={drilldown.macdLine}
+                          macdSignalLine={drilldown.macdSignalLine}
+                          macdHistogram={drilldown.macdHistogram}
                         />
                       </div>
                     </div>
@@ -895,9 +764,9 @@ export default function BacktestPage() {
                   {activeTab === 'trades' && (
                     <div>
                       <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-white/[0.03]">
-                        <span className="text-[10px] text-[var(--text-secondary)]">{result.trades.length} trades</span>
+                        <span className="text-[10px] text-[var(--text-secondary)]">{singleResult.trades.length} trades</span>
                         <button
-                          onClick={() => exportCSV(result.trades, params.symbol)}
+                          onClick={() => exportCSV(singleResult.trades, params.symbol)}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--glass-bg)] border border-white/8 text-[10px] text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-white/8 transition-all"
                         >
                           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -922,7 +791,7 @@ export default function BacktestPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {result.trades.slice(0, 50).map(trade => (
+                            {singleResult.trades.slice(0, 50).map(trade => (
                               <tr key={trade.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
                                 <td className="px-4 py-2 font-mono text-[var(--text-secondary)]">{trade.id}</td>
                                 <td className="px-4 py-2">
@@ -930,15 +799,15 @@ export default function BacktestPage() {
                                     {trade.direction}
                                   </span>
                                 </td>
-                                <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)]">{trade.entry}</td>
-                                <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)]">{trade.exit}</td>
+                                <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)]">{fmt(trade.entry)}</td>
+                                <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)]">{fmt(trade.exit)}</td>
                                 <td className={`px-4 py-2 text-right font-mono font-semibold tabular-nums ${trade.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                   {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}
                                 </td>
                                 <td className={`px-4 py-2 text-right font-mono tabular-nums text-[10px] ${trade.pnlPct >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'}`}>
-                                  {trade.pnlPct >= 0 ? '+' : ''}{trade.pnlPct.toFixed(2)}%
+                                  {trade.pnlPct >= 0 ? '+' : ''}{(trade.pnlPct * 100).toFixed(2)}%
                                 </td>
-                                <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)]">{trade.bars}</td>
+                                <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)]">{trade.exitBar - trade.entryBar}</td>
                                 <td className="px-4 py-2 text-center">
                                   <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${
                                     trade.exitReason === 'TP' ? 'text-emerald-400 bg-emerald-500/10' :
@@ -952,9 +821,9 @@ export default function BacktestPage() {
                             ))}
                           </tbody>
                         </table>
-                        {result.trades.length > 50 && (
+                        {singleResult.trades.length > 50 && (
                           <div className="px-4 py-3 text-center text-[10px] text-[var(--text-secondary)]">
-                            Showing 50 of {result.trades.length} trades
+                            Showing 50 of {singleResult.trades.length} trades
                           </div>
                         )}
                       </div>
