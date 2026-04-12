@@ -23,9 +23,16 @@ const MAIN_NAV = [
     href: '/screener',
     label: 'Signals',
     icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-        <polyline points="16 7 22 7 22 13" />
+      // Radio-tower broadcast: distinct from charts, reads as "live signal"
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4.9 16.1A10 10 0 0 1 2 9" />
+        <path d="M7.8 13.3A6 6 0 0 1 6 9" />
+        <path d="M16.2 13.3A6 6 0 0 0 18 9" />
+        <path d="M19.1 16.1A10 10 0 0 0 22 9" />
+        <circle cx="12" cy="9" r="1.5" />
+        <path d="M11 13.5 9 22" />
+        <path d="M13 13.5 15 22" />
+        <path d="M9 18h6" />
       </svg>
     ),
   },
@@ -33,9 +40,11 @@ const MAIN_NAV = [
     href: '/backtest',
     label: 'Backtest',
     icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-        <polyline points="17 6 23 6 23 12" />
+      // Clock + counter-clockwise arrow: "rewind history to test"
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+        <path d="M3 3v5h5" />
+        <path d="M12 8v4.5l3 2" />
       </svg>
     ),
   },
@@ -270,37 +279,78 @@ export function MobileNav() {
   return (
     <>
       {/* Bottom nav bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-[var(--border)] backdrop-blur-xl" style={{ paddingBottom: 'env(safe-area-inset-bottom)', background: 'color-mix(in srgb, var(--background) 85%, transparent)' }}>
-        <div className="grid grid-cols-4 h-14">
+      <nav
+        aria-label="Primary"
+        className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-[var(--border)] backdrop-blur-xl"
+        style={{
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          background: 'color-mix(in srgb, var(--background) 80%, transparent)',
+        }}
+      >
+        <div className="grid grid-cols-4 h-16">
           {MAIN_NAV.map(item => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center justify-center gap-1 min-h-[44px] transition-colors ${
-                  isActive ? 'text-emerald-400' : 'text-[var(--text-secondary)]'
+                aria-label={item.label}
+                aria-current={isActive ? 'page' : undefined}
+                className={`relative flex flex-col items-center justify-center gap-0.5 min-h-[48px] select-none transition-all duration-200 active:scale-[0.92] ${
+                  isActive ? 'text-emerald-400' : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                 }`}
               >
-                {item.icon}
-                <span className="text-[10px] font-medium">{item.label}</span>
+                {/* Active top indicator */}
+                <span
+                  className={`absolute top-0 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-emerald-400 transition-all duration-300 ${
+                    isActive ? 'w-8 opacity-100' : 'w-0 opacity-0'
+                  }`}
+                />
+                {/* Icon with active glow pill */}
+                <span
+                  className={`flex items-center justify-center w-10 h-7 rounded-full transition-colors duration-200 ${
+                    isActive ? 'bg-emerald-500/10' : ''
+                  }`}
+                >
+                  {item.icon}
+                </span>
+                <span className={`text-[10px] font-medium tracking-wide ${isActive ? 'font-semibold' : ''}`}>
+                  {item.label}
+                </span>
               </Link>
             );
           })}
 
           {/* Menu button */}
           <button
+            type="button"
             onClick={() => setMenuOpen(true)}
-            className={`flex flex-col items-center justify-center gap-1 min-h-[44px] transition-colors ${
-              isMenuActive ? 'text-emerald-400' : 'text-[var(--text-secondary)]'
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+            aria-haspopup="dialog"
+            className={`relative flex flex-col items-center justify-center gap-0.5 min-h-[48px] select-none transition-all duration-200 active:scale-[0.92] ${
+              isMenuActive ? 'text-emerald-400' : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
             }`}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-            <span className="text-[10px] font-medium">Menu</span>
+            <span
+              className={`absolute top-0 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-emerald-400 transition-all duration-300 ${
+                isMenuActive ? 'w-8 opacity-100' : 'w-0 opacity-0'
+              }`}
+            />
+            <span
+              className={`flex items-center justify-center w-10 h-7 rounded-full transition-colors duration-200 ${
+                isMenuActive ? 'bg-emerald-500/10' : ''
+              }`}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="5" cy="12" r="1.25" />
+                <circle cx="12" cy="12" r="1.25" />
+                <circle cx="19" cy="12" r="1.25" />
+              </svg>
+            </span>
+            <span className={`text-[10px] font-medium tracking-wide ${isMenuActive ? 'font-semibold' : ''}`}>
+              More
+            </span>
           </button>
         </div>
       </nav>
@@ -310,16 +360,28 @@ export function MobileNav() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-[60] bg-black/60 md:hidden"
+            className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm md:hidden animate-in fade-in duration-200"
             onClick={() => setMenuOpen(false)}
+            aria-hidden="true"
           />
 
           {/* Sheet */}
-          <div className="fixed bottom-0 left-0 right-0 z-[70] md:hidden rounded-t-2xl border-t border-[var(--border)] max-h-[85vh] overflow-y-auto" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)', background: 'var(--bg-card)' }}>
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full bg-[var(--border)]" />
-            </div>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="More navigation"
+            className="fixed bottom-0 left-0 right-0 z-[70] md:hidden rounded-t-3xl border-t border-[var(--border)] max-h-[88vh] overflow-y-auto shadow-2xl shadow-black/50 animate-in slide-in-from-bottom duration-300"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)', background: 'var(--bg-card)' }}
+          >
+            {/* Drag handle */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
+              className="w-full flex justify-center pt-3 pb-2 active:opacity-60 transition-opacity"
+            >
+              <div className="w-12 h-1.5 rounded-full bg-[var(--border)]" />
+            </button>
 
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)]">
@@ -353,14 +415,15 @@ export function MobileNav() {
                           key={item.href}
                           href={item.href}
                           onClick={() => setMenuOpen(false)}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-xl min-h-[52px] transition-colors ${
+                          aria-current={isActive ? 'page' : undefined}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-xl min-h-[52px] transition-all duration-150 active:scale-[0.97] ${
                             isActive
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                              : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)] active:bg-[var(--accent-muted)]'
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-sm shadow-emerald-500/10'
+                              : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)] hover:text-[var(--foreground)] active:bg-[var(--accent-muted)]'
                           }`}
                         >
-                          {item.icon}
-                          <span className="text-sm font-medium">{item.label}</span>
+                          <span className="shrink-0">{item.icon}</span>
+                          <span className="text-sm font-medium truncate">{item.label}</span>
                         </Link>
                       );
                     })}

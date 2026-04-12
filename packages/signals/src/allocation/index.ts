@@ -19,6 +19,7 @@ export {
 // Allocator
 export {
   computeAllocation,
+  computeVolatilityScaler,
   SYMBOL_TIER,
   getSymbolTier,
   getTierWeight,

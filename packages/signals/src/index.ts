@@ -74,6 +74,7 @@ export type {
 // ─── Dynamic Allocation ─────────────────────────────
 export {
   computeAllocation,
+  computeVolatilityScaler,
   SYMBOL_TIER,
   getSymbolTier,
   getTierWeight,

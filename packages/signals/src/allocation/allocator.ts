@@ -53,16 +53,53 @@ export interface SignalInput {
   confidence: number;
 }
 
+// ─── Volatility Scaler ──────────────────────────────────────────────────────
+
+/**
+ * Baseline volatility per regime. When current vol exceeds baseline,
+ * position size is scaled down proportionally to keep risk constant.
+ * Values are approximate 20-day rolling vol (std of log returns).
+ */
+const REGIME_BASELINE_VOL: Record<MarketRegime, number> = {
+  crash: 0.06,
+  bear: 0.03,
+  neutral: 0.015,
+  bull: 0.025,
+  euphoria: 0.05,
+};
+
+/**
+ * Compute a volatility scaler (0, 1]. When current vol is at or below
+ * the regime baseline, returns 1.0. When vol is elevated, returns a
+ * value < 1 to shrink position size proportionally.
+ *
+ * Floor of 0.25 prevents positions from becoming too small to be useful.
+ */
+export function computeVolatilityScaler(
+  currentVol: number,
+  regime: MarketRegime,
+): number {
+  const baseline = REGIME_BASELINE_VOL[regime];
+  if (currentVol <= 0 || currentVol <= baseline) return 1.0;
+  const scaler = baseline / currentVol;
+  return Math.max(scaler, 0.25); // floor at 25% of normal size
+}
+
 // ─── Allocation Engine ──────────────────────────────────────────────────────
 
 /**
  * Compute the recommended allocation for a signal given the current
  * market regime and portfolio state.
+ *
+ * @param currentVol - Optional 20-day rolling volatility from the regime
+ *   classifier. When provided, position size is scaled inversely with
+ *   volatility to keep risk constant across market conditions.
  */
 export function computeAllocation(
   signal: SignalInput,
   regime: MarketRegime,
   portfolio: PortfolioState,
+  currentVol?: number,
 ): AllocationResult {
   const rules = getAllocationRules(regime);
 
@@ -137,7 +174,8 @@ export function computeAllocation(
 
   // Confidence drives size: scale linearly from 0% to maxSinglePositionPct
   const confidenceRatio = Math.min(Math.max(signal.confidence, 0), 100) / 100;
-  const rawSizePct = rules.maxSinglePositionPct * confidenceRatio * tierWeight;
+  const volScaler = currentVol != null ? computeVolatilityScaler(currentVol, regime) : 1.0;
+  const rawSizePct = rules.maxSinglePositionPct * confidenceRatio * tierWeight * volScaler;
 
   // Cap by remaining exposure headroom
   const remainingExposurePct = rules.maxExposurePct - currentExposurePct;
@@ -159,7 +197,7 @@ export function computeAllocation(
     positionSizePct: Math.round(positionSizePct * 100) / 100,
     leverageMultiplier: rules.maxLeverage,
     approved: true,
-    reason: `${regime} regime: ${positionSizePct.toFixed(1)}% position, tier ${tier}`,
+    reason: `${regime} regime: ${positionSizePct.toFixed(1)}% position, tier ${tier}${volScaler < 1 ? `, vol-scaled ${(volScaler * 100).toFixed(0)}%` : ''}`,
     regime,
     rules,
   };
