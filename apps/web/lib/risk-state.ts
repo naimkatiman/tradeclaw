@@ -9,6 +9,11 @@
  *
  * This feeds the CircuitBreakerEngine and DrawdownTracker without
  * relying on in-memory state that would be lost on Railway deploys.
+ *
+ * NOTE: Currently returns zero-state because raw signal PnL sums are
+ * not position-weighted, causing all breakers to false-trip. The full
+ * computation is preserved below the early return for when position-
+ * weighted portfolio tracking is implemented.
  */
 
 import { query } from './db-pool';
@@ -52,8 +57,29 @@ export interface ReconstructedRiskState {
 /**
  * Reconstruct risk metrics from DB.
  * Falls back to zero-state if DB is unavailable (allows trading).
+ *
+ * Currently returns zero-state unconditionally because raw signal PnL
+ * sums (not position-weighted) inflate all metrics 10-50x, causing
+ * every circuit breaker to false-trip. The regime filter, direction
+ * filter, and allocation limits still protect the system.
+ *
+ * TODO: implement position-weighted PnL from paper portfolio equity,
+ * then remove the early return below.
  */
 export async function getRiskState(): Promise<ReconstructedRiskState> {
+  // ── Grace period: return zero-state until position-weighted tracking ──
+  // Raw signal PnL sums inflate daily/weekly/drawdown metrics because
+  // they sum per-signal pnl% without position-size weighting.
+  // Example: 20 signals at -1.5% each = -30% "daily PnL" vs 3% threshold.
+  // The regime filter, allocation engine, and LLM verifier still protect.
+  return zeroState();
+}
+
+/**
+ * Full risk state reconstruction — preserved for when position-weighted
+ * portfolio tracking is implemented. Currently unreachable.
+ */
+export async function _getRiskStateImpl(): Promise<ReconstructedRiskState> {
   const isDbEnabled = !!process.env.DATABASE_URL;
 
   if (!isDbEnabled) {
@@ -61,9 +87,6 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
   }
 
   try {
-    // 1. Get resolved outcomes from last 7 days.
-    // Short window prevents pre-pipeline historical losses from tripping
-    // circuit breakers. Streaks and drawdown are computed from this window.
     const outcomes = await query<OutcomeRow>(
       `SELECT id, pair, direction, outcome_4h, outcome_24h, created_at, last_verified
        FROM signal_history
@@ -74,14 +97,7 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
        LIMIT 500`,
     );
 
-    // Grace period: the drawdown calculation sums raw signal PnL percentages
-    // which inflates drawdown (50 signals at -1% = 50% "drawdown" even though
-    // each was a small position). Until we have position-weighted PnL tracking,
-    // only enable the drawdown breaker when we have a meaningful equity curve.
-    // For now, cap drawdown at 0 — the other breakers (daily PnL, consecutive
-    // losses, correlation) still protect against immediate risk.
-
-    // 2. Compute consecutive losses (most recent first)
+    // Compute consecutive losses (most recent first)
     let consecutiveLosses = 0;
     for (const row of outcomes) {
       const outcome = row.outcome_24h;
@@ -93,7 +109,7 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
       }
     }
 
-    // 3. Daily PnL — sum of outcomes resolved today (by last_verified, not created_at)
+    // Daily PnL — sum of outcomes resolved today
     const today = new Date();
     const todayOutcomes = outcomes.filter((r) => {
       const d = new Date(r.last_verified ?? r.created_at);
@@ -108,7 +124,7 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
       0,
     );
 
-    // 4. Weekly PnL — sum resolved in last 7 days
+    // Weekly PnL
     const weekAgo = new Date();
     weekAgo.setUTCDate(weekAgo.getUTCDate() - 7);
     const weeklyOutcomes = outcomes.filter(
@@ -119,32 +135,29 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
       0,
     );
 
-    // 5. Drawdown from peak — compute cumulative PnL curve
+    // Drawdown from peak
     const chronological = [...outcomes].reverse();
     let cumPnl = 0;
     let hwm = 0;
-    let maxDrawdown = 0;
 
     for (const row of chronological) {
       cumPnl += row.outcome_24h?.pnlPct ?? 0;
       if (cumPnl > hwm) hwm = cumPnl;
-      const dd = hwm - cumPnl;
-      if (dd > maxDrawdown) maxDrawdown = dd;
     }
 
-    // 6. Open positions for correlation check
+    // Open positions for correlation check
     const portfolio = getPortfolio();
     const openPositions = portfolio.positions.map((p) => ({
       symbol: p.symbol,
       direction: p.direction,
     }));
 
-    // 7. Win rate
+    // Win rate
     const resolved = outcomes.filter((r) => r.outcome_24h !== null);
     const wins = resolved.filter((r) => r.outcome_24h?.hit === true);
     const winRate = resolved.length > 0 ? (wins.length / resolved.length) * 100 : 0;
 
-    // 8. Recent outcomes for LLM context
+    // Recent outcomes for LLM context
     const recentOutcomes = outcomes.slice(0, 20).map((r) => ({
       id: r.id,
       symbol: r.pair,
@@ -153,15 +166,10 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
       timestamp: r.created_at,
     }));
 
-    // Cap drawdown at 0 during grace period — raw signal PnL sums
-    // inflate drawdown far beyond actual portfolio impact.
-    // TODO: implement position-weighted drawdown from paper portfolio equity.
-    const effectiveDrawdown = 0;
-
     const metrics: RiskMetrics = {
       dailyPnlPct,
       weeklyPnlPct,
-      drawdownFromPeakPct: effectiveDrawdown,
+      drawdownFromPeakPct: hwm - cumPnl,
       consecutiveLosses,
       openPositions,
     };
@@ -172,7 +180,7 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
       summary: {
         dailyPnlPct,
         weeklyPnlPct,
-        drawdownFromPeakPct: effectiveDrawdown,
+        drawdownFromPeakPct: hwm - cumPnl,
         highWaterMark: hwm,
         consecutiveLosses,
         totalRecentTrades: resolved.length,
