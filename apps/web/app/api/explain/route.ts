@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateSignalExplanation } from '../../lib/signal-explainer';
-import { getTrackedSignals } from '../../../lib/tracked-signals';
+import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 import type { TradingSignal } from '../../lib/signals';
 
 interface ExplainBySignal {
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'symbol query parameter is required' }, { status: 400 });
     }
 
-    const { signals } = await getTrackedSignals({ symbol, timeframe });
+    const { signals } = await getTrackedSignalsForRequest(req, { symbol, timeframe });
     const signal = signals[0] ?? null;
 
     if (!signal) {
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     if (!symbol || !timeframe) {
       return NextResponse.json({ error: 'symbol and timeframe are required' }, { status: 400 });
     }
-    const { signals } = await getTrackedSignals({ symbol: symbol.toUpperCase(), timeframe });
+    const { signals } = await getTrackedSignalsForRequest(req, { symbol: symbol.toUpperCase(), timeframe });
     signal = signals[0] ?? null;
   }
 

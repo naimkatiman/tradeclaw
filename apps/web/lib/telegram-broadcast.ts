@@ -272,7 +272,8 @@ export async function broadcastTopSignals(
       .filter((s) => s.confidence >= 70)
       .map(mapLiveToTradingSignal);
   } else {
-    // Fallback: TS engine (same as dashboard fallback path)
+    // Intentionally no license ctx — Telegram broadcasts are public, so only
+    // the free classic strategy is emitted.
     const { signals: fallbackSignals } = await getTrackedSignals({ minConfidence: 70 });
     mapped = fallbackSignals;
   }

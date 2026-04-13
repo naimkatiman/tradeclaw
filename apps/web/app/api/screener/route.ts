@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../lib/signals';
 import { getMultiOHLCV } from '../../lib/ohlcv';
-import { getTrackedSignals } from '../../../lib/tracked-signals';
+import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 
 export interface ScreenerResult {
   symbol: string;
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     const direction = searchParams.get('direction') || 'all';     // all | BUY | SELL
 
     // Fetch signals for all symbols at the requested timeframe
-    const { signals } = await getTrackedSignals({
+    const { signals } = await getTrackedSignalsForRequest(request, {
       timeframe,
       direction: direction === 'all' ? undefined : direction,
       minConfidence,

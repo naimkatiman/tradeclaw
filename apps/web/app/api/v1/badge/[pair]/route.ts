@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTrackedSignals } from "../../../../../lib/tracked-signals";
+import { getTrackedSignalsForRequest } from "../../../../../lib/tracked-signals";
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from "../../../../../lib/signal-thresholds";
 
 export const runtime = "nodejs";
@@ -12,7 +12,7 @@ export async function GET(
   const pairUpper = pair.toUpperCase();
 
   try {
-    const { signals } = await getTrackedSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
+    const { signals } = await getTrackedSignalsForRequest(_req, { minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
     const signal = signals.find(
       (s) =>
         s.symbol === pairUpper ||

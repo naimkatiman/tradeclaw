@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../lib/signals';
-import { getTrackedSignals } from '../../../lib/tracked-signals';
+import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 
 export interface HeatmapEntry {
   pair: string;
@@ -17,9 +17,9 @@ const HEATMAP_PAIRS = [
   'GBPUSD', 'USDJPY', 'GBPJPY', 'AUDUSD', 'USDCAD',
 ];
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const { signals } = await getTrackedSignals({
+    const { signals } = await getTrackedSignalsForRequest(req, {
       timeframe: 'H1',
       minConfidence: 0,
     });

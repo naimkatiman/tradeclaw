@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getVotes, submitVote } from '../../../lib/votes';
-import { getTrackedSignals } from '../../../lib/tracked-signals';
+import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const votes = getVotes();
 
     // Get TC signal direction per pair
-    const { signals } = await getTrackedSignals({});
+    const { signals } = await getTrackedSignalsForRequest(req, {});
     const tcSignals: Record<string, string> = {};
     const votePairs = Object.keys(votes.pairs);
 

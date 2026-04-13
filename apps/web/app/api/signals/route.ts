@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../lib/signals';
-import { getTrackedSignals } from '../../../lib/tracked-signals';
+import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 import { readLiveSignals } from '../../../lib/signals-live';
 import { fetchRegimeMap, filterSignalsByRegime, getDominantRegime } from '../../../lib/regime-filter';
 
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
     }
 
     // === FALLBACK: Use existing TA engine if signals-live.json is missing/stale/empty ===
-    const { signals: rawSignals, syntheticSymbols } = await getTrackedSignals({
+    const { signals: rawSignals, syntheticSymbols } = await getTrackedSignalsForRequest(request, {
       symbol: symbolFilter || undefined,
       timeframe: timeframeFilter || undefined,
       direction: directionFilter || undefined,

@@ -268,3 +268,16 @@ export async function resolveLicenseByKey(plaintext: string): Promise<LicenseCon
     issuedTo: row.issued_to,
   };
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// Server-component helper — reads the license cookie via next/headers
+// and resolves a LicenseContext. Use this in RSC paths that don't have
+// a Request object.
+// ──────────────────────────────────────────────────────────────────────────
+export async function resolveLicenseFromCookies(): Promise<LicenseContext> {
+  const { cookies } = await import('next/headers');
+  const store = await cookies();
+  const plaintext = store.get(LICENSE_COOKIE)?.value;
+  if (!plaintext) return anonymousContext();
+  return resolveLicenseByKey(plaintext);
+}

@@ -136,6 +136,8 @@ async function handleUnsubscribe(chatId: number): Promise<void> {
 }
 
 async function handleSignals(chatId: number): Promise<void> {
+  // Intentionally no license ctx — Telegram broadcasts are public, so only
+  // the free classic strategy is emitted.
   const { signals } = await getTrackedSignals({ minConfidence: 70 });
   const top = signals.slice(0, 5);
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTrackedSignals } from "../../../../lib/tracked-signals";
+import { resolveLicense } from "../../../../lib/licenses";
 import { readLiveSignals, mapLiveSignalToV1, type LiveSignal } from "../../../../lib/signals-live";
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from "../../../../lib/signal-thresholds";
 
@@ -102,13 +103,14 @@ export async function GET(req: NextRequest) {
 
     // Fallback: real-time TA engine
     // Strategy: query per-symbol to maximize signal yield.
+    const ctx = await resolveLicense(req);
     const symbolsToQuery = pair ? [pair.replace("/", "")] : DEFAULT_SYMBOLS;
     const timeframesToQuery = timeframe ? [timeframe] : DEFAULT_TIMEFRAMES;
 
     const allResults = await Promise.allSettled(
       symbolsToQuery.flatMap((sym) =>
         timeframesToQuery.map((tf) =>
-          getTrackedSignals({ symbol: sym, timeframe: tf })
+          getTrackedSignals({ symbol: sym, timeframe: tf, ctx })
         )
       )
     );

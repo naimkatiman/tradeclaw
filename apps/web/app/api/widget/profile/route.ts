@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTrackedSignals } from '../../../../lib/tracked-signals';
+import { getTrackedSignalsForRequest } from '../../../../lib/tracked-signals';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
 
 export const dynamic = 'force-dynamic';
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
   let rsi = 50;
 
   try {
-    const { signals } = await getTrackedSignals({
+    const { signals } = await getTrackedSignalsForRequest(request, {
       symbol: pair,
       timeframe: 'H1',
       minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE,

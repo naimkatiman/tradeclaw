@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
-import { getTrackedSignals } from '../../../../lib/tracked-signals';
+import { NextRequest, NextResponse } from 'next/server';
+import { getTrackedSignalsForRequest } from '../../../../lib/tracked-signals';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const { signals } = await getTrackedSignals({});
+    const { signals } = await getTrackedSignalsForRequest(req, {});
 
     // Sort by confidence descending, take top 10
     const topSignals = [...signals]

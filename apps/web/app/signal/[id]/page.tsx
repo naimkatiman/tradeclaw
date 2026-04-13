@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 import type { Metadata } from 'next';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
+import { resolveLicenseFromCookies } from '../../../lib/licenses';
 import { getActiveSignals } from '../../../lib/signal-repo';
 import { SignalShareButtons } from '../../components/signal-share-buttons';
 import { EmbedButton } from '../../components/embed-button';
@@ -100,7 +101,8 @@ export default async function SignalPage(
   }
 
   if (signals.length === 0) {
-    const taResult = await getTrackedSignals({ symbol, timeframe, direction });
+    const ctx = await resolveLicenseFromCookies();
+    const taResult = await getTrackedSignals({ symbol, timeframe, direction, ctx });
     signals = taResult.signals;
   }
 

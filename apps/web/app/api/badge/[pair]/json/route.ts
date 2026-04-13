@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../../../lib/signals';
 import { BADGE_SHORT_NAMES, type BadgeDirection } from '../../../../lib/badge';
 import { getBadgeCache, setBadgeCache } from '../../../../../lib/badge-cache';
-import { getTrackedSignals } from '../../../../../lib/tracked-signals';
+import { getTrackedSignalsForRequest } from '../../../../../lib/tracked-signals';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../../lib/signal-thresholds';
 
 export const dynamic = 'force-dynamic';
@@ -28,7 +28,7 @@ export async function GET(
 
   if (!cached && symbolConfig) {
     try {
-      const { signals } = await getTrackedSignals({
+      const { signals } = await getTrackedSignalsForRequest(request, {
         symbol: pair,
         timeframe: tf,
         minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE,

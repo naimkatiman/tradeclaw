@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { getTrackedSignals } from '../../../lib/tracked-signals';
+import { NextRequest, NextResponse } from 'next/server';
+import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 
 const COIN_TO_PAIR: Record<string, string> = {
   btc: 'BTCUSD',
@@ -54,7 +54,7 @@ const MOCK_TRENDING: TrendingCoin[] = [
   { id: 'binancecoin', name: 'BNB', symbol: 'BNB', marketCapRank: 4, thumb: '', large: '', priceBtc: 0.009, score: 4, priceUsd: '$580', priceChange24h: 1.8, pair: 'BNBUSD', signal: { direction: 'BUY', confidence: 81, timeframe: '1H' } },
 ];
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const res = await fetch('https://api.coingecko.com/api/v3/search/trending', {
       next: { revalidate: 300 },
@@ -78,7 +78,7 @@ export async function GET() {
 
         if (pair) {
           try {
-            const result = await getTrackedSignals({ symbol: pair });
+            const result = await getTrackedSignalsForRequest(req, { symbol: pair });
             const top = result.signals[0];
             if (top) {
               signal = {

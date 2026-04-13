@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server';
-import { getTrackedSignals } from '../../../lib/tracked-signals';
+import { NextRequest, NextResponse } from 'next/server';
+import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const { signals } = await getTrackedSignals({});
+    const { signals } = await getTrackedSignalsForRequest(req, {});
 
     const latest = signals
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
