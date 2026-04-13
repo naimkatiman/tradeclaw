@@ -59,7 +59,13 @@ setInterval(() => {
 // ---------------------------------------------------------------------------
 type AuthRule = { pattern: string | RegExp; methods: Set<string> };
 
+const ALL_METHODS = new Set(["GET", "POST", "PATCH", "PUT", "DELETE"]);
+
 const AUTH_RULES: AuthRule[] = [
+  // /api/admin/* — all methods require auth
+  { pattern: /^\/api\/admin(\/.*)?$/, methods: ALL_METHODS },
+  // /api/debug-signals — internal engine diagnostics
+  { pattern: "/api/debug-signals", methods: ALL_METHODS },
   // /api/plugins/test — POST needs auth
   { pattern: "/api/plugins/test", methods: new Set(["POST"]) },
   // /api/plugins/[id] — PATCH, DELETE need auth (GET allowed)
@@ -172,10 +178,17 @@ export function middleware(request: NextRequest) {
     const adminSecret = process.env.ADMIN_SECRET;
 
     if (!adminSecret) {
-      // Dev mode — allow but warn once
+      // Fail closed in production; fail open in dev with a warning.
+      if (process.env.NODE_ENV === "production") {
+        const res = NextResponse.json(
+          { error: "Server misconfigured: ADMIN_SECRET not set" },
+          { status: 503 },
+        );
+        return applySecurityHeaders(res, pathname);
+      }
       if (!adminSecretWarningLogged) {
         console.warn(
-          "[middleware] ADMIN_SECRET is not set. All admin routes are unprotected (dev mode).",
+          "[middleware] ADMIN_SECRET is not set. Admin routes are unprotected (dev mode only).",
         );
         adminSecretWarningLogged = true;
       }
