@@ -12,6 +12,7 @@ node_modules/
 # Generated data
 scripts/signals.db
 apps/web/data/signal-history.json
+apps/web/data/performance-metrics.json
 
 # Build output
 **/dist/

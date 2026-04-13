@@ -38,15 +38,15 @@ jobs:
 
       - name: Create .env for CI
         run: |
-          cat > .env << 'EOF'
-DB_PASSWORD=ci_test_password_123
-DB_USER=tradeclaw
-DB_NAME=tradeclaw
-AUTH_SECRET=ci_test_auth_secret_32_chars_min_x
-APP_URL=http://localhost:3000
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NODE_ENV=production
-EOF
+          {
+            echo "DB_PASSWORD=ci_test_password_123"
+            echo "DB_USER=tradeclaw"
+            echo "DB_NAME=tradeclaw"
+            echo "AUTH_SECRET=ci_test_auth_secret_32_chars_min_x"
+            echo "APP_URL=http://localhost:3000"
+            echo "NEXT_PUBLIC_APP_URL=http://localhost:3000"
+            echo "NODE_ENV=production"
+          } > .env
 
       - name: Start containers
         run: |
