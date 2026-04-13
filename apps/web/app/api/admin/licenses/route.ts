@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { issueLicense, listLicenses } from '@/lib/licenses';
-
-const ALLOWED_STRATEGIES = new Set([
-  'regime-aware',
-  'hmm-top3',
-  'vwap-ema-bb',
-  'full-risk',
-]);
+import { issueLicense, listLicenses, ALLOWED_PREMIUM_STRATEGIES } from '@/lib/licenses';
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,7 +18,7 @@ export async function POST(req: NextRequest) {
     }
 
     const strategies = body.strategies.filter(
-      (s): s is string => typeof s === 'string' && ALLOWED_STRATEGIES.has(s),
+      (s): s is string => typeof s === 'string' && ALLOWED_PREMIUM_STRATEGIES.has(s),
     );
     if (strategies.length === 0) {
       return NextResponse.json(
@@ -59,6 +52,13 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const licenses = await listLicenses();
-  return NextResponse.json({ licenses });
+  try {
+    const licenses = await listLicenses();
+    return NextResponse.json({ licenses });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'unknown error' },
+      { status: 500 },
+    );
+  }
 }

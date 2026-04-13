@@ -7,6 +7,14 @@ import { randomBytes, createHash } from 'node:crypto';
 
 export const FREE_STRATEGY = 'classic' as const;
 
+/** Strategies a license key can grant. `classic` is intentionally excluded — it's free for everyone. */
+export const ALLOWED_PREMIUM_STRATEGIES: ReadonlySet<string> = new Set([
+  'regime-aware',
+  'hmm-top3',
+  'vwap-ema-bb',
+  'full-risk',
+]);
+
 export interface LicenseContext {
   licenseId: string | null;
   unlockedStrategies: Set<string>; // always includes FREE_STRATEGY
