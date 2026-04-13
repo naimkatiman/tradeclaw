@@ -24,6 +24,7 @@ export interface GetTrackedSignalsParams {
 
 export async function getTrackedSignals(params: GetTrackedSignalsParams) {
   const result = await getSignals(params);
+  const ctx = params.ctx ?? anonymousContext();
 
   if (result.signals.length > 0) {
     // This is the actual production write path for signal_history (the
@@ -104,5 +105,26 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
     }
   }
 
+  // Read-time license filter — keep free classic, drop anything the caller
+  // doesn't have a grant for. Recording above was not filtered, so the DB
+  // retains the full historical set for backtests.
+  result.signals = result.signals.filter((s) => {
+    const sid = (s as { strategyId?: string }).strategyId ?? FREE_STRATEGY;
+    return ctx.unlockedStrategies.has(sid);
+  });
+
   return result;
+}
+
+/**
+ * Convenience wrapper: resolves the license context from the Request,
+ * then delegates to getTrackedSignals. Preferred for any API route or
+ * server component that has a Request in hand.
+ */
+export async function getTrackedSignalsForRequest(
+  req: Request,
+  params: Omit<GetTrackedSignalsParams, 'ctx'> = {},
+) {
+  const ctx = await resolveLicense(req);
+  return getTrackedSignals({ ...params, ctx });
 }
