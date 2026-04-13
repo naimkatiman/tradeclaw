@@ -199,3 +199,72 @@ export async function listLicenses(): Promise<StrategyLicenseWithGrants[]> {
   }
   return out;
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// Key extraction + resolution
+// ──────────────────────────────────────────────────────────────────────────
+
+const LICENSE_HEADER = 'x-license-key';
+const LICENSE_COOKIE = 'tc_license_key';
+const LICENSE_QUERY = 'key';
+
+function extractKeyFromRequest(req: Request): string | null {
+  const headerKey = req.headers.get(LICENSE_HEADER);
+  if (headerKey && headerKey.length > 0) return headerKey;
+
+  try {
+    const url = new URL(req.url);
+    const queryKey = url.searchParams.get(LICENSE_QUERY);
+    if (queryKey && queryKey.startsWith('tck_live_')) return queryKey;
+  } catch {
+    // req.url not parseable — skip
+  }
+
+  const cookieHeader = req.headers.get('cookie');
+  if (cookieHeader) {
+    const match = cookieHeader
+      .split(';')
+      .map((c) => c.trim())
+      .find((c) => c.startsWith(`${LICENSE_COOKIE}=`));
+    if (match) {
+      return decodeURIComponent(match.slice(LICENSE_COOKIE.length + 1));
+    }
+  }
+
+  return null;
+}
+
+export async function resolveLicense(req: Request): Promise<LicenseContext> {
+  const plaintext = extractKeyFromRequest(req);
+  if (!plaintext) return anonymousContext();
+  return resolveLicenseByKey(plaintext);
+}
+
+export async function resolveLicenseByKey(plaintext: string): Promise<LicenseContext> {
+  const hash = hashKey(plaintext);
+  const row = await queryOne<LicenseRow>(
+    `SELECT id, key_prefix, issued_to, status, expires_at,
+            created_at, last_seen_at, notes
+     FROM strategy_licenses
+     WHERE key_hash = $1
+       AND status = 'active'
+       AND (expires_at IS NULL OR expires_at > NOW())`,
+    [hash],
+  );
+  if (!row) return anonymousContext();
+
+  const strategies = await fetchGrants(row.id);
+
+  // Fire-and-forget last_seen_at update
+  execute(
+    `UPDATE strategy_licenses SET last_seen_at = NOW() WHERE id = $1`,
+    [row.id],
+  ).catch(() => undefined);
+
+  return {
+    licenseId: row.id,
+    unlockedStrategies: new Set([FREE_STRATEGY, ...strategies]),
+    expiresAt: row.expires_at ? new Date(row.expires_at) : null,
+    issuedTo: row.issued_to,
+  };
+}

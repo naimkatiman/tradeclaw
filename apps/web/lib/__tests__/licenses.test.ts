@@ -7,6 +7,8 @@ import {
   updateExpiry,
   updateIssuedTo,
   revokeLicense,
+  resolveLicense,
+  FREE_STRATEGY,
 } from '../licenses';
 
 describe('licenses — key generation', () => {
@@ -69,5 +71,82 @@ describe('licenses — CRUD', () => {
     await updateExpiry(license.id, null);
     const fetched = await getLicenseById(license.id);
     expect(fetched?.expiresAt).toBeNull();
+  });
+});
+
+function mockRequest(init: {
+  headers?: Record<string, string>;
+  url?: string;
+  cookies?: Record<string, string>;
+}): Request {
+  const headers = new Headers(init.headers ?? {});
+  if (init.cookies) {
+    const cookieStr = Object.entries(init.cookies)
+      .map(([k, v]) => `${k}=${v}`)
+      .join('; ');
+    headers.set('cookie', cookieStr);
+  }
+  return new Request(init.url ?? 'http://localhost/test', { headers });
+}
+
+describe('licenses — resolveLicense', () => {
+  it('returns anonymous when no key is present', async () => {
+    const ctx = await resolveLicense(mockRequest({}));
+    expect(ctx.licenseId).toBeNull();
+    expect([...ctx.unlockedStrategies]).toEqual([FREE_STRATEGY]);
+  });
+
+  it('returns anonymous for an unknown key (header)', async () => {
+    const ctx = await resolveLicense(
+      mockRequest({ headers: { 'x-license-key': 'tck_live_unknown' } }),
+    );
+    expect(ctx.licenseId).toBeNull();
+    expect([...ctx.unlockedStrategies]).toEqual([FREE_STRATEGY]);
+  });
+
+  it('returns unlocked strategies ∪ classic for a valid key via header', async () => {
+    const { plaintextKey } = await issueLicense({ strategies: ['hmm-top3'] });
+    const ctx = await resolveLicense(
+      mockRequest({ headers: { 'x-license-key': plaintextKey } }),
+    );
+    expect(ctx.unlockedStrategies.has('hmm-top3')).toBe(true);
+    expect(ctx.unlockedStrategies.has(FREE_STRATEGY)).toBe(true);
+  });
+
+  it('resolves key from query string', async () => {
+    const { plaintextKey } = await issueLicense({ strategies: ['hmm-top3'] });
+    const ctx = await resolveLicense(
+      mockRequest({ url: `http://localhost/test?key=${plaintextKey}` }),
+    );
+    expect(ctx.unlockedStrategies.has('hmm-top3')).toBe(true);
+  });
+
+  it('resolves key from cookie', async () => {
+    const { plaintextKey } = await issueLicense({ strategies: ['hmm-top3'] });
+    const ctx = await resolveLicense(
+      mockRequest({ cookies: { tc_license_key: plaintextKey } }),
+    );
+    expect(ctx.unlockedStrategies.has('hmm-top3')).toBe(true);
+  });
+
+  it('treats revoked key as anonymous', async () => {
+    const { license, plaintextKey } = await issueLicense({ strategies: ['hmm-top3'] });
+    await revokeLicense(license.id);
+    const ctx = await resolveLicense(
+      mockRequest({ headers: { 'x-license-key': plaintextKey } }),
+    );
+    expect(ctx.licenseId).toBeNull();
+    expect([...ctx.unlockedStrategies]).toEqual([FREE_STRATEGY]);
+  });
+
+  it('treats expired key as anonymous', async () => {
+    const { plaintextKey } = await issueLicense({
+      strategies: ['hmm-top3'],
+      expiresAt: new Date(Date.now() - 1000),
+    });
+    const ctx = await resolveLicense(
+      mockRequest({ headers: { 'x-license-key': plaintextKey } }),
+    );
+    expect(ctx.licenseId).toBeNull();
   });
 });
