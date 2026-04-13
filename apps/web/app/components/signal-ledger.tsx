@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Check, X } from 'lucide-react';
+import { fetchWithLicense } from '@/lib/license-client';
 import type { SignalHistoryRecord } from '../../lib/signal-history';
 
 function formatRelativeTime(timestamp: number): string {
@@ -72,7 +73,7 @@ export function SignalLedger() {
   useEffect(() => {
     async function fetchHistory() {
       try {
-        const res = await fetch('/api/signals/history?limit=50');
+        const res = await fetchWithLicense('/api/signals/history?limit=50');
         if (!res.ok) return;
         const data = await res.json();
         setRecords(data.records ?? []);

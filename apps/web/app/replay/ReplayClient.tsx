@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { fetchWithLicense } from '@/lib/license-client';
 import { ReplayChart } from '../components/charts';
 import { generateBars as genBars } from '../lib/chart-utils';
 
@@ -236,7 +237,7 @@ export default function ReplayClient() {
     let cancelled = false;
     async function fetchSignals() {
       try {
-        const res = await fetch('/api/signals');
+        const res = await fetchWithLicense('/api/signals');
         if (!res.ok) throw new Error('Failed to fetch signals');
         const data = await res.json();
         if (!cancelled && Array.isArray(data.signals) && data.signals.length > 0) {

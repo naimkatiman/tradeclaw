@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { fetchWithLicense } from '@/lib/license-client';
 import { TrendingUp, TrendingDown, Minus, RefreshCw, Share2, Star, Users } from 'lucide-react';
 import type { ConsensusResponse, ConsensusEntry } from '../api/consensus/route';
 
@@ -116,7 +117,7 @@ export default function ConsensusClient() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch('/api/consensus');
+      const res = await fetchWithLicense('/api/consensus');
       if (res.ok) {
         const json = await res.json() as ConsensusResponse;
         setData(json);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { fetchWithLicense } from '@/lib/license-client';
 import { PageNavBar } from '../../components/PageNavBar';
 import type { MultiTFResult, TFDirection } from '../lib/signal-generator';
 
@@ -230,7 +231,7 @@ export default function MultiTimeframePage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch('/api/signals/multi-tf');
+      const res = await fetchWithLicense('/api/signals/multi-tf');
       if (!res.ok) return;
       const json = await res.json() as ApiResponse;
       setData(json);

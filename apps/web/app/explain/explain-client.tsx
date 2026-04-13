@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import { fetchWithLicense } from '@/lib/license-client';
 import { TradeClawLogo } from '../../components/tradeclaw-logo';
 
 const SYMBOLS = [
@@ -138,7 +139,7 @@ export function ExplainClient() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/explain', {
+      const res = await fetchWithLicense('/api/explain', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ symbol, timeframe }),

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { fetchWithLicense } from '@/lib/license-client';
 import {
   Activity,
   Zap,
@@ -143,7 +144,7 @@ export default function LiveClient() {
   /* Fetch signals from /api/signals */
   const fetchSignals = useCallback(async () => {
     try {
-      const res = await fetch('/api/signals');
+      const res = await fetchWithLicense('/api/signals');
       if (!res.ok) return;
       const json = await res.json();
       const raw: Record<string, unknown>[] = json.signals ?? [];
@@ -166,7 +167,7 @@ export default function LiveClient() {
   /* Fetch hour count separately at 30s interval */
   const fetchHourCount = useCallback(async () => {
     try {
-      const res = await fetch('/api/signals');
+      const res = await fetchWithLicense('/api/signals');
       if (!res.ok) return;
       const json = await res.json();
       const raw: Record<string, unknown>[] = json.signals ?? [];

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { fetchWithLicense } from '@/lib/license-client';
 import Image from 'next/image';
 import {
   TrendingUp,
@@ -162,7 +163,7 @@ export default function NewsClient({ initial }: { initial: NewsData }) {
     setLoading(true);
     setHasError(false);
     try {
-      const res = await fetch('/api/news');
+      const res = await fetchWithLicense('/api/news');
       if (res.ok) {
         const json = await res.json();
         setData(json);

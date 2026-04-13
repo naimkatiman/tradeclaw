@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { fetchWithLicense } from '@/lib/license-client';
 
 interface Signal {
   symbol: string;
@@ -23,7 +24,7 @@ export function LiveDemoSection() {
 
     async function fetchSignals() {
       try {
-        const res = await fetch('/api/signals?limit=5');
+        const res = await fetchWithLicense('/api/signals?limit=5');
         if (!res.ok) return;
         const data = await res.json();
         const items = (data.signals || []).slice(0, 5).map((s: Signal) => ({

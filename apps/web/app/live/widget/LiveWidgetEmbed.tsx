@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { fetchWithLicense } from '@/lib/license-client';
 
 interface WidgetSignal {
   id: string;
@@ -35,7 +36,7 @@ export default function LiveWidgetEmbed() {
 
     async function load() {
       try {
-        const res = await fetch('/api/live-feed');
+        const res = await fetchWithLicense('/api/live-feed');
         if (!res.ok || cancelled) return;
         const json: { signals?: Record<string, unknown>[] } = await res.json();
         const raw = json.signals ?? [];

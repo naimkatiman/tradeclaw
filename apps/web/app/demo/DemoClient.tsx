@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import { fetchWithLicense } from '@/lib/license-client';
 import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
 
 // ---------------------------------------------------------------------------
@@ -516,7 +517,7 @@ function HeatmapTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/heatmap')
+    fetchWithLicense('/api/heatmap')
       .then(r => r.json())
       .then(d => { setEntries(d.entries || []); setLoading(false); })
       .catch(() => setLoading(false));
@@ -744,7 +745,7 @@ export default function DemoClient() {
       }
 
       if (!mapped) {
-        const res = await fetch('/api/v1/signals?limit=20');
+        const res = await fetchWithLicense('/api/v1/signals?limit=20');
         if (res.ok) {
           const data = await res.json();
           live = data.source === 'live-file' && data.signals?.length > 0;

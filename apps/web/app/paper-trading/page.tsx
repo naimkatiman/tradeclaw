@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import { fetchWithLicense } from '@/lib/license-client';
 import { PageNavBar } from '../../components/PageNavBar';
 import type { Portfolio, Trade, EquityPoint } from '../../lib/paper-trading';
 
@@ -236,7 +237,7 @@ export default function PaperTradingPage() {
 
   const fetchSignals = useCallback(async () => {
     try {
-      const res = await fetch('/api/signals');
+      const res = await fetchWithLicense('/api/signals');
       if (res.ok) {
         const data = await res.json() as { signals: Signal[] };
         setSignals((data.signals ?? []).slice(0, 5));

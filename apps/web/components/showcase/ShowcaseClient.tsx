@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { fetchWithLicense } from '@/lib/license-client';
 import {
   Star,
   GitBranch,
@@ -180,7 +181,7 @@ export function ShowcaseClient() {
       .catch(() => {});
 
     const fetchSignals = () => {
-      fetch('/api/signals?limit=6')
+      fetchWithLicense('/api/signals?limit=6')
         .then((r) => r.json())
         .then((d) => {
           const arr = Array.isArray(d) ? d : d.signals ?? [];

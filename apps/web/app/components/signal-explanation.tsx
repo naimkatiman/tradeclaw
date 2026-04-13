@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { fetchWithLicense } from '@/lib/license-client';
 
 interface SignalExplanationProps {
   symbol: string;
@@ -22,7 +23,7 @@ export function SignalExplanation({ symbol, direction, confidence, entry, timefr
     setLoading(true);
     setOpen(true);
     try {
-      const res = await fetch('/api/explain', {
+      const res = await fetchWithLicense('/api/explain', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ symbol, direction, confidence, entry, timeframe, indicators }),
