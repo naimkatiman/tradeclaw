@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS strategy_licenses (
   notes        TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_strategy_licenses_status
-  ON strategy_licenses(status);
+CREATE INDEX IF NOT EXISTS idx_strategy_licenses_created_at
+  ON strategy_licenses(created_at DESC);
 
 CREATE TABLE IF NOT EXISTS strategy_license_grants (
   license_id   UUID NOT NULL REFERENCES strategy_licenses(id) ON DELETE CASCADE,
