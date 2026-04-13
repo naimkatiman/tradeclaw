@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { readHistoryAsync, type SignalHistoryRecord } from '../../../../lib/signal-history';
 
 export interface EquityPoint {
@@ -76,11 +76,19 @@ function computeEquityCurve(records: SignalHistoryRecord[]): {
   };
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const records = await readHistoryAsync();
-    const { points, summary } = computeEquityCurve(records);
+    const { searchParams } = new URL(request.url);
+    const period = searchParams.get('period');
 
+    let records = await readHistoryAsync();
+    if (period === '7d' || period === '30d') {
+      const days = period === '7d' ? 7 : 30;
+      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+      records = records.filter(r => r.timestamp >= cutoff);
+    }
+
+    const { points, summary } = computeEquityCurve(records);
     return NextResponse.json({ points, summary });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

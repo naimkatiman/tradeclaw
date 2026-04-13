@@ -9,11 +9,17 @@ export async function GET(request: NextRequest) {
     const pair = searchParams.get('pair')?.toUpperCase();
     const direction = searchParams.get('direction')?.toUpperCase() as 'BUY' | 'SELL' | undefined;
     const outcome = searchParams.get('outcome');
+    const period = searchParams.get('period');
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 200);
     const offset = parseInt(searchParams.get('offset') ?? '0');
 
     let records = await readHistoryAsync();
 
+    if (period === '7d' || period === '30d') {
+      const days = period === '7d' ? 7 : 30;
+      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+      records = records.filter(r => r.timestamp >= cutoff);
+    }
     if (pair) records = records.filter(r => r.pair === pair);
     if (direction === 'BUY' || direction === 'SELL') records = records.filter(r => r.direction === direction);
     if (outcome === 'win') records = records.filter(r => r.outcomes['24h']?.hit === true);

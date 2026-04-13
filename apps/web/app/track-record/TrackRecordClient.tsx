@@ -60,25 +60,6 @@ interface LeaderboardData {
   };
 }
 
-interface StrategyBreakdownRow {
-  strategyId: string;
-  totalSignals: number;
-  resolvedSignals: number;
-  hitRate4h: number;
-  hitRate24h: number;
-  avgConfidence: number;
-  avgPnl: number;
-}
-
-const STRATEGY_LABELS: Record<string, string> = {
-  'hmm-top3': 'HMM Top-3',
-  'classic': 'Classic',
-  'regime-aware': 'Regime Aware',
-  'vwap-ema-bb': 'VWAP + EMA + BB',
-  'full-risk': 'Full Risk Pipeline',
-  'unknown': 'Unknown',
-};
-
 // ── Helpers ──────────────────────────────────────────────────────
 
 function formatPrice(price: number): string {
@@ -130,16 +111,14 @@ export function TrackRecordClient() {
   const [stats, setStats] = useState<HistoryStats | null>(null);
   const [records, setRecords] = useState<HistoryRecord[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
-  const [strategyBreakdown, setStrategyBreakdown] = useState<StrategyBreakdownRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async (p: Period) => {
     setLoading(true);
     try {
-      const [historyRes, leaderboardRes, breakdownRes] = await Promise.allSettled([
-        fetch('/api/signals/history?limit=50&sort=resolved-first'),
+      const [historyRes, leaderboardRes] = await Promise.allSettled([
+        fetch(`/api/signals/history?limit=50&sort=resolved-first&period=${p}`),
         fetch(`/api/leaderboard?period=${p}`),
-        fetch(`/api/strategy-breakdown?period=${p}`),
       ]);
 
       if (historyRes.status === 'fulfilled' && historyRes.value.ok) {
@@ -151,11 +130,6 @@ export function TrackRecordClient() {
       if (leaderboardRes.status === 'fulfilled' && leaderboardRes.value.ok) {
         const data = await leaderboardRes.value.json();
         setLeaderboard(data);
-      }
-
-      if (breakdownRes.status === 'fulfilled' && breakdownRes.value.ok) {
-        const data = await breakdownRes.value.json();
-        setStrategyBreakdown(Array.isArray(data.rows) ? data.rows : []);
       }
     } catch {
       // silently fail
@@ -176,10 +150,24 @@ export function TrackRecordClient() {
 
       <main className="max-w-5xl mx-auto px-4 py-8 pb-20 md:pb-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight mb-1">Signal Track Record</h1>
+        <div className="mb-6">
+          <div className="text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-2">
+            Verified Win Rate
+          </div>
+          <div className="flex items-baseline gap-3 mb-2">
+            <span className={`text-5xl font-bold tabular-nums ${
+              stats && stats.winRate >= 55 ? 'text-emerald-400'
+              : stats && stats.winRate >= 45 ? 'text-yellow-400'
+              : stats ? 'text-red-400' : 'text-[var(--foreground)]'
+            }`}>
+              {stats ? `${stats.winRate}%` : '—'}
+            </span>
+            <span className="text-sm text-[var(--text-secondary)]">
+              {stats ? `${stats.resolved} resolved signals` : 'loading…'}
+            </span>
+          </div>
           <p className="text-sm text-[var(--text-secondary)]">
-            Verified performance of TradeClaw AI trading signals. Every signal tracked, every outcome recorded.
+            Every signal tracked against real market data. No cherry-picking.
           </p>
         </div>
 
@@ -202,14 +190,9 @@ export function TrackRecordClient() {
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
             <StatCard label="Total Signals" value={String(stats.totalSignals)} />
             <StatCard label="Resolved" value={String(stats.resolved)} />
-            <StatCard
-              label="Win Rate"
-              value={`${stats.winRate}%`}
-              accent={stats.winRate >= 55 ? 'emerald' : stats.winRate >= 45 ? 'yellow' : 'red'}
-            />
             <StatCard
               label="Avg P&L"
               value={`${stats.avgPnlPct >= 0 ? '+' : ''}${stats.avgPnlPct}%`}
@@ -229,8 +212,8 @@ export function TrackRecordClient() {
         )}
 
         {loading && !stats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
+            {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="glass-card rounded-xl p-4 animate-pulse">
                 <div className="h-3 w-16 bg-white/[0.06] rounded mb-2" />
                 <div className="h-6 w-12 bg-white/[0.06] rounded" />
@@ -239,56 +222,36 @@ export function TrackRecordClient() {
           </div>
         )}
 
-        {/* Equity Curve */}
-        <section className="mb-8">
-          <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-3">
-            Equity Curve <span className="text-[var(--text-secondary)] opacity-50">(All Time)</span>
-          </h2>
-          <div className="glass-card rounded-2xl p-4">
-            <EquityCurve />
-          </div>
-        </section>
-
-        {/* Per-Strategy Breakdown */}
-        {strategyBreakdown.length > 0 && (
-          <section className="mb-8">
-            <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-3">
-              Per-Strategy Performance
-            </h2>
-            <div className="glass-card rounded-2xl overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs font-mono">
-                  <thead>
-                    <tr className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] border-b border-white/[0.06]">
-                      <th className="text-left px-4 py-3 font-semibold">Strategy</th>
-                      <th className="text-right px-4 py-3 font-semibold">Signals</th>
-                      <th className="text-right px-4 py-3 font-semibold">Resolved</th>
-                      <th className="text-left px-4 py-3 font-semibold w-40">Hit Rate 24h</th>
-                      <th className="text-right px-4 py-3 font-semibold">Avg Conf</th>
-                      <th className="text-right px-4 py-3 font-semibold">Avg P&amp;L</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {strategyBreakdown.map(row => (
-                      <tr key={row.strategyId} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02]">
-                        <td className="px-4 py-3 text-[var(--foreground)]">
-                          {STRATEGY_LABELS[row.strategyId] ?? row.strategyId}
-                        </td>
-                        <td className="text-right tabular-nums px-4 py-3">{row.totalSignals}</td>
-                        <td className="text-right tabular-nums px-4 py-3 text-[var(--text-secondary)]">{row.resolvedSignals}</td>
-                        <td className="px-4 py-3"><HitRateBar value={row.hitRate24h} /></td>
-                        <td className="text-right tabular-nums px-4 py-3 text-[var(--text-secondary)]">{row.avgConfidence}%</td>
-                        <td className={`text-right tabular-nums px-4 py-3 ${row.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {row.avgPnl >= 0 ? '+' : ''}{row.avgPnl.toFixed(2)}%
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+        {/* CTA — above the fold */}
+        <div className="glass-card rounded-2xl p-5 mb-8 border-l-2 border-emerald-500/50">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h3 className="text-base font-bold mb-0.5">Get These Signals in Real-Time</h3>
+              <p className="text-xs text-[var(--text-secondary)]">
+                Instant Telegram alerts with entry, SL, and 3 TP levels.
+              </p>
             </div>
-          </section>
-        )}
+            <div className="flex gap-2">
+              <a
+                href="https://t.me/tradeclawwin"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 text-emerald-400 text-sm font-medium hover:bg-emerald-500/25 transition-colors"
+              >
+                Join Telegram
+              </a>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.06] text-[var(--foreground)] text-sm font-medium hover:bg-white/[0.1] transition-colors"
+              >
+                Live Signals
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Equity Curve — component brings its own card + header */}
+        <EquityCurve period={period} />
 
         {/* Per-Symbol Breakdown */}
         <section className="mb-8">
@@ -440,30 +403,6 @@ export function TrackRecordClient() {
             from Binance and Yahoo Finance. No cherry-picking, no hidden losses. Signals that don&apos;t hit TP or SL within
             the time window are marked as expired, not wins.
           </p>
-        </div>
-
-        {/* CTA */}
-        <div className="glass-card rounded-2xl p-6 text-center">
-          <h3 className="text-lg font-bold mb-2">Get These Signals in Real-Time</h3>
-          <p className="text-sm text-[var(--text-secondary)] mb-4">
-            Join our Telegram channel for instant signal alerts with entry, TP, and SL levels.
-          </p>
-          <div className="flex gap-3 justify-center">
-            <a
-              href="https://t.me/tradeclawwin"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500/15 text-emerald-400 text-sm font-medium hover:bg-emerald-500/25 transition-colors"
-            >
-              Join Telegram
-            </a>
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/[0.06] text-[var(--foreground)] text-sm font-medium hover:bg-white/[0.1] transition-colors"
-            >
-              View Live Signals
-            </Link>
-          </div>
         </div>
       </main>
     </div>

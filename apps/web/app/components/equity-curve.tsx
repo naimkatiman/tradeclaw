@@ -269,7 +269,11 @@ function drawChart(
   };
 }
 
-export function EquityCurve() {
+interface EquityCurveProps {
+  period?: '7d' | '30d' | 'all';
+}
+
+export function EquityCurve({ period = 'all' }: EquityCurveProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [points, setPoints] = useState<EquityPoint[]>([]);
   const [summary, setSummary] = useState<EquitySummary | null>(null);
@@ -278,8 +282,9 @@ export function EquityCurve() {
 
   useEffect(() => {
     async function load() {
+      setLoading(true);
       try {
-        const res = await fetch('/api/signals/equity');
+        const res = await fetch(`/api/signals/equity?period=${period}`);
         if (!res.ok) return;
         const data = await res.json();
         setPoints(data.points ?? []);
@@ -291,7 +296,7 @@ export function EquityCurve() {
       }
     }
     load();
-  }, []);
+  }, [period]);
 
   const handleHover = useCallback((data: TooltipData | null) => {
     setTooltip(data);
