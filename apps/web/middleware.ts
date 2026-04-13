@@ -6,19 +6,43 @@ import { NextRequest, NextResponse } from "next/server";
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
-const RATE_LIMIT_MAX = 60; // requests per window
+const RATE_LIMIT_MAX = 60; // requests per window (default)
+const RATE_LIMIT_MAX_PUBLIC_FEED = 300; // public read-only signal feeds
 
-function isRateLimited(ip: string): boolean {
+// Public read-only signal endpoints — cached, safe to allow high-volume polling.
+// Browsers + bots + CI share the same IP behind NAT, so a 60/min cap trivially
+// flips to 429/403 (depending on upstream edge) and looks like "the API is broken".
+const PUBLIC_FEED_PATHS = [
+  "/api/signal-of-the-day",
+  "/api/v1/signals",
+  "/api/v1/health",
+  "/api/v1/regime",
+  "/api/signals",
+  "/api/health",
+  "/api/status",
+];
+
+function isPublicFeed(pathname: string): boolean {
+  return PUBLIC_FEED_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+}
+
+function isRateLimited(ip: string, pathname: string): boolean {
   const now = Date.now();
-  const entry = rateLimitMap.get(ip);
+  const max = isPublicFeed(pathname)
+    ? RATE_LIMIT_MAX_PUBLIC_FEED
+    : RATE_LIMIT_MAX;
+  const key = isPublicFeed(pathname) ? `feed:${ip}` : ip;
+  const entry = rateLimitMap.get(key);
 
   if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
     return false;
   }
 
   entry.count += 1;
-  return entry.count > RATE_LIMIT_MAX;
+  return entry.count > max;
 }
 
 // Periodically prune stale entries so the map doesn't grow unbounded.
@@ -110,6 +134,22 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const method = request.method;
 
+  // --- CORS preflight: always allow, never count against rate limit ---
+  if (method === "OPTIONS" && pathname.startsWith("/api/")) {
+    const res = new NextResponse(null, { status: 204 });
+    res.headers.set("Access-Control-Allow-Origin", "*");
+    res.headers.set(
+      "Access-Control-Allow-Methods",
+      "GET, HEAD, POST, PATCH, DELETE, OPTIONS",
+    );
+    res.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Requested-With",
+    );
+    res.headers.set("Access-Control-Max-Age", "86400");
+    return applySecurityHeaders(res, pathname);
+  }
+
   // --- Rate limiting for /api/ routes ---
   if (pathname.startsWith("/api/")) {
     const ip =
@@ -117,7 +157,7 @@ export function middleware(request: NextRequest) {
       request.headers.get("x-real-ip") ??
       "unknown";
 
-    if (isRateLimited(ip)) {
+    if (isRateLimited(ip, pathname)) {
       const res = NextResponse.json(
         { error: "Too many requests. Please try again later." },
         { status: 429 },
