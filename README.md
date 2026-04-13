@@ -75,6 +75,40 @@ docker compose up -d
 
 **Features:** Dashboard · Backtest · Screener · Paper trading · Telegram bot · Webhooks · Discord bot · Signal replay · Multi-timeframe · AI explanations · CLI · MCP server · Plugin system · PWA · RSS feeds · 190+ pages
 
+## Strategy Presets
+
+Five named entry strategies, swappable via `SIGNAL_ENGINE_PRESET` env var. Every signal is tagged with `strategyId` so you can audit which logic fired it.
+
+| Preset | Logic |
+|--------|-------|
+| `classic` | Baseline RSI + MACD + EMA scoring — no regime filter, no risk breakers |
+| `regime-aware` | Classic signals filtered by HMM regime, rejects counter-trend trades |
+| `hmm-top3` | Regime-aware signals ranked by confidence, top 3 only — **current production** |
+| `vwap-ema-bb` | Mean-reversion at BB extremes with VWAP + EMA trend confirmation |
+| `full-risk` | HMM top-3 with risk-weighted allocation and full circuit-breaker pipeline |
+
+**Compare them side-by-side** — multi-select any presets in the backtest UI to see metrics tables and equity-curve overlay charts. Sharpe, drawdown, win-rate, and overlapping-trade handling are all computed correctly ([#57](https://github.com/naimkatiman/tradeclaw/pull/57), [#58](https://github.com/naimkatiman/tradeclaw/pull/58)).
+
+```ts
+import { runBacktest } from '@tradeclaw/strategies';
+
+const result = await runBacktest({
+  preset: 'hmm-top3',
+  candles,
+  allocation: { perTrade: 0.02 },
+  risk: { maxConcurrent: 3 },
+});
+```
+
+## Public Signal Feed
+
+Rate-limited public API tier — no auth, no key, just fetch:
+
+```bash
+curl https://tradeclaw.win/api/feed/public
+curl https://tradeclaw.win/api/signal-of-the-day
+```
+
 ## Live Signal Badges
 
 Embed live BTC/ETH/Gold signals in any README — auto-refresh every 5 min, no API key:
