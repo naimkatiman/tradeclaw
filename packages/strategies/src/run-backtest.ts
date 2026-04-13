@@ -109,17 +109,13 @@ function computeMaxDrawdown(curve: number[]): number {
   return maxDd;
 }
 
-function computeSharpe(curve: number[]): number {
-  if (curve.length < 2) return 0;
-  const returns: number[] = [];
-  for (let i = 1; i < curve.length; i++) {
-    if (curve[i - 1] > 0) returns.push((curve[i] - curve[i - 1]) / curve[i - 1]);
-  }
-  if (returns.length === 0) return 0;
+function computeSharpe(trades: BacktestTrade[]): number {
+  if (trades.length < 2) return 0;
+  const returns = trades.map((t) => t.pnlPct);
   const mean = returns.reduce((s, r) => s + r, 0) / returns.length;
   const variance = returns.reduce((s, r) => s + (r - mean) ** 2, 0) / returns.length;
   const std = Math.sqrt(variance);
-  return std > 0 ? (mean / std) * Math.sqrt(252) : 0;
+  return std > 0 ? (mean / std) * Math.sqrt(trades.length) : 0;
 }
 
 export function runBacktest(candles: OHLCV[], strategy: Strategy): BacktestResult {
@@ -136,8 +132,10 @@ export function runBacktest(candles: OHLCV[], strategy: Strategy): BacktestResul
   const equityCurve: number[] = new Array(candles.length).fill(START_BALANCE);
   let balance = START_BALANCE;
   let tradeId = 0;
+  let openUntil = -1;
 
   for (const sig of signals) {
+    if (sig.barIndex <= openUntil) continue;
     const currentDd = computeMaxDrawdown(equityCurve.slice(0, sig.barIndex + 1));
     if (!riskAllows(strategy.risk, trades, currentDd)) continue;
 
@@ -181,6 +179,7 @@ export function runBacktest(candles: OHLCV[], strategy: Strategy): BacktestResul
     });
 
     for (let k = exitBar; k < equityCurve.length; k++) equityCurve[k] = balance;
+    openUntil = exitBar;
   }
 
   return {
@@ -189,7 +188,7 @@ export function runBacktest(candles: OHLCV[], strategy: Strategy): BacktestResul
     winRate: trades.length > 0 ? trades.filter((t) => t.win).length / trades.length : 0,
     profitFactor: computeProfitFactor(trades),
     maxDrawdown: computeMaxDrawdown(equityCurve),
-    sharpeRatio: computeSharpe(equityCurve),
+    sharpeRatio: computeSharpe(trades),
     totalReturn: (balance - START_BALANCE) / START_BALANCE,
     startBalance: START_BALANCE,
     endBalance: balance,

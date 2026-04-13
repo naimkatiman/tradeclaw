@@ -43,8 +43,14 @@ OUTPUT_FILE = DATA_DIR / "signals-live.json"
 
 # Active strategy preset — used as a metadata tag on emitted signals.
 # Wire to real preset logic in a follow-up task; for now this is a string tag only.
-# Defaults to 'hmm-top3' (current production behavior) when unset.
-SIGNAL_ENGINE_PRESET = os.environ.get("SIGNAL_ENGINE_PRESET", "hmm-top3")
+# Defaults to 'hmm-top3' (current production behavior) when unset or invalid.
+VALID_PRESETS = {"classic", "regime-aware", "hmm-top3", "vwap-ema-bb", "full-risk"}
+_raw_preset = os.environ.get("SIGNAL_ENGINE_PRESET", "hmm-top3")
+if _raw_preset not in VALID_PRESETS:
+    print(f"[WARN] SIGNAL_ENGINE_PRESET='{_raw_preset}' not in {sorted(VALID_PRESETS)}; falling back to 'hmm-top3'", flush=True)
+    SIGNAL_ENGINE_PRESET = "hmm-top3"
+else:
+    SIGNAL_ENGINE_PRESET = _raw_preset
 
 # Adaptive: read confidence_threshold.txt written by signal-outcome-checker.py
 # (falls back to 70 if file missing/invalid). Closes the feedback loop —

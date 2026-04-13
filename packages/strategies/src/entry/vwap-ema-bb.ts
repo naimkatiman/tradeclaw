@@ -63,22 +63,25 @@ export const vwapEmaBbEntry: EntryModule = {
       const trendUp = e20 > e50;
       const trendDown = e20 < e50;
 
+      const bandWidth = bb.upper - bb.lower;
+      if (bandWidth <= 0) continue;
+
       if (trendUp && close > v && low <= bb.lower) {
-        const pen = (bb.lower - low) / bb.lower;
+        const pen = (bb.lower - low) / bandWidth;
         signals.push({
           barIndex: i,
           direction: 'BUY',
           price: close,
-          confidence: Math.min(1, Math.max(0.3, pen * 10)),
+          confidence: Math.min(1, Math.max(0.3, pen * 2)),
           reason: 'vwap-ema-bb-long',
         });
       } else if (trendDown && close < v && high >= bb.upper) {
-        const pen = (high - bb.upper) / bb.upper;
+        const pen = (high - bb.upper) / bandWidth;
         signals.push({
           barIndex: i,
           direction: 'SELL',
           price: close,
-          confidence: Math.min(1, Math.max(0.3, pen * 10)),
+          confidence: Math.min(1, Math.max(0.3, pen * 2)),
           reason: 'vwap-ema-bb-short',
         });
       }
