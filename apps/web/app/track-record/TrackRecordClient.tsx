@@ -111,10 +111,10 @@ function Sparkline({ hits }: { hits: boolean[] }) {
 
 // ── Main Component ───────────────────────────────────────────────
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 100;
 
 export function TrackRecordClient() {
-  const [period, setPeriod] = useState<Period>('all');
+  const [period, setPeriod] = useState<Period>('30d');
   const [stats, setStats] = useState<HistoryStats | null>(null);
   const [records, setRecords] = useState<HistoryRecord[]>([]);
   const [total, setTotal] = useState(0);

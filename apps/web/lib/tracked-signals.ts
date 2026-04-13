@@ -6,13 +6,23 @@ import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from './signal-thresholds';
 import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
 import { fetchGateState, getGateMode } from './full-risk-gates';
 import { logGateDecision, buildGateLogEntry, type SignalForLog } from './gate-log';
+import {
+  resolveLicense,
+  anonymousContext,
+  FREE_STRATEGY,
+  type LicenseContext,
+} from './licenses';
 
-export async function getTrackedSignals(params: {
+export interface GetTrackedSignalsParams {
   symbol?: string;
   timeframe?: string;
   direction?: string;
   minConfidence?: number;
-}) {
+  /** License context for read-time strategy filtering. Defaults to anonymous ({classic}). */
+  ctx?: LicenseContext;
+}
+
+export async function getTrackedSignals(params: GetTrackedSignalsParams) {
   const result = await getSignals(params);
 
   if (result.signals.length > 0) {
