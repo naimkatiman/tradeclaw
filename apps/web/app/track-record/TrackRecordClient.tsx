@@ -69,7 +69,12 @@ function formatPrice(price: number): string {
 }
 
 function formatTime(ts: number): string {
-  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const d = new Date(ts);
+  const month = d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+  const day = d.getUTCDate();
+  const hh = String(d.getUTCHours()).padStart(2, '0');
+  const mm = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${month} ${day}, ${hh}:${mm} UTC`;
 }
 
 function HitRateBar({ value }: { value: number }) {
@@ -106,18 +111,22 @@ function Sparkline({ hits }: { hits: boolean[] }) {
 
 // ── Main Component ───────────────────────────────────────────────
 
+const PAGE_SIZE = 25;
+
 export function TrackRecordClient() {
   const [period, setPeriod] = useState<Period>('all');
   const [stats, setStats] = useState<HistoryStats | null>(null);
   const [records, setRecords] = useState<HistoryRecord[]>([]);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
   const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchData = useCallback(async (p: Period) => {
+  const fetchData = useCallback(async (p: Period, off: number) => {
     setLoading(true);
     try {
       const [historyRes, leaderboardRes] = await Promise.allSettled([
-        fetch(`/api/signals/history?limit=50&sort=resolved-first&period=${p}`),
+        fetch(`/api/signals/history?limit=${PAGE_SIZE}&offset=${off}&period=${p}`),
         fetch(`/api/leaderboard?period=${p}`),
       ]);
 
@@ -125,6 +134,7 @@ export function TrackRecordClient() {
         const data = await historyRes.value.json();
         setStats(data.stats ?? null);
         setRecords(data.records ?? []);
+        setTotal(data.total ?? 0);
       }
 
       if (leaderboardRes.status === 'fulfilled' && leaderboardRes.value.ok) {
@@ -139,10 +149,15 @@ export function TrackRecordClient() {
   }, []);
 
   useEffect(() => {
-    fetchData(period);
-  }, [period, fetchData]);
+    fetchData(period, offset);
+  }, [period, offset, fetchData]);
 
-  const resolvedRecords = records.filter(r => r.outcomes['24h'] !== null);
+  useEffect(() => {
+    setOffset(0);
+  }, [period]);
+
+  const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
@@ -313,17 +328,22 @@ export function TrackRecordClient() {
           </div>
         </section>
 
-        {/* Recent Resolved Signals */}
+        {/* All Signals */}
         <section className="mb-8">
-          <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-3">
-            Recent Resolved Signals
-          </h2>
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold">
+              All Signals
+            </h2>
+            <span className="text-[10px] font-mono text-[var(--text-secondary)]">
+              {total > 0 ? `${offset + 1}–${Math.min(offset + PAGE_SIZE, total)} of ${total}` : ''}
+            </span>
+          </div>
           <div className="glass-card rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs font-mono">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
-                    <th className="px-4 py-2.5 text-left font-medium">Time</th>
+                    <th className="px-4 py-2.5 text-left font-medium">Time (UTC)</th>
                     <th className="px-3 py-2.5 text-left font-medium">Pair</th>
                     <th className="px-3 py-2.5 text-center font-medium">Dir</th>
                     <th className="px-3 py-2.5 text-right font-medium">Entry</th>
@@ -333,10 +353,11 @@ export function TrackRecordClient() {
                   </tr>
                 </thead>
                 <tbody>
-                  {resolvedRecords.slice(0, 20).map(r => {
+                  {records.map(r => {
                     const outcome24h = r.outcomes['24h'];
                     const outcome4h = r.outcomes['4h'];
                     const pnl = outcome24h?.pnlPct ?? outcome4h?.pnlPct ?? null;
+                    const isPending = outcome24h == null && outcome4h == null;
                     return (
                       <tr key={r.id} className="border-b border-[var(--border)] last:border-0 hover:bg-white/[0.02] transition-colors">
                         <td className="px-4 py-2.5 text-[var(--text-secondary)]">{formatTime(r.timestamp)}</td>
@@ -347,7 +368,7 @@ export function TrackRecordClient() {
                         <td className="px-3 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">{formatPrice(r.entryPrice)}</td>
                         <td className="px-3 py-2.5 text-center">
                           {outcome4h == null ? (
-                            <span className="text-zinc-600">—</span>
+                            <span className="text-zinc-600">{isPending ? '…' : '—'}</span>
                           ) : outcome4h.hit ? (
                             <span className="text-emerald-400 font-semibold">TP</span>
                           ) : (
@@ -356,7 +377,7 @@ export function TrackRecordClient() {
                         </td>
                         <td className="px-3 py-2.5 text-center">
                           {outcome24h == null ? (
-                            <span className="text-zinc-600">—</span>
+                            <span className="text-zinc-600">{isPending ? '…' : '—'}</span>
                           ) : outcome24h.hit ? (
                             <span className="text-emerald-400 font-semibold">TP</span>
                           ) : (
@@ -366,14 +387,14 @@ export function TrackRecordClient() {
                         <td className={`px-4 py-2.5 text-right tabular-nums font-semibold ${
                           pnl == null ? 'text-zinc-600' : pnl >= 0 ? 'text-emerald-400' : 'text-red-400'
                         }`}>
-                          {pnl == null ? '—' : `${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}%`}
+                          {pnl == null ? (isPending ? 'pending' : '—') : `${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}%`}
                         </td>
                       </tr>
                     );
                   })}
-                  {loading && resolvedRecords.length === 0 && Array.from({ length: 5 }).map((_, i) => (
+                  {loading && records.length === 0 && Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i} className="border-b border-white/[0.03]">
-                      <td className="px-4 py-3"><div className="h-3 w-20 bg-white/[0.06] rounded animate-pulse" /></td>
+                      <td className="px-4 py-3"><div className="h-3 w-24 bg-white/[0.06] rounded animate-pulse" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-14 bg-white/[0.06] rounded animate-pulse" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-8 bg-white/[0.06] rounded animate-pulse mx-auto" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-16 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
@@ -382,16 +403,37 @@ export function TrackRecordClient() {
                       <td className="px-3 py-3"><div className="h-3 w-12 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
                     </tr>
                   ))}
-                  {!loading && resolvedRecords.length === 0 && (
+                  {!loading && records.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)]">
-                        No resolved signals yet. Check back after signals have aged 24+ hours.
+                        No signals for this period yet.
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border)] text-[11px] font-mono">
+                <button
+                  onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
+                  disabled={offset === 0 || loading}
+                  className="px-3 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  ← Prev
+                </button>
+                <span className="text-[var(--text-secondary)]">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setOffset(offset + PAGE_SIZE)}
+                  disabled={offset + PAGE_SIZE >= total || loading}
+                  className="px-3 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
           </div>
         </section>
 
