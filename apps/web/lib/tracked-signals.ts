@@ -109,7 +109,7 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
   // doesn't have a grant for. Recording above was not filtered, so the DB
   // retains the full historical set for backtests.
   result.signals = result.signals.filter((s) => {
-    const sid = (s as { strategyId?: string }).strategyId ?? FREE_STRATEGY;
+    const sid = s.strategyId ?? FREE_STRATEGY;
     return ctx.unlockedStrategies.has(sid);
   });
 
