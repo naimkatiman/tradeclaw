@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readHistoryAsync } from '../../../lib/signal-history';
+import { readHistoryAsync, computeLeaderboard } from '../../../lib/signal-history';
 import { getLeaderboard } from '../../../lib/leaderboard-cache';
+
+const VALID_STRATEGIES = new Set([
+  'classic', 'regime-aware', 'hmm-top3', 'vwap-ema-bb', 'full-risk',
+]);
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,9 +21,16 @@ export async function GET(request: NextRequest) {
       : 'hitRate';
 
     const pairFilter = searchParams.get('pair')?.toUpperCase();
+    const rawStrategy = searchParams.get('strategyId');
+    const strategyFilter = rawStrategy && VALID_STRATEGIES.has(rawStrategy)
+      ? rawStrategy
+      : undefined;
 
-    // Serve from precomputed cache (resolves outcomes + computes on miss)
-    const data = await getLeaderboard(period, sortBy);
+    // Strategy-filtered variant recomputes from history; the unfiltered path
+    // still uses the precomputed cache.
+    const data = strategyFilter
+      ? computeLeaderboard(await readHistoryAsync(), period, sortBy, strategyFilter)
+      : await getLeaderboard(period, sortBy);
 
     if (pairFilter) {
       const asset = data.assets.find(a => a.pair === pairFilter);

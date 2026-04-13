@@ -60,6 +60,25 @@ interface LeaderboardData {
   };
 }
 
+interface StrategyBreakdownRow {
+  strategyId: string;
+  totalSignals: number;
+  resolvedSignals: number;
+  hitRate4h: number;
+  hitRate24h: number;
+  avgConfidence: number;
+  avgPnl: number;
+}
+
+const STRATEGY_LABELS: Record<string, string> = {
+  'hmm-top3': 'HMM Top-3',
+  'classic': 'Classic',
+  'regime-aware': 'Regime Aware',
+  'vwap-ema-bb': 'VWAP + EMA + BB',
+  'full-risk': 'Full Risk Pipeline',
+  'unknown': 'Unknown',
+};
+
 // ── Helpers ──────────────────────────────────────────────────────
 
 function formatPrice(price: number): string {
@@ -111,14 +130,16 @@ export function TrackRecordClient() {
   const [stats, setStats] = useState<HistoryStats | null>(null);
   const [records, setRecords] = useState<HistoryRecord[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
+  const [strategyBreakdown, setStrategyBreakdown] = useState<StrategyBreakdownRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async (p: Period) => {
     setLoading(true);
     try {
-      const [historyRes, leaderboardRes] = await Promise.allSettled([
+      const [historyRes, leaderboardRes, breakdownRes] = await Promise.allSettled([
         fetch('/api/signals/history?limit=50&sort=resolved-first'),
         fetch(`/api/leaderboard?period=${p}`),
+        fetch(`/api/strategy-breakdown?period=${p}`),
       ]);
 
       if (historyRes.status === 'fulfilled' && historyRes.value.ok) {
@@ -130,6 +151,11 @@ export function TrackRecordClient() {
       if (leaderboardRes.status === 'fulfilled' && leaderboardRes.value.ok) {
         const data = await leaderboardRes.value.json();
         setLeaderboard(data);
+      }
+
+      if (breakdownRes.status === 'fulfilled' && breakdownRes.value.ok) {
+        const data = await breakdownRes.value.json();
+        setStrategyBreakdown(Array.isArray(data.rows) ? data.rows : []);
       }
     } catch {
       // silently fail
@@ -222,6 +248,47 @@ export function TrackRecordClient() {
             <EquityCurve />
           </div>
         </section>
+
+        {/* Per-Strategy Breakdown */}
+        {strategyBreakdown.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-3">
+              Per-Strategy Performance
+            </h2>
+            <div className="glass-card rounded-2xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs font-mono">
+                  <thead>
+                    <tr className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] border-b border-white/[0.06]">
+                      <th className="text-left px-4 py-3 font-semibold">Strategy</th>
+                      <th className="text-right px-4 py-3 font-semibold">Signals</th>
+                      <th className="text-right px-4 py-3 font-semibold">Resolved</th>
+                      <th className="text-left px-4 py-3 font-semibold w-40">Hit Rate 24h</th>
+                      <th className="text-right px-4 py-3 font-semibold">Avg Conf</th>
+                      <th className="text-right px-4 py-3 font-semibold">Avg P&amp;L</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {strategyBreakdown.map(row => (
+                      <tr key={row.strategyId} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02]">
+                        <td className="px-4 py-3 text-[var(--foreground)]">
+                          {STRATEGY_LABELS[row.strategyId] ?? row.strategyId}
+                        </td>
+                        <td className="text-right tabular-nums px-4 py-3">{row.totalSignals}</td>
+                        <td className="text-right tabular-nums px-4 py-3 text-[var(--text-secondary)]">{row.resolvedSignals}</td>
+                        <td className="px-4 py-3"><HitRateBar value={row.hitRate24h} /></td>
+                        <td className="text-right tabular-nums px-4 py-3 text-[var(--text-secondary)]">{row.avgConfidence}%</td>
+                        <td className={`text-right tabular-nums px-4 py-3 ${row.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {row.avgPnl >= 0 ? '+' : ''}{row.avgPnl.toFixed(2)}%
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Per-Symbol Breakdown */}
         <section className="mb-8">

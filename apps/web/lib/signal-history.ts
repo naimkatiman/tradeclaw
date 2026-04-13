@@ -76,6 +76,16 @@ export interface LeaderboardData {
   };
 }
 
+export interface StrategyBreakdownRow {
+  strategyId: string;
+  totalSignals: number;
+  resolvedSignals: number;
+  hitRate4h: number;
+  hitRate24h: number;
+  avgConfidence: number;
+  avgPnl: number;
+}
+
 // ── Helpers ──────────────────────────────────────────────────
 
 const isDbEnabled = () => !!process.env.DATABASE_URL;
@@ -607,13 +617,18 @@ export function computeLeaderboard(
   records: SignalHistoryRecord[],
   period: '7d' | '30d' | 'all',
   sortBy: 'hitRate' | 'totalSignals' | 'avgConfidence' = 'hitRate',
+  strategyId?: string,
 ): LeaderboardData {
   const cutoff =
     period === '7d' ? Date.now() - 7 * 86400000
     : period === '30d' ? Date.now() - 30 * 86400000
     : 0;
 
-  const filtered = records.filter(r => r.timestamp >= cutoff && !r.isSimulated);
+  const filtered = records.filter(
+    r => r.timestamp >= cutoff
+      && !r.isSimulated
+      && (strategyId ? r.strategyId === strategyId : true),
+  );
 
   const map = new Map<string, {
     total: number; hits4h: number; resolved4h: number;
@@ -698,3 +713,58 @@ export function computeLeaderboard(
     },
   };
 }
+
+export function computeStrategyBreakdown(
+  records: SignalHistoryRecord[],
+  period: '7d' | '30d' | 'all',
+): StrategyBreakdownRow[] {
+  const cutoff =
+    period === '7d' ? Date.now() - 7 * 86400000
+    : period === '30d' ? Date.now() - 30 * 86400000
+    : 0;
+
+  const filtered = records.filter(r => r.timestamp >= cutoff && !r.isSimulated);
+  const groups = new Map<string, {
+    total: number;
+    resolved4h: number; hits4h: number;
+    resolved24h: number; hits24h: number;
+    confSum: number;
+    pnlSum: number; pnlCount: number;
+  }>();
+
+  for (const r of filtered) {
+    const key = r.strategyId ?? 'unknown';
+    if (!groups.has(key)) {
+      groups.set(key, {
+        total: 0, resolved4h: 0, hits4h: 0, resolved24h: 0, hits24h: 0,
+        confSum: 0, pnlSum: 0, pnlCount: 0,
+      });
+    }
+    const g = groups.get(key)!;
+    g.total++;
+    g.confSum += r.confidence;
+    if (r.outcomes['4h'] !== null) {
+      g.resolved4h++;
+      if (r.outcomes['4h'].hit) g.hits4h++;
+    }
+    if (r.outcomes['24h'] !== null) {
+      g.resolved24h++;
+      if (r.outcomes['24h'].hit) g.hits24h++;
+      g.pnlSum += r.outcomes['24h'].pnlPct;
+      g.pnlCount++;
+    }
+  }
+
+  return Array.from(groups.entries())
+    .map(([strategyId, g]): StrategyBreakdownRow => ({
+      strategyId,
+      totalSignals: g.total,
+      resolvedSignals: g.resolved24h,
+      hitRate4h: g.resolved4h > 0 ? +((g.hits4h / g.resolved4h) * 100).toFixed(1) : 0,
+      hitRate24h: g.resolved24h > 0 ? +((g.hits24h / g.resolved24h) * 100).toFixed(1) : 0,
+      avgConfidence: g.total > 0 ? Math.round(g.confSum / g.total) : 0,
+      avgPnl: g.pnlCount > 0 ? +(g.pnlSum / g.pnlCount).toFixed(2) : 0,
+    }))
+    .sort((a, b) => b.totalSignals - a.totalSignals);
+}
+

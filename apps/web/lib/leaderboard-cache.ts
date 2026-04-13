@@ -11,8 +11,10 @@
 import {
   readHistoryAsync,
   computeLeaderboard,
+  computeStrategyBreakdown,
   resolveRealOutcomes,
   type LeaderboardData,
+  type StrategyBreakdownRow,
 } from './signal-history';
 
 interface CachedSnapshot {
@@ -20,8 +22,14 @@ interface CachedSnapshot {
   expiresAt: number;
 }
 
+interface CachedBreakdown {
+  data: StrategyBreakdownRow[];
+  expiresAt: number;
+}
+
 const TTL_MS = 2 * 60 * 1000; // 2 minutes
 const cache = new Map<string, CachedSnapshot>();
+const breakdownCache = new Map<string, CachedBreakdown>();
 
 let refreshInFlight = false;
 
@@ -89,4 +97,17 @@ async function refreshAndGet(
 /** Invalidate all cached snapshots — call when new outcomes are recorded. */
 export function invalidateLeaderboardCache(): void {
   cache.clear();
+  breakdownCache.clear();
+}
+
+export async function getStrategyBreakdown(
+  period: '7d' | '30d' | 'all',
+): Promise<StrategyBreakdownRow[]> {
+  const cached = breakdownCache.get(period);
+  if (cached && Date.now() < cached.expiresAt) return cached.data;
+
+  const history = await readHistoryAsync();
+  const data = computeStrategyBreakdown(history, period);
+  breakdownCache.set(period, { data, expiresAt: Date.now() + TTL_MS });
+  return data;
 }
