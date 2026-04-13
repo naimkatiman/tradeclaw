@@ -31,6 +31,7 @@ export interface SignalHistoryRecord {
   lastVerified?: number;
   telegramPostedAt?: number;
   telegramMessageId?: number;
+  strategyId?: string;
   outcomes: {
     '4h': SignalOutcome | null;
     '24h': SignalOutcome | null;
@@ -47,6 +48,7 @@ export interface TrackedSignalInput {
   timestamp: string;
   takeProfit1?: number;
   stopLoss?: number;
+  strategyId?: string;
 }
 
 export interface AssetStats {
@@ -101,6 +103,7 @@ interface HistoryRow {
   telegram_message_id: string | null;
   created_at: string;
   last_verified: string | null;
+  strategy_id: string | null;
 }
 
 function rowToRecord(row: HistoryRow): SignalHistoryRecord {
@@ -118,6 +121,7 @@ function rowToRecord(row: HistoryRow): SignalHistoryRecord {
     lastVerified: row.last_verified ? new Date(row.last_verified).getTime() : undefined,
     telegramPostedAt: row.telegram_posted_at ? new Date(row.telegram_posted_at).getTime() : undefined,
     telegramMessageId: row.telegram_message_id ? Number(row.telegram_message_id) : undefined,
+    strategyId: row.strategy_id ?? undefined,
     outcomes: {
       '4h': row.outcome_4h ?? null,
       '24h': row.outcome_24h ?? null,
@@ -174,22 +178,23 @@ export async function recordSignalAsync(
   tp1?: number,
   sl?: number,
   timestamp?: number,
+  strategyId?: string,
 ): Promise<void> {
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
   const ts = timestamp ?? Date.now();
 
   if (isDbEnabled()) {
     await execute(
-      `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        ON CONFLICT (id) DO NOTHING`,
-      [sigId, pair, timeframe, direction, confidence, entryPrice, tp1 ?? null, sl ?? null, new Date(ts).toISOString()],
+      [sigId, pair, timeframe, direction, confidence, entryPrice, tp1 ?? null, sl ?? null, new Date(ts).toISOString(), strategyId ?? null],
     );
     return;
   }
 
   // File fallback
-  recordSignal(pair, timeframe, direction, confidence, entryPrice, sigId, tp1, sl, ts);
+  recordSignal(pair, timeframe, direction, confidence, entryPrice, sigId, tp1, sl, ts, strategyId);
 }
 
 /** Sync file-only fallback — kept for backward compat with getTrackedSignals server component. */
@@ -203,6 +208,7 @@ export function recordSignal(
   tp1?: number,
   sl?: number,
   timestamp?: number,
+  strategyId?: string,
 ): void {
   const records = readHistoryFile();
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
@@ -211,6 +217,7 @@ export function recordSignal(
   records.unshift({
     id: sigId, pair, timeframe, direction, confidence, entryPrice,
     timestamp: timestamp ?? Date.now(), tp1, sl, isSimulated: false,
+    strategyId,
     outcomes: { '4h': null, '24h': null },
   });
   if (records.length > MAX_RECORDS) records.splice(MAX_RECORDS);
@@ -230,11 +237,11 @@ export async function recordSignalsAsync(signals: TrackedSignalInput[]): Promise
       const ts = Number.isFinite(parsedTs) ? new Date(parsedTs).toISOString() : new Date().toISOString();
 
       const result = await query<{ id: string }>(
-        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          ON CONFLICT (id) DO NOTHING
          RETURNING id`,
-        [s.id, s.symbol, s.timeframe, s.direction, s.confidence, s.entry, s.takeProfit1 ?? null, s.stopLoss ?? null, ts],
+        [s.id, s.symbol, s.timeframe, s.direction, s.confidence, s.entry, s.takeProfit1 ?? null, s.stopLoss ?? null, ts, s.strategyId ?? null],
       );
       if (result.length > 0) inserted++;
     }
@@ -261,7 +268,8 @@ export function recordSignals(signals: TrackedSignalInput[]): number {
       direction: signal.direction, confidence: signal.confidence,
       entryPrice: signal.entry, timestamp,
       tp1: signal.takeProfit1, sl: signal.stopLoss,
-      isSimulated: false, outcomes: { '4h': null, '24h': null },
+      isSimulated: false, strategyId: signal.strategyId,
+      outcomes: { '4h': null, '24h': null },
     });
     existingIds.add(signal.id);
     inserted++;

@@ -41,7 +41,7 @@ type NewlyRecordedSignal = {
   timestamp: number;
 };
 
-async function recordNewSignals(): Promise<NewlyRecordedSignal[]> {
+async function recordNewSignals(strategyId: string): Promise<NewlyRecordedSignal[]> {
   const { signals } = await getActiveSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
   const recorded: NewlyRecordedSignal[] = [];
 
@@ -79,6 +79,7 @@ async function recordNewSignals(): Promise<NewlyRecordedSignal[]> {
       sig.tp1,
       sig.sl,
       timestamp,
+      strategyId,
     );
 
     recordedThisRun.add(dedupKey);
@@ -236,7 +237,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
   try {
     const preset = getActivePreset();
-    const newSignals = await recordNewSignals();
+    const newSignals = await recordNewSignals(preset.id);
     const { resolved, pending, errors } = await resolveOldSignals();
 
     const taggedSignals = newSignals.map((s) => ({ ...s, strategyId: preset.id }));
