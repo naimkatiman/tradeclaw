@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOHLCV } from '../../../lib/ohlcv';
 import { isMarketOpen } from '../../../lib/market-hours';
 import { getActiveSignals } from '../../../../lib/signal-repo';
+import { getActivePreset } from './preset-dispatch';
 import {
   recordSignalAsync,
   getRecentRecordForSymbolAsync,
@@ -234,16 +235,20 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
 
   try {
+    const preset = getActivePreset();
     const newSignals = await recordNewSignals();
     const { resolved, pending, errors } = await resolveOldSignals();
 
+    const taggedSignals = newSignals.map((s) => ({ ...s, strategyId: preset.id }));
+
     return NextResponse.json({
       ok: true,
-      recorded: newSignals.length,
-      newSignals,
+      recorded: taggedSignals.length,
+      newSignals: taggedSignals,
       resolved,
       pending,
       errors: errors.length > 0 ? errors : undefined,
+      strategyId: preset.id,
       timestamp: new Date().toISOString(),
     });
   } catch (error: unknown) {

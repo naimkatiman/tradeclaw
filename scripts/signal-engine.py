@@ -41,6 +41,11 @@ PROJECT_DIR = SCRIPT_DIR.parent
 DATA_DIR = PROJECT_DIR / "data"
 OUTPUT_FILE = DATA_DIR / "signals-live.json"
 
+# Active strategy preset — used as a metadata tag on emitted signals.
+# Wire to real preset logic in a follow-up task; for now this is a string tag only.
+# Defaults to 'hmm-top3' (current production behavior) when unset.
+SIGNAL_ENGINE_PRESET = os.environ.get("SIGNAL_ENGINE_PRESET", "hmm-top3")
+
 # Adaptive: read confidence_threshold.txt written by signal-outcome-checker.py
 # (falls back to 70 if file missing/invalid). Closes the feedback loop —
 # when accuracy tanks, checker writes 75/80 and engine actually honors it.
@@ -359,6 +364,9 @@ def analyze_symbol(tv_symbol: str, symbol_info: dict) -> dict | None:
         signal_output["regimeConfidence"] = regime_result["confidence"]
         signal_output["regimeFeatures"] = regime_result["features"]
 
+    # Tag with the active strategy preset (string metadata only; real dispatch in follow-up)
+    signal_output["strategyId"] = SIGNAL_ENGINE_PRESET
+
     return signal_output
 
 
@@ -367,6 +375,7 @@ def main():
     print(f"[{datetime.now(timezone.utc).isoformat()}] TradeClaw Signal Engine v3.1")
     print(f"4-TF Confluence: M5/M15/H1/H4")
     print(f"Minimum confidence: {MIN_CONFIDENCE}%")
+    print(f"Strategy preset: {SIGNAL_ENGINE_PRESET}")
     print("=" * 60)
 
     # Ensure data directory exists
@@ -420,6 +429,7 @@ def main():
     output = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "engine_version": "v3.1-optimized",
+        "strategy_preset": SIGNAL_ENGINE_PRESET,
         "min_confidence": MIN_CONFIDENCE,
         "count": len(signals),
         "stats": stats,
