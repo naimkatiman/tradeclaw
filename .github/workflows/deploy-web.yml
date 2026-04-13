@@ -1,0 +1,45 @@
+name: Deploy Web (Railway)
+
+# Forces a redeploy of the `web` Railway service on every push to main.
+# Exists because Railway's GitHub auto-deploy integration was only firing on
+# the ws-server service — `web` was silently stuck on stale code, which meant
+# audit fixes that lived only in the Next.js app never reached tradeclaw.win.
+#
+# Requires the `RAILWAY_TOKEN` repo secret: create one in Railway dashboard
+# (Account → Tokens), then add it under GitHub → Settings → Secrets → Actions.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - 'Dockerfile'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/deploy-web.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Redeploy web service
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Install Railway CLI
+        run: curl -fsSL https://railway.com/install.sh | sh
+
+      - name: Trigger redeploy
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "::error::RAILWAY_TOKEN secret not set — add it under Settings → Secrets → Actions."
+            exit 1
+          fi
+          railway redeploy --service web --yes
