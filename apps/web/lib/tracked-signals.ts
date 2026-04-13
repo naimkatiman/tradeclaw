@@ -4,6 +4,8 @@ import { getSignals } from '../app/lib/signals';
 import { recordSignalsAsync } from './signal-history';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from './signal-thresholds';
 import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
+import { fetchGateState, getGateMode } from './full-risk-gates';
+import { logGateDecision, buildGateLogEntry, type SignalForLog } from './gate-log';
 
 export async function getTrackedSignals(params: {
   symbol?: string;
@@ -19,27 +21,77 @@ export async function getTrackedSignals(params: {
     // production, so it never inserts anything). Tag with the active
     // preset so /track-record's per-strategy breakdown reflects reality.
     const strategyId = getActivePreset().id;
-    const toRecord = result.signals
-      .filter(
-        (signal) =>
-          signal.dataQuality === 'real' &&
-          signal.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE,
-      )
-      .map(signal => ({
-        id: signal.id,
-        symbol: signal.symbol,
-        timeframe: signal.timeframe,
-        direction: signal.direction,
-        confidence: signal.confidence,
-        entry: signal.entry,
-        timestamp: signal.timestamp,
-        takeProfit1: signal.takeProfit1,
-        stopLoss: signal.stopLoss,
-        strategyId,
-      }));
+
+    const filtered = result.signals.filter(
+      (signal) =>
+        signal.dataQuality === 'real' &&
+        signal.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE,
+    );
+
+    // ── Full-risk gate evaluation ─────────────────────────────
+    // Phase 1 (shadow): evaluate but do NOT filter — record everything,
+    // log gate decisions to /tmp/tradeclaw-gate-decisions.log so we can
+    // measure predicted-vs-actual block rate before flipping to active.
+    // Phase 2 (active): blocked signals are dropped before recording.
+    const mode = getGateMode();
+    let toRecord = filtered;
+    let blockedSignals: SignalForLog[] = [];
+
+    if (mode !== 'off' && filtered.length > 0) {
+      const gateState = await fetchGateState();
+      const passedSignals: SignalForLog[] = [];
+      const blocked: SignalForLog[] = [];
+
+      for (const sig of filtered) {
+        const summary: SignalForLog = {
+          id: sig.id,
+          symbol: sig.symbol,
+          direction: sig.direction,
+          confidence: sig.confidence,
+        };
+        if (gateState.gatesAllow) {
+          passedSignals.push(summary);
+        } else {
+          blocked.push(summary);
+        }
+      }
+      blockedSignals = blocked;
+
+      // Fire-and-forget log of every batch
+      const entry = buildGateLogEntry(mode, gateState, passedSignals, blocked);
+      logGateDecision(entry).catch(() => undefined);
+
+      if (mode === 'active' && !gateState.gatesAllow) {
+        // Drop blocked signals from the recording pipeline
+        toRecord = [];
+      }
+    }
+
+    const recordPayload = toRecord.map((signal) => ({
+      id: signal.id,
+      symbol: signal.symbol,
+      timeframe: signal.timeframe,
+      direction: signal.direction,
+      confidence: signal.confidence,
+      entry: signal.entry,
+      timestamp: signal.timestamp,
+      takeProfit1: signal.takeProfit1,
+      stopLoss: signal.stopLoss,
+      strategyId,
+    }));
 
     // Record to PostgreSQL (or file fallback) — fire and forget
-    recordSignalsAsync(toRecord).catch(() => {});
+    if (recordPayload.length > 0) {
+      recordSignalsAsync(recordPayload).catch(() => {});
+    }
+
+    // In active mode, also strip blocked signals from the response so
+    // downstream consumers (UI, API clients) see the same view as the DB.
+    // In shadow mode the response is unchanged.
+    if (mode === 'active' && blockedSignals.length > 0) {
+      const blockedIds = new Set(blockedSignals.map((b) => b.id));
+      result.signals = result.signals.filter((s) => !blockedIds.has(s.id));
+    }
   }
 
   return result;
