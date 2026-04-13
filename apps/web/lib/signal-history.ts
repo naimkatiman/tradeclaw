@@ -197,7 +197,8 @@ export async function recordSignalAsync(
     await execute(
       `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       ON CONFLICT (id) DO NOTHING`,
+       ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
+         WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL`,
       [sigId, pair, timeframe, direction, confidence, entryPrice, tp1 ?? null, sl ?? null, new Date(ts).toISOString(), strategyId ?? null],
     );
     return;
@@ -246,10 +247,16 @@ export async function recordSignalsAsync(signals: TrackedSignalInput[]): Promise
       const parsedTs = Date.parse(s.timestamp);
       const ts = Number.isFinite(parsedTs) ? new Date(parsedTs).toISOString() : new Date().toISOString();
 
+      // ON CONFLICT: late-tag strategy_id when it's currently NULL. Bar
+      // timestamps are deterministic so the same id can be re-inserted
+      // many times — the first insert (possibly from pre-strategyId code)
+      // wins for everything else, but we want to retroactively label it
+      // so the per-strategy breakdown isn't mostly NULL.
       const result = await query<{ id: string }>(
         `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-         ON CONFLICT (id) DO NOTHING
+         ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
+           WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL
          RETURNING id`,
         [s.id, s.symbol, s.timeframe, s.direction, s.confidence, s.entry, s.takeProfit1 ?? null, s.stopLoss ?? null, ts, s.strategyId ?? null],
       );
