@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Navbar } from '../components/navbar';
 import { Footer } from '../components/footer';
+import { TIER_DEFINITIONS, type TierDefinition } from '../../lib/stripe';
 
 const FREE_SYMBOLS = ['XAUUSD', 'BTCUSD', 'EURUSD'];
 const PRO_SYMBOLS = ['XAUUSD', 'XAGUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD'];
@@ -10,6 +11,7 @@ interface Feature {
   free: string | boolean;
   pro: string | boolean;
   elite: string | boolean;
+  custom: string | boolean;
 }
 
 const FEATURES: Feature[] = [
@@ -18,72 +20,84 @@ const FEATURES: Feature[] = [
     free: '15-min delay',
     pro: 'Real-time',
     elite: 'Real-time',
+    custom: 'Real-time + dedicated channel',
   },
   {
     label: 'Symbols covered',
     free: `${FREE_SYMBOLS.length} symbols`,
     pro: `${PRO_SYMBOLS.length} core symbols`,
     elite: 'All symbols',
+    custom: 'Your choice',
   },
   {
     label: 'Telegram group',
     free: '@tradeclawwin (public)',
     pro: 'Private Pro group',
     elite: 'Private Elite group',
+    custom: 'White-label / private',
+  },
+  {
+    label: 'Trading bot',
+    free: false,
+    pro: false,
+    elite: 'Exclusive Elite bot',
+    custom: 'Custom bot',
+  },
+  {
+    label: 'Auto-trade (MT5 / cTrader)',
+    free: false,
+    pro: false,
+    elite: true,
+    custom: 'Any broker',
   },
   {
     label: 'TP / SL levels',
     free: 'TP1 only',
     pro: 'TP1, TP2, TP3 + SL',
     elite: 'TP1–3 + Trailing SL',
+    custom: 'Strategy-defined',
   },
   {
     label: 'Indicators',
     free: 'RSI, EMA',
     pro: 'RSI, MACD, EMA, BB, Stoch',
     elite: 'Full suite + MTF confluence',
+    custom: 'Your Pine Script / custom',
   },
   {
     label: 'Signal history',
     free: 'Last 24h',
     pro: 'Last 30 days',
     elite: 'Full history + export',
-  },
-  {
-    label: 'Dashboard',
-    free: 'Basic (delayed)',
-    pro: 'Full real-time',
-    elite: 'Full + historical analytics',
-  },
-  {
-    label: 'Performance stats',
-    free: 'Monthly summary',
-    pro: 'Weekly + monthly',
-    elite: 'Real-time P&L tracker',
+    custom: 'Full history + audit log',
   },
   {
     label: 'API access',
     free: false,
     pro: false,
     elite: '100 req/min',
+    custom: 'Dedicated / unlimited',
   },
   {
-    label: 'CSV / JSON export',
-    free: false,
-    pro: false,
-    elite: true,
+    label: 'Deployment',
+    free: 'Shared',
+    pro: 'Shared',
+    elite: 'Shared',
+    custom: 'On-prem or dedicated cloud',
   },
   {
     label: 'Support',
     free: 'Community',
     pro: 'Email (24h)',
     elite: 'Telegram direct (4h)',
+    custom: 'SLA + dedicated eng',
   },
   {
     label: 'Free trial',
     free: false,
     pro: '7 days',
     elite: '7 days',
+    custom: 'Pilot on request',
   },
 ];
 
@@ -223,74 +237,40 @@ function PlanCard({
 // Page
 // ---------------------------------------------------------------------------
 
-export default function PricingPage() {
-  const proMonthlyPriceId = process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID ?? '';
-  const eliteMonthlyPriceId = process.env.NEXT_PUBLIC_STRIPE_ELITE_MONTHLY_PRICE_ID ?? '';
+function tierToCard(def: TierDefinition): PlanCardProps {
+  const priceIdEnv: Record<string, string | undefined> = {
+    pro: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID,
+    elite: process.env.NEXT_PUBLIC_STRIPE_ELITE_MONTHLY_PRICE_ID,
+  };
+  const priceId = priceIdEnv[def.id] ?? '';
 
-  const plans: PlanCardProps[] = [
-    {
-      name: 'Free',
-      price: 'Free',
-      annual: '',
-      description: 'Start learning and validating signals at no cost.',
-      highlights: [
-        '3 symbols: XAUUSD, BTCUSD, EURUSD',
-        '15-minute delayed signals',
-        'RSI + EMA indicators',
-        'TP1 target only',
-        'Public Telegram channel',
-        'Last 24h signal history',
-      ],
-      ctaLabel: 'Start Free',
-      ctaHref: '/dashboard',
-      priceId: '',
-    },
-    {
-      name: 'Pro',
-      price: '$19',
-      annual: '$190/yr — save $38',
-      description: 'Real-time signals on all major forex, crypto, and metals pairs.',
-      highlights: [
-        '6 core symbols including Silver + ETH',
-        'Real-time signal delivery',
-        'Full indicator suite (RSI, MACD, BB, Stoch)',
-        'TP1, TP2, TP3 + Stop Loss',
-        'Private Pro Telegram group',
-        '30-day signal history',
-        'Email support (24h)',
-        '7-day free trial',
-      ],
-      ctaLabel: 'Start 7-Day Trial',
-      ctaHref: proMonthlyPriceId
-        ? `/api/stripe/checkout?priceId=${proMonthlyPriceId}`
-        : '/dashboard',
-      priceId: proMonthlyPriceId,
-      badge: 'Most Popular',
-      accent: true,
-    },
-    {
-      name: 'Elite',
-      price: '$49',
-      annual: '$490/yr — save $98',
-      description: 'Maximum edge. Full data, API access, and direct support.',
-      highlights: [
-        'All symbols + early speculative setups',
-        'Real-time + MTF confluence analysis',
-        'Trailing SL + partial close levels',
-        'Private Elite Telegram group',
-        'REST API (100 req/min)',
-        'CSV / JSON export',
-        'Real-time P&L tracker',
-        'Direct Telegram support (4h)',
-        '7-day free trial',
-      ],
-      ctaLabel: 'Start 7-Day Trial',
-      ctaHref: eliteMonthlyPriceId
-        ? `/api/stripe/checkout?priceId=${eliteMonthlyPriceId}`
-        : '/dashboard',
-      priceId: eliteMonthlyPriceId,
-    },
-  ];
+  let ctaLabel = 'Start Free';
+  let ctaHref = '/dashboard';
+
+  if (def.kind === 'stripe') {
+    ctaLabel = 'Start 7-Day Trial';
+    ctaHref = priceId ? `/api/stripe/checkout?priceId=${priceId}` : '/dashboard';
+  } else if (def.kind === 'contact') {
+    ctaLabel = 'Contact Sales';
+    ctaHref = '/contact-sales';
+  }
+
+  return {
+    name: def.name,
+    price: def.monthlyPriceLabel,
+    annual: def.annualPriceLabel,
+    description: def.tagline,
+    highlights: def.features,
+    ctaLabel,
+    ctaHref,
+    priceId,
+    badge: def.id === 'pro' ? 'Most Popular' : undefined,
+    accent: def.id === 'pro',
+  };
+}
+
+export default function PricingPage() {
+  const plans: PlanCardProps[] = TIER_DEFINITIONS.map(tierToCard);
 
   return (
     <>
@@ -311,7 +291,7 @@ export default function PricingPage() {
         </div>
 
         {/* Plan cards */}
-        <div className="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-3">
+        <div className="mx-auto mt-12 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {plans.map((plan) => (
             <PlanCard key={plan.name} {...plan} />
           ))}
@@ -346,6 +326,9 @@ export default function PricingPage() {
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                     Elite
                   </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
+                    Custom
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -367,6 +350,9 @@ export default function PricingPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       {renderValue(feature.elite)}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {renderValue(feature.custom)}
                     </td>
                   </tr>
                 ))}

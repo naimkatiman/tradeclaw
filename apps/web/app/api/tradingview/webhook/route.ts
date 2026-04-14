@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { saveAlert } from "@/lib/tradingview-alerts";
 
 const rateLimitMap = new Map<string, { count: number; reset: number }>();
+
+function verifySecret(provided: string | null): boolean {
+  const expected = process.env.TRADINGVIEW_WEBHOOK_SECRET;
+  if (!expected || !provided) return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -67,6 +77,12 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid JSON body" }, { status: 400 });
   }
+  const headerSecret = req.headers.get("x-webhook-secret");
+  const bodySecret = typeof body.secret === "string" ? (body.secret as string) : null;
+  if (!verifySecret(headerSecret ?? bodySecret)) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+  delete body.secret;
   const symbol = (body.symbol ?? body.ticker) as string | undefined;
   const action = (body.action ?? body.side ?? body.direction) as string | undefined;
   if (!symbol || !action) {

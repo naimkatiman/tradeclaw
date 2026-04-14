@@ -5,24 +5,28 @@ import type { TradingSignal } from '../app/lib/signals';
 export { TIER_LEVEL };
 export type { Tier };
 
-// Symbols accessible per tier
+const ELITE_SYMBOLS = [
+  'XAUUSD',
+  'XAGUSD',
+  'BTCUSD',
+  'ETHUSD',
+  'XRPUSD',
+  'EURUSD',
+  'GBPUSD',
+  'USDJPY',
+  'AUDUSD',
+  'USDCAD',
+  'NZDUSD',
+  'USDCHF',
+];
+
+// Symbols accessible per tier. Custom tier inherits Elite's coverage by default —
+// bespoke symbol lists are negotiated out-of-band per deal.
 export const TIER_SYMBOLS: Record<Tier, string[]> = {
   free: ['XAUUSD', 'BTCUSD', 'EURUSD'],
   pro: ['XAUUSD', 'XAGUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD'],
-  elite: [
-    'XAUUSD',
-    'XAGUSD',
-    'BTCUSD',
-    'ETHUSD',
-    'XRPUSD',
-    'EURUSD',
-    'GBPUSD',
-    'USDJPY',
-    'AUDUSD',
-    'USDCAD',
-    'NZDUSD',
-    'USDCHF',
-  ],
+  elite: ELITE_SYMBOLS,
+  custom: ELITE_SYMBOLS,
 };
 
 // History window per tier
@@ -30,6 +34,7 @@ export const TIER_HISTORY_DAYS: Record<Tier, number | null> = {
   free: 1,
   pro: 30,
   elite: null, // unlimited
+  custom: null,
 };
 
 // Signal delay in ms (free gets 15-min delay)
@@ -37,6 +42,7 @@ export const TIER_DELAY_MS: Record<Tier, number> = {
   free: 15 * 60 * 1000,
   pro: 0,
   elite: 0,
+  custom: 0,
 };
 
 /**

@@ -10,7 +10,7 @@ export interface UserRecord {
   id: string;
   email: string;
   stripeCustomerId: string | null;
-  tier: 'free' | 'pro' | 'elite';
+  tier: 'free' | 'pro' | 'elite' | 'custom';
   tierExpiresAt: Date | null;
   telegramUserId: bigint | null;
 }
@@ -130,7 +130,7 @@ export async function updateUserStripeCustomerId(
 
 export async function updateUserTier(
   userId: string,
-  tier: 'free' | 'pro' | 'elite',
+  tier: 'free' | 'pro' | 'elite' | 'custom',
   tierExpiresAt: Date | null,
 ): Promise<void> {
   await execute(
