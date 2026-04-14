@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { getSignals } from '../app/lib/signals';
+import { getPremiumSignalsFor } from './premium-signals';
 import { recordSignalsAsync } from './signal-history';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE, minConfidenceFor } from './signal-thresholds';
 import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
@@ -123,6 +124,23 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
     result.signals = result.signals.filter(
       (s) => s.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE,
     );
+  }
+
+  // Merge premium signals (TradingView webhook ingest). Empty for anonymous
+  // callers — the license check inside getPremiumSignalsFor short-circuits.
+  try {
+    const premium = await getPremiumSignalsFor(ctx, {
+      symbol: params.symbol,
+      timeframe: params.timeframe,
+      direction: params.direction,
+    });
+    if (premium.length > 0) {
+      result.signals = [...result.signals, ...premium].sort(
+        (a, b) => b.confidence - a.confidence,
+      );
+    }
+  } catch {
+    // Premium table missing or DB blip — don't break the free path.
   }
 
   return result;

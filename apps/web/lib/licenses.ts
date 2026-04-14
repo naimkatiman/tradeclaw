@@ -9,10 +9,22 @@ export const FREE_STRATEGY = 'classic' as const;
 
 /** Strategies a license key can grant. `classic` is intentionally excluded — it's free for everyone. */
 export const ALLOWED_PREMIUM_STRATEGIES: ReadonlySet<string> = new Set([
+  // Built-in TA presets
   'regime-aware',
   'hmm-top3',
   'vwap-ema-bb',
   'full-risk',
+  // TradingView Pine-Script strategies (via /api/webhooks/tradingview)
+  'tv-zaky-classic',
+  'tv-hafiz-synergy',
+  'tv-impulse-hunter',
+]);
+
+/** Which strategies are sourced from the TradingView webhook pipe. */
+export const TV_STRATEGIES: ReadonlySet<string> = new Set([
+  'tv-zaky-classic',
+  'tv-hafiz-synergy',
+  'tv-impulse-hunter',
 ]);
 
 export interface LicenseContext {
