@@ -35,6 +35,7 @@ function toHubSymbol(symbol: string): string {
 /** Convert TradeClaw timeframe → Twelve Data interval (used by hub) */
 function toHubInterval(timeframe: string): string {
   const map: Record<string, string> = {
+    M5: '5min',
     M15: '15min',
     H1: '1h',
     H4: '4h',

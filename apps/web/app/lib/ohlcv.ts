@@ -32,10 +32,27 @@ const BINANCE_SYMBOLS: Record<string, string> = {
   AVAXUSD: 'AVAXUSDT',
   ATOMUSD: 'ATOMUSDT',
   MATICUSD: 'MATICUSDT',
+  UNIUSD: 'UNIUSDT',
+  LTCUSD: 'LTCUSDT',
+  BCHUSD: 'BCHUSDT',
+  NEARUSD: 'NEARUSDT',
+  APTUSD: 'APTUSDT',
+  ARBUSD: 'ARBUSDT',
+  OPUSD: 'OPUSDT',
+  FILUSD: 'FILUSDT',
+  INJUSD: 'INJUSDT',
+  SUIUSD: 'SUIUSDT',
+  SEIUSD: 'SEIUSDT',
+  TIAUSD: 'TIAUSDT',
+  FETUSD: 'FETUSDT',
+  AAVEUSD: 'AAVEUSDT',
+  PEPEUSD: 'PEPEUSDT',
+  SHIBUSD: 'SHIBUSDT',
 };
 
 // Timeframe → Binance interval mapping
 const BINANCE_INTERVALS: Record<string, string> = {
+  M5: '5m',
   M15: '15m',
   H1: '1h',
   H4: '4h',
@@ -260,7 +277,7 @@ export async function getOHLCV(symbol: string, timeframe: string = 'H1'): Promis
   // ── Forex/Metals: Stooq (free, no API key) ────────────────
   if (candles.length < 50 && isStooqSymbol(symbol)) {
     try {
-      const lookback = timeframe === 'M15' ? 7 : timeframe === 'D1' ? 365 : 30;
+      const lookback = timeframe === 'M5' ? 3 : timeframe === 'M15' ? 7 : timeframe === 'D1' ? 365 : 30;
       candles = await fetchStooqOHLCV(symbol, timeframe, lookback);
       if (candles.length > 0) source = 'stooq';
 
