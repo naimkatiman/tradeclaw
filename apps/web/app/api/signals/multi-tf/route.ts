@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateMultiTFSignal } from '../../../lib/signal-generator';
+import { generateMultiTFSignal, type SignalMode } from '../../../lib/signal-generator';
 import { SYMBOLS } from '../../../lib/signals';
 
 export const dynamic = 'force-dynamic';
@@ -8,6 +8,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const pairFilter = searchParams.get('pair')?.toUpperCase();
+    const modeParam = searchParams.get('mode')?.toLowerCase();
+    const mode: SignalMode = modeParam === 'scalp' ? 'scalp' : 'swing';
 
     if (pairFilter && !SYMBOLS.some(s => s.symbol === pairFilter)) {
       return NextResponse.json(
@@ -21,7 +23,7 @@ export async function GET(request: NextRequest) {
       : SYMBOLS;
 
     const settled = await Promise.allSettled(
-      targetSymbols.map(s => generateMultiTFSignal(s.symbol))
+      targetSymbols.map(s => generateMultiTFSignal(s.symbol, mode))
     );
 
     const results = settled
@@ -39,6 +41,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       timestamp: new Date().toISOString(),
+      mode,
       count: results.length,
       summary: { bullish, bearish, conflicted, allAligned },
       results,
