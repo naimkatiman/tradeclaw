@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOHLCV } from '../../../lib/ohlcv';
 import { isMarketOpen } from '../../../lib/market-hours';
-import { getActiveSignals } from '../../../../lib/signal-repo';
+import { getSignals } from '../../../lib/signals';
 import { getActivePreset } from './preset-dispatch';
 import {
   recordSignalAsync,
@@ -44,7 +44,13 @@ type NewlyRecordedSignal = {
 };
 
 async function recordNewSignals(strategyId: string): Promise<NewlyRecordedSignal[]> {
-  const { signals } = await getActiveSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
+  const { signals: rawSignals } = await getSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
+  // Mirror the production filter in tracked-signals.ts: real data only, above the
+  // publish threshold. live_signals is empty in production, so we pull directly
+  // from the TA engine just like getTrackedSignals does.
+  const signals = rawSignals.filter(
+    (s) => s.dataQuality === 'real' && s.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE,
+  );
   const recorded: NewlyRecordedSignal[] = [];
 
   // Track symbols already recorded in this run to prevent dupes within a batch
@@ -53,7 +59,7 @@ async function recordNewSignals(strategyId: string): Promise<NewlyRecordedSignal
   // Pick the best signal per symbol+direction (highest confidence)
   const bestBySymDir = new Map<string, typeof signals[number]>();
   for (const sig of signals) {
-    const key = `${sig.symbol}:${sig.signal}`;
+    const key = `${sig.symbol}:${sig.direction}`;
     const existing = bestBySymDir.get(key);
     if (!existing || sig.confidence > existing.confidence) {
       bestBySymDir.set(key, sig);
@@ -63,10 +69,10 @@ async function recordNewSignals(strategyId: string): Promise<NewlyRecordedSignal
   for (const sig of bestBySymDir.values()) {
     if (!isMarketOpen(sig.symbol)) continue;
 
-    const dedupKey = `${sig.symbol}:${sig.signal}`;
+    const dedupKey = `${sig.symbol}:${sig.direction}`;
     if (recordedThisRun.has(dedupKey)) continue;
 
-    const existing = await getRecentRecordForSymbolAsync(sig.symbol, sig.signal, TWO_HOURS_MS);
+    const existing = await getRecentRecordForSymbolAsync(sig.symbol, sig.direction, TWO_HOURS_MS);
     if (existing) continue;
 
     const timestamp = Date.now();
@@ -74,12 +80,12 @@ async function recordNewSignals(strategyId: string): Promise<NewlyRecordedSignal
     await recordSignalAsync(
       sig.symbol,
       sig.timeframe,
-      sig.signal,
+      sig.direction,
       sig.confidence,
       sig.entry,
       id,
-      sig.tp1,
-      sig.sl,
+      sig.takeProfit1,
+      sig.stopLoss,
       timestamp,
       strategyId,
     );
@@ -90,11 +96,11 @@ async function recordNewSignals(strategyId: string): Promise<NewlyRecordedSignal
       id,
       symbol: sig.symbol,
       timeframe: sig.timeframe,
-      direction: sig.signal,
+      direction: sig.direction,
       confidence: sig.confidence,
       entry: sig.entry,
-      takeProfit1: sig.tp1,
-      stopLoss: sig.sl,
+      takeProfit1: sig.takeProfit1,
+      stopLoss: sig.stopLoss,
       timestamp,
     });
   }
@@ -155,8 +161,8 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
 
   for (const record of pending) {
     const age = now - record.timestamp;
-    const needs4h = record.outcomes['4h'] === null && age >= FOUR_HOURS_MS;
-    const needs24h = record.outcomes['24h'] === null && age >= TWENTY_FOUR_HOURS_MS;
+    const needs4h = record.outcomes['4h'] === null;
+    const needs24h = record.outcomes['24h'] === null;
     if (!needs4h && !needs24h) continue;
     if (!record.tp1 || !record.sl) continue;
 
@@ -179,12 +185,12 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
       const window = candles.filter(
         c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
       );
-      const result = resolveWindow(record, window, true);
+      const windowComplete = age >= FOUR_HOURS_MS;
+      const result = resolveWindow(record, window, windowComplete);
       if (result) {
         newOutcomes['4h'] = result;
         changed = true;
       } else if (age >= FOUR_HOURS_MS * 2) {
-        // Force-expire: OHLCV failed or candle window empty
         newOutcomes['4h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
         changed = true;
       }
@@ -195,12 +201,12 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
       const window = candles.filter(
         c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
       );
-      const result = resolveWindow(record, window, true);
+      const windowComplete = age >= TWENTY_FOUR_HOURS_MS;
+      const result = resolveWindow(record, window, windowComplete);
       if (result) {
         newOutcomes['24h'] = result;
         changed = true;
       } else if (age >= TWENTY_FOUR_HOURS_MS * 2) {
-        // Force-expire: OHLCV failed or candle window empty
         newOutcomes['24h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
         changed = true;
       }

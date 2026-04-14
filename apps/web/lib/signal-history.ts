@@ -371,8 +371,8 @@ export async function resolveRealOutcomes(): Promise<void> {
     for (const row of pending) {
       const r = rowToRecord(row);
       const age = now - r.timestamp;
-      const needs4h = r.outcomes['4h'] === null && age >= FOUR_H;
-      const needs24h = r.outcomes['24h'] === null && age >= TWENTY_FOUR_H;
+      const needs4h = r.outcomes['4h'] === null;
+      const needs24h = r.outcomes['24h'] === null;
       if (!needs4h && !needs24h) continue;
 
       let candles: import('../app/lib/ohlcv').OHLCV[] = [];
@@ -390,18 +390,16 @@ export async function resolveRealOutcomes(): Promise<void> {
       if (needs4h) {
         const windowEnd = r.timestamp + FOUR_H;
         const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-        outcome4h = resolveFromCandles(r, window, true);
+        outcome4h = resolveFromCandles(r, window, age >= FOUR_H);
         if (!outcome4h && age >= FOUR_H * 2) {
-          // Force-expire: OHLCV failed or candle window empty
           outcome4h = { price: r.entryPrice, pnlPct: 0, hit: false };
         }
       }
       if (needs24h) {
         const windowEnd = r.timestamp + TWENTY_FOUR_H;
         const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-        outcome24h = resolveFromCandles(r, window, true);
+        outcome24h = resolveFromCandles(r, window, age >= TWENTY_FOUR_H);
         if (!outcome24h && age >= TWENTY_FOUR_H * 2) {
-          // Force-expire: OHLCV failed or candle window empty
           outcome24h = { price: r.entryPrice, pnlPct: 0, hit: false };
         }
       }
@@ -433,8 +431,8 @@ export async function resolveRealOutcomes(): Promise<void> {
     if (r.isSimulated) continue;
     if (!r.tp1 || !r.sl) continue;
     const age = now - r.timestamp;
-    const needs4h = r.outcomes['4h'] === null && age >= FOUR_H;
-    const needs24h = r.outcomes['24h'] === null && age >= TWENTY_FOUR_H;
+    const needs4h = r.outcomes['4h'] === null;
+    const needs24h = r.outcomes['24h'] === null;
     if (!needs4h && !needs24h) continue;
 
     let candles: import('../app/lib/ohlcv').OHLCV[] = [];
@@ -449,22 +447,30 @@ export async function resolveRealOutcomes(): Promise<void> {
     if (needs4h) {
       const windowEnd = r.timestamp + FOUR_H;
       const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-      r.outcomes['4h'] = resolveFromCandles(r, window, true);
-      if (!r.outcomes['4h'] && age >= FOUR_H * 2) {
+      const resolved = resolveFromCandles(r, window, age >= FOUR_H);
+      if (resolved) {
+        r.outcomes['4h'] = resolved;
+        r.lastVerified = now;
+        changed = true;
+      } else if (age >= FOUR_H * 2) {
         r.outcomes['4h'] = { price: r.entryPrice, pnlPct: 0, hit: false };
+        r.lastVerified = now;
+        changed = true;
       }
-      r.lastVerified = now;
-      changed = true;
     }
     if (needs24h) {
       const windowEnd = r.timestamp + TWENTY_FOUR_H;
       const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-      r.outcomes['24h'] = resolveFromCandles(r, window, true);
-      if (!r.outcomes['24h'] && age >= TWENTY_FOUR_H * 2) {
+      const resolved = resolveFromCandles(r, window, age >= TWENTY_FOUR_H);
+      if (resolved) {
+        r.outcomes['24h'] = resolved;
+        r.lastVerified = now;
+        changed = true;
+      } else if (age >= TWENTY_FOUR_H * 2) {
         r.outcomes['24h'] = { price: r.entryPrice, pnlPct: 0, hit: false };
+        r.lastVerified = now;
+        changed = true;
       }
-      r.lastVerified = now;
-      changed = true;
     }
   }
   if (changed) writeHistoryFile(records);

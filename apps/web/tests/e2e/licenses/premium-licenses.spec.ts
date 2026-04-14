@@ -61,6 +61,41 @@ test.describe('Premium strategy licenses', () => {
     expect(stored).toBe(plaintextKey);
   });
 
+  test('premium license lowers the confidence floor on /api/signals', async ({
+    request,
+  }) => {
+    const anon = await request.get('/api/signals');
+    expect(anon.ok()).toBe(true);
+    const anonJson = await anon.json();
+    const anonSignals: Array<{ confidence: number }> = anonJson.signals ?? [];
+    for (const s of anonSignals) {
+      expect(s.confidence).toBeGreaterThanOrEqual(70);
+    }
+
+    const issueRes = await request.post('/api/admin/licenses', {
+      headers: { authorization: `Bearer ${ADMIN_SECRET}` },
+      data: { strategies: ['full-risk'], issuedTo: 'e2e-threshold' },
+    });
+    const { plaintextKey } = await issueRes.json();
+
+    const premium = await request.get('/api/signals', {
+      headers: { 'x-license-key': plaintextKey },
+    });
+    expect(premium.ok()).toBe(true);
+    const premiumJson = await premium.json();
+    const premiumSignals: Array<{ confidence: number }> = premiumJson.signals ?? [];
+    const minPremium = premiumSignals.reduce(
+      (m, s) => Math.min(m, s.confidence),
+      Infinity,
+    );
+    // full-risk floor is 50, so at minimum the premium response must not
+    // be strictly higher than the anonymous floor of 70.
+    if (premiumSignals.length > 0) {
+      expect(minPremium).toBeLessThanOrEqual(70);
+    }
+    expect(premiumSignals.length).toBeGreaterThanOrEqual(anonSignals.length);
+  });
+
   test('verify endpoint rejects malformed keys', async ({ request }) => {
     const res = await request.post('/api/licenses/verify', {
       data: { key: 'not-a-key' },
