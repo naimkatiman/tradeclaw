@@ -21,7 +21,9 @@ interface MTFAnalysis {
   alignedTimeframes: number;
 }
 
-const TIMEFRAMES = ['H1', 'H4', 'D1'];
+const TIMEFRAMES_SWING = ['H1', 'H4', 'D1'];
+const TIMEFRAMES_SCALP = ['M5', 'M15', 'H1'];
+type MTFMode = 'swing' | 'scalp';
 
 function ConfluenceBar({ value, direction }: { value: number; direction: string }) {
   const color = direction === 'BUY' ? '#10B981' : direction === 'SELL' ? '#EF4444' : '#6B7280';
@@ -61,11 +63,13 @@ export function MTFPanel({ symbol }: { symbol?: string }) {
   const [analyses, setAnalyses] = useState<MTFAnalysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSymbol, setSelectedSymbol] = useState(symbol || 'XAUUSD');
+  const [mode, setMode] = useState<MTFMode>('swing');
+  const timeframesForSkeleton = mode === 'scalp' ? TIMEFRAMES_SCALP : TIMEFRAMES_SWING;
 
   useEffect(() => {
     const fetch_ = async () => {
       try {
-        const res = await fetch(`/api/mtf?symbol=${selectedSymbol}`);
+        const res = await fetch(`/api/mtf?symbol=${selectedSymbol}&mode=${mode}`);
         const data = await res.json();
         setAnalyses(data.analyses || []);
       } catch {
@@ -77,7 +81,7 @@ export function MTFPanel({ symbol }: { symbol?: string }) {
     fetch_();
     const interval = setInterval(fetch_, 60000);
     return () => clearInterval(interval);
-  }, [selectedSymbol]);
+  }, [selectedSymbol, mode]);
 
   const analysis = analyses[0];
 
@@ -85,24 +89,44 @@ export function MTFPanel({ symbol }: { symbol?: string }) {
 
   return (
     <div className="glass-card rounded-2xl p-5">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 gap-2">
         <div>
           <div className="text-xs font-semibold text-white tracking-tight">Multi-Timeframe</div>
-          <div className="text-[11px] text-zinc-600 mt-0.5">Confluence analysis</div>
+          <div className="text-[11px] text-zinc-600 mt-0.5">
+            {mode === 'scalp' ? 'Scalp · M5/M15/H1' : 'Swing · H1/H4/D1'}
+          </div>
         </div>
-        <select
-          value={selectedSymbol}
-          onChange={e => { setSelectedSymbol(e.target.value); setLoading(true); }}
-          className="bg-white/5 border border-white/8 rounded-lg px-2 py-1 text-xs text-zinc-400 outline-none focus:border-emerald-500/30"
-        >
-          {SYMBOLS.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border border-white/8 bg-white/5 p-0.5">
+            {(['swing', 'scalp'] as const).map(m => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => { setMode(m); setLoading(true); }}
+                className={`px-2 py-1 text-[10px] font-mono uppercase tracking-wider rounded-md transition-colors ${
+                  mode === m
+                    ? 'bg-emerald-500/15 text-emerald-300'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+          <select
+            value={selectedSymbol}
+            onChange={e => { setSelectedSymbol(e.target.value); setLoading(true); }}
+            className="bg-white/5 border border-white/8 rounded-lg px-2 py-1 text-xs text-zinc-400 outline-none focus:border-emerald-500/30"
+          >
+            {SYMBOLS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
       </div>
 
       {loading ? (
         <div className="space-y-3">
           <div className="grid grid-cols-3 gap-2">
-            {TIMEFRAMES.map(tf => (
+            {timeframesForSkeleton.map(tf => (
               <div key={tf} className="h-16 bg-white/5 rounded-xl animate-pulse" />
             ))}
           </div>

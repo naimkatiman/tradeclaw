@@ -65,6 +65,20 @@ const BB_SQUEEZE_THRESHOLD = 4;
 
 const SIGNAL_THRESHOLD = 35; // Minimum score — require stronger indicator alignment
 const MIN_CONFIDENCE = 65; // Below 65% is noise — need real conviction to trade
+// Scalp mode (M5/M15) uses tighter gates because short timeframes are noisier.
+// Higher score bar + higher confidence floor culls false positives.
+const SIGNAL_THRESHOLD_SCALP = 45;
+const MIN_CONFIDENCE_SCALP = 75;
+
+function isScalpTimeframe(tf: string): boolean {
+  return tf === 'M5' || tf === 'M15';
+}
+
+function getThresholds(tf: string): { signalThreshold: number; minConfidence: number } {
+  return isScalpTimeframe(tf)
+    ? { signalThreshold: SIGNAL_THRESHOLD_SCALP, minConfidence: MIN_CONFIDENCE_SCALP }
+    : { signalThreshold: SIGNAL_THRESHOLD, minConfidence: MIN_CONFIDENCE };
+}
 const MIN_DIRECTIONAL_EDGE = 12; // Bigger gap between buy/sell to avoid choppy entries
 const MIN_TREND_STRENGTH = 0.03;  // reduced — 0.08 blocked signals in sideways markets
 const MIN_ATR_PCT = 0.0001;  // reduced threshold
@@ -618,6 +632,7 @@ export function generateSignalsFromTA(
   const adxValue = indicators.adx.current.adx;
   if (!isNaN(adxValue) && adxValue < 15) return [];
 
+  const { signalThreshold, minConfidence } = getThresholds(timeframe);
   const signals: TradingSignal[] = [];
   const indicatorSummary = buildIndicatorSummary(indicators, currentPrice);
   const swingLevels = findSwingLevels(indicators.highs, indicators.lows);
@@ -637,7 +652,7 @@ export function generateSignalsFromTA(
   const buyGate = passesDirectionGate('BUY', indicators, marketQuality, buyScore, sellScore);
   // Require 2 categories for high confidence, 1 category for moderate signals
   const buyMinCategories = buyScore >= 40 ? 2 : 1;
-  if (buyScore >= SIGNAL_THRESHOLD && buyScore > sellScore && buyingCategoryCount >= buyMinCategories && buyGate.passes) {
+  if (buyScore >= signalThreshold && buyScore > sellScore && buyingCategoryCount >= buyMinCategories && buyGate.passes) {
     let confidence = scaleConfidence(buyScore, buyGate.confidenceBoost, source);
     const slDistance = atr * getCachedAtrMultiplier(symbol);
     const entry = +currentPrice.toFixed(5);
@@ -668,8 +683,8 @@ export function generateSignalsFromTA(
       confidence = 70; // cap unless MTF confirms (caller can re-boost via MTF)
     }
 
-    // Quality gate: below MIN_CONFIDENCE is noise
-    if (confidence < MIN_CONFIDENCE) return signals;
+    // Quality gate: below minConfidence is noise
+    if (confidence < minConfidence) return signals;
 
     const buyCalibration = getCachedAtrCalibration(symbol);
     signals.push({
@@ -698,7 +713,7 @@ export function generateSignalsFromTA(
     .filter(v => v > 0).length;
   const sellGate = passesDirectionGate('SELL', indicators, marketQuality, sellScore, buyScore);
   const sellMinCategories = sellScore >= 40 ? 2 : 1;
-  if (sellScore >= SIGNAL_THRESHOLD && sellScore > buyScore && sellingCategoryCount >= sellMinCategories && sellGate.passes) {
+  if (sellScore >= signalThreshold && sellScore > buyScore && sellingCategoryCount >= sellMinCategories && sellGate.passes) {
     let confidence = scaleConfidence(sellScore, sellGate.confidenceBoost, source);
     const slDistance = atr * getCachedAtrMultiplier(symbol);
     const entry = +currentPrice.toFixed(5);
@@ -729,8 +744,8 @@ export function generateSignalsFromTA(
       confidence = 70; // cap unless MTF confirms (caller can re-boost via MTF)
     }
 
-    // Quality gate: below MIN_CONFIDENCE is noise
-    if (confidence < MIN_CONFIDENCE) return signals;
+    // Quality gate: below minConfidence is noise
+    if (confidence < minConfidence) return signals;
 
     const sellCalibration = getCachedAtrCalibration(symbol);
     signals.push({
