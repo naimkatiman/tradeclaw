@@ -265,6 +265,23 @@ function DataSourceBadge({ source }: { source: string }) {
 // ─── Main Page ───────────────────────────────────────────────
 
 type Tab = 'equity' | 'price' | 'indicators' | 'trades';
+type Period = '7d' | '30d' | '90d' | 'all';
+const PERIODS: Period[] = ['7d', '30d', '90d', 'all'];
+const PERIOD_DAYS: Record<Period, number | null> = { '7d': 7, '30d': 30, '90d': 90, all: null };
+
+function sliceCandlesByPeriod<T extends { timestamp: number }>(candles: T[], period: Period): T[] {
+  const days = PERIOD_DAYS[period];
+  if (days === null || candles.length === 0) return candles;
+  const lastTs = candles[candles.length - 1].timestamp;
+  const cutoff = lastTs - days * 24 * 60 * 60 * 1000;
+  const sliced = candles.filter(c => c.timestamp >= cutoff);
+  return sliced.length > 0 ? sliced : candles;
+}
+
+function formatRange(from: number, to: number): string {
+  const fmt = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  return `${fmt(from)} → ${fmt(to)}`;
+}
 
 export default function BacktestPage() {
   const [params, setParams] = useState<BacktestParams>({
@@ -288,10 +305,13 @@ export default function BacktestPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('equity');
   const [loadedStrategyName, setLoadedStrategyName] = useState<string | null>(null);
+  const [period, setPeriod] = useState<Period>('all');
+  const [availableRange, setAvailableRange] = useState<{ from: number; to: number } | null>(null);
+  const [usedRange, setUsedRange] = useState<{ from: number; to: number; bars: number } | null>(null);
 
   const presetNames = Object.fromEntries(listPresets().map(p => [p.id, p.name]));
 
-  const runAll = useCallback(async (symbol: string, timeframe: string, presets: StrategyId[]) => {
+  const runAll = useCallback(async (symbol: string, timeframe: string, presets: StrategyId[], selectedPeriod: Period) => {
     setRunning(true);
     setError(null);
     setSingleResult(null);
@@ -299,7 +319,28 @@ export default function BacktestPage() {
     setComparisonResults([]);
 
     try {
-      const { candles, source } = await fetchOHLCV(symbol, timeframe);
+      const { candles: rawCandles, source } = await fetchOHLCV(symbol, timeframe);
+
+      if (rawCandles.length > 0) {
+        setAvailableRange({
+          from: rawCandles[0].timestamp,
+          to: rawCandles[rawCandles.length - 1].timestamp,
+        });
+      } else {
+        setAvailableRange(null);
+      }
+
+      const candles = sliceCandlesByPeriod(rawCandles, selectedPeriod);
+
+      if (candles.length > 0) {
+        setUsedRange({
+          from: candles[0].timestamp,
+          to: candles[candles.length - 1].timestamp,
+          bars: candles.length,
+        });
+      } else {
+        setUsedRange(null);
+      }
 
       // Normalize candles to OHLCV (volume is required in @tradeclaw/core)
       const ohlcv = candles.map(c => ({
@@ -370,12 +411,12 @@ export default function BacktestPage() {
       } catch { /* ignore invalid param, run with defaults */ }
     }
 
-    runAll(backtestParams.symbol, backtestParams.timeframe, selectedPresets);
+    runAll(backtestParams.symbol, backtestParams.timeframe, selectedPresets, period);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRun = useCallback(() => {
-    runAll(params.symbol, params.timeframe, selectedPresets);
-  }, [params.symbol, params.timeframe, selectedPresets, runAll]);
+    runAll(params.symbol, params.timeframe, selectedPresets, period);
+  }, [params.symbol, params.timeframe, selectedPresets, period, runAll]);
 
   const togglePreset = (id: StrategyId) => {
     setSelectedPresets(prev => {
@@ -469,6 +510,35 @@ export default function BacktestPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Period</label>
+                <div className="grid grid-cols-4 gap-1">
+                  {PERIODS.map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setPeriod(p)}
+                      className={`py-1.5 rounded-lg text-[10px] font-mono font-semibold transition-all duration-150 ${
+                        period === p
+                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                          : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)] hover:text-[var(--text-secondary)]'
+                      }`}
+                    >
+                      {p.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+                {availableRange && (
+                  <div className="mt-1.5 text-[9px] text-[var(--text-secondary)] font-mono leading-tight">
+                    <div>Available: {formatRange(availableRange.from, availableRange.to)}</div>
+                    {usedRange && (
+                      <div className="text-emerald-400/70">
+                        Using: {formatRange(usedRange.from, usedRange.to)} ({usedRange.bars} bars)
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>
