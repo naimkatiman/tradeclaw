@@ -11,7 +11,7 @@
  *   GET /api/exchange-rates                           → forex rates
  */
 
-import type { OHLCV, PriceQuote, ForexRate } from './types';
+import type { OHLCV, ForexRate } from './types';
 import { safeFetch } from './types';
 
 const HUB_URL = process.env.MARKET_DATA_HUB_URL ?? '';
@@ -63,23 +63,6 @@ interface HubCandleResponse {
   }>;
 }
 
-interface HubQuote {
-  symbol: string;
-  price: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  previous_close: number;
-  change: number;
-  percent_change: number;
-  volume: number | null;
-  timestamp: number;
-  fetched_at: string;
-  asset_type: string;
-  name: string;
-}
-
 interface HubExchangeRateResponse {
   data: Array<{
     from_currency: string;
@@ -116,53 +99,6 @@ export async function fetchHubCandles(
     close: v.close,
     volume: v.volume,
   }));
-}
-
-/**
- * Fetch all quotes from the hub (bulk — single request for all symbols)
- */
-export async function fetchHubQuotes(): Promise<PriceQuote[]> {
-  if (!HUB_URL) return [];
-
-  const data = await safeFetch<HubQuote[]>(`${HUB_URL}/api/quotes`, {
-    timeoutMs: 5000,
-  });
-  if (!data?.length) return [];
-
-  return data.map((q) => ({
-    symbol: q.symbol.replace('/', ''),
-    price: q.price,
-    change24h: q.percent_change,
-    high24h: q.high,
-    low24h: q.low,
-    volume24h: q.volume ?? undefined,
-    timestamp: q.timestamp * 1000,
-    source: 'market-data-hub',
-  }));
-}
-
-/**
- * Fetch a single quote from the hub
- */
-export async function fetchHubQuote(symbol: string): Promise<PriceQuote | null> {
-  if (!HUB_URL) return null;
-
-  const hubSymbol = encodeURIComponent(toHubSymbol(symbol));
-  const data = await safeFetch<HubQuote>(`${HUB_URL}/api/quotes/${hubSymbol}`, {
-    timeoutMs: 5000,
-  });
-  if (!data) return null;
-
-  return {
-    symbol: data.symbol.replace('/', ''),
-    price: data.price,
-    change24h: data.percent_change,
-    high24h: data.high,
-    low24h: data.low,
-    volume24h: data.volume ?? undefined,
-    timestamp: data.timestamp * 1000,
-    source: 'market-data-hub',
-  };
 }
 
 /**

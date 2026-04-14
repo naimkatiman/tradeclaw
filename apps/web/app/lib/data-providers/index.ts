@@ -110,8 +110,6 @@ export {
 export {
   isHubEnabled,
   fetchHubCandles,
-  fetchHubQuotes,
-  fetchHubQuote,
   fetchHubExchangeRates,
 } from './market-data-hub';
 

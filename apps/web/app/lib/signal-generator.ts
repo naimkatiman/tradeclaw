@@ -13,8 +13,15 @@ import { getCachedAtrMultiplier, getCachedAtrCalibration } from './atr-calibrati
 
 // ─── Multi-Timeframe Types ────────────────────────────────────
 
-const MTF_TIMEFRAMES = ['H1', 'H4', 'D1'] as const;
-type MTFTimeframe = typeof MTF_TIMEFRAMES[number];
+const MTF_TIMEFRAMES_SWING = ['H1', 'H4', 'D1'] as const;
+const MTF_TIMEFRAMES_SCALP = ['M5', 'M15', 'H1'] as const;
+type MTFTimeframe = 'M5' | 'M15' | 'H1' | 'H4' | 'D1';
+
+export type SignalMode = 'swing' | 'scalp';
+
+function getMTFTimeframes(mode: SignalMode): readonly MTFTimeframe[] {
+  return mode === 'scalp' ? MTF_TIMEFRAMES_SCALP : MTF_TIMEFRAMES_SWING;
+}
 
 export interface TFDirection {
   timeframe: MTFTimeframe;
@@ -778,14 +785,20 @@ function getTFDirection(indicators: AllIndicators, timeframe: MTFTimeframe): TFD
 }
 
 /**
- * Run the TA engine across H1, H4, D1 for a single symbol and compute confluence.
+ * Run the TA engine across a multi-timeframe set and compute confluence.
+ *   mode 'swing' (default) → H1/H4/D1
+ *   mode 'scalp'           → M5/M15/H1
  * Returns null if insufficient data is available for all timeframes.
  */
-export async function generateMultiTFSignal(symbol: string): Promise<MultiTFResult | null> {
+export async function generateMultiTFSignal(
+  symbol: string,
+  mode: SignalMode = 'swing',
+): Promise<MultiTFResult | null> {
   type TFEntry = { tf: MTFTimeframe; indicators: AllIndicators; source: string };
+  const mtfSet = getMTFTimeframes(mode);
 
   const settled = await Promise.allSettled(
-    MTF_TIMEFRAMES.map(async (tf): Promise<TFEntry | null> => {
+    mtfSet.map(async (tf): Promise<TFEntry | null> => {
       const { candles, source } = await getOHLCV(symbol, tf);
       if (candles.length < 50) return null;
       const indicators = calculateAllIndicators(candles);
