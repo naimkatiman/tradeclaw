@@ -70,11 +70,14 @@ function formatPrice(price: number): string {
 
 function formatTime(ts: number): string {
   const d = new Date(ts);
-  const month = d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
-  const day = d.getUTCDate();
-  const hh = String(d.getUTCHours()).padStart(2, '0');
-  const mm = String(d.getUTCMinutes()).padStart(2, '0');
-  return `${month} ${day}, ${hh}:${mm} UTC`;
+  const month = d.toLocaleString('en-US', { month: 'short' });
+  const day = d.getDate();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  const tz = new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' })
+    .formatToParts(d)
+    .find(p => p.type === 'timeZoneName')?.value ?? '';
+  return `${month} ${day}, ${hh}:${mm} ${tz}`;
 }
 
 function HitRateBar({ value }: { value: number }) {
@@ -343,7 +346,7 @@ export function TrackRecordClient() {
               <table className="w-full text-xs font-mono">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
-                    <th className="px-4 py-2.5 text-left font-medium">Time (UTC)</th>
+                    <th className="px-4 py-2.5 text-left font-medium">Time</th>
                     <th className="px-3 py-2.5 text-left font-medium">Pair</th>
                     <th className="px-3 py-2.5 text-center font-medium">Dir</th>
                     <th className="px-3 py-2.5 text-right font-medium">Entry</th>

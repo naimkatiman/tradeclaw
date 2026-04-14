@@ -77,10 +77,20 @@ export function MilestoneCelebrationModal() {
         const currentStars = data.stars;
         if (mounted) setStars(currentStars);
 
-        let lastSeen = 0;
-        try { lastSeen = parseInt(localStorage.getItem(LS_KEY) ?? '0', 10); } catch { /* ignore */ }
+        let lastSeenRaw: string | null = null;
+        try { lastSeenRaw = localStorage.getItem(LS_KEY); } catch { /* ignore */ }
         const reached = [...MILESTONES].reverse().find((m) => currentStars >= m.threshold);
 
+        // First-time visitor: silently record the current milestone so they never
+        // see a celebration for something they didn't witness crossing.
+        if (lastSeenRaw === null) {
+          try {
+            localStorage.setItem(LS_KEY, String(reached?.threshold ?? 0));
+          } catch { /* ignore */ }
+          return;
+        }
+
+        const lastSeen = parseInt(lastSeenRaw, 10) || 0;
         if (reached && reached.threshold > lastSeen) {
           if (mounted) setMilestone(reached);
           if (mounted) setVisible(true);

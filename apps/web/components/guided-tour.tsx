@@ -180,42 +180,60 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
       setPlacement('center');
       return;
     }
-    const el = document.querySelector(`[data-tour-id="${targetId}"]`);
-    if (!el) {
-      setSpotlightRect(null);
-      setPlacement('center');
-      return;
-    }
-    const domRect = el.getBoundingClientRect();
-    if (domRect.width === 0 && domRect.height === 0) {
-      setSpotlightRect(null);
-      setPlacement('center');
-      return;
-    }
 
-    const rect: SpotlightRect = {
-      top: domRect.top,
-      left: domRect.left,
-      width: domRect.width,
-      height: domRect.height,
+    const applyRect = (el: Element) => {
+      const domRect = el.getBoundingClientRect();
+      if (domRect.width === 0 && domRect.height === 0) {
+        setSpotlightRect(null);
+        setPlacement('center');
+        return;
+      }
+
+      const rect: SpotlightRect = {
+        top: domRect.top,
+        left: domRect.left,
+        width: domRect.width,
+        height: domRect.height,
+      };
+      setSpotlightRect(rect);
+
+      const vh = window.innerHeight;
+      const spaceBelow = vh - (rect.top + rect.height);
+      const spaceAbove = rect.top;
+      const tooltipHeight = 220;
+
+      if (spaceBelow >= tooltipHeight + 24) {
+        setPlacement('bottom');
+      } else if (spaceAbove >= tooltipHeight + 24) {
+        setPlacement('top');
+      } else {
+        setPlacement('bottom');
+      }
     };
-    setSpotlightRect(rect);
 
-    // Decide placement
-    const vh = window.innerHeight;
-    const spaceBelow = vh - (rect.top + rect.height);
-    const spaceAbove = rect.top;
-    const tooltipHeight = 220; // estimated
+    // Retry a few frames if the target isn't mounted yet (auto-show on first load
+    // can race with lazy dashboard sections).
+    let attempts = 0;
+    const tryFind = () => {
+      const el = document.querySelector(`[data-tour-id="${targetId}"]`);
+      if (!el) {
+        if (attempts++ < 20) {
+          requestAnimationFrame(tryFind);
+          return;
+        }
+        setSpotlightRect(null);
+        setPlacement('center');
+        return;
+      }
 
-    if (spaceBelow >= tooltipHeight + 24) {
-      setPlacement('bottom');
-    } else if (spaceAbove >= tooltipHeight + 24) {
-      setPlacement('top');
-    } else {
-      setPlacement('bottom');
-    }
-
-    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      // Scroll first (instant, centered), then measure on the next frame so the
+      // spotlight never flashes at the pre-scroll position. Using 'instant' avoids
+      // the smooth-scroll race that caused the spotlight to land around the wrong
+      // element ("cracked box").
+      el.scrollIntoView({ behavior: 'auto', block: 'center' });
+      requestAnimationFrame(() => applyRect(el));
+    };
+    tryFind();
   }, []);
 
   /* ---- Recalculate on step change ---- */

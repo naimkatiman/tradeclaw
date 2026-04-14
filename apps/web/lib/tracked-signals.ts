@@ -2,13 +2,14 @@ import 'server-only';
 
 import { getSignals } from '../app/lib/signals';
 import { recordSignalsAsync } from './signal-history';
-import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from './signal-thresholds';
+import { PUBLISHED_SIGNAL_MIN_CONFIDENCE, minConfidenceFor } from './signal-thresholds';
 import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
 import { fetchGateState, getGateMode } from './full-risk-gates';
 import { logGateDecision, buildGateLogEntry, type SignalForLog } from './gate-log';
 import {
   resolveLicense,
   anonymousContext,
+  pickHighestUnlocked,
   FREE_STRATEGY,
   type LicenseContext,
 } from './licenses';
@@ -112,6 +113,17 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
     const sid = s.strategyId ?? FREE_STRATEGY;
     return ctx.unlockedStrategies.has(sid);
   });
+
+  // Per-caller confidence floor. Premium callers get a lower floor so they
+  // see signals the free published threshold would have suppressed.
+  const floor = minConfidenceFor(pickHighestUnlocked(ctx));
+  if (floor < PUBLISHED_SIGNAL_MIN_CONFIDENCE) {
+    result.signals = result.signals.filter((s) => s.confidence >= floor);
+  } else {
+    result.signals = result.signals.filter(
+      (s) => s.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE,
+    );
+  }
 
   return result;
 }

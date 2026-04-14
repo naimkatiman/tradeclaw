@@ -62,6 +62,26 @@ export function hashKey(plaintext: string): string {
 // Anonymous context helper (used by fall-through cases)
 // ──────────────────────────────────────────────────────────────────────────
 
+/**
+ * Priority order for picking a caller's "effective" strategy view.
+ * Higher index = more premium. The first match in reverse order wins.
+ */
+const STRATEGY_PRIORITY = [
+  'classic',
+  'regime-aware',
+  'vwap-ema-bb',
+  'hmm-top3',
+  'full-risk',
+] as const;
+
+export function pickHighestUnlocked(ctx: LicenseContext): string {
+  for (let i = STRATEGY_PRIORITY.length - 1; i >= 0; i--) {
+    const sid = STRATEGY_PRIORITY[i];
+    if (ctx.unlockedStrategies.has(sid)) return sid;
+  }
+  return FREE_STRATEGY;
+}
+
 export function anonymousContext(): LicenseContext {
   return {
     licenseId: null,
