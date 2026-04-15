@@ -305,10 +305,10 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
   };
 
   return (
-    <article className="glass-card rounded-2xl p-5 cursor-pointer" onClick={() => { setExpanded(!expanded); onSelect?.(signal); }}>
+    <article className="glass-card rounded-2xl p-3.5 sm:p-5 cursor-pointer" onClick={() => { setExpanded(!expanded); onSelect?.(signal); }}>
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
+      <div className="flex items-start justify-between gap-2 mb-4 flex-wrap">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           <div>
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-sm font-semibold text-[var(--foreground)] font-mono tracking-tight">{signal.symbol}</span>
@@ -346,12 +346,12 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
           </div>
           <DirectionBadge direction={signal.direction} />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0 ml-auto">
           {onToggleFavorite && (
             <button
               onClick={(e) => { e.stopPropagation(); onToggleFavorite(signal.id); }}
               title={isFavorite ? 'Remove from watchlist' : 'Add to watchlist'}
-              className={`flex items-center justify-center min-w-[44px] min-h-[44px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg transition-all duration-200 ${
+              className={`flex items-center justify-center w-9 h-9 min-w-[36px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg transition-all duration-200 ${
                 isFavorite ? 'text-yellow-400 bg-yellow-500/10' : 'text-[var(--text-secondary)] hover:text-yellow-400 hover:bg-[var(--glass-bg)]'
               }`}
             >
@@ -363,7 +363,7 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
           <button
             onClick={(e) => { e.stopPropagation(); setChartVisible(!chartVisible); }}
             title={chartVisible ? 'Hide chart' : 'Show chart'}
-            className={`flex items-center justify-center min-w-[44px] min-h-[44px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg transition-all duration-200 ${
+            className={`flex items-center justify-center w-9 h-9 min-w-[36px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg transition-all duration-200 ${
               chartVisible ? 'text-emerald-400 bg-emerald-500/10' : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
             }`}
           >
@@ -376,7 +376,7 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
             <button
               onClick={handleShare}
               title="Share signal"
-              className="flex items-center justify-center min-w-[44px] min-h-[44px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)] transition-all duration-200"
+              className="flex items-center justify-center w-9 h-9 min-w-[36px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)] transition-all duration-200"
             >
               {shareCopied ? (
                 <svg width="13" height="13" viewBox="0 0 16 16" fill="none">

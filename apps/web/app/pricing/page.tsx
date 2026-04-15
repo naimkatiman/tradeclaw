@@ -249,7 +249,7 @@ function tierToCard(def: TierDefinition): PlanCardProps {
 
   if (def.kind === 'stripe') {
     ctaLabel = 'Start 7-Day Trial';
-    ctaHref = priceId ? `/api/stripe/checkout?priceId=${priceId}` : '/dashboard';
+    ctaHref = priceId ? `/signin?priceId=${priceId}` : '/signin';
   } else if (def.kind === 'contact') {
     ctaLabel = 'Contact Sales';
     ctaHref = '/contact-sales';

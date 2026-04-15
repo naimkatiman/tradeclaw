@@ -107,6 +107,32 @@ export async function getUserById(userId: string): Promise<UserRecord | null> {
   return row ? toUserRecord(row) : null;
 }
 
+export async function getUserByEmail(email: string): Promise<UserRecord | null> {
+  const row = await queryOne<UserRow>(
+    `SELECT id, email, stripe_customer_id, tier, tier_expires_at, telegram_user_id
+     FROM users WHERE email = $1`,
+    [email.toLowerCase()],
+  );
+  return row ? toUserRecord(row) : null;
+}
+
+/**
+ * Find-or-create a user by email. Used by the passwordless session flow so
+ * first-time visitors get a row on their first signin attempt.
+ */
+export async function upsertUserByEmail(email: string): Promise<UserRecord> {
+  const normalized = email.trim().toLowerCase();
+  const row = await queryOne<UserRow>(
+    `INSERT INTO users (email)
+     VALUES ($1)
+     ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
+     RETURNING id, email, stripe_customer_id, tier, tier_expires_at, telegram_user_id`,
+    [normalized],
+  );
+  if (!row) throw new Error('upsertUserByEmail: insert returned no row');
+  return toUserRecord(row);
+}
+
 export async function getUserByStripeCustomerId(
   stripeCustomerId: string,
 ): Promise<UserRecord | null> {

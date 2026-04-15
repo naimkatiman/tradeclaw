@@ -5,20 +5,33 @@ import {
   getUserById,
   updateUserStripeCustomerId,
 } from '../../../../lib/db';
+import { readSessionFromRequest } from '../../../../lib/user-session';
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as { priceId?: unknown; userId?: unknown };
-    const { priceId, userId } = body;
+    const body = (await request.json().catch(() => ({}))) as {
+      priceId?: unknown;
+      userId?: unknown;
+    };
+    const priceId = body.priceId;
+
+    // userId comes from the signed session cookie by default; the body value
+    // is honored only as a fallback for scripted / server-to-server callers.
+    const userSession = readSessionFromRequest(request);
+    const userId =
+      userSession?.userId ?? (typeof body.userId === 'string' ? body.userId : undefined);
 
     if (typeof priceId !== 'string' || !priceId) {
       return NextResponse.json({ error: 'priceId is required' }, { status: 400 });
     }
     if (typeof userId !== 'string' || !userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Not signed in — POST /api/auth/session first' },
+        { status: 401 },
+      );
     }
 
     const tier = resolveTierFromPriceId(priceId);

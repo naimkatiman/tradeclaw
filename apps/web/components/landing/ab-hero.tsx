@@ -129,7 +129,7 @@ function HeroVariantA({
         Open Source · Self-Hosted · AI-Powered
       </div>
 
-      <h1 className="text-5xl font-bold leading-[1.08] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-white">
+      <h1 className="text-[2.25rem] font-bold leading-[1.05] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-white break-words">
         AI Trading Signals.
         <br />
         <span className="text-emerald-400" style={{ textShadow: "0 0 40px rgba(52,211,153,0.4)" }}>
@@ -204,7 +204,7 @@ function HeroVariantB({
         npx @naimkatiman/tradeclaw signals --pair BTCUSD
       </div>
 
-      <h1 className="text-5xl font-bold leading-[1.08] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-white">
+      <h1 className="text-[2.25rem] font-bold leading-[1.05] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-white break-words">
         Stop writing
         <br />
         <span className="text-purple-400" style={{ textShadow: "0 0 40px rgba(168,85,247,0.4)" }}>
@@ -312,7 +312,7 @@ function HeroVariantC({
         Free · Self-Hosted · 10 Assets · Live Now
       </div>
 
-      <h1 className="text-5xl font-bold leading-[1.08] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-white">
+      <h1 className="text-[2.25rem] font-bold leading-[1.05] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-white break-words">
         Know what to trade.
         <br />
         <span className="text-yellow-400" style={{ textShadow: "0 0 40px rgba(234,179,8,0.4)" }}>
@@ -438,7 +438,7 @@ export function ABHero() {
   }
 
   return (
-    <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-16 text-center">
+    <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-4 pt-24 pb-14 text-center sm:px-6 sm:pt-28 sm:pb-16">
       <AnimatedChartHero className="absolute inset-0 w-full h-full" />
       <div
         className="pointer-events-none absolute inset-0"
