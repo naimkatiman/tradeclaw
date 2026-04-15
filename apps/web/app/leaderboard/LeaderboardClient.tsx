@@ -4,8 +4,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { PageNavBar } from '@/components/PageNavBar';
 import type { AssetStats, LeaderboardData, SignalHistoryRecord } from '@/lib/signal-history';
 
-type Period = '7d' | '30d' | 'all';
-type SortKey = 'hitRate' | 'totalSignals' | 'avgConfidence';
+type Period = '7d' | '30d' | '1y' | 'all';
+type SortKey = 'hitRate' | 'totalSignals' | 'avgConfidence' | 'totalPnl';
+
+const PERIOD_LABEL: Record<Period, string> = {
+  '7d': 'Week',
+  '30d': 'Month',
+  '1y': 'Year',
+  all: 'All Time',
+};
 
 interface PairDetail {
   asset: AssetStats;
@@ -129,6 +136,10 @@ function LeaderboardSkeleton({ rows = 8 }: { rows?: number }) {
           <td className="px-4 py-3 text-right">
             <div className="h-3 w-12 rounded bg-white/[0.06] animate-pulse ml-auto" />
           </td>
+          {/* Total P&L */}
+          <td className="px-4 py-3 text-right">
+            <div className="h-3 w-14 rounded bg-white/[0.06] animate-pulse ml-auto" />
+          </td>
           {/* Trend */}
           <td className="px-4 py-3">
             <div className="flex justify-center gap-0.5">
@@ -166,6 +177,11 @@ function fmtAge(ms: number): string {
   if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
   if (sec < 86400) return `${Math.floor(sec / 3600)}h ago`;
   return `${Math.floor(sec / 86400)}d ago`;
+}
+
+function fmtPnl(n: number): string {
+  const sign = n >= 0 ? '+' : '';
+  return `${sign}${n.toFixed(2)}%`;
 }
 
 function fmtPrice(n: number): string {
@@ -215,10 +231,11 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
               <StatCard label="24h Hit Rate" value={`${data.asset.hitRate24h}%`} color={data.asset.hitRate24h >= 55 ? 'text-emerald-400' : 'text-red-400'} />
               <StatCard label="Avg Confidence" value={`${data.asset.avgConfidence}%`} />
             </div>
-            <div className="grid grid-cols-3 gap-3 px-4 pb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-4 pb-4">
               <StatCard label="Best Streak" value={`+${data.asset.bestStreak}`} color="text-emerald-400" />
               <StatCard label="Worst Streak" value={data.asset.worstStreak.toString()} color="text-red-400" />
               <StatCard label="Avg P&L" value={`${data.asset.avgPnl >= 0 ? '+' : ''}${data.asset.avgPnl}%`} color={data.asset.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'} />
+              <StatCard label="Total P&L" value={fmtPnl(data.asset.totalPnl)} color={data.asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'} />
             </div>
 
             {/* recent signals */}
@@ -325,7 +342,9 @@ export default function LeaderboardClient() {
   }
 
   const assets = data
-    ? (sortAsc ? [...data.assets].reverse() : data.assets)
+    ? sortBy === 'totalPnl'
+      ? [...data.assets].sort((a, b) => (sortAsc ? a.totalPnl - b.totalPnl : b.totalPnl - a.totalPnl))
+      : (sortAsc ? [...data.assets].reverse() : data.assets)
     : [];
 
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/leaderboard` : '/leaderboard';
@@ -362,7 +381,13 @@ export default function LeaderboardClient() {
 
         {/* Overall stats */}
         {data && (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
+            <StatCard
+              label={`Cumulative P&L · ${PERIOD_LABEL[period]}`}
+              value={fmtPnl(data.overall.totalPnl)}
+              sub={`${data.overall.resolvedSignals} resolved`}
+              color={data.overall.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}
+            />
             <StatCard label="Total Signals" value={data.overall.totalSignals.toString()} />
             <StatCard label="Resolved" value={data.overall.resolvedSignals.toString()} />
             <StatCard
@@ -387,7 +412,7 @@ export default function LeaderboardClient() {
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           {/* Period */}
           <div className="flex gap-1 bg-white/[0.03] rounded-xl p-1 border border-[var(--border)]">
-            {(['7d', '30d', 'all'] as Period[]).map(p => (
+            {(['7d', '30d', '1y', 'all'] as Period[]).map(p => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
@@ -397,7 +422,7 @@ export default function LeaderboardClient() {
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'
                 }`}
               >
-                {p === 'all' ? 'All Time' : p}
+                {PERIOD_LABEL[p]}
               </button>
             ))}
           </div>
@@ -446,6 +471,12 @@ export default function LeaderboardClient() {
                   Avg Conf<SortIcon active={sortBy === 'avgConfidence'} asc={sortAsc} />
                 </th>
                 <th className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Avg P&L</th>
+                <th
+                  className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none"
+                  onClick={() => handleSort('totalPnl')}
+                >
+                  Total P&L<SortIcon active={sortBy === 'totalPnl'} asc={sortAsc} />
+                </th>
                 <th className="px-4 py-3 text-center text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Trend</th>
               </tr>
             </thead>
@@ -478,6 +509,9 @@ export default function LeaderboardClient() {
                   <td className={`px-4 py-3 text-right font-mono text-xs font-semibold tabular-nums ${asset.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {asset.avgPnl >= 0 ? '+' : ''}{asset.avgPnl}%
                   </td>
+                  <td className={`px-4 py-3 text-right font-mono text-xs font-bold tabular-nums ${asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {fmtPnl(asset.totalPnl)}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-center">
                       <Sparkline hits={asset.recentHits} />
@@ -487,7 +521,7 @@ export default function LeaderboardClient() {
               ))}
               {!loading && assets.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center text-[var(--text-secondary)] text-xs">No signal data for this period.</td>
+                  <td colSpan={9} className="py-16 text-center text-[var(--text-secondary)] text-xs">No signal data for this period.</td>
                 </tr>
               )}
             </tbody>

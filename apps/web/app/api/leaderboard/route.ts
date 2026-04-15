@@ -11,8 +11,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
     const rawPeriod = searchParams.get('period') ?? '30d';
-    const period: '7d' | '30d' | 'all' =
-      rawPeriod === '7d' ? '7d' : rawPeriod === 'all' ? 'all' : '30d';
+    const period: '7d' | '30d' | '1y' | 'all' =
+      rawPeriod === '7d' ? '7d'
+      : rawPeriod === '1y' ? '1y'
+      : rawPeriod === 'all' ? 'all'
+      : '30d';
 
     const rawSort = searchParams.get('sort') ?? 'hitRate';
     const sortBy: 'hitRate' | 'totalSignals' | 'avgConfidence' =

@@ -12,7 +12,7 @@ import { StarsWidget } from '../../components/stars-widget';
 import { HintBadge } from '../../components/feature-highlights';
 import { VisitStreak } from '../../components/visit-streak';
 import { ReEngagementBanner } from '../../components/re-engagement-banner';
-import { SignalChart, FullChart } from '../components/charts';
+import { SignalChart } from '../components/charts';
 import { generateBars } from '../lib/chart-utils';
 import { SYMBOLS } from '../lib/symbol-config';
 import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
@@ -508,21 +508,33 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
         </div>
       )}
 
-      {/* Inline chart (toggle) */}
+      {/* Inline chart (toggle) — shows Entry / SL / TP levels overlaid */}
       {chartVisible && (() => {
         const symbolConfig = SYMBOLS.find(s => s.symbol === signal.symbol);
         const basePrice = symbolConfig?.basePrice ?? signal.entry;
         const ts = new Date(signal.timestamp).getTime();
         const bars = generateBars(basePrice, signal.direction, ts, 120);
+        const signalTime = bars.length > 0 ? bars[Math.min(30, bars.length - 1)]?.time : undefined;
         return (
           <div className="mt-4 pt-4 border-t border-[var(--border)]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold">{signal.symbol} Chart</span>
+              <span className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold">{signal.symbol} · Entry / SL / TP</span>
               <Link href={`/chart/${signal.symbol}`} className="text-[10px] text-emerald-400 hover:text-emerald-300 transition-colors font-mono">
                 Full screen →
               </Link>
             </div>
-            <FullChart symbol={signal.symbol} bars={bars} height={220} pip={symbolConfig?.pip ?? 0.01} />
+            <SignalChart
+              bars={bars}
+              direction={signal.direction}
+              entry={signal.entry}
+              stopLoss={signal.stopLoss}
+              takeProfit1={signal.takeProfit1}
+              takeProfit2={signal.takeProfit2}
+              takeProfit3={signal.takeProfit3}
+              signalTime={signalTime}
+              height={240}
+              pip={symbolConfig?.pip ?? 0.01}
+            />
           </div>
         );
       })()}
@@ -892,6 +904,32 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
 
       {/* Live ticker */}
       <LiveTicker prices={prices} pairs={TICKER_PAIRS} />
+
+      {/* Data transparency bar — who powers the prices, where the fallback kicks in */}
+      <div className="border-b border-[var(--border)] bg-emerald-500/[0.03]">
+        <div className="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-mono text-[var(--text-secondary)]">
+          <span className="inline-flex items-center gap-1.5 text-emerald-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
+            LIVE
+          </span>
+          <span>
+            Prices streamed via{' '}
+            <a
+              href="https://twelvedata.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-400 hover:text-emerald-300 underline decoration-dotted underline-offset-2"
+            >
+              Twelve Data API
+            </a>
+            {' '}→ Redis cache (market-data-hub). Falls back to Binance / CoinGecko / synthetic bars if upstream is unreachable.
+          </span>
+          <span className="hidden md:inline text-white/20">·</span>
+          <span className="italic text-[var(--text-secondary)]/80">
+            Transparency is our motto — every signal is tagged with its real data source.
+          </span>
+        </div>
+      </div>
 
       {/* Synthetic data warning banner */}
       {syntheticSymbols.length > 0 && syntheticSymbols.length / 12 > 0.3 && (

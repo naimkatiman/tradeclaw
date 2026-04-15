@@ -59,6 +59,8 @@ export interface TrackedSignalInput {
   mode?: SignalMode;
 }
 
+export type LeaderboardPeriod = '7d' | '30d' | '1y' | 'all';
+
 export interface AssetStats {
   pair: string;
   totalSignals: number;
@@ -66,6 +68,8 @@ export interface AssetStats {
   hitRate24h: number;
   avgConfidence: number;
   avgPnl: number;
+  /** Cumulative P&L over the period — sum of pnlPct across all resolved 24h outcomes. */
+  totalPnl: number;
   bestStreak: number;
   worstStreak: number;
   recentHits: boolean[];
@@ -78,6 +82,8 @@ export interface LeaderboardData {
     resolvedSignals: number;
     overallHitRate4h: number;
     overallHitRate24h: number;
+    /** Total cumulative P&L across every pair in the period. */
+    totalPnl: number;
     topPerformer: string;
     worstPerformer: string;
     lastUpdated: number;
@@ -644,13 +650,14 @@ export function updateRecords(
 
 export function computeLeaderboard(
   records: SignalHistoryRecord[],
-  period: '7d' | '30d' | 'all',
+  period: LeaderboardPeriod,
   sortBy: 'hitRate' | 'totalSignals' | 'avgConfidence' = 'hitRate',
   strategyId?: string,
 ): LeaderboardData {
   const cutoff =
     period === '7d' ? Date.now() - 7 * 86400000
     : period === '30d' ? Date.now() - 30 * 86400000
+    : period === '1y' ? Date.now() - 365 * 86400000
     : 0;
 
   const filtered = records.filter(
@@ -712,6 +719,7 @@ export function computeLeaderboard(
     hitRate24h: s.resolved24h > 0 ? +((s.hits24h / s.resolved24h) * 100).toFixed(1) : 0,
     avgConfidence: s.total > 0 ? Math.round(s.confSum / s.total) : 0,
     avgPnl: s.pnlCount > 0 ? +(s.pnlSum / s.pnlCount).toFixed(2) : 0,
+    totalPnl: +s.pnlSum.toFixed(2),
     bestStreak: s.bestStreak,
     worstStreak: s.worstStreak,
     recentHits: s.recentHits,
@@ -729,6 +737,8 @@ export function computeLeaderboard(
   const resolved24hAll = filtered.filter(r => r.outcomes['24h'] !== null).length;
   const hits24hAll = filtered.filter(r => r.outcomes['24h']?.hit).length;
 
+  const totalPnlAll = +assets.reduce((sum, a) => sum + a.totalPnl, 0).toFixed(2);
+
   return {
     assets,
     overall: {
@@ -736,6 +746,7 @@ export function computeLeaderboard(
       resolvedSignals: resolved24hAll,
       overallHitRate4h: resolved4hAll > 0 ? +((hits4hAll / resolved4hAll) * 100).toFixed(1) : 0,
       overallHitRate24h: resolved24hAll > 0 ? +((hits24hAll / resolved24hAll) * 100).toFixed(1) : 0,
+      totalPnl: totalPnlAll,
       topPerformer: assets.length > 0 ? assets[0].pair : '—',
       worstPerformer: assets.length > 0 ? assets[assets.length - 1].pair : '—',
       lastUpdated: Date.now(),
@@ -745,11 +756,12 @@ export function computeLeaderboard(
 
 export function computeStrategyBreakdown(
   records: SignalHistoryRecord[],
-  period: '7d' | '30d' | 'all',
+  period: LeaderboardPeriod,
 ): StrategyBreakdownRow[] {
   const cutoff =
     period === '7d' ? Date.now() - 7 * 86400000
     : period === '30d' ? Date.now() - 30 * 86400000
+    : period === '1y' ? Date.now() - 365 * 86400000
     : 0;
 
   const filtered = records.filter(r => r.timestamp >= cutoff && !r.isSimulated);
