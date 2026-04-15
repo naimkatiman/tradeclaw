@@ -7,8 +7,15 @@ import {
   setStoredKey,
   clearStoredKey,
   verifyKey,
+  fetchWithLicense,
   type VerifyResponse,
 } from '@/lib/license-client';
+
+interface TelegramChannel {
+  strategyId: string;
+  label: string | null;
+  inviteUrl: string;
+}
 
 interface Props {
   initialKey: string;
@@ -22,6 +29,7 @@ export default function UnlockClient({ initialKey }: Props) {
   );
   const [result, setResult] = useState<VerifyResponse | null>(null);
   const [stored, setStored] = useState<string | null>(null);
+  const [channels, setChannels] = useState<TelegramChannel[]>([]);
 
   useEffect(() => {
     setStored(getStoredKey());
@@ -42,9 +50,21 @@ export default function UnlockClient({ initialKey }: Props) {
       setStoredKey(rawKey);
       setStored(rawKey);
       setState('success');
-      setTimeout(() => router.push('/dashboard'), 1200);
+      void loadChannels();
+      setTimeout(() => router.push('/dashboard'), 4000);
     } else {
       setState('error');
+    }
+  }
+
+  async function loadChannels() {
+    try {
+      const r = await fetchWithLicense('/api/licenses/telegram-invites');
+      if (!r.ok) return;
+      const data = (await r.json()) as { channels: TelegramChannel[] };
+      setChannels(data.channels);
+    } catch {
+      // ignore — channels are a nice-to-have
     }
   }
 
@@ -99,7 +119,7 @@ export default function UnlockClient({ initialKey }: Props) {
 
       {state === 'success' && result?.valid && (
         <div className="rounded border border-emerald-700 bg-emerald-950/40 p-4 text-sm text-emerald-200">
-          <p>Key accepted. Redirecting to dashboard…</p>
+          <p>Key accepted. Redirecting to dashboard in a few seconds…</p>
           <p className="mt-2">
             Unlocked: {result.unlockedStrategies?.join(', ') || 'none'}
           </p>
@@ -107,6 +127,27 @@ export default function UnlockClient({ initialKey }: Props) {
             <p className="mt-1 text-xs text-emerald-400">
               Expires: {new Date(result.expiresAt).toLocaleString()}
             </p>
+          )}
+          {channels.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-emerald-300">
+                Join your Telegram channels
+              </p>
+              <ul className="space-y-2">
+                {channels.map((c) => (
+                  <li key={c.strategyId}>
+                    <a
+                      href={c.inviteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block rounded bg-emerald-700/40 px-3 py-1 text-xs text-emerald-100 hover:bg-emerald-700/60"
+                    >
+                      {c.label ?? c.strategyId} →
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       )}

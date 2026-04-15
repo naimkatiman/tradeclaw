@@ -19,6 +19,7 @@ import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } 
 import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
 import { SignalExportMenu } from '../components/signal-export-menu';
 import StrategyAccessBar from '../components/StrategyAccessBar';
+import { PremiumSignalFeed } from '../../components/PremiumSignalFeed';
 import { fetchWithLicense } from '../../lib/license-client';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import type { TradingSignal } from '@tradeclaw/signals';
@@ -857,6 +858,11 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       {/* Strategy access bar */}
       <div className="max-w-7xl mx-auto px-4 pt-3">
         <StrategyAccessBar />
+      </div>
+
+      {/* Premium live feed (renders only when a license key is stored) */}
+      <div className="max-w-7xl mx-auto px-4 pt-3">
+        <PremiumSignalFeed />
       </div>
 
       {/* Dashboard controls */}
