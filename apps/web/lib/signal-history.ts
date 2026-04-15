@@ -17,6 +17,15 @@ export interface SignalOutcome {
   hit: boolean;
 }
 
+// Auto-expire writes `{ pnlPct: 0, hit: false }` when a signal window elapses
+// without TP/SL/close resolution. Those are not real trade outcomes and must
+// be excluded from hit-rate and pnl aggregations.
+function isRealOutcome(o: SignalOutcome | null | undefined): o is SignalOutcome {
+  if (!o) return false;
+  if (o.pnlPct === 0 && !o.hit) return false;
+  return true;
+}
+
 export interface SignalHistoryRecord {
   id: string;
   pair: string;
@@ -685,20 +694,19 @@ export function computeLeaderboard(
     s.total++;
     s.confSum += r.confidence;
 
-    if (r.outcomes['4h'] !== null) {
+    if (isRealOutcome(r.outcomes['4h'])) {
       s.resolved4h++;
-      if (r.outcomes['4h'].hit) s.hits4h++;
+      if (r.outcomes['4h']!.hit) s.hits4h++;
     }
-    if (r.outcomes['24h'] !== null) {
+    const o24 = r.outcomes['24h'];
+    if (isRealOutcome(o24)) {
       s.resolved24h++;
-      if (r.outcomes['24h'].hit) {
+      s.pnlSum += o24!.pnlPct;
+      s.pnlCount++;
+      if (o24!.hit) {
         s.hits24h++;
-        s.pnlSum += r.outcomes['24h'].pnlPct;
-        s.pnlCount++;
         s.streak = s.streak >= 0 ? s.streak + 1 : 1;
       } else {
-        s.pnlSum += r.outcomes['24h'].pnlPct;
-        s.pnlCount++;
         s.streak = s.streak <= 0 ? s.streak - 1 : -1;
       }
       s.bestStreak = Math.max(s.bestStreak, s.streak);
@@ -784,14 +792,14 @@ export function computeStrategyBreakdown(
     const g = groups.get(key)!;
     g.total++;
     g.confSum += r.confidence;
-    if (r.outcomes['4h'] !== null) {
+    if (isRealOutcome(r.outcomes['4h'])) {
       g.resolved4h++;
-      if (r.outcomes['4h'].hit) g.hits4h++;
+      if (r.outcomes['4h']!.hit) g.hits4h++;
     }
-    if (r.outcomes['24h'] !== null) {
+    if (isRealOutcome(r.outcomes['24h'])) {
       g.resolved24h++;
-      if (r.outcomes['24h'].hit) g.hits24h++;
-      g.pnlSum += r.outcomes['24h'].pnlPct;
+      if (r.outcomes['24h']!.hit) g.hits24h++;
+      g.pnlSum += r.outcomes['24h']!.pnlPct;
       g.pnlCount++;
     }
   }

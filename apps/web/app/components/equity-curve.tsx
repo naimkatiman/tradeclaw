@@ -362,15 +362,11 @@ export function EquityCurve({ period = 'all' }: EquityCurveProps) {
             </div>
           </div>
           <div className="bg-white/[0.02] rounded-lg py-2 px-3">
-            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">
-              {summary.sharpeRatio !== null ? 'Sharpe Ratio' : 'Win Rate'}
-            </div>
+            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Win Rate</div>
             <div className={`text-xs font-mono font-semibold tabular-nums ${
-              summary.sharpeRatio !== null
-                ? (summary.sharpeRatio >= 1 ? 'text-emerald-400' : summary.sharpeRatio >= 0 ? 'text-zinc-400' : 'text-red-400')
-                : (summary.winRate >= 50 ? 'text-emerald-400' : 'text-red-400')
+              summary.winRate >= 50 ? 'text-emerald-400' : 'text-red-400'
             }`}>
-              {summary.sharpeRatio !== null ? summary.sharpeRatio : `${summary.winRate}%`}
+              {summary.winRate}%
             </div>
           </div>
         </div>
@@ -425,7 +421,9 @@ export function EquityCurve({ period = 'all' }: EquityCurveProps) {
       {summary && summary.totalSignals > 0 && (
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5 text-[10px] font-mono text-zinc-700">
           <span>{summary.totalSignals} verified signals</span>
-          <span>Win rate: {summary.winRate}%</span>
+          {summary.sharpeRatio !== null && (
+            <span>Sharpe (ann.): {summary.sharpeRatio}</span>
+          )}
         </div>
       )}
     </section>

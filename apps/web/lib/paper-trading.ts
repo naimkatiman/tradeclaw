@@ -184,12 +184,19 @@ export function calculateStats(
     if (dd > maxDrawdown) maxDrawdown = dd;
   }
 
-  // Sharpe ratio (simplified annualised)
+  // Sharpe ratio — annualised using actual trade cadence, not a hardcoded 252
   const pnls = history.map((t) => t.pnlPercent);
   const meanPnl = pnls.reduce((s, v) => s + v, 0) / pnls.length;
   const variance = pnls.reduce((s, v) => s + (v - meanPnl) ** 2, 0) / pnls.length;
   const stddev = Math.sqrt(variance);
-  const sharpeRatio = stddev > 0 ? +(meanPnl / stddev * Math.sqrt(252)).toFixed(2) : 0;
+  const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+  const firstTs = Date.parse(history[0].closedAt);
+  const lastTs = Date.parse(history[history.length - 1].closedAt);
+  const spanMs = Number.isFinite(firstTs) && Number.isFinite(lastTs) ? lastTs - firstTs : 0;
+  const tradesPerYear = spanMs > 0 ? (history.length / spanMs) * MS_PER_YEAR : 0;
+  const sharpeRatio = stddev > 0 && tradesPerYear > 0
+    ? +((meanPnl / stddev) * Math.sqrt(tradesPerYear)).toFixed(2)
+    : 0;
 
   return {
     totalTrades: history.length,
