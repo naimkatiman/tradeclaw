@@ -1,0 +1,45 @@
+name: Daily Track Record Post
+
+on:
+  schedule:
+    # 14:00 UTC = 22:00 MYT (after US close)
+    - cron: '0 14 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Screenshot only, do not post to Telegram'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install playwright@^1.59.1
+          npx playwright install --with-deps chromium
+
+      - name: Screenshot + post
+        env:
+          TRACK_RECORD_URL: https://tradeclaw.win/track-record
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+        run: node scripts/post-track-record.js
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: track-record-shot
+          path: data/track-record-shots/*.png
+          retention-days: 14
