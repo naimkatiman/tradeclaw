@@ -3,16 +3,22 @@ import { SYMBOLS } from '../../lib/signals';
 import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 import { readLiveSignals } from '../../../lib/signals-live';
 import { fetchRegimeMap, filterSignalsByRegime, getDominantRegime } from '../../../lib/regime-filter';
-import { getUserTierFromSession } from '../../../lib/db';
-import { FREE_SYMBOLS, FREE_DELAY_MS, isPro } from '../../../lib/tier-gate';
+import { readSessionFromRequest } from '../../../lib/user-session';
+import { getUserTier, filterSignalByTier, TIER_DELAY_MS } from '../../../lib/tier';
+import type { TradingSignal } from '../../lib/signals';
 
 // Re-export types for consumers that imported from here
 export type { TradingSignal, IndicatorSummary } from '../../lib/signals';
 
 export async function GET(request: NextRequest) {
   try {
-    // Resolve caller tier from session cookie
-    const tier = await getUserTierFromSession();
+    // Resolve user tier for gating
+    const session = readSessionFromRequest(request);
+    const tier = session?.userId
+      ? await getUserTier(session.userId)
+      : 'free' as const;
+    const delayMs = TIER_DELAY_MS[tier];
+
     const { searchParams } = new URL(request.url);
     const symbolFilter = searchParams.get('symbol')?.toUpperCase();
     const timeframeFilter = searchParams.get('timeframe')?.toUpperCase() || searchParams.get('tf')?.toUpperCase();
@@ -75,32 +81,30 @@ export async function GET(request: NextRequest) {
       // Regime filter: remove signals going against the current market regime
       mapped = filterSignalsByRegime(mapped, regimeMap);
 
-      // Tier gate: filter/shape signals based on subscription
-      if (!isPro(tier)) {
-        const now = Date.now();
-        mapped = mapped
-          .filter((s) => FREE_SYMBOLS.includes(s.symbol))
-          .filter((s) => {
-            const age = now - new Date(s.timestamp).getTime();
-            return age >= FREE_DELAY_MS;
-          })
-          .map((s) => ({ ...s, takeProfit2: null, takeProfit3: null }));
+      // Tier-based gating: symbol filter, TP masking, delay
+      let gatedMapped = mapped
+        .map(s => filterSignalByTier(s as TradingSignal, tier))
+        .filter((s): s is NonNullable<typeof s> => s !== null);
+
+      if (delayMs > 0) {
+        const cutoff = Date.now() - delayMs;
+        gatedMapped = gatedMapped.filter(s => new Date(s.timestamp).getTime() <= cutoff);
       }
 
       return NextResponse.json({
-        count: mapped.length,
+        count: gatedMapped.length,
         timestamp: new Date().toISOString(),
         tier,
         engine: {
           source: 'tradingview-confluence',
-          real: mapped.length,
+          real: gatedMapped.length,
           fallback: 0,
           version: '3.1.0',
           generated_at: liveData.generatedAt,
           regime: dominantRegime,
         },
         filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence, minConfluence },
-        signals: mapped,
+        signals: gatedMapped,
         syntheticSymbols: [],  // no synthetic — real data from Python engine
       }, {
         headers: { 'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60' },
@@ -116,33 +120,31 @@ export async function GET(request: NextRequest) {
     });
 
     // Regime filter: remove signals going against the current market regime
-    let signals = filterSignalsByRegime(rawSignals, regimeMap);
+    const signals = filterSignalsByRegime(rawSignals, regimeMap);
 
-    // Tier gate for fallback path
-    if (!isPro(tier)) {
-      const now = Date.now();
-      signals = signals
-        .filter((s) => FREE_SYMBOLS.includes(s.symbol))
-        .filter((s) => {
-          const age = now - new Date(s.timestamp).getTime();
-          return age >= FREE_DELAY_MS;
-        })
-        .map((s) => ({ ...s, takeProfit2: undefined, takeProfit3: undefined }));
+    // Tier-based gating: symbol filter, TP masking, delay
+    let gatedSignals = signals
+      .map(s => filterSignalByTier(s, tier))
+      .filter((s): s is NonNullable<typeof s> => s !== null);
+
+    if (delayMs > 0) {
+      const cutoff = Date.now() - delayMs;
+      gatedSignals = gatedSignals.filter(s => new Date(s.timestamp).getTime() <= cutoff);
     }
 
     return NextResponse.json({
-      count: signals.length,
+      count: gatedSignals.length,
       timestamp: new Date().toISOString(),
       tier,
       engine: {
-        real: signals.filter(s => s.source === 'real').length,
-        fallback: signals.filter(s => s.source === 'fallback').length,
+        real: gatedSignals.filter(s => s.source === 'real').length,
+        fallback: gatedSignals.filter(s => s.source === 'fallback').length,
         version: '2.1.0',
         note: liveData?.isStale ? 'signals-live.json stale, using fallback engine' : 'signals-live.json not found or empty',
         regime: dominantRegime,
       },
       filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence },
-      signals,
+      signals: gatedSignals,
       syntheticSymbols,
     }, {
       headers: { 'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60' },
