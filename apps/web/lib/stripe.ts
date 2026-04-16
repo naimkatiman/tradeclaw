@@ -40,66 +40,34 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
   {
     id: 'free',
     name: 'Free',
-    tagline: 'Start learning and validating signals at no cost.',
+    tagline: 'Try TradeClaw with delayed signals on 3 symbols.',
     monthlyPriceLabel: 'Free',
     annualPriceLabel: '',
     kind: 'free',
     features: [
-      '3 symbols: XAUUSD, BTCUSD, EURUSD',
+      '3 symbols (XAU, BTC, EUR)',
       '15-minute delayed signals',
-      'Public Telegram channel',
-      'Last 24h signal history',
+      'TP1 level only',
+      '24-hour signal history',
+      'Public Telegram @tradeclawwin',
+      'Self-host from GitHub (MIT)',
     ],
   },
   {
     id: 'pro',
     name: 'Pro',
-    tagline: 'Real-time premium signals on all major pairs.',
-    monthlyPriceLabel: '$19',
-    annualPriceLabel: '$190/yr — save $38',
+    tagline: 'Real-time signals, all symbols, private Telegram group.',
+    monthlyPriceLabel: '$29',
+    annualPriceLabel: '$290/yr (save 17%)',
     kind: 'stripe',
     features: [
-      '6+ core symbols (FX, crypto, metals)',
       'Real-time signal delivery',
-      'Full indicator suite (RSI, MACD, BB, Stoch)',
-      'TP1, TP2, TP3 + Stop Loss',
+      'All traded symbols',
+      'TP1, TP2, TP3 + SL + trailing',
+      'Premium MTF confluence signals',
+      'Full signal history + CSV export',
       'Private Pro Telegram group',
-      '30-day signal history',
       '7-day free trial',
-    ],
-  },
-  {
-    id: 'elite',
-    name: 'Elite',
-    tagline: 'Everything in Pro + exclusive bot & auto-trade.',
-    monthlyPriceLabel: '$49',
-    annualPriceLabel: '$490/yr — save $98',
-    kind: 'stripe',
-    features: [
-      'Everything in Pro',
-      'Exclusive Elite Telegram bot',
-      'One-click auto-trade on MT5 / cTrader',
-      'MTF confluence + trailing SL',
-      'REST API (100 req/min)',
-      'CSV / JSON export',
-      'Direct Telegram support (4h SLA)',
-      '7-day free trial',
-    ],
-  },
-  {
-    id: 'custom',
-    name: 'Custom',
-    tagline: 'Bespoke strategies, brokers, and infra for funds & desks.',
-    monthlyPriceLabel: "Let's talk",
-    annualPriceLabel: '',
-    kind: 'contact',
-    features: [
-      'Custom strategy development',
-      'Your own Pine Script / TV alerts ingested',
-      'Dedicated signal channel + white-label',
-      'Private broker / prop-firm integration',
-      'On-prem or dedicated cloud deployment',
-      'SLA + priority engineering support',
     ],
   },
 ];
@@ -108,18 +76,12 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
  * Map a Stripe price ID to the corresponding tier name.
  */
 export function resolveTierFromPriceId(priceId: string): Tier | null {
-  const pro = [
-    process.env.STRIPE_PRO_MONTHLY_PRICE_ID,
-    process.env.STRIPE_PRO_ANNUAL_PRICE_ID,
-  ];
-  const elite = [
-    process.env.STRIPE_ELITE_MONTHLY_PRICE_ID,
-    process.env.STRIPE_ELITE_ANNUAL_PRICE_ID,
-  ];
-
-  if (pro.includes(priceId)) return 'pro';
-  if (elite.includes(priceId)) return 'elite';
-  return null;
+  const map: Record<string, Tier> = {};
+  const proMonthly = process.env.STRIPE_PRO_MONTHLY_PRICE_ID;
+  const proAnnual = process.env.STRIPE_PRO_ANNUAL_PRICE_ID;
+  if (proMonthly) map[proMonthly] = 'pro';
+  if (proAnnual) map[proAnnual] = 'pro';
+  return map[priceId] ?? null;
 }
 
 /**

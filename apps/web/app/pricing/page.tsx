@@ -3,102 +3,22 @@ import { Navbar } from '../components/navbar';
 import { Footer } from '../components/footer';
 import { TIER_DEFINITIONS, type TierDefinition } from '../../lib/stripe';
 
-const FREE_SYMBOLS = ['XAUUSD', 'BTCUSD', 'EURUSD'];
-const PRO_SYMBOLS = ['XAUUSD', 'XAGUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD'];
-
 interface Feature {
   label: string;
   free: string | boolean;
   pro: string | boolean;
-  elite: string | boolean;
-  custom: string | boolean;
 }
 
 const FEATURES: Feature[] = [
-  {
-    label: 'Signal delivery',
-    free: '15-min delay',
-    pro: 'Real-time',
-    elite: 'Real-time',
-    custom: 'Real-time + dedicated channel',
-  },
-  {
-    label: 'Symbols covered',
-    free: `${FREE_SYMBOLS.length} symbols`,
-    pro: `${PRO_SYMBOLS.length} core symbols`,
-    elite: 'All symbols',
-    custom: 'Your choice',
-  },
-  {
-    label: 'Telegram group',
-    free: '@tradeclawwin (public)',
-    pro: 'Private Pro group',
-    elite: 'Private Elite group',
-    custom: 'White-label / private',
-  },
-  {
-    label: 'Trading bot',
-    free: false,
-    pro: false,
-    elite: 'Exclusive Elite bot',
-    custom: 'Custom bot',
-  },
-  {
-    label: 'Auto-trade (MT5 / cTrader)',
-    free: false,
-    pro: false,
-    elite: true,
-    custom: 'Any broker',
-  },
-  {
-    label: 'TP / SL levels',
-    free: 'TP1 only',
-    pro: 'TP1, TP2, TP3 + SL',
-    elite: 'TP1–3 + Trailing SL',
-    custom: 'Strategy-defined',
-  },
-  {
-    label: 'Indicators',
-    free: 'RSI, EMA',
-    pro: 'RSI, MACD, EMA, BB, Stoch',
-    elite: 'Full suite + MTF confluence',
-    custom: 'Your Pine Script / custom',
-  },
-  {
-    label: 'Signal history',
-    free: 'Last 24h',
-    pro: 'Last 30 days',
-    elite: 'Full history + export',
-    custom: 'Full history + audit log',
-  },
-  {
-    label: 'API access',
-    free: false,
-    pro: false,
-    elite: '100 req/min',
-    custom: 'Dedicated / unlimited',
-  },
-  {
-    label: 'Deployment',
-    free: 'Shared',
-    pro: 'Shared',
-    elite: 'Shared',
-    custom: 'On-prem or dedicated cloud',
-  },
-  {
-    label: 'Support',
-    free: 'Community',
-    pro: 'Email (24h)',
-    elite: 'Telegram direct (4h)',
-    custom: 'SLA + dedicated eng',
-  },
-  {
-    label: 'Free trial',
-    free: false,
-    pro: '7 days',
-    elite: '7 days',
-    custom: 'Pilot on request',
-  },
+  { label: 'Signal delivery', free: '15-min delay', pro: 'Real-time' },
+  { label: 'Symbols covered', free: '3 (XAU, BTC, EUR)', pro: 'All traded symbols' },
+  { label: 'TP / SL levels', free: 'TP1 only', pro: 'TP1, TP2, TP3 + SL + trailing' },
+  { label: 'Signal quality', free: 'Standard', pro: 'Premium MTF confluence' },
+  { label: 'Signal history', free: 'Last 24h', pro: 'Full history + CSV export' },
+  { label: 'Telegram group', free: '@tradeclawwin (public)', pro: 'Private Pro group' },
+  { label: 'Support', free: 'Community', pro: 'Email (24h)' },
+  { label: 'Free trial', free: false, pro: '7 days' },
+  { label: 'Open-source self-host', free: true, pro: true },
 ];
 
 function CheckIcon() {
@@ -238,11 +158,9 @@ function PlanCard({
 // ---------------------------------------------------------------------------
 
 function tierToCard(def: TierDefinition): PlanCardProps {
-  const priceIdEnv: Record<string, string | undefined> = {
-    pro: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID,
-    elite: process.env.NEXT_PUBLIC_STRIPE_ELITE_MONTHLY_PRICE_ID,
-  };
-  const priceId = priceIdEnv[def.id] ?? '';
+  const priceId = def.id === 'pro'
+    ? (process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID ?? '')
+    : '';
 
   let ctaLabel = 'Start Free';
   let ctaHref = '/dashboard';
@@ -250,9 +168,6 @@ function tierToCard(def: TierDefinition): PlanCardProps {
   if (def.kind === 'stripe') {
     ctaLabel = 'Start 7-Day Trial';
     ctaHref = priceId ? `/signin?priceId=${priceId}` : '/signin';
-  } else if (def.kind === 'contact') {
-    ctaLabel = 'Contact Sales';
-    ctaHref = '/contact-sales';
   }
 
   return {
@@ -291,14 +206,14 @@ export default function PricingPage() {
         </div>
 
         {/* Plan cards */}
-        <div className="mx-auto mt-12 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto mt-12 grid max-w-3xl gap-6 sm:grid-cols-2">
           {plans.map((plan) => (
             <PlanCard key={plan.name} {...plan} />
           ))}
         </div>
 
         {/* Annual callout */}
-        <div className="mx-auto mt-6 max-w-5xl">
+        <div className="mx-auto mt-6 max-w-3xl">
           <p className="text-center text-sm text-[var(--text-secondary)]">
             Save 17% with annual billing &mdash; switch anytime from your
             billing dashboard.
@@ -306,7 +221,7 @@ export default function PricingPage() {
         </div>
 
         {/* Full comparison table */}
-        <div className="mx-auto mt-20 max-w-5xl">
+        <div className="mx-auto mt-20 max-w-3xl">
           <h2 className="mb-6 text-xl font-semibold text-[var(--foreground)]">
             Full feature comparison
           </h2>
@@ -322,12 +237,6 @@ export default function PricingPage() {
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-emerald-400">
                     Pro
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
-                    Elite
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
-                    Custom
                   </th>
                 </tr>
               </thead>
@@ -347,12 +256,6 @@ export default function PricingPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       {renderValue(feature.pro)}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {renderValue(feature.elite)}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {renderValue(feature.custom)}
                     </td>
                   </tr>
                 ))}
@@ -379,8 +282,8 @@ export default function PricingPage() {
                 a: 'After upgrading, visit your dashboard and click "Connect Telegram". You\'ll get a deep link to our bot which links your account and sends your group invite.',
               },
               {
-                q: 'Are the signals generated by AI?',
-                a: 'Yes. TradeClaw runs a multi-timeframe technical analysis engine combining RSI, MACD, EMA, Bollinger Bands, and Stochastic oscillators to generate signals with a confidence score.',
+                q: 'Is the code really open source?',
+                a: 'Yes. TradeClaw is MIT-licensed on GitHub. You can self-host the entire framework. Pro is the hosted tier with real-time delivery, premium signals, and private Telegram access.',
               },
             ].map(({ q, a }) => (
               <div

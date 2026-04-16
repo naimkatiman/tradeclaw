@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readHistoryAsync, resolveRealOutcomes } from '../../../../lib/signal-history';
+import { getUserTierFromSession } from '../../../../lib/db';
+import { historyWindowCutoff, isPro, FREE_SYMBOLS } from '../../../../lib/tier-gate';
 
 export async function GET(request: NextRequest) {
   try {
     await resolveRealOutcomes();
     const { searchParams } = new URL(request.url);
+    const tier = await getUserTierFromSession();
 
     const pair = searchParams.get('pair')?.toUpperCase();
     const direction = searchParams.get('direction')?.toUpperCase() as 'BUY' | 'SELL' | undefined;
@@ -14,6 +17,15 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') ?? '0');
 
     let records = await readHistoryAsync();
+
+    // Tier gate: free users only see FREE_SYMBOLS and 24h window
+    if (!isPro(tier)) {
+      records = records.filter(r => FREE_SYMBOLS.includes(r.pair));
+      const tierCutoff = historyWindowCutoff(tier);
+      if (tierCutoff) {
+        records = records.filter(r => r.timestamp >= tierCutoff.getTime());
+      }
+    }
 
     if (period === '7d' || period === '30d') {
       const days = period === '7d' ? 7 : 30;

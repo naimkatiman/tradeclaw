@@ -5,6 +5,8 @@
  */
 
 import { query, queryOne, execute } from './db-pool';
+import { readSessionFromCookies } from './user-session';
+import type { Tier } from './stripe';
 
 export interface UserRecord {
   id: string;
@@ -309,4 +311,16 @@ export async function deactivateUserTelegramInvites(
     createdAt: new Date(row.created_at),
     expiresAt: row.expires_at ? new Date(row.expires_at) : null,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Tier resolution from session
+// ---------------------------------------------------------------------------
+
+/** Get user tier from the current session cookie. Returns 'free' if no valid session. */
+export async function getUserTierFromSession(): Promise<Tier> {
+  const session = await readSessionFromCookies();
+  if (!session) return 'free';
+  const user = await getUserById(session.userId);
+  return (user?.tier as Tier) ?? 'free';
 }

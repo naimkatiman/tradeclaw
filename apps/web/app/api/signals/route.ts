@@ -3,12 +3,16 @@ import { SYMBOLS } from '../../lib/signals';
 import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 import { readLiveSignals } from '../../../lib/signals-live';
 import { fetchRegimeMap, filterSignalsByRegime, getDominantRegime } from '../../../lib/regime-filter';
+import { getUserTierFromSession } from '../../../lib/db';
+import { FREE_SYMBOLS, FREE_DELAY_MS, isPro } from '../../../lib/tier-gate';
 
 // Re-export types for consumers that imported from here
 export type { TradingSignal, IndicatorSummary } from '../../lib/signals';
 
 export async function GET(request: NextRequest) {
   try {
+    // Resolve caller tier from session cookie
+    const tier = await getUserTierFromSession();
     const { searchParams } = new URL(request.url);
     const symbolFilter = searchParams.get('symbol')?.toUpperCase();
     const timeframeFilter = searchParams.get('timeframe')?.toUpperCase() || searchParams.get('tf')?.toUpperCase();
@@ -71,9 +75,22 @@ export async function GET(request: NextRequest) {
       // Regime filter: remove signals going against the current market regime
       mapped = filterSignalsByRegime(mapped, regimeMap);
 
+      // Tier gate: filter/shape signals based on subscription
+      if (!isPro(tier)) {
+        const now = Date.now();
+        mapped = mapped
+          .filter((s) => FREE_SYMBOLS.includes(s.symbol))
+          .filter((s) => {
+            const age = now - new Date(s.timestamp).getTime();
+            return age >= FREE_DELAY_MS;
+          })
+          .map((s) => ({ ...s, takeProfit2: null, takeProfit3: null }));
+      }
+
       return NextResponse.json({
         count: mapped.length,
         timestamp: new Date().toISOString(),
+        tier,
         engine: {
           source: 'tradingview-confluence',
           real: mapped.length,
@@ -86,7 +103,7 @@ export async function GET(request: NextRequest) {
         signals: mapped,
         syntheticSymbols: [],  // no synthetic — real data from Python engine
       }, {
-        headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60' },
+        headers: { 'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60' },
       });
     }
 
@@ -99,11 +116,24 @@ export async function GET(request: NextRequest) {
     });
 
     // Regime filter: remove signals going against the current market regime
-    const signals = filterSignalsByRegime(rawSignals, regimeMap);
+    let signals = filterSignalsByRegime(rawSignals, regimeMap);
+
+    // Tier gate for fallback path
+    if (!isPro(tier)) {
+      const now = Date.now();
+      signals = signals
+        .filter((s) => FREE_SYMBOLS.includes(s.symbol))
+        .filter((s) => {
+          const age = now - new Date(s.timestamp).getTime();
+          return age >= FREE_DELAY_MS;
+        })
+        .map((s) => ({ ...s, takeProfit2: undefined, takeProfit3: undefined }));
+    }
 
     return NextResponse.json({
       count: signals.length,
       timestamp: new Date().toISOString(),
+      tier,
       engine: {
         real: signals.filter(s => s.source === 'real').length,
         fallback: signals.filter(s => s.source === 'fallback').length,
@@ -115,7 +145,7 @@ export async function GET(request: NextRequest) {
       signals,
       syntheticSymbols,
     }, {
-      headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60' },
+      headers: { 'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60' },
     });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
