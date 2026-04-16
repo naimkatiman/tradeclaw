@@ -11,14 +11,14 @@ interface Feature {
 
 const FEATURES: Feature[] = [
   { label: 'Signal delivery', free: '15-min delay', pro: 'Real-time' },
-  { label: 'Symbols covered', free: '3 (XAU, BTC, EUR)', pro: 'All traded symbols' },
-  { label: 'TP / SL levels', free: 'TP1 only', pro: 'TP1, TP2, TP3 + SL + trailing' },
-  { label: 'Signal quality', free: 'Standard', pro: 'Premium MTF confluence' },
-  { label: 'Signal history', free: 'Last 24h', pro: 'Full history + CSV export' },
+  { label: 'Symbols covered', free: '3 symbols', pro: 'All traded symbols' },
   { label: 'Telegram group', free: '@tradeclawwin (public)', pro: 'Private Pro group' },
+  { label: 'TP / SL levels', free: 'TP1 only', pro: 'TP1, TP2, TP3 + SL + Trailing' },
+  { label: 'Indicators', free: 'RSI, EMA', pro: 'Full suite + MTF confluence' },
+  { label: 'Signal quality', free: 'Standard', pro: 'Premium high-confidence' },
+  { label: 'Signal history', free: 'Last 24h', pro: 'Full history + CSV export' },
   { label: 'Support', free: 'Community', pro: 'Email (24h)' },
   { label: 'Free trial', free: false, pro: '7 days' },
-  { label: 'Open-source self-host', free: true, pro: true },
 ];
 
 function CheckIcon() {
