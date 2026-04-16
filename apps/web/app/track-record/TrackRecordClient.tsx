@@ -117,6 +117,22 @@ function Sparkline({ hits }: { hits: boolean[] }) {
 
 const PAGE_SIZE = 100;
 
+/** Build a compact page-number list: 1 … 4 [5] 6 … 19 */
+function pageNumbers(current: number, total: number): (number | null)[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: (number | null)[] = [];
+  const near = new Set([1, 2, current - 1, current, current + 1, total - 1, total]);
+  let prev = 0;
+  for (let p = 1; p <= total; p++) {
+    if (near.has(p)) {
+      if (p - prev > 1) pages.push(null);
+      pages.push(p);
+      prev = p;
+    }
+  }
+  return pages;
+}
+
 export function TrackRecordClient() {
   const [period, setPeriod] = useState<Period>('30d');
   const [stats, setStats] = useState<HistoryStats | null>(null);
@@ -425,23 +441,52 @@ export function TrackRecordClient() {
               </table>
             </div>
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border)] text-[11px] font-mono">
+              <div className="flex items-center justify-center gap-1 px-4 py-3 border-t border-[var(--border)] text-[11px] font-mono flex-wrap">
+                <button
+                  onClick={() => setOffset(0)}
+                  disabled={currentPage === 1 || loading}
+                  className="px-2 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  «
+                </button>
                 <button
                   onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
-                  disabled={offset === 0 || loading}
-                  className="px-3 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  disabled={currentPage === 1 || loading}
+                  className="px-2.5 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
-                  ← Prev
+                  ‹
                 </button>
-                <span className="text-[var(--text-secondary)]">
-                  Page {currentPage} of {totalPages}
-                </span>
+                {pageNumbers(currentPage, totalPages).map((p, i) =>
+                  p === null ? (
+                    <span key={`e${i}`} className="px-1 text-[var(--text-secondary)]">…</span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setOffset((p - 1) * PAGE_SIZE)}
+                      disabled={loading}
+                      className={`min-w-[28px] py-1.5 rounded-md text-center transition-colors ${
+                        p === currentPage
+                          ? 'bg-emerald-500/20 text-emerald-400 font-semibold'
+                          : 'bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)]'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ),
+                )}
                 <button
                   onClick={() => setOffset(offset + PAGE_SIZE)}
-                  disabled={offset + PAGE_SIZE >= total || loading}
-                  className="px-3 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  disabled={currentPage === totalPages || loading}
+                  className="px-2.5 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
-                  Next →
+                  ›
+                </button>
+                <button
+                  onClick={() => setOffset((totalPages - 1) * PAGE_SIZE)}
+                  disabled={currentPage === totalPages || loading}
+                  className="px-2 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  »
                 </button>
               </div>
             )}
