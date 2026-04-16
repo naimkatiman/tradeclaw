@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readHistoryAsync, resolveRealOutcomes } from '../../../../lib/signal-history';
-import { getUserTierFromSession } from '../../../../lib/db';
-import { historyWindowCutoff, isPro, FREE_SYMBOLS } from '../../../../lib/tier-gate';
+import { readSessionFromRequest } from '../../../../lib/user-session';
+import { getUserTier, TIER_SYMBOLS, TIER_HISTORY_DAYS, meetsMinimumTier } from '../../../../lib/tier';
 
 export async function GET(request: NextRequest) {
   try {
     await resolveRealOutcomes();
     const { searchParams } = new URL(request.url);
-    const tier = await getUserTierFromSession();
+    const session = readSessionFromRequest(request);
+    const tier = session?.userId
+      ? await getUserTier(session.userId)
+      : 'free' as const;
 
     const pair = searchParams.get('pair')?.toUpperCase();
     const direction = searchParams.get('direction')?.toUpperCase() as 'BUY' | 'SELL' | undefined;
@@ -18,12 +21,14 @@ export async function GET(request: NextRequest) {
 
     let records = await readHistoryAsync();
 
-    // Tier gate: free users only see FREE_SYMBOLS and 24h window
-    if (!isPro(tier)) {
-      records = records.filter(r => FREE_SYMBOLS.includes(r.pair));
-      const tierCutoff = historyWindowCutoff(tier);
-      if (tierCutoff) {
-        records = records.filter(r => r.timestamp >= tierCutoff.getTime());
+    // Tier gate: filter symbols and history window based on subscription
+    const allowedSymbols = TIER_SYMBOLS[tier];
+    const historyDays = TIER_HISTORY_DAYS[tier];
+    if (!meetsMinimumTier(tier, 'pro')) {
+      records = records.filter(r => allowedSymbols.includes(r.pair));
+      if (historyDays !== null) {
+        const cutoff = Date.now() - historyDays * 24 * 60 * 60 * 1000;
+        records = records.filter(r => r.timestamp >= cutoff);
       }
     }
 

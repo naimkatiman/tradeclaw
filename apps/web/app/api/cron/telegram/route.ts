@@ -75,7 +75,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             );
             publicPushed++;
           }
-        } catch { /* skip failed sends */ }
+        } catch (err) {
+          console.error(`[telegram-public] Failed to post signal ${sig.id}:`, err);
+        }
       }
     }
 

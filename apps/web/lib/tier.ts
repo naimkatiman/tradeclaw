@@ -85,8 +85,8 @@ export function filterSignalByTier(
 
   // Mask TP2/TP3 for free tier
   if (tier === 'free') {
-    filtered.takeProfit2 = 0;
-    filtered.takeProfit3 = 0;
+    filtered.takeProfit2 = null as unknown as number;
+    filtered.takeProfit3 = null as unknown as number;
   }
 
   // Mask advanced indicators for free tier
