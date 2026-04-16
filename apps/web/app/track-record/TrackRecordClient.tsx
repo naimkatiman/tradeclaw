@@ -42,6 +42,7 @@ interface AssetStats {
   hitRate24h: number;
   avgConfidence: number;
   avgPnl: number;
+  totalPnl: number;
   bestStreak: number;
   worstStreak: number;
   recentHits: boolean[];
@@ -286,6 +287,7 @@ export function TrackRecordClient() {
                     <th className="px-3 py-2.5 text-left font-medium w-32">4h Hit Rate</th>
                     <th className="px-3 py-2.5 text-left font-medium w-32">24h Hit Rate</th>
                     <th className="px-3 py-2.5 text-right font-medium">Avg P&L</th>
+                    <th className="px-3 py-2.5 text-right font-medium">Total P&L</th>
                     <th className="px-3 py-2.5 text-center font-medium">Trend</th>
                   </tr>
                 </thead>
@@ -305,6 +307,11 @@ export function TrackRecordClient() {
                       }`}>
                         {asset.avgPnl >= 0 ? '+' : ''}{asset.avgPnl.toFixed(2)}%
                       </td>
+                      <td className={`px-3 py-2.5 text-right tabular-nums font-semibold ${
+                        asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'
+                      }`}>
+                        {asset.totalPnl >= 0 ? '+' : ''}{asset.totalPnl.toFixed(2)}%
+                      </td>
                       <td className="px-3 py-2.5 flex justify-center"><Sparkline hits={asset.recentHits} /></td>
                     </tr>
                   ))}
@@ -315,12 +322,13 @@ export function TrackRecordClient() {
                       <td className="px-3 py-3"><div className="h-1 w-full bg-white/[0.06] rounded animate-pulse" /></td>
                       <td className="px-3 py-3"><div className="h-1 w-full bg-white/[0.06] rounded animate-pulse" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-10 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
+                      <td className="px-3 py-3"><div className="h-3 w-10 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-12 bg-white/[0.06] rounded animate-pulse mx-auto" /></td>
                     </tr>
                   ))}
                   {!loading && leaderboard?.assets.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-[var(--text-secondary)]">
+                      <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)]">
                         No data for this period yet.
                       </td>
                     </tr>
