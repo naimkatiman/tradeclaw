@@ -126,22 +126,21 @@ function HeroVariantA({
       </div>
       <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-emerald-500/15 bg-emerald-500/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-emerald-400">
         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        Open Source · Self-Hosted · AI-Powered
+        Open Source · Every Trade Verified
       </div>
 
       <h1 className="text-[2.25rem] font-bold leading-[1.05] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-white break-words">
-        AI Trading Signals.
+        Open-source AI signals.
         <br />
         <span className="text-emerald-400" style={{ textShadow: "0 0 40px rgba(52,211,153,0.4)" }}>
-          Open Source.
-        </span>{" "}
-        Self-Hosted.
+          Every trade verified.
+        </span>
       </h1>
 
       <p className="mx-auto mt-6 max-w-2xl text-base text-zinc-400 leading-relaxed sm:text-lg">
-        Real-time BUY/SELL signals for forex, crypto, and commodities.
-        Self-hosted, private, and free — no subscription, no lock-in, no data
-        sent to third parties.
+        TradeClaw generates BUY/SELL signals using multi-timeframe technical
+        analysis. Every signal is recorded, tracked, and published — wins and
+        losses. Start free, upgrade to Pro for real-time delivery.
       </p>
 
       <div className="relative mt-10 overflow-hidden rounded-xl border border-white/8 bg-[#0a0a0a]">
@@ -157,27 +156,21 @@ function HeroVariantA({
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-        <a
-          href="#deploy"
+        <Link
+          href="/track-record"
           className="group flex items-center gap-2.5 rounded-full bg-emerald-500 px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98]"
         >
-          Deploy Free in 30s
+          View Track Record
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-0.5">
             <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </a>
-        <a
-          href={GITHUB_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={onGitHubClick}
+        </Link>
+        <Link
+          href="/dashboard"
           className="flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-7 py-3 text-sm font-medium text-zinc-300 transition-all duration-200 hover:border-white/20 hover:bg-white/8 hover:text-white"
         >
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor">
-            <path d="M7.5.25A7.25 7.25 0 0 0 .25 7.5c0 3.2 2.07 5.91 4.94 6.87.36.07.49-.16.49-.35v-1.22c-2 .43-2.42-.97-2.42-.97-.33-.83-.8-1.05-.8-1.05-.65-.45.05-.44.05-.44.72.05 1.1.74 1.1.74.64 1.1 1.68.78 2.09.6.06-.46.25-.78.45-.96-1.59-.18-3.26-.8-3.26-3.55 0-.78.28-1.42.74-1.92-.07-.18-.32-.91.07-1.9 0 0 .6-.19 1.98.74a6.9 6.9 0 0 1 1.8-.24c.61 0 1.22.08 1.8.24 1.37-.93 1.97-.74 1.97-.74.39.99.14 1.72.07 1.9.46.5.74 1.14.74 1.92 0 2.76-1.68 3.37-3.27 3.55.26.22.49.66.49 1.33v1.97c0 .19.13.42.5.35A7.25 7.25 0 0 0 14.75 7.5 7.25 7.25 0 0 0 7.5.25Z" />
-          </svg>
-          {stars !== null ? <><Star className="w-3.5 h-3.5 inline" /> {stars} Stars</> : "Star on GitHub"}
-        </a>
+          Start Free
+        </Link>
       </div>
     </div>
   );
@@ -216,8 +209,8 @@ function HeroVariantB({
 
       <p className="mx-auto mt-6 max-w-2xl text-base text-zinc-400 leading-relaxed sm:text-lg">
         TradeClaw runs RSI, MACD, EMA confluence and returns a decision — BUY,
-        SELL, confidence %, entry, SL, TP. REST API, Docker, MIT license. No
-        cloud dependency. Ship in minutes.
+        SELL, confidence %, entry, SL, TP. REST API, Docker, MIT license.
+        Free tier gets you started. Pro ($29/mo) unlocks real-time delivery.
       </p>
 
       {/* Code snippet */}
@@ -309,7 +302,7 @@ function HeroVariantC({
       </div>
       <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-yellow-500/20 bg-yellow-500/8 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-yellow-400">
         <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
-        Free · Self-Hosted · 10 Assets · Live Now
+        Free · 3 Assets | Pro · All Assets · Real-time
       </div>
 
       <h1 className="text-[2.25rem] font-bold leading-[1.05] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-white break-words">
@@ -321,9 +314,9 @@ function HeroVariantC({
       </h1>
 
       <p className="mx-auto mt-6 max-w-2xl text-base text-zinc-400 leading-relaxed sm:text-lg">
-        TradeClaw analyzes 10 assets across forex, crypto, and commodities —
-        and tells you BUY, SELL, or wait. Live signals, confidence scores, and
-        full indicator breakdown. Install it in your own environment. Free forever.
+        TradeClaw analyzes forex, crypto, and commodities —
+        and tells you BUY, SELL, or wait. Every signal is recorded and verified.
+        Free gets you 3 assets. Pro ($29/mo) unlocks all pairs in real-time.
       </p>
 
       {/* Live signal cards */}

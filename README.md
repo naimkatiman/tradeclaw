@@ -4,201 +4,112 @@
 
 # TradeClaw
 
-**Open-source AI trading signal platform. Self-hosted. Free forever.**
+**Open-source AI trading signals. Every trade verified.**
 
 [![Stars](https://img.shields.io/github/stars/naimkatiman/tradeclaw?style=flat-square&color=10b981)](https://github.com/naimkatiman/tradeclaw/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Traders](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fusers&query=%24.count&label=traders&color=10b981&style=flat-square)](https://tradeclaw.win/users)
-[![Docker](https://img.shields.io/badge/Docker-Hub-2496ED?logo=docker&style=flat-square)](https://hub.docker.com/r/tradeclaw/tradeclaw)
-[![Demo](https://img.shields.io/badge/Demo-Live-10b981?logo=vercel&style=flat-square)](https://tradeclaw.win/dashboard)
-[![Uptime](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fuptime&query=%24.overallUptime&suffix=%25+uptime&label=status&color=brightgreen&style=flat-square)](https://tradeclaw.win/status)
-[![Subscribers](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftradeclaw.win%2Fapi%2Fsubscribe&query=%24.count&label=subscribers&color=10b981&style=flat-square)](https://tradeclaw.win/subscribe)
-[![Weekly Digest](https://img.shields.io/badge/%F0%9F%93%A7_Weekly_Digest-Subscribe-10b981?style=flat-square)](https://tradeclaw.win/subscribe)
-[![Run on Replit](https://replit.com/badge/github/naimkatiman/tradeclaw)](https://replit.com/github/naimkatiman/tradeclaw)
-[![Run on Fly.io](https://img.shields.io/badge/Run_on-Fly.io-7C3AED?logo=fly.io&style=flat-square)](https://tradeclaw.win/fly)
-[![Supabase Ready](https://img.shields.io/badge/Supabase-Ready-3ECF8E?logo=supabase&style=flat-square)](https://tradeclaw.win/supabase)
-[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-rose?style=flat-square)](https://github.com/sponsors/naimkatiman)
+[![Demo](https://img.shields.io/badge/Demo-Live-10b981?style=flat-square)](https://tradeclaw.win/dashboard)
 
-**[🚀 Live Demo](https://tradeclaw.win/dashboard)** · **[⚡ Get Started](https://tradeclaw.win/start)** · **[📡 API](https://tradeclaw.win/api-docs)** · **[📖 Docs](https://tradeclaw.win/docs)** · **[🤝 Contribute](https://tradeclaw.win/contribute)**
-
-🌍 [中文](README.zh.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
+**[Track Record](https://tradeclaw.win/track-record)** · **[Live Demo](https://tradeclaw.win/dashboard)** · **[API Docs](https://tradeclaw.win/api-docs)** · **[Pricing](https://tradeclaw.win/pricing)**
 
 </div>
 
 ---
 
-> RSI · MACD · EMA · Bollinger · Stochastic — 5-indicator confluence. Live signals for BTC, ETH, Gold, Forex. Deploy in 60 seconds, no subscription required.
+TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (RSI, MACD, EMA, Bollinger Bands, Stochastic, Supertrend). Every signal is recorded in a Postgres database and published on the [track record](https://tradeclaw.win/track-record) — wins **and** losses, no cherry-picking.
 
-![TradeClaw Signals Demo](https://raw.githubusercontent.com/naimkatiman/tradeclaw/main/apps/web/public/tradeclaw-demo.gif)
+## Free vs Pro
 
-## Try it now — no install
+|  | Free | Pro ($29/mo) |
+|--|:----:|:------------:|
+| Symbols | 3 (BTC, ETH, XAU) | All pairs |
+| Signal delay | 15 min | Real-time |
+| Take-profit levels | TP1 only | TP1 + TP2 + TP3 |
+| Signal history | 24 hours | Full archive |
+| Telegram alerts | Public channel (delayed) | Private channel (instant) |
+| Track record | Full access | Full access |
+| Self-host | Yes | Yes |
 
-```bash
-npx @naimkatiman/tradeclaw-demo
-```
+Start free at [tradeclaw.win/dashboard](https://tradeclaw.win/dashboard). Upgrade anytime at [tradeclaw.win/pricing](https://tradeclaw.win/pricing).
 
-Opens a full live demo at `http://localhost:3001` — signals, leaderboard, backtest, all running locally.
-
-👉 **[Interactive Setup Guide →](https://tradeclaw.win/start)**
-
-## Deploy in 60 seconds
-
-```bash
-docker run -p 3000:3000 tradeclaw/tradeclaw
-```
-
-Open [http://localhost:3000](http://localhost:3000) — done.
-
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/naimkatiman/tradeclaw)
-
-**[Supabase Setup Guide](https://tradeclaw.win/supabase)** — upgrade from JSON to Postgres with one command.
-
-Or with Docker Compose (adds persistent data):
+## Self-host with Docker Compose
 
 ```bash
 git clone https://github.com/naimkatiman/tradeclaw
-cd tradeclaw && cp .env.example .env
+cd tradeclaw
+cp .env.example .env   # edit DATABASE_URL + Telegram tokens
 docker compose up -d
 ```
 
-## What you get
+Open [http://localhost:3000](http://localhost:3000).
 
-| | TradeClaw | TradingView | 3Commas |
-|--|:---------:|:-----------:|:-------:|
-| Self-hosted | ✅ | ❌ | ❌ |
-| Open source | ✅ | ❌ | ❌ |
-| Free forever | ✅ | ❌ ($15/mo+) | ❌ ($29/mo+) |
-| REST API | ✅ | ❌ paid | ✅ |
-| Telegram bot | ✅ built-in | ❌ | ✅ paid |
-| Custom plugins | ✅ JS | Pine Script | ❌ |
-| MCP / AI native | ✅ | ❌ | ❌ |
+Requires PostgreSQL. Run migrations from `apps/web/migrations/` in order.
 
-**Features:** Dashboard · Backtest · Screener · Paper trading · Telegram bot · Webhooks · Discord bot · Signal replay · Multi-timeframe · AI explanations · CLI · MCP server · Plugin system · PWA · RSS feeds · 190+ pages
+## Architecture
+
+```
+apps/web/           Next.js app (dashboard, API routes, signal engine)
+packages/strategies/ Backtest comparison framework (not in live signal path)
+scripts/            Local dev tools (scanner-engine.py — local only)
+```
+
+**Signal flow:**
+
+```
+API request → getTrackedSignals() → generateSignalsFromTA()
+  → ta-engine.ts (RSI, MACD, EMA, BB, Stoch, Supertrend)
+  → recordSignalsAsync() → signal_history table
+  → /track-record page
+```
+
+Signals are generated as a side effect of API requests — no external scheduler. The TA engine runs inside the Next.js process.
 
 ## Strategy Presets
 
-Five named entry strategies, swappable via `SIGNAL_ENGINE_PRESET` env var. Every signal is tagged with `strategyId` so you can audit which logic fired it.
+Five entry strategies, switchable via `SIGNAL_ENGINE_PRESET`:
 
 | Preset | Logic |
 |--------|-------|
-| `classic` | Baseline RSI + MACD + EMA scoring — no regime filter, no risk breakers |
-| `regime-aware` | Classic signals filtered by HMM regime, rejects counter-trend trades |
-| `hmm-top3` | Regime-aware signals ranked by confidence, top 3 only — **current production** |
-| `vwap-ema-bb` | Mean-reversion at BB extremes with VWAP + EMA trend confirmation |
-| `full-risk` | HMM top-3 with risk-weighted allocation and full circuit-breaker pipeline |
+| `classic` | RSI + MACD + EMA scoring — no regime filter |
+| `regime-aware` | Classic filtered by HMM regime |
+| `hmm-top3` | Regime-aware, top 3 by confidence — **production default** |
+| `vwap-ema-bb` | Mean-reversion at BB extremes with VWAP + EMA |
+| `full-risk` | HMM top-3 with risk-weighted allocation |
 
-**Compare them side-by-side** — multi-select any presets in the backtest UI to see metrics tables and equity-curve overlay charts. Sharpe, drawdown, win-rate, and overlapping-trade handling are all computed correctly ([#57](https://github.com/naimkatiman/tradeclaw/pull/57), [#58](https://github.com/naimkatiman/tradeclaw/pull/58)).
+Compare presets in the [backtest UI](https://tradeclaw.win/backtest) with side-by-side metrics and equity curves.
 
-```ts
-import { runBacktest } from '@tradeclaw/strategies';
-
-const result = await runBacktest({
-  preset: 'hmm-top3',
-  candles,
-  allocation: { perTrade: 0.02 },
-  risk: { maxConcurrent: 3 },
-});
-```
-
-## Public Signal Feed
-
-Rate-limited public API tier — no auth, no key, just fetch:
+## API
 
 ```bash
-curl https://tradeclaw.win/api/feed/public
-curl https://tradeclaw.win/api/signal-of-the-day
+# Get current signals (free tier — 3 symbols, 15-min delay)
+curl https://tradeclaw.win/api/signals
+
+# Get track record stats
+curl https://tradeclaw.win/api/strategy-breakdown
 ```
 
-## Live Signal Badges
+Pro subscribers get real-time access to all endpoints with full depth.
 
-Embed live BTC/ETH/Gold signals in any README — auto-refresh every 5 min, no API key:
+## Environment Variables
 
-[![BTC Signal](https://tradeclaw.win/api/badge/BTCUSD)](https://tradeclaw.win/signal/BTCUSD-H1-BUY)
-[![ETH Signal](https://tradeclaw.win/api/badge/ETHUSD)](https://tradeclaw.win/signal/ETHUSD-H1-BUY)
-[![Gold Signal](https://tradeclaw.win/api/badge/XAUUSD)](https://tradeclaw.win/signal/XAUUSD-H1-BUY)
-
-```markdown
-[![BTC Signal](https://tradeclaw.win/api/badge/BTCUSD)](https://tradeclaw.win)
-[![ETH Signal](https://tradeclaw.win/api/badge/ETHUSD)](https://tradeclaw.win)
-```
-
-## Packages
-
-All packages are published to [GitHub Packages](https://github.com/naimkatiman/tradeclaw/packages).
-
-**Setup** — add to your project's `.npmrc`:
-
-```
-@naimkatiman:registry=https://npm.pkg.github.com
-```
-
-Then install:
-
-```bash
-npm install @naimkatiman/tradeclaw           # CLI
-npm install @naimkatiman/tradeclaw-js        # JS/TS SDK
-npm install @naimkatiman/tradeclaw-agent     # Self-hosted agent
-npm install @naimkatiman/tradeclaw-mcp       # MCP server for AI assistants
-npm install @naimkatiman/tradeclaw-discord   # Discord bot
-npm install @naimkatiman/tradeclaw-demo      # Local demo
-npx @naimkatiman/create-tradeclaw            # Scaffold a new instance
-```
-
-### CLI
-
-```bash
-npx @naimkatiman/tradeclaw signals --pair BTCUSD --limit 5
-npx @naimkatiman/tradeclaw leaderboard --period 30d
-npx @naimkatiman/tradeclaw health
-```
-
-### MCP Server (Claude Desktop)
-
-```json
-{
-  "mcpServers": {
-    "tradeclaw": {
-      "command": "npx",
-      "args": ["@naimkatiman/tradeclaw-mcp"]
-    }
-  }
-}
-```
-
-## GitHub Action
-
-```yaml
-- uses: naimkatiman/tradeclaw/packages/tradeclaw-action@main
-  with: { pair: BTCUSD, min_confidence: 70 }
-```
-
-[Action docs →](https://tradeclaw.win/github-action) · [Marketplace →](https://github.com/marketplace/actions/tradeclaw-signal)
+| Variable | Required | Description |
+|----------|:--------:|-------------|
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `MARKET_DATA_HUB_URL` | Yes | Market data proxy URL |
+| `TELEGRAM_BOT_TOKEN` | No | Telegram bot for alerts |
+| `TELEGRAM_CHANNEL_ID` | No | Private channel (Pro alerts) |
+| `TELEGRAM_PUBLIC_CHANNEL_ID` | No | Public channel (delayed free alerts) |
+| `STRIPE_SECRET_KEY` | No | Stripe for Pro subscriptions |
+| `STRIPE_PRO_PRICE_ID` | No | Stripe price ID for Pro tier |
+| `CRON_SECRET` | Yes | Auth for `/api/cron/*` endpoints |
+| `SIGNAL_ENGINE_PRESET` | No | Strategy preset (default: `hmm-top3`) |
 
 ## Contributing
 
-Check **[good first issues](https://github.com/naimkatiman/tradeclaw/labels/good%20first%20issue)** and **[contribution guide](https://tradeclaw.win/contribute)**.
-
-## Contributors
-
-Thanks to everyone who helps make TradeClaw better. If you’re looking to contribute, start with `CONTRIBUTING.md`.
-
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or edit this section -->
-<a href="https://github.com/all-contributors/all-contributors">
-  <img src="https://img.shields.io/badge/all_contributors-0-orange.svg?style=flat-square" />
-</a>
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or edit this section -->
-<!-- prettier-ignore -->
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-⭐ Star this repo to help others discover TradeClaw
-
-[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=github-sponsors&style=flat-square)](https://github.com/sponsors/naimkatiman)
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black&style=flat-square)](https://buymeacoffee.com/naimkatiman)
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [good first issues](https://github.com/naimkatiman/tradeclaw/labels/good%20first%20issue).
 
 ---
 
 <div align="center">
-<sub>MIT License · Made with ⚡ · <a href="https://tradeclaw.win">tradeclaw.win</a></sub>
+<sub>MIT License · <a href="https://tradeclaw.win">tradeclaw.win</a></sub>
 </div>
