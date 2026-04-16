@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { PageNavBar } from '@/components/PageNavBar';
 import { EquityCurve } from '@/app/components/equity-curve';
 
-type Period = '7d' | '30d' | 'all';
+type Period = '7d' | '30d' | '90d' | 'all';
 
 interface HistoryRecord {
   id: string;
@@ -191,7 +191,7 @@ export function TrackRecordClient() {
 
         {/* Period Filter */}
         <div className="flex gap-1 mb-6 p-1 rounded-lg bg-white/[0.04] w-fit">
-          {(['7d', '30d', 'all'] as Period[]).map(p => (
+          {(['7d', '30d', '90d', 'all'] as Period[]).map(p => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
@@ -201,7 +201,7 @@ export function TrackRecordClient() {
                   : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
               }`}
             >
-              {p === 'all' ? 'All Time' : p === '30d' ? '30 Days' : '7 Days'}
+              {p === 'all' ? 'All Time' : p === '90d' ? '90 Days' : p === '30d' ? '30 Days' : '7 Days'}
             </button>
           ))}
         </div>

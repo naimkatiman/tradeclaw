@@ -3,6 +3,7 @@ import 'server-only';
 import { getSignals } from '../app/lib/signals';
 import { getPremiumSignalsFor } from './premium-signals';
 import { recordSignalsAsync } from './signal-history';
+import { enqueueSignalPost } from './social-queue';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE, minConfidenceFor } from './signal-thresholds';
 import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
 import { fetchGateState, getGateMode } from './full-risk-gates';
@@ -96,6 +97,24 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
     // Record to PostgreSQL (or file fallback) — fire and forget
     if (recordPayload.length > 0) {
       recordSignalsAsync(recordPayload).catch(() => {});
+
+      // Enqueue social posts for high-confidence signals (fire-and-forget)
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
+      for (const sig of recordPayload) {
+        if (sig.confidence < 75) continue;
+        const imageUrl = `${baseUrl}/api/og/signal/${sig.id}`;
+        const decimals = sig.symbol.includes('JPY') ? 3 : 5;
+        const entry = typeof sig.entry === 'number' ? sig.entry.toFixed(decimals) : String(sig.entry);
+        const copy = [
+          sig.direction === 'BUY' ? '\u{1F7E2}' : '\u{1F534}',
+          `${sig.symbol} ${sig.direction} @ ${entry}`,
+          sig.takeProfit1 ? `| TP1 ${Number(sig.takeProfit1).toFixed(decimals)}` : '',
+          sig.stopLoss ? `| SL ${Number(sig.stopLoss).toFixed(decimals)}` : '',
+          `| ${sig.confidence}% confidence`,
+          `\n\nTrack live: ${baseUrl}/track-record`,
+        ].filter(Boolean).join(' ');
+        enqueueSignalPost(sig.id, copy, imageUrl, { symbol: sig.symbol, direction: sig.direction }).catch(() => {});
+      }
     }
 
     // In active mode, also strip blocked signals from the response so

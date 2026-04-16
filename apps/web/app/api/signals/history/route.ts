@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (period === '7d' || period === '30d') {
-      const days = period === '7d' ? 7 : 30;
+    if (period === '7d' || period === '30d' || period === '90d') {
+      const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
       const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
       records = records.filter(r => r.timestamp >= cutoff);
     }

@@ -75,6 +75,17 @@ export async function GET(request: NextRequest): Promise<Response> {
     results.smsAlerts = await callInternal('/api/cron/sms-alerts', request);
   }
 
+  // 5. Daily social summary — once at 00:00 UTC
+  if (hour === 0 && minute < 10) {
+    results.socialDaily = await callInternal('/api/cron/social/daily', request);
+  }
+
+  // 6. Weekly social summary — Sunday at 18:00 UTC
+  const dayOfWeek = new Date().getUTCDay();
+  if (dayOfWeek === 0 && hour === 18 && minute < 10) {
+    results.socialWeekly = await callInternal('/api/cron/social/weekly', request);
+  }
+
   return NextResponse.json({
     ok: true,
     ran: Object.keys(results),
