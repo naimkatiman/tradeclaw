@@ -5,7 +5,7 @@ import type { TradingSignal } from '../app/lib/signals';
 export { TIER_LEVEL };
 export type { Tier };
 
-const ELITE_SYMBOLS = [
+const ALL_SYMBOLS = [
   'XAUUSD',
   'XAGUSD',
   'BTCUSD',
@@ -24,16 +24,16 @@ const ELITE_SYMBOLS = [
 // bespoke symbol lists are negotiated out-of-band per deal.
 export const TIER_SYMBOLS: Record<Tier, string[]> = {
   free: ['XAUUSD', 'BTCUSD', 'EURUSD'],
-  pro: ['XAUUSD', 'XAGUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD'],
-  elite: ELITE_SYMBOLS,
-  custom: ELITE_SYMBOLS,
+  pro: ALL_SYMBOLS,
+  elite: ALL_SYMBOLS,
+  custom: ALL_SYMBOLS,
 };
 
 // History window per tier
 export const TIER_HISTORY_DAYS: Record<Tier, number | null> = {
   free: 1,
-  pro: 30,
-  elite: null, // unlimited
+  pro: null, // unlimited
+  elite: null,
   custom: null,
 };
 
@@ -44,6 +44,12 @@ export const TIER_DELAY_MS: Record<Tier, number> = {
   elite: 0,
   custom: 0,
 };
+
+/**
+ * Pro-tier signals include higher-confidence MTF confluence signals
+ * that free users don't see. This threshold gates the "premium" band.
+ */
+export const PRO_PREMIUM_MIN_CONFIDENCE = 85;
 
 /**
  * Retrieve the tier for a given user ID from the database.
