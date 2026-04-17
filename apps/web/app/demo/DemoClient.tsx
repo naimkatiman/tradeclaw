@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { fetchWithLicense } from '@/lib/license-client';
 import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
+import { AccuracyMeta } from '../components/accuracy-meta';
+import { ShareButton } from '../components/share-button';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -361,6 +363,7 @@ function SignalCard({ sig, prev }: { sig: Signal; prev?: Signal }) {
       >
         {sig.trend}
       </div>
+      <AccuracyMeta symbol={sig.symbol} timeframe={sig.timeframe} />
       <div className="grid grid-cols-4 gap-2 text-center">
         {[
           { label: 'Entry', value: formatPrice(sig.symbol, sig.entry), color: 'var(--foreground)' },
@@ -710,7 +713,7 @@ function BacktestTab() {
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function DemoClient() {
+export default function DemoClient({ initialSymbol }: { initialSymbol?: string }) {
   const [signals, setSignals] = useState<Signal[]>([]);
   const [prev, setPrev] = useState<Signal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -722,6 +725,10 @@ export default function DemoClient() {
   const [isLive, setIsLive] = useState(false);
   const [dataSource, setDataSource] = useState<'live' | 'demo' | 'fallback'>('fallback');
   const countdownRef = useRef(REFRESH_INTERVAL);
+
+  const shareUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/demo${initialSymbol ? `?symbol=${initialSymbol}` : ''}`
+    : '/demo';
 
   const fetchSignals = useCallback(async () => {
     try {
@@ -784,6 +791,10 @@ export default function DemoClient() {
 
       if (!mapped) {
         mapped = FALLBACK_SIGNALS.map(mapApiSignal);
+      }
+
+      if (initialSymbol && mapped) {
+        mapped = mapped.filter(s => s.symbol.toUpperCase() === initialSymbol.toUpperCase());
       }
 
       setIsLive(live);
@@ -929,6 +940,9 @@ export default function DemoClient() {
             Next refresh in <span style={{ color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{countdown}s</span>
             &nbsp;\u00b7 Tick #{tick}
           </div>
+          <div className="mt-4">
+            <ShareButton url={shareUrl} title="TradeClaw Live Demo" />
+          </div>
         </div>
 
         {/* Tabs */}
@@ -1053,6 +1067,19 @@ export default function DemoClient() {
               <div className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{sub}</div>
             </div>
           ))}
+        </div>
+
+        {/* Signup CTA */}
+        <div className="mt-10 text-center py-6 px-4 rounded-2xl border" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.02) 100%)', borderColor: 'rgba(16,185,129,0.2)' }}>
+          <p className="text-sm font-semibold text-white mb-1">Want real signals?</p>
+          <p className="text-xs text-zinc-400 mb-3">Sign up free and get live signals from your own self-hosted instance.</p>
+          <Link
+            href="/signin"
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-mono font-semibold transition-colors"
+            style={{ background: '#10b981', color: '#000' }}
+          >
+            Sign up free →
+          </Link>
         </div>
 
         {/* Footer */}

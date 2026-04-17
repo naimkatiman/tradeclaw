@@ -9,6 +9,12 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
+    // Prewarm caches on startup (non-blocking)
+    Promise.all([
+      import('./lib/signal-history-cache').then(({ getCachedHistory }) => getCachedHistory()),
+      import('./app/lib/atr-calibration-cache').then(({ refreshAtrCalibration }) => refreshAtrCalibration()),
+    ]).catch(() => undefined);
+
     const runCron = async () => {
       try {
         const baseUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? `http://localhost:${process.env.PORT ?? 3000}`;

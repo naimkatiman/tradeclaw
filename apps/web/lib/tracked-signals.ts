@@ -3,6 +3,7 @@ import 'server-only';
 import { getSignals } from '../app/lib/signals';
 import { getPremiumSignalsFor } from './premium-signals';
 import { recordSignalsAsync } from './signal-history';
+import { invalidateHistoryCache } from './signal-history-cache';
 import { enqueueSignalPost } from './social-queue';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE, minConfidenceFor } from './signal-thresholds';
 import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
@@ -97,6 +98,24 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
     // Record to PostgreSQL (or file fallback) — fire and forget
     if (recordPayload.length > 0) {
       recordSignalsAsync(recordPayload).catch(() => {});
+      invalidateHistoryCache();
+
+      // Fan out to user alert rules — fire and forget
+      const dispatchUrl = process.env.NEXT_PUBLIC_APP_URL
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/api/alert-rules/dispatch`
+        : null;
+      if (dispatchUrl) {
+        for (const sig of recordPayload) {
+          fetch(dispatchUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.CRON_SECRET ?? ''}`,
+            },
+            body: JSON.stringify({ signal: sig }),
+          }).catch(() => undefined);
+        }
+      }
 
       // Enqueue social posts for high-confidence signals (fire-and-forget)
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';

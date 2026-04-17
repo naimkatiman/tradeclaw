@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readHistoryAsync, computeLeaderboard } from '../../../lib/signal-history';
+import { computeLeaderboard } from '../../../lib/signal-history';
+import { getCachedHistory } from '../../../lib/signal-history-cache';
 import { getLeaderboard } from '../../../lib/leaderboard-cache';
 
 const VALID_STRATEGIES = new Set([
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
     // Strategy-filtered variant recomputes from history; the unfiltered path
     // still uses the precomputed cache.
     const data = strategyFilter
-      ? computeLeaderboard(await readHistoryAsync(), period, sortBy, strategyFilter)
+      ? computeLeaderboard(await getCachedHistory(), period, sortBy, strategyFilter)
       : await getLeaderboard(period, sortBy);
 
     if (pairFilter) {
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: `No data for pair: ${pairFilter}` }, { status: 404 });
       }
 
-      const history = await readHistoryAsync();
+      const history = await getCachedHistory();
       const pairRecords = history
         .filter(r => r.pair === pairFilter)
         .slice(0, 50);
