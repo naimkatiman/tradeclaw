@@ -11,9 +11,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
     const rawPeriod = searchParams.get('period') ?? '30d';
-    const period: '7d' | '30d' | '1y' | 'all' =
+    const period: '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all' =
       rawPeriod === '7d' ? '7d'
+      : rawPeriod === '90d' ? '90d'
+      : rawPeriod === '180d' ? '180d'
       : rawPeriod === '1y' ? '1y'
+      : rawPeriod === '5y' ? '5y'
       : rawPeriod === 'all' ? 'all'
       : '30d';
 

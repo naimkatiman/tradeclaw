@@ -33,7 +33,7 @@ const breakdownCache = new Map<string, CachedBreakdown>();
 
 let refreshInFlight = false;
 
-function cacheKey(period: '7d' | '30d' | '1y' | 'all', sortBy: string): string {
+function cacheKey(period: '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all', sortBy: string): string {
   return `${period}:${sortBy}`;
 }
 
@@ -42,7 +42,7 @@ function cacheKey(period: '7d' | '30d' | '1y' | 'all', sortBy: string): string {
  * Returns cached data instantly when available.
  */
 export async function getLeaderboard(
-  period: '7d' | '30d' | '1y' | 'all',
+  period: '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all',
   sortBy: 'hitRate' | 'totalSignals' | 'avgConfidence',
 ): Promise<LeaderboardData> {
   const key = cacheKey(period, sortBy);
@@ -69,7 +69,7 @@ export async function refreshLeaderboardCache(): Promise<void> {
     const history = await readHistoryAsync();
     const now = Date.now();
 
-    for (const period of ['7d', '30d', '1y', 'all'] as const) {
+    for (const period of ['7d', '30d', '90d', '180d', '1y', '5y', 'all'] as const) {
       for (const sortBy of ['hitRate', 'totalSignals', 'avgConfidence'] as const) {
         const data = computeLeaderboard(history, period, sortBy);
         cache.set(cacheKey(period, sortBy), { data, expiresAt: now + TTL_MS });
@@ -81,7 +81,7 @@ export async function refreshLeaderboardCache(): Promise<void> {
 }
 
 async function refreshAndGet(
-  period: '7d' | '30d' | '1y' | 'all',
+  period: '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all',
   sortBy: 'hitRate' | 'totalSignals' | 'avgConfidence',
 ): Promise<LeaderboardData> {
   await refreshLeaderboardCache();
@@ -101,7 +101,7 @@ export function invalidateLeaderboardCache(): void {
 }
 
 export async function getStrategyBreakdown(
-  period: '7d' | '30d' | '1y' | 'all',
+  period: '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all',
 ): Promise<StrategyBreakdownRow[]> {
   const cached = breakdownCache.get(period);
   if (cached && Date.now() < cached.expiresAt) return cached.data;

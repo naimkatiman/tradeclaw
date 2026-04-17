@@ -32,9 +32,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (period === '7d' || period === '30d' || period === '90d') {
-      const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
-      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    const periodDays: Record<string, number> = {
+      '7d': 7, '30d': 30, '90d': 90, '180d': 180, '1y': 365, '5y': 1825,
+    };
+    if (period && period in periodDays) {
+      const cutoff = Date.now() - periodDays[period] * 24 * 60 * 60 * 1000;
       records = records.filter(r => r.timestamp >= cutoff);
     }
     if (pair) records = records.filter(r => r.pair === pair);

@@ -1,11 +1,21 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { PageNavBar } from '@/components/PageNavBar';
 import { EquityCurve } from '@/app/components/equity-curve';
 
-type Period = '7d' | '30d' | '90d' | 'all';
+type Period = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
+
+const PERIOD_OPTIONS: { value: Period; label: string }[] = [
+  { value: '7d',   label: '7D'  },
+  { value: '30d',  label: '1M'  },
+  { value: '90d',  label: '3M'  },
+  { value: '180d', label: '6M'  },
+  { value: '1y',   label: '1Y'  },
+  { value: '5y',   label: '5Y'  },
+  { value: 'all',  label: 'All' },
+];
 
 interface HistoryRecord {
   id: string;
@@ -178,6 +188,7 @@ export function TrackRecordClient() {
 
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const pages = useMemo(() => pageNumbers(currentPage, totalPages), [currentPage, totalPages]);
 
   return (
     <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
@@ -207,18 +218,18 @@ export function TrackRecordClient() {
         </div>
 
         {/* Period Filter */}
-        <div className="flex gap-1 mb-6 p-1 rounded-lg bg-white/[0.04] w-fit">
-          {(['7d', '30d', '90d', 'all'] as Period[]).map(p => (
+        <div className="flex gap-1 mb-6 p-1 rounded-lg bg-white/[0.04] w-fit overflow-x-auto max-w-full">
+          {PERIOD_OPTIONS.map(({ value, label }) => (
             <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`px-4 py-1.5 text-xs font-mono font-medium rounded-md transition-all ${
-                period === p
+              key={value}
+              onClick={() => setPeriod(value)}
+              className={`px-3 py-1.5 text-xs font-mono font-medium rounded-md transition-all whitespace-nowrap ${
+                period === value
                   ? 'bg-emerald-500/15 text-emerald-400'
                   : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
               }`}
             >
-              {p === 'all' ? 'All Time' : p === '90d' ? '90 Days' : p === '30d' ? '30 Days' : '7 Days'}
+              {label}
             </button>
           ))}
         </div>
@@ -295,16 +306,16 @@ export function TrackRecordClient() {
           </h2>
           <div className="glass-card rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs font-mono">
+              <table className="w-full min-w-[560px] text-xs font-mono">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
                     <th className="px-4 py-2.5 text-left font-medium">Pair</th>
                     <th className="px-3 py-2.5 text-center font-medium">Signals</th>
-                    <th className="px-3 py-2.5 text-left font-medium w-32">4h Hit Rate</th>
-                    <th className="px-3 py-2.5 text-left font-medium w-32">24h Hit Rate</th>
+                    <th className="px-3 py-2.5 text-left font-medium w-28">4h Hit</th>
+                    <th className="px-3 py-2.5 text-left font-medium w-28">24h Hit</th>
                     <th className="px-3 py-2.5 text-right font-medium">Avg P&L</th>
-                    <th className="px-3 py-2.5 text-right font-medium">Total P&L</th>
-                    <th className="px-3 py-2.5 text-center font-medium">Trend</th>
+                    <th className="px-3 py-2.5 text-right font-medium hidden sm:table-cell">Total P&L</th>
+                    <th className="px-3 py-2.5 text-center font-medium hidden sm:table-cell">Trend</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -323,12 +334,12 @@ export function TrackRecordClient() {
                       }`}>
                         {asset.avgPnl >= 0 ? '+' : ''}{asset.avgPnl.toFixed(2)}%
                       </td>
-                      <td className={`px-3 py-2.5 text-right tabular-nums font-semibold ${
+                      <td className={`px-3 py-2.5 text-right tabular-nums font-semibold hidden sm:table-cell ${
                         asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'
                       }`}>
                         {asset.totalPnl >= 0 ? '+' : ''}{asset.totalPnl.toFixed(2)}%
                       </td>
-                      <td className="px-3 py-2.5 flex justify-center"><Sparkline hits={asset.recentHits} /></td>
+                      <td className="px-3 py-2.5 hidden sm:table-cell"><div className="flex justify-center"><Sparkline hits={asset.recentHits} /></div></td>
                     </tr>
                   ))}
                   {loading && !leaderboard && Array.from({ length: 6 }).map((_, i) => (
@@ -338,8 +349,8 @@ export function TrackRecordClient() {
                       <td className="px-3 py-3"><div className="h-1 w-full bg-white/[0.06] rounded animate-pulse" /></td>
                       <td className="px-3 py-3"><div className="h-1 w-full bg-white/[0.06] rounded animate-pulse" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-10 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
-                      <td className="px-3 py-3"><div className="h-3 w-10 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
-                      <td className="px-3 py-3"><div className="h-3 w-12 bg-white/[0.06] rounded animate-pulse mx-auto" /></td>
+                      <td className="px-3 py-3 hidden sm:table-cell"><div className="h-3 w-10 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
+                      <td className="px-3 py-3 hidden sm:table-cell"><div className="h-3 w-12 bg-white/[0.06] rounded animate-pulse mx-auto" /></td>
                     </tr>
                   ))}
                   {!loading && leaderboard?.assets.length === 0 && (
@@ -367,13 +378,13 @@ export function TrackRecordClient() {
           </div>
           <div className="glass-card rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs font-mono">
+              <table className="w-full min-w-[420px] text-xs font-mono">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
                     <th className="px-4 py-2.5 text-left font-medium">Time</th>
                     <th className="px-3 py-2.5 text-left font-medium">Pair</th>
                     <th className="px-3 py-2.5 text-center font-medium">Dir</th>
-                    <th className="px-3 py-2.5 text-right font-medium">Entry</th>
+                    <th className="px-3 py-2.5 text-right font-medium hidden sm:table-cell">Entry</th>
                     <th className="px-3 py-2.5 text-center font-medium">4h</th>
                     <th className="px-3 py-2.5 text-center font-medium">24h</th>
                     <th className="px-4 py-2.5 text-right font-medium">P&L</th>
@@ -387,12 +398,12 @@ export function TrackRecordClient() {
                     const isPending = outcome24h == null && outcome4h == null;
                     return (
                       <tr key={r.id} className="border-b border-[var(--border)] last:border-0 hover:bg-white/[0.02] transition-colors">
-                        <td className="px-4 py-2.5 text-[var(--text-secondary)]">{formatTime(r.timestamp)}</td>
+                        <td className="px-4 py-2.5 text-[var(--text-secondary)] whitespace-nowrap">{formatTime(r.timestamp)}</td>
                         <td className="px-3 py-2.5 font-semibold text-[var(--foreground)]">{r.pair}</td>
                         <td className="px-3 py-2.5 text-center">
                           <span className={r.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}>{r.direction}</span>
                         </td>
-                        <td className="px-3 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">{formatPrice(r.entryPrice)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums text-[var(--text-secondary)] hidden sm:table-cell">{formatPrice(r.entryPrice)}</td>
                         <td className="px-3 py-2.5 text-center">
                           {outcome4h == null ? (
                             <span className="text-zinc-600">{isPending ? '…' : '—'}</span>
@@ -424,7 +435,7 @@ export function TrackRecordClient() {
                       <td className="px-4 py-3"><div className="h-3 w-24 bg-white/[0.06] rounded animate-pulse" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-14 bg-white/[0.06] rounded animate-pulse" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-8 bg-white/[0.06] rounded animate-pulse mx-auto" /></td>
-                      <td className="px-3 py-3"><div className="h-3 w-16 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
+                      <td className="px-3 py-3 hidden sm:table-cell"><div className="h-3 w-16 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-6 bg-white/[0.06] rounded animate-pulse mx-auto" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-6 bg-white/[0.06] rounded animate-pulse mx-auto" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-12 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
@@ -456,9 +467,9 @@ export function TrackRecordClient() {
                 >
                   ‹
                 </button>
-                {pageNumbers(currentPage, totalPages).map((p, i) =>
+                {pages.map((p, i) =>
                   p === null ? (
-                    <span key={`e${i}`} className="px-1 text-[var(--text-secondary)]">…</span>
+                    <span key={`gap-${i}`} className="px-1 text-[var(--text-secondary)]">…</span>
                   ) : (
                     <button
                       key={p}

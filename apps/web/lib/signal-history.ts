@@ -68,7 +68,7 @@ export interface TrackedSignalInput {
   mode?: SignalMode;
 }
 
-export type LeaderboardPeriod = '7d' | '30d' | '1y' | 'all';
+export type LeaderboardPeriod = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
 
 export interface AssetStats {
   pair: string;
@@ -663,11 +663,10 @@ export function computeLeaderboard(
   sortBy: 'hitRate' | 'totalSignals' | 'avgConfidence' = 'hitRate',
   strategyId?: string,
 ): LeaderboardData {
-  const cutoff =
-    period === '7d' ? Date.now() - 7 * 86400000
-    : period === '30d' ? Date.now() - 30 * 86400000
-    : period === '1y' ? Date.now() - 365 * 86400000
-    : 0;
+  const periodMs: Record<string, number> = {
+    '7d': 7, '30d': 30, '90d': 90, '180d': 180, '1y': 365, '5y': 1825,
+  };
+  const cutoff = period in periodMs ? Date.now() - periodMs[period] * 86400000 : 0;
 
   const filtered = records.filter(
     r => r.timestamp >= cutoff
@@ -766,11 +765,10 @@ export function computeStrategyBreakdown(
   records: SignalHistoryRecord[],
   period: LeaderboardPeriod,
 ): StrategyBreakdownRow[] {
-  const cutoff =
-    period === '7d' ? Date.now() - 7 * 86400000
-    : period === '30d' ? Date.now() - 30 * 86400000
-    : period === '1y' ? Date.now() - 365 * 86400000
-    : 0;
+  const periodMs: Record<string, number> = {
+    '7d': 7, '30d': 30, '90d': 90, '180d': 180, '1y': 365, '5y': 1825,
+  };
+  const cutoff = period in periodMs ? Date.now() - periodMs[period] * 86400000 : 0;
 
   const filtered = records.filter(r => r.timestamp >= cutoff && !r.isSimulated);
   const groups = new Map<string, {
