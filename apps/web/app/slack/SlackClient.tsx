@@ -202,11 +202,11 @@ export function SlackClient() {
 
         {/* Hero */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-6">
-            <Hash className="w-8 h-8 text-amber-400" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-zinc-500/10 border border-zinc-500/20 mb-6">
+            <Hash className="w-8 h-8 text-zinc-400" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">
-            Slack <span className="text-amber-400">Integration</span>
+            Slack <span className="text-zinc-400">Integration</span>
           </h1>
           <p className="text-zinc-400 text-sm sm:text-base max-w-lg mx-auto">
             Get real-time AI trading signal alerts delivered directly to your Slack channels via incoming webhooks.
@@ -248,7 +248,7 @@ export function SlackClient() {
           <h2 className="text-lg font-semibold mb-1">Manual Webhook Setup</h2>
           <p className="text-xs text-zinc-500 mb-5">
             Create an{' '}
-            <a href="https://api.slack.com/messaging/webhooks" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">
+            <a href="https://api.slack.com/messaging/webhooks" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:underline">
               Incoming Webhook
             </a>{' '}
             in your Slack workspace, then paste the URL below.
@@ -263,7 +263,7 @@ export function SlackClient() {
                 placeholder="https://hooks.slack.com/services/T00.../B00.../xxxx"
                 value={webhookUrl}
                 onChange={(e) => setWebhookUrl(e.target.value)}
-                className="w-full rounded-lg bg-zinc-800/50 border border-zinc-700/50 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/50"
+                className="w-full rounded-lg bg-zinc-800/50 border border-zinc-700/50 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-500/30 focus:border-zinc-500/50"
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -274,7 +274,7 @@ export function SlackClient() {
                   placeholder="e.g. #trading-signals"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg bg-zinc-800/50 border border-zinc-700/50 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/50"
+                  className="w-full rounded-lg bg-zinc-800/50 border border-zinc-700/50 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-500/30 focus:border-zinc-500/50"
                 />
               </div>
               <div>
@@ -284,14 +284,14 @@ export function SlackClient() {
                   placeholder="e.g. #signals"
                   value={channel}
                   onChange={(e) => setChannel(e.target.value)}
-                  className="w-full rounded-lg bg-zinc-800/50 border border-zinc-700/50 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/50"
+                  className="w-full rounded-lg bg-zinc-800/50 border border-zinc-700/50 px-4 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-500/30 focus:border-zinc-500/50"
                 />
               </div>
             </div>
             <button
               type="submit"
               disabled={adding || !webhookUrl}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-zinc-500 hover:bg-zinc-400 text-black text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
               Connect Webhook
@@ -366,7 +366,7 @@ export function SlackClient() {
                       <button
                         onClick={() => handleTest(si.id)}
                         disabled={testingId === si.id}
-                        className="p-2 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-amber-400 transition-colors disabled:opacity-50"
+                        className="p-2 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-zinc-400 transition-colors disabled:opacity-50"
                         title="Send test signal"
                       >
                         {testingId === si.id ? (
@@ -427,7 +427,7 @@ export function SlackClient() {
         <div className="border border-zinc-700/50 rounded-2xl bg-zinc-900/50 p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Code className="w-5 h-5 text-amber-400" />
+              <Code className="w-5 h-5 text-zinc-400" />
               <h2 className="text-lg font-semibold">Block Kit Payload</h2>
             </div>
             <button
@@ -460,7 +460,7 @@ export function SlackClient() {
             href="https://api.slack.com/messaging/webhooks"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-amber-400 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
           >
             Slack Incoming Webhooks documentation <ExternalLink className="w-3 h-3" />
           </a>

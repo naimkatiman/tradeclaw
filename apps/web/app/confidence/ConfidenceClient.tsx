@@ -98,7 +98,7 @@ const CONFIDENCE_TIERS = [
   { min: 80, label: 'Very Strong',  color: 'text-purple-400',   bg: 'bg-purple-500/20 border-purple-500/30',    tag: 'High conviction' },
   { min: 73, label: 'Strong',       color: 'text-emerald-400',  bg: 'bg-emerald-500/20 border-emerald-500/30',  tag: 'Auto-broadcast' },
   { min: 65, label: 'Moderate',     color: 'text-sky-400',      bg: 'bg-sky-500/20 border-sky-500/30',          tag: 'Published' },
-  { min: 58, label: 'Low',          color: 'text-amber-400',    bg: 'bg-amber-500/20 border-amber-500/30',      tag: 'Published (marginal)' },
+  { min: 58, label: 'Low',          color: 'text-zinc-400',    bg: 'bg-zinc-500/20 border-zinc-500/30',      tag: 'Published (marginal)' },
   { min: 55, label: 'Weak',         color: 'text-orange-400',   bg: 'bg-orange-500/20 border-orange-500/30',    tag: 'Watchlist only' },
   { min: 0,  label: 'Very Weak',    color: 'text-rose-400',     bg: 'bg-rose-500/20 border-rose-500/30',        tag: 'Filtered out' },
 ] as const;
@@ -124,7 +124,7 @@ function getIndicatorColorClass(color: string): string {
     emerald: 'bg-emerald-500',
     blue: 'bg-blue-500',
     purple: 'bg-purple-500',
-    amber: 'bg-amber-500',
+    amber: 'bg-zinc-500',
     rose: 'bg-rose-500',
     cyan: 'bg-cyan-500',
   };
@@ -136,7 +136,7 @@ function getSliderAccentClass(color: string): string {
     emerald: 'accent-emerald-500',
     blue: 'accent-blue-500',
     purple: 'accent-purple-500',
-    amber: 'accent-amber-500',
+    amber: 'accent-zinc-500',
     rose: 'accent-rose-500',
     cyan: 'accent-cyan-500',
   };
@@ -401,7 +401,7 @@ export default function ConfidenceClient() {
         {/* ── Confidence tiers legend ── */}
         <div className="rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Zap className="w-4 h-4 text-amber-400" />
+            <Zap className="w-4 h-4 text-zinc-400" />
             <h2 className="text-sm font-semibold">Confidence Tiers</h2>
           </div>
           <div className="grid gap-2">
@@ -425,7 +425,7 @@ export default function ConfidenceClient() {
           <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-rose-500/60" />
-              <div className="w-3 h-3 rounded-full bg-amber-500/60" />
+              <div className="w-3 h-3 rounded-full bg-zinc-500/60" />
               <div className="w-3 h-3 rounded-full bg-emerald-500/60" />
               <span className="ml-2 text-xs text-[var(--text-secondary)] font-mono">
                 signal-generator.ts
@@ -473,7 +473,7 @@ export default function ConfidenceClient() {
             href="https://github.com/naimkatiman/tradeclaw"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[var(--border)] text-sm font-medium hover:border-amber-500/40 hover:text-amber-400 transition-all duration-200"
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[var(--border)] text-sm font-medium hover:border-zinc-500/40 hover:text-zinc-400 transition-all duration-200"
           >
             <Star className="w-4 h-4" />
             Star on GitHub

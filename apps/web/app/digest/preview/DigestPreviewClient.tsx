@@ -307,7 +307,7 @@ export function DigestPreviewClient() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-zinc-800 text-white text-sm font-semibold hover:bg-zinc-700 transition-colors"
           >
-            <Star className="w-4 h-4 text-yellow-400" />
+            <Star className="w-4 h-4 text-zinc-400" />
             Star on GitHub
           </a>
         </div>

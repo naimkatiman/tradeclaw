@@ -273,9 +273,9 @@ export default function TelegramSettingsPage() {
               </div>
 
               {status.webhook?.lastError && (
-                <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg px-4 py-3">
-                  <p className="text-xs text-amber-400 font-medium mb-1">Last Webhook Error</p>
-                  <p className="text-sm text-amber-300">{status.webhook.lastError}</p>
+                <div className="bg-zinc-500/5 border border-zinc-500/20 rounded-lg px-4 py-3">
+                  <p className="text-xs text-zinc-400 font-medium mb-1">Last Webhook Error</p>
+                  <p className="text-sm text-zinc-300">{status.webhook.lastError}</p>
                   {status.webhook.lastErrorDate && (
                     <p className="text-xs text-zinc-500 mt-1">
                       {new Date(status.webhook.lastErrorDate).toLocaleString()}
@@ -603,7 +603,7 @@ export default function TelegramSettingsPage() {
                   className={`flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded ${
                     method === 'GET'
                       ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
                   }`}
                 >
                   {method}

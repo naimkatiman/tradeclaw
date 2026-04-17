@@ -48,7 +48,7 @@ interface StrategyProfile {
 const STRATEGY_PROFILES: StrategyProfile[] = [
   { id: 'rsi-reversion', name: 'RSI Reversion', meanReturn: 0.12, volatility: 1.8, winBias: 0.54, color: '#10b981' },
   { id: 'macd-trend', name: 'MACD Trend', meanReturn: 0.18, volatility: 2.4, winBias: 0.48, color: '#3b82f6' },
-  { id: 'ema-ribbon', name: 'EMA Ribbon', meanReturn: 0.08, volatility: 1.2, winBias: 0.56, color: '#f59e0b' },
+  { id: 'ema-ribbon', name: 'EMA Ribbon', meanReturn: 0.08, volatility: 1.2, winBias: 0.56, color: '#a1a1aa' },
   { id: 'bb-squeeze', name: 'BB Squeeze', meanReturn: 0.15, volatility: 2.0, winBias: 0.50, color: '#ef4444' },
   { id: 'multi-tf', name: 'Multi-TF Confluence', meanReturn: 0.22, volatility: 2.8, winBias: 0.46, color: '#a855f7' },
 ];

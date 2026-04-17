@@ -141,7 +141,7 @@ function drawLatencyChart(canvas: HTMLCanvasElement, points: LatencyPoint[]): vo
   };
 
   drawLine(points.map(p => p.p99), '#f43f5e');   // rose
-  drawLine(points.map(p => p.p95), '#f59e0b');   // amber
+  drawLine(points.map(p => p.p95), '#a1a1aa');   // amber
   drawLine(points.map(p => p.p50), '#10b981', 2); // emerald (thicker)
 
   // X-axis labels
@@ -230,13 +230,13 @@ function HBar({
 
 function RouteColor(avg: number): string {
   if (avg < 100) return 'text-emerald-400';
-  if (avg < 500) return 'text-amber-400';
+  if (avg < 500) return 'text-zinc-400';
   return 'text-rose-400';
 }
 
 function RouteDot(avg: number): string {
   if (avg < 100) return 'bg-emerald-500';
-  if (avg < 500) return 'bg-amber-500';
+  if (avg < 500) return 'bg-zinc-500';
   return 'bg-rose-500';
 }
 
@@ -378,7 +378,7 @@ export function PerformanceClient() {
               m && m.memory.heapPct > 80
                 ? 'text-rose-400'
                 : m && m.memory.heapPct > 60
-                ? 'text-amber-400'
+                ? 'text-zinc-400'
                 : 'text-emerald-400'
             }
           />
@@ -427,7 +427,7 @@ export function PerformanceClient() {
             </span>
             <div className="flex items-center gap-4 text-[10px] font-mono">
               <span className="text-emerald-400">─ p50</span>
-              <span className="text-amber-400">─ p95</span>
+              <span className="text-zinc-400">─ p95</span>
               <span className="text-rose-400">─ p99</span>
             </div>
           </div>
@@ -448,7 +448,7 @@ export function PerformanceClient() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <LatencyBox label="AVG" value={m?.latency.avg ?? 0} color="text-zinc-400" />
             <LatencyBox label="p50" value={m?.latency.p50 ?? 0} color="text-emerald-400" />
-            <LatencyBox label="p95" value={m?.latency.p95 ?? 0} color="text-amber-400" />
+            <LatencyBox label="p95" value={m?.latency.p95 ?? 0} color="text-zinc-400" />
             <LatencyBox label="p99" value={m?.latency.p99 ?? 0} color="text-rose-400" />
           </div>
         </div>
@@ -514,7 +514,7 @@ export function PerformanceClient() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /> &lt;100ms
               </span>
               <span className="flex items-center gap-1.5 text-zinc-600">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" /> &lt;500ms
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 inline-block" /> &lt;500ms
               </span>
               <span className="flex items-center gap-1.5 text-zinc-600">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" /> &gt;500ms

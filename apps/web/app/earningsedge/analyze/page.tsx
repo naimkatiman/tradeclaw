@@ -28,7 +28,7 @@ function saveToHistory(analysis: EarningsAnalysis) {
 function ToneChip({ tone }: { tone: string }) {
   const colors: Record<string, string> = {
     bullish: 'bg-green-400/10 text-green-400 border-green-400/20',
-    neutral: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
+    neutral: 'bg-zinc-400/10 text-zinc-400 border-zinc-400/20',
     bearish: 'bg-red-400/10 text-red-400 border-red-400/20',
   };
   return (
@@ -212,7 +212,7 @@ function AnalysisResult({ analysis }: { analysis: EarningsAnalysis }) {
                 analysis.confidence === 'high'
                   ? 'bg-green-400/10 text-green-400 border-green-400/20'
                   : analysis.confidence === 'medium'
-                    ? 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20'
+                    ? 'bg-zinc-400/10 text-zinc-400 border-zinc-400/20'
                     : 'bg-gray-400/10 text-gray-400 border-gray-400/20'
               }`}
             >
@@ -227,9 +227,9 @@ function AnalysisResult({ analysis }: { analysis: EarningsAnalysis }) {
       </div>
 
       {/* Trade Thesis */}
-      <div className="bg-yellow-400/5 border border-yellow-400/20 rounded-xl p-5">
+      <div className="bg-zinc-400/5 border border-zinc-400/20 rounded-xl p-5">
         <div className="flex items-center justify-between mb-2">
-          <div className="text-yellow-400 font-semibold flex items-center gap-2">
+          <div className="text-zinc-400 font-semibold flex items-center gap-2">
             <span>⚡</span> Trade Thesis
           </div>
           <button

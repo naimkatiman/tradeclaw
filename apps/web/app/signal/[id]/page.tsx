@@ -160,7 +160,7 @@ export default async function SignalPage(
             <div className="text-right shrink-0">
               <div className={`text-5xl font-bold font-mono tabular-nums ${
                 signal.confidence >= 80 ? 'text-emerald-400'
-                : signal.confidence >= 65 ? 'text-yellow-400'
+                : signal.confidence >= 65 ? 'text-zinc-400'
                 : 'text-red-400'
               }`}>
                 {signal.confidence}%
@@ -176,7 +176,7 @@ export default async function SignalPage(
               style={{
                 width: `${signal.confidence}%`,
                 background: signal.confidence >= 80 ? '#10B981'
-                  : signal.confidence >= 65 ? '#F59E0B' : '#EF4444',
+                  : signal.confidence >= 65 ? '#a1a1aa' : '#EF4444',
               }}
             />
           </div>

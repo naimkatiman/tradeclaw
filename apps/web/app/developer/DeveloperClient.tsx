@@ -31,7 +31,7 @@ interface CreateResponse {
 
 function UsageBar({ used, limit }: { used: number; limit: number }) {
   const pct = Math.min(100, (used / limit) * 100);
-  const color = pct > 80 ? 'bg-red-500' : pct > 50 ? 'bg-yellow-500' : 'bg-emerald-500';
+  const color = pct > 80 ? 'bg-red-500' : pct > 50 ? 'bg-zinc-500' : 'bg-emerald-500';
   return (
     <div className="w-full bg-white/10 rounded-full h-1.5 mt-1">
       <div className={`${color} h-1.5 rounded-full transition-all`} style={{ width: `${pct}%` }} />

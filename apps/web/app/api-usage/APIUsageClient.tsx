@@ -41,7 +41,7 @@ function GaugeChart({ used, limit, label }: { used: number; limit: number; label
   const radius = 54;
   const circumference = Math.PI * radius; // semi-circle
   const offset = circumference - (pct / 100) * circumference;
-  const color = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#10b981';
+  const color = pct >= 90 ? '#ef4444' : pct >= 70 ? '#a1a1aa' : '#10b981';
 
   return (
     <div className="flex flex-col items-center">
@@ -118,7 +118,7 @@ function CountdownTimer({ resetAt }: { resetAt: string }) {
 
   return (
     <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
-      <Clock className="w-3.5 h-3.5 text-amber-400" />
+      <Clock className="w-3.5 h-3.5 text-zinc-400" />
       <span>Resets in <strong className="text-[var(--foreground)]">{timeLeft}</strong></span>
     </div>
   );
@@ -163,7 +163,7 @@ export default function APIUsageClient() {
         { name: 'Signals', path: '/api/v1/signals', requests: Math.floor(usage.requestsToday * 0.55), limit: usage.rateLimit, color: '#10b981' },
         { name: 'Leaderboard', path: '/api/v1/leaderboard', requests: Math.floor(usage.requestsToday * 0.25), limit: usage.rateLimit, color: '#8b5cf6' },
         { name: 'Health', path: '/api/v1/health', requests: Math.floor(usage.requestsToday * 0.12), limit: usage.rateLimit, color: '#3b82f6' },
-        { name: 'Badge', path: '/api/v1/badge', requests: Math.floor(usage.requestsToday * 0.08), limit: usage.rateLimit, color: '#f59e0b' },
+        { name: 'Badge', path: '/api/v1/badge', requests: Math.floor(usage.requestsToday * 0.08), limit: usage.rateLimit, color: '#a1a1aa' },
       ]
     : [];
 

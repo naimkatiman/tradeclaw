@@ -93,8 +93,8 @@ function formatTime(ts: number): string {
 }
 
 function HitRateBar({ value }: { value: number }) {
-  const color = value >= 60 ? 'bg-emerald-500' : value >= 50 ? 'bg-yellow-500' : 'bg-red-500';
-  const textColor = value >= 60 ? 'text-emerald-400' : value >= 50 ? 'text-yellow-400' : 'text-red-400';
+  const color = value >= 60 ? 'bg-emerald-500' : value >= 50 ? 'bg-zinc-500' : 'bg-red-500';
+  const textColor = value >= 60 ? 'text-emerald-400' : value >= 50 ? 'text-zinc-400' : 'text-red-400';
   return (
     <div className="flex items-center gap-2">
       <div className="relative flex-1 h-1 rounded-full bg-[var(--glass-bg)]">
@@ -205,7 +205,7 @@ export function TrackRecordClient() {
           <div className="flex items-baseline gap-3 mb-2">
             <span className={`text-5xl font-bold tabular-nums ${
               stats && stats.winRate >= 55 ? 'text-emerald-400'
-              : stats && stats.winRate >= 45 ? 'text-yellow-400'
+              : stats && stats.winRate >= 45 ? 'text-zinc-400'
               : stats ? 'text-red-400' : 'text-[var(--foreground)]'
             }`}>
               {stats ? `${stats.winRate}%` : '—'}
@@ -534,7 +534,7 @@ function StatCard({
   const valueColor =
     accent === 'emerald' ? 'text-emerald-400'
     : accent === 'red' ? 'text-red-400'
-    : accent === 'yellow' ? 'text-yellow-400'
+    : accent === 'yellow' ? 'text-zinc-400'
     : 'text-[var(--foreground)]';
 
   return (

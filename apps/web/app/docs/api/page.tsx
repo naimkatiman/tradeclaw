@@ -12,7 +12,7 @@ function EndpointBadge({ method }: { method: 'GET' | 'POST' | 'PATCH' | 'DELETE'
   const colors: Record<string, string> = {
     GET: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25',
     POST: 'bg-blue-500/15 text-blue-400 border-blue-500/25',
-    PATCH: 'bg-amber-500/15 text-amber-400 border-amber-500/25',
+    PATCH: 'bg-zinc-500/15 text-zinc-400 border-zinc-500/25',
     DELETE: 'bg-red-500/15 text-red-400 border-red-500/25',
   };
   return (

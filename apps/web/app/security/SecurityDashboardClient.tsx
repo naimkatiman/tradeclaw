@@ -68,13 +68,13 @@ const TRUST_SIGNALS: TrustSignal[] = [
 
 function StatusIcon({ status }: { status: Status }) {
   if (status === "pass") return <CheckCircle className="w-5 h-5 text-emerald-400" />;
-  if (status === "warn") return <AlertTriangle className="w-5 h-5 text-amber-400" />;
+  if (status === "warn") return <AlertTriangle className="w-5 h-5 text-zinc-400" />;
   return <XCircle className="w-5 h-5 text-rose-400" />;
 }
 
 function statusBg(status: Status): string {
   if (status === "pass") return "border-emerald-500/20 bg-emerald-500/5";
-  if (status === "warn") return "border-amber-500/20 bg-amber-500/5";
+  if (status === "warn") return "border-zinc-500/20 bg-zinc-500/5";
   return "border-rose-500/20 bg-rose-500/5";
 }
 
@@ -138,7 +138,7 @@ export default function SecurityDashboardClient() {
                 <CheckCircle className="w-4 h-4 text-emerald-400" /> {passCount}
               </span>
               <span className="flex items-center gap-1">
-                <AlertTriangle className="w-4 h-4 text-amber-400" /> {warnCount}
+                <AlertTriangle className="w-4 h-4 text-zinc-400" /> {warnCount}
               </span>
               {failCount > 0 && (
                 <span className="flex items-center gap-1">
@@ -163,7 +163,7 @@ export default function SecurityDashboardClient() {
                       <span className="mx-2 text-sm font-medium">{item.name}</span>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                         item.status === "pass" ? "bg-emerald-500/10 text-emerald-400" :
-                        item.status === "warn" ? "bg-amber-500/10 text-amber-400" :
+                        item.status === "warn" ? "bg-zinc-500/10 text-zinc-400" :
                         "bg-rose-500/10 text-rose-400"
                       }`}>
                         {statusLabel(item.status)}

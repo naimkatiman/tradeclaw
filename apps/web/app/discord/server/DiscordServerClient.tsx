@@ -49,9 +49,9 @@ const CHANNELS = [
     icon: Volume2,
     name: 'announcements',
     description: 'New releases, breaking changes, and roadmap updates — never miss a TradeClaw milestone.',
-    color: 'text-amber-400',
+    color: 'text-zinc-400',
     badge: 'Official',
-    badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    badgeColor: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
   },
   {
     icon: Hash,
@@ -114,7 +114,7 @@ function SignalEmbed() {
       {/* Discord chrome */}
       <div className="flex items-center gap-2 px-3 py-2 bg-[#1e1f22] border-b border-white/5">
         <div className="w-3 h-3 rounded-full bg-rose-500" />
-        <div className="w-3 h-3 rounded-full bg-amber-400" />
+        <div className="w-3 h-3 rounded-full bg-zinc-400" />
         <div className="w-3 h-3 rounded-full bg-emerald-500" />
         <span className="ml-2 text-xs text-zinc-500">#live-signals</span>
       </div>
@@ -152,7 +152,7 @@ function SignalEmbed() {
             </div>
           </div>
           <div className="flex gap-3 text-xs mt-1 text-zinc-400">
-            <span>RSI: <span className="text-amber-400">42</span></span>
+            <span>RSI: <span className="text-zinc-400">42</span></span>
             <span>MACD: <span className="text-emerald-400">+0.12</span></span>
             <span>EMA: <span className="text-emerald-400">↑ Bullish</span></span>
           </div>
@@ -245,7 +245,7 @@ export function DiscordServerClient() {
               <span>Community growing</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Zap className="w-4 h-4 text-amber-400" />
+              <Zap className="w-4 h-4 text-zinc-400" />
               <span>Live signal alerts</span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -338,9 +338,9 @@ export function DiscordServerClient() {
 
         {/* Milestone rewards */}
         <section>
-          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6">
+          <div className="rounded-2xl border border-zinc-500/20 bg-zinc-500/5 p-6">
             <div className="flex items-center gap-2 mb-5">
-              <Bell className="w-5 h-5 text-amber-400" />
+              <Bell className="w-5 h-5 text-zinc-400" />
               <h2 className="text-lg font-bold text-white">Star Milestone Rewards</h2>
             </div>
             <p className="text-sm text-zinc-400 mb-5">
@@ -350,8 +350,8 @@ export function DiscordServerClient() {
             <div className="space-y-3">
               {MILESTONES.map((m) => (
                 <div key={m.stars} className="flex items-start gap-3">
-                  <div className="flex-shrink-0 flex items-center gap-1 text-amber-400 w-16">
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
+                  <div className="flex-shrink-0 flex items-center gap-1 text-zinc-400 w-16">
+                    <Star className="w-3.5 h-3.5 fill-zinc-400" />
                     <span className="text-sm font-semibold">{m.stars}</span>
                   </div>
                   <p className="text-sm text-zinc-300">{m.reward}</p>
@@ -401,7 +401,7 @@ export function DiscordServerClient() {
 
         {/* Star CTA */}
         <section className="rounded-2xl border border-zinc-700 bg-zinc-900 p-8 text-center">
-          <Star className="mx-auto mb-3 w-8 h-8 text-amber-400 fill-amber-400" />
+          <Star className="mx-auto mb-3 w-8 h-8 text-zinc-400 fill-zinc-400" />
           <h2 className="text-xl font-bold text-white mb-2">Help us reach 1000 stars</h2>
           <p className="text-zinc-400 text-sm mb-6 max-w-md mx-auto">
             Every star unlocks more community features and keeps TradeClaw free and open-source. 
@@ -412,7 +412,7 @@ export function DiscordServerClient() {
               href="https://github.com/naimkatiman/tradeclaw"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-400 transition-colors"
+              className="flex items-center gap-2 rounded-lg bg-zinc-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-400 transition-colors"
             >
               <Star className="w-4 h-4 fill-white" />
               Star on GitHub

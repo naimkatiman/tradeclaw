@@ -540,7 +540,7 @@ export function BrokersClient() {
                       ? 'bg-purple-950 border-purple-800 text-purple-300'
                       : item.color === 'blue'
                       ? 'bg-blue-950 border-blue-800 text-blue-300'
-                      : 'bg-yellow-950 border-yellow-800 text-yellow-300'
+                      : 'bg-zinc-950 border-zinc-800 text-zinc-300'
                   }`}
                 >
                   {item.label}

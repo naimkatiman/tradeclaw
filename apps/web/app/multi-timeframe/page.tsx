@@ -17,13 +17,13 @@ function formatPrice(p: number): string {
 function directionColor(dir: 'BUY' | 'SELL' | 'NEUTRAL'): string {
   if (dir === 'BUY') return 'text-emerald-400';
   if (dir === 'SELL') return 'text-rose-400';
-  return 'text-amber-400';
+  return 'text-zinc-400';
 }
 
 function directionBg(dir: 'BUY' | 'SELL' | 'NEUTRAL'): string {
   if (dir === 'BUY') return 'bg-emerald-500/10 border-emerald-500/20';
   if (dir === 'SELL') return 'bg-rose-500/10 border-rose-500/20';
-  return 'bg-amber-500/10 border-amber-500/20';
+  return 'bg-zinc-500/10 border-zinc-500/20';
 }
 
 function directionArrow(dir: 'BUY' | 'SELL' | 'NEUTRAL'): string {
@@ -50,7 +50,7 @@ function ConfluenceBar({ value, direction }: { value: number; direction: 'BUY' |
   const color =
     direction === 'BUY' ? '#10b981' :
     direction === 'SELL' ? '#f43f5e' :
-    '#f59e0b';
+    '#a1a1aa';
   return (
     <div className="relative h-1 w-full rounded-full bg-[var(--border)]">
       <div
@@ -105,7 +105,7 @@ function MatrixRow({ result }: { result: MultiTFResult }) {
               <ConfluenceBar value={confluenceScore} direction={result.dominantDirection} />
             </div>
             <div className={`text-[10px] font-mono ${
-              result.isConflicted ? 'text-amber-400' :
+              result.isConflicted ? 'text-zinc-400' :
               result.agreementCount === 3 ? 'text-emerald-400' : 'text-[var(--text-secondary)]'
             }`}>
               {confluenceLabel}
@@ -180,7 +180,7 @@ function MatrixRow({ result }: { result: MultiTFResult }) {
           </div>
 
           {result.isConflicted && (
-            <div className="mt-3 flex items-center gap-2 text-[10px] font-mono text-amber-400/80 bg-amber-500/5 border border-amber-500/10 rounded-lg px-3 py-2">
+            <div className="mt-3 flex items-center gap-2 text-[10px] font-mono text-zinc-400/80 bg-zinc-500/5 border border-zinc-500/10 rounded-lg px-3 py-2">
               <AlertTriangle className="w-3.5 h-3.5" />
               <span>Timeframes in conflict — confidence adjusted {result.confluenceBonus}%</span>
             </div>
@@ -308,7 +308,7 @@ export default function MultiTimeframePage() {
           <SummaryCard
             value={data?.summary.conflicted ?? 0}
             label="Conflicted"
-            color="text-amber-400"
+            color="text-zinc-400"
           />
         </div>
 
@@ -321,7 +321,7 @@ export default function MultiTimeframePage() {
             <span className="text-emerald-400">+5%</span> 2 of 3 TFs agree
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="text-amber-400">−20%</span> TFs in conflict
+            <span className="text-zinc-400">−20%</span> TFs in conflict
           </span>
         </div>
 
@@ -335,7 +335,7 @@ export default function MultiTimeframePage() {
                 selectedDir === dir
                   ? dir === 'BUY' ? 'bg-emerald-500/15 text-emerald-400'
                   : dir === 'SELL' ? 'bg-rose-500/15 text-rose-400'
-                  : dir === 'NEUTRAL' ? 'bg-amber-500/15 text-amber-400'
+                  : dir === 'NEUTRAL' ? 'bg-zinc-500/15 text-zinc-400'
                   : 'bg-[var(--glass-bg)] text-[var(--foreground)]'
                   : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
               }`}

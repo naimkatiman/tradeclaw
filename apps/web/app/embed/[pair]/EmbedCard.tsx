@@ -102,7 +102,7 @@ export function EmbedCard({ pair, theme }: Props) {
   const accentBorder = isBuy ? 'rgba(16,185,129,0.25)' : 'rgba(244,63,94,0.25)';
 
   const confColor = signal.confidence >= 80 ? buyColor
-    : signal.confidence >= 65 ? '#f59e0b'
+    : signal.confidence >= 65 ? '#a1a1aa'
     : sellColor;
 
   return (

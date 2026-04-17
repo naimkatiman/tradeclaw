@@ -157,19 +157,19 @@ export function StarClient() {
       {/* ─── HERO ─── */}
       <section className="relative overflow-hidden px-6 pt-32 pb-16 text-center">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[500px] w-[500px] rounded-full bg-yellow-400/5 blur-[120px]" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[500px] w-[500px] rounded-full bg-zinc-400/5 blur-[120px]" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-3xl">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-yellow-400/15 bg-yellow-400/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-yellow-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-400/15 bg-zinc-400/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-zinc-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-zinc-400 animate-pulse" />
             Community Campaign
           </div>
 
           <h1 className="text-5xl font-bold leading-tight tracking-tight sm:text-6xl">
             Help TradeClaw reach
             <br />
-            <span className="text-yellow-400">1,000 <Star className="w-5 h-5 inline" /></span>
+            <span className="text-zinc-400">1,000 <Star className="w-5 h-5 inline" /></span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-base text-zinc-400 leading-relaxed">
@@ -184,7 +184,7 @@ export function StarClient() {
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center gap-3 rounded-full bg-yellow-400 px-8 py-4 text-base font-bold text-black transition-all hover:bg-yellow-300 hover:scale-[1.02] active:scale-[0.98]"
+              className="group flex items-center gap-3 rounded-full bg-zinc-400 px-8 py-4 text-base font-bold text-black transition-all hover:bg-zinc-300 hover:scale-[1.02] active:scale-[0.98]"
             >
               <StarIcon className="h-5 w-5" />
               Star on GitHub
@@ -210,7 +210,7 @@ export function StarClient() {
             </div>
             <div className="h-3 w-full rounded-full bg-white/5 overflow-hidden border border-white/8">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-yellow-500 to-yellow-400 transition-all duration-1000"
+                className="h-full rounded-full bg-gradient-to-r from-zinc-500 to-zinc-400 transition-all duration-1000"
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -238,19 +238,19 @@ export function StarClient() {
                   key={m.stars}
                   className={`rounded-xl border p-5 transition-all ${
                     reached
-                      ? "border-yellow-400/30 bg-yellow-400/5"
+                      ? "border-zinc-400/30 bg-zinc-400/5"
                       : "border-white/8 bg-white/[0.025]"
                   }`}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <m.icon className="w-6 h-6 text-emerald-400" />
-                      <span className={`text-sm font-bold font-mono ${reached ? "text-yellow-400" : "text-zinc-300"}`}>
+                      <span className={`text-sm font-bold font-mono ${reached ? "text-zinc-400" : "text-zinc-300"}`}>
                         {m.stars.toLocaleString()} <Star className="w-3.5 h-3.5 inline" />
                       </span>
                     </div>
                     {reached && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 bg-zinc-400/10 px-2 py-0.5 rounded-full">
                         Unlocked
                       </span>
                     )}
@@ -260,7 +260,7 @@ export function StarClient() {
                   <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-700 ${
-                        reached ? "bg-yellow-400" : "bg-yellow-400/40"
+                        reached ? "bg-zinc-400" : "bg-zinc-400/40"
                       }`}
                       style={{ width: `${progress}%` }}
                     />
@@ -461,12 +461,12 @@ export function StarClient() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-yellow-400/40 transition-colors"
+              className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-zinc-400/40 transition-colors"
             />
             <button
               type="submit"
               disabled={notifyStatus === "loading"}
-              className="rounded-lg bg-yellow-400 px-5 py-3 text-sm font-bold text-black hover:bg-yellow-300 transition-all disabled:opacity-50"
+              className="rounded-lg bg-zinc-400 px-5 py-3 text-sm font-bold text-black hover:bg-zinc-300 transition-all disabled:opacity-50"
             >
               {notifyStatus === "loading" ? "…" : "Notify me"}
             </button>
@@ -555,7 +555,7 @@ export function StarClient() {
       {/* ─── FOOTER CTA ─── */}
       <section className="px-6 py-16 border-t border-white/5 text-center">
         <div className="mx-auto max-w-xl">
-          <div className="text-4xl mb-4"><Star className="w-10 h-10 text-yellow-400 mx-auto" /></div>
+          <div className="text-4xl mb-4"><Star className="w-10 h-10 text-zinc-400 mx-auto" /></div>
           <h2 className="text-2xl font-bold mb-3">2 seconds. Zero cost. Real impact.</h2>
           <p className="text-sm text-zinc-500 mb-8">
             Every star makes TradeClaw more discoverable to traders who need free tools.
@@ -564,7 +564,7 @@ export function StarClient() {
             href={GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-4 text-base font-bold text-black hover:bg-yellow-300 transition-all hover:scale-[1.02]"
+            className="inline-flex items-center gap-2 rounded-full bg-zinc-400 px-8 py-4 text-base font-bold text-black hover:bg-zinc-300 transition-all hover:scale-[1.02]"
           >
             <StarIcon className="h-5 w-5" />
             Star TradeClaw on GitHub

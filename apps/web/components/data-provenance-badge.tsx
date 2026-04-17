@@ -17,7 +17,7 @@ const PROVENANCE_CONFIG: Record<DataProvenance, { label: string; color: string; 
   },
   mixed: {
     label: 'Mixed data',
-    color: '#fbbf24',
+    color: '#d4d4d8',
     bg: 'rgba(251,191,36,0.08)',
     border: 'rgba(251,191,36,0.25)',
     tooltip: 'Stats include a mix of live-tracked and simulated signals. Simulated rows are excluded from accuracy calculations.',

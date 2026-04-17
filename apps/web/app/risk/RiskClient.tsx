@@ -138,7 +138,7 @@ function getMockVetoedSignals(): VetoedSignal[] {
 function getBreakerStatusStyle(status: BreakerStatus): { bg: string; border: string; dot: string; label: string } {
   switch (status) {
     case 'inactive': return { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', dot: 'bg-emerald-500', label: 'Inactive' };
-    case 'approaching': return { bg: 'bg-amber-500/10', border: 'border-amber-500/20', dot: 'bg-amber-500', label: 'Approaching' };
+    case 'approaching': return { bg: 'bg-zinc-500/10', border: 'border-zinc-500/20', dot: 'bg-zinc-500', label: 'Approaching' };
     case 'triggered': return { bg: 'bg-rose-500/10', border: 'border-rose-500/20', dot: 'bg-rose-500', label: 'Triggered' };
   }
 }
@@ -186,7 +186,7 @@ function BreakerCard({ breaker }: { breaker: CircuitBreaker }) {
             <span>Triggered: {new Date(breaker.triggeredAt).toLocaleTimeString()}</span>
           </div>
           {breaker.cooldownRemaining && (
-            <span className="text-amber-400 font-mono">Cooldown: {breaker.cooldownRemaining}</span>
+            <span className="text-zinc-400 font-mono">Cooldown: {breaker.cooldownRemaining}</span>
           )}
         </div>
       )}
@@ -396,7 +396,7 @@ export function RiskClient() {
                 </span>
               )}
               {approachingCount > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">
                   {approachingCount} Approaching
                 </span>
               )}
@@ -417,7 +417,7 @@ export function RiskClient() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                 <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4">
                   <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Current Drawdown</span>
-                  <p className={`text-2xl font-bold font-mono mt-1 ${metrics.currentDrawdown < -5 ? 'text-rose-400' : metrics.currentDrawdown < -2 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                  <p className={`text-2xl font-bold font-mono mt-1 ${metrics.currentDrawdown < -5 ? 'text-rose-400' : metrics.currentDrawdown < -2 ? 'text-zinc-400' : 'text-emerald-400'}`}>
                     {metrics.currentDrawdown.toFixed(1)}%
                   </p>
                 </div>
@@ -435,7 +435,7 @@ export function RiskClient() {
                 </div>
                 <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4">
                   <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Consecutive Losses</span>
-                  <p className={`text-2xl font-bold font-mono mt-1 ${metrics.consecutiveLosses >= 4 ? 'text-rose-400' : metrics.consecutiveLosses >= 2 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                  <p className={`text-2xl font-bold font-mono mt-1 ${metrics.consecutiveLosses >= 4 ? 'text-rose-400' : metrics.consecutiveLosses >= 2 ? 'text-zinc-400' : 'text-emerald-400'}`}>
                     {metrics.consecutiveLosses} / {metrics.maxConsecutiveLosses}
                   </p>
                 </div>

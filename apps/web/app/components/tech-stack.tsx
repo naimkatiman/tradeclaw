@@ -3,7 +3,7 @@ const techStack = [
   { name: "TypeScript", category: "Language", color: "text-blue-400" },
   { name: "Tailwind CSS", category: "Styling", color: "text-cyan-400" },
   { name: "PostgreSQL", category: "Database", color: "text-blue-300" },
-  { name: "TimescaleDB", category: "Time-Series", color: "text-yellow-400" },
+  { name: "TimescaleDB", category: "Time-Series", color: "text-zinc-400" },
   { name: "Redis", category: "Cache", color: "text-red-400" },
   { name: "Docker", category: "Deploy", color: "text-blue-500" },
   { name: "GitHub Actions", category: "CI/CD", color: "text-zinc-300" },

@@ -35,7 +35,7 @@ const SHARE_CONTENT = {
 const QUICK_SHARE_LINKS = [
   {
     platform: 'github' as PlatformId,
-    color: 'bg-amber-500/10 border-amber-500/20 text-amber-400 hover:border-amber-400/40',
+    color: 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400 hover:border-zinc-400/40',
     href: REPO_URL,
     icon: (
       <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
@@ -513,8 +513,8 @@ export function ShareClient() {
       {/* ── Hero ── */}
       <section className="relative px-6 pt-28 pb-20 text-center overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-gradient-to-br from-emerald-500/8 via-amber-500/5 to-transparent rounded-full blur-[120px]" />
-          <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-amber-600/4 rounded-full blur-[80px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-gradient-to-br from-emerald-500/8 via-zinc-500/5 to-transparent rounded-full blur-[120px]" />
+          <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-zinc-600/4 rounded-full blur-[80px]" />
         </div>
 
         <div className="relative max-w-2xl mx-auto">
@@ -527,7 +527,7 @@ export function ShareClient() {
 
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4 leading-tight">
             Help us reach{' '}
-            <span className="bg-gradient-to-r from-amber-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-zinc-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">
               1,000 GitHub Stars
             </span>
           </h1>
@@ -579,7 +579,7 @@ export function ShareClient() {
             href={REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-black text-sm font-bold transition-all duration-200 shadow-lg shadow-amber-500/20"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-zinc-500 to-zinc-400 hover:from-zinc-400 hover:to-zinc-300 text-black text-sm font-bold transition-all duration-200 shadow-lg shadow-zinc-500/20"
           >
             <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 .587l3.668 7.431L24 9.306l-6 5.851 1.416 8.257L12 19.012l-7.416 4.402L6 15.157 0 9.306l8.332-1.288z" />

@@ -27,7 +27,7 @@ interface TournamentData {
 const RANK_COLORS: Record<number, { bg: string; border: string; text: string; label: string }> = {
   1: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/40', text: 'text-emerald-400', label: 'emerald' },
   2: { bg: 'bg-zinc-400/10', border: 'border-zinc-400/40', text: 'text-zinc-300', label: 'silver' },
-  3: { bg: 'bg-amber-500/10', border: 'border-amber-500/40', text: 'text-amber-400', label: 'amber' },
+  3: { bg: 'bg-zinc-500/10', border: 'border-zinc-500/40', text: 'text-zinc-400', label: 'amber' },
 };
 
 const RANK_EMOJI: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };

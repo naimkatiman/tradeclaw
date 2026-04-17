@@ -46,7 +46,7 @@ function PnlBadge({ value }: { value: number }) {
 function RankMedal({ rank }: { rank: number }) {
   if (rank === 1)
     return (
-      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-yellow-500/15 text-yellow-400 text-xs font-bold">
+      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-zinc-500/15 text-zinc-400 text-xs font-bold">
         1
       </span>
     );
@@ -58,7 +58,7 @@ function RankMedal({ rank }: { rank: number }) {
     );
   if (rank === 3)
     return (
-      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700/15 text-amber-600 text-xs font-bold">
+      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-zinc-700/15 text-zinc-600 text-xs font-bold">
         3
       </span>
     );
@@ -75,7 +75,7 @@ function DailyWinChart({ rates }: { rates: WeeklyStats['dailyWinRates'] }) {
     <div className="flex items-end gap-1.5 h-20">
       {rates.map((rate, i) => {
         const height = max > 0 ? (rate / 100) * 100 : 0;
-        const color = rate >= 60 ? 'bg-emerald-500' : rate >= 50 ? 'bg-yellow-500' : rate > 0 ? 'bg-red-500' : 'bg-zinc-700';
+        const color = rate >= 60 ? 'bg-emerald-500' : rate >= 50 ? 'bg-zinc-500' : rate > 0 ? 'bg-red-500' : 'bg-zinc-700';
         return (
           <div key={i} className="flex flex-col items-center gap-1 flex-1">
             <span className="text-[9px] font-mono text-[var(--text-secondary)] tabular-nums">
@@ -212,7 +212,7 @@ export default function WeeklyClient() {
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Trophy className="w-6 h-6 text-yellow-400" />
+              <Trophy className="w-6 h-6 text-zinc-400" />
               Signal of the Week
             </h1>
             {digest && (
@@ -279,7 +279,7 @@ export default function WeeklyClient() {
             <div className="rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] overflow-hidden">
               <div className="px-4 py-3 border-b border-[var(--border)]">
                 <h2 className="text-sm font-semibold flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-yellow-400" />
+                  <Trophy className="w-4 h-4 text-zinc-400" />
                   Top 5 Signals
                 </h2>
                 <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">

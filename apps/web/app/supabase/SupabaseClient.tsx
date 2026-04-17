@@ -212,7 +212,7 @@ export function SupabaseClient() {
         <div className="rounded-2xl border border-[var(--border)] bg-black/50 overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-card)]">
             <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
-            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+            <div className="w-2.5 h-2.5 rounded-full bg-zinc-500/60" />
             <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
             <span className="text-[10px] text-[var(--text-secondary)] ml-2 font-mono">schema.sql</span>
           </div>
@@ -234,7 +234,7 @@ export function SupabaseClient() {
         <div className="rounded-2xl border border-[var(--border)] bg-black/50 overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-card)]">
             <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
-            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+            <div className="w-2.5 h-2.5 rounded-full bg-zinc-500/60" />
             <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
             <span className="text-[10px] text-[var(--text-secondary)] ml-2 font-mono">migrate.js</span>
           </div>
@@ -328,7 +328,7 @@ export function SupabaseClient() {
       {/* GitHub Star CTA */}
       <section className="max-w-3xl mx-auto px-4 text-center">
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-8">
-          <Star className="w-8 h-8 text-amber-400 mx-auto mb-3" />
+          <Star className="w-8 h-8 text-zinc-400 mx-auto mb-3" />
           <h2 className="text-xl font-bold mb-2">Star TradeClaw on GitHub</h2>
           <p className="text-sm text-[var(--text-secondary)] mb-4">
             Help more traders discover free, open-source signal tools.

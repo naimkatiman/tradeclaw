@@ -63,7 +63,7 @@ function getThemeColors(theme: Theme, isBuy: boolean) {
     case 'purple':
       return { bg0: '#0d0015', bg1: '#150025', text: '#e9d5ff', subText: '#a78bfa', border: '#4c1d95', accent: isBuy ? '#34d399' : '#f472b6', accentDim: isBuy ? '#10b981' : '#ec4899' };
     case 'gold':
-      return { bg0: '#0f0c06', bg1: '#1a1408', text: '#fef3c7', subText: '#d97706', border: '#78350f', accent: isBuy ? '#10b981' : '#f43f5e', accentDim };
+      return { bg0: '#0f0c06', bg1: '#1a1408', text: '#f4f4f5', subText: '#71717a', border: '#78350f', accent: isBuy ? '#10b981' : '#f43f5e', accentDim };
     default: // dark
       return { bg0: '#0a0a0a', bg1: '#0e1520', text: '#f1f5f9', subText: '#94a3b8', border: '#1e293b', accent, accentDim };
   }
@@ -756,12 +756,12 @@ const GALLERY_CARDS = [
   },
   {
     pair: 'USDJPY', direction: 'BUY' as const, confidence: 83, tf: 'D1',
-    bg0: '#0f0c06', bg1: '#1a1408', text: '#fef3c7', subText: '#d97706', border: '#78350f', accent: '#10b981',
+    bg0: '#0f0c06', bg1: '#1a1408', text: '#f4f4f5', subText: '#71717a', border: '#78350f', accent: '#10b981',
     metrics: [{ label: 'RSI', value: '58.3' }, { label: 'MACD', value: '+0.0019' }, { label: 'EMA', value: '151.45' }],
   },
   {
     pair: 'BNBUSD', direction: 'BUY' as const, confidence: 76, tf: 'H1',
-    bg0: '#0f0c06', bg1: '#1a1408', text: '#fef3c7', subText: '#d97706', border: '#78350f', accent: '#10b981',
+    bg0: '#0f0c06', bg1: '#1a1408', text: '#f4f4f5', subText: '#71717a', border: '#78350f', accent: '#10b981',
     metrics: [{ label: 'RSI', value: '49.6' }, { label: 'MACD', value: '+0.0015' }, { label: 'EMA', value: '612.30' }],
   },
 ];

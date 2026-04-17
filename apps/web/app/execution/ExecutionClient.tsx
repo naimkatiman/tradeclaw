@@ -94,7 +94,7 @@ function getStatusStyle(status: OrderStatus): { bg: string; text: string; border
   switch (status) {
     case 'filled': return { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20' };
     case 'rejected': return { bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20' };
-    case 'pending': return { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20' };
+    case 'pending': return { bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/20' };
     case 'cancelled': return { bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/20' };
   }
 }
@@ -138,7 +138,7 @@ function PipelineVisualization({ stages }: { stages: PipelineStage[] }) {
                 {stage.name}
               </span>
               <span className={`w-2 h-2 rounded-full ${
-                isPass ? 'bg-emerald-500' : isFail ? 'bg-rose-500' : stage.status === 'pending' ? 'bg-amber-500 animate-pulse' : 'bg-zinc-500'
+                isPass ? 'bg-emerald-500' : isFail ? 'bg-rose-500' : stage.status === 'pending' ? 'bg-zinc-500 animate-pulse' : 'bg-zinc-500'
               }`} />
               {stage.detail && (
                 <span className="text-[9px] text-[var(--text-secondary)] text-center max-w-[80px] truncate">
@@ -188,12 +188,12 @@ export function ExecutionClient() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/20 flex items-center justify-center">
-              <ListOrdered className="w-4 h-4 text-amber-400" />
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-zinc-500/20 to-zinc-600/10 border border-zinc-500/20 flex items-center justify-center">
+              <ListOrdered className="w-4 h-4 text-zinc-400" />
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">
-                Execution <span className="text-amber-400">Log</span>
+                Execution <span className="text-zinc-400">Log</span>
               </h1>
               <p className="text-sm text-[var(--text-secondary)]">
                 Order history, pipeline status, and broker connection
@@ -241,7 +241,7 @@ export function ExecutionClient() {
                       <p className="text-sm font-semibold">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border ${
                           broker.mode === 'paper'
-                            ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                            ? 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
                             : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                         }`}>
                           {broker.mode.toUpperCase()}

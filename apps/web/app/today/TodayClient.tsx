@@ -323,7 +323,7 @@ export function TodayClient() {
                 className="inline-flex items-center gap-2 text-sm transition-colors"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                <Star size={16} className="text-amber-400" /> Star TradeClaw on GitHub
+                <Star size={16} className="text-zinc-400" /> Star TradeClaw on GitHub
               </a>
             </div>
           </div>

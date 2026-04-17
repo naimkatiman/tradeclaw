@@ -77,7 +77,7 @@ export function DocsClient() {
               {
                 layer: 'Signal Scanner (Dockerfile.scanner)',
                 desc: 'Background worker that polls prices, runs TA, and emits signals on a configurable interval.',
-                color: 'bg-amber-500',
+                color: 'bg-zinc-500',
               },
               {
                 layer: 'TimescaleDB + Redis',

@@ -436,7 +436,7 @@ export function DataClient() {
                           <span className="text-neutral-400">{formatKey(key)}</span>
                           <div className="flex items-center gap-2">
                             {preview.conflicts[key as keyof typeof preview.conflicts] > 0 && (
-                              <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-400">
+                              <span className="rounded-full bg-zinc-500/10 px-2 py-0.5 text-[10px] text-zinc-400">
                                 {preview.conflicts[key as keyof typeof preview.conflicts]} conflict{preview.conflicts[key as keyof typeof preview.conflicts] !== 1 ? 's' : ''}
                               </span>
                             )}

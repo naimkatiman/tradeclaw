@@ -25,7 +25,7 @@ type Tab = (typeof TABS)[number];
 const GRADE_COLORS: Record<string, string> = {
   A: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10',
   B: 'text-blue-400 border-blue-400/30 bg-blue-400/10',
-  C: 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10',
+  C: 'text-zinc-400 border-zinc-400/30 bg-zinc-400/10',
   D: 'text-orange-400 border-orange-400/30 bg-orange-400/10',
   F: 'text-rose-400 border-rose-400/30 bg-rose-400/10',
 };
@@ -40,7 +40,7 @@ const GRADE_LABELS: Record<string, string> = {
 
 function RiskMeter({ score }: { score: number }) {
   const color =
-    score < 30 ? '#10b981' : score < 55 ? '#f59e0b' : '#f43f5e';
+    score < 30 ? '#10b981' : score < 55 ? '#a1a1aa' : '#f43f5e';
   const pct = score;
 
   return (
@@ -337,14 +337,14 @@ export default function RoastClient() {
 
           {/* Suggestions */}
           <div className="glass rounded-2xl p-6">
-            <h3 className="text-sm font-semibold text-amber-400 mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-zinc-400 mb-4 flex items-center gap-2">
               <Lightbulb className="w-4 h-4" />
               Improvement Suggestions
             </h3>
             <ul className="space-y-2">
               {result.suggestions.map((s, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs text-[var(--text-secondary)]">
-                  <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                  <Lightbulb className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
                   {s}
                 </li>
               ))}

@@ -81,13 +81,13 @@ function heatmapColor(change: number): string {
 }
 
 const TRENDING_GRADIENTS = [
-  'from-amber-500/20 to-orange-600/10',
+  'from-zinc-500/20 to-orange-600/10',
   'from-blue-500/20 to-indigo-600/10',
   'from-purple-500/20 to-pink-600/10',
   'from-emerald-500/20 to-teal-600/10',
   'from-rose-500/20 to-red-600/10',
   'from-cyan-500/20 to-blue-600/10',
-  'from-yellow-500/20 to-amber-600/10',
+  'from-zinc-500/20 to-zinc-600/10',
 ];
 
 /* ─── SVG Fear & Greed Gauge ─── */
@@ -177,8 +177,8 @@ export function SentimentClient() {
             Live crypto market mood &amp; data — Fear &amp; Greed index, dominance, trending coins, and volume heatmap.
           </p>
           {isMock && (
-            <p className="text-xs text-amber-400/70 mt-2 flex items-center justify-center gap-1.5">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400/70" />
+            <p className="text-xs text-zinc-400/70 mt-2 flex items-center justify-center gap-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-zinc-400/70" />
               Some data is using cached fallback values — live APIs temporarily unavailable
             </p>
           )}
@@ -212,7 +212,7 @@ export function SentimentClient() {
             <Flame className="w-5 h-5 text-orange-400" />
             <h2 className="text-lg font-semibold">Fear &amp; Greed Index</h2>
             {sources?.fearGreed === 'mock' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">CACHED</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">CACHED</span>
             )}
           </div>
           <FearGreedGauge value={fearGreed.value} classification={fearGreed.classification} />
@@ -264,7 +264,7 @@ export function SentimentClient() {
             <Globe className="w-4 h-4 text-zinc-400" />
             <h2 className="text-sm font-semibold">Market Dominance</h2>
             {sources?.globalMarket === 'mock' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">CACHED</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">CACHED</span>
             )}
           </div>
           <div className="flex rounded-lg overflow-hidden h-8 text-xs font-medium">
@@ -295,7 +295,7 @@ export function SentimentClient() {
             <TrendingUp className="w-5 h-5 text-emerald-400" />
             <h2 className="text-lg font-semibold">Trending Coins</h2>
             {sources?.trendingCoins === 'mock' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">CACHED</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">CACHED</span>
             )}
           </div>
           <div className="flex flex-wrap gap-3">
@@ -327,7 +327,7 @@ export function SentimentClient() {
             <BarChart3 className="w-5 h-5 text-emerald-400" />
             <h2 className="text-lg font-semibold">24h Volume Heatmap</h2>
             {sources?.topCoins === 'mock' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">CACHED</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">CACHED</span>
             )}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">

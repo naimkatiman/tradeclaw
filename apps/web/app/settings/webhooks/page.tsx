@@ -81,7 +81,7 @@ function Badge({
   const cls = {
     success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
     error: 'bg-red-500/10 text-red-400 border-red-500/20',
-    warn: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    warn: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
     neutral: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
   }[variant];
   return (
@@ -116,7 +116,7 @@ function DeliveryLog({ log }: { log: DeliveryEntry[] }) {
             {entry.statusCode !== null ? `HTTP ${entry.statusCode}` : 'ERR'}
           </span>
           {entry.attempt > 1 && (
-            <span className="text-amber-500">attempt {entry.attempt}</span>
+            <span className="text-zinc-500">attempt {entry.attempt}</span>
           )}
           {entry.error && !entry.success && (
             <span className="text-zinc-500 truncate">{entry.error}</span>
@@ -613,7 +613,7 @@ export default function WebhooksSettingsPage() {
                           ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                           : method === 'DELETE'
                           ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                          : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                          : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
                       }`}
                     >
                       {method}

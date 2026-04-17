@@ -87,7 +87,7 @@ export default function EarningsEdgeDashboard() {
                           ? 'bg-green-400/10 text-green-400 border-green-400/20'
                           : a.managementTone.overall === 'bearish'
                             ? 'bg-red-400/10 text-red-400 border-red-400/20'
-                            : 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20'
+                            : 'bg-zinc-400/10 text-zinc-400 border-zinc-400/20'
                       }`}
                     >
                       {a.managementTone.overall}
@@ -100,7 +100,7 @@ export default function EarningsEdgeDashboard() {
                 </div>
               </div>
 
-              <p className="text-sm text-gray-300 mb-3 border-l-2 border-yellow-400/40 pl-3">
+              <p className="text-sm text-gray-300 mb-3 border-l-2 border-zinc-400/40 pl-3">
                 {a.tradingThesis}
               </p>
 

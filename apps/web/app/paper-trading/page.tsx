@@ -509,8 +509,8 @@ export default function PaperTradingPage() {
       </div>
 
       {priceSource === 'fallback' && (
-        <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-2">
-          <p className="max-w-7xl mx-auto text-xs text-amber-400/80 font-mono">
+        <div className="border-b border-zinc-500/20 bg-zinc-500/5 px-4 py-2">
+          <p className="max-w-7xl mx-auto text-xs text-zinc-400/80 font-mono">
             &#x26A0;&#xFE0F; Using cached prices — live price feed unavailable
           </p>
         </div>
@@ -722,8 +722,8 @@ export default function PaperTradingPage() {
             </div>
 
             {priceSource === 'fallback' && (
-              <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 mb-3">
-                <p className="text-[10px] text-amber-400/80 font-mono">&#x26A0;&#xFE0F; Using cached prices — live feed unavailable</p>
+              <div className="rounded-lg border border-zinc-500/20 bg-zinc-500/5 px-3 py-2 mb-3">
+                <p className="text-[10px] text-zinc-400/80 font-mono">&#x26A0;&#xFE0F; Using cached prices — live feed unavailable</p>
               </div>
             )}
 

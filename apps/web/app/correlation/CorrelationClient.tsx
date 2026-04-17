@@ -220,7 +220,7 @@ export function CorrelationClient() {
             label="Strong Pairs"
             value={`${strongCount}`}
             sub="|r| > 0.70"
-            color="#f59e0b"
+            color="#a1a1aa"
           />
         </div>
 

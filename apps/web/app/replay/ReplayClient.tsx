@@ -565,7 +565,7 @@ export default function ReplayClient() {
             {playState === 'playing' ? (
               <button
                 onClick={pause}
-                style={{ background: '#f59e0b', border: 'none', color: '#000', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}
+                style={{ background: '#a1a1aa', border: 'none', color: '#000', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}
               >
                 ⏸ Pause
               </button>

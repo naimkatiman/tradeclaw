@@ -211,7 +211,7 @@ function TweetCard({
             {tweet.text}
           </p>
           <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
-            <span className={`text-xs ${isLong ? 'text-amber-400' : 'text-white/30'}`}>
+            <span className={`text-xs ${isLong ? 'text-zinc-400' : 'text-white/30'}`}>
               {charCount} chars{isLong ? ' \u2014 may need splitting' : ''}
             </span>
             <div className="flex items-center gap-2">
@@ -430,8 +430,8 @@ export function PostThreadClient() {
                   <p className="text-white/60 text-sm leading-relaxed">{tip.tip}</p>
                 </div>
               ))}
-              <div className="md:col-span-2 glass rounded-xl p-4 border border-amber-500/20">
-                <p className="text-amber-400 text-xs font-semibold mb-1">Pro tip: Space tweets 10\u201315 min apart</p>
+              <div className="md:col-span-2 glass rounded-xl p-4 border border-zinc-500/20">
+                <p className="text-zinc-400 text-xs font-semibold mb-1">Pro tip: Space tweets 10\u201315 min apart</p>
                 <p className="text-white/50 text-sm">
                   Post tweet 1, wait 15 min, post tweet 2, repeat. Drip-posting keeps your thread in
                   feeds longer than rapid-fire. Use the &ldquo;Post this tweet&rdquo; button on each card with a timer.

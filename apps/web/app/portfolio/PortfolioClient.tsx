@@ -114,7 +114,7 @@ function ConfidenceBar({ value }: { value: number }) {
     value >= 80
       ? 'bg-emerald-500'
       : value >= 65
-        ? 'bg-yellow-500'
+        ? 'bg-zinc-500'
         : 'bg-rose-500';
   return (
     <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
@@ -515,7 +515,7 @@ export default function PortfolioClient() {
 
         {/* GitHub Star CTA */}
         <div className="bg-gradient-to-br from-emerald-950/40 to-zinc-900/60 border border-emerald-500/20 rounded-xl p-6 text-center">
-          <Star className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
+          <Star className="w-8 h-8 text-zinc-400 mx-auto mb-3" />
           <h3 className="text-lg font-bold mb-2">Find TradeClaw useful?</h3>
           <p className="text-zinc-400 text-sm mb-4">
             Star the repo to help other traders discover it — and unlock milestone features at 100 / 500 / 1000 ⭐

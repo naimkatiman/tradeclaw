@@ -152,14 +152,14 @@ export function CardClient() {
     ctx.fillText('CONFIDENCE', 72, 410);
 
     ctx.font = 'bold 52px monospace';
-    ctx.fillStyle = signal.confidence >= 80 ? '#10b981' : signal.confidence >= 70 ? '#f59e0b' : '#6b7280';
+    ctx.fillStyle = signal.confidence >= 80 ? '#10b981' : signal.confidence >= 70 ? '#a1a1aa' : '#6b7280';
     ctx.fillText(`${signal.confidence}%`, 72, 468);
 
     // Confidence bar
     const barY = 482, barX = 72, barW = 340, barH = 12;
     ctx.fillStyle = 'rgba(255,255,255,0.06)';
     roundRect(ctx, barX, barY, barW, barH, 6, true, false);
-    ctx.fillStyle = signal.confidence >= 80 ? '#10b981' : signal.confidence >= 70 ? '#f59e0b' : '#6b7280';
+    ctx.fillStyle = signal.confidence >= 80 ? '#10b981' : signal.confidence >= 70 ? '#a1a1aa' : '#6b7280';
     ctx.shadowColor = ctx.fillStyle;
     ctx.shadowBlur = 8;
     roundRect(ctx, barX, barY, barW * (signal.confidence / 100), barH, 6, true, false);
@@ -167,7 +167,7 @@ export function CardClient() {
 
     // RSI indicator
     if (signal.rsi) {
-      const rsiColor = signal.rsi > 70 ? '#f43f5e' : signal.rsi < 30 ? '#10b981' : '#f59e0b';
+      const rsiColor = signal.rsi > 70 ? '#f43f5e' : signal.rsi < 30 ? '#10b981' : '#a1a1aa';
       ctx.font = 'bold 16px monospace';
       ctx.fillStyle = 'rgba(255,255,255,0.4)';
       ctx.fillText('RSI', 72, 540);
@@ -432,7 +432,7 @@ export function CardClient() {
               className="flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all duration-200 hover:scale-[1.02]"
               style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}
             >
-              <Share2 className="w-4 h-4 text-yellow-400" />
+              <Share2 className="w-4 h-4 text-zinc-400" />
               ⭐ Star TradeClaw on GitHub
             </a>
           </div>

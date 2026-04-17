@@ -215,11 +215,11 @@ export default function NotificationsClient() {
 
         {/* Permission banner */}
         {permission !== 'granted' && (
-          <div className="mb-8 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5">
+          <div className="mb-8 p-4 rounded-2xl border border-zinc-500/30 bg-zinc-500/5">
             <div className="flex items-start gap-3">
-              <BellOff className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
+              <BellOff className="w-5 h-5 text-zinc-400 mt-0.5 shrink-0" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-amber-300 mb-1">
+                <p className="text-sm font-medium text-zinc-300 mb-1">
                   {permission === 'denied'
                     ? 'Notifications are blocked'
                     : 'Enable browser notifications'}
@@ -232,7 +232,7 @@ export default function NotificationsClient() {
                 {permission !== 'denied' && (
                   <button
                     onClick={requestPermission}
-                    className="px-4 py-2 text-xs font-medium rounded-xl bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-colors"
+                    className="px-4 py-2 text-xs font-medium rounded-xl bg-zinc-500/20 text-zinc-300 hover:bg-zinc-500/30 transition-colors"
                   >
                     Enable Notifications
                   </button>

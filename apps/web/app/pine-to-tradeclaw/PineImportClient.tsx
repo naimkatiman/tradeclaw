@@ -232,7 +232,7 @@ export default function PineImportClient() {
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {result.warnings.map((w, i) => (
-                        <span key={i} className="bg-yellow-500/15 text-yellow-400 border border-yellow-500/20 rounded-full px-3 py-1 text-xs">
+                        <span key={i} className="bg-zinc-500/15 text-zinc-400 border border-zinc-500/20 rounded-full px-3 py-1 text-xs">
                           <AlertTriangle className="w-3 h-3 inline mr-1" />
                           {w}
                         </span>
@@ -296,7 +296,7 @@ export default function PineImportClient() {
                     href="https://github.com/naimkatiman/tradeclaw"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-xs font-medium text-[var(--text-secondary)] hover:text-yellow-400 hover:border-yellow-500/30 transition-all duration-200"
+                    className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-xs font-medium text-[var(--text-secondary)] hover:text-zinc-400 hover:border-zinc-500/30 transition-all duration-200"
                   >
                     <Star className="w-3.5 h-3.5" />
                     Star on GitHub

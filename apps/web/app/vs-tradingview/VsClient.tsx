@@ -77,7 +77,7 @@ function DirectionBadge({ direction }: { direction: 'BUY' | 'SELL' | 'NEUTRAL' }
 }
 
 function ConfidenceBar({ value }: { value: number }) {
-  const color = value >= 70 ? 'bg-emerald-500' : value >= 50 ? 'bg-amber-500' : 'bg-rose-500';
+  const color = value >= 70 ? 'bg-emerald-500' : value >= 50 ? 'bg-zinc-500' : 'bg-rose-500';
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
@@ -355,7 +355,7 @@ export function VsClient() {
               </div>
 
               <div className="mt-4 rounded-lg border border-zinc-800 bg-zinc-900/40 p-3">
-                <p className="text-[10px] uppercase tracking-widest text-amber-500/60 mb-2">Pine Script gives you raw indicators. TradeClaw gives you confluence signals.</p>
+                <p className="text-[10px] uppercase tracking-widest text-zinc-500/60 mb-2">Pine Script gives you raw indicators. TradeClaw gives you confluence signals.</p>
               </div>
 
               <div className="mt-3">

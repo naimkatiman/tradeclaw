@@ -113,7 +113,7 @@ function DirectionBadge({ direction }: { direction: 'BUY' | 'SELL' }) {
 }
 
 function ConfidenceBar({ value, showExplainer = false }: { value: number; showExplainer?: boolean }) {
-  const color = value >= 80 ? '#10B981' : value >= 65 ? '#F59E0B' : '#EF4444';
+  const color = value >= 80 ? '#10B981' : value >= 65 ? '#a1a1aa' : '#EF4444';
   const explainer = value >= 80
     ? 'Strong signal — high indicator confluence'
     : value >= 65
@@ -141,7 +141,7 @@ function TFBadgeInline({ tf }: { tf: TFDirection }) {
   const color =
     tf.direction === 'BUY' ? 'text-emerald-400 border-emerald-500/25 bg-emerald-500/8' :
     tf.direction === 'SELL' ? 'text-rose-400 border-rose-500/25 bg-rose-500/8' :
-    'text-amber-400 border-amber-500/25 bg-amber-500/8';
+    'text-zinc-400 border-zinc-500/25 bg-zinc-500/8';
   return (
     <span className={`inline-flex items-center gap-0.5 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${color} tabular-nums`}>
       {tf.timeframe}{arrow}
@@ -199,7 +199,7 @@ function WinRateBadge({ winRate }: { winRate: { wins: number; losses: number; to
   if (winRate.total < 3) return null; // Not enough data
   const wr = winRate.win_rate;
   const color = wr >= 70 ? 'text-emerald-400 border-emerald-500/25 bg-emerald-500/8'
-    : wr >= 50 ? 'text-yellow-400 border-yellow-500/25 bg-yellow-500/8'
+    : wr >= 50 ? 'text-zinc-400 border-zinc-500/25 bg-zinc-500/8'
     : 'text-red-400 border-red-500/25 bg-red-500/8';
   return (
     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono border ${color}`}>
@@ -217,7 +217,7 @@ function ConfluencePills({ timeframe }: { timeframe: string }) {
   const count = parseInt(match[1]);
   const tfs = match[2].split(',').map(t => t.trim());
   const color = count === 4 ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/8'
-    : count === 3 ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/8'
+    : count === 3 ? 'text-zinc-400 border-zinc-500/30 bg-zinc-500/8'
     : 'text-zinc-400 border-zinc-500/30 bg-zinc-500/8';
   return (
     <div className="flex items-center gap-1 flex-wrap">
@@ -317,7 +317,7 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
               {signal.dataQuality === 'real' && <LiveBadge />}
               <DataSourceBadge source={getDataSource(signal.symbol)} />
               {signal.dataQuality === 'synthetic' && (
-                <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">DEMO</span>
+                <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">DEMO</span>
               )}
               {signal.atrCalibration && signal.atrCalibration.confidence !== 'low' && (
                 <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono font-bold border ${
@@ -354,7 +354,7 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
               onClick={(e) => { e.stopPropagation(); onToggleFavorite(signal.id); }}
               title={isFavorite ? 'Remove from watchlist' : 'Add to watchlist'}
               className={`flex items-center justify-center w-9 h-9 min-w-[36px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg transition-all duration-200 ${
-                isFavorite ? 'text-yellow-400 bg-yellow-500/10' : 'text-[var(--text-secondary)] hover:text-yellow-400 hover:bg-[var(--glass-bg)]'
+                isFavorite ? 'text-zinc-400 bg-zinc-500/10' : 'text-[var(--text-secondary)] hover:text-zinc-400 hover:bg-[var(--glass-bg)]'
               }`}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8">
@@ -408,7 +408,7 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
           </div>
           <div className="text-right">
             <div className={`text-sm font-bold font-mono tabular-nums ${
-              signal.confidence >= 80 ? 'text-emerald-400' : signal.confidence >= 65 ? 'text-yellow-400' : 'text-red-400'
+              signal.confidence >= 80 ? 'text-emerald-400' : signal.confidence >= 65 ? 'text-zinc-400' : 'text-red-400'
             }`}>{signal.confidence}%</div>
             <div className="flex items-center justify-end gap-1 mt-0.5">
               <div className="text-[10px] text-[var(--text-secondary)]">confidence</div>
@@ -502,7 +502,7 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
                 </span>
               )}
               <span>BB Width: {signal.indicators.bollingerBands.bandwidth.toFixed(2)}%</span>
-              <span className={signal.dataQuality === 'real' ? 'text-emerald-400' : 'text-amber-400'}>
+              <span className={signal.dataQuality === 'real' ? 'text-emerald-400' : 'text-zinc-400'}>
                 {signal.dataQuality === 'real' ? 'real-tracked' : 'demo-seeded'}
               </span>
             </div>
@@ -600,7 +600,7 @@ function SignalHistory() {
       {historyStats && historyStats.resolved > 0 && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 px-1 text-[10px] font-mono text-[var(--text-secondary)]">
           <span>
-            <span className={historyStats.winRate >= 55 ? 'text-emerald-400' : historyStats.winRate >= 45 ? 'text-yellow-400' : 'text-red-400'}>
+            <span className={historyStats.winRate >= 55 ? 'text-emerald-400' : historyStats.winRate >= 45 ? 'text-zinc-400' : 'text-red-400'}>
               {historyStats.winRate}%
             </span>{' '}
             win rate
@@ -938,8 +938,8 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
 
       {/* Synthetic data warning banner */}
       {syntheticSymbols.length > 0 && syntheticSymbols.length / 12 > 0.3 && (
-        <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-2">
-          <p className="max-w-7xl mx-auto text-xs text-amber-400/80 font-mono">
+        <div className="border-b border-zinc-500/20 bg-zinc-500/5 px-4 py-2">
+          <p className="max-w-7xl mx-auto text-xs text-zinc-400/80 font-mono">
             <AlertTriangle className="w-3.5 h-3.5 inline mr-1" /> {syntheticSymbols.length} of 12 symbols are using synthetic data (API unavailable) — signals suppressed for those pairs.
           </p>
         </div>
@@ -965,7 +965,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               <span className="text-xs font-mono font-semibold text-[var(--foreground)]">{topSignal.symbol}</span>
               <span className="text-xs font-mono text-[var(--text-secondary)]">{topSignal.timeframe}</span>
               <DirectionBadge direction={topSignal.direction} />
-              <span className={`text-xs font-mono font-bold ${topSignal.confidence >= 80 ? 'text-emerald-400' : topSignal.confidence >= 65 ? 'text-yellow-400' : 'text-red-400'}`}>
+              <span className={`text-xs font-mono font-bold ${topSignal.confidence >= 80 ? 'text-emerald-400' : topSignal.confidence >= 65 ? 'text-zinc-400' : 'text-red-400'}`}>
                 {topSignal.confidence}%
               </span>
             </div>
@@ -1078,7 +1078,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
             className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 border shrink-0 flex items-center gap-1 ${
               showFavoritesOnly
-                ? 'bg-yellow-500/15 text-yellow-400 border-yellow-500/20'
+                ? 'bg-zinc-500/15 text-zinc-400 border-zinc-500/20'
                 : 'text-[var(--text-secondary)] border-white/[0.06] hover:text-[var(--foreground)]'
             }`}
           >
@@ -1201,8 +1201,8 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               {potentialSignals.length > 0 && (
                 <section className="mt-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <h2 className="text-xs uppercase tracking-wider text-amber-400/80 font-mono font-semibold">Potential Signals</h2>
-                    <span className="text-[10px] text-[var(--text-secondary)] font-mono px-2 py-0.5 rounded-full bg-amber-500/8 border border-amber-500/15">50–69% confidence</span>
+                    <h2 className="text-xs uppercase tracking-wider text-zinc-400/80 font-mono font-semibold">Potential Signals</h2>
+                    <span className="text-[10px] text-[var(--text-secondary)] font-mono px-2 py-0.5 rounded-full bg-zinc-500/8 border border-zinc-500/15">50–69% confidence</span>
                     <span className="text-[10px] text-[var(--text-secondary)] font-mono">{potentialSignals.length} setup{potentialSignals.length !== 1 ? 's' : ''}</span>
                   </div>
                   <p className="text-xs text-[var(--text-secondary)] mb-3">Early-stage setups that haven&apos;t reached full confluence yet. Watch for confirmation before acting.</p>

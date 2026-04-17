@@ -121,7 +121,7 @@ export function StarProgressBar() {
           <div className="flex items-center justify-between gap-3">
             {/* Left: star count + label */}
             <div className="flex items-center gap-2.5 min-w-0">
-              <Star className="w-3.5 h-3.5 text-amber-400 shrink-0 fill-amber-400" />
+              <Star className="w-3.5 h-3.5 text-zinc-400 shrink-0 fill-zinc-400" />
               <span className="text-xs font-semibold text-white tabular-nums whitespace-nowrap">
                 {stars.toLocaleString()}
                 <span className="text-zinc-400 font-normal"> / 1,000 stars</span>

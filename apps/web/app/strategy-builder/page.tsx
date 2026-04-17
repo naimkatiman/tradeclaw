@@ -113,7 +113,7 @@ function BlockCard({
         <div className={`w-8 text-center text-[9px] font-bold py-1 rounded border ${
           block.type === 'IF' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' :
           block.type === 'AND' ? 'text-purple-400 bg-purple-500/10 border-purple-500/20' :
-          block.type === 'OR' ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20' :
+          block.type === 'OR' ? 'text-zinc-400 bg-zinc-500/10 border-zinc-500/20' :
           'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
         }`}>
           {block.type}
@@ -451,7 +451,7 @@ export default function StrategyBuilderPage() {
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all hover:opacity-90 ${
                       type === 'IF' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                       type === 'AND' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                      type === 'OR' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                      type === 'OR' ? 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20' :
                       'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                     }`}
                   >
@@ -571,7 +571,7 @@ export default function StrategyBuilderPage() {
                 {[
                   { label: 'IF', color: 'text-blue-400', desc: 'Start condition' },
                   { label: 'AND', color: 'text-purple-400', desc: 'All must be true' },
-                  { label: 'OR', color: 'text-yellow-400', desc: 'Any must be true' },
+                  { label: 'OR', color: 'text-zinc-400', desc: 'Any must be true' },
                   { label: 'THEN', color: 'text-emerald-400', desc: 'Action to take' },
                 ].map(item => (
                   <div key={item.label} className="flex items-center gap-2">

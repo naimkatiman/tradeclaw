@@ -167,7 +167,7 @@ function TweetCard({ tweet, index, onCopy, copiedIndex }: {
             {tweet.text}
           </p>
           <div className="flex items-center justify-between mt-3">
-            <span className={`text-xs ${isLong ? 'text-amber-400' : 'text-white/30'}`}>
+            <span className={`text-xs ${isLong ? 'text-zinc-400' : 'text-white/30'}`}>
               {charCount} chars{isLong ? ' (long — may need to split)' : ''}
             </span>
             <div className="flex items-center gap-2">

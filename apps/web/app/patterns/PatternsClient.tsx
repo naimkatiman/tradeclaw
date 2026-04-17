@@ -289,7 +289,7 @@ function DirectionBadge({ dir }: { dir: SignalDirection }) {
 // ── Category Badge ─────────────────────────────────────────────────────────────
 
 const CAT_STYLES: Record<PatternCategory, string> = {
-  Candlestick: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+  Candlestick: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/30',
   Indicator: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
   'Price Action': 'bg-sky-500/10 text-sky-400 border-sky-500/30',
 };
@@ -306,7 +306,7 @@ function CategoryBadge({ cat }: { cat: PatternCategory }) {
 
 function ReliabilityBar({ score }: { score: number }) {
   const color =
-    score >= 72 ? 'bg-emerald-500' : score >= 67 ? 'bg-amber-500' : 'bg-zinc-500';
+    score >= 72 ? 'bg-emerald-500' : score >= 67 ? 'bg-zinc-500' : 'bg-zinc-500';
   return (
     <div className="flex items-center gap-2 text-xs text-zinc-400">
       <span className="w-16 shrink-0">Reliability</span>
@@ -537,7 +537,7 @@ export default function PatternsClient() {
         {/* CTA */}
         <div className="mt-12 bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Star size={16} className="text-amber-400 fill-amber-400" />
+            <Star size={16} className="text-zinc-400 fill-zinc-400" />
             <span className="text-sm font-semibold text-white">Like what you see?</span>
           </div>
           <p className="text-xs text-zinc-400 mb-4">

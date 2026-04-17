@@ -86,7 +86,7 @@ export function DeploySection() {
         <div className="mx-auto mt-10 max-w-xl overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)]">
           <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-3 bg-[var(--bg-card)]">
             <div className="h-2.5 w-2.5 rounded-full bg-red-500/50" />
-            <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/50" />
+            <div className="h-2.5 w-2.5 rounded-full bg-zinc-500/50" />
             <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/50" />
             <span className="ml-2 text-[10px] font-mono text-[var(--text-secondary)]">
               bash

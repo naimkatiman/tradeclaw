@@ -467,12 +467,12 @@ export default function UploadBacktestClient() {
               <StatCard
                 label="Max Drawdown"
                 value={`-${result.stats.maxDrawdown}%`}
-                color={result.stats.maxDrawdown <= 10 ? 'text-emerald-400' : result.stats.maxDrawdown <= 20 ? 'text-yellow-400' : 'text-red-400'}
+                color={result.stats.maxDrawdown <= 10 ? 'text-emerald-400' : result.stats.maxDrawdown <= 20 ? 'text-zinc-400' : 'text-red-400'}
               />
               <StatCard
                 label="Sharpe"
                 value={String(result.stats.sharpeRatio)}
-                color={result.stats.sharpeRatio >= 1.5 ? 'text-emerald-400' : result.stats.sharpeRatio >= 1 ? 'text-yellow-400' : 'text-red-400'}
+                color={result.stats.sharpeRatio >= 1.5 ? 'text-emerald-400' : result.stats.sharpeRatio >= 1 ? 'text-zinc-400' : 'text-red-400'}
               />
             </div>
 

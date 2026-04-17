@@ -329,9 +329,9 @@ function StarRating({ rating }: { rating: number }) {
           key={i}
           className={`w-3 h-3 ${
             i <= Math.floor(rating)
-              ? 'fill-yellow-400 text-yellow-400'
+              ? 'fill-zinc-400 text-zinc-400'
               : i - 0.5 <= rating
-                ? 'fill-yellow-400/50 text-yellow-400'
+                ? 'fill-zinc-400/50 text-zinc-400'
                 : 'text-[var(--border)]'
           }`}
         />
@@ -431,7 +431,7 @@ export function MarketplaceClient() {
                     strategy.winRate >= 65
                       ? 'bg-emerald-500/15 text-emerald-400'
                       : strategy.winRate >= 55
-                        ? 'bg-yellow-500/15 text-yellow-400'
+                        ? 'bg-zinc-500/15 text-zinc-400'
                         : 'bg-red-500/15 text-red-400'
                   }`}>
                     {strategy.winRate}% win rate

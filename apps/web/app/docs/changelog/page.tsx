@@ -92,7 +92,7 @@ const TYPE_LABELS: Record<ChangeEntry['type'], { label: string; color: string }>
   feat: { label: 'feat', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
   fix: { label: 'fix', color: 'bg-red-500/15 text-red-400 border-red-500/25' },
   perf: { label: 'perf', color: 'bg-blue-500/15 text-blue-400 border-blue-500/25' },
-  refactor: { label: 'refactor', color: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
+  refactor: { label: 'refactor', color: 'bg-zinc-500/15 text-zinc-400 border-zinc-500/25' },
 };
 
 const VERSION_BADGE: Record<string, string> = {

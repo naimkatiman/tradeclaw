@@ -130,7 +130,7 @@ function InstallModal({ integration, onClose }: { integration: Integration; onCl
               {tested === 'ok' && <span className="text-emerald-400">✓ Connection verified</span>}
               {tested === 'fail' && <span className="text-rose-400">✗ Connection failed — check your webhook URL</span>}
               {tested === 'idle' && 'Test your webhook before going live.'}
-              {tested === 'testing' && <span className="text-yellow-400">Testing...</span>}
+              {tested === 'testing' && <span className="text-zinc-400">Testing...</span>}
             </div>
             <div className="flex gap-2 shrink-0">
               <button

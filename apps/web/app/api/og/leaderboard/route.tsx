@@ -68,7 +68,7 @@ export async function GET() {
             { label: "ASSETS TRACKED", value: "10+", color: "#fff" },
             { label: "HIT RATE", value: "~65%", color: "#10b981" },
             { label: "TIMEFRAMES", value: "4h & 24h", color: "#fff" },
-            { label: "OPEN SOURCE", value: "FREE", color: "#eab308" },
+            { label: "OPEN SOURCE", value: "FREE", color: "#a1a1aa" },
           ].map((s) => (
             <div
               key={s.label}

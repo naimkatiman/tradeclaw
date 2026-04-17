@@ -401,9 +401,9 @@ export default function PHClient() {
         </div>
 
         {/* GitHub Star CTA */}
-        <div className="glass rounded-2xl p-5 border border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-transparent">
+        <div className="glass rounded-2xl p-5 border border-zinc-500/20 bg-gradient-to-br from-zinc-500/5 to-transparent">
           <div className="flex items-center gap-2 mb-2">
-            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+            <Star className="w-4 h-4 text-zinc-400 fill-zinc-400" />
             <span className="text-sm font-semibold">Star TradeClaw on GitHub</span>
           </div>
           <p className="text-xs text-[var(--text-secondary)] mb-4">
@@ -414,7 +414,7 @@ export default function PHClient() {
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30 text-xs font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-zinc-500/20 border border-zinc-500/30 text-zinc-400 hover:bg-zinc-500/30 text-xs font-semibold transition-colors"
             >
               <Star className="w-3 h-3" />
               Star on GitHub

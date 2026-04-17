@@ -52,7 +52,7 @@ export function HowItWorksSection() {
                 <div className="mt-4 overflow-hidden rounded-lg border border-white/5 bg-[#0A0A0A]">
                   <div className="flex items-center gap-2 border-b border-white/5 px-4 py-2">
                     <div className="h-2 w-2 rounded-full bg-red-500/60" />
-                    <div className="h-2 w-2 rounded-full bg-yellow-500/60" />
+                    <div className="h-2 w-2 rounded-full bg-zinc-500/60" />
                     <div className="h-2 w-2 rounded-full bg-green-500/60" />
                   </div>
                   <pre className="overflow-x-auto p-4 font-mono text-sm text-emerald-300/80">

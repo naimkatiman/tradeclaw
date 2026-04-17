@@ -14,7 +14,7 @@ interface Post {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-yellow-900/40 text-yellow-400',
+  pending: 'bg-zinc-900/40 text-zinc-400',
   approved: 'bg-emerald-900/40 text-emerald-400',
   posted: 'bg-blue-900/40 text-blue-400',
   rejected: 'bg-red-900/40 text-red-400',

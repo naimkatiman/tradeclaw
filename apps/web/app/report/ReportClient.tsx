@@ -182,8 +182,8 @@ export default function ReportClient() {
       label: 'New Stars',
       value: `+${data.starsThisWeek}`,
       sub: 'Toward 1,000',
-      color: 'text-yellow-400',
-      bg: 'from-yellow-500/10 to-transparent',
+      color: 'text-zinc-400',
+      bg: 'from-zinc-500/10 to-transparent',
     },
   ];
 
@@ -262,10 +262,10 @@ export default function ReportClient() {
         </div>
 
         {/* Top asset card */}
-        <div className="glass rounded-2xl p-5 border border-[var(--border)] bg-gradient-to-br from-yellow-500/5 to-transparent flex flex-col justify-between">
+        <div className="glass rounded-2xl p-5 border border-[var(--border)] bg-gradient-to-br from-zinc-500/5 to-transparent flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Trophy className="w-4 h-4 text-yellow-400" />
+              <Trophy className="w-4 h-4 text-zinc-400" />
               <span className="text-sm font-semibold">Top Asset</span>
             </div>
             <div className="text-4xl font-bold tracking-tight mb-1">{data.topAsset}</div>
@@ -274,7 +274,7 @@ export default function ReportClient() {
             </div>
             <div className="w-full bg-white/5 rounded-full h-1.5 mb-1">
               <div
-                className="bg-gradient-to-r from-yellow-400 to-yellow-300 h-1.5 rounded-full"
+                className="bg-gradient-to-r from-zinc-400 to-zinc-300 h-1.5 rounded-full"
                 style={{ width: `${data.topAccuracy}%` }}
               />
             </div>
@@ -282,7 +282,7 @@ export default function ReportClient() {
           </div>
           <Link
             href={`/signal/${data.topAsset}-H1-BUY`}
-            className="mt-4 flex items-center gap-1.5 text-xs text-yellow-400 hover:text-yellow-300 transition-colors"
+            className="mt-4 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-300 transition-colors"
           >
             View latest signal
             <ChevronRight className="w-3 h-3" />
@@ -314,7 +314,7 @@ export default function ReportClient() {
 
         <div className="glass rounded-2xl p-5 border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-transparent">
           <div className="flex items-center gap-2 mb-2">
-            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+            <Star className="w-4 h-4 text-zinc-400 fill-zinc-400" />
             <span className="text-sm font-semibold">Help us hit 1,000 stars</span>
           </div>
           <p className="text-xs text-[var(--text-secondary)] mb-3">

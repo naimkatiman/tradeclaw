@@ -47,13 +47,13 @@ function ConsensusRow({ entry }: { entry: ConsensusEntry }) {
   const sellPct = 100 - buyPct;
 
   return (
-    <div className={`bg-zinc-900/60 border rounded-xl p-4 hover:border-zinc-600 transition-colors ${entry.source === 'synthetic' ? 'border-amber-800/40' : 'border-zinc-800'}`}>
+    <div className={`bg-zinc-900/60 border rounded-xl p-4 hover:border-zinc-600 transition-colors ${entry.source === 'synthetic' ? 'border-zinc-800/40' : 'border-zinc-800'}`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           <span className="font-mono font-bold text-white">{entry.pair}</span>
           <span className="text-xs text-zinc-500">{entry.name}</span>
           {entry.source === 'synthetic' && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">ESTIMATED</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">ESTIMATED</span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -239,8 +239,8 @@ export default function ConsensusClient() {
           </div>
 
           {data?.hasSynthetic && (
-            <p className="text-xs text-amber-400/70 mt-3 flex items-center justify-center gap-1.5">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400/70" />
+            <p className="text-xs text-zinc-400/70 mt-3 flex items-center justify-center gap-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-zinc-400/70" />
               Some pairs show estimated data — no live signals available yet
             </p>
           )}
@@ -264,7 +264,7 @@ export default function ConsensusClient() {
 
         {/* CTA */}
         <div className="mt-12 bg-zinc-900/60 border border-zinc-800 rounded-2xl p-8 text-center">
-          <Star className="w-10 h-10 text-yellow-400 mx-auto mb-3" />
+          <Star className="w-10 h-10 text-zinc-400 mx-auto mb-3" />
           <h3 className="text-xl font-bold mb-2">TradeClaw is open source</h3>
           <p className="text-zinc-400 mb-5">
             Self-host your own instance and get real-time signal consensus for any asset — for free, forever.

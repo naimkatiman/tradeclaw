@@ -82,8 +82,8 @@ export default function WebhooksPage() {
           <p><span className="text-zinc-500">Also includes:</span> X-TradeClaw-Delivery (unique delivery ID)</p>
           <p><span className="text-zinc-500">Also includes:</span> X-TradeClaw-Event (event type string)</p>
         </div>
-        <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-4 text-sm text-zinc-400 mb-5">
-          <strong className="text-amber-400">Important:</strong> Always verify the signature before processing
+        <div className="rounded-xl border border-zinc-500/10 bg-zinc-500/5 p-4 text-sm text-zinc-400 mb-5">
+          <strong className="text-zinc-400">Important:</strong> Always verify the signature before processing
           the payload. Use a constant-time comparison to prevent timing attacks.
         </div>
         <CodeBlock

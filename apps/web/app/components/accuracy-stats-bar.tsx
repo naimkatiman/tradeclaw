@@ -113,7 +113,7 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
       {/* Win Rate */}
       <div className="bg-[#0a0a0a] px-4 py-3 text-center">
         <div className={`text-lg font-bold font-mono tabular-nums tracking-tight ${
-          stats.winRate >= 55 ? 'text-emerald-400' : stats.winRate >= 45 ? 'text-yellow-400' : 'text-red-400'
+          stats.winRate >= 55 ? 'text-emerald-400' : stats.winRate >= 45 ? 'text-zinc-400' : 'text-red-400'
         }`}>
           {stats.winRate}%
         </div>

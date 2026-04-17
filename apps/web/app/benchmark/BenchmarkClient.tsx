@@ -139,7 +139,7 @@ function AnimatedCounter({
 
 function SupportIcon({ value }: { value: Support }) {
   if (value === true) return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
-  if (value === 'partial') return <Minus className="w-4 h-4 text-amber-400" />;
+  if (value === 'partial') return <Minus className="w-4 h-4 text-zinc-400" />;
   return <XCircle className="w-4 h-4 text-rose-400" />;
 }
 
@@ -418,7 +418,7 @@ export default function BenchmarkClient() {
       </section>
 
       {/* ── Social Proof Kit ── */}
-      <section className="glass rounded-3xl p-6 md:p-8 border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 via-transparent to-yellow-500/5 mb-8">
+      <section className="glass rounded-3xl p-6 md:p-8 border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 via-transparent to-zinc-500/5 mb-8">
         <h2 className="text-lg font-semibold mb-6 flex items-center justify-center gap-2">
           <Share2 className="w-4 h-4 text-emerald-400" />
           Social Proof Kit
@@ -460,7 +460,7 @@ export default function BenchmarkClient() {
             href="https://github.com/naimkatiman/tradeclaw"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30 text-sm font-semibold transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-zinc-500/20 border border-zinc-500/30 text-zinc-400 hover:bg-zinc-500/30 text-sm font-semibold transition-colors"
           >
             <Star className="w-4 h-4" />
             Star on GitHub
@@ -533,9 +533,9 @@ export default function BenchmarkClient() {
           </Link>
         </div>
 
-        <div className="glass rounded-2xl p-6 border border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-transparent">
+        <div className="glass rounded-2xl p-6 border border-zinc-500/20 bg-gradient-to-br from-zinc-500/5 to-transparent">
           <h3 className="font-semibold mb-2 flex items-center gap-2">
-            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+            <Star className="w-4 h-4 text-zinc-400 fill-zinc-400" />
             Join 1,000-star mission
           </h3>
           <p className="text-xs text-[var(--text-secondary)] mb-4">
@@ -545,7 +545,7 @@ export default function BenchmarkClient() {
             href="https://github.com/naimkatiman/tradeclaw"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30 text-xs font-semibold transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-zinc-500/20 border border-zinc-500/30 text-zinc-400 hover:bg-zinc-500/30 text-xs font-semibold transition-colors"
           >
             <Star className="w-3 h-3" />
             Star on GitHub

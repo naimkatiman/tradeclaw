@@ -53,7 +53,7 @@ function getGrade(score: number): { grade: string; color: string } {
   if (score >= 80) return { grade: 'A', color: 'text-emerald-400' };
   if (score >= 70) return { grade: 'B+', color: 'text-blue-400' };
   if (score >= 60) return { grade: 'B', color: 'text-blue-400' };
-  if (score >= 50) return { grade: 'C', color: 'text-yellow-400' };
+  if (score >= 50) return { grade: 'C', color: 'text-zinc-400' };
   if (score >= 35) return { grade: 'D', color: 'text-orange-400' };
   return { grade: 'F', color: 'text-rose-400' };
 }
@@ -322,7 +322,7 @@ export function ReadmeScoreClient() {
                     <circle cx="40" cy="40" r="34" strokeWidth="6" stroke="var(--border)" fill="none" />
                     <circle
                       cx="40" cy="40" r="34" strokeWidth="6" fill="none"
-                      stroke={result.score >= 70 ? '#10b981' : result.score >= 50 ? '#f59e0b' : '#f43f5e'}
+                      stroke={result.score >= 70 ? '#10b981' : result.score >= 50 ? '#a1a1aa' : '#f43f5e'}
                       strokeLinecap="round"
                       strokeDasharray={`${2 * Math.PI * 34}`}
                       strokeDashoffset={`${2 * Math.PI * 34 * (1 - result.score / 100)}`}
@@ -339,7 +339,7 @@ export function ReadmeScoreClient() {
                   className="h-full rounded-full transition-all duration-1000"
                   style={{
                     width: `${result.score}%`,
-                    background: result.score >= 70 ? '#10b981' : result.score >= 50 ? '#f59e0b' : '#f43f5e',
+                    background: result.score >= 70 ? '#10b981' : result.score >= 50 ? '#a1a1aa' : '#f43f5e',
                   }}
                 />
               </div>
@@ -376,7 +376,7 @@ export function ReadmeScoreClient() {
                       check.passed
                         ? 'border-emerald-500/20 bg-emerald-500/5'
                         : check.partial
-                        ? 'border-yellow-500/20 bg-yellow-500/5'
+                        ? 'border-zinc-500/20 bg-zinc-500/5'
                         : 'border-rose-500/10 bg-rose-500/5'
                     }`}>
                       <div className="flex items-start gap-3">
@@ -384,7 +384,7 @@ export function ReadmeScoreClient() {
                           {check.passed ? (
                             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                           ) : check.partial ? (
-                            <AlertCircle className="w-4 h-4 text-yellow-400" />
+                            <AlertCircle className="w-4 h-4 text-zinc-400" />
                           ) : (
                             <XCircle className="w-4 h-4 text-rose-400" />
                           )}

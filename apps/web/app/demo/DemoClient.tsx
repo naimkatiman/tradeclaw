@@ -290,7 +290,7 @@ function WhyThisTrade({ sig }: { sig: Signal }) {
 }
 
 function ConfidenceBar({ value }: { value: number }) {
-  const color = value >= 80 ? '#10b981' : value >= 70 ? '#f59e0b' : '#6b7280';
+  const color = value >= 80 ? '#10b981' : value >= 70 ? '#a1a1aa' : '#6b7280';
   return (
     <div className="mt-2">
       <div className="flex justify-between text-[10px] mb-1" style={{ color: 'var(--text-secondary)' }}>
@@ -500,7 +500,7 @@ function LeaderboardTab() {
             <tr key={a.pair} className="border-t" style={{ borderColor: '#1a1a1a' }}>
               <td className="px-5 py-3 text-[var(--text-secondary)]">{i + 1}</td>
               <td className="px-5 py-3 font-bold text-[var(--foreground)]">{a.pair}</td>
-              <td className="px-5 py-3 text-right font-mono" style={{ color: a.hitRate >= 60 ? '#10b981' : '#f59e0b' }}>
+              <td className="px-5 py-3 text-right font-mono" style={{ color: a.hitRate >= 60 ? '#10b981' : '#a1a1aa' }}>
                 {a.hitRate.toFixed(1)}%
               </td>
               <td className="px-5 py-3 text-right text-[var(--text-secondary)]">{a.totalSignals}</td>
@@ -681,7 +681,7 @@ function BacktestTab() {
             { label: 'Avg P&L', value: `+${sample.avgPnl}%`, color: '#10b981' },
             { label: 'Total P&L', value: `+$${sample.totalPnl.toLocaleString()}`, color: '#10b981' },
             { label: 'Max Drawdown', value: `${sample.maxDrawdown}%`, color: '#f43f5e' },
-            { label: 'Sharpe Ratio', value: sample.sharpeRatio.toFixed(2), color: '#f59e0b' },
+            { label: 'Sharpe Ratio', value: sample.sharpeRatio.toFixed(2), color: '#a1a1aa' },
           ].map(({ label, value, color }) => (
             <div key={label} className="rounded-xl p-3 border" style={{ background: '#080808', borderColor: '#1a1a1a' }}>
               <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1">{label}</div>
@@ -872,7 +872,7 @@ export default function DemoClient() {
           style={{
             borderColor: dataSource === 'live' ? 'rgba(16,185,129,0.4)' : 'rgba(251,191,36,0.4)',
             background: dataSource === 'live' ? 'rgba(6,78,59,0.5)' : 'rgba(69,52,10,0.5)',
-            color: dataSource === 'live' ? '#6ee7b7' : '#fde68a',
+            color: dataSource === 'live' ? '#6ee7b7' : '#e4e4e7',
           }}
         >
           <span>
@@ -886,7 +886,7 @@ export default function DemoClient() {
             className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ml-3"
             style={{
               background: dataSource === 'live' ? 'rgba(16,185,129,0.2)' : 'rgba(251,191,36,0.2)',
-              color: dataSource === 'live' ? '#10b981' : '#fbbf24',
+              color: dataSource === 'live' ? '#10b981' : '#d4d4d8',
               border: `1px solid ${dataSource === 'live' ? 'rgba(16,185,129,0.4)' : 'rgba(251,191,36,0.4)'}`,
               animation: dataSource === 'live' ? 'pulse 2s infinite' : 'none',
             }}
@@ -902,12 +902,12 @@ export default function DemoClient() {
             style={{
               background: dataSource === 'live' ? 'rgba(16,185,129,0.1)' : 'rgba(251,191,36,0.1)',
               border: `1px solid ${dataSource === 'live' ? 'rgba(16,185,129,0.2)' : 'rgba(251,191,36,0.2)'}`,
-              color: dataSource === 'live' ? '#10b981' : '#fbbf24',
+              color: dataSource === 'live' ? '#10b981' : '#d4d4d8',
             }}
           >
             <div
               className="w-1.5 h-1.5 rounded-full"
-              style={{ background: dataSource === 'live' ? '#34d399' : '#fbbf24', animation: dataSource === 'live' ? 'pulse 2s infinite' : 'none' }}
+              style={{ background: dataSource === 'live' ? '#34d399' : '#d4d4d8', animation: dataSource === 'live' ? 'pulse 2s infinite' : 'none' }}
             />
             {dataSource === 'live' ? 'Real signals \u00b7 No login required' : 'Sample signals \u00b7 Signals reset daily'}
           </div>

@@ -87,7 +87,7 @@ export function HeroSection() {
           {/* Window chrome */}
           <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-3 bg-[var(--bg-card)]">
             <div className="h-2.5 w-2.5 rounded-full bg-red-500/60" />
-            <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/60" />
+            <div className="h-2.5 w-2.5 rounded-full bg-zinc-500/60" />
             <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/60" />
             <span className="ml-3 text-xs text-[var(--text-secondary)] font-mono">
               tradeclaw — signal dashboard

@@ -285,7 +285,7 @@ function AlertCard({ alert, onDelete, onEdit, flash }: AlertCardProps) {
               {isAbove ? '▲ Above' : '▼ Below'}
             </span>
             {isClose && !isTriggered && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20 font-medium">
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-500/15 text-zinc-400 border border-zinc-500/20 font-medium">
                 CLOSE
               </span>
             )}
@@ -316,7 +316,7 @@ function AlertCard({ alert, onDelete, onEdit, flash }: AlertCardProps) {
             {!isTriggered && (
               <div>
                 <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">Distance</div>
-                <div className={`text-sm font-mono tabular-nums ${isClose ? 'text-amber-400' : 'text-[var(--text-secondary)]'}`}>
+                <div className={`text-sm font-mono tabular-nums ${isClose ? 'text-zinc-400' : 'text-[var(--text-secondary)]'}`}>
                   {distance.toFixed(2)}%
                 </div>
               </div>
@@ -618,7 +618,7 @@ function AlertsPageInner() {
           <div className="grid grid-cols-3 gap-2 mb-6">
             {[
               { label: 'Active', value: stats.totalActive, color: 'text-emerald-400' },
-              { label: 'Triggered Today', value: stats.triggeredToday, color: 'text-amber-400' },
+              { label: 'Triggered Today', value: stats.triggeredToday, color: 'text-zinc-400' },
               { label: 'Top Symbol', value: stats.mostWatchedSymbol ?? '—', color: 'text-[var(--foreground)]' },
             ].map(({ label, value, color }) => (
               <div key={label} className="bg-white/[0.02] border border-[var(--border)] rounded-xl px-3 py-3 text-center">

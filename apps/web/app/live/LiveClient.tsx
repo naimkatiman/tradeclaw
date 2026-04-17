@@ -261,7 +261,7 @@ export default function LiveClient() {
         {/* Counter strip */}
         <div className="glass rounded-2xl p-4 border border-[var(--border)] mb-6 flex items-center gap-6 flex-wrap">
           <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-yellow-400" />
+            <Zap className="w-4 h-4 text-zinc-400" />
             <span className="text-2xl font-bold">{hourCount}</span>
             <span className="text-xs text-[var(--text-secondary)]">signals fired in last hour</span>
           </div>
@@ -481,9 +481,9 @@ export default function LiveClient() {
             </div>
 
             {/* Star CTA */}
-            <div className="glass rounded-2xl p-4 border border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-transparent mt-4">
+            <div className="glass rounded-2xl p-4 border border-zinc-500/20 bg-gradient-to-br from-zinc-500/5 to-transparent mt-4">
               <div className="flex items-center gap-2 mb-1.5">
-                <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                <Star className="w-3.5 h-3.5 text-zinc-400 fill-zinc-400" />
                 <span className="text-sm font-medium">Enjoying TradeClaw?</span>
               </div>
               <p className="text-xs text-[var(--text-secondary)] mb-3">
@@ -493,7 +493,7 @@ export default function LiveClient() {
                 href="https://github.com/naimkatiman/tradeclaw"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30 text-xs font-semibold transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-500/20 border border-zinc-500/30 text-zinc-400 hover:bg-zinc-500/30 text-xs font-semibold transition-colors"
               >
                 <Star className="w-3 h-3" />
                 Star on GitHub
@@ -505,7 +505,7 @@ export default function LiveClient() {
         {/* Landing integration note */}
         <div className="mt-8 glass rounded-2xl p-5 border border-[var(--border)]">
           <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
-            <Zap className="w-4 h-4 text-yellow-400" />
+            <Zap className="w-4 h-4 text-zinc-400" />
             Add to your landing page
           </h3>
           <p className="text-xs text-[var(--text-secondary)] mb-3">

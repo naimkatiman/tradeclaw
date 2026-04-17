@@ -81,12 +81,12 @@ export function PremiumSignalFeed() {
   if (locked) return null;
 
   return (
-    <section className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-4">
+    <section className="rounded-lg border border-zinc-500/40 bg-zinc-500/5 p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-amber-400">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
           Premium Live Feed
         </h2>
-        <span className="text-xs text-amber-300/70">
+        <span className="text-xs text-zinc-300/70">
           polling every {POLL_MS / 1000}s
         </span>
       </div>
@@ -94,7 +94,7 @@ export function PremiumSignalFeed() {
       {error && <p className="mb-2 text-xs text-red-400">{error}</p>}
 
       {signals.length === 0 ? (
-        <p className="text-sm text-amber-200/70">
+        <p className="text-sm text-zinc-200/70">
           No premium signals yet. They will appear here as your TradingView
           strategies fire.
         </p>
@@ -106,7 +106,7 @@ export function PremiumSignalFeed() {
             return (
               <li
                 key={s.id}
-                className="rounded border border-amber-500/20 bg-black/20 p-3"
+                className="rounded border border-zinc-500/20 bg-black/20 p-3"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex flex-col">
@@ -120,7 +120,7 @@ export function PremiumSignalFeed() {
                       </span>{' '}
                       {s.symbol} · {s.timeframe} @ {s.entry}
                     </span>
-                    <span className="text-xs text-amber-200/60">
+                    <span className="text-xs text-zinc-200/60">
                       {s.strategyId ?? 'premium'} · conf {s.confidence}
                       {s.stopLoss ? ` · SL ${s.stopLoss}` : ''}
                       {s.takeProfit1 ? ` · TP ${s.takeProfit1}` : ''}
@@ -129,7 +129,7 @@ export function PremiumSignalFeed() {
                   <button
                     type="button"
                     onClick={() => setOpenChartFor(isOpen ? null : s.id)}
-                    className="rounded border border-amber-500/40 px-2 py-1 text-xs hover:bg-amber-500/10"
+                    className="rounded border border-zinc-500/40 px-2 py-1 text-xs hover:bg-zinc-500/10"
                   >
                     {isOpen ? 'Hide chart' : 'Chart'}
                   </button>
@@ -187,7 +187,7 @@ function ChartImage({
   }, [symbol, timeframe, layout]);
 
   if (err) return <p className="text-xs text-red-400">{err}</p>;
-  if (!src) return <p className="text-xs text-amber-200/60">loading chart…</p>;
+  if (!src) return <p className="text-xs text-zinc-200/60">loading chart…</p>;
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} alt={`${symbol} ${timeframe}`} className="w-full rounded" />;
 }

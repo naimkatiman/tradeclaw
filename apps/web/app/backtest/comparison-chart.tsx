@@ -8,7 +8,7 @@ interface ComparisonChartProps {
   presetNames: Record<string, string>;
 }
 
-const COLORS = ['#60a5fa', '#f97316', '#22c55e', '#e879f9', '#fbbf24'];
+const COLORS = ['#60a5fa', '#f97316', '#22c55e', '#e879f9', '#d4d4d8'];
 
 export function ComparisonChart({ results, presetNames }: ComparisonChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);

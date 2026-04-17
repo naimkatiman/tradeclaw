@@ -217,7 +217,7 @@ function HeroVariantB({
       <div className="mt-8 overflow-hidden rounded-xl border border-white/8 bg-[#0a0a0a] text-left">
         <div className="flex items-center gap-2 border-b border-white/5 px-4 py-2">
           <span className="h-2 w-2 rounded-full bg-rose-500/60" />
-          <span className="h-2 w-2 rounded-full bg-yellow-500/60" />
+          <span className="h-2 w-2 rounded-full bg-zinc-500/60" />
           <span className="h-2 w-2 rounded-full bg-emerald-500/60" />
           <span className="ml-2 text-[10px] font-mono text-zinc-600">terminal</span>
         </div>
@@ -238,7 +238,7 @@ function HeroVariantB({
           <span className="text-zinc-500">{"  "}</span>
           <span className="text-purple-400">&quot;confidence&quot;</span>
           <span className="text-zinc-500">: </span>
-          <span className="text-yellow-400">82</span>
+          <span className="text-zinc-400">82</span>
           <span className="text-zinc-500">,</span>
           {"\n"}
           <span className="text-zinc-500">{"  "}</span>
@@ -295,20 +295,20 @@ function HeroVariantC({
     <div className="relative z-10 mx-auto max-w-4xl">
       <HeroBrandLockup />
       <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-white/3 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-400">
-        <span className="inline-flex items-center gap-1 text-yellow-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
+        <span className="inline-flex items-center gap-1 text-zinc-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-zinc-400 animate-pulse" />
           Variant C
         </span>
       </div>
-      <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-yellow-500/20 bg-yellow-500/8 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-yellow-400">
-        <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
+      <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-zinc-500/20 bg-zinc-500/8 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-zinc-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-zinc-400 animate-pulse" />
         Free · 3 Assets | Pro · All Assets · Real-time
       </div>
 
       <h1 className="text-[2.25rem] font-bold leading-[1.05] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-white break-words">
         Know what to trade.
         <br />
-        <span className="text-yellow-400" style={{ textShadow: "0 0 40px rgba(234,179,8,0.4)" }}>
+        <span className="text-zinc-400" style={{ textShadow: "0 0 40px rgba(212,212,216,0.4)" }}>
           Right now.
         </span>
       </h1>
@@ -359,7 +359,7 @@ function HeroVariantC({
       <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
         <Link
           href="/dashboard"
-          className="group flex items-center gap-2.5 rounded-full bg-yellow-500 px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-yellow-400 hover:scale-[1.02] active:scale-[0.98]"
+          className="group flex items-center gap-2.5 rounded-full bg-zinc-500 px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-zinc-400 hover:scale-[1.02] active:scale-[0.98]"
         >
           See Live Signals
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-0.5">

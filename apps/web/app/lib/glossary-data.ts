@@ -27,7 +27,7 @@ export const CATEGORIES: Record<
   },
   "risk-management": {
     label: "Risk Management",
-    color: "bg-amber-500/20 text-amber-400",
+    color: "bg-zinc-500/20 text-zinc-400",
   },
   "order-types": {
     label: "Order Types",

@@ -222,7 +222,7 @@ export function ResultsClient() {
             Pre-computed performance across 5 strategies and 3 major assets.
             All results generated on 12 months of historical data with realistic slippage and fees.
           </p>
-          <div className="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-amber-400/80">
+          <div className="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-zinc-400/80">
             <AlertTriangle className="w-3.5 h-3.5" />
             <span>Simulated results. Past performance does not guarantee future returns.</span>
           </div>

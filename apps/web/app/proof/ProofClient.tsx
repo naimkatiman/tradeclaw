@@ -316,10 +316,10 @@ export default function ProofClient() {
         )}
 
         {/* Methodology note */}
-        <div className="mb-8 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 flex gap-3">
-          <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+        <div className="mb-8 rounded-xl border border-zinc-500/20 bg-zinc-500/5 p-4 flex gap-3">
+          <AlertCircle className="w-4 h-4 text-zinc-400 mt-0.5 shrink-0" />
           <div className="text-sm text-zinc-400 leading-relaxed">
-            <span className="text-amber-400 font-medium">Transparency note:</span> Signals
+            <span className="text-zinc-400 font-medium">Transparency note:</span> Signals
             are generated from real market data (Binance/Yahoo Finance) but outcomes
             are resolved against simulated candle replay when live price history is
             unavailable. &quot;Win&quot; = price reached TP1 before SL. Past accuracy does

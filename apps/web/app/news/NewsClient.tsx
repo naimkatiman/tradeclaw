@@ -74,7 +74,7 @@ function ConfidenceBar({ confidence }: { confidence: number }) {
             confidence >= 70
               ? 'bg-emerald-500'
               : confidence >= 50
-                ? 'bg-yellow-500'
+                ? 'bg-zinc-500'
                 : 'bg-red-500'
           }`}
           style={{ width: `${confidence}%` }}
@@ -111,7 +111,7 @@ function CoinCard({ coin }: { coin: TrendingCoin }) {
         </div>
         {coin.marketCapRank > 0 && (
           <span className="inline-flex items-center gap-1 rounded-md bg-zinc-700/60 px-2 py-0.5 text-[10px] font-medium text-zinc-300">
-            <Crown className="h-3 w-3 text-yellow-500" />
+            <Crown className="h-3 w-3 text-zinc-500" />
             #{coin.marketCapRank}
           </span>
         )}
@@ -247,10 +247,10 @@ export default function NewsClient({ initial }: { initial: NewsData }) {
 
         {/* Error State */}
         {hasError && data.trending.length === 0 && (
-          <div className="mb-10 rounded-xl border border-amber-500/30 bg-amber-500/5 p-6 text-center">
+          <div className="mb-10 rounded-xl border border-zinc-500/30 bg-zinc-500/5 p-6 text-center">
             <div className="flex items-center justify-center gap-2 mb-3">
-              <AlertTriangle className="h-5 w-5 text-amber-400" />
-              <span className="text-sm font-medium text-amber-400">Unable to load news</span>
+              <AlertTriangle className="h-5 w-5 text-zinc-400" />
+              <span className="text-sm font-medium text-zinc-400">Unable to load news</span>
             </div>
             <p className="text-xs text-zinc-400 mb-4">
               Check your connection or try again later.
@@ -258,7 +258,7 @@ export default function NewsClient({ initial }: { initial: NewsData }) {
             <button
               onClick={refresh}
               disabled={loading}
-              className="inline-flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-4 py-2 text-sm font-medium text-amber-400 hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg bg-zinc-500/10 border border-zinc-500/30 px-4 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-500/20 transition-colors disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               {loading ? 'Retrying...' : 'Try Again'}

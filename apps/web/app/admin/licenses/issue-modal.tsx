@@ -8,8 +8,8 @@ interface IssueModalProps {
 export default function IssueModal({ plaintextKey, onClose }: IssueModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-lg rounded-lg border border-amber-600 bg-neutral-900 p-6">
-        <h2 className="mb-2 text-lg font-bold text-amber-400">
+      <div className="w-full max-w-lg rounded-lg border border-zinc-600 bg-neutral-900 p-6">
+        <h2 className="mb-2 text-lg font-bold text-zinc-400">
           Copy this key now
         </h2>
         <p className="mb-4 text-sm text-neutral-300">

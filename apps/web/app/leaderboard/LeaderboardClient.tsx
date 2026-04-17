@@ -24,7 +24,7 @@ interface PairDetail {
 function RankBadge({ rank }: { rank: number }) {
   if (rank === 1)
     return (
-      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-500/15 text-yellow-400 text-[10px] font-bold">
+      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-zinc-500/15 text-zinc-400 text-[10px] font-bold">
         1
       </span>
     );
@@ -36,7 +36,7 @@ function RankBadge({ rank }: { rank: number }) {
     );
   if (rank === 3)
     return (
-      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-700/15 text-amber-600 text-[10px] font-bold">
+      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-zinc-700/15 text-zinc-600 text-[10px] font-bold">
         3
       </span>
     );
@@ -44,8 +44,8 @@ function RankBadge({ rank }: { rank: number }) {
 }
 
 function HitRateBar({ value, size = 'md' }: { value: number; size?: 'sm' | 'md' }) {
-  const color = value >= 60 ? 'bg-emerald-500' : value >= 50 ? 'bg-yellow-500' : 'bg-red-500';
-  const textColor = value >= 60 ? 'text-emerald-400' : value >= 50 ? 'text-yellow-400' : 'text-red-400';
+  const color = value >= 60 ? 'bg-emerald-500' : value >= 50 ? 'bg-zinc-500' : 'bg-red-500';
+  const textColor = value >= 60 ? 'text-emerald-400' : value >= 50 ? 'text-zinc-400' : 'text-red-400';
   const h = size === 'sm' ? 'h-[3px]' : 'h-1';
   return (
     <div className="flex items-center gap-2">
@@ -402,7 +402,7 @@ export default function LeaderboardClient() {
             />
             <div className="glass-card rounded-xl p-3 flex flex-col gap-1">
               <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Top Performer</div>
-              <div className="text-base font-bold font-mono text-yellow-400">{data.overall.topPerformer}</div>
+              <div className="text-base font-bold font-mono text-zinc-400">{data.overall.topPerformer}</div>
               <div className="text-[10px] text-[var(--text-secondary)]">worst: {data.overall.worstPerformer}</div>
             </div>
           </div>

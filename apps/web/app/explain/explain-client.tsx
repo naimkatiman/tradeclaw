@@ -295,7 +295,7 @@ export function ExplainClient() {
                 <div className="flex items-center gap-2 mt-1">
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
                     result.confluenceScore >= 4 ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/15'
-                    : result.confluenceScore >= 3 ? 'text-yellow-400 bg-yellow-500/10 border border-yellow-500/15'
+                    : result.confluenceScore >= 3 ? 'text-zinc-400 bg-zinc-500/10 border border-zinc-500/15'
                     : 'text-red-400 bg-red-500/10 border border-red-500/15'
                   }`}>
                     {result.confluenceScore}/5 confluence
@@ -346,7 +346,7 @@ export function ExplainClient() {
                     <span className="text-[10px] text-zinc-600 font-mono">{h.timeframe}</span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
                       h.confluenceScore >= 4 ? 'text-emerald-400 bg-emerald-500/10'
-                      : h.confluenceScore >= 3 ? 'text-yellow-400 bg-yellow-500/10'
+                      : h.confluenceScore >= 3 ? 'text-zinc-400 bg-zinc-500/10'
                       : 'text-red-400 bg-red-500/10'
                     }`}>
                       {h.confluenceScore}/5

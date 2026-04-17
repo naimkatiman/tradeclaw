@@ -207,10 +207,10 @@ docker compose up -d --build
 
 # Verify
 curl http://localhost:3000/api/health`} />
-        <div className="mt-4 p-4 rounded-xl border border-amber-500/20 bg-amber-500/5">
-          <p className="text-sm text-amber-200">
+        <div className="mt-4 p-4 rounded-xl border border-zinc-500/20 bg-zinc-500/5">
+          <p className="text-sm text-zinc-200">
             <strong>Data persistence:</strong> Signal history, paper trading positions, and plugin
-            configurations are stored in <code className="text-amber-300">data/</code>. This directory
+            configurations are stored in <code className="text-zinc-300">data/</code>. This directory
             is volume-mounted in Docker and survives rebuilds.
           </p>
         </div>

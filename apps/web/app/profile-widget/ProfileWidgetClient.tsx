@@ -268,7 +268,7 @@ export default function ProfileWidgetClient() {
 
         {/* GitHub CTA */}
         <section className="text-center bg-gradient-to-r from-emerald-950/40 to-purple-950/40 rounded-2xl border border-white/10 p-10">
-          <Star className="w-10 h-10 text-yellow-400 mx-auto mb-4" />
+          <Star className="w-10 h-10 text-zinc-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-2">Like this widget?</h2>
           <p className="text-white/50 mb-6">Star TradeClaw on GitHub to unlock more features and support open-source trading tools.</p>
           <a

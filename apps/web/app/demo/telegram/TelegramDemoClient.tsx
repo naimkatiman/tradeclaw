@@ -293,7 +293,7 @@ export default function TelegramDemoClient() {
 
         {/* Star CTA */}
         <div className="rounded-2xl border border-zinc-800 bg-gradient-to-r from-zinc-900 to-emerald-950/30 p-6 text-center space-y-3">
-          <Star size={24} className="mx-auto text-yellow-400" />
+          <Star size={24} className="mx-auto text-zinc-400" />
           <p className="font-semibold text-white">Enjoying TradeClaw?</p>
           <p className="text-sm text-zinc-400">
             It&apos;s 100% open-source. A GitHub star takes 2 seconds and helps a lot.
@@ -304,7 +304,7 @@ export default function TelegramDemoClient() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-xl bg-zinc-800 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700"
           >
-            <Star size={15} className="text-yellow-400" />
+            <Star size={15} className="text-zinc-400" />
             Star on GitHub
           </a>
         </div>

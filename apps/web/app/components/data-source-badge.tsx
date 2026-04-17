@@ -12,9 +12,9 @@ interface DataSourceBadgeProps {
 
 const SOURCE_CONFIG: Record<DataSource, { color: string; border: string; bg: string }> = {
   Binance: {
-    color: '#f59e0b',
-    border: 'rgba(245,158,11,0.3)',
-    bg: 'rgba(245,158,11,0.1)',
+    color: '#a1a1aa',
+    border: 'rgba(161,161,170,0.3)',
+    bg: 'rgba(161,161,170,0.1)',
   },
   Swissquote: {
     color: '#06b6d4',

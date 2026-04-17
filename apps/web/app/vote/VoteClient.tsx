@@ -407,7 +407,7 @@ export default function VoteClient() {
             href="/star"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-sm font-semibold transition-colors"
           >
-            <Star className="w-4 h-4 text-yellow-400" />
+            <Star className="w-4 h-4 text-zinc-400" />
             Star on GitHub
           </Link>
         </div>

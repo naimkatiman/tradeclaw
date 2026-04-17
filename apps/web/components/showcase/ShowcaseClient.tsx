@@ -122,7 +122,7 @@ function MockDashboard({ accentColor }: { accentColor: string }) {
       {/* Window chrome */}
       <div className="flex items-center gap-1.5 px-3 py-2 bg-white/5 border-b border-white/10">
         <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
-        <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
+        <span className="w-2.5 h-2.5 rounded-full bg-zinc-500/70" />
         <span className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
         <span className="ml-2 text-white/30 text-xs">tradeclaw.local/dashboard</span>
       </div>
@@ -490,7 +490,7 @@ export function ShowcaseClient() {
                 href="https://github.com/naimkatiman/tradeclaw"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-yellow-400/70 hover:text-yellow-400 text-xs transition-colors"
+                className="flex items-center gap-1.5 text-zinc-400/70 hover:text-zinc-400 text-xs transition-colors"
               >
                 <Star className="w-3.5 h-3.5" /> Star on GitHub ({stars ?? '…'})
               </a>

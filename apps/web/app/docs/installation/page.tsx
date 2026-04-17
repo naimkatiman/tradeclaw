@@ -187,8 +187,8 @@ volumes:
       {/* Option 3: Vercel */}
       <section className="mb-12">
         <h2 className="text-2xl font-semibold text-white mb-2">Option 3 — Vercel</h2>
-        <div className="rounded-xl border border-amber-500/15 bg-amber-500/5 p-4 mb-5">
-          <p className="text-sm text-amber-300">
+        <div className="rounded-xl border border-zinc-500/15 bg-zinc-500/5 p-4 mb-5">
+          <p className="text-sm text-zinc-300">
             <strong>Note:</strong> Vercel is serverless — the background scanner service won&apos;t run continuously.
             Signals update only on API request. For live scanning, use Docker or Railway.
           </p>

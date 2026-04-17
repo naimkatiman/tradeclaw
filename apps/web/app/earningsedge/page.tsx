@@ -123,7 +123,7 @@ export default function EarningsEdgeLanding() {
           </div>
 
           <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-4">
-            <div className="text-yellow-400 font-semibold mb-2">⚡ Trade Thesis</div>
+            <div className="text-zinc-400 font-semibold mb-2">⚡ Trade Thesis</div>
             <p className="text-white text-sm">
               NVDA remains the clear AI infrastructure winner with accelerating data center demand,
               but near-term upside may be limited given already-elevated valuation and China headwinds —

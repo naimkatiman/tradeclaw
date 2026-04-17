@@ -22,8 +22,8 @@ export function ConnectionStatus({ state }: ConnectionStatusProps) {
   if (state === 'connecting') {
     return (
       <div className="flex items-center gap-1.5" title="Connecting to price stream…">
-        <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
-        <span className="text-[11px] text-amber-400 font-mono">···</span>
+        <span className="h-2 w-2 rounded-full bg-zinc-400 animate-pulse shrink-0" />
+        <span className="text-[11px] text-zinc-400 font-mono">···</span>
       </div>
     );
   }

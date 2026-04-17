@@ -116,8 +116,8 @@ const PHASE_LABELS: Record<ConnectionPhase, string> = {
 
 const PHASE_COLORS: Record<ConnectionPhase, string> = {
   idle: 'var(--text-secondary)',
-  authenticating: '#f59e0b',
-  handshake: '#f59e0b',
+  authenticating: '#a1a1aa',
+  handshake: '#a1a1aa',
   syncing: '#06b6d4',
   connected: '#10b981',
   error: '#ef4444',
@@ -400,14 +400,14 @@ export function BrokerSimClient() {
                       <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs" style={{
                         background: done ? 'rgba(16,185,129,0.2)' : 'var(--glass-bg)',
                         color: done ? '#10b981' : 'var(--text-secondary)',
-                        border: active ? '2px solid #f59e0b' : '1px solid var(--border)',
+                        border: active ? '2px solid #a1a1aa' : '1px solid var(--border)',
                       }}>
                         {done && !active ? '✓' : i + 1}
                       </div>
                       <span className="text-xs" style={{ color: done ? 'var(--foreground)' : 'var(--text-secondary)' }}>
                         {PHASE_LABELS[p]}
                       </span>
-                      {active && <Loader2 size={12} className="animate-spin text-amber-400" />}
+                      {active && <Loader2 size={12} className="animate-spin text-zinc-400" />}
                     </div>
                   );
                 })}
@@ -500,7 +500,7 @@ for (const signal of signals) {
             className="inline-flex items-center gap-2 text-sm transition-colors"
             style={{ color: 'var(--text-secondary)' }}
           >
-            <Star size={16} className="text-amber-400" /> Star TradeClaw on GitHub to vote for live broker integrations
+            <Star size={16} className="text-zinc-400" /> Star TradeClaw on GitHub to vote for live broker integrations
           </a>
         </div>
       </div>

@@ -122,7 +122,7 @@ const PROFILES: Record<ProfileKey, Profile> = {
     title: 'The Scalper',
     subtitle: 'Speed is your edge',
     icon: Zap,
-    color: 'text-yellow-400',
+    color: 'text-zinc-400',
     description:
       'You thrive on fast-paced action and quick profits. You watch charts like a hawk and capitalize on micro-movements. TradeClaw\'s real-time signals are built for traders like you.',
     pairs: ['BTC/USD', 'ETH/USD', 'SOL/USD', 'EUR/USD'],

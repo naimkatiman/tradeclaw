@@ -37,13 +37,13 @@ function fmtPrice(n: number): string {
 
 function confColor(v: number): string {
   if (v >= 75) return 'from-emerald-500 to-emerald-400';
-  if (v >= 60) return 'from-amber-500 to-amber-400';
+  if (v >= 60) return 'from-zinc-500 to-zinc-400';
   return 'from-rose-500 to-rose-400';
 }
 
 function confTextColor(v: number): string {
   if (v >= 75) return 'text-emerald-400';
-  if (v >= 60) return 'text-amber-400';
+  if (v >= 60) return 'text-zinc-400';
   return 'text-rose-400';
 }
 
@@ -209,7 +209,7 @@ function ScreenerCard({ r, watchlist, toggleWatchlist }: { r: ScreenerResult; wa
         <button
           onClick={() => toggleWatchlist(r.symbol)}
           className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
-            watchlist.has(r.symbol) ? 'text-amber-400 bg-amber-500/10' : 'text-[var(--text-secondary)]'
+            watchlist.has(r.symbol) ? 'text-zinc-400 bg-zinc-500/10' : 'text-[var(--text-secondary)]'
           }`}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill={watchlist.has(r.symbol) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
@@ -515,7 +515,7 @@ export default function ScreenerClient() {
                 onClick={() => setWatchlistOnly(w => !w)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-medium border transition-all ${
                   watchlistOnly
-                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                    ? 'bg-zinc-500/10 border-zinc-500/30 text-zinc-400'
                     : 'bg-white/[0.03] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                 }`}
               >
@@ -523,7 +523,7 @@ export default function ScreenerClient() {
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
                 Watchlist Only
-                {watchlist.size > 0 && <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[9px] font-bold">{watchlist.size}</span>}
+                {watchlist.size > 0 && <span className="px-1.5 py-0.5 rounded-full bg-zinc-500/20 text-zinc-400 text-[9px] font-bold">{watchlist.size}</span>}
               </button>
             </div>
 
@@ -736,7 +736,7 @@ export default function ScreenerClient() {
                       <button
                         onClick={() => toggleWatchlist(r.symbol)}
                         className={`w-6 h-6 flex items-center justify-center rounded transition-colors ${
-                          watchlist.has(r.symbol) ? 'text-amber-400' : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'
+                          watchlist.has(r.symbol) ? 'text-zinc-400' : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'
                         }`}
                         title={watchlist.has(r.symbol) ? 'Remove from watchlist' : 'Add to watchlist'}
                       >
@@ -826,7 +826,7 @@ export default function ScreenerClient() {
                           onClick={() => toggleWatchlist(r.symbol)}
                           className={`px-2 py-1 rounded-lg border text-[10px] transition-colors whitespace-nowrap ${
                             watchlist.has(r.symbol)
-                              ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                              ? 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
                               : 'bg-[var(--glass-bg)] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:border-[var(--border)]'
                           }`}
                         >

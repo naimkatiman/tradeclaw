@@ -348,7 +348,7 @@ function Cell({ value }: { value: FeatureValue }) {
   if (value === 'partial') {
     return (
       <div className="flex justify-center">
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-500/10 text-yellow-400">
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-zinc-500/10 text-zinc-400">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
             <path d="M2 5h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
@@ -495,7 +495,7 @@ export function CompareClient() {
               Supported
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-yellow-500/10 text-yellow-400">
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-zinc-500/10 text-zinc-400">
                 <svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 5h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
               </span>
               Partial / paid tier
@@ -621,7 +621,7 @@ export function CompareClient() {
           <div className="rounded-b-2xl rounded-tr-2xl border border-t-0 border-[var(--border)] overflow-hidden bg-[#0d0d0d]">
             <div className="flex items-center gap-2 px-4 py-3 border-b border-white/8">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
-              <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+              <span className="w-2.5 h-2.5 rounded-full bg-zinc-500/60" />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" />
               <span className="ml-2 text-xs text-[var(--text-secondary)] font-mono">
                 {CODE_SAMPLES[activeTab].label} — RSI Signal
@@ -702,7 +702,7 @@ export function CompareClient() {
           <div className="rounded-xl border border-[var(--border)] overflow-hidden mb-8 text-left bg-[#0d0d0d]">
             <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/8">
               <span className="w-2 h-2 rounded-full bg-red-500/60" />
-              <span className="w-2 h-2 rounded-full bg-yellow-500/60" />
+              <span className="w-2 h-2 rounded-full bg-zinc-500/60" />
               <span className="w-2 h-2 rounded-full bg-emerald-500/60" />
               <span className="ml-1 text-xs text-[var(--text-secondary)] font-mono">Terminal</span>
             </div>

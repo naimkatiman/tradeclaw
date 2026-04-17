@@ -54,12 +54,12 @@ export function SignalOutcomeCard({ signal, compact = false }: SignalOutcomeCard
 
   const outcomeLabel = isPending ? 'PENDING' : isWin ? 'TP1 HIT' : 'SL HIT';
   const outcomeColor = isPending
-    ? 'text-amber-400'
+    ? 'text-zinc-400'
     : isWin
       ? 'text-emerald-400'
       : 'text-red-400';
   const outcomeBg = isPending
-    ? 'bg-amber-500/10 border-amber-500/20'
+    ? 'bg-zinc-500/10 border-zinc-500/20'
     : isWin
       ? 'bg-emerald-500/10 border-emerald-500/20'
       : 'bg-red-500/10 border-red-500/20';
@@ -119,7 +119,7 @@ export function SignalOutcomeCard({ signal, compact = false }: SignalOutcomeCard
             </div>
           )}
           {isPending && (
-            <div className="flex items-center gap-1 text-amber-400">
+            <div className="flex items-center gap-1 text-zinc-400">
               <Clock className="w-3.5 h-3.5" />
               <span className="text-xs font-mono">Watching live candles</span>
             </div>
@@ -140,7 +140,7 @@ export function SignalOutcomeCard({ signal, compact = false }: SignalOutcomeCard
       {/* Top accent bar */}
       <div
         className={`h-0.5 w-full ${
-          isPending ? 'bg-amber-500/40' : isWin ? 'bg-emerald-500/40' : 'bg-red-500/40'
+          isPending ? 'bg-zinc-500/40' : isWin ? 'bg-emerald-500/40' : 'bg-red-500/40'
         }`}
       />
 
@@ -200,7 +200,7 @@ export function SignalOutcomeCard({ signal, compact = false }: SignalOutcomeCard
                   signal.confidence >= 80
                     ? 'text-emerald-400'
                     : signal.confidence >= 65
-                      ? 'text-yellow-400'
+                      ? 'text-zinc-400'
                       : 'text-red-400'
                 }`}
               >
@@ -226,7 +226,7 @@ export function SignalOutcomeCard({ signal, compact = false }: SignalOutcomeCard
               {/* Status icon + label */}
               <div className="flex items-center gap-2 mb-3">
                 {isPending ? (
-                  <Clock className="w-6 h-6 text-amber-400" />
+                  <Clock className="w-6 h-6 text-zinc-400" />
                 ) : isWin ? (
                   <CheckCircle className="w-6 h-6 text-emerald-400" />
                 ) : (
@@ -283,7 +283,7 @@ export function SignalOutcomeCard({ signal, compact = false }: SignalOutcomeCard
               <div
                 className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border-2 ${
                   isPending
-                    ? 'bg-amber-400 border-amber-300'
+                    ? 'bg-zinc-400 border-zinc-300'
                     : isWin
                       ? 'bg-emerald-400 border-emerald-300'
                       : 'bg-red-400 border-red-300'

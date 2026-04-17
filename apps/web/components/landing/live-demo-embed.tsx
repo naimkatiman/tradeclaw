@@ -136,7 +136,7 @@ function SignalBadge({ direction }: { direction: 'BUY' | 'SELL' }) {
 }
 
 function ConfBar({ value }: { value: number }) {
-  const color = value >= 80 ? '#10b981' : value >= 70 ? '#f59e0b' : '#6b7280';
+  const color = value >= 80 ? '#10b981' : value >= 70 ? '#a1a1aa' : '#6b7280';
   return (
     <div className="flex items-center gap-2">
       <div className="w-16 h-1.5 rounded-full bg-white/5 overflow-hidden">

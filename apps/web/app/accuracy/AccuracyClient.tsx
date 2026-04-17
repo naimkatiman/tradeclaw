@@ -148,8 +148,8 @@ export function AccuracyClient() {
   return (
     <div className="space-y-6 pb-20 md:pb-6">
       {/* Disclaimer banner */}
-      <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3">
-        <p className="text-xs text-amber-400/90 leading-relaxed">
+      <div className="rounded-xl border border-zinc-500/30 bg-zinc-500/5 px-4 py-3">
+        <p className="text-xs text-zinc-400/90 leading-relaxed">
           <span className="font-semibold">Disclaimer:</span> Rows marked <span className="font-mono text-zinc-400 bg-zinc-800 px-1 rounded">Example</span> are simulated seed data used to demonstrate the interface and are <strong>excluded from all accuracy statistics</strong>. Only <span className="font-mono text-emerald-400 bg-emerald-500/10 px-1 rounded">Live tracked</span> signals represent real outcomes verified against market prices. Past performance is not indicative of future results. This is not financial advice.
         </p>
       </div>
@@ -194,7 +194,7 @@ export function AccuracyClient() {
           <StatCard
             label="Win Rate"
             value={`${stats.winRate}%`}
-            color={stats.winRate >= 60 ? 'text-emerald-400' : stats.winRate >= 50 ? 'text-amber-400' : 'text-rose-400'}
+            color={stats.winRate >= 60 ? 'text-emerald-400' : stats.winRate >= 50 ? 'text-zinc-400' : 'text-rose-400'}
           />
           <StatCard
             label="Avg P&L"
@@ -242,7 +242,7 @@ export function AccuracyClient() {
                   ? 'bg-emerald-400'
                   : status === 'loss'
                     ? 'bg-rose-400'
-                    : 'bg-amber-400';
+                    : 'bg-zinc-400';
               const ts = r.lastVerified ?? r.timestamp;
               return (
                 <li key={r.id} className="relative">
@@ -260,7 +260,7 @@ export function AccuracyClient() {
                       {r.direction === 'BUY' ? '▲' : '▼'} {r.direction}
                     </span>
                     {status === 'open' ? (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-400">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-zinc-500/15 text-zinc-400">
                         OPEN
                       </span>
                     ) : status === 'win' ? (
@@ -356,7 +356,7 @@ export function AccuracyClient() {
                 outcome === o
                   ? o === 'win' ? 'bg-emerald-500/20 text-emerald-400'
                     : o === 'loss' ? 'bg-rose-500/20 text-rose-400'
-                    : o === 'pending' ? 'bg-amber-500/20 text-amber-400'
+                    : o === 'pending' ? 'bg-zinc-500/20 text-zinc-400'
                     : 'bg-zinc-800 text-zinc-200'
                   : 'text-zinc-500 hover:text-zinc-300'
               }`}
@@ -508,7 +508,7 @@ function StatCard({ label, value, color = 'text-zinc-100' }: { label: string; va
 }
 
 function ConfidenceBadge({ value }: { value: number }) {
-  const color = value >= 80 ? 'text-emerald-400' : value >= 65 ? 'text-amber-400' : 'text-zinc-500';
+  const color = value >= 80 ? 'text-emerald-400' : value >= 65 ? 'text-zinc-400' : 'text-zinc-500';
   return (
     <span className={`font-mono tabular-nums text-xs ${color}`}>
       {value.toFixed(0)}%

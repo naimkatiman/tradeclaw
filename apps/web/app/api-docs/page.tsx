@@ -57,7 +57,7 @@ export default function ApiDocsPage() {
   const methodColors: Record<string, string> = {
     GET: 'bg-emerald-600',
     POST: 'bg-blue-600',
-    PUT: 'bg-amber-600',
+    PUT: 'bg-zinc-600',
     DELETE: 'bg-red-600',
   };
 

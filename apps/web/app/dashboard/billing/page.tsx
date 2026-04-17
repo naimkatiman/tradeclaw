@@ -36,7 +36,7 @@ const PLANS: Record<Tier, PlanInfo> = {
     name: 'Elite',
     price: '$49/mo',
     description: 'All symbols, MTF analysis, API access, Elite Telegram group.',
-    color: 'text-amber-400',
+    color: 'text-zinc-400',
     priceId: process.env.NEXT_PUBLIC_STRIPE_ELITE_MONTHLY_PRICE_ID ?? '',
   },
 };
@@ -75,7 +75,7 @@ function StatusBadge({ tier }: { tier: Tier }) {
   const colors: Record<Tier, string> = {
     free: 'bg-zinc-800 text-zinc-300',
     pro: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
-    elite: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+    elite: 'bg-zinc-500/20 text-zinc-400 border border-zinc-500/30',
   };
   return (
     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${colors[tier]}`}>
@@ -209,7 +209,7 @@ export default function BillingPage() {
         </Link>
 
         {isDemo && (
-          <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+          <div className="mb-4 rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-3 text-sm text-zinc-800 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200">
             <strong>Demo Mode</strong> — Sign in to view your subscription and manage billing.
           </div>
         )}

@@ -65,7 +65,7 @@ const SUBMISSIONS: AwesomeSubmission[] = [
 const STATUS_STYLES: Record<SubmissionStatus, string> = {
   Listed: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
   Submitted: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
-  Pending: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30',
+  Pending: 'bg-zinc-500/20 text-zinc-300 border border-zinc-500/30',
   Planned: 'bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)]',
 };
 

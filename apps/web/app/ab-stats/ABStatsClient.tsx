@@ -115,7 +115,7 @@ export function ABStatsClient() {
                         Variant {v.toUpperCase()}
                       </span>
                       {isWinner && (
-                        <span className="rounded bg-yellow-500/20 px-1.5 py-0.5 text-[10px] font-bold text-yellow-400">
+                        <span className="rounded bg-zinc-500/20 px-1.5 py-0.5 text-[10px] font-bold text-zinc-400">
                           WINNING
                         </span>
                       )}

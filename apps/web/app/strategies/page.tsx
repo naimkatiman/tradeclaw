@@ -107,9 +107,9 @@ function StrategyCard({ strategy }: { strategy: Strategy }) {
         <div className="bg-black/30 rounded-lg p-3 mb-3">
           <div className="text-xs text-gray-500 mb-2">Performance ({perf.period})</div>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            <StatBox label="Win Rate" value={`${perf.winRate}%`} color={perf.winRate >= 60 ? 'text-emerald-400' : perf.winRate >= 50 ? 'text-yellow-400' : 'text-red-400'} />
-            <StatBox label="PF" value={perf.profitFactor.toFixed(1)} color={perf.profitFactor >= 2 ? 'text-emerald-400' : 'text-yellow-400'} />
-            <StatBox label="Sharpe" value={perf.sharpeRatio.toFixed(2)} color={perf.sharpeRatio >= 2 ? 'text-emerald-400' : 'text-yellow-400'} />
+            <StatBox label="Win Rate" value={`${perf.winRate}%`} color={perf.winRate >= 60 ? 'text-emerald-400' : perf.winRate >= 50 ? 'text-zinc-400' : 'text-red-400'} />
+            <StatBox label="PF" value={perf.profitFactor.toFixed(1)} color={perf.profitFactor >= 2 ? 'text-emerald-400' : 'text-zinc-400'} />
+            <StatBox label="Sharpe" value={perf.sharpeRatio.toFixed(2)} color={perf.sharpeRatio >= 2 ? 'text-emerald-400' : 'text-zinc-400'} />
             <StatBox label="Max DD" value={`${perf.maxDrawdown}%`} color={perf.maxDrawdown <= 10 ? 'text-emerald-400' : 'text-red-400'} />
             <StatBox label="P&L" value={`$${perf.totalPnl.toLocaleString()}`} color={perf.totalPnl > 0 ? 'text-emerald-400' : 'text-red-400'} />
           </div>
@@ -148,7 +148,7 @@ function StrategyCard({ strategy }: { strategy: Strategy }) {
           </div>
           <div>
             <div className="text-gray-500">Fib Levels</div>
-            <div className="font-mono text-yellow-400">{strategy.riskManagement.fibLevels.join(', ')}</div>
+            <div className="font-mono text-zinc-400">{strategy.riskManagement.fibLevels.join(', ')}</div>
           </div>
           {perf && (
             <>

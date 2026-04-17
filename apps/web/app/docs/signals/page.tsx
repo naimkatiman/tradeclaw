@@ -98,7 +98,7 @@ export default function SignalsPage() {
           <div className="grid grid-cols-3 gap-2 mb-4">
             {[
               { label: 'Oversold', threshold: '< 30', signal: 'Bullish', color: 'text-emerald-400' },
-              { label: 'Neutral', threshold: '30–70', signal: 'Neutral', color: 'text-amber-400' },
+              { label: 'Neutral', threshold: '30–70', signal: 'Neutral', color: 'text-zinc-400' },
               { label: 'Overbought', threshold: '> 70', signal: 'Bearish', color: 'text-red-400' },
             ].map(r => (
               <div key={r.label} className="p-3 rounded-lg bg-white/[0.03] text-center">
@@ -230,7 +230,7 @@ function calcRSI(closes: number[], period = 14): RSIResult {
           <div className="grid grid-cols-3 gap-2">
             {[
               { label: 'Oversold', threshold: '< 20', signal: 'Bullish', color: 'text-emerald-400' },
-              { label: 'Neutral', threshold: '20–80', signal: 'Neutral', color: 'text-amber-400' },
+              { label: 'Neutral', threshold: '20–80', signal: 'Neutral', color: 'text-zinc-400' },
               { label: 'Overbought', threshold: '> 80', signal: 'Bearish', color: 'text-red-400' },
             ].map(r => (
               <div key={r.label} className="p-3 rounded-lg bg-white/[0.03] text-center">
@@ -263,7 +263,7 @@ function calcRSI(closes: number[], period = 14): RSIResult {
             <tbody>
               {[
                 { range: '80–100', label: 'High Confidence', count: '4–5 of 5', color: 'text-emerald-400' },
-                { range: '65–79', label: 'Moderate Confidence', count: '3–4 of 5', color: 'text-amber-400' },
+                { range: '65–79', label: 'Moderate Confidence', count: '3–4 of 5', color: 'text-zinc-400' },
                 { range: '50–64', label: 'Low Confidence', count: '2–3 of 5', color: 'text-orange-400' },
                 { range: '< 50', label: 'Filtered / Not Emitted', count: '< 2 of 5', color: 'text-red-400' },
               ].map(row => (

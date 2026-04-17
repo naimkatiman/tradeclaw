@@ -76,7 +76,7 @@ function Badge({ text, color }: { text: string; color: "emerald" | "rose" | "zin
     emerald: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
     rose: "bg-rose-500/20 text-rose-400 border-rose-500/30",
     zinc: "bg-zinc-700/40 text-zinc-300 border-zinc-600/30",
-    amber: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+    amber: "bg-zinc-500/20 text-zinc-400 border-zinc-500/30",
     red: "bg-red-500/20 text-red-400 border-red-500/30",
   };
   return (
@@ -326,7 +326,7 @@ function FibTab() {
               {levels.map(({ ratio, level, type }) => (
                 <tr
                   key={ratio}
-                  className={`border-b border-zinc-800 ${GOLDEN_ZONE.has(ratio) ? "bg-amber-900/30" : ""}`}
+                  className={`border-b border-zinc-800 ${GOLDEN_ZONE.has(ratio) ? "bg-zinc-900/30" : ""}`}
                 >
                   <td className="px-4 py-2 text-zinc-300">{ratio.toFixed(3)}</td>
                   <td className="px-4 py-2 text-right text-white font-mono">{level.toFixed(4)}</td>

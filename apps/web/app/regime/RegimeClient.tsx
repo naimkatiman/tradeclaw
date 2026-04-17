@@ -66,9 +66,9 @@ function getRegimeIcon(regime: RegimeName) {
 
 function getAssetClassStyle(assetClass: string): string {
   switch (assetClass) {
-    case 'crypto': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+    case 'crypto': return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
     case 'forex': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-    case 'metals': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+    case 'metals': return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
     default: return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
   }
 }

@@ -22,7 +22,7 @@ export function SetAlertButton({ symbol, currentPrice }: SetAlertButtonProps) {
     <Link
       href={href}
       onClick={handleClick}
-      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold hover:bg-amber-500/15 transition-colors"
+      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-500/10 text-zinc-400 border border-zinc-500/20 text-xs font-semibold hover:bg-zinc-500/15 transition-colors"
     >
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />

@@ -269,7 +269,7 @@ export function AIAnalysisPanel({ symbol, timeframe }: AIAnalysisPanelProps) {
           {markdown && (
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
               confluenceScore >= 4 ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/15'
-              : confluenceScore >= 3 ? 'text-yellow-400 bg-yellow-500/10 border border-yellow-500/15'
+              : confluenceScore >= 3 ? 'text-zinc-400 bg-zinc-500/10 border border-zinc-500/15'
               : 'text-red-400 bg-red-500/10 border border-red-500/15'
             }`}>
               {confluenceScore}/5

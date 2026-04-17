@@ -70,7 +70,7 @@ export function CommentaryClient() {
       ? 'text-rose-400'
       : commentary.fearGreedScore >= 70
         ? 'text-emerald-400'
-        : 'text-amber-400';
+        : 'text-zinc-400';
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">

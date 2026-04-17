@@ -196,7 +196,7 @@ export function StatusClient() {
               statusCfg.color === 'emerald'
                 ? 'rgba(16,185,129,0.2)'
                 : statusCfg.color === 'yellow'
-                  ? 'rgba(234,179,8,0.2)'
+                  ? 'rgba(212,212,216,0.2)'
                   : 'rgba(244,63,94,0.2)',
           }}
         >
@@ -207,7 +207,7 @@ export function StatusClient() {
                   statusCfg.color === 'emerald'
                     ? 'text-emerald-400'
                     : statusCfg.color === 'yellow'
-                      ? 'text-yellow-400'
+                      ? 'text-zinc-400'
                       : 'text-rose-400'
                 }`}
               />
@@ -227,7 +227,7 @@ export function StatusClient() {
                   statusCfg.color === 'emerald'
                     ? 'bg-emerald-500/15 text-emerald-400'
                     : statusCfg.color === 'yellow'
-                      ? 'bg-yellow-500/15 text-yellow-400'
+                      ? 'bg-zinc-500/15 text-zinc-400'
                       : 'bg-rose-500/15 text-rose-400'
                 }`}
               >
@@ -236,7 +236,7 @@ export function StatusClient() {
                     statusCfg.color === 'emerald'
                       ? 'bg-emerald-400'
                       : statusCfg.color === 'yellow'
-                        ? 'bg-yellow-400'
+                        ? 'bg-zinc-400'
                         : 'bg-rose-400'
                   }`}
                 />
@@ -266,7 +266,7 @@ export function StatusClient() {
                         svc.status === 'operational'
                           ? 'bg-emerald-400'
                           : svc.status === 'degraded'
-                            ? 'bg-yellow-400'
+                            ? 'bg-zinc-400'
                             : 'bg-rose-400'
                       }`}
                     />
@@ -336,7 +336,7 @@ export function StatusClient() {
                       day.uptime >= 99
                         ? 'bg-emerald-500/70 hover:bg-emerald-500'
                         : day.uptime >= 95
-                          ? 'bg-yellow-500/70 hover:bg-yellow-500'
+                          ? 'bg-zinc-500/70 hover:bg-zinc-500'
                           : 'bg-rose-500/70 hover:bg-rose-500';
                     return (
                       <div
@@ -359,7 +359,7 @@ export function StatusClient() {
                     <span className="h-2 w-2 rounded-sm bg-emerald-500/70" /> &ge;99%
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="h-2 w-2 rounded-sm bg-yellow-500/70" /> &ge;95%
+                    <span className="h-2 w-2 rounded-sm bg-zinc-500/70" /> &ge;95%
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="h-2 w-2 rounded-sm bg-rose-500/70" /> &lt;95%
@@ -378,7 +378,7 @@ export function StatusClient() {
                     svc.uptime30d >= 99
                       ? 'bg-emerald-500'
                       : svc.uptime30d >= 95
-                        ? 'bg-yellow-500'
+                        ? 'bg-zinc-500'
                         : 'bg-rose-500';
                   return (
                     <div key={svc.name} className="flex items-center gap-3">

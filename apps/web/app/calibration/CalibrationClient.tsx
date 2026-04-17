@@ -236,11 +236,11 @@ export function CalibrationClient() {
 
         {/* Simulated warning */}
         {data.isSimulated && (
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 flex gap-3 text-sm">
-            <AlertCircle className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
+          <div className="bg-zinc-500/10 border border-zinc-500/30 rounded-xl p-4 flex gap-3 text-sm">
+            <AlertCircle className="w-5 h-5 text-zinc-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-yellow-300 font-medium">Demo data</p>
-              <p className="text-yellow-400/80 mt-0.5">These results are based on simulated signal history. As live signals accumulate, this page will reflect real forward-performance data.</p>
+              <p className="text-zinc-300 font-medium">Demo data</p>
+              <p className="text-zinc-400/80 mt-0.5">These results are based on simulated signal history. As live signals accumulate, this page will reflect real forward-performance data.</p>
             </div>
           </div>
         )}
@@ -262,7 +262,7 @@ export function CalibrationClient() {
           </div>
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
             <div className="text-xs text-zinc-400 mb-1">Calibration Error</div>
-            <div className={`text-2xl font-bold ${wellCalibrated ? 'text-emerald-400' : 'text-yellow-400'}`}>
+            <div className={`text-2xl font-bold ${wellCalibrated ? 'text-emerald-400' : 'text-zinc-400'}`}>
               {(data.ece * 100).toFixed(1)}%
             </div>
             <div className="text-xs text-zinc-500 mt-0.5">ECE · {wellCalibrated ? 'well calibrated' : 'needs tuning'}</div>
@@ -286,7 +286,7 @@ export function CalibrationClient() {
                 Over-confident
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-yellow-400/70 inline-block" />
+                <span className="w-3 h-3 rounded bg-zinc-400/70 inline-block" />
                 Under-confident
               </span>
             </div>
@@ -329,7 +329,7 @@ export function CalibrationClient() {
                       <td className="px-4 py-3 text-right text-zinc-400">{b.count}</td>
                       <td className="px-4 py-3 text-right text-zinc-400">{b.wins}</td>
                       <td className="px-4 py-3 text-right text-zinc-300">{(b.midpoint * 100).toFixed(0)}%</td>
-                      <td className={`px-4 py-3 text-right font-semibold ${isGood ? 'text-emerald-400' : isOver ? 'text-red-400' : 'text-yellow-400'}`}>
+                      <td className={`px-4 py-3 text-right font-semibold ${isGood ? 'text-emerald-400' : isOver ? 'text-red-400' : 'text-zinc-400'}`}>
                         {b.count > 0 ? `${(b.winRate * 100).toFixed(1)}%` : '—'}
                       </td>
                       <td className="px-4 py-3 text-right text-zinc-400 font-mono text-xs">
@@ -347,7 +347,7 @@ export function CalibrationClient() {
                             <AlertCircle className="w-3 h-3" /> Over-confident
                           </span>
                         ) : (
-                          <span className="flex items-center justify-end gap-1 text-yellow-400 text-xs">
+                          <span className="flex items-center justify-end gap-1 text-zinc-400 text-xs">
                             <AlertCircle className="w-3 h-3" /> Under-confident
                           </span>
                         )}

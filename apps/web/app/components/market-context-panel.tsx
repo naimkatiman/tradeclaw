@@ -55,7 +55,7 @@ function SentimentGauge({ value, label, bias }: { value: number; label: string; 
   const gaugeColor =
     value <= 25 ? '#EF4444' :
     value <= 45 ? '#F97316' :
-    value <= 55 ? '#EAB308' :
+    value <= 55 ? '#a1a1aa' :
     value <= 75 ? '#84CC16' :
     '#10B981';
 
@@ -93,7 +93,7 @@ function SentimentGauge({ value, label, bias }: { value: number; label: string; 
 
 function FeeBar({ label, sats, maxSats }: { label: string; sats: number; maxSats: number }) {
   const pct = Math.min((sats / maxSats) * 100, 100);
-  const color = sats > 50 ? '#EF4444' : sats > 20 ? '#F59E0B' : '#10B981';
+  const color = sats > 50 ? '#EF4444' : sats > 20 ? '#a1a1aa' : '#10B981';
   return (
     <div className="flex items-center gap-2 text-[10px] font-mono">
       <span className="text-[var(--text-secondary)] w-10 shrink-0">{label}</span>

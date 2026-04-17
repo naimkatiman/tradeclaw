@@ -18,7 +18,7 @@ const AVATAR_COLORS = [
   'from-orange-500 to-rose-600',
   'from-blue-500 to-cyan-600',
   'from-pink-500 to-rose-600',
-  'from-yellow-500 to-orange-600',
+  'from-zinc-500 to-orange-600',
 ];
 
 function getAvatarColor(name: string): string {

@@ -83,8 +83,8 @@ module.exports = function(candles: Candle[], params: Record<string, number>): Pl
             </div>
           ))}
         </div>
-        <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-4 text-sm text-zinc-400">
-          <strong className="text-amber-400">CPU budget:</strong> Plugins that exceed 500ms are killed and the run
+        <div className="rounded-xl border border-zinc-500/10 bg-zinc-500/5 p-4 text-sm text-zinc-400">
+          <strong className="text-zinc-400">CPU budget:</strong> Plugins that exceed 500ms are killed and the run
           is marked as timed out. Test your plugin with{' '}
           <code className="text-emerald-400 bg-white/5 px-1.5 py-0.5 rounded text-xs">GET /api/plugins/test?id=xxx</code> before deploying.
         </div>

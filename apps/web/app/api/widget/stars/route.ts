@@ -36,7 +36,7 @@ export async function GET() {
   .logo { font-size: 11px; color: #71717a; letter-spacing: 0.08em; text-transform: uppercase; }
   .logo span { color: #10b981; }
   .stars { font-size: 36px; font-weight: 700; color: #f4f4f5; line-height: 1; }
-  .stars span { color: #fbbf24; }
+  .stars span { color: #d4d4d8; }
   .label { font-size: 11px; color: #71717a; }
   .bar-bg { width: 220px; height: 6px; background: #1c1c1e; border-radius: 99px; overflow: hidden; }
   .bar-fill { height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 99px;

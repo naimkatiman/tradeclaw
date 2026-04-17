@@ -196,7 +196,7 @@ function StatCard({ label, value, loading }: { label: string; value: string | nu
 function DifficultyBadge({ difficulty }: { difficulty: Difficulty }) {
   const colors: Record<Difficulty, string> = {
     Easy: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-    Medium: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
+    Medium: 'bg-zinc-500/15 text-zinc-400 border-zinc-500/20',
     Hard: 'bg-rose-500/15 text-rose-400 border-rose-500/20',
   };
   return (

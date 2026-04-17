@@ -84,7 +84,7 @@ export function AlertDetailClient({ signal, id }: Props) {
             <div className="text-right">
               <div className={`text-4xl font-bold font-mono tabular-nums ${
                 signal.confidence >= 80 ? 'text-emerald-400'
-                  : signal.confidence >= 65 ? 'text-yellow-400'
+                  : signal.confidence >= 65 ? 'text-zinc-400'
                   : 'text-red-400'
               }`}>
                 {signal.confidence}%
@@ -100,7 +100,7 @@ export function AlertDetailClient({ signal, id }: Props) {
               style={{
                 width: `${signal.confidence}%`,
                 background: signal.confidence >= 80 ? '#10B981'
-                  : signal.confidence >= 65 ? '#F59E0B' : '#EF4444',
+                  : signal.confidence >= 65 ? '#a1a1aa' : '#EF4444',
               }}
             />
           </div>
@@ -287,7 +287,7 @@ export function AlertDetailClient({ signal, id }: Props) {
               bg-white/5 border border-white/10 text-zinc-200 hover:text-white hover:bg-white/10
               transition-colors"
           >
-            <Star className="h-4 w-4 text-yellow-400" />
+            <Star className="h-4 w-4 text-zinc-400" />
             Star on GitHub
           </a>
         </div>

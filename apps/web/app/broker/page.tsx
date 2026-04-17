@@ -84,7 +84,7 @@ function MetricBox({ label, value, sub, color }: { label: string; value: string;
 function StatusDot({ status }: { status: ConnectionStatus }) {
   const colorMap: Record<ConnectionStatus, string> = {
     connected: 'bg-emerald-400',
-    connecting: 'bg-amber-400 animate-pulse',
+    connecting: 'bg-zinc-400 animate-pulse',
     error: 'bg-red-400',
     disconnected: 'bg-zinc-600',
   };
@@ -94,7 +94,7 @@ function StatusDot({ status }: { status: ConnectionStatus }) {
 function ConnectionBadge({ status, error }: { status: ConnectionStatus; error?: string }) {
   const config: Record<ConnectionStatus, { bg: string; border: string; text: string; label: string }> = {
     connected: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/25', text: 'text-emerald-400', label: 'Live Connection' },
-    connecting: { bg: 'bg-amber-500/10', border: 'border-amber-500/25', text: 'text-amber-400', label: 'Connecting...' },
+    connecting: { bg: 'bg-zinc-500/10', border: 'border-zinc-500/25', text: 'text-zinc-400', label: 'Connecting...' },
     error: { bg: 'bg-red-500/10', border: 'border-red-500/25', text: 'text-red-400', label: error || 'Connection Error' },
     disconnected: { bg: 'bg-zinc-500/10', border: 'border-zinc-500/25', text: 'text-[var(--text-secondary)]', label: 'Disconnected' },
   };

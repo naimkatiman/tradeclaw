@@ -203,7 +203,7 @@ function AccuracyTrendLine({ data }: { data: number[] }) {
 const COLOR_MAP = {
   emerald: { bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.3)', text: '#10b981', glow: '0 0 40px rgba(16,185,129,0.15)' },
   purple: { bg: 'rgba(168,85,247,0.12)', border: 'rgba(168,85,247,0.3)', text: '#a855f7', glow: '0 0 40px rgba(168,85,247,0.15)' },
-  amber: { bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)', text: '#f59e0b', glow: '0 0 40px rgba(245,158,11,0.15)' },
+  amber: { bg: 'rgba(161,161,170,0.12)', border: 'rgba(161,161,170,0.3)', text: '#a1a1aa', glow: '0 0 40px rgba(161,161,170,0.15)' },
   cyan: { bg: 'rgba(6,182,212,0.12)', border: 'rgba(6,182,212,0.3)', text: '#06b6d4', glow: '0 0 40px rgba(6,182,212,0.15)' },
   rose: { bg: 'rgba(244,63,94,0.12)', border: 'rgba(244,63,94,0.3)', text: '#f43f5e', glow: '0 0 40px rgba(244,63,94,0.15)' },
 };
@@ -555,7 +555,7 @@ export function WrappedClient() {
                   className="inline-flex items-center gap-2 text-xs transition-colors"
                   style={{ color: 'var(--text-secondary)' }}
                 >
-                  <Star size={14} className="text-amber-400" /> Star TradeClaw on GitHub
+                  <Star size={14} className="text-zinc-400" /> Star TradeClaw on GitHub
                 </a>
               </div>
             </div>
