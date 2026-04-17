@@ -31,6 +31,17 @@ describe('computeAccuracyContext', () => {
     expect(ctx).toBeNull();
   });
 
+  it('excludes auto-expire sentinel outcomes', () => {
+    const now = Date.now();
+    const rows = [
+      row('BTCUSD', 'H1', true, now - 1000),
+      { pair: 'BTCUSD', timeframe: 'H1', created_at: new Date(now - 2000).toISOString(), outcomes: { '24h': { hit: false, pnlPct: 0 } } },
+    ];
+    const ctx = computeAccuracyContext(rows as any, 'BTCUSD', 'H1');
+    expect(ctx!.sampleSize).toBe(1);
+    expect(ctx!.winRate).toBe(100);
+  });
+
   it('ignores rows with null 24h outcome', () => {
     const now = Date.now();
     const rows = [

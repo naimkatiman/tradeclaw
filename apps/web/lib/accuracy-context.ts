@@ -28,13 +28,14 @@ export function computeAccuracyContext(
     (r) =>
       r.pair.toUpperCase() === symbol.toUpperCase() &&
       r.timeframe === timeframe &&
-      r.outcomes['24h'] != null,
+      r.outcomes['24h'] != null &&
+      !(r.outcomes['24h']!.pnlPct === 0 && !r.outcomes['24h']!.hit),
   );
 
   if (matched.length === 0) return null;
 
   const wins = matched.filter((r) => r.outcomes['24h']!.hit).length;
-  const sorted = matched.sort(
+  const sorted = [...matched].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
   );
 
