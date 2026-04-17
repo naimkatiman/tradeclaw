@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readHistoryAsync, resolveRealOutcomes } from '../../../../lib/signal-history';
+import { resolveRealOutcomes } from '../../../../lib/signal-history';
+import { getCachedHistory } from '../../../../lib/signal-history-cache';
 import { readSessionFromRequest } from '../../../../lib/user-session';
 import { getUserTier, TIER_SYMBOLS, TIER_HISTORY_DAYS, meetsMinimumTier } from '../../../../lib/tier';
 
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 200);
     const offset = parseInt(searchParams.get('offset') ?? '0');
 
-    let records = await readHistoryAsync();
+    let records = await getCachedHistory();
 
     // Tier gate: filter symbols and history window based on subscription
     const allowedSymbols = TIER_SYMBOLS[tier];
