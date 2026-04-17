@@ -17,6 +17,7 @@ import { generateBars } from '../lib/chart-utils';
 import { SYMBOLS } from '../lib/symbol-config';
 import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
 import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
+import { AccuracyMeta } from '../components/accuracy-meta';
 import { SignalExportMenu } from '../components/signal-export-menu';
 import StrategyAccessBar from '../components/StrategyAccessBar';
 import { PremiumSignalFeed } from '../../components/PremiumSignalFeed';
@@ -338,6 +339,7 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
                 <WinRateBadge winRate={(signal as TradingSignal & { win_rate: { wins: number; losses: number; total: number; win_rate: number } }).win_rate} />
               </div>
             )}
+            <AccuracyMeta symbol={signal.symbol} timeframe={signal.timeframe} />
             {tfDirections && tfDirections.length > 0 && (
               <div className="flex gap-1 mt-1.5 overflow-x-auto scrollbar-none">
                 {tfDirections.map(tf => <TFBadgeInline key={tf.timeframe} tf={tf} />)}
