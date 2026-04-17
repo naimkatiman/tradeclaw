@@ -8,13 +8,17 @@ import { LiveHeroSignals } from "../components/landing/live-hero-signals";
 import { LiveActivityStrip } from "../components/landing/live-activity-strip";
 import { AccuracyStatsBar } from "./components/accuracy-stats-bar";
 import { EmailCTA } from "../components/landing/email-cta";
+import { BackgroundDecor } from "../components/background/BackgroundDecor";
 
 export default function Home() {
   return (
     <>
       <Navbar />
       <main>
-        <ABHero />
+        <div className="relative isolate overflow-hidden">
+          <BackgroundDecor variant="hero" />
+          <ABHero />
+        </div>
         <LiveHeroSignals />
         <div className="max-w-5xl mx-auto px-4 py-4">
           <AccuracyStatsBar inline />

@@ -213,6 +213,59 @@ body {
   transform: translateY(0);
 }
 
+/* Background decor layer — wraps BackgroundDecor variants.
+   Parent must set `position: relative; isolation: isolate` so the
+   negative z-index is scoped and cannot slip behind the body. */
+.bg-decor-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Aurora drift — slow, breathing orbs */
+@keyframes auroraDriftA {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(6%, 4%) scale(1.08); }
+}
+
+@keyframes auroraDriftB {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-5%, -3%) scale(1.05); }
+}
+
+.aurora-orb-a {
+  animation: auroraDriftA 28s ease-in-out infinite;
+  will-change: transform;
+}
+
+.aurora-orb-b {
+  animation: auroraDriftB 34s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Scanline sweep — terminal-style live marker */
+@keyframes scanlineSweep {
+  0% { top: -2%; opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { top: 102%; opacity: 0; }
+}
+
+.scanline-sweep {
+  animation: scanlineSweep 14s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  will-change: top, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-orb-a,
+  .aurora-orb-b,
+  .scanline-sweep {
+    animation: none !important;
+  }
+}
+
 /* Grain overlay (fixed, no interaction) */
 .grain-overlay::before {
   content: "";

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { PageNavBar } from '@/components/PageNavBar';
 import { EquityCurve } from '@/app/components/equity-curve';
+import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 
 type Period = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
 
@@ -191,7 +192,8 @@ export function TrackRecordClient() {
   const pages = useMemo(() => pageNumbers(currentPage, totalPages), [currentPage, totalPages]);
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
+    <div className="relative isolate min-h-[100dvh] overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
+      <BackgroundDecor variant="track-record" />
       <PageNavBar />
 
       <main className="max-w-5xl mx-auto px-4 py-8 pb-20 md:pb-8">

@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 
 export function AdminLoginClient() {
   const [secret, setSecret] = useState('');
@@ -37,7 +38,8 @@ export function AdminLoginClient() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4">
+    <div className="relative isolate min-h-screen overflow-hidden bg-[#0a0a0f] flex items-center justify-center px-4">
+      <BackgroundDecor variant="minimal" />
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-white text-2xl font-bold mb-1">TradeClaw Admin</h1>

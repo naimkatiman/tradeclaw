@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" fill="none" aria-hidden="true">
+  <g opacity="0.55">
+    <!-- buy candles (emerald) -->
+    <g stroke="#10b981" stroke-width="1">
+      <line x1="40" y1="120" x2="40" y2="220" />
+      <rect x="34" y="150" width="12" height="50" fill="#10b981" fill-opacity="0.25" />
+      <line x1="120" y1="80" x2="120" y2="200" />
+      <rect x="114" y="110" width="12" height="70" fill="#10b981" fill-opacity="0.25" />
+      <line x1="260" y1="160" x2="260" y2="280" />
+      <rect x="254" y="190" width="12" height="60" fill="#10b981" fill-opacity="0.25" />
+      <line x1="360" y1="60" x2="360" y2="180" />
+      <rect x="354" y="90" width="12" height="70" fill="#10b981" fill-opacity="0.25" />
+      <line x1="500" y1="140" x2="500" y2="260" />
+      <rect x="494" y="170" width="12" height="70" fill="#10b981" fill-opacity="0.25" />
+      <line x1="640" y1="100" x2="640" y2="220" />
+      <rect x="634" y="130" width="12" height="70" fill="#10b981" fill-opacity="0.25" />
+      <line x1="720" y1="180" x2="720" y2="300" />
+      <rect x="714" y="210" width="12" height="70" fill="#10b981" fill-opacity="0.25" />
+    </g>
+    <!-- sell candles (rose) -->
+    <g stroke="#f43f5e" stroke-width="1">
+      <line x1="80" y1="100" x2="80" y2="220" />
+      <rect x="74" y="130" width="12" height="70" fill="#f43f5e" fill-opacity="0.22" />
+      <line x1="200" y1="140" x2="200" y2="260" />
+      <rect x="194" y="170" width="12" height="70" fill="#f43f5e" fill-opacity="0.22" />
+      <line x1="320" y1="80" x2="320" y2="200" />
+      <rect x="314" y="110" width="12" height="70" fill="#f43f5e" fill-opacity="0.22" />
+      <line x1="440" y1="180" x2="440" y2="300" />
+      <rect x="434" y="210" width="12" height="70" fill="#f43f5e" fill-opacity="0.22" />
+      <line x1="560" y1="60" x2="560" y2="180" />
+      <rect x="554" y="90" width="12" height="70" fill="#f43f5e" fill-opacity="0.22" />
+      <line x1="680" y1="140" x2="680" y2="260" />
+      <rect x="674" y="170" width="12" height="70" fill="#f43f5e" fill-opacity="0.22" />
+    </g>
+  </g>
+</svg>

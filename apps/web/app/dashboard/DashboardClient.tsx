@@ -22,6 +22,7 @@ import StrategyAccessBar from '../components/StrategyAccessBar';
 import { PremiumSignalFeed } from '../../components/PremiumSignalFeed';
 import { fetchWithLicense } from '../../lib/license-client';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
+import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 import type { TradingSignal } from '@tradeclaw/signals';
 import type { TFDirection } from '../lib/signal-generator';
 
@@ -92,7 +93,8 @@ const ASSET_CLASSES = {
 
 type AssetClass = keyof typeof ASSET_CLASSES;
 
-function formatPrice(p: number): string {
+function formatPrice(p: number | null | undefined): string {
+  if (p == null) return '—';
   if (p >= 1000) return p.toFixed(2);
   if (p >= 1) return p.toFixed(4);
   return p.toFixed(5);
@@ -596,7 +598,7 @@ function SignalHistory() {
 
       {/* Stats Banner */}
       {historyStats && historyStats.resolved > 0 && (
-        <div className="flex items-center gap-4 mb-3 px-1 text-[10px] font-mono text-[var(--text-secondary)]">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 px-1 text-[10px] font-mono text-[var(--text-secondary)]">
           <span>
             <span className={historyStats.winRate >= 55 ? 'text-emerald-400' : historyStats.winRate >= 45 ? 'text-yellow-400' : 'text-red-400'}>
               {historyStats.winRate}%
@@ -624,13 +626,13 @@ function SignalHistory() {
 
       <div className="glass-card rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs font-mono">
+          <table className="w-full min-w-[460px] text-xs font-mono">
             <thead>
               <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
                 <th className="px-4 py-2.5 text-left font-medium">Pair</th>
                 <th className="px-3 py-2.5 text-center font-medium">Dir</th>
                 <th className="px-3 py-2.5 text-center font-medium">Conf</th>
-                <th className="px-3 py-2.5 text-right font-medium">Entry</th>
+                <th className="px-3 py-2.5 text-right font-medium hidden sm:table-cell">Entry</th>
                 <th className="px-3 py-2.5 text-center font-medium">4h</th>
                 <th className="px-3 py-2.5 text-center font-medium">24h</th>
                 <th className="px-4 py-2.5 text-right font-medium">P&L</th>
@@ -648,7 +650,7 @@ function SignalHistory() {
                       <span className={r.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}>{r.direction}</span>
                     </td>
                     <td className="px-3 py-2.5 text-center tabular-nums">{r.confidence}%</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums text-[var(--text-secondary)]">{formatPrice(r.entryPrice)}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums text-[var(--text-secondary)] hidden sm:table-cell">{formatPrice(r.entryPrice)}</td>
                     <td className="px-3 py-2.5 text-center">
                       {outcome4h == null ? (
                         <span className="text-zinc-600">���</span>
@@ -861,7 +863,8 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
   const biasColor = bias === 'BULL' ? 'text-emerald-400' : bias === 'BEAR' ? 'text-red-400' : 'text-[var(--text-secondary)]';
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
+    <div className="relative isolate min-h-[100dvh] overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
+      <BackgroundDecor variant="dashboard" />
       <GuidedTourListener />
       <PageNavBar />
       <OnboardingBanner />
@@ -878,15 +881,17 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       </div>
 
       {/* Dashboard controls */}
-      <div data-tour-id="dashboard-controls" className="max-w-7xl mx-auto px-4 h-12 flex items-center justify-end gap-3 border-b border-[var(--border)] bg-[var(--background)]/50">
-        <VisitStreak />
-        <StarsWidget />
+      <div data-tour-id="dashboard-controls" className="max-w-7xl mx-auto px-4 h-12 flex items-center justify-end gap-3 border-b border-[var(--border)] bg-[var(--background)]/50 overflow-x-auto scrollbar-none">
+        <div className="hidden sm:contents">
+          <VisitStreak />
+          <StarsWidget />
+        </div>
         <TakeTourButton />
         <ConnectionStatus state={connectionState} />
         <button
           data-tour-id="auto-refresh-toggle"
           onClick={() => setAutoRefresh(!autoRefresh)}
-          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all duration-200 ${
+          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all duration-200 shrink-0 ${
             autoRefresh
               ? 'border-emerald-500/25 text-emerald-400 bg-emerald-500/8'
               : 'border-white/8 text-[var(--text-secondary)]'
@@ -896,7 +901,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           {autoRefresh ? 'Auto' : 'Paused'}
         </button>
         {lastUpdate && (
-          <span className="hidden sm:block text-xs text-[var(--text-secondary)] font-mono">
+          <span className="hidden sm:block text-xs text-[var(--text-secondary)] font-mono shrink-0">
             {lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </span>
         )}

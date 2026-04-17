@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import type { TradingSignal } from '../../lib/signals';
 import { QRCode } from './qr-code';
+import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 
 interface Props {
   signal: TradingSignal;
@@ -56,7 +57,8 @@ export function AlertDetailClient({ signal, id }: Props) {
   const isBuy = signal.direction === 'BUY';
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] text-white pb-24">
+    <div className="relative isolate min-h-[100dvh] overflow-hidden bg-[#050505] text-white pb-24">
+      <BackgroundDecor variant="minimal" />
       {/* Signal hero card */}
       <div className="max-w-md mx-auto px-4 pt-6">
 

@@ -12,7 +12,8 @@ import { SetAlertButton } from '../../components/set-alert-button';
 import { SignalChartSection } from './SignalChartSection';
 import { SYMBOLS } from '../../lib/signals';
 
-function formatPrice(p: number): string {
+function formatPrice(p: number | null | undefined): string {
+  if (p == null) return '—';
   if (p >= 1000) return p.toFixed(2);
   if (p >= 1) return p.toFixed(4);
   return p.toFixed(5);
