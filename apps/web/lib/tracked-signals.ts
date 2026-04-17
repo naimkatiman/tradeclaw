@@ -100,6 +100,23 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       recordSignalsAsync(recordPayload).catch(() => {});
       invalidateHistoryCache();
 
+      // Fan out to user alert rules — fire and forget
+      const dispatchUrl = process.env.NEXT_PUBLIC_APP_URL
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/api/alert-rules/dispatch`
+        : null;
+      if (dispatchUrl) {
+        for (const sig of recordPayload) {
+          fetch(dispatchUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.CRON_SECRET ?? ''}`,
+            },
+            body: JSON.stringify({ signal: sig }),
+          }).catch(() => undefined);
+        }
+      }
+
       // Enqueue social posts for high-confidence signals (fire-and-forget)
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
       for (const sig of recordPayload) {
