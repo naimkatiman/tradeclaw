@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Navbar } from '../components/navbar';
-import { Footer } from '../components/footer';
+import { SiteFooter } from '../../components/landing/site-footer';
 import { TIER_DEFINITIONS, type TierDefinition } from '../../lib/stripe';
 
 interface Feature {
@@ -320,7 +320,7 @@ export default function PricingPage() {
           </p>
         </div>
       </main>
-      <Footer />
+      <SiteFooter />
     </>
   );
 }

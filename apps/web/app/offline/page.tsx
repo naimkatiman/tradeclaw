@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Offline — TradeClaw',
+  description: 'You are offline. TradeClaw needs a connection to fetch live signals.',
+};
 
 export default function OfflinePage() {
   return (

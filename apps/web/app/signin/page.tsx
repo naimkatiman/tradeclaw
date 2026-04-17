@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '../components/navbar';
-import { Footer } from '../components/footer';
+import { SiteFooter } from '../../components/landing/site-footer';
 
 function SigninInner() {
   const params = useSearchParams();
@@ -170,7 +170,7 @@ export default function SigninPage() {
       >
         <SigninInner />
       </Suspense>
-      <Footer />
+      <SiteFooter />
     </>
   );
 }

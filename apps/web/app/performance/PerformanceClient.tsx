@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { PageNavBar } from '../../components/PageNavBar';
+import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -297,7 +299,7 @@ export function PerformanceClient() {
 
   if (loading && !metrics) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <div className="flex items-center gap-3 text-zinc-500">
           <div className="w-4 h-4 border border-zinc-700 border-t-emerald-500 rounded-full animate-spin" />
           <span className="text-sm font-mono">Loading metrics…</span>
@@ -327,9 +329,11 @@ export function PerformanceClient() {
   const cacheDash = m ? (m.cache.hitRate / 100) * cacheCircumference : 0;
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white pb-24 md:pb-8">
+    <div className="relative isolate min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24 md:pb-8">
+      <BackgroundDecor variant="dashboard" />
+      <PageNavBar />
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#050505]/90 backdrop-blur border-b border-white/5 px-4 py-3">
+      <div className="relative sticky top-14 z-10 bg-[var(--background)]/90 backdrop-blur border-b border-[var(--border)] px-4 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <h1 className="text-sm font-semibold tracking-wide text-white">PERFORMANCE</h1>

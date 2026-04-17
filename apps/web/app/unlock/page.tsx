@@ -1,4 +1,10 @@
+import type { Metadata } from 'next';
 import UnlockClient from './unlock-client';
+
+export const metadata: Metadata = {
+  title: 'Unlock Premium — TradeClaw',
+  description: 'Unlock premium signal strategies on this device with your license key.',
+};
 
 interface PageProps {
   searchParams: Promise<{ key?: string }>;

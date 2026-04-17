@@ -18,6 +18,8 @@ import {
   Clock,
 } from 'lucide-react';
 import LiveActivityWidget from '../../components/live-activity-widget';
+import { PageNavBar } from '../../components/PageNavBar';
+import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 
 interface LiveSignal {
   id: string;
@@ -228,11 +230,14 @@ export default function LiveClient() {
   const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
 
   return (
-    <main className="min-h-screen pb-24">
-      {/* Marquee ticker */}
-      <LiveActivityWidget apiUrl="/api/live-feed" refreshInterval={30000} height={48} />
+    <div className="relative isolate min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      <BackgroundDecor variant="minimal" />
+      <PageNavBar />
+      <main className="relative pb-24">
+        {/* Marquee ticker */}
+        <LiveActivityWidget apiUrl="/api/live-feed" refreshInterval={30000} height={48} />
 
-      <div className="pt-24 px-4 md:px-6 max-w-5xl mx-auto">
+      <div className="pt-12 px-4 md:px-6 max-w-5xl mx-auto">
         {/* Hero */}
         <div className="mb-10">
           <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -520,6 +525,7 @@ export default function LiveClient() {
           </div>
         </div>
       </div>
-    </main>
+      </main>
+    </div>
   );
 }

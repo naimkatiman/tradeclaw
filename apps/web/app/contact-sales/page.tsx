@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Navbar } from '../components/navbar';
-import { Footer } from '../components/footer';
+import { SiteFooter } from '../../components/landing/site-footer';
 
 interface FormState {
   name: string;
@@ -168,7 +168,7 @@ export default function ContactSalesPage() {
           )}
         </div>
       </main>
-      <Footer />
+      <SiteFooter />
     </>
   );
 }

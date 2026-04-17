@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { calculateRSI, calculateMACD, calculateEMAs } from '../lib/ta-engine';
 import { applySlippage, getSlippageConfig } from '../../lib/slippage';
 import { PageNavBar } from '../../components/PageNavBar';
+import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 import {
   runBacktest as runBacktestPreset,
   getPreset,
@@ -445,9 +446,10 @@ export default function BacktestPage() {
   const displayMaxDrawdown = singleResult ? (singleResult.maxDrawdown * 100).toFixed(1) : '0';
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
+    <div className="relative isolate min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
+      <BackgroundDecor variant="dashboard" />
       <PageNavBar />
-      <div className="max-w-6xl mx-auto px-4 py-6 pb-20 md:pb-6">
+      <div className="relative max-w-6xl mx-auto px-4 py-6 pb-20 md:pb-6">
         <div className="mb-4 rounded-lg border border-emerald-500/20 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-300">
           <strong>Live Backtest</strong> — Uses real market data from Binance and Stooq. Strategies use fixed 2%/1% TP/SL (via <code className="text-xs">@tradeclaw/strategies</code>).
         </div>

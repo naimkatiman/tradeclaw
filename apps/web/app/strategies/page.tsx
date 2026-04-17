@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { Settings } from 'lucide-react';
+import { PageNavBar } from '../../components/PageNavBar';
+import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 
 interface Strategy {
   id: string;
@@ -189,22 +190,11 @@ export default function StrategiesPage() {
   const totalPnl = strategies.reduce((sum, s) => sum + (s.performance?.totalPnl || 0), 0);
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <nav className="border-b border-gray-800 bg-gray-950/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="text-xl font-bold">
-              <span className="text-emerald-400">Trade</span>Claw
-            </Link>
-            <div className="flex gap-4 text-sm">
-              <Link href="/dashboard" className="text-gray-400 hover:text-white transition-colors">Dashboard</Link>
-              <Link href="/strategies" className="text-emerald-400">Strategies</Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="relative isolate min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      <BackgroundDecor variant="dashboard" />
+      <PageNavBar />
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="relative max-w-7xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
