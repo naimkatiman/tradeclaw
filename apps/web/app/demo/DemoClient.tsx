@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { fetchWithLicense } from '@/lib/license-client';
 import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
+import { AccuracyMeta } from '../components/accuracy-meta';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -361,6 +362,7 @@ function SignalCard({ sig, prev }: { sig: Signal; prev?: Signal }) {
       >
         {sig.trend}
       </div>
+      <AccuracyMeta symbol={sig.symbol} timeframe={sig.timeframe} />
       <div className="grid grid-cols-4 gap-2 text-center">
         {[
           { label: 'Entry', value: formatPrice(sig.symbol, sig.entry), color: 'var(--foreground)' },
