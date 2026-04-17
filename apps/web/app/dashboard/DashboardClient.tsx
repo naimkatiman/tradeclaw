@@ -25,6 +25,8 @@ import { fetchWithLicense } from '../../lib/license-client';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import type { TradingSignal } from '@tradeclaw/signals';
 import type { TFDirection } from '../lib/signal-generator';
+import { OnboardingOverlay } from '../components/onboarding-overlay';
+import { markStepDone } from '@/lib/onboarding-state';
 
 const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];
 
@@ -741,6 +743,12 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [selectedSignal, setSelectedSignal] = useState<TradingSignal | null>(null);
+
+  const handleSelectSignal = useCallback((signal: TradingSignal) => {
+    setSelectedSignal(signal);
+    markStepDone('opened-detail');
+  }, []);
+
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     try {
       if (typeof window === 'undefined') return new Set<string>();
@@ -1166,7 +1174,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               {mainSignals.length > 0 && (
                 <div data-tour-id="signal-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {mainSignals.map(signal => (
-                    <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={setSelectedSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
+                    <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
                   ))}
                 </div>
               )}
@@ -1205,7 +1213,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                   <p className="text-xs text-[var(--text-secondary)] mb-3">Early-stage setups that haven&apos;t reached full confluence yet. Watch for confirmation before acting.</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 opacity-80">
                     {potentialSignals.map(signal => (
-                      <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={setSelectedSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
+                      <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
                     ))}
                   </div>
                 </section>
@@ -1223,6 +1231,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           <p className="text-xs text-zinc-800 mt-1">Signal analysis is for educational purposes only. Not financial advice.</p>
         </footer>
       </div>
+      <OnboardingOverlay signalsLoaded={signals.length > 0} />
       {/* Signal toasts */}
       <SignalToast />
     </div>
