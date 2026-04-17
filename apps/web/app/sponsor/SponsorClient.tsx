@@ -86,8 +86,8 @@ const TIERS: SponsorTier[] = [
     price: '$500/mo',
     priceAmount: 500,
     badge: 'For Teams',
-    color: 'text-zinc-400',
-    borderColor: 'border-zinc-500/30 hover:border-zinc-500/60',
+    color: 'text-amber-400',
+    borderColor: 'border-amber-500/30 hover:border-amber-500/60',
     benefits: [
       'Everything in Business',
       'Custom integration support',
@@ -471,7 +471,7 @@ export function SponsorClient() {
 
         {/* ─── Footer CTA ─── */}
         <section className="text-center rounded-2xl border border-white/10 backdrop-blur-xl bg-white/[0.03] p-10 sm:p-14">
-          <Star className="w-8 h-8 text-zinc-400 mx-auto mb-4" />
+          <Star className="w-8 h-8 text-amber-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-3">Every dollar helps</h2>
           <p className="text-zinc-400 text-sm max-w-lg mx-auto mb-8">
             TradeClaw is free for everyone. Sponsoring keeps it that way — no ads,

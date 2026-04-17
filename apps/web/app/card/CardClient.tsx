@@ -432,7 +432,7 @@ export function CardClient() {
               className="flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all duration-200 hover:scale-[1.02]"
               style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}
             >
-              <Share2 className="w-4 h-4 text-zinc-400" />
+              <Share2 className="w-4 h-4 text-yellow-400" />
               ⭐ Star TradeClaw on GitHub
             </a>
           </div>

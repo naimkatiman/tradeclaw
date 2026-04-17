@@ -49,7 +49,7 @@ const MILESTONE_ICONS: Record<number, typeof Star> = {
 const MILESTONE_COLORS: Record<number, { bg: string; border: string; text: string; bar: string }> = {
   100: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400', bar: 'bg-emerald-500' },
   250: { bg: 'bg-purple-500/10', border: 'border-purple-500/20', text: 'text-purple-400', bar: 'bg-purple-500' },
-  500: { bg: 'bg-zinc-500/10', border: 'border-zinc-500/20', text: 'text-zinc-400', bar: 'bg-zinc-500' },
+  500: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400', bar: 'bg-amber-500' },
   1000: { bg: 'bg-rose-500/10', border: 'border-rose-500/20', text: 'text-rose-400', bar: 'bg-rose-500' },
 };
 
@@ -163,7 +163,7 @@ export default function PledgeClient() {
 
           {/* Star counter */}
           <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)]">
-            <Star className="w-6 h-6 text-zinc-400 fill-zinc-400" />
+            <Star className="w-6 h-6 text-amber-400 fill-amber-400" />
             <span className="text-3xl font-bold tabular-nums">{currentStars.toLocaleString()}</span>
             <span className="text-[var(--text-secondary)] text-sm">/ 1,000 stars</span>
           </div>

@@ -53,9 +53,9 @@ const SEED_CONTRIBUTORS: ContributorStats[] = [
 /* ------------------------------------------------------------------ */
 
 function RankBadge({ rank }: { rank: number }) {
-  if (rank === 1) return <Crown size={18} className="text-zinc-400" />;
+  if (rank === 1) return <Crown size={18} className="text-amber-400" />;
   if (rank === 2) return <Medal size={18} className="text-gray-300" />;
-  if (rank === 3) return <Medal size={18} className="text-zinc-600" />;
+  if (rank === 3) return <Medal size={18} className="text-amber-600" />;
   return <span className="text-xs font-mono w-5 text-center" style={{ color: 'var(--text-secondary)' }}>#{rank}</span>;
 }
 
@@ -125,7 +125,7 @@ function ContributorCard({ contrib }: { contrib: ContributorStats }) {
         <div className="hidden md:flex items-center gap-2">
           <StatPill icon={<GitPullRequest size={12} />} value={contrib.prs} label="PRs" color="#a855f7" />
           <StatPill icon={<GitMerge size={12} />} value={contrib.mergedPrs} label="merged" color="#10b981" />
-          <StatPill icon={<Bug size={12} />} value={contrib.issuesClosed} label="closed" color="#a1a1aa" />
+          <StatPill icon={<Bug size={12} />} value={contrib.issuesClosed} label="closed" color="#f59e0b" />
         </div>
       </div>
 
@@ -133,7 +133,7 @@ function ContributorCard({ contrib }: { contrib: ContributorStats }) {
       <div className="flex md:hidden items-center gap-2 mt-3 pl-12">
         <StatPill icon={<GitPullRequest size={12} />} value={contrib.prs} label="PRs" color="#a855f7" />
         <StatPill icon={<GitMerge size={12} />} value={contrib.mergedPrs} label="merged" color="#10b981" />
-        <StatPill icon={<Bug size={12} />} value={contrib.issuesClosed} label="closed" color="#a1a1aa" />
+        <StatPill icon={<Bug size={12} />} value={contrib.issuesClosed} label="closed" color="#f59e0b" />
       </div>
 
       {/* Contribution bar */}
@@ -265,7 +265,7 @@ export function ContributorsClient() {
 
         {error && (
           <div className="text-center py-4">
-            <p className="text-xs text-zinc-400">GitHub API rate limit reached. Showing cached data.</p>
+            <p className="text-xs text-amber-400">GitHub API rate limit reached. Showing cached data.</p>
           </div>
         )}
 
@@ -318,7 +318,7 @@ export function ContributorsClient() {
               className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
             >
-              <Star size={16} className="text-zinc-400" /> Star on GitHub
+              <Star size={16} className="text-amber-400" /> Star on GitHub
             </a>
           </div>
         </div>

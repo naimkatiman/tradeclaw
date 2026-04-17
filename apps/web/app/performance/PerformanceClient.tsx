@@ -141,7 +141,7 @@ function drawLatencyChart(canvas: HTMLCanvasElement, points: LatencyPoint[]): vo
   };
 
   drawLine(points.map(p => p.p99), '#f43f5e');   // rose
-  drawLine(points.map(p => p.p95), '#a1a1aa');   // amber
+  drawLine(points.map(p => p.p95), '#f59e0b');   // amber
   drawLine(points.map(p => p.p50), '#10b981', 2); // emerald (thicker)
 
   // X-axis labels

@@ -56,9 +56,9 @@ const COLOR_MAP: Record<string, { badge: string; text: string; dot: string }> =
     },
     amber: {
       badge:
-        "border-zinc-500/20 bg-zinc-500/6 text-zinc-600 dark:text-zinc-300 hover:border-zinc-500/40",
-      text: "text-zinc-500 dark:text-zinc-400",
-      dot: "bg-zinc-400",
+        "border-amber-500/20 bg-amber-500/6 text-amber-600 dark:text-amber-300 hover:border-amber-500/40",
+      text: "text-amber-500 dark:text-amber-400",
+      dot: "bg-amber-400",
     },
   };
 

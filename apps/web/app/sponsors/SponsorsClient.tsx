@@ -54,7 +54,7 @@ const GRADIENT_COLORS = [
   'from-purple-500 to-indigo-600',
   'from-blue-500 to-cyan-600',
   'from-rose-500 to-pink-600',
-  'from-zinc-500 to-orange-600',
+  'from-amber-500 to-orange-600',
 ];
 
 function TierColor({ tier }: { tier: string }) {
@@ -385,7 +385,7 @@ export function SponsorsClient() {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 border border-[var(--border)] hover:bg-white/5 text-sm px-5 py-2.5 rounded-full transition-all duration-300"
         >
-          <Star className="w-4 h-4 text-zinc-400" />
+          <Star className="w-4 h-4 text-amber-400" />
           Star on GitHub
           <span className="text-[var(--text-secondary)] text-xs">{stars ? `${stars} stars` : ''}</span>
         </a>

@@ -126,7 +126,7 @@ export default function StarHistoryClient() {
       const y = pad.top + chartH - (weeks[idx].cumulative / maxCum) * chartH;
       ctx.beginPath();
       ctx.arc(x, y, 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#d4d4d8';
+      ctx.fillStyle = '#fbbf24';
       ctx.fill();
     });
 
@@ -235,7 +235,7 @@ export default function StarHistoryClient() {
           {/* Stats bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
             {[
-              { icon: Star, label: 'Total Stars', value: data.total, color: 'text-zinc-400' },
+              { icon: Star, label: 'Total Stars', value: data.total, color: 'text-amber-400' },
               { icon: TrendingUp, label: 'Last 4 Weeks', value: `+${data.recentGrowth}`, color: 'text-emerald-400' },
               { icon: Award, label: 'Peak Week', value: `+${data.peakWeek.count}`, color: 'text-purple-400' },
               { icon: Zap, label: 'Next Milestone', value: nextMilestone, color: 'text-blue-400' },
@@ -359,7 +359,7 @@ export default function StarHistoryClient() {
                     })}
                     {/* Milestone marker */}
                     {milestoneCrossed && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] text-zinc-400 whitespace-nowrap">
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] text-amber-400 whitespace-nowrap">
                         ⭐{milestoneCrossed}
                       </div>
                     )}
@@ -392,7 +392,7 @@ export default function StarHistoryClient() {
               />
             ))}
             <span>More</span>
-            <span className="ml-4 text-zinc-400">⭐ = milestone</span>
+            <span className="ml-4 text-amber-400">⭐ = milestone</span>
           </div>
         </div>
 

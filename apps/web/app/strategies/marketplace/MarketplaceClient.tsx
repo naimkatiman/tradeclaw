@@ -329,9 +329,9 @@ function StarRating({ rating }: { rating: number }) {
           key={i}
           className={`w-3 h-3 ${
             i <= Math.floor(rating)
-              ? 'fill-zinc-400 text-zinc-400'
+              ? 'fill-yellow-400 text-yellow-400'
               : i - 0.5 <= rating
-                ? 'fill-zinc-400/50 text-zinc-400'
+                ? 'fill-yellow-400/50 text-yellow-400'
                 : 'text-[var(--border)]'
           }`}
         />

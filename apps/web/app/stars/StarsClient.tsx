@@ -73,7 +73,7 @@ function fireConfetti(canvas: HTMLCanvasElement) {
 
   const W = canvas.width;
   const H = canvas.height;
-  const colors = ['#10b981', '#34d399', '#a1a1aa', '#d4d4d8', '#ffffff', '#6ee7b7', '#e4e4e7'];
+  const colors = ['#10b981', '#34d399', '#f59e0b', '#fbbf24', '#ffffff', '#6ee7b7', '#fde68a'];
 
   const particles: ConfettiParticle[] = Array.from({ length: 80 }, () => ({
     x: W / 2 + (Math.random() - 0.5) * 200,
@@ -220,14 +220,14 @@ function drawStarChart(canvas: HTMLCanvasElement, currentStars: number) {
   // "Today" dot
   ctx.beginPath();
   ctx.arc(toX(currentWeek), toY(currentStars), 5, 0, Math.PI * 2);
-  ctx.fillStyle = '#a1a1aa';
+  ctx.fillStyle = '#f59e0b';
   ctx.fill();
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
   // "Today" label
-  ctx.fillStyle = '#d4d4d8';
+  ctx.fillStyle = '#fbbf24';
   ctx.font = 'bold 11px monospace';
   ctx.fillText(`${currentStars}★ today`, toX(currentWeek) + 8, toY(currentStars) - 6);
 
@@ -405,7 +405,7 @@ export function StarsClient() {
                 key={m.stars}
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium border transition-all ${
                   stats.stars >= m.stars
-                    ? 'border-zinc-500/60 bg-zinc-500/15 text-zinc-300'
+                    ? 'border-amber-500/60 bg-amber-500/15 text-amber-300'
                     : 'border-[var(--border)] bg-[var(--glass-bg)] text-[var(--text-secondary)]'
                 }`}
               >
@@ -417,16 +417,16 @@ export function StarsClient() {
 
         {/* ── Milestone Celebration ── */}
         {highestMilestone && (
-          <section className="relative rounded-2xl border border-zinc-500/40 bg-zinc-500/10 p-6 text-center space-y-3 overflow-hidden opacity-0 animate-fade-up" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-            <div className="flex justify-center"><highestMilestone.icon className="w-12 h-12 text-zinc-300" /></div>
-            <h2 className="text-2xl font-bold text-zinc-300">{highestMilestone.message}</h2>
+          <section className="relative rounded-2xl border border-amber-500/40 bg-amber-500/10 p-6 text-center space-y-3 overflow-hidden opacity-0 animate-fade-up" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
+            <div className="flex justify-center"><highestMilestone.icon className="w-12 h-12 text-amber-300" /></div>
+            <h2 className="text-2xl font-bold text-amber-300">{highestMilestone.message}</h2>
             <p className="text-[var(--text-secondary)]">
-              You&apos;ve reached the <strong className="text-zinc-400">{highestMilestone.label}</strong> milestone!
+              You&apos;ve reached the <strong className="text-amber-400">{highestMilestone.label}</strong> milestone!
             </p>
             <p className="text-sm text-emerald-400 font-medium">
               <Gift className="w-4 h-4 inline mr-1" /> Unlocked: {highestMilestone.unlock}
             </p>
-            <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(161,161,170,0.08) 0%, transparent 70%)' }} />
+            <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(245,158,11,0.08) 0%, transparent 70%)' }} />
           </section>
         )}
 
@@ -589,16 +589,16 @@ export function StarsClient() {
             {/* Contribute Code */}
             <a
               href="/contribute"
-              className="glass-card rounded-2xl p-5 flex flex-col gap-3 hover:border-zinc-500/30 transition-all duration-200 group"
+              className="glass-card rounded-2xl p-5 flex flex-col gap-3 hover:border-amber-500/30 transition-all duration-200 group"
             >
-              <div className="w-10 h-10 rounded-xl bg-zinc-500/15 flex items-center justify-center text-zinc-400 group-hover:bg-zinc-500/25 transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-400 group-hover:bg-amber-500/25 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
               </div>
               <div>
                 <div className="text-sm font-semibold text-[var(--foreground)]">Contribute Code</div>
                 <div className="text-xs text-[var(--text-secondary)] mt-0.5">Good first issues waiting for you.</div>
               </div>
-              <div className="text-xs text-zinc-400 font-medium mt-auto">See open issues →</div>
+              <div className="text-xs text-amber-400 font-medium mt-auto">See open issues →</div>
             </a>
 
             {/* Self-Host & Share */}
@@ -656,7 +656,7 @@ export function StarsClient() {
                   key={m.stars}
                   className={`rounded-2xl border p-5 transition-all duration-300 ${
                     reached
-                      ? 'border-zinc-500/40 bg-zinc-500/10'
+                      ? 'border-amber-500/40 bg-amber-500/10'
                       : 'border-[var(--border)] bg-white/3 opacity-60'
                   }`}
                   style={{ animationDelay: `${450 + i * 60}ms` }}
@@ -664,8 +664,8 @@ export function StarsClient() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <m.icon className="w-5 h-5 text-zinc-300" />
-                        <span className={`text-sm font-bold ${reached ? 'text-zinc-300' : 'text-[var(--foreground)]'}`}>
+                        <m.icon className="w-5 h-5 text-amber-300" />
+                        <span className={`text-sm font-bold ${reached ? 'text-amber-300' : 'text-[var(--foreground)]'}`}>
                           {m.label}
                         </span>
                         {reached && (

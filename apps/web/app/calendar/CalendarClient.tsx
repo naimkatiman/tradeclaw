@@ -91,7 +91,7 @@ function getDayColor(winRate: number | null): string {
   if (winRate >= 75) return 'bg-emerald-400';
   if (winRate >= 65) return 'bg-emerald-500';
   if (winRate >= 55) return 'bg-emerald-600/80';
-  if (winRate >= 45) return 'bg-zinc-500/70';
+  if (winRate >= 45) return 'bg-yellow-500/70';
   if (winRate >= 35) return 'bg-orange-500/70';
   return 'bg-rose-500/70';
 }
@@ -251,7 +251,7 @@ export function CalendarClient() {
             {/* Legend */}
             <div className="flex items-center gap-2 mt-3 text-[10px] text-[var(--text-secondary)]">
               <span>Less</span>
-              {['bg-rose-500/70', 'bg-orange-500/70', 'bg-zinc-500/70', 'bg-emerald-600/80', 'bg-emerald-500', 'bg-emerald-400'].map(c => (
+              {['bg-rose-500/70', 'bg-orange-500/70', 'bg-yellow-500/70', 'bg-emerald-600/80', 'bg-emerald-500', 'bg-emerald-400'].map(c => (
                 <div key={c} className={`w-[11px] h-[11px] rounded-sm ${c}`} />
               ))}
               <span>More wins</span>
@@ -307,8 +307,8 @@ export function CalendarClient() {
         </div>
 
         {/* Disclaimer */}
-        <div className="rounded-2xl border border-zinc-500/20 bg-zinc-500/5 p-4 mb-6 flex gap-3">
-          <Info className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
+        <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4 mb-6 flex gap-3">
+          <Info className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />
           <p className="text-xs text-[var(--text-secondary)]">
             Calendar data is populated from recorded signal history. If no signals have been recorded yet, the calendar will be empty.
             Signal performance is not guaranteed — all trading involves risk.

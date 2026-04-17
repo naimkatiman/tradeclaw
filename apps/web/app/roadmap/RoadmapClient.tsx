@@ -41,8 +41,8 @@ const STATUS_CONFIG: Record<RoadmapStatus, { label: string; color: string; bg: s
   },
   'in-progress': {
     label: 'In Progress',
-    color: 'text-zinc-400',
-    bg: 'bg-zinc-500/10 border-zinc-500/30',
+    color: 'text-amber-400',
+    bg: 'bg-amber-500/10 border-amber-500/30',
     icon: <Loader2 className="w-3.5 h-3.5 animate-spin" />,
   },
   planned: {
@@ -67,7 +67,7 @@ function ConfettiPop({ x, y, active }: { x: number; y: number; active: boolean }
             style={{
               left: x,
               top: y,
-              background: ['#10b981', '#a78bfa', '#a1a1aa', '#ec4899', '#3b82f6'][i % 5],
+              background: ['#10b981', '#a78bfa', '#f59e0b', '#ec4899', '#3b82f6'][i % 5],
               '--angle': `${angle}deg`,
             } as React.CSSProperties}
           />
@@ -208,7 +208,7 @@ export default function RoadmapClient() {
           {/* Coming Next */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-zinc-400" />
+              <Trophy className="w-5 h-5 text-amber-400" />
               <h2 className="text-lg font-semibold text-zinc-200">Coming Next</h2>
               <span className="text-xs text-zinc-500 ml-1">— top voted by the community</span>
             </div>
@@ -232,7 +232,7 @@ export default function RoadmapClient() {
                       <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${sc.bg} ${sc.color}`}>
                         {sc.icon}{sc.label}
                       </span>
-                      <div className="flex items-center gap-1 text-zinc-400 font-bold text-sm">
+                      <div className="flex items-center gap-1 text-amber-400 font-bold text-sm">
                         <ChevronUp className="w-4 h-4" />
                         {getTotal(item).toLocaleString()}
                       </div>
@@ -369,7 +369,7 @@ export default function RoadmapClient() {
 
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 space-y-3">
               <div className="flex items-center gap-2 text-zinc-200 font-semibold">
-                <Star className="w-4 h-4 text-zinc-400" />
+                <Star className="w-4 h-4 text-amber-400" />
                 Support development
               </div>
               <p className="text-sm text-zinc-400">
@@ -379,7 +379,7 @@ export default function RoadmapClient() {
                 href="https://github.com/naimkatiman/tradeclaw"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-500/10 hover:bg-zinc-500/20 text-zinc-400 border border-zinc-500/30 text-sm font-medium transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-sm font-medium transition-colors"
               >
                 ⭐ Star on GitHub
                 <ArrowRight className="w-3.5 h-3.5" />

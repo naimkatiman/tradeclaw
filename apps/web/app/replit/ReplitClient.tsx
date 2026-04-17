@@ -254,7 +254,7 @@ export function ReplitClient() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white font-semibold px-6 py-3 rounded-xl transition-all hover:scale-105"
           >
-            <Star size={16} className="text-zinc-400" />
+            <Star size={16} className="text-yellow-400" />
             Star on GitHub
           </a>
         </div>

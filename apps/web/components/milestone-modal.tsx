@@ -139,7 +139,7 @@ export function MilestoneCelebrationModal() {
           className="confetti-piece"
           style={{
             left: `${(i / 24) * 100}%`,
-            backgroundColor: ['#10b981', '#34d399', '#a1a1aa', '#d4d4d8', '#6ee7b7', '#a78bfa', '#f472b6'][i % 7],
+            backgroundColor: ['#10b981', '#34d399', '#f59e0b', '#fbbf24', '#6ee7b7', '#a78bfa', '#f472b6'][i % 7],
             animationDuration: `${2 + (i % 5) * 0.4}s`,
             animationDelay: `${(i % 8) * 0.15}s`,
           }}
@@ -160,11 +160,11 @@ export function MilestoneCelebrationModal() {
         aria-label={`Milestone reached: ${milestone.label}`}
         className="fixed inset-0 z-[101] flex items-center justify-center p-4"
       >
-        <div className="relative w-full max-w-sm rounded-2xl border border-zinc-500/40 bg-[var(--bg-card)] p-8 text-center shadow-2xl shadow-zinc-500/10 overflow-hidden">
+        <div className="relative w-full max-w-sm rounded-2xl border border-amber-500/40 bg-[var(--bg-card)] p-8 text-center shadow-2xl shadow-amber-500/10 overflow-hidden">
           {/* Glow */}
           <div
             className="absolute inset-0 pointer-events-none"
-            style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(161,161,170,0.12) 0%, transparent 70%)' }}
+            style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(245,158,11,0.12) 0%, transparent 70%)' }}
           />
 
           {/* Close button */}
@@ -180,9 +180,9 @@ export function MilestoneCelebrationModal() {
           </button>
 
           <div className="relative space-y-4">
-            <div className="flex justify-center"><milestone.icon className="w-14 h-14 text-zinc-300" /></div>
+            <div className="flex justify-center"><milestone.icon className="w-14 h-14 text-amber-300" /></div>
             <div>
-              <h2 className="text-2xl font-black text-zinc-300">Milestone Reached!</h2>
+              <h2 className="text-2xl font-black text-amber-300">Milestone Reached!</h2>
               <p className="text-lg font-bold text-white mt-1">{milestone.label}</p>
             </div>
             <p className="text-sm text-[var(--text-secondary)]">
