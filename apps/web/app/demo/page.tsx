@@ -1,17 +1,34 @@
 import type { Metadata } from 'next';
 import DemoClient from './DemoClient';
 
-export const metadata: Metadata = {
-  title: 'Live Demo — TradeClaw',
-  description:
-    'See TradeClaw AI trading signals in action. BTC, ETH, XAUUSD, EURUSD — live confidence updates every 10 seconds. No login required.',
-  openGraph: {
-    title: 'Live Demo — TradeClaw',
-    description: 'AI trading signals for BTC, ETH, XAUUSD, EURUSD. Free. Self-hosted. Open source.',
-    images: ['/api/og'],
-  },
-};
+interface Props {
+  searchParams: Promise<{ symbol?: string }>;
+}
 
-export default function DemoPage() {
-  return <DemoClient />;
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const params = await searchParams;
+  const symbol = params.symbol ?? 'BTCUSD';
+  const title = `${symbol} Live Demo — TradeClaw`;
+  const description = `See TradeClaw AI trading signals for ${symbol} in action. Live confidence updates. No login required.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [`/api/og/demo?symbol=${symbol}`],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`/api/og/demo?symbol=${symbol}`],
+    },
+  };
+}
+
+export default async function DemoPage({ searchParams }: Props) {
+  const params = await searchParams;
+  return <DemoClient initialSymbol={params.symbol} />;
 }
