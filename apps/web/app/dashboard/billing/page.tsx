@@ -7,7 +7,7 @@ import Link from 'next/link';
 // Types
 // ---------------------------------------------------------------------------
 
-type Tier = 'free' | 'pro' | 'elite';
+type Tier = 'free' | 'pro';
 
 interface PlanInfo {
   name: string;
@@ -27,17 +27,10 @@ const PLANS: Record<Tier, PlanInfo> = {
   },
   pro: {
     name: 'Pro',
-    price: '$19/mo',
-    description: 'Real-time signals, 6 symbols, private Pro Telegram group.',
+    price: '$29/mo',
+    description: 'Real-time signals, all symbols, private Pro Telegram group.',
     color: 'text-emerald-400',
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID ?? '',
-  },
-  elite: {
-    name: 'Elite',
-    price: '$49/mo',
-    description: 'All symbols, MTF analysis, API access, Elite Telegram group.',
-    color: 'text-zinc-400',
-    priceId: process.env.NEXT_PUBLIC_STRIPE_ELITE_MONTHLY_PRICE_ID ?? '',
   },
 };
 
@@ -75,7 +68,6 @@ function StatusBadge({ tier }: { tier: Tier }) {
   const colors: Record<Tier, string> = {
     free: 'bg-zinc-800 text-zinc-300',
     pro: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
-    elite: 'bg-zinc-500/20 text-zinc-400 border border-zinc-500/30',
   };
   return (
     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${colors[tier]}`}>
@@ -95,8 +87,7 @@ function UpgradeCard({ tier, currentTier, userId, onError }: UpgradeCardProps) {
   const [loading, setLoading] = useState(false);
   const plan = PLANS[tier];
   const isCurrentPlan = currentTier === tier;
-  const isDowngrade =
-    (currentTier === 'elite' && tier === 'pro');
+  const isDowngrade = false;
 
   async function handleClick() {
     setLoading(true);
@@ -270,7 +261,7 @@ export default function BillingPage() {
             {currentTier === 'free' ? 'Upgrade your plan' : 'Change plan'}
           </h2>
           <div className="flex flex-col gap-3">
-            {(['pro', 'elite'] as const).map((tier) => (
+            {(['pro'] as const).map((tier) => (
               <UpgradeCard
                 key={tier}
                 tier={tier}
