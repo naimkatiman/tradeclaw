@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Lock } from 'lucide-react';
 import { PageNavBar } from '@/components/PageNavBar';
+import { useUserTier } from '@/lib/hooks/use-user-tier';
 import { EquityCurve } from '@/app/components/equity-curve';
 import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 
@@ -144,8 +147,15 @@ function pageNumbers(current: number, total: number): (number | null)[] {
   return pages;
 }
 
+type DirectionFilter = 'ALL' | 'BUY' | 'SELL';
+
 export function TrackRecordClient() {
+  const router = useRouter();
+  const tier = useUserTier();
+  const isFreeTier = tier === null || tier === 'free';
   const [period, setPeriod] = useState<Period>('30d');
+  const [pairFilter, setPairFilter] = useState<string>('ALL');
+  const [directionFilter, setDirectionFilter] = useState<DirectionFilter>('ALL');
   const [stats, setStats] = useState<HistoryStats | null>(null);
   const [records, setRecords] = useState<HistoryRecord[]>([]);
   const [total, setTotal] = useState(0);
@@ -153,11 +163,19 @@ export function TrackRecordClient() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchData = useCallback(async (p: Period, off: number) => {
+  const fetchData = useCallback(async (p: Period, off: number, pair: string, direction: DirectionFilter) => {
     setLoading(true);
     try {
+      const historyParams = new URLSearchParams({
+        limit: String(PAGE_SIZE),
+        offset: String(off),
+        period: p,
+      });
+      if (pair !== 'ALL') historyParams.set('pair', pair);
+      if (direction !== 'ALL') historyParams.set('direction', direction);
+
       const [historyRes, leaderboardRes] = await Promise.allSettled([
-        fetch(`/api/signals/history?limit=${PAGE_SIZE}&offset=${off}&period=${p}`),
+        fetch(`/api/signals/history?${historyParams.toString()}`),
         fetch(`/api/leaderboard?period=${p}`),
       ]);
 
@@ -180,12 +198,18 @@ export function TrackRecordClient() {
   }, []);
 
   useEffect(() => {
-    fetchData(period, offset);
-  }, [period, offset, fetchData]);
+    fetchData(period, offset, pairFilter, directionFilter);
+  }, [period, offset, pairFilter, directionFilter, fetchData]);
 
   useEffect(() => {
     setOffset(0);
-  }, [period]);
+  }, [period, pairFilter, directionFilter]);
+
+  const availablePairs = useMemo(() => {
+    const fromLeaderboard = leaderboard?.assets.map(a => a.pair) ?? [];
+    const fromRecords = records.map(r => r.pair);
+    return Array.from(new Set([...fromLeaderboard, ...fromRecords])).sort();
+  }, [leaderboard, records]);
 
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -235,6 +259,24 @@ export function TrackRecordClient() {
             </button>
           ))}
         </div>
+
+        {/* Free-tier history window banner */}
+        {isFreeTier && (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm">
+            <div className="flex items-center gap-2 text-emerald-300">
+              <Lock className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>
+                Showing the last 24 hours of history. Pro unlocks the full archive plus CSV export.
+              </span>
+            </div>
+            <Link
+              href="/pricing?from=history"
+              className="shrink-0 rounded-md bg-emerald-500 px-3 py-1 text-xs font-semibold text-black transition-colors hover:bg-emerald-400"
+            >
+              See full archive
+            </Link>
+          </div>
+        )}
 
         {/* Stats Cards */}
         {stats && (
@@ -378,6 +420,51 @@ export function TrackRecordClient() {
               {total > 0 ? `${offset + 1}–${Math.min(offset + PAGE_SIZE, total)} of ${total}` : ''}
             </span>
           </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex items-center gap-1 p-1 rounded-lg bg-white/[0.04]">
+              <span className="px-2 text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-mono">Pair</span>
+              <select
+                value={pairFilter}
+                onChange={e => setPairFilter(e.target.value)}
+                aria-label="Filter by pair"
+                className="bg-transparent text-xs font-mono text-[var(--foreground)] px-2 py-1 rounded-md hover:bg-white/[0.06] focus:outline-none focus:bg-white/[0.06] cursor-pointer"
+              >
+                <option value="ALL" className="bg-[var(--background)]">All</option>
+                {availablePairs.map(p => (
+                  <option key={p} value={p} className="bg-[var(--background)]">{p}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-1 p-1 rounded-lg bg-white/[0.04]">
+              {(['ALL', 'BUY', 'SELL'] as const).map(d => (
+                <button
+                  key={d}
+                  onClick={() => setDirectionFilter(d)}
+                  className={`px-3 py-1 text-xs font-mono font-medium rounded-md transition-colors ${
+                    directionFilter === d
+                      ? d === 'BUY'
+                        ? 'bg-emerald-500/15 text-emerald-400'
+                        : d === 'SELL'
+                          ? 'bg-red-500/15 text-red-400'
+                          : 'bg-white/[0.08] text-[var(--foreground)]'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
+                  }`}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+            {(pairFilter !== 'ALL' || directionFilter !== 'ALL') && (
+              <button
+                onClick={() => { setPairFilter('ALL'); setDirectionFilter('ALL'); }}
+                className="px-3 py-1.5 text-[11px] font-mono text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
           <div className="glass-card rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[420px] text-xs font-mono">
@@ -399,7 +486,20 @@ export function TrackRecordClient() {
                     const pnl = outcome24h?.pnlPct ?? outcome4h?.pnlPct ?? null;
                     const isPending = outcome24h == null && outcome4h == null;
                     return (
-                      <tr key={r.id} className="border-b border-[var(--border)] last:border-0 hover:bg-white/[0.02] transition-colors">
+                      <tr
+                        key={r.id}
+                        onClick={() => router.push(`/signal/${r.id}`)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            router.push(`/signal/${r.id}`);
+                          }
+                        }}
+                        tabIndex={0}
+                        role="link"
+                        aria-label={`View signal ${r.pair} ${r.direction} ${formatTime(r.timestamp)}`}
+                        className="border-b border-[var(--border)] last:border-0 hover:bg-white/[0.04] focus:bg-white/[0.04] focus:outline-none cursor-pointer transition-colors"
+                      >
                         <td className="px-4 py-2.5 text-[var(--text-secondary)] whitespace-nowrap">{formatTime(r.timestamp)}</td>
                         <td className="px-3 py-2.5 font-semibold text-[var(--foreground)]">{r.pair}</td>
                         <td className="px-3 py-2.5 text-center">
@@ -446,7 +546,9 @@ export function TrackRecordClient() {
                   {!loading && records.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)]">
-                        No signals for this period yet.
+                        {pairFilter !== 'ALL' || directionFilter !== 'ALL'
+                          ? 'No signals match these filters.'
+                          : 'No signals for this period yet.'}
                       </td>
                     </tr>
                   )}

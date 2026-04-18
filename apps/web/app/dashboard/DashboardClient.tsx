@@ -20,6 +20,7 @@ import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
 import { AccuracyMeta } from '../components/accuracy-meta';
 import { SignalExportMenu } from '../components/signal-export-menu';
 import StrategyAccessBar from '../components/StrategyAccessBar';
+import { LockedTP } from '../../components/LockedTP';
 import { PremiumSignalFeed } from '../../components/PremiumSignalFeed';
 import { fetchWithLicense } from '../../lib/license-client';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
@@ -436,20 +437,30 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
           { label: 'TP1', value: signal.takeProfit1, color: 'text-emerald-400', hint: 'Take Profit 1 — closest target at ~1.5× the risk distance. Highest probability of being hit.' },
           { label: 'TP2', value: signal.takeProfit2, color: 'text-emerald-400', hint: 'Take Profit 2 — mid target at ~2.5× risk. Consider partial close at TP1 and let the rest run.' },
           { label: 'TP3', value: signal.takeProfit3, color: 'text-emerald-400', hint: 'Take Profit 3 — stretch target at ~3.5× risk. Only hit in strong moves.' },
-        ].map(({ label, value, color, hint }) => (
-          <div key={label} className="bg-white/[0.02] rounded-lg py-1.5 px-1">
-            <div className="flex items-center justify-center gap-0.5 text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">
-              {label}
-              <HintBadge label={hint} />
-            </div>
-            <div className={`flex items-center justify-center gap-0.5 text-[10px] font-mono font-semibold tabular-nums ${color}`}>
-              {formatPrice(value)}
-              {(label === 'SL' || label.startsWith('TP')) && (
-                <CopyValueButton value={formatPrice(value)} />
+        ].map(({ label, value, color, hint }) => {
+          const isLockedTP =
+            (label === 'TP2' || label === 'TP3') && (value === null || value === undefined);
+          return (
+            <div key={label} className="bg-white/[0.02] rounded-lg py-1.5 px-1">
+              <div className="flex items-center justify-center gap-0.5 text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">
+                {label}
+                <HintBadge label={hint} />
+              </div>
+              {isLockedTP ? (
+                <div className="flex items-center justify-center">
+                  <LockedTP level={label === 'TP2' ? 2 : 3} from="signal-card" />
+                </div>
+              ) : (
+                <div className={`flex items-center justify-center gap-0.5 text-[10px] font-mono font-semibold tabular-nums ${color}`}>
+                  {formatPrice(value)}
+                  {(label === 'SL' || label.startsWith('TP')) && (
+                    <CopyValueButton value={formatPrice(value)} />
+                  )}
+                </div>
               )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Quick indicators */}

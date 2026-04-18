@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Play, Thermometer, ChevronDown, Activity, ShoppingBag, Briefcase, FlaskConical, BarChart2, Server, Star, Rocket, Mail, Heart, HandHeart, Cloud, MessageSquare, User, Database } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { TradeClawLogo } from '../../components/tradeclaw-logo';
+import { TierBadge } from '../../components/TierBadge';
 import type { LucideIcon } from 'lucide-react';
 
 interface NavLink {
@@ -179,6 +180,7 @@ export function Navbar() {
 
           {/* CTA */}
           <div className="flex items-center gap-2 shrink-0">
+            <TierBadge />
             <Link
               href="/dashboard"
               className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-300"
