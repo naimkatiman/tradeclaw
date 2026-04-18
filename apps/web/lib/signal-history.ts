@@ -237,18 +237,90 @@ export async function recordSignalAsync(
   const resolvedMode = mode ?? modeFromTimeframe(timeframe);
 
   if (isDbEnabled()) {
-    await execute(
-      `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-       ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
-         WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL`,
-      [sigId, pair, timeframe, direction, confidence, entryPrice, tp1 ?? null, sl ?? null, new Date(ts).toISOString(), strategyId ?? null, resolvedMode, entryAtr ?? null, atrMultiplier ?? null],
-    );
+    await insertSignalHistoryRow({
+      id: sigId,
+      pair,
+      timeframe,
+      direction,
+      confidence,
+      entryPrice,
+      tp1,
+      sl,
+      createdAt: new Date(ts).toISOString(),
+      strategyId,
+      mode: resolvedMode,
+      entryAtr,
+      atrMultiplier,
+    });
     return;
   }
 
   // File fallback
   recordSignal(pair, timeframe, direction, confidence, entryPrice, sigId, tp1, sl, ts, strategyId, resolvedMode, entryAtr, atrMultiplier);
+}
+
+/**
+ * Shared INSERT helper. Uses the new entry_atr + atr_multiplier columns by
+ * default. If the DB raises `undefined_column` (migration 012 hasn't been
+ * applied yet on this environment), falls back to the pre-012 INSERT so
+ * signal recording does not break during a partial deploy.
+ *
+ * Returns true if a row was inserted, false on conflict.
+ */
+interface InsertRowArgs {
+  id: string;
+  pair: string;
+  timeframe: string;
+  direction: 'BUY' | 'SELL';
+  confidence: number;
+  entryPrice: number;
+  tp1?: number;
+  sl?: number;
+  createdAt: string;
+  strategyId?: string;
+  mode: SignalMode;
+  entryAtr?: number;
+  atrMultiplier?: number;
+}
+
+let atrColumnsKnownMissing = false;
+
+async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
+  if (!atrColumnsKnownMissing) {
+    try {
+      const result = await query<{ id: string }>(
+        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
+           WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL
+         RETURNING id`,
+        [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null],
+      );
+      return result.length > 0;
+    } catch (err: unknown) {
+      // Postgres "undefined_column" error code is 42703. Detect by message too
+      // in case the driver shape differs.
+      const code = (err as { code?: string } | null)?.code;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (code === '42703' || /entry_atr|atr_multiplier/.test(msg)) {
+        console.warn('[signal-history] migration 012 not applied — falling back to pre-012 INSERT. Run psql "$DATABASE_URL" -f apps/web/migrations/012_atr_telemetry.sql to enable ATR telemetry.');
+        atrColumnsKnownMissing = true;
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  // Pre-012 fallback. Drops entryAtr + atrMultiplier on the floor.
+  const result = await query<{ id: string }>(
+    `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+     ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
+       WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL
+     RETURNING id`,
+    [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode],
+  );
+  return result.length > 0;
 }
 
 /** Sync file-only fallback — kept for backward compat with getTrackedSignals server component. */
@@ -302,15 +374,22 @@ export async function recordSignalsAsync(signals: TrackedSignalInput[]): Promise
       // wins for everything else, but we want to retroactively label it
       // so the per-strategy breakdown isn't mostly NULL.
       const resolvedMode = s.mode ?? modeFromTimeframe(s.timeframe);
-      const result = await query<{ id: string }>(
-        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-         ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
-           WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL
-         RETURNING id`,
-        [s.id, s.symbol, s.timeframe, s.direction, s.confidence, s.entry, s.takeProfit1 ?? null, s.stopLoss ?? null, ts, s.strategyId ?? null, resolvedMode, s.entryAtr ?? null, s.atrMultiplier ?? null],
-      );
-      if (result.length > 0) inserted++;
+      const result = await insertSignalHistoryRow({
+        id: s.id,
+        pair: s.symbol,
+        timeframe: s.timeframe,
+        direction: s.direction,
+        confidence: s.confidence,
+        entryPrice: s.entry,
+        tp1: s.takeProfit1,
+        sl: s.stopLoss,
+        createdAt: ts,
+        strategyId: s.strategyId,
+        mode: resolvedMode,
+        entryAtr: s.entryAtr,
+        atrMultiplier: s.atrMultiplier,
+      });
+      if (result) inserted++;
     }
     return inserted;
   }
@@ -473,20 +552,39 @@ export async function resolveRealOutcomes(): Promise<void> {
       }
 
       if ((needs4h && outcome4h) || (needs24h && outcome24h)) {
+        const outcome4hJson = outcome4h ? JSON.stringify(outcome4h) : null;
+        const outcome24hJson = outcome24h ? JSON.stringify(outcome24h) : null;
+        const verifiedAt = new Date(now).toISOString();
+        if (!atrColumnsKnownMissing) {
+          try {
+            await execute(
+              `UPDATE signal_history
+               SET outcome_4h = COALESCE($2, outcome_4h),
+                   outcome_24h = COALESCE($3, outcome_24h),
+                   max_adverse_excursion = COALESCE($5, max_adverse_excursion),
+                   last_verified = $4
+               WHERE id = $1`,
+              [r.id, outcome4hJson, outcome24hJson, verifiedAt, mae24h],
+            );
+            continue;
+          } catch (err: unknown) {
+            const code = (err as { code?: string } | null)?.code;
+            const msg = err instanceof Error ? err.message : String(err);
+            if (code === '42703' || /max_adverse_excursion/.test(msg)) {
+              atrColumnsKnownMissing = true;
+            } else {
+              throw err;
+            }
+          }
+        }
+        // Pre-012 fallback
         await execute(
           `UPDATE signal_history
            SET outcome_4h = COALESCE($2, outcome_4h),
                outcome_24h = COALESCE($3, outcome_24h),
-               max_adverse_excursion = COALESCE($5, max_adverse_excursion),
                last_verified = $4
            WHERE id = $1`,
-          [
-            r.id,
-            outcome4h ? JSON.stringify(outcome4h) : null,
-            outcome24h ? JSON.stringify(outcome24h) : null,
-            new Date(now).toISOString(),
-            mae24h,
-          ],
+          [r.id, outcome4hJson, outcome24hJson, verifiedAt],
         );
       }
     }
@@ -599,32 +697,48 @@ export function getRecentRecordForSymbol(
   );
 }
 
+export interface PreviousDirectionResult {
+  direction: 'BUY' | 'SELL';
+  /** Milliseconds between the prior signal and `beforeMs`. */
+  ageMs: number;
+}
+
 /**
- * Look up the most recent direction emitted for (symbol, timeframe) strictly
+ * Look up the most recent signal emitted for (symbol, timeframe) strictly
  * before `beforeMs`. Used by the explainer to flag direction flips so the
  * UI can surface "why the signal changed" — a common trader concern when a
  * system quietly inverts its stance.
  *
- * Returns undefined when no prior record exists (e.g. first signal ever).
+ * Returns null when no prior record exists (e.g. first signal ever) or when
+ * the most recent prior is older than `maxAgeMs` (default 3 days — beyond
+ * that, calling it a "flip" is misleading).
  */
 export async function getPreviousDirectionAsync(
   symbol: string,
   timeframe: string,
   beforeMs: number,
-): Promise<'BUY' | 'SELL' | undefined> {
+  maxAgeMs: number = 3 * 24 * 3600 * 1000,
+): Promise<PreviousDirectionResult | null> {
+  const cutoffMs = beforeMs - maxAgeMs;
+
   if (isDbEnabled()) {
-    const row = await queryOne<{ direction: string }>(
-      `SELECT direction FROM signal_history
-       WHERE pair = $1 AND timeframe = $2 AND created_at < $3
+    const row = await queryOne<{ direction: string; created_at: string }>(
+      `SELECT direction, created_at FROM signal_history
+       WHERE pair = $1 AND timeframe = $2
+         AND created_at < $3 AND created_at >= $4
        ORDER BY created_at DESC LIMIT 1`,
-      [symbol, timeframe, new Date(beforeMs).toISOString()],
+      [symbol, timeframe, new Date(beforeMs).toISOString(), new Date(cutoffMs).toISOString()],
     );
-    return (row?.direction as 'BUY' | 'SELL' | undefined) ?? undefined;
+    if (!row) return null;
+    return {
+      direction: row.direction as 'BUY' | 'SELL',
+      ageMs: beforeMs - new Date(row.created_at).getTime(),
+    };
   }
   const prior = readHistoryFile().find(
-    r => r.pair === symbol && r.timeframe === timeframe && r.timestamp < beforeMs,
+    r => r.pair === symbol && r.timeframe === timeframe && r.timestamp < beforeMs && r.timestamp >= cutoffMs,
   );
-  return prior?.direction;
+  return prior ? { direction: prior.direction, ageMs: beforeMs - prior.timestamp } : null;
 }
 
 // ── Trade outcome recording (risk pipeline feedback) ────────

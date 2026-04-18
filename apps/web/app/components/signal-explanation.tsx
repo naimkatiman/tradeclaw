@@ -3,6 +3,15 @@
 import { useState } from 'react';
 import { fetchWithLicense } from '@/lib/license-client';
 
+function formatAge(ms: number): string {
+  const mins = Math.round(ms / 60000);
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.round(hours / 24);
+  return `${days}d`;
+}
+
 interface SignalExplanationProps {
   symbol: string;
   direction: 'BUY' | 'SELL';
@@ -17,6 +26,7 @@ export function SignalExplanation({ symbol, direction, confidence, entry, timefr
   const [loading, setLoading] = useState(false);
   const [source, setSource] = useState<'ai' | 'fallback' | null>(null);
   const [flipFrom, setFlipFrom] = useState<'BUY' | 'SELL' | null>(null);
+  const [flipAgeMs, setFlipAgeMs] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
 
   const load = async () => {
@@ -33,6 +43,7 @@ export function SignalExplanation({ symbol, direction, confidence, entry, timefr
       setExplanation(data.explanation || data.summary || data.markdown || 'No explanation available.');
       setSource(data.source);
       setFlipFrom(data.flipFrom ?? null);
+      setFlipAgeMs(data.flipAgeMs ?? null);
     } catch {
       setExplanation('Explanation unavailable. Check network or API key.');
     } finally {
@@ -64,7 +75,8 @@ export function SignalExplanation({ symbol, direction, confidence, entry, timefr
             <div className="flex flex-col gap-1.5">
               {flipFrom && (
                 <p className="text-[11px] text-amber-400/90 leading-relaxed">
-                  Direction flipped from <strong>{flipFrom}</strong> to <strong>{direction}</strong> on the previous bar. The indicators realigned — see below for what changed.
+                  Previous signal on this pair/timeframe pointed <strong>{flipFrom}</strong>
+                  {flipAgeMs != null ? ` (${formatAge(flipAgeMs)} ago)` : ''}. Indicators realigned to <strong>{direction}</strong> — see what changed below.
                 </p>
               )}
               <p className="text-[12px] text-zinc-400 leading-relaxed">{explanation}</p>

@@ -22,16 +22,19 @@ function isFullSignal(body: ExplainBody): body is ExplainBySignal {
 async function buildResponse(signal: TradingSignal) {
   const explanation = generateSignalExplanation(signal);
 
-  // Flip detection: if the most recent prior signal on the same symbol+TF
-  // pointed the opposite way, surface it so the card can explain the flip
-  // instead of quietly inverting.
+  // Flip detection: if the most recent prior signal (within 3 days) on the
+  // same symbol+TF pointed the opposite way, surface it so the card can
+  // explain the flip instead of quietly inverting. Stale priors are suppressed
+  // — calling a 2-week-old opposite signal a "flip" misleads the reader.
   let flipFrom: 'BUY' | 'SELL' | null = null;
+  let flipAgeMs: number | null = null;
   try {
     const emittedAtMs = Date.parse(signal.timestamp);
     if (Number.isFinite(emittedAtMs)) {
       const prior = await getPreviousDirectionAsync(signal.symbol, signal.timeframe, emittedAtMs);
-      if (prior && prior !== signal.direction) {
-        flipFrom = prior;
+      if (prior && prior.direction !== signal.direction) {
+        flipFrom = prior.direction;
+        flipAgeMs = prior.ageMs;
       }
     }
   } catch {
@@ -44,6 +47,7 @@ async function buildResponse(signal: TradingSignal) {
     confluenceScore: explanation.confluenceScore,
     riskReward: explanation.riskReward,
     flipFrom,
+    flipAgeMs,
     signal,
   });
 }
