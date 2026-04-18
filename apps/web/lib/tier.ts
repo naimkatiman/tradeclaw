@@ -1,8 +1,9 @@
 import type { Tier } from './stripe';
 import { TIER_LEVEL } from './stripe';
 import type { TradingSignal } from '../app/lib/signals';
+import { FREE_SYMBOLS, isFreeSymbol } from './tier-client';
 
-export { TIER_LEVEL };
+export { TIER_LEVEL, FREE_SYMBOLS, isFreeSymbol };
 export type { Tier };
 
 const ALL_SYMBOLS = [
@@ -23,7 +24,7 @@ const ALL_SYMBOLS = [
 // Symbols accessible per tier. Custom tier inherits Elite's coverage by default —
 // bespoke symbol lists are negotiated out-of-band per deal.
 export const TIER_SYMBOLS: Record<Tier, string[]> = {
-  free: ['XAUUSD', 'BTCUSD', 'EURUSD'],
+  free: [...FREE_SYMBOLS],
   pro: ALL_SYMBOLS,
   elite: ALL_SYMBOLS,
   custom: ALL_SYMBOLS,

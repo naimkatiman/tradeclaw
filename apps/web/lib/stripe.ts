@@ -45,7 +45,7 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
     annualPriceLabel: '',
     kind: 'free',
     features: [
-      '3 symbols: XAUUSD, BTCUSD, EURUSD',
+      '3 symbols: BTCUSD, ETHUSD, XAUUSD',
       '15-minute delayed signals',
       'TP1 target only',
       'Public Telegram channel',
