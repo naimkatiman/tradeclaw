@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { broadcastTopSignals } from '../../../../lib/telegram-broadcast';
 import { query, execute } from '../../../../lib/db-pool';
+import { FREE_SYMBOLS } from '../../../../lib/tier';
 
 // ---------------------------------------------------------------------------
 // GET /api/cron/telegram — Vercel Cron handler (every 4 hours)
@@ -27,9 +28,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const result = await broadcastTopSignals(channelId, botToken);
+    const result = await broadcastTopSignals(channelId, botToken, { freeOnly: true });
 
-    // Delayed public channel push — free-tier signals 15+ min old
+    // Delayed public channel push — free-tier symbols only, 15+ min old
     const publicChannelId = process.env.TELEGRAM_PUBLIC_CHANNEL_ID;
     let publicPushed = 0;
     if (publicChannelId && botToken) {
@@ -41,11 +42,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         FROM signal_history
         WHERE telegram_posted_at IS NULL
           AND is_simulated = false
+          AND pair = ANY($1)
           AND created_at >= NOW() - INTERVAL '2 hours'
           AND created_at <= NOW() - INTERVAL '15 minutes'
         ORDER BY created_at ASC
         LIMIT 10
-      `);
+      `, [[...FREE_SYMBOLS]]);
 
       for (const sig of pending) {
         const decimals = sig.pair.includes('JPY') ? 3 : 5;

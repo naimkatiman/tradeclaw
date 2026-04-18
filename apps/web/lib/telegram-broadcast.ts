@@ -18,6 +18,7 @@ import { getTrackedSignals } from './tracked-signals';
 import { fetchRegimeMap, filterSignalsByRegime } from './regime-filter';
 import { markTelegramPosted } from './signal-history';
 import { runRiskPipeline, type RiskReport } from './risk-pipeline';
+import { isFreeSymbol } from './tier-client';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -257,10 +258,15 @@ function mapLiveToTradingSignal(s: LiveSignal): TradingSignal {
 /**
  * Fetch top signals, post EACH as a separate message (like WolfX),
  * and save message_id to signal_history for reply threading.
+ *
+ * @param opts.freeOnly - when true, restrict broadcast to FREE_SYMBOLS
+ *   (BTCUSD/ETHUSD/XAUUSD). Used for the public Telegram channel.
+ *   When false/undefined, all symbols pass (for paid Pro/Elite groups).
  */
 export async function broadcastTopSignals(
   channelId: string,
   botToken: string,
+  opts: { freeOnly?: boolean } = {},
 ): Promise<BroadcastResult> {
   // Use the same Python engine source as the dashboard (DB → signals-live.json)
   const regimeMap = await fetchRegimeMap();
@@ -278,7 +284,10 @@ export async function broadcastTopSignals(
     mapped = fallbackSignals;
   }
 
-  const filtered = filterSignalsByRegime(mapped, regimeMap);
+  let filtered = filterSignalsByRegime(mapped, regimeMap);
+  if (opts.freeOnly) {
+    filtered = filtered.filter((s) => isFreeSymbol(s.symbol));
+  }
   const top = filtered.slice(0, 3);
 
   if (top.length === 0) {

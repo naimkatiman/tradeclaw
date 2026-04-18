@@ -27,7 +27,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'TELEGRAM_CHANNEL_ID not configured' }, { status: 503 });
   }
 
-  const result = await broadcastTopSignals(channelId, botToken);
+  const result = await broadcastTopSignals(channelId, botToken, { freeOnly: true });
 
   if (!result.success) {
     return NextResponse.json(
