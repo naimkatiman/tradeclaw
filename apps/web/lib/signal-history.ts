@@ -42,6 +42,12 @@ export interface SignalHistoryRecord {
   telegramMessageId?: number;
   strategyId?: string;
   mode?: SignalMode;
+  /** ATR at signal emission (price units). NULL on pre-migration rows. */
+  entryAtr?: number;
+  /** ATR multiplier used to size the stop at signal time. NULL on pre-migration rows. */
+  atrMultiplier?: number;
+  /** Max adverse excursion up to the resolution candle (price units, >= 0). NULL while open / on pre-migration rows. */
+  maxAdverseExcursion?: number;
   outcomes: {
     '4h': SignalOutcome | null;
     '24h': SignalOutcome | null;
@@ -66,6 +72,8 @@ export interface TrackedSignalInput {
   stopLoss?: number;
   strategyId?: string;
   mode?: SignalMode;
+  entryAtr?: number;
+  atrMultiplier?: number;
 }
 
 export type LeaderboardPeriod = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
@@ -138,6 +146,9 @@ interface HistoryRow {
   last_verified: string | null;
   strategy_id: string | null;
   mode: string | null;
+  entry_atr: string | number | null;
+  atr_multiplier: string | number | null;
+  max_adverse_excursion: string | number | null;
 }
 
 function rowToRecord(row: HistoryRow): SignalHistoryRecord {
@@ -157,6 +168,9 @@ function rowToRecord(row: HistoryRow): SignalHistoryRecord {
     telegramMessageId: row.telegram_message_id ? Number(row.telegram_message_id) : undefined,
     strategyId: row.strategy_id ?? undefined,
     mode: (row.mode as SignalMode | null) ?? modeFromTimeframe(row.timeframe),
+    entryAtr: row.entry_atr != null ? Number(row.entry_atr) : undefined,
+    atrMultiplier: row.atr_multiplier != null ? Number(row.atr_multiplier) : undefined,
+    maxAdverseExcursion: row.max_adverse_excursion != null ? Number(row.max_adverse_excursion) : undefined,
     outcomes: {
       '4h': row.outcome_4h ?? null,
       '24h': row.outcome_24h ?? null,
@@ -215,6 +229,8 @@ export async function recordSignalAsync(
   timestamp?: number,
   strategyId?: string,
   mode?: SignalMode,
+  entryAtr?: number,
+  atrMultiplier?: number,
 ): Promise<void> {
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
   const ts = timestamp ?? Date.now();
@@ -222,17 +238,17 @@ export async function recordSignalAsync(
 
   if (isDbEnabled()) {
     await execute(
-      `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
          WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL`,
-      [sigId, pair, timeframe, direction, confidence, entryPrice, tp1 ?? null, sl ?? null, new Date(ts).toISOString(), strategyId ?? null, resolvedMode],
+      [sigId, pair, timeframe, direction, confidence, entryPrice, tp1 ?? null, sl ?? null, new Date(ts).toISOString(), strategyId ?? null, resolvedMode, entryAtr ?? null, atrMultiplier ?? null],
     );
     return;
   }
 
   // File fallback
-  recordSignal(pair, timeframe, direction, confidence, entryPrice, sigId, tp1, sl, ts, strategyId, resolvedMode);
+  recordSignal(pair, timeframe, direction, confidence, entryPrice, sigId, tp1, sl, ts, strategyId, resolvedMode, entryAtr, atrMultiplier);
 }
 
 /** Sync file-only fallback — kept for backward compat with getTrackedSignals server component. */
@@ -248,6 +264,8 @@ export function recordSignal(
   timestamp?: number,
   strategyId?: string,
   mode?: SignalMode,
+  entryAtr?: number,
+  atrMultiplier?: number,
 ): void {
   const records = readHistoryFile();
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
@@ -258,6 +276,8 @@ export function recordSignal(
     timestamp: timestamp ?? Date.now(), tp1, sl, isSimulated: false,
     strategyId,
     mode: mode ?? modeFromTimeframe(timeframe),
+    entryAtr,
+    atrMultiplier,
     outcomes: { '4h': null, '24h': null },
   });
   if (records.length > MAX_RECORDS) records.splice(MAX_RECORDS);
@@ -283,12 +303,12 @@ export async function recordSignalsAsync(signals: TrackedSignalInput[]): Promise
       // so the per-strategy breakdown isn't mostly NULL.
       const resolvedMode = s.mode ?? modeFromTimeframe(s.timeframe);
       const result = await query<{ id: string }>(
-        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
            WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL
          RETURNING id`,
-        [s.id, s.symbol, s.timeframe, s.direction, s.confidence, s.entry, s.takeProfit1 ?? null, s.stopLoss ?? null, ts, s.strategyId ?? null, resolvedMode],
+        [s.id, s.symbol, s.timeframe, s.direction, s.confidence, s.entry, s.takeProfit1 ?? null, s.stopLoss ?? null, ts, s.strategyId ?? null, resolvedMode, s.entryAtr ?? null, s.atrMultiplier ?? null],
       );
       if (result.length > 0) inserted++;
     }
@@ -317,6 +337,8 @@ export function recordSignals(signals: TrackedSignalInput[]): number {
       tp1: signal.takeProfit1, sl: signal.stopLoss,
       isSimulated: false, strategyId: signal.strategyId,
       mode: signal.mode ?? modeFromTimeframe(signal.timeframe),
+      entryAtr: signal.entryAtr,
+      atrMultiplier: signal.atrMultiplier,
       outcomes: { '4h': null, '24h': null },
     });
     existingIds.add(signal.id);
@@ -331,27 +353,48 @@ export function recordSignals(signals: TrackedSignalInput[]): number {
 
 // ── Outcome resolution ───────────────────────────────────────
 
-function resolveFromCandles(r: SignalHistoryRecord, candles: OHLCV[], windowComplete = false): SignalOutcome | null {
+interface ResolvedWithMae {
+  outcome: SignalOutcome;
+  /** Max adverse excursion from entry up to AND including the resolution candle (price units, >= 0). */
+  maxAdverseExcursion: number;
+}
+
+function resolveFromCandles(
+  r: SignalHistoryRecord,
+  candles: OHLCV[],
+  windowComplete = false,
+): ResolvedWithMae | null {
   if (!r.tp1 || !r.sl || candles.length === 0) return null;
 
+  let mae = 0;
+
   for (const candle of candles) {
+    // Update MAE with the worst adverse touch in this candle BEFORE checking
+    // resolution — if price wicks into the stop, the MAE must include that
+    // adverse move, not just the moves on prior candles.
     if (r.direction === 'BUY') {
+      const adverse = r.entryPrice - candle.low;
+      if (adverse > mae) mae = adverse;
+
       if (candle.high >= r.tp1) {
         const pnlPct = +((r.tp1 - r.entryPrice) / r.entryPrice * 100).toFixed(2);
-        return { price: r.tp1, pnlPct, hit: true };
+        return { outcome: { price: r.tp1, pnlPct, hit: true }, maxAdverseExcursion: mae };
       }
       if (candle.low <= r.sl) {
         const pnlPct = +((r.sl - r.entryPrice) / r.entryPrice * 100).toFixed(2);
-        return { price: r.sl, pnlPct, hit: false };
+        return { outcome: { price: r.sl, pnlPct, hit: false }, maxAdverseExcursion: mae };
       }
     } else {
+      const adverse = candle.high - r.entryPrice;
+      if (adverse > mae) mae = adverse;
+
       if (candle.low <= r.tp1) {
         const pnlPct = +((r.entryPrice - r.tp1) / r.entryPrice * 100).toFixed(2);
-        return { price: r.tp1, pnlPct, hit: true };
+        return { outcome: { price: r.tp1, pnlPct, hit: true }, maxAdverseExcursion: mae };
       }
       if (candle.high >= r.sl) {
         const pnlPct = +((r.entryPrice - r.sl) / r.entryPrice * 100).toFixed(2);
-        return { price: r.sl, pnlPct, hit: false };
+        return { outcome: { price: r.sl, pnlPct, hit: false }, maxAdverseExcursion: mae };
       }
     }
   }
@@ -362,11 +405,17 @@ function resolveFromCandles(r: SignalHistoryRecord, candles: OHLCV[], windowComp
     const pnlPct = r.direction === 'BUY'
       ? +((lastClose - r.entryPrice) / r.entryPrice * 100).toFixed(2)
       : +((r.entryPrice - lastClose) / r.entryPrice * 100).toFixed(2);
-    return { price: lastClose, pnlPct, hit: pnlPct > 0 };
+    return {
+      outcome: { price: lastClose, pnlPct, hit: pnlPct > 0 },
+      maxAdverseExcursion: mae,
+    };
   }
 
   return null;
 }
+
+/** Test-only export. Do not use in production code. */
+export const _resolveFromCandlesForTest = resolveFromCandles;
 
 export async function resolveRealOutcomes(): Promise<void> {
   const now = Date.now();
@@ -401,11 +450,13 @@ export async function resolveRealOutcomes(): Promise<void> {
 
       let outcome4h = r.outcomes['4h'];
       let outcome24h = r.outcomes['24h'];
+      let mae24h: number | null = null;
 
       if (needs4h) {
         const windowEnd = r.timestamp + FOUR_H;
         const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-        outcome4h = resolveFromCandles(r, window, age >= FOUR_H);
+        const resolved = resolveFromCandles(r, window, age >= FOUR_H);
+        outcome4h = resolved?.outcome ?? outcome4h;
         if (!outcome4h && age >= FOUR_H * 2) {
           outcome4h = { price: r.entryPrice, pnlPct: 0, hit: false };
         }
@@ -413,7 +464,9 @@ export async function resolveRealOutcomes(): Promise<void> {
       if (needs24h) {
         const windowEnd = r.timestamp + TWENTY_FOUR_H;
         const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-        outcome24h = resolveFromCandles(r, window, age >= TWENTY_FOUR_H);
+        const resolved = resolveFromCandles(r, window, age >= TWENTY_FOUR_H);
+        outcome24h = resolved?.outcome ?? outcome24h;
+        mae24h = resolved?.maxAdverseExcursion ?? null;
         if (!outcome24h && age >= TWENTY_FOUR_H * 2) {
           outcome24h = { price: r.entryPrice, pnlPct: 0, hit: false };
         }
@@ -424,6 +477,7 @@ export async function resolveRealOutcomes(): Promise<void> {
           `UPDATE signal_history
            SET outcome_4h = COALESCE($2, outcome_4h),
                outcome_24h = COALESCE($3, outcome_24h),
+               max_adverse_excursion = COALESCE($5, max_adverse_excursion),
                last_verified = $4
            WHERE id = $1`,
           [
@@ -431,6 +485,7 @@ export async function resolveRealOutcomes(): Promise<void> {
             outcome4h ? JSON.stringify(outcome4h) : null,
             outcome24h ? JSON.stringify(outcome24h) : null,
             new Date(now).toISOString(),
+            mae24h,
           ],
         );
       }
@@ -464,7 +519,7 @@ export async function resolveRealOutcomes(): Promise<void> {
       const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
       const resolved = resolveFromCandles(r, window, age >= FOUR_H);
       if (resolved) {
-        r.outcomes['4h'] = resolved;
+        r.outcomes['4h'] = resolved.outcome;
         r.lastVerified = now;
         changed = true;
       } else if (age >= FOUR_H * 2) {
@@ -478,7 +533,8 @@ export async function resolveRealOutcomes(): Promise<void> {
       const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
       const resolved = resolveFromCandles(r, window, age >= TWENTY_FOUR_H);
       if (resolved) {
-        r.outcomes['24h'] = resolved;
+        r.outcomes['24h'] = resolved.outcome;
+        r.maxAdverseExcursion = resolved.maxAdverseExcursion;
         r.lastVerified = now;
         changed = true;
       } else if (age >= TWENTY_FOUR_H * 2) {
@@ -541,6 +597,34 @@ export function getRecentRecordForSymbol(
   return readHistoryFile().find(
     r => r.pair === symbol && r.direction === direction && r.timestamp >= cutoff,
   );
+}
+
+/**
+ * Look up the most recent direction emitted for (symbol, timeframe) strictly
+ * before `beforeMs`. Used by the explainer to flag direction flips so the
+ * UI can surface "why the signal changed" — a common trader concern when a
+ * system quietly inverts its stance.
+ *
+ * Returns undefined when no prior record exists (e.g. first signal ever).
+ */
+export async function getPreviousDirectionAsync(
+  symbol: string,
+  timeframe: string,
+  beforeMs: number,
+): Promise<'BUY' | 'SELL' | undefined> {
+  if (isDbEnabled()) {
+    const row = await queryOne<{ direction: string }>(
+      `SELECT direction FROM signal_history
+       WHERE pair = $1 AND timeframe = $2 AND created_at < $3
+       ORDER BY created_at DESC LIMIT 1`,
+      [symbol, timeframe, new Date(beforeMs).toISOString()],
+    );
+    return (row?.direction as 'BUY' | 'SELL' | undefined) ?? undefined;
+  }
+  const prior = readHistoryFile().find(
+    r => r.pair === symbol && r.timeframe === timeframe && r.timestamp < beforeMs,
+  );
+  return prior?.direction;
 }
 
 // ── Trade outcome recording (risk pipeline feedback) ────────

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateSignalExplanation } from '../../lib/signal-explainer';
 import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
+import { getPreviousDirectionAsync } from '../../../lib/signal-history';
 import type { TradingSignal } from '../../lib/signals';
 
 interface ExplainBySignal {
@@ -18,13 +19,31 @@ function isFullSignal(body: ExplainBody): body is ExplainBySignal {
   return 'signal' in body && body.signal != null;
 }
 
-function buildResponse(signal: TradingSignal) {
+async function buildResponse(signal: TradingSignal) {
   const explanation = generateSignalExplanation(signal);
+
+  // Flip detection: if the most recent prior signal on the same symbol+TF
+  // pointed the opposite way, surface it so the card can explain the flip
+  // instead of quietly inverting.
+  let flipFrom: 'BUY' | 'SELL' | null = null;
+  try {
+    const emittedAtMs = Date.parse(signal.timestamp);
+    if (Number.isFinite(emittedAtMs)) {
+      const prior = await getPreviousDirectionAsync(signal.symbol, signal.timeframe, emittedAtMs);
+      if (prior && prior !== signal.direction) {
+        flipFrom = prior;
+      }
+    }
+  } catch {
+    // History lookup failed — flip info is best-effort, don't fail the request.
+  }
+
   return NextResponse.json({
     markdown: explanation.markdown,
     summary: explanation.summary,
     confluenceScore: explanation.confluenceScore,
     riskReward: explanation.riskReward,
+    flipFrom,
     signal,
   });
 }
@@ -50,7 +69,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    return buildResponse(signal);
+    return await buildResponse(signal);
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

@@ -654,7 +654,8 @@ export function generateSignalsFromTA(
   const buyMinCategories = buyScore >= 40 ? 2 : 1;
   if (buyScore >= signalThreshold && buyScore > sellScore && buyingCategoryCount >= buyMinCategories && buyGate.passes) {
     let confidence = scaleConfidence(buyScore, buyGate.confidenceBoost, source);
-    const slDistance = atr * getCachedAtrMultiplier(symbol);
+    const buyAtrMultiplier = getCachedAtrMultiplier(symbol);
+    const slDistance = atr * buyAtrMultiplier;
     const entry = +currentPrice.toFixed(5);
 
     const nearestSupport = findNearestSupport(swingLevels.support, currentPrice);
@@ -705,6 +706,8 @@ export function generateSignalsFromTA(
       atrCalibration: buyCalibration
         ? { multiplier: buyCalibration.multiplier, confidence: buyCalibration.confidence }
         : { multiplier: 2.0, confidence: 'low' as const },
+      entryAtr: atr,
+      atrMultiplier: buyAtrMultiplier,
     });
   }
 
@@ -715,7 +718,8 @@ export function generateSignalsFromTA(
   const sellMinCategories = sellScore >= 40 ? 2 : 1;
   if (sellScore >= signalThreshold && sellScore > buyScore && sellingCategoryCount >= sellMinCategories && sellGate.passes) {
     let confidence = scaleConfidence(sellScore, sellGate.confidenceBoost, source);
-    const slDistance = atr * getCachedAtrMultiplier(symbol);
+    const sellAtrMultiplier = getCachedAtrMultiplier(symbol);
+    const slDistance = atr * sellAtrMultiplier;
     const entry = +currentPrice.toFixed(5);
 
     const nearestResistance = findNearestResistance(swingLevels.resistance, currentPrice);
@@ -766,6 +770,8 @@ export function generateSignalsFromTA(
       atrCalibration: sellCalibration
         ? { multiplier: sellCalibration.multiplier, confidence: sellCalibration.confidence }
         : { multiplier: 2.0, confidence: 'low' as const },
+      entryAtr: atr,
+      atrMultiplier: sellAtrMultiplier,
     });
   }
 

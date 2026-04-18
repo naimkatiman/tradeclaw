@@ -21,6 +21,10 @@ export interface TradingSignal {
   dataQuality?: 'real' | 'synthetic';
   /** ATR stop calibration metadata — shows whether SL uses a per-symbol calibrated multiplier or the global default. */
   atrCalibration?: { multiplier: number; confidence: 'low' | 'medium' | 'high' };
+  /** ATR value in price units at the moment this signal was emitted. Persisted so calibration can grid-search without re-fetching candles. */
+  entryAtr?: number;
+  /** Multiplier actually applied to entryAtr when sizing the stop at signal time. */
+  atrMultiplier?: number;
   // Agent-specific (optional)
   skill?: string;
   /** Which strategy preset generated this signal. Matches SIGNAL_ENGINE_PRESET env var. */

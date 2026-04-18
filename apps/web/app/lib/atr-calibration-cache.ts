@@ -31,23 +31,24 @@ const cache = new Map<string, CachedEntry>();
  * Convert a stored SignalHistoryRecord into the OutcomeSample shape expected
  * by the calibration engine.
  *
- * DEFERRED: the current schema does NOT persist `entryAtr` or
- * `adverseExcursion` — we approximate:
- *   - entryAtr is derived from the recorded stop distance by assuming the
- *     signal was emitted with the historical default multiplier (2.0).
- *     So entryAtr ≈ |entry - sl| / DEFAULT_ATR_MULTIPLIER.
- *   - adverseExcursion is unknown; we leave it undefined, which causes
- *     calibrateAtrMultiplier to conservatively assume the original stop
- *     distance for stop-outs and no pullback for wins.
- *
- * Once ATR and max-adverse-excursion are persisted into signal_history, this
- * shim can be replaced with a direct mapping.
+ * Prefers real telemetry persisted at signal time (entry_atr, atr_multiplier)
+ * and real max adverse excursion measured at outcome resolution. Falls back to
+ * the legacy approximation for rows that predate migration 012:
+ *   - entryAtr ≈ |entry - sl| / DEFAULT_ATR_MULTIPLIER
+ *   - adverseExcursion left undefined (calibration assumes stop distance for
+ *     stop-outs and zero pullback for wins — conservative, biases toward
+ *     looser stops).
  */
 function recordToSample(r: SignalHistoryRecord): OutcomeSample | null {
   if (r.sl == null || r.tp1 == null) return null;
   const stopDistance = Math.abs(r.entryPrice - r.sl);
   if (!(stopDistance > 0)) return null;
-  const entryAtr = stopDistance / DEFAULT_ATR_MULTIPLIER;
+
+  // Real telemetry when present; approximation otherwise.
+  const entryAtr =
+    r.entryAtr != null && r.entryAtr > 0
+      ? r.entryAtr
+      : stopDistance / DEFAULT_ATR_MULTIPLIER;
 
   // Use 24h outcome as the canonical resolution. 4h is too noisy.
   const o = r.outcomes['24h'];
@@ -85,6 +86,10 @@ function recordToSample(r: SignalHistoryRecord): OutcomeSample | null {
     target: r.tp1,
     entryAtr,
     stopDistance,
+    adverseExcursion:
+      r.maxAdverseExcursion != null && r.maxAdverseExcursion >= 0
+        ? r.maxAdverseExcursion
+        : undefined,
   };
 }
 

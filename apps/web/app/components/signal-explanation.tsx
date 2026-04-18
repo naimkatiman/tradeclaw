@@ -16,6 +16,7 @@ export function SignalExplanation({ symbol, direction, confidence, entry, timefr
   const [explanation, setExplanation] = useState('');
   const [loading, setLoading] = useState(false);
   const [source, setSource] = useState<'ai' | 'fallback' | null>(null);
+  const [flipFrom, setFlipFrom] = useState<'BUY' | 'SELL' | null>(null);
   const [open, setOpen] = useState(false);
 
   const load = async () => {
@@ -29,8 +30,9 @@ export function SignalExplanation({ symbol, direction, confidence, entry, timefr
         body: JSON.stringify({ symbol, direction, confidence, entry, timeframe, indicators }),
       });
       const data = await res.json();
-      setExplanation(data.explanation || 'No explanation available.');
+      setExplanation(data.explanation || data.summary || data.markdown || 'No explanation available.');
       setSource(data.source);
+      setFlipFrom(data.flipFrom ?? null);
     } catch {
       setExplanation('Explanation unavailable. Check network or API key.');
     } finally {
@@ -60,6 +62,11 @@ export function SignalExplanation({ symbol, direction, confidence, entry, timefr
             </div>
           ) : (
             <div className="flex flex-col gap-1.5">
+              {flipFrom && (
+                <p className="text-[11px] text-amber-400/90 leading-relaxed">
+                  Direction flipped from <strong>{flipFrom}</strong> to <strong>{direction}</strong> on the previous bar. The indicators realigned — see below for what changed.
+                </p>
+              )}
               <p className="text-[12px] text-zinc-400 leading-relaxed">{explanation}</p>
               <div className="flex items-center gap-1.5">
                 <span className={`text-[9px] px-1.5 py-0.5 rounded ${
@@ -69,6 +76,11 @@ export function SignalExplanation({ symbol, direction, confidence, entry, timefr
                 }`}>
                   {source === 'ai' ? 'AI analysis' : 'Pattern match'}
                 </span>
+                {flipFrom && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded text-amber-400 bg-amber-500/10 border border-amber-500/20">
+                    Flip {flipFrom} → {direction}
+                  </span>
+                )}
               </div>
             </div>
           )}

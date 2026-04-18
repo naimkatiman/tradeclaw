@@ -93,6 +93,8 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       takeProfit1: signal.takeProfit1,
       stopLoss: signal.stopLoss,
       strategyId,
+      entryAtr: signal.entryAtr,
+      atrMultiplier: signal.atrMultiplier,
     }));
 
     // Record to PostgreSQL (or file fallback) — fire and forget
