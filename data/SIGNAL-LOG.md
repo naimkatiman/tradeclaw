@@ -4,7 +4,7 @@
 > Verify with: `git log --oneline data/signal-log.json`
 
 ## Stats
-- **Total Signals:** 5
+- **Total Signals:** 6
 - **Verified:** 0
 - **Win Rate:** N/A%
 - **Avg P&L:** 0%
@@ -15,4 +15,4 @@
 | - | - | - | - | - | - | - | - |
 
 ---
-Last updated: 2026-04-19T00:33:19Z
+Last updated: 2026-04-19T06:37:16Z
