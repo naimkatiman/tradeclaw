@@ -32,6 +32,23 @@ TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (R
 
 Start free at [tradeclaw.win/dashboard](https://tradeclaw.win/dashboard). Upgrade anytime at [tradeclaw.win/pricing](https://tradeclaw.win/pricing).
 
+## Self-hosting vs. TradeClaw Pro (hosted)
+
+TradeClaw is MIT-licensed. You can fork, self-host, and run the entire signal framework for free — the free-tier signal engine (classic TA, RSI + EMA + MACD confluence), backtester, dashboard, paper trading, and public Telegram broadcaster are all in this repo.
+
+The hosted version at **tradeclaw.win** adds features that activate only when the deploy holds the matching credentials:
+
+| Feature | Unlocked by env var | Who has it |
+|---|---|---|
+| Real-time premium signals (MTF confluence, curated) | `PREMIUM_SIGNAL_SOURCE_URL` + `PREMIUM_SIGNAL_SOURCE_KEY` | tradeclaw.win only |
+| Stripe checkout + tier upgrade on webhook | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Per-deploy |
+| Private Pro Telegram group + invite on subscribe | `TELEGRAM_PRO_GROUP_ID` + Pro bot token | tradeclaw.win only |
+| Telegram auto-broadcast of free symbols | `TELEGRAM_CHANNEL_ID` + bot token | Per-deploy |
+
+Without these, self-hosters get the free-tier experience — which is the same signal engine the founders trade against real capital. **No code is withheld.** What is withheld is the curated premium signal feed and the payment plumbing. Those are operational, not algorithmic.
+
+If you want to run your own paid tier on top of this code: set your own Stripe keys, run your own premium signal generator, and point `PREMIUM_SIGNAL_SOURCE_URL` at it. The HTTP contract is minimal — `GET <url>` returning `{ signals: TradingSignal[] }` with a Bearer `Authorization` header using `PREMIUM_SIGNAL_SOURCE_KEY`. Returns `[]` (and the hosted deploy keeps working with the DB-backed `premium_signals` table) if the remote is down.
+
 ## Self-host with Docker Compose
 
 ```bash
