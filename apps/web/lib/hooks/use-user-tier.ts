@@ -4,21 +4,32 @@ import { useEffect, useState } from 'react';
 
 export type ClientTier = 'free' | 'pro' | 'elite' | 'custom';
 
+export interface ClientSession {
+  userId: string;
+  email: string;
+  tier: ClientTier;
+}
+
 interface SessionResponse {
   success: boolean;
-  data: { userId: string; email: string; tier: ClientTier } | null;
+  data: ClientSession | null;
+}
+
+export interface SessionState {
+  status: 'loading' | 'authenticated' | 'anonymous';
+  session: ClientSession | null;
 }
 
 /**
- * Client hook that resolves the signed-in user's tier from /api/auth/session.
- * Returns null while loading and when the user is not signed in.
- *
- * Treat null as "free" for gating purposes at render time — anonymous
- * visitors share the free tier's UX (locked TPs, 24h history, etc.) since
- * the server has already filtered their signal payload.
+ * Client hook that resolves the signed-in user's full session from
+ * /api/auth/session. Returns a discriminated state so consumers can
+ * distinguish "still loading" from "signed out".
  */
-export function useUserTier(): ClientTier | null {
-  const [tier, setTier] = useState<ClientTier | null>(null);
+export function useUserSession(): SessionState {
+  const [state, setState] = useState<SessionState>({
+    status: 'loading',
+    session: null,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -27,9 +38,13 @@ export function useUserTier(): ClientTier | null {
         const res = await fetch('/api/auth/session', { credentials: 'same-origin' });
         const json = (await res.json()) as SessionResponse;
         if (cancelled) return;
-        setTier(json.data?.tier ?? null);
+        if (json.data) {
+          setState({ status: 'authenticated', session: json.data });
+        } else {
+          setState({ status: 'anonymous', session: null });
+        }
       } catch {
-        if (!cancelled) setTier(null);
+        if (!cancelled) setState({ status: 'anonymous', session: null });
       }
     })();
     return () => {
@@ -37,5 +52,16 @@ export function useUserTier(): ClientTier | null {
     };
   }, []);
 
-  return tier;
+  return state;
+}
+
+/**
+ * Convenience hook: returns just the tier string or null. Treat null as
+ * "free" for gating purposes at render time — anonymous visitors share
+ * the free tier's UX (locked TPs, 24h history, etc.) since the server has
+ * already filtered their signal payload.
+ */
+export function useUserTier(): ClientTier | null {
+  const { session } = useUserSession();
+  return session?.tier ?? null;
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useUserSession } from '../../../lib/hooks/use-user-tier';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -154,13 +155,17 @@ function UpgradeCard({ tier, currentTier, userId, onError }: UpgradeCardProps) {
 // ---------------------------------------------------------------------------
 
 export default function BillingPage() {
-  // Demo view — in production, read tier + userId from session/auth context.
-  const userId = '';
-  const currentTier: Tier = 'free';
+  const { status, session } = useUserSession();
+  const userId = session?.userId ?? '';
+  // Narrow the server tier ('free'|'pro'|'elite'|'custom') to what this page
+  // actually renders. Billing is Free/Pro only today; elite/custom are
+  // historical grants that still render as "Pro" on the current-plan card.
+  const currentTier: Tier = session?.tier === 'pro' ? 'pro' : 'free';
 
   const plan = PLANS[currentTier];
   const [error, setError] = useState<string | null>(null);
-  const isDemo = !userId;
+  const isLoading = status === 'loading';
+  const isDemo = status === 'anonymous';
   const [portalLoading, setPortalLoading] = useState(false);
 
   async function openPortal() {
@@ -199,9 +204,18 @@ export default function BillingPage() {
           Back to Dashboard
         </Link>
 
+        {isLoading && (
+          <div className="mb-4 rounded-lg border border-white/5 bg-white/[0.02] px-4 py-3 text-sm text-zinc-500">
+            Loading your subscription…
+          </div>
+        )}
         {isDemo && (
           <div className="mb-4 rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-3 text-sm text-zinc-800 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200">
-            <strong>Demo Mode</strong> — Sign in to view your subscription and manage billing.
+            <strong>Not signed in</strong> —{' '}
+            <Link href="/signin?next=/dashboard/billing" className="underline hover:text-emerald-400">
+              Sign in
+            </Link>{' '}
+            to view your subscription and manage billing.
           </div>
         )}
 
