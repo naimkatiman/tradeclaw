@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readKeys, createKey, listKeysByEmail } from '@/lib/api-keys';
+import { readSessionFromRequest } from '@/lib/user-session';
+import { getTierFromRequest, upgradeRequiredBody, meetsMinimumTier } from '@/lib/tier';
+import { getUserById } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +29,26 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. Must be signed in. Previous implementation accepted any email in the
+    //    body — a silent leak where anyone could mint keys for any email.
+    const session = readSessionFromRequest(req);
+    if (!session?.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. Must be Pro+. API access is a Pro feature.
+    const tier = await getTierFromRequest(req);
+    if (!meetsMinimumTier(tier, 'pro')) {
+      return NextResponse.json(
+        upgradeRequiredBody({
+          reason:
+            'API access is a Pro feature. Free dashboards stay free — upgrade to mint API keys.',
+          source: 'api-keys',
+        }),
+        { status: 402 },
+      );
+    }
+
     const body = await req.json() as Record<string, unknown>;
     const { name, email, description, scopes } = body;
 
@@ -38,6 +61,16 @@ export async function POST(req: NextRequest) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+    }
+
+    // 3. Email in body must match session email — prevents authed users from
+    //    minting keys pinned to a different email.
+    const user = await getUserById(session.userId);
+    if (!user || user.email.toLowerCase() !== email.toLowerCase()) {
+      return NextResponse.json(
+        { error: 'Email must match the signed-in account' },
+        { status: 403 },
+      );
     }
 
     const validScopes = ['signals', 'leaderboard', 'screener'] as const;
