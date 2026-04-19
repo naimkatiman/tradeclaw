@@ -23,8 +23,9 @@ interface SignalChartProps {
   entry: number;
   stopLoss: number;
   takeProfit1: number;
-  takeProfit2?: number;
-  takeProfit3?: number;
+  /** Null when the tier mask has stripped this level (free tier). Undefined when unset. */
+  takeProfit2?: number | null;
+  takeProfit3?: number | null;
   signalTime?: UTCTimestamp;
   height?: number;
   /** pip size for price formatting (e.g. 0.0001 for forex, 0.01 for gold/crypto) */

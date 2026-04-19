@@ -92,5 +92,5 @@ function rowToSignal(r: Row): TradingSignal {
     timestamp: new Date(r.signal_ts).getTime(),
     source: 'real',
     dataQuality: 'real',
-  } as TradingSignal;
+  } as unknown as TradingSignal;
 }

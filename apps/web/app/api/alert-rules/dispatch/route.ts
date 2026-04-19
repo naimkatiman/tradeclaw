@@ -29,11 +29,11 @@ export async function POST(req: NextRequest) {
     const configsByChannel = new Map(configs.map((c) => [c.channel, c]));
 
     for (const channelName of rule.channels) {
-      const cfg = configsByChannel.get(channelName);
+      const cfg = configsByChannel.get(channelName as 'telegram' | 'discord' | 'email' | 'webhook');
       if (!cfg || !cfg.enabled) continue;
 
       try {
-        const { createChannel } = await import('@tradeclaw/agent/channels/base');
+        const { createChannel } = await import('@naimkatiman/tradeclaw-agent');
         const channelConfig = {
           type: channelName as 'telegram' | 'discord' | 'webhook',
           enabled: true,

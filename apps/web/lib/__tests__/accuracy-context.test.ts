@@ -19,11 +19,12 @@ describe('computeAccuracyContext', () => {
       row('BTCUSD', 'H1', false, now - 10800_000),
     ];
     const ctx = computeAccuracyContext(rows, 'BTCUSD', 'H1');
-    expect(ctx.winRate).toBeCloseTo(66.67, 0);
-    expect(ctx.sampleSize).toBe(3);
-    expect(ctx.windowLabel).toBe('24h');
-    expect(ctx.oldestSampleTs).toBe(rows[2].created_at);
-    expect(ctx.newestSampleTs).toBe(rows[0].created_at);
+    expect(ctx).not.toBeNull();
+    expect(ctx!.winRate).toBeCloseTo(66.67, 0);
+    expect(ctx!.sampleSize).toBe(3);
+    expect(ctx!.windowLabel).toBe('24h');
+    expect(ctx!.oldestSampleTs).toBe(rows[2].created_at);
+    expect(ctx!.newestSampleTs).toBe(rows[0].created_at);
   });
 
   it('returns null when no matching rows exist', () => {

@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
 
       // Tier-based gating: symbol filter, TP masking, delay
       let gatedMapped = mapped
-        .map(s => filterSignalByTier(s as TradingSignal, tier))
+        .map(s => filterSignalByTier(s as unknown as TradingSignal, tier))
         .filter((s): s is NonNullable<typeof s> => s !== null);
 
       if (delayMs > 0) {

@@ -20,21 +20,24 @@ function pick<T>(arr: T[], seed: number, offset = 0): T {
 
 // ─── Price Formatting ────────────────────────────────────────
 
-function fmt(p: number): string {
+function fmt(p: number | null | undefined): string {
+  if (p == null) return '—';
   if (p >= 10000) return p.toFixed(2);
   if (p >= 100) return p.toFixed(2);
   if (p >= 1) return p.toFixed(4);
   return p.toFixed(5);
 }
 
-function rrRatio(entry: number, sl: number, tp: number): string {
+function rrRatio(entry: number, sl: number, tp: number | null | undefined): string {
+  if (tp == null) return '—';
   const risk = Math.abs(entry - sl);
   const reward = Math.abs(tp - entry);
   if (risk === 0) return '∞';
   return (reward / risk).toFixed(2);
 }
 
-function distLabel(entry: number, level: number): string {
+function distLabel(entry: number, level: number | null | undefined): string {
+  if (level == null) return '—';
   const diff = Math.abs(entry - level);
   const pct = ((diff / entry) * 100).toFixed(2);
   return `${fmt(diff)} (${pct}%)`;

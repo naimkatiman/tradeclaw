@@ -390,8 +390,8 @@ export function TrackRecordClient() {
           </div>
         </div>
 
-        {/* Equity Curve — component brings its own card + header */}
-        <EquityCurve period={period} />
+        {/* Equity Curve — component accepts a narrower period set; map unsupported periods to 'all' */}
+        <EquityCurve period={period === '7d' || period === '30d' ? period : 'all'} />
 
         {/* Per-Symbol Breakdown */}
         <section className="mb-8">

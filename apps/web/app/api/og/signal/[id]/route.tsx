@@ -35,8 +35,8 @@ export async function GET(
       entry = sig.entry;
       sl = sig.stopLoss;
       tp1 = sig.takeProfit1;
-      tp2 = sig.takeProfit2;
-      tp3 = sig.takeProfit3;
+      tp2 = sig.takeProfit2 ?? 0;
+      tp3 = sig.takeProfit3 ?? 0;
       confidence = sig.confidence;
       rsiValue = sig.indicators.rsi.value;
       macdHist = sig.indicators.macd.histogram;

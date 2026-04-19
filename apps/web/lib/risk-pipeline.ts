@@ -37,8 +37,8 @@ interface SignalForPipeline {
   entry: number;
   stopLoss: number;
   takeProfit1: number;
-  takeProfit2: number;
-  takeProfit3: number;
+  takeProfit2: number | null;
+  takeProfit3: number | null;
   timeframe: string;
 }
 

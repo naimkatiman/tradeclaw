@@ -93,7 +93,8 @@ function e(text: string): string {
   return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
 }
 
-function formatPrice(p: number): string {
+function formatPrice(p: number | null | undefined): string {
+  if (p == null) return '—';
   if (p >= 1000) return p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (p >= 1) return p.toFixed(4);
   return p.toFixed(5);
