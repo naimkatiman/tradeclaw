@@ -76,3 +76,8 @@
 [2026-04-11T15:30:32+08:00] SUCCESS — Done: 0 confluence | 0 individual | 0 errors
 [2026-04-11T16:15:23+08:00] SUCCESS — Done: 0 confluence | 0 individual | 0 errors
 [2026-04-11T18:15:27+08:00] SUCCESS — Done: 0 confluence | 0 individual | 0 errors
+[2026-04-17T17:07:41+08:00] FAIL — scanner engine launch denied: gateway approval-timeout (allowlist-miss)
+[2026-04-17T18:49:00+08:00] FAIL — scanner engine launch denied: gateway approval-timeout (allowlist-miss)
+[2026-04-18 14:04 GMT+8] scanner-engine.py failed: approval-timeout (allowlist-miss) on exec command
+[2026-04-18 14:17:15 +08] scanner-engine failed: python not found when running python /home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py
+[2026-04-18 17:47:00 +0800] scanner-engine failed: exec preflight: complex interpreter invocation detected; refusing to run without script preflight validation. Use a direct `python <file>.py` or `node <file>.js` command.
