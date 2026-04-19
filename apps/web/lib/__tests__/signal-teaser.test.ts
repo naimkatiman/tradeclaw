@@ -26,6 +26,7 @@ describe('signal-teaser — toTeaser', () => {
     const teaser: SignalTeaser = toTeaser(makeSignal());
     expect(teaser).toEqual({
       symbol: 'BTCUSD',
+      timeframe: 'H1',
       direction: 'BUY',
       confidence: 87,
       timestamp: 1_700_000_000_000,

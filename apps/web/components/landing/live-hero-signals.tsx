@@ -1,35 +1,34 @@
 /**
  * LiveHeroSignals — Server component.
- * Fetches real signals at page render time and renders them as
- * a "what the platform is seeing RIGHT NOW" strip above the fold.
+ *
+ * Renders the landing-hero ticker of recent signals. Fetches the
+ * **public teaser endpoint** `/api/signals/public` which returns only
+ * symbol/timeframe/direction/confidence/timestamp — no entry, no SL,
+ * no TP values, no stable signal id. Scraping this page reveals
+ * nothing tradable.
+ *
+ * Per-card links route to `/signal/<symbol>-<timeframe>-<direction>`
+ * which is tier-gated at the server — free/anon viewers see locked
+ * price pills + upgrade CTA there.
  */
 
 import Link from 'next/link';
-import {
-  PUBLISHED_SIGNAL_MIN_CONFIDENCE,
-  WATCHLIST_MIN_CONFIDENCE,
-} from '../../lib/signal-thresholds';
+import type { SignalTeaser } from '../../lib/signal-teaser';
 
-interface Signal {
-  pair?: string;
-  symbol?: string;
-  direction: 'BUY' | 'SELL';
-  confidence: number;
-  timeframe?: string;
-  price?: number;
-  dataQuality?: 'real' | 'synthetic';
+interface TeaserResponse {
+  count: number;
+  signals: SignalTeaser[];
 }
 
-async function fetchLiveSignals(): Promise<Signal[]> {
+async function fetchTeaserSignals(): Promise<SignalTeaser[]> {
   try {
-    // Use internal URL for server-side fetch (same process)
     const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
-    const res = await fetch(`${base}/api/signals?limit=16`, {
-      next: { revalidate: 60 }, // revalidate every 60s
+    const res = await fetch(`${base}/api/signals/public`, {
+      next: { revalidate: 60 },
     });
     if (!res.ok) return [];
-    const data = await res.json();
-    return Array.isArray(data) ? data : data.signals ?? [];
+    const data = (await res.json()) as TeaserResponse;
+    return Array.isArray(data.signals) ? data.signals.slice(0, 8) : [];
   } catch {
     return [];
   }
@@ -38,24 +37,8 @@ async function fetchLiveSignals(): Promise<Signal[]> {
 const PLACEHOLDER_PAIRS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'XAGUSD'];
 
 export async function LiveHeroSignals() {
-  const rawSignals = await fetchLiveSignals();
-  const realSignals = rawSignals.filter((signal) => signal.dataQuality !== 'synthetic');
-  const publishedSignals = realSignals.filter(
-    (signal) => signal.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE,
-  );
-  const watchlistSignals = realSignals.filter(
-    (signal) =>
-      signal.confidence >= WATCHLIST_MIN_CONFIDENCE &&
-      signal.confidence < PUBLISHED_SIGNAL_MIN_CONFIDENCE,
-  );
-
-  // Show published signals if available, otherwise fall back to watchlist-tier signals
-  // so the hero never shows "Generating signals..." when real data exists
-  const hasRealSignals = publishedSignals.length >= 1 || watchlistSignals.length >= 1;
-  const signals = publishedSignals.length >= 1
-    ? publishedSignals.slice(0, 8)
-    : watchlistSignals.slice(0, 8);
-  const watchlist = publishedSignals.length >= 1 ? watchlistSignals.slice(0, 4) : [];
+  const signals = await fetchTeaserSignals();
+  const hasRealSignals = signals.length > 0;
 
   return (
     <section className="relative px-4 pb-6 -mt-4">
@@ -79,14 +62,14 @@ export async function LiveHeroSignals() {
               />
               <style>{`@keyframes lhsPulse{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
               <span className="text-white/60 text-xs font-medium">
-                Live signals — {PUBLISHED_SIGNAL_MIN_CONFIDENCE}%+ only
+                Live signals — public preview
               </span>
             </div>
             <Link
-              href="/dashboard"
+              href="/pricing?from=hero"
               className="text-emerald-400 hover:text-emerald-300 text-xs transition-colors"
             >
-              Full dashboard →
+              Unlock entry &amp; TP →
             </Link>
           </div>
 
@@ -95,17 +78,18 @@ export async function LiveHeroSignals() {
             {hasRealSignals ? (
               <>
                 {signals.map((sig, i) => {
-                  const pair = sig.pair ?? sig.symbol ?? 'UNKNOWN';
                   const isBuy = sig.direction === 'BUY';
                   return (
                     <Link
-                      key={`${pair}-${i}`}
-                      href={`/signal/${pair}-${sig.timeframe ?? 'H1'}-${sig.direction}`}
+                      key={`${sig.symbol}-${i}`}
+                      href={`/signal/${sig.symbol}-${sig.timeframe}-${sig.direction}`}
                       className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-r border-white/6 hover:bg-white/5 transition-colors group"
                     >
                       <div>
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-white text-xs font-bold tracking-wide">{pair.replace('USD', '/USD').replace('EUR', 'EUR/')}</span>
+                          <span className="text-white text-xs font-bold tracking-wide">
+                            {sig.symbol.replace('USD', '/USD').replace('EUR', 'EUR/')}
+                          </span>
                           <span
                             className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
                               isBuy
@@ -137,10 +121,10 @@ export async function LiveHeroSignals() {
                   );
                 })}
                 <Link
-                  href="/screener"
+                  href="/pricing?from=hero-all"
                   className="flex-shrink-0 flex items-center gap-1 px-4 py-3 text-emerald-400 hover:text-emerald-300 text-xs transition-colors whitespace-nowrap"
                 >
-                  View all →
+                  Upgrade for full signals →
                 </Link>
               </>
             ) : (
@@ -176,31 +160,6 @@ export async function LiveHeroSignals() {
               </>
             )}
           </div>
-
-          {watchlist.length > 0 && (
-            <div className="border-t border-white/8 px-4 py-2.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/35">
-                  On watch
-                </span>
-                <span className="text-[10px] text-white/25">
-                  Building setups below {PUBLISHED_SIGNAL_MIN_CONFIDENCE}% and not published as signals yet
-                </span>
-                {watchlist.map((sig) => {
-                  const pair = sig.pair ?? sig.symbol ?? 'UNKNOWN';
-                  return (
-                    <Link
-                      key={`${pair}-${sig.timeframe ?? 'H1'}-${sig.direction}-watch`}
-                      href={`/signal/${pair}-${sig.timeframe ?? 'H1'}-${sig.direction}`}
-                      className="rounded-full border border-white/8 bg-white/4 px-2.5 py-1 text-[11px] text-white/55 transition-colors hover:border-white/16 hover:text-white/80"
-                    >
-                      {pair} {sig.direction} {sig.confidence}%
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </section>
