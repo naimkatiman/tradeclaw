@@ -33,7 +33,7 @@ describe('signal-teaser — toTeaser', () => {
   });
 
   it('strips id, entry, stopLoss, takeProfit*, indicators', () => {
-    const teaser = toTeaser(makeSignal()) as Record<string, unknown>;
+    const teaser = toTeaser(makeSignal()) as unknown as Record<string, unknown>;
     expect('id' in teaser).toBe(false);
     expect('entry' in teaser).toBe(false);
     expect('stopLoss' in teaser).toBe(false);
@@ -49,9 +49,14 @@ describe('signal-teaser — toTeaser', () => {
   });
 
   it('normalizes a Date-string timestamp to a number', () => {
-    const teaser = toTeaser(
-      makeSignal({ timestamp: new Date(1_700_000_000_000).toISOString() as unknown as number }),
-    );
+    const base = makeSignal();
+    // Simulate a malformed payload where timestamp slipped through as an ISO
+    // string — the function must still produce a numeric output.
+    const withStringTs = {
+      ...base,
+      timestamp: new Date(1_700_000_000_000).toISOString(),
+    } as unknown as TradingSignal;
+    const teaser = toTeaser(withStringTs);
     expect(typeof teaser.timestamp).toBe('number');
     expect(teaser.timestamp).toBe(1_700_000_000_000);
   });

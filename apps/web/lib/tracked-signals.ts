@@ -166,21 +166,43 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
     );
   }
 
-  // Merge premium signals (TradingView webhook ingest). Empty for anonymous
-  // callers — the license check inside getPremiumSignalsFor short-circuits.
+  // Merge premium signals. Two possible sources:
+  //   1. premium_signals DB table (TradingView webhook ingest) — always on.
+  //   2. Remote HTTP feed at PREMIUM_SIGNAL_SOURCE_URL — only on tradeclaw.win
+  //      deploys that set the env var. Self-hosts see [] here.
+  //
+  // getPremiumSignalsFor is license-gated inside and returns [] for free-only
+  // callers. The HTTP source is double-gated here by the local license check
+  // so a misconfigured remote cannot leak premium strategies to a free caller.
   try {
-    const premium = await getPremiumSignalsFor(ctx, {
-      symbol: params.symbol,
-      timeframe: params.timeframe,
-      direction: params.direction,
-    });
-    if (premium.length > 0) {
-      result.signals = [...result.signals, ...premium].sort(
+    const { fetchPremiumFromHttp } = await import('./premium-signal-source');
+    const [fromDb, fromHttp] = await Promise.all([
+      getPremiumSignalsFor(ctx, {
+        symbol: params.symbol,
+        timeframe: params.timeframe,
+        direction: params.direction,
+      }),
+      fetchPremiumFromHttp(),
+    ]);
+
+    const httpAllowed = fromHttp.filter((s) =>
+      ctx.unlockedStrategies.has(s.strategyId ?? FREE_STRATEGY),
+    );
+
+    const extras = [...fromDb, ...httpAllowed];
+    if (extras.length > 0) {
+      const seen = new Set(result.signals.map((s) => s.id));
+      const deduped = extras.filter((s) => {
+        if (seen.has(s.id)) return false;
+        seen.add(s.id);
+        return true;
+      });
+      result.signals = [...result.signals, ...deduped].sort(
         (a, b) => b.confidence - a.confidence,
       );
     }
   } catch {
-    // Premium table missing or DB blip — don't break the free path.
+    // Premium table missing, remote down, or DB blip — don't break the free path.
   }
 
   return result;
