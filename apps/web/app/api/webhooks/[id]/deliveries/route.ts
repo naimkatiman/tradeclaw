@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getWebhookDeliveries } from '../../../../../lib/webhooks';
+import { readSessionFromRequest } from '../../../../../lib/user-session';
 
-// GET /api/webhooks/[id]/deliveries — get delivery log for a webhook
+// GET /api/webhooks/[id]/deliveries — delivery log for a webhook owned by the caller
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = readSessionFromRequest(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
+  }
   try {
     const { id } = await params;
 
-    const deliveries = getWebhookDeliveries(id);
+    const deliveries = await getWebhookDeliveries({ userId: session.userId, id });
     if (deliveries === null) {
       return NextResponse.json({ error: 'Webhook not found' }, { status: 404 });
     }

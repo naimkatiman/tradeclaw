@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const session = readSessionFromRequest(request);
-    const serverData = collectServerData(session?.userId);
+    const serverData = await collectServerData(session?.userId);
     const payload = buildExportPayload(serverData);
     return NextResponse.json(payload);
   } catch (err) {

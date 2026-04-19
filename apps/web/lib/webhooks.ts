@@ -1,6 +1,5 @@
-import fs from 'fs';
-import path from 'path';
 import crypto from 'crypto';
+import { query, queryOne, execute } from './db-pool';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -17,6 +16,7 @@ export interface WebhookDelivery {
 
 export interface WebhookConfig {
   id: string;
+  userId: string;
   name: string;
   url: string;
   secret?: string;
@@ -26,8 +26,7 @@ export interface WebhookConfig {
   createdAt: string;
   lastDelivery?: string;
   deliveryCount: number;
-  failCount: number; // consecutive failures
-  deliveryLog: WebhookDelivery[];
+  failCount: number; // consecutive failures since last success
 }
 
 export interface WebhookPayload {
@@ -51,45 +50,42 @@ export interface WebhookPayload {
 }
 
 // ---------------------------------------------------------------------------
-// File storage
+// Row → Record mapping
 // ---------------------------------------------------------------------------
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const WEBHOOKS_FILE = path.join(DATA_DIR, 'webhooks.json');
-
-function ensureDataDir(): void {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
+interface WebhookRow {
+  id: string;
+  user_id: string;
+  name: string;
+  url: string;
+  secret: string | null;
+  pairs: unknown; // JSONB — either "all" string or string[]
+  min_confidence: number;
+  enabled: boolean;
+  delivery_count: number;
+  fail_count: number;
+  last_delivery_at: string | null;
+  created_at: string;
 }
 
-export function readWebhooks(): WebhookConfig[] {
-  ensureDataDir();
-  if (!fs.existsSync(WEBHOOKS_FILE)) return [];
-  try {
-    const raw = fs.readFileSync(WEBHOOKS_FILE, 'utf-8');
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [];
-    // Migrate old entries that lack new fields
-    return (parsed as WebhookConfig[]).map((w) => ({
-      ...w,
-      pairs: w.pairs ?? ('all' as const),
-      minConfidence: w.minConfidence ?? 0,
-      deliveryCount: w.deliveryCount ?? 0,
-      failCount: w.failCount ?? 0,
-    }));
-  } catch {
-    return [];
-  }
-}
-
-function writeWebhooks(webhooks: WebhookConfig[]): void {
-  ensureDataDir();
-  try {
-    fs.writeFileSync(WEBHOOKS_FILE, JSON.stringify(webhooks, null, 2), 'utf-8');
-  } catch {
-    // Silently fail on read-only FS (e.g. Vercel)
-  }
+function toConfig(row: WebhookRow): WebhookConfig {
+  const pairs = row.pairs === 'all'
+    ? ('all' as const)
+    : Array.isArray(row.pairs) ? row.pairs.filter((p): p is string => typeof p === 'string') : ('all' as const);
+  return {
+    id: row.id,
+    userId: row.user_id,
+    name: row.name,
+    url: row.url,
+    secret: row.secret ?? undefined,
+    pairs,
+    minConfidence: row.min_confidence,
+    enabled: row.enabled,
+    createdAt: new Date(row.created_at).toISOString(),
+    lastDelivery: row.last_delivery_at ? new Date(row.last_delivery_at).toISOString() : undefined,
+    deliveryCount: row.delivery_count,
+    failCount: row.fail_count,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -97,122 +93,215 @@ function writeWebhooks(webhooks: WebhookConfig[]): void {
 // ---------------------------------------------------------------------------
 
 function isUnsafeUrl(url: string): boolean {
-  // Reject non-https protocols
   if (!/^https:\/\//i.test(url)) return true;
-
-  // Reject dangerous protocol prefixes that could be embedded
   if (/^(file|ftp|data):\/\//i.test(url)) return true;
 
   let hostname: string;
   try {
     hostname = new URL(url).hostname;
   } catch {
-    return true; // Unparseable URL is unsafe
+    return true;
   }
 
-  // Reject IPv6 loopback
   if (hostname === '[::1]' || hostname === '::1') return true;
-
-  // Reject IPv6 private (fc00::/7)
   if (/^\[?f[cd]/i.test(hostname)) return true;
 
-  // Check for IPv4 private/internal ranges
   const ipv4Match = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (ipv4Match) {
     const [, a, b] = ipv4Match.map(Number);
-    if (a === 127) return true;                         // 127.0.0.0/8
-    if (a === 10) return true;                          // 10.0.0.0/8
-    if (a === 172 && b >= 16 && b <= 31) return true;   // 172.16.0.0/12
-    if (a === 192 && b === 168) return true;            // 192.168.0.0/16
-    if (a === 169 && b === 254) return true;            // 169.254.0.0/16
+    if (a === 127) return true;
+    if (a === 10) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 169 && b === 254) return true;
   }
 
-  // Reject localhost by name
   if (hostname === 'localhost' || hostname.endsWith('.localhost')) return true;
-
   return false;
 }
 
 // ---------------------------------------------------------------------------
-// CRUD
+// CRUD (user-scoped)
 // ---------------------------------------------------------------------------
 
-export function addWebhook(opts: {
+const SELECT_COLS = `id, user_id, name, url, secret, pairs, min_confidence,
+                     enabled, delivery_count, fail_count, last_delivery_at, created_at`;
+
+export async function readWebhooks(userId: string): Promise<WebhookConfig[]> {
+  const rows = await query<WebhookRow>(
+    `SELECT ${SELECT_COLS} FROM webhooks WHERE user_id = $1 ORDER BY created_at DESC`,
+    [userId],
+  );
+  return rows.map(toConfig);
+}
+
+/**
+ * Internal: enabled rows across all users. Used only by the dispatch path,
+ * which is protected by CRON_SECRET and fans a single signal out to every
+ * registered subscriber — that cross-user semantic is intentional.
+ */
+export async function readAllEnabledForDispatch(): Promise<WebhookConfig[]> {
+  const rows = await query<WebhookRow>(
+    `SELECT ${SELECT_COLS} FROM webhooks WHERE enabled = TRUE`,
+  );
+  return rows.map(toConfig);
+}
+
+export async function addWebhook(opts: {
+  userId: string;
   url: string;
   name?: string;
   secret?: string;
   pairs?: string[] | 'all';
   minConfidence?: number;
-}): WebhookConfig {
+}): Promise<WebhookConfig> {
   if (!opts.url || opts.url.length > 2048) throw new Error('URL must be between 1 and 2048 characters');
   if (opts.name && opts.name.length > 100) throw new Error('Name must be 100 characters or fewer');
   if (isUnsafeUrl(opts.url)) throw new Error('URL is not allowed: must be HTTPS and not target internal/private addresses');
-  const webhooks = readWebhooks();
-  const wh: WebhookConfig = {
-    id: `wh_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    name: opts.name ?? '',
-    url: opts.url,
-    secret: opts.secret,
-    pairs: opts.pairs ?? 'all',
-    minConfidence: opts.minConfidence ?? 0,
-    enabled: true,
-    createdAt: new Date().toISOString(),
-    deliveryCount: 0,
-    failCount: 0,
-    deliveryLog: [],
-  };
-  webhooks.push(wh);
-  writeWebhooks(webhooks);
-  return wh;
+
+  const id = `wh_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const pairsJson = JSON.stringify(opts.pairs ?? 'all');
+  const row = await queryOne<WebhookRow>(
+    `INSERT INTO webhooks (id, user_id, name, url, secret, pairs, min_confidence)
+     VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
+     RETURNING ${SELECT_COLS}`,
+    [id, opts.userId, opts.name ?? '', opts.url, opts.secret ?? null, pairsJson, opts.minConfidence ?? 0],
+  );
+  if (!row) throw new Error('addWebhook: insert returned no row');
+  return toConfig(row);
 }
 
-export function removeWebhook(id: string): boolean {
-  const webhooks = readWebhooks();
-  const idx = webhooks.findIndex((w) => w.id === id);
-  if (idx === -1) return false;
-  webhooks.splice(idx, 1);
-  writeWebhooks(webhooks);
-  return true;
+export async function removeWebhook(opts: { userId: string; id: string }): Promise<boolean> {
+  const rows = await query<{ id: string }>(
+    `DELETE FROM webhooks WHERE id = $1 AND user_id = $2 RETURNING id`,
+    [opts.id, opts.userId],
+  );
+  return rows.length > 0;
 }
 
-export function updateWebhook(
-  id: string,
-  patch: Partial<Pick<WebhookConfig, 'name' | 'url' | 'secret' | 'enabled' | 'pairs' | 'minConfidence'>>
-): WebhookConfig | null {
+type WebhookPatch = Partial<Pick<WebhookConfig, 'name' | 'url' | 'secret' | 'enabled' | 'pairs' | 'minConfidence'>>;
+
+export async function updateWebhook(
+  opts: { userId: string; id: string },
+  patch: WebhookPatch,
+): Promise<WebhookConfig | null> {
   if (patch.url !== undefined) {
     if (!patch.url || patch.url.length > 2048) throw new Error('URL must be between 1 and 2048 characters');
     if (isUnsafeUrl(patch.url)) throw new Error('URL is not allowed: must be HTTPS and not target internal/private addresses');
   }
   if (patch.name !== undefined && patch.name.length > 100) throw new Error('Name must be 100 characters or fewer');
-  const webhooks = readWebhooks();
-  const wh = webhooks.find((w) => w.id === id);
-  if (!wh) return null;
-  Object.assign(wh, patch);
-  writeWebhooks(webhooks);
-  return wh;
-}
 
-export function getWebhookDeliveries(id: string): WebhookDelivery[] | null {
-  const wh = readWebhooks().find((w) => w.id === id);
-  return wh ? wh.deliveryLog : null;
-}
+  const sets: string[] = [];
+  const params: unknown[] = [];
+  let i = 1;
+  if (patch.name !== undefined) { sets.push(`name = $${i++}`); params.push(patch.name); }
+  if (patch.url !== undefined) { sets.push(`url = $${i++}`); params.push(patch.url); }
+  if (patch.secret !== undefined) { sets.push(`secret = $${i++}`); params.push(patch.secret ?? null); }
+  if (patch.enabled !== undefined) { sets.push(`enabled = $${i++}`); params.push(patch.enabled); }
+  if (patch.pairs !== undefined) { sets.push(`pairs = $${i++}::jsonb`); params.push(JSON.stringify(patch.pairs)); }
+  if (patch.minConfidence !== undefined) { sets.push(`min_confidence = $${i++}`); params.push(patch.minConfidence); }
 
-function appendDeliveryLog(id: string, entry: WebhookDelivery): void {
-  const webhooks = readWebhooks();
-  const wh = webhooks.find((w) => w.id === id);
-  if (!wh) return;
-  wh.deliveryLog.unshift(entry); // newest first
-  if (wh.deliveryLog.length > 50) {
-    wh.deliveryLog = wh.deliveryLog.slice(0, 50);
+  if (sets.length === 0) {
+    // No-op patch: just return the current row (or null).
+    const row = await queryOne<WebhookRow>(
+      `SELECT ${SELECT_COLS} FROM webhooks WHERE id = $1 AND user_id = $2`,
+      [opts.id, opts.userId],
+    );
+    return row ? toConfig(row) : null;
   }
-  wh.deliveryCount = (wh.deliveryCount ?? 0) + 1;
-  wh.lastDelivery = entry.timestamp;
+
+  params.push(opts.id, opts.userId);
+  const row = await queryOne<WebhookRow>(
+    `UPDATE webhooks SET ${sets.join(', ')}
+     WHERE id = $${i++} AND user_id = $${i++}
+     RETURNING ${SELECT_COLS}`,
+    params,
+  );
+  return row ? toConfig(row) : null;
+}
+
+export async function getWebhookDeliveries(opts: { userId: string; id: string }): Promise<WebhookDelivery[] | null> {
+  // Ownership check first — fail with null (becomes 404) if the row isn't theirs.
+  const owner = await queryOne<{ id: string }>(
+    `SELECT id FROM webhooks WHERE id = $1 AND user_id = $2`,
+    [opts.id, opts.userId],
+  );
+  if (!owner) return null;
+
+  const rows = await query<{
+    timestamp: string;
+    status_code: number | null;
+    success: boolean;
+    attempt: number;
+    response_time_ms: number;
+    error: string | null;
+  }>(
+    `SELECT timestamp, status_code, success, attempt, response_time_ms, error
+     FROM webhook_deliveries
+     WHERE webhook_id = $1
+     ORDER BY timestamp DESC
+     LIMIT 50`,
+    [opts.id],
+  );
+  return rows.map((r) => ({
+    timestamp: new Date(r.timestamp).toISOString(),
+    statusCode: r.status_code,
+    success: r.success,
+    attempt: r.attempt,
+    responseTime: r.response_time_ms,
+    error: r.error,
+  }));
+}
+
+/** Fetch by id with ownership check. Used by test/deliver routes. */
+export async function getWebhookForUser(opts: { userId: string; id: string }): Promise<WebhookConfig | null> {
+  const row = await queryOne<WebhookRow>(
+    `SELECT ${SELECT_COLS} FROM webhooks WHERE id = $1 AND user_id = $2`,
+    [opts.id, opts.userId],
+  );
+  return row ? toConfig(row) : null;
+}
+
+async function appendDeliveryLog(id: string, entry: WebhookDelivery): Promise<void> {
+  await execute(
+    `INSERT INTO webhook_deliveries
+       (webhook_id, timestamp, status_code, success, attempt, response_time_ms, error)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [id, entry.timestamp, entry.statusCode, entry.success, entry.attempt, entry.responseTime, entry.error],
+  );
+
   if (entry.success) {
-    wh.failCount = 0;
+    await execute(
+      `UPDATE webhooks
+         SET delivery_count = delivery_count + 1,
+             fail_count     = 0,
+             last_delivery_at = $2
+       WHERE id = $1`,
+      [id, entry.timestamp],
+    );
   } else {
-    wh.failCount = (wh.failCount ?? 0) + 1;
+    await execute(
+      `UPDATE webhooks
+         SET delivery_count = delivery_count + 1,
+             fail_count     = fail_count + 1,
+             last_delivery_at = $2
+       WHERE id = $1`,
+      [id, entry.timestamp],
+    );
   }
-  writeWebhooks(webhooks);
+
+  // Trim log to most recent 50 per webhook.
+  await execute(
+    `DELETE FROM webhook_deliveries
+     WHERE webhook_id = $1
+       AND id NOT IN (
+         SELECT id FROM webhook_deliveries
+         WHERE webhook_id = $1
+         ORDER BY timestamp DESC
+         LIMIT 50
+       )`,
+    [id],
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -283,10 +372,7 @@ function buildSlackPayload(payload: WebhookPayload): object {
     blocks: [
       {
         type: 'header',
-        text: {
-          type: 'plain_text',
-          text: `${isBuy ? '▲' : '▼'} ${signal.symbol} ${signal.direction} (${signal.confidence}%)`,
-        },
+        text: { type: 'plain_text', text: `${isBuy ? '▲' : '▼'} ${signal.symbol} ${signal.direction} (${signal.confidence}%)` },
       },
       {
         type: 'section',
@@ -306,10 +392,6 @@ function buildSlackPayload(payload: WebhookPayload): object {
     ],
   };
 }
-
-// ---------------------------------------------------------------------------
-// Test payload
-// ---------------------------------------------------------------------------
 
 export const TEST_PAYLOAD: WebhookPayload = {
   event: 'signal.test',
@@ -334,7 +416,7 @@ export const TEST_PAYLOAD: WebhookPayload = {
 export async function deliverWebhook(
   wh: WebhookConfig,
   payload: WebhookPayload,
-  respectRateLimit = false
+  respectRateLimit = false,
 ): Promise<{ success: boolean; statusCode: number | null; error: string | null }> {
   if (respectRateLimit && isRateLimited(wh.id)) {
     return { success: false, statusCode: null, error: 'Rate limited (5s cooldown)' };
@@ -382,7 +464,7 @@ export async function deliverWebhook(
 
       if (success) {
         markDelivered(wh.id);
-        appendDeliveryLog(wh.id, {
+        await appendDeliveryLog(wh.id, {
           timestamp: new Date().toISOString(),
           statusCode: res.status,
           success: true,
@@ -400,8 +482,7 @@ export async function deliverWebhook(
     }
   }
 
-  // All attempts failed — log once with final attempt count
-  appendDeliveryLog(wh.id, {
+  await appendDeliveryLog(wh.id, {
     timestamp: new Date().toISOString(),
     statusCode: lastStatusCode,
     success: false,
@@ -413,13 +494,12 @@ export async function deliverWebhook(
 }
 
 // ---------------------------------------------------------------------------
-// Fan-out dispatch
+// Fan-out dispatch (cross-user — internal only)
 // ---------------------------------------------------------------------------
 
 export async function dispatchToAll(payload: WebhookPayload): Promise<void> {
   const { signal } = payload;
-  const webhooks = readWebhooks().filter((w) => {
-    if (!w.enabled) return false;
+  const webhooks = (await readAllEnabledForDispatch()).filter((w) => {
     if (w.minConfidence > 0 && signal.confidence < w.minConfidence) return false;
     if (w.pairs !== 'all' && !w.pairs.includes(signal.symbol)) return false;
     return true;

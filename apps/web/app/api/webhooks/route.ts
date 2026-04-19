@@ -5,12 +5,22 @@ import {
   removeWebhook,
   updateWebhook,
 } from '../../../lib/webhooks';
+import { readSessionFromRequest } from '../../../lib/user-session';
 
-// GET /api/webhooks — list all
-export async function GET() {
+function requireSession(request: NextRequest): { userId: string } | NextResponse {
+  const session = readSessionFromRequest(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
+  }
+  return { userId: session.userId };
+}
+
+// GET /api/webhooks — list the caller's webhooks
+export async function GET(request: NextRequest) {
+  const auth = requireSession(request);
+  if (auth instanceof NextResponse) return auth;
   try {
-    const webhooks = readWebhooks();
-    // Strip secrets from the response
+    const webhooks = await readWebhooks(auth.userId);
     const safe = webhooks.map(({ secret: _secret, ...rest }) => ({
       ...rest,
       hasSecret: Boolean(_secret),
@@ -21,8 +31,10 @@ export async function GET() {
   }
 }
 
-// POST /api/webhooks — create
+// POST /api/webhooks — create a webhook owned by the caller
 export async function POST(request: NextRequest) {
+  const auth = requireSession(request);
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = (await request.json()) as {
       url?: string;
@@ -40,7 +52,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
     }
 
-    const wh = addWebhook({
+    const wh = await addWebhook({
+      userId: auth.userId,
       url: body.url,
       name: typeof body.name === 'string' ? body.name : undefined,
       secret: typeof body.secret === 'string' && body.secret ? body.secret : undefined,
@@ -48,13 +61,16 @@ export async function POST(request: NextRequest) {
 
     const { secret: _secret, ...safe } = wh;
     return NextResponse.json({ webhook: { ...safe, hasSecret: Boolean(_secret) } }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Invalid request';
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }
 
-// PATCH /api/webhooks — update
+// PATCH /api/webhooks — update a webhook owned by the caller
 export async function PATCH(request: NextRequest) {
+  const auth = requireSession(request);
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = (await request.json()) as {
       id?: string;
@@ -82,20 +98,23 @@ export async function PATCH(request: NextRequest) {
     if (typeof body.secret === 'string') patch.secret = body.secret || undefined;
     if (typeof body.enabled === 'boolean') patch.enabled = body.enabled;
 
-    const updated = updateWebhook(body.id, patch);
+    const updated = await updateWebhook({ userId: auth.userId, id: body.id }, patch);
     if (!updated) {
       return NextResponse.json({ error: 'Webhook not found' }, { status: 404 });
     }
 
     const { secret: _secret, ...safe } = updated;
     return NextResponse.json({ webhook: { ...safe, hasSecret: Boolean(_secret) } });
-  } catch {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Invalid request';
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }
 
-// DELETE /api/webhooks — remove by id in body
+// DELETE /api/webhooks — remove a webhook owned by the caller
 export async function DELETE(request: NextRequest) {
+  const auth = requireSession(request);
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = (await request.json()) as { id?: string };
 
@@ -103,7 +122,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'id is required' }, { status: 400 });
     }
 
-    const removed = removeWebhook(body.id);
+    const removed = await removeWebhook({ userId: auth.userId, id: body.id });
     if (!removed) {
       return NextResponse.json({ error: 'Webhook not found' }, { status: 404 });
     }

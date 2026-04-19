@@ -15,6 +15,19 @@ import { readWebhooks, type WebhookConfig } from './webhooks';
 import { listPlugins, validatePluginCode, type PluginIndicator } from './plugin-system';
 import { readSubscribers, type TelegramSubscriber } from './telegram-subscribers';
 
+// Webhooks now live in Postgres with user_id scoping. `readWebhooks(userId)`
+// requires a real caller; the helper below returns `[]` for the legacy
+// unscoped path (global self-host dump).
+async function readWebhooksForExport(userId: string | undefined): Promise<WebhookConfig[]> {
+  if (!userId) return [];
+  try {
+    return await readWebhooks(userId);
+  } catch {
+    // Fail-closed: if DB is unreachable, never leak the file-path fallback.
+    return [];
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -107,17 +120,16 @@ const PKG_VERSION = (() => {
 // ---------------------------------------------------------------------------
 
 function sanitiseWebhooks(webhooks: WebhookConfig[]): SanitisedWebhook[] {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return webhooks.map(({ secret, deliveryLog: _log, failCount: _fc, lastDelivery: _ld, ...rest }) => ({
-    id: rest.id,
-    name: rest.name,
-    url: rest.url,
-    hasSecret: Boolean(secret),
-    pairs: rest.pairs,
-    minConfidence: rest.minConfidence,
-    enabled: rest.enabled,
-    createdAt: rest.createdAt,
-    deliveryCount: rest.deliveryCount,
+  return webhooks.map((w) => ({
+    id: w.id,
+    name: w.name,
+    url: w.url,
+    hasSecret: Boolean(w.secret),
+    pairs: w.pairs,
+    minConfidence: w.minConfidence,
+    enabled: w.enabled,
+    createdAt: w.createdAt,
+    deliveryCount: w.deliveryCount,
   }));
 }
 
@@ -138,15 +150,18 @@ function sanitiseWebhooks(webhooks: WebhookConfig[]): SanitisedWebhook[] {
  * /api/export route via TRADECLAW_DISABLE_GLOBAL_EXPORT). See the route
  * handler for the current off-switch.
  */
-export function collectServerData(userId?: string): ServerExportData {
+export async function collectServerData(userId?: string): Promise<ServerExportData> {
+  const webhooks = sanitiseWebhooks(await readWebhooksForExport(userId));
+
   if (userId) {
-    // File-backed readers are currently single-tenant (no userId column).
-    // Return empty arrays rather than the global set — we never want to
-    // leak another user's records through a scoped call.
+    // The other file-backed readers are still single-tenant (no userId column).
+    // Return empty arrays rather than the global set — we never want to leak
+    // someone else's records through a scoped call. As each store migrates to
+    // DB with user_id columns, its array here flips to the real rows.
     return {
       alerts: [],
       paperTrading: getPortfolio(),
-      webhooks: [],
+      webhooks,
       plugins: [],
       telegramSettings: [],
     };
@@ -155,7 +170,7 @@ export function collectServerData(userId?: string): ServerExportData {
   return {
     alerts: readAlerts(),
     paperTrading: getPortfolio(),
-    webhooks: sanitiseWebhooks(readWebhooks()),
+    webhooks,
     plugins: listPlugins(),
     telegramSettings: readSubscribers(),
   };
@@ -216,7 +231,7 @@ export function validateImportPayload(raw: unknown): string[] {
 // Preview (dry-run)
 // ---------------------------------------------------------------------------
 
-export function previewImport(raw: unknown): ImportPreviewResult {
+export async function previewImport(raw: unknown): Promise<ImportPreviewResult> {
   const errors = validateImportPayload(raw);
   if (errors.length > 0) {
     return {
@@ -238,7 +253,7 @@ export function previewImport(raw: unknown): ImportPreviewResult {
 
   const payload = raw as ExportPayload;
   const data = payload.data;
-  const current = collectServerData();
+  const current = await collectServerData();
 
   const currentAlertIds = new Set(current.alerts.map(a => a.id));
   const currentWebhookIds = new Set(current.webhooks.map(w => w.id));
@@ -288,9 +303,9 @@ function writeJson(filePath: string, data: unknown): void {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-export function importServerData(payload: ExportPayload, mode: 'merge' | 'replace'): ImportResult {
+export async function importServerData(payload: ExportPayload, mode: 'merge' | 'replace'): Promise<ImportResult> {
   const data = payload.data;
-  const current = collectServerData();
+  const current = await collectServerData();
 
   // ── Alerts ──────────────────────────────────────────────────────────────
   const currentAlertIds = new Set(current.alerts.map(a => a.id));
@@ -334,19 +349,13 @@ export function importServerData(payload: ExportPayload, mode: 'merge' | 'replac
   }
 
   // ── Webhooks ─────────────────────────────────────────────────────────────
-  const currentWebhookIds = new Set(current.webhooks.map(w => w.id));
+  // Webhooks moved to user-scoped Postgres in migration 013. The import route
+  // runs unscoped (no session) so we can't safely attribute incoming webhooks
+  // to a user — skip them here. Users re-create webhooks via /api/webhooks
+  // after signin, which is the only path that knows the caller's identity.
   const incomingWebhooks = Array.isArray(data.webhooks) ? (data.webhooks as SanitisedWebhook[]) : [];
-  let finalWebhooks: SanitisedWebhook[];
-  let skippedWebhooks = 0;
-
-  if (mode === 'replace') {
-    finalWebhooks = incomingWebhooks;
-  } else {
-    const newWebhooks = incomingWebhooks.filter(w => !currentWebhookIds.has(w.id));
-    skippedWebhooks = incomingWebhooks.length - newWebhooks.length;
-    finalWebhooks = [...current.webhooks, ...newWebhooks];
-  }
-  writeJson(path.join(DATA_DIR, 'webhooks.json'), finalWebhooks);
+  const finalWebhooks: SanitisedWebhook[] = [];
+  const skippedWebhooks = incomingWebhooks.length;
 
   // ── Plugins ──────────────────────────────────────────────────────────────
   const currentPluginIds = new Set(current.plugins.map(p => p.id));

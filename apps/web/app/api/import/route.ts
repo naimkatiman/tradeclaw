@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   const mode = searchParams.get('mode') === 'replace' ? 'replace' : 'merge';
 
   try {
-    const result = importServerData(body as ExportPayload, mode);
+    const result = await importServerData(body as ExportPayload, mode);
     return NextResponse.json({ success: true, result });
   } catch {
     return NextResponse.json({ error: 'Import failed' }, { status: 500 });

@@ -11,6 +11,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const preview = previewImport(body);
+  const preview = await previewImport(body);
   return NextResponse.json(preview);
 }
