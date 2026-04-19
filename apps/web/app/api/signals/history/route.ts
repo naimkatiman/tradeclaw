@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveRealOutcomes } from '../../../../lib/signal-history';
 import { getCachedHistory } from '../../../../lib/signal-history-cache';
-import { readSessionFromRequest } from '../../../../lib/user-session';
-import { getUserTier, TIER_SYMBOLS, TIER_HISTORY_DAYS, meetsMinimumTier } from '../../../../lib/tier';
+import { TIER_SYMBOLS, TIER_HISTORY_DAYS } from '../../../../lib/tier';
 
 export async function GET(request: NextRequest) {
   try {
     await resolveRealOutcomes();
     const { searchParams } = new URL(request.url);
-    const session = readSessionFromRequest(request);
-    const tier = session?.userId
-      ? await getUserTier(session.userId)
-      : 'free' as const;
+
+    // `scope=pro` (default) shows all-symbol / full-history track record as a
+    // marketing surface — past outcomes have no tradable edge. `scope=free`
+    // restricts to the free-tier symbol whitelist and 24h window so anyone
+    // can compare what the free experience delivers against Pro.
+    //
+    // Track record is intentionally NOT gated by the caller's tier. Gating
+    // here would hide the product's capability from the exact people we need
+    // to show it to.
+    const scope = (searchParams.get('scope') ?? 'pro') === 'free' ? 'free' : 'pro';
 
     const pair = searchParams.get('pair')?.toUpperCase();
     const direction = searchParams.get('direction')?.toUpperCase() as 'BUY' | 'SELL' | undefined;
@@ -22,10 +27,9 @@ export async function GET(request: NextRequest) {
 
     let records = await getCachedHistory();
 
-    // Tier gate: filter symbols and history window based on subscription
-    const allowedSymbols = TIER_SYMBOLS[tier];
-    const historyDays = TIER_HISTORY_DAYS[tier];
-    if (!meetsMinimumTier(tier, 'pro')) {
+    if (scope === 'free') {
+      const allowedSymbols = TIER_SYMBOLS.free;
+      const historyDays = TIER_HISTORY_DAYS.free;
       records = records.filter(r => allowedSymbols.includes(r.pair));
       if (historyDays !== null) {
         const cutoff = Date.now() - historyDays * 24 * 60 * 60 * 1000;
@@ -92,6 +96,7 @@ export async function GET(request: NextRequest) {
       total,
       offset,
       limit,
+      scope,
       stats: {
         totalSignals: records.length,
         resolved: resolved.length,

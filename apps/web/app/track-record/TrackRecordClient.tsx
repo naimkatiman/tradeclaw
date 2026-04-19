@@ -148,11 +148,16 @@ function pageNumbers(current: number, total: number): (number | null)[] {
 }
 
 type DirectionFilter = 'ALL' | 'BUY' | 'SELL';
+type Scope = 'pro' | 'free';
 
 export function TrackRecordClient() {
   const router = useRouter();
   const tier = useUserTier();
-  const isFreeTier = tier === null || tier === 'free';
+  const isPaidUser = tier !== null && tier !== 'free';
+  // Default tab: Pro track record. Everyone sees the full product's
+  // verified outcomes by default — that's the marketing play. Free tab
+  // is a comparison view showing what the free experience delivers.
+  const [scope, setScope] = useState<Scope>('pro');
   const [period, setPeriod] = useState<Period>('30d');
   const [pairFilter, setPairFilter] = useState<string>('ALL');
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>('ALL');
@@ -163,13 +168,14 @@ export function TrackRecordClient() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchData = useCallback(async (p: Period, off: number, pair: string, direction: DirectionFilter) => {
+  const fetchData = useCallback(async (p: Period, off: number, pair: string, direction: DirectionFilter, s: Scope) => {
     setLoading(true);
     try {
       const historyParams = new URLSearchParams({
         limit: String(PAGE_SIZE),
         offset: String(off),
         period: p,
+        scope: s,
       });
       if (pair !== 'ALL') historyParams.set('pair', pair);
       if (direction !== 'ALL') historyParams.set('direction', direction);
@@ -198,12 +204,12 @@ export function TrackRecordClient() {
   }, []);
 
   useEffect(() => {
-    fetchData(period, offset, pairFilter, directionFilter);
-  }, [period, offset, pairFilter, directionFilter, fetchData]);
+    fetchData(period, offset, pairFilter, directionFilter, scope);
+  }, [period, offset, pairFilter, directionFilter, scope, fetchData]);
 
   useEffect(() => {
     setOffset(0);
-  }, [period, pairFilter, directionFilter]);
+  }, [period, pairFilter, directionFilter, scope]);
 
   const availablePairs = useMemo(() => {
     const fromLeaderboard = leaderboard?.assets.map(a => a.pair) ?? [];
@@ -260,21 +266,65 @@ export function TrackRecordClient() {
           ))}
         </div>
 
-        {/* Free-tier history window banner */}
-        {isFreeTier && (
+        {/* Scope tabs — default Pro, Free is a comparison view */}
+        <div className="mb-3 flex items-center gap-1 p-1 rounded-lg bg-white/[0.04] w-fit">
+          {(
+            [
+              { value: 'pro', label: 'Pro track record' },
+              { value: 'free', label: 'Free track record' },
+            ] as const
+          ).map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setScope(value)}
+              aria-pressed={scope === value}
+              className={`px-3 py-1.5 text-xs font-mono font-medium rounded-md transition-all ${
+                scope === value
+                  ? value === 'pro'
+                    ? 'bg-emerald-500/15 text-emerald-400'
+                    : 'bg-white/[0.08] text-[var(--foreground)]'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Scope disclaimer — explains what the viewer is looking at */}
+        {scope === 'pro' ? (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm">
             <div className="flex items-center gap-2 text-emerald-300">
               <Lock className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
-                Showing the last 24 hours of history. Pro unlocks the full archive plus CSV export.
+                {isPaidUser
+                  ? 'Pro track record — every signal across every symbol, full archive.'
+                  : 'Pro track record — these are the signals Pro subscribers receive live. Your Free tier would see only a subset.'}
               </span>
             </div>
-            <Link
-              href="/pricing?from=history"
-              className="shrink-0 rounded-md bg-emerald-500 px-3 py-1 text-xs font-semibold text-black transition-colors hover:bg-emerald-400"
+            {!isPaidUser && (
+              <Link
+                href="/pricing?from=track-record"
+                className="shrink-0 rounded-md bg-emerald-500 px-3 py-1 text-xs font-semibold text-black transition-colors hover:bg-emerald-400"
+              >
+                Get these signals live
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm">
+            <div className="flex items-center gap-2 text-[var(--text-secondary)]">
+              <Lock className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>
+                Free-tier view — last 24 hours on {`BTC, ETH, XAU`}. This is the slice free subscribers see.
+              </span>
+            </div>
+            <button
+              onClick={() => setScope('pro')}
+              className="shrink-0 rounded-md border border-emerald-500/30 px-3 py-1 text-xs font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/10"
             >
-              See full archive
-            </Link>
+              Switch to Pro view
+            </button>
           </div>
         )}
 
