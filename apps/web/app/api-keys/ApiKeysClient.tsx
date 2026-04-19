@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Zap, KeyRound, BarChart2, Container } from 'lucide-react';
+import { Zap, KeyRound, BarChart2, Container, Lock } from 'lucide-react';
+import { useUserSession } from '../../lib/hooks/use-user-tier';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -485,6 +486,35 @@ function RateLimitCard() {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
+function ProGateBanner() {
+  const { status, session } = useUserSession();
+  if (status === 'loading') return null;
+  const isPaid = session?.tier !== 'free' && !!session?.tier;
+  if (isPaid) return null;
+
+  const isAnon = status === 'anonymous';
+
+  return (
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-sm">
+      <div className="flex items-center gap-2 text-emerald-300">
+        <Lock className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <span>
+          API access is a Pro feature.{' '}
+          {isAnon
+            ? 'Sign in and upgrade to mint keys.'
+            : 'Your Free account can browse this page — upgrade to start minting keys.'}
+        </span>
+      </div>
+      <Link
+        href={isAnon ? '/signin?next=/api-keys' : '/pricing?from=api-keys'}
+        className="shrink-0 rounded-md bg-emerald-500 px-3 py-1 text-xs font-semibold text-black transition-colors hover:bg-emerald-400"
+      >
+        {isAnon ? 'Sign in' : 'Upgrade to Pro'}
+      </Link>
+    </div>
+  );
+}
+
 export default function ApiKeysClient() {
   const [newKey, setNewKey] = useState<(ApiKeyMasked & { key: string }) | null>(null);
 
@@ -492,6 +522,8 @@ export default function ApiKeysClient() {
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-24 pb-16 px-4">
       <div className="max-w-5xl mx-auto">
         <Hero />
+
+        <ProGateBanner />
 
         {newKey && (
           <div className="mb-8">

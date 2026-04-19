@@ -1,6 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useUserTier } from '../../../lib/hooks/use-user-tier';
+
+const FREE_ACTIVE_RULE_CAP = 3;
+
+interface UpgradeRequiredBody {
+  error: 'upgrade_required';
+  reason: string;
+  limit?: { kind: 'rate' | 'count'; used: number; max: number; windowHours?: number };
+  upgradeUrl: string;
+}
 
 type Channel = 'telegram' | 'discord' | 'email' | 'webhook';
 
@@ -37,10 +48,16 @@ function defaultRule(): Omit<AlertRule, 'id'> {
 }
 
 export default function UnifiedAlertSetup() {
+  const tier = useUserTier();
+  const isFree = tier === null || tier === 'free';
   const [rules, setRules] = useState<AlertRule[]>([]);
   const [draft, setDraft] = useState(defaultRule());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [atCap, setAtCap] = useState(false);
+
+  const activeCount = rules.filter((r) => r.enabled).length;
+  const remainingFree = Math.max(0, FREE_ACTIVE_RULE_CAP - activeCount);
 
   useEffect(() => {
     fetch('/api/alert-rules')
@@ -52,15 +69,22 @@ export default function UnifiedAlertSetup() {
   async function handleCreate() {
     setSaving(true);
     setError(null);
+    setAtCap(false);
     try {
       const res = await fetch('/api/alert-rules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(draft),
       });
+      if (res.status === 402) {
+        const d = (await res.json()) as UpgradeRequiredBody;
+        setError(d.reason);
+        setAtCap(true);
+        return;
+      }
       if (!res.ok) {
         const d = await res.json();
-        setError(JSON.stringify(d.error));
+        setError(typeof d.error === 'string' ? d.error : JSON.stringify(d.error));
         return;
       }
       const d = await res.json();
@@ -96,6 +120,21 @@ export default function UnifiedAlertSetup() {
           One rule, multiple channels — get notified on Telegram, Discord, and Email simultaneously.
         </p>
       </div>
+
+      {isFree && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm">
+          <span className="text-emerald-300 font-mono text-xs">
+            Free tier: {activeCount} / {FREE_ACTIVE_RULE_CAP} active rules used
+            {remainingFree === 0 ? ' (at cap)' : ''}
+          </span>
+          <Link
+            href="/pricing?from=alert-rules"
+            className="shrink-0 rounded-md bg-emerald-500 px-3 py-1 text-[11px] font-mono font-semibold text-black transition-colors hover:bg-emerald-400"
+          >
+            Unlimited on Pro →
+          </Link>
+        </div>
+      )}
 
       {/* Create Form */}
       <section className="bg-[#111] border border-white/10 rounded-xl p-5 space-y-4">
@@ -188,7 +227,19 @@ export default function UnifiedAlertSetup() {
           </div>
         </div>
 
-        {error && <p className="text-xs text-red-400 font-mono">{error}</p>}
+        {error && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2">
+            <p className="text-xs text-red-400 font-mono">{error}</p>
+            {atCap && (
+              <Link
+                href="/pricing?from=alert-rules"
+                className="shrink-0 rounded-md bg-emerald-500 px-2.5 py-1 text-[11px] font-mono font-semibold text-black hover:bg-emerald-400"
+              >
+                Upgrade →
+              </Link>
+            )}
+          </div>
+        )}
 
         <button
           onClick={handleCreate}
