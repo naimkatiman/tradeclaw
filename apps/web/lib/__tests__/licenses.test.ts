@@ -11,6 +11,12 @@ import {
   FREE_STRATEGY,
 } from '../licenses';
 
+// The CRUD and resolveLicense blocks require a live Postgres connection.
+// When DATABASE_URL is unset (local dev without docker-compose, CI without a
+// service container), skip these blocks instead of failing noisily. The
+// key-generation tests above are pure and always run.
+const describeDb = process.env.DATABASE_URL ? describe : describe.skip;
+
 describe('licenses — key generation', () => {
   it('generateKey returns a plaintext, hash, and prefix', () => {
     const { plaintext, hash, prefix } = generateKey();
@@ -36,7 +42,7 @@ describe('licenses — key generation', () => {
   });
 });
 
-describe('licenses — CRUD', () => {
+describeDb('licenses — CRUD', () => {
   it('issueLicense returns plaintext once and persists hashed row', async () => {
     const { license, plaintextKey } = await issueLicense({
       issuedTo: 'test@example.com',
@@ -89,7 +95,7 @@ function mockRequest(init: {
   return new Request(init.url ?? 'http://localhost/test', { headers });
 }
 
-describe('licenses — resolveLicense', () => {
+describeDb('licenses — resolveLicense', () => {
   it('returns anonymous when no key is present', async () => {
     const ctx = await resolveLicense(mockRequest({}));
     expect(ctx.licenseId).toBeNull();
