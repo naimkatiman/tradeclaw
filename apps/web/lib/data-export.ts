@@ -180,33 +180,34 @@ function sanitiseWebhooks(webhooks: WebhookConfig[]): SanitisedWebhook[] {
  * handler for the current off-switch.
  */
 export async function collectServerData(userId?: string): Promise<ServerExportData> {
-  const [webhooks, alerts, paperTrading] = await Promise.all([
+  const [webhooks, alerts, paperTrading, telegramSettings] = await Promise.all([
     readWebhooksForExport(userId).then(sanitiseWebhooks),
     readAlertsForExport(userId),
     readPortfolioForExport(userId),
+    // Telegram subscribers are global (chat_id PK, no user_id) — included
+    // only in the unscoped self-host dump.
+    userId ? Promise.resolve([] as TelegramSubscriber[]) : readSubscribers().catch(() => []),
   ]);
 
   if (userId) {
-    // Plugins and telegram are still single-tenant (no userId column yet).
-    // Return empty arrays rather than the global set — never leak someone
-    // else's records through a scoped call.
+    // Plugins is still single-tenant (no userId column yet). Return [] rather
+    // than the global set — never leak another user's rows through scoped.
     return {
       alerts,
       paperTrading,
       webhooks,
       plugins: [],
-      telegramSettings: [],
+      telegramSettings,
     };
   }
 
-  // Unscoped (global) path: used for self-host single-tenant dumps. Migrated
-  // stores always return empty/default here — the caller has no user identity.
+  // Unscoped (global) path: used for self-host single-tenant dumps.
   return {
     alerts,
     paperTrading,
     webhooks,
     plugins: listPlugins(),
-    telegramSettings: readSubscribers(),
+    telegramSettings,
   };
 }
 
@@ -389,20 +390,12 @@ export async function importServerData(payload: ExportPayload, mode: 'merge' | '
   writeJson(path.join(DATA_DIR, 'plugins.json'), finalPlugins);
 
   // ── Telegram subscribers ─────────────────────────────────────────────────
+  // Subscribers moved to Postgres in migration 016 as global state (keyed by
+  // Telegram chat_id, no user_id). Import via JSON is disabled — subscribers
+  // are created by users DMing the bot directly, not from export files.
   const incomingTelegram = Array.isArray(data.telegramSettings)
     ? (data.telegramSettings as TelegramSubscriber[])
     : [];
-
-  if (mode === 'replace') {
-    writeJson(path.join(DATA_DIR, 'telegram-subscribers.json'), incomingTelegram);
-  } else {
-    const currentChatIds = new Set(current.telegramSettings.map(s => s.chatId));
-    const newSubs = incomingTelegram.filter(s => !currentChatIds.has(s.chatId));
-    writeJson(path.join(DATA_DIR, 'telegram-subscribers.json'), [
-      ...current.telegramSettings,
-      ...newSubs,
-    ]);
-  }
 
   return {
     imported: {

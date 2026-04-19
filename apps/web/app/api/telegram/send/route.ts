@@ -173,7 +173,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   // Broadcast to all subscribers
   if (body.broadcast) {
-    const subscribers = readSubscribers();
+    const subscribers = await readSubscribers();
 
     const eligible = subscribers.filter((sub) => {
       const pairsOk =

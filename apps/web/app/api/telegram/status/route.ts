@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readSubscribers } from '../../../../lib/telegram-subscribers';
+import { countSubscribers } from '../../../../lib/telegram-subscribers';
 
 const TELEGRAM_API = 'https://api.telegram.org';
 
@@ -47,7 +47,7 @@ export async function GET(): Promise<NextResponse> {
         connected: false,
         configured: true,
         error: meData.description ?? 'Invalid bot token',
-        subscribers: readSubscribers().length,
+        subscribers: await countSubscribers(),
       });
     }
 
@@ -72,7 +72,7 @@ export async function GET(): Promise<NextResponse> {
               : null,
           }
         : null,
-      subscribers: readSubscribers().length,
+      subscribers: await countSubscribers(),
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
@@ -81,7 +81,7 @@ export async function GET(): Promise<NextResponse> {
         connected: false,
         configured: true,
         error: err instanceof Error ? err.message : 'Failed to reach Telegram API',
-        subscribers: readSubscribers().length,
+        subscribers: await countSubscribers(),
       },
       { status: 502 }
     );

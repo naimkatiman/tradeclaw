@@ -72,7 +72,7 @@ function e(text: string): string {
 // ---------------------------------------------------------------------------
 
 async function handleStart(chatId: number, from?: TelegramFrom): Promise<void> {
-  addSubscriber(String(chatId), {
+  await addSubscriber(String(chatId), {
     username: from?.username,
     firstName: from?.first_name,
   });
@@ -100,7 +100,7 @@ async function handleStart(chatId: number, from?: TelegramFrom): Promise<void> {
 }
 
 async function handleSubscribe(chatId: number, from?: TelegramFrom): Promise<void> {
-  addSubscriber(String(chatId), {
+  await addSubscriber(String(chatId), {
     username: from?.username,
     firstName: from?.first_name,
   });
@@ -118,7 +118,7 @@ async function handleSubscribe(chatId: number, from?: TelegramFrom): Promise<voi
 }
 
 async function handleUnsubscribe(chatId: number): Promise<void> {
-  const removed = removeSubscriber(String(chatId));
+  const removed = await removeSubscriber(String(chatId));
 
   if (removed) {
     await sendMessage(
@@ -198,7 +198,7 @@ async function handlePairs(chatId: number): Promise<void> {
 }
 
 async function handleSettings(chatId: number): Promise<void> {
-  const sub = getSubscriber(String(chatId));
+  const sub = await getSubscriber(String(chatId));
 
   if (!sub) {
     await sendMessage(
