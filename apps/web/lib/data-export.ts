@@ -15,15 +15,23 @@ import { readWebhooks, type WebhookConfig } from './webhooks';
 import { listPlugins, validatePluginCode, type PluginIndicator } from './plugin-system';
 import { readSubscribers, type TelegramSubscriber } from './telegram-subscribers';
 
-// Webhooks now live in Postgres with user_id scoping. `readWebhooks(userId)`
-// requires a real caller; the helper below returns `[]` for the legacy
-// unscoped path (global self-host dump).
+// Webhooks + price alerts live in Postgres with user_id scoping. The scoped
+// readers require a caller; these helpers return `[]` for the legacy unscoped
+// path (global self-host dump) and on DB errors (fail-closed).
 async function readWebhooksForExport(userId: string | undefined): Promise<WebhookConfig[]> {
   if (!userId) return [];
   try {
     return await readWebhooks(userId);
   } catch {
-    // Fail-closed: if DB is unreachable, never leak the file-path fallback.
+    return [];
+  }
+}
+
+async function readAlertsForExport(userId: string | undefined): Promise<PriceAlert[]> {
+  if (!userId) return [];
+  try {
+    return await readAlerts(userId);
+  } catch {
     return [];
   }
 }
@@ -152,14 +160,15 @@ function sanitiseWebhooks(webhooks: WebhookConfig[]): SanitisedWebhook[] {
  */
 export async function collectServerData(userId?: string): Promise<ServerExportData> {
   const webhooks = sanitiseWebhooks(await readWebhooksForExport(userId));
+  const alerts = await readAlertsForExport(userId);
 
   if (userId) {
-    // The other file-backed readers are still single-tenant (no userId column).
-    // Return empty arrays rather than the global set — we never want to leak
+    // Paper-trading, plugins, and telegram are still single-tenant (no userId
+    // column yet). Return empty arrays rather than the global set — never leak
     // someone else's records through a scoped call. As each store migrates to
     // DB with user_id columns, its array here flips to the real rows.
     return {
-      alerts: [],
+      alerts,
       paperTrading: getPortfolio(),
       webhooks,
       plugins: [],
@@ -167,8 +176,11 @@ export async function collectServerData(userId?: string): Promise<ServerExportDa
     };
   }
 
+  // Unscoped (global) path: used for self-host single-tenant dumps. Migrated
+  // stores always return [] here — the caller has no user identity, so we
+  // can't safely attribute rows to a user.
   return {
-    alerts: readAlerts(),
+    alerts,
     paperTrading: getPortfolio(),
     webhooks,
     plugins: listPlugins(),
@@ -308,22 +320,12 @@ export async function importServerData(payload: ExportPayload, mode: 'merge' | '
   const current = await collectServerData();
 
   // ── Alerts ──────────────────────────────────────────────────────────────
-  const currentAlertIds = new Set(current.alerts.map(a => a.id));
+  // Price alerts moved to user-scoped Postgres in migration 014. The import
+  // route runs unscoped (no session) so we can't safely attribute incoming
+  // alerts to a user — skip them here. Users re-create via /api/alerts.
   const incomingAlerts = Array.isArray(data.alerts) ? (data.alerts as PriceAlert[]) : [];
-  let finalAlerts: PriceAlert[];
-  let skippedAlerts = 0;
-
-  if (mode === 'replace') {
-    finalAlerts = incomingAlerts;
-  } else {
-    const newAlerts = incomingAlerts.filter(a => !currentAlertIds.has(a.id));
-    skippedAlerts = incomingAlerts.length - newAlerts.length;
-    finalAlerts = [...current.alerts, ...newAlerts];
-  }
-  writeJson(path.join(DATA_DIR, 'price-alerts.json'), {
-    alerts: finalAlerts,
-    lastChecked: new Date().toISOString(),
-  });
+  const finalAlerts: PriceAlert[] = [];
+  const skippedAlerts = incomingAlerts.length;
 
   // ── Paper trading ────────────────────────────────────────────────────────
   const incomingPT = data.paperTrading as Partial<Portfolio> | undefined;

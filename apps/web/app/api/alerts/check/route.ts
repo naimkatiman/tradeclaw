@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAlerts, BASE_PRICES } from '../../../../lib/price-alerts';
+import { checkAlertsAcrossUsers, BASE_PRICES } from '../../../../lib/price-alerts';
 
+// POST /api/alerts/check — internal cross-user trigger sweep.
+// Protected by CRON_SECRET so random callers can't flip other people's alerts.
 export async function POST(req: NextRequest) {
-  let currentPrices: Record<string, number> = { ...BASE_PRICES };
+  const expected = process.env.CRON_SECRET;
+  const provided = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ?? '';
+  if (!expected || expected !== provided) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-  // Caller can pass in real prices; otherwise use base prices with small jitter
+  let currentPrices: Record<string, number> = { ...BASE_PRICES };
   try {
     const body = await req.json();
     if (body && typeof body.prices === 'object') {
       currentPrices = { ...currentPrices, ...body.prices };
     }
   } catch {
-    // No body — use default prices
+    // No body — use base prices
   }
 
-  const result = checkAlerts(currentPrices);
+  const result = await checkAlertsAcrossUsers(currentPrices);
   return NextResponse.json(result);
 }

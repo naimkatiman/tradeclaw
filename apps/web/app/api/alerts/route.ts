@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAlerts, createAlert, SUPPORTED_SYMBOLS } from '../../../lib/price-alerts';
+import { readAlerts, createAlert, SUPPORTED_SYMBOLS } from '../../../lib/price-alerts';
+import { readSessionFromRequest } from '../../../lib/user-session';
 
 export async function GET(req: NextRequest) {
+  const session = readSessionFromRequest(req);
+  if (!session) {
+    return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
+  }
   try {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status') as 'active' | 'triggered' | 'expired' | null;
     const symbol = searchParams.get('symbol');
 
-    const alerts = getAlerts({
+    const alerts = await readAlerts(session.userId, {
       status: status ?? undefined,
       symbol: symbol ?? undefined,
     });
@@ -19,6 +24,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const session = readSessionFromRequest(req);
+  if (!session) {
+    return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
+  }
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -41,7 +50,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'currentPrice must be a positive number' }, { status: 400 });
   }
 
-  const alert = createAlert({
+  const alert = await createAlert({
+    userId: session.userId,
     symbol: symbol.toUpperCase(),
     direction,
     targetPrice,
