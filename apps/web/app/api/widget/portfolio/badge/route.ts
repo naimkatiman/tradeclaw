@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server';
-import { getPortfolio, STARTING_BALANCE } from '../../../../../lib/paper-trading';
+import { getPortfolio, getDemoUserId, STARTING_BALANCE } from '../../../../../lib/paper-trading';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const userId = getDemoUserId();
+  if (!userId) {
+    return NextResponse.json(
+      { error: 'Widget demo user not configured' },
+      { status: 410, headers: { 'Access-Control-Allow-Origin': '*' } },
+    );
+  }
   try {
-    const portfolio = getPortfolio();
+    const portfolio = await getPortfolio(userId);
     const totalReturn = ((portfolio.balance - STARTING_BALANCE) / STARTING_BALANCE) * 100;
     const sign = totalReturn >= 0 ? '+' : '';
 

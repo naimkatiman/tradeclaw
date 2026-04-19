@@ -12,7 +12,7 @@
  */
 
 import { query } from './db-pool';
-import { getPortfolio, type Trade, type EquityPoint } from './paper-trading';
+import { getPortfolio, getDemoUserId, type Portfolio, type Trade, type EquityPoint } from './paper-trading';
 import type { RiskMetrics } from '@tradeclaw/signals';
 
 // ── Config ──────────────────────────────────────────────────
@@ -65,17 +65,21 @@ export interface ReconstructedRiskState {
 // ── Main entry point ────────────────────────────────────────
 
 export async function getRiskState(): Promise<ReconstructedRiskState> {
-  const portfolio = getPortfolio();
+  // Risk state is instance-wide — we use the operator's demo-user portfolio
+  // (configured via PUBLIC_WIDGET_DEMO_USER_ID) as the trusted paper-trading
+  // signal for circuit breakers. Without it, risk falls back to signal-history.
+  const operatorId = getDemoUserId();
+  const portfolio: Portfolio | null = operatorId
+    ? await getPortfolio(operatorId).catch(() => null)
+    : null;
 
-  // Prefer paper portfolio when it has enough trades to be meaningful
-  if (portfolio.history.length >= PORTFOLIO_TRUST_THRESHOLD) {
+  if (portfolio && portfolio.history.length >= PORTFOLIO_TRUST_THRESHOLD) {
     return fromPortfolio(portfolio);
   }
 
-  // Otherwise estimate from signal history with position-size scaling
   if (process.env.DATABASE_URL) {
     try {
-      return await fromSignalHistory(portfolio.positions);
+      return await fromSignalHistory(portfolio?.positions ?? []);
     } catch (err) {
       console.error(
         '[risk-state] Signal history fallback failed:',
@@ -89,7 +93,7 @@ export async function getRiskState(): Promise<ReconstructedRiskState> {
 
 // ── Portfolio-based reconstruction (preferred) ──────────────
 
-function fromPortfolio(portfolio: ReturnType<typeof getPortfolio>): ReconstructedRiskState {
+function fromPortfolio(portfolio: Portfolio): ReconstructedRiskState {
   const { history, equityCurve, startingBalance, positions, balance } = portfolio;
 
   const now = Date.now();

@@ -24,7 +24,7 @@ import {
 } from '@tradeclaw/signals';
 import { getRiskState, type ReconstructedRiskState } from './risk-state';
 import { getDominantRegime } from './regime-filter';
-import { getPortfolio } from './paper-trading';
+import { getPortfolio, getDemoUserId, type Portfolio } from './paper-trading';
 import { verifyRiskWithLlm, type LlmRiskVerification } from './llm-risk-verify';
 
 // ── Types ────────────────────────────────────────────────────
@@ -111,18 +111,26 @@ export async function runRiskPipeline(
     };
   }
 
-  // Step 3: For each signal — allocate + veto
-  const portfolio = getPortfolio();
+  // Step 3: For each signal — allocate + veto.
+  // Portfolio state comes from the operator's demo-user paper account; if no
+  // PUBLIC_WIDGET_DEMO_USER_ID is set, we fall back to a zeroed shell so the
+  // pipeline still evaluates breakers + veto without a real portfolio.
+  const operatorId = getDemoUserId();
+  const portfolio: Portfolio | null = operatorId
+    ? await getPortfolio(operatorId).catch(() => null)
+    : null;
+  const balance = portfolio?.balance ?? 0;
+  const positions = portfolio?.positions ?? [];
   const portfolioState = {
-    totalEquity: portfolio.balance + portfolio.positions.reduce((sum, p) => sum + p.quantity, 0),
-    cash: portfolio.balance,
-    positionsValue: portfolio.positions.reduce((sum, p) => sum + p.quantity, 0),
-    openPositions: portfolio.positions.map((p) => ({
+    totalEquity: balance + positions.reduce((sum, p) => sum + p.quantity, 0),
+    cash: balance,
+    positionsValue: positions.reduce((sum, p) => sum + p.quantity, 0),
+    openPositions: positions.map((p) => ({
       symbol: p.symbol,
       direction: p.direction as 'BUY' | 'SELL',
       size: p.quantity,
       entryPrice: p.entryPrice,
-      currentPrice: p.entryPrice, // approximation — live price not available here
+      currentPrice: p.entryPrice,
       pnl: 0,
       pnlPct: 0,
     })),

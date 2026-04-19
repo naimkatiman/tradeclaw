@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPortfolio, closePosition, type Position } from '../../../../lib/paper-trading';
+import { getAllOpenPositionsForSweep, closePosition, type Position } from '../../../../lib/paper-trading';
 import { getSignalTelegramMessageId, recordTradeOutcomeToHistory } from '../../../../lib/signal-history';
 import {
   broadcastOutcomeReply,
@@ -132,8 +132,8 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
 
   try {
-    const portfolio = getPortfolio();
-    if (portfolio.positions.length === 0) {
+    const positions = await getAllOpenPositionsForSweep();
+    if (positions.length === 0) {
       return NextResponse.json({
         ok: true,
         message: 'No open positions',
@@ -146,6 +146,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     const prices = await fetchLivePrices();
     const closed: Array<{
       positionId: string;
+      userId: string;
       symbol: string;
       direction: string;
       reason: string;
@@ -155,7 +156,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     }> = [];
     const skipped: string[] = [];
 
-    for (const position of portfolio.positions) {
+    for (const position of positions) {
       const currentPrice = prices.get(position.symbol);
       if (currentPrice == null) {
         skipped.push(position.symbol);
@@ -164,10 +165,15 @@ export async function GET(request: NextRequest): Promise<Response> {
 
       const check = shouldClose(position, currentPrice);
       if (check) {
-        const result = closePosition(position.id, check.exitPrice, check.reason);
+        const result = await closePosition(
+          { userId: position.userId, positionId: position.id },
+          check.exitPrice,
+          check.reason,
+        );
         if (result) {
           closed.push({
             positionId: position.id,
+            userId: position.userId,
             symbol: position.symbol,
             direction: position.direction,
             reason: check.reason,
@@ -176,7 +182,6 @@ export async function GET(request: NextRequest): Promise<Response> {
             pnl: result.trade.pnl,
           });
 
-          // Record outcome to signal_history for risk pipeline feedback loop
           if (position.signalId) {
             try {
               await recordTradeOutcomeToHistory(
@@ -186,11 +191,10 @@ export async function GET(request: NextRequest): Promise<Response> {
                 check.reason === 'takeProfit',
               );
             } catch {
-              // Non-critical — risk state will still reconstruct from next cron cycle
+              // Non-critical — risk state reconstructs on next cycle
             }
           }
 
-          // Send Telegram reply to original signal message
           await sendTelegramOutcomeReply(position, check, result.trade.pnlPercent);
         }
       }
@@ -198,7 +202,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     return NextResponse.json({
       ok: true,
-      checked: portfolio.positions.length,
+      checked: positions.length,
       closed,
       skipped: skipped.length > 0 ? skipped : undefined,
       timestamp: new Date().toISOString(),

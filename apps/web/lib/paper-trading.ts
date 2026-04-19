@@ -1,17 +1,17 @@
-import fs from 'fs';
-import path from 'path';
+import { query, queryOne, execute } from './db-pool';
 import { applySlippage, getSlippageConfig } from './slippage';
 
 // ---------------------------------------------------------------------------
-// Types
+// Types (public API — unchanged shape)
 // ---------------------------------------------------------------------------
 
 export interface Position {
   id: string;
+  userId: string;
   symbol: string;
   direction: 'BUY' | 'SELL';
   entryPrice: number;
-  quantity: number; // dollar amount committed
+  quantity: number;
   openedAt: string;
   signalId?: string;
   stopLoss?: number;
@@ -20,6 +20,7 @@ export interface Position {
 
 export interface Trade {
   id: string;
+  userId: string;
   symbol: string;
   direction: 'BUY' | 'SELL';
   entryPrice: number;
@@ -51,6 +52,7 @@ export interface Stats {
 }
 
 export interface Portfolio {
+  userId: string;
   balance: number;
   startingBalance: number;
   positions: Position[];
@@ -63,8 +65,6 @@ export interface Portfolio {
 // Constants
 // ---------------------------------------------------------------------------
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const PT_FILE = path.join(DATA_DIR, 'paper-trading.json');
 export const STARTING_BALANCE = 10000;
 
 export const BASE_PRICES: Record<string, number> = {
@@ -80,18 +80,8 @@ export const BASE_PRICES: Record<string, number> = {
   USDCAD: 1.365,
 };
 
-// ---------------------------------------------------------------------------
-// Storage helpers
-// ---------------------------------------------------------------------------
-
-function ensureDataDir(): void {
-  try {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-  } catch {
-    // Read-only fs (e.g. Vercel) — ignore
-  }
+function fmt(v: number, price: number): number {
+  return +v.toFixed(price >= 100 ? 2 : 5);
 }
 
 function emptyStats(): Stats {
@@ -107,53 +97,95 @@ function emptyStats(): Stats {
   };
 }
 
-export function getPortfolio(): Portfolio {
-  ensureDataDir();
-  if (fs.existsSync(PT_FILE)) {
-    try {
-      const raw = fs.readFileSync(PT_FILE, 'utf-8');
-      return JSON.parse(raw) as Portfolio;
-    } catch {
-      // Corrupt — fall through to empty portfolio
-    }
-  }
-  const portfolio = emptyPortfolio();
-  writePortfolio(portfolio);
-  return portfolio;
-}
+// ---------------------------------------------------------------------------
+// Public demo user (for widgets)
+// ---------------------------------------------------------------------------
 
-function writePortfolio(portfolio: Portfolio): void {
-  ensureDataDir();
-  try {
-    fs.writeFileSync(PT_FILE, JSON.stringify(portfolio, null, 2), 'utf-8');
-  } catch {
-    // Ignore write failures on read-only fs
-  }
+/**
+ * Returns the user id widgets should read when embedded on third-party sites.
+ * Controlled by `PUBLIC_WIDGET_DEMO_USER_ID`. Unset → widgets have no caller.
+ */
+export function getDemoUserId(): string | null {
+  const id = process.env.PUBLIC_WIDGET_DEMO_USER_ID?.trim();
+  return id && id.length > 0 ? id : null;
 }
 
 // ---------------------------------------------------------------------------
-// Empty portfolio — clean slate for new users
+// Row mappers
 // ---------------------------------------------------------------------------
 
-function fmt(v: number, price: number): number {
-  return +v.toFixed(price >= 100 ? 2 : 5);
+interface PortfolioRow {
+  user_id: string;
+  balance: string;
+  starting_balance: string;
+  equity_curve: EquityPoint[] | null;
+  stats: Partial<Stats> | null;
 }
 
-function emptyPortfolio(): Portfolio {
+interface PositionRow {
+  id: string;
+  user_id: string;
+  symbol: string;
+  direction: string;
+  entry_price: string;
+  quantity: string;
+  opened_at: string;
+  signal_id: string | null;
+  stop_loss: string | null;
+  take_profit: string | null;
+}
+
+interface TradeRow {
+  id: string;
+  user_id: string;
+  symbol: string;
+  direction: string;
+  entry_price: string;
+  exit_price: string;
+  quantity: string;
+  pnl: string;
+  pnl_percent: string;
+  opened_at: string;
+  closed_at: string;
+  signal_id: string | null;
+  exit_reason: string;
+}
+
+function toPosition(row: PositionRow): Position {
   return {
-    balance: STARTING_BALANCE,
-    startingBalance: STARTING_BALANCE,
-    positions: [],
-    history: [],
-    equityCurve: [
-      { timestamp: new Date().toISOString(), equity: STARTING_BALANCE, balance: STARTING_BALANCE },
-    ],
-    stats: emptyStats(),
+    id: row.id,
+    userId: row.user_id,
+    symbol: row.symbol,
+    direction: row.direction as 'BUY' | 'SELL',
+    entryPrice: Number(row.entry_price),
+    quantity: Number(row.quantity),
+    openedAt: new Date(row.opened_at).toISOString(),
+    signalId: row.signal_id ?? undefined,
+    stopLoss: row.stop_loss !== null ? Number(row.stop_loss) : undefined,
+    takeProfit: row.take_profit !== null ? Number(row.take_profit) : undefined,
+  };
+}
+
+function toTrade(row: TradeRow): Trade {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    symbol: row.symbol,
+    direction: row.direction as 'BUY' | 'SELL',
+    entryPrice: Number(row.entry_price),
+    exitPrice: Number(row.exit_price),
+    quantity: Number(row.quantity),
+    pnl: Number(row.pnl),
+    pnlPercent: Number(row.pnl_percent),
+    openedAt: new Date(row.opened_at).toISOString(),
+    closedAt: new Date(row.closed_at).toISOString(),
+    signalId: row.signal_id ?? undefined,
+    exitReason: row.exit_reason as Trade['exitReason'],
   };
 }
 
 // ---------------------------------------------------------------------------
-// Stats calculation
+// Stats calculation (unchanged — pure)
 // ---------------------------------------------------------------------------
 
 export function calculateStats(
@@ -175,7 +207,6 @@ export function calculateStats(
   const profitFactor =
     grossLoss > 0 ? +(grossProfit / grossLoss).toFixed(2) : grossProfit > 0 ? 999 : 0;
 
-  // Max drawdown from equity curve
   let maxDrawdown = 0;
   let peak = startingBalance;
   for (const pt of equityCurve) {
@@ -184,7 +215,6 @@ export function calculateStats(
     if (dd > maxDrawdown) maxDrawdown = dd;
   }
 
-  // Sharpe ratio — annualised using actual trade cadence, not a hardcoded 252
   const pnls = history.map((t) => t.pnlPercent);
   const meanPnl = pnls.reduce((s, v) => s + v, 0) / pnls.length;
   const variance = pnls.reduce((s, v) => s + (v - meanPnl) ** 2, 0) / pnls.length;
@@ -211,10 +241,74 @@ export function calculateStats(
 }
 
 // ---------------------------------------------------------------------------
+// Portfolio header (auto-create on first read)
+// ---------------------------------------------------------------------------
+
+async function getOrCreatePortfolioRow(userId: string): Promise<PortfolioRow> {
+  const existing = await queryOne<PortfolioRow>(
+    `SELECT user_id, balance, starting_balance, equity_curve, stats
+     FROM paper_portfolios WHERE user_id = $1`,
+    [userId],
+  );
+  if (existing) return existing;
+
+  const initial: EquityPoint[] = [
+    { timestamp: new Date().toISOString(), equity: STARTING_BALANCE, balance: STARTING_BALANCE },
+  ];
+  const row = await queryOne<PortfolioRow>(
+    `INSERT INTO paper_portfolios (user_id, balance, starting_balance, equity_curve, stats)
+     VALUES ($1, $2, $2, $3::jsonb, $4::jsonb)
+     ON CONFLICT (user_id) DO UPDATE SET updated_at = NOW()
+     RETURNING user_id, balance, starting_balance, equity_curve, stats`,
+    [userId, STARTING_BALANCE, JSON.stringify(initial), JSON.stringify(emptyStats())],
+  );
+  if (!row) throw new Error('getOrCreatePortfolioRow: insert returned no row');
+  return row;
+}
+
+export async function getPortfolio(userId: string): Promise<Portfolio> {
+  const header = await getOrCreatePortfolioRow(userId);
+
+  const [positionRows, tradeRows] = await Promise.all([
+    query<PositionRow>(
+      `SELECT id, user_id, symbol, direction, entry_price, quantity, opened_at,
+              signal_id, stop_loss, take_profit
+       FROM paper_positions WHERE user_id = $1 ORDER BY opened_at DESC`,
+      [userId],
+    ),
+    query<TradeRow>(
+      `SELECT id, user_id, symbol, direction, entry_price, exit_price, quantity,
+              pnl, pnl_percent, opened_at, closed_at, signal_id, exit_reason
+       FROM paper_trades WHERE user_id = $1 ORDER BY closed_at DESC`,
+      [userId],
+    ),
+  ]);
+
+  return {
+    userId,
+    balance: Number(header.balance),
+    startingBalance: Number(header.starting_balance),
+    positions: positionRows.map(toPosition),
+    history: tradeRows.map(toTrade),
+    equityCurve: Array.isArray(header.equity_curve) ? header.equity_curve : [],
+    stats: { ...emptyStats(), ...(header.stats ?? {}) },
+  };
+}
+
+export async function getEquityCurve(userId: string): Promise<EquityPoint[]> {
+  const header = await queryOne<{ equity_curve: EquityPoint[] | null }>(
+    `SELECT equity_curve FROM paper_portfolios WHERE user_id = $1`,
+    [userId],
+  );
+  return Array.isArray(header?.equity_curve) ? header.equity_curve : [];
+}
+
+// ---------------------------------------------------------------------------
 // Operations
 // ---------------------------------------------------------------------------
 
-export function openPosition(opts: {
+export interface OpenPositionInput {
+  userId: string;
   symbol: string;
   direction: 'BUY' | 'SELL';
   quantity?: number;
@@ -223,129 +317,152 @@ export function openPosition(opts: {
   takeProfit?: number;
   entryPrice?: number;
   slippageEnabled?: boolean;
-}): { portfolio: Portfolio; position: Position } {
-  const portfolio = getPortfolio();
+}
+
+export async function openPosition(
+  opts: OpenPositionInput,
+): Promise<{ portfolio: Portfolio; position: Position }> {
+  const header = await getOrCreatePortfolioRow(opts.userId);
+  const balance = Number(header.balance);
+
   const basePrice = BASE_PRICES[opts.symbol] ?? 100;
   const rawEntry = opts.entryPrice ?? fmt(basePrice, basePrice);
-
-  // Apply entry slippage (works against the trader)
   const slippageConfig = getSlippageConfig(opts.symbol);
   const useSlippage = opts.slippageEnabled !== false;
   const entryPrice = useSlippage
     ? fmt(applySlippage(rawEntry, opts.direction, 'entry', slippageConfig), basePrice)
     : rawEntry;
 
-  const quantity = opts.quantity ?? Math.round(portfolio.balance * 0.05);
+  const quantity = opts.quantity ?? Math.round(balance * 0.05);
   const atr = entryPrice * 0.005;
 
-  const stopLoss =
-    opts.stopLoss ??
-    (opts.direction === 'BUY'
-      ? fmt(entryPrice - atr * 1.5, basePrice)
-      : fmt(entryPrice + atr * 1.5, basePrice));
+  const stopLoss = opts.stopLoss ?? (opts.direction === 'BUY'
+    ? fmt(entryPrice - atr * 1.5, basePrice)
+    : fmt(entryPrice + atr * 1.5, basePrice));
 
-  const takeProfit =
-    opts.takeProfit ??
-    (opts.direction === 'BUY'
-      ? fmt(entryPrice + atr * 2.5, basePrice)
-      : fmt(entryPrice - atr * 2.5, basePrice));
+  const takeProfit = opts.takeProfit ?? (opts.direction === 'BUY'
+    ? fmt(entryPrice + atr * 2.5, basePrice)
+    : fmt(entryPrice - atr * 2.5, basePrice));
 
-  const position: Position = {
-    id: `pos_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-    symbol: opts.symbol,
-    direction: opts.direction,
-    entryPrice,
-    quantity,
-    openedAt: new Date().toISOString(),
-    signalId: opts.signalId,
-    stopLoss,
-    takeProfit,
-  };
+  const id = `pos_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  const row = await queryOne<PositionRow>(
+    `INSERT INTO paper_positions
+       (id, user_id, symbol, direction, entry_price, quantity, signal_id, stop_loss, take_profit)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+     RETURNING id, user_id, symbol, direction, entry_price, quantity, opened_at,
+               signal_id, stop_loss, take_profit`,
+    [id, opts.userId, opts.symbol, opts.direction, entryPrice, quantity,
+     opts.signalId ?? null, stopLoss, takeProfit],
+  );
+  if (!row) throw new Error('openPosition: insert returned no row');
 
-  portfolio.positions.push(position);
-  writePortfolio(portfolio);
-  return { portfolio, position };
+  const portfolio = await getPortfolio(opts.userId);
+  return { portfolio, position: toPosition(row) };
 }
 
-export function closePosition(
-  positionId: string,
+export async function closePosition(
+  opts: { userId: string; positionId: string },
   exitPrice?: number,
   exitReason: Trade['exitReason'] = 'manual',
-): { portfolio: Portfolio; trade: Trade } | null {
-  const portfolio = getPortfolio();
-  const posIdx = portfolio.positions.findIndex((p) => p.id === positionId);
-  if (posIdx === -1) return null;
+): Promise<{ portfolio: Portfolio; trade: Trade } | null> {
+  const posRow = await queryOne<PositionRow>(
+    `DELETE FROM paper_positions WHERE id = $1 AND user_id = $2
+     RETURNING id, user_id, symbol, direction, entry_price, quantity, opened_at,
+               signal_id, stop_loss, take_profit`,
+    [opts.positionId, opts.userId],
+  );
+  if (!posRow) return null;
 
-  const position = portfolio.positions[posIdx];
+  const position = toPosition(posRow);
   const basePrice = BASE_PRICES[position.symbol] ?? 100;
-  const rawExit =
-    exitPrice ??
-    fmt(position.entryPrice * (1 + (Math.random() - 0.5) * 0.003), basePrice);
-
-  // Apply exit slippage (works against the trader)
+  const rawExit = exitPrice ?? fmt(position.entryPrice * (1 + (Math.random() - 0.5) * 0.003), basePrice);
   const slippageConfig = getSlippageConfig(position.symbol);
   const currentPrice = fmt(applySlippage(rawExit, position.direction, 'exit', slippageConfig), basePrice);
 
   const dirMult = position.direction === 'BUY' ? 1 : -1;
   const movePct = ((currentPrice - position.entryPrice) / position.entryPrice) * dirMult;
   const pnl = +(position.quantity * movePct).toFixed(2);
+  const pnlPercent = +(movePct * 100).toFixed(2);
 
-  const trade: Trade = {
-    id: `trade_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-    symbol: position.symbol,
-    direction: position.direction,
-    entryPrice: position.entryPrice,
-    exitPrice: currentPrice,
-    quantity: position.quantity,
-    pnl,
-    pnlPercent: +(movePct * 100).toFixed(2),
-    openedAt: position.openedAt,
-    closedAt: new Date().toISOString(),
-    signalId: position.signalId,
-    exitReason,
-  };
+  const closedAt = new Date().toISOString();
+  const tradeId = `trade_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  const tradeRow = await queryOne<TradeRow>(
+    `INSERT INTO paper_trades
+       (id, user_id, symbol, direction, entry_price, exit_price, quantity,
+        pnl, pnl_percent, opened_at, closed_at, signal_id, exit_reason)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+     RETURNING id, user_id, symbol, direction, entry_price, exit_price, quantity,
+               pnl, pnl_percent, opened_at, closed_at, signal_id, exit_reason`,
+    [
+      tradeId, opts.userId, position.symbol, position.direction,
+      position.entryPrice, currentPrice, position.quantity,
+      pnl, pnlPercent, position.openedAt, closedAt,
+      position.signalId ?? null, exitReason,
+    ],
+  );
+  if (!tradeRow) throw new Error('closePosition: insert trade returned no row');
+  const trade = toTrade(tradeRow);
 
-  portfolio.positions.splice(posIdx, 1);
-  portfolio.balance = +(portfolio.balance + pnl).toFixed(2);
-  portfolio.history.unshift(trade);
-  portfolio.equityCurve.push({
-    timestamp: trade.closedAt,
-    equity: portfolio.balance,
-    balance: portfolio.balance,
-  });
-  portfolio.stats = calculateStats(portfolio.history, portfolio.startingBalance, portfolio.equityCurve);
-  writePortfolio(portfolio);
+  // Update portfolio header — balance + equity curve + stats
+  const header = await getOrCreatePortfolioRow(opts.userId);
+  const newBalance = +(Number(header.balance) + pnl).toFixed(2);
+  const equityCurve = Array.isArray(header.equity_curve) ? [...header.equity_curve] : [];
+  equityCurve.push({ timestamp: closedAt, equity: newBalance, balance: newBalance });
+
+  const allTrades = await query<TradeRow>(
+    `SELECT id, user_id, symbol, direction, entry_price, exit_price, quantity,
+            pnl, pnl_percent, opened_at, closed_at, signal_id, exit_reason
+     FROM paper_trades WHERE user_id = $1 ORDER BY closed_at ASC`,
+    [opts.userId],
+  );
+  const history = allTrades.map(toTrade);
+  const newStats = calculateStats(history, Number(header.starting_balance), equityCurve);
+
+  await execute(
+    `UPDATE paper_portfolios
+       SET balance = $1, equity_curve = $2::jsonb, stats = $3::jsonb, updated_at = NOW()
+     WHERE user_id = $4`,
+    [newBalance, JSON.stringify(equityCurve), JSON.stringify(newStats), opts.userId],
+  );
+
+  const portfolio = await getPortfolio(opts.userId);
   return { portfolio, trade };
 }
 
-export function closeAllPositions(
+export async function closeAllPositions(
+  userId: string,
   exitReason: Trade['exitReason'] = 'manual',
-): Portfolio {
-  // Re-read each time to pick up writes from previous closes
-  let portfolio = getPortfolio();
+): Promise<Portfolio> {
+  // Close one at a time so equity curve + stats update after each
+  let portfolio = await getPortfolio(userId);
   while (portfolio.positions.length > 0) {
-    closePosition(portfolio.positions[0].id, undefined, exitReason);
-    portfolio = getPortfolio();
+    await closePosition({ userId, positionId: portfolio.positions[0].id }, undefined, exitReason);
+    portfolio = await getPortfolio(userId);
   }
-  return getPortfolio();
+  return portfolio;
 }
 
-export function resetPortfolio(): Portfolio {
-  const fresh: Portfolio = {
-    balance: STARTING_BALANCE,
-    startingBalance: STARTING_BALANCE,
-    positions: [],
-    history: [],
-    equityCurve: [
-      { timestamp: new Date().toISOString(), equity: STARTING_BALANCE, balance: STARTING_BALANCE },
-    ],
-    stats: emptyStats(),
-  };
-  writePortfolio(fresh);
-  return fresh;
+export async function resetPortfolio(userId: string): Promise<Portfolio> {
+  const initial: EquityPoint[] = [
+    { timestamp: new Date().toISOString(), equity: STARTING_BALANCE, balance: STARTING_BALANCE },
+  ];
+  await execute(`DELETE FROM paper_positions WHERE user_id = $1`, [userId]);
+  await execute(`DELETE FROM paper_trades WHERE user_id = $1`, [userId]);
+  await execute(
+    `INSERT INTO paper_portfolios (user_id, balance, starting_balance, equity_curve, stats)
+     VALUES ($1, $2, $2, $3::jsonb, $4::jsonb)
+     ON CONFLICT (user_id) DO UPDATE SET
+       balance = EXCLUDED.balance,
+       equity_curve = EXCLUDED.equity_curve,
+       stats = EXCLUDED.stats,
+       updated_at = NOW()`,
+    [userId, STARTING_BALANCE, JSON.stringify(initial), JSON.stringify(emptyStats())],
+  );
+  return getPortfolio(userId);
 }
 
-export function autoFollowSignal(signal: {
+export interface FollowSignalInput {
+  userId: string;
   id?: string;
   symbol: string;
   direction: 'BUY' | 'SELL';
@@ -353,12 +470,17 @@ export function autoFollowSignal(signal: {
   stopLoss: number;
   takeProfit: number;
   positionSizePct?: number;
-}): { portfolio: Portfolio; position: Position } {
-  const portfolio = getPortfolio();
+}
+
+export async function autoFollowSignal(
+  signal: FollowSignalInput,
+): Promise<{ portfolio: Portfolio; position: Position }> {
+  const header = await getOrCreatePortfolioRow(signal.userId);
   const sizePct = signal.positionSizePct ?? 0.05;
-  const quantity = Math.max(1, Math.round(portfolio.balance * sizePct));
+  const quantity = Math.max(1, Math.round(Number(header.balance) * sizePct));
 
   return openPosition({
+    userId: signal.userId,
     symbol: signal.symbol,
     direction: signal.direction,
     quantity,
@@ -368,6 +490,20 @@ export function autoFollowSignal(signal: {
   });
 }
 
-export function getEquityCurve(): EquityPoint[] {
-  return getPortfolio().equityCurve;
+// ---------------------------------------------------------------------------
+// Cross-user sweep for position-monitor CRON
+// ---------------------------------------------------------------------------
+
+/**
+ * Return every open position across all users. Intended only for the
+ * CRON_SECRET-gated position-monitor route, which checks each position
+ * against live prices and closes on SL/TP hit.
+ */
+export async function getAllOpenPositionsForSweep(): Promise<Position[]> {
+  const rows = await query<PositionRow>(
+    `SELECT id, user_id, symbol, direction, entry_price, quantity, opened_at,
+            signal_id, stop_loss, take_profit
+     FROM paper_positions ORDER BY opened_at ASC`,
+  );
+  return rows.map(toPosition);
 }

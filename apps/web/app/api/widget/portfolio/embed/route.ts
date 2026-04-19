@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPortfolio, STARTING_BALANCE } from '../../../../../lib/paper-trading';
+import { getPortfolio, getDemoUserId, STARTING_BALANCE } from '../../../../../lib/paper-trading';
 import { TRADECLAW_LOGO_SVG } from '../../../../../components/tradeclaw-logo';
 
 export const dynamic = 'force-dynamic';
@@ -9,9 +9,16 @@ function esc(s: string): string {
 }
 
 export async function GET(request: NextRequest) {
+  const userId = getDemoUserId();
+  if (!userId) {
+    return NextResponse.json(
+      { error: 'Widget demo user not configured' },
+      { status: 410, headers: { 'Access-Control-Allow-Origin': '*' } },
+    );
+  }
   try {
     const theme = request.nextUrl.searchParams.get('theme') === 'light' ? 'light' : 'dark';
-    const portfolio = getPortfolio();
+    const portfolio = await getPortfolio(userId);
     const balance = portfolio.balance;
     const totalReturn = ((balance - STARTING_BALANCE) / STARTING_BALANCE) * 100;
     const winRate = portfolio.stats.winRate;

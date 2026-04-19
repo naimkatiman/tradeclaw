@@ -1,9 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getPortfolio } from '../../../../lib/paper-trading';
+import { readSessionFromRequest } from '../../../../lib/user-session';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const session = readSessionFromRequest(req);
+  if (!session) {
+    return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
+  }
   try {
-    const portfolio = getPortfolio();
+    const portfolio = await getPortfolio(session.userId);
     return NextResponse.json({
       stats: portfolio.stats,
       equityCurve: portfolio.equityCurve,

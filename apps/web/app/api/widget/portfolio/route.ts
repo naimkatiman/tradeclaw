@@ -1,14 +1,26 @@
 import { NextResponse } from 'next/server';
-import { getPortfolio, STARTING_BALANCE, BASE_PRICES } from '../../../../lib/paper-trading';
+import {
+  getPortfolio,
+  getDemoUserId,
+  STARTING_BALANCE,
+  BASE_PRICES,
+} from '../../../../lib/paper-trading';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const userId = getDemoUserId();
+  if (!userId) {
+    return NextResponse.json(
+      { error: 'Widget demo user not configured' },
+      { status: 410, headers: { 'Access-Control-Allow-Origin': '*' } },
+    );
+  }
+
   try {
-    const portfolio = getPortfolio();
+    const portfolio = await getPortfolio(userId);
     const balance = portfolio.balance;
 
-    // Calculate unrealised P&L per position using latest base prices
     const positionsWithPnl = portfolio.positions.map((pos) => {
       const currentPrice = BASE_PRICES[pos.symbol] ?? pos.entryPrice;
       const dirMult = pos.direction === 'BUY' ? 1 : -1;
@@ -21,7 +33,6 @@ export async function GET() {
     const equity = +(balance + openPnl).toFixed(2);
     const totalReturn = ((equity - STARTING_BALANCE) / STARTING_BALANCE) * 100;
 
-    // Top 3 open positions by absolute unrealised P&L
     const top3 = [...positionsWithPnl]
       .sort((a, b) => Math.abs(b.unrealisedPnl) - Math.abs(a.unrealisedPnl))
       .slice(0, 3);

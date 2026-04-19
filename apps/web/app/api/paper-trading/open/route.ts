@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { openPosition, BASE_PRICES } from '../../../../lib/paper-trading';
+import { readSessionFromRequest } from '../../../../lib/user-session';
 
 export async function POST(request: NextRequest) {
+  const session = readSessionFromRequest(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
+  }
   let body: unknown;
   try {
     body = await request.json();
@@ -19,7 +24,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'direction must be BUY or SELL' }, { status: 400 });
   }
 
-  const result = openPosition({
+  const result = await openPosition({
+    userId: session.userId,
     symbol,
     direction,
     quantity: typeof quantity === 'number' ? quantity : undefined,

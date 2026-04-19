@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { autoFollowSignal, BASE_PRICES } from '../../../../lib/paper-trading';
+import { readSessionFromRequest } from '../../../../lib/user-session';
 
 export async function POST(request: NextRequest) {
+  const session = readSessionFromRequest(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
+  }
   let body: unknown;
   try {
     body = await request.json();
@@ -22,7 +27,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'entry, stopLoss, takeProfit must be numbers' }, { status: 400 });
   }
 
-  const result = autoFollowSignal({
+  const result = await autoFollowSignal({
+    userId: session.userId,
     id: typeof id === 'string' ? id : undefined,
     symbol,
     direction,

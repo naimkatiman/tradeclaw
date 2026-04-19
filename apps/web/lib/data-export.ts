@@ -36,6 +36,27 @@ async function readAlertsForExport(userId: string | undefined): Promise<PriceAle
   }
 }
 
+async function readPortfolioForExport(userId: string | undefined): Promise<Portfolio> {
+  const shell: Portfolio = {
+    userId: userId ?? '',
+    balance: 10000,
+    startingBalance: 10000,
+    positions: [],
+    history: [],
+    equityCurve: [],
+    stats: {
+      totalTrades: 0, winRate: 0, avgPnl: 0, bestTrade: 0, worstTrade: 0,
+      sharpeRatio: 0, maxDrawdown: 0, profitFactor: 0,
+    },
+  };
+  if (!userId) return shell;
+  try {
+    return await getPortfolio(userId);
+  } catch {
+    return shell;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -159,17 +180,19 @@ function sanitiseWebhooks(webhooks: WebhookConfig[]): SanitisedWebhook[] {
  * handler for the current off-switch.
  */
 export async function collectServerData(userId?: string): Promise<ServerExportData> {
-  const webhooks = sanitiseWebhooks(await readWebhooksForExport(userId));
-  const alerts = await readAlertsForExport(userId);
+  const [webhooks, alerts, paperTrading] = await Promise.all([
+    readWebhooksForExport(userId).then(sanitiseWebhooks),
+    readAlertsForExport(userId),
+    readPortfolioForExport(userId),
+  ]);
 
   if (userId) {
-    // Paper-trading, plugins, and telegram are still single-tenant (no userId
-    // column yet). Return empty arrays rather than the global set — never leak
-    // someone else's records through a scoped call. As each store migrates to
-    // DB with user_id columns, its array here flips to the real rows.
+    // Plugins and telegram are still single-tenant (no userId column yet).
+    // Return empty arrays rather than the global set — never leak someone
+    // else's records through a scoped call.
     return {
       alerts,
-      paperTrading: getPortfolio(),
+      paperTrading,
       webhooks,
       plugins: [],
       telegramSettings: [],
@@ -177,11 +200,10 @@ export async function collectServerData(userId?: string): Promise<ServerExportDa
   }
 
   // Unscoped (global) path: used for self-host single-tenant dumps. Migrated
-  // stores always return [] here — the caller has no user identity, so we
-  // can't safely attribute rows to a user.
+  // stores always return empty/default here — the caller has no user identity.
   return {
     alerts,
-    paperTrading: getPortfolio(),
+    paperTrading,
     webhooks,
     plugins: listPlugins(),
     telegramSettings: readSubscribers(),
@@ -328,27 +350,12 @@ export async function importServerData(payload: ExportPayload, mode: 'merge' | '
   const skippedAlerts = incomingAlerts.length;
 
   // ── Paper trading ────────────────────────────────────────────────────────
-  const incomingPT = data.paperTrading as Partial<Portfolio> | undefined;
-  let ptPositionsCount = 0;
-  let ptHistoryCount = 0;
-
-  if (incomingPT) {
-    if (mode === 'replace') {
-      writeJson(path.join(DATA_DIR, 'paper-trading.json'), incomingPT);
-      ptPositionsCount = (incomingPT.positions ?? []).length;
-      ptHistoryCount = (incomingPT.history ?? []).length;
-    } else {
-      const currentHistIds = new Set(current.paperTrading.history.map(h => h.id));
-      const newHistory = (incomingPT.history ?? []).filter(h => !currentHistIds.has(h.id));
-      const merged: Portfolio = {
-        ...current.paperTrading,
-        history: [...current.paperTrading.history, ...newHistory],
-      };
-      writeJson(path.join(DATA_DIR, 'paper-trading.json'), merged);
-      ptPositionsCount = current.paperTrading.positions.length;
-      ptHistoryCount = merged.history.length;
-    }
-  }
+  // Paper trading moved to user-scoped Postgres in migration 015. The import
+  // route runs unscoped (no session) so we can't safely attribute incoming
+  // positions/history to a user — skip them here. Users re-seed via normal
+  // paper-trading flows post-signin.
+  const ptPositionsCount = 0;
+  const ptHistoryCount = 0;
 
   // ── Webhooks ─────────────────────────────────────────────────────────────
   // Webhooks moved to user-scoped Postgres in migration 013. The import route

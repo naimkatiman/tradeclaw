@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { closePosition } from '../../../../lib/paper-trading';
+import { readSessionFromRequest } from '../../../../lib/user-session';
 
 export async function POST(request: NextRequest) {
+  const session = readSessionFromRequest(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
+  }
   let body: unknown;
   try {
     body = await request.json();
@@ -15,8 +20,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'positionId required' }, { status: 400 });
   }
 
-  const result = closePosition(
-    positionId,
+  const result = await closePosition(
+    { userId: session.userId, positionId },
     typeof exitPrice === 'number' ? exitPrice : undefined,
     'manual',
   );
