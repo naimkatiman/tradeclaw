@@ -24,6 +24,24 @@ export const GATE_THRESHOLDS_BY_REGIME: Record<MarketRegime, GateThresholds> = {
   euphoria: { streakN: 3, drawdownThreshold: 0.08, lookback: 20 },
 };
 
+// Baseline expected stddev of resolved pnlPct per regime. Current realized
+// stddev divided by this baseline gives the volatility multiplier applied to
+// the drawdown threshold. Calibrated against the Apr 13-18 tape — refine
+// after 2 weeks of gate-log data lands.
+export const REGIME_VOL_BASELINE_PCT: Record<MarketRegime, number> = {
+  crash:    2.5,
+  bear:     1.8,
+  neutral:  1.5,
+  bull:     2.0,
+  euphoria: 2.5,
+};
+
+// Volatility multiplier clamps. Prevents the vol-scaled DD threshold from
+// running away in extreme regimes — a 2x loose gate in a vol blowout defeats
+// the purpose.
+const VOL_MULTIPLIER_MIN = 0.75;
+const VOL_MULTIPLIER_MAX = 1.5;
+
 // Backward-compat exports — used by existing tests and any external callers
 // that imported the old constants. These are the `neutral` values.
 export const LOOKBACK_RESOLVED = GATE_THRESHOLDS_BY_REGIME.neutral.lookback;
@@ -33,6 +51,42 @@ const START_BALANCE = 10_000;
 
 export function getGateThresholds(regime: MarketRegime): GateThresholds {
   return GATE_THRESHOLDS_BY_REGIME[regime] ?? GATE_THRESHOLDS_BY_REGIME.neutral;
+}
+
+/**
+ * Returns true when TRADECLAW_GATE_VOL_SCALING=on. Off by default — prod
+ * behavior is unchanged until explicitly enabled.
+ */
+export function volScalingEnabled(): boolean {
+  return (process.env.TRADECLAW_GATE_VOL_SCALING ?? 'off').toLowerCase() === 'on';
+}
+
+/**
+ * Computes the volatility multiplier for the DD threshold. Takes the stddev
+ * of resolved pnlPct values across the lookback window and compares to the
+ * regime-expected baseline stddev. Clamped to [VOL_MULTIPLIER_MIN, _MAX] to
+ * prevent extreme adjustments.
+ *
+ * Needs at least 5 samples to produce a meaningful stddev; fewer → 1.0 (no
+ * adjustment).
+ */
+export function computeVolMultiplier(
+  resolved: readonly ResolvedOutcome[],
+  regime: MarketRegime,
+): number {
+  if (resolved.length < 5) return 1.0;
+
+  const values = resolved.map((r) => r.pnlPct);
+  const mean = values.reduce((s, v) => s + v, 0) / values.length;
+  const variance =
+    values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
+  const stddev = Math.sqrt(variance);
+
+  const baseline = REGIME_VOL_BASELINE_PCT[regime] ?? REGIME_VOL_BASELINE_PCT.neutral;
+  if (baseline <= 0) return 1.0;
+
+  const raw = stddev / baseline;
+  return Math.min(VOL_MULTIPLIER_MAX, Math.max(VOL_MULTIPLIER_MIN, raw));
 }
 
 export interface ResolvedOutcome {
@@ -48,6 +102,10 @@ export interface GateState {
   dataPoints: number;
   regime: MarketRegime;
   thresholds: GateThresholds;
+  /** Multiplier applied to thresholds.drawdownThreshold when vol scaling is on. 1.0 when off. */
+  volMultiplier: number;
+  /** The actual DD threshold used for this evaluation (thresholds.drawdownThreshold * volMultiplier). */
+  effectiveDrawdownThreshold: number;
 }
 
 /**
@@ -60,11 +118,19 @@ export interface GateState {
  * `regime` defaults to 'neutral' so tests and callers that haven't been
  * updated continue to use the historical thresholds.
  */
+export interface ComputeGateOptions {
+  /** When true, scale thresholds.drawdownThreshold by realized outcome stddev / regime baseline. */
+  volScaling?: boolean;
+}
+
 export function computeGateState(
   resolved: readonly ResolvedOutcome[],
   regime: MarketRegime = 'neutral',
+  opts: ComputeGateOptions = {},
 ): GateState {
   const thresholds = getGateThresholds(regime);
+  const volMultiplier = opts.volScaling ? computeVolMultiplier(resolved, regime) : 1.0;
+  const effectiveDrawdownThreshold = +(thresholds.drawdownThreshold * volMultiplier).toFixed(4);
 
   if (resolved.length === 0) {
     return {
@@ -75,6 +141,8 @@ export function computeGateState(
       dataPoints: 0,
       regime,
       thresholds,
+      volMultiplier,
+      effectiveDrawdownThreshold,
     };
   }
 
@@ -96,7 +164,11 @@ export function computeGateState(
     if (balance > peak) peak = balance;
   }
   const currentDrawdown = peak > 0 ? (peak - balance) / peak : 0;
-  const ddBlocked = currentDrawdown > thresholds.drawdownThreshold;
+  const ddBlocked = currentDrawdown > effectiveDrawdownThreshold;
+
+  const scalingNote = opts.volScaling && volMultiplier !== 1.0
+    ? ` (vol×${volMultiplier.toFixed(2)})`
+    : '';
 
   if (streakBlocked) {
     return {
@@ -107,17 +179,21 @@ export function computeGateState(
       dataPoints: resolved.length,
       regime,
       thresholds,
+      volMultiplier,
+      effectiveDrawdownThreshold,
     };
   }
   if (ddBlocked) {
     return {
       gatesAllow: false,
-      reason: `drawdown_blocked: ${(currentDrawdown * 100).toFixed(1)}% > ${(thresholds.drawdownThreshold * 100).toFixed(0)}% (regime=${regime})`,
+      reason: `drawdown_blocked: ${(currentDrawdown * 100).toFixed(1)}% > ${(effectiveDrawdownThreshold * 100).toFixed(1)}% (regime=${regime}${scalingNote})`,
       streakLossCount,
       currentDrawdownPct: +(currentDrawdown * 100).toFixed(2),
       dataPoints: resolved.length,
       regime,
       thresholds,
+      volMultiplier,
+      effectiveDrawdownThreshold,
     };
   }
   return {
@@ -128,6 +204,8 @@ export function computeGateState(
     dataPoints: resolved.length,
     regime,
     thresholds,
+    volMultiplier,
+    effectiveDrawdownThreshold,
   };
 }
 
@@ -166,12 +244,13 @@ export async function fetchGateState(): Promise<GateState> {
       resolved.push({ hit: o.hit, pnlPct: o.pnlPct });
       if (resolved.length >= thresholds.lookback) break;
     }
-    const state = computeGateState(resolved, regime);
+    const state = computeGateState(resolved, regime, { volScaling: volScalingEnabled() });
     cachedState = { state, expiresAt: now + CACHE_TTL_MS };
     return state;
   } catch (err) {
     // Fail open — log to stderr but never block signals on DB hiccups
     console.error('[full-risk-gates] fetchGateState failed:', err);
+    const neutralThresholds = getGateThresholds('neutral');
     return {
       gatesAllow: true,
       reason: null,
@@ -179,7 +258,9 @@ export async function fetchGateState(): Promise<GateState> {
       currentDrawdownPct: 0,
       dataPoints: 0,
       regime: 'neutral',
-      thresholds: getGateThresholds('neutral'),
+      thresholds: neutralThresholds,
+      volMultiplier: 1.0,
+      effectiveDrawdownThreshold: neutralThresholds.drawdownThreshold,
     };
   }
 }

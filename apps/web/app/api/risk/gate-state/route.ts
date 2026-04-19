@@ -18,6 +18,8 @@ export async function GET() {
         currentDrawdownPct: state.currentDrawdownPct,
         dataPoints: state.dataPoints,
         thresholds: state.thresholds,
+        volMultiplier: state.volMultiplier,
+        effectiveDrawdownThreshold: state.effectiveDrawdownThreshold,
       },
       {
         headers: {

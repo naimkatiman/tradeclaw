@@ -25,6 +25,8 @@ interface GateBatchLog {
     dataPoints: number;
     regime: MarketRegime;
     thresholds: GateThresholds;
+    volMultiplier: number;
+    effectiveDrawdownThreshold: number;
   };
   passedCount: number;
   blockedCount: number;
@@ -76,6 +78,8 @@ export function buildGateLogEntry(
       dataPoints: gateState.dataPoints,
       regime: gateState.regime,
       thresholds: gateState.thresholds,
+      volMultiplier: gateState.volMultiplier,
+      effectiveDrawdownThreshold: gateState.effectiveDrawdownThreshold,
     },
     passedCount: passedSignals.length,
     blockedCount: blockedSignals.length,

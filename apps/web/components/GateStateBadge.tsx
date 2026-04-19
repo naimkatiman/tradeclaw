@@ -12,6 +12,8 @@ interface GateSnapshot {
   currentDrawdownPct: number;
   dataPoints: number;
   thresholds: { streakN: number; drawdownThreshold: number; lookback: number };
+  volMultiplier: number;
+  effectiveDrawdownThreshold: number;
 }
 
 const REGIME_STYLES: Record<GateSnapshot['regime'], { label: string; className: string }> = {
@@ -63,11 +65,12 @@ export function GateStateBadge() {
       ? 'gates allow'
       : 'GATES BLOCKED';
 
+  const volNote = snap.volMultiplier !== 1.0 ? ` (vol×${snap.volMultiplier.toFixed(2)})` : '';
   const tooltip = [
     `Mode: ${snap.mode}`,
     `Regime: ${snap.regime}`,
     `Streak losses: ${snap.streakLossCount}/${snap.thresholds.streakN}`,
-    `Drawdown: ${snap.currentDrawdownPct}% / ${(snap.thresholds.drawdownThreshold * 100).toFixed(0)}%`,
+    `Drawdown: ${snap.currentDrawdownPct}% / ${(snap.effectiveDrawdownThreshold * 100).toFixed(1)}%${volNote}`,
     `Lookback: ${snap.dataPoints}/${snap.thresholds.lookback} resolved signals`,
     snap.reason ? `Reason: ${snap.reason}` : '',
   ]

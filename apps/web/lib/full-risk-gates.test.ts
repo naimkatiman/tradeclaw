@@ -1,8 +1,10 @@
 import {
   computeGateState,
+  computeVolMultiplier,
   STREAK_N,
   DRAWDOWN_THRESHOLD,
   GATE_THRESHOLDS_BY_REGIME,
+  REGIME_VOL_BASELINE_PCT,
   getGateThresholds,
   type ResolvedOutcome,
 } from './full-risk-gates';
@@ -130,6 +132,14 @@ describe('computeGateState — regime-aware thresholds', () => {
     );
   });
 
+  test('vol scaling off by default: computeGateState returns multiplier=1.0', () => {
+    const state = computeGateState([], 'neutral');
+    expect(state.volMultiplier).toBe(1.0);
+    expect(state.effectiveDrawdownThreshold).toBe(
+      GATE_THRESHOLDS_BY_REGIME.neutral.drawdownThreshold,
+    );
+  });
+
   test('crash regime: 6% drawdown triggers (neutral would allow at 10%)', () => {
     // Sequence producing ~6% drawdown: 3 wins +3% then 6 losses of -1.2%
     // Peak after wins ≈ 10927, then 6×(-1.2%) → ≈ 10165, DD ≈ 6.97%
@@ -154,5 +164,71 @@ describe('computeGateState — regime-aware thresholds', () => {
     expect(crashState.currentDrawdownPct).toBeGreaterThan(
       GATE_THRESHOLDS_BY_REGIME.crash.drawdownThreshold * 100,
     );
+  });
+});
+
+describe('computeVolMultiplier', () => {
+  test('returns 1.0 for < 5 samples (not enough signal)', () => {
+    expect(computeVolMultiplier([win(1), loss(-1), win(1), loss(-1)], 'neutral')).toBe(1.0);
+  });
+
+  test('returns 1.0 when realized stddev matches regime baseline', () => {
+    // Neutral baseline is 1.5%. Build a sample with stddev ≈ 1.5.
+    // Values alternating ±1.5 have mean 0, stddev = 1.5.
+    const samples: ResolvedOutcome[] = [
+      win(1.5), loss(-1.5), win(1.5), loss(-1.5),
+      win(1.5), loss(-1.5), win(1.5), loss(-1.5),
+    ];
+    const mult = computeVolMultiplier(samples, 'neutral');
+    expect(mult).toBeCloseTo(1.0, 1);
+  });
+
+  test('clamps to 1.5 in high vol (stddev >> baseline)', () => {
+    // Neutral baseline 1.5. Values alternating ±5% → stddev 5 → ratio 3.33 → clamped to 1.5.
+    const samples: ResolvedOutcome[] = [
+      win(5), loss(-5), win(5), loss(-5),
+      win(5), loss(-5), win(5), loss(-5),
+    ];
+    expect(computeVolMultiplier(samples, 'neutral')).toBe(1.5);
+  });
+
+  test('clamps to 0.75 in low vol (stddev << baseline)', () => {
+    // Neutral baseline 1.5. Values ±0.2% → stddev 0.2 → ratio 0.13 → clamped to 0.75.
+    const samples: ResolvedOutcome[] = [
+      win(0.2), loss(-0.2), win(0.2), loss(-0.2),
+      win(0.2), loss(-0.2), win(0.2), loss(-0.2),
+    ];
+    expect(computeVolMultiplier(samples, 'neutral')).toBe(0.75);
+  });
+
+  test('vol-scaled state: high vol loosens DD threshold', () => {
+    // Same ~11% DD sequence that gets blocked on static neutral.
+    const oldestFirst: ResolvedOutcome[] = [
+      win(5), win(5), win(5), win(5), win(5),
+      loss(-1), loss(-1), loss(-1), loss(-1), loss(-1),
+      loss(-1), loss(-1), loss(-1), loss(-1), loss(-1),
+      loss(-1), loss(-1), loss(-1),
+    ];
+    const newestFirst = oldestFirst.slice().reverse();
+
+    const staticState = computeGateState(newestFirst, 'neutral');
+    expect(staticState.gatesAllow).toBe(false); // 11% > 10%
+
+    // With vol scaling: this sequence has high realized stddev (mix of +5 and -1)
+    // which lifts the multiplier above 1.0, pushing the effective DD threshold
+    // above 10% — should now allow.
+    const scaledState = computeGateState(newestFirst, 'neutral', { volScaling: true });
+    expect(scaledState.volMultiplier).toBeGreaterThan(1.0);
+    expect(scaledState.effectiveDrawdownThreshold).toBeGreaterThan(
+      GATE_THRESHOLDS_BY_REGIME.neutral.drawdownThreshold,
+    );
+  });
+
+  test('REGIME_VOL_BASELINE_PCT has entry per regime', () => {
+    for (const regime of Object.keys(GATE_THRESHOLDS_BY_REGIME) as Array<
+      keyof typeof GATE_THRESHOLDS_BY_REGIME
+    >) {
+      expect(REGIME_VOL_BASELINE_PCT[regime]).toBeGreaterThan(0);
+    }
   });
 });
