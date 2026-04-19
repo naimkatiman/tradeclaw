@@ -2,18 +2,21 @@ import {
   computeGateState,
   STREAK_N,
   DRAWDOWN_THRESHOLD,
+  GATE_THRESHOLDS_BY_REGIME,
+  getGateThresholds,
   type ResolvedOutcome,
 } from './full-risk-gates';
 
 const win = (pnl: number): ResolvedOutcome => ({ hit: true, pnlPct: pnl });
 const loss = (pnl: number): ResolvedOutcome => ({ hit: false, pnlPct: pnl });
 
-describe('computeGateState', () => {
+describe('computeGateState — default (neutral) regime', () => {
   test('empty history → allow (fail-open)', () => {
     const state = computeGateState([]);
     expect(state.gatesAllow).toBe(true);
     expect(state.reason).toBeNull();
     expect(state.dataPoints).toBe(0);
+    expect(state.regime).toBe('neutral');
   });
 
   test(`last ${STREAK_N} all losses → block (streak gate)`, () => {
@@ -73,5 +76,83 @@ describe('computeGateState', () => {
     const state = computeGateState([loss(-1), loss(-1)]);
     expect(state.gatesAllow).toBe(true);
     expect(state.streakLossCount).toBe(2);
+  });
+});
+
+describe('computeGateState — regime-aware thresholds', () => {
+  test('getGateThresholds returns correct table per regime', () => {
+    expect(getGateThresholds('crash')).toEqual(GATE_THRESHOLDS_BY_REGIME.crash);
+    expect(getGateThresholds('bull')).toEqual(GATE_THRESHOLDS_BY_REGIME.bull);
+    expect(getGateThresholds('neutral').streakN).toBe(STREAK_N);
+    expect(getGateThresholds('neutral').drawdownThreshold).toBe(DRAWDOWN_THRESHOLD);
+  });
+
+  test('crash regime: 2 consecutive losses trigger streak (neutral would not)', () => {
+    const hist: ResolvedOutcome[] = [loss(-1), loss(-1)];
+    expect(computeGateState(hist, 'neutral').gatesAllow).toBe(true);  // neutral needs 3
+    const crashState = computeGateState(hist, 'crash');
+    expect(crashState.gatesAllow).toBe(false);
+    expect(crashState.reason).toMatch(/streak_blocked.*regime=crash/);
+    expect(crashState.thresholds.streakN).toBe(2);
+  });
+
+  test('bull regime: 3 consecutive losses do NOT trigger streak (neutral would)', () => {
+    const hist: ResolvedOutcome[] = [loss(-1), loss(-1), loss(-1)];
+    expect(computeGateState(hist, 'neutral').gatesAllow).toBe(false); // blocks at 3
+    const bullState = computeGateState(hist, 'bull');
+    expect(bullState.gatesAllow).toBe(true);                          // bull needs 4
+    expect(bullState.streakLossCount).toBe(3);
+    expect(bullState.thresholds.streakN).toBe(4);
+  });
+
+  test('bull regime: ~11% drawdown does NOT trigger (neutral would block at 10%)', () => {
+    // Same shape as the neutral drawdown test but ends with a small win so
+    // the newest-4 window for bull (streakN=4) does not trip the streak gate.
+    // Sequence produces ~11% drawdown from the run-up peak.
+    const oldestFirst: ResolvedOutcome[] = [
+      win(5), win(5), win(5), win(5), win(5),
+      loss(-1), loss(-1), loss(-1), loss(-1), loss(-1),
+      loss(-1), loss(-1), loss(-1), loss(-1), loss(-1),
+      loss(-1), loss(-1),
+      win(0.1),                                          // breaks streak window
+    ];
+    const newestFirst = oldestFirst.slice().reverse();
+
+    // Neutral: DD ~11% > 10% → blocked (DD gate, streak only at 2)
+    expect(computeGateState(newestFirst, 'neutral').gatesAllow).toBe(false);
+
+    // Bull: streakN=4, newest window [win, loss, loss, loss] → 3/4, no streak
+    // block. DD ~11% < 15% threshold → DD doesn't fire either. Allow.
+    const bullState = computeGateState(newestFirst, 'bull');
+    expect(bullState.gatesAllow).toBe(true);
+    expect(bullState.currentDrawdownPct).toBeLessThan(
+      GATE_THRESHOLDS_BY_REGIME.bull.drawdownThreshold * 100,
+    );
+  });
+
+  test('crash regime: 6% drawdown triggers (neutral would allow at 10%)', () => {
+    // Sequence producing ~6% drawdown: 3 wins +3% then 6 losses of -1.2%
+    // Peak after wins ≈ 10927, then 6×(-1.2%) → ≈ 10165, DD ≈ 6.97%
+    const oldestFirst: ResolvedOutcome[] = [
+      win(3), win(3), win(3),
+      // Avoid a loss streak longer than crash.streakN - 1 = 1 by interleaving
+      // wins of 0% so we isolate the drawdown gate behavior.
+      loss(-1.2), win(0), loss(-1.2), win(0),
+      loss(-1.2), win(0), loss(-1.2), win(0),
+      loss(-1.2), win(0), loss(-1.2),
+    ];
+    const newestFirst = oldestFirst.slice().reverse();
+
+    // Neutral: DD threshold 10%, this sequence is ~7% → allow
+    expect(computeGateState(newestFirst, 'neutral').gatesAllow).toBe(true);
+
+    // Crash: DD threshold 5%, streakN 2 — interleaved zeros mean no 2-loss
+    // streak triggers, but DD > 5% should fire.
+    const crashState = computeGateState(newestFirst, 'crash');
+    expect(crashState.gatesAllow).toBe(false);
+    expect(crashState.reason).toMatch(/drawdown_blocked.*regime=crash/);
+    expect(crashState.currentDrawdownPct).toBeGreaterThan(
+      GATE_THRESHOLDS_BY_REGIME.crash.drawdownThreshold * 100,
+    );
   });
 });

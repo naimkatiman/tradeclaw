@@ -82,6 +82,12 @@ export function filterSignalByTier(
   const allowedSymbols = TIER_SYMBOLS[tier];
   if (!allowedSymbols.includes(signal.symbol)) return null;
 
+  // Premium band: signals at or above PRO_PREMIUM_MIN_CONFIDENCE are Pro-only.
+  // Free callers get the "Standard" band (70-84) — Pro sees the full range.
+  if (tier === 'free' && signal.confidence >= PRO_PREMIUM_MIN_CONFIDENCE) {
+    return null;
+  }
+
   const filtered: TradingSignal = { ...signal };
 
   // Mask TP2/TP3 for free tier

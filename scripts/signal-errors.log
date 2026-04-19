@@ -81,3 +81,7 @@
 [2026-04-18 14:04 GMT+8] scanner-engine.py failed: approval-timeout (allowlist-miss) on exec command
 [2026-04-18 14:17:15 +08] scanner-engine failed: python not found when running python /home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py
 [2026-04-18 17:47:00 +0800] scanner-engine failed: exec preflight: complex interpreter invocation detected; refusing to run without script preflight validation. Use a direct `python <file>.py` or `node <file>.js` command.
+[2026-04-19T10:19:00+08:00] FAIL — scanner-engine launch blocked by exec preflight/allowlist, could not execute `python3 scripts/scanner-engine.py`.
+[2026-04-19T10:49:00+08:00] FAIL — scanner-engine run blocked by exec allowlist/elevated gating, could not execute `python3 /home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py`.
+2026-04-19 11:40:00 +08:00 | scanner-engine failed: /bin/bash: line 1: python: command not found (exit 127)
+[2026-04-19T14:30:00+08:00] FAIL — approved cron invocation used `python` and exited 127 (`python: command not found`).

@@ -2,7 +2,8 @@ import 'server-only';
 
 import { promises as fs } from 'fs';
 import path from 'path';
-import type { GateMode, GateState } from './full-risk-gates';
+import type { GateMode, GateState, GateThresholds } from './full-risk-gates';
+import type { MarketRegime } from '@tradeclaw/signals';
 
 const DEFAULT_PATH = '/tmp/tradeclaw-gate-decisions.log';
 
@@ -22,6 +23,8 @@ interface GateBatchLog {
     streakLossCount: number;
     currentDrawdownPct: number;
     dataPoints: number;
+    regime: MarketRegime;
+    thresholds: GateThresholds;
   };
   passedCount: number;
   blockedCount: number;
@@ -71,6 +74,8 @@ export function buildGateLogEntry(
       streakLossCount: gateState.streakLossCount,
       currentDrawdownPct: gateState.currentDrawdownPct,
       dataPoints: gateState.dataPoints,
+      regime: gateState.regime,
+      thresholds: gateState.thresholds,
     },
     passedCount: passedSignals.length,
     blockedCount: blockedSignals.length,

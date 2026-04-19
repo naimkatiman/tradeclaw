@@ -63,7 +63,7 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
       'All traded symbols',
       'Real-time signal delivery',
       'Premium high-confidence signals + MTF confluence',
-      'TP1, TP2, TP3 + Stop Loss + Trailing SL',
+      'TP1, TP2, TP3 + Stop Loss',
       'Private Pro Telegram group',
       'Full signal history + CSV export',
       '7-day free trial',

@@ -128,10 +128,9 @@ export default async function SignalPage(
   const isBuy = signal.direction === 'BUY';
   const signalPath = `/signal/${symbol}-${timeframe}-${direction}`;
 
-  // Tier gate: free/anon viewers see masked prices and no chart. The
-  // backend already masks TP2/TP3 for free via filterSignalByTier; this
-  // page additionally hides entry/SL/TP1 so the detail view matches the
-  // public payload contract.
+  // Tier gate: free/anon viewers see Entry/SL/TP1 but TP2/TP3 are masked
+  // (payload already nulls them via filterSignalByTier), and the price
+  // chart is Pro-only.
   const session = await readSessionFromCookies();
   const tier = session?.userId ? await getUserTier(session.userId) : 'free';
   const isPaid = tier !== 'free';
@@ -212,18 +211,21 @@ export default async function SignalPage(
               { label: 'TP1', value: signal.takeProfit1, color: 'text-emerald-400' },
               { label: 'TP2', value: signal.takeProfit2, color: 'text-emerald-400' },
               { label: 'TP3', value: signal.takeProfit3, color: 'text-emerald-400' },
-            ].map(({ label, value, color }) => (
-              <div key={label} className="bg-white/[0.03] rounded-xl py-3 px-2 text-center border border-white/5">
-                <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1.5">{label}</div>
-                {isPaid ? (
-                  <div className={`text-xs font-mono font-semibold tabular-nums ${color}`}>
-                    {formatPrice(value)}
-                  </div>
-                ) : (
-                  <LockedPrice label={label} />
-                )}
-              </div>
-            ))}
+            ].map(({ label, value, color }) => {
+              const isLocked = !isPaid && value == null;
+              return (
+                <div key={label} className="bg-white/[0.03] rounded-xl py-3 px-2 text-center border border-white/5">
+                  <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1.5">{label}</div>
+                  {isLocked ? (
+                    <LockedPrice label={label} />
+                  ) : (
+                    <div className={`text-xs font-mono font-semibold tabular-nums ${color}`}>
+                      {formatPrice(value)}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Indicators grid */}

@@ -131,6 +131,26 @@ describe('tier — filterSignalByTier', () => {
     expect(out!.indicators?.rsi).toEqual({ value: 55, signal: 'neutral' });
   });
 
+  it('free caller is blocked from premium band (confidence >= 85)', () => {
+    const premium = makeSignal({ symbol: 'BTCUSD', confidence: 85 });
+    expect(filterSignalByTier(premium, 'free')).toBeNull();
+
+    const higher = makeSignal({ symbol: 'BTCUSD', confidence: 92 });
+    expect(filterSignalByTier(higher, 'free')).toBeNull();
+  });
+
+  it('free caller keeps standard-band signals (confidence < 85)', () => {
+    const standard = makeSignal({ symbol: 'BTCUSD', confidence: 84 });
+    expect(filterSignalByTier(standard, 'free')).not.toBeNull();
+  });
+
+  it('pro caller sees the premium band', () => {
+    const premium = makeSignal({ symbol: 'BTCUSD', confidence: 92 });
+    const out = filterSignalByTier(premium, 'pro');
+    expect(out).not.toBeNull();
+    expect(out!.confidence).toBe(92);
+  });
+
   it('pro caller gets EURUSD and all TPs', () => {
     const out = filterSignalByTier(makeSignal({ symbol: 'EURUSD' }), 'pro');
     expect(out).not.toBeNull();

@@ -331,7 +331,7 @@ export default function BillingPage() {
         <div className="mt-6 rounded-xl border border-emerald-500/20 bg-emerald-950/10 px-5 py-4">
           <p className="text-sm text-emerald-300">
             <span className="font-semibold">Save 17%</span> with annual billing — Pro
-            at $190/yr, Elite at $490/yr. Switch from the billing portal.
+            at $290/yr. Switch from the billing portal.
           </p>
         </div>
       </div>

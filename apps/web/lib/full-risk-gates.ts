@@ -4,15 +4,36 @@
 // caller (`tracked-signals.ts`) carries the `server-only` guard for the
 // whole import chain.
 import { readHistoryAsync, type SignalHistoryRecord } from './signal-history';
+import { fetchRegimeMap, getDominantRegime } from './regime-filter';
+import type { MarketRegime } from '@tradeclaw/signals';
 
-// Mirrors packages/strategies/src/run-backtest.ts riskAllows('full-pipeline').
-// Faithful port — keep these constants in sync with the TS backtest if they
-// ever change. Streak halts trading after N consecutive losses, drawdown halts
-// when cumulative drawdown on a $START_BALANCE notional exceeds the threshold.
-export const LOOKBACK_RESOLVED = 20;
-export const STREAK_N = 3;
-export const DRAWDOWN_THRESHOLD = 0.10;
+export interface GateThresholds {
+  streakN: number;
+  drawdownThreshold: number;
+  lookback: number;
+}
+
+// Regime-aware thresholds. See docs/plans/2026-04-19-dynamic-risk-gates.md
+// for the rationale. neutral preserves the historical defaults so existing
+// callers that don't pass a regime keep their behavior.
+export const GATE_THRESHOLDS_BY_REGIME: Record<MarketRegime, GateThresholds> = {
+  crash:    { streakN: 2, drawdownThreshold: 0.05, lookback: 15 },
+  bear:     { streakN: 2, drawdownThreshold: 0.07, lookback: 20 },
+  neutral:  { streakN: 3, drawdownThreshold: 0.10, lookback: 20 },
+  bull:     { streakN: 4, drawdownThreshold: 0.15, lookback: 30 },
+  euphoria: { streakN: 3, drawdownThreshold: 0.08, lookback: 20 },
+};
+
+// Backward-compat exports — used by existing tests and any external callers
+// that imported the old constants. These are the `neutral` values.
+export const LOOKBACK_RESOLVED = GATE_THRESHOLDS_BY_REGIME.neutral.lookback;
+export const STREAK_N = GATE_THRESHOLDS_BY_REGIME.neutral.streakN;
+export const DRAWDOWN_THRESHOLD = GATE_THRESHOLDS_BY_REGIME.neutral.drawdownThreshold;
 const START_BALANCE = 10_000;
+
+export function getGateThresholds(regime: MarketRegime): GateThresholds {
+  return GATE_THRESHOLDS_BY_REGIME[regime] ?? GATE_THRESHOLDS_BY_REGIME.neutral;
+}
 
 export interface ResolvedOutcome {
   hit: boolean;
@@ -25,6 +46,8 @@ export interface GateState {
   streakLossCount: number;
   currentDrawdownPct: number;
   dataPoints: number;
+  regime: MarketRegime;
+  thresholds: GateThresholds;
 }
 
 /**
@@ -33,8 +56,16 @@ export interface GateState {
  *
  * Empty input → fail-open (allow). When we have no historical data, we don't
  * have evidence to suppress signals.
+ *
+ * `regime` defaults to 'neutral' so tests and callers that haven't been
+ * updated continue to use the historical thresholds.
  */
-export function computeGateState(resolved: readonly ResolvedOutcome[]): GateState {
+export function computeGateState(
+  resolved: readonly ResolvedOutcome[],
+  regime: MarketRegime = 'neutral',
+): GateState {
+  const thresholds = getGateThresholds(regime);
+
   if (resolved.length === 0) {
     return {
       gatesAllow: true,
@@ -42,19 +73,22 @@ export function computeGateState(resolved: readonly ResolvedOutcome[]): GateStat
       streakLossCount: 0,
       currentDrawdownPct: 0,
       dataPoints: 0,
+      regime,
+      thresholds,
     };
   }
 
-  // Streak gate: last STREAK_N entries (newest first) all losses → block.
-  // Need at least STREAK_N data points before this can fire.
-  const lastN = resolved.slice(0, STREAK_N);
+  // Streak gate: last streakN entries (newest first) all losses → block.
+  // Need at least streakN data points before this can fire.
+  const lastN = resolved.slice(0, thresholds.streakN);
   const streakLossCount = lastN.filter((r) => !r.hit).length;
-  const streakBlocked = lastN.length === STREAK_N && streakLossCount >= STREAK_N;
+  const streakBlocked =
+    lastN.length === thresholds.streakN && streakLossCount >= thresholds.streakN;
 
-  // Drawdown gate: simulate balance over the last LOOKBACK_RESOLVED outcomes
+  // Drawdown gate: simulate balance over the last `lookback` outcomes
   // walking oldest-first, track running peak, compute current drawdown after
   // the loop (matches packages/strategies/src/run-backtest.ts semantics).
-  const window = resolved.slice(0, LOOKBACK_RESOLVED).slice().reverse();
+  const window = resolved.slice(0, thresholds.lookback).slice().reverse();
   let balance = START_BALANCE;
   let peak = START_BALANCE;
   for (const r of window) {
@@ -62,24 +96,28 @@ export function computeGateState(resolved: readonly ResolvedOutcome[]): GateStat
     if (balance > peak) peak = balance;
   }
   const currentDrawdown = peak > 0 ? (peak - balance) / peak : 0;
-  const ddBlocked = currentDrawdown > DRAWDOWN_THRESHOLD;
+  const ddBlocked = currentDrawdown > thresholds.drawdownThreshold;
 
   if (streakBlocked) {
     return {
       gatesAllow: false,
-      reason: `streak_blocked: ${streakLossCount}/${STREAK_N} consecutive losses`,
+      reason: `streak_blocked: ${streakLossCount}/${thresholds.streakN} consecutive losses (regime=${regime})`,
       streakLossCount,
       currentDrawdownPct: +(currentDrawdown * 100).toFixed(2),
       dataPoints: resolved.length,
+      regime,
+      thresholds,
     };
   }
   if (ddBlocked) {
     return {
       gatesAllow: false,
-      reason: `drawdown_blocked: ${(currentDrawdown * 100).toFixed(1)}% > ${(DRAWDOWN_THRESHOLD * 100).toFixed(0)}%`,
+      reason: `drawdown_blocked: ${(currentDrawdown * 100).toFixed(1)}% > ${(thresholds.drawdownThreshold * 100).toFixed(0)}% (regime=${regime})`,
       streakLossCount,
       currentDrawdownPct: +(currentDrawdown * 100).toFixed(2),
       dataPoints: resolved.length,
+      regime,
+      thresholds,
     };
   }
   return {
@@ -88,6 +126,8 @@ export function computeGateState(resolved: readonly ResolvedOutcome[]): GateStat
     streakLossCount,
     currentDrawdownPct: +(currentDrawdown * 100).toFixed(2),
     dataPoints: resolved.length,
+    regime,
+    thresholds,
   };
 }
 
@@ -98,10 +138,11 @@ const CACHE_TTL_MS = 60_000;
 let cachedState: { state: GateState; expiresAt: number } | null = null;
 
 /**
- * Async wrapper. Reads the last LOOKBACK_RESOLVED resolved signals from
- * signal_history and applies computeGateState. Cached for 60s. Fails open
- * (returns gatesAllow=true) on any DB error so we never accidentally
- * suppress signals because of an unrelated infra issue.
+ * Async wrapper. Resolves the dominant market regime, reads the last N
+ * resolved signals (N depends on regime) from signal_history, and applies
+ * computeGateState. Cached for 60s. Fails open (returns gatesAllow=true) on
+ * any DB error so we never accidentally suppress signals because of an
+ * unrelated infra issue.
  */
 export async function fetchGateState(): Promise<GateState> {
   const now = Date.now();
@@ -110,8 +151,12 @@ export async function fetchGateState(): Promise<GateState> {
   }
 
   try {
+    const regimeMap = await fetchRegimeMap();
+    const regime = getDominantRegime(regimeMap);
+    const thresholds = getGateThresholds(regime);
+
     // readHistoryAsync returns rows ordered DESC by created_at — newest first.
-    // Take the first LOOKBACK_RESOLVED resolved entries.
+    // Take the first `lookback` resolved entries for this regime.
     const all = await readHistoryAsync();
     const resolved: ResolvedOutcome[] = [];
     for (const r of all) {
@@ -119,9 +164,9 @@ export async function fetchGateState(): Promise<GateState> {
       const o = r.outcomes['24h'];
       if (o === null) continue;
       resolved.push({ hit: o.hit, pnlPct: o.pnlPct });
-      if (resolved.length >= LOOKBACK_RESOLVED) break;
+      if (resolved.length >= thresholds.lookback) break;
     }
-    const state = computeGateState(resolved);
+    const state = computeGateState(resolved, regime);
     cachedState = { state, expiresAt: now + CACHE_TTL_MS };
     return state;
   } catch (err) {
@@ -133,6 +178,8 @@ export async function fetchGateState(): Promise<GateState> {
       streakLossCount: 0,
       currentDrawdownPct: 0,
       dataPoints: 0,
+      regime: 'neutral',
+      thresholds: getGateThresholds('neutral'),
     };
   }
 }
