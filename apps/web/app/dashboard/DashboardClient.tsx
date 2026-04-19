@@ -11,6 +11,7 @@ import { GuidedTourListener, TakeTourButton } from '../../components/guided-tour
 import { StarsWidget } from '../../components/stars-widget';
 import { HintBadge } from '../../components/feature-highlights';
 import { VisitStreak } from '../../components/visit-streak';
+import { GateStateBadge } from '../../components/GateStateBadge';
 import { ReEngagementBanner } from '../../components/re-engagement-banner';
 import { SignalChart } from '../components/charts';
 import { generateBars } from '../lib/chart-utils';
@@ -906,6 +907,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
         <div className="hidden sm:contents">
           <VisitStreak />
           <StarsWidget />
+          <GateStateBadge />
         </div>
         <TakeTourButton />
         <ConnectionStatus state={connectionState} />
