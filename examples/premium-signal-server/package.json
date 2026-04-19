@@ -1,0 +1,13 @@
+{
+  "name": "tradeclaw-premium-signal-server-example",
+  "version": "0.1.0",
+  "description": "Reference implementation of the TradeClaw PREMIUM_SIGNAL_SOURCE_URL contract.",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
