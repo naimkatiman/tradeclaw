@@ -121,7 +121,37 @@ function sanitiseWebhooks(webhooks: WebhookConfig[]): SanitisedWebhook[] {
   }));
 }
 
-export function collectServerData(): ServerExportData {
+/**
+ * Collect server-side data for export.
+ *
+ * Contract:
+ * - `userId` undefined → **global dump**. Returns every alert, webhook,
+ *   subscriber, etc. on the instance. Intended for single-tenant self-hosts
+ *   where "global data" is the operator's own data.
+ * - `userId` provided → **per-user slice**. Today none of the underlying
+ *   file-backed readers store a userId field, so scoped calls return empty
+ *   arrays (fail-safe: never leak someone else's data by accident). When the
+ *   readers migrate to DB with user_id columns, the filter clause goes here —
+ *   callers won't need to change.
+ *
+ * Hosted multi-tenant deploys MUST use the scoped form (or gate the entire
+ * /api/export route via TRADECLAW_DISABLE_GLOBAL_EXPORT). See the route
+ * handler for the current off-switch.
+ */
+export function collectServerData(userId?: string): ServerExportData {
+  if (userId) {
+    // File-backed readers are currently single-tenant (no userId column).
+    // Return empty arrays rather than the global set — we never want to
+    // leak another user's records through a scoped call.
+    return {
+      alerts: [],
+      paperTrading: getPortfolio(),
+      webhooks: [],
+      plugins: [],
+      telegramSettings: [],
+    };
+  }
+
   return {
     alerts: readAlerts(),
     paperTrading: getPortfolio(),

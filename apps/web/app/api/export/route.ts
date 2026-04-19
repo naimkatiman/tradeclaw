@@ -1,22 +1,28 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { collectServerData, buildExportPayload } from '../../../lib/data-export';
+import { readSessionFromRequest } from '../../../lib/user-session';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * GET /api/export — full server data dump (alerts, paper-trading,
- * webhooks, plugins, telegram subscribers).
+ * GET /api/export — data dump.
  *
- * The dump is **instance-global** (no per-user scoping). On a single-
- * tenant self-host deploy that's the operator's own data and the
- * endpoint works as intended. On a multi-tenant hosted deploy it would
- * leak every user's data, so the hosted deploy sets
- * TRADECLAW_DISABLE_GLOBAL_EXPORT=true to turn this route off.
+ * Three modes:
  *
- * Self-hosters leave the env unset and keep the export they've always
- * had. No behavior change for them.
+ * 1. `TRADECLAW_DISABLE_GLOBAL_EXPORT=true` on the instance → route is off
+ *    entirely, returns 410 Gone. Set this on multi-tenant hosted deploys.
+ *
+ * 2. Caller has a signed-in session → per-user scoped dump. Today the
+ *    file-backed data stores don't carry a userId, so scoped calls return
+ *    empty alerts/webhooks/plugins/telegram arrays (fail-safe: never leak
+ *    another user's records). The Portfolio object is returned because paper
+ *    trading is session-local on the browser; the server just initializes a
+ *    default shell.
+ *
+ * 3. Anonymous caller, route not disabled → global dump. Intended for
+ *    single-tenant self-hosts where the instance's data = the operator's data.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   if (process.env.TRADECLAW_DISABLE_GLOBAL_EXPORT === 'true') {
     return NextResponse.json(
       {
@@ -29,7 +35,8 @@ export async function GET() {
   }
 
   try {
-    const serverData = collectServerData();
+    const session = readSessionFromRequest(request);
+    const serverData = collectServerData(session?.userId);
     const payload = buildExportPayload(serverData);
     return NextResponse.json(payload);
   } catch (err) {
