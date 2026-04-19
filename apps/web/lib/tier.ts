@@ -109,3 +109,53 @@ export function filterSignalByTier(
 export function meetsMinimumTier(userTier: Tier, minimumTier: Tier): boolean {
   return TIER_LEVEL[userTier] >= TIER_LEVEL[minimumTier];
 }
+
+/**
+ * Resolve the caller's tier from an incoming Request.
+ *
+ * Fail-closed: any error during session read or DB lookup resolves to
+ * 'free' — the least-privileged tier. Anonymous callers are 'free'.
+ *
+ * Used by every tier-gated API route so gating logic is uniform and
+ * has one failure mode (treat as free) instead of a mix of 401/500/free.
+ */
+export async function getTierFromRequest(req: Request): Promise<Tier> {
+  try {
+    const { readSessionFromRequest } = await import('./user-session');
+    const session = readSessionFromRequest(req as unknown as import('next/server').NextRequest);
+    if (!session?.userId) return 'free';
+    return await getUserTier(session.userId);
+  } catch {
+    return 'free';
+  }
+}
+
+/**
+ * Stable body shape for HTTP 402 "upgrade required" responses across every
+ * tier-gated API route. Clients (UI, curl, scripts) can branch on
+ * `error === 'upgrade_required'` without string-matching human copy.
+ */
+export interface UpgradeRequiredBody {
+  error: 'upgrade_required';
+  reason: string;
+  limit?: {
+    kind: 'rate' | 'count';
+    used: number;
+    max: number;
+    windowHours?: number;
+  };
+  upgradeUrl: string;
+}
+
+export function upgradeRequiredBody(input: {
+  reason: string;
+  source: string;
+  limit?: UpgradeRequiredBody['limit'];
+}): UpgradeRequiredBody {
+  return {
+    error: 'upgrade_required',
+    reason: input.reason,
+    upgradeUrl: `/pricing?from=${encodeURIComponent(input.source)}`,
+    ...(input.limit ? { limit: input.limit } : {}),
+  };
+}
