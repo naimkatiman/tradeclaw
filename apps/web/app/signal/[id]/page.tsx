@@ -1,9 +1,12 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { Lock } from 'lucide-react';
 import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 import type { Metadata } from 'next';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
 import { resolveLicenseFromCookies } from '../../../lib/licenses';
+import { readSessionFromCookies } from '../../../lib/user-session';
+import { getUserTier } from '../../../lib/tier';
 import { getActiveSignals } from '../../../lib/signal-repo';
 import { SignalShareButtons } from '../../components/signal-share-buttons';
 import { EmbedButton } from '../../components/embed-button';
@@ -11,6 +14,18 @@ import { AIAnalysisPanel } from '../../components/ai-analysis-panel';
 import { SetAlertButton } from '../../components/set-alert-button';
 import { SignalChartSection } from './SignalChartSection';
 import { SYMBOLS } from '../../lib/signals';
+
+function LockedPrice({ label }: { label: string }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-md bg-emerald-500/5 px-2 py-0.5 font-mono text-emerald-400/80 text-[11px]"
+      aria-label={`${label} requires Pro`}
+    >
+      <Lock className="h-2.5 w-2.5" aria-hidden="true" />
+      <span className="select-none tracking-widest">••••</span>
+    </span>
+  );
+}
 
 function formatPrice(p: number | null | undefined): string {
   if (p == null) return '—';
@@ -113,6 +128,14 @@ export default async function SignalPage(
   const isBuy = signal.direction === 'BUY';
   const signalPath = `/signal/${symbol}-${timeframe}-${direction}`;
 
+  // Tier gate: free/anon viewers see masked prices and no chart. The
+  // backend already masks TP2/TP3 for free via filterSignalByTier; this
+  // page additionally hides entry/SL/TP1 so the detail view matches the
+  // public payload contract.
+  const session = await readSessionFromCookies();
+  const tier = session?.userId ? await getUserTier(session.userId) : 'free';
+  const isPaid = tier !== 'free';
+
   return (
     <div className="min-h-[100dvh] bg-[#050505] text-white">
       {/* Nav */}
@@ -192,9 +215,13 @@ export default async function SignalPage(
             ].map(({ label, value, color }) => (
               <div key={label} className="bg-white/[0.03] rounded-xl py-3 px-2 text-center border border-white/5">
                 <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1.5">{label}</div>
-                <div className={`text-xs font-mono font-semibold tabular-nums ${color}`}>
-                  {formatPrice(value)}
-                </div>
+                {isPaid ? (
+                  <div className={`text-xs font-mono font-semibold tabular-nums ${color}`}>
+                    {formatPrice(value)}
+                  </div>
+                ) : (
+                  <LockedPrice label={label} />
+                )}
               </div>
             ))}
           </div>
@@ -305,17 +332,36 @@ export default async function SignalPage(
           </div>
         </div>
 
-        {/* Price Chart */}
-        <SignalChartSection
-          entry={signal.entry}
-          stopLoss={signal.stopLoss}
-          takeProfit1={signal.takeProfit1}
-          takeProfit2={signal.takeProfit2}
-          takeProfit3={signal.takeProfit3}
-          direction={signal.direction}
-          timestamp={signal.timestamp}
-          pip={SYMBOLS.find(s => s.symbol === signal.symbol)?.pip ?? 0.01}
-        />
+        {/* Price Chart (Pro only — the chart visualises the locked prices) */}
+        {isPaid ? (
+          <SignalChartSection
+            entry={signal.entry}
+            stopLoss={signal.stopLoss}
+            takeProfit1={signal.takeProfit1}
+            takeProfit2={signal.takeProfit2}
+            takeProfit3={signal.takeProfit3}
+            direction={signal.direction}
+            timestamp={signal.timestamp}
+            pip={SYMBOLS.find(s => s.symbol === signal.symbol)?.pip ?? 0.01}
+          />
+        ) : (
+          <div className="glass-card rounded-2xl p-8 text-center border border-emerald-500/20 bg-emerald-500/5">
+            <Lock className="mx-auto mb-3 h-6 w-6 text-emerald-400" aria-hidden="true" />
+            <p className="text-sm font-semibold text-emerald-400">
+              Price chart with entry, SL, and TP lines is a Pro feature
+            </p>
+            <p className="mt-1 text-xs text-zinc-400">
+              Upgrade to Pro to unlock real-time signals, full TP ladder, and the
+              live price chart for every signal.
+            </p>
+            <Link
+              href="/pricing?from=signal-detail"
+              className="mt-4 inline-flex items-center rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-400"
+            >
+              Upgrade to Pro — $29/mo
+            </Link>
+          </div>
+        )}
 
         {/* AI Analysis Panel */}
         <AIAnalysisPanel symbol={signal.symbol} timeframe={signal.timeframe} />
