@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, queryOne } from '../../../../lib/db-pool';
+import { queryOne } from '../../../../lib/db-pool';
 
 export const revalidate = 60;
 
@@ -133,9 +133,6 @@ export async function GET() {
           },
         }
       : null;
-
-    // Suppress the unused-query warning (symmetric import for future use).
-    void query;
 
     const stats: LandingStats = {
       cumulativePnlPct,
