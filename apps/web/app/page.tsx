@@ -6,7 +6,7 @@ import { SiteFooter } from "../components/landing/site-footer";
 import { LiveDemoEmbed } from "../components/landing/live-demo-embed";
 import { LiveHeroSignals } from "../components/landing/live-hero-signals";
 import { LiveActivityStrip } from "../components/landing/live-activity-strip";
-import { AccuracyStatsBar } from "./components/accuracy-stats-bar";
+import { ProofHero } from "../components/landing/proof-hero";
 import { EmailCTA } from "../components/landing/email-cta";
 import { BackgroundDecor } from "../components/background/BackgroundDecor";
 
@@ -20,9 +20,7 @@ export default function Home() {
           <ABHero />
         </div>
         <LiveHeroSignals />
-        <div className="max-w-5xl mx-auto px-4 py-4">
-          <AccuracyStatsBar inline />
-        </div>
+        <ProofHero />
         <LiveActivityStrip />
         <LiveDemoEmbed />
         <HowItWorks />
