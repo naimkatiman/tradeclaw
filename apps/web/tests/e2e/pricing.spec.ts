@@ -4,8 +4,8 @@ test.describe('pricing page', () => {
   test('renders both Free and Pro cards', async ({ page }) => {
     await page.goto('/pricing');
     await expect(page.getByRole('heading', { name: /Stop renting your edge/i })).toBeVisible();
-    await expect(page.getByText('Free', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('Pro', { exact: true }).first()).toBeVisible();
+    await expect(page.getByTestId('free-card')).toBeVisible();
+    await expect(page.getByTestId('pro-card')).toBeVisible();
   });
 
   test('monthly is selected by default', async ({ page }) => {
@@ -23,6 +23,10 @@ test.describe('pricing page', () => {
   });
 
   test('Pro CTA posts to checkout for monthly priceId', async ({ page }) => {
+    test.skip(
+      !process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID,
+      'Requires NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID env var'
+    );
     await page.goto('/pricing');
     const requestPromise = page.waitForRequest(
       (req) => req.url().endsWith('/api/stripe/checkout') && req.method() === 'POST'
@@ -35,6 +39,10 @@ test.describe('pricing page', () => {
   });
 
   test('Pro CTA posts annual priceId after toggle', async ({ page }) => {
+    test.skip(
+      !process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID,
+      'Requires NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID env var'
+    );
     await page.goto('/pricing');
     await page.getByRole('button', { name: /Annual/i }).click();
     const requestPromise = page.waitForRequest(
@@ -42,8 +50,24 @@ test.describe('pricing page', () => {
     );
     await page.getByTestId('pro-cta').click();
     const req = await requestPromise;
-    const monthlyBody = JSON.parse(req.postData() || '{}');
-    const monthlyPriceId = process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID;
-    expect(monthlyBody.priceId).not.toBe(monthlyPriceId);
+    const body = JSON.parse(req.postData() || '{}');
+    const annualPriceId = process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID;
+    expect(body.priceId).toBe(annualPriceId);
+  });
+
+  test('401 from checkout redirects to signin with next and priceId', async ({ page }) => {
+    test.skip(
+      !process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID,
+      'Requires NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID env var'
+    );
+    await page.route('**/api/stripe/checkout', (route) =>
+      route.fulfill({ status: 401, contentType: 'application/json', body: '{"error":"unauthorized"}' })
+    );
+    await page.goto('/pricing');
+    await page.getByTestId('pro-cta').click();
+    await page.waitForURL(/\/signin\?/);
+    const url = new URL(page.url());
+    expect(url.searchParams.get('next')).toBe('/pricing');
+    expect(url.searchParams.get('priceId')).toBe(process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID!);
   });
 });

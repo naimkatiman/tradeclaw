@@ -6,7 +6,7 @@ import {
   TIER_DEFINITIONS,
   getClientPriceId,
   type TierDefinition,
-} from '../../lib/stripe';
+} from '../../lib/stripe-tiers';
 
 type Interval = 'monthly' | 'annual';
 
@@ -101,7 +101,8 @@ function ProCard({ def, interval }: ProCardProps) {
       });
       if (res.status === 401) {
         const next = encodeURIComponent('/pricing');
-        window.location.href = `/signin?next=${next}&priceId=${priceId}`;
+        setLoading(false);
+        window.location.href = `/signin?next=${next}&priceId=${encodeURIComponent(priceId)}`;
         return;
       }
       if (!res.ok) {
@@ -118,7 +119,10 @@ function ProCard({ def, interval }: ProCardProps) {
   }
 
   return (
-    <div className="relative flex flex-col rounded-2xl border border-emerald-500/40 bg-emerald-500/5 p-6 shadow-[0_0_40px_rgba(16,185,129,0.08)]">
+    <div
+      data-testid="pro-card"
+      className="relative flex flex-col rounded-2xl border border-emerald-500/40 bg-emerald-500/5 p-6 shadow-[0_0_40px_rgba(16,185,129,0.08)]"
+    >
       <div className="absolute -top-3 left-1/2 -translate-x-1/2">
         <span className="rounded-full bg-emerald-500 px-3 py-0.5 text-xs font-semibold text-black">
           Most Popular
@@ -180,7 +184,10 @@ interface FreeCardProps {
 
 function FreeCard({ def }: FreeCardProps) {
   return (
-    <div className="relative flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--glass-bg)] p-6">
+    <div
+      data-testid="free-card"
+      className="relative flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--glass-bg)] p-6"
+    >
       <div className="mb-4">
         <p className="text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
           {def.name}
@@ -215,7 +222,7 @@ function FreeCard({ def }: FreeCardProps) {
 }
 
 export function PricingCards() {
-  const [interval, setInterval] = useState<Interval>('monthly');
+  const [billingInterval, setBillingInterval] = useState<Interval>('monthly');
   const freeDef = TIER_DEFINITIONS.find((d) => d.id === 'free');
   const proDef = TIER_DEFINITIONS.find((d) => d.id === 'pro');
   if (!freeDef || !proDef) return null;
@@ -223,11 +230,11 @@ export function PricingCards() {
   return (
     <>
       <div className="text-center">
-        <IntervalToggle value={interval} onChange={setInterval} />
+        <IntervalToggle value={billingInterval} onChange={setBillingInterval} />
       </div>
       <div className="mx-auto mt-2 grid max-w-3xl gap-6 sm:grid-cols-2">
         <FreeCard def={freeDef} />
-        <ProCard def={proDef} interval={interval} />
+        <ProCard def={proDef} interval={billingInterval} />
       </div>
     </>
   );
