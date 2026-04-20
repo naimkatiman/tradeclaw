@@ -10,6 +10,8 @@ import { ProofHero } from "../components/landing/proof-hero";
 import { EmailCTA } from "../components/landing/email-cta";
 import { BackgroundDecor } from "../components/background/BackgroundDecor";
 
+export const revalidate = 60;
+
 export default function Home() {
   return (
     <>
