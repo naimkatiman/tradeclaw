@@ -57,7 +57,7 @@ function SigninInner() {
         }
         throw new Error(data?.error ?? 'Failed to start checkout');
       } catch (err: unknown) {
-        if (next && next.startsWith('/')) {
+        if (next && next.startsWith('/') && !next.startsWith('//')) {
           const url = new URL(next, window.location.origin);
           url.searchParams.set('error', 'checkout_failed');
           router.replace(url.pathname + url.search);
@@ -68,7 +68,7 @@ function SigninInner() {
         return;
       }
     }
-    if (next && next.startsWith('/')) {
+    if (next && next.startsWith('/') && !next.startsWith('//')) {
       router.replace(next);
       return;
     }
