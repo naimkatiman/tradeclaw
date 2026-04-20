@@ -57,6 +57,12 @@ function SigninInner() {
         }
         throw new Error(data?.error ?? 'Failed to start checkout');
       } catch (err: unknown) {
+        if (next && next.startsWith('/')) {
+          const url = new URL(next, window.location.origin);
+          url.searchParams.set('error', 'checkout_failed');
+          router.replace(url.pathname + url.search);
+          return;
+        }
         setError(err instanceof Error ? err.message : 'Checkout failed');
         setStatus('error');
         return;
