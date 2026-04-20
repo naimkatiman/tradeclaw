@@ -34,6 +34,10 @@ export interface TierDefinition {
   annualPriceLabel: string;
   features: string[];
   kind: 'free' | 'stripe' | 'contact';
+  /** Name of the NEXT_PUBLIC_ env var holding the monthly priceId. Undefined for non-Stripe tiers. */
+  monthlyPriceIdEnv?: string;
+  /** Name of the NEXT_PUBLIC_ env var holding the annual priceId. Undefined for non-Stripe tiers. */
+  annualPriceIdEnv?: string;
 }
 
 export const TIER_DEFINITIONS: TierDefinition[] = [
@@ -59,6 +63,8 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
     monthlyPriceLabel: '$29',
     annualPriceLabel: '$290/yr — save $58',
     kind: 'stripe',
+    monthlyPriceIdEnv: 'NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID',
+    annualPriceIdEnv: 'NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID',
     features: [
       'All traded symbols',
       'Real-time signal delivery',
@@ -81,6 +87,26 @@ export function resolveTierFromPriceId(priceId: string): Tier | null {
   if (proMonthly) map[proMonthly] = 'pro';
   if (proAnnual) map[proAnnual] = 'pro';
   return map[priceId] ?? null;
+}
+
+/**
+ * Resolve the client-side priceId for a tier + billing interval.
+ * Returns null if the tier isn't a Stripe tier or the env var isn't set.
+ * Reads `process.env[<name>]` directly so Next.js inlines the NEXT_PUBLIC_ value at build time.
+ */
+export function getClientPriceId(
+  def: TierDefinition,
+  interval: 'monthly' | 'annual'
+): string | null {
+  const envName = interval === 'annual' ? def.annualPriceIdEnv : def.monthlyPriceIdEnv;
+  if (!envName) return null;
+  // Must reference NEXT_PUBLIC_ vars by literal name for Next.js to inline them.
+  // So we cannot use `process.env[envName]` directly — we dispatch on the known names.
+  const known: Record<string, string | undefined> = {
+    NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID,
+    NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID,
+  };
+  return known[envName] ?? null;
 }
 
 /**
