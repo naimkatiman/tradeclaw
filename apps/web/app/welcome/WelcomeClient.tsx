@@ -19,6 +19,8 @@ interface WelcomeClientProps {
   userId: string;
 }
 
+// The bot must validate `start=<userId>` server-side against the users table
+// before linking a chat — never trust this parameter alone.
 const BOT_DEEP_LINK_BASE = 'https://t.me/tradeclawwin_bot';
 
 export function WelcomeClient({ userId }: WelcomeClientProps) {
@@ -122,7 +124,7 @@ function StepCard({ index, title, description, children }: StepCardProps) {
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--glass-bg)] p-5">
       <div className="flex items-start gap-3">
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--glass-bg)] text-xs font-semibold text-[var(--text-secondary)]">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black/20 text-xs font-semibold text-[var(--foreground)]">
           {index}
         </div>
         <div className="flex-1">
