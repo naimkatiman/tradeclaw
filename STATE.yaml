@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-04-02T09:34:00+08:00
+updated: 2026-04-20T22:33:19+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -1839,3 +1839,19 @@ next_actions:
     status: done
     owner: pm-tradeclaw
     notes: "Done 2026-03-29. packages/tradeclaw-discord/ (discord.js v14, 6 slash commands, auto-broadcast, embed formatting) + /discord invite page (hero, commands table, signal preview, 3-step setup, Docker snippet). Navbar link added. Build passes. 0 lint errors. Committed 2af4a23e."
+
+  # ── Phase 19: Monetization Audit ──
+
+  - id: TC-094
+    title: "Audit tradeclaw.win upsell readiness for Pro"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Audited live site + repo on 2026-04-20. Verdict: upsell is possible, but not conversion-ready yet.
+      Biggest blockers: live pricing CTA currently renders as /signin without a Stripe priceId on production,
+      so the 7-day trial path is likely not entering checkout; landing message conflicts between "free forever /
+      no monthly fees" and paid Pro; FAQ still positions Alpha Screener as the hosted SaaS while pricing sells
+      TradeClaw Pro; public /api/signals is currently empty while /api/proof and /api/leaderboard show history,
+      weakening trust; annual Pro pricing is advertised but not selectable in UI. Recommended next move:
+      decide one paid story (TradeClaw Pro vs Alpha Screener), fix production checkout wiring, then reframe
+      proof around expectancy/P&L and real-time delivery rather than win-rate alone.

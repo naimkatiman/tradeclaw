@@ -24,11 +24,15 @@ function computeEquityCurve(records: SignalHistoryRecord[]): {
   points: EquityPoint[];
   summary: EquitySummary;
 } {
-  // Resolved, non-simulated, non-expired (pnl=0 & !hit are auto-expire placeholders)
+  // Resolved, non-simulated, non-expired (pnl=0 & !hit are auto-expire
+  // placeholders). Gate-blocked signals are excluded: the full-risk gate
+  // refused to execute them, so crediting their outcomes to the paper-trade
+  // equity curve would be fiction.
   const resolved = records
     .filter(r => {
       const o = r.outcomes['24h'];
       if (!o || r.isSimulated) return false;
+      if (r.gateBlocked) return false;
       if (o.pnlPct === 0 && !o.hit) return false;
       return true;
     })

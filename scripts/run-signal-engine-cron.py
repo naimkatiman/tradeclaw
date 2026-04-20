@@ -1,49 +1,39 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-
+import os
 import subprocess
 from datetime import datetime
-from pathlib import Path
 from zoneinfo import ZoneInfo
+from pathlib import Path
 
-ROOT = Path("/home/naim/.openclaw/workspace/tradeclaw")
-LOG = ROOT / "scripts" / "signal-errors.log"
-STATE = ROOT / "scripts" / ".signal-engine-failure-count"
-ENGINE = ROOT / "scripts" / "scanner-engine.py"
+repo = Path('/home/naim/.openclaw/workspace/tradeclaw')
+log_path = repo / 'scripts' / 'signal-errors.log'
+state_path = repo / 'scripts' / '.signal-engine-failure-count'
+
+try:
+    count = int(state_path.read_text().strip()) if state_path.exists() else 0
+except Exception:
+    count = 0
 
 proc = subprocess.run(
-    ["python3", str(ENGINE)],
-    cwd=ROOT,
-    capture_output=True,
+    ['python3', 'scripts/scanner-engine.py'],
+    cwd=repo,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
     text=True,
 )
 
+if proc.stdout:
+    print(proc.stdout, end='')
+
 if proc.returncode == 0:
-    STATE.write_text("0")
+    state_path.write_text('0')
     raise SystemExit(0)
 
-try:
-    count = int(STATE.read_text().strip())
-except Exception:
-    count = 0
 count += 1
-STATE.write_text(str(count))
+state_path.write_text(str(count))
+ts = datetime.now(ZoneInfo('Asia/Singapore')).strftime('%Y-%m-%d %H:%M:%S %Z')
+with log_path.open('a', encoding='utf-8') as f:
+    f.write(f'{ts} | exit={proc.returncode} | consecutive_failures={count}\n')
 
-ts = datetime.now(ZoneInfo("Asia/Singapore")).strftime("%Y-%m-%d %H:%M:%S %Z")
-with LOG.open("a", encoding="utf-8") as f:
-    f.write(f"[{ts}] scanner-engine failure #{count} (exit {proc.returncode})\n")
-    if proc.stdout:
-        f.write(proc.stdout)
-        if not proc.stdout.endswith("\n"):
-            f.write("\n")
-    if proc.stderr:
-        f.write(proc.stderr)
-        if not proc.stderr.endswith("\n"):
-            f.write("\n")
-    f.write("\n")
-
-if count >= 3:
-    print(f"Signal engine failed {count} consecutive times. Logged to {LOG}")
-    raise SystemExit(proc.returncode)
-
-raise SystemExit(0)
+raise SystemExit(proc.returncode)

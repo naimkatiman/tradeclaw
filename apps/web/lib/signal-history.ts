@@ -48,6 +48,10 @@ export interface SignalHistoryRecord {
   atrMultiplier?: number;
   /** Max adverse excursion up to the resolution candle (price units, >= 0). NULL while open / on pre-migration rows. */
   maxAdverseExcursion?: number;
+  /** TRUE when the full-risk gate blocked this signal at emission. Blocked rows are recorded for engine accuracy but excluded from paper-trade equity + gate lookback. */
+  gateBlocked?: boolean;
+  /** Human-readable gate.reason at the moment of blocking. NULL unless gateBlocked is TRUE. */
+  gateReason?: string;
   outcomes: {
     '4h': SignalOutcome | null;
     '24h': SignalOutcome | null;
@@ -74,6 +78,8 @@ export interface TrackedSignalInput {
   mode?: SignalMode;
   entryAtr?: number;
   atrMultiplier?: number;
+  gateBlocked?: boolean;
+  gateReason?: string;
 }
 
 export type LeaderboardPeriod = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
@@ -149,6 +155,8 @@ interface HistoryRow {
   entry_atr: string | number | null;
   atr_multiplier: string | number | null;
   max_adverse_excursion: string | number | null;
+  gate_blocked: boolean | null;
+  gate_reason: string | null;
 }
 
 function rowToRecord(row: HistoryRow): SignalHistoryRecord {
@@ -171,6 +179,8 @@ function rowToRecord(row: HistoryRow): SignalHistoryRecord {
     entryAtr: row.entry_atr != null ? Number(row.entry_atr) : undefined,
     atrMultiplier: row.atr_multiplier != null ? Number(row.atr_multiplier) : undefined,
     maxAdverseExcursion: row.max_adverse_excursion != null ? Number(row.max_adverse_excursion) : undefined,
+    gateBlocked: row.gate_blocked ?? false,
+    gateReason: row.gate_reason ?? undefined,
     outcomes: {
       '4h': row.outcome_4h ?? null,
       '24h': row.outcome_24h ?? null,
@@ -231,6 +241,8 @@ export async function recordSignalAsync(
   mode?: SignalMode,
   entryAtr?: number,
   atrMultiplier?: number,
+  gateBlocked?: boolean,
+  gateReason?: string,
 ): Promise<void> {
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
   const ts = timestamp ?? Date.now();
@@ -251,12 +263,14 @@ export async function recordSignalAsync(
       mode: resolvedMode,
       entryAtr,
       atrMultiplier,
+      gateBlocked,
+      gateReason,
     });
     return;
   }
 
   // File fallback
-  recordSignal(pair, timeframe, direction, confidence, entryPrice, sigId, tp1, sl, ts, strategyId, resolvedMode, entryAtr, atrMultiplier);
+  recordSignal(pair, timeframe, direction, confidence, entryPrice, sigId, tp1, sl, ts, strategyId, resolvedMode, entryAtr, atrMultiplier, gateBlocked, gateReason);
 }
 
 /**
@@ -281,11 +295,43 @@ interface InsertRowArgs {
   mode: SignalMode;
   entryAtr?: number;
   atrMultiplier?: number;
+  gateBlocked?: boolean;
+  gateReason?: string;
 }
 
 let atrColumnsKnownMissing = false;
+let gateColumnsKnownMissing = false;
 
 async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
+  // Tier 1: full schema (012 ATR + 017 gate cols).
+  if (!atrColumnsKnownMissing && !gateColumnsKnownMissing) {
+    try {
+      const result = await query<{ id: string }>(
+        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier, gate_blocked, gate_reason)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+         ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
+           WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL
+         RETURNING id`,
+        [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null, args.gateBlocked ?? false, args.gateReason ?? null],
+      );
+      return result.length > 0;
+    } catch (err: unknown) {
+      const code = (err as { code?: string } | null)?.code;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (code === '42703' && /gate_blocked|gate_reason/.test(msg)) {
+        console.warn('[signal-history] migration 017 not applied — falling back to pre-017 INSERT. Run psql "$DATABASE_URL" -f apps/web/migrations/017_gate_blocked.sql to persist gate decisions.');
+        gateColumnsKnownMissing = true;
+      } else if (code === '42703' && /entry_atr|atr_multiplier/.test(msg)) {
+        console.warn('[signal-history] migration 012 not applied — falling back to pre-012 INSERT. Run psql "$DATABASE_URL" -f apps/web/migrations/012_atr_telemetry.sql to enable ATR telemetry.');
+        atrColumnsKnownMissing = true;
+        gateColumnsKnownMissing = true;
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  // Tier 2: ATR cols present, no gate cols. Drops gateBlocked + gateReason.
   if (!atrColumnsKnownMissing) {
     try {
       const result = await query<{ id: string }>(
@@ -298,8 +344,6 @@ async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
       );
       return result.length > 0;
     } catch (err: unknown) {
-      // Postgres "undefined_column" error code is 42703. Detect by message too
-      // in case the driver shape differs.
       const code = (err as { code?: string } | null)?.code;
       const msg = err instanceof Error ? err.message : String(err);
       if (code === '42703' || /entry_atr|atr_multiplier/.test(msg)) {
@@ -311,7 +355,7 @@ async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
     }
   }
 
-  // Pre-012 fallback. Drops entryAtr + atrMultiplier on the floor.
+  // Tier 3: pre-012 fallback. Drops ATR + gate fields on the floor.
   const result = await query<{ id: string }>(
     `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -338,6 +382,8 @@ export function recordSignal(
   mode?: SignalMode,
   entryAtr?: number,
   atrMultiplier?: number,
+  gateBlocked?: boolean,
+  gateReason?: string,
 ): void {
   const records = readHistoryFile();
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
@@ -350,6 +396,8 @@ export function recordSignal(
     mode: mode ?? modeFromTimeframe(timeframe),
     entryAtr,
     atrMultiplier,
+    gateBlocked: gateBlocked ?? false,
+    gateReason,
     outcomes: { '4h': null, '24h': null },
   });
   if (records.length > MAX_RECORDS) records.splice(MAX_RECORDS);
@@ -388,6 +436,8 @@ export async function recordSignalsAsync(signals: TrackedSignalInput[]): Promise
         mode: resolvedMode,
         entryAtr: s.entryAtr,
         atrMultiplier: s.atrMultiplier,
+        gateBlocked: s.gateBlocked,
+        gateReason: s.gateReason,
       });
       if (result) inserted++;
     }
@@ -418,6 +468,8 @@ export function recordSignals(signals: TrackedSignalInput[]): number {
       mode: signal.mode ?? modeFromTimeframe(signal.timeframe),
       entryAtr: signal.entryAtr,
       atrMultiplier: signal.atrMultiplier,
+      gateBlocked: signal.gateBlocked ?? false,
+      gateReason: signal.gateReason,
       outcomes: { '4h': null, '24h': null },
     });
     existingIds.add(signal.id);

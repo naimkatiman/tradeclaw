@@ -44,13 +44,18 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
     );
 
     // ── Full-risk gate evaluation ─────────────────────────────
-    // Phase 1 (shadow): evaluate but do NOT filter — record everything,
-    // log gate decisions to /tmp/tradeclaw-gate-decisions.log so we can
-    // measure predicted-vs-actual block rate before flipping to active.
-    // Phase 2 (active): blocked signals are dropped before recording.
+    // shadow: log decisions, record everything un-flagged.
+    // active: record everything, but stamp gate_blocked=TRUE + gate_reason
+    //         on rows that would have been dropped. Blocked rows are still
+    //         stripped from the live API response below so consumers don't
+    //         see untradable signals. Engine hit-rate keeps accumulating
+    //         against full history; paper-trade equity curve filters out
+    //         blocked rows. See docs/plans/2026-04-20-gate-blocked-recording.md.
+    // off: no evaluation.
     const mode = getGateMode();
-    let toRecord = filtered;
     let blockedSignals: SignalForLog[] = [];
+    let gateBlockedAll = false;
+    let gateReason: string | undefined;
 
     if (mode !== 'off' && filtered.length > 0) {
       const gateState = await fetchGateState();
@@ -77,12 +82,12 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       logGateDecision(entry).catch(() => undefined);
 
       if (mode === 'active' && !gateState.gatesAllow) {
-        // Drop blocked signals from the recording pipeline
-        toRecord = [];
+        gateBlockedAll = true;
+        gateReason = gateState.reason ?? 'gate_blocked';
       }
     }
 
-    const recordPayload = toRecord.map((signal) => ({
+    const recordPayload = filtered.map((signal) => ({
       id: signal.id,
       symbol: signal.symbol,
       timeframe: signal.timeframe,
@@ -95,6 +100,8 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       strategyId,
       entryAtr: signal.entryAtr,
       atrMultiplier: signal.atrMultiplier,
+      gateBlocked: gateBlockedAll,
+      gateReason: gateBlockedAll ? gateReason : undefined,
     }));
 
     // Record to PostgreSQL (or file fallback) — fire and forget
@@ -102,12 +109,18 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       recordSignalsAsync(recordPayload).catch(() => {});
       invalidateHistoryCache();
 
+      // Downstream fan-out is tradable-only. Blocked signals are recorded
+      // for track-record accounting, but users must not be alerted about
+      // trades the system refused to take, and we must not post marketing
+      // copy for blocked signals.
+      const tradablePayload = gateBlockedAll ? [] : recordPayload;
+
       // Fan out to user alert rules — fire and forget
       const dispatchUrl = process.env.NEXT_PUBLIC_APP_URL
         ? `${process.env.NEXT_PUBLIC_APP_URL}/api/alert-rules/dispatch`
         : null;
       if (dispatchUrl) {
-        for (const sig of recordPayload) {
+        for (const sig of tradablePayload) {
           fetch(dispatchUrl, {
             method: 'POST',
             headers: {
@@ -121,7 +134,7 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
 
       // Enqueue social posts for high-confidence signals (fire-and-forget)
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
-      for (const sig of recordPayload) {
+      for (const sig of tradablePayload) {
         if (sig.confidence < 75) continue;
         const imageUrl = `${baseUrl}/api/og/signal/${sig.id}`;
         const decimals = sig.symbol.includes('JPY') ? 3 : 5;

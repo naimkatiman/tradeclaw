@@ -234,11 +234,15 @@ export async function fetchGateState(): Promise<GateState> {
     const thresholds = getGateThresholds(regime);
 
     // readHistoryAsync returns rows ordered DESC by created_at — newest first.
-    // Take the first `lookback` resolved entries for this regime.
+    // Take the first `lookback` resolved entries for this regime. Skip rows
+    // the gate itself blocked: otherwise the drawdown/streak lookback would
+    // count outcomes from trades we never actually took, creating a feedback
+    // loop where blocked-but-right signals re-open the gate on fictional P&L.
     const all = await readHistoryAsync();
     const resolved: ResolvedOutcome[] = [];
     for (const r of all) {
       if (r.isSimulated) continue;
+      if (r.gateBlocked) continue;
       const o = r.outcomes['24h'];
       if (o === null) continue;
       resolved.push({ hit: o.hit, pnlPct: o.pnlPct });
