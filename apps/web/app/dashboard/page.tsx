@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { DashboardClient } from './DashboardClient';
 import { getTrackedSignals } from '../../lib/tracked-signals';
 import { resolveLicenseFromCookies } from '../../lib/licenses';
-import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../lib/signal-thresholds';
+import { WATCHLIST_MIN_CONFIDENCE } from '../../lib/signal-thresholds';
 
 export const metadata: Metadata = {
   title: 'Dashboard — TradeClaw',
@@ -16,7 +16,7 @@ export default async function DashboardPage() {
   try {
     const ctx = await resolveLicenseFromCookies();
     const result = await getTrackedSignals({
-      minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE,
+      minConfidence: WATCHLIST_MIN_CONFIDENCE,
       ctx,
     });
     initialSignals = result.signals;

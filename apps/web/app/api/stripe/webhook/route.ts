@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { getStripe, resolveTierFromSubscription } from '../../../../lib/stripe';
+import { getStripe, resolveTierFromPriceId, resolveTierFromSubscription } from '../../../../lib/stripe';
 import {
   getUserByStripeCustomerId,
   updateUserTier,
@@ -75,7 +75,9 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Handler error';
     console.error(`[stripe-webhook] Error handling ${event.type}:`, message);
-    // Return 200 so Stripe doesn't retry — log the error instead
+    // Return 500 so Stripe retries with exponential backoff. Handlers
+    // (upsertSubscription, updateUserTier) are idempotent — ON CONFLICT
+    // DO UPDATE on stripe_subscription_id — so replays are safe.
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
@@ -107,7 +109,19 @@ async function handleCheckoutCompleted(
 
   // Fetch full subscription to get tier + period info
   const subscription = await getStripe().subscriptions.retrieve(stripeSubscriptionId);
-  const tier = resolveTierFromSubscription(subscription);
+  const priceId = subscription.items.data[0]?.price?.id;
+  const tier = priceId ? resolveTierFromPriceId(priceId) : null;
+
+  // Fail loud on unknown or non-purchasable price. Silently defaulting to
+  // 'free' would mean "customer paid, got nothing" — a misconfigured env
+  // var must not degrade paid users. Throwing returns 500 → Stripe retries
+  // once the env is fixed. Only 'pro' and 'elite' are Stripe-sold today.
+  if (tier !== 'pro' && tier !== 'elite') {
+    throw new Error(
+      `Unknown or non-purchasable price ID ${priceId} on subscription ` +
+        `${stripeSubscriptionId} — resolved tier: ${tier ?? 'null'}.`,
+    );
+  }
 
   // In Stripe API 2025-01-27.acacia, current_period_end/start moved to SubscriptionItem
   const firstItem = subscription.items.data[0];
@@ -122,7 +136,7 @@ async function handleCheckoutCompleted(
     userId,
     stripeSubscriptionId,
     stripeCustomerId,
-    tier: tier as 'pro' | 'elite',
+    tier,
     status: subscription.status as 'active' | 'past_due' | 'canceled' | 'trialing',
     currentPeriodStart: periodStart,
     currentPeriodEnd: periodEnd ?? new Date(),
@@ -131,13 +145,9 @@ async function handleCheckoutCompleted(
 
   // Send Telegram invite if user has linked their Telegram account
   const user = await getUserByStripeCustomerId(stripeCustomerId);
-  if (user?.telegramUserId && tier !== 'free') {
+  if (user?.telegramUserId) {
     try {
-      await sendInvite(
-        userId,
-        user.telegramUserId.toString(),
-        tier as 'pro' | 'elite'
-      );
+      await sendInvite(userId, user.telegramUserId.toString(), tier);
     } catch (err) {
       console.error('[webhook] Failed to send Telegram invite:', err);
     }

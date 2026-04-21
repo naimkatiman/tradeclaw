@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '../../../../lib/stripe';
 import { getUserById } from '../../../../lib/db';
+import { readSessionFromRequest } from '../../../../lib/user-session';
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as { userId?: unknown };
-    const { userId } = body;
+    const session = readSessionFromRequest(request);
+    const userId = session?.userId;
 
-    if (typeof userId !== 'string' || !userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Not signed in — POST /api/auth/session first' },
+        { status: 401 },
+      );
     }
 
     const user = await getUserById(userId);

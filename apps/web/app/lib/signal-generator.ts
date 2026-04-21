@@ -63,12 +63,12 @@ const WEIGHTS = {
 // Matches packages/signals/src/indicators.ts → DEFAULT_SQUEEZE_THRESHOLD.
 const BB_SQUEEZE_THRESHOLD = 4;
 
-const SIGNAL_THRESHOLD = 35; // Minimum score — require stronger indicator alignment
-const MIN_CONFIDENCE = 65; // Below 65% is noise — need real conviction to trade
-// Scalp mode (M5/M15) uses tighter gates because short timeframes are noisier.
-// Higher score bar + higher confidence floor culls false positives.
-const SIGNAL_THRESHOLD_SCALP = 45;
-const MIN_CONFIDENCE_SCALP = 75;
+const SIGNAL_THRESHOLD = 22; // Calibrated floor — avoids an empty feed while still filtering weak setups
+const MIN_CONFIDENCE = 55; // Keeps the lowest-conviction band out, but restores viable swing signals
+// Scalp mode (M5/M15) stays stricter than swing because short timeframes are noisier,
+// but no longer starves the engine after the April threshold tightening.
+const SIGNAL_THRESHOLD_SCALP = 30;
+const MIN_CONFIDENCE_SCALP = 58;
 
 function isScalpTimeframe(tf: string): boolean {
   return tf === 'M5' || tf === 'M15';
@@ -79,7 +79,7 @@ function getThresholds(tf: string): { signalThreshold: number; minConfidence: nu
     ? { signalThreshold: SIGNAL_THRESHOLD_SCALP, minConfidence: MIN_CONFIDENCE_SCALP }
     : { signalThreshold: SIGNAL_THRESHOLD, minConfidence: MIN_CONFIDENCE };
 }
-const MIN_DIRECTIONAL_EDGE = 12; // Bigger gap between buy/sell to avoid choppy entries
+const MIN_DIRECTIONAL_EDGE = 5; // Require a real edge, but not so much that balanced trend setups disappear entirely
 const MIN_TREND_STRENGTH = 0.03;  // reduced — 0.08 blocked signals in sideways markets
 const MIN_ATR_PCT = 0.0001;  // reduced threshold
 const MIN_BB_WIDTH = 0.3;

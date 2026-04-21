@@ -18,9 +18,6 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
-/** @deprecated Use getStripe() for lazy initialization */
-export const stripe = undefined as unknown as Stripe;
-
 /**
  * Map a Stripe price ID to the corresponding tier name.
  */
