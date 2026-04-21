@@ -1,5 +1,5 @@
 {
-  "consecutive_failures": 0,
-  "last_status": "success",
-  "last_run_utc": "2026-04-20T15:38:00Z"
+  "lastRunAt": "2026-04-21T09:26:36Z",
+  "lastStatus": "success",
+  "consecutiveFailures": 0
 }
