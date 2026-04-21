@@ -57,7 +57,7 @@ SELL_MIN_CONFLUENCE = 3
 # These have <20% avg accuracy over 5+ signals — auto-skip
 BLACKLISTED_COMBOS = {
     "SOLUSDT_SELL", "USDJPY_BUY", "XRPUSDT_SELL", "BTCUSDT_SELL",
-    "EURUSD_SELL", "GBPUSD_SELL", "ETHUSDT_SELL",
+    "EURUSD_SELL", "GBPUSD_SELL", "ETHUSDT_SELL", "BNBUSDT_SELL",
 }
 
 # ─── Market Hours ─────────────────────────────────────────────
@@ -286,14 +286,16 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
         if confidence < MIN_CONFIDENCE:
             continue
 
-        # TP/SL from ATR — R:R = 1:2 / 1:3 (risk 1.5 ATR to gain 3.0/4.5 ATR)
+        # TP/SL from ATR — R:R = 1:1 / 1:2 (risk 1.5 ATR to gain 1.5/3.0 ATR).
+        # TP1 was 3.0*ATR — unreachable inside the 8h outcome window, so most
+        # directionally-correct signals expired below the "win" threshold.
         if direction == "BUY":
-            tp1 = round(close + atr * 3.0, 6)
-            tp2 = round(close + atr * 4.5, 6)
+            tp1 = round(close + atr * 1.5, 6)
+            tp2 = round(close + atr * 3.0, 6)
             sl  = round(close - atr * 1.5, 6)
         else:
-            tp1 = round(close - atr * 3.0, 6)
-            tp2 = round(close - atr * 4.5, 6)
+            tp1 = round(close - atr * 1.5, 6)
+            tp2 = round(close - atr * 3.0, 6)
             sl  = round(close + atr * 1.5, 6)
 
         sig = {
@@ -397,29 +399,44 @@ def cross_validate_price(symbol: str, tv_price: float, binance_prices: dict[str,
 def get_win_rates(conn: sqlite3.Connection) -> dict[str, dict]:
     """
     Calculate historical win rate per symbol+direction from signals.db.
-    Uses average accuracy (graduated 0-1) as win rate metric.
+    A "win" = TP1_HIT, EXPIRED_PROFIT, or accuracy >= 0.5 (partial progress).
+    win_rate = wins / total (not avg accuracy — that understated profitable expiries).
+    Blacklisted combos are excluded so legacy bad signals don't poison new scores.
     Returns: { "BTCUSDT_BUY": { "wins": 5, "losses": 2, "total": 7, "win_rate": 71.4 }, ... }
     """
     rates = {}
+    if BLACKLISTED_COMBOS:
+        bl_pairs = [c.rsplit("_", 1) for c in BLACKLISTED_COMBOS]
+        bl_filter = " AND (" + " AND ".join(
+            "NOT (symbol = ? AND signal = ?)" for _ in bl_pairs
+        ) + ")"
+        bl_params = [v for pair in bl_pairs for v in pair]
+    else:
+        bl_filter = ""
+        bl_params = []
     try:
-        cursor = conn.execute("""
+        cursor = conn.execute(f"""
             SELECT symbol, signal,
                    COUNT(*) as total,
-                   SUM(CASE WHEN accuracy >= 0.5 THEN 1 ELSE 0 END) as wins,
-                   SUM(CASE WHEN accuracy < 0.5 THEN 1 ELSE 0 END) as losses,
-                   ROUND(AVG(accuracy) * 100, 1) as avg_accuracy
+                   SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT')
+                                 OR accuracy >= 0.5 THEN 1 ELSE 0 END) as wins,
+                   SUM(CASE WHEN outcome = 'SL_HIT'
+                                 OR (outcome = 'EXPIRED_LOSS' AND accuracy < 0.5)
+                             THEN 1 ELSE 0 END) as losses
             FROM signals
             WHERE outcome IS NOT NULL AND outcome != 'LEGACY'
+            {bl_filter}
             GROUP BY symbol, signal
-        """)
+        """, bl_params)
         for row in cursor.fetchall():
-            symbol, direction, total, wins, losses, avg_acc = row
+            symbol, direction, total, wins, losses = row
             key = f"{symbol}_{direction}"
+            win_rate = round(100.0 * wins / total, 1) if total else 0
             rates[key] = {
                 "wins": wins,
                 "losses": losses,
                 "total": total,
-                "win_rate": avg_acc or 0,
+                "win_rate": win_rate,
             }
     except Exception:
         pass  # Table may not have outcome column populated yet

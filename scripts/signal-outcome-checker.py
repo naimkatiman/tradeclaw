@@ -20,9 +20,16 @@ SCRIPT_DIR = Path(__file__).parent
 DB_PATH = SCRIPT_DIR / "signals.db"
 
 # How long to wait before checking outcome.
-# Was 4h; bumped to 8h because TP1 widened from 0.5*ATR → 1.0*ATR (see signal-engine.py).
-# The old 4h window was expiring ~35% of signals as EXPIRED_LOSS before they could reach TP.
+# Was 4h; bumped to 8h when TP1 was at 3*ATR. TP1 is now 1.5*ATR (see scanner-engine.py),
+# which is reachable inside this window. Leaving at 8h for safety margin.
 OUTCOME_WINDOW_HOURS = 8
+
+# Combos the scanner no longer emits. Excluded from win-rate aggregates so that
+# legacy signals fired before the blacklist don't drag the numbers.
+BLACKLISTED_COMBOS = {
+    "SOLUSDT_SELL", "USDJPY_BUY", "XRPUSDT_SELL", "BTCUSDT_SELL",
+    "EURUSD_SELL", "GBPUSD_SELL", "ETHUSDT_SELL", "BNBUSDT_SELL",
+}
 
 # Binance symbol mapping
 BINANCE_MAP = {
@@ -77,14 +84,17 @@ def get_current_price(symbol: str) -> Optional[float]:
 
 def get_price_range(symbol: str, fired_at: str) -> Optional[tuple]:
     """
-    Get the HIGH and LOW price during the 4h window after signal fired.
+    Get HIGH and LOW price during the 8h window after a signal fired.
     Returns (high, low, current) or None.
-    Uses Binance klines for crypto, falls back to current price only for others.
+    Crypto → Binance klines. Forex/metals → yfinance 15m history.
+    If neither source returns a range, falls back to current-price snapshot,
+    which intentionally disqualifies reversed TP hits (the bug we were fixing).
     """
+    fired_dt = datetime.fromisoformat(fired_at.replace("Z", "+00:00"))
+
     binance_sym = BINANCE_MAP.get(symbol.upper())
     if binance_sym:
         try:
-            fired_dt = datetime.fromisoformat(fired_at.replace("Z", "+00:00"))
             start_ms = int(fired_dt.timestamp() * 1000)
             end_ms = start_ms + OUTCOME_WINDOW_HOURS * 3600 * 1000
 
@@ -109,7 +119,29 @@ def get_price_range(symbol: str, fired_at: str) -> Optional[tuple]:
         except Exception:
             pass
 
-    # Fallback: use current price as all three
+    yahoo_sym = YAHOO_MAP.get(symbol.upper())
+    if yahoo_sym:
+        try:
+            import yfinance as yf
+            # Pad the window: yfinance rounds to candle boundaries and needs
+            # start < end strictly in UTC. One candle of slack on each side.
+            start_dt = fired_dt - timedelta(minutes=15)
+            end_dt = fired_dt + timedelta(hours=OUTCOME_WINDOW_HOURS, minutes=15)
+            hist = yf.Ticker(yahoo_sym).history(
+                start=start_dt,
+                end=end_dt,
+                interval="15m",
+            )
+            if not hist.empty:
+                high = float(hist["High"].max())
+                low = float(hist["Low"].min())
+                current = float(hist["Close"].iloc[-1])
+                return (high, low, current)
+        except Exception:
+            pass
+
+    # Last resort: snapshot price. Reversed TP hits will be missed — this is
+    # why Binance/Yahoo klines are tried first.
     price = get_current_price(symbol)
     if price:
         return (price, price, price)
@@ -193,45 +225,73 @@ def check_outcomes():
 
     conn.commit()
 
-    # Print updated win rates
+    # Print updated win rates.
+    # Win = TP1_HIT, EXPIRED_PROFIT, or accuracy >= 0.5 (partial progress toward TP1).
+    # EXPIRED_PROFIT was previously counted as a loss if progress < 0.5 — even
+    # though the signal was directionally correct and closed profitable.
     if updated > 0:
+        # Build "NOT blacklisted" filter for win-rate aggregates.
+        if BLACKLISTED_COMBOS:
+            bl_pairs = [c.rsplit("_", 1) for c in BLACKLISTED_COMBOS]
+            bl_filter = " AND (" + " AND ".join(
+                "NOT (symbol = ? AND signal = ?)" for _ in bl_pairs
+            ) + ")"
+            bl_params = [v for pair in bl_pairs for v in pair]
+        else:
+            bl_filter = ""
+            bl_params = []
+
         print(f"\nUpdated {updated} signals. Win rates:")
-        rates = conn.execute("""
+        rates = conn.execute(f"""
             SELECT symbol, signal,
                    COUNT(*) as total,
-                   SUM(CASE WHEN accuracy >= 0.5 THEN 1 ELSE 0 END) as wins,
+                   SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT')
+                                 OR accuracy >= 0.5 THEN 1 ELSE 0 END) as wins,
                    ROUND(AVG(accuracy) * 100, 1) as avg_accuracy
             FROM signals
             WHERE outcome IS NOT NULL AND outcome != 'LEGACY'
+            {bl_filter}
             GROUP BY symbol, signal
-            ORDER BY avg_accuracy DESC
-        """).fetchall()
+            ORDER BY (1.0 * SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT')
+                                         OR accuracy >= 0.5 THEN 1 ELSE 0 END)
+                      / COUNT(*)) DESC
+        """, bl_params).fetchall()
 
         for r in rates:
-            print(f"  {r['symbol']} {r['signal']}: {r['avg_accuracy']}% avg accuracy ({r['wins']}/{r['total']} wins)")
+            win_pct = round(100.0 * r["wins"] / r["total"], 1) if r["total"] else 0
+            print(
+                f"  {r['symbol']} {r['signal']}: "
+                f"{win_pct}% win rate ({r['wins']}/{r['total']}) "
+                f"— {r['avg_accuracy']}% avg accuracy"
+            )
 
-        # Adaptive threshold: if overall win rate < 60%, tighten to 75%
-        overall = conn.execute("""
-            SELECT ROUND(AVG(accuracy) * 100, 1) as avg_accuracy,
-                   COUNT(*) as total,
-                   SUM(CASE WHEN accuracy >= 0.5 THEN 1 ELSE 0 END) as wins
-            FROM signals WHERE outcome IS NOT NULL
-        """).fetchone()
+        # Adaptive threshold uses the new win-rate definition, not avg accuracy.
+        overall = conn.execute(f"""
+            SELECT COUNT(*) as total,
+                   SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT')
+                                 OR accuracy >= 0.5 THEN 1 ELSE 0 END) as wins,
+                   ROUND(AVG(accuracy) * 100, 1) as avg_accuracy
+            FROM signals
+            WHERE outcome IS NOT NULL AND outcome != 'LEGACY'
+            {bl_filter}
+        """, bl_params).fetchone()
 
         if overall and overall["total"] >= 10:
-            acc = overall["avg_accuracy"]
-            print(f"\nOverall avg accuracy: {acc}% ({overall['wins']}/{overall['total']} wins)")
-            if acc < 40:
-                print("⚠️  Accuracy below 40% — raising confidence threshold to 80%")
-                threshold_file = SCRIPT_DIR / "confidence_threshold.txt"
+            win_rate = round(100.0 * overall["wins"] / overall["total"], 1)
+            print(
+                f"\nOverall win rate: {win_rate}% "
+                f"({overall['wins']}/{overall['total']}) "
+                f"— avg accuracy {overall['avg_accuracy']}%"
+            )
+            threshold_file = SCRIPT_DIR / "confidence_threshold.txt"
+            if win_rate < 40:
+                print("⚠️  Win rate below 40% — raising confidence threshold to 80%")
                 threshold_file.write_text("80")
-            elif acc < 55:
-                print("⚠️  Accuracy below 55% — raising confidence threshold to 75%")
-                threshold_file = SCRIPT_DIR / "confidence_threshold.txt"
+            elif win_rate < 55:
+                print("⚠️  Win rate below 55% — raising confidence threshold to 75%")
                 threshold_file.write_text("75")
-            elif acc > 70:
-                print("✅ Accuracy above 70% — engine performing well, lowering threshold to 70%")
-                threshold_file = SCRIPT_DIR / "confidence_threshold.txt"
+            elif win_rate > 70:
+                print("✅ Win rate above 70% — lowering confidence threshold to 70%")
                 threshold_file.write_text("70")
     else:
         print("No signals updated this run.")
