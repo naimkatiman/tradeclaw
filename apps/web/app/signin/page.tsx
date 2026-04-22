@@ -68,7 +68,18 @@ function SigninInner() {
         return;
       }
     }
+    // If the caller was a checkout flow (next=/pricing or /dashboard/billing)
+    // but no priceId made it through (e.g., NEXT_PUBLIC_STRIPE_*_PRICE_ID
+    // wasn't inlined at build time), do NOT silently land on /dashboard.
+    // Bounce back to the caller with a checkout_unavailable hint so the user
+    // sees a real error instead of a dead-end.
     if (next && next.startsWith('/') && !next.startsWith('//')) {
+      if (!priceId && (next.startsWith('/pricing') || next.startsWith('/dashboard/billing'))) {
+        const url = new URL(next, window.location.origin);
+        url.searchParams.set('error', 'checkout_unavailable');
+        router.replace(url.pathname + url.search);
+        return;
+      }
       router.replace(next);
       return;
     }

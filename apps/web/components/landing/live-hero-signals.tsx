@@ -20,6 +20,24 @@ interface TeaserResponse {
   signals: SignalTeaser[];
 }
 
+interface ProofSignalLite {
+  pair: string;
+  timeframe: string;
+  direction: 'BUY' | 'SELL';
+  confidence: number;
+  timestamp: number;
+}
+
+interface ProofResponseLite {
+  signals?: Array<{
+    pair?: string;
+    timeframe?: string;
+    direction?: 'BUY' | 'SELL';
+    confidence?: number;
+    timestamp?: number;
+  }>;
+}
+
 async function fetchTeaserSignals(): Promise<SignalTeaser[]> {
   try {
     const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
@@ -34,10 +52,52 @@ async function fetchTeaserSignals(): Promise<SignalTeaser[]> {
   }
 }
 
+/** Fallback: recent real resolved signals from the proof endpoint.
+ *  Keeps the hero useful when the public teaser is quiet, without leaking
+ *  entry / SL / TP values. */
+async function fetchRecentProofSignals(): Promise<SignalTeaser[]> {
+  try {
+    const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+    const res = await fetch(`${base}/api/proof`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as ProofResponseLite;
+    if (!Array.isArray(data.signals)) return [];
+    return data.signals
+      .filter((s): s is Required<Pick<ProofSignalLite, 'pair' | 'timeframe' | 'direction' | 'confidence' | 'timestamp'>> =>
+        typeof s.pair === 'string'
+        && typeof s.timeframe === 'string'
+        && (s.direction === 'BUY' || s.direction === 'SELL')
+        && typeof s.confidence === 'number'
+        && typeof s.timestamp === 'number')
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 8)
+      .map((s) => ({
+        symbol: s.pair,
+        timeframe: s.timeframe,
+        direction: s.direction,
+        confidence: Math.round(s.confidence),
+        timestamp: s.timestamp,
+      }));
+  } catch {
+    return [];
+  }
+}
+
 const PLACEHOLDER_PAIRS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'XAGUSD'];
 
 export async function LiveHeroSignals() {
-  const signals = await fetchTeaserSignals();
+  const live = await fetchTeaserSignals();
+  let signals = live;
+  let mode: 'live' | 'recent' | 'empty' = live.length > 0 ? 'live' : 'empty';
+  if (signals.length === 0) {
+    const recent = await fetchRecentProofSignals();
+    if (recent.length > 0) {
+      signals = recent;
+      mode = 'recent';
+    }
+  }
   const hasRealSignals = signals.length > 0;
 
   return (
@@ -62,7 +122,7 @@ export async function LiveHeroSignals() {
               />
               <style>{`@keyframes lhsPulse{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
               <span className="text-white/60 text-xs font-medium">
-                Live signals — public preview
+                {mode === 'recent' ? 'Recent signals — public preview' : 'Live signals — public preview'}
               </span>
             </div>
             <Link
@@ -155,7 +215,7 @@ export async function LiveHeroSignals() {
                 ))}
                 <div className="flex-shrink-0 flex items-center gap-1.5 px-4 py-3 text-white/40 text-xs whitespace-nowrap">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
-                  Generating signals...
+                  No signals in this window — scanner is live, check back shortly
                 </div>
               </>
             )}

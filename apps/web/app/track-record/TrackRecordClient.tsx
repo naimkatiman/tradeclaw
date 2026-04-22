@@ -227,25 +227,44 @@ export function TrackRecordClient() {
       <PageNavBar />
 
       <main className="max-w-5xl mx-auto px-4 py-8 pb-20 md:pb-8">
-        {/* Header */}
+        {/* Header — lead with Total Return (sum of per-signal % at fixed risk).
+           This is a return-on-risk number, NOT compounded equity. Win rate
+           alone misleads because a 35% WR with positive expectancy beats a
+           70% WR with giant losers. We show both so the reader can judge. */}
         <div className="mb-6">
           <div className="text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-2">
-            Verified Win Rate
+            Verified Track Record
           </div>
-          <div className="flex items-baseline gap-3 mb-2">
-            <span className={`text-5xl font-bold tabular-nums ${
-              stats && stats.winRate >= 55 ? 'text-emerald-400'
-              : stats && stats.winRate >= 45 ? 'text-zinc-400'
-              : stats ? 'text-red-400' : 'text-[var(--foreground)]'
-            }`}>
-              {stats ? `${stats.winRate}%` : '—'}
-            </span>
-            <span className="text-sm text-[var(--text-secondary)]">
-              {stats ? `${stats.resolved} resolved signals` : 'loading…'}
-            </span>
+          <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 mb-2">
+            <div className="flex items-baseline gap-2">
+              <span className={`text-5xl font-bold tabular-nums ${
+                stats && stats.totalPnlPct > 0 ? 'text-emerald-400'
+                : stats && stats.totalPnlPct < 0 ? 'text-red-400'
+                : 'text-[var(--foreground)]'
+              }`}>
+                {stats ? `${stats.totalPnlPct > 0 ? '+' : ''}${stats.totalPnlPct}%` : '—'}
+              </span>
+              <span className="text-sm text-[var(--text-secondary)]">total return</span>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className={`text-xl font-semibold tabular-nums ${
+                stats && stats.winRate >= 55 ? 'text-emerald-400'
+                : stats && stats.winRate >= 45 ? 'text-zinc-400'
+                : stats ? 'text-red-400' : 'text-[var(--foreground)]'
+              }`}>
+                {stats ? `${stats.winRate}%` : '—'}
+              </span>
+              <span className="text-xs text-[var(--text-secondary)]">win rate</span>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xl font-semibold tabular-nums text-[var(--foreground)]">
+                {stats ? stats.resolved : '—'}
+              </span>
+              <span className="text-xs text-[var(--text-secondary)]">resolved signals</span>
+            </div>
           </div>
           <p className="text-sm text-[var(--text-secondary)]">
-            Every signal tracked against real market data. No cherry-picking.
+            Total return = sum of per-signal % at fixed 1R risk. Every signal tracked live, no cherry-picking.
           </p>
         </div>
 

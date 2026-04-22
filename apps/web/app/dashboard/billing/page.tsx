@@ -9,6 +9,7 @@ import { useUserSession } from '../../../lib/hooks/use-user-tier';
 // ---------------------------------------------------------------------------
 
 type Tier = 'free' | 'pro';
+type Interval = 'monthly' | 'annual';
 
 interface PlanInfo {
   name: string;
@@ -18,21 +19,34 @@ interface PlanInfo {
   priceId: string;
 }
 
-const PLANS: Record<Tier, PlanInfo> = {
-  free: {
-    name: 'Free',
-    price: '$0/mo',
-    description: 'Delayed signals, 3 symbols, public Telegram channel.',
-    color: 'text-zinc-400',
-    priceId: '',
-  },
-  pro: {
+const PRO_MONTHLY_PRICE_ID = process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID ?? '';
+const PRO_ANNUAL_PRICE_ID = process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID ?? '';
+
+function proPlan(interval: Interval): PlanInfo {
+  if (interval === 'annual') {
+    return {
+      name: 'Pro (Annual)',
+      price: '$290/yr',
+      description: 'Real-time signals, all symbols, private Pro Telegram group. Save $58 vs monthly.',
+      color: 'text-emerald-400',
+      priceId: PRO_ANNUAL_PRICE_ID,
+    };
+  }
+  return {
     name: 'Pro',
     price: '$29/mo',
     description: 'Real-time signals, all symbols, private Pro Telegram group.',
     color: 'text-emerald-400',
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID ?? '',
-  },
+    priceId: PRO_MONTHLY_PRICE_ID,
+  };
+}
+
+const FREE_PLAN: PlanInfo = {
+  name: 'Free',
+  price: '$0/mo',
+  description: 'Delayed signals, 3 symbols, public Telegram channel.',
+  color: 'text-zinc-400',
+  priceId: '',
 };
 
 // ---------------------------------------------------------------------------
@@ -79,14 +93,15 @@ function StatusBadge({ tier }: { tier: Tier }) {
 
 interface UpgradeCardProps {
   tier: Exclude<Tier, 'free'>;
+  interval: Interval;
   currentTier: Tier;
   userId: string;
   onError: (msg: string) => void;
 }
 
-function UpgradeCard({ tier, currentTier, userId, onError }: UpgradeCardProps) {
+function UpgradeCard({ tier, interval, currentTier, userId, onError }: UpgradeCardProps) {
   const [loading, setLoading] = useState(false);
-  const plan = PLANS[tier];
+  const plan = proPlan(interval);
   const isCurrentPlan = currentTier === tier;
   const isDowngrade = false;
 
@@ -94,14 +109,21 @@ function UpgradeCard({ tier, currentTier, userId, onError }: UpgradeCardProps) {
     setLoading(true);
     try {
       if (currentTier !== 'free') {
-        // Existing subscriber → Stripe Portal
+        // Existing subscriber → Stripe Portal to switch interval
         const url = await createPortalSession(userId);
         window.location.href = url;
-      } else {
-        // New subscriber → Checkout
-        const url = await createCheckoutSession(plan.priceId, userId);
-        window.location.href = url;
+        return;
       }
+      if (!plan.priceId) {
+        onError(
+          interval === 'annual'
+            ? 'Annual billing is temporarily unavailable. Email support@tradeclaw.win to switch.'
+            : 'Checkout is temporarily unavailable. Email support@tradeclaw.win.',
+        );
+        return;
+      }
+      const url = await createCheckoutSession(plan.priceId, userId);
+      window.location.href = url;
     } catch (err: unknown) {
       onError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -161,8 +183,9 @@ export default function BillingPage() {
   // actually renders. Billing is Free/Pro only today; elite/custom are
   // historical grants that still render as "Pro" on the current-plan card.
   const currentTier: Tier = session?.tier === 'pro' ? 'pro' : 'free';
+  const [billingInterval, setBillingInterval] = useState<Interval>('monthly');
 
-  const plan = PLANS[currentTier];
+  const plan = currentTier === 'free' ? FREE_PLAN : proPlan('monthly');
   const [error, setError] = useState<string | null>(null);
   const isLoading = status === 'loading';
   const isDemo = status === 'anonymous';
@@ -271,19 +294,51 @@ export default function BillingPage() {
 
         {/* Upgrade / switch plans */}
         <div className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500">
-            {currentTier === 'free' ? 'Upgrade your plan' : 'Change plan'}
-          </h2>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
+              {currentTier === 'free' ? 'Upgrade your plan' : 'Change plan'}
+            </h2>
+            {currentTier === 'free' && (
+              <div
+                role="group"
+                aria-label="Billing interval"
+                className="inline-flex rounded-full border border-white/10 bg-white/[0.03] p-0.5 text-xs"
+              >
+                <button
+                  type="button"
+                  aria-pressed={billingInterval === 'monthly'}
+                  onClick={() => setBillingInterval('monthly')}
+                  className={`rounded-full px-3 py-1 font-medium transition-colors ${
+                    billingInterval === 'monthly'
+                      ? 'bg-white text-black'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={billingInterval === 'annual'}
+                  onClick={() => setBillingInterval('annual')}
+                  className={`rounded-full px-3 py-1 font-medium transition-colors ${
+                    billingInterval === 'annual'
+                      ? 'bg-white text-black'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Annual <span className="ml-1 text-emerald-400">save 17%</span>
+                </button>
+              </div>
+            )}
+          </div>
           <div className="flex flex-col gap-3">
-            {(['pro'] as const).map((tier) => (
-              <UpgradeCard
-                key={tier}
-                tier={tier}
-                currentTier={currentTier}
-                userId={userId}
-                onError={setError}
-              />
-            ))}
+            <UpgradeCard
+              tier="pro"
+              interval={billingInterval}
+              currentTier={currentTier}
+              userId={userId}
+              onError={setError}
+            />
           </div>
         </div>
 

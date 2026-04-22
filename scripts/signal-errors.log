@@ -85,3 +85,6 @@
 [2026-04-19T10:49:00+08:00] FAIL — scanner-engine run blocked by exec allowlist/elevated gating, could not execute `python3 /home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py`.
 2026-04-19 11:40:00 +08:00 | scanner-engine failed: /bin/bash: line 1: python: command not found (exit 127)
 [2026-04-19T14:30:00+08:00] FAIL — approved cron invocation used `python` and exited 127 (`python: command not found`).
+[2026-04-22T15:49:00+08:00] FAIL — scanner-engine run blocked by exec approval gating, could not execute `python3 /home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py`.
+[2026-04-22T15:49:00+08:00] NOTIFIED — Alert sent to Naim after 8 consecutive failures since 2026-04-11.
+[2026-04-22T15:49:00+08:00] FAIL — scanner-engine run blocked by exec approval gating, could not execute `python3 /home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py`.

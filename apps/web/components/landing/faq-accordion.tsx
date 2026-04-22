@@ -9,9 +9,9 @@ interface FAQItem {
 
 const FAQS: FAQItem[] = [
   {
-    question: "Is it really free?",
+    question: "Is there a free tier?",
     answer:
-      "Yes, completely. TradeClaw is MIT-licensed open-source software. You pay nothing to use it — not now, not ever. You only pay for your own server hosting (Railway free tier, Fly.io, VPS, etc.), which typically costs $0–5/month.",
+      "Yes. The open-source framework is MIT-licensed and free forever — you can self-host the entire stack. On tradeclaw.win we also offer a Free hosted tier: 3 symbols (BTC/ETH/XAU), 15-minute delayed signals, public Telegram channel. Pro ($29/mo, 7-day trial) upgrades that to real-time delivery, all symbols, private Pro Telegram group, and full TP1/TP2/TP3 + SL levels.",
   },
   {
     question: "How do AI signals work?",
@@ -29,9 +29,9 @@ const FAQS: FAQItem[] = [
       "Clone the repo, copy .env.example to .env, set your MetaApi credentials (optional for paper trading), then run `docker compose up -d`. Your dashboard is ready at localhost:3000. For cloud deploy, use the one-click Railway or Vercel buttons in the repo README.",
   },
   {
-    question: "What about Alpha Screener?",
+    question: "What's the difference between self-hosting and Pro?",
     answer:
-      "Alpha Screener is the hosted SaaS version of TradeClaw — same codebase, zero setup required. It's ideal if you want signals immediately without managing your own server. TradeClaw is the self-hosted open-source edition you can customize and run on your own infrastructure.",
+      "Same signal engine, different delivery. Self-host the open-source repo for full control and zero recurring cost — you run the stack and wait 15 minutes on public signals. TradeClaw Pro at $29/mo gives you instant delivery, private Pro Telegram group, every traded symbol, and three take-profit levels plus stop-loss on each signal. Same math, faster execution.",
   },
 ];
 
