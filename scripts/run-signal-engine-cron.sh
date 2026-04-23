@@ -2,7 +2,7 @@
 set -o pipefail
 cd /home/naim/.openclaw/workspace/tradeclaw || exit 1
 LOG=/home/naim/.openclaw/workspace/tradeclaw/scripts/signal-errors.log
-STATE=/home/naim/.openclaw/workspace/tradeclaw/scripts/.signal-engine-failures
+STATE=/home/naim/.openclaw/workspace/tradeclaw/scripts/.signal-engine-failure-count
 TMP=$(mktemp)
 if python3 scripts/scanner-engine.py >"$TMP" 2>&1; then
   printf "0" > "$STATE"
