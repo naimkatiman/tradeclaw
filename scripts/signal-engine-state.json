@@ -1,6 +1,1 @@
-{
-  "consecutiveFailures": 0,
-  "lastStatus": "success",
-  "lastRunAt": "2026-04-11T13:03:44Z",
-  "lastSummary": "0 confluence, 0 individual, 0 errors"
-}
+{"consecutive_failures": 0, "consecutiveFailures": 0, "lastStatus": "success", "lastRunAt": "2026-04-11T13:03:44Z", "lastSummary": "0 confluence, 0 individual, 0 errors", "last_run_status": "success"}

@@ -1,75 +1,58 @@
 #!/usr/bin/env python3
-import json
+from __future__ import annotations
+
 import os
 import subprocess
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
-ROOT = Path('/home/naim/.openclaw/workspace/tradeclaw')
-STATE_FILE = ROOT / 'scripts/.signal-engine-state.json'
-LOG_FILE = ROOT / 'scripts/signal-errors.log'
-
-
-def now_times():
-    utc_now = datetime.now(timezone.utc)
-    sgt = timezone(timedelta(hours=8), name='SGT')
-    sgt_now = utc_now.astimezone(sgt)
-    return utc_now.strftime('%Y-%m-%dT%H:%M:%SZ'), sgt_now.strftime('%Y-%m-%d %I:%M:%S %p %Z')
+ROOT = "/home/naim/.openclaw/workspace/tradeclaw"
+SCRIPT = os.path.join(ROOT, "scripts", "scanner-engine.py")
+LOG = os.path.join(ROOT, "scripts", "signal-errors.log")
+STATE = os.path.join(ROOT, "scripts", ".signal-engine-failure-count")
 
 
-def load_state():
+def read_count() -> int:
     try:
-        return json.loads(STATE_FILE.read_text(encoding='utf-8'))
+        with open(STATE, "r", encoding="utf-8") as f:
+            return int(f.read().strip() or "0")
     except Exception:
-        return {'consecutive_failures': 0}
+        return 0
 
 
-def save_state(state):
-    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    STATE_FILE.write_text(json.dumps(state, indent=2), encoding='utf-8')
+def write_count(value: int) -> None:
+    with open(STATE, "w", encoding="utf-8") as f:
+        f.write(str(value))
 
 
-def main():
-    now_utc, now_sgt = now_times()
-    proc = subprocess.run(
-        ['python3', 'scripts/scanner-engine.py'],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-    )
-    output = (proc.stdout or '') + (proc.stderr or '')
-    state = load_state()
+proc = subprocess.run(
+    ["python3", SCRIPT],
+    cwd=ROOT,
+    capture_output=True,
+    text=True,
+)
 
-    notify = False
-    if proc.returncode == 0:
-        state['consecutive_failures'] = 0
-        state['last_status'] = 'success'
-        state['last_run_utc'] = now_utc
-        state.pop('last_error', None)
-    else:
-        state['consecutive_failures'] = int(state.get('consecutive_failures', 0)) + 1
-        state['last_status'] = 'failure'
-        state['last_run_utc'] = now_utc
-        state['last_error'] = output[-4000:]
-        LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with LOG_FILE.open('a', encoding='utf-8') as f:
-            f.write(f'[{now_sgt} | {now_utc}] scanner-engine failure (exit {proc.returncode})\n')
-            if output:
-                f.write(output.rstrip())
-                f.write('\n\n')
-            else:
-                f.write('(no output)\n\n')
-        notify = state['consecutive_failures'] >= 3
+if proc.returncode == 0:
+    write_count(0)
+    raise SystemExit(0)
 
-    save_state(state)
-    print(json.dumps({
-        'status': proc.returncode,
-        'consecutive_failures': state['consecutive_failures'],
-        'notify': notify,
-        'output_tail': output[-2000:],
-    }))
-    raise SystemExit(proc.returncode)
+count = read_count() + 1
+write_count(count)
+timestamp = datetime.now(ZoneInfo("Asia/Singapore")).strftime("%Y-%m-%d %H:%M:%S %Z")
+with open(LOG, "a", encoding="utf-8") as f:
+    f.write(f"[{timestamp}] scanner-engine failure (exit {proc.returncode}, consecutive {count})\n")
+    if proc.stdout:
+        f.write(proc.stdout)
+        if not proc.stdout.endswith("\n"):
+            f.write("\n")
+    if proc.stderr:
+        f.write(proc.stderr)
+        if not proc.stderr.endswith("\n"):
+            f.write("\n")
+    f.write("\n")
 
-
-if __name__ == '__main__':
-    main()
+if proc.stdout:
+    print(proc.stdout, end="")
+if proc.stderr:
+    print(proc.stderr, end="")
+raise SystemExit(proc.returncode)

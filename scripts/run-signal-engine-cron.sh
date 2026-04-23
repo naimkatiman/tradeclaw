@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
-set -uo pipefail
-cd /home/naim/.openclaw/workspace/tradeclaw
-LOG_FILE=/home/naim/.openclaw/workspace/tradeclaw/scripts/signal-errors.log
-STATE_FILE=/home/naim/.openclaw/workspace/tradeclaw/scripts/.signal-engine-failure-count
-TMP_OUT=$(mktemp)
-if python3 scripts/scanner-engine.py >"$TMP_OUT" 2>&1; then
-  printf "0" > "$STATE_FILE"
-  rm -f "$TMP_OUT"
-  echo "SUCCESS"
+set -o pipefail
+cd /home/naim/.openclaw/workspace/tradeclaw || exit 1
+LOG=/home/naim/.openclaw/workspace/tradeclaw/scripts/signal-errors.log
+STATE=/home/naim/.openclaw/workspace/tradeclaw/scripts/.signal-engine-failures
+TMP=$(mktemp)
+if python3 scripts/scanner-engine.py >"$TMP" 2>&1; then
+  printf "0" > "$STATE"
+  rm -f "$TMP"
+  exit 0
 else
   status=$?
-  count=0
-  if [ -f "$STATE_FILE" ]; then
-    count=$(cat "$STATE_FILE" 2>/dev/null || printf "0")
-  fi
+  count=$(cat "$STATE" 2>/dev/null || printf "0")
+  case "$count" in
+    ''|*[!0-9]*) count=0 ;;
+  esac
   count=$((count + 1))
-  printf "%s" "$count" > "$STATE_FILE"
+  printf "%s" "$count" > "$STATE"
+  ts=$(TZ=Asia/Kuala_Lumpur date +"%Y-%m-%dT%H:%M:%S%z")
   {
-    printf "[%s] scanner-engine failure #%s (exit %s)\n" "$(TZ=Asia/Singapore date "+%Y-%m-%d %H:%M:%S %Z")" "$count" "$status"
-    cat "$TMP_OUT"
+    printf "[%s] FAIL #%s — scanner-engine.py exited %s\n" "$ts" "$count" "$status"
+    cat "$TMP"
     printf "\n"
-  } >> "$LOG_FILE"
-  cat "$TMP_OUT"
-  rm -f "$TMP_OUT"
-  echo "__FAIL_COUNT__=$count"
+  } >> "$LOG"
+  cat "$TMP"
+  rm -f "$TMP"
   exit "$status"
 fi

@@ -1,5 +1,8 @@
 {
-  "lastRunAt": "2026-04-21T09:26:36Z",
+  "lastRunAt": "2026-04-23T05:05:59Z",
   "lastStatus": "success",
-  "consecutiveFailures": 0
+  "consecutiveFailures": 0,
+  "consecutive_failures": 0,
+  "last_status": "success",
+  "last_run_at": "2026-04-23 13:05:59 +0800"
 }
