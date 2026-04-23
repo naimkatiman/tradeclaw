@@ -18,3 +18,7 @@ apps/web/data/performance-metrics.json
 **/dist/
 
 /scripts/.venv
+
+# Python bytecode cache
+__pycache__/
+*.pyc
