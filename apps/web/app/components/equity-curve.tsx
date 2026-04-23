@@ -188,10 +188,15 @@ function drawChart(
   ctx.fillRect(padLeft, zeroY, chartW, padTop + chartH - zeroY);
   ctx.restore();
 
-  // Draw the line itself, colored per segment
+  // Draw the line in two batched passes (green for segments above zero,
+  // red for below). 2500+ individual stroke calls drop to 2 — same visual,
+  // far less canvas overhead.
   ctx.lineWidth = 2;
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
+
+  const greenPath = new Path2D();
+  const redPath = new Path2D();
 
   for (let i = 1; i < points.length; i++) {
     const prev = points[i - 1];
@@ -201,24 +206,28 @@ function drawChart(
     const x2 = toX(curr.timestamp);
     const y2 = toY(curr.cumulativePnl);
 
-    // Color based on whether the segment is above or below zero
     const midVal = (prev.cumulativePnl + curr.cumulativePnl) / 2;
-    ctx.strokeStyle = midVal >= 0 ? '#10B981' : '#EF4444';
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
+    const target = midVal >= 0 ? greenPath : redPath;
+    target.moveTo(x1, y1);
+    target.lineTo(x2, y2);
   }
 
-  // Draw dots at each data point
-  for (const p of points) {
-    const x = toX(p.timestamp);
-    const y = toY(p.cumulativePnl);
-    ctx.beginPath();
-    ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = p.cumulativePnl >= 0 ? '#10B981' : '#EF4444';
-    ctx.fill();
+  ctx.strokeStyle = '#10B981';
+  ctx.stroke(greenPath);
+  ctx.strokeStyle = '#EF4444';
+  ctx.stroke(redPath);
+
+  // Per-point dots only at low density. Above ~500 points they visually
+  // merge into the line anyway and each arc is an expensive path op.
+  if (points.length <= 500) {
+    for (const p of points) {
+      const x = toX(p.timestamp);
+      const y = toY(p.cumulativePnl);
+      ctx.beginPath();
+      ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = p.cumulativePnl >= 0 ? '#10B981' : '#EF4444';
+      ctx.fill();
+    }
   }
 
   // Hover handler

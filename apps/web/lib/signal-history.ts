@@ -211,8 +211,27 @@ function writeHistoryFile(records: SignalHistoryRecord[]): void {
 
 // ── Read ─────────────────────────────────────────────────────
 
-export async function readHistoryAsync(): Promise<SignalHistoryRecord[]> {
-  if (!isDbEnabled()) return readHistoryFile();
+export async function readHistoryAsync(
+  options: { sinceMs?: number } = {},
+): Promise<SignalHistoryRecord[]> {
+  if (!isDbEnabled()) {
+    const all = readHistoryFile();
+    return options.sinceMs !== undefined
+      ? all.filter(r => r.timestamp >= options.sinceMs!)
+      : all;
+  }
+
+  if (options.sinceMs !== undefined) {
+    const rows = await query<HistoryRow>(
+      `SELECT * FROM signal_history
+       WHERE is_simulated = FALSE
+         AND created_at >= $1
+       ORDER BY created_at DESC
+       LIMIT $2`,
+      [new Date(options.sinceMs).toISOString(), MAX_RECORDS],
+    );
+    return rows.map(rowToRecord);
+  }
 
   const rows = await query<HistoryRow>(
     `SELECT * FROM signal_history

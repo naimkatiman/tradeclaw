@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readHistoryAsync, type SignalHistoryRecord } from '../../../../lib/signal-history';
 
+export const revalidate = 60;
+
 const STARTING_EQUITY = 10_000;
 const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 
@@ -97,15 +99,21 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period');
 
-    let records = await readHistoryAsync();
-    if (period === '7d' || period === '30d') {
-      const days = period === '7d' ? 7 : 30;
-      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-      records = records.filter(r => r.timestamp >= cutoff);
-    }
+    const sinceMs = period === '7d' || period === '30d'
+      ? Date.now() - (period === '7d' ? 7 : 30) * 24 * 60 * 60 * 1000
+      : undefined;
 
+    const records = await readHistoryAsync({ sinceMs });
     const { points, summary } = computeEquityCurve(records);
-    return NextResponse.json({ points, summary });
+
+    return NextResponse.json(
+      { points, summary },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      },
+    );
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
