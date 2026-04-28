@@ -45,4 +45,17 @@ done
 
 PORT="${PORT:-3000}"
 export PORT
+
+# Apply pending DB migrations before starting the server.
+# Idempotent: tracks applied filenames in the _migrations table. If
+# DATABASE_URL is unset (e.g. SQLite-only self-host) the runner exits
+# 2 — treat that as "skip migrations and proceed".
+if [ -n "${DATABASE_URL:-}" ] && [ -f /app/scripts/run-migrations.mjs ]; then
+  echo "[entrypoint] Running DB migrations..."
+  node /app/scripts/run-migrations.mjs || {
+    echo "[entrypoint] Migrations failed. Refusing to start." >&2
+    exit 1
+  }
+fi
+
 exec node apps/web/server.js "$@"

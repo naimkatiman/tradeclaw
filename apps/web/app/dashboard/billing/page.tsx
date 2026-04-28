@@ -356,7 +356,7 @@ export default function BillingPage() {
                 Link your Telegram account to receive signals in your private group.
               </p>
               <a
-                href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? 'tradeclawbot'}?start=${userId}`}
+                href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? 'TradeClaw_win_Bot'}?start=${userId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-3 inline-block rounded-lg bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-400 transition-all hover:bg-sky-500/30 border border-sky-500/30"

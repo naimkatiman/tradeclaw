@@ -37,6 +37,10 @@ WORKDIR /app
 # Copy standalone output from builder (includes node_modules at root)
 COPY --from=builder /app/apps/web/.next/standalone ./
 
+# Migration runner + SQL files — entrypoint runs these before the server starts.
+COPY --from=builder /app/scripts/run-migrations.mjs ./scripts/run-migrations.mjs
+COPY --from=builder /app/apps/web/migrations ./apps/web/migrations
+
 # Entrypoint handles --help and env-var wiring before launching the server.
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh

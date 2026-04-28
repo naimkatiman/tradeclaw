@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "migrate": "node ../../scripts/run-migrations.mjs",
+    "start": "node ../../scripts/run-migrations.mjs && next start",
     "lint": "eslint",
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui",
