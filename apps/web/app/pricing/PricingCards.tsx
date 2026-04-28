@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import {
   TIER_DEFINITIONS,
-  getClientPriceId,
   type TierDefinition,
 } from '../../lib/stripe-tiers';
 
@@ -79,30 +78,24 @@ interface ProCardProps {
 function ProCard({ def, interval }: ProCardProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const priceId = getClientPriceId(def, interval);
-
   const priceLabel = interval === 'annual' ? def.annualPriceLabel : def.monthlyPriceLabel;
   const priceMain = interval === 'annual' ? '$290' : '$29';
   const priceSuffix = interval === 'annual' ? '/yr' : '/mo';
   const subtext = interval === 'annual' ? 'Save $58 vs monthly' : 'Billed monthly, cancel anytime';
 
   async function handleCheckout() {
-    if (!priceId) {
-      setError('Checkout is temporarily unavailable. Please email support@tradeclaw.win.');
-      return;
-    }
     setLoading(true);
     setError(null);
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ tier: 'pro', interval }),
       });
       if (res.status === 401) {
         const next = encodeURIComponent('/pricing');
         setLoading(false);
-        window.location.href = `/signin?next=${next}&priceId=${encodeURIComponent(priceId)}`;
+        window.location.href = `/signin?next=${next}&tier=pro&interval=${interval}`;
         return;
       }
       if (!res.ok) {

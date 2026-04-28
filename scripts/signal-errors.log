@@ -89,3 +89,9 @@
 [2026-04-22T20:19:50+0800] SUCCESS — Done: 0 confluence | 0 individual | 0 errors
 [2026-04-23T08:49:00+08:00] FAIL #1 — scanner-engine blocked awaiting approval: `python3 scripts/scanner-engine.py` (gateway approval required)
 [2026-04-23T22:54:35+08:00] SUCCESS — Done: 0 confluence | 0 individual | 0 errors
+[2026-04-24T02:39:00+08:00] FAIL #1 — scanner-engine blocked awaiting approval: `python3 scripts/scanner-engine.py` (gateway approval required)
+[2026-04-24T03:11:00+08:00] FAIL #2 — scanner-engine async exec denied: gateway approval-timeout (allowlist-miss) for `python3 scripts/scanner-engine.py`
+[2026-04-24T06:54:00+08:00] FAIL #3 — scanner-engine blocked by exec preflight and then gateway approval requirement for `python3 /home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py`.
+[2026-04-24T06:54:00+08:00] NOTIFIED — Alert sent to Naim after 3 consecutive failures.
+[2026-04-24T11:40:00+08:00] FAIL #4 — scanner-engine blocked awaiting approval: `python3 scripts/scanner-engine.py` (gateway approval required)
+[2026-04-24T11:42:00+08:00] SUCCESS — Done: 0 confluence | 0 individual | 0 errors

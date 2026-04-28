@@ -10,7 +10,10 @@ function SigninInner() {
   const params = useSearchParams();
   const router = useRouter();
   const priceId = params.get('priceId') ?? '';
+  const tier = params.get('tier') ?? '';
+  const interval = params.get('interval') ?? '';
   const next = params.get('next') ?? '';
+  const hasCheckoutInterval = interval === 'monthly' || interval === 'annual';
 
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'checking' | 'submitting' | 'error'>(
@@ -42,13 +45,20 @@ function SigninInner() {
   }, []);
 
   async function proceedAfterSession(): Promise<void> {
-    if (priceId) {
+    const checkoutBody =
+      priceId
+        ? { priceId }
+        : tier === 'pro' && hasCheckoutInterval
+          ? { tier: 'pro', interval: interval as 'monthly' | 'annual' }
+          : null;
+
+    if (checkoutBody) {
       try {
         const res = await fetch('/api/stripe/checkout', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           credentials: 'same-origin',
-          body: JSON.stringify({ priceId }),
+          body: JSON.stringify(checkoutBody),
         });
         const data = await res.json();
         if (res.ok && data?.url) {
@@ -69,12 +79,11 @@ function SigninInner() {
       }
     }
     // If the caller was a checkout flow (next=/pricing or /dashboard/billing)
-    // but no priceId made it through (e.g., NEXT_PUBLIC_STRIPE_*_PRICE_ID
-    // wasn't inlined at build time), do NOT silently land on /dashboard.
+    // but no checkout payload made it through, do NOT silently land on /dashboard.
     // Bounce back to the caller with a checkout_unavailable hint so the user
     // sees a real error instead of a dead-end.
     if (next && next.startsWith('/') && !next.startsWith('//')) {
-      if (!priceId && (next.startsWith('/pricing') || next.startsWith('/dashboard/billing'))) {
+      if (!priceId && !(tier === 'pro' && hasCheckoutInterval) && (next.startsWith('/pricing') || next.startsWith('/dashboard/billing'))) {
         const url = new URL(next, window.location.origin);
         url.searchParams.set('error', 'checkout_unavailable');
         router.replace(url.pathname + url.search);

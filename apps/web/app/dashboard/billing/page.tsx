@@ -16,11 +16,14 @@ interface PlanInfo {
   price: string;
   description: string;
   color: string;
-  priceId: string;
 }
 
-const PRO_MONTHLY_PRICE_ID = process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID ?? '';
-const PRO_ANNUAL_PRICE_ID = process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID ?? '';
+const FREE_PLAN: PlanInfo = {
+  name: 'Free',
+  price: '$0/mo',
+  description: 'Delayed signals, 3 symbols, public Telegram channel.',
+  color: 'text-zinc-400',
+};
 
 function proPlan(interval: Interval): PlanInfo {
   if (interval === 'annual') {
@@ -29,7 +32,6 @@ function proPlan(interval: Interval): PlanInfo {
       price: '$290/yr',
       description: 'Real-time signals, all symbols, private Pro Telegram group. Save $58 vs monthly.',
       color: 'text-emerald-400',
-      priceId: PRO_ANNUAL_PRICE_ID,
     };
   }
   return {
@@ -37,27 +39,18 @@ function proPlan(interval: Interval): PlanInfo {
     price: '$29/mo',
     description: 'Real-time signals, all symbols, private Pro Telegram group.',
     color: 'text-emerald-400',
-    priceId: PRO_MONTHLY_PRICE_ID,
   };
 }
-
-const FREE_PLAN: PlanInfo = {
-  name: 'Free',
-  price: '$0/mo',
-  description: 'Delayed signals, 3 symbols, public Telegram channel.',
-  color: 'text-zinc-400',
-  priceId: '',
-};
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function createCheckoutSession(priceId: string, userId: string): Promise<string> {
+async function createCheckoutSession(interval: Interval, userId: string): Promise<string> {
   const res = await fetch('/api/stripe/checkout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ priceId, userId }),
+    body: JSON.stringify({ tier: 'pro', interval, userId }),
   });
   const data = (await res.json()) as { url?: string; error?: string };
   if (!res.ok || !data.url) throw new Error(data.error ?? 'Failed to create checkout session');
@@ -114,15 +107,7 @@ function UpgradeCard({ tier, interval, currentTier, userId, onError }: UpgradeCa
         window.location.href = url;
         return;
       }
-      if (!plan.priceId) {
-        onError(
-          interval === 'annual'
-            ? 'Annual billing is temporarily unavailable. Email support@tradeclaw.win to switch.'
-            : 'Checkout is temporarily unavailable. Email support@tradeclaw.win.',
-        );
-        return;
-      }
-      const url = await createCheckoutSession(plan.priceId, userId);
+      const url = await createCheckoutSession(interval, userId);
       window.location.href = url;
     } catch (err: unknown) {
       onError(err instanceof Error ? err.message : 'Something went wrong');
