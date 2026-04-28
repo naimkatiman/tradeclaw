@@ -48,27 +48,27 @@
 [2026-04-02T19:57 MYT] FAIL #43 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
 [2026-04-02T20:09:30+08:00] FAIL #44 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
 [2026-04-02T20:14:32+08:00] FAIL #45 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 20:19:33 MYT] FAIL #46 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 20:24 MYT] FAIL #47 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 20:39 MYT] FAIL #48 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 20:44 MYT] FAIL #49 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 20:49 MYT] FAIL #50 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 20:54 MYT] FAIL #51 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 21:10 MYT] FAIL #52 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 21:15 MYT] FAIL #53 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T20:19:33 MYT] FAIL #46 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T20:24 MYT] FAIL #47 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T20:39 MYT] FAIL #48 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T20:44 MYT] FAIL #49 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T20:49 MYT] FAIL #50 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T20:54 MYT] FAIL #51 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T21:10 MYT] FAIL #52 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T21:15 MYT] FAIL #53 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
 [2026-04-02T13:21:20Z] WARN: TradingView 429 rate-limit — all 10 symbols returned 0 signals (all TFs throttled)
-[2026-04-02 21:26 MYT] FAIL #54 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 21:31 MYT] FAIL #55 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 21:36 MYT] FAIL #56 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 21:41 MYT] FAIL #57 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 21:51 MYT] FAIL #58 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 21:56 MYT] FAIL #59 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 22:01 MYT] FAIL #60 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 22:06 MYT] FAIL #61 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 22:11 MYT] FAIL #62 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 22:16 MYT] FAIL #63 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 22:21 MYT] FAIL #64 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
-[2026-04-02 22:31 MYT] FAIL #65 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T21:26 MYT] FAIL #54 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T21:31 MYT] FAIL #55 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T21:36 MYT] FAIL #56 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T21:41 MYT] FAIL #57 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T21:51 MYT] FAIL #58 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T21:56 MYT] FAIL #59 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T22:01 MYT] FAIL #60 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T22:06 MYT] FAIL #61 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T22:11 MYT] FAIL #62 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T22:16 MYT] FAIL #63 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T22:21 MYT] FAIL #64 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
+[2026-04-02T22:31 MYT] FAIL #65 — TradingView API 429 (rate limited) — all 10 symbols, 0/10 signals. Ongoing.
 [2026-04-04T22:09:23+08:00] SUCCESS — Scanner engine recovered. 0 signals generated.
 [2026-04-09T22:41:34+08:00] SUCCESS — Scanner engine ran cleanly. 0 signals generated.
 [2026-04-10T21:29:31+08:00] SUCCESS — Scanner engine ran cleanly. 2 confluence, 0 individual, 0 errors. Cooldown-skipped: 2.
@@ -95,3 +95,16 @@
 [2026-04-24T06:54:00+08:00] NOTIFIED — Alert sent to Naim after 3 consecutive failures.
 [2026-04-24T11:40:00+08:00] FAIL #4 — scanner-engine blocked awaiting approval: `python3 scripts/scanner-engine.py` (gateway approval required)
 [2026-04-24T11:42:00+08:00] SUCCESS — Done: 0 confluence | 0 individual | 0 errors
+[2026-04-28T23:10:00+08:00] FAIL #1 — scanner-engine blocked by exec allowlist/preflight; could not execute `python3 /home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py`.
+[2026-04-29T00:00:00+08:00] STATUS — Triage of preceding entries:
+  • 04-02 to 04-22 FAIL #1–#65 (TradingView API 429): resolved. scanner-engine.py
+    migrated to the tradingview_screener bulk API; no per-symbol throttling.
+  • 04-17 to 04-28 FAIL "gateway approval-timeout / exec allowlist / preflight":
+    OpenClaw harness blocking the agent-launched exec, NOT a fault in the cron
+    wrapper. The crontab wrapper `run-signal-engine-cron.sh` runs cleanly when
+    invoked directly (verified 04-29 — exit 0). To stop the noise, allow
+    `python3 .../scanner-engine.py` in the OpenClaw exec allowlist OR have the
+    agent stop trying to launch it (the */5min crontab is the canonical schedule).
+  • 04-19 "python: command not found" entries: predate the wrapper switch to
+    `/usr/bin/python3` and don't recur.
+  Cleared orphan state files .signal-engine-fail-count and signal-failure-streak.txt.
