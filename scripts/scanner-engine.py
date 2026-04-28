@@ -10,7 +10,9 @@ Architecture:
 
 import json
 import os
+import random
 import sqlite3
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
@@ -465,45 +467,68 @@ def rec_confidence(value):
     return 0
 
 
-def fetch_market(market, info):
-    """Single bulk call per market — returns DataFrame with all indicators"""
-    try:
-        q = Query().set_markets(market)
+def _is_rate_limited(exc) -> bool:
+    """tradingview_screener wraps requests; rate-limit can surface as HTTPError or message."""
+    resp = getattr(exc, "response", None)
+    if resp is not None and getattr(resp, "status_code", None) == 429:
+        return True
+    s = str(exc).lower()
+    return "429" in s or "too many requests" in s or "rate limit" in s
 
-        # Select all needed columns
-        cols = [
-            "name", "close", "volume", "ATR",
-            "RSI|5", "RSI|15", "RSI|60", "RSI|240",
-            "MACD.macd|60", "MACD.signal|60",
-            "MACD.macd|240", "MACD.signal|240",
-            "EMA5|60", "EMA10|60", "EMA20|60", "EMA50|60", "EMA200|60",
-            "EMA5|240", "EMA10|240", "EMA20|240", "EMA50|240", "EMA200|240",
-            "BB.upper|60", "BB.lower|60",
-            "Stoch.K|60",
-            "VWAP|60",
-            "ATR|60", "ATR|240",
-            "high|60", "low|60", "high|240", "low|240",
-            "Recommend.All|5", "Recommend.All|15",
-            "Recommend.All|60", "Recommend.All|240",
-        ]
-        q = q.select(*cols)
 
-        # Filter by symbols
-        if info["exchange"]:
-            q = q.where(
-                Column("exchange").isin([info["exchange"]]),
-                Column("name").isin(info["symbols"]),
-            )
-        else:
-            q = q.where(Column("name").isin(info["symbols"]))
+def fetch_market(market, info, max_retries=3):
+    """Single bulk call per market — returns DataFrame with all indicators.
+    Retries with exponential backoff (5s/10s/20s + jitter) on 429s; honors Retry-After.
+    Non-rate-limit errors fail fast.
+    """
+    cols = [
+        "name", "close", "volume", "ATR",
+        "RSI|5", "RSI|15", "RSI|60", "RSI|240",
+        "MACD.macd|60", "MACD.signal|60",
+        "MACD.macd|240", "MACD.signal|240",
+        "EMA5|60", "EMA10|60", "EMA20|60", "EMA50|60", "EMA200|60",
+        "EMA5|240", "EMA10|240", "EMA20|240", "EMA50|240", "EMA200|240",
+        "BB.upper|60", "BB.lower|60",
+        "Stoch.K|60",
+        "VWAP|60",
+        "ATR|60", "ATR|240",
+        "high|60", "low|60", "high|240", "low|240",
+        "Recommend.All|5", "Recommend.All|15",
+        "Recommend.All|60", "Recommend.All|240",
+    ]
 
-        q = q.limit(50)
-        _, df = q.get_scanner_data()
-        return df
-
-    except Exception as e:
-        print(f"  [ERROR] {market}: {e}")
-        return None
+    last_exc = None
+    for attempt in range(max_retries):
+        try:
+            q = Query().set_markets(market).select(*cols)
+            if info["exchange"]:
+                q = q.where(
+                    Column("exchange").isin([info["exchange"]]),
+                    Column("name").isin(info["symbols"]),
+                )
+            else:
+                q = q.where(Column("name").isin(info["symbols"]))
+            q = q.limit(50)
+            _, df = q.get_scanner_data()
+            return df
+        except Exception as e:
+            last_exc = e
+            if _is_rate_limited(e) and attempt < max_retries - 1:
+                resp = getattr(e, "response", None)
+                retry_after = 0
+                if resp is not None:
+                    try:
+                        retry_after = int(resp.headers.get("Retry-After", "0"))
+                    except Exception:
+                        retry_after = 0
+                wait = max(retry_after, int((2 ** attempt) * 5 + random.uniform(0, 2)))
+                print(f"  [RATE-LIMIT] {market}: 429, retry {attempt + 1}/{max_retries} after {wait}s")
+                time.sleep(wait)
+                continue
+            print(f"  [ERROR] {market}: {e}")
+            return None
+    print(f"  [GAVE-UP] {market} after {max_retries} attempts: {last_exc}")
+    return None
 
 
 def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None, binance_validation=None):

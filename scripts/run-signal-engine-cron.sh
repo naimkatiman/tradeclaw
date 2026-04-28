@@ -6,6 +6,7 @@ STATE=/home/naim/.openclaw/workspace/tradeclaw/scripts/.signal-engine-failure-co
 TMP=$(mktemp)
 if /usr/bin/python3 scripts/scanner-engine.py >"$TMP" 2>&1; then
   printf "0" > "$STATE"
+  TZ=Asia/Kuala_Lumpur date +"%Y-%m-%dT%H:%M:%S%z" > /home/naim/.openclaw/workspace/tradeclaw/scripts/.signal-engine-last-success
   rm -f "$TMP"
   exit 0
 else

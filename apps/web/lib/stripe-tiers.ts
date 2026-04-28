@@ -39,7 +39,6 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
       '3 symbols: BTCUSD, ETHUSD, XAUUSD',
       '15-minute delayed signals',
       'TP1 target only',
-      'Public Telegram channel',
       'Last 24h signal history',
     ],
   },
