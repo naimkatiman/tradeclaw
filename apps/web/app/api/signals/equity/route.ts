@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readHistoryAsync, type SignalHistoryRecord } from '../../../../lib/signal-history';
+import { PRO_PREMIUM_MIN_CONFIDENCE } from '../../../../lib/tier';
 
 export const revalidate = 60;
 
 const STARTING_EQUITY = 10_000;
 const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+
+export type EquityBand = 'premium' | 'standard' | 'all';
 
 export interface EquityPoint {
   timestamp: number;
@@ -20,6 +23,17 @@ export interface EquitySummary {
   winRate: number;
   totalSignals: number;
   sharpeRatio: number | null;
+}
+
+function parseBand(raw: string | null): EquityBand {
+  if (raw === 'premium' || raw === 'standard') return raw;
+  return 'all';
+}
+
+function inBand(record: SignalHistoryRecord, band: EquityBand): boolean {
+  if (band === 'premium') return record.confidence >= PRO_PREMIUM_MIN_CONFIDENCE;
+  if (band === 'standard') return record.confidence < PRO_PREMIUM_MIN_CONFIDENCE;
+  return true;
 }
 
 function computeEquityCurve(records: SignalHistoryRecord[]): {
@@ -98,16 +112,18 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period');
+    const band = parseBand(searchParams.get('band'));
 
     const sinceMs = period === '7d' || period === '30d'
       ? Date.now() - (period === '7d' ? 7 : 30) * 24 * 60 * 60 * 1000
       : undefined;
 
     const records = await readHistoryAsync({ sinceMs });
-    const { points, summary } = computeEquityCurve(records);
+    const filtered = band === 'all' ? records : records.filter(r => inBand(r, band));
+    const { points, summary } = computeEquityCurve(filtered);
 
     return NextResponse.json(
-      { points, summary },
+      { points, summary, band },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
