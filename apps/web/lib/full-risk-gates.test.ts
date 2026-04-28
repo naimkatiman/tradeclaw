@@ -1,6 +1,7 @@
 import {
   computeGateState,
   computeVolMultiplier,
+  selectResolvedForGate,
   STREAK_N,
   DRAWDOWN_THRESHOLD,
   GATE_THRESHOLDS_BY_REGIME,
@@ -8,6 +9,7 @@ import {
   getGateThresholds,
   type ResolvedOutcome,
 } from './full-risk-gates';
+import type { SignalHistoryRecord, SignalOutcome } from './signal-history';
 
 const win = (pnl: number): ResolvedOutcome => ({ hit: true, pnlPct: pnl });
 const loss = (pnl: number): ResolvedOutcome => ({ hit: false, pnlPct: pnl });
@@ -230,5 +232,95 @@ describe('computeVolMultiplier', () => {
     >) {
       expect(REGIME_VOL_BASELINE_PCT[regime]).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('selectResolvedForGate — gate lookback row selection', () => {
+  type Row = Pick<SignalHistoryRecord, 'isSimulated' | 'gateBlocked' | 'outcomes'>;
+  const out = (pnl: number, hit: boolean): SignalOutcome => ({ price: 100, pnlPct: pnl, hit });
+  const row = (
+    pnl: number,
+    hit: boolean,
+    flags: { gateBlocked?: boolean; isSimulated?: boolean } = {},
+  ): Row => ({
+    isSimulated: flags.isSimulated,
+    gateBlocked: flags.gateBlocked,
+    outcomes: { '4h': null, '24h': out(pnl, hit) },
+  });
+
+  test('skips isSimulated rows', () => {
+    const records: Row[] = [
+      row(1, true, { isSimulated: true }),
+      row(-1, false),
+      row(-1, false),
+    ];
+    expect(selectResolvedForGate(records, 5)).toEqual([
+      { hit: false, pnlPct: -1 },
+      { hit: false, pnlPct: -1 },
+    ]);
+  });
+
+  test('skips rows with null 24h outcome', () => {
+    const records: Row[] = [
+      { isSimulated: false, outcomes: { '4h': null, '24h': null } },
+      row(-1, false),
+    ];
+    expect(selectResolvedForGate(records, 5)).toEqual([{ hit: false, pnlPct: -1 }]);
+  });
+
+  test('respects lookback cap (newest first)', () => {
+    const records: Row[] = [row(1, true), row(2, true), row(3, true), row(4, true)];
+    expect(selectResolvedForGate(records, 2)).toEqual([
+      { hit: true, pnlPct: 1 },
+      { hit: true, pnlPct: 2 },
+    ]);
+  });
+
+  test('INCLUDES gate-blocked rows — fixes deadlock where gate cannot self-reopen', () => {
+    // Realistic deadlock scenario:
+    //   - The gate tripped on 3 consecutive losses (the rows at the BOTTOM of
+    //     this newest-first list — they're the oldest tradable history).
+    //   - Since then, every new signal has been gate_blocked. As outcomes
+    //     resolved, those blocked-but-counterfactual rows show wins.
+    //
+    // Old behavior (skip gate_blocked in the loop): the lookback never
+    // advances past the original 3 losses → streak stays at 3/3 forever →
+    // gate never re-opens.
+    //
+    // New behavior: include blocked rows. Newest 3 outcomes are wins → streak
+    // resets → gate re-opens. Counterfactual P&L is still kept OUT of the
+    // paper-trade equity curve by apps/web/app/api/signals/equity/route.ts.
+    const records: Row[] = [
+      row(1, true, { gateBlocked: true }),
+      row(1, true, { gateBlocked: true }),
+      row(1, true, { gateBlocked: true }),
+      row(-1, false),
+      row(-1, false),
+      row(-1, false),
+    ];
+    const resolved = selectResolvedForGate(records, 3);
+    expect(resolved).toEqual([
+      { hit: true, pnlPct: 1 },
+      { hit: true, pnlPct: 1 },
+      { hit: true, pnlPct: 1 },
+    ]);
+    // And computeGateState on this newest-first window should re-open.
+    expect(computeGateState(resolved).gatesAllow).toBe(true);
+  });
+
+  test('post-fix end-to-end: deadlocked history (3 losses then all blocked-wins) re-opens', () => {
+    const records: Row[] = [
+      row(2, true, { gateBlocked: true }),
+      row(2, true, { gateBlocked: true }),
+      row(2, true, { gateBlocked: true }),
+      row(2, true, { gateBlocked: true }),
+      row(-1, false),
+      row(-1, false),
+      row(-1, false),
+    ];
+    const resolved = selectResolvedForGate(records, 20);
+    const state = computeGateState(resolved);
+    expect(state.gatesAllow).toBe(true);
+    expect(state.streakLossCount).toBe(0);
   });
 });

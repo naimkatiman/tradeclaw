@@ -209,6 +209,41 @@ export function computeGateState(
   };
 }
 
+// Newest-first row shape consumed by selectResolvedForGate. Compatible with
+// SignalHistoryRecord and easy to mock in unit tests.
+type GateLookbackRow = {
+  isSimulated?: boolean;
+  outcomes: { '24h': ResolvedOutcome | null };
+};
+
+/**
+ * Pick the most recent `lookback` resolved 24h outcomes for gate evaluation.
+ * Skips simulated rows and rows whose 24h outcome hasn't resolved yet.
+ *
+ * Includes gate-blocked rows on purpose. Excluding them deadlocks the gate:
+ * once it trips on streak/DD, every new signal becomes blocked, the lookback
+ * never advances, and the same losing window stays pinned at the top forever
+ * (observed Apr 19→Apr 28 — equity curve flatlined). Counterfactual P&L from
+ * blocked signals is the right input for "should we re-open?", because it
+ * tells us whether the system would have recovered. It is still kept OUT of
+ * the paper-trade equity curve in apps/web/app/api/signals/equity/route.ts —
+ * blocked trades were never taken, so they must not contribute realized P&L.
+ */
+export function selectResolvedForGate(
+  records: readonly GateLookbackRow[],
+  lookback: number,
+): ResolvedOutcome[] {
+  const resolved: ResolvedOutcome[] = [];
+  for (const r of records) {
+    if (r.isSimulated) continue;
+    const o = r.outcomes['24h'];
+    if (o === null) continue;
+    resolved.push({ hit: o.hit, pnlPct: o.pnlPct });
+    if (resolved.length >= lookback) break;
+  }
+  return resolved;
+}
+
 // In-memory cache so we don't requery signal_history on every /api/signals
 // call. With dashboard SSR this can fire ~100x/min, and the gate state only
 // changes when a new outcome resolves — a stale-by-up-to-60s view is fine.
@@ -233,21 +268,8 @@ export async function fetchGateState(): Promise<GateState> {
     const regime = getDominantRegime(regimeMap);
     const thresholds = getGateThresholds(regime);
 
-    // readHistoryAsync returns rows ordered DESC by created_at — newest first.
-    // Take the first `lookback` resolved entries for this regime. Skip rows
-    // the gate itself blocked: otherwise the drawdown/streak lookback would
-    // count outcomes from trades we never actually took, creating a feedback
-    // loop where blocked-but-right signals re-open the gate on fictional P&L.
     const all = await readHistoryAsync();
-    const resolved: ResolvedOutcome[] = [];
-    for (const r of all) {
-      if (r.isSimulated) continue;
-      if (r.gateBlocked) continue;
-      const o = r.outcomes['24h'];
-      if (o === null) continue;
-      resolved.push({ hit: o.hit, pnlPct: o.pnlPct });
-      if (resolved.length >= thresholds.lookback) break;
-    }
+    const resolved = selectResolvedForGate(all, thresholds.lookback);
     const state = computeGateState(resolved, regime, { volScaling: volScalingEnabled() });
     cachedState = { state, expiresAt: now + CACHE_TTL_MS };
     return state;
