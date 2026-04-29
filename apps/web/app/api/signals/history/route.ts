@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveRealOutcomes } from '../../../../lib/signal-history';
+import { resolveRealOutcomes, isCountedResolved, isRealOutcome } from '../../../../lib/signal-history';
 import { getCachedHistory } from '../../../../lib/signal-history-cache';
 import { TIER_SYMBOLS, TIER_HISTORY_DAYS } from '../../../../lib/tier';
 
@@ -37,6 +37,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Earliest signal in the (scope-only, pre-period) record pool. UI uses
+    // this to disable period buttons whose window pre-dates any data we
+    // have — must be computed BEFORE period truncation or it just echoes
+    // the period cutoff.
+    const earliestTimestamp = records.length > 0
+      ? records.reduce((min, r) => r.timestamp < min ? r.timestamp : min, records[0].timestamp)
+      : null;
+
     const periodDays: Record<string, number> = {
       '7d': 7, '30d': 30, '90d': 90, '180d': 180, '1y': 365, '5y': 1825,
     };
@@ -62,12 +70,25 @@ export async function GET(request: NextRequest) {
     const total = records.length;
     const page = records.slice(offset, offset + limit);
 
-    const resolved = records.filter(r => r.outcomes['24h'] && !r.isSimulated);
+    // Counted resolved = same predicate every other surface uses (equity,
+    // leaderboard, strategy breakdown). Excludes gate-blocked + auto-expire
+    // placeholders so totalPnlPct/winRate/streak stay aligned with the
+    // equity curve. Gate-blocked + expired are surfaced as separate
+    // counters so the page can say "X resolved, Y expired, Z gate-blocked"
+    // — honest, not hidden.
+    const resolved = records.filter(isCountedResolved);
     const wins = resolved.filter(r => r.outcomes['24h']!.hit);
     const totalPnl = resolved.reduce((sum, r) => sum + (r.outcomes['24h']?.pnlPct ?? 0), 0);
     const avgConfidence = records.length > 0
       ? records.reduce((sum, r) => sum + r.confidence, 0) / records.length
       : 0;
+
+    // Excluded buckets — surfaced for transparency, not folded into win-rate.
+    const expired = records.filter(r =>
+      !r.isSimulated && !r.gateBlocked && r.outcomes['24h'] && !isRealOutcome(r.outcomes['24h'])
+    ).length;
+    const gateBlocked = records.filter(r => r.gateBlocked).length;
+    const pending = records.filter(r => !r.isSimulated && !r.gateBlocked && !r.outcomes['24h']).length;
 
     let bestSignal: { pair: string; pnlPct: number } | null = null;
     for (const r of resolved) {
@@ -77,6 +98,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Streak walks only counted-resolved trades (most recent first). Skipping
+    // expired/gate-blocked rows is the whole point of using the canonical
+    // predicate — otherwise streak counts placeholders as losses.
     const sortedResolved = [...resolved].sort((a, b) => b.timestamp - a.timestamp);
     let streak = 0;
     if (sortedResolved.length > 0) {
@@ -97,9 +121,13 @@ export async function GET(request: NextRequest) {
       offset,
       limit,
       scope,
+      earliestTimestamp,
       stats: {
         totalSignals: records.length,
         resolved: resolved.length,
+        expired,
+        gateBlocked,
+        pending,
         wins: wins.length,
         losses: resolved.length - wins.length,
         winRate: resolved.length > 0 ? +(wins.length / resolved.length * 100).toFixed(1) : 0,

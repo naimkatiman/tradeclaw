@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { Lock } from 'lucide-react';
 
 interface EquityPoint {
   timestamp: number;
@@ -278,11 +279,14 @@ function drawChart(
   };
 }
 
+type EquityScope = 'pro' | 'free';
+
 interface EquityCurveProps {
   period?: '7d' | '30d' | 'all';
+  scope?: EquityScope;
 }
 
-export function EquityCurve({ period = 'all' }: EquityCurveProps) {
+export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [points, setPoints] = useState<EquityPoint[]>([]);
   const [summary, setSummary] = useState<EquitySummary | null>(null);
@@ -293,7 +297,7 @@ export function EquityCurve({ period = 'all' }: EquityCurveProps) {
     async function load() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/signals/equity?period=${period}`);
+        const res = await fetch(`/api/signals/equity?period=${period}&scope=${scope}`);
         if (!res.ok) return;
         const data = await res.json();
         setPoints(data.points ?? []);
@@ -305,7 +309,7 @@ export function EquityCurve({ period = 'all' }: EquityCurveProps) {
       }
     }
     load();
-  }, [period]);
+  }, [period, scope]);
 
   const handleHover = useCallback((data: TooltipData | null) => {
     setTooltip(data);
@@ -332,53 +336,88 @@ export function EquityCurve({ period = 'all' }: EquityCurveProps) {
     ? +(HYPOTHETICAL_START * (1 + summary.totalReturn / 100)).toFixed(0)
     : HYPOTHETICAL_START;
 
+  const isPro = scope === 'pro';
+
   return (
-    <section className="glass-card rounded-2xl p-5 mb-6">
+    <section
+      className={`glass-card rounded-2xl p-5 mb-6 border-l-2 ${
+        isPro ? 'border-emerald-500/50' : 'border-white/10'
+      }`}
+    >
       {/* Header */}
-      <div className="mb-4">
-        <h2 className="text-sm font-semibold text-white tracking-tight">
-          Signal Performance — Auto Paper-Traded
-        </h2>
-        <p className="text-[11px] text-zinc-600 mt-0.5">
-          Every signal is paper-traded with equal risk. Results verified against real market data.
-        </p>
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h2 className="text-sm font-semibold text-white tracking-tight flex items-center gap-2">
+            Signal Performance — Auto Paper-Traded
+            <span
+              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider ${
+                isPro
+                  ? 'bg-emerald-500/15 text-emerald-400'
+                  : 'bg-white/[0.06] text-zinc-400'
+              }`}
+            >
+              <Lock className="h-3 w-3" aria-hidden="true" />
+              {isPro ? 'Pro' : 'Free'} view
+            </span>
+          </h2>
+          <p className="text-[11px] text-zinc-600 mt-0.5">
+            {isPro
+              ? 'Full Pro track record. Every signal paper-traded with equal risk; results verified against real market data.'
+              : 'Free-tier slice — last 24h on free symbols only. Subset of what Pro subscribers see.'}
+          </p>
+        </div>
       </div>
 
-      {/* Stats overlay */}
+      {/* Stats overlay — Total Return and Max Drawdown are presented as a
+         barbell, equal weight. Win-rate-only or return-only framing hides
+         the path. A +308% return with -67% drawdown is not a flat ride. */}
       {summary && !loading && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-          <div className="bg-white/[0.02] rounded-lg py-2 px-3">
-            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Starting</div>
-            <div className="text-xs font-mono font-semibold text-zinc-400 tabular-nums">
-              ${HYPOTHETICAL_START.toLocaleString()}
+        <>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="bg-white/[0.02] rounded-lg py-3 px-4 border border-white/[0.04]">
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-1">Total Return</div>
+              <div className={`text-2xl font-mono font-bold tabular-nums ${
+                summary.totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'
+              }`}>
+                {summary.totalReturn >= 0 ? '+' : ''}{summary.totalReturn}%
+              </div>
+              <div className="text-[10px] text-zinc-500 mt-0.5 font-mono">
+                ${HYPOTHETICAL_START.toLocaleString()} → ${currentValue.toLocaleString()}
+              </div>
+            </div>
+            <div className="bg-white/[0.02] rounded-lg py-3 px-4 border border-white/[0.04]">
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-1">Max Drawdown</div>
+              <div className="text-2xl font-mono font-bold text-red-400 tabular-nums">
+                -{summary.maxDrawdown}%
+              </div>
+              <div className="text-[10px] text-zinc-500 mt-0.5 font-mono">
+                Deepest peak-to-trough drop
+              </div>
             </div>
           </div>
-          <div className="bg-white/[0.02] rounded-lg py-2 px-3">
-            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Current</div>
-            <div className={`text-xs font-mono font-semibold tabular-nums ${
-              summary.totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'
-            }`}>
-              ${currentValue.toLocaleString()}
-              <span className="text-[9px] ml-1">
-                ({summary.totalReturn >= 0 ? '+' : ''}{summary.totalReturn}%)
-              </span>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="bg-white/[0.02] rounded-lg py-2 px-3">
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Win Rate</div>
+              <div className={`text-xs font-mono font-semibold tabular-nums ${
+                summary.winRate >= 50 ? 'text-emerald-400' : 'text-red-400'
+              }`}>
+                {summary.winRate}%
+              </div>
+            </div>
+            <div className="bg-white/[0.02] rounded-lg py-2 px-3">
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Resolved Signals</div>
+              <div className="text-xs font-mono font-semibold text-zinc-300 tabular-nums">
+                {summary.totalSignals.toLocaleString()}
+              </div>
+            </div>
+            <div className="bg-white/[0.02] rounded-lg py-2 px-3">
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Sharpe (annualized)</div>
+              <div className="text-xs font-mono font-semibold text-zinc-300 tabular-nums">
+                {summary.sharpeRatio !== null ? summary.sharpeRatio.toFixed(2) : '—'}
+              </div>
             </div>
           </div>
-          <div className="bg-white/[0.02] rounded-lg py-2 px-3">
-            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Max Drawdown</div>
-            <div className="text-xs font-mono font-semibold text-red-400 tabular-nums">
-              -{summary.maxDrawdown}%
-            </div>
-          </div>
-          <div className="bg-white/[0.02] rounded-lg py-2 px-3">
-            <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Win Rate</div>
-            <div className={`text-xs font-mono font-semibold tabular-nums ${
-              summary.winRate >= 50 ? 'text-emerald-400' : 'text-red-400'
-            }`}>
-              {summary.winRate}%
-            </div>
-          </div>
-        </div>
+        </>
       )}
 
       {/* Chart */}
@@ -426,15 +465,6 @@ export function EquityCurve({ period = 'all' }: EquityCurveProps) {
         )}
       </div>
 
-      {/* Footer info */}
-      {summary && summary.totalSignals > 0 && (
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5 text-[10px] font-mono text-zinc-700">
-          <span>{summary.totalSignals} verified signals</span>
-          {summary.sharpeRatio !== null && (
-            <span>Sharpe (ann.): {summary.sharpeRatio}</span>
-          )}
-        </div>
-      )}
     </section>
   );
 }

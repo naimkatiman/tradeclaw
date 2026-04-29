@@ -11,15 +11,25 @@ import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 
 type Period = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
 
-const PERIOD_OPTIONS: { value: Period; label: string }[] = [
-  { value: '7d',   label: '7D'  },
-  { value: '30d',  label: '1M'  },
-  { value: '90d',  label: '3M'  },
-  { value: '180d', label: '6M'  },
-  { value: '1y',   label: '1Y'  },
-  { value: '5y',   label: '5Y'  },
-  { value: 'all',  label: 'All' },
+const PERIOD_OPTIONS: { value: Period; label: string; days: number | null }[] = [
+  { value: '7d',   label: '7D',  days: 7 },
+  { value: '30d',  label: '1M',  days: 30 },
+  { value: '90d',  label: '3M',  days: 90 },
+  { value: '180d', label: '6M',  days: 180 },
+  { value: '1y',   label: '1Y',  days: 365 },
+  { value: '5y',   label: '5Y',  days: 1825 },
+  { value: 'all',  label: 'All', days: null },
 ];
+
+/** Periods where the window pre-dates the earliest recorded signal are
+ * disabled. Showing "5Y" on 26 days of history fabricates depth we don't
+ * have. `all` and the smallest enabled window stay clickable. */
+function isPeriodAvailable(daysWindow: number | null, earliestTs: number | null): boolean {
+  if (daysWindow === null) return true; // 'all' always available
+  if (earliestTs === null) return true; // unknown, don't block
+  const dataAgeDays = (Date.now() - earliestTs) / 86_400_000;
+  return daysWindow <= Math.ceil(dataAgeDays);
+}
 
 interface HistoryRecord {
   id: string;
@@ -39,6 +49,12 @@ interface HistoryRecord {
 interface HistoryStats {
   totalSignals: number;
   resolved: number;
+  /** Auto-expired (no TP/SL within 48h) — excluded from win-rate. */
+  expired: number;
+  /** Refused by the full-risk gate at emission — excluded from equity. */
+  gateBlocked: number;
+  /** Still open (no 24h outcome yet). */
+  pending: number;
   wins: number;
   losses: number;
   winRate: number;
@@ -167,6 +183,10 @@ export function TrackRecordClient() {
   const [offset, setOffset] = useState(0);
   const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  // Earliest signal we have data for in the current scope. Used to grey out
+  // period buttons whose window pre-dates any recorded signal — a 5Y button
+  // on 26 days of data would be a fabrication.
+  const [earliestTimestamp, setEarliestTimestamp] = useState<number | null>(null);
 
   const fetchData = useCallback(async (p: Period, off: number, pair: string, direction: DirectionFilter, s: Scope) => {
     setLoading(true);
@@ -190,6 +210,7 @@ export function TrackRecordClient() {
         setStats(data.stats ?? null);
         setRecords(data.records ?? []);
         setTotal(data.total ?? 0);
+        setEarliestTimestamp(typeof data.earliestTimestamp === 'number' ? data.earliestTimestamp : null);
       }
 
       if (leaderboardRes.status === 'fulfilled' && leaderboardRes.value.ok) {
@@ -264,25 +285,41 @@ export function TrackRecordClient() {
             </div>
           </div>
           <p className="text-sm text-[var(--text-secondary)]">
-            Total return = sum of per-signal % at fixed 1R risk. Every signal tracked live, no cherry-picking.
+            Total return = sum of per-signal % at fixed 1R risk. Stats below count only resolved trades —
+            signals refused by the risk gate or that expired without TP/SL are surfaced separately, not folded in.
           </p>
         </div>
 
-        {/* Period Filter */}
+        {/* Period Filter — buttons whose window exceeds available history are
+           disabled with a tooltip explaining how much history we actually have. */}
         <div className="flex gap-1 mb-6 p-1 rounded-lg bg-white/[0.04] w-fit overflow-x-auto max-w-full">
-          {PERIOD_OPTIONS.map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => setPeriod(value)}
-              className={`px-3 py-1.5 text-xs font-mono font-medium rounded-md transition-all whitespace-nowrap ${
-                period === value
-                  ? 'bg-emerald-500/15 text-emerald-400'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+          {PERIOD_OPTIONS.map(({ value, label, days }) => {
+            const available = isPeriodAvailable(days, earliestTimestamp);
+            const dataAgeDays = earliestTimestamp
+              ? Math.max(1, Math.floor((Date.now() - earliestTimestamp) / 86_400_000))
+              : null;
+            const tooltip = !available && dataAgeDays
+              ? `Only ${dataAgeDays} days of history available`
+              : undefined;
+            return (
+              <button
+                key={value}
+                onClick={() => available && setPeriod(value)}
+                disabled={!available}
+                title={tooltip}
+                aria-disabled={!available}
+                className={`px-3 py-1.5 text-xs font-mono font-medium rounded-md transition-all whitespace-nowrap ${
+                  period === value && available
+                    ? 'bg-emerald-500/15 text-emerald-400'
+                    : !available
+                      ? 'text-zinc-700 cursor-not-allowed'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Scope tabs — default Pro, Free is a comparison view */}
@@ -347,27 +384,53 @@ export function TrackRecordClient() {
           </div>
         )}
 
-        {/* Stats Cards */}
+        {/* Stats Cards — counted side (resolved / avg / total / streak) +
+           excluded counters surfaced separately so the denominator picture
+           is honest. "Total Signals" was misleading because it included
+           gate-blocked + expired-zero rows that don't count toward win-rate. */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
-            <StatCard label="Total Signals" value={String(stats.totalSignals)} />
-            <StatCard label="Resolved" value={String(stats.resolved)} />
-            <StatCard
-              label="Avg P&L"
-              value={`${stats.avgPnlPct >= 0 ? '+' : ''}${stats.avgPnlPct}%`}
-              accent={stats.avgPnlPct >= 0 ? 'emerald' : 'red'}
-            />
-            <StatCard
-              label="Total P&L"
-              value={`${stats.totalPnlPct >= 0 ? '+' : ''}${stats.totalPnlPct}%`}
-              accent={stats.totalPnlPct >= 0 ? 'emerald' : 'red'}
-            />
-            <StatCard
-              label="Streak"
-              value={`${stats.streak > 0 ? '+' : ''}${stats.streak}`}
-              accent={stats.streak > 0 ? 'emerald' : stats.streak < 0 ? 'red' : 'default'}
-            />
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+              <StatCard label="Resolved" value={String(stats.resolved)} hint="Trades with TP/SL within 48h" />
+              <StatCard
+                label="Avg P&L"
+                value={`${stats.avgPnlPct >= 0 ? '+' : ''}${stats.avgPnlPct}%`}
+                accent={stats.avgPnlPct >= 0 ? 'emerald' : 'red'}
+                hint="Per resolved signal"
+              />
+              <StatCard
+                label="Total P&L"
+                value={`${stats.totalPnlPct >= 0 ? '+' : ''}${stats.totalPnlPct}%`}
+                accent={stats.totalPnlPct >= 0 ? 'emerald' : 'red'}
+                hint="Sum at fixed 1R"
+              />
+              <StatCard
+                label="Streak"
+                value={`${stats.streak > 0 ? '+' : ''}${stats.streak}`}
+                accent={stats.streak > 0 ? 'emerald' : stats.streak < 0 ? 'red' : 'default'}
+                hint="Consecutive resolved"
+              />
+            </div>
+            {(stats.expired > 0 || stats.gateBlocked > 0 || stats.pending > 0) && (
+              <div className="grid grid-cols-3 gap-3 mb-8">
+                <StatCard
+                  label="Expired (no resolution)"
+                  value={String(stats.expired)}
+                  hint="No TP/SL hit within 48h"
+                />
+                <StatCard
+                  label="Gate-blocked"
+                  value={String(stats.gateBlocked)}
+                  hint="Risk filter declined entry"
+                />
+                <StatCard
+                  label="Pending"
+                  value={String(stats.pending)}
+                  hint="Still inside 24h window"
+                />
+              </div>
+            )}
+          </>
         )}
 
         {loading && !stats && (
@@ -409,8 +472,12 @@ export function TrackRecordClient() {
           </div>
         </div>
 
-        {/* Equity Curve — component accepts a narrower period set; map unsupported periods to 'all' */}
-        <EquityCurve period={period === '7d' || period === '30d' ? period : 'all'} />
+        {/* Equity Curve — component accepts a narrower period set; map unsupported periods to 'all'.
+           Scope mirrors the tab above so Pro vs Free are clearly distinct charts. */}
+        <EquityCurve
+          period={period === '7d' || period === '30d' ? period : 'all'}
+          scope={scope}
+        />
 
         {/* Per-Symbol Breakdown */}
         <section className="mb-8">
@@ -681,9 +748,11 @@ export function TrackRecordClient() {
         <div className="glass-card rounded-2xl p-5 border-l-2 border-emerald-500/50 mb-8">
           <h3 className="text-sm font-semibold mb-1">Full Transparency</h3>
           <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-            Every signal is recorded the moment it&apos;s generated. Outcomes are verified against real OHLCV market data
-            from Binance and Yahoo Finance. No cherry-picking, no hidden losses. Signals that don&apos;t hit TP or SL within
-            the time window are marked as expired, not wins.
+            Every signal is recorded the moment it&apos;s generated. Outcomes are verified against real OHLCV market
+            data from Binance and Yahoo Finance.
+            Win rate, total P&amp;L, and the equity curve count only resolved trades — signals refused by the
+            full-risk gate or that expired without hitting TP/SL within 48h are surfaced as separate counters,
+            not folded into the headline numbers. No cherry-picking, no hidden losses.
           </p>
         </div>
       </main>
@@ -697,10 +766,12 @@ function StatCard({
   label,
   value,
   accent = 'default',
+  hint,
 }: {
   label: string;
   value: string;
   accent?: 'emerald' | 'red' | 'yellow' | 'default';
+  hint?: string;
 }) {
   const valueColor =
     accent === 'emerald' ? 'text-emerald-400'
@@ -712,6 +783,9 @@ function StatCard({
     <div className="glass-card rounded-xl p-4">
       <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-1">{label}</div>
       <div className={`text-xl font-bold tabular-nums ${valueColor}`}>{value}</div>
+      {hint && (
+        <div className="text-[10px] text-zinc-600 mt-1">{hint}</div>
+      )}
     </div>
   );
 }

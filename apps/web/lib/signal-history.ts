@@ -20,10 +20,23 @@ export interface SignalOutcome {
 // Auto-expire writes `{ pnlPct: 0, hit: false }` when a signal window elapses
 // without TP/SL/close resolution. Those are not real trade outcomes and must
 // be excluded from hit-rate and pnl aggregations.
-function isRealOutcome(o: SignalOutcome | null | undefined): o is SignalOutcome {
+export function isRealOutcome(o: SignalOutcome | null | undefined): o is SignalOutcome {
   if (!o) return false;
   if (o.pnlPct === 0 && !o.hit) return false;
   return true;
+}
+
+/**
+ * Canonical filter for "this row counts in resolved P&L / win-rate / equity".
+ * Excludes simulated rows, gate-blocked rows (engine refused to trade), and
+ * auto-expire placeholders (no TP/SL within the window). Use this everywhere
+ * a denominator is computed so /api/signals/history, /api/signals/equity,
+ * /api/leaderboard, and /api/strategy-breakdown stay consistent.
+ */
+export function isCountedResolved(r: SignalHistoryRecord): boolean {
+  if (r.isSimulated) return false;
+  if (r.gateBlocked) return false;
+  return isRealOutcome(r.outcomes['24h']);
 }
 
 export interface SignalHistoryRecord {
@@ -937,9 +950,13 @@ export function computeLeaderboard(
   };
   const cutoff = period in periodMs ? Date.now() - periodMs[period] * 86400000 : 0;
 
+  // Exclude gate-blocked rows from the leaderboard pool. The full-risk gate
+  // refused to execute them; counting them in `totalSignals` per pair makes
+  // this surface disagree with the equity curve (which uses isCountedResolved).
   const filtered = records.filter(
     r => r.timestamp >= cutoff
       && !r.isSimulated
+      && !r.gateBlocked
       && (strategyId ? r.strategyId === strategyId : true),
   );
 
@@ -984,7 +1001,7 @@ export function computeLeaderboard(
 
   for (const r of [...filtered].sort((a, b) => b.timestamp - a.timestamp)) {
     const s = map.get(r.pair);
-    if (!s || r.outcomes['24h'] === null) continue;
+    if (!s || !isRealOutcome(r.outcomes['24h'])) continue;
     if (s.recentHits.length < 10) s.recentHits.push(r.outcomes['24h'].hit);
   }
 
@@ -1007,11 +1024,14 @@ export function computeLeaderboard(
     return b.hitRate24h - a.hitRate24h;
   });
 
+  // Use the canonical `isRealOutcome` predicate so expired-zero placeholders
+  // are not counted as resolved losses in the overall hit rate. This keeps
+  // the leaderboard headline numbers aligned with the equity curve.
   const totalSignals = filtered.length;
-  const resolved4hAll = filtered.filter(r => r.outcomes['4h'] !== null).length;
-  const hits4hAll = filtered.filter(r => r.outcomes['4h']?.hit).length;
-  const resolved24hAll = filtered.filter(r => r.outcomes['24h'] !== null).length;
-  const hits24hAll = filtered.filter(r => r.outcomes['24h']?.hit).length;
+  const resolved4hAll = filtered.filter(r => isRealOutcome(r.outcomes['4h'])).length;
+  const hits4hAll = filtered.filter(r => isRealOutcome(r.outcomes['4h']) && r.outcomes['4h']!.hit).length;
+  const resolved24hAll = filtered.filter(r => isRealOutcome(r.outcomes['24h'])).length;
+  const hits24hAll = filtered.filter(r => isRealOutcome(r.outcomes['24h']) && r.outcomes['24h']!.hit).length;
 
   const totalPnlAll = +assets.reduce((sum, a) => sum + a.totalPnl, 0).toFixed(2);
 
@@ -1039,7 +1059,10 @@ export function computeStrategyBreakdown(
   };
   const cutoff = period in periodMs ? Date.now() - periodMs[period] * 86400000 : 0;
 
-  const filtered = records.filter(r => r.timestamp >= cutoff && !r.isSimulated);
+  // Exclude gate-blocked rows so the strategy breakdown stays aligned with
+  // the equity curve and leaderboard. A signal the gate refused to execute
+  // shouldn't increment a strategy's `totalSignals`.
+  const filtered = records.filter(r => r.timestamp >= cutoff && !r.isSimulated && !r.gateBlocked);
   const groups = new Map<string, {
     total: number;
     resolved4h: number; hits4h: number;

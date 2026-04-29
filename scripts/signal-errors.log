@@ -108,3 +108,15 @@
   • 04-19 "python: command not found" entries: predate the wrapper switch to
     `/usr/bin/python3` and don't recur.
   Cleared orphan state files .signal-engine-fail-count and signal-failure-streak.txt.
+[2026-04-29T01:26:00+08:00] FAIL #2 — scanner-engine blocked by exec approval policy/preflight; could not execute `python3 scripts/scanner-engine.py`.
+[2026-04-29T02:11:00+08:00] FAIL #3 — scanner-engine blocked by exec approval policy/preflight; could not execute `./scripts/scanner-engine.py`.
+[2026-04-29T06:26:00+08:00] FAIL #4 — scanner-engine blocked by exec approval policy/preflight; could not execute `python3 scripts/scanner-engine.py`.
+[2026-04-29T13:00:00+08:00] RESOLVED — Disabled openclaw cron d955d941 (TradeClaw: 15-min Signal Engine).
+  Root cause of 04-23 to 04-29 FAIL #1-#4 entries: this cron was redundant with the
+  system crontab `*/5 * * * * run-signal-engine-cron.sh` (which is succeeding;
+  last success 2026-04-29T12:50:10+0800). The openclaw cron asked the
+  gpt-5.4-mini agent to exec the same script, which kept getting blocked by
+  gateway approval/preflight. No work was being lost — the system cron was
+  already covering it.
+  Action: `openclaw cron disable d955d941-d7e3-4b2c-9658-a014cb6c922d`.
+  Canonical scheduler going forward: system cron at 5-min cadence.

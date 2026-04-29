@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readHistoryAsync, type SignalHistoryRecord } from '../../../../lib/signal-history';
-import { PRO_PREMIUM_MIN_CONFIDENCE } from '../../../../lib/tier';
+import { readHistoryAsync, isCountedResolved, type SignalHistoryRecord } from '../../../../lib/signal-history';
+import { PRO_PREMIUM_MIN_CONFIDENCE, TIER_SYMBOLS, TIER_HISTORY_DAYS } from '../../../../lib/tier';
+
+export type EquityScope = 'pro' | 'free';
 
 export const revalidate = 60;
 
@@ -40,18 +42,11 @@ function computeEquityCurve(records: SignalHistoryRecord[]): {
   points: EquityPoint[];
   summary: EquitySummary;
 } {
-  // Resolved, non-simulated, non-expired (pnl=0 & !hit are auto-expire
-  // placeholders). Gate-blocked signals are excluded: the full-risk gate
-  // refused to execute them, so crediting their outcomes to the paper-trade
-  // equity curve would be fiction.
+  // Canonical "counted resolved" set — same predicate every other surface
+  // uses (history, leaderboard, strategy breakdown). Excludes simulated,
+  // gate-blocked, and auto-expire placeholders.
   const resolved = records
-    .filter(r => {
-      const o = r.outcomes['24h'];
-      if (!o || r.isSimulated) return false;
-      if (r.gateBlocked) return false;
-      if (o.pnlPct === 0 && !o.hit) return false;
-      return true;
-    })
+    .filter(isCountedResolved)
     .sort((a, b) => a.timestamp - b.timestamp);
 
   const points: EquityPoint[] = [];
@@ -113,17 +108,33 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period');
     const band = parseBand(searchParams.get('band'));
+    // Mirror /api/signals/history: scope=pro (default) is the full track
+    // record; scope=free narrows to free-tier symbols + 1d window. Track
+    // record is intentionally not gated by caller tier — the comparison is
+    // the marketing pitch.
+    const scope: EquityScope = searchParams.get('scope') === 'free' ? 'free' : 'pro';
 
     const sinceMs = period === '7d' || period === '30d'
       ? Date.now() - (period === '7d' ? 7 : 30) * 24 * 60 * 60 * 1000
       : undefined;
 
-    const records = await readHistoryAsync({ sinceMs });
+    let records = await readHistoryAsync({ sinceMs });
+
+    if (scope === 'free') {
+      const allowedSymbols = TIER_SYMBOLS.free;
+      const historyDays = TIER_HISTORY_DAYS.free;
+      records = records.filter(r => allowedSymbols.includes(r.pair));
+      if (historyDays !== null) {
+        const cutoff = Date.now() - historyDays * 24 * 60 * 60 * 1000;
+        records = records.filter(r => r.timestamp >= cutoff);
+      }
+    }
+
     const filtered = band === 'all' ? records : records.filter(r => inBand(r, band));
     const { points, summary } = computeEquityCurve(filtered);
 
     return NextResponse.json(
-      { points, summary, band },
+      { points, summary, band, scope },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
