@@ -14,6 +14,12 @@ import { AIAnalysisPanel } from '../../components/ai-analysis-panel';
 import { SetAlertButton } from '../../components/set-alert-button';
 import { SignalChartSection } from './SignalChartSection';
 import { SYMBOLS } from '../../lib/signals';
+import { InfoHint } from '../../../components/InfoHint';
+import { STAT_HINTS } from '../../../lib/stat-hints';
+
+const HINT_ENTRY = 'Mid-price at signal emission. Slippage and spread are applied later when computing P&L.';
+const HINT_STOP_LOSS = 'Risk anchor — sized at ATR × multiplier from entry. SL hit = -1R, TP1 hit = +1R reference for the equity card.';
+const HINT_TP = 'Take-profit ladder. TP1 = primary 1R target, TP2/TP3 are scale-out levels for partial closes.';
 
 function LockedPrice({ label }: { label: string }) {
   return (
@@ -187,7 +193,10 @@ export default async function SignalPage(
               }`}>
                 {signal.confidence}%
               </div>
-              <div className="text-xs text-zinc-600 mt-1 uppercase tracking-wider">confidence</div>
+              <div className="text-xs text-zinc-600 mt-1 uppercase tracking-wider inline-flex items-center justify-end gap-1">
+                confidence
+                <InfoHint text={STAT_HINTS.avgConfidence} label="What confidence means" />
+              </div>
             </div>
           </div>
 
@@ -206,16 +215,19 @@ export default async function SignalPage(
           {/* Price levels */}
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-8">
             {[
-              { label: 'Entry', value: signal.entry, color: 'text-white' },
-              { label: 'Stop Loss', value: signal.stopLoss, color: 'text-red-400' },
-              { label: 'TP1', value: signal.takeProfit1, color: 'text-emerald-400' },
-              { label: 'TP2', value: signal.takeProfit2, color: 'text-emerald-400' },
-              { label: 'TP3', value: signal.takeProfit3, color: 'text-emerald-400' },
-            ].map(({ label, value, color }) => {
+              { label: 'Entry', value: signal.entry, color: 'text-white', hint: HINT_ENTRY },
+              { label: 'Stop Loss', value: signal.stopLoss, color: 'text-red-400', hint: HINT_STOP_LOSS },
+              { label: 'TP1', value: signal.takeProfit1, color: 'text-emerald-400', hint: HINT_TP },
+              { label: 'TP2', value: signal.takeProfit2, color: 'text-emerald-400', hint: HINT_TP },
+              { label: 'TP3', value: signal.takeProfit3, color: 'text-emerald-400', hint: HINT_TP },
+            ].map(({ label, value, color, hint }) => {
               const isLocked = !isPaid && value == null;
               return (
                 <div key={label} className="bg-white/[0.03] rounded-xl py-3 px-2 text-center border border-white/5">
-                  <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1.5">{label}</div>
+                  <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1.5 inline-flex items-center justify-center gap-1">
+                    {label}
+                    <InfoHint text={hint} label={`What ${label} means`} />
+                  </div>
                   {isLocked ? (
                     <LockedPrice label={label} />
                   ) : (
