@@ -267,10 +267,16 @@ function passesDirectionGate(
   const plusDI = adx.current.plusDI;
   const minusDI = adx.current.minusDI;
   if (!isNaN(plusDI) && !isNaN(minusDI)) {
-    if (direction === 'BUY' && minusDI > plusDI * 1.3) {
+    // Hard-reject only when one DI is meaningfully larger than the other.
+    // The 1.3× ratio breaks down at near-zero values (e.g. +0.3 vs -0.4 → reject),
+    // killing signals in regimes where current-bar DI is flat even though historical
+    // ADX is high. Require an absolute floor of MIN_DI_MAGNITUDE on the larger side.
+    const MIN_DI_MAGNITUDE = 10;
+    const diIsMeaningful = Math.max(plusDI, minusDI) >= MIN_DI_MAGNITUDE;
+    if (diIsMeaningful && direction === 'BUY' && minusDI > plusDI * 1.3) {
       return { passes: false, confidenceBoost: 0 };
     }
-    if (direction === 'SELL' && plusDI > minusDI * 1.3) {
+    if (diIsMeaningful && direction === 'SELL' && plusDI > minusDI * 1.3) {
       return { passes: false, confidenceBoost: 0 };
     }
     // Mild DI disagreement → lower confidence
