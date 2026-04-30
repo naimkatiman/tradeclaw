@@ -16,13 +16,25 @@ import { safeFetch } from './types';
 
 const HUB_URL = process.env.MARKET_DATA_HUB_URL ?? '';
 
+// US equity tickers stored on the hub as bare Twelve Data symbols (no slash).
+// TradeClaw uses the `<TICKER>USD` convention internally for consistency, but
+// the hub + Twelve Data want the raw ticker.
+const STOCK_TICKERS = new Set([
+  'NVDA', 'TSLA', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'SPY', 'QQQ',
+]);
+
 /** Convert TradeClaw symbol (BTCUSD) → Hub symbol (BTC/USD) */
 function toHubSymbol(symbol: string): string {
+  // Stocks: strip USD suffix → bare ticker (NVDAUSD → NVDA)
+  if (symbol.endsWith('USD')) {
+    const ticker = symbol.slice(0, -3);
+    if (STOCK_TICKERS.has(ticker)) return ticker;
+  }
   // Forex/Metals: 6-char pairs like EURUSD, XAUUSD
   if (symbol.length === 6 && !symbol.includes('/')) {
     return `${symbol.slice(0, 3)}/${symbol.slice(3)}`;
   }
-  // Crypto: variable length (BTCUSD, DOGEUSD, MATICUSD)
+  // Crypto + multi-char commodities (BTCUSD, DOGEUSD, BRENTUSD)
   if (symbol.endsWith('USD') && symbol.length > 6) {
     return `${symbol.slice(0, -3)}/USD`;
   }

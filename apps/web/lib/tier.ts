@@ -19,6 +19,19 @@ const ALL_SYMBOLS = [
   'USDCAD',
   'NZDUSD',
   'USDCHF',
+  // Commodities (Pro+) — oil
+  'WTIUSD',
+  'BRNUSD',
+  // Stocks (Pro+) — US mega-caps + index ETFs
+  'NVDAUSD',
+  'TSLAUSD',
+  'AAPLUSD',
+  'MSFTUSD',
+  'GOOGLUSD',
+  'AMZNUSD',
+  'METAUSD',
+  'SPYUSD',
+  'QQQUSD',
 ];
 
 // Symbols accessible per tier. Custom tier inherits Elite's coverage by default —

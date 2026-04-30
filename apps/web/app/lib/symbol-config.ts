@@ -17,6 +17,19 @@ export const SYMBOLS = [
   { symbol: 'USDCAD', name: 'USD/CAD', pip: 0.0001, basePrice: 1.3826, volatility: 0.005 },
   { symbol: 'NZDUSD', name: 'NZD/USD', pip: 0.0001, basePrice: 0.5799, volatility: 0.004 },
   { symbol: 'USDCHF', name: 'USD/CHF', pip: 0.0001, basePrice: 0.7922, volatility: 0.004 },
+  // Commodities (Pro tier) — oil
+  { symbol: 'WTIUSD', name: 'WTI Crude Oil', pip: 0.01, basePrice: 78.50, volatility: 1.5 },
+  { symbol: 'BRNUSD', name: 'Brent Crude Oil', pip: 0.01, basePrice: 82.30, volatility: 1.5 },
+  // Stocks (Pro tier) — US mega-caps + index ETFs
+  { symbol: 'NVDAUSD', name: 'NVIDIA', pip: 0.01, basePrice: 145.00, volatility: 5.0 },
+  { symbol: 'TSLAUSD', name: 'Tesla', pip: 0.01, basePrice: 240.00, volatility: 8.0 },
+  { symbol: 'AAPLUSD', name: 'Apple', pip: 0.01, basePrice: 230.00, volatility: 3.5 },
+  { symbol: 'MSFTUSD', name: 'Microsoft', pip: 0.01, basePrice: 420.00, volatility: 5.0 },
+  { symbol: 'GOOGLUSD', name: 'Alphabet', pip: 0.01, basePrice: 175.00, volatility: 3.5 },
+  { symbol: 'AMZNUSD', name: 'Amazon', pip: 0.01, basePrice: 200.00, volatility: 4.0 },
+  { symbol: 'METAUSD', name: 'Meta', pip: 0.01, basePrice: 580.00, volatility: 8.0 },
+  { symbol: 'SPYUSD', name: 'S&P 500 ETF', pip: 0.01, basePrice: 580.00, volatility: 4.0 },
+  { symbol: 'QQQUSD', name: 'Nasdaq 100 ETF', pip: 0.01, basePrice: 500.00, volatility: 5.0 },
 ];
 
 export const TIMEFRAMES = ['M15', 'H1', 'H4', 'D1'] as const;
