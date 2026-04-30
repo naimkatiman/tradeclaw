@@ -9,18 +9,7 @@ import { useUserTier } from '@/lib/hooks/use-user-tier';
 import { EquityCurve } from '@/app/components/equity-curve';
 import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 import { InfoHint } from '@/components/InfoHint';
-
-const HINT_TOTAL_RETURN =
-  'Linear sum of per-signal % returns at fixed 1R risk. Reads "if every signal risked the same fixed amount, the wins minus losses add up to this." Not the same as compounded equity growth.';
-const HINT_WIN_RATE =
-  'Resolved signals where the 24h outcome hit TP / closed in profit, divided by total resolved signals in this window. Excludes auto-expired and gate-blocked rows.';
-const HINT_RESOLVED =
-  'Signals with a real 24h outcome (TP or SL hit). Excludes still-open trades, auto-expired rows, and trades the risk gate refused to enter.';
-const HINT_AVG_PNL = 'Total return ÷ resolved signals. The average outcome of one trade in this window.';
-const HINT_STREAK = 'Consecutive resolved trades, signed: positive when on a win streak, negative on a losing streak.';
-const HINT_EXPIRED = 'Signal had no TP or SL hit within the 48h tracking window. Recorded for transparency, not counted in win-rate.';
-const HINT_GATE_BLOCKED = 'Engine emitted the signal but the full-risk gate refused entry (e.g. spread too wide, news lockout). Not counted toward equity.';
-const HINT_PENDING = 'Signal is still inside the 24h tracking window. Outcome not yet known.';
+import { STAT_HINTS } from '@/lib/stat-hints';
 
 type Period = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
 
@@ -280,7 +269,7 @@ export function TrackRecordClient() {
               </span>
               <span className="text-sm text-[var(--text-secondary)] inline-flex items-center gap-1">
                 total return
-                <InfoHint text={HINT_TOTAL_RETURN} label="What total return means" />
+                <InfoHint text={STAT_HINTS.totalReturnLinear} label="What total return means" />
               </span>
             </div>
             <div className="flex items-baseline gap-1.5">
@@ -293,7 +282,7 @@ export function TrackRecordClient() {
               </span>
               <span className="text-xs text-[var(--text-secondary)] inline-flex items-center gap-1">
                 win rate
-                <InfoHint text={HINT_WIN_RATE} label="What win rate means" />
+                <InfoHint text={STAT_HINTS.winRate24h} label="What win rate means" />
               </span>
             </div>
             <div className="flex items-baseline gap-1.5">
@@ -302,7 +291,7 @@ export function TrackRecordClient() {
               </span>
               <span className="text-xs text-[var(--text-secondary)] inline-flex items-center gap-1">
                 resolved signals
-                <InfoHint text={HINT_RESOLVED} label="What resolved signals means" />
+                <InfoHint text={STAT_HINTS.resolved} label="What resolved signals means" />
               </span>
             </div>
           </div>
@@ -417,28 +406,28 @@ export function TrackRecordClient() {
                 label="Resolved"
                 value={String(stats.resolved)}
                 hint="Trades with TP/SL within 48h"
-                tooltip={HINT_RESOLVED}
+                tooltip={STAT_HINTS.resolved}
               />
               <StatCard
                 label="Avg P&L"
                 value={`${stats.avgPnlPct >= 0 ? '+' : ''}${stats.avgPnlPct}%`}
                 accent={stats.avgPnlPct >= 0 ? 'emerald' : 'red'}
                 hint="Per resolved signal"
-                tooltip={HINT_AVG_PNL}
+                tooltip={STAT_HINTS.avgPnl}
               />
               <StatCard
                 label="Total P&L"
                 value={`${stats.totalPnlPct >= 0 ? '+' : ''}${stats.totalPnlPct}%`}
                 accent={stats.totalPnlPct >= 0 ? 'emerald' : 'red'}
                 hint="Sum at fixed 1R"
-                tooltip={HINT_TOTAL_RETURN}
+                tooltip={STAT_HINTS.totalReturnLinear}
               />
               <StatCard
                 label="Streak"
                 value={`${stats.streak > 0 ? '+' : ''}${stats.streak}`}
                 accent={stats.streak > 0 ? 'emerald' : stats.streak < 0 ? 'red' : 'default'}
                 hint="Consecutive resolved"
-                tooltip={HINT_STREAK}
+                tooltip={STAT_HINTS.streak}
               />
             </div>
             {(stats.expired > 0 || stats.gateBlocked > 0 || stats.pending > 0) && (
@@ -447,19 +436,19 @@ export function TrackRecordClient() {
                   label="Expired (no resolution)"
                   value={String(stats.expired)}
                   hint="No TP/SL hit within 48h"
-                  tooltip={HINT_EXPIRED}
+                  tooltip={STAT_HINTS.expired}
                 />
                 <StatCard
                   label="Gate-blocked"
                   value={String(stats.gateBlocked)}
                   hint="Risk filter declined entry"
-                  tooltip={HINT_GATE_BLOCKED}
+                  tooltip={STAT_HINTS.gateBlocked}
                 />
                 <StatCard
                   label="Pending"
                   value={String(stats.pending)}
                   hint="Still inside 24h window"
-                  tooltip={HINT_PENDING}
+                  tooltip={STAT_HINTS.pending}
                 />
               </div>
             )}
@@ -524,10 +513,18 @@ export function TrackRecordClient() {
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
                     <th className="px-4 py-2.5 text-left font-medium">Pair</th>
                     <th className="px-3 py-2.5 text-center font-medium">Signals</th>
-                    <th className="px-3 py-2.5 text-left font-medium w-28">4h Hit</th>
-                    <th className="px-3 py-2.5 text-left font-medium w-28">24h Hit</th>
-                    <th className="px-3 py-2.5 text-right font-medium">Avg P&L</th>
-                    <th className="px-3 py-2.5 text-right font-medium hidden sm:table-cell">Total P&L</th>
+                    <th className="px-3 py-2.5 text-left font-medium w-28">
+                      <span className="inline-flex items-center gap-1">4h Hit <InfoHint text={STAT_HINTS.winRate4h} label="What 4h hit means" /></span>
+                    </th>
+                    <th className="px-3 py-2.5 text-left font-medium w-28">
+                      <span className="inline-flex items-center gap-1">24h Hit <InfoHint text={STAT_HINTS.winRate24h} label="What 24h hit means" /></span>
+                    </th>
+                    <th className="px-3 py-2.5 text-right font-medium">
+                      <span className="inline-flex items-center gap-1 justify-end">Avg P&L <InfoHint text={STAT_HINTS.avgPnl} label="What avg P&L means" /></span>
+                    </th>
+                    <th className="px-3 py-2.5 text-right font-medium hidden sm:table-cell">
+                      <span className="inline-flex items-center gap-1 justify-end">Total P&L <InfoHint text={STAT_HINTS.totalReturnLinear} label="What total P&L means" /></span>
+                    </th>
                     <th className="px-3 py-2.5 text-center font-medium hidden sm:table-cell">Trend</th>
                   </tr>
                 </thead>
