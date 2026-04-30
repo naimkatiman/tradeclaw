@@ -17,21 +17,27 @@ import {
   Activity,
 } from 'lucide-react';
 import type { ProofResponse, ProofSignal, ProofStats } from '../api/proof/route';
+import { InfoHint } from '../../components/InfoHint';
 
 function StatCard({
   label,
   value,
   sub,
   positive,
+  tooltip,
 }: {
   label: string;
   value: string;
   sub?: string;
   positive?: boolean;
+  tooltip?: string;
 }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col gap-1">
-      <span className="text-xs text-zinc-400 uppercase tracking-wider">{label}</span>
+      <span className="text-xs text-zinc-400 uppercase tracking-wider inline-flex items-center gap-1">
+        {label}
+        {tooltip && <InfoHint text={tooltip} label={`What ${label} means`} />}
+      </span>
       <span
         className={`text-2xl font-bold ${
           positive === true
@@ -294,23 +300,27 @@ export default function ProofClient() {
               label="Real Signals Tracked"
               value={String(stats.realSignals)}
               sub={`of ${stats.totalSignals} total (excl. seeded)`}
+              tooltip="Signals emitted from real market data, excluding seeded/simulated rows used for UI demo. The denominator for the win-rate on this page."
             />
             <StatCard
               label="Win Rate (24h)"
               value={hasRealData ? `${stats.winRate24h}%` : '—'}
               sub={hasRealData ? `4h: ${stats.winRate4h}%` : 'No resolved signals yet'}
               positive={hasRealData ? stats.winRate24h >= 50 : undefined}
+              tooltip='Resolved signals where price reached TP1 before SL within 24h, divided by total resolved signals. "Win" = TP1 hit first; "loss" = SL hit first. Pending signals excluded.'
             />
             <StatCard
               label="Avg P&L (24h)"
               value={hasRealData ? `${stats.runningPnlPct > 0 ? '+' : ''}${stats.runningPnlPct}%` : '—'}
               sub={`${stats.totalWins}W / ${stats.totalLosses}L`}
               positive={hasRealData ? stats.runningPnlPct > 0 : undefined}
+              tooltip="Average per-signal % return at fixed 1R risk over the 24h horizon. W/L is the underlying win and loss count."
             />
             <StatCard
               label="Avg Confidence"
               value={stats.avgConfidence > 0 ? `${stats.avgConfidence}%` : '—'}
               sub={`${stats.openSignals} signal${stats.openSignals !== 1 ? 's' : ''} still open`}
+              tooltip="Mean model confidence across tracked signals. Confidence is the engine's self-assessed probability — calibration page shows how it tracks reality."
             />
           </div>
         )}
