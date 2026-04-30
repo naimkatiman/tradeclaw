@@ -1,6 +1,8 @@
 'use client';
 
 import type { BacktestResult } from '@tradeclaw/strategies';
+import { InfoHint } from '@/components/InfoHint';
+import { STAT_HINTS } from '@/lib/stat-hints';
 
 interface MetricsTableProps {
   results: BacktestResult[];
@@ -11,12 +13,12 @@ export function MetricsTable({ results, presetNames }: MetricsTableProps) {
   if (results.length === 0) return null;
 
   const columns = [
-    { key: 'totalReturn' as const, label: 'Total Return', format: pct, best: 'max' as const },
-    { key: 'winRate' as const, label: 'Win Rate', format: pct, best: 'max' as const },
-    { key: 'profitFactor' as const, label: 'Profit Factor', format: num, best: 'max' as const },
-    { key: 'maxDrawdown' as const, label: 'Max Drawdown', format: pct, best: 'min' as const },
-    { key: 'sharpeRatio' as const, label: 'Sharpe', format: num, best: 'max' as const },
-    { key: 'totalTrades' as const, label: 'Trades', format: (n: number) => String(n), best: 'none' as const },
+    { key: 'totalReturn' as const, label: 'Total Return', format: pct, best: 'max' as const, hint: STAT_HINTS.backtestTotalReturn },
+    { key: 'winRate' as const, label: 'Win Rate', format: pct, best: 'max' as const, hint: STAT_HINTS.winRate24h },
+    { key: 'profitFactor' as const, label: 'Profit Factor', format: num, best: 'max' as const, hint: STAT_HINTS.backtestProfitFactor },
+    { key: 'maxDrawdown' as const, label: 'Max Drawdown', format: pct, best: 'min' as const, hint: STAT_HINTS.maxDrawdown },
+    { key: 'sharpeRatio' as const, label: 'Sharpe', format: num, best: 'max' as const, hint: STAT_HINTS.backtestSharpe },
+    { key: 'totalTrades' as const, label: 'Trades', format: (n: number) => String(n), best: 'none' as const, hint: 'Total trades the backtest engine entered. Includes both winning and losing closes.' },
   ];
 
   const bestByColumn = new Map<string, number>();
@@ -35,7 +37,9 @@ export function MetricsTable({ results, presetNames }: MetricsTableProps) {
           <tr className="border-b border-white/10">
             <th className="text-left p-2">Preset</th>
             {columns.map((c) => (
-              <th key={c.key} className="text-right p-2">{c.label}</th>
+              <th key={c.key} className="text-right p-2">
+                <span className="inline-flex items-center gap-1 justify-end">{c.label} <InfoHint text={c.hint} label={`What ${c.label} means`} /></span>
+              </th>
             ))}
           </tr>
         </thead>

@@ -15,6 +15,8 @@ import {
 } from '@tradeclaw/strategies';
 import { MetricsTable } from './metrics-table';
 import { ComparisonChart } from './comparison-chart';
+import { InfoHint } from '../../components/InfoHint';
+import { STAT_HINTS } from '../../lib/stat-hints';
 
 // Lazy-load heavy chart components with ssr: false for canvas
 const ChartSkeleton = () => (
@@ -234,10 +236,13 @@ function MonthlyHeatmap({ monthlyReturns }: { monthlyReturns: MonthReturn[] }) {
 
 // ─── Metric Card ─────────────────────────────────────────────
 
-function MetricCard({ label, value, sub, color = 'text-[var(--foreground)]' }: { label: string; value: string; sub?: string; color?: string }) {
+function MetricCard({ label, value, sub, color = 'text-[var(--foreground)]', tooltip }: { label: string; value: string; sub?: string; color?: string; tooltip?: string }) {
   return (
     <div className="bg-white/[0.03] rounded-xl p-3 border border-[var(--border)]">
-      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1">{label}</div>
+      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-1 inline-flex items-center gap-1">
+        {label}
+        {tooltip && <InfoHint text={tooltip} label={`What ${label} means`} />}
+      </div>
       <div className={`text-lg font-bold font-mono tabular-nums ${color}`}>{value}</div>
       {sub && <div className="text-[10px] text-[var(--text-secondary)] mt-0.5 font-mono">{sub}</div>}
     </div>
@@ -723,32 +728,38 @@ export default function BacktestPage() {
                     value={`${singleResult.totalReturn >= 0 ? '+' : ''}${displayTotalReturn}%`}
                     sub={`$${singleResult.endBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
                     color={singleResult.totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'}
+                    tooltip={STAT_HINTS.backtestTotalReturn}
                   />
                   <MetricCard
                     label="Win Rate"
                     value={`${displayWinRate}%`}
                     sub={`${singleResult.totalTrades} trades`}
                     color={singleResult.winRate >= 0.5 ? 'text-emerald-400' : 'text-red-400'}
+                    tooltip={STAT_HINTS.winRate24h}
                   />
                   <MetricCard
                     label="Profit Factor"
                     value={Number.isFinite(singleResult.profitFactor) ? `${singleResult.profitFactor.toFixed(2)}x` : '∞'}
                     color={singleResult.profitFactor >= 1.5 ? 'text-emerald-400' : singleResult.profitFactor >= 1 ? 'text-zinc-400' : 'text-red-400'}
+                    tooltip={STAT_HINTS.backtestProfitFactor}
                   />
                   <MetricCard
                     label="Max Drawdown"
                     value={`${displayMaxDrawdown}%`}
                     color={singleResult.maxDrawdown <= 0.1 ? 'text-emerald-400' : singleResult.maxDrawdown <= 0.2 ? 'text-zinc-400' : 'text-red-400'}
+                    tooltip={STAT_HINTS.maxDrawdown}
                   />
                   <MetricCard
                     label="Sharpe Ratio"
                     value={`${singleResult.sharpeRatio.toFixed(2)}`}
                     color={singleResult.sharpeRatio >= 1.5 ? 'text-emerald-400' : singleResult.sharpeRatio >= 1 ? 'text-zinc-400' : 'text-red-400'}
+                    tooltip={STAT_HINTS.backtestSharpe}
                   />
                   <MetricCard
                     label="Signals"
                     value={`${singleResult.totalTrades}`}
                     sub={`${singleResult.trades.length} trades`}
+                    tooltip="Total trades the backtest engine entered. Each is a buy → sell round-trip."
                   />
                 </div>
 
