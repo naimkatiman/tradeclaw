@@ -26,6 +26,8 @@ import { PremiumSignalFeed } from '../../components/PremiumSignalFeed';
 import { fetchWithLicense } from '../../lib/license-client';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
+import { InfoHint } from '../../components/InfoHint';
+import { STAT_HINTS } from '../../lib/stat-hints';
 import type { TradingSignal } from '@tradeclaw/signals';
 import type { TFDirection } from '../lib/signal-generator';
 import { OnboardingOverlay } from '../components/onboarding-overlay';
@@ -615,27 +617,33 @@ function SignalHistory() {
       {/* Stats Banner */}
       {historyStats && historyStats.resolved > 0 && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 px-1 text-[10px] font-mono text-[var(--text-secondary)]">
-          <span>
+          <span className="inline-flex items-center gap-1">
             <span className={historyStats.winRate >= 55 ? 'text-emerald-400' : historyStats.winRate >= 45 ? 'text-zinc-400' : 'text-red-400'}>
               {historyStats.winRate}%
             </span>{' '}
             win rate
+            <InfoHint text={STAT_HINTS.winRate24h} label="What win rate means" />
           </span>
           <span className="text-[var(--border)]">|</span>
-          <span>{historyStats.resolved} resolved</span>
+          <span className="inline-flex items-center gap-1">
+            {historyStats.resolved} resolved
+            <InfoHint text={STAT_HINTS.resolved} label="What resolved means" />
+          </span>
           <span className="text-[var(--border)]">|</span>
-          <span>
+          <span className="inline-flex items-center gap-1">
             <span className={historyStats.streak > 0 ? 'text-emerald-400' : historyStats.streak < 0 ? 'text-red-400' : ''}>
               {historyStats.streak > 0 ? '+' : ''}{historyStats.streak}
             </span>{' '}
             streak
+            <InfoHint text={STAT_HINTS.streak} label="What streak means" />
           </span>
           <span className="text-[var(--border)]">|</span>
-          <span>
+          <span className="inline-flex items-center gap-1">
             <span className={historyStats.totalPnlPct >= 0 ? 'text-emerald-400' : 'text-red-400'}>
               {historyStats.totalPnlPct >= 0 ? '+' : ''}{historyStats.totalPnlPct}%
             </span>{' '}
             total P&L
+            <InfoHint text={STAT_HINTS.totalReturnLinear} label="What total P&L means" />
           </span>
         </div>
       )}

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { fetchWithLicense } from '@/lib/license-client';
 import { DataProvenanceBadge } from '@/components/data-provenance-badge';
+import { InfoHint } from '@/components/InfoHint';
+import { STAT_HINTS } from '@/lib/stat-hints';
 
 
 interface AccuracyStats {
@@ -105,8 +107,9 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
         <div className="text-lg font-bold font-mono tabular-nums text-white tracking-tight">
           {stats.resolved}
         </div>
-        <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5">
+        <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5 inline-flex items-center justify-center gap-1">
           Signals Verified
+          <InfoHint text={STAT_HINTS.resolved} label="What signals verified means" />
         </div>
       </div>
 
@@ -117,8 +120,9 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
         }`}>
           {stats.winRate}%
         </div>
-        <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5">
+        <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5 inline-flex items-center justify-center gap-1">
           Win Rate
+          <InfoHint text={STAT_HINTS.winRate24h} label="What win rate means" />
         </div>
       </div>
 
@@ -129,8 +133,9 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
         }`}>
           {stats.avgPnlPct >= 0 ? '+' : ''}{stats.avgPnlPct}%
         </div>
-        <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5">
+        <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5 inline-flex items-center justify-center gap-1">
           Avg Return
+          <InfoHint text={STAT_HINTS.avgPnl} label="What avg return means" />
         </div>
       </div>
 
@@ -158,8 +163,9 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
         <div className={`text-lg font-bold font-mono tabular-nums tracking-tight ${streakColor(stats.streak)}`}>
           {formatStreak(stats.streak)}
         </div>
-        <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5">
+        <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5 inline-flex items-center justify-center gap-1">
           Streak
+          <InfoHint text={STAT_HINTS.streak} label="What streak means" />
         </div>
       </div>
     </div>
