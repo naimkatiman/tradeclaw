@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     if (typeof userId !== 'string' || !userId) {
       return NextResponse.json(
-        { error: 'Not signed in — POST /api/auth/session first' },
+        { error: 'Not signed in — sign in with Google at /signin first' },
         { status: 401 },
       );
     }

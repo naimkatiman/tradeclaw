@@ -24,13 +24,20 @@ function getRedirectUri(request: NextRequest): string {
   return `${base.replace(/\/$/, '')}/api/auth/google/callback`;
 }
 
+function appOrigin(request: NextRequest): string {
+  const base =
+    process.env.OAUTH_REDIRECT_BASE_URL ??
+    process.env.NEXT_PUBLIC_BASE_URL ??
+    new URL(request.url).origin;
+  return base.replace(/\/$/, '');
+}
+
 export async function GET(request: NextRequest) {
   const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
   if (!clientId) {
-    return NextResponse.json(
-      { error: 'Google OAuth is not configured on this server' },
-      { status: 503 },
-    );
+    const url = new URL('/signin', appOrigin(request));
+    url.searchParams.set('error', 'oauth_not_configured');
+    return NextResponse.redirect(url.toString(), { status: 302 });
   }
 
   const url = new URL(request.url);
