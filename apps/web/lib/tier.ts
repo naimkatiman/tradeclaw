@@ -21,7 +21,7 @@ const ALL_SYMBOLS = [
   'USDCHF',
   // Commodities (Pro+) — oil
   'WTIUSD',
-  'BRNUSD',
+  'BNOUSD',
   // Stocks (Pro+) — US mega-caps + index ETFs
   'NVDAUSD',
   'TSLAUSD',

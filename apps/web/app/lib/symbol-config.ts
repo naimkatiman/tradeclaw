@@ -19,7 +19,8 @@ export const SYMBOLS = [
   { symbol: 'USDCHF', name: 'USD/CHF', pip: 0.0001, basePrice: 0.7922, volatility: 0.004 },
   // Commodities (Pro tier) — oil
   { symbol: 'WTIUSD', name: 'WTI Crude Oil', pip: 0.01, basePrice: 78.50, volatility: 1.5 },
-  { symbol: 'BRNUSD', name: 'Brent Crude Oil', pip: 0.01, basePrice: 82.30, volatility: 1.5 },
+  // Twelve Data has no Brent CFD; BNO ETF is the standard US-listed Brent proxy.
+  { symbol: 'BNOUSD', name: 'Brent Oil ETF (BNO)', pip: 0.01, basePrice: 28.50, volatility: 0.6 },
   // Stocks (Pro tier) — US mega-caps + index ETFs
   { symbol: 'NVDAUSD', name: 'NVIDIA', pip: 0.01, basePrice: 145.00, volatility: 5.0 },
   { symbol: 'TSLAUSD', name: 'Tesla', pip: 0.01, basePrice: 240.00, volatility: 8.0 },

@@ -21,6 +21,8 @@ const HUB_URL = process.env.MARKET_DATA_HUB_URL ?? '';
 // the hub + Twelve Data want the raw ticker.
 const STOCK_TICKERS = new Set([
   'NVDA', 'TSLA', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'SPY', 'QQQ',
+  // Brent oil ETF (Twelve Data has no Brent CFD)
+  'BNO',
 ]);
 
 /** Convert TradeClaw symbol (BTCUSD) → Hub symbol (BTC/USD) */
