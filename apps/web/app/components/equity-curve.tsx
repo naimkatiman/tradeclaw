@@ -2,6 +2,18 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Lock } from 'lucide-react';
+import { InfoHint } from '@/components/InfoHint';
+
+const HINT_COMPOUNDED_RETURN =
+  'Compounded equity growth from a hypothetical $10,000 baseline, reinvesting 100% of bankroll into every next signal. Multiplicative — different from the linear "total return" stat in the page header.';
+const HINT_MAX_DRAWDOWN =
+  'Worst peak-to-trough drop in the equity curve over this window. Even a positive endpoint can hide a deep mid-run drawdown — this surfaces the path, not just the destination.';
+const HINT_WIN_RATE_EQUITY =
+  'Resolved signals where the 24h outcome hit TP, divided by total resolved signals in this window. Same predicate as the page header.';
+const HINT_RESOLVED_EQUITY =
+  'Signals with a real 24h outcome (TP or SL hit) included in this curve. Excludes still-open trades, auto-expired rows, and gate-blocked signals.';
+const HINT_SHARPE =
+  'Annualised Sharpe ratio: mean return ÷ stddev × √(signals per year). Cadence-aware — uses actual signal frequency, not the 252-trading-day shortcut.';
 
 interface EquityPoint {
   timestamp: number;
@@ -375,7 +387,10 @@ export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps)
         <>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div className="bg-white/[0.02] rounded-lg py-3 px-4 border border-white/[0.04]">
-              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-1">Total Return</div>
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-1 inline-flex items-center gap-1">
+                Total Return (compounded)
+                <InfoHint text={HINT_COMPOUNDED_RETURN} label="What compounded total return means" />
+              </div>
               <div className={`text-2xl font-mono font-bold tabular-nums ${
                 summary.totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'
               }`}>
@@ -386,7 +401,10 @@ export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps)
               </div>
             </div>
             <div className="bg-white/[0.02] rounded-lg py-3 px-4 border border-white/[0.04]">
-              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-1">Max Drawdown</div>
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-1 inline-flex items-center gap-1">
+                Max Drawdown
+                <InfoHint text={HINT_MAX_DRAWDOWN} label="What max drawdown means" />
+              </div>
               <div className="text-2xl font-mono font-bold text-red-400 tabular-nums">
                 -{summary.maxDrawdown}%
               </div>
@@ -397,7 +415,10 @@ export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps)
           </div>
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
-              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Win Rate</div>
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
+                Win Rate
+                <InfoHint text={HINT_WIN_RATE_EQUITY} label="What win rate means" />
+              </div>
               <div className={`text-xs font-mono font-semibold tabular-nums ${
                 summary.winRate >= 50 ? 'text-emerald-400' : 'text-red-400'
               }`}>
@@ -405,13 +426,19 @@ export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps)
               </div>
             </div>
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
-              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Resolved Signals</div>
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
+                Resolved Signals
+                <InfoHint text={HINT_RESOLVED_EQUITY} label="What resolved signals means" />
+              </div>
               <div className="text-xs font-mono font-semibold text-zinc-300 tabular-nums">
                 {summary.totalSignals.toLocaleString()}
               </div>
             </div>
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
-              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5">Sharpe (annualized)</div>
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
+                Sharpe (annualized)
+                <InfoHint text={HINT_SHARPE} label="What Sharpe ratio means" />
+              </div>
               <div className="text-xs font-mono font-semibold text-zinc-300 tabular-nums">
                 {summary.sharpeRatio !== null ? summary.sharpeRatio.toFixed(2) : '—'}
               </div>

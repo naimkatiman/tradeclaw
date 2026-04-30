@@ -8,6 +8,19 @@ import { PageNavBar } from '@/components/PageNavBar';
 import { useUserTier } from '@/lib/hooks/use-user-tier';
 import { EquityCurve } from '@/app/components/equity-curve';
 import { BackgroundDecor } from '@/components/background/BackgroundDecor';
+import { InfoHint } from '@/components/InfoHint';
+
+const HINT_TOTAL_RETURN =
+  'Linear sum of per-signal % returns at fixed 1R risk. Reads "if every signal risked the same fixed amount, the wins minus losses add up to this." Not the same as compounded equity growth.';
+const HINT_WIN_RATE =
+  'Resolved signals where the 24h outcome hit TP / closed in profit, divided by total resolved signals in this window. Excludes auto-expired and gate-blocked rows.';
+const HINT_RESOLVED =
+  'Signals with a real 24h outcome (TP or SL hit). Excludes still-open trades, auto-expired rows, and trades the risk gate refused to enter.';
+const HINT_AVG_PNL = 'Total return ÷ resolved signals. The average outcome of one trade in this window.';
+const HINT_STREAK = 'Consecutive resolved trades, signed: positive when on a win streak, negative on a losing streak.';
+const HINT_EXPIRED = 'Signal had no TP or SL hit within the 48h tracking window. Recorded for transparency, not counted in win-rate.';
+const HINT_GATE_BLOCKED = 'Engine emitted the signal but the full-risk gate refused entry (e.g. spread too wide, news lockout). Not counted toward equity.';
+const HINT_PENDING = 'Signal is still inside the 24h tracking window. Outcome not yet known.';
 
 type Period = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
 
@@ -265,7 +278,10 @@ export function TrackRecordClient() {
               }`}>
                 {stats ? `${stats.totalPnlPct > 0 ? '+' : ''}${stats.totalPnlPct}%` : '—'}
               </span>
-              <span className="text-sm text-[var(--text-secondary)]">total return</span>
+              <span className="text-sm text-[var(--text-secondary)] inline-flex items-center gap-1">
+                total return
+                <InfoHint text={HINT_TOTAL_RETURN} label="What total return means" />
+              </span>
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className={`text-xl font-semibold tabular-nums ${
@@ -275,13 +291,19 @@ export function TrackRecordClient() {
               }`}>
                 {stats ? `${stats.winRate}%` : '—'}
               </span>
-              <span className="text-xs text-[var(--text-secondary)]">win rate</span>
+              <span className="text-xs text-[var(--text-secondary)] inline-flex items-center gap-1">
+                win rate
+                <InfoHint text={HINT_WIN_RATE} label="What win rate means" />
+              </span>
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-xl font-semibold tabular-nums text-[var(--foreground)]">
                 {stats ? stats.resolved : '—'}
               </span>
-              <span className="text-xs text-[var(--text-secondary)]">resolved signals</span>
+              <span className="text-xs text-[var(--text-secondary)] inline-flex items-center gap-1">
+                resolved signals
+                <InfoHint text={HINT_RESOLVED} label="What resolved signals means" />
+              </span>
             </div>
           </div>
           <p className="text-sm text-[var(--text-secondary)]">
@@ -391,24 +413,32 @@ export function TrackRecordClient() {
         {stats && (
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-              <StatCard label="Resolved" value={String(stats.resolved)} hint="Trades with TP/SL within 48h" />
+              <StatCard
+                label="Resolved"
+                value={String(stats.resolved)}
+                hint="Trades with TP/SL within 48h"
+                tooltip={HINT_RESOLVED}
+              />
               <StatCard
                 label="Avg P&L"
                 value={`${stats.avgPnlPct >= 0 ? '+' : ''}${stats.avgPnlPct}%`}
                 accent={stats.avgPnlPct >= 0 ? 'emerald' : 'red'}
                 hint="Per resolved signal"
+                tooltip={HINT_AVG_PNL}
               />
               <StatCard
                 label="Total P&L"
                 value={`${stats.totalPnlPct >= 0 ? '+' : ''}${stats.totalPnlPct}%`}
                 accent={stats.totalPnlPct >= 0 ? 'emerald' : 'red'}
                 hint="Sum at fixed 1R"
+                tooltip={HINT_TOTAL_RETURN}
               />
               <StatCard
                 label="Streak"
                 value={`${stats.streak > 0 ? '+' : ''}${stats.streak}`}
                 accent={stats.streak > 0 ? 'emerald' : stats.streak < 0 ? 'red' : 'default'}
                 hint="Consecutive resolved"
+                tooltip={HINT_STREAK}
               />
             </div>
             {(stats.expired > 0 || stats.gateBlocked > 0 || stats.pending > 0) && (
@@ -417,16 +447,19 @@ export function TrackRecordClient() {
                   label="Expired (no resolution)"
                   value={String(stats.expired)}
                   hint="No TP/SL hit within 48h"
+                  tooltip={HINT_EXPIRED}
                 />
                 <StatCard
                   label="Gate-blocked"
                   value={String(stats.gateBlocked)}
                   hint="Risk filter declined entry"
+                  tooltip={HINT_GATE_BLOCKED}
                 />
                 <StatCard
                   label="Pending"
                   value={String(stats.pending)}
                   hint="Still inside 24h window"
+                  tooltip={HINT_PENDING}
                 />
               </div>
             )}
@@ -767,11 +800,14 @@ function StatCard({
   value,
   accent = 'default',
   hint,
+  tooltip,
 }: {
   label: string;
   value: string;
   accent?: 'emerald' | 'red' | 'yellow' | 'default';
   hint?: string;
+  /** Long-form explanation surfaced via the `?` icon next to the label. */
+  tooltip?: string;
 }) {
   const valueColor =
     accent === 'emerald' ? 'text-emerald-400'
@@ -781,7 +817,10 @@ function StatCard({
 
   return (
     <div className="glass-card rounded-xl p-4">
-      <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-1">{label}</div>
+      <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-1 inline-flex items-center gap-1">
+        {label}
+        {tooltip && <InfoHint text={tooltip} label={`What ${label} means`} />}
+      </div>
       <div className={`text-xl font-bold tabular-nums ${valueColor}`}>{value}</div>
       {hint && (
         <div className="text-[10px] text-zinc-600 mt-1">{hint}</div>
