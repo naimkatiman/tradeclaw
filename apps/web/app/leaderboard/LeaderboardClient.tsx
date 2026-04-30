@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { PageNavBar } from '@/components/PageNavBar';
+import { InfoHint } from '@/components/InfoHint';
+import { STAT_HINTS } from '@/lib/stat-hints';
 import type { AssetStats, LeaderboardData, SignalHistoryRecord } from '@/lib/signal-history';
 
 type Period = '7d' | '30d' | '1y' | 'all';
@@ -162,10 +164,13 @@ function SortIcon({ active, asc }: { active: boolean; asc: boolean }) {
   );
 }
 
-function StatCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
+function StatCard({ label, value, sub, color, tooltip }: { label: string; value: string; sub?: string; color?: string; tooltip?: string }) {
   return (
     <div className="glass-card rounded-xl p-3 flex flex-col gap-1">
-      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">{label}</div>
+      <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider inline-flex items-center gap-1">
+        {label}
+        {tooltip && <InfoHint text={tooltip} label={`What ${label} means`} />}
+      </div>
       <div className={`text-base font-bold font-mono tabular-nums ${color ?? 'text-[var(--foreground)]'}`}>{value}</div>
       {sub && <div className="text-[10px] text-[var(--text-secondary)]">{sub}</div>}
     </div>
@@ -226,16 +231,16 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
           <div className="flex-1 overflow-y-auto">
             {/* stats row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4">
-              <StatCard label="Signals" value={data.asset.totalSignals.toString()} />
-              <StatCard label="4h Hit Rate" value={`${data.asset.hitRate4h}%`} color={data.asset.hitRate4h >= 55 ? 'text-emerald-400' : 'text-red-400'} />
-              <StatCard label="24h Hit Rate" value={`${data.asset.hitRate24h}%`} color={data.asset.hitRate24h >= 55 ? 'text-emerald-400' : 'text-red-400'} />
-              <StatCard label="Avg Confidence" value={`${data.asset.avgConfidence}%`} />
+              <StatCard label="Signals" value={data.asset.totalSignals.toString()} tooltip="Total signals emitted for this pair in the selected window. Includes pending and gate-blocked rows." />
+              <StatCard label="4h Hit Rate" value={`${data.asset.hitRate4h}%`} color={data.asset.hitRate4h >= 55 ? 'text-emerald-400' : 'text-red-400'} tooltip={STAT_HINTS.hitRate} />
+              <StatCard label="24h Hit Rate" value={`${data.asset.hitRate24h}%`} color={data.asset.hitRate24h >= 55 ? 'text-emerald-400' : 'text-red-400'} tooltip={STAT_HINTS.hitRate} />
+              <StatCard label="Avg Confidence" value={`${data.asset.avgConfidence}%`} tooltip={STAT_HINTS.avgConfidence} />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-4 pb-4">
-              <StatCard label="Best Streak" value={`+${data.asset.bestStreak}`} color="text-emerald-400" />
-              <StatCard label="Worst Streak" value={data.asset.worstStreak.toString()} color="text-red-400" />
-              <StatCard label="Avg P&L" value={`${data.asset.avgPnl >= 0 ? '+' : ''}${data.asset.avgPnl}%`} color={data.asset.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'} />
-              <StatCard label="Total P&L" value={fmtPnl(data.asset.totalPnl)} color={data.asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'} />
+              <StatCard label="Best Streak" value={`+${data.asset.bestStreak}`} color="text-emerald-400" tooltip={STAT_HINTS.bestStreak} />
+              <StatCard label="Worst Streak" value={data.asset.worstStreak.toString()} color="text-red-400" tooltip={STAT_HINTS.worstStreak} />
+              <StatCard label="Avg P&L" value={`${data.asset.avgPnl >= 0 ? '+' : ''}${data.asset.avgPnl}%`} color={data.asset.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'} tooltip={STAT_HINTS.avgPnl} />
+              <StatCard label="Total P&L" value={fmtPnl(data.asset.totalPnl)} color={data.asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'} tooltip={STAT_HINTS.totalReturnLinear} />
             </div>
 
             {/* recent signals */}
@@ -387,21 +392,27 @@ export default function LeaderboardClient() {
               value={fmtPnl(data.overall.totalPnl)}
               sub={`${data.overall.resolvedSignals} resolved`}
               color={data.overall.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}
+              tooltip={STAT_HINTS.totalReturnLinear}
             />
-            <StatCard label="Total Signals" value={data.overall.totalSignals.toString()} />
-            <StatCard label="Resolved" value={data.overall.resolvedSignals.toString()} />
+            <StatCard label="Total Signals" value={data.overall.totalSignals.toString()} tooltip="Every signal emitted in this window — pending, resolved, gate-blocked, expired all counted." />
+            <StatCard label="Resolved" value={data.overall.resolvedSignals.toString()} tooltip={STAT_HINTS.resolved} />
             <StatCard
               label="Overall 4h Hit Rate"
               value={`${data.overall.overallHitRate4h}%`}
               color={data.overall.overallHitRate4h >= 55 ? 'text-emerald-400' : 'text-red-400'}
+              tooltip={STAT_HINTS.hitRate}
             />
             <StatCard
               label="Overall 24h Hit Rate"
               value={`${data.overall.overallHitRate24h}%`}
               color={data.overall.overallHitRate24h >= 55 ? 'text-emerald-400' : 'text-red-400'}
+              tooltip={STAT_HINTS.hitRate}
             />
             <div className="glass-card rounded-xl p-3 flex flex-col gap-1">
-              <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Top Performer</div>
+              <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider inline-flex items-center gap-1">
+                Top Performer
+                <InfoHint text="Pair with the highest 24h hit rate this window. Worst is the lowest." label="What top performer means" />
+              </div>
               <div className="text-base font-bold font-mono text-zinc-400">{data.overall.topPerformer}</div>
               <div className="text-[10px] text-[var(--text-secondary)]">worst: {data.overall.worstPerformer}</div>
             </div>
@@ -462,20 +473,28 @@ export default function LeaderboardClient() {
                 >
                   Signals<SortIcon active={sortBy === 'totalSignals'} asc={sortAsc} />
                 </th>
-                <th className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium w-36">4h Hit Rate</th>
-                <th className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium w-36">24h Hit Rate</th>
+                <th className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium w-36">
+                  <span className="inline-flex items-center gap-1">4h Hit Rate <InfoHint text={STAT_HINTS.hitRate} label="What 4h hit rate means" /></span>
+                </th>
+                <th className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium w-36">
+                  <span className="inline-flex items-center gap-1">24h Hit Rate <InfoHint text={STAT_HINTS.hitRate} label="What 24h hit rate means" /></span>
+                </th>
                 <th
                   className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium w-32 cursor-pointer hover:text-[var(--text-secondary)] select-none"
                   onClick={() => handleSort('avgConfidence')}
                 >
-                  Avg Conf<SortIcon active={sortBy === 'avgConfidence'} asc={sortAsc} />
+                  <span className="inline-flex items-center gap-1">Avg Conf <InfoHint text={STAT_HINTS.avgConfidence} label="What avg confidence means" /></span>
+                  <SortIcon active={sortBy === 'avgConfidence'} asc={sortAsc} />
                 </th>
-                <th className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Avg P&L</th>
+                <th className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">
+                  <span className="inline-flex items-center gap-1 justify-end">Avg P&L <InfoHint text={STAT_HINTS.avgPnl} label="What avg P&L means" /></span>
+                </th>
                 <th
                   className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none"
                   onClick={() => handleSort('totalPnl')}
                 >
-                  Total P&L<SortIcon active={sortBy === 'totalPnl'} asc={sortAsc} />
+                  <span className="inline-flex items-center gap-1 justify-end">Total P&L <InfoHint text={STAT_HINTS.totalReturnLinear} label="What total P&L means" /></span>
+                  <SortIcon active={sortBy === 'totalPnl'} asc={sortAsc} />
                 </th>
                 <th className="px-4 py-3 text-center text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Trend</th>
               </tr>
