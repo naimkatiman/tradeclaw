@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveRealOutcomes, isCountedResolved, isRealOutcome } from '../../../../lib/signal-history';
-import { getCachedHistory } from '../../../../lib/signal-history-cache';
-import { TIER_SYMBOLS, TIER_HISTORY_DAYS } from '../../../../lib/tier';
+import { getResolvedSlice, parseScope } from '../../../../lib/signal-slice';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +15,7 @@ export async function GET(request: NextRequest) {
     // Track record is intentionally NOT gated by the caller's tier. Gating
     // here would hide the product's capability from the exact people we need
     // to show it to.
-    const scope = (searchParams.get('scope') ?? 'pro') === 'free' ? 'free' : 'pro';
+    const scope = parseScope(searchParams.get('scope'));
 
     const pair = searchParams.get('pair')?.toUpperCase();
     const direction = searchParams.get('direction')?.toUpperCase() as 'BUY' | 'SELL' | undefined;
@@ -25,33 +24,11 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 200);
     const offset = parseInt(searchParams.get('offset') ?? '0');
 
-    let records = await getCachedHistory();
+    // Shared source of truth — equity endpoint reads from the same slice so
+    // win-rate / resolved counts can never disagree across surfaces.
+    const slice = await getResolvedSlice({ scope, period });
+    let records = slice.periodFiltered;
 
-    if (scope === 'free') {
-      const allowedSymbols = TIER_SYMBOLS.free;
-      const historyDays = TIER_HISTORY_DAYS.free;
-      records = records.filter(r => allowedSymbols.includes(r.pair));
-      if (historyDays !== null) {
-        const cutoff = Date.now() - historyDays * 24 * 60 * 60 * 1000;
-        records = records.filter(r => r.timestamp >= cutoff);
-      }
-    }
-
-    // Earliest signal in the (scope-only, pre-period) record pool. UI uses
-    // this to disable period buttons whose window pre-dates any data we
-    // have — must be computed BEFORE period truncation or it just echoes
-    // the period cutoff.
-    const earliestTimestamp = records.length > 0
-      ? records.reduce((min, r) => r.timestamp < min ? r.timestamp : min, records[0].timestamp)
-      : null;
-
-    const periodDays: Record<string, number> = {
-      '7d': 7, '30d': 30, '90d': 90, '180d': 180, '1y': 365, '5y': 1825,
-    };
-    if (period && period in periodDays) {
-      const cutoff = Date.now() - periodDays[period] * 24 * 60 * 60 * 1000;
-      records = records.filter(r => r.timestamp >= cutoff);
-    }
     if (pair) records = records.filter(r => r.pair === pair);
     if (direction === 'BUY' || direction === 'SELL') records = records.filter(r => r.direction === direction);
     if (outcome === 'win') records = records.filter(r => r.outcomes['24h']?.hit === true);
@@ -60,9 +37,9 @@ export async function GET(request: NextRequest) {
 
     const sort = searchParams.get('sort');
     if (sort === 'resolved-first') {
-      const resolved = records.filter(r => r.outcomes['24h'] !== null).sort((a, b) => b.timestamp - a.timestamp);
+      const resolvedSorted = records.filter(r => r.outcomes['24h'] !== null).sort((a, b) => b.timestamp - a.timestamp);
       const pending = records.filter(r => r.outcomes['24h'] === null).sort((a, b) => b.timestamp - a.timestamp);
-      records = [...resolved, ...pending];
+      records = [...resolvedSorted, ...pending];
     } else {
       records.sort((a, b) => b.timestamp - a.timestamp);
     }
@@ -71,12 +48,15 @@ export async function GET(request: NextRequest) {
     const page = records.slice(offset, offset + limit);
 
     // Counted resolved = same predicate every other surface uses (equity,
-    // leaderboard, strategy breakdown). Excludes gate-blocked + auto-expire
-    // placeholders so totalPnlPct/winRate/streak stay aligned with the
-    // equity curve. Gate-blocked + expired are surfaced as separate
-    // counters so the page can say "X resolved, Y expired, Z gate-blocked"
-    // — honest, not hidden.
-    const resolved = records.filter(isCountedResolved);
+    // leaderboard, strategy breakdown). When pair/direction filters are
+    // applied, recompute from the filtered records so the stats reflect the
+    // user's view; otherwise reuse the shared slice's resolved set so the
+    // unfiltered view byte-matches /api/signals/equity.
+    const filtersApplied = pair || direction === 'BUY' || direction === 'SELL'
+      || outcome === 'win' || outcome === 'loss' || outcome === 'pending';
+    const resolved = filtersApplied
+      ? records.filter(isCountedResolved)
+      : slice.resolved;
     const wins = resolved.filter(r => r.outcomes['24h']!.hit);
     const totalPnl = resolved.reduce((sum, r) => sum + (r.outcomes['24h']?.pnlPct ?? 0), 0);
     const avgConfidence = records.length > 0
@@ -121,7 +101,7 @@ export async function GET(request: NextRequest) {
       offset,
       limit,
       scope,
-      earliestTimestamp,
+      earliestTimestamp: slice.earliestTimestamp,
       stats: {
         totalSignals: records.length,
         resolved: resolved.length,

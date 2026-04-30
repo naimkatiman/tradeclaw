@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readHistoryAsync, isCountedResolved, type SignalHistoryRecord } from '../../../../lib/signal-history';
-import { PRO_PREMIUM_MIN_CONFIDENCE, TIER_SYMBOLS, TIER_HISTORY_DAYS } from '../../../../lib/tier';
+import { isCountedResolved, type SignalHistoryRecord } from '../../../../lib/signal-history';
+import { PRO_PREMIUM_MIN_CONFIDENCE } from '../../../../lib/tier';
+import { getResolvedSlice, parseScope, type SignalScope } from '../../../../lib/signal-slice';
 
-export type EquityScope = 'pro' | 'free';
+export type EquityScope = SignalScope;
 
 export const revalidate = 60;
 
@@ -38,16 +39,11 @@ function inBand(record: SignalHistoryRecord, band: EquityBand): boolean {
   return true;
 }
 
-function computeEquityCurve(records: SignalHistoryRecord[]): {
+function computeEquityCurve(resolved: SignalHistoryRecord[]): {
   points: EquityPoint[];
   summary: EquitySummary;
 } {
-  // Canonical "counted resolved" set — same predicate every other surface
-  // uses (history, leaderboard, strategy breakdown). Excludes simulated,
-  // gate-blocked, and auto-expire placeholders.
-  const resolved = records
-    .filter(isCountedResolved)
-    .sort((a, b) => a.timestamp - b.timestamp);
+  const sorted = [...resolved].sort((a, b) => a.timestamp - b.timestamp);
 
   const points: EquityPoint[] = [];
   let equity = STARTING_EQUITY;
@@ -56,7 +52,7 @@ function computeEquityCurve(records: SignalHistoryRecord[]): {
   let wins = 0;
   const returns: number[] = [];
 
-  for (const r of resolved) {
+  for (const r of sorted) {
     const pnl = r.outcomes['24h']!.pnlPct;
     equity *= 1 + pnl / 100;
     returns.push(pnl);
@@ -82,9 +78,9 @@ function computeEquityCurve(records: SignalHistoryRecord[]): {
     const mean = returns.reduce((s, v) => s + v, 0) / returns.length;
     const variance = returns.reduce((s, v) => s + (v - mean) ** 2, 0) / returns.length;
     const stddev = Math.sqrt(variance);
-    const spanMs = resolved[resolved.length - 1].timestamp - resolved[0].timestamp;
+    const spanMs = sorted[sorted.length - 1].timestamp - sorted[0].timestamp;
     if (stddev > 0 && spanMs > 0) {
-      const signalsPerYear = (resolved.length / spanMs) * MS_PER_YEAR;
+      const signalsPerYear = (sorted.length / spanMs) * MS_PER_YEAR;
       sharpeRatio = +((mean / stddev) * Math.sqrt(signalsPerYear)).toFixed(2);
     }
   }
@@ -96,8 +92,8 @@ function computeEquityCurve(records: SignalHistoryRecord[]): {
     summary: {
       totalReturn: +totalReturn.toFixed(2),
       maxDrawdown: +maxDrawdown.toFixed(2),
-      winRate: resolved.length > 0 ? +((wins / resolved.length) * 100).toFixed(1) : 0,
-      totalSignals: resolved.length,
+      winRate: sorted.length > 0 ? +((wins / sorted.length) * 100).toFixed(1) : 0,
+      totalSignals: sorted.length,
       sharpeRatio,
     },
   };
@@ -112,26 +108,19 @@ export async function GET(request: NextRequest) {
     // record; scope=free narrows to free-tier symbols + 1d window. Track
     // record is intentionally not gated by caller tier — the comparison is
     // the marketing pitch.
-    const scope: EquityScope = searchParams.get('scope') === 'free' ? 'free' : 'pro';
+    const scope = parseScope(searchParams.get('scope'));
 
-    const sinceMs = period === '7d' || period === '30d'
-      ? Date.now() - (period === '7d' ? 7 : 30) * 24 * 60 * 60 * 1000
-      : undefined;
+    // Shared slice — same row set as /api/signals/history. Win-rate and
+    // resolved counts must byte-match across both endpoints.
+    const slice = await getResolvedSlice({ scope, period });
 
-    let records = await readHistoryAsync({ sinceMs });
+    // Band filter is equity-only. Apply on the resolved set, then recompute
+    // counted-resolved (no-op when band='all', filters confidence otherwise).
+    const resolved = band === 'all'
+      ? slice.resolved
+      : slice.resolved.filter(r => inBand(r, band) && isCountedResolved(r));
 
-    if (scope === 'free') {
-      const allowedSymbols = TIER_SYMBOLS.free;
-      const historyDays = TIER_HISTORY_DAYS.free;
-      records = records.filter(r => allowedSymbols.includes(r.pair));
-      if (historyDays !== null) {
-        const cutoff = Date.now() - historyDays * 24 * 60 * 60 * 1000;
-        records = records.filter(r => r.timestamp >= cutoff);
-      }
-    }
-
-    const filtered = band === 'all' ? records : records.filter(r => inBand(r, band));
-    const { points, summary } = computeEquityCurve(filtered);
+    const { points, summary } = computeEquityCurve(resolved);
 
     return NextResponse.json(
       { points, summary, band, scope },
