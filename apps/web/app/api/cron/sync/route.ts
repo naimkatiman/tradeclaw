@@ -80,6 +80,13 @@ export async function GET(request: NextRequest): Promise<Response> {
     results.socialDaily = await callInternal('/api/cron/social/daily', request);
   }
 
+  // 5b. Pilot symbol universe screen — once daily, anchored at 00:05 UTC.
+  //     Window is 5 ≤ minute < 10 so exactly one 5-min sync tick lands inside,
+  //     keeping the daily Binance kline-fetch load to a single run.
+  if (hour === 0 && minute >= 5 && minute < 10) {
+    results.universe = await callInternal('/api/cron/universe', request);
+  }
+
   // 6. Weekly social summary — Sunday at 18:00 UTC
   const dayOfWeek = new Date().getUTCDay();
   if (dayOfWeek === 0 && hour === 18 && minute < 10) {

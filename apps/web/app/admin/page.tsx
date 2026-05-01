@@ -181,6 +181,12 @@ export default async function AdminIndexPage() {
             icon={Activity}
           />
           <Tile
+            href="/admin/executions"
+            title="Pilot Executions"
+            body="Open positions, recent fills, errors, and today's symbol universe."
+            icon={Activity}
+          />
+          <Tile
             href="/dashboard/billing"
             title="Billing (own account)"
             body="Manage Stripe subscription for the signed-in admin."

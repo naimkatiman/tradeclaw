@@ -129,16 +129,20 @@ export default async function SignalPage(
 
   if (signals.length === 0) notFound();
 
-  const signal = signals[0];
-  const isBuy = signal.direction === 'BUY';
-  const signalPath = `/signal/${symbol}-${timeframe}-${direction}`;
-
-  // Tier gate: free/anon viewers see Entry/SL/TP1 but TP2/TP3 are masked
-  // (payload already nulls them via filterSignalByTier), and the price
-  // chart is Pro-only.
+  // Tier gate: this page is a public preview surface (SEO + conversion funnel),
+  // so we render any symbol the teaser surfaces — but free/anon viewers see
+  // TP2/TP3 masked. Price chart is also Pro-only (handled below).
+  // Symbol-level gating belongs on /api/signals (data access), not here.
   const session = await readSessionFromCookies();
   const tier = session?.userId ? await getUserTier(session.userId) : 'free';
   const isPaid = tier !== 'free';
+
+  const signal = isPaid
+    ? signals[0]
+    : { ...signals[0], takeProfit2: null, takeProfit3: null };
+
+  const isBuy = signal.direction === 'BUY';
+  const signalPath = `/signal/${symbol}-${timeframe}-${direction}`;
 
   return (
     <div className="min-h-[100dvh] bg-[#050505] text-white">

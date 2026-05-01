@@ -6,15 +6,15 @@ test.describe('Screener Page', () => {
   });
 
   test('loads screener page', async ({ page }) => {
-    // Page should load (dynamic import with loading spinner)
-    await page.waitForLoadState('networkidle');
+    // Don't use networkidle — live polling/SSE keeps the network busy.
+    await page.waitForLoadState('domcontentloaded');
 
     // Title should reflect screener
     await expect(page).toHaveTitle(/screener/i);
   });
 
   test('displays signal cards or table', async ({ page }) => {
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Wait for content to load (either signal cards, table rows, or a no-data message)
     const content = page.locator(
@@ -28,7 +28,7 @@ test.describe('Screener Page', () => {
   });
 
   test('has filter controls', async ({ page }) => {
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for filter elements (select, input, button)
     const filters = page.locator('select, input[type="text"], input[type="search"], [class*="filter"]');
