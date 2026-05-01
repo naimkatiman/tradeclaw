@@ -174,11 +174,26 @@ export async function getUserTier(userId: string): Promise<Tier> {
   // that don't have DB access. Callers that need real tier checks should
   // import this only in Node.js API routes.
   try {
-    const { getUserSubscription } = await import('./db');
+    const { getUserSubscription, getUserById } = await import('./db');
     const sub = await getUserSubscription(userId);
-    if (!sub || sub.status === 'canceled') return 'free';
-    if (sub.status === 'past_due') return 'free'; // grace handled elsewhere
-    return sub.tier as Tier;
+    let tier: Tier = 'free';
+    if (sub && sub.status !== 'canceled' && sub.status !== 'past_due') {
+      tier = sub.tier as Tier;
+    }
+
+    // Email-based Pro grant: owner / team / demo accounts that don't have a
+    // Stripe sub but should still see Pro features. Admin emails are also
+    // granted Pro automatically so admin dashboards aren't gated by billing.
+    if (tier === 'free') {
+      const user = await getUserById(userId);
+      if (user?.email) {
+        const { isProGrantedEmail, isAdminEmail } = await import('./admin-emails');
+        if (isAdminEmail(user.email) || isProGrantedEmail(user.email)) {
+          tier = 'pro';
+        }
+      }
+    }
+    return tier;
   } catch {
     return 'free';
   }

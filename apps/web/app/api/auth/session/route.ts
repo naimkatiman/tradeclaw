@@ -19,9 +19,15 @@ export async function GET(request: NextRequest) {
     res.cookies.delete(USER_SESSION_COOKIE);
     return res;
   }
+  const { isAdminEmail } = await import('../../../../lib/admin-emails');
+  const { getUserTier } = await import('../../../../lib/tier');
+  const isAdmin = isAdminEmail(user.email);
+  // Resolve effective tier (DB sub OR email grant) so the client gates match
+  // what server routes use via resolveAccessContext.
+  const tier = await getUserTier(user.id);
   return NextResponse.json({
     success: true,
-    data: { userId: user.id, email: user.email, tier: user.tier },
+    data: { userId: user.id, email: user.email, tier, isAdmin },
   });
 }
 
