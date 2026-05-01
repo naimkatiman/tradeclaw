@@ -45,7 +45,7 @@ export const TIER_SYMBOLS: Record<Tier, string[]> = {
 
 // History window per tier
 export const TIER_HISTORY_DAYS: Record<Tier, number | null> = {
-  free: 1,
+  free: 7,
   pro: null, // unlimited
   elite: null,
   custom: null,

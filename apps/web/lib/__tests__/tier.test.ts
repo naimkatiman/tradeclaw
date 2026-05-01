@@ -37,8 +37,22 @@ function makeSignal(overrides: Partial<TradingSignal> = {}): TradingSignal {
 }
 
 describe('tier — canonical constants', () => {
-  it('FREE_SYMBOLS is exactly the three symbols the product advertises', () => {
-    expect([...FREE_SYMBOLS].sort()).toEqual(['BTCUSD', 'ETHUSD', 'XAUUSD']);
+  it('FREE_SYMBOLS is exactly the six symbols the product advertises (one per asset class)', () => {
+    expect(FREE_SYMBOLS.length).toBe(6);
+    expect([...FREE_SYMBOLS]).toEqual([
+      'BTCUSD',
+      'ETHUSD',
+      'XAUUSD',
+      'EURUSD',
+      'SPYUSD',
+      'QQQUSD',
+    ]);
+  });
+
+  it('FREE_SYMBOLS includes EURUSD, SPYUSD, QQQUSD (forex + index ETF coverage)', () => {
+    expect(FREE_SYMBOLS).toContain('EURUSD');
+    expect(FREE_SYMBOLS).toContain('SPYUSD');
+    expect(FREE_SYMBOLS).toContain('QQQUSD');
   });
 
   it('TIER_SYMBOLS.free mirrors FREE_SYMBOLS (single source of truth)', () => {
@@ -52,8 +66,8 @@ describe('tier — canonical constants', () => {
     expect(TIER_SYMBOLS.pro.length).toBeGreaterThan(FREE_SYMBOLS.length);
   });
 
-  it('TIER_HISTORY_DAYS.free is 1 day, pro is unlimited', () => {
-    expect(TIER_HISTORY_DAYS.free).toBe(1);
+  it('TIER_HISTORY_DAYS.free is 7 days, pro is unlimited', () => {
+    expect(TIER_HISTORY_DAYS.free).toBe(7);
     expect(TIER_HISTORY_DAYS.pro).toBeNull();
   });
 
@@ -74,11 +88,14 @@ describe('tier — canonical constants', () => {
 });
 
 describe('tier — isFreeSymbol', () => {
-  it.each(['BTCUSD', 'ETHUSD', 'XAUUSD'])('accepts free symbol %s', (sym) => {
-    expect(isFreeSymbol(sym)).toBe(true);
-  });
+  it.each(['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'SPYUSD', 'QQQUSD'])(
+    'accepts free symbol %s',
+    (sym) => {
+      expect(isFreeSymbol(sym)).toBe(true);
+    },
+  );
 
-  it.each(['EURUSD', 'GBPUSD', 'USDJPY', 'XRPUSD', 'XAGUSD'])(
+  it.each(['GBPUSD', 'USDJPY', 'XRPUSD', 'XAGUSD', 'NVDAUSD', 'WTIUSD'])(
     'rejects premium symbol %s',
     (sym) => {
       expect(isFreeSymbol(sym)).toBe(false);
@@ -103,13 +120,46 @@ describe('tier — filterSignalByTier', () => {
     expect(out!.takeProfit3).toBeNull();
   });
 
-  it('free caller sees EURUSD as null (dropped entirely)', () => {
-    const out = filterSignalByTier(makeSignal({ symbol: 'EURUSD' }), 'free');
-    expect(out).toBeNull();
+  it('free caller keeps EURUSD with TP2/TP3 masked and advanced indicators stripped', () => {
+    const out = filterSignalByTier(
+      makeSignal({ symbol: 'EURUSD', confidence: 75 }),
+      'free',
+    );
+    expect(out).not.toBeNull();
+    expect(out!.symbol).toBe('EURUSD');
+    expect(out!.takeProfit1).toBe(51000);
+    expect(out!.takeProfit2).toBeNull();
+    expect(out!.takeProfit3).toBeNull();
+    expect(out!.indicators?.macd).toEqual({ histogram: 0, signal: 'neutral' });
+    expect(out!.indicators?.bollingerBands).toEqual({
+      position: 'middle',
+      bandwidth: 0,
+    });
+    expect(out!.indicators?.stochastic).toEqual({ k: 0, d: 0, signal: 'neutral' });
+  });
+
+  it('free caller keeps SPYUSD (index ETF) with the same masking', () => {
+    const out = filterSignalByTier(
+      makeSignal({ symbol: 'SPYUSD', confidence: 75 }),
+      'free',
+    );
+    expect(out).not.toBeNull();
+    expect(out!.symbol).toBe('SPYUSD');
+    expect(out!.takeProfit2).toBeNull();
+    expect(out!.takeProfit3).toBeNull();
+  });
+
+  it('free caller keeps QQQUSD (index ETF)', () => {
+    const out = filterSignalByTier(
+      makeSignal({ symbol: 'QQQUSD', confidence: 75 }),
+      'free',
+    );
+    expect(out).not.toBeNull();
+    expect(out!.symbol).toBe('QQQUSD');
   });
 
   it('free caller sees all non-free symbols dropped', () => {
-    const symbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'XRPUSD'];
+    const symbols = ['GBPUSD', 'USDJPY', 'XRPUSD', 'NVDAUSD', 'WTIUSD'];
     for (const symbol of symbols) {
       expect(filterSignalByTier(makeSignal({ symbol }), 'free')).toBeNull();
     }
@@ -164,6 +214,20 @@ describe('tier — filterSignalByTier', () => {
     const out = filterSignalByTier(makeSignal({ symbol: 'EURUSD' }), 'pro');
     expect(out!.indicators?.macd?.signal).toBe('bullish');
     expect(out!.indicators?.stochastic?.k).toBe(65);
+  });
+
+  it('pro behavior on every free-tier symbol is unchanged — full signal passes through', () => {
+    for (const symbol of FREE_SYMBOLS) {
+      const out = filterSignalByTier(makeSignal({ symbol, confidence: 80 }), 'pro');
+      expect(out).not.toBeNull();
+      expect(out!.symbol).toBe(symbol);
+      expect(out!.takeProfit1).toBe(51000);
+      expect(out!.takeProfit2).toBe(52000);
+      expect(out!.takeProfit3).toBe(53000);
+      expect(out!.indicators?.macd?.signal).toBe('bullish');
+      expect(out!.indicators?.bollingerBands?.position).toBe('upper');
+      expect(out!.indicators?.stochastic?.k).toBe(65);
+    }
   });
 
   it('filter is pure — does not mutate the input signal', () => {
