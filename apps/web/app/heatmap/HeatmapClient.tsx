@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { fetchWithLicense } from '@/lib/license-client';
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -143,7 +142,7 @@ export function HeatmapClient() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetchWithLicense('/api/heatmap');
+      const res = await fetch('/api/heatmap');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json: HeatmapData = await res.json();
       setData(json);

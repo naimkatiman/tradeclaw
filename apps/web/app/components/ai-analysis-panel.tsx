@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
-import { fetchWithLicense } from '@/lib/license-client';
 
 interface AIAnalysisPanelProps {
   symbol: string;
@@ -209,7 +208,7 @@ export function AIAnalysisPanel({ symbol, timeframe }: AIAnalysisPanelProps) {
     setLoading(true);
     setOpen(true);
     try {
-      const res = await fetchWithLicense('/api/explain', {
+      const res = await fetch('/api/explain', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ symbol, timeframe }),

@@ -21,7 +21,6 @@ import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
 import { AccuracyMeta } from '../components/accuracy-meta';
 import { SignalExportMenu } from '../components/signal-export-menu';
 import { LockedTP } from '../../components/LockedTP';
-import { fetchWithLicense } from '../../lib/license-client';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 import { InfoHint } from '../../components/InfoHint';
@@ -590,7 +589,7 @@ function SignalHistory() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchWithLicense('/api/signals/history?limit=40&sort=resolved-first')
+    fetch('/api/signals/history?limit=40&sort=resolved-first')
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(data => {
         if (data?.records) {
@@ -796,8 +795,8 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       params.set('minConfidence', '50');
 
       const [signalsRes, mtfRes] = await Promise.allSettled([
-        fetchWithLicense(`/api/signals?${params}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }),
-        fetchWithLicense('/api/signals/multi-tf').then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }),
+        fetch(`/api/signals?${params}`).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }),
+        fetch('/api/signals/multi-tf').then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }),
       ]);
 
       if (signalsRes.status === 'fulfilled') {
