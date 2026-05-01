@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getTrackedSignals } from '../../../../lib/tracked-signals';
 import { toTeaser } from '../../../../lib/signal-teaser';
-import { anonymousContext } from '../../../../lib/licenses';
+import { getStrategiesForTier } from '../../../../lib/tier';
 
 /**
  * GET /api/signals/public
@@ -13,7 +13,9 @@ import { anonymousContext } from '../../../../lib/licenses';
  */
 export async function GET(): Promise<NextResponse> {
   try {
-    const { signals } = await getTrackedSignals({ ctx: anonymousContext() });
+    const { signals } = await getTrackedSignals({
+      ctx: { unlockedStrategies: getStrategiesForTier('free') },
+    });
     const teasers = signals.map(toTeaser);
     return NextResponse.json(
       { count: teasers.length, signals: teasers },
