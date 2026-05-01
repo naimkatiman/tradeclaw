@@ -146,6 +146,26 @@ export async function resolveAccessContext(req: Request): Promise<AccessContext>
 }
 
 /**
+ * Resolve the caller's `AccessContext` from the next/headers cookie store.
+ *
+ * Use from server components / RSC paths that don't have a Request in hand.
+ * Same fail-closed posture as `resolveAccessContext`.
+ */
+export async function resolveAccessContextFromCookies(): Promise<AccessContext> {
+  try {
+    const { readSessionFromCookies } = await import('./user-session');
+    const session = await readSessionFromCookies();
+    if (!session?.userId) {
+      return { tier: 'free', unlockedStrategies: getStrategiesForTier('free') };
+    }
+    const tier = await getUserTier(session.userId);
+    return { tier, unlockedStrategies: getStrategiesForTier(tier) };
+  } catch {
+    return { tier: 'free', unlockedStrategies: getStrategiesForTier('free') };
+  }
+}
+
+/**
  * Retrieve the tier for a given user ID from the database.
  * Falls back to 'free' if no active subscription is found.
  */

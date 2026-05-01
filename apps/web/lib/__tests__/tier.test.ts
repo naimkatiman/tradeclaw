@@ -10,6 +10,7 @@ import {
   PRO_PREMIUM_MIN_CONFIDENCE,
   getStrategiesForTier,
   resolveAccessContext,
+  resolveAccessContextFromCookies,
 } from '../tier';
 // Transitional cross-check import: this stays in the test file only so the
 // production `tier.ts` does not depend on `licenses.ts`. After Phase D removes
@@ -353,5 +354,52 @@ describe('tier — resolveAccessContext', () => {
     const second = await resolveAccessContext(req);
     expect(second.unlockedStrategies.has('mutant')).toBe(false);
     expect(second.unlockedStrategies).toEqual(new Set(['classic']));
+  });
+});
+
+describe('tier — resolveAccessContextFromCookies', () => {
+  // Cleanup between cases — Jest doesn't auto-reset module mocks here because
+  // the dynamic imports inside resolveAccessContextFromCookies create fresh
+  // module instances. Use jest.doMock so each case scopes its own mock.
+  afterEach(() => {
+    jest.resetModules();
+  });
+
+  it('falls back to free tier when next/headers throws (no RSC context)', async () => {
+    // In a unit-test environment there is no next/headers cookie store —
+    // the dynamic import inside the helper rejects, the catch block returns
+    // anonymous. This pins the fail-closed posture.
+    const ctx = await resolveAccessContextFromCookies();
+    expect(ctx.tier).toBe('free');
+    expect(ctx.unlockedStrategies).toEqual(new Set(['classic']));
+  });
+
+  it('returns free tier when readSessionFromCookies yields no session', async () => {
+    jest.doMock('../user-session', () => ({
+      readSessionFromCookies: jest.fn().mockResolvedValue(null),
+    }));
+    const { resolveAccessContextFromCookies: fn } = await import('../tier');
+    const ctx = await fn();
+    expect(ctx.tier).toBe('free');
+    expect(ctx.unlockedStrategies).toEqual(new Set(['classic']));
+  });
+
+  it('returns pro tier with full strategy set when session resolves to a pro user', async () => {
+    jest.doMock('../user-session', () => ({
+      readSessionFromCookies: jest.fn().mockResolvedValue({
+        userId: 'user-pro',
+        issuedAt: Date.now(),
+      }),
+    }));
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest
+        .fn()
+        .mockResolvedValue({ tier: 'pro', status: 'active' }),
+    }));
+    const { resolveAccessContextFromCookies: fn } = await import('../tier');
+    const ctx = await fn();
+    expect(ctx.tier).toBe('pro');
+    expect(ctx.unlockedStrategies.has('hmm-top3')).toBe(true);
+    expect(ctx.unlockedStrategies.has('tv-zaky-classic')).toBe(true);
   });
 });

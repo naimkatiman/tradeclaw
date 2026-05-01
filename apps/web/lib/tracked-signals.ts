@@ -10,21 +10,48 @@ import { PUBLISHED_SIGNAL_MIN_CONFIDENCE, minConfidenceFor } from './signal-thre
 import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
 import { fetchGateState, getGateMode } from './full-risk-gates';
 import { logGateDecision, buildGateLogEntry, type SignalForLog } from './gate-log';
-import {
-  resolveLicense,
-  anonymousContext,
-  pickHighestUnlocked,
-  FREE_STRATEGY,
-  type LicenseContext,
-} from './licenses';
+import { resolveAccessContext, getStrategiesForTier } from './tier';
+
+// Inlined to break the dependency on ./licenses during the license→tier
+// migration. Phase D removes ./licenses entirely; the value never changes.
+const FREE_STRATEGY = 'classic';
+
+/**
+ * Priority order for picking a caller's "effective" strategy view. Higher
+ * index = more premium. The first match in reverse order wins. Inlined from
+ * the deprecated licenses module so this file no longer imports it.
+ */
+const STRATEGY_PRIORITY = [
+  'classic',
+  'regime-aware',
+  'vwap-ema-bb',
+  'hmm-top3',
+  'full-risk',
+] as const;
+
+function pickHighestUnlocked(unlocked: Set<string> | ReadonlySet<string>): string {
+  for (let i = STRATEGY_PRIORITY.length - 1; i >= 0; i--) {
+    const sid = STRATEGY_PRIORITY[i];
+    if (unlocked.has(sid)) return sid;
+  }
+  return FREE_STRATEGY;
+}
+
+/**
+ * Structural shape of any caller carrying a strategy access set. Accepts
+ * `AccessContext` (canonical) or any literal `{ unlockedStrategies: Set<string> }`.
+ */
+interface StrategyAccess {
+  unlockedStrategies: Set<string> | ReadonlySet<string>;
+}
 
 export interface GetTrackedSignalsParams {
   symbol?: string;
   timeframe?: string;
   direction?: string;
   minConfidence?: number;
-  /** License context for read-time strategy filtering. Defaults to anonymous ({classic}). */
-  ctx?: LicenseContext;
+  /** Strategy access for read-time filtering. Defaults to anonymous ({classic}). */
+  ctx?: StrategyAccess;
 }
 
 export async function getTrackedSignals(params: GetTrackedSignalsParams) {
@@ -35,7 +62,9 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
   const activePresetId = getActivePreset().id;
   const profileId = safeProfileId(activePresetId);
   const result = await getSignals({ ...params, profileId });
-  const ctx = params.ctx ?? anonymousContext();
+  const ctx: StrategyAccess = params.ctx ?? {
+    unlockedStrategies: getStrategiesForTier('free'),
+  };
 
   if (result.signals.length > 0) {
     // This is the actual production write path for signal_history (the
@@ -177,7 +206,7 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
 
   // Per-caller confidence floor. Premium callers get a lower floor so they
   // see signals the free published threshold would have suppressed.
-  const floor = minConfidenceFor(pickHighestUnlocked(ctx));
+  const floor = minConfidenceFor(pickHighestUnlocked(ctx.unlockedStrategies));
   if (floor < PUBLISHED_SIGNAL_MIN_CONFIDENCE) {
     result.signals = result.signals.filter((s) => s.confidence >= floor);
   } else {
@@ -229,7 +258,7 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
 }
 
 /**
- * Convenience wrapper: resolves the license context from the Request,
+ * Convenience wrapper: resolves the access context from the Request,
  * then delegates to getTrackedSignals. Preferred for any API route or
  * server component that has a Request in hand.
  */
@@ -237,6 +266,6 @@ export async function getTrackedSignalsForRequest(
   req: Request,
   params: Omit<GetTrackedSignalsParams, 'ctx'> = {},
 ) {
-  const ctx = await resolveLicense(req);
+  const ctx = await resolveAccessContext(req);
   return getTrackedSignals({ ...params, ctx });
 }
