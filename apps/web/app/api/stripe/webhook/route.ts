@@ -7,6 +7,7 @@ import {
   upsertSubscription,
   cancelSubscription,
   updateSubscriptionStatus,
+  tryClaimStripeEvent,
 } from '../../../../lib/db';
 import { sendInvite, revokeAccess } from '../../../../lib/telegram';
 
@@ -37,6 +38,15 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Idempotency gate. Stripe replays events on retry / redelivery; our
+    // upserts are idempotent at the DB level but the Telegram side-effects
+    // in handleCheckoutCompleted are not. Claim the event id first; if a
+    // prior delivery already processed it, return 200 so Stripe stops.
+    const claimed = await tryClaimStripeEvent(event.id, event.type);
+    if (!claimed) {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;

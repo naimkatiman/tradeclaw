@@ -257,6 +257,36 @@ export async function updateSubscriptionStatus(
 }
 
 // ---------------------------------------------------------------------------
+// Stripe webhook idempotency ledger
+// ---------------------------------------------------------------------------
+
+/**
+ * Try to claim a Stripe event id for processing. Returns `true` when the row
+ * was inserted (this caller owns the work) and `false` when another delivery
+ * already recorded the event (caller should short-circuit).
+ *
+ * Uses INSERT … ON CONFLICT DO NOTHING and inspects rowCount to avoid an
+ * unnecessary SELECT round-trip.
+ */
+export async function tryClaimStripeEvent(
+  eventId: string,
+  eventType: string,
+): Promise<boolean> {
+  const client = await (await import('./db-pool')).getPool().connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO processed_stripe_events (event_id, event_type)
+       VALUES ($1, $2)
+       ON CONFLICT (event_id) DO NOTHING`,
+      [eventId, eventType],
+    );
+    return (result.rowCount ?? 0) > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Telegram invite operations
 // ---------------------------------------------------------------------------
 
