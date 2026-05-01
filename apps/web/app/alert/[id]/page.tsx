@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
-import { resolveLicenseFromCookies } from '../../../lib/licenses';
+import { resolveAccessContextFromCookies } from '../../../lib/tier';
 import { AlertDetailClient } from './AlertDetailClient';
 
 type Params = { id: string };
@@ -64,7 +64,7 @@ export default async function AlertPage(
 
   if (direction !== 'BUY' && direction !== 'SELL') notFound();
 
-  const ctx = await resolveLicenseFromCookies();
+  const ctx = await resolveAccessContextFromCookies();
   const { signals } = await getTrackedSignals({ symbol, timeframe, direction, ctx });
   if (signals.length === 0) notFound();
 

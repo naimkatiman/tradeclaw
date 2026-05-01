@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { fetchWithLicense } from '@/lib/license-client';
 
 interface Signal {
   symbol: string;
@@ -165,7 +164,7 @@ export function LiveDemoEmbed() {
   useEffect(() => {
     async function fetchSignals() {
       try {
-        const res = await fetchWithLicense('/api/signals?limit=6');
+        const res = await fetch('/api/signals?limit=6');
         if (!res.ok) return;
         const data = await res.json();
         if (data.signals) {

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { fetchWithLicense } from '@/lib/license-client';
 
 function formatAge(ms: number): string {
   const mins = Math.round(ms / 60000);
@@ -34,7 +33,7 @@ export function SignalExplanation({ symbol, direction, confidence, entry, timefr
     setLoading(true);
     setOpen(true);
     try {
-      const res = await fetchWithLicense('/api/explain', {
+      const res = await fetch('/api/explain', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ symbol, direction, confidence, entry, timeframe, indicators }),

@@ -36,10 +36,10 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
     annualPriceLabel: '',
     kind: 'free',
     features: [
-      '3 symbols: BTCUSD, ETHUSD, XAUUSD',
+      '6 symbols across crypto, forex, commodities, indices',
       '15-minute delayed signals',
       'TP1 target only',
-      'Last 24h signal history',
+      'Last 7 days signal history',
     ],
   },
   {

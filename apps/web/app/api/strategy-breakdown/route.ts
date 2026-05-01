@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStrategyBreakdown } from '../../../lib/leaderboard-cache';
-import { resolveLicense, FREE_STRATEGY } from '../../../lib/licenses';
+import { resolveAccessContext } from '../../../lib/tier';
+
+const FREE_STRATEGY = 'classic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,10 +11,10 @@ export async function GET(request: NextRequest) {
     const period: '7d' | '30d' | 'all' =
       rawPeriod === '7d' ? '7d' : rawPeriod === '30d' ? '30d' : 'all';
 
-    const ctx = await resolveLicense(request);
+    const access = await resolveAccessContext(request);
     const rows = await getStrategyBreakdown(period);
     const visible = rows.filter((r) =>
-      ctx.unlockedStrategies.has(r.strategyId ?? FREE_STRATEGY),
+      access.unlockedStrategies.has(r.strategyId ?? FREE_STRATEGY),
     );
 
     return NextResponse.json(

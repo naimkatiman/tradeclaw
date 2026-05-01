@@ -1,7 +1,22 @@
 import 'server-only';
 import { query } from './db-pool';
 import type { TradingSignal } from '@tradeclaw/signals';
-import { FREE_STRATEGY, type LicenseContext } from './licenses';
+
+// Inlined to break the dependency on ./licenses during the license→tier
+// migration (see docs/plans/2026-05-01-monetization-consolidation.md, Phase B).
+// Phase D removes ./licenses entirely; the value never changes.
+const FREE_STRATEGY = 'classic';
+
+/**
+ * Structural shape of any caller carrying a strategy access set. Accepts
+ * `LicenseContext` (legacy), `AccessContext` (canonical), or any literal
+ * `{ unlockedStrategies: Set<string> }` constructed by tests / server pages.
+ * Avoids importing concrete types from licenses.ts or tier.ts so this module
+ * survives the license-system removal in Phase D.
+ */
+interface StrategyAccess {
+  unlockedStrategies: Set<string> | ReadonlySet<string>;
+}
 
 interface Row {
   id: string;
@@ -24,10 +39,10 @@ export interface GetPremiumParams {
 }
 
 export async function getPremiumSignalsFor(
-  ctx: LicenseContext,
+  access: StrategyAccess,
   params: GetPremiumParams = {},
 ): Promise<TradingSignal[]> {
-  const unlocked = [...ctx.unlockedStrategies].filter((s) => s !== FREE_STRATEGY);
+  const unlocked = [...access.unlockedStrategies].filter((s) => s !== FREE_STRATEGY);
   if (unlocked.length === 0) return [];
 
   const conds: string[] = ['strategy_id = ANY($1)'];
@@ -60,11 +75,11 @@ export async function getPremiumSignalsFor(
 }
 
 export async function listPremiumSignalsSince(
-  ctx: LicenseContext,
+  access: StrategyAccess,
   sinceMs: number,
   limit = 50,
 ): Promise<TradingSignal[]> {
-  const unlocked = [...ctx.unlockedStrategies].filter((s) => s !== FREE_STRATEGY);
+  const unlocked = [...access.unlockedStrategies].filter((s) => s !== FREE_STRATEGY);
   if (unlocked.length === 0) return [];
   const rows = await query<Row>(
     `SELECT id, strategy_id, symbol, timeframe, direction, confidence,

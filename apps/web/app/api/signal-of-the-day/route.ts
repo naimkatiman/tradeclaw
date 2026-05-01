@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
-import { resolveLicense, type LicenseContext } from '../../../lib/licenses';
+import { resolveAccessContext, type AccessContext } from '../../../lib/tier';
 import { readLiveSignals } from '../../../lib/signals-live';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../lib/signal-thresholds';
 
@@ -45,7 +45,7 @@ function emptyPayload(reason: string, extraHeaders: Record<string, string> = {})
   );
 }
 
-async function pickFromTracked(ctx: LicenseContext): Promise<BestSignal | null> {
+async function pickFromTracked(ctx: AccessContext): Promise<BestSignal | null> {
   const { signals } = await getTrackedSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE, ctx });
   if (!signals.length) return null;
   const best = [...signals].sort((a, b) => b.confidence - a.confidence)[0];
@@ -146,7 +146,7 @@ function formatResponse(best: BestSignal, total: number, stale: boolean) {
 }
 
 export async function GET(req: NextRequest) {
-  const ctx = await resolveLicense(req);
+  const ctx = await resolveAccessContext(req);
   // Path 1: fresh tracked signals
   try {
     const best = await pickFromTracked(ctx);

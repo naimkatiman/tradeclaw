@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { fetchWithLicense } from '@/lib/license-client';
 import { DataProvenanceBadge } from '@/components/data-provenance-badge';
 import { InfoHint } from '@/components/InfoHint';
 import { STAT_HINTS } from '@/lib/stat-hints';
@@ -69,7 +68,7 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
           }
         }
         // Fallback to old history API
-        const res2 = await fetchWithLicense('/api/signals/history?limit=1');
+        const res2 = await fetch('/api/signals/history?limit=1');
         if (!res2.ok) return;
         const data2 = await res2.json();
         setStats(data2.stats ?? null);

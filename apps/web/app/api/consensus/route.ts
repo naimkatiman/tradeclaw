@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../lib/signals';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
-import { resolveLicense } from '../../../lib/licenses';
+import { resolveAccessContext } from '../../../lib/tier';
 
 export interface ConsensusEntry {
   pair: string;
@@ -45,7 +45,7 @@ function getTrend24h(pair: string, buyRatio: number): 'UP' | 'DOWN' | 'FLAT' {
 
 export async function GET(req: NextRequest) {
   try {
-    const ctx = await resolveLicense(req);
+    const ctx = await resolveAccessContext(req);
     // Fetch signals for multiple timeframes to build consensus
     const [h1Result, h4Result] = await Promise.allSettled([
       getTrackedSignals({ timeframe: 'H1', minConfidence: 0, ctx }),

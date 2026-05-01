@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { execute } from '@/lib/db-pool';
-import { TV_STRATEGIES } from '@/lib/licenses';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
+/**
+ * Strategy IDs that may flow in via the TradingView webhook pipe. Used as an
+ * allowlist for incoming Pine-Script alerts. Add a new id here when wiring a
+ * new TV strategy alert.
+ */
+const TV_STRATEGIES: ReadonlySet<string> = new Set([
+  'tv-zaky-classic',
+  'tv-hafiz-synergy',
+  'tv-impulse-hunter',
+]);
 
 interface WebhookPayload {
   source_id: string;

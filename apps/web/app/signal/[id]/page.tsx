@@ -4,9 +4,8 @@ import { Lock } from 'lucide-react';
 import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 import type { Metadata } from 'next';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
-import { resolveLicenseFromCookies } from '../../../lib/licenses';
+import { resolveAccessContextFromCookies, getUserTier } from '../../../lib/tier';
 import { readSessionFromCookies } from '../../../lib/user-session';
-import { getUserTier } from '../../../lib/tier';
 import { getActiveSignals } from '../../../lib/signal-repo';
 import { SignalShareButtons } from '../../components/signal-share-buttons';
 import { EmbedButton } from '../../components/embed-button';
@@ -123,7 +122,7 @@ export default async function SignalPage(
   }
 
   if (signals.length === 0) {
-    const ctx = await resolveLicenseFromCookies();
+    const ctx = await resolveAccessContextFromCookies();
     const taResult = await getTrackedSignals({ symbol, timeframe, direction, ctx });
     signals = taResult.signals;
   }

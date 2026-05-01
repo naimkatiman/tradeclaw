@@ -45,7 +45,7 @@ export const TIER_SYMBOLS: Record<Tier, string[]> = {
 
 // History window per tier
 export const TIER_HISTORY_DAYS: Record<Tier, number | null> = {
-  free: 1,
+  free: 7,
   pro: null, // unlimited
   elite: null,
   custom: null,
@@ -64,6 +64,106 @@ export const TIER_DELAY_MS: Record<Tier, number> = {
  * that free users don't see. This threshold gates the "premium" band.
  */
 export const PRO_PREMIUM_MIN_CONFIDENCE = 85;
+
+/**
+ * Single source of truth for the strategies a Pro tier unlocks.
+ *
+ * Mirrors `ALLOWED_PREMIUM_STRATEGIES` from `./licenses` plus the always-free
+ * `classic` strategy. Hardcoded here so the canonical access API does NOT
+ * depend on the license module — the license system is being retired and the
+ * dependency direction is intentionally inverted.
+ *
+ * If this list drifts from `licenses.ts`, the cross-check test in
+ * `tier.test.ts` will fail. Keep them in sync until `licenses.ts` is removed.
+ */
+const PRO_STRATEGIES: ReadonlySet<string> = new Set([
+  // Always-free preset
+  'classic',
+  // Built-in TA presets
+  'regime-aware',
+  'hmm-top3',
+  'vwap-ema-bb',
+  'full-risk',
+  // TradingView Pine-Script strategies (via /api/webhooks/tradingview)
+  'tv-zaky-classic',
+  'tv-hafiz-synergy',
+  'tv-impulse-hunter',
+]);
+
+/**
+ * Strategies a tier is allowed to read.
+ *
+ * Returns a fresh `Set` per call so callers can mutate it locally without
+ * affecting other callers or the module-scope source of truth.
+ *
+ * Today: free → `classic` only; pro/elite/custom → all `PRO_STRATEGIES`.
+ * Custom inherits Elite by default per the existing `TIER_SYMBOLS` pattern.
+ */
+export function getStrategiesForTier(tier: Tier): Set<string> {
+  switch (tier) {
+    case 'free':
+      return new Set(['classic']);
+    case 'pro':
+    case 'elite':
+    case 'custom':
+      return new Set(PRO_STRATEGIES);
+    default: {
+      // Exhaustiveness check — if `Tier` grows, tsc errors here so the
+      // monetization gate can't silently grant Pro access to a new tier.
+      const _exhaustive: never = tier;
+      void _exhaustive;
+      return new Set(['classic']);
+    }
+  }
+}
+
+/**
+ * Resolved access surface for an incoming request — the canonical access API
+ * that downstream phases (B-D) will migrate license-key readers onto.
+ *
+ * Carries the caller's tier alongside the strategy set they're allowed to
+ * read so consumers can gate by tier OR strategy without re-deriving either.
+ */
+export interface AccessContext {
+  tier: Tier;
+  unlockedStrategies: Set<string>;
+}
+
+/**
+ * Resolve the caller's `AccessContext` from an incoming Request.
+ *
+ * Fail-closed: any error → `{ tier: 'free', unlockedStrategies: new Set(['classic']) }`.
+ * Mirrors `getTierFromRequest`'s posture so a thrown error in session/DB
+ * lookup never accidentally upgrades a caller.
+ */
+export async function resolveAccessContext(req: Request): Promise<AccessContext> {
+  try {
+    const tier = await getTierFromRequest(req);
+    return { tier, unlockedStrategies: getStrategiesForTier(tier) };
+  } catch {
+    return { tier: 'free', unlockedStrategies: new Set(['classic']) };
+  }
+}
+
+/**
+ * Resolve the caller's `AccessContext` from the next/headers cookie store.
+ *
+ * Use from server components / RSC paths that don't have a Request in hand.
+ * Same fail-closed posture as `resolveAccessContext`.
+ */
+export async function resolveAccessContextFromCookies(): Promise<AccessContext> {
+  try {
+    const { readSessionFromCookies } = await import('./user-session');
+    const session = await readSessionFromCookies();
+    if (!session?.userId) {
+      return { tier: 'free', unlockedStrategies: getStrategiesForTier('free') };
+    }
+    const tier = await getUserTier(session.userId);
+    return { tier, unlockedStrategies: getStrategiesForTier(tier) };
+  } catch {
+    return { tier: 'free', unlockedStrategies: getStrategiesForTier('free') };
+  }
+}
 
 /**
  * Retrieve the tier for a given user ID from the database.

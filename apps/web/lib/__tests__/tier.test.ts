@@ -8,6 +8,9 @@ import {
   filterSignalByTier,
   meetsMinimumTier,
   PRO_PREMIUM_MIN_CONFIDENCE,
+  getStrategiesForTier,
+  resolveAccessContext,
+  resolveAccessContextFromCookies,
 } from '../tier';
 import type { TradingSignal } from '../../app/lib/signals';
 
@@ -37,8 +40,22 @@ function makeSignal(overrides: Partial<TradingSignal> = {}): TradingSignal {
 }
 
 describe('tier — canonical constants', () => {
-  it('FREE_SYMBOLS is exactly the three symbols the product advertises', () => {
-    expect([...FREE_SYMBOLS].sort()).toEqual(['BTCUSD', 'ETHUSD', 'XAUUSD']);
+  it('FREE_SYMBOLS is exactly the six symbols the product advertises (one per asset class)', () => {
+    expect(FREE_SYMBOLS.length).toBe(6);
+    expect([...FREE_SYMBOLS]).toEqual([
+      'BTCUSD',
+      'ETHUSD',
+      'XAUUSD',
+      'EURUSD',
+      'SPYUSD',
+      'QQQUSD',
+    ]);
+  });
+
+  it('FREE_SYMBOLS includes EURUSD, SPYUSD, QQQUSD (forex + index ETF coverage)', () => {
+    expect(FREE_SYMBOLS).toContain('EURUSD');
+    expect(FREE_SYMBOLS).toContain('SPYUSD');
+    expect(FREE_SYMBOLS).toContain('QQQUSD');
   });
 
   it('TIER_SYMBOLS.free mirrors FREE_SYMBOLS (single source of truth)', () => {
@@ -52,8 +69,8 @@ describe('tier — canonical constants', () => {
     expect(TIER_SYMBOLS.pro.length).toBeGreaterThan(FREE_SYMBOLS.length);
   });
 
-  it('TIER_HISTORY_DAYS.free is 1 day, pro is unlimited', () => {
-    expect(TIER_HISTORY_DAYS.free).toBe(1);
+  it('TIER_HISTORY_DAYS.free is 7 days, pro is unlimited', () => {
+    expect(TIER_HISTORY_DAYS.free).toBe(7);
     expect(TIER_HISTORY_DAYS.pro).toBeNull();
   });
 
@@ -74,11 +91,14 @@ describe('tier — canonical constants', () => {
 });
 
 describe('tier — isFreeSymbol', () => {
-  it.each(['BTCUSD', 'ETHUSD', 'XAUUSD'])('accepts free symbol %s', (sym) => {
-    expect(isFreeSymbol(sym)).toBe(true);
-  });
+  it.each(['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'SPYUSD', 'QQQUSD'])(
+    'accepts free symbol %s',
+    (sym) => {
+      expect(isFreeSymbol(sym)).toBe(true);
+    },
+  );
 
-  it.each(['EURUSD', 'GBPUSD', 'USDJPY', 'XRPUSD', 'XAGUSD'])(
+  it.each(['GBPUSD', 'USDJPY', 'XRPUSD', 'XAGUSD', 'NVDAUSD', 'WTIUSD'])(
     'rejects premium symbol %s',
     (sym) => {
       expect(isFreeSymbol(sym)).toBe(false);
@@ -103,13 +123,46 @@ describe('tier — filterSignalByTier', () => {
     expect(out!.takeProfit3).toBeNull();
   });
 
-  it('free caller sees EURUSD as null (dropped entirely)', () => {
-    const out = filterSignalByTier(makeSignal({ symbol: 'EURUSD' }), 'free');
-    expect(out).toBeNull();
+  it('free caller keeps EURUSD with TP2/TP3 masked and advanced indicators stripped', () => {
+    const out = filterSignalByTier(
+      makeSignal({ symbol: 'EURUSD', confidence: 75 }),
+      'free',
+    );
+    expect(out).not.toBeNull();
+    expect(out!.symbol).toBe('EURUSD');
+    expect(out!.takeProfit1).toBe(51000);
+    expect(out!.takeProfit2).toBeNull();
+    expect(out!.takeProfit3).toBeNull();
+    expect(out!.indicators?.macd).toEqual({ histogram: 0, signal: 'neutral' });
+    expect(out!.indicators?.bollingerBands).toEqual({
+      position: 'middle',
+      bandwidth: 0,
+    });
+    expect(out!.indicators?.stochastic).toEqual({ k: 0, d: 0, signal: 'neutral' });
+  });
+
+  it('free caller keeps SPYUSD (index ETF) with the same masking', () => {
+    const out = filterSignalByTier(
+      makeSignal({ symbol: 'SPYUSD', confidence: 75 }),
+      'free',
+    );
+    expect(out).not.toBeNull();
+    expect(out!.symbol).toBe('SPYUSD');
+    expect(out!.takeProfit2).toBeNull();
+    expect(out!.takeProfit3).toBeNull();
+  });
+
+  it('free caller keeps QQQUSD (index ETF)', () => {
+    const out = filterSignalByTier(
+      makeSignal({ symbol: 'QQQUSD', confidence: 75 }),
+      'free',
+    );
+    expect(out).not.toBeNull();
+    expect(out!.symbol).toBe('QQQUSD');
   });
 
   it('free caller sees all non-free symbols dropped', () => {
-    const symbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'XRPUSD'];
+    const symbols = ['GBPUSD', 'USDJPY', 'XRPUSD', 'NVDAUSD', 'WTIUSD'];
     for (const symbol of symbols) {
       expect(filterSignalByTier(makeSignal({ symbol }), 'free')).toBeNull();
     }
@@ -166,6 +219,20 @@ describe('tier — filterSignalByTier', () => {
     expect(out!.indicators?.stochastic?.k).toBe(65);
   });
 
+  it('pro behavior on every free-tier symbol is unchanged — full signal passes through', () => {
+    for (const symbol of FREE_SYMBOLS) {
+      const out = filterSignalByTier(makeSignal({ symbol, confidence: 80 }), 'pro');
+      expect(out).not.toBeNull();
+      expect(out!.symbol).toBe(symbol);
+      expect(out!.takeProfit1).toBe(51000);
+      expect(out!.takeProfit2).toBe(52000);
+      expect(out!.takeProfit3).toBe(53000);
+      expect(out!.indicators?.macd?.signal).toBe('bullish');
+      expect(out!.indicators?.bollingerBands?.position).toBe('upper');
+      expect(out!.indicators?.stochastic?.k).toBe(65);
+    }
+  });
+
   it('filter is pure — does not mutate the input signal', () => {
     const input = makeSignal({ symbol: 'EURUSD' });
     filterSignalByTier(input, 'free');
@@ -193,5 +260,133 @@ describe('tier — meetsMinimumTier', () => {
 
   it('custom meets elite (highest tier)', () => {
     expect(meetsMinimumTier('custom', 'elite')).toBe(true);
+  });
+});
+
+describe('tier — getStrategiesForTier', () => {
+  it('free returns a Set containing only classic', () => {
+    const set = getStrategiesForTier('free');
+    expect(set).toEqual(new Set(['classic']));
+    expect(set.size).toBe(1);
+    expect(set.has('classic')).toBe(true);
+  });
+
+  it('free does NOT contain premium strategy ids', () => {
+    const set = getStrategiesForTier('free');
+    expect(set.has('hmm-top3')).toBe(false);
+    expect(set.has('tv-zaky-classic')).toBe(false);
+    expect(set.has('regime-aware')).toBe(false);
+    expect(set.has('full-risk')).toBe(false);
+  });
+
+  it('pro contains classic plus all built-in and TV premium strategies', () => {
+    const set = getStrategiesForTier('pro');
+    expect(set).toEqual(
+      new Set([
+        'classic',
+        'regime-aware',
+        'hmm-top3',
+        'vwap-ema-bb',
+        'full-risk',
+        'tv-zaky-classic',
+        'tv-hafiz-synergy',
+        'tv-impulse-hunter',
+      ]),
+    );
+  });
+
+  it('elite matches pro today (placeholder for future elite-only strategies)', () => {
+    expect(getStrategiesForTier('elite')).toEqual(getStrategiesForTier('pro'));
+  });
+
+  it('custom matches elite (custom inherits elite by default)', () => {
+    expect(getStrategiesForTier('custom')).toEqual(getStrategiesForTier('elite'));
+  });
+
+  it('returns a fresh Set per call — mutation does not leak between calls', () => {
+    const first = getStrategiesForTier('pro');
+    first.add('mutant-strategy');
+    first.delete('classic');
+
+    const second = getStrategiesForTier('pro');
+    expect(second.has('mutant-strategy')).toBe(false);
+    expect(second.has('classic')).toBe(true);
+  });
+
+  it('free and pro return distinct Set instances (no shared reference)', () => {
+    const free = getStrategiesForTier('free');
+    free.add('hmm-top3');
+    const proStrategies = getStrategiesForTier('pro');
+    // Mutating the free set must not affect a fresh pro lookup.
+    expect(proStrategies.size).toBe(8);
+  });
+
+});
+
+describe('tier — resolveAccessContext', () => {
+  it('anonymous request resolves to free tier with classic-only strategy access', async () => {
+    // No session cookie → readSessionFromRequest returns no userId →
+    // getTierFromRequest returns 'free' → unlockedStrategies = {'classic'}.
+    const req = new Request('http://localhost/api/signals');
+    const ctx = await resolveAccessContext(req);
+    expect(ctx.tier).toBe('free');
+    expect(ctx.unlockedStrategies).toEqual(new Set(['classic']));
+  });
+
+  it('returns a fresh Set so callers cannot mutate shared state', async () => {
+    const req = new Request('http://localhost/api/signals');
+    const first = await resolveAccessContext(req);
+    first.unlockedStrategies.add('mutant');
+
+    const second = await resolveAccessContext(req);
+    expect(second.unlockedStrategies.has('mutant')).toBe(false);
+    expect(second.unlockedStrategies).toEqual(new Set(['classic']));
+  });
+});
+
+describe('tier — resolveAccessContextFromCookies', () => {
+  // Cleanup between cases — Jest doesn't auto-reset module mocks here because
+  // the dynamic imports inside resolveAccessContextFromCookies create fresh
+  // module instances. Use jest.doMock so each case scopes its own mock.
+  afterEach(() => {
+    jest.resetModules();
+  });
+
+  it('falls back to free tier when next/headers throws (no RSC context)', async () => {
+    // In a unit-test environment there is no next/headers cookie store —
+    // the dynamic import inside the helper rejects, the catch block returns
+    // anonymous. This pins the fail-closed posture.
+    const ctx = await resolveAccessContextFromCookies();
+    expect(ctx.tier).toBe('free');
+    expect(ctx.unlockedStrategies).toEqual(new Set(['classic']));
+  });
+
+  it('returns free tier when readSessionFromCookies yields no session', async () => {
+    jest.doMock('../user-session', () => ({
+      readSessionFromCookies: jest.fn().mockResolvedValue(null),
+    }));
+    const { resolveAccessContextFromCookies: fn } = await import('../tier');
+    const ctx = await fn();
+    expect(ctx.tier).toBe('free');
+    expect(ctx.unlockedStrategies).toEqual(new Set(['classic']));
+  });
+
+  it('returns pro tier with full strategy set when session resolves to a pro user', async () => {
+    jest.doMock('../user-session', () => ({
+      readSessionFromCookies: jest.fn().mockResolvedValue({
+        userId: 'user-pro',
+        issuedAt: Date.now(),
+      }),
+    }));
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest
+        .fn()
+        .mockResolvedValue({ tier: 'pro', status: 'active' }),
+    }));
+    const { resolveAccessContextFromCookies: fn } = await import('../tier');
+    const ctx = await fn();
+    expect(ctx.tier).toBe('pro');
+    expect(ctx.unlockedStrategies.has('hmm-top3')).toBe(true);
+    expect(ctx.unlockedStrategies.has('tv-zaky-classic')).toBe(true);
   });
 });

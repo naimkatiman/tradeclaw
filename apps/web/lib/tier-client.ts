@@ -4,7 +4,14 @@
  * (getUserTier, filterSignalByTier, etc.) lives in ./tier.ts.
  */
 
-export const FREE_SYMBOLS = ['BTCUSD', 'ETHUSD', 'XAUUSD'] as const;
+export const FREE_SYMBOLS = [
+  'BTCUSD',
+  'ETHUSD',
+  'XAUUSD',
+  'EURUSD',
+  'SPYUSD',
+  'QQQUSD',
+] as const;
 export type FreeSymbol = typeof FREE_SYMBOLS[number];
 
 export function isFreeSymbol(symbol: string): boolean {

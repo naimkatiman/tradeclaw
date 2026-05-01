@@ -70,14 +70,47 @@ const MIN_CONFIDENCE = 55; // Keeps the lowest-conviction band out, but restores
 const SIGNAL_THRESHOLD_SCALP = 30;
 const MIN_CONFIDENCE_SCALP = 58;
 
+/**
+ * Engine knobs per signal-generation profile. The 'classic' profile reproduces
+ * historical behavior byte-for-byte — every constant in this object equals the
+ * module-level constant it replaces. Future profiles (hmm-top3, regime-aware,
+ * vwap-ema-bb, full-risk) will add their own thresholds. SIGNAL_ENGINE_PRESET
+ * env var selects which profile dispatches at request time.
+ */
+export const STRATEGY_PROFILES = {
+  classic: {
+    signalThreshold: SIGNAL_THRESHOLD,           // 22
+    minConfidence: MIN_CONFIDENCE,               // 55
+    signalThresholdScalp: SIGNAL_THRESHOLD_SCALP, // 30
+    minConfidenceScalp: MIN_CONFIDENCE_SCALP,    // 58
+    weights: WEIGHTS,
+    bbSqueezeThreshold: BB_SQUEEZE_THRESHOLD,    // 4
+  },
+} as const;
+
+export type StrategyProfileId = keyof typeof STRATEGY_PROFILES;
+
+/**
+ * Map an arbitrary string (typically `getActivePreset().id`) to a known
+ * profile id, falling back to 'classic' for unknown values. SIGNAL_ENGINE_PRESET
+ * is currently a label-only knob in production, so unknown ids must not throw.
+ */
+export function safeProfileId(raw: string | null | undefined): StrategyProfileId {
+  if (raw && raw in STRATEGY_PROFILES) return raw as StrategyProfileId;
+  return 'classic';
+}
+
 function isScalpTimeframe(tf: string): boolean {
   return tf === 'M5' || tf === 'M15';
 }
 
-function getThresholds(tf: string): { signalThreshold: number; minConfidence: number } {
+function getThresholds(
+  tf: string,
+  profile: (typeof STRATEGY_PROFILES)[StrategyProfileId],
+): { signalThreshold: number; minConfidence: number } {
   return isScalpTimeframe(tf)
-    ? { signalThreshold: SIGNAL_THRESHOLD_SCALP, minConfidence: MIN_CONFIDENCE_SCALP }
-    : { signalThreshold: SIGNAL_THRESHOLD, minConfidence: MIN_CONFIDENCE };
+    ? { signalThreshold: profile.signalThresholdScalp, minConfidence: profile.minConfidenceScalp }
+    : { signalThreshold: profile.signalThreshold, minConfidence: profile.minConfidence };
 }
 const MIN_DIRECTIONAL_EDGE = 5; // Require a real edge, but not so much that balanced trend setups disappear entirely
 const MIN_TREND_STRENGTH = 0.03;  // reduced — 0.08 blocked signals in sideways markets
@@ -267,10 +300,16 @@ function passesDirectionGate(
   const plusDI = adx.current.plusDI;
   const minusDI = adx.current.minusDI;
   if (!isNaN(plusDI) && !isNaN(minusDI)) {
-    if (direction === 'BUY' && minusDI > plusDI * 1.3) {
+    // Hard-reject only when one DI is meaningfully larger than the other.
+    // The 1.3× ratio breaks down at near-zero values (e.g. +0.3 vs -0.4 → reject),
+    // killing signals in regimes where current-bar DI is flat even though historical
+    // ADX is high. Require an absolute floor of MIN_DI_MAGNITUDE on the larger side.
+    const MIN_DI_MAGNITUDE = 10;
+    const diIsMeaningful = Math.max(plusDI, minusDI) >= MIN_DI_MAGNITUDE;
+    if (diIsMeaningful && direction === 'BUY' && minusDI > plusDI * 1.3) {
       return { passes: false, confidenceBoost: 0 };
     }
-    if (direction === 'SELL' && plusDI > minusDI * 1.3) {
+    if (diIsMeaningful && direction === 'SELL' && plusDI > minusDI * 1.3) {
       return { passes: false, confidenceBoost: 0 };
     }
     // Mild DI disagreement → lower confidence
@@ -614,10 +653,13 @@ export function generateSignalsFromTA(
   timeframe: string,
   source: 'real' | 'synthetic' = 'real',
   signalTimestamp: number = Date.now(),
+  profileId: StrategyProfileId = 'classic',
 ): TradingSignal[] {
   const tf = timeframe as TradingSignal['timeframe'];
   // Minimum candle count guard — require at least 50 candles for reliable signals
   if (indicators.closes.length < 50) return [];
+
+  const profile = STRATEGY_PROFILES[profileId];
 
   const { buyScore, sellScore, buyCategories, sellCategories } = scoreIndicators(indicators);
   const closes = indicators.closes;
@@ -632,7 +674,7 @@ export function generateSignalsFromTA(
   const adxValue = indicators.adx.current.adx;
   if (!isNaN(adxValue) && adxValue < 15) return [];
 
-  const { signalThreshold, minConfidence } = getThresholds(timeframe);
+  const { signalThreshold, minConfidence } = getThresholds(timeframe, profile);
   const signals: TradingSignal[] = [];
   const indicatorSummary = buildIndicatorSummary(indicators, currentPrice);
   const swingLevels = findSwingLevels(indicators.highs, indicators.lows);

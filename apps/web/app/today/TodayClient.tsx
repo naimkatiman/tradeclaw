@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, startTransition } from 'react';
 import Link from 'next/link';
-import { fetchWithLicense } from '@/lib/license-client';
 import {
   Zap,
   TrendingUp,
@@ -98,7 +97,7 @@ export function TodayClient() {
 
   const fetchData = useCallback(() => {
     setLoading(true);
-    fetchWithLicense('/api/signal-of-the-day')
+    fetch('/api/signal-of-the-day')
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));

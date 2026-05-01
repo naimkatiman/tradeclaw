@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveLicense } from '@/lib/licenses';
-import { listPremiumSignalsSince, getPremiumSignalsFor } from '@/lib/premium-signals';
+import { resolveAccessContext } from '../../../lib/tier';
+import { listPremiumSignalsSince, getPremiumSignalsFor } from '../../../lib/premium-signals';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
-  const ctx = await resolveLicense(req);
-  if (ctx.unlockedStrategies.size <= 1) {
+  const access = await resolveAccessContext(req);
+  if (access.unlockedStrategies.size <= 1) {
     return NextResponse.json({ signals: [], locked: true });
   }
 
@@ -16,8 +16,8 @@ export async function GET(req: NextRequest) {
   const sinceMs = sinceParam ? Number(sinceParam) : NaN;
 
   const signals = Number.isFinite(sinceMs) && sinceMs > 0
-    ? await listPremiumSignalsSince(ctx, sinceMs)
-    : await getPremiumSignalsFor(ctx, { limit: 50 });
+    ? await listPremiumSignalsSince(access, sinceMs)
+    : await getPremiumSignalsFor(access, { limit: 50 });
 
   return NextResponse.json({
     signals,
