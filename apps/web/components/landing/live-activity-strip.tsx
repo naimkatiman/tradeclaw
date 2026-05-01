@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { fetchWithLicense } from '@/lib/license-client';
 import { Activity, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface StripSignal {
@@ -33,7 +32,7 @@ export function LiveActivityStrip() {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await fetchWithLicense('/api/signals');
+        const res = await fetch('/api/signals');
         if (!res.ok || cancelled) return;
         const json = await res.json();
         const raw: Record<string, unknown>[] = json.signals ?? [];
