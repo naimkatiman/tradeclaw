@@ -8,7 +8,13 @@ import {
   filterSignalByTier,
   meetsMinimumTier,
   PRO_PREMIUM_MIN_CONFIDENCE,
+  getStrategiesForTier,
+  resolveAccessContext,
 } from '../tier';
+// Transitional cross-check import: this stays in the test file only so the
+// production `tier.ts` does not depend on `licenses.ts`. After Phase D removes
+// `licenses.ts`, update or delete the drift-check test below.
+import { ALLOWED_PREMIUM_STRATEGIES } from '../licenses';
 import type { TradingSignal } from '../../app/lib/signals';
 
 function makeSignal(overrides: Partial<TradingSignal> = {}): TradingSignal {
@@ -257,5 +263,95 @@ describe('tier — meetsMinimumTier', () => {
 
   it('custom meets elite (highest tier)', () => {
     expect(meetsMinimumTier('custom', 'elite')).toBe(true);
+  });
+});
+
+describe('tier — getStrategiesForTier', () => {
+  it('free returns a Set containing only classic', () => {
+    const set = getStrategiesForTier('free');
+    expect(set).toEqual(new Set(['classic']));
+    expect(set.size).toBe(1);
+    expect(set.has('classic')).toBe(true);
+  });
+
+  it('free does NOT contain premium strategy ids', () => {
+    const set = getStrategiesForTier('free');
+    expect(set.has('hmm-top3')).toBe(false);
+    expect(set.has('tv-zaky-classic')).toBe(false);
+    expect(set.has('regime-aware')).toBe(false);
+    expect(set.has('full-risk')).toBe(false);
+  });
+
+  it('pro contains classic plus all built-in and TV premium strategies', () => {
+    const set = getStrategiesForTier('pro');
+    expect(set).toEqual(
+      new Set([
+        'classic',
+        'regime-aware',
+        'hmm-top3',
+        'vwap-ema-bb',
+        'full-risk',
+        'tv-zaky-classic',
+        'tv-hafiz-synergy',
+        'tv-impulse-hunter',
+      ]),
+    );
+  });
+
+  it('elite matches pro today (placeholder for future elite-only strategies)', () => {
+    expect(getStrategiesForTier('elite')).toEqual(getStrategiesForTier('pro'));
+  });
+
+  it('custom matches elite (custom inherits elite by default)', () => {
+    expect(getStrategiesForTier('custom')).toEqual(getStrategiesForTier('elite'));
+  });
+
+  it('returns a fresh Set per call — mutation does not leak between calls', () => {
+    const first = getStrategiesForTier('pro');
+    first.add('mutant-strategy');
+    first.delete('classic');
+
+    const second = getStrategiesForTier('pro');
+    expect(second.has('mutant-strategy')).toBe(false);
+    expect(second.has('classic')).toBe(true);
+  });
+
+  it('free and pro return distinct Set instances (no shared reference)', () => {
+    const free = getStrategiesForTier('free');
+    free.add('hmm-top3');
+    const proStrategies = getStrategiesForTier('pro');
+    // Mutating the free set must not affect a fresh pro lookup.
+    expect(proStrategies.size).toBe(8);
+  });
+
+  it('drift check: pro equals classic + ALLOWED_PREMIUM_STRATEGIES from licenses.ts', () => {
+    // Transitional safeguard during the license→tier migration. Production
+    // `tier.ts` does NOT import from `licenses.ts`; this test does so only to
+    // catch list drift during the transition window. Remove or update after
+    // Phase D removes `licenses.ts`.
+    expect(getStrategiesForTier('pro')).toEqual(
+      new Set(['classic', ...ALLOWED_PREMIUM_STRATEGIES]),
+    );
+  });
+});
+
+describe('tier — resolveAccessContext', () => {
+  it('anonymous request resolves to free tier with classic-only strategy access', async () => {
+    // No session cookie → readSessionFromRequest returns no userId →
+    // getTierFromRequest returns 'free' → unlockedStrategies = {'classic'}.
+    const req = new Request('http://localhost/api/signals');
+    const ctx = await resolveAccessContext(req);
+    expect(ctx.tier).toBe('free');
+    expect(ctx.unlockedStrategies).toEqual(new Set(['classic']));
+  });
+
+  it('returns a fresh Set so callers cannot mutate shared state', async () => {
+    const req = new Request('http://localhost/api/signals');
+    const first = await resolveAccessContext(req);
+    first.unlockedStrategies.add('mutant');
+
+    const second = await resolveAccessContext(req);
+    expect(second.unlockedStrategies.has('mutant')).toBe(false);
+    expect(second.unlockedStrategies).toEqual(new Set(['classic']));
   });
 });

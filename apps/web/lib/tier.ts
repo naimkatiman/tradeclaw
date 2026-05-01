@@ -66,6 +66,74 @@ export const TIER_DELAY_MS: Record<Tier, number> = {
 export const PRO_PREMIUM_MIN_CONFIDENCE = 85;
 
 /**
+ * Single source of truth for the strategies a Pro tier unlocks.
+ *
+ * Mirrors `ALLOWED_PREMIUM_STRATEGIES` from `./licenses` plus the always-free
+ * `classic` strategy. Hardcoded here so the canonical access API does NOT
+ * depend on the license module — the license system is being retired and the
+ * dependency direction is intentionally inverted.
+ *
+ * If this list drifts from `licenses.ts`, the cross-check test in
+ * `tier.test.ts` will fail. Keep them in sync until `licenses.ts` is removed.
+ */
+const PRO_STRATEGIES: ReadonlySet<string> = new Set([
+  // Always-free preset
+  'classic',
+  // Built-in TA presets
+  'regime-aware',
+  'hmm-top3',
+  'vwap-ema-bb',
+  'full-risk',
+  // TradingView Pine-Script strategies (via /api/webhooks/tradingview)
+  'tv-zaky-classic',
+  'tv-hafiz-synergy',
+  'tv-impulse-hunter',
+]);
+
+/**
+ * Strategies a tier is allowed to read.
+ *
+ * Returns a fresh `Set` per call so callers can mutate it locally without
+ * affecting other callers or the module-scope source of truth.
+ *
+ * Today: free → `classic` only; pro/elite/custom → all `PRO_STRATEGIES`.
+ * Custom inherits Elite by default per the existing `TIER_SYMBOLS` pattern.
+ */
+export function getStrategiesForTier(tier: Tier): Set<string> {
+  if (tier === 'free') return new Set(['classic']);
+  // pro, elite, custom share the same access surface today.
+  return new Set(PRO_STRATEGIES);
+}
+
+/**
+ * Resolved access surface for an incoming request — the canonical access API
+ * that downstream phases (B-D) will migrate license-key readers onto.
+ *
+ * Carries the caller's tier alongside the strategy set they're allowed to
+ * read so consumers can gate by tier OR strategy without re-deriving either.
+ */
+export interface AccessContext {
+  tier: Tier;
+  unlockedStrategies: Set<string>;
+}
+
+/**
+ * Resolve the caller's `AccessContext` from an incoming Request.
+ *
+ * Fail-closed: any error → `{ tier: 'free', unlockedStrategies: new Set(['classic']) }`.
+ * Mirrors `getTierFromRequest`'s posture so a thrown error in session/DB
+ * lookup never accidentally upgrades a caller.
+ */
+export async function resolveAccessContext(req: Request): Promise<AccessContext> {
+  try {
+    const tier = await getTierFromRequest(req);
+    return { tier, unlockedStrategies: getStrategiesForTier(tier) };
+  } catch {
+    return { tier: 'free', unlockedStrategies: new Set(['classic']) };
+  }
+}
+
+/**
  * Retrieve the tier for a given user ID from the database.
  * Falls back to 'free' if no active subscription is found.
  */
