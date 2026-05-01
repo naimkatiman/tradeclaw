@@ -304,6 +304,28 @@ export async function getOpenOrders(symbol?: string): Promise<OrderResponse[]> {
   return request('GET', '/fapi/v1/openOrders', symbol ? { symbol } : {}, true);
 }
 
+/**
+ * Fetch a single order by its client-assigned id. Returns NULL when Binance
+ * answers -2013 ("Order does not exist") so callers can treat absent =
+ * "never placed" without try/catch noise. Other API errors propagate.
+ */
+export async function getOrderByClientId(
+  symbol: string,
+  clientOrderId: string,
+): Promise<OrderResponse | null> {
+  try {
+    return await request<OrderResponse>(
+      'GET',
+      '/fapi/v1/order',
+      { symbol, origClientOrderId: clientOrderId },
+      true,
+    );
+  } catch (err) {
+    if (err instanceof BinanceApiError && err.code === -2013) return null;
+    throw err;
+  }
+}
+
 // ─── Signed write endpoints (gated by EXECUTION_MODE) ───────────────────────
 
 function ensureWriteAllowed(action: string, payload: Record<string, unknown>): boolean {
