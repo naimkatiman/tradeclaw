@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { linkTelegramUser, getUserById } from '../../../lib/db';
 import { sendInvite } from '../../../lib/telegram';
+import { verifyTelegramLinkToken } from '../../../lib/telegram-link-token';
 
 interface TelegramConfig {
   botToken: string;
@@ -93,9 +94,9 @@ async function handleBotUpdate(update: TelegramUpdate): Promise<void> {
 
   if (text.startsWith('/start')) {
     const parts = text.split(' ');
-    const userId = parts[1]?.trim(); // web account user ID passed as deep-link param
+    const tokenOrId = parts[1]?.trim();
 
-    if (!userId) {
+    if (!tokenOrId) {
       await sendTelegramMessage(
         config,
         'Welcome to TradeClaw!\n\nTo link your account, visit your dashboard and click "Connect Telegram".'
@@ -103,12 +104,36 @@ async function handleBotUpdate(update: TelegramUpdate): Promise<void> {
       return;
     }
 
-    // Link Telegram user to web account
+    // The deep-link payload must be an HMAC-signed link token. The legacy
+    // flow accepted a raw userId here, which let any caller bind their own
+    // chat to a known victim account. Reject anything that does not verify.
+    const verified = verifyTelegramLinkToken(tokenOrId);
+    if (!verified) {
+      await sendTelegramMessage(
+        config,
+        'This link expired or is invalid. Visit your dashboard and click "Connect Telegram" again to get a fresh link.'
+      );
+      return;
+    }
+    const userId = verified.userId;
+
     const user = await getUserById(userId);
     if (!user) {
       await sendTelegramMessage(
         config,
         'Account not found. Please sign up at tradeclaw.win first.'
+      );
+      return;
+    }
+
+    // Refuse re-link if a different Telegram chat is already bound. The
+    // owner has to unlink first (out-of-band support flow) — this prevents
+    // an attacker who briefly grabs a token from silently swapping the
+    // bound chat away from the legitimate user.
+    if (user.telegramUserId !== null && user.telegramUserId !== BigInt(telegramUserId)) {
+      await sendTelegramMessage(
+        config,
+        'This TradeClaw account is already linked to a different Telegram. Contact support@tradeclaw.win to unlink.'
       );
       return;
     }

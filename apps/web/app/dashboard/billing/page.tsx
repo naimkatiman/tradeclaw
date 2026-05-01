@@ -174,6 +174,30 @@ export default function BillingPage() {
   const isLoading = status === 'loading';
   const isDemo = status === 'anonymous';
   const [portalLoading, setPortalLoading] = useState(false);
+  const [telegramDeepLink, setTelegramDeepLink] = useState<string | null>(null);
+  const [telegramLoading, setTelegramLoading] = useState(false);
+
+  async function openTelegramLink() {
+    setTelegramLoading(true);
+    try {
+      const res = await fetch('/api/telegram/link-token', { method: 'POST' });
+      if (!res.ok) {
+        setError('Could not generate a Telegram link. Sign in and try again.');
+        return;
+      }
+      const data = (await res.json()) as { deepLink?: string };
+      if (!data.deepLink) {
+        setError('Could not generate a Telegram link.');
+        return;
+      }
+      setTelegramDeepLink(data.deepLink);
+      window.open(data.deepLink, '_blank', 'noopener,noreferrer');
+    } catch {
+      setError('Could not generate a Telegram link.');
+    } finally {
+      setTelegramLoading(false);
+    }
+  }
 
   async function openPortal() {
     if (!userId) {
@@ -353,14 +377,19 @@ export default function BillingPage() {
               <p className="mt-1 text-sm text-zinc-400">
                 Link your Telegram account to receive signals in your private group.
               </p>
-              <a
-                href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? 'TradeClaw_win_Bot'}?start=${userId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-block rounded-lg bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-400 transition-all hover:bg-sky-500/30 border border-sky-500/30"
+              <button
+                type="button"
+                onClick={openTelegramLink}
+                disabled={telegramLoading || isDemo}
+                className="mt-3 inline-block rounded-lg bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-400 transition-all hover:bg-sky-500/30 border border-sky-500/30 disabled:opacity-50"
               >
-                Open Telegram Bot
-              </a>
+                {telegramLoading ? 'Generating link…' : 'Open Telegram Bot'}
+              </button>
+              {telegramDeepLink && (
+                <p className="mt-2 text-[11px] text-zinc-500">
+                  Link expires in 10 minutes. If the bot doesn&apos;t open, click again for a fresh link.
+                </p>
+              )}
             </div>
           </div>
         </div>

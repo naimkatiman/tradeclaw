@@ -19,15 +19,34 @@ interface WelcomeClientProps {
   userId: string;
 }
 
-// The bot must validate `start=<userId>` server-side against the users table
-// before linking a chat — never trust this parameter alone.
-const BOT_DEEP_LINK_BASE = 'https://t.me/tradeclawwin_bot';
-
 export function WelcomeClient({ userId }: WelcomeClientProps) {
   const [signal, setSignal] = useState<SignalPreview | null>(null);
   const [signalState, setSignalState] = useState<'loading' | 'none' | 'ready'>('loading');
+  // Deep link is built from a one-time HMAC-signed token issued by
+  // /api/telegram/link-token rather than the raw userId, so an attacker
+  // cannot bind their own chat to this account by guessing the UUID.
+  const [deepLink, setDeepLink] = useState<string | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
 
-  const deepLink = `${BOT_DEEP_LINK_BASE}?start=${encodeURIComponent(userId)}`;
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/telegram/link-token', { method: 'POST' });
+        if (!res.ok) {
+          if (!cancelled) setLinkError('Could not generate Telegram link. Try refreshing.');
+          return;
+        }
+        const data = (await res.json()) as { deepLink?: string };
+        if (data.deepLink && !cancelled) setDeepLink(data.deepLink);
+      } catch {
+        if (!cancelled) setLinkError('Could not generate Telegram link. Try refreshing.');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,15 +98,21 @@ export function WelcomeClient({ userId }: WelcomeClientProps) {
         title="Connect Telegram"
         description="Tap the button below. We'll link your account and send your private Pro group invite automatically."
       >
-        <a
-          href={deepLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-testid="connect-telegram-btn"
-          className="inline-block rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-400"
-        >
-          Open Telegram bot
-        </a>
+        {deepLink ? (
+          <a
+            href={deepLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="connect-telegram-btn"
+            className="inline-block rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-400"
+          >
+            Open Telegram bot
+          </a>
+        ) : (
+          <span className="inline-block rounded-lg bg-emerald-500/30 px-4 py-2 text-sm font-semibold text-emerald-200">
+            {linkError ?? 'Generating link…'}
+          </span>
+        )}
       </StepCard>
 
       <StepCard
