@@ -20,9 +20,7 @@ import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } 
 import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
 import { AccuracyMeta } from '../components/accuracy-meta';
 import { SignalExportMenu } from '../components/signal-export-menu';
-import StrategyAccessBar from '../components/StrategyAccessBar';
 import { LockedTP } from '../../components/LockedTP';
-import { PremiumSignalFeed } from '../../components/PremiumSignalFeed';
 import { fetchWithLicense } from '../../lib/license-client';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
@@ -899,16 +897,6 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       <PageNavBar />
       <OnboardingBanner />
       <ReEngagementBanner />
-
-      {/* Strategy access bar */}
-      <div className="max-w-7xl mx-auto px-4 pt-3">
-        <StrategyAccessBar />
-      </div>
-
-      {/* Premium live feed (renders only when a license key is stored) */}
-      <div className="max-w-7xl mx-auto px-4 pt-3">
-        <PremiumSignalFeed />
-      </div>
 
       {/* Dashboard controls */}
       <div data-tour-id="dashboard-controls" className="max-w-7xl mx-auto px-4 h-12 flex items-center justify-end gap-3 border-b border-[var(--border)] bg-[var(--background)]/50 overflow-x-auto scrollbar-none">
