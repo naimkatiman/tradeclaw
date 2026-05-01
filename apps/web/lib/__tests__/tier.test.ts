@@ -12,10 +12,6 @@ import {
   resolveAccessContext,
   resolveAccessContextFromCookies,
 } from '../tier';
-// Transitional cross-check import: this stays in the test file only so the
-// production `tier.ts` does not depend on `licenses.ts`. After Phase D removes
-// `licenses.ts`, update or delete the drift-check test below.
-import { ALLOWED_PREMIUM_STRATEGIES } from '../licenses';
 import type { TradingSignal } from '../../app/lib/signals';
 
 function makeSignal(overrides: Partial<TradingSignal> = {}): TradingSignal {
@@ -325,15 +321,6 @@ describe('tier — getStrategiesForTier', () => {
     expect(proStrategies.size).toBe(8);
   });
 
-  it('drift check: pro equals classic + ALLOWED_PREMIUM_STRATEGIES from licenses.ts', () => {
-    // Transitional safeguard during the license→tier migration. Production
-    // `tier.ts` does NOT import from `licenses.ts`; this test does so only to
-    // catch list drift during the transition window. Remove or update after
-    // Phase D removes `licenses.ts`.
-    expect(getStrategiesForTier('pro')).toEqual(
-      new Set(['classic', ...ALLOWED_PREMIUM_STRATEGIES]),
-    );
-  });
 });
 
 describe('tier — resolveAccessContext', () => {
