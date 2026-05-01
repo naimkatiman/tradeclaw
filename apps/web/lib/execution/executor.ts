@@ -153,7 +153,6 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
         todayUniverse: universe,
         concurrencyState: { livePositions: account.positions, openExecutionCount: liveOpen, maxPositions },
         klinesH1,
-        hmmRegime: 'trending',          // implied by strategy_id=hmm-top3
       });
       if (!verdict.passed) {
         result.filtered++;

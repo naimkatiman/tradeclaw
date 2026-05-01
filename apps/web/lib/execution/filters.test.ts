@@ -135,21 +135,14 @@ describe('directionFilter', () => {
 });
 
 describe('regimeFilter', () => {
-  test('hmm=ranging short-circuits to chop reject', () => {
-    const v = regimeFilter(risingSeries(60), 'ranging');
-    expect(v.passed).toBe(false);
-    if (v.passed) return;
-    expect(v.reason).toBe('regime_chop');
-  });
-
   test('strong trend yields ADX above floor and passes', () => {
     // 100 strongly-trending candles produce ADX well above 20.
-    const v = regimeFilter(risingSeries(100, 100, 1.0), 'trending');
+    const v = regimeFilter(risingSeries(100, 100, 1.0));
     expect(v.passed).toBe(true);
   });
 
   test('flat series fails ADX floor', () => {
-    const v = regimeFilter(flatSeries(60), 'trending');
+    const v = regimeFilter(flatSeries(60));
     expect(v.passed).toBe(false);
     if (v.passed) return;
     // Either chop or insufficient_data depending on ADX warmup; both are rejections.
@@ -157,7 +150,7 @@ describe('regimeFilter', () => {
   });
 
   test('insufficient candles returns explicit reason', () => {
-    const v = regimeFilter(risingSeries(5), 'trending');
+    const v = regimeFilter(risingSeries(5));
     expect(v.passed).toBe(false);
     if (v.passed) return;
     expect(v.reason).toBe('insufficient_data_for_regime');
@@ -172,7 +165,6 @@ describe('runEntryFilters — composition order', () => {
       todayUniverse: new Set(['BTCUSDT']),
       concurrencyState: { livePositions: [], openExecutionCount: 0, maxPositions: 4 },
       klinesH1: [],                     // would otherwise fail "insufficient data"
-      hmmRegime: 'trending',
     });
     expect(v.passed).toBe(false);
     if (v.passed) return;
@@ -186,7 +178,6 @@ describe('runEntryFilters — composition order', () => {
       todayUniverse: new Set(['BTCUSDT']),
       concurrencyState: { livePositions: [], openExecutionCount: 0, maxPositions: 4 },
       klinesH1: risingSeries(100, 100, 1.0),
-      hmmRegime: 'trending',
     });
     expect(v.passed).toBe(true);
   });

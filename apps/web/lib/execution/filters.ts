@@ -7,7 +7,16 @@
  *   1. Universe       — DB lookup (already cached daily)
  *   2. Concurrency    — checks against live Binance state + our open executions
  *   3. Direction      — H1 EMA-50 slope agrees with signal direction
- *   4. Regime         — ADX(14) on H1 ≥ 20 AND HMM regime ≠ ranging
+ *   4. Regime         — ADX(14) on H1 ≥ 20
+ *
+ * The plan specified an additional "HMM regime ≠ ranging" check, but the
+ * production HMM classifier writes to `market_regimes` with vocabulary
+ * (crash|bear|neutral|bull|euphoria) that doesn't match this module's
+ * (trending|ranging|unknown) — and no signal source actually populates a
+ * regime field on `signal_history`. The previous implementation passed the
+ * literal 'trending' from the executor, making the HMM branch a no-op.
+ * We've removed the parameter rather than pretend to enforce something we
+ * don't. ADX(14) on H1 is the regime gate today.
  */
 
 import { ADX, EMA } from 'trading-signals';
@@ -29,7 +38,6 @@ export type FilterRejectionReason =
   | 'direction_disagrees'
   | 'insufficient_data_for_direction'
   | 'regime_chop'
-  | 'regime_unknown'
   | 'insufficient_data_for_regime';
 
 // ─── Universe filter ─────────────────────────────────────────────────────
@@ -105,18 +113,11 @@ export function directionFilter(
 
 // ─── Regime filter ──────────────────────────────────────────────────────
 
-export type HmmRegime = 'trending' | 'ranging' | 'unknown';
-
 export function regimeFilter(
   klinesH1: BinanceKline[],
-  hmmRegime: HmmRegime | null | undefined,
   adxFloor = REGIME_ADX_FLOOR,
   adxPeriod = REGIME_ADX_PERIOD,
 ): FilterVerdict {
-  if (hmmRegime === 'ranging') {
-    return { passed: false, reason: 'regime_chop', detail: 'hmm=ranging' };
-  }
-  // hmmRegime null/undefined/unknown → fall through to ADX as the gate
   if (klinesH1.length < adxPeriod * 2 + 1) {
     return { passed: false, reason: 'insufficient_data_for_regime', detail: `${klinesH1.length} candles` };
   }
@@ -144,7 +145,6 @@ export interface RunFiltersInput {
   todayUniverse: ReadonlySet<string>;
   concurrencyState: ConcurrencyState;
   klinesH1: BinanceKline[];
-  hmmRegime: HmmRegime | null | undefined;
 }
 
 export function runEntryFilters(input: RunFiltersInput): FilterVerdict {
@@ -157,7 +157,7 @@ export function runEntryFilters(input: RunFiltersInput): FilterVerdict {
   const d = directionFilter(input.klinesH1, input.side);
   if (!d.passed) return d;
 
-  const r = regimeFilter(input.klinesH1, input.hmmRegime);
+  const r = regimeFilter(input.klinesH1);
   if (!r.passed) return r;
 
   return { passed: true };
