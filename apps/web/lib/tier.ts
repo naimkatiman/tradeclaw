@@ -100,9 +100,21 @@ const PRO_STRATEGIES: ReadonlySet<string> = new Set([
  * Custom inherits Elite by default per the existing `TIER_SYMBOLS` pattern.
  */
 export function getStrategiesForTier(tier: Tier): Set<string> {
-  if (tier === 'free') return new Set(['classic']);
-  // pro, elite, custom share the same access surface today.
-  return new Set(PRO_STRATEGIES);
+  switch (tier) {
+    case 'free':
+      return new Set(['classic']);
+    case 'pro':
+    case 'elite':
+    case 'custom':
+      return new Set(PRO_STRATEGIES);
+    default: {
+      // Exhaustiveness check — if `Tier` grows, tsc errors here so the
+      // monetization gate can't silently grant Pro access to a new tier.
+      const _exhaustive: never = tier;
+      void _exhaustive;
+      return new Set(['classic']);
+    }
+  }
 }
 
 /**
