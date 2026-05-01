@@ -8,6 +8,7 @@ export interface ClientSession {
   userId: string;
   email: string;
   tier: ClientTier;
+  isAdmin: boolean;
 }
 
 interface SessionResponse {

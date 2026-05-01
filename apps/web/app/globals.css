@@ -63,6 +63,92 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   Light-mode override layer.
+   See docs/plans/2026-05-01-theme-light-dark-all-pages.md.
+   Selector specificity (0,2,1) beats Tailwind utility (0,1,0)
+   without !important. Only kicks in when html does NOT have .dark.
+   ───────────────────────────────────────────────────────────── */
+
+/* Dark page/card backgrounds → light */
+html:not(.dark) .bg-zinc-950 { background-color: rgb(250 250 250); }
+html:not(.dark) .bg-zinc-900 { background-color: rgb(244 244 245); }
+html:not(.dark) .bg-zinc-800 { background-color: rgb(228 228 231); }
+html:not(.dark) .bg-zinc-700 { background-color: rgb(212 212 216); }
+html:not(.dark) .bg-zinc-600 { background-color: rgb(212 212 216); }
+html:not(.dark) .bg-neutral-900 { background-color: rgb(245 245 245); }
+html:not(.dark) .bg-neutral-800 { background-color: rgb(229 229 229); }
+html:not(.dark) .bg-gray-900 { background-color: rgb(243 244 246); }
+html:not(.dark) .bg-gray-800 { background-color: rgb(229 231 235); }
+html:not(.dark) .bg-slate-900 { background-color: rgb(241 245 249); }
+html:not(.dark) .bg-slate-800 { background-color: rgb(226 232 240); }
+
+/* Translucent dark backgrounds (cards/popovers) */
+html:not(.dark) .bg-zinc-900\/95 { background-color: rgb(244 244 245 / 0.95); }
+html:not(.dark) .bg-zinc-900\/60 { background-color: rgb(244 244 245 / 0.7); }
+html:not(.dark) .bg-zinc-900\/50 { background-color: rgb(244 244 245 / 0.6); }
+html:not(.dark) .bg-zinc-900\/40 { background-color: rgb(244 244 245 / 0.55); }
+html:not(.dark) .bg-zinc-900\/30 { background-color: rgb(244 244 245 / 0.5); }
+html:not(.dark) .bg-zinc-800\/50 { background-color: rgb(228 228 231 / 0.6); }
+
+/* White-on-dark alpha overlays → black-on-light alpha overlays */
+html:not(.dark) .bg-white\/5 { background-color: rgb(0 0 0 / 0.04); }
+html:not(.dark) .bg-white\/10 { background-color: rgb(0 0 0 / 0.06); }
+html:not(.dark) .bg-white\/15 { background-color: rgb(0 0 0 / 0.07); }
+html:not(.dark) .bg-white\/20 { background-color: rgb(0 0 0 / 0.08); }
+html:not(.dark) .bg-white\/\[0\.02\] { background-color: rgb(0 0 0 / 0.02); }
+html:not(.dark) .bg-white\/\[0\.03\] { background-color: rgb(0 0 0 / 0.03); }
+html:not(.dark) .bg-white\/\[0\.04\] { background-color: rgb(0 0 0 / 0.03); }
+html:not(.dark) .bg-white\/\[0\.05\] { background-color: rgb(0 0 0 / 0.04); }
+html:not(.dark) .bg-white\/\[0\.06\] { background-color: rgb(0 0 0 / 0.05); }
+html:not(.dark) .bg-white\/\[0\.08\] { background-color: rgb(0 0 0 / 0.06); }
+
+/* Borders — invert white/X to black/X, lighten zinc */
+html:not(.dark) .border-white\/4 { border-color: rgb(0 0 0 / 0.06); }
+html:not(.dark) .border-white\/5 { border-color: rgb(0 0 0 / 0.06); }
+html:not(.dark) .border-white\/6 { border-color: rgb(0 0 0 / 0.07); }
+html:not(.dark) .border-white\/8 { border-color: rgb(0 0 0 / 0.08); }
+html:not(.dark) .border-white\/10 { border-color: rgb(0 0 0 / 0.1); }
+html:not(.dark) .border-white\/15 { border-color: rgb(0 0 0 / 0.11); }
+html:not(.dark) .border-white\/20 { border-color: rgb(0 0 0 / 0.12); }
+html:not(.dark) .border-zinc-800 { border-color: rgb(228 228 231); }
+html:not(.dark) .border-zinc-700 { border-color: rgb(212 212 216); }
+html:not(.dark) .border-zinc-700\/50 { border-color: rgb(212 212 216 / 0.7); }
+html:not(.dark) .border-zinc-800\/50 { border-color: rgb(228 228 231 / 0.7); }
+html:not(.dark) .border-zinc-600 { border-color: rgb(212 212 216); }
+html:not(.dark) .border-neutral-800 { border-color: rgb(229 229 229); }
+html:not(.dark) .border-gray-800 { border-color: rgb(229 231 235); }
+
+/* Muted text — invert luminance, preserve hierarchy.
+   text-zinc-300 (lightest mute on dark) → zinc-700 (darkest mute on light). */
+html:not(.dark) .text-zinc-300 { color: rgb(63 63 70); }
+html:not(.dark) .text-zinc-400 { color: rgb(82 82 91); }
+html:not(.dark) .text-zinc-400\/80 { color: rgb(82 82 91 / 0.85); }
+html:not(.dark) .text-zinc-500 { color: rgb(113 113 122); }
+html:not(.dark) .text-zinc-600 { color: rgb(82 82 91); }
+html:not(.dark) .text-zinc-700 { color: rgb(63 63 70); }
+html:not(.dark) .text-zinc-800 { color: rgb(39 39 42); }
+html:not(.dark) .text-gray-300 { color: rgb(75 85 99); }
+html:not(.dark) .text-gray-400 { color: rgb(107 114 128); }
+html:not(.dark) .text-gray-500 { color: rgb(107 114 128); }
+html:not(.dark) .text-neutral-300 { color: rgb(64 64 64); }
+html:not(.dark) .text-neutral-400 { color: rgb(82 82 82); }
+html:not(.dark) .text-neutral-500 { color: rgb(115 115 115); }
+
+/* white/X transparency text → black/X */
+html:not(.dark) .text-white\/30 { color: rgb(0 0 0 / 0.4); }
+html:not(.dark) .text-white\/40 { color: rgb(0 0 0 / 0.5); }
+html:not(.dark) .text-white\/50 { color: rgb(0 0 0 / 0.55); }
+html:not(.dark) .text-white\/60 { color: rgb(0 0 0 / 0.65); }
+html:not(.dark) .text-white\/70 { color: rgb(0 0 0 / 0.75); }
+html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
+
+/* NOTE intentionally NOT remapped:
+   - text-white  (often sits on emerald/rose/colored buttons)
+   - bg-white    (intentional light cards)
+   - text-black  (intentional)
+   - bg-black/X  (modal scrims — should stay dark in both themes) */
+
 /* Glass morphism utilities */
 .glass {
   background: var(--glass-bg);
