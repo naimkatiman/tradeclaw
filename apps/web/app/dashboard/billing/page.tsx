@@ -46,22 +46,22 @@ function proPlan(interval: Interval): PlanInfo {
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function createCheckoutSession(interval: Interval, userId: string): Promise<string> {
+async function createCheckoutSession(interval: Interval): Promise<string> {
   const res = await fetch('/api/stripe/checkout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tier: 'pro', interval, userId }),
+    body: JSON.stringify({ tier: 'pro', interval }),
   });
   const data = (await res.json()) as { url?: string; error?: string };
   if (!res.ok || !data.url) throw new Error(data.error ?? 'Failed to create checkout session');
   return data.url;
 }
 
-async function createPortalSession(userId: string): Promise<string> {
+async function createPortalSession(): Promise<string> {
   const res = await fetch('/api/stripe/portal', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId }),
+    body: JSON.stringify({}),
   });
   const data = (await res.json()) as { url?: string; error?: string };
   if (!res.ok || !data.url) throw new Error(data.error ?? 'Failed to create portal session');
@@ -88,11 +88,10 @@ interface UpgradeCardProps {
   tier: Exclude<Tier, 'free'>;
   interval: Interval;
   currentTier: Tier;
-  userId: string;
   onError: (msg: string) => void;
 }
 
-function UpgradeCard({ tier, interval, currentTier, userId, onError }: UpgradeCardProps) {
+function UpgradeCard({ tier, interval, currentTier, onError }: UpgradeCardProps) {
   const [loading, setLoading] = useState(false);
   const plan = proPlan(interval);
   const isCurrentPlan = currentTier === tier;
@@ -103,11 +102,11 @@ function UpgradeCard({ tier, interval, currentTier, userId, onError }: UpgradeCa
     try {
       if (currentTier !== 'free') {
         // Existing subscriber → Stripe Portal to switch interval
-        const url = await createPortalSession(userId);
+        const url = await createPortalSession();
         window.location.href = url;
         return;
       }
-      const url = await createCheckoutSession(interval, userId);
+      const url = await createCheckoutSession(interval);
       window.location.href = url;
     } catch (err: unknown) {
       onError(err instanceof Error ? err.message : 'Something went wrong');
@@ -183,7 +182,7 @@ export default function BillingPage() {
     }
     setPortalLoading(true);
     try {
-      const url = await createPortalSession(userId);
+      const url = await createPortalSession();
       window.location.href = url;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to open billing portal');
@@ -321,7 +320,6 @@ export default function BillingPage() {
               tier="pro"
               interval={billingInterval}
               currentTier={currentTier}
-              userId={userId}
               onError={setError}
             />
           </div>
