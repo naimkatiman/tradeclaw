@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { getSignals } from '../app/lib/signals';
+import { safeProfileId } from '../app/lib/signal-generator';
 import { getPremiumSignalsFor } from './premium-signals';
 import { recordSignalsAsync } from './signal-history';
 import { invalidateHistoryCache } from './signal-history-cache';
@@ -27,7 +28,13 @@ export interface GetTrackedSignalsParams {
 }
 
 export async function getTrackedSignals(params: GetTrackedSignalsParams) {
-  const result = await getSignals(params);
+  // Dispatch engine profile from SIGNAL_ENGINE_PRESET. Unknown ids fall back
+  // to 'classic' (current production label is 'hmm-top3', which is not yet a
+  // STRATEGY_PROFILES entry, so this is a no-op behaviorally — see Task 2 of
+  // docs/plans/2026-05-01-monetization-consolidation.md).
+  const activePresetId = getActivePreset().id;
+  const profileId = safeProfileId(activePresetId);
+  const result = await getSignals({ ...params, profileId });
   const ctx = params.ctx ?? anonymousContext();
 
   if (result.signals.length > 0) {
@@ -35,7 +42,7 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
     // /api/cron/signals route reads from live_signals which is empty in
     // production, so it never inserts anything). Tag with the active
     // preset so /track-record's per-strategy breakdown reflects reality.
-    const strategyId = getActivePreset().id;
+    const strategyId = activePresetId;
 
     const filtered = result.signals.filter(
       (signal) =>

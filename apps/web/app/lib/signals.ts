@@ -3,7 +3,7 @@
 
 import { getMultiOHLCV } from './ohlcv';
 import { calculateAllIndicators } from './ta-engine';
-import { generateSignalsFromTA } from './signal-generator';
+import { generateSignalsFromTA, type StrategyProfileId } from './signal-generator';
 
 // Signal types — shared from @tradeclaw/signals
 import type { TradingSignal, IndicatorSummary } from '@tradeclaw/signals';
@@ -85,6 +85,7 @@ export async function getLivePrices(): Promise<Map<string, number>> {
 async function generateRealSignals(
   symbols: typeof SYMBOLS,
   timeframe: string,
+  profileId: StrategyProfileId = 'classic',
 ): Promise<{ signals: TradingSignal[]; syntheticSymbols: string[] }> {
   const symbolNames = symbols.map(s => s.symbol);
 
@@ -116,6 +117,7 @@ async function generateRealSignals(
       timeframe,
       signalSource,
       signalTimestamp,
+      profileId,
     );
 
     for (const sig of realSignals) {
@@ -137,8 +139,9 @@ export async function getSignals(params: {
   timeframe?: string;
   direction?: string;
   minConfidence?: number;
+  profileId?: StrategyProfileId;
 }): Promise<{ signals: TradingSignal[]; syntheticSymbols: string[] }> {
-  const { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence = 0 } = params;
+  const { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence = 0, profileId = 'classic' } = params;
 
   let symbols = SYMBOLS;
   if (symbolFilter) {
@@ -160,7 +163,7 @@ export async function getSignals(params: {
   try {
     const settled = await Promise.allSettled(
       timeframesToCheck.map(async (tf) => {
-        const result = await generateRealSignals(symbols, tf);
+        const result = await generateRealSignals(symbols, tf, profileId);
         return { timeframe: tf, ...result };
       }),
     );
