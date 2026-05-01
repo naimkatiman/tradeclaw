@@ -164,9 +164,14 @@ export default function BillingPage() {
   const { status, session } = useUserSession();
   const userId = session?.userId ?? '';
   // Narrow the server tier ('free'|'pro'|'elite'|'custom') to what this page
-  // actually renders. Billing is Free/Pro only today; elite/custom are
-  // historical grants that still render as "Pro" on the current-plan card.
-  const currentTier: Tier = session?.tier === 'pro' ? 'pro' : 'free';
+  // actually renders. Billing is Free/Pro only today; elite/custom carry
+  // Pro-equivalent access so we render them as 'pro' here. Anything below
+  // pro maps to 'free'.
+  const serverTier = session?.tier;
+  const currentTier: Tier =
+    serverTier === 'pro' || serverTier === 'elite' || serverTier === 'custom'
+      ? 'pro'
+      : 'free';
   const [billingInterval, setBillingInterval] = useState<Interval>('monthly');
 
   const plan = currentTier === 'free' ? FREE_PLAN : proPlan('monthly');

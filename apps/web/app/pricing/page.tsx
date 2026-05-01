@@ -1,6 +1,8 @@
 import { Navbar } from '../components/navbar';
 import { SiteFooter } from '../../components/landing/site-footer';
 import { PricingCards } from './PricingCards';
+import { FREE_SYMBOLS } from '../../lib/tier-client';
+import { TIER_HISTORY_DAYS } from '../../lib/tier';
 
 interface Feature {
   label: string;
@@ -8,14 +10,22 @@ interface Feature {
   pro: string | boolean;
 }
 
+const FREE_HISTORY_LABEL = TIER_HISTORY_DAYS.free
+  ? `Last ${TIER_HISTORY_DAYS.free} days`
+  : 'Full history';
+
 const FEATURES: Feature[] = [
   { label: 'Signal delivery', free: '15-min delay', pro: 'Real-time' },
-  { label: 'Symbols covered', free: '3 symbols', pro: 'All traded symbols' },
+  {
+    label: 'Symbols covered',
+    free: `${FREE_SYMBOLS.length} symbols across crypto, forex, commodities, indices`,
+    pro: 'All traded symbols',
+  },
   { label: 'Telegram group', free: '@tradeclawwin (public)', pro: 'Private Pro group' },
   { label: 'TP / SL levels', free: 'TP1 only', pro: 'TP1, TP2, TP3 + SL' },
   { label: 'Indicators', free: 'RSI, EMA', pro: 'Full suite + MTF confluence' },
   { label: 'Signal quality', free: 'Standard', pro: 'Premium high-confidence' },
-  { label: 'Signal history', free: 'Last 24h', pro: 'Full history + CSV export' },
+  { label: 'Signal history', free: FREE_HISTORY_LABEL, pro: 'Full history + CSV export' },
   { label: 'Support', free: 'Community', pro: 'Email (24h)' },
   { label: 'Free trial', free: false, pro: '7 days' },
 ];
