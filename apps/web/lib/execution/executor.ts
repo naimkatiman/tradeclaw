@@ -28,6 +28,7 @@ import {
 } from './binance-futures';
 import { buildClientIds } from './client-ids';
 import { runEntryFilters } from './filters';
+import { checkLossKillSwitch } from './risk-rails';
 import { computeATR, computeSize, extractFilters, type SymbolFilters } from './sizing';
 import { notifyEntryFilled } from './telegram';
 import { getTodayUniverse } from './universe-runner';
@@ -52,6 +53,7 @@ interface ExecutorTickResult {
   rejected: number;
   filtered: number;
   errors: number;
+  halted?: string;
 }
 
 interface PendingSignal {
@@ -93,6 +95,31 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
   } catch (err) {
     await logError({ stage: 'handshake', errorMsg: getMsg(err) });
     result.errors++;
+    return result;
+  }
+
+  // 2b. Loss kill switches — block new entries when daily/weekly loss caps
+  // are tripped. Open positions keep their stops; manage-positions still runs.
+  try {
+    const verdict = await checkLossKillSwitch(account);
+    if (verdict.halted) {
+      result.halted = verdict.reason;
+      await logError({
+        stage: 'handshake',
+        errorCode: 'loss_kill_switch',
+        errorMsg: verdict.reason ?? 'loss_kill',
+        payload: verdict.detail as unknown as Record<string, unknown>,
+      });
+      console.warn(`[pilot/executor] HALT: ${verdict.reason}`);
+      return result;
+    }
+  } catch (err) {
+    // Fail-CLOSED: if we can't read realized PnL, refuse new entries this tick.
+    // Better to skip a profitable signal than to keep trading blind through a
+    // drawdown.
+    result.halted = 'kill_switch_check_failed';
+    await logError({ stage: 'handshake', errorCode: 'loss_kill_switch_error', errorMsg: getMsg(err) });
+    console.error('[pilot/executor] kill switch check failed — halting tick:', getMsg(err));
     return result;
   }
 
