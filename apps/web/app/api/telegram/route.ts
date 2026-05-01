@@ -175,7 +175,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // Mode 2: Manual signal / test message
+    // Mode 2: Manual signal / test message — used by the self-hosted
+    // TelegramSettings UI to relay signals through a user's own bot. Not
+    // exposed to hosted Pro callers, so we require an explicit opt-in
+    // header to avoid being a free Telegram-API relay for arbitrary
+    // third parties.
+    if (request.headers.get('x-tradeclaw-self-host') !== '1') {
+      return NextResponse.json(
+        { error: 'manual-send mode is self-host only' },
+        { status: 403 }
+      );
+    }
+
     const { botToken, chatId, signal, test } = body as {
       botToken?: string;
       chatId?: string;

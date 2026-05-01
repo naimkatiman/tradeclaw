@@ -41,7 +41,12 @@ export function TelegramSettings() {
     try {
       const res = await fetch('/api/telegram', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          // Opt-in to the self-host manual-send path. The hosted route
+          // refuses without this header so it is not a public relay.
+          'X-TradeClaw-Self-Host': '1',
+        },
         body: JSON.stringify({ botToken: config.botToken, chatId: config.chatId, test: true }),
       });
       const data = await res.json();
