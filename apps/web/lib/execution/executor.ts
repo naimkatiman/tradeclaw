@@ -98,10 +98,26 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
 
   const maxPositions = cfgInt('EXEC_MAX_POSITIONS', 4);
   let liveOpen = openExecutionCount;
+  // Track symbols that have already opened a position in THIS tick. `account`
+  // is fetched once at tick start and never refreshed inside the loop, so two
+  // signals on the same pair would both pass concurrencyFilter and stack.
+  // Plan §risk-rails forbids pyramiding in v1 — this Set is the gate.
+  const inTickSymbols = new Set<string>();
 
   // 3. Iterate signals
   for (const sig of signals) {
     try {
+      if (inTickSymbols.has(sig.pair)) {
+        result.filtered++;
+        await logError({
+          signalId: sig.id,
+          stage: 'filter',
+          errorCode: 'symbol_already_entered_in_tick',
+          errorMsg: `${sig.pair} already entered earlier in this tick`,
+        });
+        continue;
+      }
+
       // 3a. Filters
       const klinesH1 = await getKlines(sig.pair, '1h', H1_KLINE_LIMIT);
       const verdict = runEntryFilters({
@@ -231,6 +247,7 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
 
       result.executed++;
       liveOpen++;
+      inTickSymbols.add(sig.pair);
 
       void notifyEntryFilled({
         signalId: sig.id,
