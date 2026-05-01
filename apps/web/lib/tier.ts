@@ -166,6 +166,14 @@ export async function resolveAccessContextFromCookies(): Promise<AccessContext> 
 }
 
 /**
+ * Days a past_due subscription continues to count as paid before it
+ * downgrades to free. Stripe Smart Retries run for ~3 weeks; cutting
+ * access at the first failed invoice churns customers whose card needed
+ * one update. We give them a window to fix it without losing signals.
+ */
+export const PAST_DUE_GRACE_DAYS = 7;
+
+/**
  * Retrieve the tier for a given user ID from the database.
  * Falls back to 'free' if no active subscription is found.
  */
@@ -177,8 +185,18 @@ export async function getUserTier(userId: string): Promise<Tier> {
     const { getUserSubscription, getUserById } = await import('./db');
     const sub = await getUserSubscription(userId);
     let tier: Tier = 'free';
-    if (sub && sub.status !== 'canceled' && sub.status !== 'past_due') {
-      tier = sub.tier as Tier;
+    if (sub) {
+      if (sub.status === 'active' || sub.status === 'trialing') {
+        tier = sub.tier as Tier;
+      } else if (sub.status === 'past_due') {
+        // Smart-retries grace: keep paid access for PAST_DUE_GRACE_DAYS
+        // past current_period_end so customers whose card needs an update
+        // for one cycle do not lose signals on day 1 of past_due.
+        const graceMs = PAST_DUE_GRACE_DAYS * 86400 * 1000;
+        if (Date.now() <= sub.currentPeriodEnd.getTime() + graceMs) {
+          tier = sub.tier as Tier;
+        }
+      }
     }
 
     // Email-based Pro grant: owner / team / demo accounts that don't have a

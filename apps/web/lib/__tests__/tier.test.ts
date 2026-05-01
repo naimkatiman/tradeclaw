@@ -390,3 +390,65 @@ describe('tier — resolveAccessContextFromCookies', () => {
     expect(ctx.unlockedStrategies.has('tv-zaky-classic')).toBe(true);
   });
 });
+
+describe('tier — past_due grace window', () => {
+  afterEach(() => {
+    jest.resetModules();
+  });
+
+  it('past_due within the grace window keeps Pro access', async () => {
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest.fn().mockResolvedValue({
+        tier: 'pro',
+        status: 'past_due',
+        currentPeriodEnd: new Date(Date.now() - 2 * 86400 * 1000),
+      }),
+      getUserById: jest.fn().mockResolvedValue(null),
+    }));
+    const { getUserTier } = await import('../tier');
+    const tier = await getUserTier('user-x');
+    expect(tier).toBe('pro');
+  });
+
+  it('past_due past the grace window downgrades to free', async () => {
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest.fn().mockResolvedValue({
+        tier: 'pro',
+        status: 'past_due',
+        currentPeriodEnd: new Date(Date.now() - 30 * 86400 * 1000),
+      }),
+      getUserById: jest.fn().mockResolvedValue(null),
+    }));
+    const { getUserTier } = await import('../tier');
+    const tier = await getUserTier('user-x');
+    expect(tier).toBe('free');
+  });
+
+  it('canceled never gets the grace window (already terminated)', async () => {
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest.fn().mockResolvedValue({
+        tier: 'pro',
+        status: 'canceled',
+        currentPeriodEnd: new Date(Date.now() + 86400 * 1000),
+      }),
+      getUserById: jest.fn().mockResolvedValue(null),
+    }));
+    const { getUserTier } = await import('../tier');
+    const tier = await getUserTier('user-x');
+    expect(tier).toBe('free');
+  });
+
+  it('active passes through unchanged', async () => {
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest.fn().mockResolvedValue({
+        tier: 'pro',
+        status: 'active',
+        currentPeriodEnd: new Date(Date.now() + 30 * 86400 * 1000),
+      }),
+      getUserById: jest.fn().mockResolvedValue(null),
+    }));
+    const { getUserTier } = await import('../tier');
+    const tier = await getUserTier('user-x');
+    expect(tier).toBe('pro');
+  });
+});
