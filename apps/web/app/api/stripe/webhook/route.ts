@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { getStripe, resolveTierFromPriceId, resolveTierFromSubscription } from '../../../../lib/stripe';
+import { getStripe, resolveTierFromPriceId } from '../../../../lib/stripe';
 import {
   getUserByStripeCustomerId,
   updateUserTier,
@@ -170,7 +170,21 @@ async function handleSubscriptionUpdated(
   const userId = subscription.metadata?.userId;
   if (!userId) return;
 
-  const tier = resolveTierFromSubscription(subscription);
+  // Mirror handleCheckoutCompleted: an unknown priceId means the env vars
+  // (STRIPE_PRO_*_PRICE_ID) drifted, a price was archived, or Stripe
+  // migrated the price. Silently downgrading a paying user to 'free' is
+  // worse than throwing — Stripe will retry once the env is fixed, and
+  // the customer keeps their access via the past_due grace window in the
+  // meantime.
+  const priceId = subscription.items.data[0]?.price?.id;
+  const tier = priceId ? resolveTierFromPriceId(priceId) : null;
+  if (tier !== 'pro' && tier !== 'elite') {
+    throw new Error(
+      `Unknown or non-purchasable price ID ${priceId} on subscription ` +
+        `${subscription.id} — refusing to downgrade silently. ` +
+        `Resolved tier: ${tier ?? 'null'}.`,
+    );
+  }
 
   const firstItem = subscription.items.data[0];
   const periodEnd = firstItem ? new Date(firstItem.current_period_end * 1000) : null;
@@ -200,13 +214,15 @@ async function handleSubscriptionDeleted(
 
   const user = await getUserByStripeCustomerId(stripeCustomerId);
   if (user?.telegramUserId) {
-    const tier = resolveTierFromSubscription(subscription);
-    if (tier !== 'free') {
-      try {
-        await revokeAccess(user.telegramUserId.toString(), tier as 'pro' | 'elite');
-      } catch (err) {
-        console.error('[webhook] Failed to revoke Telegram access:', err);
-      }
+    // Source the tier from subscription metadata (set at checkout creation)
+    // rather than re-resolving the priceId, which may have been archived
+    // by the time delete fires. Default to 'pro' if metadata is missing.
+    const metaTier = subscription.metadata?.tier;
+    const tier: 'pro' | 'elite' = metaTier === 'elite' ? 'elite' : 'pro';
+    try {
+      await revokeAccess(user.telegramUserId.toString(), tier);
+    } catch (err) {
+      console.error('[webhook] Failed to revoke Telegram access:', err);
     }
   }
 }

@@ -9,7 +9,6 @@ import { NextRequest } from 'next/server';
 jest.mock('../../../../../lib/stripe', () => ({
   getStripe: jest.fn(),
   resolveTierFromPriceId: jest.fn().mockReturnValue('pro'),
-  resolveTierFromSubscription: jest.fn().mockReturnValue('pro'),
 }));
 
 jest.mock('../../../../../lib/db', () => ({
@@ -26,7 +25,7 @@ jest.mock('../../../../../lib/telegram', () => ({
   revokeAccess: jest.fn().mockResolvedValue(undefined),
 }));
 
-import { getStripe } from '../../../../../lib/stripe';
+import { getStripe, resolveTierFromPriceId } from '../../../../../lib/stripe';
 import {
   upsertSubscription,
   updateUserTier,
@@ -36,6 +35,7 @@ import { sendInvite } from '../../../../../lib/telegram';
 import { POST } from '../route';
 
 const mockedGetStripe = getStripe as jest.MockedFunction<typeof getStripe>;
+const mockedResolveTier = resolveTierFromPriceId as jest.MockedFunction<typeof resolveTierFromPriceId>;
 const mockedTryClaim = tryClaimStripeEvent as jest.MockedFunction<typeof tryClaimStripeEvent>;
 const mockedUpsertSub = upsertSubscription as jest.MockedFunction<typeof upsertSubscription>;
 const mockedUpdateTier = updateUserTier as jest.MockedFunction<typeof updateUserTier>;
@@ -121,5 +121,42 @@ describe('POST /api/stripe/webhook — idempotency', () => {
     expect(mockedUpsertSub).not.toHaveBeenCalled();
     expect(mockedUpdateTier).not.toHaveBeenCalled();
     expect(mockedSendInvite).not.toHaveBeenCalled();
+  });
+
+  it('subscription.updated with an unknown priceId throws — never silently downgrades', async () => {
+    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    mockedTryClaim.mockResolvedValueOnce(true);
+    mockedResolveTier.mockReturnValueOnce(null);
+
+    mockedGetStripe.mockReturnValue({
+      webhooks: {
+        constructEvent: jest.fn().mockReturnValue({
+          id: 'evt_test_2',
+          type: 'customer.subscription.updated',
+          data: {
+            object: {
+              id: 'sub_x',
+              status: 'active',
+              cancel_at_period_end: false,
+              metadata: { userId: 'user-1', tier: 'pro' },
+              items: {
+                data: [
+                  {
+                    price: { id: 'price_archived' },
+                    current_period_end: Math.floor(Date.now() / 1000) + 86400,
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(500);
+    expect(mockedUpdateTier).not.toHaveBeenCalled();
+    errSpy.mockRestore();
   });
 });
