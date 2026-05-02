@@ -17,14 +17,15 @@ export async function POST(req: NextRequest) {
   if (Date.now() - last < RATE_LIMIT_WINDOW_MS) {
     return NextResponse.json({ ok: true }, { status: 200 });
   }
-  recentByEmail.set(normalized, Date.now());
 
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
   if (!apiKey || !from) {
-    // Misconfigured in dev — issue the token anyway, log it server-side, and tell the client OK
-    // so the UX path is exercised. In production both env vars MUST be set.
-    await issueMagicLink(normalized);
+    const { raw } = await issueMagicLink(normalized);
+    if (process.env.NODE_ENV !== 'production') {
+      console.info('[magic-link dev] no Resend env — link:', `/api/auth/magic-link/verify?token=${raw}`);
+    }
+    recentByEmail.set(normalized, Date.now());
     return NextResponse.json({ ok: true });
   }
 
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
   const link = `${base}/api/auth/magic-link/verify?token=${encodeURIComponent(raw)}`;
 
-  await fetch('https://api.resend.com/emails', {
+  const sendRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -48,5 +49,10 @@ export async function POST(req: NextRequest) {
     signal: AbortSignal.timeout(8000),
   }).catch(() => null);
 
+  if (!sendRes || !sendRes.ok) {
+    return NextResponse.json({ error: 'email_send_failed' }, { status: 502 });
+  }
+
+  recentByEmail.set(normalized, Date.now());
   return NextResponse.json({ ok: true });
 }
