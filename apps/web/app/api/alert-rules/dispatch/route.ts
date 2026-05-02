@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllEnabledRules, getChannelConfigsForUser, signalMatchesRule } from '@/lib/alert-rules-db';
 import { sendToChannel, type ChannelName, type AlertSignal } from '@/lib/alert-channels';
+import { recordBroadcastResult } from '@/lib/observability';
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -38,6 +39,16 @@ export async function POST(req: NextRequest) {
       results.push({ ruleId: rule.id, channel: channelName, success: ok });
     }
   }
+
+  const sent = results.filter((r) => r.success).length;
+  const failed = results.length - sent;
+  recordBroadcastResult({
+    source: 'alert_rules_dispatch',
+    attempted: results.length,
+    sent,
+    failed,
+    meta: { signal_symbol: signal.symbol, signal_direction: signal.direction },
+  });
 
   return NextResponse.json({ dispatched: results.length, results });
 }

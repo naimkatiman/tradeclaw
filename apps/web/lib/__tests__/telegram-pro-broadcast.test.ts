@@ -2,6 +2,10 @@ jest.mock('../signal-history', () => ({
   markTelegramProPosted: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../observability', () => ({
+  recordBroadcastResult: jest.fn(),
+}));
+
 import {
   broadcastSignalsToProGroup,
   formatProMessage,

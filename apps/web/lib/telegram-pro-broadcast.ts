@@ -2,6 +2,7 @@ import 'server-only';
 
 import { getBotToken, getProGroupId } from './telegram-channels';
 import { markTelegramProPosted } from './signal-history';
+import { recordBroadcastResult } from './observability';
 
 /**
  * Pro-tier real-time broadcast.
@@ -86,14 +87,24 @@ export async function broadcastSignalsToProGroup(
 ): Promise<ProBroadcastResult> {
   const tradable = signals.filter((s) => !s.gateBlocked);
   if (tradable.length === 0) {
-    return { attempted: 0, sent: 0, failed: 0, reason: 'no_signals' };
+    const result: ProBroadcastResult = { attempted: 0, sent: 0, failed: 0, reason: 'no_signals' };
+    recordBroadcastResult({ source: 'telegram_pro_broadcast', ...result });
+    return result;
   }
 
   const token = getBotToken();
-  if (!token) return { attempted: 0, sent: 0, failed: 0, reason: 'no_bot_token' };
+  if (!token) {
+    const result: ProBroadcastResult = { attempted: 0, sent: 0, failed: 0, reason: 'no_bot_token' };
+    recordBroadcastResult({ source: 'telegram_pro_broadcast', ...result });
+    return result;
+  }
 
   const chatId = getProGroupId();
-  if (!chatId) return { attempted: 0, sent: 0, failed: 0, reason: 'no_pro_group' };
+  if (!chatId) {
+    const result: ProBroadcastResult = { attempted: 0, sent: 0, failed: 0, reason: 'no_pro_group' };
+    recordBroadcastResult({ source: 'telegram_pro_broadcast', ...result });
+    return result;
+  }
 
   let sent = 0;
   let failed = 0;
@@ -135,5 +146,7 @@ export async function broadcastSignalsToProGroup(
     }
   }
 
-  return { attempted: tradable.length, sent, failed };
+  const result: ProBroadcastResult = { attempted: tradable.length, sent, failed };
+  recordBroadcastResult({ source: 'telegram_pro_broadcast', ...result });
+  return result;
 }
