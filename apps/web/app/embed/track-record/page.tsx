@@ -28,6 +28,7 @@ export default async function TrackRecordEmbedPage({ searchParams }: { searchPar
   const dark = theme !== 'light';
   const s = await loadStats();
   const pnlColor = s.totalPnl >= 0 ? '#10b981' : '#f43f5e';
+  const borderColor = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
 
   return (
     <main
@@ -52,18 +53,18 @@ export default async function TrackRecordEmbedPage({ searchParams }: { searchPar
         </a>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', flex: 1 }}>
-        <Stat label="Signals resolved" value={s.total.toString()} />
-        <Stat label="Wins" value={s.wins.toString()} />
-        <Stat label="Win rate" value={`${s.winRate}%`} />
-        <Stat label="Σ PnL" value={`${s.totalPnl >= 0 ? '+' : ''}${s.totalPnl}%`} valueColor={pnlColor} />
+        <Stat label="Signals resolved" value={s.total.toString()} borderColor={borderColor} />
+        <Stat label="Wins" value={s.wins.toString()} borderColor={borderColor} />
+        <Stat label="Win rate" value={`${s.winRate}%`} borderColor={borderColor} />
+        <Stat label="Σ PnL" value={`${s.totalPnl >= 0 ? '+' : ''}${s.totalPnl}%`} valueColor={pnlColor} borderColor={borderColor} />
       </div>
     </main>
   );
 }
 
-function Stat({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) {
+function Stat({ label, value, valueColor, borderColor }: { label: string; value: string; valueColor?: string; borderColor: string }) {
   return (
-    <div style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <div style={{ border: `1px solid ${borderColor}`, borderRadius: 12, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       <div style={{ fontSize: 11, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
       <div style={{ fontSize: 28, fontWeight: 600, color: valueColor ?? 'inherit', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
     </div>
