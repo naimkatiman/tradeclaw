@@ -10,6 +10,7 @@ const SUPPORTED_SYMBOLS = [
   'BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD',
   'USDJPY', 'XAGUSD', 'AUDUSD', 'XRPUSD', 'USDCAD',
 ];
+import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import {
   requestNotificationPermission,
   getNotificationPermission,
@@ -52,12 +53,6 @@ interface CreateAlertModalProps {
   prefillPrice?: number;
 }
 
-const BASE_PRICES: Record<string, number> = {
-  BTCUSD: 87500, ETHUSD: 3400, XAUUSD: 2180, EURUSD: 1.083,
-  GBPUSD: 1.264, USDJPY: 151.2, XAGUSD: 24.8, AUDUSD: 0.654,
-  XRPUSD: 0.615, USDCAD: 1.365,
-};
-
 function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: CreateAlertModalProps) {
   const [symbol, setSymbol] = useState(prefillSymbol ?? 'BTCUSD');
   const [direction, setDirection] = useState<'above' | 'below'>('above');
@@ -68,7 +63,9 @@ function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: C
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const currentPrice = prefillPrice ?? BASE_PRICES[symbol] ?? 0;
+  const { prices } = usePriceStream(SUPPORTED_SYMBOLS);
+  const livePrice = prices.get(symbol)?.price;
+  const currentPrice = prefillPrice ?? livePrice ?? 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
