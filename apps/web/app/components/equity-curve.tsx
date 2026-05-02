@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { Lock } from 'lucide-react';
 import { InfoHint } from '@/components/InfoHint';
 import { STAT_HINTS } from '@/lib/stat-hints';
+import { FREE_HISTORY_DAYS } from '@/lib/tier-client';
 
 interface EquityPoint {
   timestamp: number;
@@ -365,7 +366,7 @@ export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps)
           <p className="text-[11px] text-zinc-600 mt-0.5">
             {isPro
               ? 'Full Pro track record. Every signal paper-traded with equal risk; results verified against real market data.'
-              : 'Free-tier slice — last 24h on free symbols only. Subset of what Pro subscribers see.'}
+              : `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see.`}
           </p>
         </div>
       </div>

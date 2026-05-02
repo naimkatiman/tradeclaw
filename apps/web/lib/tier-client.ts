@@ -17,3 +17,11 @@ export type FreeSymbol = typeof FREE_SYMBOLS[number];
 export function isFreeSymbol(symbol: string): boolean {
   return (FREE_SYMBOLS as readonly string[]).includes(symbol);
 }
+
+/**
+ * Free-tier history window in days. Single source of truth for both server
+ * gating (TIER_HISTORY_DAYS.free in ./tier.ts) and client-rendered marketing
+ * copy (pricing page, track-record disclaimer). Bumping this here updates
+ * both code paths and all visible labels in lockstep.
+ */
+export const FREE_HISTORY_DAYS = 7;

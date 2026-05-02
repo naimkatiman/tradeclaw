@@ -1,9 +1,9 @@
 import type { Tier } from './stripe';
 import { TIER_LEVEL } from './stripe';
 import type { TradingSignal } from '../app/lib/signals';
-import { FREE_SYMBOLS, isFreeSymbol } from './tier-client';
+import { FREE_HISTORY_DAYS, FREE_SYMBOLS, isFreeSymbol } from './tier-client';
 
-export { TIER_LEVEL, FREE_SYMBOLS, isFreeSymbol };
+export { TIER_LEVEL, FREE_HISTORY_DAYS, FREE_SYMBOLS, isFreeSymbol };
 export type { Tier };
 
 const ALL_SYMBOLS = [
@@ -43,9 +43,9 @@ export const TIER_SYMBOLS: Record<Tier, string[]> = {
   custom: ALL_SYMBOLS,
 };
 
-// History window per tier
+// History window per tier (free derived from FREE_HISTORY_DAYS for single source of truth)
 export const TIER_HISTORY_DAYS: Record<Tier, number | null> = {
-  free: 7,
+  free: FREE_HISTORY_DAYS,
   pro: null, // unlimited
   elite: null,
   custom: null,
