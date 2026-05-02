@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { PageNavBar } from '../../components/PageNavBar';
 import type { Portfolio, Trade, EquityPoint } from '../../lib/paper-trading';
 import { sendNotification } from '../../lib/notifications';
+import { WinShareToast } from '../components/win-share-toast';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -209,6 +210,8 @@ export default function PaperTradingPage() {
   const [sizePct, setSizePct] = useState(0.05);
   const [autoFollow, setAutoFollow] = useState(false);
 
+  const [winToast, setWinToast] = useState<{ symbol: string; pnlPct: number } | null>(null);
+
   // UI state
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -392,6 +395,9 @@ export default function PaperTradingPage() {
           data: { tradeId: t.id, symbol: t.symbol },
         },
       );
+      if (t.pnlPercent > 0) {
+        setWinToast({ symbol: t.symbol, pnlPct: t.pnlPercent });
+      }
     }
   }, [portfolio]);
 
@@ -963,6 +969,14 @@ export default function PaperTradingPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {winToast && (
+        <WinShareToast
+          symbol={winToast.symbol}
+          pnlPct={winToast.pnlPct}
+          onDismiss={() => setWinToast(null)}
+        />
       )}
     </div>
   );
