@@ -27,6 +27,7 @@ import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 import { InfoHint } from '../../components/InfoHint';
 import { STAT_HINTS } from '../../lib/stat-hints';
 import type { TradingSignal } from '@tradeclaw/signals';
+import type { LockedSignalStub } from '../../lib/tier';
 import type { TFDirection } from '../lib/signal-generator';
 import { OnboardingOverlay } from '../components/onboarding-overlay';
 import { markStepDone } from '@/lib/onboarding-state';
@@ -271,6 +272,64 @@ function SignalExplanation({ signal }: { signal: TradingSignal }) {
         </div>
       ))}
     </div>
+  );
+}
+
+function formatCountdown(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function LockedSignalCard({ stub }: { stub: LockedSignalStub }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const remainingMs = new Date(stub.availableAt).getTime() - now;
+  const isBuy = stub.direction === 'BUY';
+
+  return (
+    <article className="glass-card rounded-2xl p-3.5 sm:p-5 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-emerald-500/[0.04] to-transparent" />
+      <div className="relative flex items-start justify-between gap-2 mb-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm font-semibold text-[var(--foreground)] font-mono tracking-tight">{stub.symbol}</span>
+            <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border ${
+              isBuy
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+                : 'bg-rose-500/10 text-rose-400 border-rose-500/25'
+            }`}>{stub.direction}</span>
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">LOCKED</span>
+          </div>
+          <div className="text-[11px] text-[var(--text-secondary)] font-mono mt-0.5">{stub.timeframe}</div>
+        </div>
+        <div className="text-right">
+          <div className={`text-sm font-bold font-mono tabular-nums ${
+            stub.confidence >= 80 ? 'text-emerald-400' : stub.confidence >= 65 ? 'text-zinc-400' : 'text-red-400'
+          }`}>{stub.confidence}%</div>
+          <div className="text-[10px] text-[var(--text-secondary)]">confidence</div>
+        </div>
+      </div>
+      <div className="relative flex items-center justify-between gap-3 pt-2 border-t border-white/[0.05]">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-mono">Unlocks in</div>
+          <div className="text-lg font-mono font-semibold tabular-nums text-[var(--foreground)] mt-0.5">
+            {formatCountdown(remainingMs)}
+          </div>
+        </div>
+        <Link
+          href="/pricing?from=locked-signal"
+          className="inline-flex items-center gap-1 rounded-md bg-emerald-500 px-3 py-1.5 text-[11px] font-semibold text-black hover:bg-emerald-400 transition-colors"
+        >
+          Unlock now
+        </Link>
+      </div>
+    </article>
   );
 }
 
@@ -750,6 +809,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
     return [];
   });
   const [syntheticSymbols, setSyntheticSymbols] = useState<string[]>(initialSyntheticSymbols || []);
+  const [lockedSignals, setLockedSignals] = useState<LockedSignalStub[]>([]);
   const [tfMap, setTfMap] = useState<Map<string, TFDirection[]>>(new Map());
   const [loading, setLoading] = useState(() => {
     if (initialSignals && initialSignals.length > 0) return false;
@@ -803,6 +863,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       if (signalsRes.status === 'fulfilled') {
         setSignals(signalsRes.value.signals);
         setSyntheticSymbols(signalsRes.value.syntheticSymbols || []);
+        setLockedSignals(signalsRes.value.lockedSignals || []);
         setCachedSignals(signalsRes.value.signals);
       }
       if (mtfRes.status === 'fulfilled' && mtfRes.value.results) {
@@ -1185,6 +1246,21 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           }
           return (
             <>
+              {/* Locked signals — free tier sees pair/direction/confidence + countdown until unlock */}
+              {lockedSignals.length > 0 && (
+                <section className="mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <h2 className="text-xs uppercase tracking-wider text-emerald-400/80 font-mono font-semibold">Unlocking soon</h2>
+                    <span className="text-[10px] text-[var(--text-secondary)] font-mono">{lockedSignals.length} signal{lockedSignals.length !== 1 ? 's' : ''} ahead of free-tier delay</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {lockedSignals.map(stub => (
+                      <LockedSignalCard key={stub.id} stub={stub} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
               {/* Main signals (70%+) */}
               {mainSignals.length > 0 && (
                 <div data-tour-id="signal-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

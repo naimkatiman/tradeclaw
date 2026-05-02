@@ -12,6 +12,7 @@ import {
   getWeeklySummary, calculatePnl,
   type JournalEntry, type TradeDirection, type WeeklySummary,
 } from '../../lib/trade-journal';
+import { PageNavBar } from '../../components/PageNavBar';
 
 const PAIRS = [
   'BTCUSD', 'ETHUSD', 'XAUUSD', 'XAGUSD',
@@ -587,6 +588,7 @@ export default function JournalClient() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white">
+      <PageNavBar />
       {/* Hero */}
       <div className="border-b border-zinc-800/60 bg-[#0d1421]/60">
         <div className="max-w-7xl mx-auto px-4 py-8">

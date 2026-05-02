@@ -4,8 +4,32 @@ import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 import { readLiveSignals } from '../../../lib/signals-live';
 import { fetchRegimeMap, filterSignalsByRegime, getDominantRegime } from '../../../lib/regime-filter';
 import { readSessionFromRequest } from '../../../lib/user-session';
-import { getUserTier, filterSignalByTier, TIER_DELAY_MS } from '../../../lib/tier';
+import {
+  getUserTier,
+  filterSignalByTier,
+  TIER_DELAY_MS,
+  toLockedStub,
+  type LockedSignalStub,
+} from '../../../lib/tier';
 import type { TradingSignal } from '../../lib/signals';
+
+function splitDelayed<T extends { timestamp: string | number }>(
+  signals: T[],
+  delayMs: number,
+): { visible: T[]; locked: LockedSignalStub[] } {
+  if (delayMs <= 0) return { visible: signals, locked: [] };
+  const cutoff = Date.now() - delayMs;
+  const visible: T[] = [];
+  const lockedSrc: T[] = [];
+  for (const s of signals) {
+    if (new Date(s.timestamp).getTime() <= cutoff) visible.push(s);
+    else lockedSrc.push(s);
+  }
+  const locked = lockedSrc.map(s =>
+    toLockedStub(s as unknown as Parameters<typeof toLockedStub>[0], delayMs),
+  );
+  return { visible, locked };
+}
 
 // Re-export types for consumers that imported from here
 export type { TradingSignal, IndicatorSummary } from '../../lib/signals';
@@ -82,29 +106,27 @@ export async function GET(request: NextRequest) {
       mapped = filterSignalsByRegime(mapped, regimeMap);
 
       // Tier-based gating: symbol filter, TP masking, delay
-      let gatedMapped = mapped
+      const gatedMapped = mapped
         .map(s => filterSignalByTier(s as unknown as TradingSignal, tier))
         .filter((s): s is NonNullable<typeof s> => s !== null);
 
-      if (delayMs > 0) {
-        const cutoff = Date.now() - delayMs;
-        gatedMapped = gatedMapped.filter(s => new Date(s.timestamp).getTime() <= cutoff);
-      }
+      const { visible: visibleMapped, locked: lockedMapped } = splitDelayed(gatedMapped, delayMs);
 
       return NextResponse.json({
-        count: gatedMapped.length,
+        count: visibleMapped.length,
         timestamp: new Date().toISOString(),
         tier,
         engine: {
           source: 'tradingview-confluence',
-          real: gatedMapped.length,
+          real: visibleMapped.length,
           fallback: 0,
           version: '3.1.0',
           generated_at: liveData.generatedAt,
           regime: dominantRegime,
         },
         filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence, minConfluence },
-        signals: gatedMapped,
+        signals: visibleMapped,
+        lockedSignals: lockedMapped,
         syntheticSymbols: [],  // no synthetic — real data from Python engine
       }, {
         headers: { 'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60' },
@@ -123,28 +145,26 @@ export async function GET(request: NextRequest) {
     const signals = filterSignalsByRegime(rawSignals, regimeMap);
 
     // Tier-based gating: symbol filter, TP masking, delay
-    let gatedSignals = signals
+    const gatedSignals = signals
       .map(s => filterSignalByTier(s, tier))
       .filter((s): s is NonNullable<typeof s> => s !== null);
 
-    if (delayMs > 0) {
-      const cutoff = Date.now() - delayMs;
-      gatedSignals = gatedSignals.filter(s => new Date(s.timestamp).getTime() <= cutoff);
-    }
+    const { visible: visibleSignals, locked: lockedSignals } = splitDelayed(gatedSignals, delayMs);
 
     return NextResponse.json({
-      count: gatedSignals.length,
+      count: visibleSignals.length,
       timestamp: new Date().toISOString(),
       tier,
       engine: {
-        real: gatedSignals.filter(s => s.source === 'real').length,
-        fallback: gatedSignals.filter(s => s.source === 'fallback').length,
+        real: visibleSignals.filter(s => s.source === 'real').length,
+        fallback: visibleSignals.filter(s => s.source === 'fallback').length,
         version: '2.1.0',
         note: liveData?.isStale ? 'signals-live.json stale, using fallback engine' : 'signals-live.json not found or empty',
         regime: dominantRegime,
       },
       filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence },
-      signals: gatedSignals,
+      signals: visibleSignals,
+      lockedSignals,
       syntheticSymbols,
     }, {
       headers: { 'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60' },

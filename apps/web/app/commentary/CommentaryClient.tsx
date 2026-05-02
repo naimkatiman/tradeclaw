@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import type { DailyCommentary } from '../lib/market-commentary';
+import { PageNavBar } from '../../components/PageNavBar';
 
 export function CommentaryClient() {
   const [commentary, setCommentary] = useState<DailyCommentary | null>(null);
@@ -57,8 +58,11 @@ export function CommentaryClient() {
 
   if (loading && !commentary) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-[var(--text-secondary)]">Loading commentary...</div>
+      <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+        <PageNavBar />
+        <div className="flex items-center justify-center py-24">
+          <div className="animate-pulse text-[var(--text-secondary)]">Loading commentary...</div>
+        </div>
       </div>
     );
   }
@@ -74,6 +78,7 @@ export function CommentaryClient() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      <PageNavBar />
       <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
         {/* Hero */}
         <header className="text-center space-y-3">

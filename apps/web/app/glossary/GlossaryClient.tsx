@@ -8,6 +8,7 @@ import {
   CATEGORIES,
   type GlossaryTerm,
 } from "@/app/lib/glossary-data";
+import { PageNavBar } from "../../components/PageNavBar";
 
 type CategoryKey = GlossaryTerm["category"] | "all";
 
@@ -158,6 +159,7 @@ export default function GlossaryClient() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      <PageNavBar />
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-zinc-800">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent" />

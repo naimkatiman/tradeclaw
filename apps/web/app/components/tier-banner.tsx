@@ -72,7 +72,7 @@ export function TierBanner() {
           <span className="font-semibold text-zinc-400">FREE</span>
           <span className="text-zinc-600 hidden sm:inline">·</span>
           <span className="text-zinc-500 hidden sm:inline">
-            Delayed 15 min, 6 symbols, last 7 days. Real-time on Pro.
+            Locked 15 min after publish, 6 symbols, last 7 days. Real-time on Pro.
           </span>
         </div>
         <Link

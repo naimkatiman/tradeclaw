@@ -60,6 +60,46 @@ export const TIER_DELAY_MS: Record<Tier, number> = {
 };
 
 /**
+ * Public-safe stub for a delayed free-tier signal.
+ *
+ * Free callers see this in a separate `lockedSignals` array on the
+ * dashboard's `/api/signals` response. Carries only the fields needed to
+ * render a countdown card and an upgrade CTA — no price levels, no
+ * indicators. Network inspection cannot reveal the trade.
+ */
+export interface LockedSignalStub {
+  id: string;
+  symbol: string;
+  direction: 'BUY' | 'SELL';
+  timeframe: string;
+  confidence: number;
+  /** ISO timestamp when the signal becomes visible to the free tier. */
+  availableAt: string;
+  locked: true;
+}
+
+/**
+ * Build a `LockedSignalStub` from a full signal. The stub is intentionally
+ * narrow — adding fields here is a privacy/disclosure decision, not a
+ * convenience one.
+ */
+export function toLockedStub(
+  signal: Pick<TradingSignal, 'id' | 'symbol' | 'direction' | 'timeframe' | 'confidence' | 'timestamp'>,
+  delayMs: number,
+): LockedSignalStub {
+  const publishedMs = new Date(signal.timestamp).getTime();
+  return {
+    id: signal.id,
+    symbol: signal.symbol,
+    direction: signal.direction as 'BUY' | 'SELL',
+    timeframe: signal.timeframe,
+    confidence: signal.confidence,
+    availableAt: new Date(publishedMs + delayMs).toISOString(),
+    locked: true,
+  };
+}
+
+/**
  * Pro-tier signals include higher-confidence MTF confluence signals
  * that free users don't see. This threshold gates the "premium" band.
  */

@@ -12,6 +12,7 @@ import {
   ChevronDown,
   Star,
 } from 'lucide-react';
+import { PageNavBar } from '../../components/PageNavBar';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -192,7 +193,8 @@ export default function NotificationsClient() {
   // ---- Render ----
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <div className="max-w-2xl mx-auto px-4 py-24">
+      <PageNavBar />
+      <div className="max-w-2xl mx-auto px-4 py-12">
 
         {/* Toast */}
         {toast && (

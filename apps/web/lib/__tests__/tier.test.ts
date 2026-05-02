@@ -11,6 +11,7 @@ import {
   getStrategiesForTier,
   resolveAccessContext,
   resolveAccessContextFromCookies,
+  toLockedStub,
 } from '../tier';
 import type { TradingSignal } from '../../app/lib/signals';
 
@@ -87,6 +88,52 @@ describe('tier — canonical constants', () => {
 
   it('PRO_PREMIUM_MIN_CONFIDENCE gates the premium band at 85+', () => {
     expect(PRO_PREMIUM_MIN_CONFIDENCE).toBe(85);
+  });
+});
+
+describe('tier — toLockedStub', () => {
+  it('emits only id, symbol, direction, timeframe, confidence, availableAt, locked — no price levels', () => {
+    const sig = makeSignal({
+      id: 'sig-locked-1',
+      symbol: 'XAUUSD',
+      direction: 'BUY',
+      timeframe: 'H1',
+      confidence: 78,
+      timestamp: '2026-05-02T12:00:00.000Z',
+    });
+    const stub = toLockedStub(sig, 15 * 60 * 1000);
+
+    expect(stub).toEqual({
+      id: 'sig-locked-1',
+      symbol: 'XAUUSD',
+      direction: 'BUY',
+      timeframe: 'H1',
+      confidence: 78,
+      availableAt: '2026-05-02T12:15:00.000Z',
+      locked: true,
+    });
+    expect(Object.keys(stub).sort()).toEqual(
+      ['availableAt', 'confidence', 'direction', 'id', 'locked', 'symbol', 'timeframe'],
+    );
+    // No price/indicator fields leak through
+    expect(stub).not.toHaveProperty('entry');
+    expect(stub).not.toHaveProperty('stopLoss');
+    expect(stub).not.toHaveProperty('takeProfit1');
+    expect(stub).not.toHaveProperty('takeProfit2');
+    expect(stub).not.toHaveProperty('takeProfit3');
+    expect(stub).not.toHaveProperty('indicators');
+  });
+
+  it('availableAt = timestamp + delayMs', () => {
+    const tsMs = Date.UTC(2026, 4, 2, 12, 0, 0);
+    const sig = makeSignal({ timestamp: new Date(tsMs).toISOString() });
+    const stub = toLockedStub(sig, 15 * 60 * 1000);
+    expect(new Date(stub.availableAt).getTime()).toBe(tsMs + 15 * 60 * 1000);
+  });
+
+  it('locked is the literal true (not just truthy)', () => {
+    const stub = toLockedStub(makeSignal(), 60_000);
+    expect(stub.locked).toBe(true);
   });
 });
 
