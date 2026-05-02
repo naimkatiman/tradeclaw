@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllEnabledRules, getChannelConfigsForUser, signalMatchesRule } from '@/lib/alert-rules-db';
+import { sendToChannel, type ChannelName, type AlertSignal } from '@/lib/alert-channels';
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -10,10 +11,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { signal } = body as { signal: {
-    symbol: string; timeframe: string; direction: 'BUY' | 'SELL';
-    confidence: number; [key: string]: unknown;
-  }};
+  const { signal } = body as { signal: AlertSignal & { [key: string]: unknown } };
 
   if (!signal?.symbol) {
     return NextResponse.json({ error: 'signal is required' }, { status: 400 });
@@ -29,34 +27,15 @@ export async function POST(req: NextRequest) {
     const configsByChannel = new Map(configs.map((c) => [c.channel, c]));
 
     for (const channelName of rule.channels) {
-      const cfg = configsByChannel.get(channelName as 'telegram' | 'discord' | 'email' | 'webhook');
+      const cfg = configsByChannel.get(channelName as ChannelName);
       if (!cfg || !cfg.enabled) continue;
 
-      try {
-        const { createChannel } = await import('@naimkatiman/tradeclaw-agent');
-        const channelConfig = {
-          type: channelName as 'telegram' | 'discord' | 'webhook',
-          enabled: true,
-          telegramBotToken: cfg.config.botToken,
-          telegramChatId: cfg.config.chatId,
-          discordWebhookUrl: cfg.config.webhookUrl,
-          webhookUrl: cfg.config.url,
-        };
-
-        const channel = await createChannel(channelConfig);
-        if (!channel) continue;
-
-        const validationError = channel.validate();
-        if (validationError) {
-          results.push({ ruleId: rule.id, channel: channelName, success: false });
-          continue;
-        }
-
-        const ok = await channel.sendSignal(signal as any);
-        results.push({ ruleId: rule.id, channel: channelName, success: ok });
-      } catch {
-        results.push({ ruleId: rule.id, channel: channelName, success: false });
-      }
+      // Inline channel senders. Each returns a boolean and never throws —
+      // a Telegram outage or 500 from a user's webhook does not poison
+      // the whole batch. See lib/alert-channels.ts for the shape of
+      // each channel's `config` map.
+      const ok = await sendToChannel(channelName as ChannelName, cfg.config, signal);
+      results.push({ ruleId: rule.id, channel: channelName, success: ok });
     }
   }
 
