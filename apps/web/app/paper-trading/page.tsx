@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { PageNavBar } from '../../components/PageNavBar';
 import type { Portfolio, Trade, EquityPoint } from '../../lib/paper-trading';
+import { sendNotification } from '../../lib/notifications';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -353,6 +354,46 @@ export default function PaperTradingPage() {
     if (!canvasRef.current || !portfolio) return;
     drawEquityCurve(canvasRef.current, portfolio.equityCurve, tooltip);
   }, [portfolio, tooltip]);
+
+  // ---------------------------------------------------------------------------
+  // Closed-trade push notifications
+  // ---------------------------------------------------------------------------
+
+  const seenClosedTradeIdsRef = useRef<Set<string>>(new Set());
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (!portfolio) return;
+    const closed = portfolio.history ?? [];
+
+    // First run: snapshot existing IDs without notifying (avoid blasting on page load).
+    if (!initializedRef.current) {
+      for (const t of closed) seenClosedTradeIdsRef.current.add(t.id);
+      initializedRef.current = true;
+      return;
+    }
+
+    for (const t of closed) {
+      if (seenClosedTradeIdsRef.current.has(t.id)) continue;
+      seenClosedTradeIdsRef.current.add(t.id);
+
+      const reasonLabel =
+        t.exitReason === 'takeProfit' ? 'TP hit' :
+        t.exitReason === 'stopLoss'   ? 'SL hit' :
+        t.exitReason === 'manual'     ? 'closed manually' :
+        t.exitReason === 'reset'      ? 'portfolio reset' :
+        'closed';
+      const sign = t.pnlPercent >= 0 ? '+' : '';
+      sendNotification(
+        `Paper trade closed — ${t.symbol} ${t.direction}`,
+        `${reasonLabel} · PnL ${sign}${t.pnlPercent.toFixed(2)}%`,
+        {
+          tag: `paper-close-${t.id}`,
+          data: { tradeId: t.id, symbol: t.symbol },
+        },
+      );
+    }
+  }, [portfolio]);
 
   // ---------------------------------------------------------------------------
   // Actions
