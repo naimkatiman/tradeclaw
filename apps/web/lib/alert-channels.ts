@@ -164,13 +164,14 @@ export async function sendGenericWebhook(
 }
 
 export async function sendEmail(
-  _config: Record<string, string>,
-  _signal: AlertSignal,
+  config: Record<string, string>,
+  signal: AlertSignal,
 ): Promise<boolean> {
-  // Email delivery requires an external provider (Resend, SendGrid, SES, …).
-  // None is wired into apps/web today. Return false so callers see the row
-  // as failed rather than silently dropping the user's preference.
-  return false;
+  const to = config.to ?? config.address ?? config.email;
+  if (!to) return false;
+  const { sendSignalEmail } = await import('./email-sender');
+  const result = await sendSignalEmail(to, signal);
+  return result.ok;
 }
 
 export type ChannelName = 'telegram' | 'discord' | 'email' | 'webhook';
