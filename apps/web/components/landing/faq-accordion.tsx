@@ -11,7 +11,7 @@ const FAQS: FAQItem[] = [
   {
     question: "Is there a free tier?",
     answer:
-      "Yes. The open-source framework is MIT-licensed and free forever — you can self-host the entire stack. On tradeclaw.win we also offer a Free hosted tier: 3 symbols (BTC/ETH/XAU), 15-minute delayed signals, public Telegram channel. Pro ($29/mo, 7-day trial) upgrades that to real-time delivery, all symbols, private Pro Telegram group, and full TP1/TP2/TP3 + SL levels.",
+      "Yes. The open-source framework is MIT-licensed and free forever — you can self-host the entire stack. On tradeclaw.win we also offer a Free hosted tier: 6 symbols across crypto, forex, commodities, and index ETFs; 15-minute delayed signals; public Telegram channel; 7 days of signal history. Pro ($29/mo, 7-day trial) upgrades that to real-time delivery, all traded symbols, private Pro Telegram group, full TP1/TP2/TP3 + SL levels, and unlimited signal history with CSV export.",
   },
   {
     question: "How do AI signals work?",

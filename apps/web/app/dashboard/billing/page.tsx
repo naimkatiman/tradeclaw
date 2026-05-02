@@ -21,7 +21,7 @@ interface PlanInfo {
 const FREE_PLAN: PlanInfo = {
   name: 'Free',
   price: '$0/mo',
-  description: 'Delayed signals, 3 symbols, public Telegram channel.',
+  description: 'Delayed signals, 6 symbols across asset classes, public Telegram channel.',
   color: 'text-zinc-400',
 };
 

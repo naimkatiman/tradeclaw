@@ -45,7 +45,7 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
   {
     id: 'pro',
     name: 'Pro',
-    tagline: 'Real-time premium signals with full analytics.',
+    tagline: 'Real-time signals across every traded pair, with full analytics.',
     monthlyPriceLabel: '$29',
     annualPriceLabel: '$290/yr — save $58',
     kind: 'stripe',
@@ -54,10 +54,11 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
     features: [
       'All traded symbols',
       'Real-time signal delivery',
-      'Premium high-confidence signals + MTF confluence',
+      'Multi-timeframe analysis (RSI, EMA, MACD, Bollinger, Stochastic)',
       'TP1, TP2, TP3 + Stop Loss',
       'Private Pro Telegram group',
       'Full signal history + CSV export',
+      'Every signal in a public Postgres archive — audit win rate yourself',
       '7-day free trial',
     ],
   },

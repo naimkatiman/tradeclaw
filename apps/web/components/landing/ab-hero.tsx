@@ -316,7 +316,7 @@ function HeroVariantC({
       <p className="mx-auto mt-6 max-w-2xl text-base text-zinc-400 leading-relaxed sm:text-lg">
         TradeClaw analyzes forex, crypto, and commodities —
         and tells you BUY, SELL, or wait. Every signal is recorded and verified.
-        Free gets you 3 assets. Pro ($29/mo) unlocks all pairs in real-time.
+        Free covers 6 symbols across asset classes. Pro ($29/mo) unlocks all pairs in real-time.
       </p>
 
       {/* Live signal cards */}
