@@ -10,19 +10,25 @@ jest.mock('../../../../lib/alert-rules-db', () => ({
   deleteChannelConfig: jest.fn(),
 }));
 
+jest.mock('../../../../lib/alert-channels', () => ({
+  sendToChannel: jest.fn(),
+}));
+
 import { readSessionFromRequest } from '../../../../lib/user-session';
 import {
   getChannelConfigsForUser,
   upsertChannelConfig,
   deleteChannelConfig,
 } from '../../../../lib/alert-rules-db';
+import { sendToChannel } from '../../../../lib/alert-channels';
 import { GET, POST } from '../route';
-import { DELETE } from '../[channel]/route';
+import { DELETE, POST as POST_TEST } from '../[channel]/route';
 
 const mockedRead = readSessionFromRequest as jest.MockedFunction<typeof readSessionFromRequest>;
 const mockedGetCfg = getChannelConfigsForUser as jest.MockedFunction<typeof getChannelConfigsForUser>;
 const mockedUpsert = upsertChannelConfig as jest.MockedFunction<typeof upsertChannelConfig>;
 const mockedDelete = deleteChannelConfig as jest.MockedFunction<typeof deleteChannelConfig>;
+const mockedSend = sendToChannel as jest.MockedFunction<typeof sendToChannel>;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -139,5 +145,86 @@ describe('DELETE /api/alert-channels/[channel]', () => {
     const body = await res.json();
     expect(body.removed).toBe(true);
     expect(mockedDelete).toHaveBeenCalledWith('u1', 'discord');
+  });
+});
+
+describe('POST /api/alert-channels/[channel]/test', () => {
+  it('rejects unauthenticated callers with 401', async () => {
+    mockedRead.mockReturnValueOnce(null);
+    const res = await POST_TEST(
+      new NextRequest('http://localhost/api/alert-channels/telegram/test', { method: 'POST' }),
+      { params: Promise.resolve({ channel: 'telegram' }) },
+    );
+    expect(res.status).toBe(401);
+    expect(mockedSend).not.toHaveBeenCalled();
+  });
+
+  it('rejects unknown channel with 400', async () => {
+    mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
+    const res = await POST_TEST(
+      new NextRequest('http://localhost/api/alert-channels/sms/test', { method: 'POST' }),
+      { params: Promise.resolve({ channel: 'sms' }) },
+    );
+    expect(res.status).toBe(400);
+    expect(mockedSend).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when the channel is not configured', async () => {
+    mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
+    mockedGetCfg.mockResolvedValueOnce([]);
+    const res = await POST_TEST(
+      new NextRequest('http://localhost/api/alert-channels/telegram/test', { method: 'POST' }),
+      { params: Promise.resolve({ channel: 'telegram' }) },
+    );
+    expect(res.status).toBe(404);
+    expect(mockedSend).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when the channel is disabled', async () => {
+    mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
+    mockedGetCfg.mockResolvedValueOnce([
+      { id: 'c1', user_id: 'u1', channel: 'telegram', config: { chatId: '1' }, enabled: false },
+    ]);
+    const res = await POST_TEST(
+      new NextRequest('http://localhost/api/alert-channels/telegram/test', { method: 'POST' }),
+      { params: Promise.resolve({ channel: 'telegram' }) },
+    );
+    expect(res.status).toBe(400);
+    expect(mockedSend).not.toHaveBeenCalled();
+  });
+
+  it('dispatches a fake signal through the configured channel', async () => {
+    mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
+    mockedGetCfg.mockResolvedValueOnce([
+      { id: 'c1', user_id: 'u1', channel: 'discord', config: { webhookUrl: 'https://x' }, enabled: true },
+    ]);
+    mockedSend.mockResolvedValueOnce(true);
+    const res = await POST_TEST(
+      new NextRequest('http://localhost/api/alert-channels/discord/test', { method: 'POST' }),
+      { params: Promise.resolve({ channel: 'discord' }) },
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.delivered).toBe(true);
+    expect(mockedSend).toHaveBeenCalledWith(
+      'discord',
+      { webhookUrl: 'https://x' },
+      expect.objectContaining({ symbol: 'XAUUSD', direction: 'BUY' }),
+    );
+  });
+
+  it('reports delivered=false when the sender returns false', async () => {
+    mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
+    mockedGetCfg.mockResolvedValueOnce([
+      { id: 'c1', user_id: 'u1', channel: 'email', config: { to: 'a@b' }, enabled: true },
+    ]);
+    mockedSend.mockResolvedValueOnce(false);
+    const res = await POST_TEST(
+      new NextRequest('http://localhost/api/alert-channels/email/test', { method: 'POST' }),
+      { params: Promise.resolve({ channel: 'email' }) },
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.delivered).toBe(false);
   });
 });

@@ -91,6 +91,8 @@ function ChannelRow({ channel, existing, onSaved, onRemoved }: ChannelRowProps) 
   const [config, setConfig] = useState<Record<string, string>>(existing?.config ?? {});
   const [enabled, setEnabled] = useState(existing?.enabled ?? true);
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testStatus, setTestStatus] = useState<'idle' | 'sent' | 'failed'>('idle');
   const [error, setError] = useState<string | null>(null);
   const fields = FIELDS_BY_CHANNEL[channel];
   const isConfigured = !!existing;
@@ -115,6 +117,25 @@ function ChannelRow({ channel, existing, onSaved, onRemoved }: ChannelRowProps) 
       setError(e instanceof Error ? e.message : 'Save failed');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function sendTest() {
+    setTesting(true);
+    setTestStatus('idle');
+    setError(null);
+    try {
+      const res = await fetch(`/api/alert-channels/${channel}/test`, { method: 'POST' });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(typeof d.error === 'string' ? d.error : 'Test failed');
+      }
+      setTestStatus(d.delivered ? 'sent' : 'failed');
+    } catch (e) {
+      setTestStatus('failed');
+      setError(e instanceof Error ? e.message : 'Test failed');
+    } finally {
+      setTesting(false);
     }
   }
 
@@ -193,13 +214,29 @@ function ChannelRow({ channel, existing, onSaved, onRemoved }: ChannelRowProps) 
           {saving ? 'Saving…' : isConfigured ? 'Update' : 'Save'}
         </button>
         {isConfigured && (
-          <button
-            onClick={remove}
-            disabled={saving}
-            className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-300 transition-all hover:bg-white/5 disabled:opacity-60"
-          >
-            Remove
-          </button>
+          <>
+            <button
+              onClick={sendTest}
+              disabled={saving || testing || !enabled}
+              title={!enabled ? 'Enable channel to test' : undefined}
+              className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 transition-all hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {testing ? 'Sending…' : 'Send test'}
+            </button>
+            <button
+              onClick={remove}
+              disabled={saving}
+              className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-300 transition-all hover:bg-white/5 disabled:opacity-60"
+            >
+              Remove
+            </button>
+          </>
+        )}
+        {testStatus === 'sent' && (
+          <span className="text-[11px] text-emerald-400">Sent — check your {CHANNEL_LABEL[channel].split(' ')[0].toLowerCase()}</span>
+        )}
+        {testStatus === 'failed' && !error && (
+          <span className="text-[11px] text-red-400">Delivery failed</span>
         )}
       </div>
     </div>
