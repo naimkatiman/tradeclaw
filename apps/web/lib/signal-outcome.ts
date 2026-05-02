@@ -4,8 +4,8 @@ export interface SignalLevels {
   entry: number;
   stopLoss: number;
   takeProfit1: number;
-  takeProfit2: number;
-  takeProfit3: number;
+  takeProfit2: number | null;
+  takeProfit3: number | null;
 }
 
 export type OutcomeStatus =
@@ -37,8 +37,8 @@ export function classifySignalOutcome(
     isBuy ? livePrice <= s.stopLoss : livePrice >= s.stopLoss;
 
   if (stopHit) return { status: 'stopped', progressPct: -100, hitTarget: 'SL' };
-  if (reached(s.takeProfit3)) return { status: 'tp3_hit', progressPct: 100, hitTarget: 'TP3' };
-  if (reached(s.takeProfit2)) return { status: 'tp2_hit', progressPct: 75, hitTarget: 'TP2' };
+  if (s.takeProfit3 != null && reached(s.takeProfit3)) return { status: 'tp3_hit', progressPct: 100, hitTarget: 'TP3' };
+  if (s.takeProfit2 != null && reached(s.takeProfit2)) return { status: 'tp2_hit', progressPct: 75, hitTarget: 'TP2' };
   if (reached(s.takeProfit1)) return { status: 'tp1_hit', progressPct: 50, hitTarget: 'TP1' };
 
   const distToTp1 = Math.abs(s.takeProfit1 - s.entry);

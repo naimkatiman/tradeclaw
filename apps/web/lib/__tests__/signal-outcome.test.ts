@@ -30,4 +30,14 @@ describe('classifySignalOutcome', () => {
   it('returns null for status when livePrice is missing', () => {
     expect(classifySignalOutcome(buy, null)).toEqual({ status: 'unknown', progressPct: 0, hitTarget: null });
   });
+  it('skips TP3 cleanly when takeProfit3 is null and falls through to TP2', () => {
+    const sig = { ...buy, takeProfit3: null as number | null };
+    // price 112 is between TP2 (110) and the null TP3 → should report TP2 hit, not TP3
+    expect(classifySignalOutcome(sig, 112)).toMatchObject({ status: 'tp2_hit', hitTarget: 'TP2' });
+  });
+  it('treats null TP2 and TP3 as absent so only TP1 / SL / active states are reachable', () => {
+    const sig = { ...buy, takeProfit2: null as number | null, takeProfit3: null as number | null };
+    expect(classifySignalOutcome(sig, 130)).toMatchObject({ status: 'tp1_hit', hitTarget: 'TP1' }); // would have been TP3 with full ladder
+    expect(classifySignalOutcome(sig, 102)).toMatchObject({ status: 'active' });
+  });
 });
