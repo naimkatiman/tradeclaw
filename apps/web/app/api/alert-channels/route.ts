@@ -4,6 +4,7 @@ import {
   getChannelConfigsForUser,
   upsertChannelConfig,
 } from '@/lib/alert-rules-db';
+import { getUserById } from '@/lib/db';
 import { readSessionFromRequest } from '@/lib/user-session';
 
 /**
@@ -32,8 +33,14 @@ const UpsertSchema = z.object({
 export async function GET(req: NextRequest) {
   const session = readSessionFromRequest(req);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const configs = await getChannelConfigsForUser(session.userId);
-  return NextResponse.json({ configs });
+  const [configs, user] = await Promise.all([
+    getChannelConfigsForUser(session.userId),
+    getUserById(session.userId),
+  ]);
+  return NextResponse.json({
+    configs,
+    telegramBotLinked: !!user?.telegramUserId,
+  });
 }
 
 export async function POST(req: NextRequest) {

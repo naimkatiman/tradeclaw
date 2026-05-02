@@ -14,6 +14,10 @@ jest.mock('../../../../lib/alert-channels', () => ({
   sendToChannel: jest.fn(),
 }));
 
+jest.mock('../../../../lib/db', () => ({
+  getUserById: jest.fn(),
+}));
+
 import { readSessionFromRequest } from '../../../../lib/user-session';
 import {
   getChannelConfigsForUser,
@@ -21,6 +25,7 @@ import {
   deleteChannelConfig,
 } from '../../../../lib/alert-rules-db';
 import { sendToChannel } from '../../../../lib/alert-channels';
+import { getUserById } from '../../../../lib/db';
 import { GET, POST } from '../route';
 import { DELETE, POST as POST_TEST } from '../[channel]/route';
 
@@ -29,6 +34,19 @@ const mockedGetCfg = getChannelConfigsForUser as jest.MockedFunction<typeof getC
 const mockedUpsert = upsertChannelConfig as jest.MockedFunction<typeof upsertChannelConfig>;
 const mockedDelete = deleteChannelConfig as jest.MockedFunction<typeof deleteChannelConfig>;
 const mockedSend = sendToChannel as jest.MockedFunction<typeof sendToChannel>;
+const mockedGetUser = getUserById as jest.MockedFunction<typeof getUserById>;
+
+function fakeUser(overrides: Partial<{ telegramUserId: bigint | null }> = {}) {
+  return {
+    id: 'u1',
+    email: 'u1@example.com',
+    stripeCustomerId: null,
+    tier: 'free' as const,
+    tierExpiresAt: null,
+    telegramUserId: null,
+    ...overrides,
+  };
+}
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -53,12 +71,24 @@ describe('GET /api/alert-channels', () => {
         enabled: true,
       },
     ]);
+    mockedGetUser.mockResolvedValueOnce(fakeUser());
     const res = await GET(new NextRequest('http://localhost/api/alert-channels'));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.configs).toHaveLength(1);
     expect(body.configs[0].channel).toBe('telegram');
+    expect(body.telegramBotLinked).toBe(false);
     expect(mockedGetCfg).toHaveBeenCalledWith('u1');
+  });
+
+  it('reports telegramBotLinked=true when the user has linked the bot', async () => {
+    mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
+    mockedGetCfg.mockResolvedValueOnce([]);
+    mockedGetUser.mockResolvedValueOnce(fakeUser({ telegramUserId: BigInt('555111222') }));
+    const res = await GET(new NextRequest('http://localhost/api/alert-channels'));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.telegramBotLinked).toBe(true);
   });
 });
 
@@ -169,9 +199,34 @@ describe('POST /api/alert-channels/[channel]/test', () => {
     expect(mockedSend).not.toHaveBeenCalled();
   });
 
-  it('returns 404 when the channel is not configured', async () => {
+  it('returns 404 when a non-telegram channel is not configured', async () => {
     mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
     mockedGetCfg.mockResolvedValueOnce([]);
+    const res = await POST_TEST(
+      new NextRequest('http://localhost/api/alert-channels/discord/test', { method: 'POST' }),
+      { params: Promise.resolve({ channel: 'discord' }) },
+    );
+    expect(res.status).toBe(404);
+    expect(mockedSend).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when the channel is disabled', async () => {
+    mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
+    mockedGetCfg.mockResolvedValueOnce([
+      { id: 'c1', user_id: 'u1', channel: 'discord', config: { webhookUrl: 'https://x' }, enabled: false },
+    ]);
+    const res = await POST_TEST(
+      new NextRequest('http://localhost/api/alert-channels/discord/test', { method: 'POST' }),
+      { params: Promise.resolve({ channel: 'discord' }) },
+    );
+    expect(res.status).toBe(400);
+    expect(mockedSend).not.toHaveBeenCalled();
+  });
+
+  it('telegram returns 404 when neither per-channel config nor bot link exists', async () => {
+    mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
+    mockedGetCfg.mockResolvedValueOnce([]);
+    mockedGetUser.mockResolvedValueOnce(fakeUser());
     const res = await POST_TEST(
       new NextRequest('http://localhost/api/alert-channels/telegram/test', { method: 'POST' }),
       { params: Promise.resolve({ channel: 'telegram' }) },
@@ -180,7 +235,45 @@ describe('POST /api/alert-channels/[channel]/test', () => {
     expect(mockedSend).not.toHaveBeenCalled();
   });
 
-  it('returns 400 when the channel is disabled', async () => {
+  it('telegram falls back to users.telegram_user_id when no per-channel config exists', async () => {
+    mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
+    mockedGetCfg.mockResolvedValueOnce([]);
+    mockedGetUser.mockResolvedValueOnce(fakeUser({ telegramUserId: BigInt('555111222') }));
+    mockedSend.mockResolvedValueOnce(true);
+    const res = await POST_TEST(
+      new NextRequest('http://localhost/api/alert-channels/telegram/test', { method: 'POST' }),
+      { params: Promise.resolve({ channel: 'telegram' }) },
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.delivered).toBe(true);
+    expect(mockedSend).toHaveBeenCalledWith(
+      'telegram',
+      { chatId: '555111222' },
+      expect.objectContaining({ symbol: 'XAUUSD' }),
+    );
+  });
+
+  it('telegram fallback merges chatId into existing config that lacks one', async () => {
+    mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
+    mockedGetCfg.mockResolvedValueOnce([
+      { id: 'c1', user_id: 'u1', channel: 'telegram', config: { botToken: 'custom-bot' }, enabled: true },
+    ]);
+    mockedGetUser.mockResolvedValueOnce(fakeUser({ telegramUserId: BigInt('999') }));
+    mockedSend.mockResolvedValueOnce(true);
+    const res = await POST_TEST(
+      new NextRequest('http://localhost/api/alert-channels/telegram/test', { method: 'POST' }),
+      { params: Promise.resolve({ channel: 'telegram' }) },
+    );
+    expect(res.status).toBe(200);
+    expect(mockedSend).toHaveBeenCalledWith(
+      'telegram',
+      { botToken: 'custom-bot', chatId: '999' },
+      expect.objectContaining({ symbol: 'XAUUSD' }),
+    );
+  });
+
+  it('telegram disabled config still returns 400 even when bot is linked', async () => {
     mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
     mockedGetCfg.mockResolvedValueOnce([
       { id: 'c1', user_id: 'u1', channel: 'telegram', config: { chatId: '1' }, enabled: false },
@@ -191,6 +284,7 @@ describe('POST /api/alert-channels/[channel]/test', () => {
     );
     expect(res.status).toBe(400);
     expect(mockedSend).not.toHaveBeenCalled();
+    expect(mockedGetUser).not.toHaveBeenCalled();
   });
 
   it('dispatches a fake signal through the configured channel', async () => {

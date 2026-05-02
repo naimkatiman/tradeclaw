@@ -83,11 +83,12 @@ const FIELDS_BY_CHANNEL: Record<Channel, FieldSpec[]> = {
 interface ChannelRowProps {
   channel: Channel;
   existing: ChannelConfig | null;
+  telegramBotLinked: boolean;
   onSaved: (cfg: ChannelConfig) => void;
   onRemoved: () => void;
 }
 
-function ChannelRow({ channel, existing, onSaved, onRemoved }: ChannelRowProps) {
+function ChannelRow({ channel, existing, telegramBotLinked, onSaved, onRemoved }: ChannelRowProps) {
   const [config, setConfig] = useState<Record<string, string>>(existing?.config ?? {});
   const [enabled, setEnabled] = useState(existing?.enabled ?? true);
   const [saving, setSaving] = useState(false);
@@ -97,6 +98,10 @@ function ChannelRow({ channel, existing, onSaved, onRemoved }: ChannelRowProps) 
   const fields = FIELDS_BY_CHANNEL[channel];
   const isConfigured = !!existing;
   const requiredOk = fields.every((f) => !f.required || (config[f.key] ?? '').trim().length > 0);
+  // Telegram is "testable" if either the per-channel config exists and is enabled,
+  // or the user has linked the platform bot via the welcome/dashboard deep link.
+  const botFallbackTest = channel === 'telegram' && telegramBotLinked && (!isConfigured || enabled);
+  const canTest = (isConfigured && enabled) || botFallbackTest;
 
   async function save() {
     setSaving(true);
@@ -165,6 +170,11 @@ function ChannelRow({ channel, existing, onSaved, onRemoved }: ChannelRowProps) 
               {enabled ? 'Configured' : 'Disabled'}
             </p>
           )}
+          {!isConfigured && channel === 'telegram' && telegramBotLinked && (
+            <p className="mt-0.5 text-[11px] uppercase tracking-wider text-emerald-400">
+              Bot linked — DM ready
+            </p>
+          )}
         </div>
         <label className="flex items-center gap-2 text-xs text-zinc-400">
           <input
@@ -213,24 +223,23 @@ function ChannelRow({ channel, existing, onSaved, onRemoved }: ChannelRowProps) 
         >
           {saving ? 'Saving…' : isConfigured ? 'Update' : 'Save'}
         </button>
+        {canTest && (
+          <button
+            onClick={sendTest}
+            disabled={saving || testing}
+            className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 transition-all hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {testing ? 'Sending…' : 'Send test'}
+          </button>
+        )}
         {isConfigured && (
-          <>
-            <button
-              onClick={sendTest}
-              disabled={saving || testing || !enabled}
-              title={!enabled ? 'Enable channel to test' : undefined}
-              className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 transition-all hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {testing ? 'Sending…' : 'Send test'}
-            </button>
-            <button
-              onClick={remove}
-              disabled={saving}
-              className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-300 transition-all hover:bg-white/5 disabled:opacity-60"
-            >
-              Remove
-            </button>
-          </>
+          <button
+            onClick={remove}
+            disabled={saving}
+            className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-300 transition-all hover:bg-white/5 disabled:opacity-60"
+          >
+            Remove
+          </button>
         )}
         {testStatus === 'sent' && (
           <span className="text-[11px] text-emerald-400">Sent — check your {CHANNEL_LABEL[channel].split(' ')[0].toLowerCase()}</span>
@@ -245,6 +254,7 @@ function ChannelRow({ channel, existing, onSaved, onRemoved }: ChannelRowProps) 
 
 export default function AlertChannelConfigPanel() {
   const [configs, setConfigs] = useState<ChannelConfig[]>([]);
+  const [telegramBotLinked, setTelegramBotLinked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -255,7 +265,10 @@ export default function AlertChannelConfigPanel() {
         if (!r.ok) throw new Error('Failed to load');
         return r.json();
       })
-      .then((d) => setConfigs(d.configs ?? []))
+      .then((d) => {
+        setConfigs(d.configs ?? []);
+        setTelegramBotLinked(!!d.telegramBotLinked);
+      })
       .catch((e) => setLoadError(e instanceof Error ? e.message : 'Load failed'))
       .finally(() => setLoading(false));
   }, []);
@@ -309,6 +322,7 @@ export default function AlertChannelConfigPanel() {
             key={channel}
             channel={channel}
             existing={existingFor(channel)}
+            telegramBotLinked={telegramBotLinked}
             onSaved={handleSaved}
             onRemoved={() => handleRemoved(channel)}
           />
