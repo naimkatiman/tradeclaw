@@ -202,11 +202,13 @@ export async function getUserTier(userId: string): Promise<Tier> {
     // Email-based Pro grant: owner / team / demo accounts that don't have a
     // Stripe sub but should still see Pro features. Admin emails are also
     // granted Pro automatically so admin dashboards aren't gated by billing.
+    // The deep check consults both the PRO_EMAILS env (bootstrap) and the
+    // admin-granted pro_email_grants table.
     if (tier === 'free') {
       const user = await getUserById(userId);
       if (user?.email) {
-        const { isProGrantedEmail, isAdminEmail } = await import('./admin-emails');
-        if (isAdminEmail(user.email) || isProGrantedEmail(user.email)) {
+        const { isProGrantedEmailDeep, isAdminEmail } = await import('./admin-emails');
+        if (isAdminEmail(user.email) || (await isProGrantedEmailDeep(user.email))) {
           tier = 'pro';
         }
       }
