@@ -11,6 +11,7 @@ import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 import { InfoHint } from '@/components/InfoHint';
 import { STAT_HINTS } from '@/lib/stat-hints';
 import { FREE_HISTORY_DAYS, FREE_SYMBOLS } from '@/lib/tier-client';
+import { EmbedButton } from '../components/embed-button';
 
 type Period = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
 
@@ -295,6 +296,9 @@ export function TrackRecordClient() {
                 <InfoHint text={STAT_HINTS.resolved} label="What resolved signals means" />
               </span>
             </div>
+          </div>
+          <div className="mt-2">
+            <EmbedButton embedPath="/embed/track-record" label="Embed this" width={600} height={360} />
           </div>
           <p className="text-sm text-[var(--text-secondary)]">
             Total return = sum of per-signal % at fixed 1R risk. Stats below count only resolved trades —
