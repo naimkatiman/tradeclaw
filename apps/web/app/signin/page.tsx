@@ -28,6 +28,10 @@ function SigninInner() {
 
   const [status, setStatus] = useState<'checking' | 'idle' | 'error'>('checking');
   const [error, setError] = useState<string | null>(null);
+  const [emailInput, setEmailInput] = useState('');
+  const [magicSent, setMagicSent] = useState(false);
+  const [magicErr, setMagicErr] = useState<string | null>(null);
+  const [magicBusy, setMagicBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,6 +102,28 @@ function SigninInner() {
     router.replace('/dashboard');
   }
 
+  async function sendMagicLink(e: React.FormEvent) {
+    e.preventDefault();
+    setMagicBusy(true);
+    setMagicErr(null);
+    try {
+      const res = await fetch('/api/auth/magic-link/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailInput }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? 'Failed to send link');
+      }
+      setMagicSent(true);
+    } catch (err) {
+      setMagicErr(err instanceof Error ? err.message : 'Failed');
+    } finally {
+      setMagicBusy(false);
+    }
+  }
+
   const oauthErrorMessage = (() => {
     if (!oauthError) return null;
     if (oauthError === 'oauth_not_configured') {
@@ -155,6 +181,31 @@ function SigninInner() {
               </svg>
               Continue with Google
             </a>
+            <div className="my-4 flex items-center gap-3 text-[10px] uppercase tracking-wider text-zinc-500">
+              <span className="flex-1 h-px bg-white/10" /> or <span className="flex-1 h-px bg-white/10" />
+            </div>
+            {magicSent ? (
+              <div className="text-sm text-emerald-300 text-center">Check your inbox — link sent.</div>
+            ) : (
+              <form onSubmit={sendMagicLink} className="space-y-2">
+                <input
+                  type="email"
+                  required
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50"
+                />
+                <button
+                  type="submit"
+                  disabled={magicBusy}
+                  className="w-full py-2.5 rounded-lg bg-white/8 border border-white/15 text-sm font-semibold text-zinc-100 hover:bg-white/12 disabled:opacity-50"
+                >
+                  {magicBusy ? 'Sending…' : 'Email me a sign-in link'}
+                </button>
+                {magicErr && <div className="text-xs text-rose-400">{magicErr}</div>}
+              </form>
+            )}
             <p className="text-center text-xs text-[var(--text-secondary)]">
               By continuing you agree to our terms.{' '}
               <Link href="/pricing" className="text-emerald-400 hover:underline">
