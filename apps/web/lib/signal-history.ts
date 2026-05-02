@@ -882,6 +882,38 @@ export async function getSignalTelegramMessageId(
   return row?.telegram_message_id ? Number(row.telegram_message_id) : undefined;
 }
 
+/**
+ * Pro-tier reply threading. Stores the message_id of the Pro group post
+ * separately from the free public channel's message_id (different
+ * chat_ids, different message_id namespaces — using the same field
+ * would mis-target outcome replies).
+ */
+export async function markTelegramProPosted(
+  signalId: string,
+  messageId: number,
+): Promise<void> {
+  if (!isDbEnabled()) return;
+  await execute(
+    `UPDATE signal_history
+     SET telegram_pro_message_id = $2
+     WHERE id = $1`,
+    [signalId, messageId],
+  );
+}
+
+export async function getSignalTelegramProMessageId(
+  signalId: string,
+): Promise<number | undefined> {
+  if (!isDbEnabled()) return undefined;
+  const row = await queryOne<{ telegram_pro_message_id: string | null }>(
+    `SELECT telegram_pro_message_id FROM signal_history WHERE id = $1`,
+    [signalId],
+  );
+  return row?.telegram_pro_message_id
+    ? Number(row.telegram_pro_message_id)
+    : undefined;
+}
+
 // ── Bulk update (cron resolution) ────────────────────────────
 
 export async function updateRecordsAsync(

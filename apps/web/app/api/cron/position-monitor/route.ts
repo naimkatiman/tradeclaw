@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllOpenPositionsForSweep, closePosition, type Position } from '../../../../lib/paper-trading';
-import { getSignalTelegramMessageId, recordTradeOutcomeToHistory } from '../../../../lib/signal-history';
+import {
+  getSignalTelegramMessageId,
+  getSignalTelegramProMessageId,
+  recordTradeOutcomeToHistory,
+} from '../../../../lib/signal-history';
 import {
   broadcastOutcomeReply,
   formatDuration,
   type OutcomeReplyInput,
 } from '../../../../lib/telegram-broadcast';
+import { getBotToken, getFreeChannelId, getProGroupId } from '../../../../lib/telegram-channels';
 
 // ── Auth guard ────────────────────────────────────────────────
 
@@ -224,19 +229,9 @@ async function sendTelegramOutcomeReply(
   check: { reason: 'stopLoss' | 'takeProfit' | 'manual'; exitPrice: number },
   pnlPct: number,
 ): Promise<void> {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const channelId = process.env.TELEGRAM_CHANNEL_ID;
-  if (!botToken || !channelId) return;
+  const botToken = getBotToken();
+  if (!botToken) return;
   if (!position.signalId) return;
-
-  // Look up the original Telegram message for this signal
-  const originalMessageId = await getSignalTelegramMessageId(position.signalId);
-  if (!originalMessageId) return;
-
-  const period = formatDuration(
-    new Date(position.openedAt).getTime(),
-    Date.now(),
-  );
 
   let reason: OutcomeReplyInput['reason'];
   let tpLevel: 1 | 2 | 3 | undefined;
@@ -245,25 +240,71 @@ async function sendTelegramOutcomeReply(
     reason = 'stopLoss';
   } else if (check.reason === 'takeProfit') {
     reason = 'takeProfit';
-    // Try to detect which TP level was hit (if position has TP levels)
     tpLevel = 1; // Default to TP1 — the position-monitor only tracks single TP
   } else {
     return; // manual close — no broadcast
   }
 
-  try {
-    await broadcastOutcomeReply(channelId, botToken, {
-      symbol: position.symbol,
-      direction: position.direction,
-      entryPrice: position.entryPrice,
-      exitPrice: check.exitPrice,
-      pnlPct,
-      reason,
-      tpLevel,
-      period,
-      originalMessageId,
-    });
-  } catch {
-    // Non-critical — don't fail the position close
+  const period = formatDuration(
+    new Date(position.openedAt).getTime(),
+    Date.now(),
+  );
+
+  // Fan out to both channels in parallel. Each is independent: if the
+  // signal was posted to the free channel but not the Pro group (or vice
+  // versa), the missing-message-id branch short-circuits cleanly.
+  const baseInput = {
+    symbol: position.symbol,
+    direction: position.direction,
+    entryPrice: position.entryPrice,
+    exitPrice: check.exitPrice,
+    pnlPct,
+    reason,
+    tpLevel,
+    period,
+  };
+
+  const [freeChannelId, proGroupId] = [getFreeChannelId(), getProGroupId()];
+
+  const tasks: Promise<unknown>[] = [];
+
+  if (freeChannelId) {
+    tasks.push(
+      (async () => {
+        const originalMessageId = await getSignalTelegramMessageId(
+          position.signalId!,
+        );
+        if (!originalMessageId) return;
+        try {
+          await broadcastOutcomeReply(freeChannelId, botToken, {
+            ...baseInput,
+            originalMessageId,
+          });
+        } catch {
+          // Non-critical — don't fail the position close
+        }
+      })(),
+    );
   }
+
+  if (proGroupId) {
+    tasks.push(
+      (async () => {
+        const originalMessageId = await getSignalTelegramProMessageId(
+          position.signalId!,
+        );
+        if (!originalMessageId) return;
+        try {
+          await broadcastOutcomeReply(proGroupId, botToken, {
+            ...baseInput,
+            originalMessageId,
+          });
+        } catch {
+          // Non-critical — don't fail the position close
+        }
+      })(),
+    );
+  }
+
+  await Promise.all(tasks);
 }

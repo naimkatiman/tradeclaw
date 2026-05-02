@@ -1,8 +1,17 @@
+jest.mock('../signal-history', () => ({
+  markTelegramProPosted: jest.fn().mockResolvedValue(undefined),
+}));
+
 import {
   broadcastSignalsToProGroup,
   formatProMessage,
   type ProBroadcastSignal,
 } from '../telegram-pro-broadcast';
+import { markTelegramProPosted } from '../signal-history';
+
+const mockedMarkPro = markTelegramProPosted as jest.MockedFunction<
+  typeof markTelegramProPosted
+>;
 
 const ORIG_ENV = { ...process.env };
 
@@ -139,5 +148,30 @@ describe('broadcastSignalsToProGroup — sending', () => {
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.chat_id).toBe('-1001234567890');
     expect(body.chat_id).not.toBe('-1009999999999');
+  });
+
+  it('persists telegram_pro_message_id on successful sends for reply threading', async () => {
+    mockedMarkPro.mockClear();
+    global.fetch = jest.fn().mockResolvedValue({
+      json: async () => ({ ok: true, result: { message_id: 4242 } }),
+    });
+
+    await broadcastSignalsToProGroup([makeSignal({ id: 'sig-xyz' })]);
+    // Allow the fire-and-forget catch chain to resolve.
+    await new Promise((r) => setImmediate(r));
+
+    expect(mockedMarkPro).toHaveBeenCalledWith('sig-xyz', 4242);
+  });
+
+  it('does not persist a message_id on failure', async () => {
+    mockedMarkPro.mockClear();
+    global.fetch = jest.fn().mockResolvedValue({
+      json: async () => ({ ok: false, description: 'chat not found' }),
+    });
+
+    await broadcastSignalsToProGroup([makeSignal()]);
+    await new Promise((r) => setImmediate(r));
+
+    expect(mockedMarkPro).not.toHaveBeenCalled();
   });
 });

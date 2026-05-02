@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { getBotToken, getProGroupId } from './telegram-channels';
+import { markTelegramProPosted } from './signal-history';
 
 /**
  * Pro-tier real-time broadcast.
@@ -117,11 +118,15 @@ export async function broadcastSignalsToProGroup(
       };
       if (data.ok) {
         sent++;
-        // Reply threading from outcome events (TP/SL hit) to the Pro post
-        // is a future enhancement — would need a `telegram_pro_message_id`
-        // column on signal_history to avoid colliding with the free-channel
-        // push that owns `telegram_message_id`. Leaving result.message_id
-        // unpersisted for now.
+        // Persist message_id so the position-monitor cron can post TP/SL
+        // outcome replies threaded under the original signal in the Pro
+        // group. Uses telegram_pro_message_id, separate from the free
+        // channel's telegram_message_id field — different chat_ids,
+        // different message_id namespaces.
+        const msgId = data.result?.message_id;
+        if (msgId) {
+          markTelegramProPosted(sig.id, msgId).catch(() => undefined);
+        }
       } else {
         failed++;
       }
