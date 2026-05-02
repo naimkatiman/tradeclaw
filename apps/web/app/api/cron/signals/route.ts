@@ -13,6 +13,8 @@ import {
   type SignalOutcome,
 } from '../../../../lib/signal-history';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
+import { broadcastSignalsToProGroup } from '../../../../lib/telegram-pro-broadcast';
+import { isWinningCell, getWinningCellsMode } from '../../../../lib/winning-cells';
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
@@ -249,6 +251,36 @@ export async function GET(request: NextRequest): Promise<Response> {
     const { resolved, pending, errors } = await resolveOldSignals();
 
     const taggedSignals = newSignals.map((s) => ({ ...s, strategyId: preset.id }));
+
+    // Pro Telegram broadcast — fire on the deterministic 5-min cron cadence
+    // so the Pro group receives signals even during free-traffic droughts.
+    // Only NEW rows are broadcast (recordNewSignals already deduped against
+    // signal_history within the 2h symbol+direction window), so duplicate
+    // posts to the group are not possible here. Apply the winning-cells
+    // gate so we don't broadcast cells the publish layer would have
+    // suppressed for free; Pro response-time bypass lives in
+    // tracked-signals.ts and does not apply to the channel broadcast.
+    if (newSignals.length > 0) {
+      const winningCellsActive = getWinningCellsMode() === 'active';
+      const broadcastable = newSignals
+        .filter((s) =>
+          !winningCellsActive || isWinningCell(s.symbol, s.direction),
+        )
+        .map((s) => ({
+          id: s.id,
+          symbol: s.symbol,
+          timeframe: s.timeframe,
+          direction: s.direction,
+          confidence: s.confidence,
+          entry: s.entry,
+          takeProfit1: s.takeProfit1,
+          stopLoss: s.stopLoss,
+          gateBlocked: false,
+        }));
+      if (broadcastable.length > 0) {
+        broadcastSignalsToProGroup(broadcastable).catch(() => undefined);
+      }
+    }
 
     return NextResponse.json({
       ok: true,

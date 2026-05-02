@@ -22,10 +22,12 @@ TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (R
 
 |  | Free | Pro ($29/mo) |
 |--|:----:|:------------:|
-| Symbols | 3 (BTC, ETH, XAU) | All pairs |
+| Symbols | 6 (BTC, ETH, XAU, EUR/USD, SPY, QQQ) | All pairs (forex, crypto, metals, commodities, US equities) |
 | Signal delay | 15 min | Real-time |
 | Take-profit levels | TP1 only | TP1 + TP2 + TP3 |
-| Signal history | 24 hours | Full archive |
+| Indicators | RSI + EMA trend | RSI, MACD, BB, Stochastic, Supertrend |
+| Signal history | 7 days | Full archive |
+| Confidence band | Standard (70–84) | Standard + Premium (85+) |
 | Telegram alerts | Public channel (delayed) | Private channel (instant) |
 | Track record | Full access | Full access |
 | Self-host | Yes | Yes |
@@ -98,7 +100,7 @@ Compare presets in the [backtest UI](https://tradeclaw.win/backtest) with side-b
 ## API
 
 ```bash
-# Get current signals (free tier — 3 symbols, 15-min delay)
+# Get current signals (free tier — 6 symbols, 15-min delay, 7-day history)
 curl https://tradeclaw.win/api/signals
 
 # Get track record stats

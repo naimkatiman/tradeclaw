@@ -11,12 +11,17 @@ import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
 import { fetchGateState, getGateMode } from './full-risk-gates';
 import { logGateDecision, buildGateLogEntry, type SignalForLog } from './gate-log';
 import { resolveAccessContext, getStrategiesForTier } from './tier';
+import type { Tier } from './stripe';
 import {
   getWinningCellsMode,
   isWinningCell,
   WINNING_CELLS_GATE_REASON,
 } from './winning-cells';
 import { broadcastSignalsToProGroup } from './telegram-pro-broadcast';
+
+function isPaidTier(tier: Tier | undefined): boolean {
+  return tier === 'pro' || tier === 'elite' || tier === 'custom';
+}
 
 // Inlined to break the dependency on ./licenses during the license→tier
 // migration. Phase D removes ./licenses entirely; the value never changes.
@@ -49,6 +54,8 @@ function pickHighestUnlocked(unlocked: Set<string> | ReadonlySet<string>): strin
  */
 interface StrategyAccess {
   unlockedStrategies: Set<string> | ReadonlySet<string>;
+  /** Caller's resolved tier. Optional on the literal shape; missing → 'free'. */
+  tier?: Tier;
 }
 
 export interface GetTrackedSignalsParams {
@@ -70,7 +77,9 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
   const result = await getSignals({ ...params, profileId });
   const ctx: StrategyAccess = params.ctx ?? {
     unlockedStrategies: getStrategiesForTier('free'),
+    tier: 'free',
   };
+  const callerIsPaid = isPaidTier(ctx.tier);
 
   if (result.signals.length > 0) {
     // Writer A of signal_history: request side-effect path. Writer B is the
@@ -184,11 +193,18 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       // through, unlike full-risk-gate which is all-or-nothing).
       const tradablePayload = recordPayload.filter((s) => !s.gateBlocked);
 
-      // Pro-tier real-time fan-out to TELEGRAM_PRO_GROUP_ID. Fire-and-forget;
-      // signal recording must never be blocked by Telegram. Free-tier
+      // Pro-tier real-time fan-out to TELEGRAM_PRO_GROUP_ID. Only paid
+      // callers (pro/elite/custom) trigger this. Anonymous/free traffic
+      // hitting /api/signals must NOT cause posts to the Pro group — that
+      // would (a) duplicate broadcasts during free traffic spikes and
+      // (b) couple the Pro feature to free-tier request volume. Free-tier
       // delivery is the separate 4-hour cron at /api/cron/telegram which
       // applies the 15-min publish delay free buyers signed up for.
-      broadcastSignalsToProGroup(tradablePayload).catch(() => undefined);
+      // Cron-driven Pro coverage during traffic droughts is handled by
+      // /api/cron/signals which broadcasts each newly recorded signal.
+      if (callerIsPaid) {
+        broadcastSignalsToProGroup(tradablePayload).catch(() => undefined);
+      }
 
       // Fan out to user alert rules — fire and forget
       const dispatchUrl = process.env.NEXT_PUBLIC_APP_URL
@@ -233,8 +249,15 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       const blockedIds = new Set(blockedSignals.map((b) => b.id));
       result.signals = result.signals.filter((s) => !blockedIds.has(s.id));
     }
-    // Winning-cells gate strips per-signal in active mode.
-    if (winningCellsActive && winningCellsBlockedIds.size > 0) {
+    // Winning-cells gate strips per-signal in active mode — but paid
+    // callers bypass the strip. Winning-cells is a curation gate (which
+    // pairs we promote to free users), not a safety gate, so Pro/Elite/
+    // Custom subscribers must continue to see the full symbol set the
+    // pricing page promises. Recording is unchanged: the row is still
+    // stamped gate_blocked=true so the public track record stays
+    // self-consistent. Full-risk gate (above) remains tier-agnostic
+    // because it is a drawdown protection that benefits everyone.
+    if (winningCellsActive && winningCellsBlockedIds.size > 0 && !callerIsPaid) {
       result.signals = result.signals.filter(
         (s) => !winningCellsBlockedIds.has(s.id),
       );
