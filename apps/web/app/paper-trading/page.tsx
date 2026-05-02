@@ -6,6 +6,8 @@ import { PageNavBar } from '../../components/PageNavBar';
 import type { Portfolio, Trade, EquityPoint } from '../../lib/paper-trading';
 import { sendNotification } from '../../lib/notifications';
 import { WinShareToast } from '../components/win-share-toast';
+import { currentWinStreak } from '../../lib/streak';
+import { WinStreakCard } from '../components/win-streak-card';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -211,6 +213,7 @@ export default function PaperTradingPage() {
   const [autoFollow, setAutoFollow] = useState(false);
 
   const [winToast, setWinToast] = useState<{ symbol: string; pnlPct: number } | null>(null);
+  const [streakCard, setStreakCard] = useState<{ streak: number; pnl: number } | null>(null);
 
   // UI state
   const [loading, setLoading] = useState(true);
@@ -399,6 +402,33 @@ export default function PaperTradingPage() {
         setWinToast({ symbol: t.symbol, pnlPct: t.pnlPercent });
       }
     }
+  }, [portfolio]);
+
+  // ---------------------------------------------------------------------------
+  // Win-streak card (Phase 7) — separate effect, fires on every portfolio change
+  // ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    if (!portfolio) return;
+    const streak = currentWinStreak(
+      (portfolio.history ?? []).map((t) => ({
+        pnlPct: t.pnlPercent,
+        closedAt: new Date(t.closedAt).getTime(),
+      })),
+    );
+    if (streak < 3) return;
+    // Show once per streak length — key by streak so a 4th, 5th, ... win re-triggers
+    const seenKey = `tc_streak_${streak}_seen`;
+    if (typeof window !== 'undefined' && localStorage.getItem(seenKey)) return;
+
+    // Sum the last N trades' PnL — sort desc by closedAt to grab the most recent N
+    const recent = [...(portfolio.history ?? [])]
+      .sort((a, b) => new Date(b.closedAt).getTime() - new Date(a.closedAt).getTime())
+      .slice(0, streak);
+    const totalPnl = recent.reduce((acc, t) => acc + t.pnlPercent, 0);
+
+    setStreakCard({ streak, pnl: totalPnl });
+    if (typeof window !== 'undefined') localStorage.setItem(seenKey, '1');
   }, [portfolio]);
 
   // ---------------------------------------------------------------------------
@@ -976,6 +1006,14 @@ export default function PaperTradingPage() {
           symbol={winToast.symbol}
           pnlPct={winToast.pnlPct}
           onDismiss={() => setWinToast(null)}
+        />
+      )}
+
+      {streakCard && (
+        <WinStreakCard
+          streak={streakCard.streak}
+          totalPnlPct={streakCard.pnl}
+          onDismiss={() => setStreakCard(null)}
         />
       )}
     </div>
