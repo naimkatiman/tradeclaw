@@ -11,6 +11,11 @@ import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
 import { fetchGateState, getGateMode } from './full-risk-gates';
 import { logGateDecision, buildGateLogEntry, type SignalForLog } from './gate-log';
 import { resolveAccessContext, getStrategiesForTier } from './tier';
+import {
+  getWinningCellsMode,
+  isWinningCell,
+  WINNING_CELLS_GATE_REASON,
+} from './winning-cells';
 
 // Inlined to break the dependency on ./licenses during the license→tier
 // migration. Phase D removes ./licenses entirely; the value never changes.
@@ -124,22 +129,46 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       }
     }
 
-    const recordPayload = filtered.map((signal) => ({
-      id: signal.id,
-      symbol: signal.symbol,
-      timeframe: signal.timeframe,
-      direction: signal.direction,
-      confidence: signal.confidence,
-      entry: signal.entry,
-      timestamp: signal.timestamp,
-      takeProfit1: signal.takeProfit1,
-      stopLoss: signal.stopLoss,
-      strategyId,
-      entryAtr: signal.entryAtr,
-      atrMultiplier: signal.atrMultiplier,
-      gateBlocked: gateBlockedAll,
-      gateReason: gateBlockedAll ? gateReason : undefined,
-    }));
+    // Winning-cells publish gate — per-signal evaluation. See
+    // lib/winning-cells.ts for the cell list and methodology. Default mode
+    // 'shadow' logs without altering publish behavior; set
+    // WINNING_CELLS_MODE=active on Railway to start gating.
+    const winningCellsMode = getWinningCellsMode();
+    const winningCellsBlockedIds = new Set<string>();
+    if (winningCellsMode !== 'off') {
+      for (const sig of filtered) {
+        if (!isWinningCell(sig.symbol, sig.direction as 'BUY' | 'SELL')) {
+          winningCellsBlockedIds.add(sig.id);
+        }
+      }
+    }
+    const winningCellsActive = winningCellsMode === 'active';
+
+    const recordPayload = filtered.map((signal) => {
+      const blockedByFullRisk = gateBlockedAll;
+      const blockedByWinningCells =
+        winningCellsActive && winningCellsBlockedIds.has(signal.id);
+      const blocked = blockedByFullRisk || blockedByWinningCells;
+      let reason: string | undefined;
+      if (blockedByFullRisk) reason = gateReason;
+      else if (blockedByWinningCells) reason = WINNING_CELLS_GATE_REASON;
+      return {
+        id: signal.id,
+        symbol: signal.symbol,
+        timeframe: signal.timeframe,
+        direction: signal.direction,
+        confidence: signal.confidence,
+        entry: signal.entry,
+        timestamp: signal.timestamp,
+        takeProfit1: signal.takeProfit1,
+        stopLoss: signal.stopLoss,
+        strategyId,
+        entryAtr: signal.entryAtr,
+        atrMultiplier: signal.atrMultiplier,
+        gateBlocked: blocked,
+        gateReason: reason,
+      };
+    });
 
     // Record to PostgreSQL (or file fallback) — fire and forget
     if (recordPayload.length > 0) {
@@ -149,8 +178,10 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       // Downstream fan-out is tradable-only. Blocked signals are recorded
       // for track-record accounting, but users must not be alerted about
       // trades the system refused to take, and we must not post marketing
-      // copy for blocked signals.
-      const tradablePayload = gateBlockedAll ? [] : recordPayload;
+      // copy for blocked signals. This now respects per-signal gate state
+      // (winning-cells gate may block some rows while letting others
+      // through, unlike full-risk-gate which is all-or-nothing).
+      const tradablePayload = recordPayload.filter((s) => !s.gateBlocked);
 
       // Fan out to user alert rules — fire and forget
       const dispatchUrl = process.env.NEXT_PUBLIC_APP_URL
@@ -188,12 +219,18 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       }
     }
 
-    // In active mode, also strip blocked signals from the response so
+    // In active mode, strip blocked signals from the response so
     // downstream consumers (UI, API clients) see the same view as the DB.
     // In shadow mode the response is unchanged.
     if (mode === 'active' && blockedSignals.length > 0) {
       const blockedIds = new Set(blockedSignals.map((b) => b.id));
       result.signals = result.signals.filter((s) => !blockedIds.has(s.id));
+    }
+    // Winning-cells gate strips per-signal in active mode.
+    if (winningCellsActive && winningCellsBlockedIds.size > 0) {
+      result.signals = result.signals.filter(
+        (s) => !winningCellsBlockedIds.has(s.id),
+      );
     }
   }
 
