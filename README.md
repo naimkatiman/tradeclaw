@@ -12,6 +12,10 @@
 
 **[Track Record](https://tradeclaw.win/track-record)** · **[Live Demo](https://tradeclaw.win/dashboard)** · **[API Docs](https://tradeclaw.win/api-docs)** · **[Pricing](https://tradeclaw.win/pricing)**
 
+<br />
+
+<img src="docs/assets/demo.gif" alt="TradeClaw dashboard demo" width="100%" />
+
 </div>
 
 ---
