@@ -6,7 +6,6 @@ import type { Metadata } from 'next';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
 import { resolveAccessContextFromCookies, getUserTier } from '../../../lib/tier';
 import { readSessionFromCookies } from '../../../lib/user-session';
-import { getActiveSignals } from '../../../lib/signal-repo';
 import { SignalShareButtons } from '../../components/signal-share-buttons';
 import { EmbedButton } from '../../components/embed-button';
 import { AIAnalysisPanel } from '../../components/ai-analysis-panel';
@@ -84,48 +83,9 @@ export default async function SignalPage(
 
   if (direction !== 'BUY' && direction !== 'SELL') notFound();
 
-  // Try DB first, fall back to TA engine
-  let signals: Awaited<ReturnType<typeof getTrackedSignals>>['signals'] = [];
-  try {
-    if (process.env.DATABASE_URL) {
-      const dbResult = await getActiveSignals({ symbol, timeframe, direction });
-      if (dbResult.signals.length > 0 && !dbResult.isStale) {
-        // Map DB LiveSignal to TradingSignal shape for the page
-        signals = dbResult.signals.map(s => ({
-          id: s.id,
-          symbol: s.symbol,
-          direction: s.signal,
-          confidence: s.confidence,
-          entry: s.entry,
-          stopLoss: s.sl,
-          takeProfit1: s.tp1,
-          takeProfit2: s.tp2,
-          takeProfit3: s.tp3 ?? s.tp2,
-          indicators: {
-            rsi: { value: s.indicators?.rsi ?? 50, signal: (s.indicators?.rsi ?? 50) < 30 ? 'oversold' as const : (s.indicators?.rsi ?? 50) > 70 ? 'overbought' as const : 'neutral' as const },
-            macd: { histogram: s.indicators?.macd_histogram ?? 0, signal: (s.indicators?.macd_histogram ?? 0) > 0 ? 'bullish' as const : 'bearish' as const },
-            ema: { trend: s.indicators?.ema_trend ?? 'up', ema20: 0, ema50: 0, ema200: 0 },
-            bollingerBands: { position: 'middle' as const, bandwidth: 0 },
-            stochastic: { k: s.indicators?.stochastic_k ?? 50, d: 50, signal: (s.indicators?.stochastic_k ?? 50) < 20 ? 'oversold' as const : (s.indicators?.stochastic_k ?? 50) > 80 ? 'overbought' as const : 'neutral' as const },
-            support: [],
-            resistance: [],
-          },
-          timeframe: s.timeframe as 'M5' | 'M15' | 'H1' | 'H4' | 'D1',
-          timestamp: s.timestamp,
-          status: 'active' as const,
-          source: s.source as 'real' | 'fallback',
-        }));
-      }
-    }
-  } catch {
-    // DB unavailable — fall through to TA engine
-  }
-
-  if (signals.length === 0) {
-    const ctx = await resolveAccessContextFromCookies();
-    const taResult = await getTrackedSignals({ symbol, timeframe, direction, ctx });
-    signals = taResult.signals;
-  }
+  const ctx = await resolveAccessContextFromCookies();
+  const taResult = await getTrackedSignals({ symbol, timeframe, direction, ctx });
+  const signals = taResult.signals;
 
   if (signals.length === 0) notFound();
 
