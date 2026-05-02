@@ -10,7 +10,12 @@ import {
   formatDuration,
   type OutcomeReplyInput,
 } from '../../../../lib/telegram-broadcast';
-import { getBotToken, getFreeChannelId, getProGroupId } from '../../../../lib/telegram-channels';
+import {
+  getBotToken,
+  getFreeChannelId,
+  getProGroupId,
+  getProSignalsTopicId,
+} from '../../../../lib/telegram-channels';
 
 // ── Auth guard ────────────────────────────────────────────────
 
@@ -288,6 +293,7 @@ async function sendTelegramOutcomeReply(
   }
 
   if (proGroupId) {
+    const proTopicId = getProSignalsTopicId() ?? undefined;
     tasks.push(
       (async () => {
         const originalMessageId = await getSignalTelegramProMessageId(
@@ -295,10 +301,12 @@ async function sendTelegramOutcomeReply(
         );
         if (!originalMessageId) return;
         try {
-          await broadcastOutcomeReply(proGroupId, botToken, {
-            ...baseInput,
-            originalMessageId,
-          });
+          await broadcastOutcomeReply(
+            proGroupId,
+            botToken,
+            { ...baseInput, originalMessageId },
+            proTopicId,
+          );
         } catch {
           // Non-critical — don't fail the position close
         }

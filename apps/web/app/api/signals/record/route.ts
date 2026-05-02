@@ -20,15 +20,15 @@ export async function POST(): Promise<Response> {
       const existing = await getRecentRecordForSymbolAsync(sig.symbol, sig.direction, TWO_HOURS_MS);
       if (existing) continue;
 
-      const id = `${sig.symbol}-${sig.timeframe}-${Date.now()}`;
-
+      // Use the canonical SIG-* id from the generator so detail-page URLs
+      // (/signal/{id}) round-trip back to a parseable record.
       await recordSignalAsync(
         sig.symbol,
         sig.timeframe,
         sig.direction,
         sig.confidence,
         sig.entry,
-        id,
+        sig.id,
         sig.takeProfit1,
         sig.stopLoss,
         Date.now(),

@@ -184,6 +184,7 @@ async function sendToChannel(
   channelId: string,
   text: string,
   replyToMessageId?: number,
+  messageThreadId?: number,
 ): Promise<BroadcastResult> {
   try {
     const body: Record<string, unknown> = {
@@ -196,6 +197,14 @@ async function sendToChannel(
     if (replyToMessageId) {
       body.reply_to_message_id = replyToMessageId;
       body.allow_sending_without_reply = true;
+    }
+
+    // When the destination chat is a forum supergroup, message_thread_id
+    // routes the message into a specific topic. For replies inside a topic
+    // Telegram requires the topic id; without it the reply lands in the
+    // General topic instead of beside the original message.
+    if (messageThreadId) {
+      body.message_thread_id = messageThreadId;
     }
 
     const res = await fetch(`${TELEGRAM_API}/bot${botToken}/sendMessage`, {
@@ -395,6 +404,7 @@ export async function broadcastOutcomeReply(
   channelId: string,
   botToken: string,
   input: OutcomeReplyInput,
+  messageThreadId?: number,
 ): Promise<BroadcastResult> {
   let message: string;
 
@@ -410,7 +420,13 @@ export async function broadcastOutcomeReply(
       break;
   }
 
-  return sendToChannel(botToken, channelId, message, input.originalMessageId);
+  return sendToChannel(
+    botToken,
+    channelId,
+    message,
+    input.originalMessageId,
+    messageThreadId,
+  );
 }
 
 // ---------------------------------------------------------------------------

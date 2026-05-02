@@ -770,6 +770,25 @@ export async function getRecentRecordForSymbolAsync(
   return getRecentRecordForSymbol(symbol, direction, withinMs);
 }
 
+/**
+ * Look up a signal_history row by its primary id. Used by the /signal/[id]
+ * detail page to recover symbol/timeframe/direction from legacy ids that
+ * don't encode the direction (`SYMBOL-TF-TIMESTAMP` format written by
+ * /api/signals/record before it was rewired to canonical SIG-* ids).
+ */
+export async function getRecordByIdAsync(
+  id: string,
+): Promise<SignalHistoryRecord | undefined> {
+  if (isDbEnabled()) {
+    const row = await queryOne<HistoryRow>(
+      `SELECT * FROM signal_history WHERE id = $1 LIMIT 1`,
+      [id],
+    );
+    return row ? rowToRecord(row) : undefined;
+  }
+  return readHistoryFile().find(r => r.id === id);
+}
+
 export function getRecentRecordForSymbol(
   symbol: string,
   direction: 'BUY' | 'SELL',

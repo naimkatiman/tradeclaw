@@ -4,6 +4,7 @@ import { Lock } from 'lucide-react';
 import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 import type { Metadata } from 'next';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
+import { getRecordByIdAsync } from '../../../lib/signal-history';
 import { resolveAccessContextFromCookies, getUserTier } from '../../../lib/tier';
 import { readSessionFromCookies } from '../../../lib/user-session';
 import { SignalShareButtons } from '../../components/signal-share-buttons';
@@ -40,14 +41,67 @@ function formatPrice(p: number | null | undefined): string {
 
 type Params = { id: string };
 
+interface ResolvedId {
+  symbol: string;
+  timeframe: string;
+  direction: 'BUY' | 'SELL';
+}
+
+/**
+ * Parse a /signal/[id] segment into (symbol, timeframe, direction).
+ *
+ * Two id formats are supported:
+ *   1. Canonical share URL — `SYMBOL-TF-DIRECTION` (e.g. BTCUSD-H1-BUY).
+ *   2. Legacy row id — `SYMBOL-TF-TIMESTAMP` (e.g. TSLAUSD-M15-1777733611049),
+ *      written historically by /api/signals/record. Direction isn't in the id,
+ *      so we recover it by looking up the row in signal_history.
+ */
+async function resolveId(id: string): Promise<ResolvedId | null> {
+  const parts = id.toUpperCase().split('-');
+  if (parts.length < 3) return null;
+
+  const last = parts[parts.length - 1];
+  if (last === 'BUY' || last === 'SELL') {
+    return {
+      symbol: parts.slice(0, parts.length - 2).join('-'),
+      timeframe: parts[parts.length - 2],
+      direction: last,
+    };
+  }
+
+  // Legacy / row-id form: look up direction from the stored row.
+  const record = await getRecordByIdAsync(id);
+  if (record) {
+    return {
+      symbol: record.pair,
+      timeframe: record.timeframe,
+      direction: record.direction,
+    };
+  }
+
+  // Some legacy ids encode `SYMBOL-TF-TIMESTAMP` even when the row is gone.
+  // Fall back to parsing if last segment is purely numeric — direction
+  // unknown, so default to BUY (the page tier-gates by id, and tracked
+  // signals will rebuild a fresh BUY/SELL preview either way).
+  if (/^\d+$/.test(last)) {
+    return {
+      symbol: parts.slice(0, parts.length - 2).join('-'),
+      timeframe: parts[parts.length - 2],
+      direction: 'BUY',
+    };
+  }
+
+  return null;
+}
+
 export async function generateMetadata(
   { params }: { params: Promise<Params> }
 ): Promise<Metadata> {
   const { id } = await params;
-  const parts = id.toUpperCase().split('-');
-  const direction = parts[parts.length - 1];
-  const timeframe = parts[parts.length - 2];
-  const symbol = parts.slice(0, parts.length - 2).join('-');
+  const resolved = await resolveId(id);
+  const symbol = resolved?.symbol ?? id.toUpperCase();
+  const direction = resolved?.direction ?? '';
+  const timeframe = resolved?.timeframe ?? '';
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tradeclaw.com';
   const ogUrl = `${baseUrl}/api/og/signal/${id}`;
@@ -73,15 +127,10 @@ export default async function SignalPage(
   { params }: { params: Promise<Params> }
 ) {
   const { id } = await params;
-  const parts = id.toUpperCase().split('-');
+  const resolved = await resolveId(id);
+  if (!resolved) notFound();
 
-  if (parts.length < 3) notFound();
-
-  const direction = parts[parts.length - 1] as 'BUY' | 'SELL';
-  const timeframe = parts[parts.length - 2];
-  const symbol = parts.slice(0, parts.length - 2).join('-');
-
-  if (direction !== 'BUY' && direction !== 'SELL') notFound();
+  const { symbol, timeframe, direction } = resolved;
 
   const ctx = await resolveAccessContextFromCookies();
   const taResult = await getTrackedSignals({ symbol, timeframe, direction, ctx });

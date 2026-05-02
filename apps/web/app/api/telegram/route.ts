@@ -99,7 +99,7 @@ async function handleBotUpdate(update: TelegramUpdate): Promise<void> {
     if (!tokenOrId) {
       await sendTelegramMessage(
         config,
-        'Welcome to TradeClaw!\n\nTo link your account, visit your dashboard and click "Connect Telegram".'
+        'Welcome to TradeClaw!\n\nTo link your account, visit https://tradeclaw.win/dashboard and click "Connect Telegram".'
       );
       return;
     }
@@ -111,7 +111,7 @@ async function handleBotUpdate(update: TelegramUpdate): Promise<void> {
     if (!verified) {
       await sendTelegramMessage(
         config,
-        'This link expired or is invalid. Visit your dashboard and click "Connect Telegram" again to get a fresh link.'
+        'This link expired or is invalid. Visit https://tradeclaw.win/dashboard and click "Connect Telegram" again to get a fresh link.'
       );
       return;
     }
@@ -154,7 +154,10 @@ async function handleBotUpdate(update: TelegramUpdate): Promise<void> {
     } else {
       await sendTelegramMessage(
         config,
-        `Your Telegram account is now linked to TradeClaw.\n\nUpgrade to Pro or Elite at tradeclaw.win/pricing to receive real-time signals in a private group.`
+        `Your Telegram account is now linked to TradeClaw.\n\n` +
+          `For now, follow the free public channel for delayed signals: https://t.me/tradeclawwin\n\n` +
+          `Upgrade to Pro at https://tradeclaw.win/pricing to unlock the private Pro group ` +
+          `(real-time signals, dedicated chat & admin topics) — your invite is DMed here automatically right after checkout.`
       );
     }
   }

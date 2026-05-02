@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { getBotToken, getProGroupId } from './telegram-channels';
+import { getBotToken, getProGroupId, getProSignalsTopicId } from './telegram-channels';
 import { markTelegramProPosted } from './signal-history';
 import { recordBroadcastResult } from './observability';
 
@@ -106,20 +106,28 @@ export async function broadcastSignalsToProGroup(
     return result;
   }
 
+  // Optional forum topic — when the Pro group is a forum supergroup, route
+  // signals into the dedicated Signals topic so the General/Admin topics
+  // stay readable. Null = post to group root (works for non-forum groups).
+  const signalsTopicId = getProSignalsTopicId();
+
   let sent = 0;
   let failed = 0;
 
   for (const sig of tradable) {
     try {
+      const body: Record<string, unknown> = {
+        chat_id: chatId,
+        text: formatProMessage(sig),
+        parse_mode: 'MarkdownV2',
+        disable_web_page_preview: true,
+      };
+      if (signalsTopicId !== null) body.message_thread_id = signalsTopicId;
+
       const res = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: formatProMessage(sig),
-          parse_mode: 'MarkdownV2',
-          disable_web_page_preview: true,
-        }),
+        body: JSON.stringify(body),
         signal: AbortSignal.timeout(8000),
       });
       const data = (await res.json()) as {

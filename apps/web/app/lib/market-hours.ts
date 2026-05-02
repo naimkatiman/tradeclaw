@@ -23,6 +23,21 @@ const MARKET_HOURS: Record<string, MarketHours> = {
     close: 21, // 9pm UTC
     days: [1, 2, 3, 4, 5], // Mon-Fri only
   },
+  // US equities (NYSE/Nasdaq cash session). 09:30-16:00 ET = 13:30-21:00 UTC under EST
+  // and 13:30-20:00 UTC under EDT. Use 13:00-21:00 UTC to cover both DST seasons
+  // without firing on weekends.
+  EQUITIES: {
+    open: 13,
+    close: 21,
+    days: [1, 2, 3, 4, 5], // Mon-Fri only
+  },
+  // Energy commodities (oil CFDs / ETFs). Conservative window aligned with the
+  // most liquid hours; avoids weekend gaps.
+  COMMODITIES: {
+    open: 8,
+    close: 21,
+    days: [1, 2, 3, 4, 5], // Mon-Fri only
+  },
   // Crypto: Always trading 24/7
   CRYPTO: {
     open: 0,
@@ -31,14 +46,24 @@ const MARKET_HOURS: Record<string, MarketHours> = {
   },
 };
 
-/**
- * Get asset class for a symbol
- */
-function getAssetClass(symbol: string): 'FOREX' | 'METALS' | 'CRYPTO' {
+const FOREX_SYMBOLS = new Set([
+  'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF',
+]);
+
+const STOCK_SYMBOLS = new Set([
+  'NVDAUSD', 'TSLAUSD', 'AAPLUSD', 'MSFTUSD', 'GOOGLUSD',
+  'AMZNUSD', 'METAUSD', 'SPYUSD', 'QQQUSD',
+]);
+
+const COMMODITY_SYMBOLS = new Set(['WTIUSD', 'BNOUSD']);
+
+type AssetClass = 'FOREX' | 'METALS' | 'EQUITIES' | 'COMMODITIES' | 'CRYPTO';
+
+function getAssetClass(symbol: string): AssetClass {
   if (symbol === 'XAUUSD' || symbol === 'XAGUSD') return 'METALS';
-  if (['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF'].includes(symbol)) {
-    return 'FOREX';
-  }
+  if (FOREX_SYMBOLS.has(symbol)) return 'FOREX';
+  if (STOCK_SYMBOLS.has(symbol)) return 'EQUITIES';
+  if (COMMODITY_SYMBOLS.has(symbol)) return 'COMMODITIES';
   return 'CRYPTO'; // Bitcoin, Ethereum, Solana, Dogecoin, BNB, XRP
 }
 
@@ -92,5 +117,7 @@ export function getMarketStatus(symbol: string, timestamp?: number): string {
 
   if (assetClass === 'CRYPTO') return 'OPEN'; // Always open
   if (assetClass === 'FOREX') return 'CLOSED (Forex: Sun 5pm-Fri 5pm EST)';
+  if (assetClass === 'EQUITIES') return `CLOSED (US equities: ${hours.open}:00-${hours.close}:00 UTC, Mon-Fri)`;
+  if (assetClass === 'COMMODITIES') return `CLOSED (Commodities: ${hours.open}:00-${hours.close}:00 UTC, Mon-Fri)`;
   return `CLOSED (${hours.open}:00-${hours.close}:00 UTC, Mon-Fri)`;
 }

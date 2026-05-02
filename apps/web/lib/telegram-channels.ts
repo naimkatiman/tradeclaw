@@ -10,9 +10,12 @@ import 'server-only';
  * keep older deploys working until they migrate.
  *
  * Set on Railway (preferred names):
- *   TELEGRAM_BOT_TOKEN       — the bot that posts to both channels
- *   TELEGRAM_FREE_CHANNEL_ID — public channel ID for free-tier broadcasts
- *   TELEGRAM_PRO_GROUP_ID    — private group ID for Pro subscribers
+ *   TELEGRAM_BOT_TOKEN              — the bot that posts to both channels
+ *   TELEGRAM_FREE_CHANNEL_ID        — public channel ID for free-tier broadcasts
+ *   TELEGRAM_PRO_GROUP_ID           — private group ID for Pro subscribers
+ *   TELEGRAM_PRO_SIGNALS_TOPIC_ID   — optional forum topic ID inside the Pro
+ *                                     group where signals (and outcome replies)
+ *                                     are posted. Unset = post to group root.
  */
 
 export function getBotToken(): string | null {
@@ -37,4 +40,17 @@ export function getProGroupId(): string | null {
 /** Legacy elite group — kept for invite-link revocation continuity. */
 export function getEliteGroupId(): string | null {
   return process.env.TELEGRAM_ELITE_GROUP_ID ?? null;
+}
+
+/**
+ * Forum topic ID inside the Pro group for signal posts. When the Pro group
+ * has Topics enabled, the broadcaster passes this as `message_thread_id` so
+ * signals and TP/SL outcome replies land in a dedicated Signals topic
+ * instead of the group root. Unset = post to root (legacy behavior).
+ */
+export function getProSignalsTopicId(): number | null {
+  const raw = process.env.TELEGRAM_PRO_SIGNALS_TOPIC_ID;
+  if (!raw) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
