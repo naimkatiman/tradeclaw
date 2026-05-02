@@ -32,6 +32,7 @@ import type { TFDirection } from '../lib/signal-generator';
 import { OnboardingOverlay } from '../components/onboarding-overlay';
 import { markStepDone } from '@/lib/onboarding-state';
 import { useUserSession } from '../../lib/hooks/use-user-tier';
+import { classifySignalOutcome, type OutcomeStatus } from '@/lib/signal-outcome';
 
 const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];
 
@@ -393,7 +394,31 @@ function LockedSignalCard({ stub }: { stub: LockedSignalStub }) {
   );
 }
 
-function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavorite }: { signal: TradingSignal; tfDirections?: TFDirection[]; onSelect?: (signal: TradingSignal) => void; isFavorite?: boolean; onToggleFavorite?: (id: string) => void }) {
+const OUTCOME_STYLE: Record<OutcomeStatus, { label: string; cls: string; icon: string }> = {
+  tp3_hit:  { label: 'TP3 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
+  tp2_hit:  { label: 'TP2 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
+  tp1_hit:  { label: 'TP1 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
+  stopped:  { label: 'Stopped',  cls: 'bg-rose-500/15 text-rose-300 border-rose-500/40',          icon: '🛑' },
+  active:   { label: 'Active',   cls: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30',          icon: '⏳' },
+  unknown:  { label: '—',         cls: 'bg-transparent text-zinc-500 border-transparent',          icon: '·' },
+};
+
+function OutcomeBadge({ status, progressPct }: { status: OutcomeStatus; progressPct: number }) {
+  const s = OUTCOME_STYLE[status];
+  if (status === 'unknown') return null;
+  const showPct = status === 'active';
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-mono ${s.cls}`}
+      title={status === 'active' ? `Progress to TP1: ${progressPct}%` : s.label}
+    >
+      <span aria-hidden>{s.icon}</span>
+      {s.label}{showPct && progressPct !== 0 ? ` ${progressPct > 0 ? '+' : ''}${progressPct}%` : ''}
+    </span>
+  );
+}
+
+function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onToggleFavorite }: { signal: TradingSignal; livePrice?: number | null; tfDirections?: TFDirection[]; onSelect?: (signal: TradingSignal) => void; isFavorite?: boolean; onToggleFavorite?: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   const [chartVisible, setChartVisible] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
@@ -548,6 +573,12 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
 
       {/* Why this signal? — 1-2 bullet reasons */}
       <SignalExplanation signal={signal} />
+
+      {/* Live outcome badge */}
+      {(() => {
+        const outcome = classifySignalOutcome(signal, livePrice ?? null);
+        return <OutcomeBadge status={outcome.status} progressPct={outcome.progressPct} />;
+      })()}
 
       {/* Price levels */}
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 mt-4 text-center">
@@ -1325,7 +1356,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               {mainSignals.length > 0 && (
                 <div data-tour-id="signal-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {mainSignals.map(signal => (
-                    <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
+                    <SignalCard key={signal.id} signal={signal} livePrice={prices.get(signal.symbol)?.price ?? null} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
                   ))}
                 </div>
               )}
@@ -1365,7 +1396,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                   <p className="text-xs text-[var(--text-secondary)] mb-3">Early-stage setups that haven&apos;t reached full confluence yet. Watch for confirmation before acting.</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 opacity-80">
                     {potentialSignals.map(signal => (
-                      <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
+                      <SignalCard key={signal.id} signal={signal} livePrice={prices.get(signal.symbol)?.price ?? null} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
                     ))}
                   </div>
                 </section>
