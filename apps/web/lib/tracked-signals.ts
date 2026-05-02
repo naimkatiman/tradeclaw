@@ -16,6 +16,7 @@ import {
   isWinningCell,
   WINNING_CELLS_GATE_REASON,
 } from './winning-cells';
+import { broadcastSignalsToProGroup } from './telegram-pro-broadcast';
 
 // Inlined to break the dependency on ./licenses during the license→tier
 // migration. Phase D removes ./licenses entirely; the value never changes.
@@ -182,6 +183,12 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       // (winning-cells gate may block some rows while letting others
       // through, unlike full-risk-gate which is all-or-nothing).
       const tradablePayload = recordPayload.filter((s) => !s.gateBlocked);
+
+      // Pro-tier real-time fan-out to TELEGRAM_PRO_GROUP_ID. Fire-and-forget;
+      // signal recording must never be blocked by Telegram. Free-tier
+      // delivery is the separate 4-hour cron at /api/cron/telegram which
+      // applies the 15-min publish delay free buyers signed up for.
+      broadcastSignalsToProGroup(tradablePayload).catch(() => undefined);
 
       // Fan out to user alert rules — fire and forget
       const dispatchUrl = process.env.NEXT_PUBLIC_APP_URL
