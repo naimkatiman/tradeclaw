@@ -67,10 +67,11 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
   };
 
   if (result.signals.length > 0) {
-    // This is the actual production write path for signal_history (the
-    // /api/cron/signals route reads from live_signals which is empty in
-    // production, so it never inserts anything). Tag with the active
-    // preset so /track-record's per-strategy breakdown reflects reality.
+    // Writer A of signal_history: request side-effect path. Writer B is the
+    // /api/cron/signals route which calls getSignals() the same way and
+    // dedups against the same 2h symbol+direction window. Tag with the
+    // active preset so /track-record's per-strategy breakdown reflects
+    // reality.
     const strategyId = activePresetId;
 
     const filtered = result.signals.filter(

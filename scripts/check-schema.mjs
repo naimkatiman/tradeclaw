@@ -16,7 +16,7 @@ console.log('TABLES:', all.join(', '));
 
 const want = [
   'users','subscriptions','telegram_invites','strategy_licenses',
-  'strategy_license_grants','signal_history','live_signals',
+  'strategy_license_grants','signal_history','pro_email_grants',
   'contact_sales_inquiries','social_post_queue','price_alerts',
   'user_webhooks','paper_portfolios','paper_positions','paper_trades',
   'telegram_subscribers','signal_atr_telemetry',
