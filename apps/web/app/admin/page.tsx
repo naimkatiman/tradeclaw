@@ -7,6 +7,7 @@ import {
   Users,
   Activity,
   ExternalLink,
+  KeyRound,
 } from 'lucide-react';
 import { requireAdmin } from '../../lib/admin-gate';
 import { query, queryOne } from '../../lib/db-pool';
@@ -168,6 +169,12 @@ export default async function AdminIndexPage() {
           Tools
         </h2>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <Tile
+            href="/admin/pro-grants"
+            title="Pro Grants"
+            body="Grant or revoke Pro tier by email without redeploying."
+            icon={KeyRound}
+          />
           <Tile
             href="/admin/social-queue"
             title="Social Queue"
