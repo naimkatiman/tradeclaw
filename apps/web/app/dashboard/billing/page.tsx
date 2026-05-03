@@ -294,13 +294,21 @@ export default function BillingPage() {
                 Manage invoices, update payment method, or cancel via the Stripe
                 customer portal.
               </p>
-              <button
-                onClick={openPortal}
-                disabled={portalLoading}
-                className="mt-3 rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-white/5 disabled:opacity-60"
-              >
-                {portalLoading ? 'Opening portal…' : 'Manage Billing'}
-              </button>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={openPortal}
+                  disabled={portalLoading}
+                  className="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-white/5 disabled:opacity-60"
+                >
+                  {portalLoading ? 'Opening portal…' : 'Manage Billing'}
+                </button>
+                <Link
+                  href="/data"
+                  className="text-xs text-zinc-400 underline-offset-2 hover:text-zinc-200 hover:underline"
+                >
+                  Planning to cancel? Export your data first →
+                </Link>
+              </div>
             </div>
           )}
         </div>
