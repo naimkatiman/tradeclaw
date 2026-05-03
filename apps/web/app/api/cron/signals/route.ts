@@ -77,8 +77,15 @@ async function recordNewSignals(strategyId: string): Promise<NewlyRecordedSignal
     const existing = await getRecentRecordForSymbolAsync(sig.symbol, sig.direction, TWO_HOURS_MS);
     if (existing) continue;
 
-    const timestamp = Date.now();
-    const id = `${sig.symbol}-${sig.timeframe}-${timestamp}`;
+    // Use the canonical id from the TA engine (`SIG-{sym}-{tf}-{dir}-{candleTs36}`)
+    // so this writer collides on ON CONFLICT(id) with the request-side writer
+    // in tracked-signals.ts. Before unification the two writers used different
+    // id formats and silently produced two rows per candle, double-counting in
+    // the leaderboard. Persist the candle bar timestamp too so resolution
+    // windows align with the bar the signal was actually issued for.
+    const id = sig.id;
+    const parsedCandleTs = Date.parse(sig.timestamp);
+    const timestamp = Number.isFinite(parsedCandleTs) ? parsedCandleTs : Date.now();
     await recordSignalAsync(
       sig.symbol,
       sig.timeframe,
