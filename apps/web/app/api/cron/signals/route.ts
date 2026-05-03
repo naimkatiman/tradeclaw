@@ -15,6 +15,8 @@ import {
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
 import { broadcastSignalsToProGroup } from '../../../../lib/telegram-pro-broadcast';
 import { isWinningCell, getWinningCellsMode } from '../../../../lib/winning-cells';
+import { runRiskPipeline } from '../../../../lib/risk-pipeline';
+import { fetchRegimeMap } from '../../../../lib/regime-filter';
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
@@ -259,20 +261,58 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const taggedSignals = newSignals.map((s) => ({ ...s, strategyId: preset.id }));
 
-    // Pro Telegram broadcast — fire on the deterministic 5-min cron cadence
-    // so the Pro group receives signals even during free-traffic droughts.
-    // Only NEW rows are broadcast (recordNewSignals already deduped against
-    // signal_history within the 2h symbol+direction window), so duplicate
-    // posts to the group are not possible here. Apply the winning-cells
-    // gate so we don't broadcast cells the publish layer would have
-    // suppressed for free; Pro response-time bypass lives in
-    // tracked-signals.ts and does not apply to the channel broadcast.
+    // Pro Telegram broadcast — fire on the deterministic 5-min cron cadence.
+    // After the duplicate-spam audit (2026-05-03) this is the SINGLE source
+    // of Pro broadcasts: the request-side path in tracked-signals.ts was
+    // removed, and the dedup gate inside broadcastSignalsToProGroup catches
+    // any retries. Pipeline order:
+    //   winning-cells curation → risk pipeline (allocator + circuit breakers
+    //   + LLM advisory) → broadcast.
+    // Risk pipeline mirrors the free channel's safety filter so Pro buyers
+    // are not exposed to signals the system itself flagged as drawdown-risky.
+    // Pipeline failure falls back to unfiltered broadcast — Pro's value prop
+    // is real-time delivery, so a transient risk-state outage must not
+    // silently mute the channel.
     if (newSignals.length > 0) {
       const winningCellsActive = getWinningCellsMode() === 'active';
-      const broadcastable = newSignals
-        .filter((s) =>
-          !winningCellsActive || isWinningCell(s.symbol, s.direction),
-        )
+      const curated = newSignals.filter((s) =>
+        !winningCellsActive || isWinningCell(s.symbol, s.direction),
+      );
+
+      let approvedIds: Set<string> | null = null;
+      try {
+        const regimeMap = await fetchRegimeMap();
+        const riskResult = await runRiskPipeline(
+          curated.map((s) => ({
+            id: s.id,
+            symbol: s.symbol,
+            direction: s.direction,
+            confidence: s.confidence,
+            entry: s.entry,
+            stopLoss: s.stopLoss,
+            takeProfit1: s.takeProfit1,
+            takeProfit2: null,
+            takeProfit3: null,
+            timeframe: s.timeframe,
+          })),
+          regimeMap,
+        );
+        approvedIds = new Set(riskResult.approved.map((s) => s.id));
+        if (riskResult.vetoed.length > 0) {
+          console.warn(
+            `[cron/signals] Risk pipeline vetoed ${riskResult.vetoed.length} Pro signal(s):`,
+            riskResult.vetoed.map((v) => `${v.signal.symbol}:${v.reason}`).join('; '),
+          );
+        }
+      } catch (err) {
+        console.warn(
+          '[cron/signals] Risk pipeline failed, broadcasting curated signals unfiltered:',
+          err instanceof Error ? err.message : String(err),
+        );
+      }
+
+      const broadcastable = curated
+        .filter((s) => approvedIds === null || approvedIds.has(s.id))
         .map((s) => ({
           id: s.id,
           symbol: s.symbol,
