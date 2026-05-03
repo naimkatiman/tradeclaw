@@ -27,6 +27,8 @@ export function WelcomeClient({ userId }: WelcomeClientProps) {
   // cannot bind their own chat to this account by guessing the UUID.
   const [deepLink, setDeepLink] = useState<string | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
+  const [resendState, setResendState] = useState<'idle' | 'loading' | 'sent' | 'error'>('idle');
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,6 +115,29 @@ export function WelcomeClient({ userId }: WelcomeClientProps) {
             {linkError ?? 'Generating link…'}
           </span>
         )}
+
+        <ResendInviteAction
+          state={resendState}
+          message={resendMessage}
+          onClick={async () => {
+            setResendState('loading');
+            setResendMessage(null);
+            try {
+              const res = await fetch('/api/telegram/resend-invite', { method: 'POST' });
+              const data = (await res.json()) as { ok?: boolean; error?: string };
+              if (data.ok) {
+                setResendState('sent');
+                setResendMessage('Invite sent. Check your Telegram DMs.');
+                return;
+              }
+              setResendState('error');
+              setResendMessage(messageForResendError(data.error));
+            } catch {
+              setResendState('error');
+              setResendMessage('Could not reach the server. Try again.');
+            }
+          }}
+        />
       </StepCard>
 
       <StepCard
@@ -160,6 +185,46 @@ function StepCard({ index, title, description, children }: StepCardProps) {
       </div>
     </div>
   );
+}
+
+interface ResendInviteActionProps {
+  state: 'idle' | 'loading' | 'sent' | 'error';
+  message: string | null;
+  onClick: () => void;
+}
+
+function ResendInviteAction({ state, message, onClick }: ResendInviteActionProps) {
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]">
+      <span>Didn&apos;t get an invite?</span>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={state === 'loading' || state === 'sent'}
+        className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 font-semibold text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50"
+      >
+        {state === 'loading' ? 'Sending…' : state === 'sent' ? 'Sent' : 'Resend'}
+      </button>
+      {message && (
+        <span className={state === 'error' ? 'text-red-400' : 'text-emerald-400'}>{message}</span>
+      )}
+    </div>
+  );
+}
+
+function messageForResendError(code: string | undefined): string {
+  switch (code) {
+    case 'no_telegram_link':
+      return 'Tap "Open Telegram bot" first to link your account.';
+    case 'free_tier':
+      return 'Pro group access requires a paid plan.';
+    case 'unauthorized':
+      return 'Your session expired — sign in again.';
+    case 'send_failed':
+      return 'Telegram rejected the send. If you blocked the bot, unblock it and try again.';
+    default:
+      return 'Resend failed. Try again in a moment.';
+  }
 }
 
 function SignalPreviewCard({ signal }: { signal: SignalPreview }) {
