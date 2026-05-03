@@ -19,6 +19,12 @@ export interface ClientSession {
   subscriptionStatus: ClientSubscriptionStatus;
   /** Period end of the current billing cycle. Used to compute the grace deadline. */
   currentPeriodEnd: string | null;
+  /**
+   * ISO timestamp of the trial cut-off. Drives the trial countdown banner —
+   * shown only when subscriptionStatus === 'trialing' and this is in the
+   * future. Null for non-trial subs.
+   */
+  trialEnd: string | null;
 }
 
 interface SessionResponse {
