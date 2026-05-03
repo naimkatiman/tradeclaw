@@ -222,8 +222,12 @@ function messageForResendError(code: string | undefined): string {
       return 'Your session expired — sign in again.';
     case 'rate_limited':
       return 'Too many invite requests. Try again in 10 minutes.';
+    case 'chat_not_found':
+      return 'Open the bot in Telegram and press Start, then tap Resend.';
+    case 'bot_blocked':
+      return 'You blocked the bot. Unblock @TradeClaw_win_Bot in Telegram, then tap Resend.';
     case 'send_failed':
-      return 'Telegram rejected the send. If you blocked the bot, unblock it and try again.';
+      return 'Telegram is unreachable right now. Try again in a moment.';
     default:
       return 'Resend failed. Try again in a moment.';
   }

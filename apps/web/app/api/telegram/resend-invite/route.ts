@@ -87,6 +87,22 @@ export async function POST(request: NextRequest) {
       '[resend-invite] failed:',
       `user=${user.id} attempts=${result.attempts} retryable=${result.retryable} err=${result.error}`,
     );
+    // Map Telegram failures to actionable error codes so the welcome page
+    // can show the right CTA. Both cases are user-recoverable, not 5xx
+    // server faults — return 409 (conflict with current Telegram state).
+    const errLower = (result.error ?? '').toLowerCase();
+    if (errLower.includes('chat not found')) {
+      return NextResponse.json(
+        { ok: false, error: 'chat_not_found' },
+        { status: 409 },
+      );
+    }
+    if (errLower.includes('bot was blocked') || errLower.includes('forbidden')) {
+      return NextResponse.json(
+        { ok: false, error: 'bot_blocked' },
+        { status: 409 },
+      );
+    }
     return NextResponse.json(
       {
         ok: false,

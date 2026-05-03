@@ -124,6 +124,23 @@ export async function sendMessage(
 }
 
 /**
+ * Probe whether the bot has an open DM with this user. The Bot API only allows
+ * sendMessage to users who pressed Start in the bot DM at least once; if the
+ * user linked their account but never opened a chat, sendMessage fails with
+ * "chat not found" AFTER a single-use invite link has already been minted.
+ *
+ * Calling getChat first surfaces the same error before any mutation, so the
+ * resend-invite path can return a clear "press Start in the bot DM first"
+ * message without leaving an orphan invite in the group's link list.
+ */
+export async function assertUserDmReachable(telegramUserId: string): Promise<void> {
+  // Bot API errors include "chat not found" verbatim; the existing
+  // NON_RETRYABLE_TELEGRAM_FRAGMENTS classifier picks this up and the
+  // resend-invite route maps it to the chat_not_found error code.
+  await telegramPost('getChat', { chat_id: telegramUserId });
+}
+
+/**
  * Full flow: generate invite link, persist it, and message the user.
  * Requires the user's telegram_user_id to be already stored.
  */
@@ -132,6 +149,12 @@ export async function sendInvite(
   telegramUserId: string,
   tier: TelegramTier
 ): Promise<string> {
+  // Preflight before mutating anything (createChatInviteLink mints a link
+  // that lingers in the group's invite list even if the subsequent
+  // sendMessage fails). On "chat not found" this throws the same string the
+  // retry classifier already treats as non-retryable.
+  await assertUserDmReachable(telegramUserId);
+
   const inviteLink = await generateInviteLink(tier, userId);
 
   const tierLabel = tier === 'elite' ? 'Elite' : 'Pro';
