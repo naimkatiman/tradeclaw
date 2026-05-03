@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
 import { PageNavBar } from '../../components/PageNavBar';
 import { TierBanner } from '../components/tier-banner';
+import { PastDueBanner } from '../components/past-due-banner';
 import { LiveTicker } from '../../components/live-ticker';
 import { SignalToast } from '../../components/signal-toast';
 import { ConnectionStatus } from '../../components/connection-status';
@@ -1047,6 +1048,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       <BackgroundDecor variant="dashboard" />
       <GuidedTourListener />
       <PageNavBar />
+      <PastDueBanner />
       <TierBanner />
       <OnboardingBanner />
       <ReEngagementBanner />

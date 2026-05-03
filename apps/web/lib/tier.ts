@@ -205,13 +205,13 @@ export async function resolveAccessContextFromCookies(): Promise<AccessContext> 
   }
 }
 
-/**
- * Days a past_due subscription continues to count as paid before it
- * downgrades to free. Stripe Smart Retries run for ~3 weeks; cutting
- * access at the first failed invoice churns customers whose card needed
- * one update. We give them a window to fix it without losing signals.
- */
-export const PAST_DUE_GRACE_DAYS = 7;
+// PAST_DUE_GRACE_DAYS lives in tier-client.ts so client components (e.g. the
+// past-due banner) can import it without pulling server-only modules.
+// Stripe Smart Retries run for ~3 weeks; cutting access at the first failed
+// invoice churns customers whose card needed one update. We give them a
+// window to fix it without losing signals.
+export { PAST_DUE_GRACE_DAYS } from './tier-client';
+import { PAST_DUE_GRACE_DAYS } from './tier-client';
 
 /**
  * Retrieve the tier for a given user ID from the database.
