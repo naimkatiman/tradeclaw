@@ -62,6 +62,7 @@ const BINANCE_INTERVALS: Record<string, string> = {
 // In-memory cache with TTL
 interface CacheEntry {
   data: OHLCV[];
+  source: OHLCVSource;
   expires: number;
 }
 
@@ -72,17 +73,17 @@ function getCacheKey(symbol: string, timeframe: string): string {
   return `${symbol}:${timeframe}`;
 }
 
-function getFromCache(key: string): OHLCV[] | null {
+function getFromCache(key: string): { data: OHLCV[]; source: OHLCVSource } | null {
   const entry = cache.get(key);
   if (entry && Date.now() < entry.expires) {
-    return entry.data;
+    return { data: entry.data, source: entry.source };
   }
   cache.delete(key);
   return null;
 }
 
-function setCache(key: string, data: OHLCV[]): void {
-  cache.set(key, { data, expires: Date.now() + CACHE_TTL });
+function setCache(key: string, data: OHLCV[], source: OHLCVSource): void {
+  cache.set(key, { data, source, expires: Date.now() + CACHE_TTL });
   // Evict old entries if cache gets too big
   if (cache.size > 200) {
     const now = Date.now();
@@ -229,8 +230,7 @@ export async function getOHLCV(symbol: string, timeframe: string = 'H1'): Promis
   const cacheKey = getCacheKey(symbol, timeframe);
   const cached = getFromCache(cacheKey);
   if (cached) {
-    const source: OHLCVSource = BINANCE_SYMBOLS[symbol] ? 'binance' : isStooqSymbol(symbol) ? 'stooq' : 'synthetic';
-    return { candles: cached, source };
+    return { candles: cached.data, source: cached.source };
   }
 
   let candles: OHLCV[] = [];
@@ -304,7 +304,7 @@ export async function getOHLCV(symbol: string, timeframe: string = 'H1'): Promis
   }
 
   if (candles.length > 0) {
-    setCache(cacheKey, candles);
+    setCache(cacheKey, candles, source);
   }
 
   return { candles, source };
