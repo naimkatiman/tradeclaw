@@ -3,6 +3,26 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY ?? '';
+
+type PushState =
+  | 'idle'
+  | 'unsupported'
+  | 'denied'
+  | 'asking'
+  | 'subscribing'
+  | 'subscribed'
+  | 'error';
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i += 1) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
 interface SignalPreview {
   symbol: string;
   direction: 'BUY' | 'SELL';
@@ -29,6 +49,78 @@ export function WelcomeClient({ userId }: WelcomeClientProps) {
   const [linkError, setLinkError] = useState<string | null>(null);
   const [resendState, setResendState] = useState<'idle' | 'loading' | 'sent' | 'error'>('idle');
   const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [pushState, setPushState] = useState<PushState>('idle');
+  const [pushMessage, setPushMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+      setPushState('unsupported');
+      return;
+    }
+    if (Notification.permission === 'denied') setPushState('denied');
+  }, []);
+
+  async function handleEnablePush() {
+    if (!VAPID_PUBLIC_KEY) {
+      setPushState('error');
+      setPushMessage('Browser push is not configured on this server yet.');
+      return;
+    }
+    if (pushState === 'unsupported') return;
+    setPushMessage(null);
+    setPushState('asking');
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        setPushState('denied');
+        setPushMessage(
+          permission === 'denied'
+            ? 'Permission blocked. Enable notifications for this site in your browser settings.'
+            : 'Permission dismissed. Tap again when you are ready.',
+        );
+        return;
+      }
+      setPushState('subscribing');
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      const ready = await navigator.serviceWorker.ready;
+      const existing = await (ready.pushManager.getSubscription?.() ?? reg.pushManager.getSubscription());
+      const subscription =
+        existing ??
+        (await (ready.pushManager.subscribe?.({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        }) ?? reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        })));
+
+      const subJson = subscription.toJSON();
+      const saveRes = await fetch('/api/notifications/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: subJson }),
+      });
+      if (!saveRes.ok) {
+        setPushState('error');
+        setPushMessage('Could not save your subscription. Try again.');
+        return;
+      }
+
+      // Fire a confirmation push so the user immediately sees the channel work.
+      await fetch('/api/notifications/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint: subJson.endpoint }),
+      }).catch(() => { /* best effort */ });
+
+      setPushState('subscribed');
+      setPushMessage('Browser alerts enabled. A confirmation push is on the way.');
+    } catch {
+      setPushState('error');
+      setPushMessage('Subscription failed. Try again or check your browser settings.');
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -154,6 +246,25 @@ export function WelcomeClient({ userId }: WelcomeClientProps) {
         {signal && <SignalPreviewCard signal={signal} />}
       </StepCard>
 
+      <StepCard
+        index={3}
+        title="Enable browser alerts"
+        description={
+          pushState === 'unsupported'
+            ? 'Your browser does not support push notifications. Skip this step.'
+            : !VAPID_PUBLIC_KEY
+              ? 'Browser push is rolling out soon. Skip for now — Telegram has you covered.'
+              : 'Get a desktop notification the moment a Pro signal fires, even when this tab is closed.'
+        }
+      >
+        <BrowserAlertsAction
+          state={pushState}
+          message={pushMessage}
+          disabled={!VAPID_PUBLIC_KEY || pushState === 'unsupported'}
+          onClick={handleEnablePush}
+        />
+      </StepCard>
+
       <div className="mt-6 text-center">
         <Link href="/dashboard" className="text-sm text-[var(--text-secondary)] underline">
           Skip to dashboard
@@ -208,6 +319,45 @@ function ResendInviteAction({ state, message, onClick }: ResendInviteActionProps
       {message && (
         <span className={state === 'error' ? 'text-red-400' : 'text-emerald-400'}>{message}</span>
       )}
+    </div>
+  );
+}
+
+interface BrowserAlertsActionProps {
+  state: PushState;
+  message: string | null;
+  disabled: boolean;
+  onClick: () => void;
+}
+
+function BrowserAlertsAction({ state, message, disabled, onClick }: BrowserAlertsActionProps) {
+  const label =
+    state === 'asking' || state === 'subscribing'
+      ? 'Enabling…'
+      : state === 'subscribed'
+        ? 'Enabled'
+        : state === 'denied'
+          ? 'Permission blocked'
+          : 'Enable browser alerts';
+
+  const tone =
+    state === 'subscribed'
+      ? 'text-emerald-400'
+      : state === 'error' || state === 'denied'
+        ? 'text-red-400'
+        : 'text-[var(--text-secondary)]';
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-xs">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled || state === 'asking' || state === 'subscribing' || state === 'subscribed'}
+        className="rounded-md bg-emerald-500 px-3 py-1.5 text-sm font-semibold text-black hover:bg-emerald-400 disabled:opacity-50"
+      >
+        {label}
+      </button>
+      {message && <span className={tone}>{message}</span>}
     </div>
   );
 }
