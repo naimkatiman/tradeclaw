@@ -25,6 +25,8 @@ export interface SubscriptionRecord {
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
+  trialEnd: Date | null;
+  trialReminderSentAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,6 +76,8 @@ interface SubscriptionRow {
   current_period_start: string;
   current_period_end: string;
   cancel_at_period_end: boolean;
+  trial_end: string | null;
+  trial_reminder_sent_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -89,10 +93,16 @@ function toSubscriptionRecord(row: SubscriptionRow): SubscriptionRecord {
     currentPeriodStart: new Date(row.current_period_start),
     currentPeriodEnd: new Date(row.current_period_end),
     cancelAtPeriodEnd: row.cancel_at_period_end,
+    trialEnd: row.trial_end ? new Date(row.trial_end) : null,
+    trialReminderSentAt: row.trial_reminder_sent_at ? new Date(row.trial_reminder_sent_at) : null,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
 }
+
+const SUBSCRIPTION_COLUMNS = `id, user_id, stripe_subscription_id, stripe_customer_id,
+  tier, status, current_period_start, current_period_end, cancel_at_period_end,
+  trial_end, trial_reminder_sent_at, created_at, updated_at`;
 
 // ---------------------------------------------------------------------------
 // User operations
@@ -183,9 +193,7 @@ export async function getUserSubscription(
   userId: string,
 ): Promise<SubscriptionRecord | null> {
   const row = await queryOne<SubscriptionRow>(
-    `SELECT id, user_id, stripe_subscription_id, stripe_customer_id,
-            tier, status, current_period_start, current_period_end,
-            cancel_at_period_end, created_at, updated_at
+    `SELECT ${SUBSCRIPTION_COLUMNS}
      FROM subscriptions
      WHERE user_id = $1 AND status IN ('active', 'trialing', 'past_due')
      ORDER BY created_at DESC LIMIT 1`,
@@ -198,9 +206,7 @@ export async function getSubscriptionByStripeId(
   stripeSubscriptionId: string,
 ): Promise<SubscriptionRecord | null> {
   const row = await queryOne<SubscriptionRow>(
-    `SELECT id, user_id, stripe_subscription_id, stripe_customer_id,
-            tier, status, current_period_start, current_period_end,
-            cancel_at_period_end, created_at, updated_at
+    `SELECT ${SUBSCRIPTION_COLUMNS}
      FROM subscriptions
      WHERE stripe_subscription_id = $1`,
     [stripeSubscriptionId],
@@ -209,13 +215,13 @@ export async function getSubscriptionByStripeId(
 }
 
 export async function upsertSubscription(
-  data: Omit<SubscriptionRecord, 'id' | 'createdAt' | 'updatedAt'>,
+  data: Omit<SubscriptionRecord, 'id' | 'trialReminderSentAt' | 'createdAt' | 'updatedAt'>,
 ): Promise<void> {
   await execute(
     `INSERT INTO subscriptions
        (user_id, stripe_subscription_id, stripe_customer_id, tier, status,
-        current_period_start, current_period_end, cancel_at_period_end)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        current_period_start, current_period_end, cancel_at_period_end, trial_end)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      ON CONFLICT (stripe_subscription_id)
      DO UPDATE SET
        tier = EXCLUDED.tier,
@@ -223,6 +229,7 @@ export async function upsertSubscription(
        current_period_start = EXCLUDED.current_period_start,
        current_period_end = EXCLUDED.current_period_end,
        cancel_at_period_end = EXCLUDED.cancel_at_period_end,
+       trial_end = EXCLUDED.trial_end,
        updated_at = NOW()`,
     [
       data.userId,
@@ -233,7 +240,57 @@ export async function upsertSubscription(
       data.currentPeriodStart,
       data.currentPeriodEnd,
       data.cancelAtPeriodEnd,
+      data.trialEnd,
     ],
+  );
+}
+
+export async function setTrialEnd(
+  stripeSubscriptionId: string,
+  trialEnd: Date | null,
+): Promise<void> {
+  await execute(
+    `UPDATE subscriptions SET trial_end = $1, updated_at = NOW()
+     WHERE stripe_subscription_id = $2`,
+    [trialEnd, stripeSubscriptionId],
+  );
+}
+
+/**
+ * Returns trialing subscriptions whose trial ends within the given window
+ * AND haven't received a reminder yet. Used by /api/cron/trial-reminders.
+ */
+export async function getTrialingExpiringWithin(
+  hoursFrom: number,
+  hoursTo: number,
+): Promise<SubscriptionRecord[]> {
+  const rows = await query<SubscriptionRow>(
+    `SELECT ${SUBSCRIPTION_COLUMNS}
+     FROM subscriptions
+     WHERE status = 'trialing'
+       AND trial_end IS NOT NULL
+       AND trial_end BETWEEN NOW() + ($1 || ' hours')::interval
+                         AND NOW() + ($2 || ' hours')::interval
+       AND trial_reminder_sent_at IS NULL`,
+    [hoursFrom, hoursTo],
+  );
+  return rows.map(toSubscriptionRecord);
+}
+
+export async function getTrialingMissingTrialEnd(): Promise<SubscriptionRecord[]> {
+  const rows = await query<SubscriptionRow>(
+    `SELECT ${SUBSCRIPTION_COLUMNS}
+     FROM subscriptions
+     WHERE status = 'trialing' AND trial_end IS NULL`,
+  );
+  return rows.map(toSubscriptionRecord);
+}
+
+export async function markTrialReminderSent(stripeSubscriptionId: string): Promise<void> {
+  await execute(
+    `UPDATE subscriptions SET trial_reminder_sent_at = NOW(), updated_at = NOW()
+     WHERE stripe_subscription_id = $1`,
+    [stripeSubscriptionId],
   );
 }
 

@@ -9,6 +9,7 @@ import {
   cancelSubscription,
   updateSubscriptionStatus,
   getSubscriptionByStripeId,
+  setTrialEnd,
   tryClaimStripeEvent,
 } from '../../../../lib/db';
 import { sendInvite, revokeAccess } from '../../../../lib/telegram';
@@ -140,6 +141,7 @@ async function handleCheckoutCompleted(
   const firstItem = subscription.items.data[0];
   const periodEnd = firstItem ? new Date(firstItem.current_period_end * 1000) : null;
   const periodStart = firstItem ? new Date(firstItem.current_period_start * 1000) : new Date();
+  const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
   // Update user tier
   await updateUserTier(userId, tier, periodEnd);
@@ -154,6 +156,7 @@ async function handleCheckoutCompleted(
     currentPeriodStart: periodStart,
     currentPeriodEnd: periodEnd ?? new Date(),
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    trialEnd,
   });
 
   // Send Telegram invite if user has linked their Telegram account
@@ -191,6 +194,7 @@ async function handleSubscriptionUpdated(
 
   const firstItem = subscription.items.data[0];
   const periodEnd = firstItem ? new Date(firstItem.current_period_end * 1000) : null;
+  const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
   await updateUserTier(userId, tier, periodEnd);
 
@@ -199,6 +203,10 @@ async function handleSubscriptionUpdated(
     subscription.status as 'active' | 'past_due' | 'canceled' | 'trialing',
     periodEnd ?? undefined
   );
+
+  // Keep trial_end in sync — promo extensions, manual edits in the Stripe
+  // dashboard, and trial-to-paid conversions all flow through this event.
+  await setTrialEnd(subscription.id, trialEnd);
 }
 
 async function handleSubscriptionDeleted(

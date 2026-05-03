@@ -220,6 +220,8 @@ describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
       currentPeriodStart: new Date(),
       currentPeriodEnd: new Date(Date.now() + 30 * 86400 * 1000),
       cancelAtPeriodEnd: false,
+      trialEnd: null,
+      trialReminderSentAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -256,6 +258,8 @@ describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
       currentPeriodStart: new Date(),
       currentPeriodEnd: new Date(),
       cancelAtPeriodEnd: false,
+      trialEnd: null,
+      trialReminderSentAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -280,6 +284,8 @@ describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
       currentPeriodStart: new Date(),
       currentPeriodEnd: new Date(),
       cancelAtPeriodEnd: false,
+      trialEnd: null,
+      trialReminderSentAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
