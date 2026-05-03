@@ -17,7 +17,6 @@ import {
   isWinningCell,
   WINNING_CELLS_GATE_REASON,
 } from './winning-cells';
-import { broadcastSignalsToProGroup } from './telegram-pro-broadcast';
 
 function isPaidTier(tier: Tier | undefined): boolean {
   return tier === 'pro' || tier === 'elite' || tier === 'custom';
@@ -193,18 +192,14 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       // through, unlike full-risk-gate which is all-or-nothing).
       const tradablePayload = recordPayload.filter((s) => !s.gateBlocked);
 
-      // Pro-tier real-time fan-out to TELEGRAM_PRO_GROUP_ID. Only paid
-      // callers (pro/elite/custom) trigger this. Anonymous/free traffic
-      // hitting /api/signals must NOT cause posts to the Pro group — that
-      // would (a) duplicate broadcasts during free traffic spikes and
-      // (b) couple the Pro feature to free-tier request volume. Free-tier
-      // delivery is the separate 4-hour cron at /api/cron/telegram which
-      // applies the 15-min publish delay free buyers signed up for.
-      // Cron-driven Pro coverage during traffic droughts is handled by
-      // /api/cron/signals which broadcasts each newly recorded signal.
-      if (callerIsPaid) {
-        broadcastSignalsToProGroup(tradablePayload).catch(() => undefined);
-      }
+      // Pro Telegram fan-out runs ONLY on the 5-min cron in
+      // /api/cron/signals. Removed the request-side broadcast here because
+      // every paid hit (dashboard SSR, /api/signals, /api/consensus, etc.)
+      // re-broadcast the same signal id — same M15 candle = same id =
+      // duplicate Telegram posts. Cron-only path is sub-5-min latency,
+      // still well within the "real-time vs free 4h" promise, and gives
+      // us one post per signal automatically. The dedup gate inside
+      // broadcastSignalsToProGroup remains as defence in depth.
 
       // Fan out to user alert rules — fire and forget
       const dispatchUrl = process.env.NEXT_PUBLIC_APP_URL
