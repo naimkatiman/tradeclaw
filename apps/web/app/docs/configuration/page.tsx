@@ -193,6 +193,10 @@ UPSTASH_REDIS_REST_TOKEN=...`}
                 { name: 'TELEGRAM_FREE_CHANNEL_ID', desc: 'Channel ID for free-tier signal broadcasts. Use a negative number for channels/groups.' },
                 { name: 'TELEGRAM_PRO_GROUP_ID', desc: 'Group ID for Pro subscribers.' },
                 { name: 'TELEGRAM_ELITE_GROUP_ID', desc: 'Group ID for Elite subscribers.' },
+                { name: 'WEB_PUSH_VAPID_PUBLIC_KEY', desc: 'VAPID public key for browser push. Generate with: npx web-push generate-vapid-keys' },
+                { name: 'WEB_PUSH_VAPID_PRIVATE_KEY', desc: 'VAPID private key. Server-only — never expose to the browser.' },
+                { name: 'WEB_PUSH_VAPID_SUBJECT', desc: 'Contact URL or mailto: for push providers (e.g. mailto:ops@example.com).' },
+                { name: 'NEXT_PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY', desc: 'Same value as WEB_PUSH_VAPID_PUBLIC_KEY, exposed to the client for pushManager.subscribe.' },
               ].map(row => (
                 <tr key={row.name} className="border-b border-white/4 last:border-0">
                   <td className="px-4 py-3 align-top whitespace-nowrap"><code className="text-xs text-emerald-300 font-mono">{row.name}</code></td>
