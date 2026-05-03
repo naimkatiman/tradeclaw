@@ -70,6 +70,12 @@ export async function GET(request: NextRequest): Promise<Response> {
     results.dailyDigest = await callInternal('/api/cron/daily-digest', request);
   }
 
+  // 3b. Trial-ending reminder — once daily at 09:00 UTC. Catches anyone
+  //     whose 7-day trial expires in roughly 24 hours.
+  if (hour === 9 && minute < 10) {
+    results.trialReminders = await callInternal('/api/cron/trial-reminders', request);
+  }
+
   // 4. SMS alerts — every 6 hours (0, 6, 12, 18)
   if (isHourSlot(6)) {
     results.smsAlerts = await callInternal('/api/cron/sms-alerts', request);

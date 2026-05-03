@@ -1,7 +1,9 @@
 import {
   sendPaymentFailedEmail,
+  sendTrialEndingEmail,
   __test__,
   type PaymentFailedEmailOpts,
+  type TrialEndingEmailOpts,
 } from '../transactional-email';
 
 const ORIG = { ...process.env };
@@ -127,5 +129,66 @@ describe('sendPaymentFailedEmail — sending', () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('ECONNREFUSED'));
     const r = await sendPaymentFailedEmail('user@example.com', makeOpts());
     expect(r).toEqual({ ok: false, reason: 'network_error' });
+  });
+});
+
+function makeTrialOpts(overrides: Partial<TrialEndingEmailOpts> = {}): TrialEndingEmailOpts {
+  return {
+    trialEndsAt: new Date('2026-05-10T12:00:00Z'),
+    amountCents: 2900,
+    currency: 'usd',
+    ...overrides,
+  };
+}
+
+describe('trial-ending builders', () => {
+  it('subject signals "tomorrow"', () => {
+    expect(__test__.buildTrialEndingSubject()).toMatch(/trial ends tomorrow/i);
+  });
+
+  it('plain text includes amount, end-date, and billing portal URL', () => {
+    const text = __test__.buildTrialEndingText(makeTrialOpts());
+    expect(text).toContain('$29.00');
+    expect(text).toContain('May 10');
+    expect(text).toContain('https://tradeclaw.win/dashboard/billing');
+  });
+
+  it('plain text drops the amount line gracefully when cents is 0', () => {
+    const text = __test__.buildTrialEndingText(makeTrialOpts({ amountCents: 0 }));
+    expect(text).not.toContain('$0.00');
+    expect(text).toContain('May 10');
+  });
+
+  it('HTML uses amber accent (not red, not emerald) for the trial-ending header', () => {
+    const html = __test__.buildTrialEndingHtml(makeTrialOpts());
+    expect(html).toContain('#f59e0b');
+    expect(html).toContain('Manage billing');
+  });
+});
+
+describe('sendTrialEndingEmail', () => {
+  it('returns no_api_key when env unset', async () => {
+    process.env.RESEND_FROM_EMAIL = 'b@x.io';
+    const r = await sendTrialEndingEmail('user@example.com', makeTrialOpts());
+    expect(r).toEqual({ ok: false, reason: 'no_api_key' });
+  });
+
+  it('POSTs to Resend with the rendered envelope', async () => {
+    process.env.RESEND_API_KEY = 're_test_key';
+    process.env.RESEND_FROM_EMAIL = 'TradeClaw <billing@tradeclaw.win>';
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: 'email_trial_1' }),
+    });
+
+    const r = await sendTrialEndingEmail('user@example.com', makeTrialOpts());
+    expect(r.ok).toBe(true);
+    expect(r.providerId).toBe('email_trial_1');
+
+    const [, init] = (global.fetch as jest.Mock).mock.calls[0];
+    const body = JSON.parse(init.body);
+    expect(body.subject).toMatch(/trial ends tomorrow/i);
+    expect(body.text).toContain('$29.00');
+    expect(body.html).toContain('#f59e0b');
   });
 });
