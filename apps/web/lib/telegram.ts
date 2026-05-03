@@ -155,3 +155,92 @@ export async function sendInvite(
 
   return inviteLink;
 }
+
+/**
+ * Telegram error descriptions that mean "give up" — retrying just burns
+ * API quota for a request that will never succeed. Anything else (5xx,
+ * 429, transient network) goes through the retry loop.
+ *
+ * Match-by-substring because the Bot API descriptions are not stable
+ * structured codes; lowercased to defang trivial variations.
+ */
+const NON_RETRYABLE_TELEGRAM_FRAGMENTS = [
+  'chat not found',
+  'user is deactivated',
+  'bot was blocked by the user',
+  'bot was kicked',
+  'forbidden',
+  'user_id_invalid',
+  'user not found',
+];
+
+function isRetryableTelegramError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
+  return !NON_RETRYABLE_TELEGRAM_FRAGMENTS.some((frag) => msg.includes(frag));
+}
+
+export interface SendInviteResult {
+  ok: boolean;
+  inviteLink?: string;
+  attempts: number;
+  retryable: boolean;
+  error?: string;
+}
+
+type SendInviteFn = (
+  userId: string,
+  telegramUserId: string,
+  tier: TelegramTier,
+) => Promise<string>;
+
+/**
+ * Wraps sendInvite with bounded exponential backoff. Recovers from transient
+ * Telegram API failures (5xx, rate-limits, network blips) without manual
+ * intervention. Permanent failures (chat misconfigured, user blocked the
+ * bot) short-circuit with retryable=false so callers can stop trying.
+ *
+ * The `sender` parameter exists for tests — production callers always rely
+ * on the default (the real sendInvite from this module).
+ */
+export async function sendInviteWithRetry(
+  userId: string,
+  telegramUserId: string,
+  tier: TelegramTier,
+  opts: {
+    maxAttempts?: number;
+    baseDelayMs?: number;
+    sender?: SendInviteFn;
+  } = {},
+): Promise<SendInviteResult> {
+  const maxAttempts = opts.maxAttempts ?? 3;
+  const baseDelayMs = opts.baseDelayMs ?? 500;
+  const sender = opts.sender ?? sendInvite;
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const inviteLink = await sender(userId, telegramUserId, tier);
+      return { ok: true, inviteLink, attempts: attempt, retryable: true };
+    } catch (err) {
+      lastError = err;
+      const retryable = isRetryableTelegramError(err);
+      if (!retryable || attempt === maxAttempts) {
+        return {
+          ok: false,
+          attempts: attempt,
+          retryable,
+          error: err instanceof Error ? err.message : String(err),
+        };
+      }
+      // Exponential backoff: 500ms → 1000ms → 2000ms…
+      await new Promise((resolve) => setTimeout(resolve, baseDelayMs * 2 ** (attempt - 1)));
+    }
+  }
+
+  return {
+    ok: false,
+    attempts: maxAttempts,
+    retryable: true,
+    error: lastError instanceof Error ? lastError.message : String(lastError),
+  };
+}

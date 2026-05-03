@@ -12,7 +12,7 @@ import {
   setTrialEnd,
   tryClaimStripeEvent,
 } from '../../../../lib/db';
-import { sendInvite, revokeAccess } from '../../../../lib/telegram';
+import { sendInviteWithRetry, revokeAccess } from '../../../../lib/telegram';
 import { sendPaymentFailedEmail } from '../../../../lib/transactional-email';
 
 // Must read raw body for Stripe signature verification
@@ -159,13 +159,19 @@ async function handleCheckoutCompleted(
     trialEnd,
   });
 
-  // Send Telegram invite if user has linked their Telegram account
+  // Send Telegram invite if user has linked their Telegram account.
+  // sendInviteWithRetry handles transient Telegram API failures internally
+  // (3x exponential backoff). Permanent failures (e.g. user blocked the bot)
+  // short-circuit; the user can self-serve via /api/telegram/resend-invite
+  // from the welcome page.
   const user = await getUserByStripeCustomerId(stripeCustomerId);
   if (user?.telegramUserId) {
-    try {
-      await sendInvite(userId, user.telegramUserId.toString(), tier);
-    } catch (err) {
-      console.error('[webhook] Failed to send Telegram invite:', err);
+    const result = await sendInviteWithRetry(userId, user.telegramUserId.toString(), tier);
+    if (!result.ok) {
+      console.error(
+        '[webhook] sendInvite failed after retries:',
+        `attempts=${result.attempts} retryable=${result.retryable} err=${result.error}`,
+      );
     }
   }
 }
