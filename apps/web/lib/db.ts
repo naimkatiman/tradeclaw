@@ -194,6 +194,20 @@ export async function getUserSubscription(
   return row ? toSubscriptionRecord(row) : null;
 }
 
+export async function getSubscriptionByStripeId(
+  stripeSubscriptionId: string,
+): Promise<SubscriptionRecord | null> {
+  const row = await queryOne<SubscriptionRow>(
+    `SELECT id, user_id, stripe_subscription_id, stripe_customer_id,
+            tier, status, current_period_start, current_period_end,
+            cancel_at_period_end, created_at, updated_at
+     FROM subscriptions
+     WHERE stripe_subscription_id = $1`,
+    [stripeSubscriptionId],
+  );
+  return row ? toSubscriptionRecord(row) : null;
+}
+
 export async function upsertSubscription(
   data: Omit<SubscriptionRecord, 'id' | 'createdAt' | 'updatedAt'>,
 ): Promise<void> {

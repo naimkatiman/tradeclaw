@@ -3,13 +3,16 @@ import Stripe from 'stripe';
 import { getStripe, resolveTierFromPriceId } from '../../../../lib/stripe';
 import {
   getUserByStripeCustomerId,
+  getUserById,
   updateUserTier,
   upsertSubscription,
   cancelSubscription,
   updateSubscriptionStatus,
+  getSubscriptionByStripeId,
   tryClaimStripeEvent,
 } from '../../../../lib/db';
 import { sendInvite, revokeAccess } from '../../../../lib/telegram';
+import { sendPaymentFailedEmail } from '../../../../lib/transactional-email';
 
 // Must read raw body for Stripe signature verification
 export const dynamic = 'force-dynamic';
@@ -241,6 +244,37 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   const subscriptionId = typeof sub === 'string' ? sub : sub?.id ?? null;
   if (!subscriptionId) return;
 
+  // Stripe Smart Retries fire invoice.payment_failed once per attempt (up to 4).
+  // Dedup the dunning email on the active|trialing → past_due transition so the
+  // customer doesn't receive 3-4 identical emails in a week. The webhook itself
+  // is already idempotent on event.id via tryClaimStripeEvent — that handles
+  // redelivery; this guards against retry-attempt spam.
+  const existing = await getSubscriptionByStripeId(subscriptionId);
+  const wasAlreadyPastDue = existing?.status === 'past_due';
+
   await updateSubscriptionStatus(subscriptionId, 'past_due');
-  // TODO: trigger dunning email via your email provider
+
+  if (wasAlreadyPastDue || !existing) return;
+
+  try {
+    const user = await getUserById(existing.userId);
+    if (!user?.email) return;
+
+    const result = await sendPaymentFailedEmail(user.email, {
+      hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
+      amountDueCents: invoice.amount_due ?? 0,
+      currency: invoice.currency ?? 'usd',
+      nextAttemptAt: invoice.next_payment_attempt
+        ? new Date(invoice.next_payment_attempt * 1000)
+        : null,
+    });
+    if (!result.ok) {
+      console.error('[stripe-webhook] dunning email failed:', result.reason, 'user:', user.id);
+    }
+  } catch (err) {
+    // Email is a side-effect; do not surface failure as a 500 — Stripe would
+    // retry the whole webhook, the past_due status is already saved above,
+    // and the dunning email would still be missing on retry.
+    console.error('[stripe-webhook] dunning email threw:', err);
+  }
 }
