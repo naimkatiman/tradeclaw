@@ -378,22 +378,43 @@ export default function BillingPage() {
               />
             </svg>
             <div>
-              <p className="font-semibold text-white">Connect Telegram</p>
-              <p className="mt-1 text-sm text-zinc-400">
-                Link your Telegram account to receive signals in your private group.
-              </p>
-              <button
-                type="button"
-                onClick={openTelegramLink}
-                disabled={telegramLoading || isDemo}
-                className="mt-3 inline-block rounded-lg bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-400 transition-all hover:bg-sky-500/30 border border-sky-500/30 disabled:opacity-50"
-              >
-                {telegramLoading ? 'Generating link…' : 'Open Telegram Bot'}
-              </button>
-              {telegramDeepLink && (
-                <p className="mt-2 text-[11px] text-zinc-500">
-                  Link expires in 10 minutes. If the bot doesn&apos;t open, click again for a fresh link.
-                </p>
+              {currentTier === 'free' ? (
+                <>
+                  <p className="font-semibold text-white">Join the public Telegram channel</p>
+                  <p className="mt-1 text-sm text-zinc-400">
+                    Free tier signals are posted to{' '}
+                    <span className="font-mono text-zinc-300">@tradeclawwin</span> with a 15-minute delay.
+                    The private Pro group unlocks after upgrade.
+                  </p>
+                  <a
+                    href="https://t.me/tradeclawwin"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-block rounded-lg bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-400 transition-all hover:bg-sky-500/30 border border-sky-500/30"
+                  >
+                    Open public channel
+                  </a>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold text-white">Connect Telegram</p>
+                  <p className="mt-1 text-sm text-zinc-400">
+                    Link your Telegram account to receive signals in your private Pro group.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={openTelegramLink}
+                    disabled={telegramLoading || isDemo}
+                    className="mt-3 inline-block rounded-lg bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-400 transition-all hover:bg-sky-500/30 border border-sky-500/30 disabled:opacity-50"
+                  >
+                    {telegramLoading ? 'Generating link…' : 'Open Telegram Bot'}
+                  </button>
+                  {telegramDeepLink && (
+                    <p className="mt-2 text-[11px] text-zinc-500">
+                      Link expires in 10 minutes. If the bot doesn&apos;t open, click again for a fresh link.
+                    </p>
+                  )}
+                </>
               )}
             </div>
           </div>

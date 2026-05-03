@@ -25,7 +25,7 @@ const FEATURES: Feature[] = [
   { label: 'TP / SL levels', free: 'TP1 only', pro: 'TP1, TP2, TP3 + SL' },
   { label: 'Indicators', free: 'RSI, EMA', pro: 'RSI, EMA, MACD, Bollinger, Stochastic + multi-timeframe analysis' },
   { label: 'Track record', free: 'Public Postgres archive (auditable)', pro: 'Public Postgres archive (auditable)' },
-  { label: 'Signal history', free: FREE_HISTORY_LABEL, pro: 'Full history + CSV export' },
+  { label: 'Signal history', free: FREE_HISTORY_LABEL, pro: 'Full history' },
   { label: 'Support', free: 'Community', pro: 'Email (24h)' },
   { label: 'Free trial', free: false, pro: '7 days' },
 ];
