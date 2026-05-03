@@ -49,13 +49,13 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Invalid priceId' }, { status: 400 });
       }
       resolvedPriceId = priceId;
-    } else if (tier === 'pro' && interval) {
-      resolvedTier = 'pro';
-      resolvedPriceId = resolveStripePriceId('pro', interval);
+    } else if ((tier === 'pro' || tier === 'elite') && interval) {
+      resolvedTier = tier;
+      resolvedPriceId = resolveStripePriceId(tier, interval);
       if (!resolvedPriceId) {
         return NextResponse.json(
           {
-            error: `Checkout is temporarily unavailable for ${interval} billing. Please contact support.`,
+            error: `Checkout is temporarily unavailable for ${tier} ${interval} billing. Please contact support.`,
           },
           { status: 503 },
         );
