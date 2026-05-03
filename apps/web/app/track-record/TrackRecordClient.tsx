@@ -10,6 +10,8 @@ import { EquityCurve } from '@/app/components/equity-curve';
 import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 import { InfoHint } from '@/components/InfoHint';
 import { STAT_HINTS } from '@/lib/stat-hints';
+import { FREE_HISTORY_DAYS, FREE_SYMBOLS } from '@/lib/tier-client';
+import { EmbedButton } from '../components/embed-button';
 
 type Period = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
 
@@ -295,6 +297,9 @@ export function TrackRecordClient() {
               </span>
             </div>
           </div>
+          <div className="mt-2">
+            <EmbedButton embedPath="/embed/track-record" label="Embed this" width={600} height={360} />
+          </div>
           <p className="text-sm text-[var(--text-secondary)]">
             Total return = sum of per-signal % at fixed 1R risk. Stats below count only resolved trades —
             signals refused by the risk gate or that expired without TP/SL are surfaced separately, not folded in.
@@ -383,7 +388,7 @@ export function TrackRecordClient() {
             <div className="flex items-center gap-2 text-[var(--text-secondary)]">
               <Lock className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
-                Free-tier view — last 24 hours on {`BTC, ETH, XAU`}. This is the slice free subscribers see.
+                Free-tier view — last {FREE_HISTORY_DAYS} days across {FREE_SYMBOLS.length} symbols (crypto, forex, metals, indices). This is the slice free subscribers see.
               </span>
             </div>
             <button

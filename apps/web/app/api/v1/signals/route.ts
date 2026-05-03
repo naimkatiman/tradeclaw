@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTrackedSignals } from "../../../../lib/tracked-signals";
-import { resolveAccessContext } from "../../../../lib/tier";
+import {
+  resolveAccessContext,
+  getTierFromRequest,
+  TIER_DELAY_MS,
+  TIER_SYMBOLS,
+  PRO_PREMIUM_MIN_CONFIDENCE,
+  type Tier,
+} from "../../../../lib/tier";
 import { readLiveSignals, mapLiveSignalToV1, type LiveSignal } from "../../../../lib/signals-live";
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from "../../../../lib/signal-thresholds";
 
@@ -8,6 +15,19 @@ export const runtime = "nodejs";
 
 const DEFAULT_SYMBOLS = ["BTCUSD", "ETHUSD", "XAUUSD", "XAGUSD", "EURUSD", "GBPUSD"];
 const DEFAULT_TIMEFRAMES = ["H1", "H4"];
+
+function applyTierGate(signals: LiveSignal[], tier: Tier): LiveSignal[] {
+  const allowedSymbols = new Set(TIER_SYMBOLS[tier]);
+  const delayMs = TIER_DELAY_MS[tier];
+  const cutoff = delayMs > 0 ? Date.now() - delayMs : null;
+
+  return signals.filter((s) => {
+    if (!allowedSymbols.has(s.symbol)) return false;
+    if (tier === "free" && s.confidence >= PRO_PREMIUM_MIN_CONFIDENCE) return false;
+    if (cutoff !== null && new Date(s.timestamp).getTime() > cutoff) return false;
+    return true;
+  });
+}
 
 function mapSignal(s: {
   id: string;
@@ -46,9 +66,16 @@ export async function GET(req: NextRequest) {
   const useLive = searchParams.get("source") !== "realtime"; // Default to live file
 
   const now = new Date().toISOString();
+  // The v1 API is shared CORS public, so cached responses must not contain
+  // tier-specific fields. We resolve tier early and key the response on it
+  // so a Pro browser hitting the same edge cache as a free caller doesn't
+  // poison either side.
+  const tier = await getTierFromRequest(req);
   const headers: Record<string, string> = {
     "Cache-Control": "public, s-maxage=60",
     "X-TradeClaw-Version": "v1",
+    "X-TradeClaw-Tier": tier,
+    Vary: "Cookie",
     "Access-Control-Allow-Origin": "*",
   };
 
@@ -60,6 +87,9 @@ export async function GET(req: NextRequest) {
       if (liveData && !liveData.isStale) {
         let signals = liveData.signals
           .filter((s: LiveSignal) => s.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE);
+
+        // Tier gate first — symbol allowlist, premium-band hide, free-tier delay.
+        signals = applyTierGate(signals, tier);
 
         // Apply filters
         if (pair) {
@@ -89,6 +119,7 @@ export async function GET(req: NextRequest) {
             source: "live-file",
             engineVersion: liveData.engineVersion ?? "v4",
             reliability: liveData.reliability ?? null,
+            tier,
             signals: results.map(mapLiveSignalToV1),
           },
           { headers: { ...headers, "X-Signal-Source": "live-file" } }
@@ -104,7 +135,11 @@ export async function GET(req: NextRequest) {
     // Fallback: real-time TA engine
     // Strategy: query per-symbol to maximize signal yield.
     const ctx = await resolveAccessContext(req);
-    const symbolsToQuery = pair ? [pair.replace("/", "")] : DEFAULT_SYMBOLS;
+    const allowedSymbols = new Set(TIER_SYMBOLS[tier]);
+    const delayMs = TIER_DELAY_MS[tier];
+    const cutoff = delayMs > 0 ? Date.now() - delayMs : null;
+    const candidateSymbols = pair ? [pair.replace("/", "")] : DEFAULT_SYMBOLS;
+    const symbolsToQuery = candidateSymbols.filter((s) => allowedSymbols.has(s));
     const timeframesToQuery = timeframe ? [timeframe] : DEFAULT_TIMEFRAMES;
 
     const allResults = await Promise.allSettled(
@@ -118,7 +153,10 @@ export async function GET(req: NextRequest) {
     let allSignals = allResults
       .filter((r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof getTrackedSignals>>> => r.status === "fulfilled")
       .flatMap((r) => r.value.signals)
-      .filter((s) => s.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE);
+      .filter((s) => s.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE)
+      .filter((s) => allowedSymbols.has(s.symbol))
+      .filter((s) => tier !== "free" || s.confidence < PRO_PREMIUM_MIN_CONFIDENCE)
+      .filter((s) => cutoff === null || new Date(s.timestamp).getTime() <= cutoff);
 
     if (direction) allSignals = allSignals.filter((s) => s.direction === direction);
 
@@ -142,6 +180,7 @@ export async function GET(req: NextRequest) {
         total: deduped.length,
         generatedAt: now,
         source: "realtime",
+        tier,
         signals: results.map(mapSignal),
       },
       { headers: { ...headers, "X-Signal-Source": "realtime" } }

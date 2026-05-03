@@ -27,9 +27,12 @@ import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 import { InfoHint } from '../../components/InfoHint';
 import { STAT_HINTS } from '../../lib/stat-hints';
 import type { TradingSignal } from '@tradeclaw/signals';
+import type { LockedSignalStub } from '../../lib/tier';
 import type { TFDirection } from '../lib/signal-generator';
 import { OnboardingOverlay } from '../components/onboarding-overlay';
 import { markStepDone } from '@/lib/onboarding-state';
+import { useUserSession } from '../../lib/hooks/use-user-tier';
+import { classifySignalOutcome, type OutcomeStatus } from '@/lib/signal-outcome';
 
 const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];
 
@@ -65,6 +68,65 @@ function OnboardingBanner() {
           </svg>
         </button>
       </div>
+    </div>
+  );
+}
+
+function ConnectTelegramButton() {
+  const { status, session } = useUserSession();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (status !== 'authenticated') return null;
+  const tier = session?.tier ?? 'free';
+  const isPaid = tier !== 'free';
+
+  async function open() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/telegram/link-token', { method: 'POST' });
+      if (!res.ok) {
+        setError('Could not generate link. Try again.');
+        return;
+      }
+      const data = (await res.json()) as { deepLink?: string };
+      if (!data.deepLink) {
+        setError('Could not generate link.');
+        return;
+      }
+      window.open(data.deepLink, '_blank', 'noopener,noreferrer');
+    } catch {
+      setError('Could not generate link.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const buttonLabel = loading
+    ? 'Generating link…'
+    : isPaid
+      ? 'Connect Telegram (Pro group access)'
+      : 'Link Telegram for Pro';
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <button
+        type="button"
+        onClick={open}
+        disabled={loading}
+        data-testid="dashboard-connect-telegram-btn"
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all duration-200 text-sm font-medium disabled:opacity-50"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+        {buttonLabel}
+      </button>
+      {!isPaid && (
+        <p className="text-[11px] text-zinc-500 max-w-[20rem] text-center">
+          Linking alone won&apos;t add you to the Pro group. <Link href="/pricing" className="text-emerald-400 hover:underline">Upgrade to Pro</Link> and the bot DMs your private invite automatically.
+        </p>
+      )}
+      {error && <p className="text-[11px] text-red-400">{error}</p>}
     </div>
   );
 }
@@ -274,7 +336,89 @@ function SignalExplanation({ signal }: { signal: TradingSignal }) {
   );
 }
 
-function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavorite }: { signal: TradingSignal; tfDirections?: TFDirection[]; onSelect?: (signal: TradingSignal) => void; isFavorite?: boolean; onToggleFavorite?: (id: string) => void }) {
+function formatCountdown(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function LockedSignalCard({ stub }: { stub: LockedSignalStub }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const remainingMs = new Date(stub.availableAt).getTime() - now;
+  const isBuy = stub.direction === 'BUY';
+
+  return (
+    <article className="glass-card rounded-2xl p-3.5 sm:p-5 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-emerald-500/[0.04] to-transparent" />
+      <div className="relative flex items-start justify-between gap-2 mb-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm font-semibold text-[var(--foreground)] font-mono tracking-tight">{stub.symbol}</span>
+            <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border ${
+              isBuy
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+                : 'bg-rose-500/10 text-rose-400 border-rose-500/25'
+            }`}>{stub.direction}</span>
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">LOCKED</span>
+          </div>
+          <div className="text-[11px] text-[var(--text-secondary)] font-mono mt-0.5">{stub.timeframe}</div>
+        </div>
+        <div className="text-right">
+          <div className={`text-sm font-bold font-mono tabular-nums ${
+            stub.confidence >= 80 ? 'text-emerald-400' : stub.confidence >= 65 ? 'text-zinc-400' : 'text-red-400'
+          }`}>{stub.confidence}%</div>
+          <div className="text-[10px] text-[var(--text-secondary)]">confidence</div>
+        </div>
+      </div>
+      <div className="relative flex items-center justify-between gap-3 pt-2 border-t border-white/[0.05]">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-mono">Unlocks in</div>
+          <div className="text-lg font-mono font-semibold tabular-nums text-[var(--foreground)] mt-0.5">
+            {formatCountdown(remainingMs)}
+          </div>
+        </div>
+        <Link
+          href="/pricing?from=locked-signal"
+          className="inline-flex items-center gap-1 rounded-md bg-emerald-500 px-3 py-1.5 text-[11px] font-semibold text-black hover:bg-emerald-400 transition-colors"
+        >
+          Unlock now
+        </Link>
+      </div>
+    </article>
+  );
+}
+
+const OUTCOME_STYLE: Record<OutcomeStatus, { label: string; cls: string; icon: string }> = {
+  tp3_hit:  { label: 'TP3 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
+  tp2_hit:  { label: 'TP2 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
+  tp1_hit:  { label: 'TP1 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
+  stopped:  { label: 'Stopped',  cls: 'bg-rose-500/15 text-rose-300 border-rose-500/40',          icon: '🛑' },
+  active:   { label: 'Active',   cls: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30',          icon: '⏳' },
+  unknown:  { label: '—',         cls: 'bg-transparent text-zinc-500 border-transparent',          icon: '·' },
+};
+
+function OutcomeBadge({ status, progressPct }: { status: OutcomeStatus; progressPct: number }) {
+  const s = OUTCOME_STYLE[status];
+  if (status === 'unknown') return null;
+  const showPct = status === 'active';
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-mono ${s.cls}`}
+      title={status === 'active' ? `Progress to TP1: ${progressPct}%` : s.label}
+    >
+      <span aria-hidden>{s.icon}</span>
+      {s.label}{showPct && progressPct !== 0 ? ` ${progressPct > 0 ? '+' : ''}${progressPct}%` : ''}
+    </span>
+  );
+}
+
+function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onToggleFavorite }: { signal: TradingSignal; livePrice?: number | null; tfDirections?: TFDirection[]; onSelect?: (signal: TradingSignal) => void; isFavorite?: boolean; onToggleFavorite?: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   const [chartVisible, setChartVisible] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
@@ -429,6 +573,12 @@ function SignalCard({ signal, tfDirections, onSelect, isFavorite, onToggleFavori
 
       {/* Why this signal? — 1-2 bullet reasons */}
       <SignalExplanation signal={signal} />
+
+      {/* Live outcome badge */}
+      {(() => {
+        const outcome = classifySignalOutcome(signal, livePrice ?? null);
+        return <OutcomeBadge status={outcome.status} progressPct={outcome.progressPct} />;
+      })()}
 
       {/* Price levels */}
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 mt-4 text-center">
@@ -750,6 +900,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
     return [];
   });
   const [syntheticSymbols, setSyntheticSymbols] = useState<string[]>(initialSyntheticSymbols || []);
+  const [lockedSignals, setLockedSignals] = useState<LockedSignalStub[]>([]);
   const [tfMap, setTfMap] = useState<Map<string, TFDirection[]>>(new Map());
   const [loading, setLoading] = useState(() => {
     if (initialSignals && initialSignals.length > 0) return false;
@@ -803,6 +954,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       if (signalsRes.status === 'fulfilled') {
         setSignals(signalsRes.value.signals);
         setSyntheticSymbols(signalsRes.value.syntheticSymbols || []);
+        setLockedSignals(signalsRes.value.lockedSignals || []);
         setCachedSignals(signalsRes.value.signals);
       }
       if (mtfRes.status === 'fulfilled' && mtfRes.value.results) {
@@ -1185,11 +1337,26 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           }
           return (
             <>
+              {/* Locked signals — free tier sees pair/direction/confidence + countdown until unlock */}
+              {lockedSignals.length > 0 && (
+                <section className="mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <h2 className="text-xs uppercase tracking-wider text-emerald-400/80 font-mono font-semibold">Unlocking soon</h2>
+                    <span className="text-[10px] text-[var(--text-secondary)] font-mono">{lockedSignals.length} signal{lockedSignals.length !== 1 ? 's' : ''} ahead of free-tier delay</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {lockedSignals.map(stub => (
+                      <LockedSignalCard key={stub.id} stub={stub} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
               {/* Main signals (70%+) */}
               {mainSignals.length > 0 && (
                 <div data-tour-id="signal-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {mainSignals.map(signal => (
-                    <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
+                    <SignalCard key={signal.id} signal={signal} livePrice={prices.get(signal.symbol)?.price ?? null} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
                   ))}
                 </div>
               )}
@@ -1204,8 +1371,8 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                 </div>
               )}
 
-              {/* Telegram CTA */}
-              <div className="mt-6 mb-2 flex items-center justify-center">
+              {/* Telegram CTAs: public free channel + private Pro group connect */}
+              <div className="mt-6 mb-2 flex flex-wrap items-center justify-center gap-3">
                 <a
                   href="https://t.me/tradeclawwin"
                   target="_blank"
@@ -1213,8 +1380,9 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#229ED9]/10 border border-[#229ED9]/25 text-[#229ED9] hover:bg-[#229ED9]/20 transition-all duration-200 text-sm font-medium"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                  Join our Telegram for live signals
+                  Join free public channel
                 </a>
+                <ConnectTelegramButton />
               </div>
 
               {/* Potential signals (50-69%) */}
@@ -1228,7 +1396,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                   <p className="text-xs text-[var(--text-secondary)] mb-3">Early-stage setups that haven&apos;t reached full confluence yet. Watch for confirmation before acting.</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 opacity-80">
                     {potentialSignals.map(signal => (
-                      <SignalCard key={signal.id} signal={signal} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
+                      <SignalCard key={signal.id} signal={signal} livePrice={prices.get(signal.symbol)?.price ?? null} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
                     ))}
                   </div>
                 </section>

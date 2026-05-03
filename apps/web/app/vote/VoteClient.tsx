@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Star, BarChart2, Copy, Check, ExternalLink, Clock } from 'lucide-react';
+import { PageNavBar } from '../../components/PageNavBar';
 
 interface PairVotes {
   BUY: number;
@@ -266,8 +267,11 @@ export default function VoteClient() {
 
   if (!data || !stats) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="animate-pulse text-zinc-500 text-sm">Loading votes...</div>
+      <div className="min-h-screen bg-zinc-950">
+        <PageNavBar />
+        <div className="flex items-center justify-center py-24">
+          <div className="animate-pulse text-zinc-500 text-sm">Loading votes...</div>
+        </div>
       </div>
     );
   }
@@ -276,6 +280,7 @@ export default function VoteClient() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      <PageNavBar />
       {/* Sticky Stats Bar */}
       <div className="sticky top-14 z-40 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between text-xs">

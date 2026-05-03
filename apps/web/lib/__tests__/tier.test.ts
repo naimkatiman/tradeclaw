@@ -11,6 +11,7 @@ import {
   getStrategiesForTier,
   resolveAccessContext,
   resolveAccessContextFromCookies,
+  toLockedStub,
 } from '../tier';
 import type { TradingSignal } from '../../app/lib/signals';
 
@@ -87,6 +88,52 @@ describe('tier — canonical constants', () => {
 
   it('PRO_PREMIUM_MIN_CONFIDENCE gates the premium band at 85+', () => {
     expect(PRO_PREMIUM_MIN_CONFIDENCE).toBe(85);
+  });
+});
+
+describe('tier — toLockedStub', () => {
+  it('emits only id, symbol, direction, timeframe, confidence, availableAt, locked — no price levels', () => {
+    const sig = makeSignal({
+      id: 'sig-locked-1',
+      symbol: 'XAUUSD',
+      direction: 'BUY',
+      timeframe: 'H1',
+      confidence: 78,
+      timestamp: '2026-05-02T12:00:00.000Z',
+    });
+    const stub = toLockedStub(sig, 15 * 60 * 1000);
+
+    expect(stub).toEqual({
+      id: 'sig-locked-1',
+      symbol: 'XAUUSD',
+      direction: 'BUY',
+      timeframe: 'H1',
+      confidence: 78,
+      availableAt: '2026-05-02T12:15:00.000Z',
+      locked: true,
+    });
+    expect(Object.keys(stub).sort()).toEqual(
+      ['availableAt', 'confidence', 'direction', 'id', 'locked', 'symbol', 'timeframe'],
+    );
+    // No price/indicator fields leak through
+    expect(stub).not.toHaveProperty('entry');
+    expect(stub).not.toHaveProperty('stopLoss');
+    expect(stub).not.toHaveProperty('takeProfit1');
+    expect(stub).not.toHaveProperty('takeProfit2');
+    expect(stub).not.toHaveProperty('takeProfit3');
+    expect(stub).not.toHaveProperty('indicators');
+  });
+
+  it('availableAt = timestamp + delayMs', () => {
+    const tsMs = Date.UTC(2026, 4, 2, 12, 0, 0);
+    const sig = makeSignal({ timestamp: new Date(tsMs).toISOString() });
+    const stub = toLockedStub(sig, 15 * 60 * 1000);
+    expect(new Date(stub.availableAt).getTime()).toBe(tsMs + 15 * 60 * 1000);
+  });
+
+  it('locked is the literal true (not just truthy)', () => {
+    const stub = toLockedStub(makeSignal(), 60_000);
+    expect(stub.locked).toBe(true);
   });
 });
 
@@ -388,5 +435,67 @@ describe('tier — resolveAccessContextFromCookies', () => {
     expect(ctx.tier).toBe('pro');
     expect(ctx.unlockedStrategies.has('hmm-top3')).toBe(true);
     expect(ctx.unlockedStrategies.has('tv-zaky-classic')).toBe(true);
+  });
+});
+
+describe('tier — past_due grace window', () => {
+  afterEach(() => {
+    jest.resetModules();
+  });
+
+  it('past_due within the grace window keeps Pro access', async () => {
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest.fn().mockResolvedValue({
+        tier: 'pro',
+        status: 'past_due',
+        currentPeriodEnd: new Date(Date.now() - 2 * 86400 * 1000),
+      }),
+      getUserById: jest.fn().mockResolvedValue(null),
+    }));
+    const { getUserTier } = await import('../tier');
+    const tier = await getUserTier('user-x');
+    expect(tier).toBe('pro');
+  });
+
+  it('past_due past the grace window downgrades to free', async () => {
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest.fn().mockResolvedValue({
+        tier: 'pro',
+        status: 'past_due',
+        currentPeriodEnd: new Date(Date.now() - 30 * 86400 * 1000),
+      }),
+      getUserById: jest.fn().mockResolvedValue(null),
+    }));
+    const { getUserTier } = await import('../tier');
+    const tier = await getUserTier('user-x');
+    expect(tier).toBe('free');
+  });
+
+  it('canceled never gets the grace window (already terminated)', async () => {
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest.fn().mockResolvedValue({
+        tier: 'pro',
+        status: 'canceled',
+        currentPeriodEnd: new Date(Date.now() + 86400 * 1000),
+      }),
+      getUserById: jest.fn().mockResolvedValue(null),
+    }));
+    const { getUserTier } = await import('../tier');
+    const tier = await getUserTier('user-x');
+    expect(tier).toBe('free');
+  });
+
+  it('active passes through unchanged', async () => {
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest.fn().mockResolvedValue({
+        tier: 'pro',
+        status: 'active',
+        currentPeriodEnd: new Date(Date.now() + 30 * 86400 * 1000),
+      }),
+      getUserById: jest.fn().mockResolvedValue(null),
+    }));
+    const { getUserTier } = await import('../tier');
+    const tier = await getUserTier('user-x');
+    expect(tier).toBe('pro');
   });
 });

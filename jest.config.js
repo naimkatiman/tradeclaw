@@ -13,6 +13,7 @@ module.exports = {
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1",
     "^server-only$": "<rootDir>/jest.stubs/server-only.js",
+    "^@/(.*)$": "<rootDir>/apps/web/$1",
   },
   globals: {
     "ts-jest": {

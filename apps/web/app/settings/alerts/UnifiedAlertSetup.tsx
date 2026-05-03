@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useUserTier } from '../../../lib/hooks/use-user-tier';
+import AlertChannelConfigPanel from './AlertChannelConfig';
 
 const FREE_ACTIVE_RULE_CAP = 3;
 
@@ -249,6 +250,9 @@ export default function UnifiedAlertSetup() {
           {saving ? 'Saving…' : 'Create Rule'}
         </button>
       </section>
+
+      {/* Per-channel platform configuration */}
+      <AlertChannelConfigPanel />
 
       {/* Existing Rules */}
       {rules.length > 0 && (

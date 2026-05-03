@@ -15,6 +15,7 @@ import {
   ChevronUp,
   Globe,
 } from 'lucide-react';
+import { PageNavBar } from '../../../components/PageNavBar';
 
 const OFFICIAL_BASE = 'https://tradeclaw.win';
 
@@ -109,6 +110,7 @@ export default function BadgesReadmeClient() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      <PageNavBar />
 
       {/* Hero */}
       <section className="relative border-b border-[var(--border)] overflow-hidden">

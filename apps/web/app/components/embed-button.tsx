@@ -4,7 +4,15 @@ import { useState } from 'react';
 import { Check } from 'lucide-react';
 
 interface Props {
-  pair: string;
+  /** Per-pair signal embed (legacy use). Mutually exclusive with embedPath. */
+  pair?: string;
+  /** Explicit embed path (e.g. '/embed/track-record'). Mutually exclusive with pair. */
+  embedPath?: string;
+  /** Button label override. Default: "Embed". */
+  label?: string;
+  /** iframe dimensions. Defaults: 320 x 420 for pair, 600 x 360 for track-record. */
+  width?: number;
+  height?: number;
 }
 
 function CodeSnippet({ code }: { code: string }) {
@@ -29,13 +37,19 @@ function CodeSnippet({ code }: { code: string }) {
   );
 }
 
-export function EmbedButton({ pair }: Props) {
+export function EmbedButton({ pair, embedPath, label = 'Embed', width, height }: Props) {
   const [open, setOpen] = useState(false);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tradeclaw.com';
 
-  const iframeCode = `<iframe src="${origin}/embed/${pair}?theme=dark" width="320" height="420" frameborder="0" scrolling="no" style="border-radius:12px;overflow:hidden;"></iframe>`;
-  const scriptCode = `<script src="${origin}/api/embed?pair=${pair}" data-pair="${pair}" data-theme="dark" data-width="320" data-height="420"></script>`;
+  const path = embedPath ?? (pair ? `/embed/${pair}` : '/embed');
+  const w = width ?? (pair ? 320 : 600);
+  const h = height ?? (pair ? 420 : 360);
+
+  const iframeCode = `<iframe src="${origin}${path}?theme=dark" width="${w}" height="${h}" frameborder="0" scrolling="no" style="border-radius:12px;overflow:hidden;"></iframe>`;
+  const scriptCode = pair
+    ? `<script src="${origin}/api/embed?pair=${pair}" data-pair="${pair}" data-theme="dark" data-width="${w}" data-height="${h}"></script>`
+    : null;
 
   return (
     <>
@@ -44,7 +58,7 @@ export function EmbedButton({ pair }: Props) {
         className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-center transition-colors
           bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20"
       >
-        Embed Widget
+        {label}
       </button>
 
       {open && (
@@ -61,7 +75,7 @@ export function EmbedButton({ pair }: Props) {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="text-sm font-semibold">Embed {pair} Widget</div>
+              <div className="text-sm font-semibold">Embed {pair ?? 'Track Record'} Widget</div>
               <button
                 onClick={() => setOpen(false)}
                 className="text-zinc-600 hover:text-zinc-300 transition-colors text-lg leading-none"
@@ -71,7 +85,7 @@ export function EmbedButton({ pair }: Props) {
             </div>
 
             <p className="text-xs text-zinc-500 mb-4">
-              Paste into any website to show a live {pair} signal card that auto-refreshes every 60 seconds.
+              Paste into any website to show a live {pair ? `${pair} signal card` : 'track record'} that auto-refreshes every 60 seconds.
             </p>
 
             <div className="space-y-3">
@@ -79,10 +93,12 @@ export function EmbedButton({ pair }: Props) {
                 <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1.5">iframe method</div>
                 <CodeSnippet code={iframeCode} />
               </div>
-              <div>
-                <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1.5">Script tag</div>
-                <CodeSnippet code={scriptCode} />
-              </div>
+              {scriptCode && (
+                <div>
+                  <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1.5">Script tag</div>
+                  <CodeSnippet code={scriptCode} />
+                </div>
+              )}
             </div>
 
             <a

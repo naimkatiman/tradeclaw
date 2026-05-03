@@ -1,9 +1,9 @@
 import type { Tier } from './stripe';
 import { TIER_LEVEL } from './stripe';
 import type { TradingSignal } from '../app/lib/signals';
-import { FREE_SYMBOLS, isFreeSymbol } from './tier-client';
+import { FREE_HISTORY_DAYS, FREE_SYMBOLS, isFreeSymbol } from './tier-client';
 
-export { TIER_LEVEL, FREE_SYMBOLS, isFreeSymbol };
+export { TIER_LEVEL, FREE_HISTORY_DAYS, FREE_SYMBOLS, isFreeSymbol };
 export type { Tier };
 
 const ALL_SYMBOLS = [
@@ -43,9 +43,9 @@ export const TIER_SYMBOLS: Record<Tier, string[]> = {
   custom: ALL_SYMBOLS,
 };
 
-// History window per tier
+// History window per tier (free derived from FREE_HISTORY_DAYS for single source of truth)
 export const TIER_HISTORY_DAYS: Record<Tier, number | null> = {
-  free: 7,
+  free: FREE_HISTORY_DAYS,
   pro: null, // unlimited
   elite: null,
   custom: null,
@@ -58,6 +58,46 @@ export const TIER_DELAY_MS: Record<Tier, number> = {
   elite: 0,
   custom: 0,
 };
+
+/**
+ * Public-safe stub for a delayed free-tier signal.
+ *
+ * Free callers see this in a separate `lockedSignals` array on the
+ * dashboard's `/api/signals` response. Carries only the fields needed to
+ * render a countdown card and an upgrade CTA — no price levels, no
+ * indicators. Network inspection cannot reveal the trade.
+ */
+export interface LockedSignalStub {
+  id: string;
+  symbol: string;
+  direction: 'BUY' | 'SELL';
+  timeframe: string;
+  confidence: number;
+  /** ISO timestamp when the signal becomes visible to the free tier. */
+  availableAt: string;
+  locked: true;
+}
+
+/**
+ * Build a `LockedSignalStub` from a full signal. The stub is intentionally
+ * narrow — adding fields here is a privacy/disclosure decision, not a
+ * convenience one.
+ */
+export function toLockedStub(
+  signal: Pick<TradingSignal, 'id' | 'symbol' | 'direction' | 'timeframe' | 'confidence' | 'timestamp'>,
+  delayMs: number,
+): LockedSignalStub {
+  const publishedMs = new Date(signal.timestamp).getTime();
+  return {
+    id: signal.id,
+    symbol: signal.symbol,
+    direction: signal.direction as 'BUY' | 'SELL',
+    timeframe: signal.timeframe,
+    confidence: signal.confidence,
+    availableAt: new Date(publishedMs + delayMs).toISOString(),
+    locked: true,
+  };
+}
 
 /**
  * Pro-tier signals include higher-confidence MTF confluence signals
@@ -166,6 +206,14 @@ export async function resolveAccessContextFromCookies(): Promise<AccessContext> 
 }
 
 /**
+ * Days a past_due subscription continues to count as paid before it
+ * downgrades to free. Stripe Smart Retries run for ~3 weeks; cutting
+ * access at the first failed invoice churns customers whose card needed
+ * one update. We give them a window to fix it without losing signals.
+ */
+export const PAST_DUE_GRACE_DAYS = 7;
+
+/**
  * Retrieve the tier for a given user ID from the database.
  * Falls back to 'free' if no active subscription is found.
  */
@@ -177,18 +225,30 @@ export async function getUserTier(userId: string): Promise<Tier> {
     const { getUserSubscription, getUserById } = await import('./db');
     const sub = await getUserSubscription(userId);
     let tier: Tier = 'free';
-    if (sub && sub.status !== 'canceled' && sub.status !== 'past_due') {
-      tier = sub.tier as Tier;
+    if (sub) {
+      if (sub.status === 'active' || sub.status === 'trialing') {
+        tier = sub.tier as Tier;
+      } else if (sub.status === 'past_due') {
+        // Smart-retries grace: keep paid access for PAST_DUE_GRACE_DAYS
+        // past current_period_end so customers whose card needs an update
+        // for one cycle do not lose signals on day 1 of past_due.
+        const graceMs = PAST_DUE_GRACE_DAYS * 86400 * 1000;
+        if (Date.now() <= sub.currentPeriodEnd.getTime() + graceMs) {
+          tier = sub.tier as Tier;
+        }
+      }
     }
 
     // Email-based Pro grant: owner / team / demo accounts that don't have a
     // Stripe sub but should still see Pro features. Admin emails are also
     // granted Pro automatically so admin dashboards aren't gated by billing.
+    // The deep check consults both the PRO_EMAILS env (bootstrap) and the
+    // admin-granted pro_email_grants table.
     if (tier === 'free') {
       const user = await getUserById(userId);
       if (user?.email) {
-        const { isProGrantedEmail, isAdminEmail } = await import('./admin-emails');
-        if (isAdminEmail(user.email) || isProGrantedEmail(user.email)) {
+        const { isProGrantedEmailDeep, isAdminEmail } = await import('./admin-emails');
+        if (isAdminEmail(user.email) || (await isProGrantedEmailDeep(user.email))) {
           tier = 'pro';
         }
       }

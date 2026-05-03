@@ -304,6 +304,52 @@ export async function getOpenOrders(symbol?: string): Promise<OrderResponse[]> {
   return request('GET', '/fapi/v1/openOrders', symbol ? { symbol } : {}, true);
 }
 
+export interface IncomeEntry {
+  symbol: string;
+  incomeType: string;
+  income: string;
+  time: number;
+}
+
+/**
+ * Realized-PnL income entries since `startTimeMs`. Used by the daily/weekly
+ * loss kill switches as the authoritative source — independent of our local
+ * executions.realized_pnl, which is populated lazily and may lag.
+ *
+ * Binance caps `limit` at 1000 per call; one day of fills on a 4-position
+ * account stays well under that.
+ */
+export async function getRealizedPnlSince(startTimeMs: number): Promise<IncomeEntry[]> {
+  return request<IncomeEntry[]>(
+    'GET',
+    '/fapi/v1/income',
+    { incomeType: 'REALIZED_PNL', startTime: startTimeMs, limit: 1000 },
+    true,
+  );
+}
+
+/**
+ * Fetch a single order by its client-assigned id. Returns NULL when Binance
+ * answers -2013 ("Order does not exist") so callers can treat absent =
+ * "never placed" without try/catch noise. Other API errors propagate.
+ */
+export async function getOrderByClientId(
+  symbol: string,
+  clientOrderId: string,
+): Promise<OrderResponse | null> {
+  try {
+    return await request<OrderResponse>(
+      'GET',
+      '/fapi/v1/order',
+      { symbol, origClientOrderId: clientOrderId },
+      true,
+    );
+  } catch (err) {
+    if (err instanceof BinanceApiError && err.code === -2013) return null;
+    throw err;
+  }
+}
+
 // ─── Signed write endpoints (gated by EXECUTION_MODE) ───────────────────────
 
 function ensureWriteAllowed(action: string, payload: Record<string, unknown>): boolean {

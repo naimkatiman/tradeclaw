@@ -20,6 +20,7 @@ import {
   currentMode,
   getAccount,
   getOpenOrders,
+  getOrderByClientId,
   placeOrder,
   type OrderSide,
 } from './binance-futures';
@@ -75,7 +76,6 @@ export async function runPositionManagerTick(): Promise<ManageTickResult> {
       // enabled, filter by `positionSide` matching `ex.side` too.
       const livePos = account.positions.find((p) => p.symbol === ex.symbol);
       const liveQty = livePos ? Math.abs(livePos.positionAmt) : 0;
-      const tp1Threshold = ex.qty * 0.55; // < this = TP1 likely filled (50% reduceOnly)
 
       if (liveQty === 0) {
         await markClosed(ex.id);
@@ -90,7 +90,14 @@ export async function runPositionManagerTick(): Promise<ManageTickResult> {
         continue;
       }
 
-      if (!ex.slMovedToBreakeven && liveQty < tp1Threshold) {
+      // TP1 detection — authoritative on the order itself, not on position size.
+      // The size heuristic broke on partial entry fills (e.g. 40% fill made
+      // liveQty < ex.qty*0.55, falsely tripping breakeven before TP1 ever ran).
+      const ids = buildClientIds(ex.signalId);
+      const tp1 = await getOrderByClientId(ex.symbol, ids.tp1);
+      const tp1Filled = tp1 !== null && (tp1.status === 'FILLED' || tp1.status === 'PARTIALLY_FILLED');
+
+      if (tp1Filled) {
         const moved = await moveStopToBreakeven(ex);
         if (moved) {
           await markBreakevenMoved(ex.id);

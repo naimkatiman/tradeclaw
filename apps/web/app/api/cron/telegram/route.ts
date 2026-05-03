@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { broadcastTopSignals } from '../../../../lib/telegram-broadcast';
 import { query, execute } from '../../../../lib/db-pool';
 import { FREE_SYMBOLS } from '../../../../lib/tier';
+import { getBotToken, getFreeChannelId } from '../../../../lib/telegram-channels';
 
 // ---------------------------------------------------------------------------
 // GET /api/cron/telegram — Vercel Cron handler (every 4 hours)
@@ -18,20 +19,24 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    const channelId = process.env.TELEGRAM_CHANNEL_ID;
+    // Resolved through lib/telegram-channels so the legacy var names
+    // (TELEGRAM_CHANNEL_ID, TELEGRAM_PUBLIC_CHANNEL_ID) still work but
+    // TELEGRAM_FREE_CHANNEL_ID is the canonical name going forward.
+    const botToken = getBotToken();
+    const channelId = getFreeChannelId();
 
     if (!botToken || !channelId) {
       return NextResponse.json(
-        { ok: false, error: 'TELEGRAM_BOT_TOKEN or TELEGRAM_CHANNEL_ID not configured' },
+        { ok: false, error: 'TELEGRAM_BOT_TOKEN or TELEGRAM_FREE_CHANNEL_ID not configured' },
         { status: 503 },
       );
     }
 
     const result = await broadcastTopSignals(channelId, botToken, { freeOnly: true });
 
-    // Delayed public channel push — free-tier symbols only, 15+ min old
-    const publicChannelId = process.env.TELEGRAM_PUBLIC_CHANNEL_ID;
+    // Delayed public channel push — free-tier symbols only, 15+ min old.
+    // Same channel as the broadcast above; resolved through the same path.
+    const publicChannelId = channelId;
     let publicPushed = 0;
     if (publicChannelId && botToken) {
       const pending = await query<{

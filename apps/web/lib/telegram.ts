@@ -5,21 +5,27 @@
  * when subscriptions are created or cancelled.
  */
 
+import {
+  getBotToken as getResolvedBotToken,
+  getProGroupId,
+  getEliteGroupId,
+} from './telegram-channels';
+
 export type TelegramTier = 'pro' | 'elite';
 
 function getBotToken(): string {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const token = getResolvedBotToken();
   if (!token) throw new Error('TELEGRAM_BOT_TOKEN is not configured');
   return token;
 }
 
 function getChatIdForTier(tier: TelegramTier): string {
   if (tier === 'elite') {
-    const id = process.env.TELEGRAM_ELITE_GROUP_ID;
+    const id = getEliteGroupId();
     if (!id) throw new Error('TELEGRAM_ELITE_GROUP_ID is not configured');
     return id;
   }
-  const id = process.env.TELEGRAM_PRO_GROUP_ID;
+  const id = getProGroupId();
   if (!id) throw new Error('TELEGRAM_PRO_GROUP_ID is not configured');
   return id;
 }

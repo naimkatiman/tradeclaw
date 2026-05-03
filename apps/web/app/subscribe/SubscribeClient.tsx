@@ -9,8 +9,8 @@ import {
   UserMinus,
   TrendingUp,
   Users,
-  ArrowLeft,
 } from 'lucide-react';
+import { PageNavBar } from '../../components/PageNavBar';
 
 const PAIRS = [
   'BTCUSD', 'ETHUSD', 'XAUUSD', 'XAGUSD', 'EURUSD',
@@ -97,15 +97,8 @@ export default function SubscribeClient() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <div className="max-w-2xl mx-auto px-4 py-24">
-        {/* Back */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-emerald-400 transition-colors mb-8"
-        >
-          <ArrowLeft className="w-3 h-3" />
-          Back to home
-        </Link>
+      <PageNavBar />
+      <div className="max-w-2xl mx-auto px-4 py-12">
 
         {/* Hero */}
         <div className="text-center mb-12">

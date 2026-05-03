@@ -1,13 +1,15 @@
 /**
- * Reads live signals from Railway PostgreSQL.
- * Falls back to reading signals-live.json if DB is unavailable.
+ * Reads live signals from the data/signals-live.json file written by the
+ * local Python scanner-engine. Production tier reads come from
+ * lib/tracked-signals.ts (TA engine + signal_history) — this module is
+ * the local-dev / file-backed fallback.
+ *
  * Single stale threshold: 15 minutes.
  */
 
 import 'server-only';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { getActiveSignals } from './signal-repo';
 
 export interface WinRateData {
   wins: number;
@@ -91,7 +93,9 @@ interface LiveSignalsData {
 const STALE_THRESHOLD_MS = 15 * 60 * 1000;
 
 /**
- * Read live signals — tries PostgreSQL first, falls back to JSON file.
+ * Read live signals from the JSON file written by the local Python
+ * scanner-engine. Production reads do not flow through here — see
+ * lib/tracked-signals.ts.
  */
 export async function readLiveSignals(): Promise<{
   signals: LiveSignal[];
@@ -100,24 +104,6 @@ export async function readLiveSignals(): Promise<{
   reliability?: ReliabilityData;
   engineVersion?: string;
 } | null> {
-  // Try DB first
-  try {
-    if (process.env.DATABASE_URL) {
-      const result = await getActiveSignals();
-      if (result.signals.length > 0) {
-        return {
-          signals: result.signals,
-          isStale: result.isStale,
-          generatedAt: result.generatedAt,
-          engineVersion: result.engineVersion,
-        };
-      }
-    }
-  } catch {
-    // DB unavailable — fall through to file
-  }
-
-  // Fallback: read from JSON file
   return readLiveSignalsFromFile();
 }
 

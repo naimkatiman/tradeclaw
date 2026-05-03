@@ -96,6 +96,19 @@ export async function upsertChannelConfig(
   return row;
 }
 
+export async function deleteChannelConfig(
+  userId: string,
+  channel: ChannelConfig['channel'],
+): Promise<boolean> {
+  const rows = await query<{ id: string }>(
+    `DELETE FROM alert_channel_configs
+     WHERE user_id = $1 AND channel = $2
+     RETURNING id`,
+    [userId, channel],
+  );
+  return rows.length > 0;
+}
+
 export async function createAlertRule(
   userId: string,
   rule: Omit<AlertRule, 'id' | 'user_id'>

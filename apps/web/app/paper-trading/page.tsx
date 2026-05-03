@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { PageNavBar } from '../../components/PageNavBar';
 import type { Portfolio, Trade, EquityPoint } from '../../lib/paper-trading';
+import { sendNotification } from '../../lib/notifications';
+import { WinShareToast } from '../components/win-share-toast';
+import { currentWinStreak } from '../../lib/streak';
+import { WinStreakCard } from '../components/win-streak-card';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -208,6 +212,9 @@ export default function PaperTradingPage() {
   const [sizePct, setSizePct] = useState(0.05);
   const [autoFollow, setAutoFollow] = useState(false);
 
+  const [winToast, setWinToast] = useState<{ symbol: string; pnlPct: number } | null>(null);
+  const [streakCard, setStreakCard] = useState<{ streak: number; pnl: number } | null>(null);
+
   // UI state
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -353,6 +360,76 @@ export default function PaperTradingPage() {
     if (!canvasRef.current || !portfolio) return;
     drawEquityCurve(canvasRef.current, portfolio.equityCurve, tooltip);
   }, [portfolio, tooltip]);
+
+  // ---------------------------------------------------------------------------
+  // Closed-trade push notifications
+  // ---------------------------------------------------------------------------
+
+  const seenClosedTradeIdsRef = useRef<Set<string>>(new Set());
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (!portfolio) return;
+    const closed = portfolio.history ?? [];
+
+    // First run: snapshot existing IDs without notifying (avoid blasting on page load).
+    if (!initializedRef.current) {
+      for (const t of closed) seenClosedTradeIdsRef.current.add(t.id);
+      initializedRef.current = true;
+      return;
+    }
+
+    for (const t of closed) {
+      if (seenClosedTradeIdsRef.current.has(t.id)) continue;
+      seenClosedTradeIdsRef.current.add(t.id);
+
+      const reasonLabel =
+        t.exitReason === 'takeProfit' ? 'TP hit' :
+        t.exitReason === 'stopLoss'   ? 'SL hit' :
+        t.exitReason === 'manual'     ? 'closed manually' :
+        t.exitReason === 'reset'      ? 'portfolio reset' :
+        'closed';
+      const sign = t.pnlPercent >= 0 ? '+' : '';
+      sendNotification(
+        `Paper trade closed — ${t.symbol} ${t.direction}`,
+        `${reasonLabel} · PnL ${sign}${t.pnlPercent.toFixed(2)}%`,
+        {
+          tag: `paper-close-${t.id}`,
+          data: { tradeId: t.id, symbol: t.symbol },
+        },
+      );
+      if (t.pnlPercent > 0) {
+        setWinToast({ symbol: t.symbol, pnlPct: t.pnlPercent });
+      }
+    }
+  }, [portfolio]);
+
+  // ---------------------------------------------------------------------------
+  // Win-streak card (Phase 7) — separate effect, fires on every portfolio change
+  // ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    if (!portfolio) return;
+    const streak = currentWinStreak(
+      (portfolio.history ?? []).map((t) => ({
+        pnlPct: t.pnlPercent,
+        closedAt: new Date(t.closedAt).getTime(),
+      })),
+    );
+    if (streak < 3) return;
+    // Show once per streak length — key by streak so a 4th, 5th, ... win re-triggers
+    const seenKey = `tc_streak_${streak}_seen`;
+    if (typeof window !== 'undefined' && localStorage.getItem(seenKey)) return;
+
+    // Sum the last N trades' PnL — sort desc by closedAt to grab the most recent N
+    const recent = [...(portfolio.history ?? [])]
+      .sort((a, b) => new Date(b.closedAt).getTime() - new Date(a.closedAt).getTime())
+      .slice(0, streak);
+    const totalPnl = recent.reduce((acc, t) => acc + t.pnlPercent, 0);
+
+    setStreakCard({ streak, pnl: totalPnl });
+    if (typeof window !== 'undefined') localStorage.setItem(seenKey, '1');
+  }, [portfolio]);
 
   // ---------------------------------------------------------------------------
   // Actions
@@ -922,6 +999,22 @@ export default function PaperTradingPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {winToast && (
+        <WinShareToast
+          symbol={winToast.symbol}
+          pnlPct={winToast.pnlPct}
+          onDismiss={() => setWinToast(null)}
+        />
+      )}
+
+      {streakCard && (
+        <WinStreakCard
+          streak={streakCard.streak}
+          totalPnlPct={streakCard.pnl}
+          onDismiss={() => setStreakCard(null)}
+        />
       )}
     </div>
   );

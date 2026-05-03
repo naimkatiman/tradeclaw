@@ -5,8 +5,6 @@
  */
 
 import { query, queryOne, execute } from './db-pool';
-import { readSessionFromCookies } from './user-session';
-import type { Tier } from './stripe';
 
 export interface UserRecord {
   id: string;
@@ -257,6 +255,36 @@ export async function updateSubscriptionStatus(
 }
 
 // ---------------------------------------------------------------------------
+// Stripe webhook idempotency ledger
+// ---------------------------------------------------------------------------
+
+/**
+ * Try to claim a Stripe event id for processing. Returns `true` when the row
+ * was inserted (this caller owns the work) and `false` when another delivery
+ * already recorded the event (caller should short-circuit).
+ *
+ * Uses INSERT … ON CONFLICT DO NOTHING and inspects rowCount to avoid an
+ * unnecessary SELECT round-trip.
+ */
+export async function tryClaimStripeEvent(
+  eventId: string,
+  eventType: string,
+): Promise<boolean> {
+  const client = await (await import('./db-pool')).getPool().connect();
+  try {
+    const result = await client.query(
+      `INSERT INTO processed_stripe_events (event_id, event_type)
+       VALUES ($1, $2)
+       ON CONFLICT (event_id) DO NOTHING`,
+      [eventId, eventType],
+    );
+    return (result.rowCount ?? 0) > 0;
+  } finally {
+    client.release();
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Telegram invite operations
 // ---------------------------------------------------------------------------
 
@@ -314,13 +342,101 @@ export async function deactivateUserTelegramInvites(
 }
 
 // ---------------------------------------------------------------------------
-// Tier resolution from session
+// Pro email grants (admin-granted Pro outside Stripe)
+// Maps to migrations/020_pro_email_grants.sql
 // ---------------------------------------------------------------------------
 
-/** Get user tier from the current session cookie. Returns 'free' if no valid session. */
-export async function getUserTierFromSession(): Promise<Tier> {
-  const session = await readSessionFromCookies();
-  if (!session) return 'free';
-  const user = await getUserById(session.userId);
-  return (user?.tier as Tier) ?? 'free';
+export interface ProEmailGrantRecord {
+  id: string;
+  email: string;
+  grantedBy: string;
+  note: string | null;
+  expiresAt: Date | null;
+  createdAt: Date;
 }
+
+interface ProEmailGrantRow {
+  id: string;
+  email: string;
+  granted_by: string;
+  note: string | null;
+  expires_at: string | null;
+  created_at: string;
+}
+
+function toProEmailGrantRecord(row: ProEmailGrantRow): ProEmailGrantRecord {
+  return {
+    id: row.id,
+    email: row.email,
+    grantedBy: row.granted_by,
+    note: row.note,
+    expiresAt: row.expires_at ? new Date(row.expires_at) : null,
+    createdAt: new Date(row.created_at),
+  };
+}
+
+/**
+ * Insert a new active grant for an email. If the email already has an
+ * active grant we return its row instead of inserting a duplicate. Re-
+ * granting after a revoke creates a new row so the audit trail is preserved.
+ */
+export async function addProEmailGrant(
+  email: string,
+  grantedBy: string,
+  note: string | null,
+  expiresAt: Date | null,
+): Promise<ProEmailGrantRecord> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) throw new Error('addProEmailGrant: empty email');
+
+  const existing = await queryOne<ProEmailGrantRow>(
+    `SELECT id, email, granted_by, note, expires_at::text, created_at::text
+     FROM pro_email_grants
+     WHERE LOWER(email) = $1 AND revoked_at IS NULL
+     LIMIT 1`,
+    [normalized],
+  );
+  if (existing) return toProEmailGrantRecord(existing);
+
+  const row = await queryOne<ProEmailGrantRow>(
+    `INSERT INTO pro_email_grants (email, granted_by, note, expires_at)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, email, granted_by, note, expires_at::text, created_at::text`,
+    [normalized, grantedBy, note, expiresAt],
+  );
+  if (!row) throw new Error('addProEmailGrant: insert returned no row');
+  return toProEmailGrantRecord(row);
+}
+
+/**
+ * Mark an active grant as revoked. No-op when no active grant exists.
+ * Returns true when something was actually revoked.
+ */
+export async function revokeProEmailGrant(
+  email: string,
+  revokedBy: string,
+): Promise<boolean> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return false;
+  const rows = await query<{ id: string }>(
+    `UPDATE pro_email_grants
+     SET revoked_at = NOW(), revoked_by = $2
+     WHERE LOWER(email) = $1 AND revoked_at IS NULL
+     RETURNING id`,
+    [normalized, revokedBy],
+  );
+  return rows.length > 0;
+}
+
+/** All active grants. Used by the admin UI list and the tier-resolution cache. */
+export async function listActiveProEmailGrants(): Promise<ProEmailGrantRecord[]> {
+  const rows = await query<ProEmailGrantRow>(
+    `SELECT id, email, granted_by, note, expires_at::text, created_at::text
+     FROM pro_email_grants
+     WHERE revoked_at IS NULL
+       AND (expires_at IS NULL OR expires_at > NOW())
+     ORDER BY created_at DESC`,
+  );
+  return rows.map(toProEmailGrantRecord);
+}
+

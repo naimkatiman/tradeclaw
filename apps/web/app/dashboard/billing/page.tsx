@@ -21,7 +21,7 @@ interface PlanInfo {
 const FREE_PLAN: PlanInfo = {
   name: 'Free',
   price: '$0/mo',
-  description: 'Delayed signals, 3 symbols, public Telegram channel.',
+  description: 'Delayed signals, 6 symbols across asset classes, public Telegram channel.',
   color: 'text-zinc-400',
 };
 
@@ -46,22 +46,22 @@ function proPlan(interval: Interval): PlanInfo {
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function createCheckoutSession(interval: Interval, userId: string): Promise<string> {
+async function createCheckoutSession(interval: Interval): Promise<string> {
   const res = await fetch('/api/stripe/checkout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tier: 'pro', interval, userId }),
+    body: JSON.stringify({ tier: 'pro', interval }),
   });
   const data = (await res.json()) as { url?: string; error?: string };
   if (!res.ok || !data.url) throw new Error(data.error ?? 'Failed to create checkout session');
   return data.url;
 }
 
-async function createPortalSession(userId: string): Promise<string> {
+async function createPortalSession(): Promise<string> {
   const res = await fetch('/api/stripe/portal', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId }),
+    body: JSON.stringify({}),
   });
   const data = (await res.json()) as { url?: string; error?: string };
   if (!res.ok || !data.url) throw new Error(data.error ?? 'Failed to create portal session');
@@ -88,11 +88,10 @@ interface UpgradeCardProps {
   tier: Exclude<Tier, 'free'>;
   interval: Interval;
   currentTier: Tier;
-  userId: string;
   onError: (msg: string) => void;
 }
 
-function UpgradeCard({ tier, interval, currentTier, userId, onError }: UpgradeCardProps) {
+function UpgradeCard({ tier, interval, currentTier, onError }: UpgradeCardProps) {
   const [loading, setLoading] = useState(false);
   const plan = proPlan(interval);
   const isCurrentPlan = currentTier === tier;
@@ -103,11 +102,11 @@ function UpgradeCard({ tier, interval, currentTier, userId, onError }: UpgradeCa
     try {
       if (currentTier !== 'free') {
         // Existing subscriber → Stripe Portal to switch interval
-        const url = await createPortalSession(userId);
+        const url = await createPortalSession();
         window.location.href = url;
         return;
       }
-      const url = await createCheckoutSession(interval, userId);
+      const url = await createCheckoutSession(interval);
       window.location.href = url;
     } catch (err: unknown) {
       onError(err instanceof Error ? err.message : 'Something went wrong');
@@ -165,9 +164,14 @@ export default function BillingPage() {
   const { status, session } = useUserSession();
   const userId = session?.userId ?? '';
   // Narrow the server tier ('free'|'pro'|'elite'|'custom') to what this page
-  // actually renders. Billing is Free/Pro only today; elite/custom are
-  // historical grants that still render as "Pro" on the current-plan card.
-  const currentTier: Tier = session?.tier === 'pro' ? 'pro' : 'free';
+  // actually renders. Billing is Free/Pro only today; elite/custom carry
+  // Pro-equivalent access so we render them as 'pro' here. Anything below
+  // pro maps to 'free'.
+  const serverTier = session?.tier;
+  const currentTier: Tier =
+    serverTier === 'pro' || serverTier === 'elite' || serverTier === 'custom'
+      ? 'pro'
+      : 'free';
   const [billingInterval, setBillingInterval] = useState<Interval>('monthly');
 
   const plan = currentTier === 'free' ? FREE_PLAN : proPlan('monthly');
@@ -175,6 +179,30 @@ export default function BillingPage() {
   const isLoading = status === 'loading';
   const isDemo = status === 'anonymous';
   const [portalLoading, setPortalLoading] = useState(false);
+  const [telegramDeepLink, setTelegramDeepLink] = useState<string | null>(null);
+  const [telegramLoading, setTelegramLoading] = useState(false);
+
+  async function openTelegramLink() {
+    setTelegramLoading(true);
+    try {
+      const res = await fetch('/api/telegram/link-token', { method: 'POST' });
+      if (!res.ok) {
+        setError('Could not generate a Telegram link. Sign in and try again.');
+        return;
+      }
+      const data = (await res.json()) as { deepLink?: string };
+      if (!data.deepLink) {
+        setError('Could not generate a Telegram link.');
+        return;
+      }
+      setTelegramDeepLink(data.deepLink);
+      window.open(data.deepLink, '_blank', 'noopener,noreferrer');
+    } catch {
+      setError('Could not generate a Telegram link.');
+    } finally {
+      setTelegramLoading(false);
+    }
+  }
 
   async function openPortal() {
     if (!userId) {
@@ -183,7 +211,7 @@ export default function BillingPage() {
     }
     setPortalLoading(true);
     try {
-      const url = await createPortalSession(userId);
+      const url = await createPortalSession();
       window.location.href = url;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to open billing portal');
@@ -321,7 +349,6 @@ export default function BillingPage() {
               tier="pro"
               interval={billingInterval}
               currentTier={currentTier}
-              userId={userId}
               onError={setError}
             />
           </div>
@@ -355,14 +382,19 @@ export default function BillingPage() {
               <p className="mt-1 text-sm text-zinc-400">
                 Link your Telegram account to receive signals in your private group.
               </p>
-              <a
-                href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? 'TradeClaw_win_Bot'}?start=${userId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-block rounded-lg bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-400 transition-all hover:bg-sky-500/30 border border-sky-500/30"
+              <button
+                type="button"
+                onClick={openTelegramLink}
+                disabled={telegramLoading || isDemo}
+                className="mt-3 inline-block rounded-lg bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-400 transition-all hover:bg-sky-500/30 border border-sky-500/30 disabled:opacity-50"
               >
-                Open Telegram Bot
-              </a>
+                {telegramLoading ? 'Generating link…' : 'Open Telegram Bot'}
+              </button>
+              {telegramDeepLink && (
+                <p className="mt-2 text-[11px] text-zinc-500">
+                  Link expires in 10 minutes. If the bot doesn&apos;t open, click again for a fresh link.
+                </p>
+              )}
             </div>
           </div>
         </div>

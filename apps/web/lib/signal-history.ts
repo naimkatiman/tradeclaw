@@ -770,6 +770,25 @@ export async function getRecentRecordForSymbolAsync(
   return getRecentRecordForSymbol(symbol, direction, withinMs);
 }
 
+/**
+ * Look up a signal_history row by its primary id. Used by the /signal/[id]
+ * detail page to recover symbol/timeframe/direction from legacy ids that
+ * don't encode the direction (`SYMBOL-TF-TIMESTAMP` format written by
+ * /api/signals/record before it was rewired to canonical SIG-* ids).
+ */
+export async function getRecordByIdAsync(
+  id: string,
+): Promise<SignalHistoryRecord | undefined> {
+  if (isDbEnabled()) {
+    const row = await queryOne<HistoryRow>(
+      `SELECT * FROM signal_history WHERE id = $1 LIMIT 1`,
+      [id],
+    );
+    return row ? rowToRecord(row) : undefined;
+  }
+  return readHistoryFile().find(r => r.id === id);
+}
+
 export function getRecentRecordForSymbol(
   symbol: string,
   direction: 'BUY' | 'SELL',
@@ -880,6 +899,38 @@ export async function getSignalTelegramMessageId(
     [signalId],
   );
   return row?.telegram_message_id ? Number(row.telegram_message_id) : undefined;
+}
+
+/**
+ * Pro-tier reply threading. Stores the message_id of the Pro group post
+ * separately from the free public channel's message_id (different
+ * chat_ids, different message_id namespaces — using the same field
+ * would mis-target outcome replies).
+ */
+export async function markTelegramProPosted(
+  signalId: string,
+  messageId: number,
+): Promise<void> {
+  if (!isDbEnabled()) return;
+  await execute(
+    `UPDATE signal_history
+     SET telegram_pro_message_id = $2
+     WHERE id = $1`,
+    [signalId, messageId],
+  );
+}
+
+export async function getSignalTelegramProMessageId(
+  signalId: string,
+): Promise<number | undefined> {
+  if (!isDbEnabled()) return undefined;
+  const row = await queryOne<{ telegram_pro_message_id: string | null }>(
+    `SELECT telegram_pro_message_id FROM signal_history WHERE id = $1`,
+    [signalId],
+  );
+  return row?.telegram_pro_message_id
+    ? Number(row.telegram_pro_message_id)
+    : undefined;
 }
 
 // ── Bulk update (cron resolution) ────────────────────────────

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {
   Send,
   RefreshCw,
-  ArrowLeft,
   Star,
   CheckCircle,
   XCircle,
@@ -14,6 +13,7 @@ import {
   ExternalLink,
   Settings,
 } from 'lucide-react';
+import { PageNavBar } from '../../../components/PageNavBar';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -111,15 +111,8 @@ export function DigestPreviewClient() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <div className="max-w-2xl mx-auto px-4 py-24 pb-32 md:pb-24">
-        {/* Back */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-emerald-400 transition-colors mb-8"
-        >
-          <ArrowLeft className="w-3 h-3" />
-          Back to home
-        </Link>
+      <PageNavBar />
+      <div className="max-w-2xl mx-auto px-4 py-12 pb-32 md:pb-24">
 
         {/* Hero */}
         <div className="text-center mb-10">

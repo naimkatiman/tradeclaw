@@ -3,6 +3,7 @@ import {
   broadcastTopSignals,
   readBroadcastState,
 } from '../../../../lib/telegram-broadcast';
+import { getBotToken, getFreeChannelId } from '../../../../lib/telegram-channels';
 
 // ---------------------------------------------------------------------------
 // POST /api/telegram/broadcast — trigger a channel broadcast
@@ -17,14 +18,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // empty body is fine — we use env vars
   }
 
-  const botToken = body.botToken || process.env.TELEGRAM_BOT_TOKEN;
-  const channelId = body.channelId || process.env.TELEGRAM_CHANNEL_ID;
+  const botToken = body.botToken || getBotToken();
+  const channelId = body.channelId || getFreeChannelId();
 
   if (!botToken) {
     return NextResponse.json({ error: 'TELEGRAM_BOT_TOKEN not configured' }, { status: 503 });
   }
   if (!channelId) {
-    return NextResponse.json({ error: 'TELEGRAM_CHANNEL_ID not configured' }, { status: 503 });
+    return NextResponse.json({ error: 'TELEGRAM_FREE_CHANNEL_ID not configured' }, { status: 503 });
   }
 
   const result = await broadcastTopSignals(channelId, botToken, { freeOnly: true });
@@ -50,8 +51,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 export async function GET(): Promise<NextResponse> {
   try {
     const state = readBroadcastState();
-    const channelId = process.env.TELEGRAM_CHANNEL_ID ?? null;
-    const configured = !!(process.env.TELEGRAM_BOT_TOKEN && channelId);
+    const channelId = getFreeChannelId();
+    const configured = !!(getBotToken() && channelId);
 
     const lastTime = state.lastBroadcastTime ? new Date(state.lastBroadcastTime) : null;
     const nextBroadcast = lastTime

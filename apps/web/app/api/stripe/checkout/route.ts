@@ -22,17 +22,16 @@ export async function POST(request: NextRequest) {
       priceId?: unknown;
       tier?: unknown;
       interval?: unknown;
-      userId?: unknown;
     };
     const priceId = body.priceId;
     const tier = body.tier;
     const interval = normalizeInterval(body.interval);
 
-    // userId comes from the signed session cookie by default; the body value
-    // is honored only as a fallback for scripted / server-to-server callers.
+    // userId is always sourced from the signed session cookie. Trusting a
+    // body-supplied userId would let any caller create a paid checkout
+    // bound to another user's stripe_customer_id (gifting / impersonation).
     const userSession = readSessionFromRequest(request);
-    const userId =
-      userSession?.userId ?? (typeof body.userId === 'string' ? body.userId : undefined);
+    const userId = userSession?.userId;
 
     if (typeof userId !== 'string' || !userId) {
       return NextResponse.json(
