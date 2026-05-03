@@ -18,7 +18,7 @@
 -- backfill for existing trialing rows by hitting the Stripe API.
 --
 -- Apply on Railway with:
---   psql "$DATABASE_URL" -f apps/web/migrations/021_subscription_trial_columns.sql
+--   psql "$DATABASE_URL" -f apps/web/migrations/023_subscription_trial_columns.sql
 
 ALTER TABLE subscriptions
   ADD COLUMN IF NOT EXISTS trial_end              TIMESTAMP WITH TIME ZONE NULL,

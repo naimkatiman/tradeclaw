@@ -32,7 +32,7 @@ A 7-day trial converts silently to a paid charge. Customers who forgot, didn't r
 
 | File | Action | LOC |
 |---|---|---|
-| `apps/web/migrations/021_subscription_trial_columns.sql` | new migration | ~10 |
+| `apps/web/migrations/023_subscription_trial_columns.sql` | new migration | ~10 |
 | `apps/web/lib/db.ts` | extend `SubscriptionRecord`, mappers, `upsertSubscription`, add `getTrialingExpiringWithin(hours)`, `markTrialReminderSent` | ~50 |
 | `apps/web/app/api/stripe/webhook/route.ts` | populate `trialEnd` on checkout + subscription.updated | ~10 |
 | `apps/web/lib/transactional-email.ts` | add `sendTrialEndingEmail` (subject, text, html, send) | ~80 |
@@ -87,7 +87,7 @@ Total: 11 files, ~360 LOC. Past 150 LOC, past 3 files → split into 3 commits.
 2. `npx jest --testPathPattern "transactional-email|stripe/webhook"` — all green.
 3. Manual cron: `curl -H "Authorization: Bearer $CRON_SECRET" $BASE_URL/api/cron/trial-reminders`. With a seeded row at `trial_end = NOW() + 24h`, response shows `sent: 1`, second call shows `sent: 0` (dedup).
 4. Manual UI: `UPDATE subscriptions SET status='trialing', trial_end = NOW() + INTERVAL '3 days'`. Reload `/dashboard`. Amber "Trial ends in 3 days" banner visible. Click → portal opens.
-5. Migration: run `psql $DATABASE_URL -f apps/web/migrations/021_subscription_trial_columns.sql` against a copy of prod schema; existing rows still selectable, no default required, no constraint violation.
+5. Migration: run `psql $DATABASE_URL -f apps/web/migrations/023_subscription_trial_columns.sql` against a copy of prod schema; existing rows still selectable, no default required, no constraint violation.
 
 ## Open questions
 
