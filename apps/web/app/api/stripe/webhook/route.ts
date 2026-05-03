@@ -11,6 +11,7 @@ import {
   getSubscriptionByStripeId,
   setTrialEnd,
   tryClaimStripeEvent,
+  releaseStripeEvent,
 } from '../../../../lib/db';
 import { sendInviteWithRetry, revokeAccess } from '../../../../lib/telegram';
 import { sendPaymentFailedEmail } from '../../../../lib/transactional-email';
@@ -89,9 +90,16 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Handler error';
     console.error(`[stripe-webhook] Error handling ${event.type}:`, message);
-    // Return 500 so Stripe retries with exponential backoff. Handlers
-    // (upsertSubscription, updateUserTier) are idempotent — ON CONFLICT
-    // DO UPDATE on stripe_subscription_id — so replays are safe.
+    // Release the idempotency claim so Stripe's next retry actually re-runs
+    // the handler. Without this, the dedup gate above short-circuits every
+    // retry and the work is silently lost. Handlers themselves are idempotent
+    // (ON CONFLICT DO UPDATE on stripe_subscription_id), so a replay after
+    // partial progress just re-applies the same end state.
+    try {
+      await releaseStripeEvent(event.id);
+    } catch (releaseErr) {
+      console.error('[stripe-webhook] failed to release event claim:', releaseErr);
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 

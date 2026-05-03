@@ -8,7 +8,7 @@ import { useUserSession } from '../../../lib/hooks/use-user-tier';
 // Types
 // ---------------------------------------------------------------------------
 
-type Tier = 'free' | 'pro';
+type Tier = 'free' | 'pro' | 'elite';
 type Interval = 'monthly' | 'annual';
 
 interface PlanInfo {
@@ -23,6 +23,13 @@ const FREE_PLAN: PlanInfo = {
   price: '$0/mo',
   description: 'Delayed signals, 6 symbols across asset classes, public Telegram channel.',
   color: 'text-zinc-400',
+};
+
+const ELITE_PLAN: PlanInfo = {
+  name: 'Elite',
+  price: 'Contact us',
+  description: 'Everything in Pro plus the private Elite Telegram group and direct support.',
+  color: 'text-amber-400',
 };
 
 function proPlan(interval: Interval): PlanInfo {
@@ -76,6 +83,7 @@ function StatusBadge({ tier }: { tier: Tier }) {
   const colors: Record<Tier, string> = {
     free: 'bg-zinc-800 text-zinc-300',
     pro: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
+    elite: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
   };
   return (
     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${colors[tier]}`}>
@@ -163,18 +171,25 @@ function UpgradeCard({ tier, interval, currentTier, onError }: UpgradeCardProps)
 export default function BillingPage() {
   const { status, session } = useUserSession();
   const userId = session?.userId ?? '';
-  // Narrow the server tier ('free'|'pro'|'elite'|'custom') to what this page
-  // actually renders. Billing is Free/Pro only today; elite/custom carry
-  // Pro-equivalent access so we render them as 'pro' here. Anything below
-  // pro maps to 'free'.
+  // Map the server tier ('free'|'pro'|'elite'|'custom') to what this page
+  // renders. 'custom' is a Pro-equivalent admin grant so we display it as Pro;
+  // 'elite' is paid so we surface it as its own tier (the user is paying for
+  // it and should see that on the page they cancel from).
   const serverTier = session?.tier;
   const currentTier: Tier =
-    serverTier === 'pro' || serverTier === 'elite' || serverTier === 'custom'
-      ? 'pro'
-      : 'free';
+    serverTier === 'elite'
+      ? 'elite'
+      : serverTier === 'pro' || serverTier === 'custom'
+        ? 'pro'
+        : 'free';
   const [billingInterval, setBillingInterval] = useState<Interval>('monthly');
 
-  const plan = currentTier === 'free' ? FREE_PLAN : proPlan('monthly');
+  const plan =
+    currentTier === 'free'
+      ? FREE_PLAN
+      : currentTier === 'elite'
+        ? ELITE_PLAN
+        : proPlan('monthly');
   const [error, setError] = useState<string | null>(null);
   const isLoading = status === 'loading';
   const isDemo = status === 'anonymous';
@@ -313,7 +328,10 @@ export default function BillingPage() {
           )}
         </div>
 
-        {/* Upgrade / switch plans */}
+        {/* Upgrade / switch plans — Elite is the top paid tier; route them to
+            the portal via the Manage Billing button above instead of offering
+            a downgrade-shaped "Change plan" prompt. */}
+        {currentTier !== 'elite' && (
         <div className="mt-8">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
@@ -361,6 +379,7 @@ export default function BillingPage() {
             />
           </div>
         </div>
+        )}
 
         {/* Telegram connect */}
         <div className="mt-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
@@ -428,13 +447,15 @@ export default function BillingPage() {
           </div>
         </div>
 
-        {/* Annual plan callout */}
-        <div className="mt-6 rounded-xl border border-emerald-500/20 bg-emerald-950/10 px-5 py-4">
-          <p className="text-sm text-emerald-300">
-            <span className="font-semibold">Save 17%</span> with annual billing — Pro
-            at $290/yr. Switch from the billing portal.
-          </p>
-        </div>
+        {/* Annual plan callout — only relevant on the Pro/free tiers */}
+        {currentTier !== 'elite' && (
+          <div className="mt-6 rounded-xl border border-emerald-500/20 bg-emerald-950/10 px-5 py-4">
+            <p className="text-sm text-emerald-300">
+              <span className="font-semibold">Save 17%</span> with annual billing — Pro
+              at $290/yr. Switch from the billing portal.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -220,6 +220,8 @@ function messageForResendError(code: string | undefined): string {
       return 'Pro group access requires a paid plan.';
     case 'unauthorized':
       return 'Your session expired — sign in again.';
+    case 'rate_limited':
+      return 'Too many invite requests. Try again in 10 minutes.';
     case 'send_failed':
       return 'Telegram rejected the send. If you blocked the bot, unblock it and try again.';
     default:

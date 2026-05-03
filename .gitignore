@@ -11,6 +11,7 @@ node_modules/
 
 # Generated data
 scripts/signals.db
+scripts/.signal-engine-last-success
 apps/web/data/signal-history.json
 apps/web/data/performance-metrics.json
 

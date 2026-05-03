@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readSessionFromRequest } from '../../../../lib/user-session';
-import { getUserById, getUserSubscription } from '../../../../lib/db';
+import {
+  getUserById,
+  getUserSubscription,
+  countRecentTelegramInvites,
+} from '../../../../lib/db';
 import { sendInviteWithRetry } from '../../../../lib/telegram';
 
 export const dynamic = 'force-dynamic';
+
+// Cap one paying user to RESEND_LIMIT invite creations per RESEND_WINDOW_SEC.
+// Each invite is single-use 72h, so without this gate a Pro subscriber could
+// mint dozens of links and share them to bypass the per-seat paywall.
+const RESEND_LIMIT = 3;
+const RESEND_WINDOW_SEC = 600;
 
 /**
  * Self-serve resend of the Telegram group invite.
@@ -52,6 +62,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { ok: false, error: 'free_tier' },
       { status: 403 },
+    );
+  }
+
+  const recentCount = await countRecentTelegramInvites(user.id, RESEND_WINDOW_SEC);
+  if (recentCount >= RESEND_LIMIT) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: 'rate_limited',
+        retryAfterSeconds: RESEND_WINDOW_SEC,
+      },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(RESEND_WINDOW_SEC) },
+      },
     );
   }
 

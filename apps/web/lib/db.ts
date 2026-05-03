@@ -355,9 +355,41 @@ export async function tryClaimStripeEvent(
   }
 }
 
+/**
+ * Release a previously-claimed event id so Stripe's next retry can re-enter
+ * the handler. Used by the webhook when a handler throws — without this, the
+ * dedup gate would short-circuit every retry and the work would be lost.
+ */
+export async function releaseStripeEvent(eventId: string): Promise<void> {
+  await execute(
+    `DELETE FROM processed_stripe_events WHERE event_id = $1`,
+    [eventId],
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Telegram invite operations
 // ---------------------------------------------------------------------------
+
+/**
+ * Count invites created for a user within the last N seconds. Used by the
+ * resend-invite endpoint to rate-limit a paying user from spamming the
+ * createChatInviteLink call and minting bulk single-use links to share with
+ * non-payers.
+ */
+export async function countRecentTelegramInvites(
+  userId: string,
+  withinSeconds: number,
+): Promise<number> {
+  const row = await queryOne<{ count: string }>(
+    `SELECT COUNT(*)::text AS count
+       FROM telegram_invites
+      WHERE user_id = $1
+        AND created_at > NOW() - ($2 || ' seconds')::interval`,
+    [userId, withinSeconds],
+  );
+  return row ? Number(row.count) : 0;
+}
 
 export async function createTelegramInvite(
   data: Omit<TelegramInviteRecord, 'id' | 'createdAt'>,
