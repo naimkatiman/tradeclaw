@@ -540,6 +540,101 @@ Five gating steps that are bypassed on the SSR path:
 **Result: LEAK (latent). Fix required: call `filterSignalByTier` on each signal in `getTrackedSignals` or in `dashboard/page.tsx` before passing `initialSignals` to the client, and run `splitDelayed` to carve locked stubs. Until fixed, this section is FAIL on architecture grounds even if not currently exploitable in production.**
 
 ## Section 5 — Marketing Copy Alignment
+
+### Pricing Page Source
+
+**Canonical pricing page:** `apps/web/app/pricing/page.tsx` + `apps/web/app/pricing/PricingCards.tsx`
+
+**Sourcing verdict: PASS — no hardcoded copy.**
+
+`PricingCards.tsx` (line 219-221) reads `TIER_DEFINITIONS` directly from `../../lib/stripe-tiers` and iterates `def.features` for both the Free and Pro cards. Every bullet on the pricing card is driven by the `features` array in `stripe-tiers.ts`. No JSX strings shadow the authoritative source.
+
+`page.tsx` (the comparison table) does the same:
+- `FREE_SYMBOLS.length` (line 22) is read from `../../lib/tier-client` — same `FREE_SYMBOLS` constant used in the gate.
+- `TIER_HISTORY_DAYS.free` (line 13-15) is read from `../../lib/tier` — same constant used in `signal-slice.ts`.
+
+The comparison table is built from a local `FEATURES` array (hardcoded strings in `page.tsx:17-31`), which is a separate surface from `TIER_DEFINITIONS`. This table is DISTINCT from the card bullet-list. Key strings to check for drift:
+
+| Table row (page.tsx) | Matches TIER_DEFINITIONS copy? |
+|---|---|
+| "15-min delay" / "Real-time" | Matches "15-minute delayed signals" / "Real-time signal delivery" — OK |
+| `${FREE_SYMBOLS.length} symbols...` | Matches "6 symbols..." dynamically — OK |
+| "TP1 only" / "TP1, TP2, TP3 + SL" | Matches "TP1 target only" / "TP1, TP2, TP3 + Stop Loss" — OK |
+| "RSI, EMA" / "RSI, EMA, MACD, Bollinger, Stochastic + multi-timeframe analysis" | DIVERGENCE — card says "Multi-timeframe analysis (RSI, EMA, MACD, Bollinger, Stochastic)"; table says "RSI, EMA" for free and "RSI, EMA, MACD, Bollinger, Stochastic + multi-timeframe analysis" for pro. The table copy is more precise and consistent with the masking in `filterSignalByTier` (RSI/EMA unmasked = free baseline; MACD/BB/Stoch masked = pro-only). The card's free feature list omits the indicator line entirely. Not a copy mismatch per se — the table is additive — but the two surfaces are inconsistent. COPY INCONSISTENCY (low) |
+| "Last 7 days" / "Full history" | Dynamic from `TIER_HISTORY_DAYS.free` — OK |
+
+**Summary: PricingCards drives from `TIER_DEFINITIONS` (PASS). Comparison table is a separate hardcoded surface with one low-severity inconsistency vs. the card copy.**
+
+---
+
+### Free Feature Enforcement
+
+Advertised free features come from `TIER_DEFINITIONS[0].features` (`apps/web/lib/stripe-tiers.ts:38-43`).
+
+| Advertised feature | Enforced where | Every read site? | Status |
+|---|---|---|---|
+| 6 symbols across crypto, forex, commodities, indices | `FREE_SYMBOLS` in `tier-client.ts:7-14` → used by `filterSignalByTier` (tier.ts:271 returns null for non-free symbols), `TIER_SYMBOLS.free` (tier.ts:40), and `/api/v1/signals` inline filter | Read sites: `filterSignalByTier` (api/signals route), `getTrackedSignals` via `ctx.unlockedStrategies` (not a direct symbol gate — see Section 4 LATENT LEAK), `/api/v1/signals`, `signal-slice.ts:53` | PARTIAL — dashboard SSR path (`getTrackedSignals`) uses strategy filter not symbol allow-list directly; see Section 4 latent LEAK |
+| 15-minute delayed signals | `TIER_DELAY_MS.free = 900000` in `tier.ts:56`; enforced via `splitDelayed` in `/api/signals/route.ts`; `DelayCountdown` UI renders countdown | Read site: `/api/signals/route.ts` only — SSR dashboard path does NOT run `splitDelayed`. | PARTIAL — delay applied on client-refetch path only; same latent LEAK as Section 4 |
+| TP1 target only | `filterSignalByTier` in `tier.ts:283-284` nulls `takeProfit2` and `takeProfit3` for free callers | Applied in `/api/signals/route.ts` (client refetch path). NOT applied on SSR path (see Section 4). | PARTIAL — same latent SSR LEAK as above; client refetch path is correct |
+| Last 7 days signal history | `TIER_HISTORY_DAYS.free = 7` in `tier.ts:47-48`; consumed in `signal-slice.ts:54-58` (cuts records older than 7 days for `scope=free`); consumed in `apps/web/app/pricing/page.tsx:13-15` (display only) | Read sites verified: `signal-slice.ts:54` applies the cutoff for `/api/signals/history` and `/api/signals/equity`; `signal-slice.ts` is also used by `/track-record` data path. `/api/signals/route.ts` does not apply a history cutoff directly — it returns live signals, not historical records. | OK — history window applied at every aggregation read site. `/api/signals` is real-time; `TIER_HISTORY_DAYS` correctly scoped to the history/track-record path. |
+
+**Free feature enforcement summary:**
+- 3 of 4 advertised limits are partially enforced: the client-refetch path (`/api/signals`) is gated correctly; the SSR path (`dashboard/page.tsx` → `getTrackedSignals`) bypasses `filterSignalByTier` and `splitDelayed`. This is the Section 4 LATENT LEAK and was already flagged. Recorded here for completeness — it is not a new finding.
+- History window enforcement: OK — `TIER_HISTORY_DAYS` is consumed at every read site that touches aggregate history data (`signal-slice.ts` is the single point of truth).
+- OVER-DELIVERY count (limit defined but not enforced at a read site): **0 new** — all partial enforcements trace back to the same SSR bypass already flagged in Section 4.
+
+---
+
+### Pro Feature Delivery
+
+Advertised pro features come from `TIER_DEFINITIONS[1].features` (`apps/web/lib/stripe-tiers.ts:54-63`).
+
+| Advertised feature | Enforcement / delivery verified | Status |
+|---|---|---|
+| All traded symbols | `TIER_SYMBOLS.pro = ALL_SYMBOLS` (tier.ts:41); `filterSignalByTier` returns signal unmodified for pro on symbol check (line 271 null-return only fires for free) | OK |
+| Real-time signal delivery | `TIER_DELAY_MS.pro === 0` (tier.ts:57); `splitDelayed` in `/api/signals/route.ts` uses this value — zero delay = no locked stubs for pro | OK |
+| Multi-timeframe analysis (RSI, EMA, MACD, Bollinger, Stochastic) | `filterSignalByTier` does NOT zero MACD/BB/Stoch for pro callers (lines 289-293 are inside the `if (tier === 'free')` block) | OK — Pro callers receive full indicators |
+| TP1, TP2, TP3 + Stop Loss | `filterSignalByTier` does NOT null `takeProfit2`/`takeProfit3` for pro (lines 283-284 inside `if (tier === 'free')` block); `stopLoss` passes through unmasked for all tiers | OK for TP2/TP3 delivery; `stopLoss` was already flagged as a HIGH LEAK for free tier in Section 2, not a Pro delivery issue |
+| Private Pro Telegram group | `sendInviteWithRetry` in `lib/telegram.ts:228-269` called by Stripe webhook `handleCheckoutCompleted` (webhook/route.ts:176-177) when `user.telegramUserId` is set; generates single-use 72h invite link via `createChatInviteLink` Telegram API; invite persisted to DB; revoked on `handleSubscriptionDeleted` (webhook/route.ts:241-250). Real-time signal broadcast to group via `broadcastSignalsToProGroup` in `lib/telegram-pro-broadcast.ts` | CONDITIONAL — invite is sent only if `user.telegramUserId` is already set at checkout time. The FAQ (`page.tsx:111-113`) correctly describes the flow: Telegram linking happens post-checkout via the Welcome screen. The webhook comment at line 173-175 acknowledges this: "If the user hasn't linked yet, they'll get the invite via /api/telegram/resend-invite". Resend path exists at `/api/telegram/resend-invite/route.ts`. FUNCTIONAL but the Telegram link step is user-initiated, not automatic at purchase. **No OVER-PROMISE — the conditional nature is documented and a self-serve resend path exists.** |
+| Full signal history + CSV export | `/api/signals/history` has NO tier gate — it is intentionally public for marketing purposes (route.ts:13-17 comment: "Track record is intentionally NOT gated"). `scope=pro` parameter gives full history; `scope=free` narrows to 7-day free slice. No auth required for either scope. CSV export: **no CSV export route exists in `apps/web/app/api/`**. `data-export.ts` + `/api/export` exist but export configuration data (alerts, webhooks, portfolio), NOT signal history. No `Content-Disposition: attachment` route for signal history CSV was found across the entire `apps/web` tree. | **OVER-PROMISE** — "CSV export" is advertised in `TIER_DEFINITIONS[1].features` (stripe-tiers.ts:60) and on the Pro card. No CSV export route exists for signal history. The `/api/export` route exports user configuration data only and has no Pro gate. **This is the primary billing-trust issue found in Section 5.** |
+| Every signal in a public Postgres archive — audit win rate yourself | `/api/signals/history` + `/track-record` are intentionally public with `scope=pro` returning all signals. Railway Postgres `signal_history` table is the source. No auth required for history/equity endpoints. | INTENTIONAL TRADE-OFF — as noted in the task brief. Correctly implemented. |
+| 7-day free trial | `subscription_data.trial_period_days: 7` at checkout/route.ts:87. Applied unconditionally on all Stripe checkout sessions for any tier/interval. The Pro card button label reads "Start 7-Day Trial" (PricingCards.tsx:162). | OK — confirmed at code level. Verified in code; Stripe dashboard cross-check deferred per plan Step 5. |
+
+**Pro feature delivery summary:**
+- OVER-PROMISE: **1** — CSV export advertised, no route found.
+- CONDITIONAL: **1** — Telegram invite is user-initiated post-checkout; resend path exists; not a delivery failure.
+- Trial period: **CONFIRMED** — `trial_period_days: 7` in checkout route.
+
+---
+
+### Stripe Price ID Alignment
+
+Price IDs are resolved at runtime from two `NEXT_PUBLIC_` env vars:
+- `NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID` — monthly Pro subscription
+- `NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID` — annual Pro subscription
+
+Both are referenced in `stripe-tiers.ts:81-82` via the `getClientPriceId` dispatch table and in `apps/web/lib/stripe.ts` for server-side checkout.
+
+**Env var names logged here for manual cross-check:**
+- Env var: `NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID` — expected to point to Stripe price `price_xxx` for $29/mo. **To be verified by hand against Railway dashboard.**
+- Env var: `NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID` — expected to point to Stripe price `price_xxx` for $290/yr. **To be verified by hand against Railway dashboard.**
+
+Server-side price resolution: `apps/web/lib/stripe.ts` → `resolveStripePriceId(tier, interval)`. Unknown price IDs throw at checkout/route.ts:49 and webhook/route.ts:141-145 rather than silently downgrading. Fail-closed posture is correct.
+
+**Railway env check: skipped per plan Step 5. Manual verification required against Railway → `tradeclaw` → `web` → Environment.**
+
+---
+
+### Section 5 Summary
+
+| Finding | Count | Severity |
+|---|---|---|
+| OVER-PROMISE (advertised, not delivered) | 1 — CSV export of signal history | HIGH — billing trust |
+| OVER-DELIVERY (limit defined, not enforced at all read sites) | 0 new | — (pre-existing SSR latent LEAK from Section 4 applies here too) |
+| COPY INCONSISTENCY (card vs. table surface) | 1 — indicator row wording differs between PricingCards and comparison table | LOW |
+| Trial period confirmed in code | YES — `trial_period_days: 7` | OK |
+| Stripe price ID alignment | Deferred to manual Railway env check | PENDING |
+
 ## Section 6 — Runtime Probes
 ## Section 7 — Findings Register
 ## Section 8 — Follow-up Backlog
