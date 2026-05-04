@@ -407,6 +407,138 @@ On DB unreachability, `loadProGrantedEmailsFromDb` also falls back to an empty g
 **Fail-closed posture: PASS.** No path exists where an error escalates a user above `'free'`.
 
 ## Section 4 — UI Affordances
+
+### Tier-Aware Components
+
+Grep: `rg -l "useUserTier|useUserSession|tier.*free|tier.*pro|LockedSignalStub|filterSignalByTier|resolveAccessContext" apps/web --type ts --type tsx -g '!*.next'`
+
+Filtered to genuine gating or display surfaces (excluded pure data layer, API routes, and test files):
+
+| Component | File | Role | Server or Client |
+|---|---|---|---|
+| `TierBadge` | `apps/web/components/TierBadge.tsx` | Display-only badge; links to `/pricing?from=badge` | Client (`useUserTier`) |
+| `DelayCountdown` | `apps/web/components/DelayCountdown.tsx` | Countdown timer for 15-min delay; links to `/pricing?from=delay` | Client (props only, no tier fetch) |
+| `LockedTP` | `apps/web/components/LockedTP.tsx` | Masked TP2/TP3 cell; links to `/pricing?from=tp<N>[-source]` | Client (display stub) |
+| `TierBanner` | `apps/web/app/components/tier-banner.tsx` | Upgrade banner shown to free/anonymous users | Client (`useUserSession`) |
+| `DashboardClient` | `apps/web/app/dashboard/DashboardClient.tsx` | Main dashboard; renders `LockedSignalCard` for delayed signals | Client (`useUserSession`) |
+| `LockedSignalCard` | inside `DashboardClient.tsx:348-397` | Renders stub-only row for delayed locked signals | Client (receives `LockedSignalStub` prop) |
+| `LiveHeroSignals` | `apps/web/components/landing/live-hero-signals.tsx` | Landing page teaser; uses `toTeaser()` — no tradeable data | Server (no tier context needed) |
+
+7 genuine tier-aware surfaces identified. `LiveHeroSignals` is server-rendered and consumes only the public teaser endpoint — no tier gate required; included for completeness.
+
+### Client-Side Tier Trust Audit
+
+Concern: a client component that derives tier from `document.cookie` or a client-side cookie read would allow spoofing.
+
+**Audit method:** Grep for `document.cookie`, `js-cookie`, `Cookies.get`, `parseCookies` in client components; inspect `useUserTier` and `useUserSession` source.
+
+`apps/web/lib/hooks/use-user-tier.ts`:
+- `useUserSession()` fetches `/api/auth/session` inside `useEffect` — server-validated response.
+- `useUserTier()` returns `session?.tier ?? null` — no browser cookie read anywhere in the call chain.
+
+No component reads `document.cookie` or any browser-side cookie to derive tier. All tier reads flow through the `/api/auth/session` server endpoint.
+
+**Result: ALL PASS.** No client-side tier trust vulnerability found.
+
+### lockedSignals Renderer Audit
+
+`LockedSignalCard` at `DashboardClient.tsx:348-397` receives `stub: LockedSignalStub`.
+
+`LockedSignalStub` interface (`apps/web/lib/tier.ts`):
+```ts
+interface LockedSignalStub {
+  id: string
+  symbol: string
+  direction: 'BUY' | 'SELL'
+  timeframe: string
+  confidence: number
+  availableAt: string   // ISO timestamp; computed from signal.timestamp + delayMs
+  locked: true
+}
+```
+
+Fields accessed inside `LockedSignalCard`: `stub.symbol`, `stub.direction`, `stub.timeframe`, `stub.confidence`, `stub.availableAt`. Five of seven stub fields — none are price levels.
+
+`toLockedStub` (`tier.ts`) builds the stub from `Pick<TradingSignal, 'id'|'symbol'|'direction'|'timeframe'|'confidence'|'timestamp'>`. The original `timestamp` is used only to compute `availableAt`; it is not forwarded on the stub.
+
+`lockedSignals` state in `DashboardClient` is typed `LockedSignalStub[]` (line 905) and is populated only from the client refetch path (`setLockedSignals(signalsRes.value.lockedSignals || [])` at line 959). The SSR `initialSignals` prop is typed `TradingSignal[]` and is never widened to feed the locked list — the two arrays are kept separate.
+
+**Result: PASS.** The locked renderer never receives a full `TradingSignal`; all tradeable fields (entry, SL, TP1/2/3, indicators) are structurally absent from the stub type.
+
+### Upgrade CTA Attribution
+
+Methodology: grep `href.*pricing` across all `.tsx` files in `apps/web/`.
+
+CTAs with correct `?from=` attribution:
+
+| Location | Link | Status |
+|---|---|---|
+| `TierBadge.tsx:21` | `/pricing?from=badge` | PASS |
+| `DelayCountdown.tsx:75` | `/pricing?from=delay` | PASS |
+| `LockedTP.tsx:20-27` | `/pricing?from=tp<N>[-source]` | PASS |
+| `DashboardClient.tsx:389` | `/pricing?from=locked-signal` | PASS |
+| `signal/[id]/page.tsx:384` | `/pricing?from=signal-detail` | PASS |
+
+CTAs missing `?from=` attribution:
+
+| Location | Link | Context | Severity |
+|---|---|---|---|
+| `apps/web/app/components/tier-banner.tsx:79` | `/pricing` (bare) | Main upgrade CTA shown to all free/anonymous users — highest-traffic upgrade surface | HIGH |
+| `apps/web/app/dashboard/DashboardClient.tsx:128` | `/pricing` (bare) | Telegram tooltip text on free-locked signal row | LOW |
+| `apps/web/app/signin/page.tsx:222` | `/pricing` (bare) | "Upgrade to Pro" link on signin page | MEDIUM |
+| `apps/web/app/contact-sales/page.tsx:85` | `/pricing` (bare) | Back-link on contact-sales page | LOW |
+
+`apps/web/components/site-footer.tsx:19` links to `/pricing` without `?from=` but is a navigation item — tolerable, not an upgrade CTA.
+
+**Result: 4 CTAs missing `from=`. Highest-priority fix: `tier-banner.tsx:79`.**
+
+### Dashboard Split-Render Audit
+
+**Question:** Does `dashboard/page.tsx` apply `filterSignalByTier` before passing `initialSignals` to `DashboardClient`, and does it run `splitDelayed` to carve locked stubs from the visible set?
+
+`apps/web/app/dashboard/page.tsx` (lines 14-29):
+```tsx
+const ctx = await resolveAccessContextFromCookies();
+const result = await getTrackedSignals({
+  minConfidence: WATCHLIST_MIN_CONFIDENCE,
+  ctx,
+});
+initialSignals = result.signals;
+// ...
+return (
+  <DashboardClient
+    initialSignals={initialSignals}
+    initialSyntheticSymbols={initialSyntheticSymbols}
+  />
+);
+```
+
+`getTrackedSignals` (`apps/web/lib/tracked-signals.ts`) applies:
+- Strategy-id filter (lines 265-268): drops signals where `strategyId` is not in `ctx.unlockedStrategies`
+- Confidence floor (lines 272-278): drops signals below `WATCHLIST_MIN_CONFIDENCE`
+
+`getTrackedSignals` does NOT call `filterSignalByTier`. Grep confirms zero imports of `filterSignalByTier` in `tracked-signals.ts`.
+
+Five gating steps that are bypassed on the SSR path:
+
+1. TP2/TP3 masking to null (`filterSignalByTier:283-284`)
+2. MACD histogram/signal zeroing (`filterSignalByTier:291`)
+3. BollingerBands and Stochastic zeroing (`filterSignalByTier:292-293`)
+4. Symbol allowlist enforcement (`FREE_SYMBOLS` — `filterSignalByTier:271`)
+5. `PRO_PREMIUM_MIN_CONFIDENCE` (≥85) band hide (`filterSignalByTier:275-277`)
+
+`splitDelayed` (which carves locked stubs from the visible array) also does not run on the SSR path. It lives exclusively in `apps/web/app/api/signals/route.ts`.
+
+**Current exploitability:** LATENT. In production, `SIGNAL_ENGINE_PRESET=hmm-top3` stamps all new signals with `strategy_id='hmm-top3'`. For free users, `ctx.unlockedStrategies = {classic}`. The strategy-id filter in `getTrackedSignals` therefore drops every `hmm-top3` row, making `initialSignals` coincidentally empty. The leak would activate if:
+- The preset is changed back to `classic`, or
+- Any `signal_history` row has `strategy_id='classic'` (e.g., via backfill or a one-off insert).
+
+**False comment:** `apps/web/app/components/tier-banner.tsx:16` reads: `// The server has already filtered the signal payload by tier — this banner is UX signal, not a gate.` This is architecturally false for the dashboard SSR path. The server does NOT filter by tier before handing `initialSignals` to `DashboardClient`.
+
+**`/api/signals` route is clean:** The client refetch path at `apps/web/app/api/signals/route.ts` correctly calls `filterSignalByTier` on every signal and then `splitDelayed`. Free users who trigger `fetchSignals()` in `DashboardClient` receive properly gated data.
+
+**Result: LEAK (latent). Fix required: call `filterSignalByTier` on each signal in `getTrackedSignals` or in `dashboard/page.tsx` before passing `initialSignals` to the client, and run `splitDelayed` to carve locked stubs. Until fixed, this section is FAIL on architecture grounds even if not currently exploitable in production.**
+
 ## Section 5 — Marketing Copy Alignment
 ## Section 6 — Runtime Probes
 ## Section 7 — Findings Register
