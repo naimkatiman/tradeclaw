@@ -306,6 +306,106 @@ Source: `apps/web/lib/tier.ts:70-99`
 Note: `toLockedStub` accepts a `Pick<TradingSignal, ...>` that includes `timestamp`. `timestamp` is used only to compute `availableAt` and is not present in the returned object. The stub correctly withholds it.
 
 ## Section 3 — Stripe Lifecycle & Pro Grants
+
+### Pro-Grant Paths
+
+Every code path that can resolve a user to `tier === 'pro'` in `getUserTier` (`apps/web/lib/tier.ts:220-260`):
+
+| # | Condition | File:Line |
+|---|---|---|
+| 1 | Stripe subscription with `status === 'active'` | `tier.ts:229` |
+| 2 | Stripe subscription with `status === 'trialing'` | `tier.ts:229` |
+| 3 | Stripe subscription with `status === 'past_due'` AND `Date.now() <= currentPeriodEnd + PAST_DUE_GRACE_DAYS * 86400 * 1000` | `tier.ts:231-238` |
+| 4 | `isAdminEmail(user.email)` — email is in `ADMIN_EMAILS` env or default `['naimkatiman@gmail.com']` | `tier.ts:251`, `admin-emails.ts:34-37` |
+| 5 | `isProGrantedEmailDeep(user.email)` — email is in `PRO_EMAILS` env or default `['naimkatiman92@gmail.com']` (bootstrap) | `tier.ts:251`, `admin-emails.ts:44-47` |
+| 6 | `isProGrantedEmailDeep(user.email)` — email has an active row in `pro_email_grants` DB table (admin-granted via `/admin/pro-grants`) | `tier.ts:251`, `admin-emails.ts:83-91` |
+
+Note: `elite` tier uses the same code paths (paths 1-3 branch on `sub.tier`, not hardcoded `'pro'`). The email-grant paths (4-6) hard-code `tier = 'pro'` regardless of sub tier — there is no `elite` email-grant path.
+
+Total: **6 Pro-grant paths** (paths 4 and 5 share the same `isProGrantedEmailDeep` call site; split here because their truth sources differ).
+
+### Stripe Webhook Audit
+
+Webhook route: `apps/web/app/api/stripe/webhook/route.ts`
+
+**Signature verification:** `constructEvent(rawBody, sig, webhookSecret)` at line 39, called before any DB mutation. The raw body is read via `request.text()` (line 23) so it is never consumed as JSON before signing. `STRIPE_WEBHOOK_SECRET` absence returns HTTP 500 (line 28-31); missing `stripe-signature` header returns HTTP 400 (line 33-35). Verification is fail-closed. No LEAK.
+
+**Event handler coverage:**
+
+| Event | Handled? | Handler | Notes |
+|---|---|---|---|
+| `checkout.session.completed` | YES | `handleCheckoutCompleted` (line 56-59) | Upserts subscription, updates user tier, sends Telegram invite |
+| `customer.subscription.updated` | YES | `handleSubscriptionUpdated` (line 62-65) | Mirrors tier + period from subscription; syncs `trial_end` |
+| `customer.subscription.deleted` | YES | `handleSubscriptionDeleted` (line 68-71) | Sets user to free, cancels DB record, revokes Telegram access |
+| `invoice.payment_failed` | YES | `handlePaymentFailed` (line 80-83) | Marks subscription `past_due`; sends one dunning email |
+| `invoice.payment_succeeded` | YES | `handlePaymentSucceeded` (line 74-77) — note: event is `invoice.payment_succeeded`, not `invoice.paid` | Flips subscription status back to `active` |
+| `invoice.paid` | NO (unhandled — falls to `default:`) | — | `invoice.payment_succeeded` is handled instead; these are different events. Stripe fires `invoice.payment_succeeded` on successful charge and `invoice.paid` after successful charge + invoice marked paid. In practice both fire; missing `invoice.paid` is NOT a gap because `invoice.payment_succeeded` already resets status. No LEAK. |
+| `customer.subscription.trial_will_end` | NO | — | Informational only; no tier change needed. Absence means no dunning-style trial-expiry email is sent from this handler. Low severity. |
+
+All five functionally critical events are handled. `invoice.paid` is absent but not a gap given `invoice.payment_succeeded` coverage.
+
+**Idempotency gate:** `tryClaimStripeEvent(event.id, event.type)` at line 50 before any handler runs. On failure inside a handler, `releaseStripeEvent(event.id)` at line 99 allows Stripe to retry. Handlers are idempotent at the DB level (`ON CONFLICT DO UPDATE` on `stripe_subscription_id`). Telegram invite side-effect in `handleCheckoutCompleted` is NOT idempotent — but the claim gate prevents double-sends on Stripe redeliveries. Re-runs after a crash between claim and release could double-send. Low severity.
+
+**Unknown price guard:** Both `handleCheckoutCompleted` (line 141-145) and `handleSubscriptionUpdated` (line 201-207) throw on unknown price IDs rather than silently downgrading a paying user to `free`. Correct posture.
+
+**Overall verdict: PASS — no LEAK in webhook handler layer.**
+
+### past_due Grace Window
+
+Constant: `PAST_DUE_GRACE_DAYS = 7` (`apps/web/lib/tier-client.ts:35`).
+
+Timeline for a subscription with `currentPeriodEnd = T`:
+- Day 0 (T): Stripe fires first `invoice.payment_failed` → `updateSubscriptionStatus(id, 'past_due')` → subscription row now `status = past_due`.
+- Days 0-7: `getUserTier` computes `Date.now() <= T + 7 * 86400 * 1000` → `true` → user remains `'pro'`.
+- Day 8: grace window expires → `getUserTier` returns `'free'` on next request.
+
+Smart Retry edge case: Stripe retries on days ~2, ~4, ~7 (configurable). If retry on day 6 succeeds:
+1. Stripe fires `invoice.payment_succeeded` → `handlePaymentSucceeded` → `updateSubscriptionStatus(id, 'active')`.
+2. Next call to `getUserTier` reads `status = 'active'` → returns `'pro'`. No downgrade on day 7.
+
+The grace window and the `invoice.payment_succeeded` handler are complementary: the grace window covers days 0-7; recovery flips `active` before day 8 if retries succeed. If Smart Retries exhaust (after ~3 weeks) without success, Stripe fires `customer.subscription.deleted` → `handleSubscriptionDeleted` → user tier set to `'free'`, DB record cancelled. Timeline consistent and correct.
+
+One minor gap: `getUserTier` checks the grace window on every request but the DB row stays `past_due` for the full 7 days even after day 8. There is no webhook or cron that marks the row `canceled` when grace expires — the row remains `past_due` indefinitely if Stripe never fires `subscription.deleted`. In practice, Stripe Smart Retries fire `subscription.deleted` after exhaustion, so this is a theoretical gap only.
+
+### Admin-Granted Backdoor
+
+`apps/web/lib/admin-emails.ts` has two truth sources:
+
+| Function | Truth source |
+|---|---|
+| `isProGrantedEmail` | `PRO_EMAILS` env only (sync, no DB) |
+| `isProGrantedEmailDeep` | `PRO_EMAILS` env OR `pro_email_grants` DB table (async; 60-second process-local TTL cache) |
+| `isAdminEmail` | `ADMIN_EMAILS` env only (sync, no DB) |
+
+Both `PRO_EMAILS` and `ADMIN_EMAILS` have hardcoded defaults (`naimkatiman92@gmail.com` and `naimkatiman@gmail.com` respectively) that apply when the env var is absent or empty. These defaults are the bootstrap grant for the repo owner. They are visible in source — low risk for a self-hosted MIT project but worth noting.
+
+**Admin UI for grant/revoke:** EXISTS at `apps/web/app/admin/pro-grants/` — `actions.ts` + `ProGrantsClient.tsx`. Both `grantProAction` and `revokeProAction` call `requireAdmin()` at entry, so only admin-authed sessions can invoke them.
+
+**Audit log:** The `pro_email_grants` table schema (migration `020_pro_email_grants.sql`) stores `granted_by`, `created_at`, `revoked_at`, and `revoked_by`. The DB functions `addProEmailGrant` and `revokeProEmailGrant` in `db.ts` write all four columns. Grant/revoke actions record who acted and when — **audit trail exists**.
+
+`invalidateProGrantsCache()` is called after every grant and revoke action (`actions.ts:46, 68`), so changes propagate within the same process instance immediately. Other Railway instances pick up the change after the 60-second TTL.
+
+**No LEAK in the admin backdoor path.** Classified as intended-design, not a vulnerability.
+
+### Active Pro Users by Source
+
+Deferred to Section 6 runtime probes. `DATABASE_URL` may point at production — DB queries deferred to avoid live data impact.
+
+### Fail-Closed Posture
+
+Both tier-resolution functions catch all errors and return `'free'`:
+
+| Function | Catch clause | Location |
+|---|---|---|
+| `getUserTier` | `catch { return 'free'; }` | `tier.ts:257-258` |
+| `getTierFromRequest` | `catch { return 'free'; }` | `tier.ts:322-323` |
+
+`resolveAccessContext` wraps `getTierFromRequest` at `tier.ts:181-185` — same `catch { return free-tier context }` pattern.
+
+On DB unreachability, `loadProGrantedEmailsFromDb` also falls back to an empty grant set (not an exception propagation) — `admin-emails.ts:71-75`.
+
+**Fail-closed posture: PASS.** No path exists where an error escalates a user above `'free'`.
+
 ## Section 4 — UI Affordances
 ## Section 5 — Marketing Copy Alignment
 ## Section 6 — Runtime Probes
