@@ -93,6 +93,109 @@ Classification:
 - Cross-check test for `PRO_STRATEGIES` → **LEAK** (silent drift risk: strategies can be added/removed from `PRO_STRATEGIES` with no test catching it)
 
 ## Section 2 — Server-Side Gates
+
+### Tier-Aware Routes
+
+Step 1 grep (`getTierFromRequest|getUserTier|resolveAccessContext|resolveAccessContextFromCookies|filterSignalByTier|meetsMinimumTier|TIER_SYMBOLS|TIER_DELAY_MS|TIER_HISTORY_DAYS|PRO_PREMIUM_MIN_CONFIDENCE`) deduped to these API route files:
+
+```
+apps/web/app/api/alert-rules/route.ts
+apps/web/app/api/keys/route.ts
+apps/web/app/api/consensus/route.ts
+apps/web/app/api/explain/route.ts
+apps/web/app/api/premium-signals/chart/route.ts
+apps/web/app/api/premium-signals/route.ts
+apps/web/app/api/strategy-breakdown/route.ts
+apps/web/app/api/v1/signals/route.ts
+apps/web/app/api/signal-of-the-day/route.ts
+apps/web/app/api/auth/session/route.ts
+apps/web/app/api/signals/equity/route.ts
+apps/web/app/api/signals/route.ts
+```
+
+(Non-route files excluded: page.tsx components, test files, pricing page.)
+
+### Gate Matrix
+
+| Route | Method | Tier resolution call | What it gates | Default on error / free caller |
+|---|---|---|---|---|
+| `/api/alert-rules` | GET | none — session only | read own rules (no tier gate) | 401 if no session |
+| `/api/alert-rules` | POST | `getTierFromRequest` (line 38) | creating >3 active rules requires Pro | 402 + `upgradeRequiredBody` (canonical) |
+| `/api/keys` | GET | none — no auth required | lists masked keys (no tier gate on read) | none — open |
+| `/api/keys` | POST | `getTierFromRequest` (line 40) | API key creation is Pro-only | 402 + `upgradeRequiredBody` (canonical) |
+| `/api/consensus` | GET | `resolveAccessContext` (line 48) | passes `ctx` into `getTrackedSignals`; tier applies inside tracked-signals (symbol + confidence filters); no hard reject | 500 on resolver failure; free sees tier-filtered signals |
+| `/api/explain` | GET | `getTierFromRequest` (line 30) via `enforceExplainQuota` | Pro bypass; free/anon capped at 10 calls/24h | 402 + `upgradeRequiredBody` (canonical) |
+| `/api/explain` | POST | same as GET via `enforceExplainQuota` | same quota gate | 402 + `upgradeRequiredBody` (canonical) |
+| `/api/premium-signals` | GET | `resolveAccessContext` (line 9) | `unlockedStrategies.size <= 1` → returns `{ signals: [], locked: true }` with **200 OK** | 200 + `{ signals: [], locked: true }` — NO 402/403 |
+| `/api/premium-signals/chart` | GET | `resolveAccessContext` (line 18) | filters premium strategies (all except `classic`); 0 premium → 403 | 403 + `{ error: 'locked' }` — uses custom shape, not `upgradeRequiredBody` — **COPY MISMATCH** |
+| `/api/strategy-breakdown` | GET | `resolveAccessContext` (line 14) | filters rows to `unlockedStrategies`; free sees only `classic` row | no rejection — returns filtered subset with 200 |
+| `/api/v1/signals` | GET | `getTierFromRequest` (line 73) + `resolveAccessContext` (line 137) | symbol allowlist, 15-min delay, confidence band hide (`PRO_PREMIUM_MIN_CONFIDENCE`) | 200 with tier-filtered set; error path returns `{ ok: true, count: 0, signals: [] }` (no 4xx) |
+| `/api/signal-of-the-day` | GET | `resolveAccessContext` (line 149) | passes `ctx` to `getTrackedSignals`; tier filters inside | 200 empty payload if no signals; no hard tier reject |
+| `/api/auth/session` | GET | `getUserTier` (line 23, import) | returns tier in session payload for client use; does not gate the route itself | 200 + `{ data: null }` if no session |
+| `/api/signals/equity` | GET | `PRO_PREMIUM_MIN_CONFIDENCE` (line 37) as band filter only | band param `premium`/`standard` filters confidence locally; no caller-tier check | 200 with all resolved signals — **no caller-tier gate** |
+| `/api/signals` | GET | `getUserTier` (line 42) + `filterSignalByTier` (line 110, 149) + `TIER_DELAY_MS` | symbol allowlist, TP2/TP3 masking, delay; `splitDelayed` populates `lockedSignals` | 200 with tier-filtered + locked stubs; no 4xx for free |
+
+### Routes Reading Signals Without Gate (Step 3)
+
+Step 3 grep (`getSignals\(|getTrackedSignals\(|listPremiumSignalsSince\(|recordNewSignals\(|signal_history`) in `apps/web/app/api`:
+
+| File:Line | Function called | Classification |
+|---|---|---|
+| `apps/web/app/api/cron/signals/route.ts:51` | `getSignals(` inside `recordNewSignals` | OK (cron) — guarded by `CRON_SECRET` bearer auth at line 27-33; fails closed in production |
+| `apps/web/app/api/cron/telegram/route.ts:47` | `signal_history` raw SQL | OK (cron) — guarded by `CRON_SECRET` bearer auth at line 14-18 |
+| `apps/web/app/api/cron/social/weekly/route.ts:30,37` | `signal_history` raw SQL | OK (cron) — guarded by `CRON_SECRET` at line 8 |
+| `apps/web/app/api/cron/social/daily/route.ts:27` | `signal_history` raw SQL | OK (cron) — guarded by `CRON_SECRET` at line 8 |
+| `apps/web/app/api/consensus/route.ts:51,52` | `getTrackedSignals(` | OK — tier context passed via `resolveAccessContext` at line 48; signals are tier-filtered inside `getTrackedSignals` |
+| `apps/web/app/api/premium-signals/route.ts:19` | `listPremiumSignalsSince(` | OK — guarded by `resolveAccessContext` + strategy-count check at line 10; returns empty + `locked:true` at line 11-13 |
+| `apps/web/app/api/v1/signals/route.ts:148` | `getTrackedSignals(` | OK — tier gate applied via `applyTierGate` before and `TIER_SYMBOLS`/`TIER_DELAY_MS`/`PRO_PREMIUM_MIN_CONFIDENCE` filters inline |
+| `apps/web/app/api/og/summary/route.tsx:23` | `signal_history` raw SQL | OK (intentionally public) — OG image for social sharing; only aggregated win-rate/PnL stats, no individual signal data |
+| `apps/web/app/api/og/track-record/route.tsx:16` | `signal_history` raw SQL | OK (intentionally public) — same as og/summary; aggregated stats only for OG image |
+| `apps/web/app/api/prices/stream/route.ts:116` | `getSignals(` inside `fetchRealSignals` | **LEAK** — SSE stream calls `getSignals({})` with no tier context; all signals (including high-confidence premium-band) are emitted in the stream to any caller without auth or tier check. See risk/gate-state comment acknowledges signal_history is "safe to expose" but this is the live TA engine, not aggregate stats. |
+| `apps/web/app/api/signal-of-the-day/route.ts:49` | `getTrackedSignals(` | OK — `resolveAccessContext` at line 149 passes `ctx`; tier-filtered |
+| `apps/web/app/api/telegram/webhook/route.ts:141` | `getTrackedSignals(` | OK (intentionally public) — Telegram webhook; `handleSignals` passes no `ctx` (no tier arg), so free-tier `classic` strategy only; intentional per code comment "Intentionally no license ctx — Telegram broadcasts are public, so only the free classic strategy is emitted" (line 139-140) |
+| `apps/web/app/api/signals/record/route.ts:13` | `getSignals(` | **LEAK** — POST/GET with no auth guard whatsoever (no session check, no CRON_SECRET); any caller can trigger a `recordSignalAsync` write to `signal_history`. Not a data-read leak but a write-gate leak — external actors can pollute `signal_history`. |
+| `apps/web/app/api/signals/public/route.ts:16` | `getTrackedSignals(` | OK (intentionally public) — hardcodes `getStrategiesForTier('free')` ctx; uses `toTeaser()` to strip id/entry/stops; marketing landing teaser feed |
+| `apps/web/app/api/signals/accuracy-context/route.ts:14` | `signal_history` via `readHistoryAsync` | OK (intentionally public) — returns aggregated accuracy stats per symbol/timeframe; no individual signal row exposed |
+| `apps/web/app/api/demo/telegram/route.ts:57` | `getSignals(` | **LEAK** — POST with only rate-limit-by-chatId protection (in-memory, not persistent); no auth, no tier check; sends full signal including `entry`, `takeProfit1`, `stopLoss` to any supplied Telegram chatId. Any caller with a valid-format chatId can pull a complete signal. |
+| `apps/web/app/api/risk/gate-state/route.ts:6` | `signal_history` (comment only) | OK (intentionally public) — comment explains reasoning; route calls `fetchGateState()` which derives regime/drawdown/streak from signal_history aggregate stats, not raw rows |
+
+### v1 Public API Cache Header Check (Step 4)
+
+File: `apps/web/app/api/v1/signals/route.ts`
+
+- `X-TradeClaw-Tier` header: SET at line 77 — `"X-TradeClaw-Tier": tier` — confirmed.
+- `Vary: Cookie` header: SET at line 79 — `Vary: "Cookie"` — confirmed. CDN will key the cache on the Cookie header, so a free session and a pro session will not share a cache slot.
+- `Cache-Control`: `"public, s-maxage=60"` (line 75) — shared across tiers. The `Vary: Cookie` mitigates cross-tier poisoning for browser sessions. However: API key callers send the key as an `Authorization` header or query param, NOT as a Cookie. If two requests arrive with different tiers but no Cookie (API key callers), the CDN may serve the same cached response. `Vary` does not cover `Authorization`. This is a **conditional LEAK** — only affects API key callers hitting an edge CDN cache. Does not apply to Railway's Node server (no CDN layer), but matters if a CDN proxy is added.
+
+Classification: **CONDITIONAL LEAK** (cache-header mismatch for API-key callers at a CDN edge; not currently exploitable on Railway without a CDN).
+
+### Premium-Signals Pro-Only Check (Step 5)
+
+**`/api/premium-signals/route.ts`** (line 9-13):
+- Calls `resolveAccessContext(req)`
+- Gate: `access.unlockedStrategies.size <= 1` (i.e., only `classic` unlocked = free tier)
+- Response for free: `{ signals: [], locked: true }` with HTTP **200** — no 402/403
+- Classification: **COPY MISMATCH** — does not use `upgradeRequiredBody`; silently returns empty set instead of an upgrade prompt
+
+**`/api/premium-signals/chart/route.ts`** (line 18-22):
+- Calls `resolveAccessContext(req)`
+- Gate: filters strategies to those that are NOT `classic`; if none → rejects
+- Response for free: `{ error: 'locked' }` with HTTP **403** — does not use `upgradeRequiredBody`
+- Classification: **COPY MISMATCH** — custom error shape, no upgrade hint in response body
+
+### Dead-Code Path Check (Step 6)
+
+```bash
+rg -n "insertSignals\(" apps/web   # → 0 results
+rg -n "live_signals" apps/web      # → only migrations/002_live_signals.sql,
+                                   #   migrations/021_drop_live_signals.sql,
+                                   #   apps/web/app/api/cron/signals/route.ts:53 (comment only)
+```
+
+`insertSignals()` has 0 callers in the entire `apps/web` tree. `live_signals` has no runtime references outside migration files and a single comment in the cron route. Per workspace CLAUDE.md, table is empty (0 rows) — to be verified in Section 6.
+
+Classification: **DEAD CODE** — `apps/web/lib/signal-repo.ts` → `insertSignals()` is uncalled. `live_signals` table + `002_live_signals.sql` are superseded by `021_drop_live_signals.sql`. Add to Section 8 follow-up.
+
 ## Section 3 — Stripe Lifecycle & Pro Grants
 ## Section 4 — UI Affordances
 ## Section 5 — Marketing Copy Alignment
