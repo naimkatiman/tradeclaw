@@ -196,6 +196,112 @@ rg -n "live_signals" apps/web      # → only migrations/002_live_signals.sql,
 
 Classification: **DEAD CODE** — `apps/web/lib/signal-repo.ts` → `insertSignals()` is uncalled. `live_signals` table + `002_live_signals.sql` are superseded by `021_drop_live_signals.sql`. Add to Section 8 follow-up.
 
+### TradingSignal Surface
+
+Source: `packages/signals/src/types.ts:5-32`
+
+`TradingSignal` has **20 fields** (13 required, 7 optional).
+
+Required fields:
+1. `id: string`
+2. `symbol: string`
+3. `direction: Direction`
+4. `confidence: number`
+5. `entry: number`
+6. `stopLoss: number`
+7. `takeProfit1: number`
+8. `takeProfit2: number | null`
+9. `takeProfit3: number | null`
+10. `indicators: IndicatorSummary`
+11. `timeframe: Timeframe`
+12. `timestamp: string`
+13. `status: SignalStatus`
+
+Optional fields:
+14. `source?: 'real' | 'fallback'`
+15. `dataQuality?: 'real' | 'synthetic'`
+16. `atrCalibration?: { multiplier: number; confidence: 'low' | 'medium' | 'high' }`
+17. `entryAtr?: number`
+18. `atrMultiplier?: number`
+19. `skill?: string`
+20. `strategyId?: string`
+
+`IndicatorSummary` (source: `packages/signals/src/types.ts:34-45`) has 8 sub-fields — 6 required, 2 optional:
+- Required: `rsi`, `macd`, `ema`, `bollingerBands`, `stochastic`, `support`, `resistance`
+- Optional: `adx`, `volume`
+
+Note: `support` and `resistance` are arrays; they count as one field each for the coverage table below.
+
+### Field-Level Mask Coverage
+
+`filterSignalByTier` source: `apps/web/lib/tier.ts:266-298`.
+Advertising source: `apps/web/lib/stripe-tiers.ts:38-63`.
+
+Free advertised: "TP1 target only" (line 41), "6 symbols" (line 40), "15-minute delayed signals" (line 42).
+Pro advertised: "TP1, TP2, TP3 + Stop Loss" (line 58), "Multi-timeframe analysis (RSI, EMA, MACD, Bollinger, Stochastic)" (line 57).
+
+| Field | Pro sees | Free sees | Mask enforced in filterSignalByTier? | Classification |
+|---|---|---|---|---|
+| `id` | full value | full value | no mask | tier-agnostic — identity field, no trade value |
+| `symbol` | full value | full value (already filtered by allowlist at line 271) | symbol-level null return, not field mask | tier-agnostic — allowlist gate is correct mechanism |
+| `direction` | full value | full value | no mask | tier-agnostic — direction alone is actionable but disclosed in LockedSignalStub too; deliberate design |
+| `confidence` | full value | full value (band capped at <85 by null-return at line 275) | band gate returns null, not field mask | tier-agnostic for values that pass the band gate; gate is correct mechanism |
+| `entry` | full value | **full value** | **no mask** | **LEAK** — copy says free gets "TP1 target only"; entry price is equally or more actionable than TP1. Not masked. |
+| `stopLoss` | full value | **full value** | **no mask** | **LEAK** — copy says "TP1, TP2, TP3 + Stop Loss" is Pro-only. `stopLoss` passes through to free unmasked. |
+| `takeProfit1` | full value | full value | no mask needed | tier-agnostic — advertised explicitly as a free-tier feature |
+| `takeProfit2` | full value | `null` | masked at tier.ts:283 | OK — enforced |
+| `takeProfit3` | full value | `null` | masked at tier.ts:284 | OK — enforced |
+| `indicators.rsi` | full value | **full value** | **no mask** | **LEAK** — "RSI" is listed as a Pro multi-timeframe indicator in copy (stripe-tiers.ts:57). Passes through to free unmasked. |
+| `indicators.macd` | full value | zeroed (`{ histogram: 0, signal: 'neutral' }`) | masked at tier.ts:291 | OK — zeroed |
+| `indicators.ema` | full value | **full value** | **no mask** | **LEAK** — "EMA" is listed as a Pro indicator in copy (stripe-tiers.ts:57). Passes through to free unmasked. |
+| `indicators.bollingerBands` | full value | zeroed (`{ position: 'middle', bandwidth: 0 }`) | masked at tier.ts:292 | OK — zeroed |
+| `indicators.stochastic` | full value | zeroed (`{ k: 0, d: 0, signal: 'neutral' }`) | masked at tier.ts:293 | OK — zeroed |
+| `indicators.support` | full value | **full value** | **no mask** | LEAK candidate — support levels are price data; not mentioned in either tier's copy, but revealing S/R levels to free users exposes TA output not attributed to any free feature. Low severity. |
+| `indicators.resistance` | full value | **full value** | **no mask** | LEAK candidate — same as `support`; no copy mention, passes through. Low severity. |
+| `indicators.adx` | full value | **full value** | **no mask** | LEAK candidate — optional field, present when emitted by TA engine. Not mentioned in Pro copy. Passes through unmasked. Low severity. |
+| `indicators.volume` | full value | **full value** | **no mask** | LEAK candidate — optional volume ratio field. Not mentioned in free copy. Passes through unmasked. Low severity. |
+| `timeframe` | full value | full value | no mask | tier-agnostic — timeframe metadata, no trade value |
+| `timestamp` | full value | full value (delay applied upstream in `/api/signals` route via `splitDelayed`, not in this function) | no mask here | tier-agnostic within `filterSignalByTier`; delay enforced at route layer |
+| `status` | full value | full value | no mask | tier-agnostic — signal lifecycle metadata, no trade value |
+| `source` | full value | full value | no mask | tier-agnostic — internal metadata tag |
+| `dataQuality` | full value | full value | no mask | tier-agnostic — internal quality tag |
+| `atrCalibration` | full value | **full value** | **no mask** | LEAK candidate — exposes calibration multiplier and confidence used for SL sizing. Not advertised as either tier feature. Passes through. Low severity. |
+| `entryAtr` | full value | **full value** | **no mask** | LEAK candidate — ATR value at signal time; complements `entry` and `stopLoss` for position sizing. Not advertised as either tier feature. Low severity. |
+| `atrMultiplier` | full value | **full value** | **no mask** | LEAK candidate — multiplier applied at signal time. Same classification as `entryAtr`. Low severity. |
+| `skill` | full value | full value | no mask | tier-agnostic — internal agent metadata |
+| `strategyId` | full value | full value | no mask | tier-agnostic — free callers only see `classic`-strategy signals due to upstream strategy filter; value will always be `classic` for free |
+
+**Summary: 20 TradingSignal fields, 20 rows in coverage table.**
+
+High-severity LEAK (copy promise broken):
+- `entry` — full entry price passed to free; copy implies only TP1 is unlocked
+- `stopLoss` — full SL passed to free; copy says SL is Pro-only ("TP1, TP2, TP3 + Stop Loss")
+- `indicators.rsi` — full RSI passed to free; copy says RSI is Pro multi-timeframe feature
+- `indicators.ema` — full EMA (ema20, ema50, ema200) passed to free; copy says EMA is Pro feature
+
+Low-severity LEAK candidates (no copy promise, but silent TA data exposure):
+- `indicators.support`, `indicators.resistance`, `indicators.adx`, `indicators.volume`
+- `atrCalibration`, `entryAtr`, `atrMultiplier`
+
+### LockedSignalStub Narrowness Check
+
+Source: `apps/web/lib/tier.ts:70-99`
+
+`LockedSignalStub` interface (lines 70-79): 7 fields.
+1. `id: string`
+2. `symbol: string`
+3. `direction: 'BUY' | 'SELL'`
+4. `timeframe: string`
+5. `confidence: number`
+6. `availableAt: string`
+7. `locked: true`
+
+`toLockedStub` (lines 86-100) picks exactly `id, symbol, direction, timeframe, confidence, timestamp` from the full signal (timestamp is used only to compute `availableAt`, not emitted), then adds `locked: true`. The emitted object contains exactly the 7 stub fields — no extras.
+
+**Stub narrowness check: PASS.** The interface has exactly 7 keys. No entry price, no SL, no TP, no indicators. The stub function does not widen the interface.
+
+Note: `toLockedStub` accepts a `Pick<TradingSignal, ...>` that includes `timestamp`. `timestamp` is used only to compute `availableAt` and is not present in the returned object. The stub correctly withholds it.
+
 ## Section 3 — Stripe Lifecycle & Pro Grants
 ## Section 4 — UI Affordances
 ## Section 5 — Marketing Copy Alignment
