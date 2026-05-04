@@ -246,14 +246,14 @@ Pro advertised: "TP1, TP2, TP3 + Stop Loss" (line 58), "Multi-timeframe analysis
 | `symbol` | full value | full value (already filtered by allowlist at line 271) | symbol-level null return, not field mask | tier-agnostic — allowlist gate is correct mechanism |
 | `direction` | full value | full value | no mask | tier-agnostic — direction alone is actionable but disclosed in LockedSignalStub too; deliberate design |
 | `confidence` | full value | full value (band capped at <85 by null-return at line 275) | band gate returns null, not field mask | tier-agnostic for values that pass the band gate; gate is correct mechanism |
-| `entry` | full value | **full value** | **no mask** | **LEAK** — copy says free gets "TP1 target only"; entry price is equally or more actionable than TP1. Not masked. |
-| `stopLoss` | full value | **full value** | **no mask** | **LEAK** — copy says "TP1, TP2, TP3 + Stop Loss" is Pro-only. `stopLoss` passes through to free unmasked. |
+| `entry` | full value | **full value** | **no mask** | **AMBIGUOUS** — implementer flagged as LEAK but copy never says entry is Pro-only. "TP1 target only" refers to TP levels; entry is the baseline field needed to act on any signal. Mask author's intent (entry not masked) is consistent with this reading. Conservative-policy LEAK at most; not a clear copy-vs-code gap. |
+| `stopLoss` | full value | **full value** | **no mask** | **LEAK (high)** — Pro copy says "TP1, TP2, TP3 + Stop Loss"; free copy says "TP1 target only" (no SL mention). The omission is structurally parallel to TP2/TP3 which ARE masked. `stopLoss` passes through to free unmasked. Cleanest copy-vs-code gap in this section. |
 | `takeProfit1` | full value | full value | no mask needed | tier-agnostic — advertised explicitly as a free-tier feature |
 | `takeProfit2` | full value | `null` | masked at tier.ts:283 | OK — enforced |
 | `takeProfit3` | full value | `null` | masked at tier.ts:284 | OK — enforced |
-| `indicators.rsi` | full value | **full value** | **no mask** | **LEAK** — "RSI" is listed as a Pro multi-timeframe indicator in copy (stripe-tiers.ts:57). Passes through to free unmasked. |
+| `indicators.rsi` | full value | **full value** | **no mask** | **AMBIGUOUS** — Pro copy lists "Multi-timeframe analysis (RSI, EMA, MACD, Bollinger, Stochastic)". Differentiator keyword is "Multi-timeframe", not just the indicator names. Mask author explicitly chose to zero MACD/BB/Stoch but leave RSI/EMA — author's intent is RSI/EMA = baseline single-TF indicators free can see. Copy clarity issue, not a clean leak. |
 | `indicators.macd` | full value | zeroed (`{ histogram: 0, signal: 'neutral' }`) | masked at tier.ts:291 | OK — zeroed |
-| `indicators.ema` | full value | **full value** | **no mask** | **LEAK** — "EMA" is listed as a Pro indicator in copy (stripe-tiers.ts:57). Passes through to free unmasked. |
+| `indicators.ema` | full value | **full value** | **no mask** | **AMBIGUOUS** — same as RSI: "Multi-timeframe" is the differentiator. Mask author left EMA un-zeroed alongside RSI, signalling baseline-indicator intent. Copy clarity issue. |
 | `indicators.bollingerBands` | full value | zeroed (`{ position: 'middle', bandwidth: 0 }`) | masked at tier.ts:292 | OK — zeroed |
 | `indicators.stochastic` | full value | zeroed (`{ k: 0, d: 0, signal: 'neutral' }`) | masked at tier.ts:293 | OK — zeroed |
 | `indicators.support` | full value | **full value** | **no mask** | LEAK candidate — support levels are price data; not mentioned in either tier's copy, but revealing S/R levels to free users exposes TA output not attributed to any free feature. Low severity. |
@@ -271,15 +271,18 @@ Pro advertised: "TP1, TP2, TP3 + Stop Loss" (line 58), "Multi-timeframe analysis
 | `skill` | full value | full value | no mask | tier-agnostic — internal agent metadata |
 | `strategyId` | full value | full value | no mask | tier-agnostic — free callers only see `classic`-strategy signals due to upstream strategy filter; value will always be `classic` for free |
 
-**Summary: 20 TradingSignal fields, 20 rows in coverage table.**
+**Summary: 20 TradingSignal top-level fields + 8 IndicatorSummary sub-fields broken out = 28 coverage rows.**
 
-High-severity LEAK (copy promise broken):
-- `entry` — full entry price passed to free; copy implies only TP1 is unlocked
-- `stopLoss` — full SL passed to free; copy says SL is Pro-only ("TP1, TP2, TP3 + Stop Loss")
-- `indicators.rsi` — full RSI passed to free; copy says RSI is Pro multi-timeframe feature
-- `indicators.ema` — full EMA (ema20, ema50, ema200) passed to free; copy says EMA is Pro feature
+After spec-review reconciliation:
 
-Low-severity LEAK candidates (no copy promise, but silent TA data exposure):
+**High-severity LEAK (clean copy-vs-code gap):**
+- `stopLoss` — Pro copy lists Stop Loss as a Pro feature; free copy says "TP1 target only" (no SL mention). Structurally parallel to TP2/TP3 which ARE masked. Not masked → leak.
+
+**Ambiguous (flagged for Section 5 copy-clarity discussion, NOT high-severity leaks):**
+- `entry` — copy never says entry is Pro-only; baseline field needed to act on a signal. Mask author's intent supports current behavior. Conservative-policy LEAK at most.
+- `indicators.rsi`, `indicators.ema` — Pro copy says "Multi-timeframe analysis (RSI, EMA, MACD, Bollinger, Stochastic)". Mask author zeroed MACD/BB/Stoch but explicitly left RSI/EMA. Most plausible reading: "Multi-timeframe" is the differentiator, RSI/EMA are baseline indicators. Recommend tightening the copy in Section 5 instead of the mask.
+
+**Low-severity LEAK candidates (no copy promise, but silent TA data exposure):**
 - `indicators.support`, `indicators.resistance`, `indicators.adx`, `indicators.volume`
 - `atrCalibration`, `entryAtr`, `atrMultiplier`
 
