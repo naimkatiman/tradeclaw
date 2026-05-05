@@ -235,15 +235,17 @@ Tasks are serial, not parallel. Each task is one commit. No commit touches >15 f
 
 **Commit message:** `chore(db): drop strategy_licenses tables`
 
-**Phase E status — 2026-05-05:**
-- Migration file authored at `apps/web/migrations/025_drop_license_tables.sql`.
-- **Not yet applied to Railway prod.** Awaiting explicit `proceed phase E` from
-  Zaky per pre-flight gate 3.
-- Pre-flight gates 1 and 2: Phase D shipped 2026-05-01 (>4 days live, no
-  rollback observed); active license count not yet queried — run
-  `SELECT count(*) FROM strategy_licenses WHERE expires_at > NOW();` against
-  Railway before applying. If count > 0, decide grandfather vs strand before
-  proceeding.
+**Phase E status — 2026-05-05: APPLIED.**
+- Migration `apps/web/migrations/025_drop_license_tables.sql` applied to
+  Railway prod via `railway connect Postgres`.
+- Pre-flight gates met:
+  1. Phase D shipped 2026-05-01, >4 days live with no rollback.
+  2. `SELECT count(*) FROM strategy_licenses` returned 0;
+     `SELECT count(*) FROM strategy_license_grants` returned 0 — nothing to
+     strand.
+  3. Explicit proceed from Zaky.
+- Verification: `SELECT to_regclass('public.strategy_licenses'), to_regclass('public.strategy_license_grants');`
+  both returned NULL post-apply.
 
 ---
 

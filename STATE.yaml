@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-05-05T13:00:00+08:00
+updated: 2026-05-05T13:30:00+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -1909,3 +1909,15 @@ next_actions:
       Rec 7: added ?from=<surface> to all four orphan CTAs (tier-banner, contact-sales,
       DashboardClient, signin). Verification: targeted Jest passes (276/302; the 3 vitest-style
       failures are pre-existing and unrelated). Five surgical commits 81dd2300..0f87a907 on main.
+
+  - id: TC-170
+    title: "Apply Phase E destructive migration — drop strategy_licenses + strategy_license_grants on Railway prod"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Applied 2026-05-05 via `cat apps/web/migrations/025_drop_license_tables.sql | railway connect Postgres`.
+      Pre-flight gates met: Phase D had been live since 2026-05-01 (>4 days, no rollback);
+      strategy_licenses had 0 rows; strategy_license_grants had 0 rows; explicit user proceed.
+      Both DROP TABLE statements returned cleanly. Post-apply verification:
+      SELECT to_regclass('public.strategy_licenses'), to_regclass('public.strategy_license_grants');
+      both returned NULL. monetization-consolidation.md Phase E status footer updated to APPLIED.
