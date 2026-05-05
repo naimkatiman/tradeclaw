@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { computeLeaderboard } from '../../../lib/signal-history';
+import { computeLeaderboard, recomputeOverall, type SignalHistoryRecord } from '../../../lib/signal-history';
 import { getCachedHistory } from '../../../lib/signal-history-cache';
 import { getLeaderboard } from '../../../lib/leaderboard-cache';
+import { getResolvedSlice, parseScope } from '../../../lib/signal-slice';
+import { parseCategoryFilter, symbolsForCategory } from '../../lib/symbol-config';
 
 const VALID_STRATEGIES = new Set([
   'classic', 'regime-aware', 'hmm-top3', 'vwap-ema-bb', 'full-risk',
@@ -28,24 +30,48 @@ export async function GET(request: NextRequest) {
       : 'hitRate';
 
     const pairFilter = searchParams.get('pair')?.toUpperCase();
+    const scope = parseScope(searchParams.get('scope'));
+    const category = parseCategoryFilter(searchParams.get('category'));
     const rawStrategy = searchParams.get('strategyId');
     const strategyFilter = rawStrategy && VALID_STRATEGIES.has(rawStrategy)
       ? rawStrategy
       : undefined;
 
-    // Strategy-filtered variant recomputes from history; the unfiltered path
-    // still uses the precomputed cache.
-    const data = strategyFilter
-      ? computeLeaderboard(await getCachedHistory(), period, sortBy, strategyFilter)
-      : await getLeaderboard(period, sortBy);
+    let detailHistory: SignalHistoryRecord[] | null = null;
+
+    // Strategy-filtered and free-scope variants recompute from history; the
+    // unfiltered Pro path still uses the precomputed period:sort cache.
+    const data = await (async () => {
+      if (scope === 'free') {
+        const slice = await getResolvedSlice({ scope, period });
+        detailHistory = slice.periodFiltered;
+        return computeLeaderboard(slice.periodFiltered, 'all', sortBy, strategyFilter);
+      }
+      if (strategyFilter) {
+        return computeLeaderboard(await getCachedHistory(), period, sortBy, strategyFilter);
+      }
+      return getLeaderboard(period, sortBy);
+    })();
+
+    const responseData = !pairFilter && category !== 'all'
+      ? (() => {
+          const allowed = new Set(symbolsForCategory(category));
+          const assets = data.assets.filter(a => allowed.has(a.pair));
+          return {
+            ...data,
+            assets,
+            overall: recomputeOverall(assets, data.overall.lastUpdated),
+          };
+        })()
+      : data;
 
     if (pairFilter) {
-      const asset = data.assets.find(a => a.pair === pairFilter);
+      const asset = responseData.assets.find(a => a.pair === pairFilter);
       if (!asset) {
         return NextResponse.json({ error: `No data for pair: ${pairFilter}` }, { status: 404 });
       }
 
-      const history = await getCachedHistory();
+      const history = detailHistory ?? await getCachedHistory();
       const pairRecords = history
         .filter(r => r.pair === pairFilter)
         .slice(0, 50);
@@ -55,7 +81,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.json(data, {
+    return NextResponse.json(responseData, {
       headers: { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300' },
     });
   } catch {

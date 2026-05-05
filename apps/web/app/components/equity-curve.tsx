@@ -5,6 +5,7 @@ import { Lock } from 'lucide-react';
 import { InfoHint } from '@/components/InfoHint';
 import { STAT_HINTS } from '@/lib/stat-hints';
 import { FREE_HISTORY_DAYS } from '@/lib/tier-client';
+import type { CategoryFilter } from '@/app/lib/symbol-config';
 
 interface EquityPoint {
   timestamp: number;
@@ -287,9 +288,10 @@ type EquityScope = 'pro' | 'free';
 interface EquityCurveProps {
   period?: '7d' | '30d' | 'all';
   scope?: EquityScope;
+  category?: CategoryFilter;
 }
 
-export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps) {
+export function EquityCurve({ period = 'all', scope = 'pro', category = 'all' }: EquityCurveProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [points, setPoints] = useState<EquityPoint[]>([]);
   const [summary, setSummary] = useState<EquitySummary | null>(null);
@@ -300,7 +302,9 @@ export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps)
     async function load() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/signals/equity?period=${period}&scope=${scope}`);
+        const params = new URLSearchParams({ period, scope });
+        if (category !== 'all') params.set('category', category);
+        const res = await fetch(`/api/signals/equity?${params.toString()}`);
         if (!res.ok) return;
         const data = await res.json();
         setPoints(data.points ?? []);
@@ -312,7 +316,7 @@ export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps)
       }
     }
     load();
-  }, [period, scope]);
+  }, [period, scope, category]);
 
   const handleHover = useCallback((data: TooltipData | null) => {
     setTooltip(data);

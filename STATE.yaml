@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-04-20T22:33:19+08:00
+updated: 2026-05-05T08:18:42+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -1855,3 +1855,17 @@ next_actions:
       weakening trust; annual Pro pricing is advertised but not selectable in UI. Recommended next move:
       decide one paid story (TradeClaw Pro vs Alpha Screener), fix production checkout wiring, then reframe
       proof around expectancy/P&L and real-time delivery rather than win-rate alone.
+
+  - id: TC-167
+    title: "Track record asset-class tabs — All / Majors / Thematic display segmentation"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete 2026-05-05. Added display-only All / Majors / Thematic segmentation for /track-record:
+      symbol-config category metadata, category-aware history / leaderboard / equity reads, UI tab strip,
+      pair-over-category conflict handling, and focused unit/API tests. Current tracked universe is 26
+      symbols, so buckets are 8 Majors + 18 Thematic. Engine, cron writers, paper-trading execution, and
+      schema remain untouched. Targeted Jest tests pass; local API smoke checks pass for category filters
+      and pair-over-category conflict handling; npm run build passes. npm run lint remains blocked by
+      pre-existing unrelated lint errors outside this change; direct web tsc remains blocked by a pre-existing
+      WelcomeClient Push API Uint8Array type issue.

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isCountedResolved, type SignalHistoryRecord } from '../../../../lib/signal-history';
 import { PRO_PREMIUM_MIN_CONFIDENCE } from '../../../../lib/tier';
 import { getResolvedSlice, parseScope, type SignalScope } from '../../../../lib/signal-slice';
+import { parseCategoryFilter, symbolsForCategory } from '../../../lib/symbol-config';
 
 export type EquityScope = SignalScope;
 
@@ -109,21 +110,28 @@ export async function GET(request: NextRequest) {
     // record is intentionally not gated by caller tier — the comparison is
     // the marketing pitch.
     const scope = parseScope(searchParams.get('scope'));
+    const category = parseCategoryFilter(searchParams.get('category'));
 
     // Shared slice — same row set as /api/signals/history. Win-rate and
     // resolved counts must byte-match across both endpoints.
     const slice = await getResolvedSlice({ scope, period });
+    const categorySymbols = category !== 'all'
+      ? new Set(symbolsForCategory(category))
+      : null;
 
     // Band filter is equity-only. Apply on the resolved set, then recompute
     // counted-resolved (no-op when band='all', filters confidence otherwise).
+    const categoryResolved = categorySymbols
+      ? slice.resolved.filter(r => categorySymbols.has(r.pair))
+      : slice.resolved;
     const resolved = band === 'all'
-      ? slice.resolved
-      : slice.resolved.filter(r => inBand(r, band) && isCountedResolved(r));
+      ? categoryResolved
+      : categoryResolved.filter(r => inBand(r, band) && isCountedResolved(r));
 
     const { points, summary } = computeEquityCurve(resolved);
 
     return NextResponse.json(
-      { points, summary, band, scope },
+      { points, summary, band, scope, category },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',

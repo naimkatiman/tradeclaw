@@ -11,6 +11,7 @@ import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 import { InfoHint } from '@/components/InfoHint';
 import { STAT_HINTS } from '@/lib/stat-hints';
 import { FREE_HISTORY_DAYS, FREE_SYMBOLS } from '@/lib/tier-client';
+import { symbolsForCategory, type CategoryFilter } from '@/app/lib/symbol-config';
 import { EmbedButton } from '../components/embed-button';
 
 type Period = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
@@ -23,6 +24,12 @@ const PERIOD_OPTIONS: { value: Period; label: string; days: number | null }[] = 
   { value: '1y',   label: '1Y',  days: 365 },
   { value: '5y',   label: '5Y',  days: 1825 },
   { value: 'all',  label: 'All', days: null },
+];
+
+const CATEGORY_OPTIONS: { value: CategoryFilter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'majors', label: 'Majors' },
+  { value: 'thematic', label: 'Thematic' },
 ];
 
 /** Periods where the window pre-dates the earliest recorded signal are
@@ -89,6 +96,7 @@ interface LeaderboardData {
     resolvedSignals: number;
     overallHitRate4h: number;
     overallHitRate24h: number;
+    totalPnl: number;
     topPerformer: string;
     worstPerformer: string;
     lastUpdated: number;
@@ -178,6 +186,7 @@ export function TrackRecordClient() {
   // verified outcomes by default — that's the marketing play. Free tab
   // is a comparison view showing what the free experience delivers.
   const [scope, setScope] = useState<Scope>('pro');
+  const [category, setCategory] = useState<CategoryFilter>('all');
   const [period, setPeriod] = useState<Period>('30d');
   const [pairFilter, setPairFilter] = useState<string>('ALL');
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>('ALL');
@@ -192,7 +201,7 @@ export function TrackRecordClient() {
   // on 26 days of data would be a fabrication.
   const [earliestTimestamp, setEarliestTimestamp] = useState<number | null>(null);
 
-  const fetchData = useCallback(async (p: Period, off: number, pair: string, direction: DirectionFilter, s: Scope) => {
+  const fetchData = useCallback(async (p: Period, off: number, pair: string, direction: DirectionFilter, s: Scope, c: CategoryFilter) => {
     setLoading(true);
     try {
       const historyParams = new URLSearchParams({
@@ -202,11 +211,15 @@ export function TrackRecordClient() {
         scope: s,
       });
       if (pair !== 'ALL') historyParams.set('pair', pair);
+      if (c !== 'all') historyParams.set('category', c);
       if (direction !== 'ALL') historyParams.set('direction', direction);
+
+      const leaderboardParams = new URLSearchParams({ period: p, scope: s });
+      if (c !== 'all') leaderboardParams.set('category', c);
 
       const [historyRes, leaderboardRes] = await Promise.allSettled([
         fetch(`/api/signals/history?${historyParams.toString()}`),
-        fetch(`/api/leaderboard?period=${p}`),
+        fetch(`/api/leaderboard?${leaderboardParams.toString()}`),
       ]);
 
       if (historyRes.status === 'fulfilled' && historyRes.value.ok) {
@@ -229,12 +242,12 @@ export function TrackRecordClient() {
   }, []);
 
   useEffect(() => {
-    fetchData(period, offset, pairFilter, directionFilter, scope);
-  }, [period, offset, pairFilter, directionFilter, scope, fetchData]);
+    fetchData(period, offset, pairFilter, directionFilter, scope, category);
+  }, [period, offset, pairFilter, directionFilter, scope, category, fetchData]);
 
   useEffect(() => {
     setOffset(0);
-  }, [period, pairFilter, directionFilter, scope]);
+  }, [period, pairFilter, directionFilter, scope, category]);
 
   const availablePairs = useMemo(() => {
     const fromLeaderboard = leaderboard?.assets.map(a => a.pair) ?? [];
@@ -245,6 +258,28 @@ export function TrackRecordClient() {
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const pages = useMemo(() => pageNumbers(currentPage, totalPages), [currentPage, totalPages]);
+  const freeCategoryHasSymbols = useMemo(() => {
+    if (scope !== 'free' || category === 'all') return true;
+    const freeSet = new Set<string>(FREE_SYMBOLS);
+    return symbolsForCategory(category).some(symbol => freeSet.has(symbol));
+  }, [scope, category]);
+  const categoryCaption = useMemo(() => {
+    if (category === 'majors') {
+      return `${symbolsForCategory('majors').length} highest-liquidity instruments. The cleanest read on strategy quality.`;
+    }
+    if (category === 'thematic') {
+      return `${symbolsForCategory('thematic').length} narrative-driven symbols. Wider coverage, more noise — useful for breadth, not for headline win rate.`;
+    }
+    return scope === 'free'
+      ? `Every free-tier symbol in the last ${FREE_HISTORY_DAYS} days.`
+      : 'Every tracked symbol, full archive.';
+  }, [category, scope]);
+  const noFreeSymbolsInCategory = scope === 'free' && category !== 'all' && !freeCategoryHasSymbols;
+
+  const handleCategoryChange = (nextCategory: CategoryFilter) => {
+    setCategory(nextCategory);
+    setPairFilter('ALL');
+  };
 
   return (
     <div className="relative isolate min-h-[100dvh] overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
@@ -362,6 +397,27 @@ export function TrackRecordClient() {
             </button>
           ))}
         </div>
+
+        {/* Category tabs — display-only segmentation over the same signal history */}
+        <div className="mb-2 flex items-center gap-1 p-1 rounded-lg bg-white/[0.04] w-fit overflow-x-auto max-w-full">
+          {CATEGORY_OPTIONS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => handleCategoryChange(value)}
+              aria-pressed={category === value}
+              className={`px-3 py-1.5 text-xs font-mono font-medium rounded-md transition-all whitespace-nowrap ${
+                category === value
+                  ? 'bg-emerald-500/15 text-emerald-400'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="mb-4 text-xs text-[var(--text-secondary)]">
+          {categoryCaption}
+        </p>
 
         {/* Scope disclaimer — explains what the viewer is looking at */}
         {scope === 'pro' ? (
@@ -504,6 +560,7 @@ export function TrackRecordClient() {
         <EquityCurve
           period={period === '7d' || period === '30d' ? period : 'all'}
           scope={scope}
+          category={category}
         />
 
         {/* Per-Symbol Breakdown */}
@@ -571,7 +628,9 @@ export function TrackRecordClient() {
                   {!loading && leaderboard?.assets.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)]">
-                        No data for this period yet.
+                        {noFreeSymbolsInCategory
+                          ? 'No free-tier symbols in this category.'
+                          : 'No data for this period yet.'}
                       </td>
                     </tr>
                   )}
@@ -717,7 +776,9 @@ export function TrackRecordClient() {
                   {!loading && records.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)]">
-                        {pairFilter !== 'ALL' || directionFilter !== 'ALL'
+                        {noFreeSymbolsInCategory
+                          ? 'No free-tier symbols in this category.'
+                          : pairFilter !== 'ALL' || directionFilter !== 'ALL'
                           ? 'No signals match these filters.'
                           : 'No signals for this period yet.'}
                       </td>

@@ -100,6 +100,10 @@ export type LeaderboardPeriod = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'a
 export interface AssetStats {
   pair: string;
   totalSignals: number;
+  resolved4h: number;
+  resolved24h: number;
+  hits4h: number;
+  hits24h: number;
   hitRate4h: number;
   hitRate24h: number;
   avgConfidence: number;
@@ -134,6 +138,42 @@ export interface StrategyBreakdownRow {
   hitRate24h: number;
   avgConfidence: number;
   avgPnl: number;
+}
+
+export function recomputeOverall(
+  assets: AssetStats[],
+  lastUpdated: number = Date.now(),
+): LeaderboardData['overall'] {
+  const totalSignals = assets.reduce((sum, a) => sum + a.totalSignals, 0);
+  const resolved4h = assets.reduce((sum, a) => sum + a.resolved4h, 0);
+  const resolved24h = assets.reduce((sum, a) => sum + a.resolved24h, 0);
+  const hits4h = assets.reduce((sum, a) => sum + a.hits4h, 0);
+  const hits24h = assets.reduce((sum, a) => sum + a.hits24h, 0);
+  const totalPnl = +assets.reduce((sum, a) => sum + a.totalPnl, 0).toFixed(2);
+
+  const byHitRate = [...assets].sort((a, b) =>
+    b.hitRate24h - a.hitRate24h
+    || b.totalPnl - a.totalPnl
+    || b.totalSignals - a.totalSignals
+    || a.pair.localeCompare(b.pair),
+  );
+  const byWorstHitRate = [...assets].sort((a, b) =>
+    a.hitRate24h - b.hitRate24h
+    || a.totalPnl - b.totalPnl
+    || b.totalSignals - a.totalSignals
+    || a.pair.localeCompare(b.pair),
+  );
+
+  return {
+    totalSignals,
+    resolvedSignals: resolved24h,
+    overallHitRate4h: resolved4h > 0 ? +((hits4h / resolved4h) * 100).toFixed(1) : 0,
+    overallHitRate24h: resolved24h > 0 ? +((hits24h / resolved24h) * 100).toFixed(1) : 0,
+    totalPnl,
+    topPerformer: byHitRate[0]?.pair ?? '—',
+    worstPerformer: byWorstHitRate[0]?.pair ?? '—',
+    lastUpdated,
+  };
 }
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -1059,6 +1099,10 @@ export function computeLeaderboard(
   const assets: AssetStats[] = Array.from(map.entries()).map(([pair, s]) => ({
     pair,
     totalSignals: s.total,
+    resolved4h: s.resolved4h,
+    resolved24h: s.resolved24h,
+    hits4h: s.hits4h,
+    hits24h: s.hits24h,
     hitRate4h: s.resolved4h > 0 ? +((s.hits4h / s.resolved4h) * 100).toFixed(1) : 0,
     hitRate24h: s.resolved24h > 0 ? +((s.hits24h / s.resolved24h) * 100).toFixed(1) : 0,
     avgConfidence: s.total > 0 ? Math.round(s.confSum / s.total) : 0,
@@ -1075,29 +1119,9 @@ export function computeLeaderboard(
     return b.hitRate24h - a.hitRate24h;
   });
 
-  // Use the canonical `isRealOutcome` predicate so expired-zero placeholders
-  // are not counted as resolved losses in the overall hit rate. This keeps
-  // the leaderboard headline numbers aligned with the equity curve.
-  const totalSignals = filtered.length;
-  const resolved4hAll = filtered.filter(r => isRealOutcome(r.outcomes['4h'])).length;
-  const hits4hAll = filtered.filter(r => isRealOutcome(r.outcomes['4h']) && r.outcomes['4h']!.hit).length;
-  const resolved24hAll = filtered.filter(r => isRealOutcome(r.outcomes['24h'])).length;
-  const hits24hAll = filtered.filter(r => isRealOutcome(r.outcomes['24h']) && r.outcomes['24h']!.hit).length;
-
-  const totalPnlAll = +assets.reduce((sum, a) => sum + a.totalPnl, 0).toFixed(2);
-
   return {
     assets,
-    overall: {
-      totalSignals,
-      resolvedSignals: resolved24hAll,
-      overallHitRate4h: resolved4hAll > 0 ? +((hits4hAll / resolved4hAll) * 100).toFixed(1) : 0,
-      overallHitRate24h: resolved24hAll > 0 ? +((hits24hAll / resolved24hAll) * 100).toFixed(1) : 0,
-      totalPnl: totalPnlAll,
-      topPerformer: assets.length > 0 ? assets[0].pair : '—',
-      worstPerformer: assets.length > 0 ? assets[assets.length - 1].pair : '—',
-      lastUpdated: Date.now(),
-    },
+    overall: recomputeOverall(assets),
   };
 }
 
@@ -1157,4 +1181,3 @@ export function computeStrategyBreakdown(
     }))
     .sort((a, b) => b.totalSignals - a.totalSignals);
 }
-
