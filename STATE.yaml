@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-05-05T08:51:37+08:00
+updated: 2026-05-05T13:00:00+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -1886,3 +1886,26 @@ next_actions:
       tier and signal-history CSV; targeted Vitest passes for signal-outcome; npm run build passes.
       Direct web tsc has only the pre-existing WelcomeClient Push API Uint8Array type issue already
       noted in TC-167.
+
+  - id: TC-169
+    title: "Close the 7 recommendations from 2026-05-05 plan-coverage audit (F-009..F-017 + plan hygiene)"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete 2026-05-05. Walked the 7 numbered recommendations from
+      docs/audits/2026-05-05-plans-free-vs-pro-coverage.md.
+      Rec 1: authored docs/plans/2026-05-05-fix-now-free-vs-pro.md as acceptance trail for
+      F-001..F-005 already shipped in commit bb98cadf (TC-168). Rec 2: Phase E migration drafted
+      at apps/web/migrations/025_drop_license_tables.sql (renumbered from plan's 018, taken),
+      gated on user sign-off; monetization-consolidation.md gained a Phase E status footer.
+      Rec 3: authored 2026-05-05-pro-feature-copy-vs-delivery.md mapping every Pro feature
+      bullet in TIER_DEFINITIONS to a code citation (CSV export now ships, F-005 closed).
+      Rec 4: cross-linked paid-funnel design <-> impl and countdown-timer <-> eight-improvements
+      Phase 6. Rec 5: fixed F-009 (v1/signals catch returned 200 -> now 503 upstream_unavailable)
+      and F-016 (Vary: Cookie -> Vary: Cookie, Authorization); test pinned both; plan reconcile
+      note added to pro-paywall-hardening.md. Rec 6: authored 2026-05-05-tier-cleanup.md, fixed
+      F-014 (cleaned stale ./licenses JSDoc above PRO_STRATEGIES), shipped F-017 (PRO_STRATEGIES
+      regression test pins set membership + free/elite/custom inheritance + per-call freshness).
+      Rec 7: added ?from=<surface> to all four orphan CTAs (tier-banner, contact-sales,
+      DashboardClient, signin). Verification: targeted Jest passes (276/302; the 3 vitest-style
+      failures are pre-existing and unrelated). Five surgical commits 81dd2300..0f87a907 on main.
