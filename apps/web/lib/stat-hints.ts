@@ -49,6 +49,16 @@ export const STAT_HINTS = {
   premiumThreshold:
     'Premium tier: signals at or above the high-confidence threshold (currently 80%). Standard tier: everything below. The split is set in tier.ts.',
 
+  // ── R-multiples & expectancy (live) ──────────────────────────
+  avgRWin:
+    'Average R-multiple of winning trades. R = entry-to-stop distance in pct; a +2.0R win realizes 2× the risked amount. Higher is better — a 40% win rate at 2R wins is more profitable than 60% at 1R.',
+  avgRLoss:
+    'Average R-multiple of losing trades. Should sit near -1.0R when stops fill cleanly. Values closer to 0 indicate slippage in your favor; further from 0 indicates gap losses worse than -1R.',
+  expectancyR:
+    'Expected R per trade: winRate × avgRWin + lossRate × avgRLoss. Positive expectancy is the only thing that matters long-run — win rate alone is misleading. +0.10R means each signal is worth about 10% of the risked amount on average.',
+  breakEvenWinRate:
+    'Win-rate the system needs to break even given its observed avgRWin and avgRLoss. If actual win-rate exceeds this, the system has positive expectancy — even if the win-rate is below 50%.',
+
   // ── Backtest-specific ────────────────────────────────────────
   backtestTotalReturn:
     'Total return over the simulated period, computed exactly the same way as the live equity curve so backtest vs live numbers are directly comparable.',

@@ -179,6 +179,139 @@ function pageNumbers(current: number, total: number): (number | null)[] {
 type DirectionFilter = 'ALL' | 'BUY' | 'SELL';
 type Scope = 'pro' | 'free';
 
+interface CategorySnapshot {
+  winRate: number;
+  expectancyR: number | null;
+  totalSignals: number;
+  breakEvenWinRate: number | null;
+}
+
+/**
+ * Side-by-side WR / expectancy comparison across All / Majors / Thematic.
+ * One fetch per category — same cached endpoint as the equity curve, so
+ * cost is one warm hit per category at the s-maxage=60 layer.
+ */
+function CategoryBreakdownRow({
+  period,
+  scope,
+  active,
+  onSelect,
+}: {
+  period: Period;
+  scope: Scope;
+  active: CategoryFilter;
+  onSelect: (c: CategoryFilter) => void;
+}) {
+  const [data, setData] = useState<Record<CategoryFilter, CategorySnapshot | null>>({
+    all: null,
+    majors: null,
+    thematic: null,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      const cats: CategoryFilter[] = ['all', 'majors', 'thematic'];
+      const results = await Promise.allSettled(
+        cats.map(c => {
+          const params = new URLSearchParams({ period, scope });
+          if (c !== 'all') params.set('category', c);
+          return fetch(`/api/signals/equity?${params.toString()}`).then(r => r.ok ? r.json() : null);
+        }),
+      );
+      if (cancelled) return;
+      const next: Record<CategoryFilter, CategorySnapshot | null> = {
+        all: null,
+        majors: null,
+        thematic: null,
+      };
+      cats.forEach((c, i) => {
+        const r = results[i];
+        if (r.status === 'fulfilled' && r.value?.summary) {
+          next[c] = {
+            winRate: r.value.summary.winRate,
+            expectancyR: r.value.summary.expectancyR ?? null,
+            totalSignals: r.value.summary.totalSignals,
+            breakEvenWinRate: r.value.summary.breakEvenWinRate ?? null,
+          };
+        }
+      });
+      setData(next);
+      setLoading(false);
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [period, scope]);
+
+  const cells: { value: CategoryFilter; label: string }[] = [
+    { value: 'all', label: 'All' },
+    { value: 'majors', label: 'Majors' },
+    { value: 'thematic', label: 'Thematic' },
+  ];
+
+  return (
+    <div className="mb-4 grid grid-cols-3 gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-2">
+      {cells.map(({ value, label }) => {
+        const snap = data[value];
+        const isActive = active === value;
+        const winRateBeatsBE = snap && snap.breakEvenWinRate !== null
+          ? snap.winRate >= snap.breakEvenWinRate
+          : snap ? snap.winRate >= 50 : false;
+        return (
+          <button
+            key={value}
+            type="button"
+            onClick={() => onSelect(value)}
+            className={`text-left rounded-lg px-3 py-2 transition-colors ${
+              isActive
+                ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30'
+                : 'hover:bg-white/[0.04]'
+            }`}
+          >
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">{label}</span>
+              {snap && (
+                <span className="text-[9px] font-mono text-zinc-600 tabular-nums">
+                  n={snap.totalSignals.toLocaleString()}
+                </span>
+              )}
+            </div>
+            {loading || !snap ? (
+              <div className="mt-1 h-5 w-16 animate-pulse rounded bg-white/[0.04]" />
+            ) : (
+              <>
+                <div className={`mt-0.5 text-base font-mono font-semibold tabular-nums ${
+                  winRateBeatsBE ? 'text-emerald-400' : 'text-red-400'
+                }`}>
+                  {snap.winRate}%
+                </div>
+                <div className="mt-0.5 flex items-center gap-2 text-[10px] font-mono text-zinc-500">
+                  <span className={
+                    snap.expectancyR !== null && snap.expectancyR > 0
+                      ? 'text-emerald-500'
+                      : snap.expectancyR !== null && snap.expectancyR < 0
+                        ? 'text-red-500'
+                        : ''
+                  }>
+                    {snap.expectancyR !== null
+                      ? `${snap.expectancyR >= 0 ? '+' : ''}${snap.expectancyR.toFixed(2)}R`
+                      : '—'}
+                  </span>
+                  {snap.breakEvenWinRate !== null && (
+                    <span className="text-zinc-600">be {snap.breakEvenWinRate}%</span>
+                  )}
+                </div>
+              </>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function TrackRecordClient() {
   const router = useRouter();
   const tier = useUserTier();
@@ -421,9 +554,19 @@ export function TrackRecordClient() {
             </button>
           ))}
         </div>
-        <p className="mb-4 text-xs text-[var(--text-secondary)]">
+        <p className="mb-3 text-xs text-[var(--text-secondary)]">
           {categoryCaption}
         </p>
+
+        {/* Side-by-side WR + expectancy comparison so the user can see at a
+            glance which category is dragging the headline. Click a cell to
+            switch the active category — same effect as the tabs above. */}
+        <CategoryBreakdownRow
+          period={period}
+          scope={scope}
+          active={category}
+          onSelect={handleCategoryChange}
+        />
 
         {/* Scope disclaimer — explains what the viewer is looking at */}
         {scope === 'pro' ? (

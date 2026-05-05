@@ -27,6 +27,14 @@ export interface EquitySummary {
   winRate: number;
   totalSignals: number;
   sharpeRatio: number | null;
+  /** Average R-multiple of winning trades (pnlPct ÷ riskPct). Null when no SL data on any winner. */
+  avgRWin: number | null;
+  /** Average R-multiple of losing trades (signed, typically ~-1). Null when no SL data on any loser. */
+  avgRLoss: number | null;
+  /** Expectancy in R per trade: winRate * avgRWin + lossRate * avgRLoss. The break-even line for win-rate context. */
+  expectancyR: number | null;
+  /** Win-rate that would make expectancy = 0 given the observed avgRWin / avgRLoss. */
+  breakEvenWinRate: number | null;
 }
 
 function parseBand(raw: string | null): EquityBand {
@@ -40,7 +48,31 @@ function inBand(record: SignalHistoryRecord, band: EquityBand): boolean {
   return true;
 }
 
-function computeEquityCurve(resolved: SignalHistoryRecord[]): {
+/**
+ * Smooth-mode cap: clamp each trade's pnl to ±cap × median(|pnl|) before
+ * compounding. The raw curve is the truth; the smoothed curve answers
+ * "what would the path look like if we discount outliers in both
+ * directions?" — useful for marketing surfaces where one outsized winner
+ * inflates total return and a corresponding mean-reversion drowns the
+ * win-rate. Returns null when fewer than 5 trades or median is zero.
+ */
+function computePnlCap(resolved: SignalHistoryRecord[], multiplier: number): number | null {
+  if (resolved.length < 5) return null;
+  const absPnls = resolved
+    .map(r => Math.abs(r.outcomes['24h']!.pnlPct))
+    .sort((a, b) => a - b);
+  const mid = Math.floor(absPnls.length / 2);
+  const median = absPnls.length % 2 === 0
+    ? (absPnls[mid - 1] + absPnls[mid]) / 2
+    : absPnls[mid];
+  if (median <= 0) return null;
+  return median * multiplier;
+}
+
+function computeEquityCurve(
+  resolved: SignalHistoryRecord[],
+  pnlCap: number | null = null,
+): {
   points: EquityPoint[];
   summary: EquitySummary;
 } {
@@ -52,12 +84,42 @@ function computeEquityCurve(resolved: SignalHistoryRecord[]): {
   let maxDrawdown = 0;
   let wins = 0;
   const returns: number[] = [];
+  let winRSum = 0;
+  let winRCount = 0;
+  let lossRSum = 0;
+  let lossRCount = 0;
 
   for (const r of sorted) {
-    const pnl = r.outcomes['24h']!.pnlPct;
+    const rawPnl = r.outcomes['24h']!.pnlPct;
+    // Cap applied symmetrically — outsized winners and outsized losers both
+    // get clipped. R-multiple stats use raw pnl so expectancy stays honest.
+    const pnl = pnlCap !== null
+      ? Math.max(-pnlCap, Math.min(pnlCap, rawPnl))
+      : rawPnl;
     equity *= 1 + pnl / 100;
     returns.push(pnl);
-    if (r.outcomes['24h']!.hit) wins++;
+    const isWin = r.outcomes['24h']!.hit;
+    if (isWin) wins++;
+
+    // R-multiple = realized P&L as a multiple of the trade's own risk.
+    // Risk is the entry→stop distance in pct; a typical winner clears ≥1.5R
+    // when TP is set at a 1:1.5 R:R, a loser bottoms at -1R. Skipping rows
+    // missing SL data (pre-migration) keeps avgR honest.
+    if (r.sl != null && r.entryPrice > 0) {
+      const riskPct = (Math.abs(r.entryPrice - r.sl) / r.entryPrice) * 100;
+      if (riskPct > 0) {
+        // R-multiple uses RAW pnl — capping is for chart smoothing only,
+        // not for distorting the per-trade risk math.
+        const rMultiple = rawPnl / riskPct;
+        if (isWin) {
+          winRSum += rMultiple;
+          winRCount++;
+        } else {
+          lossRSum += rMultiple;
+          lossRCount++;
+        }
+      }
+    }
 
     if (equity > peakEquity) peakEquity = equity;
     const drawdown = peakEquity > 0 ? ((peakEquity - equity) / peakEquity) * 100 : 0;
@@ -88,14 +150,31 @@ function computeEquityCurve(resolved: SignalHistoryRecord[]): {
 
   const totalReturn = (equity / STARTING_EQUITY - 1) * 100;
 
+  const avgRWin = winRCount > 0 ? +(winRSum / winRCount).toFixed(2) : null;
+  const avgRLoss = lossRCount > 0 ? +(lossRSum / lossRCount).toFixed(2) : null;
+  const winRateFraction = sorted.length > 0 ? wins / sorted.length : 0;
+  // Expectancy(R) = p(win) * avgRWin + p(loss) * avgRLoss. Break-even
+  // win-rate solves expectancy = 0, i.e. p* = -avgRLoss / (avgRWin - avgRLoss).
+  // Both halves need at least one trade or expectancy is unknowable.
+  const expectancyR = avgRWin !== null && avgRLoss !== null
+    ? +(winRateFraction * avgRWin + (1 - winRateFraction) * avgRLoss).toFixed(2)
+    : null;
+  const breakEvenWinRate = avgRWin !== null && avgRLoss !== null && avgRWin - avgRLoss !== 0
+    ? +(((-avgRLoss) / (avgRWin - avgRLoss)) * 100).toFixed(1)
+    : null;
+
   return {
     points,
     summary: {
       totalReturn: +totalReturn.toFixed(2),
       maxDrawdown: +maxDrawdown.toFixed(2),
-      winRate: sorted.length > 0 ? +((wins / sorted.length) * 100).toFixed(1) : 0,
+      winRate: sorted.length > 0 ? +(winRateFraction * 100).toFixed(1) : 0,
       totalSignals: sorted.length,
       sharpeRatio,
+      avgRWin,
+      avgRLoss,
+      expectancyR,
+      breakEvenWinRate,
     },
   };
 }
@@ -111,6 +190,14 @@ export async function GET(request: NextRequest) {
     // the marketing pitch.
     const scope = parseScope(searchParams.get('scope'));
     const category = parseCategoryFilter(searchParams.get('category'));
+    // smooth=median2x clamps each trade's pnl to ±2× median(|pnl|) before
+    // compounding. Off by default — the marketing surface opts in.
+    const smoothParam = searchParams.get('smooth');
+    const smoothMultiplier = smoothParam === 'median2x'
+      ? 2
+      : smoothParam === 'median3x'
+        ? 3
+        : null;
 
     // Shared slice — same row set as /api/signals/history. Win-rate and
     // resolved counts must byte-match across both endpoints.
@@ -128,10 +215,22 @@ export async function GET(request: NextRequest) {
       ? categoryResolved
       : categoryResolved.filter(r => inBand(r, band) && isCountedResolved(r));
 
-    const { points, summary } = computeEquityCurve(resolved);
+    const pnlCap = smoothMultiplier !== null
+      ? computePnlCap(resolved, smoothMultiplier)
+      : null;
+    const { points, summary } = computeEquityCurve(resolved, pnlCap);
 
     return NextResponse.json(
-      { points, summary, band, scope, category },
+      {
+        points,
+        summary,
+        band,
+        scope,
+        category,
+        smooth: smoothMultiplier !== null
+          ? { mode: smoothParam, capPct: pnlCap !== null ? +pnlCap.toFixed(2) : null }
+          : null,
+      },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
