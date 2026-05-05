@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import type { SignalHistoryRecord } from '../../../../../lib/signal-history';
+import * as tier from '../../../../../lib/tier';
 
 function countsAsRealOutcome(outcome: SignalHistoryRecord['outcomes']['24h']): boolean {
   return Boolean(outcome && (outcome.pnlPct !== 0 || outcome.hit));
@@ -26,7 +27,7 @@ jest.mock('../../../../../lib/signal-slice', () => ({
 }));
 
 import { getResolvedSlice } from '../../../../../lib/signal-slice';
-import { GET } from '../route';
+import { GET, signalHistoryToCsv } from '../route';
 
 const mockedGetResolvedSlice = getResolvedSlice as jest.MockedFunction<typeof getResolvedSlice>;
 
@@ -65,6 +66,7 @@ function makeReq(path: string): NextRequest {
 
 describe('GET /api/signals/history category filtering', () => {
   beforeEach(() => {
+    jest.restoreAllMocks();
     jest.clearAllMocks();
   });
 
@@ -95,5 +97,47 @@ describe('GET /api/signals/history category filtering', () => {
     expect(res.status).toBe(200);
     expect(body.records.map((r: SignalHistoryRecord) => r.pair)).toEqual(['BTCUSD']);
     expect(body.stats.totalSignals).toBe(1);
+  });
+
+  it('requires Pro for CSV export', async () => {
+    primeSlice([record({ id: 'btc-1', pair: 'BTCUSD' })]);
+
+    const res = await GET(makeReq('/api/signals/history?format=csv'));
+    const body = await res.json();
+
+    expect(res.status).toBe(402);
+    expect(body.error).toBe('upgrade_required');
+    expect(body.reason).toContain('CSV export requires Pro');
+  });
+
+  it('exports filtered CSV for Pro callers', async () => {
+    jest.spyOn(tier, 'getTierFromRequest').mockResolvedValueOnce('pro');
+    primeSlice([
+      record({ id: 'btc-1', pair: 'BTCUSD', strategyId: 'classic', gateReason: 'ok' }),
+      record({ id: 'eth-1', pair: 'ETHUSD' }),
+    ]);
+
+    const res = await GET(makeReq('/api/signals/history?format=csv&pair=BTCUSD'));
+    const text = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('text/csv');
+    expect(text).toContain('id,pair,timeframe,direction,confidence');
+    expect(text).toContain('btc-1,BTCUSD,H1,BUY,75');
+    expect(text).not.toContain('eth-1');
+  });
+});
+
+describe('signalHistoryToCsv', () => {
+  it('escapes commas and quotes in CSV cells', () => {
+    const csv = signalHistoryToCsv([
+      record({
+        id: 'sig,quoted',
+        gateReason: 'blocked "risk"',
+      }),
+    ]);
+
+    expect(csv).toContain('"sig,quoted"');
+    expect(csv).toContain('"blocked ""risk"""');
   });
 });

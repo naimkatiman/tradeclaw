@@ -2,7 +2,7 @@
 export interface SignalLevels {
   direction: 'BUY' | 'SELL';
   entry: number;
-  stopLoss: number;
+  stopLoss: number | null;
   takeProfit1: number;
   takeProfit2: number | null;
   takeProfit3: number | null;
@@ -33,8 +33,10 @@ export function classifySignalOutcome(
   const isBuy = s.direction === 'BUY';
   const reached = (target: number) =>
     isBuy ? livePrice >= target : livePrice <= target;
-  const stopHit =
-    isBuy ? livePrice <= s.stopLoss : livePrice >= s.stopLoss;
+  const hasStopLoss = s.stopLoss != null;
+  const stopHit = hasStopLoss
+    ? isBuy ? livePrice <= s.stopLoss! : livePrice >= s.stopLoss!
+    : false;
 
   if (stopHit) return { status: 'stopped', progressPct: -100, hitTarget: 'SL' };
   if (s.takeProfit3 != null && reached(s.takeProfit3)) return { status: 'tp3_hit', progressPct: 100, hitTarget: 'TP3' };
@@ -42,7 +44,7 @@ export function classifySignalOutcome(
   if (reached(s.takeProfit1)) return { status: 'tp1_hit', progressPct: 50, hitTarget: 'TP1' };
 
   const distToTp1 = Math.abs(s.takeProfit1 - s.entry);
-  const distToSl = Math.abs(s.entry - s.stopLoss);
+  const distToSl = hasStopLoss ? Math.abs(s.entry - s.stopLoss!) : 0;
   const moved = livePrice - s.entry;
   const movedSigned = isBuy ? moved : -moved;
 

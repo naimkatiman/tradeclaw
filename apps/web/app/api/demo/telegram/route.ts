@@ -1,23 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSignals } from '@/app/lib/signals';
+import { applyTierSignalVisibility, FREE_SYMBOLS } from '@/lib/tier';
 
 // In-memory rate limiter: chatId → last send timestamp (ms)
 const rateLimitMap = new Map<string, number>();
 const RATE_LIMIT_MS = 60_000; // 1 request per chat ID per 60s
 
-const ALLOWED_PAIRS = [
-  'BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD',
-  'XAGUSD', 'SOLUSD', 'BNBUSD', 'USDJPY', 'XRPUSD',
-];
+const ALLOWED_PAIRS: readonly string[] = FREE_SYMBOLS;
 
 function escapeV2(text: string): string {
   return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
-}
-
-function formatPrice(p: number): string {
-  if (p >= 1000) return p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  if (p >= 1) return p.toFixed(4);
-  return p.toFixed(5);
 }
 
 export async function POST(req: NextRequest) {
@@ -61,21 +53,52 @@ export async function POST(req: NextRequest) {
         { status: 503 }
       );
     }
-    const signal = signals[0];
+
+    const { visible, locked } = applyTierSignalVisibility(signals, 'free');
+    const visibleSignal = visible[0];
+    const lockedSignal = locked[0];
+    const preview = visibleSignal
+      ? {
+          pair: visibleSignal.symbol,
+          direction: visibleSignal.direction,
+          confidence: visibleSignal.confidence,
+          timeframe: visibleSignal.timeframe,
+          locked: false,
+        }
+      : lockedSignal
+        ? {
+            pair: lockedSignal.symbol,
+            direction: lockedSignal.direction,
+            confidence: lockedSignal.confidence,
+            timeframe: lockedSignal.timeframe,
+            locked: true,
+            availableAt: lockedSignal.availableAt,
+          }
+        : null;
+
+    if (!preview) {
+      return NextResponse.json(
+        { success: false, error: 'No public signal preview is available for this pair right now.' },
+        { status: 404 }
+      );
+    }
 
     // Format MarkdownV2 message
-    const emoji = signal.direction === 'BUY' ? '🟢' : '🔴';
-    const dirLabel = signal.direction === 'BUY' ? 'BUY SIGNAL' : 'SELL SIGNAL';
-    const confBar = '█'.repeat(Math.round(signal.confidence / 10)) + '░'.repeat(10 - Math.round(signal.confidence / 10));
+    const emoji = preview.direction === 'BUY' ? '🟢' : '🔴';
+    const dirLabel = preview.direction === 'BUY' ? 'BUY PREVIEW' : 'SELL PREVIEW';
+    const confBar = '█'.repeat(Math.round(preview.confidence / 10)) + '░'.repeat(10 - Math.round(preview.confidence / 10));
 
     const lines: string[] = [
-      `${emoji} *${escapeV2(`${dirLabel} — ${signal.symbol}`)}*`,
+      `${emoji} *${escapeV2(`${dirLabel} — ${preview.pair}`)}*`,
       escapeV2('━━━━━━━━━━━━━━━━━'),
-      `💰 *Entry:* ${escapeV2('$' + formatPrice(signal.entry))}`,
-      `🎯 *Take Profit:* ${escapeV2('$' + formatPrice(signal.takeProfit1 ?? signal.entry * 1.02))}`,
-      `🛑 *Stop Loss:* ${escapeV2('$' + formatPrice(signal.stopLoss ?? signal.entry * 0.98))}`,
-      `📊 *Confidence:* ${escapeV2(String(signal.confidence))}% ${escapeV2(confBar)}`,
-      `⏱ *Timeframe:* ${escapeV2(signal.timeframe)}`,
+      `📊 *Confidence:* ${escapeV2(String(preview.confidence))}% ${escapeV2(confBar)}`,
+      `⏱ *Timeframe:* ${escapeV2(preview.timeframe)}`,
+      preview.locked && preview.availableAt
+        ? `🔒 *Public Delay:* ${escapeV2(`available at ${new Date(preview.availableAt).toISOString()}`)}`
+        : `✅ *Public Status:* ${escapeV2('delay-cleared preview')}`,
+      '',
+      escapeV2('Entry, take-profit, and stop-loss levels are hidden in this public demo.'),
+      escapeV2('Open the dashboard for delayed public signals or upgrade for full real-time delivery.'),
       '',
       escapeV2('📈 Powered by TradeClaw — tradeclaw.win'),
       escapeV2('⚠️ For educational purposes only. Not financial advice.'),
@@ -127,14 +150,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      signal: {
-        pair: signal.symbol,
-        direction: signal.direction,
-        confidence: signal.confidence,
-        entry: signal.entry,
-        takeProfit: signal.takeProfit1,
-        stopLoss: signal.stopLoss,
-      },
+      signal: preview,
     });
   } catch (err) {
     console.error('[demo/telegram] error:', err);

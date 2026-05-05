@@ -20,17 +20,17 @@ const PAIRS = [
   { value: 'ETHUSD', label: 'ETH/USD — Ethereum' },
   { value: 'XAUUSD', label: 'XAU/USD — Gold' },
   { value: 'EURUSD', label: 'EUR/USD' },
-  { value: 'GBPUSD', label: 'GBP/USD' },
-  { value: 'XAGUSD', label: 'XAG/USD — Silver' },
+  { value: 'SPYUSD', label: 'SPY — S&P 500 ETF' },
+  { value: 'QQQUSD', label: 'QQQ — Nasdaq 100 ETF' },
 ];
 
 interface SignalResult {
   pair: string;
   direction: 'BUY' | 'SELL';
   confidence: number;
-  entry?: number;
-  takeProfit?: number;
-  stopLoss?: number;
+  timeframe: string;
+  locked?: boolean;
+  availableAt?: string;
 }
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
@@ -87,7 +87,7 @@ export default function TelegramDemoClient() {
             </span>
           </h1>
           <p className="text-lg text-zinc-400">
-            Try it &mdash; it&apos;s free. Enter your chat ID and receive an instant AI trading signal
+            Try it &mdash; it&apos;s free. Enter your chat ID and receive a public-safe signal preview
             right in Telegram.
           </p>
         </div>
@@ -147,7 +147,7 @@ export default function TelegramDemoClient() {
         <form onSubmit={handleSend} className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6 space-y-5">
           <h2 className="text-lg font-semibold text-white flex items-center gap-2">
             <Send size={18} className="text-emerald-400" />
-            Send me a signal
+            Send me a preview
           </h2>
 
           <div className="space-y-2">
@@ -197,7 +197,7 @@ export default function TelegramDemoClient() {
             ) : (
               <>
                 <Send size={16} />
-                Send Live Signal
+                Send Preview
               </>
             )}
           </button>
@@ -236,25 +236,21 @@ export default function TelegramDemoClient() {
                   style={{ width: `${result.confidence}%` }}
                 />
               </div>
-              {result.entry !== undefined && (
-                <div className="grid grid-cols-3 gap-2 text-xs text-center pt-1">
-                  <div className="rounded-lg bg-zinc-800 p-2">
-                    <div className="text-zinc-500 mb-1">Entry</div>
-                    <div className="font-mono font-medium text-white">{result.entry?.toFixed(2)}</div>
-                  </div>
-                  <div className="rounded-lg bg-emerald-500/10 p-2">
-                    <div className="text-zinc-500 mb-1">TP</div>
-                    <div className="font-mono font-medium text-emerald-400">{result.takeProfit?.toFixed(2)}</div>
-                  </div>
-                  <div className="rounded-lg bg-rose-500/10 p-2">
-                    <div className="text-zinc-500 mb-1">SL</div>
-                    <div className="font-mono font-medium text-rose-400">{result.stopLoss?.toFixed(2)}</div>
+              <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                <div className="rounded-lg bg-zinc-800 p-2">
+                  <div className="text-zinc-500 mb-1">Timeframe</div>
+                  <div className="font-mono font-medium text-white">{result.timeframe}</div>
+                </div>
+                <div className="rounded-lg bg-zinc-800 p-2">
+                  <div className="text-zinc-500 mb-1">Status</div>
+                  <div className="font-mono font-medium text-white">
+                    {result.locked ? 'Delayed' : 'Preview'}
                   </div>
                 </div>
-              )}
+              </div>
             </div>
             <p className="text-sm text-zinc-400">
-              Check your Telegram app — the full signal with indicators is there.
+              Check Telegram for the preview. Entry, take-profit, and stop-loss levels are hidden in the public demo.
             </p>
           </div>
         )}

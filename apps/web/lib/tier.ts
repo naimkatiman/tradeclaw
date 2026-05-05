@@ -99,6 +99,43 @@ export function toLockedStub(
   };
 }
 
+export function splitDelayed<T extends Pick<TradingSignal, 'id' | 'symbol' | 'direction' | 'timeframe' | 'confidence'> & { timestamp: string | number }>(
+  signals: T[],
+  delayMs: number,
+): { visible: T[]; locked: LockedSignalStub[] } {
+  if (delayMs <= 0) return { visible: signals, locked: [] };
+
+  const cutoff = Date.now() - delayMs;
+  const visible: T[] = [];
+  const lockedSrc: T[] = [];
+
+  for (const s of signals) {
+    if (new Date(s.timestamp).getTime() <= cutoff) {
+      visible.push(s);
+    } else {
+      lockedSrc.push(s);
+    }
+  }
+
+  return {
+    visible,
+    locked: lockedSrc.map(s =>
+      toLockedStub(s as unknown as Parameters<typeof toLockedStub>[0], delayMs),
+    ),
+  };
+}
+
+export function applyTierSignalVisibility<T extends TradingSignal>(
+  signals: T[],
+  tier: Tier,
+): { visible: T[]; locked: LockedSignalStub[] } {
+  const gated = signals
+    .map(s => filterSignalByTier(s, tier))
+    .filter((s): s is T => s !== null);
+
+  return splitDelayed(gated, TIER_DELAY_MS[tier]);
+}
+
 /**
  * Pro-tier signals include higher-confidence MTF confluence signals
  * that free users don't see. This threshold gates the "premium" band.
@@ -261,7 +298,7 @@ export async function getUserTier(userId: string): Promise<Tier> {
 
 /**
  * Filter a list of signals to only include what the tier is allowed to see.
- * Applies symbol filtering, TP level masking, and delay offset.
+ * Applies symbol filtering and Pro-only field masking.
  */
 export function filterSignalByTier(
   signal: TradingSignal,
@@ -278,8 +315,9 @@ export function filterSignalByTier(
 
   const filtered: TradingSignal = { ...signal };
 
-  // Mask TP2/TP3 for free tier
+  // Mask Pro-only risk levels for free tier.
   if (tier === 'free') {
+    Object.assign(filtered, { stopLoss: null });
     filtered.takeProfit2 = null;
     filtered.takeProfit3 = null;
   }

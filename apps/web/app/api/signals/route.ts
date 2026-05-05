@@ -8,28 +8,9 @@ import {
   getUserTier,
   filterSignalByTier,
   TIER_DELAY_MS,
-  toLockedStub,
-  type LockedSignalStub,
+  splitDelayed,
 } from '../../../lib/tier';
 import type { TradingSignal } from '../../lib/signals';
-
-function splitDelayed<T extends { timestamp: string | number }>(
-  signals: T[],
-  delayMs: number,
-): { visible: T[]; locked: LockedSignalStub[] } {
-  if (delayMs <= 0) return { visible: signals, locked: [] };
-  const cutoff = Date.now() - delayMs;
-  const visible: T[] = [];
-  const lockedSrc: T[] = [];
-  for (const s of signals) {
-    if (new Date(s.timestamp).getTime() <= cutoff) visible.push(s);
-    else lockedSrc.push(s);
-  }
-  const locked = lockedSrc.map(s =>
-    toLockedStub(s as unknown as Parameters<typeof toLockedStub>[0], delayMs),
-  );
-  return { visible, locked };
-}
 
 // Re-export types for consumers that imported from here
 export type { TradingSignal, IndicatorSummary } from '../../lib/signals';

@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-05-05T08:18:42+08:00
+updated: 2026-05-05T08:51:37+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -1869,3 +1869,20 @@ next_actions:
       and pair-over-category conflict handling; npm run build passes. npm run lint remains blocked by
       pre-existing unrelated lint errors outside this change; direct web tsc remains blocked by a pre-existing
       WelcomeClient Push API Uint8Array type issue.
+
+  - id: TC-168
+    title: "Fix free/pro signal data leaks from audit F-001 through F-005"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete 2026-05-05. Fixed audit F-001 through F-005: shared tier visibility helpers added
+      in apps/web/lib/tier.ts; free stopLoss now masks to null; splitDelayed/applyTierSignalVisibility
+      are shared by dashboard/API/SSE callers; dashboard SSR now passes only tier-visible,
+      delay-visible signals to the client; /api/prices/stream resolves caller tier and emits only
+      tier-visible, delay-visible signal events; /api/demo/telegram sends a public-safe preview only
+      and omits entry/TP/SL from Telegram copy and JSON; /api/signals/history?format=csv added as a
+      Pro-gated CSV export; dashboard chart/outcome helpers now handle masked stopLoss=null without
+      plotting a false SL or marking SELL previews stopped. Verification: targeted Jest tests pass for
+      tier and signal-history CSV; targeted Vitest passes for signal-outcome; npm run build passes.
+      Direct web tsc has only the pre-existing WelcomeClient Push API Uint8Array type issue already
+      noted in TC-167.

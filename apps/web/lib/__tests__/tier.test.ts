@@ -12,6 +12,7 @@ import {
   resolveAccessContext,
   resolveAccessContextFromCookies,
   toLockedStub,
+  splitDelayed,
 } from '../tier';
 import type { TradingSignal } from '../../app/lib/signals';
 
@@ -135,6 +136,35 @@ describe('tier — toLockedStub', () => {
     const stub = toLockedStub(makeSignal(), 60_000);
     expect(stub.locked).toBe(true);
   });
+
+  it('splitDelayed separates visible signals from locked public-safe stubs', () => {
+    const delayMs = 15 * 60 * 1000;
+    const now = Date.now();
+    const old = makeSignal({
+      id: 'old-signal',
+      timestamp: new Date(now - delayMs - 1_000).toISOString(),
+    });
+    const fresh = makeSignal({
+      id: 'fresh-signal',
+      timestamp: new Date(now - 1_000).toISOString(),
+    });
+
+    const out = splitDelayed([old, fresh], delayMs);
+
+    expect(out.visible.map(s => s.id)).toEqual(['old-signal']);
+    expect(out.locked).toHaveLength(1);
+    expect(out.locked[0]).toEqual({
+      id: 'fresh-signal',
+      symbol: 'BTCUSD',
+      direction: 'BUY',
+      timeframe: 'H1',
+      confidence: 80,
+      availableAt: new Date(new Date(fresh.timestamp).getTime() + delayMs).toISOString(),
+      locked: true,
+    });
+    expect(out.locked[0]).not.toHaveProperty('entry');
+    expect(out.locked[0]).not.toHaveProperty('stopLoss');
+  });
 });
 
 describe('tier — isFreeSymbol', () => {
@@ -161,11 +191,12 @@ describe('tier — isFreeSymbol', () => {
 });
 
 describe('tier — filterSignalByTier', () => {
-  it('free caller keeps BTCUSD but TP2/TP3 are masked to null', () => {
+  it('free caller keeps BTCUSD but stopLoss and TP2/TP3 are masked to null', () => {
     const out = filterSignalByTier(makeSignal({ symbol: 'BTCUSD' }), 'free');
     expect(out).not.toBeNull();
     expect(out!.symbol).toBe('BTCUSD');
     expect(out!.takeProfit1).toBe(51000);
+    expect(out!.stopLoss).toBeNull();
     expect(out!.takeProfit2).toBeNull();
     expect(out!.takeProfit3).toBeNull();
   });
@@ -178,6 +209,7 @@ describe('tier — filterSignalByTier', () => {
     expect(out).not.toBeNull();
     expect(out!.symbol).toBe('EURUSD');
     expect(out!.takeProfit1).toBe(51000);
+    expect(out!.stopLoss).toBeNull();
     expect(out!.takeProfit2).toBeNull();
     expect(out!.takeProfit3).toBeNull();
     expect(out!.indicators?.macd).toEqual({ histogram: 0, signal: 'neutral' });
@@ -195,6 +227,7 @@ describe('tier — filterSignalByTier', () => {
     );
     expect(out).not.toBeNull();
     expect(out!.symbol).toBe('SPYUSD');
+    expect(out!.stopLoss).toBeNull();
     expect(out!.takeProfit2).toBeNull();
     expect(out!.takeProfit3).toBeNull();
   });
@@ -256,6 +289,7 @@ describe('tier — filterSignalByTier', () => {
     expect(out).not.toBeNull();
     expect(out!.symbol).toBe('EURUSD');
     expect(out!.takeProfit1).toBe(51000);
+    expect(out!.stopLoss).toBe(49000);
     expect(out!.takeProfit2).toBe(52000);
     expect(out!.takeProfit3).toBe(53000);
   });
@@ -283,6 +317,7 @@ describe('tier — filterSignalByTier', () => {
   it('filter is pure — does not mutate the input signal', () => {
     const input = makeSignal({ symbol: 'EURUSD' });
     filterSignalByTier(input, 'free');
+    expect(input.stopLoss).toBe(49000);
     expect(input.takeProfit2).toBe(52000);
     expect(input.takeProfit3).toBe(53000);
     expect(input.indicators?.macd?.signal).toBe('bullish');
