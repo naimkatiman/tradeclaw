@@ -219,7 +219,7 @@ function SigninInner() {
             )}
             <p className="text-center text-xs text-[var(--text-secondary)]">
               By continuing you agree to our terms.{' '}
-              <Link href="/pricing" className="text-emerald-400 hover:underline">
+              <Link href="/pricing?from=signin" className="text-emerald-400 hover:underline">
                 See pricing
               </Link>
             </p>

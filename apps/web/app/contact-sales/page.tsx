@@ -82,7 +82,7 @@ export default function ContactSalesPage() {
                 Our team will reach out within 1 business day.
               </p>
               <Link
-                href="/pricing"
+                href="/pricing?from=contact-sales"
                 className="mt-6 inline-block rounded-lg border border-[var(--border)] px-4 py-2 text-sm hover:border-[var(--glass-border-accent)]"
               >
                 Back to pricing

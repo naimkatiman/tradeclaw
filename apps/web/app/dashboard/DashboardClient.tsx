@@ -125,7 +125,7 @@ function ConnectTelegramButton() {
       </button>
       {!isPaid && (
         <p className="text-[11px] text-zinc-500 max-w-[20rem] text-center">
-          Linking alone won&apos;t add you to the Pro group. <Link href="/pricing" className="text-emerald-400 hover:underline">Upgrade to Pro</Link> and the bot DMs your private invite automatically.
+          Linking alone won&apos;t add you to the Pro group. <Link href="/pricing?from=dashboard-link-info" className="text-emerald-400 hover:underline">Upgrade to Pro</Link> and the bot DMs your private invite automatically.
         </p>
       )}
       {error && <p className="text-[11px] text-red-400">{error}</p>}
