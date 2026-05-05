@@ -145,13 +145,8 @@ export const PRO_PREMIUM_MIN_CONFIDENCE = 85;
 /**
  * Single source of truth for the strategies a Pro tier unlocks.
  *
- * Mirrors `ALLOWED_PREMIUM_STRATEGIES` from `./licenses` plus the always-free
- * `classic` strategy. Hardcoded here so the canonical access API does NOT
- * depend on the license module — the license system is being retired and the
- * dependency direction is intentionally inverted.
- *
- * If this list drifts from `licenses.ts`, the cross-check test in
- * `tier.test.ts` will fail. Keep them in sync until `licenses.ts` is removed.
+ * Membership is pinned by the regression test in `tier.test.ts` so accidental
+ * edits to this set are caught at PR time.
  */
 const PRO_STRATEGIES: ReadonlySet<string> = new Set([
   // Always-free preset

@@ -534,3 +534,35 @@ describe('tier — past_due grace window', () => {
     expect(tier).toBe('pro');
   });
 });
+
+describe('tier — getStrategiesForTier (PRO_STRATEGIES regression pin)', () => {
+  it('free tier returns only the always-free classic preset', () => {
+    expect([...getStrategiesForTier('free')].sort()).toEqual(['classic']);
+  });
+
+  it('pro tier returns the canonical PRO_STRATEGIES set — pinned to prevent silent drift', () => {
+    expect([...getStrategiesForTier('pro')].sort()).toEqual([
+      'classic',
+      'full-risk',
+      'hmm-top3',
+      'regime-aware',
+      'tv-hafiz-synergy',
+      'tv-impulse-hunter',
+      'tv-zaky-classic',
+      'vwap-ema-bb',
+    ]);
+  });
+
+  it('elite and custom inherit pro strategies', () => {
+    const pro = [...getStrategiesForTier('pro')].sort();
+    expect([...getStrategiesForTier('elite')].sort()).toEqual(pro);
+    expect([...getStrategiesForTier('custom')].sort()).toEqual(pro);
+  });
+
+  it('returned set is fresh per call — caller mutation does not leak across callers', () => {
+    const a = getStrategiesForTier('pro');
+    a.add('mutation-attempt');
+    const b = getStrategiesForTier('pro');
+    expect(b.has('mutation-attempt')).toBe(false);
+  });
+});
