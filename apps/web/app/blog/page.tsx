@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { POSTS, formatPostDate } from './posts';
 
 export const metadata: Metadata = {
   title: 'Blog | TradeClaw',
@@ -7,35 +8,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'TradeClaw Blog — Algo Trading & Open Source',
     description: 'Deep dives on RSI, MACD, signal scoring, self-hosting trading tools, and building open-source fintech.',
+    images: [{ url: '/api/og', width: 1200, height: 630 }],
   },
 };
-
-const POSTS = [
-  {
-    slug: 'rsi-explained',
-    title: 'RSI Explained: The Math Behind the Most Popular Trading Indicator',
-    excerpt: "Relative Strength Index is on every trader's screen. But how does it actually work? We break down Wilder's formula, implementation in TypeScript, and when it actually generates useful signals.",
-    date: '2026-03-20',
-    readTime: '8 min',
-    tags: ['RSI', 'Technical Analysis', 'Indicators'],
-  },
-  {
-    slug: 'how-we-score-signals',
-    title: 'How TradeClaw Scores Trading Signals: A Full Walkthrough',
-    excerpt: "We built an open-source signal scoring engine from scratch. Here's exactly how it works — indicator weights, quality gates, confidence calibration, and why we chose these specific rules.",
-    date: '2026-03-22',
-    readTime: '12 min',
-    tags: ['Algorithm', 'Signal Scoring', 'Open Source'],
-  },
-  {
-    slug: 'self-hosting-trading-tools',
-    title: 'Why Self-Hosting Your Trading Tools Is Worth It',
-    excerpt: "SaaS trading tools charge $50–500/month. TradeClaw is free, open-source, and runs on $5/month VPS. Here's what you get, what you give up, and how to set it up in 10 minutes.",
-    date: '2026-03-25',
-    readTime: '10 min',
-    tags: ['Self-Hosting', 'Docker', 'Open Source'],
-  },
-];
 
 export default function BlogPage() {
   return (
@@ -66,7 +41,7 @@ export default function BlogPage() {
             </h2>
             <p className="text-sm text-zinc-400 leading-relaxed mb-3">{post.excerpt}</p>
             <div className="flex items-center gap-3 text-xs text-zinc-500">
-              <span>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              <span>{formatPostDate(post.date)}</span>
               <span>·</span>
               <span>{post.readTime} read</span>
             </div>

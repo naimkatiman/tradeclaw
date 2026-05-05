@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { EmailCapture } from '../components/EmailCapture';
+import { RelatedPosts } from '../components/RelatedPosts';
 
 export const metadata: Metadata = {
   title: 'RSI Explained: The Math Behind the Most Popular Trading Indicator | TradeClaw',
@@ -134,6 +136,33 @@ export default function RSIExplainedPage() {
           </ul>
           <p className="text-zinc-300">That&apos;s why TradeClaw combines RSI with MACD, EMA trend, Bollinger Bands, and Stochastic before emitting any signal. See the <Link href="/how-it-works" className="text-emerald-400 hover:underline">full scoring algorithm</Link> for details.</p>
 
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-5 mt-6">
+            <p className="text-zinc-100 text-sm font-semibold mb-1">
+              See live RSI signals on real markets — free for 7 days.
+            </p>
+            <p className="text-zinc-300 text-sm">
+              TradeClaw Pro runs RSI alongside MACD, EMA, Bollinger Bands and more on real-time forex, crypto, and metals. $29/mo after the trial, cancel anytime.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Link
+                href="/pricing"
+                className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-emerald-400"
+              >
+                Start 7-Day Trial →
+              </Link>
+              <a
+                href="https://github.com/naimkatiman/tradeclaw"
+                className="inline-flex items-center justify-center rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-200 transition-colors hover:border-zinc-500"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Read the source on GitHub
+              </a>
+            </div>
+          </div>
+
+          <EmailCapture source="blog-rsi" />
+
           <div className="border-t border-zinc-800 pt-6 mt-8">
             <p className="text-zinc-400 text-xs">
               The TradeClaw signal engine is fully open source.{' '}
@@ -142,6 +171,8 @@ export default function RSIExplainedPage() {
               {' '}· <Link href="/accuracy" className="text-emerald-400 hover:underline">See accuracy stats</Link>
             </p>
           </div>
+
+          <RelatedPosts currentSlug="rsi-explained" />
         </div>
       </article>
     </div>

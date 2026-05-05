@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { EmailCapture } from '../components/EmailCapture';
+import { RelatedPosts } from '../components/RelatedPosts';
 
 export const metadata: Metadata = {
   title: 'How TradeClaw Scores Trading Signals | TradeClaw Blog',
@@ -116,13 +118,31 @@ export default function HowWeScoreSignalsPage() {
           </ul>
 
           <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-5 mt-6">
-            <p className="text-zinc-300 text-sm">
-              <strong className="text-white">The algorithm is 100% open source.</strong> If you think the weights are wrong, the quality gates are too loose, or the indicators should be different — submit a PR. That&apos;s the whole point.
+            <p className="text-zinc-100 text-sm font-semibold mb-1">
+              See this engine running live — free for 7 days.
             </p>
-            <a href="https://github.com/naimkatiman/tradeclaw" className="text-emerald-400 hover:underline text-sm mt-2 inline-block" target="_blank" rel="noreferrer">
-              View source on GitHub →
-            </a>
+            <p className="text-zinc-300 text-sm">
+              TradeClaw Pro runs this exact scoring algorithm on real-time forex, crypto, and metals data. $29/mo after the trial, cancel anytime. The algorithm itself is, and stays, MIT licensed.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Link
+                href="/pricing"
+                className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-emerald-400"
+              >
+                Start 7-Day Trial →
+              </Link>
+              <a
+                href="https://github.com/naimkatiman/tradeclaw"
+                className="inline-flex items-center justify-center rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-200 transition-colors hover:border-zinc-500"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Read the source on GitHub
+              </a>
+            </div>
           </div>
+
+          <EmailCapture source="blog-scoring" />
 
           <div className="border-t border-zinc-800 pt-6 mt-8">
             <p className="text-zinc-400 text-xs">
@@ -131,6 +151,8 @@ export default function HowWeScoreSignalsPage() {
               {' '}· <Link href="/accuracy" className="text-emerald-400 hover:underline">Accuracy history</Link>
             </p>
           </div>
+
+          <RelatedPosts currentSlug="how-we-score-signals" />
         </div>
       </article>
     </div>

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { EmailCapture } from '../components/EmailCapture';
+import { RelatedPosts } from '../components/RelatedPosts';
 
 export const metadata: Metadata = {
   title: 'Why Self-Hosting Your Trading Tools Is Worth It | TradeClaw Blog',
@@ -118,13 +120,31 @@ docker compose up -d  # done`}</pre>
           </ul>
 
           <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-5 mt-6">
-            <p className="text-zinc-300 text-sm">
-              <strong className="text-white">TradeClaw is free, MIT licensed, and self-hostable.</strong> If you want to help improve it, the repo is on GitHub. If you want a managed hosted version, that will be available soon via Alpha Screener.
+            <p className="text-zinc-100 text-sm font-semibold mb-1">
+              Don&apos;t want to self-host? Try TradeClaw Pro free for 7 days.
             </p>
-            <a href="https://github.com/naimkatiman/tradeclaw" className="text-emerald-400 hover:underline text-sm mt-2 inline-block" target="_blank" rel="noreferrer">
-              Star on GitHub →
-            </a>
+            <p className="text-zinc-300 text-sm">
+              Hosted, real-time signals across forex, crypto, and metals. No VPS, no Docker, no maintenance — $29/mo after the trial, cancel anytime.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Link
+                href="/pricing"
+                className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-emerald-400"
+              >
+                Start 7-Day Trial →
+              </Link>
+              <a
+                href="https://github.com/naimkatiman/tradeclaw"
+                className="inline-flex items-center justify-center rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-200 transition-colors hover:border-zinc-500"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Or self-host on GitHub
+              </a>
+            </div>
           </div>
+
+          <EmailCapture source="blog-self-hosting" />
 
           <div className="border-t border-zinc-800 pt-6 mt-8">
             <p className="text-zinc-400 text-xs">
@@ -133,6 +153,8 @@ docker compose up -d  # done`}</pre>
               {' '}· <Link href="/api-docs" className="text-emerald-400 hover:underline">API reference</Link>
             </p>
           </div>
+
+          <RelatedPosts currentSlug="self-hosting-trading-tools" />
         </div>
       </article>
     </div>

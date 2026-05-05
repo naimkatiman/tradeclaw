@@ -1,7 +1,13 @@
 import { MetadataRoute } from "next";
+import { POSTS } from "./blog/posts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://tradeclaw.win";
+  const blogIndexLastModified = POSTS.reduce<Date>((latest, post) => {
+    const d = new Date(post.date);
+    return d > latest ? d : latest;
+  }, new Date(0));
+
   return [
     { url: base, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
     { url: `${base}/dashboard`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.9 },
@@ -14,10 +20,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/demo`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/backtest`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/backtest/upload`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: `${base}/blog/rsi-explained`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/blog/how-we-score-signals`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/blog/self-hosting-trading-tools`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${base}/blog`, lastModified: blogIndexLastModified, changeFrequency: "weekly", priority: 0.6 },
+    ...POSTS.map((post) => ({
+      url: `${base}/blog/${post.slug}`,
+      lastModified: new Date(post.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    })),
     { url: `${base}/api-docs`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/docs`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/how-it-works`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },

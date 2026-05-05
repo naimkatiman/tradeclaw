@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Play, Thermometer, ChevronDown, Activity, ShoppingBag, Briefcase, FlaskConical, BarChart2, Server, Star, Rocket, Mail, Heart, HandHeart, Cloud, MessageSquare, User, Database } from 'lucide-react';
+import { Play, Thermometer, ChevronDown, Activity, ShoppingBag, Briefcase, FlaskConical, BarChart2, Server, Star, Rocket, Mail, Heart, HandHeart, Cloud, MessageSquare, User, Database, BookOpen } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { TradeClawLogo } from '../../components/tradeclaw-logo';
 import { TierBadge } from '../../components/TierBadge';
@@ -58,6 +58,7 @@ const MORE_GROUPS: DropdownGroup[] = [
   {
     label: 'Community',
     links: [
+      { href: '/blog', label: 'Blog', icon: BookOpen },
       { href: '/report', label: 'Weekly Report', icon: BarChart2 },
       { href: '/star-history', label: 'Star History', icon: Star },
       { href: '/share', label: 'Share' },
