@@ -2,7 +2,7 @@
 
 **Date:** 2026-04-20
 **Owner:** Zaky
-**Status:** Design approved — awaiting implementation plan
+**Status:** Design approved — implementation in [`2026-04-20-paid-funnel-and-proof-impl.md`](./2026-04-20-paid-funnel-and-proof-impl.md)
 **Scope domain:** `tradeclaw.win` (the `web` service in this monorepo)
 
 ## Context and decision

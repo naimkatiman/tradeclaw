@@ -1,5 +1,7 @@
 # TradeClaw — Eight Improvements Implementation Plan
 
+> **Phase 6 layered with:** [`2026-05-02-countdown-timer.md`](./2026-05-02-countdown-timer.md). This plan ships the global `DelayCountdown` ticker; that plan ships per-card `LockedSignalStub` countdowns. Both are live and complementary.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Ship the eight open improvements from the May 2 + Apr 30 daily-intel briefs without bundling concerns.

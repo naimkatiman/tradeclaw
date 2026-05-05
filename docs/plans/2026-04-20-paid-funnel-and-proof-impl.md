@@ -1,5 +1,7 @@
 # TradeClaw Paid Funnel + Proof — Implementation Plan
 
+> **Companion to:** [`2026-04-20-paid-funnel-and-proof.md`](./2026-04-20-paid-funnel-and-proof.md) (design). Read the design first for context on the two-narrative decision.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Fix the paid funnel on `tradeclaw.win` (direct checkout, annual toggle, post-checkout onboarding) and replace the win-rate-only hero with a proof block leading with real-time-vs-delay, net P&L, profit factor, signals today, and sample Telegram alerts.
