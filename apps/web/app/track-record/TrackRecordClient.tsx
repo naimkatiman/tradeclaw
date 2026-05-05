@@ -706,7 +706,15 @@ export function TrackRecordClient() {
               <table className="w-full min-w-[420px] text-xs font-mono">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
-                    <th className="px-4 py-2.5 text-left font-medium">Time</th>
+                    <th className="px-4 py-2.5 text-left font-medium">
+                      <span className="inline-flex items-center gap-1">
+                        Bar Open
+                        <InfoHint
+                          text="Candle bar open time (your local timezone). The signal anchors to this bar; the engine records it shortly after the bar closes (within the next 5-min cron tick), so wall-clock recording is up to one timeframe-period later than the value shown."
+                          label="What Bar Open means"
+                        />
+                      </span>
+                    </th>
                     <th className="px-3 py-2.5 text-left font-medium">Pair</th>
                     <th className="px-3 py-2.5 text-center font-medium">Dir</th>
                     <th className="px-3 py-2.5 text-right font-medium hidden sm:table-cell">Entry</th>

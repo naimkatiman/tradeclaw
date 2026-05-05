@@ -409,6 +409,48 @@ export async function createTelegramInvite(
   );
 }
 
+/**
+ * Most recent invite row for the user, regardless of tier or active flag.
+ * Powers the dashboard badge: present + active + not expired = "Sent".
+ * Absent = "Pending" for paying users (between checkout and webhook), or
+ * "Connect Telegram" prompt when the user has not linked yet.
+ */
+export async function getLatestUserTelegramInvite(
+  userId: string,
+): Promise<TelegramInviteRecord | null> {
+  interface InviteRow {
+    id: string;
+    user_id: string;
+    tier: string;
+    invite_link: string;
+    telegram_chat_id: string;
+    is_active: boolean;
+    created_at: string;
+    expires_at: string | null;
+  }
+
+  const row = await queryOne<InviteRow>(
+    `SELECT id, user_id, tier, invite_link, telegram_chat_id, is_active, created_at, expires_at
+       FROM telegram_invites
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      LIMIT 1`,
+    [userId],
+  );
+
+  if (!row) return null;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    tier: row.tier as 'pro' | 'elite',
+    inviteLink: row.invite_link,
+    telegramChatId: BigInt(row.telegram_chat_id),
+    isActive: row.is_active,
+    createdAt: new Date(row.created_at),
+    expiresAt: row.expires_at ? new Date(row.expires_at) : null,
+  };
+}
+
 export async function deactivateUserTelegramInvites(
   userId: string,
   tier: 'pro' | 'elite',

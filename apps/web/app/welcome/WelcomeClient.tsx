@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { messageForResendError } from '../../lib/telegram-resend-messages';
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY ?? '';
 
@@ -360,27 +361,6 @@ function BrowserAlertsAction({ state, message, disabled, onClick }: BrowserAlert
       {message && <span className={tone}>{message}</span>}
     </div>
   );
-}
-
-function messageForResendError(code: string | undefined): string {
-  switch (code) {
-    case 'no_telegram_link':
-      return 'Tap "Open Telegram bot" first to link your account.';
-    case 'free_tier':
-      return 'Pro group access requires a paid plan.';
-    case 'unauthorized':
-      return 'Your session expired — sign in again.';
-    case 'rate_limited':
-      return 'Too many invite requests. Try again in 10 minutes.';
-    case 'chat_not_found':
-      return 'Open the bot in Telegram and press Start, then tap Resend.';
-    case 'bot_blocked':
-      return 'You blocked the bot. Unblock @TradeClaw_win_Bot in Telegram, then tap Resend.';
-    case 'send_failed':
-      return 'Telegram is unreachable right now. Try again in a moment.';
-    default:
-      return 'Resend failed. Try again in a moment.';
-  }
 }
 
 function SignalPreviewCard({ signal }: { signal: SignalPreview }) {
