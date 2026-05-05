@@ -1,0 +1,40 @@
+---
+title: "R-Multiples Explained: How TradeClaw Now Measures Trade Quality"
+excerpt: "Win rate is a trap. R-multiples and expectancy are the only metrics that tell you whether a trading strategy actually makes money over time. Here's how TradeClaw computes them, and why we added outlier smoothing."
+date: "2026-05-11"
+readTime: "8 min"
+tags: ["R-multiple", "Risk Management", "Expectancy"]
+metaDescription: "TODO: 1-line meta description for SEO, max ~155 chars."
+keywords: ["R-multiple trading", "trade expectancy formula", "R-multiple vs win rate"]
+---
+
+TODO: 2-3 sentence lede that hooks the reader on why win rate alone is misleading, and what they'll learn.
+
+## The Win-Rate Trap
+
+TODO: Show how a 65% win rate can still bleed money if average loss is 1.5× the average win. Concrete example: 100 trades, 65 wins at +$80, 35 losses at −$150 → net loss. The number on the leaderboard says you're profitable; the equity curve says otherwise.
+
+## What "R" Actually Means
+
+TODO: Define R as the initial risk per trade, in dollars or percent of equity. R-multiple = (exit − entry) / R. Worked example: $1,000 account, 1% risk per trade = $10 R. A trade that nets +$25 = +2.5R. The unit is risk-normalized so trades across instruments and timeframes are comparable.
+
+## Expectancy: The Only Metric That Says "Yes, This Works"
+
+TODO: Formula: expectancy = (P(win) × avgWin_R) − (P(loss) × avgLoss_R). Worked example for a 55%-win-rate, 1.8 avg win, 1.0 avg loss strategy → +0.54R per trade. Tie to position sizing and Kelly fraction.
+
+## How TradeClaw Computes R-Multiples
+
+TODO: Reference the new metric added in commit `d47d0938`. Snippet from packages/strategies showing the calculation. Where it surfaces in the UI (track-record, leaderboard, signal cards).
+
+## Why We Added Outlier Smoothing
+
+TODO: Explain Winsorization at the 95th percentile. One +12R fluke (lucky break, gap fill) shouldn't make a system look genius. Show before/after histogram of expectancy with and without smoothing on the live leaderboard.
+
+## Practical Use: Position Sizing From R
+
+TODO: Connect expectancy back to position sizing. If expectancy is +0.5R, risking 1% per trade gives ~0.5% expected return per trade. Compounding math, drawdown estimates, when to scale up.
+
+<TrialCTA
+  headline="See R-multiples on every TradeClaw signal — free for 7 days."
+  pitch="TradeClaw Pro now ships R-multiple and expectancy on every closed trade, with outlier smoothing across the leaderboard. $29/mo after the trial, cancel anytime."
+/>
