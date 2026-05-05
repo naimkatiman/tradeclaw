@@ -17,6 +17,7 @@ import { broadcastSignalsToProGroup } from '../../../../lib/telegram-pro-broadca
 import { isWinningCell, getWinningCellsMode } from '../../../../lib/winning-cells';
 import { runRiskPipeline } from '../../../../lib/risk-pipeline';
 import { fetchRegimeMap } from '../../../../lib/regime-filter';
+import { recordSignalRun } from '../../../../lib/signal-run-log';
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
@@ -254,6 +255,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const runStartedAt = new Date();
   try {
     const preset = getActivePreset();
     const newSignals = await recordNewSignals(preset.id);
@@ -329,6 +331,12 @@ export async function GET(request: NextRequest): Promise<Response> {
       }
     }
 
+    const auditRowId = await recordSignalRun({
+      runStartedAt,
+      triggerSource: request.headers.get('user-agent')?.includes('GitHub') ? 'github-actions' : 'cron',
+      notes: `recorded=${taggedSignals.length} resolved=${resolved} pending=${pending}`,
+    });
+
     return NextResponse.json({
       ok: true,
       recorded: taggedSignals.length,
@@ -338,6 +346,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       errors: errors.length > 0 ? errors : undefined,
       strategyId: preset.id,
       timestamp: new Date().toISOString(),
+      auditRowId: auditRowId !== null ? auditRowId.toString() : null,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
