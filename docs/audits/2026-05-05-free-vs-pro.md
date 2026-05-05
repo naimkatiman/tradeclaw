@@ -2,7 +2,7 @@
 
 **Auditor:** Claude (subagent-driven via Zaky)
 **Branch:** 534e3b4d68d346f3f9f596b769a8bb058d94e6ab (branch: main)
-**Status:** in-progress
+**Status:** complete
 
 ```
  M DAILY_INTEL_LOG.md
@@ -659,3 +659,45 @@ Server-side price resolution: `apps/web/lib/stripe.ts` → `resolveStripePriceId
 | F-016 | low | CONDITIONAL LEAK | `apps/web/app/api/v1/signals/route.ts:75,79` | `Cache-Control: public, s-maxage=60` with `Vary: Cookie` — correctly mitigates cross-tier cache poisoning for browser-session callers. However, API-key callers send the tier credential as `Authorization` header or query param, not Cookie. If a CDN is ever placed in front of Railway, two requests with different tiers but no Cookie header will share the same CDN cache slot. Not currently exploitable (no CDN on Railway bare Node). | Add `Vary: Authorization` alongside `Vary: Cookie`, or change `Cache-Control` to `private` for authenticated routes. Add a note in infra docs: "do not add a CDN to this route without reviewing Vary headers first." |
 | F-017 | low | LEAK | PRO_STRATEGIES cross-check test missing | `tier.test.ts` contains zero references to `PRO_STRATEGIES` or `ALLOWED_PREMIUM_STRATEGIES`. Any developer can add or remove a strategy from `PRO_STRATEGIES` without a test failing. Silent strategy-drift risk: a newly added premium strategy could be inadvertently exposed to free users or withheld from Pro users. | Add a test in `apps/web/lib/__tests__/tier.test.ts` asserting the exact members and size of `PRO_STRATEGIES`, so drifts are caught at CI time. |
 ## Section 8 — Follow-up Backlog
+
+### Triage
+
+| ID | Severity | Type | Disposition | Rationale |
+|---|---|---|---|---|
+| F-001 | critical | LEAK | fix-now | Latent SSR bypass exposes full Pro signal payload; one preset change activates it |
+| F-002 | high | LEAK | fix-now | Unauthenticated SSE stream leaks entry + direction + confidence including premium-band |
+| F-003 | high | LEAK | fix-now | No-auth demo endpoint sends full signal (entry, TP1, SL) to any Telegram chatId |
+| F-004 | high | LEAK | fix-now | stopLoss passes through unmasked to free callers; cleanest copy-vs-code gap |
+| F-005 | high | OVER-PROMISE | fix-now | CSV export advertised on paid Pro card; zero implementation; billing-trust issue |
+| F-006 | medium | LEAK | fix-soon | Unguarded write endpoint allows signal_history pollution; affects win-rate stats |
+| F-007 | medium | COPY MISMATCH | fix-soon | /api/premium-signals returns 200 + locked:true instead of canonical 402; breaks API consumers |
+| F-008 | medium | COPY MISMATCH | fix-soon | /api/premium-signals/chart returns custom 403 shape instead of canonical upgradeRequiredBody |
+| F-009 | medium | COPY MISMATCH | fix-soon | /api/v1/signals error path returns 200 + empty set; callers cannot distinguish error from empty |
+| F-010 | medium | FUNNEL | fix-soon | Highest-traffic upgrade CTA (tier-banner) links to /pricing with no ?from=; breaks attribution |
+| F-011 | low | FUNNEL | defer | signin upgrade link missing ?from=; low conversion impact; safe to batch |
+| F-012 | low | FUNNEL | defer | dashboard Telegram tooltip upgrade link missing ?from=; minor attribution gap |
+| F-013 | low | FUNNEL | defer | contact-sales back-link missing ?from=; negligible traffic |
+| F-014 | low | DEAD CODE | defer | Stale JSDoc referencing deleted licenses.ts; no runtime impact |
+| F-015 | low | DEAD CODE | defer | insertSignals() + live_signals table; safe to drop but no urgency |
+| F-016 | low | CONDITIONAL LEAK | defer | CDN cache header gap for API-key callers; not exploitable without CDN |
+| F-017 | low | TEST GAP | defer | PRO_STRATEGIES cross-check test missing; silent drift risk but not active exploit |
+
+### Fix-Now Specs
+
+- F-001 → spec: In `dashboard/page.tsx`, map each signal through `filterSignalByTier(signal, tier)` and run `splitDelayed` before passing `initialSignals`/`lockedSignals` to `DashboardClient`; delete the false comment at `tier-banner.tsx:16`.
+- F-002 → spec: Require a valid session or API key before opening the `/api/prices/stream` SSE connection, and strip signals with `confidence >= PRO_PREMIUM_MIN_CONFIDENCE` from the emitted payload for free/anon callers.
+- F-003 → spec: Gate `/api/demo/telegram` behind `requireSession` + `tier === 'pro'` check, and replace the in-memory rate-limiter with a DB-backed or Redis-backed counter.
+- F-004 → spec: Add `result.stopLoss = null` inside the `tier === 'free'` block in `filterSignalByTier` (`tier.ts`), parallel to the existing `takeProfit2`/`takeProfit3` nulls; update `TradingSignal` type if `stopLoss` must become nullable.
+- F-005 → spec: Either ship a `/api/signals/export?format=csv` route gated to Pro, or remove "CSV export" from `TIER_DEFINITIONS[1].features` in `stripe-tiers.ts` before the next billing cycle.
+
+### Deferred / Wontfix Notes
+
+- F-011, F-012, F-013: All three are one-line href changes; batch into a single "attribution cleanup" commit when touching those files for another reason.
+- F-014: Delete stale JSDoc lines 111-117 from `tier.ts` when next touching that file; add a `PRO_STRATEGIES` size assertion test at that time (covers F-017 too).
+- F-015: Apply migration `021_drop_live_signals.sql` and delete `signal-repo.ts` in a dedicated DB-cleanup commit; coordinate with a Railway maintenance window.
+- F-016: Add `Vary: Authorization` to `/api/v1/signals` before any CDN is placed in front of Railway; no urgency until CDN is planned.
+- F-017: Covered by the same deferred action as F-014.
+
+### GitHub Issues
+
+GitHub issue creation deferred — user to confirm before opening.
