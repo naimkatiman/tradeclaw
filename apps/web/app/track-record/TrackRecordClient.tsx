@@ -13,6 +13,7 @@ import { STAT_HINTS } from '@/lib/stat-hints';
 import { FREE_HISTORY_DAYS, FREE_SYMBOLS } from '@/lib/tier-client';
 import { symbolsForCategory, type CategoryFilter } from '@/app/lib/symbol-config';
 import { EmbedButton } from '../components/embed-button';
+import { ShareOnX } from '../components/share-on-x';
 
 type Period = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
 
@@ -332,8 +333,13 @@ export function TrackRecordClient() {
               </span>
             </div>
           </div>
-          <div className="mt-2">
+          <div className="mt-2 flex items-center gap-2">
             <EmbedButton embedPath="/embed/track-record" label="Embed this" width={600} height={360} />
+            <ShareOnX
+              winRate={stats?.winRate}
+              resolved={stats?.resolved}
+              period={period}
+            />
           </div>
           <p className="text-sm text-[var(--text-secondary)]">
             Total return = sum of per-signal % at fixed 1R risk. Stats below count only resolved trades —
