@@ -49,24 +49,28 @@ function inBand(record: SignalHistoryRecord, band: EquityBand): boolean {
 }
 
 /**
- * Smooth-mode cap: clamp each trade's pnl to ±cap × median(|pnl|) before
- * compounding. The raw curve is the truth; the smoothed curve answers
- * "what would the path look like if we discount outliers in both
- * directions?" — useful for marketing surfaces where one outsized winner
- * inflates total return and a corresponding mean-reversion drowns the
- * win-rate. Returns null when fewer than 5 trades or median is zero.
+ * Smooth-mode cap: clamp each trade's pnl to a tail-percentile of |pnl|
+ * before compounding. Percentile (not median) because a multi-asset
+ * pool is multimodal — forex pnls (~0.3%) and crypto pnls (~5%) sit in
+ * different scales, so a median-based cap clips the larger scale into
+ * non-existence. P95 keeps the bulk of the distribution intact and only
+ * clips genuine outliers in both directions. Returns null when fewer
+ * than 20 trades (sample too small for a stable tail estimate) or the
+ * percentile collapses to zero.
  */
 function computePnlCap(resolved: SignalHistoryRecord[], multiplier: number): number | null {
-  if (resolved.length < 5) return null;
+  if (resolved.length < 20) return null;
   const absPnls = resolved
     .map(r => Math.abs(r.outcomes['24h']!.pnlPct))
     .sort((a, b) => a - b);
-  const mid = Math.floor(absPnls.length / 2);
-  const median = absPnls.length % 2 === 0
-    ? (absPnls[mid - 1] + absPnls[mid]) / 2
-    : absPnls[mid];
-  if (median <= 0) return null;
-  return median * multiplier;
+  // Multiplier 2 → P95 (clip top 5% in both directions), 3 → P98.
+  // Picking a percentile by multiplier keeps the API surface stable while
+  // letting the math actually be percentile-based.
+  const percentile = multiplier === 2 ? 0.95 : multiplier === 3 ? 0.98 : 0.95;
+  const idx = Math.min(absPnls.length - 1, Math.floor(absPnls.length * percentile));
+  const cap = absPnls[idx];
+  if (cap <= 0) return null;
+  return cap;
 }
 
 function computeEquityCurve(

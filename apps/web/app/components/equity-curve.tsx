@@ -390,7 +390,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all' }:
           </p>
           {smooth && smoothMeta?.capPct !== null && smoothMeta?.capPct !== undefined && (
             <p className="text-[10px] text-amber-400/80 mt-1 font-mono">
-              Outlier-smoothed: each trade clamped to ±{smoothMeta.capPct}% (2× median). Raw drawdown is larger.
+              Outlier-smoothed: each trade clamped to ±{smoothMeta.capPct}% (top/bottom 5% clipped). Raw drawdown is larger.
             </p>
           )}
         </div>
@@ -405,9 +405,9 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all' }:
               ? 'border-amber-500/40 bg-amber-500/10 text-amber-400'
               : 'border-white/10 bg-white/[0.02] text-zinc-500 hover:text-zinc-300'
           }`}
-          title="Cap each trade's contribution at 2× the median trade size in both directions. Reveals the path without single-trade outliers."
+          title="Clip the top and bottom 5% of trade outcomes (P95 cap). Reveals the path without single-trade outliers in either direction."
         >
-          {smooth ? 'Smoothed (2× median)' : 'Smooth outliers'}
+          {smooth ? 'Smoothed (P95)' : 'Smooth outliers'}
         </button>
       </div>
 
