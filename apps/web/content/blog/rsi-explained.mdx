@@ -1,0 +1,105 @@
+---
+title: "RSI Explained: The Math Behind the Most Popular Trading Indicator"
+excerpt: "Relative Strength Index is on every trader's screen. But how does it actually work? We break down Wilder's formula, implementation in TypeScript, and when it actually generates useful signals."
+date: "2026-03-20"
+readTime: "8 min"
+tags: ["RSI", "Technical Analysis", "Indicators"]
+metaDescription: "Relative Strength Index explained from first principles — Wilder's formula, TypeScript implementation, overbought/oversold zones, and how TradeClaw uses RSI in signal scoring."
+keywords: ["RSI indicator", "relative strength index explained", "RSI formula", "Wilder RSI", "RSI TypeScript", "trading signals"]
+---
+
+RSI (Relative Strength Index) appears on the screen of virtually every trader. Created by J. Welles Wilder Jr. in 1978, it's one of the oldest and most used technical indicators. But most traders use it as a magic number — "below 30 = buy, above 70 = sell" — without understanding the math behind it.
+
+## What RSI Actually Measures
+
+RSI measures the **speed and magnitude of price changes**. It compares the average gains on up-days to average losses on down-days over a rolling window (default: 14 periods). The result is a number between 0 and 100.
+
+- **RSI above 70** — asset has been rising hard, may be overbought
+- **RSI below 30** — asset has been falling hard, may be oversold
+- **RSI at 50** — equal gains and losses, neutral momentum
+
+## The Formula
+
+Wilder's formula in three steps:
+
+<div className="bg-zinc-900 border border-zinc-700 rounded-xl p-5 font-mono text-sm space-y-2 text-zinc-300">
+  <div><span className="text-zinc-500">Step 1:</span> RS = Average Gain(n) / Average Loss(n)</div>
+  <div><span className="text-zinc-500">Step 2:</span> RSI = 100 − (100 / (1 + RS))</div>
+  <div><span className="text-zinc-500">Smoothing:</span> AvgGain = (prevAvgGain × (n−1) + currentGain) / n</div>
+</div>
+
+Where `n = 14` by default (Wilder's original choice).
+
+## TypeScript Implementation (from TradeClaw)
+
+Here's the exact implementation we use — no third-party TA library, just math:
+
+<figure className="bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden not-prose">
+  <figcaption className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-xs text-zinc-400 font-mono">apps/web/app/lib/ta-engine.ts</figcaption>
+  <pre className="p-4 text-xs text-zinc-300 overflow-x-auto leading-relaxed font-mono">{`function calculateRSI(closes: number[], period = 14) {
+  const result = new Array(closes.length).fill(NaN);
+  if (closes.length < period + 1) return result;
+
+  let gains = 0, losses = 0;
+
+  // Initial average: simple mean of first period
+  for (let i = 1; i <= period; i++) {
+    const delta = closes[i] - closes[i - 1];
+    if (delta > 0) gains += delta;
+    else losses -= delta;
+  }
+
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+  result[period] = avgLoss === 0 ? 100 : 100 - (100 / (1 + avgGain / avgLoss));
+
+  // Wilder's smoothing for all subsequent values
+  for (let i = period + 1; i < closes.length; i++) {
+    const delta = closes[i] - closes[i - 1];
+    avgGain = (avgGain * (period - 1) + Math.max(0, delta)) / period;
+    avgLoss = (avgLoss * (period - 1) + Math.max(0, -delta)) / period;
+    result[i] = avgLoss === 0 ? 100 : 100 - (100 / (1 + avgGain / avgLoss));
+  }
+
+  return result;
+}`}</pre>
+</figure>
+
+## How TradeClaw Uses RSI in Signal Scoring
+
+RSI contributes up to 20 points in TradeClaw's 90-point signal scoring system:
+
+<div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden not-prose">
+  <table className="w-full text-xs">
+    <thead>
+      <tr className="border-b border-zinc-800 text-zinc-400">
+        <th className="px-4 py-2 text-left font-normal">RSI Value</th>
+        <th className="px-4 py-2 text-left font-normal">BUY score</th>
+        <th className="px-4 py-2 text-left font-normal">SELL score</th>
+      </tr>
+    </thead>
+    <tbody className="text-zinc-300">
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2 font-mono">{'< 30 (Oversold)'}</td><td className="px-4 py-2 text-emerald-400">+20 pts</td><td className="px-4 py-2 text-red-400">−10 pts</td></tr>
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2 font-mono">30–40</td><td className="px-4 py-2 text-emerald-400">+15 pts</td><td className="px-4 py-2 text-emerald-400">+0 pts</td></tr>
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2 font-mono">40–50</td><td className="px-4 py-2 text-emerald-400">+8 pts</td><td className="px-4 py-2 text-emerald-400">+0 pts</td></tr>
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2 font-mono">50–60</td><td className="px-4 py-2 text-emerald-400">+0 pts</td><td className="px-4 py-2 text-emerald-400">+8 pts</td></tr>
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2 font-mono">60–70</td><td className="px-4 py-2 text-emerald-400">+0 pts</td><td className="px-4 py-2 text-emerald-400">+15 pts</td></tr>
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2 font-mono">{'> 70 (Overbought)'}</td><td className="px-4 py-2 text-red-400">−10 pts</td><td className="px-4 py-2 text-emerald-400">+20 pts</td></tr>
+    </tbody>
+  </table>
+</div>
+
+## RSI Limitations
+
+RSI alone isn't enough. These are its known weaknesses:
+
+- **Trending markets** — in a strong uptrend, RSI can stay above 70 for weeks. "Overbought" can mean "strong trend" not "reversal."
+- **Period sensitivity** — RSI(14) behaves very differently from RSI(5) or RSI(30). Shorter = more signals, more noise.
+- **No price level context** — RSI tells you about momentum, not whether the price is at a key level.
+
+That's why TradeClaw combines RSI with MACD, EMA trend, Bollinger Bands, and Stochastic before emitting any signal. See the [full scoring algorithm](/how-it-works) for details.
+
+<TrialCTA
+  headline="See live RSI signals on real markets — free for 7 days."
+  pitch="TradeClaw Pro runs RSI alongside MACD, EMA, Bollinger Bands and more on real-time forex, crypto, and metals. $29/mo after the trial, cancel anytime."
+/>

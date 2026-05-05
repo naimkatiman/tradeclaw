@@ -1,3 +1,7 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import matter from 'gray-matter';
+
 export interface BlogPost {
   slug: string;
   title: string;
@@ -5,37 +9,66 @@ export interface BlogPost {
   date: string;
   readTime: string;
   tags: string[];
+  metaDescription?: string;
+  keywords?: string[];
 }
 
-export const POSTS: BlogPost[] = [
-  {
-    slug: 'rsi-explained',
-    title: 'RSI Explained: The Math Behind the Most Popular Trading Indicator',
-    excerpt:
-      "Relative Strength Index is on every trader's screen. But how does it actually work? We break down Wilder's formula, implementation in TypeScript, and when it actually generates useful signals.",
-    date: '2026-03-20',
-    readTime: '8 min',
-    tags: ['RSI', 'Technical Analysis', 'Indicators'],
-  },
-  {
-    slug: 'how-we-score-signals',
-    title: 'How TradeClaw Scores Trading Signals: A Full Walkthrough',
-    excerpt:
-      "We built an open-source signal scoring engine from scratch. Here's exactly how it works — indicator weights, quality gates, confidence calibration, and why we chose these specific rules.",
-    date: '2026-03-22',
-    readTime: '12 min',
-    tags: ['Algorithm', 'Signal Scoring', 'Open Source'],
-  },
-  {
-    slug: 'self-hosting-trading-tools',
-    title: 'Why Self-Hosting Your Trading Tools Is Worth It',
-    excerpt:
-      'SaaS trading tools charge $50–500/month. TradeClaw is free, open-source, and runs on $5/month VPS. Here\'s what you get, what you give up, and how to set it up in 10 minutes.',
-    date: '2026-03-25',
-    readTime: '10 min',
-    tags: ['Self-Hosting', 'Docker', 'Open Source'],
-  },
-];
+const CONTENT_DIR = path.join(process.cwd(), 'content', 'blog');
+
+interface RawFrontmatter {
+  title?: string;
+  excerpt?: string;
+  date?: string | Date;
+  readTime?: string;
+  tags?: unknown;
+  metaDescription?: string;
+  keywords?: unknown;
+}
+
+function toIsoDate(value: string | Date | undefined): string {
+  if (!value) return '';
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return String(value).slice(0, 10);
+}
+
+function toStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((v): v is string => typeof v === 'string');
+}
+
+function loadPosts(): BlogPost[] {
+  if (!fs.existsSync(CONTENT_DIR)) return [];
+
+  const files = fs.readdirSync(CONTENT_DIR).filter((f) => f.endsWith('.mdx'));
+
+  const posts = files.map<BlogPost>((file) => {
+    const slug = file.replace(/\.mdx$/, '');
+    const raw = fs.readFileSync(path.join(CONTENT_DIR, file), 'utf8');
+    const { data } = matter(raw);
+    const fm = data as RawFrontmatter;
+
+    if (!fm.title || !fm.excerpt || !fm.date || !fm.readTime) {
+      throw new Error(
+        `Blog post ${file} is missing required frontmatter (title, excerpt, date, readTime)`,
+      );
+    }
+
+    return {
+      slug,
+      title: fm.title,
+      excerpt: fm.excerpt,
+      date: toIsoDate(fm.date),
+      readTime: fm.readTime,
+      tags: toStringArray(fm.tags),
+      metaDescription: fm.metaDescription,
+      keywords: toStringArray(fm.keywords),
+    };
+  });
+
+  return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+export const POSTS: BlogPost[] = loadPosts();
 
 export function getPost(slug: string): BlogPost | undefined {
   return POSTS.find((p) => p.slug === slug);
@@ -51,4 +84,8 @@ export function formatPostDate(date: string): string {
     month: 'long',
     day: 'numeric',
   });
+}
+
+export function getPostFilePath(slug: string): string {
+  return path.join(CONTENT_DIR, `${slug}.mdx`);
 }
