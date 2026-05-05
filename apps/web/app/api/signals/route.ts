@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
         real: visibleSignals.filter(s => s.source === 'real').length,
         fallback: visibleSignals.filter(s => s.source === 'fallback').length,
         version: '2.1.0',
-        note: liveData?.isStale ? 'signals-live.json stale, using fallback engine' : 'signals-live.json not found or empty',
+        note: liveData?.isStale ? 'TA engine fallback (live signals file is stale)' : 'TA engine fallback (live signals file not present — expected on Railway, written only by local Python scanner)',
         regime: dominantRegime,
       },
       filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence },
