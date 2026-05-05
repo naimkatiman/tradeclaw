@@ -26,6 +26,9 @@ const nextConfig: NextConfig = {
   // Performance: compress responses
   compress: true,
 
+  // Security: hide framework version from response headers
+  poweredByHeader: false,
+
   // Image optimization
   images: {
     formats: ["image/avif", "image/webp"],
