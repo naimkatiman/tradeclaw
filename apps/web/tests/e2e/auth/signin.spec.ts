@@ -134,10 +134,18 @@ test.describe('Google OAuth start route', () => {
   // ---------------------------------------------------------------------------
   // 9. /api/auth/google/start without GOOGLE_OAUTH_CLIENT_ID redirects to /signin?error=oauth_not_configured
   // ---------------------------------------------------------------------------
-  test('GET /api/auth/google/start without client ID redirects with oauth_not_configured', async ({ request }) => {
-    // This test relies on GOOGLE_OAUTH_CLIENT_ID being unset in the test env.
-    // No .env.local exists in this repo (only .env.example with empty values),
-    // so the route will hit the unconfigured branch.
+  test('GET /api/auth/google/start without client ID redirects with oauth_not_configured', async ({ request, baseURL }) => {
+    // This test asserts the unconfigured-OAuth fallback. It's only meaningful
+    // when the env has no GOOGLE_OAUTH_CLIENT_ID — running against prod or any
+    // env where OAuth IS configured produces a 302 to accounts.google.com,
+    // which is the correct behavior, not a regression. Skip in those cases.
+    const probe = await request.get('/api/auth/google/start', { maxRedirects: 0 });
+    const probeLocation = probe.headers()['location'] ?? '';
+    test.skip(
+      probeLocation.includes('accounts.google.com'),
+      `OAuth is configured against ${baseURL} — fallback path not exercisable here`,
+    );
+
     const res = await request.get('/api/auth/google/start', { maxRedirects: 0 });
     expect(res.status()).toBe(302);
     const location = res.headers()['location'];
