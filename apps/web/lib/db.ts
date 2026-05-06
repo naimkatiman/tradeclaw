@@ -6,6 +6,24 @@
 
 import { query, queryOne, execute } from './db-pool';
 
+/**
+ * E2E test gate — same shape as the one in tier.ts. When all three conditions
+ * hold, the read-side user/subscription helpers return a synthetic Pro record
+ * for the configured test userId so Playwright suites that forge an HMAC
+ * session cookie can hit /api/auth/session without a real DB row.
+ *
+ * Hard-gated by NODE_ENV !== 'production' so the bypass cannot ship live.
+ */
+function isE2EProUser(userId: string): boolean {
+  return (
+    process.env.NODE_ENV !== 'production' &&
+    process.env.E2E_FORCE_PRO_TIER === 'true' &&
+    userId === (process.env.E2E_PRO_USER_ID ?? 'e2e-pro-user')
+  );
+}
+
+const E2E_STUB_EMAIL = 'e2e-pro@tradeclaw.test';
+
 export interface UserRecord {
   id: string;
   email: string;
@@ -109,6 +127,16 @@ const SUBSCRIPTION_COLUMNS = `id, user_id, stripe_subscription_id, stripe_custom
 // ---------------------------------------------------------------------------
 
 export async function getUserById(userId: string): Promise<UserRecord | null> {
+  if (isE2EProUser(userId)) {
+    return {
+      id: userId,
+      email: E2E_STUB_EMAIL,
+      stripeCustomerId: null,
+      tier: 'pro',
+      tierExpiresAt: null,
+      telegramUserId: null,
+    };
+  }
   const row = await queryOne<UserRow>(
     `SELECT id, email, stripe_customer_id, tier, tier_expires_at, telegram_user_id
      FROM users WHERE id = $1`,
@@ -192,6 +220,10 @@ export async function linkTelegramUser(
 export async function getUserSubscription(
   userId: string,
 ): Promise<SubscriptionRecord | null> {
+  if (isE2EProUser(userId)) {
+    return null; // Stub user has no real Stripe sub — null is the documented
+    // shape for "no active subscription" and avoids the route hitting DB at all.
+  }
   const row = await queryOne<SubscriptionRow>(
     `SELECT ${SUBSCRIPTION_COLUMNS}
      FROM subscriptions
