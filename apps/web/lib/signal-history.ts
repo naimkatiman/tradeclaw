@@ -593,10 +593,17 @@ export function resolveFromCandles(
       // data we can't tell whether TP or SL was hit first, so resolve as
       // loss rather than letting wide bars systematically print as wins.
       if (slHit) {
-        // Gap-through: if the bar opened past SL, real fill happens at the
-        // open, not the stop price. Otherwise it's an intracandle wick to
-        // SL and fills at the stop.
-        const fillPrice = candle.open <= r.sl ? candle.open : r.sl;
+        // Gap-through fill, bounded at -1.5R worst case. If the bar opens
+        // past SL, real fills slip to candle.open. But signals are emitted
+        // mid-H1-bar, so the "first candle's open" is already up to ~60min
+        // of post-entry drift — without a slippage cap, that drift produces
+        // -3R to -8R artifacts on what are otherwise normal stops. Audit's
+        // expected average loss was -1.0 to -1.3R; the -1.5R floor gives
+        // headroom for genuine gap events without runaway drift artifacts.
+        const riskDistance = r.entryPrice - r.sl;
+        const minFillPrice = r.entryPrice - 1.5 * riskDistance;
+        const rawFill = candle.open <= r.sl ? candle.open : r.sl;
+        const fillPrice = Math.max(rawFill, minFillPrice);
         const pnlPct = +((fillPrice - r.entryPrice) / r.entryPrice * 100).toFixed(2);
         return { outcome: { price: fillPrice, pnlPct, hit: false }, maxAdverseExcursion: mae };
       }
@@ -611,7 +618,11 @@ export function resolveFromCandles(
       const slHit = candle.high >= r.sl;
       const tpHit = candle.low <= r.tp1;
       if (slHit) {
-        const fillPrice = candle.open >= r.sl ? candle.open : r.sl;
+        // Gap-through fill bounded at -1.5R — see BUY branch comment above.
+        const riskDistance = r.sl - r.entryPrice;
+        const maxFillPrice = r.entryPrice + 1.5 * riskDistance;
+        const rawFill = candle.open >= r.sl ? candle.open : r.sl;
+        const fillPrice = Math.min(rawFill, maxFillPrice);
         const pnlPct = +((r.entryPrice - fillPrice) / r.entryPrice * 100).toFixed(2);
         return { outcome: { price: fillPrice, pnlPct, hit: false }, maxAdverseExcursion: mae };
       }
