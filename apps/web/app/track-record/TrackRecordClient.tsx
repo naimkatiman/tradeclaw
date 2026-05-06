@@ -475,8 +475,10 @@ export function TrackRecordClient() {
             />
           </div>
           <p className="text-sm text-[var(--text-secondary)]">
-            Total return = sum of per-signal % at fixed 1R risk. Stats below count only resolved trades —
-            signals refused by the risk gate or that expired without TP/SL are surfaced separately, not folded in.
+            Headline total return is the raw sum of per-signal market % (no sizing). The equity card below
+            shows the position-sized version — 1% risk per trade after blended round-trip costs — which is
+            what a real subscriber would actually earn. Two views, same trades. Resolved trades only —
+            gate-blocked and expired rows are surfaced separately, not folded in.
           </p>
         </div>
 

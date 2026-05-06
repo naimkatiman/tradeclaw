@@ -9,7 +9,24 @@ export type EquityScope = SignalScope;
 export const revalidate = 60;
 
 const STARTING_EQUITY = 10_000;
-const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+
+/**
+ * Fixed-fractional sizing: each trade risks this % of current equity.
+ * 1% is the textbook standard for retail discretionary execution. Replaces
+ * the prior "100% bankroll per signal" compounding which produced unrunnable
+ * +800% spikes followed by 69% drawdowns — paths no real subscriber would
+ * survive. Sized this way, equity change per trade ≈ R-multiple × 1%.
+ */
+const RISK_PER_TRADE_PCT = 1.0;
+
+/**
+ * Round-trip transaction cost deducted from each trade's pnl, in percent.
+ * 5bps is a conservative blended estimate across crypto (Binance ~10bps),
+ * FX majors (~1-2bps), and indices (~3-5bps). Real costs vary by venue and
+ * size; a flat blended number keeps the surface honest without pretending
+ * to model per-asset microstructure.
+ */
+const ROUND_TRIP_COST_PCT = 0.05;
 
 export type EquityBand = 'premium' | 'standard' | 'all';
 
@@ -26,6 +43,9 @@ export interface EquitySummary {
   maxDrawdown: number;
   winRate: number;
   totalSignals: number;
+  /** Trades included in the equity curve (have SL data so R-multiple is defined). May be < totalSignals on legacy rows. */
+  sizedTrades: number;
+  /** Daily-bucketed annualized Sharpe (mean daily return / stddev × √365). Null when fewer than 5 trading days. */
   sharpeRatio: number | null;
   /** Average R-multiple of winning trades (pnlPct ÷ riskPct). Null when no SL data on any winner. */
   avgRWin: number | null;
@@ -35,6 +55,10 @@ export interface EquitySummary {
   expectancyR: number | null;
   /** Win-rate that would make expectancy = 0 given the observed avgRWin / avgRLoss. */
   breakEvenWinRate: number | null;
+  /** Sizing assumption surfaced to the UI so the chart caption can quote the methodology. */
+  riskPerTradePct: number;
+  /** Round-trip cost deducted per trade, in percent. */
+  roundTripCostPct: number;
 }
 
 function parseBand(raw: string | null): EquityBand {
@@ -49,33 +73,36 @@ function inBand(record: SignalHistoryRecord, band: EquityBand): boolean {
 }
 
 /**
- * Smooth-mode cap: clamp each trade's pnl to a tail-percentile of |pnl|
- * before compounding. Percentile (not median) because a multi-asset
- * pool is multimodal — forex pnls (~0.3%) and crypto pnls (~5%) sit in
- * different scales, so a median-based cap clips the larger scale into
- * non-existence. P95 keeps the bulk of the distribution intact and only
- * clips genuine outliers in both directions. Returns null when fewer
- * than 20 trades (sample too small for a stable tail estimate) or the
- * percentile collapses to zero.
+ * Smooth-mode cap: clamp each trade's R-multiple to a tail-percentile of |R|
+ * before sizing. R-units (not raw pnl%) because under fixed-fractional sizing
+ * each trade's equity contribution is R × RISK_PER_TRADE_PCT, so clipping in
+ * R-space matches what the equity path actually sees. Returns null when fewer
+ * than 20 trades with SL (sample too small for a stable tail estimate) or
+ * the percentile collapses to zero.
  */
-function computePnlCap(resolved: SignalHistoryRecord[], multiplier: number): number | null {
-  if (resolved.length < 20) return null;
-  const absPnls = resolved
-    .map(r => Math.abs(r.outcomes['24h']!.pnlPct))
-    .sort((a, b) => a - b);
+function computeRCap(resolved: SignalHistoryRecord[], multiplier: number): number | null {
+  const absR: number[] = [];
+  for (const r of resolved) {
+    if (r.sl == null || r.entryPrice <= 0) continue;
+    const riskPct = (Math.abs(r.entryPrice - r.sl) / r.entryPrice) * 100;
+    if (riskPct <= 0) continue;
+    absR.push(Math.abs(r.outcomes['24h']!.pnlPct / riskPct));
+  }
+  if (absR.length < 20) return null;
+  absR.sort((a, b) => a - b);
   // Multiplier 2 → P95 (clip top 5% in both directions), 3 → P98.
-  // Picking a percentile by multiplier keeps the API surface stable while
-  // letting the math actually be percentile-based.
+  // Percentile-based keeps the API surface stable while the math is
+  // distribution-aware.
   const percentile = multiplier === 2 ? 0.95 : multiplier === 3 ? 0.98 : 0.95;
-  const idx = Math.min(absPnls.length - 1, Math.floor(absPnls.length * percentile));
-  const cap = absPnls[idx];
+  const idx = Math.min(absR.length - 1, Math.floor(absR.length * percentile));
+  const cap = absR[idx];
   if (cap <= 0) return null;
   return cap;
 }
 
 function computeEquityCurve(
   resolved: SignalHistoryRecord[],
-  pnlCap: number | null = null,
+  rCap: number | null = null,
 ): {
   points: EquityPoint[];
   summary: EquitySummary;
@@ -87,7 +114,13 @@ function computeEquityCurve(
   let peakEquity = STARTING_EQUITY;
   let maxDrawdown = 0;
   let wins = 0;
-  const returns: number[] = [];
+  let sizedTrades = 0;
+  // Daily PnL bucket (UTC date key). Daily-bucketed Sharpe annualizes per
+  // calendar day instead of per-signal — eliminates the √(signalsPerYear)
+  // artifact that produced double-digit "Sharpe" on a multi-symbol pool
+  // where per-signal returns are not IID (same symbol re-fires, multi-TF
+  // stacks share macro factors).
+  const dailyReturnPct = new Map<string, number>();
   let winRSum = 0;
   let winRCount = 0;
   let lossRSum = 0;
@@ -95,35 +128,44 @@ function computeEquityCurve(
 
   for (const r of sorted) {
     const rawPnl = r.outcomes['24h']!.pnlPct;
-    // Cap applied symmetrically — outsized winners and outsized losers both
-    // get clipped. R-multiple stats use raw pnl so expectancy stays honest.
-    const pnl = pnlCap !== null
-      ? Math.max(-pnlCap, Math.min(pnlCap, rawPnl))
-      : rawPnl;
-    equity *= 1 + pnl / 100;
-    returns.push(pnl);
     const isWin = r.outcomes['24h']!.hit;
     if (isWin) wins++;
 
     // R-multiple = realized P&L as a multiple of the trade's own risk.
     // Risk is the entry→stop distance in pct; a typical winner clears ≥1.5R
-    // when TP is set at a 1:1.5 R:R, a loser bottoms at -1R. Skipping rows
-    // missing SL data (pre-migration) keeps avgR honest.
-    if (r.sl != null && r.entryPrice > 0) {
-      const riskPct = (Math.abs(r.entryPrice - r.sl) / r.entryPrice) * 100;
-      if (riskPct > 0) {
-        // R-multiple uses RAW pnl — capping is for chart smoothing only,
-        // not for distorting the per-trade risk math.
-        const rMultiple = rawPnl / riskPct;
-        if (isWin) {
-          winRSum += rMultiple;
-          winRCount++;
-        } else {
-          lossRSum += rMultiple;
-          lossRCount++;
-        }
-      }
+    // when TP is set at a 1:1.5 R:R, a loser bottoms at -1R. Rows without
+    // SL (pre-migration) count toward win-rate but not equity — no defined
+    // position size without a stop.
+    if (r.sl == null || r.entryPrice <= 0) continue;
+    const riskPct = (Math.abs(r.entryPrice - r.sl) / r.entryPrice) * 100;
+    if (riskPct <= 0) continue;
+
+    // R-stats use the RAW R-multiple — chart smoothing must not distort
+    // per-trade risk math.
+    const rMultiple = rawPnl / riskPct;
+    if (isWin) {
+      winRSum += rMultiple;
+      winRCount++;
+    } else {
+      lossRSum += rMultiple;
+      lossRCount++;
     }
+
+    // Smooth-mode clip in R-space (P95 by default). Symmetric — outsized
+    // winners and losers both get clipped.
+    const rMultipleSized = rCap !== null
+      ? Math.max(-rCap, Math.min(rCap, rMultiple))
+      : rMultiple;
+
+    // Fixed-fractional equity change: RISK_PER_TRADE_PCT × R, minus blended
+    // round-trip cost. Loss tail is bounded near -(RISK_PER_TRADE_PCT + cost%);
+    // wins compound at rMultiple × RISK_PER_TRADE_PCT.
+    const tradeReturnPct = rMultipleSized * RISK_PER_TRADE_PCT - ROUND_TRIP_COST_PCT;
+    equity *= 1 + tradeReturnPct / 100;
+    sizedTrades++;
+
+    const dayKey = new Date(r.timestamp).toISOString().slice(0, 10);
+    dailyReturnPct.set(dayKey, (dailyReturnPct.get(dayKey) ?? 0) + tradeReturnPct);
 
     if (equity > peakEquity) peakEquity = equity;
     const drawdown = peakEquity > 0 ? ((peakEquity - equity) / peakEquity) * 100 : 0;
@@ -132,23 +174,24 @@ function computeEquityCurve(
     const cumPct = (equity / STARTING_EQUITY - 1) * 100;
     points.push({
       timestamp: r.timestamp,
-      pnlPct: pnl,
+      pnlPct: +tradeReturnPct.toFixed(3),
       cumulativePnl: +cumPct.toFixed(2),
       symbol: r.pair,
       direction: r.direction,
     });
   }
 
-  // Sharpe: annualize using actual signal cadence, not a hard-coded 252
+  // Daily-bucketed Sharpe — annualize × √365 (calendar days, since the
+  // engine emits across crypto/FX/indices and there's no single trading
+  // calendar). Need ≥5 distinct days for the stddev to be at all stable.
   let sharpeRatio: number | null = null;
-  if (returns.length >= 5) {
-    const mean = returns.reduce((s, v) => s + v, 0) / returns.length;
-    const variance = returns.reduce((s, v) => s + (v - mean) ** 2, 0) / returns.length;
+  const dailyValues = [...dailyReturnPct.values()];
+  if (dailyValues.length >= 5) {
+    const mean = dailyValues.reduce((s, v) => s + v, 0) / dailyValues.length;
+    const variance = dailyValues.reduce((s, v) => s + (v - mean) ** 2, 0) / dailyValues.length;
     const stddev = Math.sqrt(variance);
-    const spanMs = sorted[sorted.length - 1].timestamp - sorted[0].timestamp;
-    if (stddev > 0 && spanMs > 0) {
-      const signalsPerYear = (sorted.length / spanMs) * MS_PER_YEAR;
-      sharpeRatio = +((mean / stddev) * Math.sqrt(signalsPerYear)).toFixed(2);
+    if (stddev > 0) {
+      sharpeRatio = +((mean / stddev) * Math.sqrt(365)).toFixed(2);
     }
   }
 
@@ -174,11 +217,14 @@ function computeEquityCurve(
       maxDrawdown: +maxDrawdown.toFixed(2),
       winRate: sorted.length > 0 ? +(winRateFraction * 100).toFixed(1) : 0,
       totalSignals: sorted.length,
+      sizedTrades,
       sharpeRatio,
       avgRWin,
       avgRLoss,
       expectancyR,
       breakEvenWinRate,
+      riskPerTradePct: RISK_PER_TRADE_PCT,
+      roundTripCostPct: ROUND_TRIP_COST_PCT,
     },
   };
 }
@@ -219,10 +265,10 @@ export async function GET(request: NextRequest) {
       ? categoryResolved
       : categoryResolved.filter(r => inBand(r, band) && isCountedResolved(r));
 
-    const pnlCap = smoothMultiplier !== null
-      ? computePnlCap(resolved, smoothMultiplier)
+    const rCap = smoothMultiplier !== null
+      ? computeRCap(resolved, smoothMultiplier)
       : null;
-    const { points, summary } = computeEquityCurve(resolved, pnlCap);
+    const { points, summary } = computeEquityCurve(resolved, rCap);
 
     return NextResponse.json(
       {
@@ -231,8 +277,10 @@ export async function GET(request: NextRequest) {
         band,
         scope,
         category,
+        // capR is in R-multiples now (under fixed-fractional sizing). Older
+        // capPct field kept null/absent — UI should read capR.
         smooth: smoothMultiplier !== null
-          ? { mode: smoothParam, capPct: pnlCap !== null ? +pnlCap.toFixed(2) : null }
+          ? { mode: smoothParam, capR: rCap !== null ? +rCap.toFixed(2) : null }
           : null,
       },
       {

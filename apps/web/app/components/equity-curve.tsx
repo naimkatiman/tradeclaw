@@ -20,11 +20,14 @@ interface EquitySummary {
   maxDrawdown: number;
   winRate: number;
   totalSignals: number;
+  sizedTrades?: number;
   sharpeRatio: number | null;
   avgRWin: number | null;
   avgRLoss: number | null;
   expectancyR: number | null;
   breakEvenWinRate: number | null;
+  riskPerTradePct?: number;
+  roundTripCostPct?: number;
 }
 
 interface TooltipData {
@@ -297,7 +300,7 @@ interface EquityCurveProps {
 
 interface SmoothMeta {
   mode: string;
-  capPct: number | null;
+  capR: number | null;
 }
 
 export function EquityCurve({ period = 'all', scope = 'pro', category = 'all' }: EquityCurveProps) {
@@ -385,12 +388,12 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all' }:
           </h2>
           <p className="text-[11px] text-zinc-600 mt-0.5">
             {isPro
-              ? 'Full Pro track record. Every signal paper-traded with equal risk; results verified against real market data.'
-              : `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see.`}
+              ? `Full Pro track record. ${summary?.riskPerTradePct ?? 1}% risk per trade, fixed-fractional, after ${summary?.roundTripCostPct ?? 0.05}% round-trip costs. Verified against real market data.`
+              : `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see. ${summary?.riskPerTradePct ?? 1}% risk per trade after costs.`}
           </p>
-          {smooth && smoothMeta?.capPct !== null && smoothMeta?.capPct !== undefined && (
+          {smooth && smoothMeta?.capR !== null && smoothMeta?.capR !== undefined && (
             <p className="text-[10px] text-amber-400/80 mt-1 font-mono">
-              Outlier-smoothed: each trade clamped to ±{smoothMeta.capPct}% (top/bottom 5% clipped). Raw drawdown is larger.
+              Outlier-smoothed: each trade&apos;s R-multiple clamped to ±{smoothMeta.capR}R (top/bottom 5% clipped). Raw drawdown is larger.
             </p>
           )}
         </div>

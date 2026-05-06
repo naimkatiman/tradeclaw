@@ -12,9 +12,9 @@
 export const STAT_HINTS = {
   // ── Returns ──────────────────────────────────────────────────
   totalReturnLinear:
-    'Linear sum of per-signal % returns at fixed 1R risk. Reads "if every signal risked the same fixed amount, the wins minus losses add up to this." Not the same as compounded equity growth.',
+    'Sum of per-signal % outcomes (raw market price-to-price). Reads "if every signal printed at exact entry/exit, this is what the trades summed to." Not a sized return — see the equity card below for the position-sized version.',
   totalReturnCompounded:
-    'Compounded equity growth from a hypothetical $10,000 baseline, reinvesting 100% of bankroll into every next signal. Multiplicative — different from the linear total return shown elsewhere on this page.',
+    'Compounded equity from $10,000 with 1% risk per trade (fixed-fractional sizing) and 0.05% round-trip costs deducted. This is what a subscriber executing every signal at fixed 1% risk would have earned, not the unbounded "100% bankroll per signal" curve. Differs from the raw price-to-price sum at the top of the page.',
   avgPnl: 'Total return ÷ resolved signals. The average outcome of one trade in this window.',
 
   // ── Win-rate flavours ────────────────────────────────────────
@@ -38,7 +38,7 @@ export const STAT_HINTS = {
   maxDrawdown:
     'Worst peak-to-trough drop in the equity curve over this window. Even a positive endpoint can hide a deep mid-run drawdown — this surfaces the path, not just the destination.',
   sharpe:
-    'Annualised Sharpe ratio: mean return ÷ stddev × √(signals per year). Cadence-aware — uses actual signal frequency, not the 252-trading-day shortcut.',
+    'Daily-bucketed annualized Sharpe: trades grouped by UTC date, then mean(daily %) ÷ stddev(daily %) × √365. Calendar days (not trading days) because the engine fires across crypto/FX/indices with no shared session. Daily bucketing is required because per-signal returns are not IID — same symbol re-fires and multi-timeframe stacks share macro factors.',
   streak: 'Consecutive resolved trades, signed: positive when on a win streak, negative on a losing streak.',
   bestStreak: 'Longest run of consecutive wins for this row. Counts only resolved trades.',
   worstStreak: 'Longest run of consecutive losses for this row. Counts only resolved trades.',
