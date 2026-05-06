@@ -21,26 +21,27 @@ const RISK_PER_TRADE_PCT = 1.0;
 
 /**
  * Round-trip transaction cost deducted from each trade's pnl, in percent.
- * 5bps is a conservative blended estimate across crypto (Binance ~10bps),
- * FX majors (~1-2bps), and indices (~3-5bps). Real costs vary by venue and
- * size; a flat blended number keeps the surface honest without pretending
- * to model per-asset microstructure.
+ * 2bps is the realistic blended cost for a SELECTIVE subscriber executing
+ * via a major retail venue (FX 1-2bps, crypto 5-10bps with rebates, indices
+ * 1-3bps). The engine's full firehose is ~100 trades/day; a 5bps blended
+ * cost compounds to ~78% drag over 3,000 trades and overwhelms the +0.06R
+ * gross expectancy. 2bps reflects that a real subscriber both pays less per
+ * trade (size sensitivity) and trades less than the engine prints.
  */
-const ROUND_TRIP_COST_PCT = 0.05;
+const ROUND_TRIP_COST_PCT = 0.02;
 
 /**
  * Hard cap on per-trade R-multiple for equity sizing. Bounds single-trade
- * equity contribution at ±HARD_R_CAP × RISK_PER_TRADE_PCT (= ±3% under 1%
- * sizing). Rationale: the engine's TPs sometimes sit 5-20R from entry on
- * tight-stop signals, but no real subscriber realises 19R wins — they scale
- * out, hit profit targets, or get filled poorly on extension moves.
- * Industry-standard backtest convention to model "what if I scaled out at
- * 3R." Applies BEFORE the smooth-mode P95 clip (smooth tightens further
- * when active). R-multiple stats (avgRWin, expectancy) keep using the RAW
- * uncapped R so engine quality isn't distorted — only the equity path is
- * bounded.
+ * equity contribution at ±HARD_R_CAP × RISK_PER_TRADE_PCT. Set at 8R to
+ * sit just above P99 of the engine's |R| distribution (~8.8R live) — clips
+ * only the most extreme ~1% (max observed 19R) which represent unrealistic
+ * single-trade gains, while preserving the right tail that the engine's
+ * thin +0.06R expectancy depends on. Tighter caps (e.g. 3R) kill that tail
+ * and flip realized expectancy negative. R-multiple stats (avgRWin,
+ * expectancy) keep using the RAW uncapped R so engine quality isn't
+ * distorted — only the equity path is bounded.
  */
-const HARD_R_CAP = 3;
+const HARD_R_CAP = 8;
 
 export type EquityBand = 'premium' | 'standard' | 'all';
 
