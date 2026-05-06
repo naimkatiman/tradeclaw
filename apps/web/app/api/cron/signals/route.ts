@@ -9,8 +9,8 @@ import {
   getPendingRecordsAsync,
   updateRecordsAsync,
   markTelegramPosted,
+  resolveFromCandles,
   type SignalHistoryRecord,
-  type SignalOutcome,
 } from '../../../../lib/signal-history';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
 import { broadcastSignalsToProGroup } from '../../../../lib/telegram-pro-broadcast';
@@ -121,61 +121,8 @@ async function recordNewSignals(strategyId: string): Promise<NewlyRecordedSignal
 }
 
 // ── Resolve logic ─────────────────────────────────────────────
-
-function resolveWindow(
-  record: SignalHistoryRecord,
-  candles: Array<{ high: number; low: number; open?: number; close?: number }>,
-  windowComplete: boolean,
-): SignalOutcome | null {
-  if (!record.tp1 || !record.sl) return null;
-
-  for (const candle of candles) {
-    // SL takes priority when both could fire on a wide-range bar (no intra-bar
-    // ticks → can't disambiguate, resolve conservatively as loss). On stop-out,
-    // gap-through fills at candle.open if the bar opened past SL. Mirrors
-    // resolveFromCandles in lib/signal-history.ts. Both paths must move
-    // together — they write to the same signal_history table.
-    const open = candle.open ?? null;
-    if (record.direction === 'BUY') {
-      const slHit = candle.low <= record.sl;
-      const tpHit = candle.high >= record.tp1;
-      if (slHit) {
-        const fillPrice = open !== null && open <= record.sl ? open : record.sl;
-        const pnlPct = +((fillPrice - record.entryPrice) / record.entryPrice * 100).toFixed(2);
-        return { price: fillPrice, pnlPct, hit: false };
-      }
-      if (tpHit) {
-        const pnlPct = +((record.tp1 - record.entryPrice) / record.entryPrice * 100).toFixed(2);
-        return { price: record.tp1, pnlPct, hit: true };
-      }
-    } else {
-      const slHit = candle.high >= record.sl;
-      const tpHit = candle.low <= record.tp1;
-      if (slHit) {
-        const fillPrice = open !== null && open >= record.sl ? open : record.sl;
-        const pnlPct = +((record.entryPrice - fillPrice) / record.entryPrice * 100).toFixed(2);
-        return { price: fillPrice, pnlPct, hit: false };
-      }
-      if (tpHit) {
-        const pnlPct = +((record.entryPrice - record.tp1) / record.entryPrice * 100).toFixed(2);
-        return { price: record.tp1, pnlPct, hit: true };
-      }
-    }
-  }
-
-  // Window elapsed but neither TP nor SL hit — close at last candle's price
-  if (windowComplete && candles.length > 0) {
-    const lastClose = candles[candles.length - 1].close;
-    if (lastClose != null) {
-      const pnlPct = record.direction === 'BUY'
-        ? +((lastClose - record.entryPrice) / record.entryPrice * 100).toFixed(2)
-        : +((record.entryPrice - lastClose) / record.entryPrice * 100).toFixed(2);
-      return { price: lastClose, pnlPct, hit: pnlPct > 0 };
-    }
-  }
-
-  return null;
-}
+// Outcome math now lives in lib/signal-history.ts → resolveFromCandles. Cron
+// just discards the MAE field (only the request-path writer feeds calibration).
 
 async function resolveOldSignals(): Promise<{ resolved: number; pending: number; errors: string[] }> {
   const pending = await getPendingRecordsAsync();
@@ -210,9 +157,9 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
         c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
       );
       const windowComplete = age >= FOUR_HOURS_MS;
-      const result = resolveWindow(record, window, windowComplete);
+      const result = resolveFromCandles(record, window, windowComplete);
       if (result) {
-        newOutcomes['4h'] = result;
+        newOutcomes['4h'] = result.outcome;
         changed = true;
       } else if (age >= FOUR_HOURS_MS * 2) {
         newOutcomes['4h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
@@ -226,9 +173,9 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
         c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
       );
       const windowComplete = age >= TWENTY_FOUR_HOURS_MS;
-      const result = resolveWindow(record, window, windowComplete);
+      const result = resolveFromCandles(record, window, windowComplete);
       if (result) {
-        newOutcomes['24h'] = result;
+        newOutcomes['24h'] = result.outcome;
         changed = true;
       } else if (age >= TWENTY_FOUR_HOURS_MS * 2) {
         newOutcomes['24h'] = { price: record.entryPrice, pnlPct: 0, hit: false };

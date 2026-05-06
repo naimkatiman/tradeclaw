@@ -556,14 +556,21 @@ export function recordSignals(signals: TrackedSignalInput[]): number {
 
 // ── Outcome resolution ───────────────────────────────────────
 
-interface ResolvedWithMae {
+export interface ResolvedWithMae {
   outcome: SignalOutcome;
   /** Max adverse excursion from entry up to AND including the resolution candle (price units, >= 0). */
   maxAdverseExcursion: number;
 }
 
-function resolveFromCandles(
-  r: SignalHistoryRecord,
+/**
+ * Single source of truth for outcome resolution. Both the request side-effect
+ * writer (this file's resolveRealOutcomes) and the cron writer (api/cron/signals)
+ * delegate here so the math stays in lockstep — they write to the same
+ * signal_history table, and divergence between them produced the wick-priority
+ * bug fixed in commit d0bb6845.
+ */
+export function resolveFromCandles(
+  r: { direction: 'BUY' | 'SELL'; entryPrice: number; tp1?: number | null; sl?: number | null },
   candles: OHLCV[],
   windowComplete = false,
 ): ResolvedWithMae | null {

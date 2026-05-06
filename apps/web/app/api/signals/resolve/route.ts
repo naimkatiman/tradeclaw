@@ -3,71 +3,16 @@ import { getOHLCV } from '../../../lib/ohlcv';
 import {
   getPendingRecordsAsync,
   updateRecordsAsync,
+  resolveFromCandles,
   type SignalHistoryRecord,
-  type SignalOutcome,
 } from '../../../../lib/signal-history';
 
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
-/**
- * Resolve a signal against a window of candles.
- * For BUY: TP1 hit when candle high >= tp1, SL hit when candle low <= sl.
- * For SELL: TP1 hit when candle low <= tp1, SL hit when candle high >= sl.
- * Returns null if neither TP1 nor SL was hit in the window.
- */
-function resolveWindow(
-  record: SignalHistoryRecord,
-  candles: Array<{ high: number; low: number; open?: number; close?: number; timestamp: number }>,
-  windowComplete: boolean,
-): SignalOutcome | null {
-  if (!record.tp1 || !record.sl) return null;
-
-  for (const candle of candles) {
-    // SL-priority + gap-through fill — see lib/signal-history.ts
-    // resolveFromCandles for the rationale. All three resolvers must move
-    // together (they write to the same signal_history table).
-    const open = candle.open ?? null;
-    if (record.direction === 'BUY') {
-      const slHit = candle.low <= record.sl;
-      const tpHit = candle.high >= record.tp1;
-      if (slHit) {
-        const fillPrice = open !== null && open <= record.sl ? open : record.sl;
-        const pnlPct = +((fillPrice - record.entryPrice) / record.entryPrice * 100).toFixed(2);
-        return { price: fillPrice, pnlPct, hit: false };
-      }
-      if (tpHit) {
-        const pnlPct = +((record.tp1 - record.entryPrice) / record.entryPrice * 100).toFixed(2);
-        return { price: record.tp1, pnlPct, hit: true };
-      }
-    } else {
-      const slHit = candle.high >= record.sl;
-      const tpHit = candle.low <= record.tp1;
-      if (slHit) {
-        const fillPrice = open !== null && open >= record.sl ? open : record.sl;
-        const pnlPct = +((record.entryPrice - fillPrice) / record.entryPrice * 100).toFixed(2);
-        return { price: fillPrice, pnlPct, hit: false };
-      }
-      if (tpHit) {
-        const pnlPct = +((record.entryPrice - record.tp1) / record.entryPrice * 100).toFixed(2);
-        return { price: record.tp1, pnlPct, hit: true };
-      }
-    }
-  }
-
-  // Window fully elapsed but neither TP nor SL hit — close at last candle's price
-  if (windowComplete && candles.length > 0) {
-    const lastClose = candles[candles.length - 1].close;
-    if (lastClose != null) {
-      const pnlPct = record.direction === 'BUY'
-        ? +((lastClose - record.entryPrice) / record.entryPrice * 100).toFixed(2)
-        : +((record.entryPrice - lastClose) / record.entryPrice * 100).toFixed(2);
-      return { price: lastClose, pnlPct, hit: pnlPct > 0 };
-    }
-  }
-
-  return null;
-}
+// Outcome math is centralised in lib/signal-history.ts → resolveFromCandles.
+// This route just discards the MAE field — only the request-path writer
+// feeds calibration with it.
 
 /**
  * POST /api/signals/resolve
@@ -126,9 +71,9 @@ export async function POST(): Promise<Response> {
         const window = candles.filter(
           c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
         );
-        const result = resolveWindow(record, window, true);
+        const result = resolveFromCandles(record, window, true);
         if (result) {
-          newOutcomes['4h'] = result;
+          newOutcomes['4h'] = result.outcome;
           changed = true;
         } else if (age >= FOUR_HOURS_MS * 2) {
           // Force-expire: either OHLCV failed or candle window is empty
@@ -146,9 +91,9 @@ export async function POST(): Promise<Response> {
         const window = candles.filter(
           c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
         );
-        const result = resolveWindow(record, window, true);
+        const result = resolveFromCandles(record, window, true);
         if (result) {
-          newOutcomes['24h'] = result;
+          newOutcomes['24h'] = result.outcome;
           changed = true;
         } else if (age >= TWENTY_FOUR_HOURS_MS * 2) {
           // Force-expire: candle data unavailable or doesn't cover the window.
