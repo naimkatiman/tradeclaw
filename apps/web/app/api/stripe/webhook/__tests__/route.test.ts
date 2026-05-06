@@ -20,6 +20,8 @@ jest.mock('../../../../../lib/db', () => ({
   updateSubscriptionStatus: jest.fn().mockResolvedValue(undefined),
   getSubscriptionByStripeId: jest.fn().mockResolvedValue(null),
   tryClaimStripeEvent: jest.fn(),
+  setTrialEnd: jest.fn().mockResolvedValue(undefined),
+  releaseStripeEvent: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../../../../lib/telegram', () => ({
@@ -39,6 +41,7 @@ import {
   getSubscriptionByStripeId,
   getUserById,
   tryClaimStripeEvent,
+  cancelSubscription,
 } from '../../../../../lib/db';
 import { sendInvite } from '../../../../../lib/telegram';
 import { sendPaymentFailedEmail } from '../../../../../lib/transactional-email';
@@ -54,6 +57,7 @@ const mockedGetSubByStripeId = getSubscriptionByStripeId as jest.MockedFunction<
 const mockedGetUserById = getUserById as jest.MockedFunction<typeof getUserById>;
 const mockedSendInvite = sendInvite as jest.MockedFunction<typeof sendInvite>;
 const mockedSendDunning = sendPaymentFailedEmail as jest.MockedFunction<typeof sendPaymentFailedEmail>;
+const mockedCancelSub = cancelSubscription as jest.MockedFunction<typeof cancelSubscription>;
 
 function makeRequest(): NextRequest {
   const body = JSON.stringify({});
@@ -303,5 +307,142 @@ describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
     expect(res.status).toBe(200);
     expect(mockedUpdateSubStatus).toHaveBeenCalledWith('sub_failed', 'past_due');
     errSpy.mockRestore();
+  });
+});
+
+describe('POST /api/stripe/webhook — tier transitions', () => {
+  const ORIGINAL_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+    mockedTryClaim.mockResolvedValue(true);
+  });
+
+  afterAll(() => {
+    process.env.STRIPE_WEBHOOK_SECRET = ORIGINAL_SECRET;
+  });
+
+  it('checkout.session.completed upgrades user to pro with the correct period_end', async () => {
+    const periodStart = Math.floor(Date.now() / 1000);
+    const periodEnd = periodStart + 30 * 86400;
+
+    mockedResolveTier.mockReturnValue('pro');
+    mockedGetStripe.mockReturnValue({
+      webhooks: {
+        constructEvent: jest.fn().mockReturnValue({
+          id: 'evt_upgrade',
+          type: 'checkout.session.completed',
+          data: {
+            object: {
+              client_reference_id: 'user-1',
+              customer: 'cus_1',
+              subscription: 'sub_1',
+            },
+          },
+        }),
+      },
+      subscriptions: {
+        retrieve: jest.fn().mockResolvedValue({
+          status: 'active',
+          cancel_at_period_end: false,
+          items: {
+            data: [
+              {
+                price: { id: 'price_pro_monthly' },
+                current_period_start: periodStart,
+                current_period_end: periodEnd,
+              },
+            ],
+          },
+        }),
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
+
+    expect(mockedUpdateTier).toHaveBeenCalledTimes(1);
+    const [userId, tier, expiresAt] = mockedUpdateTier.mock.calls[0];
+    expect(userId).toBe('user-1');
+    expect(tier).toBe('pro');
+    expect(expiresAt).toBeInstanceOf(Date);
+    expect((expiresAt as Date).getTime()).toBe(periodEnd * 1000);
+
+    expect(mockedUpsertSub).toHaveBeenCalledTimes(1);
+    const upsertArgs = mockedUpsertSub.mock.calls[0][0];
+    expect(upsertArgs.tier).toBe('pro');
+    expect(upsertArgs.userId).toBe('user-1');
+    expect(upsertArgs.stripeSubscriptionId).toBe('sub_1');
+  });
+
+  it('customer.subscription.deleted downgrades user to free', async () => {
+    mockedGetStripe.mockReturnValue({
+      webhooks: {
+        constructEvent: jest.fn().mockReturnValue({
+          id: 'evt_cancel',
+          type: 'customer.subscription.deleted',
+          data: {
+            object: {
+              id: 'sub_1',
+              status: 'canceled',
+              customer: 'cus_1',
+              metadata: { userId: 'user-1', tier: 'pro' },
+            },
+          },
+        }),
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
+
+    expect(mockedUpdateTier).toHaveBeenCalledTimes(1);
+    const [userId, tier, expiresAt] = mockedUpdateTier.mock.calls[0];
+    expect(userId).toBe('user-1');
+    expect(tier).toBe('free');
+    expect(expiresAt).toBeNull();
+    expect(mockedCancelSub).toHaveBeenCalledWith('sub_1');
+  });
+
+  it('customer.subscription.updated (monthly→annual) keeps pro tier and refreshes period_end', async () => {
+    const annualEnd = Math.floor(Date.now() / 1000) + 365 * 86400;
+    mockedResolveTier.mockReturnValue('pro');
+
+    mockedGetStripe.mockReturnValue({
+      webhooks: {
+        constructEvent: jest.fn().mockReturnValue({
+          id: 'evt_switch',
+          type: 'customer.subscription.updated',
+          data: {
+            object: {
+              id: 'sub_1',
+              status: 'active',
+              cancel_at_period_end: false,
+              metadata: { userId: 'user-1', tier: 'pro' },
+              items: {
+                data: [
+                  {
+                    price: { id: 'price_pro_annual' },
+                    current_period_end: annualEnd,
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
+
+    const [, tier, expiresAt] = mockedUpdateTier.mock.calls[0];
+    expect(tier).toBe('pro');
+    expect((expiresAt as Date).getTime()).toBe(annualEnd * 1000);
+    expect(mockedUpdateSubStatus).toHaveBeenCalledWith('sub_1', 'active', expect.any(Date));
   });
 });
