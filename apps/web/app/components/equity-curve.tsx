@@ -28,6 +28,7 @@ interface EquitySummary {
   breakEvenWinRate: number | null;
   riskPerTradePct?: number;
   roundTripCostPct?: number;
+  hardRCap?: number;
 }
 
 interface TooltipData {
@@ -389,10 +390,10 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all' }:
           <p className="text-[11px] text-zinc-600 mt-0.5">
             {isPro
               ? summary
-                ? `Full Pro track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional, after ${summary.roundTripCostPct}% round-trip costs. Verified against real market data.`
+                ? `Full Pro track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per trade` : ''}, after ${summary.roundTripCostPct}% round-trip costs. Verified against real market data.`
                 : 'Full Pro track record. Verified against real market data.'
               : summary
-                ? `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see. ${summary.riskPerTradePct}% risk per trade after costs.`
+                ? `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after costs.`
                 : `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see.`}
           </p>
           {summary && summary.sizedTrades !== undefined && summary.sizedTrades > 0 && (

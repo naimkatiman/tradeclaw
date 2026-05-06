@@ -14,7 +14,7 @@ export const STAT_HINTS = {
   totalReturnLinear:
     'Sum of per-signal % outcomes (raw market price-to-price). Reads "if every signal printed at exact entry/exit, this is what the trades summed to." Not a sized return — see the equity card below for the position-sized version.',
   totalReturnCompounded:
-    'Compounded equity from $10,000 with 1% risk per trade (fixed-fractional sizing) and 0.05% round-trip costs deducted. This is what a subscriber executing every signal at fixed 1% risk would have earned, not the unbounded "100% bankroll per signal" curve. Differs from the raw price-to-price sum at the top of the page.',
+    'Compounded equity from $10,000 with 1% risk per trade (fixed-fractional sizing), per-trade R-multiple capped at 3R, and 0.05% round-trip costs deducted. The 3R cap models a subscriber scaling out at extension targets rather than letting tight-stop signals print 19R single-trade gains. Differs from the raw price-to-price sum at the top of the page.',
   avgPnl: 'Total return ÷ resolved signals. The average outcome of one trade in this window.',
 
   // ── Win-rate flavours ────────────────────────────────────────

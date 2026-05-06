@@ -28,6 +28,20 @@ const RISK_PER_TRADE_PCT = 1.0;
  */
 const ROUND_TRIP_COST_PCT = 0.05;
 
+/**
+ * Hard cap on per-trade R-multiple for equity sizing. Bounds single-trade
+ * equity contribution at ±HARD_R_CAP × RISK_PER_TRADE_PCT (= ±3% under 1%
+ * sizing). Rationale: the engine's TPs sometimes sit 5-20R from entry on
+ * tight-stop signals, but no real subscriber realises 19R wins — they scale
+ * out, hit profit targets, or get filled poorly on extension moves.
+ * Industry-standard backtest convention to model "what if I scaled out at
+ * 3R." Applies BEFORE the smooth-mode P95 clip (smooth tightens further
+ * when active). R-multiple stats (avgRWin, expectancy) keep using the RAW
+ * uncapped R so engine quality isn't distorted — only the equity path is
+ * bounded.
+ */
+const HARD_R_CAP = 3;
+
 export type EquityBand = 'premium' | 'standard' | 'all';
 
 export interface EquityPoint {
@@ -59,6 +73,8 @@ export interface EquitySummary {
   riskPerTradePct: number;
   /** Round-trip cost deducted per trade, in percent. */
   roundTripCostPct: number;
+  /** Hard R-cap applied to per-trade sizing — bounds single-trade equity contribution. */
+  hardRCap: number;
 }
 
 function parseBand(raw: string | null): EquityBand {
@@ -151,11 +167,11 @@ function computeEquityCurve(
       lossRCount++;
     }
 
-    // Smooth-mode clip in R-space (P95 by default). Symmetric — outsized
-    // winners and losers both get clipped.
-    const rMultipleSized = rCap !== null
-      ? Math.max(-rCap, Math.min(rCap, rMultiple))
-      : rMultiple;
+    // Per-trade R cap for sizing. HARD_R_CAP is universal (always-on, models
+    // realistic scale-out behaviour). Smooth toggle adds an additional P95
+    // clip on top — when active, the effective cap is min(rCap, HARD_R_CAP).
+    const effectiveRCap = rCap !== null ? Math.min(rCap, HARD_R_CAP) : HARD_R_CAP;
+    const rMultipleSized = Math.max(-effectiveRCap, Math.min(effectiveRCap, rMultiple));
 
     // Fixed-fractional equity change: RISK_PER_TRADE_PCT × R, minus blended
     // round-trip cost. Loss tail is bounded near -(RISK_PER_TRADE_PCT + cost%);
@@ -225,6 +241,7 @@ function computeEquityCurve(
       breakEvenWinRate,
       riskPerTradePct: RISK_PER_TRADE_PCT,
       roundTripCostPct: ROUND_TRIP_COST_PCT,
+      hardRCap: HARD_R_CAP,
     },
   };
 }
