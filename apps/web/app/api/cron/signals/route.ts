@@ -10,6 +10,7 @@ import {
   updateRecordsAsync,
   markTelegramPosted,
   resolveFromCandles,
+  getUnpostedProSignalsAsync,
   type SignalHistoryRecord,
 } from '../../../../lib/signal-history';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
@@ -234,9 +235,41 @@ export async function GET(request: NextRequest): Promise<Response> {
     // Pipeline failure falls back to unfiltered broadcast — Pro's value prop
     // is real-time delivery, so a transient risk-state outage must not
     // silently mute the channel.
-    if (newSignals.length > 0) {
+    //
+    // Catch-up set: tracked-signals.ts still records via /api/signals when
+    // free traffic hits, but only broadcasts when the caller is paid. Those
+    // rows land in signal_history with telegram_pro_message_id NULL and
+    // would otherwise stay unposted. Pull them in here and rely on the
+    // broadcaster's per-id dedup to make repeated cron ticks idempotent.
+    const CATCHUP_WINDOW_MS = 10 * 60 * 1000;
+    let catchupSignals: NewlyRecordedSignal[] = [];
+    try {
+      const catchupRecords = await getUnpostedProSignalsAsync(CATCHUP_WINDOW_MS);
+      const taggedIds = new Set(newSignals.map((s) => s.id));
+      catchupSignals = catchupRecords
+        .filter((r) => !taggedIds.has(r.id) && r.tp1 != null && r.sl != null)
+        .map((r) => ({
+          id: r.id,
+          symbol: r.pair,
+          timeframe: r.timeframe,
+          direction: r.direction,
+          confidence: r.confidence,
+          entry: r.entryPrice,
+          takeProfit1: r.tp1 as number,
+          stopLoss: r.sl as number,
+          timestamp: r.timestamp,
+        }));
+    } catch (err) {
+      console.warn(
+        '[cron/signals] Catch-up query failed; broadcasting freshly recorded signals only:',
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+
+    const broadcastInputs: NewlyRecordedSignal[] = [...newSignals, ...catchupSignals];
+    if (broadcastInputs.length > 0) {
       const winningCellsActive = getWinningCellsMode() === 'active';
-      const curated = newSignals.filter((s) =>
+      const curated = broadcastInputs.filter((s) =>
         !winningCellsActive || isWinningCell(s.symbol, s.direction),
       );
 

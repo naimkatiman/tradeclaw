@@ -1009,6 +1009,36 @@ export async function getSignalTelegramProMessageId(
     : undefined;
 }
 
+/**
+ * Tradable signals from the last `withinMs` window that have not yet been
+ * posted to the Pro Telegram group. Powers the cron's catch-up broadcast
+ * for rows the request-side writer recorded but never broadcast (because
+ * `callerIsPaid` was false on a free-tier hit to /api/signals).
+ *
+ * The broadcaster has its own dedup gate keyed on `telegram_pro_message_id`,
+ * so re-passing rows here is idempotent — at most one Telegram round-trip
+ * per signal id over the lifetime of the row.
+ *
+ * Returns ascending by `created_at` so older catch-up rows broadcast first.
+ */
+export async function getUnpostedProSignalsAsync(
+  withinMs: number,
+): Promise<SignalHistoryRecord[]> {
+  if (!isDbEnabled()) return [];
+  const cutoff = new Date(Date.now() - withinMs).toISOString();
+  const rows = await query<HistoryRow>(
+    `SELECT * FROM signal_history
+     WHERE telegram_pro_message_id IS NULL
+       AND COALESCE(gate_blocked, false) = false
+       AND tp1 IS NOT NULL
+       AND sl IS NOT NULL
+       AND created_at >= $1
+     ORDER BY created_at ASC`,
+    [cutoff],
+  );
+  return rows.map(rowToRecord);
+}
+
 // ── Bulk update (cron resolution) ────────────────────────────
 
 export async function updateRecordsAsync(
