@@ -4,6 +4,19 @@ import {
   readBroadcastState,
 } from '../../../../lib/telegram-broadcast';
 import { getBotToken, getFreeChannelId } from '../../../../lib/telegram-channels';
+import { requireCronAuth } from '../../../../lib/cron-auth';
+import { assertAdminApi } from '../../../../lib/admin-gate';
+
+// Accept either an admin browser session or a Vercel-cron Bearer token.
+// Pre-fix this route was wide open and any internet caller could trigger
+// a broadcast or read the channel-id prefix from GET.
+async function authorize(request: NextRequest): Promise<NextResponse | null> {
+  const adminDenied = await assertAdminApi(request);
+  if (!adminDenied) return null;
+  const cronDenied = requireCronAuth(request);
+  if (!cronDenied) return null;
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+}
 
 // ---------------------------------------------------------------------------
 // POST /api/telegram/broadcast — trigger a channel broadcast
@@ -11,6 +24,9 @@ import { getBotToken, getFreeChannelId } from '../../../../lib/telegram-channels
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const denied = await authorize(request);
+  if (denied) return denied;
+
   let body: { channelId?: string; botToken?: string } = {};
   try {
     body = (await request.json()) as typeof body;
@@ -48,7 +64,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 // GET /api/telegram/broadcast — broadcast status
 // ---------------------------------------------------------------------------
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  const denied = await authorize(request);
+  if (denied) return denied;
+
   try {
     const state = readBroadcastState();
     const channelId = getFreeChannelId();

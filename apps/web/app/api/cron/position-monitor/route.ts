@@ -16,15 +16,7 @@ import {
   getProGroupId,
   getProSignalsTopicId,
 } from '../../../../lib/telegram-channels';
-
-// ── Auth guard ────────────────────────────────────────────────
-
-function isAuthorized(request: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const header = request.headers.get('authorization');
-  return header === `Bearer ${secret}`;
-}
+import { requireCronAuth } from '../../../../lib/cron-auth';
 
 // ── Price fetching ───────────────────────────────────────────
 
@@ -137,9 +129,8 @@ function shouldClose(
 // ── Route handler ────────────────────────────────────────────
 
 export async function GET(request: NextRequest): Promise<Response> {
-  if (!isAuthorized(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const denied = requireCronAuth(request);
+  if (denied) return denied;
 
   try {
     const positions = await getAllOpenPositionsForSweep();

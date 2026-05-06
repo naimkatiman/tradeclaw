@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runUniverseScreen } from '../../../../lib/execution/universe-runner';
+import { requireCronAuth } from '../../../../lib/cron-auth';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-function isAuthorized(request: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return process.env.NODE_ENV !== 'production';
-  return request.headers.get('authorization') === `Bearer ${secret}`;
-}
-
 export async function GET(request: NextRequest): Promise<Response> {
-  if (!isAuthorized(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const denied = requireCronAuth(request);
+  if (denied) return denied;
 
   const t0 = Date.now();
   try {

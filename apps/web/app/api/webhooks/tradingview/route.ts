@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'node:crypto';
 import { execute } from '@/lib/db-pool';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
+function safeSecretEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a, 'utf8');
+  const bb = Buffer.from(b, 'utf8');
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
+}
 
 /**
  * Strategy IDs that may flow in via the TradingView webhook pipe. Used as an
@@ -83,7 +91,7 @@ export async function POST(req: NextRequest) {
   if (!expected) {
     return NextResponse.json({ error: 'not_configured' }, { status: 503 });
   }
-  if (!secret || secret !== expected) {
+  if (!secret || !safeSecretEqual(secret, expected)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
