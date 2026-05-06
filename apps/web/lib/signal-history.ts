@@ -804,12 +804,17 @@ export async function resolveRealOutcomes(): Promise<void> {
 
 export async function getPendingRecordsAsync(): Promise<SignalHistoryRecord[]> {
   if (isDbEnabled()) {
-    // Only look back 14 days — older signals lack candle data to resolve
+    // Look back 30 days — matches the public /track-record window. The
+    // previous 14-day cap stranded 1,000+ rows after methodology backfills
+    // because cron and POST /api/signals/resolve both filter through here.
+    // OHLCV providers (TwelveData via market-data-hub) typically have ≥200
+    // days of H1 history, so 30-day re-resolution is safe; rows that fail
+    // OHLCV lookup gracefully force-expire after 2× window.
     const rows = await query<HistoryRow>(
       `SELECT * FROM signal_history
        WHERE is_simulated = FALSE
          AND (outcome_4h IS NULL OR outcome_24h IS NULL)
-         AND created_at > NOW() - INTERVAL '14 days'
+         AND created_at > NOW() - INTERVAL '30 days'
        ORDER BY created_at DESC`,
     );
     return rows.map(rowToRecord);
