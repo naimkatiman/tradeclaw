@@ -118,3 +118,134 @@ describe('resolveFromCandles MAE tracking', () => {
     expect(resolve(r, [], false)).toBeNull();
   });
 });
+
+describe('resolveFromCandles conservative resolution', () => {
+  if (!resolve) {
+    it.skip('requires _resolveFromCandlesForTest export', () => {});
+    return;
+  }
+
+  // Ambiguous-candle and gap-through coverage. Wide-range bars that touch
+  // both TP and SL must resolve as SL (conservative — published track-record
+  // can't put a thumb on the scale). Stop-outs where the candle opens past
+  // SL must fill at the open, not at SL — that's the slippage real fills
+  // take during gaps.
+
+  describe('wick ambiguity: SL takes priority when both could fire', () => {
+    it('BUY: candle covering tp1 and sl resolves as SL loss, not TP win', () => {
+      const r = { direction: 'BUY' as const, entryPrice: 100, tp1: 110, sl: 95 };
+      const candles: OHLCV[] = [
+        candle(1, 100, 111, 94, 100),
+      ];
+      const res = resolve(r, candles, false);
+      expect(res).not.toBeNull();
+      expect(res!.outcome.hit).toBe(false);
+      expect(res!.outcome.price).toBe(95);
+      expect(res!.maxAdverseExcursion).toBe(6);
+    });
+
+    it('SELL: candle covering tp1 and sl resolves as SL loss, not TP win', () => {
+      const r = { direction: 'SELL' as const, entryPrice: 100, tp1: 90, sl: 105 };
+      const candles: OHLCV[] = [
+        candle(1, 100, 106, 89, 100),
+      ];
+      const res = resolve(r, candles, false);
+      expect(res).not.toBeNull();
+      expect(res!.outcome.hit).toBe(false);
+      expect(res!.outcome.price).toBe(105);
+      expect(res!.maxAdverseExcursion).toBe(6);
+    });
+
+    it('BUY: clean TP win on a candle that did NOT touch SL is unchanged', () => {
+      const r = { direction: 'BUY' as const, entryPrice: 100, tp1: 110, sl: 95 };
+      const candles: OHLCV[] = [
+        candle(1, 100, 111, 99, 110),
+      ];
+      const res = resolve(r, candles, false);
+      expect(res).not.toBeNull();
+      expect(res!.outcome.hit).toBe(true);
+      expect(res!.outcome.price).toBe(110);
+    });
+  });
+
+  describe('gap-through: SL fill at candle.open when gapped past, bounded at -1.5R', () => {
+    it('BUY: small gap (within 1.5R) fills at candle.open', () => {
+      const r = { direction: 'BUY' as const, entryPrice: 100, tp1: 110, sl: 95 };
+      // Risk = 5; 1.5R floor = 92.5. Gap to 94 is within the floor, so raw open is used.
+      const candles: OHLCV[] = [
+        candle(1, 100, 100.5, 99.5, 100),
+        candle(2, 94, 94.5, 93, 93.5),
+      ];
+      const res = resolve(r, candles, false);
+      expect(res).not.toBeNull();
+      expect(res!.outcome.hit).toBe(false);
+      expect(res!.outcome.price).toBe(94);
+      expect(res!.outcome.pnlPct).toBe(-6);
+    });
+
+    it('BUY: deep gap-through capped at -1.5R, not at candle.open', () => {
+      const r = { direction: 'BUY' as const, entryPrice: 100, tp1: 110, sl: 95 };
+      // Risk = 5; 1.5R floor = 92.5. Candle opens at 80 (= -4R if uncapped).
+      const candles: OHLCV[] = [
+        candle(1, 100, 100.5, 99.5, 100),
+        candle(2, 80, 81, 78, 79),
+      ];
+      const res = resolve(r, candles, false);
+      expect(res).not.toBeNull();
+      expect(res!.outcome.hit).toBe(false);
+      expect(res!.outcome.price).toBe(92.5);
+      expect(res!.outcome.pnlPct).toBe(-7.5);
+    });
+
+    it('SELL: small gap fills at candle.open within 1.5R', () => {
+      const r = { direction: 'SELL' as const, entryPrice: 100, tp1: 90, sl: 105 };
+      // Risk = 5; 1.5R ceiling = 107.5. Gap to 106 is within the ceiling.
+      const candles: OHLCV[] = [
+        candle(1, 100, 100.5, 99.5, 100),
+        candle(2, 106, 106.5, 105.5, 106),
+      ];
+      const res = resolve(r, candles, false);
+      expect(res).not.toBeNull();
+      expect(res!.outcome.hit).toBe(false);
+      expect(res!.outcome.price).toBe(106);
+      expect(res!.outcome.pnlPct).toBe(-6);
+    });
+
+    it('SELL: deep gap-through capped at -1.5R', () => {
+      const r = { direction: 'SELL' as const, entryPrice: 100, tp1: 90, sl: 105 };
+      // Risk = 5; 1.5R ceiling = 107.5. Candle opens at 120 (= -4R if uncapped).
+      const candles: OHLCV[] = [
+        candle(1, 100, 100.5, 99.5, 100),
+        candle(2, 120, 121, 119, 120),
+      ];
+      const res = resolve(r, candles, false);
+      expect(res).not.toBeNull();
+      expect(res!.outcome.hit).toBe(false);
+      expect(res!.outcome.price).toBe(107.5);
+      expect(res!.outcome.pnlPct).toBe(-7.5);
+    });
+
+    it('BUY: intracandle SL touch (open above sl) still fills at sl', () => {
+      const r = { direction: 'BUY' as const, entryPrice: 100, tp1: 110, sl: 95 };
+      // Open above SL, then wicks down to SL — typical intracandle stop-out.
+      const candles: OHLCV[] = [
+        candle(1, 98, 99, 94, 96),
+      ];
+      const res = resolve(r, candles, false);
+      expect(res).not.toBeNull();
+      expect(res!.outcome.hit).toBe(false);
+      expect(res!.outcome.price).toBe(95);
+    });
+
+    it('SELL: intracandle SL touch (open below sl) still fills at sl', () => {
+      const r = { direction: 'SELL' as const, entryPrice: 100, tp1: 90, sl: 105 };
+      const candles: OHLCV[] = [
+        candle(1, 102, 106, 101, 104),
+      ];
+      const res = resolve(r, candles, false);
+      expect(res).not.toBeNull();
+      expect(res!.outcome.hit).toBe(false);
+      expect(res!.outcome.price).toBe(105);
+    });
+  });
+});

@@ -16,6 +16,10 @@ One commit per concern. No commit touches >15 files.
 
 1. **fix(billing): gate /api/v1/signals through tier filter**
    - `apps/web/app/api/v1/signals/route.ts` — apply `filterSignalByTier`, `TIER_DELAY_MS`, symbol allowlist, ≥85 band hide on the live-file path. Add `apps/web/app/api/v1/signals/__tests__/route.test.ts`.
+   - **Reconcile note (2026-05-05):** initial commit shipped tier filter + `Vary: Cookie`. Audit `2026-05-05-plans-free-vs-pro-coverage.md` flagged two residual gaps:
+     - **F-009** — error catch returned HTTP 200 + empty signals list (silent failure).
+     - **F-016** — missing `Vary: Authorization` (latent CDN poisoning between cookie-auth and bearer-token callers).
+     - Both closed 2026-05-05 in the same route + test: catch now returns 503 with `error: "upstream_unavailable"`, `Vary` set to `Cookie, Authorization`. Verification: `npm test -- apps/web/app/api/v1/signals/__tests__/route.test.ts`.
 
 2. **fix(billing): drop body-userId fallback in /api/stripe/checkout**
    - `apps/web/app/api/stripe/checkout/route.ts` — read session only.

@@ -1,116 +1,44 @@
 name: Signal Log
 
+# Triggers /api/cron/signals on Railway, which records new signals, resolves
+# 4h/24h outcomes, and writes one row into signal_run_log with a SHA-256 over
+# the signal_history snapshot at run-start.
+#
+# Audit trail lives in the signal_run_log table — query it for tamper-evident
+# proof that signals existed before outcomes were known. The previous version
+# of this workflow committed data/signal-log.json on every run; that path was
+# retired 2026-05-05 because it polluted main branch history and slowed CI.
+# See migration 026_signal_run_log.sql for the table shape and
+# apps/web/lib/signal-run-log.ts for the recorder.
+#
+# This workflow no longer writes to the repo — `permissions: contents: read`
+# is enforced. The Vercel/Railway 5-min internal cron already covers normal
+# operation; this scheduled job is a backup trigger every 6 hours.
+
 on:
   schedule:
     - cron: "0 */6 * * *"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  update-signal-log:
+  trigger-cron:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
       - name: Trigger cron endpoint to record signals and resolve outcomes
         run: |
-          curl -sf -X POST https://tradeclaw.win/api/cron/signals \
+          set -euo pipefail
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            https://tradeclaw.win/api/cron/signals \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            || echo "::warning::Cron endpoint returned non-success (may be expected on first run)"
-
-      - name: Fetch current signal history
-        run: |
-          mkdir -p data
-          curl -sf "https://tradeclaw.win/api/signals/history?limit=500" \
-            -o data/signal-log.json \
-            || echo "::warning::Could not fetch signal history"
-
-      - name: Generate markdown summary
-        run: |
-          INPUT="data/signal-log.json"
-          OUTPUT="data/SIGNAL-LOG.md"
-
-          if [ ! -s "$INPUT" ]; then
-            echo "No signal data available, skipping summary generation."
-            exit 0
-          fi
-
-          # Extract stats using jq
-          TOTAL=$(jq 'length' "$INPUT" 2>/dev/null || echo 0)
-          VERIFIED=$(jq '[.[] | select(.outcome != null and .outcome != "")] | length' "$INPUT" 2>/dev/null || echo 0)
-          WINS=$(jq '[.[] | select(.outcome == "win")] | length' "$INPUT" 2>/dev/null || echo 0)
-
-          if [ "$VERIFIED" -gt 0 ]; then
-            WIN_RATE=$(echo "scale=1; $WINS * 100 / $VERIFIED" | bc)
-          else
-            WIN_RATE="N/A"
-          fi
-
-          AVG_PNL=$(jq '
-            [.[] | select(.pnl != null) | .pnl] |
-            if length > 0 then (add / length * 100 | . * 10 | round / 10) else 0 end
-          ' "$INPUT" 2>/dev/null || echo "0")
-
-          # Build the markdown
-          NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          CUTOFF=$(date -u -d '24 hours ago' +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null \
-                   || date -u -v-24H +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null \
-                   || echo "")
-
-          cat > "$OUTPUT" <<EOF
-          # TradeClaw Signal Log
-
-          > Auto-updated every 6 hours. Each git commit proves signals existed before outcomes were known.
-          > Verify with: \`git log --oneline data/signal-log.json\`
-
-          ## Stats
-          - **Total Signals:** $TOTAL
-          - **Verified:** $VERIFIED
-          - **Win Rate:** ${WIN_RATE}%
-          - **Avg P&L:** ${AVG_PNL}%
-
-          ## Recent Signals (last 24h)
-          EOF
-
-          # Strip leading whitespace from heredoc
-          sed -i 's/^          //' "$OUTPUT"
-
-          # Table header
-          echo "| Time (UTC) | Symbol | Dir | Entry | TP1 | SL | Outcome | P&L |" >> "$OUTPUT"
-          echo "|------------|--------|-----|-------|-----|----|---------|-----|" >> "$OUTPUT"
-
-          # Recent signals table rows
-          if [ -n "$CUTOFF" ]; then
-            jq -r --arg cutoff "$CUTOFF" '
-              sort_by(.timestamp) | reverse |
-              [.[] | select(.timestamp >= $cutoff)] |
-              .[:50][] |
-              "| \(.timestamp // "-" | split("T") | .[1] | split(".")[0] // "-") | \(.symbol // "-") | \(.direction // "-") | \(.entry // "-") | \(.tp1 // .targets[0] // "-") | \(.sl // .stopLoss // "-") | \(.outcome // "pending") | \(.pnl // "-") |"
-            ' "$INPUT" >> "$OUTPUT" 2>/dev/null || echo "| - | - | - | - | - | - | - | - |" >> "$OUTPUT"
-          else
-            jq -r '
-              sort_by(.timestamp) | reverse |
-              .[:20][] |
-              "| \(.timestamp // "-" | split("T") | .[1] | split(".")[0] // "-") | \(.symbol // "-") | \(.direction // "-") | \(.entry // "-") | \(.tp1 // .targets[0] // "-") | \(.sl // .stopLoss // "-") | \(.outcome // "pending") | \(.pnl // "-") |"
-            ' "$INPUT" >> "$OUTPUT" 2>/dev/null || echo "| - | - | - | - | - | - | - | - |" >> "$OUTPUT"
-          fi
-
-          echo "" >> "$OUTPUT"
-          echo "---" >> "$OUTPUT"
-          echo "Last updated: $NOW" >> "$OUTPUT"
-
-      - name: Commit and push if changed
-        run: |
-          git config user.name "TradeClaw Bot"
-          git config user.email "bot@tradeclaw.win"
-          git add -f data/
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "chore(signals): update signal log $(date -u +%Y-%m-%d-%H%M)"
-            git pull --rebase origin main || true
-            git push
+            --max-time 60)
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -n1)
+          echo "HTTP $status"
+          echo "$body"
+          if [ "$status" -ne 200 ]; then
+            echo "::warning::Cron endpoint returned $status"
+            exit 1
           fi

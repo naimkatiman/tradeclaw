@@ -40,4 +40,8 @@ describe('classifySignalOutcome', () => {
     expect(classifySignalOutcome(sig, 130)).toMatchObject({ status: 'tp1_hit', hitTarget: 'TP1' }); // would have been TP3 with full ladder
     expect(classifySignalOutcome(sig, 102)).toMatchObject({ status: 'active' });
   });
+  it('treats null stopLoss as locked/absent instead of stopped', () => {
+    const sig = { ...sell, stopLoss: null as number | null };
+    expect(classifySignalOutcome(sig, 106)).toMatchObject({ status: 'active', hitTarget: null });
+  });
 });

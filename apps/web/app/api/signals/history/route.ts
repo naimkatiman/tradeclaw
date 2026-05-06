@@ -1,11 +1,79 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveRealOutcomes, isCountedResolved, isRealOutcome } from '../../../../lib/signal-history';
+import { resolveRealOutcomes, isCountedResolved, isRealOutcome, type SignalHistoryRecord } from '../../../../lib/signal-history';
 import { getResolvedSlice, parseScope } from '../../../../lib/signal-slice';
+import { getTierFromRequest, meetsMinimumTier, upgradeRequiredBody } from '../../../../lib/tier';
+import { parseCategoryFilter, symbolsForCategory } from '../../../lib/symbol-config';
+
+const CSV_HEADERS = [
+  'id',
+  'pair',
+  'timeframe',
+  'direction',
+  'confidence',
+  'entryPrice',
+  'takeProfit1',
+  'stopLoss',
+  'timestamp',
+  'strategyId',
+  'gateBlocked',
+  'gateReason',
+  'outcome4hHit',
+  'outcome4hPnlPct',
+  'outcome24hHit',
+  'outcome24hPnlPct',
+] as const;
+
+function csvCell(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  const raw = value instanceof Date ? value.toISOString() : String(value);
+  return /[",\r\n]/.test(raw) ? `"${raw.replace(/"/g, '""')}"` : raw;
+}
+
+export function signalHistoryToCsv(records: SignalHistoryRecord[]): string {
+  const rows = records.map(record => [
+    record.id,
+    record.pair,
+    record.timeframe,
+    record.direction,
+    record.confidence,
+    record.entryPrice,
+    record.tp1,
+    record.sl,
+    new Date(record.timestamp).toISOString(),
+    record.strategyId,
+    record.gateBlocked ?? false,
+    record.gateReason,
+    record.outcomes['4h']?.hit,
+    record.outcomes['4h']?.pnlPct,
+    record.outcomes['24h']?.hit,
+    record.outcomes['24h']?.pnlPct,
+  ]);
+
+  return [
+    CSV_HEADERS.join(','),
+    ...rows.map(row => row.map(csvCell).join(',')),
+  ].join('\n');
+}
 
 export async function GET(request: NextRequest) {
   try {
-    await resolveRealOutcomes();
     const { searchParams } = new URL(request.url);
+    const format = searchParams.get('format')?.toLowerCase();
+
+    if (format === 'csv') {
+      const tier = await getTierFromRequest(request);
+      if (!meetsMinimumTier(tier, 'pro')) {
+        return NextResponse.json(
+          upgradeRequiredBody({
+            reason: 'Signal history CSV export requires Pro.',
+            source: 'signals-history-csv',
+          }),
+          { status: 402 },
+        );
+      }
+    }
+
+    await resolveRealOutcomes();
 
     // `scope=pro` (default) shows all-symbol / full-history track record as a
     // marketing surface — past outcomes have no tradable edge. `scope=free`
@@ -16,6 +84,7 @@ export async function GET(request: NextRequest) {
     // here would hide the product's capability from the exact people we need
     // to show it to.
     const scope = parseScope(searchParams.get('scope'));
+    const category = parseCategoryFilter(searchParams.get('category'));
 
     const pair = searchParams.get('pair')?.toUpperCase();
     const direction = searchParams.get('direction')?.toUpperCase() as 'BUY' | 'SELL' | undefined;
@@ -29,7 +98,12 @@ export async function GET(request: NextRequest) {
     const slice = await getResolvedSlice({ scope, period });
     let records = slice.periodFiltered;
 
+    const categorySymbols = !pair && category !== 'all'
+      ? new Set(symbolsForCategory(category))
+      : null;
+
     if (pair) records = records.filter(r => r.pair === pair);
+    if (categorySymbols) records = records.filter(r => categorySymbols.has(r.pair));
     if (direction === 'BUY' || direction === 'SELL') records = records.filter(r => r.direction === direction);
     if (outcome === 'win') records = records.filter(r => r.outcomes['24h']?.hit === true);
     if (outcome === 'loss') records = records.filter(r => r.outcomes['24h']?.hit === false);
@@ -44,6 +118,18 @@ export async function GET(request: NextRequest) {
       records.sort((a, b) => b.timestamp - a.timestamp);
     }
 
+    if (format === 'csv') {
+      const csv = signalHistoryToCsv(records);
+      const filename = `tradeclaw-signal-history-${new Date().toISOString().slice(0, 10)}.csv`;
+      return new Response(csv, {
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="${filename}"`,
+          'Cache-Control': 'private, no-store',
+        },
+      });
+    }
+
     const total = records.length;
     const page = records.slice(offset, offset + limit);
 
@@ -52,7 +138,7 @@ export async function GET(request: NextRequest) {
     // applied, recompute from the filtered records so the stats reflect the
     // user's view; otherwise reuse the shared slice's resolved set so the
     // unfiltered view byte-matches /api/signals/equity.
-    const filtersApplied = pair || direction === 'BUY' || direction === 'SELL'
+    const filtersApplied = pair || categorySymbols || direction === 'BUY' || direction === 'SELL'
       || outcome === 'win' || outcome === 'loss' || outcome === 'pending';
     const resolved = filtersApplied
       ? records.filter(isCountedResolved)
@@ -101,6 +187,7 @@ export async function GET(request: NextRequest) {
       offset,
       limit,
       scope,
+      category,
       earliestTimestamp: slice.earliestTimestamp,
       stats: {
         totalSignals: records.length,

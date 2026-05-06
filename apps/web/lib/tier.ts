@@ -99,6 +99,43 @@ export function toLockedStub(
   };
 }
 
+export function splitDelayed<T extends Pick<TradingSignal, 'id' | 'symbol' | 'direction' | 'timeframe' | 'confidence'> & { timestamp: string | number }>(
+  signals: T[],
+  delayMs: number,
+): { visible: T[]; locked: LockedSignalStub[] } {
+  if (delayMs <= 0) return { visible: signals, locked: [] };
+
+  const cutoff = Date.now() - delayMs;
+  const visible: T[] = [];
+  const lockedSrc: T[] = [];
+
+  for (const s of signals) {
+    if (new Date(s.timestamp).getTime() <= cutoff) {
+      visible.push(s);
+    } else {
+      lockedSrc.push(s);
+    }
+  }
+
+  return {
+    visible,
+    locked: lockedSrc.map(s =>
+      toLockedStub(s as unknown as Parameters<typeof toLockedStub>[0], delayMs),
+    ),
+  };
+}
+
+export function applyTierSignalVisibility<T extends TradingSignal>(
+  signals: T[],
+  tier: Tier,
+): { visible: T[]; locked: LockedSignalStub[] } {
+  const gated = signals
+    .map(s => filterSignalByTier(s, tier))
+    .filter((s): s is T => s !== null);
+
+  return splitDelayed(gated, TIER_DELAY_MS[tier]);
+}
+
 /**
  * Pro-tier signals include higher-confidence MTF confluence signals
  * that free users don't see. This threshold gates the "premium" band.
@@ -108,13 +145,8 @@ export const PRO_PREMIUM_MIN_CONFIDENCE = 85;
 /**
  * Single source of truth for the strategies a Pro tier unlocks.
  *
- * Mirrors `ALLOWED_PREMIUM_STRATEGIES` from `./licenses` plus the always-free
- * `classic` strategy. Hardcoded here so the canonical access API does NOT
- * depend on the license module — the license system is being retired and the
- * dependency direction is intentionally inverted.
- *
- * If this list drifts from `licenses.ts`, the cross-check test in
- * `tier.test.ts` will fail. Keep them in sync until `licenses.ts` is removed.
+ * Membership is pinned by the regression test in `tier.test.ts` so accidental
+ * edits to this set are caught at PR time.
  */
 const PRO_STRATEGIES: ReadonlySet<string> = new Set([
   // Always-free preset
@@ -205,19 +237,31 @@ export async function resolveAccessContextFromCookies(): Promise<AccessContext> 
   }
 }
 
-/**
- * Days a past_due subscription continues to count as paid before it
- * downgrades to free. Stripe Smart Retries run for ~3 weeks; cutting
- * access at the first failed invoice churns customers whose card needed
- * one update. We give them a window to fix it without losing signals.
- */
-export const PAST_DUE_GRACE_DAYS = 7;
+// PAST_DUE_GRACE_DAYS lives in tier-client.ts so client components (e.g. the
+// past-due banner) can import it without pulling server-only modules.
+// Stripe Smart Retries run for ~3 weeks; cutting access at the first failed
+// invoice churns customers whose card needed one update. We give them a
+// window to fix it without losing signals.
+export { PAST_DUE_GRACE_DAYS } from './tier-client';
+import { PAST_DUE_GRACE_DAYS } from './tier-client';
 
 /**
  * Retrieve the tier for a given user ID from the database.
  * Falls back to 'free' if no active subscription is found.
  */
 export async function getUserTier(userId: string): Promise<Tier> {
+  // E2E test stub: short-circuit tier resolution to 'pro' for a known test
+  // userId so Playwright suites that forge an HMAC session cookie can exercise
+  // the unlocked-state UI without a real DB row or Stripe sub. Refuses to fire
+  // in production — the NODE_ENV guard makes it impossible to ship a Pro
+  // bypass to live customers even if the env var leaks.
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    process.env.E2E_FORCE_PRO_TIER === 'true' &&
+    userId === (process.env.E2E_PRO_USER_ID ?? 'e2e-pro-user')
+  ) {
+    return 'pro';
+  }
   // Avoid importing DB at top-level so this module is safe in edge runtimes
   // that don't have DB access. Callers that need real tier checks should
   // import this only in Node.js API routes.
@@ -261,7 +305,7 @@ export async function getUserTier(userId: string): Promise<Tier> {
 
 /**
  * Filter a list of signals to only include what the tier is allowed to see.
- * Applies symbol filtering, TP level masking, and delay offset.
+ * Applies symbol filtering and Pro-only field masking.
  */
 export function filterSignalByTier(
   signal: TradingSignal,
@@ -278,8 +322,9 @@ export function filterSignalByTier(
 
   const filtered: TradingSignal = { ...signal };
 
-  // Mask TP2/TP3 for free tier
+  // Mask Pro-only risk levels for free tier.
   if (tier === 'free') {
+    Object.assign(filtered, { stopLoss: null });
     filtered.takeProfit2 = null;
     filtered.takeProfit3 = null;
   }

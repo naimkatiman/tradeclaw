@@ -175,6 +175,23 @@ export async function sendMessage(
 }
 
 /**
+ * Probe whether the bot has an open DM with this user. The Bot API only allows
+ * sendMessage to users who pressed Start in the bot DM at least once; if the
+ * user linked their account but never opened a chat, sendMessage fails with
+ * "chat not found" AFTER a single-use invite link has already been minted.
+ *
+ * Calling getChat first surfaces the same error before any mutation, so the
+ * resend-invite path can return a clear "press Start in the bot DM first"
+ * message without leaving an orphan invite in the group's link list.
+ */
+export async function assertUserDmReachable(telegramUserId: string): Promise<void> {
+  // Bot API errors include "chat not found" verbatim; the existing
+  // NON_RETRYABLE_TELEGRAM_FRAGMENTS classifier picks this up and the
+  // resend-invite route maps it to the chat_not_found error code.
+  await telegramPost('getChat', { chat_id: telegramUserId });
+}
+
+/**
  * Full flow: generate invite link, persist it, and message the user.
  * Requires the user's telegram_user_id to be already stored.
  */
@@ -183,6 +200,12 @@ export async function sendInvite(
   telegramUserId: string,
   tier: TelegramTier
 ): Promise<string> {
+  // Preflight before mutating anything (createChatInviteLink mints a link
+  // that lingers in the group's invite list even if the subsequent
+  // sendMessage fails). On "chat not found" this throws the same string the
+  // retry classifier already treats as non-retryable.
+  await assertUserDmReachable(telegramUserId);
+
   const inviteLink = await generateInviteLink(tier, userId);
 
   const tierLabel = tier === 'elite' ? 'Elite' : 'Pro';
@@ -205,4 +228,93 @@ export async function sendInvite(
   });
 
   return inviteLink;
+}
+
+/**
+ * Telegram error descriptions that mean "give up" — retrying just burns
+ * API quota for a request that will never succeed. Anything else (5xx,
+ * 429, transient network) goes through the retry loop.
+ *
+ * Match-by-substring because the Bot API descriptions are not stable
+ * structured codes; lowercased to defang trivial variations.
+ */
+const NON_RETRYABLE_TELEGRAM_FRAGMENTS = [
+  'chat not found',
+  'user is deactivated',
+  'bot was blocked by the user',
+  'bot was kicked',
+  'forbidden',
+  'user_id_invalid',
+  'user not found',
+];
+
+function isRetryableTelegramError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
+  return !NON_RETRYABLE_TELEGRAM_FRAGMENTS.some((frag) => msg.includes(frag));
+}
+
+export interface SendInviteResult {
+  ok: boolean;
+  inviteLink?: string;
+  attempts: number;
+  retryable: boolean;
+  error?: string;
+}
+
+type SendInviteFn = (
+  userId: string,
+  telegramUserId: string,
+  tier: TelegramTier,
+) => Promise<string>;
+
+/**
+ * Wraps sendInvite with bounded exponential backoff. Recovers from transient
+ * Telegram API failures (5xx, rate-limits, network blips) without manual
+ * intervention. Permanent failures (chat misconfigured, user blocked the
+ * bot) short-circuit with retryable=false so callers can stop trying.
+ *
+ * The `sender` parameter exists for tests — production callers always rely
+ * on the default (the real sendInvite from this module).
+ */
+export async function sendInviteWithRetry(
+  userId: string,
+  telegramUserId: string,
+  tier: TelegramTier,
+  opts: {
+    maxAttempts?: number;
+    baseDelayMs?: number;
+    sender?: SendInviteFn;
+  } = {},
+): Promise<SendInviteResult> {
+  const maxAttempts = opts.maxAttempts ?? 3;
+  const baseDelayMs = opts.baseDelayMs ?? 500;
+  const sender = opts.sender ?? sendInvite;
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const inviteLink = await sender(userId, telegramUserId, tier);
+      return { ok: true, inviteLink, attempts: attempt, retryable: true };
+    } catch (err) {
+      lastError = err;
+      const retryable = isRetryableTelegramError(err);
+      if (!retryable || attempt === maxAttempts) {
+        return {
+          ok: false,
+          attempts: attempt,
+          retryable,
+          error: err instanceof Error ? err.message : String(err),
+        };
+      }
+      // Exponential backoff: 500ms → 1000ms → 2000ms…
+      await new Promise((resolve) => setTimeout(resolve, baseDelayMs * 2 ** (attempt - 1)));
+    }
+  }
+
+  return {
+    ok: false,
+    attempts: maxAttempts,
+    retryable: true,
+    error: lastError instanceof Error ? lastError.message : String(lastError),
+  };
 }

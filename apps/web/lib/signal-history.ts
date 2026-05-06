@@ -100,6 +100,10 @@ export type LeaderboardPeriod = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'a
 export interface AssetStats {
   pair: string;
   totalSignals: number;
+  resolved4h: number;
+  resolved24h: number;
+  hits4h: number;
+  hits24h: number;
   hitRate4h: number;
   hitRate24h: number;
   avgConfidence: number;
@@ -134,6 +138,42 @@ export interface StrategyBreakdownRow {
   hitRate24h: number;
   avgConfidence: number;
   avgPnl: number;
+}
+
+export function recomputeOverall(
+  assets: AssetStats[],
+  lastUpdated: number = Date.now(),
+): LeaderboardData['overall'] {
+  const totalSignals = assets.reduce((sum, a) => sum + a.totalSignals, 0);
+  const resolved4h = assets.reduce((sum, a) => sum + a.resolved4h, 0);
+  const resolved24h = assets.reduce((sum, a) => sum + a.resolved24h, 0);
+  const hits4h = assets.reduce((sum, a) => sum + a.hits4h, 0);
+  const hits24h = assets.reduce((sum, a) => sum + a.hits24h, 0);
+  const totalPnl = +assets.reduce((sum, a) => sum + a.totalPnl, 0).toFixed(2);
+
+  const byHitRate = [...assets].sort((a, b) =>
+    b.hitRate24h - a.hitRate24h
+    || b.totalPnl - a.totalPnl
+    || b.totalSignals - a.totalSignals
+    || a.pair.localeCompare(b.pair),
+  );
+  const byWorstHitRate = [...assets].sort((a, b) =>
+    a.hitRate24h - b.hitRate24h
+    || a.totalPnl - b.totalPnl
+    || b.totalSignals - a.totalSignals
+    || a.pair.localeCompare(b.pair),
+  );
+
+  return {
+    totalSignals,
+    resolvedSignals: resolved24h,
+    overallHitRate4h: resolved4h > 0 ? +((hits4h / resolved4h) * 100).toFixed(1) : 0,
+    overallHitRate24h: resolved24h > 0 ? +((hits24h / resolved24h) * 100).toFixed(1) : 0,
+    totalPnl,
+    topPerformer: byHitRate[0]?.pair ?? '—',
+    worstPerformer: byWorstHitRate[0]?.pair ?? '—',
+    lastUpdated,
+  };
 }
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -516,14 +556,21 @@ export function recordSignals(signals: TrackedSignalInput[]): number {
 
 // ── Outcome resolution ───────────────────────────────────────
 
-interface ResolvedWithMae {
+export interface ResolvedWithMae {
   outcome: SignalOutcome;
   /** Max adverse excursion from entry up to AND including the resolution candle (price units, >= 0). */
   maxAdverseExcursion: number;
 }
 
-function resolveFromCandles(
-  r: SignalHistoryRecord,
+/**
+ * Single source of truth for outcome resolution. Both the request side-effect
+ * writer (this file's resolveRealOutcomes) and the cron writer (api/cron/signals)
+ * delegate here so the math stays in lockstep — they write to the same
+ * signal_history table, and divergence between them produced the wick-priority
+ * bug fixed in commit d0bb6845.
+ */
+export function resolveFromCandles(
+  r: { direction: 'BUY' | 'SELL'; entryPrice: number; tp1?: number | null; sl?: number | null },
   candles: OHLCV[],
   windowComplete = false,
 ): ResolvedWithMae | null {
@@ -539,25 +586,49 @@ function resolveFromCandles(
       const adverse = r.entryPrice - candle.low;
       if (adverse > mae) mae = adverse;
 
-      if (candle.high >= r.tp1) {
+      const slHit = candle.low <= r.sl;
+      const tpHit = candle.high >= r.tp1;
+      // SL takes priority when both could fire on the same wide-range bar.
+      // Conservative bias for a public track record — without intra-bar tick
+      // data we can't tell whether TP or SL was hit first, so resolve as
+      // loss rather than letting wide bars systematically print as wins.
+      if (slHit) {
+        // Gap-through fill, bounded at -1.5R worst case. If the bar opens
+        // past SL, real fills slip to candle.open. But signals are emitted
+        // mid-H1-bar, so the "first candle's open" is already up to ~60min
+        // of post-entry drift — without a slippage cap, that drift produces
+        // -3R to -8R artifacts on what are otherwise normal stops. Audit's
+        // expected average loss was -1.0 to -1.3R; the -1.5R floor gives
+        // headroom for genuine gap events without runaway drift artifacts.
+        const riskDistance = r.entryPrice - r.sl;
+        const minFillPrice = r.entryPrice - 1.5 * riskDistance;
+        const rawFill = candle.open <= r.sl ? candle.open : r.sl;
+        const fillPrice = Math.max(rawFill, minFillPrice);
+        const pnlPct = +((fillPrice - r.entryPrice) / r.entryPrice * 100).toFixed(2);
+        return { outcome: { price: fillPrice, pnlPct, hit: false }, maxAdverseExcursion: mae };
+      }
+      if (tpHit) {
         const pnlPct = +((r.tp1 - r.entryPrice) / r.entryPrice * 100).toFixed(2);
         return { outcome: { price: r.tp1, pnlPct, hit: true }, maxAdverseExcursion: mae };
-      }
-      if (candle.low <= r.sl) {
-        const pnlPct = +((r.sl - r.entryPrice) / r.entryPrice * 100).toFixed(2);
-        return { outcome: { price: r.sl, pnlPct, hit: false }, maxAdverseExcursion: mae };
       }
     } else {
       const adverse = candle.high - r.entryPrice;
       if (adverse > mae) mae = adverse;
 
-      if (candle.low <= r.tp1) {
+      const slHit = candle.high >= r.sl;
+      const tpHit = candle.low <= r.tp1;
+      if (slHit) {
+        // Gap-through fill bounded at -1.5R — see BUY branch comment above.
+        const riskDistance = r.sl - r.entryPrice;
+        const maxFillPrice = r.entryPrice + 1.5 * riskDistance;
+        const rawFill = candle.open >= r.sl ? candle.open : r.sl;
+        const fillPrice = Math.min(rawFill, maxFillPrice);
+        const pnlPct = +((r.entryPrice - fillPrice) / r.entryPrice * 100).toFixed(2);
+        return { outcome: { price: fillPrice, pnlPct, hit: false }, maxAdverseExcursion: mae };
+      }
+      if (tpHit) {
         const pnlPct = +((r.entryPrice - r.tp1) / r.entryPrice * 100).toFixed(2);
         return { outcome: { price: r.tp1, pnlPct, hit: true }, maxAdverseExcursion: mae };
-      }
-      if (candle.high >= r.sl) {
-        const pnlPct = +((r.entryPrice - r.sl) / r.entryPrice * 100).toFixed(2);
-        return { outcome: { price: r.sl, pnlPct, hit: false }, maxAdverseExcursion: mae };
       }
     }
   }
@@ -733,12 +804,17 @@ export async function resolveRealOutcomes(): Promise<void> {
 
 export async function getPendingRecordsAsync(): Promise<SignalHistoryRecord[]> {
   if (isDbEnabled()) {
-    // Only look back 14 days — older signals lack candle data to resolve
+    // Look back 30 days — matches the public /track-record window. The
+    // previous 14-day cap stranded 1,000+ rows after methodology backfills
+    // because cron and POST /api/signals/resolve both filter through here.
+    // OHLCV providers (TwelveData via market-data-hub) typically have ≥200
+    // days of H1 history, so 30-day re-resolution is safe; rows that fail
+    // OHLCV lookup gracefully force-expire after 2× window.
     const rows = await query<HistoryRow>(
       `SELECT * FROM signal_history
        WHERE is_simulated = FALSE
          AND (outcome_4h IS NULL OR outcome_24h IS NULL)
-         AND created_at > NOW() - INTERVAL '14 days'
+         AND created_at > NOW() - INTERVAL '30 days'
        ORDER BY created_at DESC`,
     );
     return rows.map(rowToRecord);
@@ -1059,6 +1135,10 @@ export function computeLeaderboard(
   const assets: AssetStats[] = Array.from(map.entries()).map(([pair, s]) => ({
     pair,
     totalSignals: s.total,
+    resolved4h: s.resolved4h,
+    resolved24h: s.resolved24h,
+    hits4h: s.hits4h,
+    hits24h: s.hits24h,
     hitRate4h: s.resolved4h > 0 ? +((s.hits4h / s.resolved4h) * 100).toFixed(1) : 0,
     hitRate24h: s.resolved24h > 0 ? +((s.hits24h / s.resolved24h) * 100).toFixed(1) : 0,
     avgConfidence: s.total > 0 ? Math.round(s.confSum / s.total) : 0,
@@ -1075,29 +1155,9 @@ export function computeLeaderboard(
     return b.hitRate24h - a.hitRate24h;
   });
 
-  // Use the canonical `isRealOutcome` predicate so expired-zero placeholders
-  // are not counted as resolved losses in the overall hit rate. This keeps
-  // the leaderboard headline numbers aligned with the equity curve.
-  const totalSignals = filtered.length;
-  const resolved4hAll = filtered.filter(r => isRealOutcome(r.outcomes['4h'])).length;
-  const hits4hAll = filtered.filter(r => isRealOutcome(r.outcomes['4h']) && r.outcomes['4h']!.hit).length;
-  const resolved24hAll = filtered.filter(r => isRealOutcome(r.outcomes['24h'])).length;
-  const hits24hAll = filtered.filter(r => isRealOutcome(r.outcomes['24h']) && r.outcomes['24h']!.hit).length;
-
-  const totalPnlAll = +assets.reduce((sum, a) => sum + a.totalPnl, 0).toFixed(2);
-
   return {
     assets,
-    overall: {
-      totalSignals,
-      resolvedSignals: resolved24hAll,
-      overallHitRate4h: resolved4hAll > 0 ? +((hits4hAll / resolved4hAll) * 100).toFixed(1) : 0,
-      overallHitRate24h: resolved24hAll > 0 ? +((hits24hAll / resolved24hAll) * 100).toFixed(1) : 0,
-      totalPnl: totalPnlAll,
-      topPerformer: assets.length > 0 ? assets[0].pair : '—',
-      worstPerformer: assets.length > 0 ? assets[assets.length - 1].pair : '—',
-      lastUpdated: Date.now(),
-    },
+    overall: recomputeOverall(assets),
   };
 }
 
@@ -1157,4 +1217,3 @@ export function computeStrategyBreakdown(
     }))
     .sort((a, b) => b.totalSignals - a.totalSignals);
 }
-

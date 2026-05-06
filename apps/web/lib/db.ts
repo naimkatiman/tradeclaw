@@ -6,6 +6,24 @@
 
 import { query, queryOne, execute } from './db-pool';
 
+/**
+ * E2E test gate — same shape as the one in tier.ts. When all three conditions
+ * hold, the read-side user/subscription helpers return a synthetic Pro record
+ * for the configured test userId so Playwright suites that forge an HMAC
+ * session cookie can hit /api/auth/session without a real DB row.
+ *
+ * Hard-gated by NODE_ENV !== 'production' so the bypass cannot ship live.
+ */
+function isE2EProUser(userId: string): boolean {
+  return (
+    process.env.NODE_ENV !== 'production' &&
+    process.env.E2E_FORCE_PRO_TIER === 'true' &&
+    userId === (process.env.E2E_PRO_USER_ID ?? 'e2e-pro-user')
+  );
+}
+
+const E2E_STUB_EMAIL = 'e2e-pro@tradeclaw.test';
+
 export interface UserRecord {
   id: string;
   email: string;
@@ -25,6 +43,8 @@ export interface SubscriptionRecord {
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
+  trialEnd: Date | null;
+  trialReminderSentAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,6 +94,8 @@ interface SubscriptionRow {
   current_period_start: string;
   current_period_end: string;
   cancel_at_period_end: boolean;
+  trial_end: string | null;
+  trial_reminder_sent_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -89,16 +111,32 @@ function toSubscriptionRecord(row: SubscriptionRow): SubscriptionRecord {
     currentPeriodStart: new Date(row.current_period_start),
     currentPeriodEnd: new Date(row.current_period_end),
     cancelAtPeriodEnd: row.cancel_at_period_end,
+    trialEnd: row.trial_end ? new Date(row.trial_end) : null,
+    trialReminderSentAt: row.trial_reminder_sent_at ? new Date(row.trial_reminder_sent_at) : null,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
 }
+
+const SUBSCRIPTION_COLUMNS = `id, user_id, stripe_subscription_id, stripe_customer_id,
+  tier, status, current_period_start, current_period_end, cancel_at_period_end,
+  trial_end, trial_reminder_sent_at, created_at, updated_at`;
 
 // ---------------------------------------------------------------------------
 // User operations
 // ---------------------------------------------------------------------------
 
 export async function getUserById(userId: string): Promise<UserRecord | null> {
+  if (isE2EProUser(userId)) {
+    return {
+      id: userId,
+      email: E2E_STUB_EMAIL,
+      stripeCustomerId: null,
+      tier: 'pro',
+      tierExpiresAt: null,
+      telegramUserId: null,
+    };
+  }
   const row = await queryOne<UserRow>(
     `SELECT id, email, stripe_customer_id, tier, tier_expires_at, telegram_user_id
      FROM users WHERE id = $1`,
@@ -193,10 +231,12 @@ export async function getUserByTelegramId(
 export async function getUserSubscription(
   userId: string,
 ): Promise<SubscriptionRecord | null> {
+  if (isE2EProUser(userId)) {
+    return null; // Stub user has no real Stripe sub — null is the documented
+    // shape for "no active subscription" and avoids the route hitting DB at all.
+  }
   const row = await queryOne<SubscriptionRow>(
-    `SELECT id, user_id, stripe_subscription_id, stripe_customer_id,
-            tier, status, current_period_start, current_period_end,
-            cancel_at_period_end, created_at, updated_at
+    `SELECT ${SUBSCRIPTION_COLUMNS}
      FROM subscriptions
      WHERE user_id = $1 AND status IN ('active', 'trialing', 'past_due')
      ORDER BY created_at DESC LIMIT 1`,
@@ -205,14 +245,26 @@ export async function getUserSubscription(
   return row ? toSubscriptionRecord(row) : null;
 }
 
+export async function getSubscriptionByStripeId(
+  stripeSubscriptionId: string,
+): Promise<SubscriptionRecord | null> {
+  const row = await queryOne<SubscriptionRow>(
+    `SELECT ${SUBSCRIPTION_COLUMNS}
+     FROM subscriptions
+     WHERE stripe_subscription_id = $1`,
+    [stripeSubscriptionId],
+  );
+  return row ? toSubscriptionRecord(row) : null;
+}
+
 export async function upsertSubscription(
-  data: Omit<SubscriptionRecord, 'id' | 'createdAt' | 'updatedAt'>,
+  data: Omit<SubscriptionRecord, 'id' | 'trialReminderSentAt' | 'createdAt' | 'updatedAt'>,
 ): Promise<void> {
   await execute(
     `INSERT INTO subscriptions
        (user_id, stripe_subscription_id, stripe_customer_id, tier, status,
-        current_period_start, current_period_end, cancel_at_period_end)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        current_period_start, current_period_end, cancel_at_period_end, trial_end)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      ON CONFLICT (stripe_subscription_id)
      DO UPDATE SET
        tier = EXCLUDED.tier,
@@ -220,6 +272,7 @@ export async function upsertSubscription(
        current_period_start = EXCLUDED.current_period_start,
        current_period_end = EXCLUDED.current_period_end,
        cancel_at_period_end = EXCLUDED.cancel_at_period_end,
+       trial_end = EXCLUDED.trial_end,
        updated_at = NOW()`,
     [
       data.userId,
@@ -230,7 +283,57 @@ export async function upsertSubscription(
       data.currentPeriodStart,
       data.currentPeriodEnd,
       data.cancelAtPeriodEnd,
+      data.trialEnd,
     ],
+  );
+}
+
+export async function setTrialEnd(
+  stripeSubscriptionId: string,
+  trialEnd: Date | null,
+): Promise<void> {
+  await execute(
+    `UPDATE subscriptions SET trial_end = $1, updated_at = NOW()
+     WHERE stripe_subscription_id = $2`,
+    [trialEnd, stripeSubscriptionId],
+  );
+}
+
+/**
+ * Returns trialing subscriptions whose trial ends within the given window
+ * AND haven't received a reminder yet. Used by /api/cron/trial-reminders.
+ */
+export async function getTrialingExpiringWithin(
+  hoursFrom: number,
+  hoursTo: number,
+): Promise<SubscriptionRecord[]> {
+  const rows = await query<SubscriptionRow>(
+    `SELECT ${SUBSCRIPTION_COLUMNS}
+     FROM subscriptions
+     WHERE status = 'trialing'
+       AND trial_end IS NOT NULL
+       AND trial_end BETWEEN NOW() + ($1 || ' hours')::interval
+                         AND NOW() + ($2 || ' hours')::interval
+       AND trial_reminder_sent_at IS NULL`,
+    [hoursFrom, hoursTo],
+  );
+  return rows.map(toSubscriptionRecord);
+}
+
+export async function getTrialingMissingTrialEnd(): Promise<SubscriptionRecord[]> {
+  const rows = await query<SubscriptionRow>(
+    `SELECT ${SUBSCRIPTION_COLUMNS}
+     FROM subscriptions
+     WHERE status = 'trialing' AND trial_end IS NULL`,
+  );
+  return rows.map(toSubscriptionRecord);
+}
+
+export async function markTrialReminderSent(stripeSubscriptionId: string): Promise<void> {
+  await execute(
+    `UPDATE subscriptions SET trial_reminder_sent_at = NOW(), updated_at = NOW()
+     WHERE stripe_subscription_id = $1`,
+    [stripeSubscriptionId],
   );
 }
 
@@ -295,9 +398,41 @@ export async function tryClaimStripeEvent(
   }
 }
 
+/**
+ * Release a previously-claimed event id so Stripe's next retry can re-enter
+ * the handler. Used by the webhook when a handler throws — without this, the
+ * dedup gate would short-circuit every retry and the work would be lost.
+ */
+export async function releaseStripeEvent(eventId: string): Promise<void> {
+  await execute(
+    `DELETE FROM processed_stripe_events WHERE event_id = $1`,
+    [eventId],
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Telegram invite operations
 // ---------------------------------------------------------------------------
+
+/**
+ * Count invites created for a user within the last N seconds. Used by the
+ * resend-invite endpoint to rate-limit a paying user from spamming the
+ * createChatInviteLink call and minting bulk single-use links to share with
+ * non-payers.
+ */
+export async function countRecentTelegramInvites(
+  userId: string,
+  withinSeconds: number,
+): Promise<number> {
+  const row = await queryOne<{ count: string }>(
+    `SELECT COUNT(*)::text AS count
+       FROM telegram_invites
+      WHERE user_id = $1
+        AND created_at > NOW() - ($2 || ' seconds')::interval`,
+    [userId, withinSeconds],
+  );
+  return row ? Number(row.count) : 0;
+}
 
 export async function createTelegramInvite(
   data: Omit<TelegramInviteRecord, 'id' | 'createdAt'>,
@@ -315,6 +450,48 @@ export async function createTelegramInvite(
       data.expiresAt,
     ],
   );
+}
+
+/**
+ * Most recent invite row for the user, regardless of tier or active flag.
+ * Powers the dashboard badge: present + active + not expired = "Sent".
+ * Absent = "Pending" for paying users (between checkout and webhook), or
+ * "Connect Telegram" prompt when the user has not linked yet.
+ */
+export async function getLatestUserTelegramInvite(
+  userId: string,
+): Promise<TelegramInviteRecord | null> {
+  interface InviteRow {
+    id: string;
+    user_id: string;
+    tier: string;
+    invite_link: string;
+    telegram_chat_id: string;
+    is_active: boolean;
+    created_at: string;
+    expires_at: string | null;
+  }
+
+  const row = await queryOne<InviteRow>(
+    `SELECT id, user_id, tier, invite_link, telegram_chat_id, is_active, created_at, expires_at
+       FROM telegram_invites
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      LIMIT 1`,
+    [userId],
+  );
+
+  if (!row) return null;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    tier: row.tier as 'pro' | 'elite',
+    inviteLink: row.invite_link,
+    telegramChatId: BigInt(row.telegram_chat_id),
+    isActive: row.is_active,
+    createdAt: new Date(row.created_at),
+    expiresAt: row.expires_at ? new Date(row.expires_at) : null,
+  };
 }
 
 export async function deactivateUserTelegramInvites(

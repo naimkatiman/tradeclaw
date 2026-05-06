@@ -12,9 +12,9 @@
 export const STAT_HINTS = {
   // ── Returns ──────────────────────────────────────────────────
   totalReturnLinear:
-    'Linear sum of per-signal % returns at fixed 1R risk. Reads "if every signal risked the same fixed amount, the wins minus losses add up to this." Not the same as compounded equity growth.',
+    'Sum of per-signal % outcomes (raw market price-to-price). Reads "if every signal printed at exact entry/exit, this is what the trades summed to." Not a sized return — see the equity card below for the position-sized version.',
   totalReturnCompounded:
-    'Compounded equity growth from a hypothetical $10,000 baseline, reinvesting 100% of bankroll into every next signal. Multiplicative — different from the linear total return shown elsewhere on this page.',
+    'Compounded equity from $10,000 with 1% risk per trade (fixed-fractional sizing), per-trade R-multiple capped at 8R (above P99 of the live distribution — clips only unrealistic single-trade outliers), and 0.02% round-trip costs deducted (2bps blended, realistic for selective execution at a major retail venue). Differs from the raw price-to-price sum at the top of the page.',
   avgPnl: 'Total return ÷ resolved signals. The average outcome of one trade in this window.',
 
   // ── Win-rate flavours ────────────────────────────────────────
@@ -27,7 +27,7 @@ export const STAT_HINTS = {
 
   // ── Counts ───────────────────────────────────────────────────
   resolved:
-    'Signals with a real 24h outcome (TP or SL hit). Excludes still-open trades, auto-expired rows, and gate-blocked signals.',
+    'Signals with a real 24h outcome (TP or SL hit). Excludes still-open trades, auto-expired rows, and gate-blocked signals. The engine fires across the full multi-symbol multi-timeframe stream — a real subscriber filtering for high-confidence setups would execute a small fraction of these.',
   expired:
     'Signal had no TP or SL hit within the 48h tracking window. Recorded for transparency, not counted in win-rate.',
   gateBlocked:
@@ -38,7 +38,7 @@ export const STAT_HINTS = {
   maxDrawdown:
     'Worst peak-to-trough drop in the equity curve over this window. Even a positive endpoint can hide a deep mid-run drawdown — this surfaces the path, not just the destination.',
   sharpe:
-    'Annualised Sharpe ratio: mean return ÷ stddev × √(signals per year). Cadence-aware — uses actual signal frequency, not the 252-trading-day shortcut.',
+    'Daily-bucketed annualized Sharpe: trades grouped by UTC date, then mean(daily %) ÷ stddev(daily %) × √365. Calendar days (not trading days) because the engine fires across crypto/FX/indices with no shared session. Daily bucketing is required because per-signal returns are not IID — same symbol re-fires and multi-timeframe stacks share macro factors.',
   streak: 'Consecutive resolved trades, signed: positive when on a win streak, negative on a losing streak.',
   bestStreak: 'Longest run of consecutive wins for this row. Counts only resolved trades.',
   worstStreak: 'Longest run of consecutive losses for this row. Counts only resolved trades.',
@@ -48,6 +48,16 @@ export const STAT_HINTS = {
     'Mean model confidence across signals in this window. Confidence is the engine\'s own self-assessed probability, not a calibrated forecast — see the calibration page for how it tracks reality.',
   premiumThreshold:
     'Premium tier: signals at or above the high-confidence threshold (currently 80%). Standard tier: everything below. The split is set in tier.ts.',
+
+  // ── R-multiples & expectancy (live) ──────────────────────────
+  avgRWin:
+    'Average R-multiple of winning trades. R = entry-to-stop distance in pct; a +2.0R win realizes 2× the risked amount. Higher is better — a 40% win rate at 2R wins is more profitable than 60% at 1R.',
+  avgRLoss:
+    'Average R-multiple of losing trades. Should sit near -1.0R when stops fill cleanly. Values closer to 0 indicate slippage in your favor; further from 0 indicates gap losses worse than -1R.',
+  expectancyR:
+    'Expected R per trade: winRate × avgRWin + lossRate × avgRLoss. Positive expectancy is the only thing that matters long-run — win rate alone is misleading. +0.10R means each signal is worth about 10% of the risked amount on average.',
+  breakEvenWinRate:
+    'Win-rate the system needs to break even given its observed avgRWin and avgRLoss. If actual win-rate exceeds this, the system has positive expectancy — even if the win-rate is below 50%.',
 
   // ── Backtest-specific ────────────────────────────────────────
   backtestTotalReturn:

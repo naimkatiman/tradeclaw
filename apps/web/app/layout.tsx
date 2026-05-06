@@ -6,6 +6,7 @@ import { MobileNav } from "./components/mobile-nav";
 import { PWAInstallPrompt } from "./components/pwa-install";
 import { DemoBanner } from "./components/demo-banner";
 import { ThemeProvider } from "./components/theme-provider";
+import { SiteFooter } from "./components/site-footer";
 import { MilestoneCelebrationModal } from "../components/milestone-modal";
 import { FeatureUnlockBanner } from "../components/feature-unlock-banner";
 import { OnboardingChecklist } from "../components/onboarding";
@@ -135,6 +136,7 @@ export default function RootLayout({
           <div className="flex-1 pb-16 md:pb-0">
             {children}
           </div>
+          <SiteFooter />
           <MobileNav />
           <PWAInstallPrompt />
           <MilestoneCelebrationModal />

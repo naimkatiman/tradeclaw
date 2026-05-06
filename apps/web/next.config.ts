@@ -3,6 +3,13 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
 
+  // Bundle MDX blog content into the standalone build so the dynamic blog
+  // route and sitemap can read frontmatter at runtime if SSG falls back.
+  outputFileTracingIncludes: {
+    "/blog/**": ["./content/blog/**"],
+    "/sitemap.xml": ["./content/blog/**"],
+  },
+
   // Transpile workspace packages
   transpilePackages: ["@tradeclaw/signals"],
 
@@ -18,6 +25,9 @@ const nextConfig: NextConfig = {
 
   // Performance: compress responses
   compress: true,
+
+  // Security: hide framework version from response headers
+  poweredByHeader: false,
 
   // Image optimization
   images: {

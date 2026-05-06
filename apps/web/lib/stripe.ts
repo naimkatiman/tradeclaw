@@ -36,15 +36,41 @@ function getProAnnualPriceId(): string | null {
   );
 }
 
+function getEliteMonthlyPriceId(): string | null {
+  return (
+    process.env.STRIPE_ELITE_MONTHLY_PRICE_ID ??
+    process.env.NEXT_PUBLIC_STRIPE_ELITE_MONTHLY_PRICE_ID ??
+    null
+  );
+}
+
+function getEliteAnnualPriceId(): string | null {
+  return (
+    process.env.STRIPE_ELITE_ANNUAL_PRICE_ID ??
+    process.env.NEXT_PUBLIC_STRIPE_ELITE_ANNUAL_PRICE_ID ??
+    null
+  );
+}
+
 /**
  * Resolve the checkout price ID for a supported tier + interval.
+ *
+ * Elite returns null until STRIPE_ELITE_*_PRICE_ID is set on Railway. The
+ * checkout route renders that as a 503 "temporarily unavailable" error,
+ * which is the right shape for a tier that exists in the schema but isn't
+ * yet wired up to a Stripe product.
  */
 export function resolveStripePriceId(
   tier: import('./stripe-tiers').Tier,
   interval: BillingInterval
 ): string | null {
-  if (tier !== 'pro') return null;
-  return interval === 'annual' ? getProAnnualPriceId() : getProMonthlyPriceId();
+  if (tier === 'pro') {
+    return interval === 'annual' ? getProAnnualPriceId() : getProMonthlyPriceId();
+  }
+  if (tier === 'elite') {
+    return interval === 'annual' ? getEliteAnnualPriceId() : getEliteMonthlyPriceId();
+  }
+  return null;
 }
 
 /**
@@ -54,8 +80,12 @@ export function resolveTierFromPriceId(priceId: string): import('./stripe-tiers'
   const map: Record<string, import('./stripe-tiers').Tier> = {};
   const proMonthly = getProMonthlyPriceId();
   const proAnnual = getProAnnualPriceId();
+  const eliteMonthly = getEliteMonthlyPriceId();
+  const eliteAnnual = getEliteAnnualPriceId();
   if (proMonthly) map[proMonthly] = 'pro';
   if (proAnnual) map[proAnnual] = 'pro';
+  if (eliteMonthly) map[eliteMonthly] = 'elite';
+  if (eliteAnnual) map[eliteAnnual] = 'elite';
   return map[priceId] ?? null;
 }
 

@@ -21,7 +21,7 @@ interface SignalChartProps {
   bars: OHLCVBar[];
   direction: 'BUY' | 'SELL';
   entry: number;
-  stopLoss: number;
+  stopLoss?: number | null;
   takeProfit1: number;
   /** Null when the tier mask has stripped this level (free tier). Undefined when unset. */
   takeProfit2?: number | null;
@@ -112,9 +112,9 @@ export default function SignalChart({
     }
     const lines: PriceLineData[] = [
       { price: entry, color: '#ffffff', title: 'Entry', lineStyle: LineStyle.Dashed, lineWidth: 1 },
-      { price: stopLoss, color: theme.downColor, title: 'SL', lineStyle: LineStyle.Dashed, lineWidth: 1 },
       { price: takeProfit1, color: theme.upColor, title: 'TP1', lineStyle: LineStyle.Dashed, lineWidth: 1 },
     ];
+    if (stopLoss != null) lines.push({ price: stopLoss, color: theme.downColor, title: 'SL', lineStyle: LineStyle.Dashed, lineWidth: 1 });
     if (takeProfit2) lines.push({ price: takeProfit2, color: theme.upColor, title: 'TP2', lineStyle: LineStyle.Dotted, lineWidth: 1 });
     if (takeProfit3) lines.push({ price: takeProfit3, color: theme.upColor, title: 'TP3', lineStyle: LineStyle.Dotted, lineWidth: 1 });
 

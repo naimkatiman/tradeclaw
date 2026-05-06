@@ -1,5 +1,6 @@
 jest.mock('../signal-history', () => ({
   markTelegramProPosted: jest.fn().mockResolvedValue(undefined),
+  getSignalTelegramProMessageId: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../observability', () => ({
@@ -11,10 +12,16 @@ import {
   formatProMessage,
   type ProBroadcastSignal,
 } from '../telegram-pro-broadcast';
-import { markTelegramProPosted } from '../signal-history';
+import {
+  getSignalTelegramProMessageId,
+  markTelegramProPosted,
+} from '../signal-history';
 
 const mockedMarkPro = markTelegramProPosted as jest.MockedFunction<
   typeof markTelegramProPosted
+>;
+const mockedGetProMsgId = getSignalTelegramProMessageId as jest.MockedFunction<
+  typeof getSignalTelegramProMessageId
 >;
 
 const ORIG_ENV = { ...process.env };
@@ -104,6 +111,8 @@ describe('broadcastSignalsToProGroup — sending', () => {
     process.env = { ...ORIG_ENV };
     process.env.TELEGRAM_BOT_TOKEN = 'test-token';
     process.env.TELEGRAM_PRO_GROUP_ID = '-1001234567890';
+    mockedGetProMsgId.mockReset();
+    mockedGetProMsgId.mockResolvedValue(undefined);
   });
 
   afterAll(() => {
@@ -120,7 +129,7 @@ describe('broadcastSignalsToProGroup — sending', () => {
       makeSignal({ id: 'b' }),
     ]);
 
-    expect(result).toEqual({ attempted: 2, sent: 2, failed: 0 });
+    expect(result).toEqual({ attempted: 2, sent: 2, failed: 0, skipped: 0 });
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 
@@ -130,14 +139,14 @@ describe('broadcastSignalsToProGroup — sending', () => {
     });
 
     const result = await broadcastSignalsToProGroup([makeSignal()]);
-    expect(result).toEqual({ attempted: 1, sent: 0, failed: 1 });
+    expect(result).toEqual({ attempted: 1, sent: 0, failed: 1, skipped: 0 });
   });
 
   it('counts network errors as failed without throwing', async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('network down'));
 
     const result = await broadcastSignalsToProGroup([makeSignal()]);
-    expect(result).toEqual({ attempted: 1, sent: 0, failed: 1 });
+    expect(result).toEqual({ attempted: 1, sent: 0, failed: 1, skipped: 0 });
   });
 
   it('targets TELEGRAM_PRO_GROUP_ID — never the free channel id', async () => {
@@ -177,5 +186,38 @@ describe('broadcastSignalsToProGroup — sending', () => {
     await new Promise((r) => setImmediate(r));
 
     expect(mockedMarkPro).not.toHaveBeenCalled();
+  });
+
+  it('skips signals that already have a telegram_pro_message_id (dedup gate)', async () => {
+    mockedMarkPro.mockClear();
+    mockedGetProMsgId.mockImplementation(async (id: string) => {
+      if (id === 'already-posted') return 9999;
+      return undefined;
+    });
+    global.fetch = jest.fn().mockResolvedValue({
+      json: async () => ({ ok: true, result: { message_id: 7 } }),
+    });
+
+    const result = await broadcastSignalsToProGroup([
+      makeSignal({ id: 'already-posted' }),
+      makeSignal({ id: 'fresh' }),
+    ]);
+
+    expect(result).toEqual({ attempted: 2, sent: 1, failed: 0, skipped: 1 });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    await new Promise((r) => setImmediate(r));
+    expect(mockedMarkPro).toHaveBeenCalledTimes(1);
+    expect(mockedMarkPro).toHaveBeenCalledWith('fresh', 7);
+  });
+
+  it('still sends when the dedup lookup throws (fail-open, never block delivery)', async () => {
+    mockedGetProMsgId.mockRejectedValue(new Error('db down'));
+    global.fetch = jest.fn().mockResolvedValue({
+      json: async () => ({ ok: true, result: { message_id: 1 } }),
+    });
+
+    const result = await broadcastSignalsToProGroup([makeSignal()]);
+    expect(result.sent).toBe(1);
+    expect(result.skipped).toBe(0);
   });
 });

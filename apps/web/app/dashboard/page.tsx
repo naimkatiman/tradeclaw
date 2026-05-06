@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { DashboardClient } from './DashboardClient';
 import { getTrackedSignals } from '../../lib/tracked-signals';
-import { resolveAccessContextFromCookies } from '../../lib/tier';
+import { applyTierSignalVisibility, resolveAccessContextFromCookies } from '../../lib/tier';
 import { WATCHLIST_MIN_CONFIDENCE } from '../../lib/signal-thresholds';
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export default async function DashboardPage() {
       minConfidence: WATCHLIST_MIN_CONFIDENCE,
       ctx,
     });
-    initialSignals = result.signals;
+    initialSignals = applyTierSignalVisibility(result.signals, ctx.tier).visible;
     initialSyntheticSymbols = result.syntheticSymbols;
   } catch {
     // Fall through with empty arrays — client will re-fetch

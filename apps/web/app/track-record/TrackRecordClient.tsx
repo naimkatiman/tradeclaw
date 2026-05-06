@@ -11,7 +11,9 @@ import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 import { InfoHint } from '@/components/InfoHint';
 import { STAT_HINTS } from '@/lib/stat-hints';
 import { FREE_HISTORY_DAYS, FREE_SYMBOLS } from '@/lib/tier-client';
+import { symbolsForCategory, type CategoryFilter } from '@/app/lib/symbol-config';
 import { EmbedButton } from '../components/embed-button';
+import { ShareOnX } from '../components/share-on-x';
 
 type Period = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
 
@@ -23,6 +25,12 @@ const PERIOD_OPTIONS: { value: Period; label: string; days: number | null }[] = 
   { value: '1y',   label: '1Y',  days: 365 },
   { value: '5y',   label: '5Y',  days: 1825 },
   { value: 'all',  label: 'All', days: null },
+];
+
+const CATEGORY_OPTIONS: { value: CategoryFilter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'majors', label: 'Majors' },
+  { value: 'thematic', label: 'Thematic' },
 ];
 
 /** Periods where the window pre-dates the earliest recorded signal are
@@ -89,6 +97,7 @@ interface LeaderboardData {
     resolvedSignals: number;
     overallHitRate4h: number;
     overallHitRate24h: number;
+    totalPnl: number;
     topPerformer: string;
     worstPerformer: string;
     lastUpdated: number;
@@ -170,6 +179,139 @@ function pageNumbers(current: number, total: number): (number | null)[] {
 type DirectionFilter = 'ALL' | 'BUY' | 'SELL';
 type Scope = 'pro' | 'free';
 
+interface CategorySnapshot {
+  winRate: number;
+  expectancyR: number | null;
+  totalSignals: number;
+  breakEvenWinRate: number | null;
+}
+
+/**
+ * Side-by-side WR / expectancy comparison across All / Majors / Thematic.
+ * One fetch per category — same cached endpoint as the equity curve, so
+ * cost is one warm hit per category at the s-maxage=60 layer.
+ */
+function CategoryBreakdownRow({
+  period,
+  scope,
+  active,
+  onSelect,
+}: {
+  period: Period;
+  scope: Scope;
+  active: CategoryFilter;
+  onSelect: (c: CategoryFilter) => void;
+}) {
+  const [data, setData] = useState<Record<CategoryFilter, CategorySnapshot | null>>({
+    all: null,
+    majors: null,
+    thematic: null,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      const cats: CategoryFilter[] = ['all', 'majors', 'thematic'];
+      const results = await Promise.allSettled(
+        cats.map(c => {
+          const params = new URLSearchParams({ period, scope });
+          if (c !== 'all') params.set('category', c);
+          return fetch(`/api/signals/equity?${params.toString()}`).then(r => r.ok ? r.json() : null);
+        }),
+      );
+      if (cancelled) return;
+      const next: Record<CategoryFilter, CategorySnapshot | null> = {
+        all: null,
+        majors: null,
+        thematic: null,
+      };
+      cats.forEach((c, i) => {
+        const r = results[i];
+        if (r.status === 'fulfilled' && r.value?.summary) {
+          next[c] = {
+            winRate: r.value.summary.winRate,
+            expectancyR: r.value.summary.expectancyR ?? null,
+            totalSignals: r.value.summary.totalSignals,
+            breakEvenWinRate: r.value.summary.breakEvenWinRate ?? null,
+          };
+        }
+      });
+      setData(next);
+      setLoading(false);
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [period, scope]);
+
+  const cells: { value: CategoryFilter; label: string }[] = [
+    { value: 'all', label: 'All' },
+    { value: 'majors', label: 'Majors' },
+    { value: 'thematic', label: 'Thematic' },
+  ];
+
+  return (
+    <div className="mb-4 grid grid-cols-3 gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-2">
+      {cells.map(({ value, label }) => {
+        const snap = data[value];
+        const isActive = active === value;
+        const winRateBeatsBE = snap && snap.breakEvenWinRate !== null
+          ? snap.winRate >= snap.breakEvenWinRate
+          : snap ? snap.winRate >= 50 : false;
+        return (
+          <button
+            key={value}
+            type="button"
+            onClick={() => onSelect(value)}
+            className={`text-left rounded-lg px-3 py-2 transition-colors ${
+              isActive
+                ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30'
+                : 'hover:bg-white/[0.04]'
+            }`}
+          >
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">{label}</span>
+              {snap && (
+                <span className="text-[9px] font-mono text-zinc-600 tabular-nums">
+                  n={snap.totalSignals.toLocaleString()}
+                </span>
+              )}
+            </div>
+            {loading || !snap ? (
+              <div className="mt-1 h-5 w-16 animate-pulse rounded bg-white/[0.04]" />
+            ) : (
+              <>
+                <div className={`mt-0.5 text-base font-mono font-semibold tabular-nums ${
+                  winRateBeatsBE ? 'text-emerald-400' : 'text-red-400'
+                }`}>
+                  {snap.winRate}%
+                </div>
+                <div className="mt-0.5 flex items-center gap-2 text-[10px] font-mono text-zinc-500">
+                  <span className={
+                    snap.expectancyR !== null && snap.expectancyR > 0
+                      ? 'text-emerald-500'
+                      : snap.expectancyR !== null && snap.expectancyR < 0
+                        ? 'text-red-500'
+                        : ''
+                  }>
+                    {snap.expectancyR !== null
+                      ? `${snap.expectancyR >= 0 ? '+' : ''}${snap.expectancyR.toFixed(2)}R`
+                      : '—'}
+                  </span>
+                  {snap.breakEvenWinRate !== null && (
+                    <span className="text-zinc-600">be {snap.breakEvenWinRate}%</span>
+                  )}
+                </div>
+              </>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function TrackRecordClient() {
   const router = useRouter();
   const tier = useUserTier();
@@ -178,6 +320,7 @@ export function TrackRecordClient() {
   // verified outcomes by default — that's the marketing play. Free tab
   // is a comparison view showing what the free experience delivers.
   const [scope, setScope] = useState<Scope>('pro');
+  const [category, setCategory] = useState<CategoryFilter>('all');
   const [period, setPeriod] = useState<Period>('30d');
   const [pairFilter, setPairFilter] = useState<string>('ALL');
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>('ALL');
@@ -192,7 +335,7 @@ export function TrackRecordClient() {
   // on 26 days of data would be a fabrication.
   const [earliestTimestamp, setEarliestTimestamp] = useState<number | null>(null);
 
-  const fetchData = useCallback(async (p: Period, off: number, pair: string, direction: DirectionFilter, s: Scope) => {
+  const fetchData = useCallback(async (p: Period, off: number, pair: string, direction: DirectionFilter, s: Scope, c: CategoryFilter) => {
     setLoading(true);
     try {
       const historyParams = new URLSearchParams({
@@ -202,11 +345,15 @@ export function TrackRecordClient() {
         scope: s,
       });
       if (pair !== 'ALL') historyParams.set('pair', pair);
+      if (c !== 'all') historyParams.set('category', c);
       if (direction !== 'ALL') historyParams.set('direction', direction);
+
+      const leaderboardParams = new URLSearchParams({ period: p, scope: s });
+      if (c !== 'all') leaderboardParams.set('category', c);
 
       const [historyRes, leaderboardRes] = await Promise.allSettled([
         fetch(`/api/signals/history?${historyParams.toString()}`),
-        fetch(`/api/leaderboard?period=${p}`),
+        fetch(`/api/leaderboard?${leaderboardParams.toString()}`),
       ]);
 
       if (historyRes.status === 'fulfilled' && historyRes.value.ok) {
@@ -229,12 +376,12 @@ export function TrackRecordClient() {
   }, []);
 
   useEffect(() => {
-    fetchData(period, offset, pairFilter, directionFilter, scope);
-  }, [period, offset, pairFilter, directionFilter, scope, fetchData]);
+    fetchData(period, offset, pairFilter, directionFilter, scope, category);
+  }, [period, offset, pairFilter, directionFilter, scope, category, fetchData]);
 
   useEffect(() => {
     setOffset(0);
-  }, [period, pairFilter, directionFilter, scope]);
+  }, [period, pairFilter, directionFilter, scope, category]);
 
   const availablePairs = useMemo(() => {
     const fromLeaderboard = leaderboard?.assets.map(a => a.pair) ?? [];
@@ -245,6 +392,28 @@ export function TrackRecordClient() {
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const pages = useMemo(() => pageNumbers(currentPage, totalPages), [currentPage, totalPages]);
+  const freeCategoryHasSymbols = useMemo(() => {
+    if (scope !== 'free' || category === 'all') return true;
+    const freeSet = new Set<string>(FREE_SYMBOLS);
+    return symbolsForCategory(category).some(symbol => freeSet.has(symbol));
+  }, [scope, category]);
+  const categoryCaption = useMemo(() => {
+    if (category === 'majors') {
+      return `${symbolsForCategory('majors').length} highest-liquidity instruments. The cleanest read on strategy quality.`;
+    }
+    if (category === 'thematic') {
+      return `${symbolsForCategory('thematic').length} narrative-driven symbols. Wider coverage, more noise — useful for breadth, not for headline win rate.`;
+    }
+    return scope === 'free'
+      ? `Every free-tier symbol in the last ${FREE_HISTORY_DAYS} days.`
+      : 'Every tracked symbol, full archive.';
+  }, [category, scope]);
+  const noFreeSymbolsInCategory = scope === 'free' && category !== 'all' && !freeCategoryHasSymbols;
+
+  const handleCategoryChange = (nextCategory: CategoryFilter) => {
+    setCategory(nextCategory);
+    setPairFilter('ALL');
+  };
 
   return (
     <div className="relative isolate min-h-[100dvh] overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
@@ -297,12 +466,19 @@ export function TrackRecordClient() {
               </span>
             </div>
           </div>
-          <div className="mt-2">
+          <div className="mt-2 flex items-center gap-2">
             <EmbedButton embedPath="/embed/track-record" label="Embed this" width={600} height={360} />
+            <ShareOnX
+              winRate={stats?.winRate}
+              resolved={stats?.resolved}
+              period={period}
+            />
           </div>
           <p className="text-sm text-[var(--text-secondary)]">
-            Total return = sum of per-signal % at fixed 1R risk. Stats below count only resolved trades —
-            signals refused by the risk gate or that expired without TP/SL are surfaced separately, not folded in.
+            Headline total return is the raw sum of per-signal market % (no sizing). The equity card below
+            shows the position-sized version — 1% risk per trade after blended round-trip costs — which is
+            what a real subscriber would actually earn. Two views, same trades. Resolved trades only —
+            gate-blocked and expired rows are surfaced separately, not folded in.
           </p>
         </div>
 
@@ -362,6 +538,37 @@ export function TrackRecordClient() {
             </button>
           ))}
         </div>
+
+        {/* Category tabs — display-only segmentation over the same signal history */}
+        <div className="mb-2 flex items-center gap-1 p-1 rounded-lg bg-white/[0.04] w-fit overflow-x-auto max-w-full">
+          {CATEGORY_OPTIONS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => handleCategoryChange(value)}
+              aria-pressed={category === value}
+              className={`px-3 py-1.5 text-xs font-mono font-medium rounded-md transition-all whitespace-nowrap ${
+                category === value
+                  ? 'bg-emerald-500/15 text-emerald-400'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="mb-3 text-xs text-[var(--text-secondary)]">
+          {categoryCaption}
+        </p>
+
+        {/* Side-by-side WR + expectancy comparison so the user can see at a
+            glance which category is dragging the headline. Click a cell to
+            switch the active category — same effect as the tabs above. */}
+        <CategoryBreakdownRow
+          period={period}
+          scope={scope}
+          active={category}
+          onSelect={handleCategoryChange}
+        />
 
         {/* Scope disclaimer — explains what the viewer is looking at */}
         {scope === 'pro' ? (
@@ -504,6 +711,7 @@ export function TrackRecordClient() {
         <EquityCurve
           period={period === '7d' || period === '30d' ? period : 'all'}
           scope={scope}
+          category={category}
         />
 
         {/* Per-Symbol Breakdown */}
@@ -571,7 +779,9 @@ export function TrackRecordClient() {
                   {!loading && leaderboard?.assets.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)]">
-                        No data for this period yet.
+                        {noFreeSymbolsInCategory
+                          ? 'No free-tier symbols in this category.'
+                          : 'No data for this period yet.'}
                       </td>
                     </tr>
                   )}
@@ -641,7 +851,15 @@ export function TrackRecordClient() {
               <table className="w-full min-w-[420px] text-xs font-mono">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
-                    <th className="px-4 py-2.5 text-left font-medium">Time</th>
+                    <th className="px-4 py-2.5 text-left font-medium">
+                      <span className="inline-flex items-center gap-1">
+                        Bar Open
+                        <InfoHint
+                          text="Candle bar open time (your local timezone). The signal anchors to this bar; the engine records it shortly after the bar closes (within the next 5-min cron tick), so wall-clock recording is up to one timeframe-period later than the value shown."
+                          label="What Bar Open means"
+                        />
+                      </span>
+                    </th>
                     <th className="px-3 py-2.5 text-left font-medium">Pair</th>
                     <th className="px-3 py-2.5 text-center font-medium">Dir</th>
                     <th className="px-3 py-2.5 text-right font-medium hidden sm:table-cell">Entry</th>
@@ -717,7 +935,9 @@ export function TrackRecordClient() {
                   {!loading && records.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)]">
-                        {pairFilter !== 'ALL' || directionFilter !== 'ALL'
+                        {noFreeSymbolsInCategory
+                          ? 'No free-tier symbols in this category.'
+                          : pairFilter !== 'ALL' || directionFilter !== 'ALL'
                           ? 'No signals match these filters.'
                           : 'No signals for this period yet.'}
                       </td>

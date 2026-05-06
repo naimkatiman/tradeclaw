@@ -75,7 +75,9 @@ export async function GET(req: NextRequest) {
     "Cache-Control": "public, s-maxage=60",
     "X-TradeClaw-Version": "v1",
     "X-TradeClaw-Tier": tier,
-    Vary: "Cookie",
+    // Vary on Cookie AND Authorization so shared CDN cache does not poison
+    // tiers across cookie-auth (browser) and bearer-token (SDK) callers.
+    Vary: "Cookie, Authorization",
     "Access-Control-Allow-Origin": "*",
   };
 
@@ -185,10 +187,21 @@ export async function GET(req: NextRequest) {
       },
       { headers: { ...headers, "X-Signal-Source": "realtime" } }
     );
-  } catch {
+  } catch (err) {
+    // Do NOT return 200 with an empty signal list — that masks the failure
+    // and lets clients silently believe "no signals right now" when in fact
+    // the upstream pipeline is broken. Return 503 so callers can surface it.
+    console.error("v1/signals: upstream failure", err);
     return NextResponse.json(
-      { ok: true, version: "v1", count: 0, total: 0, generatedAt: now, signals: [] },
-      { headers }
+      {
+        ok: false,
+        version: "v1",
+        error: "upstream_unavailable",
+        generatedAt: now,
+        signals: [],
+        tier,
+      },
+      { status: 503, headers }
     );
   }
 }

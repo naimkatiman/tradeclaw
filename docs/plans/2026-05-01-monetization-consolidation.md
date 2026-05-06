@@ -220,9 +220,9 @@ Tasks are serial, not parallel. Each task is one commit. No commit touches >15 f
 3. Explicit user `proceed phase E` confirmation.
 
 **Changes:**
-- New migration `apps/web/migrations/018_drop_license_tables.sql`:
+- New migration `apps/web/migrations/025_drop_license_tables.sql` (renumbered from 018; 018 was already taken by `pilot_executions.sql`):
   ```sql
-  -- 018_drop_license_tables.sql
+  -- 025_drop_license_tables.sql
   -- Retires the license-key system. Stripe tier is now the canonical
   -- access gate. See docs/plans/2026-05-01-monetization-consolidation.md.
   DROP TABLE IF EXISTS strategy_license_grants;
@@ -234,6 +234,18 @@ Tasks are serial, not parallel. Each task is one commit. No commit touches >15 f
 - `npm run build` passes.
 
 **Commit message:** `chore(db): drop strategy_licenses tables`
+
+**Phase E status — 2026-05-05: APPLIED.**
+- Migration `apps/web/migrations/025_drop_license_tables.sql` applied to
+  Railway prod via `railway connect Postgres`.
+- Pre-flight gates met:
+  1. Phase D shipped 2026-05-01, >4 days live with no rollback.
+  2. `SELECT count(*) FROM strategy_licenses` returned 0;
+     `SELECT count(*) FROM strategy_license_grants` returned 0 — nothing to
+     strand.
+  3. Explicit proceed from Zaky.
+- Verification: `SELECT to_regclass('public.strategy_licenses'), to_regclass('public.strategy_license_grants');`
+  both returned NULL post-apply.
 
 ---
 

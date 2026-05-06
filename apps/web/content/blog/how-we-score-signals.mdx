@@ -1,0 +1,78 @@
+---
+title: "How TradeClaw Scores Trading Signals: A Full Walkthrough"
+excerpt: "We built an open-source signal scoring engine from scratch. Here's exactly how it works — indicator weights, quality gates, confidence calibration, and why we chose these specific rules."
+date: "2026-03-22"
+readTime: "12 min"
+tags: ["Algorithm", "Signal Scoring", "Open Source"]
+metaDescription: "Full walkthrough of the TradeClaw signal scoring algorithm — 5 indicator weights, quality gates, confidence calibration, and the math behind every signal."
+keywords: ["trading signal algorithm", "signal scoring", "open source trading", "confidence score", "MACD RSI EMA scoring"]
+---
+
+Most AI trading signal tools are black boxes — you get a "BUY" label and a confidence percentage, with no explanation of how it was computed. TradeClaw is different: the entire scoring engine is open source, and this post walks through exactly how every signal gets generated.
+
+## The Big Picture: A Points System
+
+TradeClaw uses a simple, deterministic points system. Every signal is scored by running 5 technical indicators and awarding points based on what each indicator shows. The total is normalised to a confidence percentage.
+
+<div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden not-prose">
+  <table className="w-full text-xs">
+    <thead>
+      <tr className="border-b border-zinc-800 text-zinc-400">
+        <th className="px-4 py-2 text-left font-normal">Indicator</th>
+        <th className="px-4 py-2 text-right font-normal">Max Points</th>
+        <th className="px-4 py-2 text-left font-normal">What It Measures</th>
+      </tr>
+    </thead>
+    <tbody className="text-zinc-300">
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2 font-mono">RSI (14)</td><td className="px-4 py-2 text-right text-emerald-400">20</td><td className="px-4 py-2 text-zinc-400">Overbought / oversold momentum</td></tr>
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2 font-mono">MACD (12/26/9)</td><td className="px-4 py-2 text-right text-emerald-400">25</td><td className="px-4 py-2 text-zinc-400">Trend direction & momentum change</td></tr>
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2 font-mono">EMA (20/50/200)</td><td className="px-4 py-2 text-right text-emerald-400">20</td><td className="px-4 py-2 text-zinc-400">Price vs moving average alignment</td></tr>
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2 font-mono">Stochastic (14/3/3)</td><td className="px-4 py-2 text-right text-emerald-400">15</td><td className="px-4 py-2 text-zinc-400">K/D position and crossover</td></tr>
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2 font-mono">Bollinger Bands (20, 2σ)</td><td className="px-4 py-2 text-right text-emerald-400">10</td><td className="px-4 py-2 text-zinc-400">Price at extremes of volatility range</td></tr>
+      <tr className="border-b border-zinc-800/50 bg-zinc-800/30 font-semibold"><td className="px-4 py-2 font-mono">Total</td><td className="px-4 py-2 text-right text-emerald-400">90</td><td className="px-4 py-2 text-zinc-400">→ Scaled to 48–95% confidence</td></tr>
+    </tbody>
+  </table>
+</div>
+
+## Step 1: Compute Both Directions
+
+For every asset and timeframe, TradeClaw computes a BUY score *and* a SELL score independently. Whichever score is higher and exceeds the minimum threshold (58% confidence) becomes the signal. Signals between 55–57% appear on the watchlist only. If neither exceeds 55%, no signal is emitted — "no opinion" is a valid output.
+
+## Step 2: Quality Gates (Filters)
+
+Before a signal is emitted, it must pass 4 quality checks:
+
+- **ATR check:** Average True Range must be > 0.3% of price. Signals in flat/dead markets are filtered out.
+- **Bollinger bandwidth:** Must be > 1%. Consolidating markets produce false signals.
+- **EMA slope:** At least one EMA must have non-zero slope. Zero-slope = no trend = noise.
+- **Stop distance:** SL must be > 0.5% from entry. Tight stops get triggered by normal noise and produce misleading results.
+
+## Step 3: Confidence Normalisation
+
+Raw score (0–90) → confidence (50–98%). The formula:
+
+<div className="bg-zinc-900 border border-zinc-700 rounded-xl p-4 font-mono text-sm text-zinc-300 not-prose">
+  confidence = min(95, max(48, round(42 + rawScore × 0.62)))
+</div>
+
+Why cap at 95%? No deterministic indicator combination can justify 100% certainty. The floor of 48% prevents meaninglessly low scores from cluttering the output.
+
+## Is It Actually Calibrated?
+
+Good calibration means: signals at 80% confidence should win ~80% of the time. We track this on the [calibration page](/calibration) using Expected Calibration Error (ECE). The honest answer: with synthetic seed data, calibration is not yet validated. As live signals accumulate, that page will reflect real performance.
+
+## Multi-Timeframe Confluence
+
+TradeClaw also generates signals across H1, H4, and D1 timeframes and checks for confluence. When all three timeframes agree, confidence gets a +15% boost. When they disagree, confidence is reduced and the signal is flagged as "conflicted."
+
+## Limitations We're Honest About
+
+- All indicators are **lagging** — they react to price, they don't predict it
+- Crypto and forex have **different characteristics** — RSI(14) behaves differently on 1-hour BTC vs daily EUR/USD
+- The scoring weights are **manually tuned**, not machine-learned from backtested data (yet)
+- No fundamental analysis, news, or macro factors are considered
+
+<TrialCTA
+  headline="See this engine running live — free for 7 days."
+  pitch="TradeClaw Pro runs this exact scoring algorithm on real-time forex, crypto, and metals data. $29/mo after the trial, cancel anytime. The algorithm itself is, and stays, MIT licensed."
+/>

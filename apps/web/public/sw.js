@@ -1,5 +1,5 @@
 // TradeClaw Service Worker — PWA + Push Notifications + Offline
-const CACHE_NAME = 'tradeclaw-v3';
+const CACHE_NAME = 'tradeclaw-v4';
 const STATIC_ASSETS = [
   '/',
   '/dashboard',
@@ -120,18 +120,23 @@ self.addEventListener('push', (event) => {
 // ── Notification click ──
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || '/dashboard';
-
   if (event.action === 'dismiss') return;
+
+  const url = event.notification.data?.url || '/dashboard';
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // If a tab is already on the target URL, just focus it.
       for (const client of clientList) {
-        if ('focus' in client) {
-          client.navigate(url);
-          return client.focus();
-        }
+        try {
+          const u = new URL(client.url);
+          if (u.pathname + u.search === url && 'focus' in client) {
+            return client.focus();
+          }
+        } catch { /* ignore malformed client url */ }
       }
+      // Otherwise open a fresh window — client.navigate() silently fails
+      // on cross-origin and on some Chrome versions when the tab is hidden.
       if (self.clients.openWindow) {
         return self.clients.openWindow(url);
       }

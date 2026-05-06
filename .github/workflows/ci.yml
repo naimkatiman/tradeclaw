@@ -113,3 +113,83 @@ jobs:
           path: .cache/backtest-result
           retention-days: 14
           if-no-files-found: ignore
+
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    needs: build
+    # Non-blocking until the suite stabilizes. Flip to false once the suite is
+    # consistently green against the CI Postgres sidecar.
+    continue-on-error: true
+    timeout-minutes: 20
+    services:
+      # Ephemeral Postgres per CI run — avoids any risk of writing test signals
+      # to the production Railway DB. Migrations are applied below.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tradeclaw_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      CI: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+      # Sidecar Postgres URL — visible to the migration step, the dev server
+      # spawned by Playwright's webServer, and the tests themselves.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tradeclaw_test
+      USER_SESSION_SECRET: ${{ secrets.E2E_USER_SESSION_SECRET }}
+      CRON_SECRET: ${{ secrets.E2E_CRON_SECRET }}
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ${{ github.workspace }}
+      - name: Apply migrations to sidecar Postgres
+        # Bypass the Railway-tuned migration runner (which forces SSL) by
+        # piping each .sql file through psql directly. CI starts from an empty
+        # DB every run, so we don't need the runner's _migrations tracking.
+        run: |
+          set -euo pipefail
+          for f in migrations/[0-9]*.sql; do
+            echo "→ $f"
+            PGPASSWORD=postgres psql -h localhost -U postgres -d tradeclaw_test -v ON_ERROR_STOP=1 -f "$f"
+          done
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run E2E suite
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 14
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-junit
+          path: apps/web/test-results/results.xml
+          retention-days: 14
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: apps/web/test-results
+          retention-days: 7
+          if-no-files-found: ignore

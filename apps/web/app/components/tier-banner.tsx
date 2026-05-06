@@ -76,7 +76,7 @@ export function TierBanner() {
           </span>
         </div>
         <Link
-          href="/pricing"
+          href="/pricing?from=tier-banner"
           className="inline-flex items-center gap-1 rounded-md bg-emerald-500 px-2.5 py-1 text-[11px] font-semibold text-black hover:bg-emerald-400"
         >
           <Sparkles size={11} />

@@ -5,6 +5,7 @@ import { Lock } from 'lucide-react';
 import { InfoHint } from '@/components/InfoHint';
 import { STAT_HINTS } from '@/lib/stat-hints';
 import { FREE_HISTORY_DAYS } from '@/lib/tier-client';
+import type { CategoryFilter } from '@/app/lib/symbol-config';
 
 interface EquityPoint {
   timestamp: number;
@@ -19,7 +20,15 @@ interface EquitySummary {
   maxDrawdown: number;
   winRate: number;
   totalSignals: number;
+  sizedTrades?: number;
   sharpeRatio: number | null;
+  avgRWin: number | null;
+  avgRLoss: number | null;
+  expectancyR: number | null;
+  breakEvenWinRate: number | null;
+  riskPerTradePct?: number;
+  roundTripCostPct?: number;
+  hardRCap?: number;
 }
 
 interface TooltipData {
@@ -287,24 +296,39 @@ type EquityScope = 'pro' | 'free';
 interface EquityCurveProps {
   period?: '7d' | '30d' | 'all';
   scope?: EquityScope;
+  category?: CategoryFilter;
 }
 
-export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps) {
+interface SmoothMeta {
+  mode: string;
+  capR: number | null;
+}
+
+export function EquityCurve({ period = 'all', scope = 'pro', category = 'all' }: EquityCurveProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [points, setPoints] = useState<EquityPoint[]>([]);
   const [summary, setSummary] = useState<EquitySummary | null>(null);
+  const [smoothMeta, setSmoothMeta] = useState<SmoothMeta | null>(null);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [loading, setLoading] = useState(true);
+  // Smooth mode is off by default — the raw curve is the truth. Toggle is
+  // a marketing affordance: shows what the path looks like with outliers
+  // (in both directions) clipped at 2× median trade size.
+  const [smooth, setSmooth] = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/signals/equity?period=${period}&scope=${scope}`);
+        const params = new URLSearchParams({ period, scope });
+        if (category !== 'all') params.set('category', category);
+        if (smooth) params.set('smooth', 'median2x');
+        const res = await fetch(`/api/signals/equity?${params.toString()}`);
         if (!res.ok) return;
         const data = await res.json();
         setPoints(data.points ?? []);
         setSummary(data.summary ?? null);
+        setSmoothMeta(data.smooth ?? null);
       } catch {
         // silent
       } finally {
@@ -312,7 +336,7 @@ export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps)
       }
     }
     load();
-  }, [period, scope]);
+  }, [period, scope, category, smooth]);
 
   const handleHover = useCallback((data: TooltipData | null) => {
     setTooltip(data);
@@ -365,10 +389,39 @@ export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps)
           </h2>
           <p className="text-[11px] text-zinc-600 mt-0.5">
             {isPro
-              ? 'Full Pro track record. Every signal paper-traded with equal risk; results verified against real market data.'
-              : `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see.`}
+              ? summary
+                ? `Full Pro track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per trade` : ''}, after ${summary.roundTripCostPct}% round-trip costs. Verified against real market data.`
+                : 'Full Pro track record. Verified against real market data.'
+              : summary
+                ? `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after costs.`
+                : `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see.`}
           </p>
+          {summary && summary.sizedTrades !== undefined && summary.sizedTrades > 0 && (
+            <p className="text-[10px] text-zinc-600 mt-1">
+              Engine fires across the full multi-symbol multi-timeframe stream — {summary.sizedTrades.toLocaleString()} sized trade{summary.sizedTrades === 1 ? '' : 's'} in this window. A subscriber filtering for high-confidence setups would execute a fraction of these; the equity path assumes 1% risk on every signal.
+            </p>
+          )}
+          {smooth && smoothMeta?.capR !== null && smoothMeta?.capR !== undefined && (
+            <p className="text-[10px] text-amber-400/80 mt-1 font-mono">
+              Outlier-smoothed: each trade&apos;s R-multiple clamped to ±{smoothMeta.capR}R (top/bottom 5% clipped). Raw drawdown is larger.
+            </p>
+          )}
         </div>
+        {/* Smooth toggle — opt-in marketing view. Off by default so the
+            headline numbers match the raw paper-trade outcome. */}
+        <button
+          type="button"
+          onClick={() => setSmooth(s => !s)}
+          aria-pressed={smooth}
+          className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-mono uppercase tracking-wider transition-colors ${
+            smooth
+              ? 'border-amber-500/40 bg-amber-500/10 text-amber-400'
+              : 'border-white/10 bg-white/[0.02] text-zinc-500 hover:text-zinc-300'
+          }`}
+          title="Clip the top and bottom 5% of trade outcomes (P95 cap). Reveals the path without single-trade outliers in either direction."
+        >
+          {smooth ? 'Smoothed (P95)' : 'Smooth outliers'}
+        </button>
       </div>
 
       {/* Stats overlay — Total Return and Max Drawdown are presented as a
@@ -404,17 +457,32 @@ export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps)
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3 mb-4">
+          {/* Win-rate sits next to its break-even line so a sub-50% number
+              reads as "above/below the bar this system needs," not as a
+              standalone failure. The 50% threshold is meaningless for any
+              system with asymmetric R:R. */}
+          <div className="grid grid-cols-3 gap-3 mb-3">
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
                 Win Rate
                 <InfoHint text={STAT_HINTS.winRate24h} label="What win rate means" />
               </div>
               <div className={`text-xs font-mono font-semibold tabular-nums ${
-                summary.winRate >= 50 ? 'text-emerald-400' : 'text-red-400'
+                summary.breakEvenWinRate !== null
+                  ? summary.winRate >= summary.breakEvenWinRate
+                    ? 'text-emerald-400'
+                    : 'text-red-400'
+                  : summary.winRate >= 50
+                    ? 'text-emerald-400'
+                    : 'text-red-400'
               }`}>
                 {summary.winRate}%
               </div>
+              {summary.breakEvenWinRate !== null && (
+                <div className="text-[9px] text-zinc-600 mt-0.5 font-mono">
+                  break-even {summary.breakEvenWinRate}%
+                </div>
+              )}
             </div>
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
@@ -432,6 +500,43 @@ export function EquityCurve({ period = 'all', scope = 'pro' }: EquityCurveProps)
               </div>
               <div className="text-xs font-mono font-semibold text-zinc-300 tabular-nums">
                 {summary.sharpeRatio !== null ? summary.sharpeRatio.toFixed(2) : '—'}
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="bg-white/[0.02] rounded-lg py-2 px-3">
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
+                Avg R per Win
+                <InfoHint text={STAT_HINTS.avgRWin} label="What avg R per win means" />
+              </div>
+              <div className="text-xs font-mono font-semibold text-emerald-400 tabular-nums">
+                {summary.avgRWin !== null ? `+${summary.avgRWin.toFixed(2)}R` : '—'}
+              </div>
+            </div>
+            <div className="bg-white/[0.02] rounded-lg py-2 px-3">
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
+                Avg R per Loss
+                <InfoHint text={STAT_HINTS.avgRLoss} label="What avg R per loss means" />
+              </div>
+              <div className="text-xs font-mono font-semibold text-red-400 tabular-nums">
+                {summary.avgRLoss !== null ? `${summary.avgRLoss.toFixed(2)}R` : '—'}
+              </div>
+            </div>
+            <div className="bg-white/[0.02] rounded-lg py-2 px-3">
+              <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
+                Expectancy
+                <InfoHint text={STAT_HINTS.expectancyR} label="What expectancy means" />
+              </div>
+              <div className={`text-xs font-mono font-semibold tabular-nums ${
+                summary.expectancyR !== null && summary.expectancyR > 0
+                  ? 'text-emerald-400'
+                  : summary.expectancyR !== null && summary.expectancyR < 0
+                    ? 'text-red-400'
+                    : 'text-zinc-300'
+              }`}>
+                {summary.expectancyR !== null
+                  ? `${summary.expectancyR >= 0 ? '+' : ''}${summary.expectancyR.toFixed(2)}R`
+                  : '—'}
               </div>
             </div>
           </div>

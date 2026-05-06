@@ -25,3 +25,11 @@ export function isFreeSymbol(symbol: string): boolean {
  * both code paths and all visible labels in lockstep.
  */
 export const FREE_HISTORY_DAYS = 7;
+
+/**
+ * Days a past_due subscription continues to count as paid before access
+ * downgrades to free. Lives here (client-safe) so the past-due banner can
+ * compute its grace deadline without pulling the server tier module.
+ * Server resolution (`getUserTier`) re-exports this from ./tier.ts.
+ */
+export const PAST_DUE_GRACE_DAYS = 7;

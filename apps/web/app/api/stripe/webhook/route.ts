@@ -3,13 +3,18 @@ import Stripe from 'stripe';
 import { getStripe, resolveTierFromPriceId } from '../../../../lib/stripe';
 import {
   getUserByStripeCustomerId,
+  getUserById,
   updateUserTier,
   upsertSubscription,
   cancelSubscription,
   updateSubscriptionStatus,
+  getSubscriptionByStripeId,
+  setTrialEnd,
   tryClaimStripeEvent,
+  releaseStripeEvent,
 } from '../../../../lib/db';
-import { sendInvite, revokeAccess } from '../../../../lib/telegram';
+import { sendInviteWithRetry, revokeAccess } from '../../../../lib/telegram';
+import { sendPaymentFailedEmail } from '../../../../lib/transactional-email';
 
 // Must read raw body for Stripe signature verification
 export const dynamic = 'force-dynamic';
@@ -85,9 +90,16 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Handler error';
     console.error(`[stripe-webhook] Error handling ${event.type}:`, message);
-    // Return 500 so Stripe retries with exponential backoff. Handlers
-    // (upsertSubscription, updateUserTier) are idempotent — ON CONFLICT
-    // DO UPDATE on stripe_subscription_id — so replays are safe.
+    // Release the idempotency claim so Stripe's next retry actually re-runs
+    // the handler. Without this, the dedup gate above short-circuits every
+    // retry and the work is silently lost. Handlers themselves are idempotent
+    // (ON CONFLICT DO UPDATE on stripe_subscription_id), so a replay after
+    // partial progress just re-applies the same end state.
+    try {
+      await releaseStripeEvent(event.id);
+    } catch (releaseErr) {
+      console.error('[stripe-webhook] failed to release event claim:', releaseErr);
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
@@ -137,6 +149,7 @@ async function handleCheckoutCompleted(
   const firstItem = subscription.items.data[0];
   const periodEnd = firstItem ? new Date(firstItem.current_period_end * 1000) : null;
   const periodStart = firstItem ? new Date(firstItem.current_period_start * 1000) : new Date();
+  const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
   // Update user tier
   await updateUserTier(userId, tier, periodEnd);
@@ -151,15 +164,22 @@ async function handleCheckoutCompleted(
     currentPeriodStart: periodStart,
     currentPeriodEnd: periodEnd ?? new Date(),
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    trialEnd,
   });
 
-  // Send Telegram invite if user has linked their Telegram account
+  // Send Telegram invite if user has linked their Telegram account.
+  // sendInviteWithRetry handles transient Telegram API failures internally
+  // (3x exponential backoff). Permanent failures (e.g. user blocked the bot)
+  // short-circuit; the user can self-serve via /api/telegram/resend-invite
+  // from the welcome page.
   const user = await getUserByStripeCustomerId(stripeCustomerId);
   if (user?.telegramUserId) {
-    try {
-      await sendInvite(userId, user.telegramUserId.toString(), tier);
-    } catch (err) {
-      console.error('[webhook] Failed to send Telegram invite:', err);
+    const result = await sendInviteWithRetry(userId, user.telegramUserId.toString(), tier);
+    if (!result.ok) {
+      console.error(
+        '[webhook] sendInvite failed after retries:',
+        `attempts=${result.attempts} retryable=${result.retryable} err=${result.error}`,
+      );
     }
   }
 }
@@ -188,6 +208,7 @@ async function handleSubscriptionUpdated(
 
   const firstItem = subscription.items.data[0];
   const periodEnd = firstItem ? new Date(firstItem.current_period_end * 1000) : null;
+  const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
   await updateUserTier(userId, tier, periodEnd);
 
@@ -196,6 +217,10 @@ async function handleSubscriptionUpdated(
     subscription.status as 'active' | 'past_due' | 'canceled' | 'trialing',
     periodEnd ?? undefined
   );
+
+  // Keep trial_end in sync — promo extensions, manual edits in the Stripe
+  // dashboard, and trial-to-paid conversions all flow through this event.
+  await setTrialEnd(subscription.id, trialEnd);
 }
 
 async function handleSubscriptionDeleted(
@@ -241,6 +266,37 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   const subscriptionId = typeof sub === 'string' ? sub : sub?.id ?? null;
   if (!subscriptionId) return;
 
+  // Stripe Smart Retries fire invoice.payment_failed once per attempt (up to 4).
+  // Dedup the dunning email on the active|trialing → past_due transition so the
+  // customer doesn't receive 3-4 identical emails in a week. The webhook itself
+  // is already idempotent on event.id via tryClaimStripeEvent — that handles
+  // redelivery; this guards against retry-attempt spam.
+  const existing = await getSubscriptionByStripeId(subscriptionId);
+  const wasAlreadyPastDue = existing?.status === 'past_due';
+
   await updateSubscriptionStatus(subscriptionId, 'past_due');
-  // TODO: trigger dunning email via your email provider
+
+  if (wasAlreadyPastDue || !existing) return;
+
+  try {
+    const user = await getUserById(existing.userId);
+    if (!user?.email) return;
+
+    const result = await sendPaymentFailedEmail(user.email, {
+      hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
+      amountDueCents: invoice.amount_due ?? 0,
+      currency: invoice.currency ?? 'usd',
+      nextAttemptAt: invoice.next_payment_attempt
+        ? new Date(invoice.next_payment_attempt * 1000)
+        : null,
+    });
+    if (!result.ok) {
+      console.error('[stripe-webhook] dunning email failed:', result.reason, 'user:', user.id);
+    }
+  } catch (err) {
+    // Email is a side-effect; do not surface failure as a 500 — Stripe would
+    // retry the whole webhook, the past_due status is already saved above,
+    // and the dunning email would still be missing on retry.
+    console.error('[stripe-webhook] dunning email threw:', err);
+  }
 }

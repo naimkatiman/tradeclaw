@@ -12,6 +12,7 @@ import {
   resolveAccessContext,
   resolveAccessContextFromCookies,
   toLockedStub,
+  splitDelayed,
 } from '../tier';
 import type { TradingSignal } from '../../app/lib/signals';
 
@@ -135,6 +136,35 @@ describe('tier — toLockedStub', () => {
     const stub = toLockedStub(makeSignal(), 60_000);
     expect(stub.locked).toBe(true);
   });
+
+  it('splitDelayed separates visible signals from locked public-safe stubs', () => {
+    const delayMs = 15 * 60 * 1000;
+    const now = Date.now();
+    const old = makeSignal({
+      id: 'old-signal',
+      timestamp: new Date(now - delayMs - 1_000).toISOString(),
+    });
+    const fresh = makeSignal({
+      id: 'fresh-signal',
+      timestamp: new Date(now - 1_000).toISOString(),
+    });
+
+    const out = splitDelayed([old, fresh], delayMs);
+
+    expect(out.visible.map(s => s.id)).toEqual(['old-signal']);
+    expect(out.locked).toHaveLength(1);
+    expect(out.locked[0]).toEqual({
+      id: 'fresh-signal',
+      symbol: 'BTCUSD',
+      direction: 'BUY',
+      timeframe: 'H1',
+      confidence: 80,
+      availableAt: new Date(new Date(fresh.timestamp).getTime() + delayMs).toISOString(),
+      locked: true,
+    });
+    expect(out.locked[0]).not.toHaveProperty('entry');
+    expect(out.locked[0]).not.toHaveProperty('stopLoss');
+  });
 });
 
 describe('tier — isFreeSymbol', () => {
@@ -161,11 +191,12 @@ describe('tier — isFreeSymbol', () => {
 });
 
 describe('tier — filterSignalByTier', () => {
-  it('free caller keeps BTCUSD but TP2/TP3 are masked to null', () => {
+  it('free caller keeps BTCUSD but stopLoss and TP2/TP3 are masked to null', () => {
     const out = filterSignalByTier(makeSignal({ symbol: 'BTCUSD' }), 'free');
     expect(out).not.toBeNull();
     expect(out!.symbol).toBe('BTCUSD');
     expect(out!.takeProfit1).toBe(51000);
+    expect(out!.stopLoss).toBeNull();
     expect(out!.takeProfit2).toBeNull();
     expect(out!.takeProfit3).toBeNull();
   });
@@ -178,6 +209,7 @@ describe('tier — filterSignalByTier', () => {
     expect(out).not.toBeNull();
     expect(out!.symbol).toBe('EURUSD');
     expect(out!.takeProfit1).toBe(51000);
+    expect(out!.stopLoss).toBeNull();
     expect(out!.takeProfit2).toBeNull();
     expect(out!.takeProfit3).toBeNull();
     expect(out!.indicators?.macd).toEqual({ histogram: 0, signal: 'neutral' });
@@ -195,6 +227,7 @@ describe('tier — filterSignalByTier', () => {
     );
     expect(out).not.toBeNull();
     expect(out!.symbol).toBe('SPYUSD');
+    expect(out!.stopLoss).toBeNull();
     expect(out!.takeProfit2).toBeNull();
     expect(out!.takeProfit3).toBeNull();
   });
@@ -256,6 +289,7 @@ describe('tier — filterSignalByTier', () => {
     expect(out).not.toBeNull();
     expect(out!.symbol).toBe('EURUSD');
     expect(out!.takeProfit1).toBe(51000);
+    expect(out!.stopLoss).toBe(49000);
     expect(out!.takeProfit2).toBe(52000);
     expect(out!.takeProfit3).toBe(53000);
   });
@@ -283,6 +317,7 @@ describe('tier — filterSignalByTier', () => {
   it('filter is pure — does not mutate the input signal', () => {
     const input = makeSignal({ symbol: 'EURUSD' });
     filterSignalByTier(input, 'free');
+    expect(input.stopLoss).toBe(49000);
     expect(input.takeProfit2).toBe(52000);
     expect(input.takeProfit3).toBe(53000);
     expect(input.indicators?.macd?.signal).toBe('bullish');
@@ -497,5 +532,83 @@ describe('tier — past_due grace window', () => {
     const { getUserTier } = await import('../tier');
     const tier = await getUserTier('user-x');
     expect(tier).toBe('pro');
+  });
+});
+
+describe('tier — E2E_FORCE_PRO_TIER override', () => {
+  const ORIGINAL_ENV = process.env;
+
+  afterEach(() => {
+    jest.resetModules();
+    process.env = ORIGINAL_ENV;
+  });
+
+  it('returns pro for the configured user when env is set in non-production', async () => {
+    process.env = { ...ORIGINAL_ENV, NODE_ENV: 'test', E2E_FORCE_PRO_TIER: 'true' };
+    const { getUserTier } = await import('../tier');
+    expect(await getUserTier('e2e-pro-user')).toBe('pro');
+  });
+
+  it('does not upgrade a different user even when env is set', async () => {
+    process.env = { ...ORIGINAL_ENV, NODE_ENV: 'test', E2E_FORCE_PRO_TIER: 'true' };
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest.fn().mockResolvedValue(null),
+      getUserById: jest.fn().mockResolvedValue(null),
+    }));
+    const { getUserTier } = await import('../tier');
+    expect(await getUserTier('some-other-user')).toBe('free');
+  });
+
+  it('refuses to fire in production even when env is set', async () => {
+    process.env = { ...ORIGINAL_ENV, NODE_ENV: 'production', E2E_FORCE_PRO_TIER: 'true' };
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest.fn().mockResolvedValue(null),
+      getUserById: jest.fn().mockResolvedValue(null),
+    }));
+    const { getUserTier } = await import('../tier');
+    expect(await getUserTier('e2e-pro-user')).toBe('free');
+  });
+
+  it('honors E2E_PRO_USER_ID override when set', async () => {
+    process.env = {
+      ...ORIGINAL_ENV,
+      NODE_ENV: 'test',
+      E2E_FORCE_PRO_TIER: 'true',
+      E2E_PRO_USER_ID: 'custom-pro-id',
+    };
+    const { getUserTier } = await import('../tier');
+    expect(await getUserTier('custom-pro-id')).toBe('pro');
+  });
+});
+
+describe('tier — getStrategiesForTier (PRO_STRATEGIES regression pin)', () => {
+  it('free tier returns only the always-free classic preset', () => {
+    expect([...getStrategiesForTier('free')].sort()).toEqual(['classic']);
+  });
+
+  it('pro tier returns the canonical PRO_STRATEGIES set — pinned to prevent silent drift', () => {
+    expect([...getStrategiesForTier('pro')].sort()).toEqual([
+      'classic',
+      'full-risk',
+      'hmm-top3',
+      'regime-aware',
+      'tv-hafiz-synergy',
+      'tv-impulse-hunter',
+      'tv-zaky-classic',
+      'vwap-ema-bb',
+    ]);
+  });
+
+  it('elite and custom inherit pro strategies', () => {
+    const pro = [...getStrategiesForTier('pro')].sort();
+    expect([...getStrategiesForTier('elite')].sort()).toEqual(pro);
+    expect([...getStrategiesForTier('custom')].sort()).toEqual(pro);
+  });
+
+  it('returned set is fresh per call — caller mutation does not leak across callers', () => {
+    const a = getStrategiesForTier('pro');
+    a.add('mutation-attempt');
+    const b = getStrategiesForTier('pro');
+    expect(b.has('mutation-attempt')).toBe(false);
   });
 });

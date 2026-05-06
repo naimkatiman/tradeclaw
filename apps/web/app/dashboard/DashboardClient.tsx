@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
 import { PageNavBar } from '../../components/PageNavBar';
 import { TierBanner } from '../components/tier-banner';
+import { EntryStalenessNotice } from '../components/entry-staleness-notice';
+import { PastDueBanner } from '../components/past-due-banner';
+import { TrialCountdown } from '../components/trial-countdown';
 import { LiveTicker } from '../../components/live-ticker';
 import { SignalToast } from '../../components/signal-toast';
 import { ConnectionStatus } from '../../components/connection-status';
@@ -13,6 +16,7 @@ import { StarsWidget } from '../../components/stars-widget';
 import { HintBadge } from '../../components/feature-highlights';
 import { VisitStreak } from '../../components/visit-streak';
 import { GateStateBadge } from '../../components/GateStateBadge';
+import { TelegramInviteBadge } from '../components/TelegramInviteBadge';
 import { ReEngagementBanner } from '../../components/re-engagement-banner';
 import { SignalChart } from '../components/charts';
 import { generateBars } from '../lib/chart-utils';
@@ -123,7 +127,7 @@ function ConnectTelegramButton() {
       </button>
       {!isPaid && (
         <p className="text-[11px] text-zinc-500 max-w-[20rem] text-center">
-          Linking alone won&apos;t add you to the Pro group. <Link href="/pricing" className="text-emerald-400 hover:underline">Upgrade to Pro</Link> and the bot DMs your private invite automatically.
+          Linking alone won&apos;t add you to the Pro group. <Link href="/pricing?from=dashboard-link-info" className="text-emerald-400 hover:underline">Upgrade to Pro</Link> and the bot DMs your private invite automatically.
         </p>
       )}
       {error && <p className="text-[11px] text-red-400">{error}</p>}
@@ -573,6 +577,13 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
 
       {/* Why this signal? — 1-2 bullet reasons */}
       <SignalExplanation signal={signal} />
+
+      {/* Entry staleness — flags when live price has drifted from stamped entry */}
+      <EntryStalenessNotice
+        direction={signal.direction}
+        entry={signal.entry}
+        livePrice={livePrice}
+      />
 
       {/* Live outcome badge */}
       {(() => {
@@ -1047,6 +1058,8 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       <BackgroundDecor variant="dashboard" />
       <GuidedTourListener />
       <PageNavBar />
+      <PastDueBanner />
+      <TrialCountdown />
       <TierBanner />
       <OnboardingBanner />
       <ReEngagementBanner />
@@ -1383,6 +1396,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                   Join free public channel
                 </a>
                 <ConnectTelegramButton />
+                <TelegramInviteBadge />
               </div>
 
               {/* Potential signals (50-69%) */}

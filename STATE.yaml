@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-04-20T22:33:19+08:00
+updated: 2026-05-05T13:30:00+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -1855,3 +1855,69 @@ next_actions:
       weakening trust; annual Pro pricing is advertised but not selectable in UI. Recommended next move:
       decide one paid story (TradeClaw Pro vs Alpha Screener), fix production checkout wiring, then reframe
       proof around expectancy/P&L and real-time delivery rather than win-rate alone.
+
+  - id: TC-167
+    title: "Track record asset-class tabs — All / Majors / Thematic display segmentation"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete 2026-05-05. Added display-only All / Majors / Thematic segmentation for /track-record:
+      symbol-config category metadata, category-aware history / leaderboard / equity reads, UI tab strip,
+      pair-over-category conflict handling, and focused unit/API tests. Current tracked universe is 26
+      symbols, so buckets are 8 Majors + 18 Thematic. Engine, cron writers, paper-trading execution, and
+      schema remain untouched. Targeted Jest tests pass; local API smoke checks pass for category filters
+      and pair-over-category conflict handling; npm run build passes. npm run lint remains blocked by
+      pre-existing unrelated lint errors outside this change; direct web tsc remains blocked by a pre-existing
+      WelcomeClient Push API Uint8Array type issue.
+
+  - id: TC-168
+    title: "Fix free/pro signal data leaks from audit F-001 through F-005"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete 2026-05-05. Fixed audit F-001 through F-005: shared tier visibility helpers added
+      in apps/web/lib/tier.ts; free stopLoss now masks to null; splitDelayed/applyTierSignalVisibility
+      are shared by dashboard/API/SSE callers; dashboard SSR now passes only tier-visible,
+      delay-visible signals to the client; /api/prices/stream resolves caller tier and emits only
+      tier-visible, delay-visible signal events; /api/demo/telegram sends a public-safe preview only
+      and omits entry/TP/SL from Telegram copy and JSON; /api/signals/history?format=csv added as a
+      Pro-gated CSV export; dashboard chart/outcome helpers now handle masked stopLoss=null without
+      plotting a false SL or marking SELL previews stopped. Verification: targeted Jest tests pass for
+      tier and signal-history CSV; targeted Vitest passes for signal-outcome; npm run build passes.
+      Direct web tsc has only the pre-existing WelcomeClient Push API Uint8Array type issue already
+      noted in TC-167.
+
+  - id: TC-169
+    title: "Close the 7 recommendations from 2026-05-05 plan-coverage audit (F-009..F-017 + plan hygiene)"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Complete 2026-05-05. Walked the 7 numbered recommendations from
+      docs/audits/2026-05-05-plans-free-vs-pro-coverage.md.
+      Rec 1: authored docs/plans/2026-05-05-fix-now-free-vs-pro.md as acceptance trail for
+      F-001..F-005 already shipped in commit bb98cadf (TC-168). Rec 2: Phase E migration drafted
+      at apps/web/migrations/025_drop_license_tables.sql (renumbered from plan's 018, taken),
+      gated on user sign-off; monetization-consolidation.md gained a Phase E status footer.
+      Rec 3: authored 2026-05-05-pro-feature-copy-vs-delivery.md mapping every Pro feature
+      bullet in TIER_DEFINITIONS to a code citation (CSV export now ships, F-005 closed).
+      Rec 4: cross-linked paid-funnel design <-> impl and countdown-timer <-> eight-improvements
+      Phase 6. Rec 5: fixed F-009 (v1/signals catch returned 200 -> now 503 upstream_unavailable)
+      and F-016 (Vary: Cookie -> Vary: Cookie, Authorization); test pinned both; plan reconcile
+      note added to pro-paywall-hardening.md. Rec 6: authored 2026-05-05-tier-cleanup.md, fixed
+      F-014 (cleaned stale ./licenses JSDoc above PRO_STRATEGIES), shipped F-017 (PRO_STRATEGIES
+      regression test pins set membership + free/elite/custom inheritance + per-call freshness).
+      Rec 7: added ?from=<surface> to all four orphan CTAs (tier-banner, contact-sales,
+      DashboardClient, signin). Verification: targeted Jest passes (276/302; the 3 vitest-style
+      failures are pre-existing and unrelated). Five surgical commits 81dd2300..0f87a907 on main.
+
+  - id: TC-170
+    title: "Apply Phase E destructive migration — drop strategy_licenses + strategy_license_grants on Railway prod"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Applied 2026-05-05 via `cat apps/web/migrations/025_drop_license_tables.sql | railway connect Postgres`.
+      Pre-flight gates met: Phase D had been live since 2026-05-01 (>4 days, no rollback);
+      strategy_licenses had 0 rows; strategy_license_grants had 0 rows; explicit user proceed.
+      Both DROP TABLE statements returned cleanly. Post-apply verification:
+      SELECT to_regclass('public.strategy_licenses'), to_regclass('public.strategy_license_grants');
+      both returned NULL. monetization-consolidation.md Phase E status footer updated to APPLIED.

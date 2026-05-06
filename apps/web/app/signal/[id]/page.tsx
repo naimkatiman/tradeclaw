@@ -4,7 +4,7 @@ import { Lock } from 'lucide-react';
 import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 import type { Metadata } from 'next';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
-import { getRecordByIdAsync } from '../../../lib/signal-history';
+import { getRecordByIdAsync, type SignalHistoryRecord } from '../../../lib/signal-history';
 import { resolveAccessContextFromCookies, getUserTier } from '../../../lib/tier';
 import { readSessionFromCookies } from '../../../lib/user-session';
 import { SignalShareButtons } from '../../components/signal-share-buttons';
@@ -12,7 +12,7 @@ import { EmbedButton } from '../../components/embed-button';
 import { AIAnalysisPanel } from '../../components/ai-analysis-panel';
 import { SetAlertButton } from '../../components/set-alert-button';
 import { SignalChartSection } from './SignalChartSection';
-import { SYMBOLS } from '../../lib/signals';
+import { SYMBOLS, type TradingSignal } from '../../lib/signals';
 import { InfoHint } from '../../../components/InfoHint';
 import { STAT_HINTS } from '../../../lib/stat-hints';
 
@@ -48,18 +48,32 @@ interface ResolvedId {
 }
 
 /**
- * Parse a /signal/[id] segment into (symbol, timeframe, direction).
- *
- * Two id formats are supported:
- *   1. Canonical share URL — `SYMBOL-TF-DIRECTION` (e.g. BTCUSD-H1-BUY).
- *   2. Legacy row id — `SYMBOL-TF-TIMESTAMP` (e.g. TSLAUSD-M15-1777733611049),
- *      written historically by /api/signals/record. Direction isn't in the id,
- *      so we recover it by looking up the row in signal_history.
+ * Parse a /signal/[id] segment into (symbol, timeframe, direction) without
+ * hitting the DB. Three id formats are supported:
+ *   1. Canonical row id — `SIG-SYMBOL-TF-DIRECTION-{base36ts}` (current writer).
+ *   2. Canonical share URL — `SYMBOL-TF-DIRECTION` (e.g. BTCUSD-H1-BUY).
+ *   3. Legacy row id — `SYMBOL-TF-TIMESTAMP` (e.g. TSLAUSD-M15-1777733611049),
+ *      written historically by /api/signals/record before it switched to SIG-*.
+ *      Direction isn't in the id, so caller falls back to the DB row when
+ *      structural parsing alone can't recover it.
  */
-async function resolveId(id: string): Promise<ResolvedId | null> {
+function parseIdStructure(id: string): ResolvedId | null {
   const parts = id.toUpperCase().split('-');
   if (parts.length < 3) return null;
 
+  // Format 1: SIG-{sym}-{tf}-{dir}-{base36}. Direction sits at parts[len-2].
+  if (parts.length >= 5 && parts[0] === 'SIG') {
+    const dirCandidate = parts[parts.length - 2];
+    if (dirCandidate === 'BUY' || dirCandidate === 'SELL') {
+      return {
+        symbol: parts.slice(1, parts.length - 3).join('-'),
+        timeframe: parts[parts.length - 3],
+        direction: dirCandidate,
+      };
+    }
+  }
+
+  // Format 2: SYMBOL-TF-DIRECTION (canonical share URL).
   const last = parts[parts.length - 1];
   if (last === 'BUY' || last === 'SELL') {
     return {
@@ -69,20 +83,9 @@ async function resolveId(id: string): Promise<ResolvedId | null> {
     };
   }
 
-  // Legacy / row-id form: look up direction from the stored row.
-  const record = await getRecordByIdAsync(id);
-  if (record) {
-    return {
-      symbol: record.pair,
-      timeframe: record.timeframe,
-      direction: record.direction,
-    };
-  }
-
-  // Some legacy ids encode `SYMBOL-TF-TIMESTAMP` even when the row is gone.
-  // Fall back to parsing if last segment is purely numeric — direction
-  // unknown, so default to BUY (the page tier-gates by id, and tracked
-  // signals will rebuild a fresh BUY/SELL preview either way).
+  // Format 3: SYMBOL-TF-TIMESTAMP — direction unknown structurally, default
+  // to BUY. Caller should prefer the DB row (which carries the real direction)
+  // when one is found.
   if (/^\d+$/.test(last)) {
     return {
       symbol: parts.slice(0, parts.length - 2).join('-'),
@@ -92,6 +95,78 @@ async function resolveId(id: string): Promise<ResolvedId | null> {
   }
 
   return null;
+}
+
+async function resolveId(id: string): Promise<ResolvedId | null> {
+  const structural = parseIdStructure(id);
+  if (structural) return structural;
+
+  // Last-ditch DB lookup for ids we can't structurally parse.
+  const record = await getRecordByIdAsync(id);
+  if (record) {
+    return {
+      symbol: record.pair,
+      timeframe: record.timeframe,
+      direction: record.direction,
+    };
+  }
+  return null;
+}
+
+/**
+ * Stub indicator block used when we render a historical record but live TA
+ * is unavailable for the same (symbol, tf, direction). The UI hides the
+ * indicator card in that case, so these values are never read — they exist
+ * only to satisfy the TradingSignal shape.
+ */
+const STUB_INDICATORS: TradingSignal['indicators'] = {
+  rsi: { value: 50, signal: 'neutral' },
+  macd: { histogram: 0, signal: 'neutral' },
+  ema: { trend: 'sideways', ema20: 0, ema50: 0, ema200: 0 },
+  bollingerBands: { position: 'middle', bandwidth: 0 },
+  stochastic: { k: 50, d: 50, signal: 'neutral' },
+  support: [],
+  resistance: [],
+};
+
+/**
+ * Build a TradingSignal-shaped display object from a stored history row,
+ * optionally enriched with live indicators. TP2/TP3 are reverse-computed
+ * from the stored TP1 using the same 2.0/3.0/4.5 R-multiple ladder the
+ * live engine writes (see signal-generator.ts). Free callers see them
+ * masked at render time.
+ */
+function buildHistoricalSignal(
+  record: SignalHistoryRecord,
+  liveIndicators: TradingSignal['indicators'] | null,
+): TradingSignal {
+  const entry = record.entryPrice;
+  const tp1 = record.tp1 ?? entry;
+  const sl = record.sl ?? entry;
+  const r = (tp1 - entry) / 2; // signed R: positive for BUY, negative for SELL
+  const tp2 = record.tp1 != null ? +(entry + 3 * r).toFixed(5) : null;
+  const tp3 = record.tp1 != null ? +(entry + 4.5 * r).toFixed(5) : null;
+
+  return {
+    id: record.id,
+    symbol: record.pair,
+    direction: record.direction,
+    confidence: record.confidence,
+    entry,
+    stopLoss: sl,
+    takeProfit1: tp1,
+    takeProfit2: tp2,
+    takeProfit3: tp3,
+    indicators: liveIndicators ?? STUB_INDICATORS,
+    timeframe: record.timeframe as TradingSignal['timeframe'],
+    timestamp: new Date(record.timestamp).toISOString(),
+    status: 'active',
+    source: 'real',
+    dataQuality: 'real',
+    entryAtr: record.entryAtr,
+    atrMultiplier: record.atrMultiplier,
+    strategyId: record.strategyId,
+  };
 }
 
 export async function generateMetadata(
@@ -127,16 +202,26 @@ export default async function SignalPage(
   { params }: { params: Promise<Params> }
 ) {
   const { id } = await params;
-  const resolved = await resolveId(id);
+
+  // Look up the historical row first. This makes /signal/SIG-* URLs render
+  // a permanent record of what we said at emission, instead of re-running
+  // live TA and 404'ing whenever the current setup no longer produces the
+  // same direction/score (which 4631+ rows in /track-record can hit).
+  const record = await getRecordByIdAsync(id);
+  const resolved = record
+    ? { symbol: record.pair, timeframe: record.timeframe, direction: record.direction }
+    : await resolveId(id);
   if (!resolved) notFound();
 
   const { symbol, timeframe, direction } = resolved;
 
   const ctx = await resolveAccessContextFromCookies();
+  // Live TA is best-effort: feeds the indicator card and (for Pro) the chart
+  // markers. If a record exists, the page still renders without it.
   const taResult = await getTrackedSignals({ symbol, timeframe, direction, ctx });
-  const signals = taResult.signals;
+  const liveSignal = taResult.signals[0] ?? null;
 
-  if (signals.length === 0) notFound();
+  if (!record && !liveSignal) notFound();
 
   // Tier gate: this page is a public preview surface (SEO + conversion funnel),
   // so we render any symbol the teaser surfaces — but free/anon viewers see
@@ -146,9 +231,18 @@ export default async function SignalPage(
   const tier = session?.userId ? await getUserTier(session.userId) : 'free';
   const isPaid = tier !== 'free';
 
-  const signal = isPaid
-    ? signals[0]
-    : { ...signals[0], takeProfit2: null, takeProfit3: null };
+  const baseSignal: TradingSignal = record
+    ? buildHistoricalSignal(record, liveSignal?.indicators ?? null)
+    : (liveSignal as TradingSignal);
+
+  const signal: TradingSignal = isPaid
+    ? baseSignal
+    : { ...baseSignal, takeProfit2: null, takeProfit3: null };
+
+  const indicatorsAvailable = liveSignal !== null;
+  const outcome4h = record?.outcomes['4h'] ?? null;
+  const outcome24h = record?.outcomes['24h'] ?? null;
+  const isHistorical = record !== undefined;
 
   const isBuy = signal.direction === 'BUY';
   const signalPath = `/signal/${symbol}-${timeframe}-${direction}`;
@@ -224,6 +318,45 @@ export default async function SignalPage(
             />
           </div>
 
+          {/* Outcome banner — only on historical rows. Surfaces what the
+              4h/24h cron has resolved, so the page no longer pretends a
+              week-old signal is "live". */}
+          {isHistorical && (
+            <div className="mb-6 grid grid-cols-2 gap-2">
+              {[
+                { label: '4h', outcome: outcome4h },
+                { label: '24h', outcome: outcome24h },
+              ].map(({ label, outcome }) => {
+                const pending = outcome == null;
+                const hit = outcome?.hit === true;
+                const tone = pending
+                  ? 'text-zinc-500 border-white/5'
+                  : hit
+                    ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5'
+                    : 'text-red-400 border-red-500/20 bg-red-500/5';
+                return (
+                  <div
+                    key={label}
+                    className={`rounded-xl border px-3 py-2 text-center ${tone}`}
+                  >
+                    <div className="text-[10px] uppercase tracking-wider opacity-70">
+                      {label} outcome
+                    </div>
+                    <div className="text-sm font-semibold font-mono mt-0.5">
+                      {pending ? 'pending' : hit ? 'TP hit' : 'SL hit'}
+                      {outcome?.pnlPct != null && (
+                        <span className="ml-2 text-xs opacity-80 tabular-nums">
+                          {outcome.pnlPct > 0 ? '+' : ''}
+                          {outcome.pnlPct.toFixed(2)}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {/* Price levels */}
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-8">
             {[
@@ -252,7 +385,11 @@ export default async function SignalPage(
             })}
           </div>
 
-          {/* Indicators grid */}
+          {/* Indicators grid — only renders when the live TA engine
+              produced a fresh signal for this (symbol, tf, direction).
+              Historical rows don't carry indicator snapshots, and stale
+              indicators on a 7-day-old signal would be misleading. */}
+          {indicatorsAvailable && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Technical indicators */}
             <div>
@@ -348,6 +485,7 @@ export default async function SignalPage(
               </div>
             </div>
           </div>
+          )}
 
           {/* Signal metadata */}
           <div className="pt-4 border-t border-white/5 flex items-center justify-between text-[10px] font-mono text-zinc-700">

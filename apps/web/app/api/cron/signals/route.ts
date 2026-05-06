@@ -9,12 +9,15 @@ import {
   getPendingRecordsAsync,
   updateRecordsAsync,
   markTelegramPosted,
+  resolveFromCandles,
   type SignalHistoryRecord,
-  type SignalOutcome,
 } from '../../../../lib/signal-history';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
 import { broadcastSignalsToProGroup } from '../../../../lib/telegram-pro-broadcast';
 import { isWinningCell, getWinningCellsMode } from '../../../../lib/winning-cells';
+import { runRiskPipeline } from '../../../../lib/risk-pipeline';
+import { fetchRegimeMap } from '../../../../lib/regime-filter';
+import { recordSignalRun } from '../../../../lib/signal-run-log';
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
@@ -77,8 +80,15 @@ async function recordNewSignals(strategyId: string): Promise<NewlyRecordedSignal
     const existing = await getRecentRecordForSymbolAsync(sig.symbol, sig.direction, TWO_HOURS_MS);
     if (existing) continue;
 
-    const timestamp = Date.now();
-    const id = `${sig.symbol}-${sig.timeframe}-${timestamp}`;
+    // Use the canonical id from the TA engine (`SIG-{sym}-{tf}-{dir}-{candleTs36}`)
+    // so this writer collides on ON CONFLICT(id) with the request-side writer
+    // in tracked-signals.ts. Before unification the two writers used different
+    // id formats and silently produced two rows per candle, double-counting in
+    // the leaderboard. Persist the candle bar timestamp too so resolution
+    // windows align with the bar the signal was actually issued for.
+    const id = sig.id;
+    const parsedCandleTs = Date.parse(sig.timestamp);
+    const timestamp = Number.isFinite(parsedCandleTs) ? parsedCandleTs : Date.now();
     await recordSignalAsync(
       sig.symbol,
       sig.timeframe,
@@ -111,49 +121,8 @@ async function recordNewSignals(strategyId: string): Promise<NewlyRecordedSignal
 }
 
 // ── Resolve logic ─────────────────────────────────────────────
-
-function resolveWindow(
-  record: SignalHistoryRecord,
-  candles: Array<{ high: number; low: number; close?: number }>,
-  windowComplete: boolean,
-): SignalOutcome | null {
-  if (!record.tp1 || !record.sl) return null;
-
-  for (const candle of candles) {
-    if (record.direction === 'BUY') {
-      if (candle.high >= record.tp1) {
-        const pnlPct = +((record.tp1 - record.entryPrice) / record.entryPrice * 100).toFixed(2);
-        return { price: record.tp1, pnlPct, hit: true };
-      }
-      if (candle.low <= record.sl) {
-        const pnlPct = +((record.sl - record.entryPrice) / record.entryPrice * 100).toFixed(2);
-        return { price: record.sl, pnlPct, hit: false };
-      }
-    } else {
-      if (candle.low <= record.tp1) {
-        const pnlPct = +((record.entryPrice - record.tp1) / record.entryPrice * 100).toFixed(2);
-        return { price: record.tp1, pnlPct, hit: true };
-      }
-      if (candle.high >= record.sl) {
-        const pnlPct = +((record.entryPrice - record.sl) / record.entryPrice * 100).toFixed(2);
-        return { price: record.sl, pnlPct, hit: false };
-      }
-    }
-  }
-
-  // Window elapsed but neither TP nor SL hit — close at last candle's price
-  if (windowComplete && candles.length > 0) {
-    const lastClose = candles[candles.length - 1].close;
-    if (lastClose != null) {
-      const pnlPct = record.direction === 'BUY'
-        ? +((lastClose - record.entryPrice) / record.entryPrice * 100).toFixed(2)
-        : +((record.entryPrice - lastClose) / record.entryPrice * 100).toFixed(2);
-      return { price: lastClose, pnlPct, hit: pnlPct > 0 };
-    }
-  }
-
-  return null;
-}
+// Outcome math now lives in lib/signal-history.ts → resolveFromCandles. Cron
+// just discards the MAE field (only the request-path writer feeds calibration).
 
 async function resolveOldSignals(): Promise<{ resolved: number; pending: number; errors: string[] }> {
   const pending = await getPendingRecordsAsync();
@@ -188,9 +157,9 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
         c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
       );
       const windowComplete = age >= FOUR_HOURS_MS;
-      const result = resolveWindow(record, window, windowComplete);
+      const result = resolveFromCandles(record, window, windowComplete);
       if (result) {
-        newOutcomes['4h'] = result;
+        newOutcomes['4h'] = result.outcome;
         changed = true;
       } else if (age >= FOUR_HOURS_MS * 2) {
         newOutcomes['4h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
@@ -204,9 +173,9 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
         c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
       );
       const windowComplete = age >= TWENTY_FOUR_HOURS_MS;
-      const result = resolveWindow(record, window, windowComplete);
+      const result = resolveFromCandles(record, window, windowComplete);
       if (result) {
-        newOutcomes['24h'] = result;
+        newOutcomes['24h'] = result.outcome;
         changed = true;
       } else if (age >= TWENTY_FOUR_HOURS_MS * 2) {
         newOutcomes['24h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
@@ -245,6 +214,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const runStartedAt = new Date();
   try {
     const preset = getActivePreset();
     const newSignals = await recordNewSignals(preset.id);
@@ -252,20 +222,58 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     const taggedSignals = newSignals.map((s) => ({ ...s, strategyId: preset.id }));
 
-    // Pro Telegram broadcast — fire on the deterministic 5-min cron cadence
-    // so the Pro group receives signals even during free-traffic droughts.
-    // Only NEW rows are broadcast (recordNewSignals already deduped against
-    // signal_history within the 2h symbol+direction window), so duplicate
-    // posts to the group are not possible here. Apply the winning-cells
-    // gate so we don't broadcast cells the publish layer would have
-    // suppressed for free; Pro response-time bypass lives in
-    // tracked-signals.ts and does not apply to the channel broadcast.
+    // Pro Telegram broadcast — fire on the deterministic 5-min cron cadence.
+    // After the duplicate-spam audit (2026-05-03) this is the SINGLE source
+    // of Pro broadcasts: the request-side path in tracked-signals.ts was
+    // removed, and the dedup gate inside broadcastSignalsToProGroup catches
+    // any retries. Pipeline order:
+    //   winning-cells curation → risk pipeline (allocator + circuit breakers
+    //   + LLM advisory) → broadcast.
+    // Risk pipeline mirrors the free channel's safety filter so Pro buyers
+    // are not exposed to signals the system itself flagged as drawdown-risky.
+    // Pipeline failure falls back to unfiltered broadcast — Pro's value prop
+    // is real-time delivery, so a transient risk-state outage must not
+    // silently mute the channel.
     if (newSignals.length > 0) {
       const winningCellsActive = getWinningCellsMode() === 'active';
-      const broadcastable = newSignals
-        .filter((s) =>
-          !winningCellsActive || isWinningCell(s.symbol, s.direction),
-        )
+      const curated = newSignals.filter((s) =>
+        !winningCellsActive || isWinningCell(s.symbol, s.direction),
+      );
+
+      let approvedIds: Set<string> | null = null;
+      try {
+        const regimeMap = await fetchRegimeMap();
+        const riskResult = await runRiskPipeline(
+          curated.map((s) => ({
+            id: s.id,
+            symbol: s.symbol,
+            direction: s.direction,
+            confidence: s.confidence,
+            entry: s.entry,
+            stopLoss: s.stopLoss,
+            takeProfit1: s.takeProfit1,
+            takeProfit2: null,
+            takeProfit3: null,
+            timeframe: s.timeframe,
+          })),
+          regimeMap,
+        );
+        approvedIds = new Set(riskResult.approved.map((s) => s.id));
+        if (riskResult.vetoed.length > 0) {
+          console.warn(
+            `[cron/signals] Risk pipeline vetoed ${riskResult.vetoed.length} Pro signal(s):`,
+            riskResult.vetoed.map((v) => `${v.signal.symbol}:${v.reason}`).join('; '),
+          );
+        }
+      } catch (err) {
+        console.warn(
+          '[cron/signals] Risk pipeline failed, broadcasting curated signals unfiltered:',
+          err instanceof Error ? err.message : String(err),
+        );
+      }
+
+      const broadcastable = curated
+        .filter((s) => approvedIds === null || approvedIds.has(s.id))
         .map((s) => ({
           id: s.id,
           symbol: s.symbol,
@@ -282,6 +290,12 @@ export async function GET(request: NextRequest): Promise<Response> {
       }
     }
 
+    const auditRowId = await recordSignalRun({
+      runStartedAt,
+      triggerSource: request.headers.get('user-agent')?.includes('GitHub') ? 'github-actions' : 'cron',
+      notes: `recorded=${taggedSignals.length} resolved=${resolved} pending=${pending}`,
+    });
+
     return NextResponse.json({
       ok: true,
       recorded: taggedSignals.length,
@@ -291,6 +305,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       errors: errors.length > 0 ? errors : undefined,
       strategyId: preset.id,
       timestamp: new Date().toISOString(),
+      auditRowId: auditRowId !== null ? auditRowId.toString() : null,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';

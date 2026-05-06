@@ -1,0 +1,90 @@
+---
+title: "Why Self-Hosting Your Trading Tools Is Worth It"
+excerpt: "SaaS trading tools charge $50–500/month. TradeClaw is free, open-source, and runs on $5/month VPS. Here's what you get, what you give up, and how to set it up in 10 minutes."
+date: "2026-03-25"
+readTime: "10 min"
+tags: ["Self-Hosting", "Docker", "Open Source"]
+metaDescription: "SaaS trading tools charge $50-500/month. TradeClaw is free and runs on $5/month. What you gain, what you give up, and how to set it up in 10 minutes."
+keywords: ["self-host trading tools", "open source trading platform", "TradeClaw Docker", "free trading signals", "self-hosted finance"]
+---
+
+The SaaS trading tool market charges a premium for convenience. TradingView Pro is $15/month. 3Commas starts at $29/month. Cryptohopper, Coinrule, Altrady — all $50–150/month for the features that actually matter. For active traders, the annual cost adds up fast.
+
+## The Cost Comparison
+
+<div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden not-prose">
+  <table className="w-full text-xs">
+    <thead>
+      <tr className="border-b border-zinc-800 text-zinc-400">
+        <th className="px-4 py-2 text-left font-normal">Tool</th>
+        <th className="px-4 py-2 text-right font-normal">Monthly</th>
+        <th className="px-4 py-2 text-right font-normal">Annual</th>
+        <th className="px-4 py-2 text-left font-normal">What you lose without paying</th>
+      </tr>
+    </thead>
+    <tbody className="text-zinc-300">
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2">TradingView Pro</td><td className="px-4 py-2 text-right text-red-400">$15</td><td className="px-4 py-2 text-right text-red-400">$180</td><td className="px-4 py-2 text-zinc-400 text-xs">Multiple indicators, alerts</td></tr>
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2">3Commas Advanced</td><td className="px-4 py-2 text-right text-red-400">$49</td><td className="px-4 py-2 text-right text-red-400">$588</td><td className="px-4 py-2 text-zinc-400 text-xs">Smart trading, signals</td></tr>
+      <tr className="border-b border-zinc-800/50"><td className="px-4 py-2">Cryptohopper Hero</td><td className="px-4 py-2 text-right text-red-400">$107</td><td className="px-4 py-2 text-right text-red-400">$1,284</td><td className="px-4 py-2 text-zinc-400 text-xs">Strategy backtesting</td></tr>
+      <tr className="border-b border-zinc-800/50 bg-emerald-500/5"><td className="px-4 py-2 text-emerald-400 font-medium">TradeClaw (self-hosted)</td><td className="px-4 py-2 text-right text-emerald-400">$5</td><td className="px-4 py-2 text-right text-emerald-400">$60</td><td className="px-4 py-2 text-zinc-400 text-xs">Just your VPS cost</td></tr>
+    </tbody>
+  </table>
+</div>
+
+## What You Get with Self-Hosting
+
+- **Full data ownership** — your signals, your history, on your machine. No vendor lock-in.
+- **Customisable** — change the scoring weights, add indicators, modify thresholds. The code is yours.
+- **No rate limits** — self-hosted means as many signals, backtests, and screener scans as your server handles.
+- **Privacy** — your trading activity doesn't touch someone else's servers.
+- **Free API access** — plug your own apps into `/api/v1/signals` without paying for API access.
+
+## What You Give Up
+
+Be honest with yourself here:
+
+- **Maintenance** — you're responsible for updates, uptime, and backups. Minimal, but real.
+- **Support** — no customer service team. GitHub issues and community.
+- **Mobile apps** — TradeClaw is a web app. No dedicated iOS/Android app yet.
+- **Broker integrations** — no one-click IBKR or Binance trading from TradeClaw (yet). Signals only.
+
+## 10-Minute Setup
+
+Three options, in order of simplicity:
+
+### Option 1: Docker Compose (recommended)
+
+<figure className="bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden not-prose">
+  <figcaption className="px-4 py-2 bg-zinc-800 border-b border-zinc-700 text-xs text-zinc-400 font-mono">shell</figcaption>
+  <pre className="p-4 text-xs text-zinc-300 font-mono">{`git clone https://github.com/naimkatiman/tradeclaw
+cd tradeclaw
+cp .env.example .env  # edit if needed
+docker compose up -d  # done`}</pre>
+</figure>
+
+That's it. Open `http://localhost:3000` and you have a running signal dashboard.
+
+### Option 2: One-click Railway deploy
+
+Click the Railway deploy button in the README. It provisions a container, sets env vars, and gives you a public URL. Free tier works for personal use.
+
+### Option 3: npx demo (test first)
+
+<div className="bg-zinc-900 border border-zinc-700 rounded-xl p-4 font-mono text-xs text-zinc-300 not-prose">
+  npx @naimkatiman/tradeclaw-demo
+</div>
+
+Runs a local Bloomberg-style demo in your browser with zero installation.
+
+## Recommended Hosting
+
+- **Hetzner CX22** (~€4/month) — best price/performance for EU
+- **DigitalOcean Droplet ($6/month)** — simple, good docs
+- **Railway ($5/month)** — one-click, no VPS management
+- **Render (free tier)** — fine for testing, limited uptime
+
+<TrialCTA
+  headline="Don't want to self-host? Try TradeClaw Pro free for 7 days."
+  pitch="Hosted, real-time signals across forex, crypto, and metals. No VPS, no Docker, no maintenance — $29/mo after the trial, cancel anytime."
+  secondaryLabel="Or self-host on GitHub"
+/>

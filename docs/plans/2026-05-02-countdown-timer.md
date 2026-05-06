@@ -4,6 +4,8 @@
 **Owner:** Zaky / Claude Code session
 **Goal:** Replace the silent 15-minute drop-and-hide for free-tier signals with a countdown UX that shows pair, direction, confidence, and unlock-in time. Turns the delay wall into a conversion surface.
 
+> **Layered with:** [`2026-05-02-tradeclaw-eight-improvements.md`](./2026-05-02-tradeclaw-eight-improvements.md) Phase 6 (`DelayCountdown` global ticker). This plan ships per-card stubs; that plan ships the global ticker. Both are live and complementary.
+
 ## Problem
 
 Free-tier callers currently lose visibility into recently-published signals entirely. `apps/web/app/api/signals/route.ts` filters out any signal with `timestamp > now - TIER_DELAY_MS.free` at two points (lines 89-91 and 130-132). The dashboard never sees them, so the user has no idea anything was missed.

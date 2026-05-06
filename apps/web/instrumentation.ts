@@ -18,8 +18,12 @@ export async function register() {
       import('./app/lib/atr-calibration-cache').then(({ refreshAtrCalibration }) => refreshAtrCalibration()),
     ]).catch(() => undefined);
 
+    // Self-calls must loopback to the local Next.js process. Going out through
+    // NEXT_PUBLIC_BASE_URL (the public URL) hits Cloudflare's bot rules and
+    // returns 403, which silently kills every scheduled cron. Only honor an
+    // explicit APP_URL override (for non-loopback test setups); otherwise loopback.
     const baseUrl = () =>
-      process.env.APP_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? `http://localhost:${process.env.PORT ?? 3000}`;
+      process.env.APP_URL ?? `http://127.0.0.1:${process.env.PORT ?? 3000}`;
 
     const cronHeaders = (): Record<string, string> => {
       const headers: Record<string, string> = {};

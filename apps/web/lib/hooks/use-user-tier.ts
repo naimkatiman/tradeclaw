@@ -3,12 +3,28 @@
 import { useEffect, useState } from 'react';
 
 export type ClientTier = 'free' | 'pro' | 'elite' | 'custom';
+export type ClientSubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'trialing' | null;
 
 export interface ClientSession {
   userId: string;
   email: string;
   tier: ClientTier;
   isAdmin: boolean;
+  /**
+   * Raw subscription state from Stripe. `tier` already accounts for the
+   * past_due grace window via `getUserTier`; this field is the unmasked
+   * billing state used by the past-due banner to nudge the user before the
+   * grace expires. `null` means no Stripe sub on file (free or email-grant).
+   */
+  subscriptionStatus: ClientSubscriptionStatus;
+  /** Period end of the current billing cycle. Used to compute the grace deadline. */
+  currentPeriodEnd: string | null;
+  /**
+   * ISO timestamp of the trial cut-off. Drives the trial countdown banner —
+   * shown only when subscriptionStatus === 'trialing' and this is in the
+   * future. Null for non-trial subs.
+   */
+  trialEnd: string | null;
 }
 
 interface SessionResponse {

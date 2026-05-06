@@ -162,7 +162,7 @@ describe('GET /api/v1/signals — tier gating', () => {
     expect(ids).toContain('nvda');
   });
 
-  it('response carries Vary: Cookie so shared edge cache does not poison tiers', async () => {
+  it('response carries Vary: Cookie, Authorization so shared edge cache does not poison tiers', async () => {
     mockedGetTier.mockResolvedValueOnce('free');
     mockedReadLiveSignals.mockResolvedValueOnce({
       signals: [makeSignal()],
@@ -171,7 +171,24 @@ describe('GET /api/v1/signals — tier gating', () => {
     });
 
     const res = await GET(makeReq());
-    expect(res.headers.get('Vary')).toBe('Cookie');
+    expect(res.headers.get('Vary')).toBe('Cookie, Authorization');
     expect(res.headers.get('X-TradeClaw-Tier')).toBe('free');
+  });
+
+  it('returns 503 on upstream failure instead of masking as 200 + empty list', async () => {
+    mockedGetTier.mockResolvedValueOnce('free');
+    mockedReadLiveSignals.mockRejectedValueOnce(new Error('boom'));
+
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const res = await GET(makeReq());
+    consoleSpy.mockRestore();
+
+    expect(res.status).toBe(503);
+    const body = await res.json();
+    expect(body.ok).toBe(false);
+    expect(body.error).toBe('upstream_unavailable');
+    expect(body.tier).toBe('free');
+    // Cache headers must still be set so CDN doesn't blanket-cache a 503.
+    expect(res.headers.get('Vary')).toBe('Cookie, Authorization');
   });
 });

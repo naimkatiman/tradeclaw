@@ -8,28 +8,9 @@ import {
   getUserTier,
   filterSignalByTier,
   TIER_DELAY_MS,
-  toLockedStub,
-  type LockedSignalStub,
+  splitDelayed,
 } from '../../../lib/tier';
 import type { TradingSignal } from '../../lib/signals';
-
-function splitDelayed<T extends { timestamp: string | number }>(
-  signals: T[],
-  delayMs: number,
-): { visible: T[]; locked: LockedSignalStub[] } {
-  if (delayMs <= 0) return { visible: signals, locked: [] };
-  const cutoff = Date.now() - delayMs;
-  const visible: T[] = [];
-  const lockedSrc: T[] = [];
-  for (const s of signals) {
-    if (new Date(s.timestamp).getTime() <= cutoff) visible.push(s);
-    else lockedSrc.push(s);
-  }
-  const locked = lockedSrc.map(s =>
-    toLockedStub(s as unknown as Parameters<typeof toLockedStub>[0], delayMs),
-  );
-  return { visible, locked };
-}
 
 // Re-export types for consumers that imported from here
 export type { TradingSignal, IndicatorSummary } from '../../lib/signals';
@@ -159,7 +140,7 @@ export async function GET(request: NextRequest) {
         real: visibleSignals.filter(s => s.source === 'real').length,
         fallback: visibleSignals.filter(s => s.source === 'fallback').length,
         version: '2.1.0',
-        note: liveData?.isStale ? 'signals-live.json stale, using fallback engine' : 'signals-live.json not found or empty',
+        note: liveData?.isStale ? 'TA engine fallback (live signals file is stale)' : 'TA engine fallback (live signals file not present — expected on Railway, written only by local Python scanner)',
         regime: dominantRegime,
       },
       filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence },

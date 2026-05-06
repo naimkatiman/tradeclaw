@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { getBotToken, getProGroupId, getProSignalsTopicId } from './telegram-channels';
-import { markTelegramProPosted } from './signal-history';
+import { getSignalTelegramProMessageId, markTelegramProPosted } from './signal-history';
 import { recordBroadcastResult } from './observability';
 
 /**
@@ -72,6 +72,7 @@ export interface ProBroadcastResult {
   attempted: number;
   sent: number;
   failed: number;
+  skipped?: number;
   reason?: 'no_bot_token' | 'no_pro_group' | 'no_signals';
 }
 
@@ -113,8 +114,26 @@ export async function broadcastSignalsToProGroup(
 
   let sent = 0;
   let failed = 0;
+  let skipped = 0;
 
   for (const sig of tradable) {
+    // Dedup gate: if this signal id was already posted to the Pro group,
+    // skip. Mirrors the free channel's `telegram_posted_at IS NULL` filter
+    // in /api/cron/telegram. Without this, request side-effects (paid hits
+    // to /api/signals) and the 5-min cron broadcast the same signal id
+    // every time the row is re-processed.
+    let alreadyPosted = false;
+    try {
+      const existing = await getSignalTelegramProMessageId(sig.id);
+      alreadyPosted = existing !== undefined;
+    } catch {
+      alreadyPosted = false;
+    }
+    if (alreadyPosted) {
+      skipped++;
+      continue;
+    }
+
     try {
       const body: Record<string, unknown> = {
         chat_id: chatId,
@@ -154,7 +173,7 @@ export async function broadcastSignalsToProGroup(
     }
   }
 
-  const result: ProBroadcastResult = { attempted: tradable.length, sent, failed };
+  const result: ProBroadcastResult = { attempted: tradable.length, sent, failed, skipped };
   recordBroadcastResult({ source: 'telegram_pro_broadcast', ...result });
   return result;
 }
