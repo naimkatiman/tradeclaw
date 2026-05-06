@@ -388,9 +388,18 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all' }:
           </h2>
           <p className="text-[11px] text-zinc-600 mt-0.5">
             {isPro
-              ? `Full Pro track record. ${summary?.riskPerTradePct ?? 1}% risk per trade, fixed-fractional, after ${summary?.roundTripCostPct ?? 0.05}% round-trip costs. Verified against real market data.`
-              : `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see. ${summary?.riskPerTradePct ?? 1}% risk per trade after costs.`}
+              ? summary
+                ? `Full Pro track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional, after ${summary.roundTripCostPct}% round-trip costs. Verified against real market data.`
+                : 'Full Pro track record. Verified against real market data.'
+              : summary
+                ? `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see. ${summary.riskPerTradePct}% risk per trade after costs.`
+                : `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see.`}
           </p>
+          {summary && summary.sizedTrades !== undefined && summary.sizedTrades > 0 && (
+            <p className="text-[10px] text-zinc-600 mt-1">
+              Engine fires across the full multi-symbol multi-timeframe stream — {summary.sizedTrades.toLocaleString()} sized trade{summary.sizedTrades === 1 ? '' : 's'} in this window. A subscriber filtering for high-confidence setups would execute a fraction of these; the equity path assumes 1% risk on every signal.
+            </p>
+          )}
           {smooth && smoothMeta?.capR !== null && smoothMeta?.capR !== undefined && (
             <p className="text-[10px] text-amber-400/80 mt-1 font-mono">
               Outlier-smoothed: each trade&apos;s R-multiple clamped to ±{smoothMeta.capR}R (top/bottom 5% clipped). Raw drawdown is larger.

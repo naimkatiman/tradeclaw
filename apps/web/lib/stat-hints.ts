@@ -27,7 +27,7 @@ export const STAT_HINTS = {
 
   // ── Counts ───────────────────────────────────────────────────
   resolved:
-    'Signals with a real 24h outcome (TP or SL hit). Excludes still-open trades, auto-expired rows, and gate-blocked signals.',
+    'Signals with a real 24h outcome (TP or SL hit). Excludes still-open trades, auto-expired rows, and gate-blocked signals. The engine fires across the full multi-symbol multi-timeframe stream — a real subscriber filtering for high-confidence setups would execute a small fraction of these.',
   expired:
     'Signal had no TP or SL hit within the 48h tracking window. Recorded for transparency, not counted in win-rate.',
   gateBlocked:
