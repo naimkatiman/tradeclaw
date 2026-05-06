@@ -19,19 +19,17 @@ function makeSessionToken(userId: string, secret: string): string {
 const USER_SESSION_SECRET = process.env.USER_SESSION_SECRET ?? '';
 const sessionSecretAvailable = USER_SESSION_SECRET.length >= 16;
 
-// TODO: once the test env can mint a Pro tier in DB (or stub the tier lookup),
-// flip these to run by default. Today the forged cookie authenticates the user
-// but their tier is whatever the DB row says — typically `free` for an unknown
-// user id. Without a tier-stub mechanism, the unlocked-content assertions
-// below would behave identically to the anonymous case.
-const PRO_TIER_STUB_AVAILABLE =
-  process.env.E2E_FORCE_PRO_TIER === 'true' || process.env.STRIPE_TEST_PRO_USER_ID !== undefined;
+// Pro-tier stub: lib/tier.ts and lib/db.ts honor E2E_FORCE_PRO_TIER + a known
+// userId in non-prod environments. With both the session secret and the stub
+// flag set, the forged cookie is treated as Pro tier without a DB row.
+const PRO_TIER_STUB_AVAILABLE = process.env.E2E_FORCE_PRO_TIER === 'true';
+const PRO_USER_ID = process.env.E2E_PRO_USER_ID ?? 'e2e-pro-user';
 
 test.describe('authenticated pro paywall — unlocked state', () => {
   test('pro user sees entry/SL/TP values on a signal detail page', async ({ browser, request }) => {
-    test.fixme(
+    test.skip(
       !sessionSecretAvailable || !PRO_TIER_STUB_AVAILABLE,
-      'Needs USER_SESSION_SECRET (≥16 chars) AND a way to assert the test user is Pro tier (E2E_FORCE_PRO_TIER=true or STRIPE_TEST_PRO_USER_ID set)',
+      'Needs USER_SESSION_SECRET (≥16 chars) and E2E_FORCE_PRO_TIER=true',
     );
 
     // Pull a real triple from the public teaser so the URL routes to a live
@@ -41,8 +39,7 @@ test.describe('authenticated pro paywall — unlocked state', () => {
     test.skip(!teaser?.signals?.length, 'No live signals available — skipping unlocked-detail test');
 
     const sig = teaser.signals[0];
-    const proUserId = process.env.STRIPE_TEST_PRO_USER_ID ?? 'e2e-pro-user';
-    const token = makeSessionToken(proUserId, USER_SESSION_SECRET);
+    const token = makeSessionToken(PRO_USER_ID, USER_SESSION_SECRET);
 
     const context = await browser.newContext();
     await context.addCookies([
@@ -81,13 +78,12 @@ test.describe('authenticated pro paywall — unlocked state', () => {
   });
 
   test('pro user navbar shows the Pro tier badge', async ({ browser }) => {
-    test.fixme(
+    test.skip(
       !sessionSecretAvailable || !PRO_TIER_STUB_AVAILABLE,
-      'Needs forged session AND Pro-tier stub — see test above',
+      'Needs USER_SESSION_SECRET and E2E_FORCE_PRO_TIER=true',
     );
 
-    const proUserId = process.env.STRIPE_TEST_PRO_USER_ID ?? 'e2e-pro-user';
-    const token = makeSessionToken(proUserId, USER_SESSION_SECRET);
+    const token = makeSessionToken(PRO_USER_ID, USER_SESSION_SECRET);
 
     const context = await browser.newContext();
     await context.addCookies([
