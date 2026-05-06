@@ -250,6 +250,18 @@ import { PAST_DUE_GRACE_DAYS } from './tier-client';
  * Falls back to 'free' if no active subscription is found.
  */
 export async function getUserTier(userId: string): Promise<Tier> {
+  // E2E test stub: short-circuit tier resolution to 'pro' for a known test
+  // userId so Playwright suites that forge an HMAC session cookie can exercise
+  // the unlocked-state UI without a real DB row or Stripe sub. Refuses to fire
+  // in production — the NODE_ENV guard makes it impossible to ship a Pro
+  // bypass to live customers even if the env var leaks.
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    process.env.E2E_FORCE_PRO_TIER === 'true' &&
+    userId === (process.env.E2E_PRO_USER_ID ?? 'e2e-pro-user')
+  ) {
+    return 'pro';
+  }
   // Avoid importing DB at top-level so this module is safe in edge runtimes
   // that don't have DB access. Callers that need real tier checks should
   // import this only in Node.js API routes.
