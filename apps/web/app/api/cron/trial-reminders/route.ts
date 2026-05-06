@@ -8,6 +8,7 @@ import {
 } from '../../../../lib/db';
 import { sendTrialEndingEmail } from '../../../../lib/transactional-email';
 import { getStripe } from '../../../../lib/stripe';
+import { requireCronAuth } from '../../../../lib/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,12 +18,6 @@ export const dynamic = 'force-dynamic';
 // trial_reminder_sent_at IS NULL, it stays idempotent.
 const REMIND_FROM_HOURS = 12;
 const REMIND_TO_HOURS = 30;
-
-function isAuthorized(request: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  return request.headers.get('authorization') === `Bearer ${secret}`;
-}
 
 interface ReminderSummary {
   checked: number;
@@ -119,9 +114,8 @@ async function runReminderSweep(): Promise<ReminderSummary> {
 }
 
 export async function GET(request: NextRequest): Promise<Response> {
-  if (!isAuthorized(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const denied = requireCronAuth(request);
+  if (denied) return denied;
   try {
     const summary = await runReminderSweep();
     return NextResponse.json({ ...summary, timestamp: new Date().toISOString() });
