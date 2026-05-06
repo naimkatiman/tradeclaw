@@ -17,7 +17,7 @@ interface NavLink {
 const PRIMARY_LINKS: NavLink[] = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/screener', label: 'Signals' },
-  { href: '/backtest', label: 'Backtest' },
+  { href: '/track-record', label: 'Track Record' },
 ];
 
 interface DropdownGroup {

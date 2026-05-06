@@ -21,9 +21,17 @@ interface PricePoint {
 
 const SPARKLINE_PAIRS = ['BTCUSD', 'ETHUSD', 'XAUUSD'];
 
-function SparklineChart({ pair }: { pair: string }) {
+function SparklineChart({
+  pair,
+  onPriceUpdate,
+}: {
+  pair: string;
+  onPriceUpdate?: (price: number) => void;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const priceHistory = useRef<PricePoint[]>([]);
+  const onPriceUpdateRef = useRef(onPriceUpdate);
+  onPriceUpdateRef.current = onPriceUpdate;
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -94,6 +102,7 @@ function SparklineChart({ pair }: { pair: string }) {
       priceHistory.current.push({ price: basePrice + noise, time: now - i * 2000 });
     }
     draw();
+    onPriceUpdateRef.current?.(priceHistory.current[priceHistory.current.length - 1].price);
 
     const interval = setInterval(() => {
       const last = priceHistory.current[priceHistory.current.length - 1];
@@ -102,6 +111,7 @@ function SparklineChart({ pair }: { pair: string }) {
       priceHistory.current.push({ price: next, time: Date.now() });
       if (priceHistory.current.length > 60) priceHistory.current.shift();
       draw();
+      onPriceUpdateRef.current?.(next);
     }, 2000);
 
     return () => clearInterval(interval);
@@ -157,9 +167,20 @@ function timeAgo(iso: string): string {
   return `${Math.floor(m / 60)}h`;
 }
 
+function formatPrice(pair: string, price: number): string {
+  if (pair === 'BTCUSD') return price.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (pair === 'ETHUSD') return price.toLocaleString('en-US', { maximumFractionDigits: 1 });
+  return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 export function LiveDemoEmbed() {
   const [signals, setSignals] = useState<Signal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [prices, setPrices] = useState<Record<string, number>>({});
+
+  const handlePriceUpdate = useCallback((pair: string, price: number) => {
+    setPrices((prev) => (prev[pair] === price ? prev : { ...prev, [pair]: price }));
+  }, []);
 
   useEffect(() => {
     async function fetchSignals() {
@@ -255,7 +276,13 @@ export function LiveDemoEmbed() {
                     <span className="text-xs font-bold text-white">{pair.replace('USD', '')}</span>
                     <span className="text-[9px] text-zinc-500">Live</span>
                   </div>
-                  <SparklineChart pair={pair} />
+                  <div className="mb-1 font-mono text-sm font-semibold tabular-nums text-zinc-200">
+                    {prices[pair] !== undefined ? formatPrice(pair, prices[pair]) : '—'}
+                  </div>
+                  <SparklineChart
+                    pair={pair}
+                    onPriceUpdate={(price) => handlePriceUpdate(pair, price)}
+                  />
                 </div>
               ))}
             </div>

@@ -9,19 +9,19 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { Star, Radio, CheckCircle2 } from "lucide-react";
 import { AnimatedChartHero } from "../animated-chart-hero";
 import { TradeClawIconArtwork } from "../brand/tradeclaw-icon-artwork";
 
 const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
 
 const SIGNALS = [
-  { symbol: "XAU/USD", direction: "BUY" as const, confidence: 87, price: "2,648.30" },
-  { symbol: "BTC/USD", direction: "SELL" as const, confidence: 74, price: "94,210.50" },
-  { symbol: "EUR/USD", direction: "BUY" as const, confidence: 81, price: "1.0832" },
-  { symbol: "GBP/JPY", direction: "SELL" as const, confidence: 68, price: "191.540" },
-  { symbol: "ETH/USD", direction: "BUY" as const, confidence: 79, price: "3,412.80" },
-  { symbol: "OIL/USD", direction: "SELL" as const, confidence: 72, price: "78.340" },
+  { symbol: "XAU/USD", direction: "BUY" as const, confidence: 87, price: "2,648.30", proStatus: "live" as const, proAge: "2m" },
+  { symbol: "BTC/USD", direction: "SELL" as const, confidence: 74, price: "94,210.50", proStatus: "ended" as const, proAge: "14m" },
+  { symbol: "EUR/USD", direction: "BUY" as const, confidence: 81, price: "1.0832", proStatus: "live" as const, proAge: "5m" },
+  { symbol: "GBP/JPY", direction: "SELL" as const, confidence: 68, price: "191.540", proStatus: "ended" as const, proAge: "22m" },
+  { symbol: "ETH/USD", direction: "BUY" as const, confidence: 79, price: "3,412.80", proStatus: "live" as const, proAge: "1m" },
+  { symbol: "OIL/USD", direction: "SELL" as const, confidence: 72, price: "78.340", proStatus: "ended" as const, proAge: "31m" },
 ];
 const TICKER_SIGNALS = [...SIGNALS, ...SIGNALS];
 
@@ -321,39 +321,62 @@ function HeroVariantC({
 
       {/* Live signal cards */}
       <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {SIGNALS.slice(0, 6).map((sig) => (
-          <div
-            key={sig.symbol}
-            className={`rounded-xl border p-3 text-left transition-all duration-200 hover:scale-[1.02] ${
-              sig.direction === "BUY"
-                ? "border-emerald-500/20 bg-emerald-500/5"
-                : "border-rose-500/20 bg-rose-500/5"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-mono text-xs font-bold text-white">{sig.symbol}</span>
-              <span
-                className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                  sig.direction === "BUY"
-                    ? "bg-emerald-500/20 text-emerald-400"
-                    : "bg-rose-500/20 text-rose-400"
-                }`}
-              >
-                {sig.direction}
-              </span>
+        {SIGNALS.slice(0, 6).map((sig) => {
+          const isLive = sig.proStatus === "live";
+          return (
+            <div
+              key={sig.symbol}
+              className={`rounded-xl border p-3 text-left transition-all duration-200 hover:scale-[1.02] ${
+                sig.direction === "BUY"
+                  ? "border-emerald-500/20 bg-emerald-500/5"
+                  : "border-rose-500/20 bg-rose-500/5"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-mono text-xs font-bold text-white">{sig.symbol}</span>
+                <span
+                  className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                    sig.direction === "BUY"
+                      ? "bg-emerald-500/20 text-emerald-400"
+                      : "bg-rose-500/20 text-rose-400"
+                  }`}
+                >
+                  {sig.direction}
+                </span>
+              </div>
+              <div className="mb-2 font-mono text-[11px] tabular-nums text-zinc-400">
+                {sig.price}
+              </div>
+              <div className="text-[11px] text-zinc-500">Confidence</div>
+              <div className="mt-1 h-1.5 w-full rounded-full bg-white/5">
+                <div
+                  className={`h-full rounded-full ${
+                    sig.direction === "BUY" ? "bg-emerald-400" : "bg-rose-400"
+                  }`}
+                  style={{ width: `${sig.confidence}%` }}
+                />
+              </div>
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-zinc-300">{sig.confidence}%</span>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                    isLive
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                      : "border-zinc-500/30 bg-zinc-500/10 text-zinc-400"
+                  }`}
+                  title={`Pro tier · last signal ${sig.proAge} ago`}
+                >
+                  {isLive ? (
+                    <Radio className="h-2.5 w-2.5 animate-pulse" strokeWidth={2.5} />
+                  ) : (
+                    <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.5} />
+                  )}
+                  Pro · {isLive ? "Live" : "Ended"}
+                </span>
+              </div>
             </div>
-            <div className="text-[11px] text-zinc-500">Confidence</div>
-            <div className="mt-1 h-1.5 w-full rounded-full bg-white/5">
-              <div
-                className={`h-full rounded-full ${
-                  sig.direction === "BUY" ? "bg-emerald-400" : "bg-rose-400"
-                }`}
-                style={{ width: `${sig.confidence}%` }}
-              />
-            </div>
-            <div className="mt-1 text-xs font-semibold text-zinc-300">{sig.confidence}%</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
