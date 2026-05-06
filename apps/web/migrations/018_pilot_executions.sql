@@ -11,7 +11,10 @@
 
 CREATE TABLE IF NOT EXISTS executions (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  signal_id         UUID NOT NULL REFERENCES signal_history(id),
+  -- signal_history.id is TEXT (see migration 003); the FK column type must
+  -- match. Original UUID type made this migration fail on every fresh DB —
+  -- executor.ts has a 42P01 guard for the resulting "table does not exist".
+  signal_id         TEXT NOT NULL REFERENCES signal_history(id),
   user_id           UUID,
   broker            VARCHAR(32)  NOT NULL,
   mode              VARCHAR(16)  NOT NULL CHECK (mode IN ('testnet','live')),
@@ -43,7 +46,8 @@ CREATE INDEX IF NOT EXISTS idx_executions_created      ON executions(created_at 
 
 CREATE TABLE IF NOT EXISTS execution_errors (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  signal_id    UUID,
+  -- TEXT to match signal_history.id; previously UUID, mismatching app code.
+  signal_id    TEXT,
   execution_id UUID,
   user_id      UUID,
   broker       VARCHAR(32) NOT NULL,
