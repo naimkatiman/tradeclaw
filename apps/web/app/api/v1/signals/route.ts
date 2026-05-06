@@ -71,10 +71,14 @@ export async function GET(req: NextRequest) {
   // so a Pro browser hitting the same edge cache as a free caller doesn't
   // poison either side.
   const tier = await getTierFromRequest(req);
+  // Free / unauthenticated callers can be CDN-cached for 60s; authenticated
+  // callers must NOT be cached (Vary: Cookie is unreliable on some edges
+  // and X-TradeClaw-Tier was previously CORS-readable, leaking tier
+  // cross-origin). Drop the tier header entirely; tier still travels in
+  // the JSON body but only same-origin code reads it.
   const headers: Record<string, string> = {
-    "Cache-Control": "public, s-maxage=60",
+    "Cache-Control": tier === 'free' ? "public, s-maxage=60" : "private, no-store",
     "X-TradeClaw-Version": "v1",
-    "X-TradeClaw-Tier": tier,
     // Vary on Cookie AND Authorization so shared CDN cache does not poison
     // tiers across cookie-auth (browser) and bearer-token (SDK) callers.
     Vary: "Cookie, Authorization",
