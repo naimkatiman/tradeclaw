@@ -355,7 +355,12 @@ export async function getOrderByClientId(
 function ensureWriteAllowed(action: string, payload: Record<string, unknown>): boolean {
   const mode = getMode();
   if (mode === 'disabled') {
-    console.log(`[binance] DRY-RUN (${action}) — EXECUTION_MODE=disabled —`, JSON.stringify(payload));
+    // Only emit non-sensitive fields — symbol is enough for traceability.
+    // Quantities, prices, sides, and full order params should not land in
+    // shared log aggregators.
+    const safe: Record<string, unknown> = {};
+    if (typeof payload.symbol === 'string') safe.symbol = payload.symbol;
+    console.log(`[binance] DRY-RUN (${action}) — EXECUTION_MODE=disabled —`, JSON.stringify(safe));
     return false;
   }
   return true;

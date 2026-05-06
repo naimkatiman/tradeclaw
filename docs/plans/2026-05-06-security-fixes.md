@@ -70,5 +70,22 @@ Changes:
 - `apps/web/app/api/webhooks/tradingview/route.ts:127` — log full err server-side, return `{ error: 'db_error' }` only (M8).
 - `apps/web/app/api/telegram/link-token/route.ts:24-28` — drop `token` from response body, keep only `deepLink` and `expiresInSeconds` (M7). Update `__tests__/route.test.ts`.
 
+## Trading firewall (M9)
+
+The live executor at [apps/web/lib/execution/executor.ts] reads only signals
+where `strategy_id = 'hmm-top3'` (constant `STRATEGY_ID` at the top of the
+file, applied via the SQL filter at the `fetchPendingSignals` query).
+TradingView webhook strategies (`tv-zaky-classic`, `tv-hafiz-synergy`,
+`tv-impulse-hunter`) land in the **separate** `premium_signals` table via
+[apps/web/app/api/webhooks/tradingview/route.ts] and are never read by the
+executor.
+
+This is the firewall that keeps third-party webhook input out of live
+order placement. Do not loosen the `STRATEGY_ID` filter, do not add a
+`UNION` over `premium_signals`, and do not introduce a "signal source
+abstraction" that lets a TV alert flow into the executor without an
+explicit risk review. The block comment above `STRATEGY_ID` enforces the
+same warning at the source-code level.
+
 ## Out of scope
 - Harness `/security-scan` — denied by sandbox (npx auto-install + scope outside project). User to grant `Bash(npx -y ecc-agentshield:*)` permission and re-run.
