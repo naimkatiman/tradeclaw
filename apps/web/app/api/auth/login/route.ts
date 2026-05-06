@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
+import { secureCookieDefault } from '../../../../lib/cookie-flags';
 
 const COOKIE_NAME = 'tc_admin';
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ ok: true });
     response.cookies.set(COOKIE_NAME, adminSecret, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: secureCookieDefault(),
       // Strict — the admin cookie value IS the secret. Lax let cross-site
       // GET navigations carry it; with Strict the cookie only attaches to
       // same-site requests, which suits a top-level admin UI.

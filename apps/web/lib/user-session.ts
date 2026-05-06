@@ -1,5 +1,6 @@
 import 'server-only';
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { secureCookieDefault } from './cookie-flags';
 
 /**
  * Lightweight HMAC-signed session cookie for the user auth flow.
@@ -85,7 +86,7 @@ export interface SessionCookieOptions {
 export function sessionCookieOptions(): SessionCookieOptions {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: secureCookieDefault(),
     sameSite: 'lax',
     path: '/',
     maxAge: USER_SESSION_MAX_AGE_SECONDS,

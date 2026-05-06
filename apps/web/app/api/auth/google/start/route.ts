@@ -3,18 +3,13 @@ import {
   OAUTH_STATE_COOKIE,
   encodeState,
   newNonce,
+  safeNext,
   stateCookieOptions,
 } from '../../../../../lib/oauth-state';
 
 export const dynamic = 'force-dynamic';
 
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
-
-function safeNext(value: string | null): string | undefined {
-  if (!value) return undefined;
-  if (!value.startsWith('/') || value.startsWith('//')) return undefined;
-  return value;
-}
 
 function getRedirectUri(request: NextRequest): string {
   const base =
