@@ -15,12 +15,22 @@ const DEFAULT_ADMIN_EMAILS = ['naimkatiman@gmail.com'];
 const DEFAULT_PRO_EMAILS = ['naimkatiman92@gmail.com'];
 
 function parseList(raw: string | undefined, fallback: string[]): Set<string> {
-  if (!raw) return new Set(fallback.map((e) => e.toLowerCase()));
-  const parsed = raw
+  const trimmed = raw?.trim();
+  if (!trimmed) {
+    // Production never inherits a hardcoded fallback. The previous behavior
+    // silently granted admin/Pro to a static address on any deploy that
+    // forgot to set the env var — including forks, staging clones, and
+    // misconfigured production. Fail closed (empty set ⇒ access denied).
+    if (process.env.NODE_ENV === 'production') return new Set();
+    return new Set(fallback.map((e) => e.toLowerCase()));
+  }
+  const parsed = trimmed
     .split(',')
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
-  return new Set(parsed.length > 0 ? parsed : fallback.map((e) => e.toLowerCase()));
+  if (parsed.length > 0) return new Set(parsed);
+  if (process.env.NODE_ENV === 'production') return new Set();
+  return new Set(fallback.map((e) => e.toLowerCase()));
 }
 
 export function getAdminEmails(): Set<string> {
