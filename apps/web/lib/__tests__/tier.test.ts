@@ -535,6 +535,52 @@ describe('tier — past_due grace window', () => {
   });
 });
 
+describe('tier — E2E_FORCE_PRO_TIER override', () => {
+  const ORIGINAL_ENV = process.env;
+
+  afterEach(() => {
+    jest.resetModules();
+    process.env = ORIGINAL_ENV;
+  });
+
+  it('returns pro for the configured user when env is set in non-production', async () => {
+    process.env = { ...ORIGINAL_ENV, NODE_ENV: 'test', E2E_FORCE_PRO_TIER: 'true' };
+    const { getUserTier } = await import('../tier');
+    expect(await getUserTier('e2e-pro-user')).toBe('pro');
+  });
+
+  it('does not upgrade a different user even when env is set', async () => {
+    process.env = { ...ORIGINAL_ENV, NODE_ENV: 'test', E2E_FORCE_PRO_TIER: 'true' };
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest.fn().mockResolvedValue(null),
+      getUserById: jest.fn().mockResolvedValue(null),
+    }));
+    const { getUserTier } = await import('../tier');
+    expect(await getUserTier('some-other-user')).toBe('free');
+  });
+
+  it('refuses to fire in production even when env is set', async () => {
+    process.env = { ...ORIGINAL_ENV, NODE_ENV: 'production', E2E_FORCE_PRO_TIER: 'true' };
+    jest.doMock('../db', () => ({
+      getUserSubscription: jest.fn().mockResolvedValue(null),
+      getUserById: jest.fn().mockResolvedValue(null),
+    }));
+    const { getUserTier } = await import('../tier');
+    expect(await getUserTier('e2e-pro-user')).toBe('free');
+  });
+
+  it('honors E2E_PRO_USER_ID override when set', async () => {
+    process.env = {
+      ...ORIGINAL_ENV,
+      NODE_ENV: 'test',
+      E2E_FORCE_PRO_TIER: 'true',
+      E2E_PRO_USER_ID: 'custom-pro-id',
+    };
+    const { getUserTier } = await import('../tier');
+    expect(await getUserTier('custom-pro-id')).toBe('pro');
+  });
+});
+
 describe('tier — getStrategiesForTier (PRO_STRATEGIES regression pin)', () => {
   it('free tier returns only the always-free classic preset', () => {
     expect([...getStrategiesForTier('free')].sort()).toEqual(['classic']);
