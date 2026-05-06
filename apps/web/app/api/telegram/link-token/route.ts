@@ -22,8 +22,12 @@ export async function POST(request: NextRequest) {
   const token = createTelegramLinkToken(session.userId);
   const deepLink = `https://t.me/${BOT_USERNAME}?start=${encodeURIComponent(token)}`;
 
+  // Only return the deep link. Returning the raw token alongside it was
+  // redundant and turned the response body into a one-time credential —
+  // every fetch to this endpoint, every browser dev-tools open, every
+  // network log captured the bearer-equivalent. The link itself is the
+  // only thing the UI needs to render or copy to clipboard.
   return NextResponse.json({
-    token,
     deepLink,
     expiresInSeconds: TELEGRAM_LINK_TOKEN_TTL_SECONDS,
   });

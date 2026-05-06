@@ -6,6 +6,7 @@ import {
 } from '@/lib/alert-rules-db';
 import { getUserById } from '@/lib/db';
 import { readSessionFromRequest } from '@/lib/user-session';
+import { isSafeOutboundUrl } from '@/lib/safe-outbound-url';
 
 /**
  * Per-user "preferred platform" channel configuration.
@@ -50,6 +51,18 @@ export async function POST(req: NextRequest) {
   const parsed = UpsertSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
+  // SSRF gate at write time: Discord and generic webhook configs supply a
+  // server-fetched URL. Reject anything that targets internal/private
+  // addresses or non-HTTPS schemes BEFORE persisting.
+  const cfg = parsed.data.config;
+  const urlField = parsed.data.channel === 'discord' ? cfg.webhookUrl : parsed.data.channel === 'webhook' ? cfg.url : null;
+  if (urlField && !isSafeOutboundUrl(urlField)) {
+    return NextResponse.json(
+      { error: 'unsafe_outbound_url' },
+      { status: 400 },
+    );
   }
 
   const config = await upsertChannelConfig(

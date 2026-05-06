@@ -2,14 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAllEnabledRules, getChannelConfigsForUser, signalMatchesRule } from '@/lib/alert-rules-db';
 import { sendToChannel, type ChannelName, type AlertSignal } from '@/lib/alert-channels';
 import { recordBroadcastResult } from '@/lib/observability';
-
-const CRON_SECRET = process.env.CRON_SECRET;
+import { requireCronAuth } from '@/lib/cron-auth';
 
 export async function POST(req: NextRequest) {
-  const auth = req.headers.get('authorization');
-  if (CRON_SECRET && auth !== `Bearer ${CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const denied = requireCronAuth(req);
+  if (denied) return denied;
 
   const body = await req.json();
   const { signal } = body as { signal: AlertSignal & { [key: string]: unknown } };

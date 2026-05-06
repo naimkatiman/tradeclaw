@@ -18,21 +18,11 @@ import { isWinningCell, getWinningCellsMode } from '../../../../lib/winning-cell
 import { runRiskPipeline } from '../../../../lib/risk-pipeline';
 import { fetchRegimeMap } from '../../../../lib/regime-filter';
 import { recordSignalRun } from '../../../../lib/signal-run-log';
+import { requireCronAuth } from '../../../../lib/cron-auth';
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
-
-// ── Auth guard ────────────────────────────────────────────────
-
-function isAuthorized(request: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    return process.env.NODE_ENV !== 'production';
-  }
-  const header = request.headers.get('authorization');
-  return header === `Bearer ${secret}`;
-}
 
 // ── Record logic ──────────────────────────────────────────────
 
@@ -210,9 +200,8 @@ async function handleTelegramCallback(request: NextRequest): Promise<Response> {
 // ── Route handler ─────────────────────────────────────────────
 
 export async function GET(request: NextRequest): Promise<Response> {
-  if (!isAuthorized(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const denied = requireCronAuth(request);
+  if (denied) return denied;
 
   const runStartedAt = new Date();
   try {
@@ -314,9 +303,8 @@ export async function GET(request: NextRequest): Promise<Response> {
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
-  if (!isAuthorized(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const denied = requireCronAuth(request);
+  if (denied) return denied;
 
   // If body has signalId + messageId, it's a telegram posted callback
   const contentType = request.headers.get('content-type') ?? '';

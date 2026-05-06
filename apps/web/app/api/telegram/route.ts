@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { linkTelegramUser, getUserById } from '../../../lib/db';
 import { sendInvite } from '../../../lib/telegram';
 import { verifyTelegramLinkToken } from '../../../lib/telegram-link-token';
+import { verifyTelegramWebhook } from '../../../lib/telegram-webhook-auth';
 
 interface TelegramConfig {
   botToken: string;
@@ -172,8 +173,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as Record<string, unknown>;
 
-    // Mode 1: Telegram bot webhook update
+    // Mode 1: Telegram bot webhook update — must carry the
+    // X-Telegram-Bot-Api-Secret-Token header that Telegram echoes back from
+    // setWebhook. Without this check anyone on the public internet can POST
+    // a forged update_id and trigger /start link flows or future commands.
     if ('update_id' in body) {
+      const denied = verifyTelegramWebhook(request);
+      if (denied) return denied;
       await handleBotUpdate(body as unknown as TelegramUpdate);
       return NextResponse.json({ ok: true });
     }

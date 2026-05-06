@@ -8,6 +8,7 @@ import {
 import {
   OAUTH_STATE_COOKIE,
   decodeState,
+  safeNext,
 } from '../../../../../lib/oauth-state';
 
 export const dynamic = 'force-dynamic';
@@ -108,15 +109,21 @@ export async function GET(request: NextRequest) {
   const hasCheckoutPayload =
     !!state.priceId || (state.tier === 'pro' && (state.interval === 'monthly' || state.interval === 'annual'));
 
+  // Re-apply safeNext on every read of state.next. The /start route
+  // sanitized at write time, but a leaked or attacker-crafted state blob
+  // could carry a `//evil.com/` value that would otherwise resolve to a
+  // different origin via scheme-relative URL parsing.
+  const safeStateNext = safeNext(state.next);
+
   let target: URL;
   if (hasCheckoutPayload) {
     target = new URL('/signin', appOrigin(request));
     if (state.priceId) target.searchParams.set('priceId', state.priceId);
     if (state.tier) target.searchParams.set('tier', state.tier);
     if (state.interval) target.searchParams.set('interval', state.interval);
-    if (state.next) target.searchParams.set('next', state.next);
-  } else if (state.next) {
-    target = new URL(state.next, appOrigin(request));
+    if (safeStateNext) target.searchParams.set('next', safeStateNext);
+  } else if (safeStateNext) {
+    target = new URL(safeStateNext, appOrigin(request));
   } else {
     target = new URL('/dashboard', appOrigin(request));
   }

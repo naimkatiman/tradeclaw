@@ -1,4 +1,5 @@
 import 'server-only';
+import { isSafeOutboundUrl } from './safe-outbound-url';
 
 /**
  * Per-user "preferred platform" senders.
@@ -126,6 +127,9 @@ export async function sendDiscordWebhook(
 ): Promise<boolean> {
   const url = config.webhookUrl;
   if (!url) return false;
+  // SSRF gate: even though /api/alert-channels validates at write time, the
+  // DB row may pre-date that gate, so re-check before every send.
+  if (!isSafeOutboundUrl(url)) return false;
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -145,6 +149,7 @@ export async function sendGenericWebhook(
 ): Promise<boolean> {
   const url = config.url;
   if (!url) return false;
+  if (!isSafeOutboundUrl(url)) return false;
   try {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',

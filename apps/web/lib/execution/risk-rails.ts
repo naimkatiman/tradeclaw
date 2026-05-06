@@ -75,7 +75,21 @@ export async function checkLossKillSwitch(
   const equityUsd = account.totalWalletBalance;
 
   if (equityUsd <= 0) {
-    return { halted: false };
+    // Drawdown without settled USDT (or a brand-new account with zero
+    // wallet) is exactly the situation we want to halt on, not skip.
+    // Previous behavior was halted:false, which let new entries through
+    // at the worst possible moment.
+    return {
+      halted: true,
+      reason: `zero_equity_kill: totalWalletBalance=${equityUsd}`,
+      detail: {
+        realizedPnlDaily: 0,
+        realizedPnlWeekly: 0,
+        equityUsd,
+        dailyPct,
+        weeklyPct,
+      },
+    };
   }
 
   const now = Date.now();

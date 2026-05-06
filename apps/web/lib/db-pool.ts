@@ -2,7 +2,7 @@
  * Centralized PostgreSQL connection pool for TradeClaw.
  * Reads DATABASE_URL from environment (Railway PostgreSQL).
  */
-import { Pool } from 'pg';
+import { Pool, type PoolClient } from 'pg';
 
 let pool: Pool | null = null;
 
@@ -48,4 +48,22 @@ export async function queryOne<T = Record<string, unknown>>(
 
 export async function execute(sql: string, params?: unknown[]): Promise<void> {
   await query(sql, params);
+}
+
+/**
+ * Run `cb` with a single dedicated pool client held for its entire lifetime.
+ * Required for session-scoped state — `pg_try_advisory_lock` and friends
+ * are session-bound, so acquiring on one client and releasing on another
+ * (which is what `query()` does on each call) leaks the lock until the
+ * underlying session is recycled by `idleTimeoutMillis`.
+ *
+ * The client is released back to the pool on both success and failure.
+ */
+export async function withClient<T>(cb: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await getPool().connect();
+  try {
+    return await cb(client);
+  } finally {
+    client.release();
+  }
 }

@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Edge-runtime safe constant-time string compare. `node:crypto.timingSafeEqual`
+// is not available on Vercel Edge — fall back to an XOR loop. The length
+// branch is fine here since the admin secret length is server-configured
+// and not attacker-influenced.
+function safeStringEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
 // ---------------------------------------------------------------------------
 // 1. Rate-limit store (in-memory, per-IP, resets every 60 s)
 // ---------------------------------------------------------------------------
@@ -222,7 +235,9 @@ export function middleware(request: NextRequest) {
       // Check httpOnly cookie (for browser sessions)
       const cookieToken = request.cookies.get("tc_admin")?.value ?? null;
 
-      if (bearerToken !== adminSecret && cookieToken !== adminSecret) {
+      const bearerOk = bearerToken !== null && safeStringEqual(bearerToken, adminSecret);
+      const cookieOk = cookieToken !== null && safeStringEqual(cookieToken, adminSecret);
+      if (!bearerOk && !cookieOk) {
         // If it's a browser request (Accept: text/html), redirect to login
         const accept = request.headers.get("accept") ?? "";
         if (accept.includes("text/html")) {

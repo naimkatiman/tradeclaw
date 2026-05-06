@@ -66,23 +66,57 @@ export async function createCheckoutSession(
   return session.url!;
 }
 
-export async function handleWebhookEvent(
-  payload: string,
-  signature: string,
-): Promise<{ type: string; customerId?: string; subscriptionId?: string; tier?: string; email?: string }> {
+/**
+ * Verify a Stripe webhook signature against the EE-specific secret.
+ *
+ * Previous behavior fell back to STRIPE_WEBHOOK_SECRET when
+ * EE_STRIPE_WEBHOOK_SECRET was unset. That let a TradeClaw-main event
+ * delivered to the EE endpoint pass signature verification, with all the
+ * cross-product replay risk that implies. Fail closed: if EE-specific
+ * secret is unset, the EE webhook returns 503.
+ */
+export function verifyEEWebhookSignature(payload: string, signature: string): Stripe.Event {
   const stripe = getEEStripe();
-  const webhookSecret = process.env.EE_STRIPE_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET;
-  if (!webhookSecret) throw new Error('Webhook secret not configured');
+  const webhookSecret = process.env.EE_STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    throw new Error('EE_STRIPE_WEBHOOK_SECRET not configured');
+  }
+  return stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+}
 
-  const event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+/**
+ * Strict price-id → EE tier map. Throws on an unknown price rather than
+ * silently defaulting to 'basic' — the main TradeClaw webhook throws on
+ * unknown price IDs and EE should match. A misconfigured env var must not
+ * silently downgrade a paying user.
+ */
+function resolveEETierFromPriceId(priceId: string | undefined): 'basic' | 'pro' {
+  if (priceId && priceId === EE_PRICES.pro_monthly) return 'pro';
+  if (priceId && priceId === EE_PRICES.basic_monthly) return 'basic';
+  throw new Error(`unknown_or_unconfigured_ee_price_id:${priceId ?? 'null'}`);
+}
 
+export interface ParsedEEEvent {
+  id: string;
+  type: string;
+  customerId?: string;
+  subscriptionId?: string;
+  tier?: string;
+  email?: string;
+}
+
+export async function parseEEEvent(event: Stripe.Event): Promise<ParsedEEEvent> {
+  const stripe = getEEStripe();
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
-    if (session.metadata?.product !== 'earningsedge') return { type: event.type };
+    if (session.metadata?.product !== 'earningsedge') {
+      return { id: event.id, type: event.type };
+    }
     const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
     const priceId = subscription.items.data[0]?.price.id;
-    const tier = priceId === EE_PRICES.pro_monthly ? 'pro' : 'basic';
+    const tier = resolveEETierFromPriceId(priceId);
     return {
+      id: event.id,
       type: event.type,
       customerId: session.customer as string,
       subscriptionId: session.subscription as string,
@@ -94,11 +128,21 @@ export async function handleWebhookEvent(
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object as Stripe.Subscription;
     return {
+      id: event.id,
       type: event.type,
       customerId: subscription.customer as string,
       subscriptionId: subscription.id,
     };
   }
 
-  return { type: event.type };
+  return { id: event.id, type: event.type };
+}
+
+/** @deprecated retained for backwards compatibility — prefer the split helpers. */
+export async function handleWebhookEvent(
+  payload: string,
+  signature: string,
+): Promise<ParsedEEEvent> {
+  const event = verifyEEWebhookSignature(payload, signature);
+  return parseEEEvent(event);
 }

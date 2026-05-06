@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'node:crypto';
 import { execute } from '@/lib/db-pool';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
+function safeSecretEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a, 'utf8');
+  const bb = Buffer.from(b, 'utf8');
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
+}
 
 /**
  * Strategy IDs that may flow in via the TradingView webhook pipe. Used as an
@@ -83,7 +91,7 @@ export async function POST(req: NextRequest) {
   if (!expected) {
     return NextResponse.json({ error: 'not_configured' }, { status: 503 });
   }
-  if (!secret || secret !== expected) {
+  if (!secret || !safeSecretEqual(secret, expected)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
@@ -123,10 +131,13 @@ export async function POST(req: NextRequest) {
       ],
     );
   } catch (err) {
-    return NextResponse.json(
-      { error: 'db_error', message: err instanceof Error ? err.message : 'unknown' },
-      { status: 500 },
-    );
+    // Server-side log retains the full error for debugging; the response
+    // body must not echo it back. Postgres error messages routinely include
+    // schema details (table names, column names, constraint identifiers)
+    // that are useful to an attacker and have no business in an API
+    // response.
+    console.error('[tv-webhook] db_error:', err);
+    return NextResponse.json({ error: 'db_error' }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

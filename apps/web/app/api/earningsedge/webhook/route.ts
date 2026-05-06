@@ -1,39 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { handleWebhookEvent } from '@/lib/earningsedge/stripe';
+import { verifyEEWebhookSignature, parseEEEvent } from '@/lib/earningsedge/stripe';
 import { upsertUser, getUserByStripeCustomer, updateUserTier } from '@/lib/earningsedge/db';
+import { tryClaimStripeEvent } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+  const payload = await request.text();
+  const signature = request.headers.get('stripe-signature');
+
+  if (!signature) {
+    return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
+  }
+
+  // Step 1: signature verification. Throws on bad signature OR when the
+  // EE-specific webhook secret is unset (no fallback to the main secret —
+  // that would let main-product events replay against EE).
+  let event;
   try {
-    const payload = await request.text();
-    const signature = request.headers.get('stripe-signature');
-
-    if (!signature) {
-      return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
+    event = verifyEEWebhookSignature(payload, signature);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'verify_failed';
+    if (message.includes('not configured')) {
+      return NextResponse.json({ error: 'ee_webhook_not_configured' }, { status: 503 });
     }
+    return NextResponse.json({ error: 'invalid_signature' }, { status: 400 });
+  }
 
-    const event = await handleWebhookEvent(payload, signature);
+  // Step 2: idempotency. Stripe replays events on retry; without this gate
+  // upsertUser/updateUserTier would re-fire on every redelivery. Namespace
+  // the event id with `ee:` so the shared processed_stripe_events table
+  // doesn't collide with TradeClaw-main event IDs across separate Stripe
+  // accounts.
+  const claimed = await tryClaimStripeEvent(`ee:${event.id}`, event.type);
+  if (!claimed) {
+    return NextResponse.json({ received: true, duplicate: true });
+  }
 
-    if (event.type === 'checkout.session.completed' && event.email) {
-      // Upsert user with new tier
+  // Step 3: parse + side effects. Errors here surface as 500 so Stripe
+  // retries; the idempotency table will let the retry through.
+  try {
+    const parsed = await parseEEEvent(event);
+
+    if (parsed.type === 'checkout.session.completed' && parsed.email) {
       try {
         await upsertUser({
-          email: event.email,
-          tier: (event.tier as 'basic' | 'pro') || 'basic',
-          stripe_customer_id: event.customerId,
-          stripe_subscription_id: event.subscriptionId,
+          email: parsed.email,
+          tier: (parsed.tier as 'basic' | 'pro') || 'basic',
+          stripe_customer_id: parsed.customerId,
+          stripe_subscription_id: parsed.subscriptionId,
         });
       } catch {
-        // DB might not be configured — log and continue
         console.error('[earningsedge] Failed to upsert user after checkout');
       }
     }
 
-    if (event.type === 'customer.subscription.deleted' && event.customerId) {
+    if (parsed.type === 'customer.subscription.deleted' && parsed.customerId) {
       try {
-        // Look up user by Stripe customer ID, then downgrade to free
-        const existing = await getUserByStripeCustomer(event.customerId);
+        const existing = await getUserByStripeCustomer(parsed.customerId);
         if (existing) {
-          await updateUserTier(existing.email, 'free', event.customerId);
+          await updateUserTier(existing.email, 'free', parsed.customerId);
         }
       } catch {
         console.error('[earningsedge] Failed to downgrade user after subscription deletion');
@@ -42,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Webhook failed';
-    return NextResponse.json({ error: message }, { status: 400 });
+    console.error('[earningsedge] handler error:', err);
+    return NextResponse.json({ error: 'handler_error' }, { status: 500 });
   }
 }

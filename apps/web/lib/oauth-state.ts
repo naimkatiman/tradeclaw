@@ -1,5 +1,6 @@
 import 'server-only';
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { secureCookieDefault } from './cookie-flags';
 
 export const OAUTH_STATE_COOKIE = 'tc_oauth_state';
 export const OAUTH_STATE_MAX_AGE_SECONDS = 60 * 10; // 10 minutes
@@ -74,9 +75,21 @@ export function decodeState(token: string): OAuthStatePayload | null {
 export function stateCookieOptions() {
   return {
     httpOnly: true as const,
-    secure: process.env.NODE_ENV === 'production',
+    secure: secureCookieDefault(),
     sameSite: 'lax' as const,
     path: '/',
     maxAge: OAUTH_STATE_MAX_AGE_SECONDS,
   };
+}
+
+/**
+ * Sanitize a `next` URL parameter — accept only same-origin paths starting
+ * with `/` and reject `//` (which would coerce to a different origin via
+ * scheme-relative URL resolution). Also exported from the OAuth start
+ * route; callback re-applies it before redirecting.
+ */
+export function safeNext(value: string | null | undefined): string | undefined {
+  if (!value) return undefined;
+  if (!value.startsWith('/') || value.startsWith('//')) return undefined;
+  return value;
 }

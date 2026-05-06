@@ -3,20 +3,15 @@ import { broadcastTopSignals } from '../../../../lib/telegram-broadcast';
 import { query, execute } from '../../../../lib/db-pool';
 import { FREE_SYMBOLS } from '../../../../lib/tier';
 import { getBotToken, getFreeChannelId } from '../../../../lib/telegram-channels';
+import { requireCronAuth } from '../../../../lib/cron-auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/cron/telegram — Vercel Cron handler (every 4 hours)
 // ---------------------------------------------------------------------------
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  // Auth guard — Vercel cron sends CRON_SECRET as bearer token
-  const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const header = request.headers.get('authorization');
-    if (header !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-  }
+  const denied = requireCronAuth(request);
+  if (denied) return denied;
 
   try {
     // Resolved through lib/telegram-channels so the legacy var names

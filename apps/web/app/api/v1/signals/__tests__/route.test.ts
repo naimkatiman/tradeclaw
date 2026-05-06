@@ -162,7 +162,7 @@ describe('GET /api/v1/signals — tier gating', () => {
     expect(ids).toContain('nvda');
   });
 
-  it('response carries Vary: Cookie, Authorization so shared edge cache does not poison tiers', async () => {
+  it('free tier: public CDN cache, no tier header leak, Vary: Cookie + Authorization', async () => {
     mockedGetTier.mockResolvedValueOnce('free');
     mockedReadLiveSignals.mockResolvedValueOnce({
       signals: [makeSignal()],
@@ -172,7 +172,23 @@ describe('GET /api/v1/signals — tier gating', () => {
 
     const res = await GET(makeReq());
     expect(res.headers.get('Vary')).toBe('Cookie, Authorization');
-    expect(res.headers.get('X-TradeClaw-Tier')).toBe('free');
+    // X-TradeClaw-Tier was a CORS-readable cross-origin tier oracle. Stripped.
+    expect(res.headers.get('X-TradeClaw-Tier')).toBeNull();
+    expect(res.headers.get('Cache-Control')).toBe('public, s-maxage=60');
+  });
+
+  it('paid tier: private no-store, no tier header leak', async () => {
+    mockedGetTier.mockResolvedValueOnce('pro');
+    mockedReadLiveSignals.mockResolvedValueOnce({
+      signals: [makeSignal()],
+      isStale: false,
+      generatedAt: new Date().toISOString(),
+    });
+
+    const res = await GET(makeReq());
+    expect(res.headers.get('X-TradeClaw-Tier')).toBeNull();
+    expect(res.headers.get('Vary')).toBe('Cookie, Authorization');
+    expect(res.headers.get('Cache-Control')).toBe('private, no-store');
   });
 
   it('returns 503 on upstream failure instead of masking as 200 + empty list', async () => {

@@ -11,7 +11,8 @@
  * the SQL pull already excludes signals with an executions row.
  */
 
-import { execute, query } from '../db-pool';
+import type { PoolClient } from 'pg';
+import { execute, query, withClient } from '../db-pool';
 import { BINANCE_SYMBOLS } from '../../app/lib/ohlcv';
 import {
   cancelOrder,
@@ -34,8 +35,14 @@ import { computeATR, computeSize, extractFilters, type SymbolFilters } from './s
 import { notifyEntryFilled } from './telegram';
 import { getTodayUniverse } from './universe-runner';
 
+// Trading firewall — the executor pulls signals only where strategy_id =
+// 'hmm-top3'. TradingView webhook strategies (tv-zaky-classic etc.) land in
+// the separate `premium_signals` table and are NEVER read here. Do not
+// loosen this filter without an explicit risk review — it is the gate that
+// keeps third-party webhook input out of live order placement.
 const STRATEGY_ID = 'hmm-top3';
 const SIGNAL_LOOKBACK_MINUTES = 5;
+const ADVISORY_LOCK_KEY = 'tradeclaw:executor:hmm-top3';
 const H1_KLINE_LIMIT = 100;        // enough for EMA50 + slope + ADX(14) warmup
 const BROKER = 'binance-futures';
 const TP1_FRACTION = 0.5;          // half qty at TP1, runner = the rest
@@ -55,6 +62,7 @@ interface ExecutorTickResult {
   filtered: number;
   errors: number;
   halted?: string;
+  skipped?: 'locked';
 }
 
 interface PendingSignal {
@@ -76,6 +84,30 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
     return result;
   }
 
+  // PG advisory lock — prevents two overlapping cron firings from both
+  // hitting placeOrder for the same signal between the SQL pull and the
+  // executions row insert. Held on a dedicated session via withClient so
+  // acquire and release run on the same connection; without this, releasing
+  // through query() picks an arbitrary pool client and the lock leaks until
+  // the original session idle-times out (idleTimeoutMillis=30s). Inner work
+  // continues to use the pool freely — the held client is only the lock owner.
+  return withClient(async (lockClient) => {
+    const lockAcquired = await tryAcquireExecutorLock(lockClient);
+    if (!lockAcquired) {
+      return { ...result, skipped: 'locked' };
+    }
+    try {
+      return await runExecutorTickLocked(mode, result);
+    } finally {
+      await releaseExecutorLock(lockClient);
+    }
+  });
+}
+
+async function runExecutorTickLocked(
+  mode: ReturnType<typeof currentMode>,
+  result: ExecutorTickResult,
+): Promise<ExecutorTickResult> {
   // 1. Pull pending signals
   const signals = await fetchPendingSignals();
   result.processed = signals.length;
@@ -314,6 +346,35 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
 
   console.log(`[pilot/executor] tick: ${JSON.stringify(result)}`);
   return result;
+}
+
+// ─── Concurrency helpers ──────────────────────────────────────────────
+
+async function tryAcquireExecutorLock(client: PoolClient): Promise<boolean> {
+  try {
+    const r = await client.query<{ acquired: boolean }>(
+      `SELECT pg_try_advisory_lock(hashtext($1)::bigint) AS acquired`,
+      [ADVISORY_LOCK_KEY],
+    );
+    return r.rows[0]?.acquired === true;
+  } catch (err) {
+    // If the lock query fails (e.g. DB unreachable) skip the tick rather
+    // than running unprotected. Better to miss a tick than to risk a
+    // double-fill bracket race during a DB blip.
+    console.error('[pilot/executor] advisory lock acquire failed:', getMsg(err));
+    return false;
+  }
+}
+
+async function releaseExecutorLock(client: PoolClient): Promise<void> {
+  try {
+    await client.query(
+      `SELECT pg_advisory_unlock(hashtext($1)::bigint)`,
+      [ADVISORY_LOCK_KEY],
+    );
+  } catch (err) {
+    console.error('[pilot/executor] advisory lock release failed:', getMsg(err));
+  }
 }
 
 // ─── Data helpers ──────────────────────────────────────────────────────
