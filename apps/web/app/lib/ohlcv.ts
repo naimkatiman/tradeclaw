@@ -19,7 +19,7 @@ export interface OHLCV {
 }
 
 // Symbol mapping: our symbols → API-specific symbols
-const BINANCE_SYMBOLS: Record<string, string> = {
+export const BINANCE_SYMBOLS: Record<string, string> = {
   BTCUSD: 'BTCUSDT',
   ETHUSD: 'ETHUSDT',
   XRPUSD: 'XRPUSDT',

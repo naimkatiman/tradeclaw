@@ -12,6 +12,7 @@
  */
 
 import { execute, query } from '../db-pool';
+import { BINANCE_SYMBOLS } from '../../app/lib/ohlcv';
 import {
   cancelOrder,
   currentMode,
@@ -134,21 +135,37 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
   // 3. Iterate signals
   for (const sig of signals) {
     try {
-      if (inTickSymbols.has(sig.pair)) {
+      // signal_history.pair is TwelveData canonical (e.g. BTCUSD). Binance
+      // Futures expects USDT-perp symbols (e.g. BTCUSDT). Map up-front, and
+      // skip non-crypto pairs (FX, metals, US equities) — those are MetaApi /
+      // IBKR territory, not this executor's.
+      const binancePair = BINANCE_SYMBOLS[sig.pair];
+      if (!binancePair) {
+        result.filtered++;
+        await logError({
+          signalId: sig.id,
+          stage: 'filter',
+          errorCode: 'symbol_not_binance_eligible',
+          errorMsg: `${sig.pair} has no Binance USDT-perp mapping`,
+        });
+        continue;
+      }
+
+      if (inTickSymbols.has(binancePair)) {
         result.filtered++;
         await logError({
           signalId: sig.id,
           stage: 'filter',
           errorCode: 'symbol_already_entered_in_tick',
-          errorMsg: `${sig.pair} already entered earlier in this tick`,
+          errorMsg: `${sig.pair} (${binancePair}) already entered earlier in this tick`,
         });
         continue;
       }
 
       // 3a. Filters
-      const klinesH1 = await getKlines(sig.pair, '1h', H1_KLINE_LIMIT);
+      const klinesH1 = await getKlines(binancePair, '1h', H1_KLINE_LIMIT);
       const verdict = runEntryFilters({
-        symbol: sig.pair,
+        symbol: binancePair,
         side: sig.direction,
         todayUniverse: universe,
         concurrencyState: { livePositions: account.positions, openExecutionCount: liveOpen, maxPositions },
@@ -166,10 +183,10 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
       }
 
       // 3b. ATR & size
-      const filters = exchangeInfoMap.get(sig.pair);
+      const filters = exchangeInfoMap.get(binancePair);
       if (!filters) {
         result.rejected++;
-        await logError({ signalId: sig.id, stage: 'size', errorCode: 'symbol_not_in_exchange_info', errorMsg: sig.pair });
+        await logError({ signalId: sig.id, stage: 'size', errorCode: 'symbol_not_in_exchange_info', errorMsg: `${sig.pair} (${binancePair})` });
         continue;
       }
       const atr = sig.entryAtr ?? computeATR(klinesH1);
@@ -197,12 +214,12 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
       // earlier signals in the same tick aren't reflected in `account.positions`.
       // For symbols that just got entered we'd no-op leverage/margin setup
       // anyway; for fresh symbols this is correct.
-      await ensureLeverageAndMargin(sig.pair, sizing.leverage, account);
+      await ensureLeverageAndMargin(binancePair, sizing.leverage, account);
 
       const ids = buildClientIds(sig.id);
 
       const entryOrder = await placeOrder({
-        symbol: sig.pair,
+        symbol: binancePair,
         side: sig.direction,
         type: 'MARKET',
         quantity: sizing.qty,
@@ -210,7 +227,7 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
       });
 
       const slOrder = await placeOrder({
-        symbol: sig.pair,
+        symbol: binancePair,
         side: sig.direction === 'BUY' ? 'SELL' : 'BUY',
         type: 'STOP_MARKET',
         stopPrice: sizing.stopPrice,
@@ -225,7 +242,7 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
       const tpQty = roundDownToStep(sizing.qty * TP1_FRACTION, filters.stepSize, filters.quantityPrecision);
       const tpOrder = tpQty > 0
         ? await placeOrder({
-            symbol: sig.pair,
+            symbol: binancePair,
             side: sig.direction === 'BUY' ? 'SELL' : 'BUY',
             type: 'TAKE_PROFIT_MARKET',
             quantity: tpQty,
@@ -242,7 +259,7 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
       // 3d. If SL failed but entry filled, cancel entry to avoid naked exposure
       if (entryOrder && !slOrder) {
         try {
-          await cancelOrder(sig.pair, entryOrder.orderId);
+          await cancelOrder(binancePair, entryOrder.orderId);
         } catch (err) {
           await logError({ signalId: sig.id, stage: 'cancel', errorMsg: getMsg(err) });
         }
@@ -250,11 +267,13 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
         continue;
       }
 
-      // 3e. Persist execution row
+      // 3e. Persist execution row. We store the Binance-native symbol
+      // (binancePair) — that's what was actually traded. The signal_id FK
+      // preserves the link back to the TradeClaw canonical pair.
       const status = !entryOrder ? 'pending' : (entryOrder.status?.toLowerCase() ?? 'pending');
       await persistExecution({
         signalId: sig.id,
-        symbol: sig.pair,
+        symbol: binancePair,
         side: sig.direction,
         qty: sizing.qty,
         entryPrice: entryOrder ? Number(entryOrder.avgPrice ?? entryOrder.price ?? sig.entryPrice) || sig.entryPrice : sig.entryPrice,
@@ -273,11 +292,11 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
 
       result.executed++;
       liveOpen++;
-      inTickSymbols.add(sig.pair);
+      inTickSymbols.add(binancePair);
 
       void notifyEntryFilled({
         signalId: sig.id,
-        symbol: sig.pair,
+        symbol: binancePair,
         side: sig.direction,
         qty: sizing.qty,
         entryPrice: entryOrder ? Number(entryOrder.avgPrice ?? entryOrder.price ?? sig.entryPrice) || sig.entryPrice : sig.entryPrice,
