@@ -18,29 +18,39 @@ const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
  */
 function resolveWindow(
   record: SignalHistoryRecord,
-  candles: Array<{ high: number; low: number; close?: number; timestamp: number }>,
+  candles: Array<{ high: number; low: number; open?: number; close?: number; timestamp: number }>,
   windowComplete: boolean,
 ): SignalOutcome | null {
   if (!record.tp1 || !record.sl) return null;
 
   for (const candle of candles) {
+    // SL-priority + gap-through fill — see lib/signal-history.ts
+    // resolveFromCandles for the rationale. All three resolvers must move
+    // together (they write to the same signal_history table).
+    const open = candle.open ?? null;
     if (record.direction === 'BUY') {
-      if (candle.high >= record.tp1) {
+      const slHit = candle.low <= record.sl;
+      const tpHit = candle.high >= record.tp1;
+      if (slHit) {
+        const fillPrice = open !== null && open <= record.sl ? open : record.sl;
+        const pnlPct = +((fillPrice - record.entryPrice) / record.entryPrice * 100).toFixed(2);
+        return { price: fillPrice, pnlPct, hit: false };
+      }
+      if (tpHit) {
         const pnlPct = +((record.tp1 - record.entryPrice) / record.entryPrice * 100).toFixed(2);
         return { price: record.tp1, pnlPct, hit: true };
       }
-      if (candle.low <= record.sl) {
-        const pnlPct = +((record.sl - record.entryPrice) / record.entryPrice * 100).toFixed(2);
-        return { price: record.sl, pnlPct, hit: false };
-      }
     } else {
-      if (candle.low <= record.tp1) {
+      const slHit = candle.high >= record.sl;
+      const tpHit = candle.low <= record.tp1;
+      if (slHit) {
+        const fillPrice = open !== null && open >= record.sl ? open : record.sl;
+        const pnlPct = +((record.entryPrice - fillPrice) / record.entryPrice * 100).toFixed(2);
+        return { price: fillPrice, pnlPct, hit: false };
+      }
+      if (tpHit) {
         const pnlPct = +((record.entryPrice - record.tp1) / record.entryPrice * 100).toFixed(2);
         return { price: record.tp1, pnlPct, hit: true };
-      }
-      if (candle.high >= record.sl) {
-        const pnlPct = +((record.entryPrice - record.sl) / record.entryPrice * 100).toFixed(2);
-        return { price: record.sl, pnlPct, hit: false };
       }
     }
   }

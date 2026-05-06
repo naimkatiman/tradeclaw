@@ -579,25 +579,38 @@ function resolveFromCandles(
       const adverse = r.entryPrice - candle.low;
       if (adverse > mae) mae = adverse;
 
-      if (candle.high >= r.tp1) {
+      const slHit = candle.low <= r.sl;
+      const tpHit = candle.high >= r.tp1;
+      // SL takes priority when both could fire on the same wide-range bar.
+      // Conservative bias for a public track record — without intra-bar tick
+      // data we can't tell whether TP or SL was hit first, so resolve as
+      // loss rather than letting wide bars systematically print as wins.
+      if (slHit) {
+        // Gap-through: if the bar opened past SL, real fill happens at the
+        // open, not the stop price. Otherwise it's an intracandle wick to
+        // SL and fills at the stop.
+        const fillPrice = candle.open <= r.sl ? candle.open : r.sl;
+        const pnlPct = +((fillPrice - r.entryPrice) / r.entryPrice * 100).toFixed(2);
+        return { outcome: { price: fillPrice, pnlPct, hit: false }, maxAdverseExcursion: mae };
+      }
+      if (tpHit) {
         const pnlPct = +((r.tp1 - r.entryPrice) / r.entryPrice * 100).toFixed(2);
         return { outcome: { price: r.tp1, pnlPct, hit: true }, maxAdverseExcursion: mae };
-      }
-      if (candle.low <= r.sl) {
-        const pnlPct = +((r.sl - r.entryPrice) / r.entryPrice * 100).toFixed(2);
-        return { outcome: { price: r.sl, pnlPct, hit: false }, maxAdverseExcursion: mae };
       }
     } else {
       const adverse = candle.high - r.entryPrice;
       if (adverse > mae) mae = adverse;
 
-      if (candle.low <= r.tp1) {
+      const slHit = candle.high >= r.sl;
+      const tpHit = candle.low <= r.tp1;
+      if (slHit) {
+        const fillPrice = candle.open >= r.sl ? candle.open : r.sl;
+        const pnlPct = +((r.entryPrice - fillPrice) / r.entryPrice * 100).toFixed(2);
+        return { outcome: { price: fillPrice, pnlPct, hit: false }, maxAdverseExcursion: mae };
+      }
+      if (tpHit) {
         const pnlPct = +((r.entryPrice - r.tp1) / r.entryPrice * 100).toFixed(2);
         return { outcome: { price: r.tp1, pnlPct, hit: true }, maxAdverseExcursion: mae };
-      }
-      if (candle.high >= r.sl) {
-        const pnlPct = +((r.entryPrice - r.sl) / r.entryPrice * 100).toFixed(2);
-        return { outcome: { price: r.sl, pnlPct, hit: false }, maxAdverseExcursion: mae };
       }
     }
   }
