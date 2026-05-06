@@ -11,7 +11,8 @@
  * the SQL pull already excludes signals with an executions row.
  */
 
-import { execute, query } from '../db-pool';
+import type { PoolClient } from 'pg';
+import { execute, query, withClient } from '../db-pool';
 import { BINANCE_SYMBOLS } from '../../app/lib/ohlcv';
 import {
   cancelOrder,
@@ -85,18 +86,22 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
 
   // PG advisory lock — prevents two overlapping cron firings from both
   // hitting placeOrder for the same signal between the SQL pull and the
-  // executions row insert. Lock is session-scoped and auto-released when
-  // the connection returns to the pool.
-  const lockAcquired = await tryAcquireExecutorLock();
-  if (!lockAcquired) {
-    return { ...result, skipped: 'locked' };
-  }
-
-  try {
-    return await runExecutorTickLocked(mode, result);
-  } finally {
-    await releaseExecutorLock();
-  }
+  // executions row insert. Held on a dedicated session via withClient so
+  // acquire and release run on the same connection; without this, releasing
+  // through query() picks an arbitrary pool client and the lock leaks until
+  // the original session idle-times out (idleTimeoutMillis=30s). Inner work
+  // continues to use the pool freely — the held client is only the lock owner.
+  return withClient(async (lockClient) => {
+    const lockAcquired = await tryAcquireExecutorLock(lockClient);
+    if (!lockAcquired) {
+      return { ...result, skipped: 'locked' };
+    }
+    try {
+      return await runExecutorTickLocked(mode, result);
+    } finally {
+      await releaseExecutorLock(lockClient);
+    }
+  });
 }
 
 async function runExecutorTickLocked(
@@ -345,13 +350,13 @@ async function runExecutorTickLocked(
 
 // ─── Concurrency helpers ──────────────────────────────────────────────
 
-async function tryAcquireExecutorLock(): Promise<boolean> {
+async function tryAcquireExecutorLock(client: PoolClient): Promise<boolean> {
   try {
-    const rows = await query<{ acquired: boolean }>(
+    const r = await client.query<{ acquired: boolean }>(
       `SELECT pg_try_advisory_lock(hashtext($1)::bigint) AS acquired`,
       [ADVISORY_LOCK_KEY],
     );
-    return rows[0]?.acquired === true;
+    return r.rows[0]?.acquired === true;
   } catch (err) {
     // If the lock query fails (e.g. DB unreachable) skip the tick rather
     // than running unprotected. Better to miss a tick than to risk a
@@ -361,9 +366,9 @@ async function tryAcquireExecutorLock(): Promise<boolean> {
   }
 }
 
-async function releaseExecutorLock(): Promise<void> {
+async function releaseExecutorLock(client: PoolClient): Promise<void> {
   try {
-    await query(
+    await client.query(
       `SELECT pg_advisory_unlock(hashtext($1)::bigint)`,
       [ADVISORY_LOCK_KEY],
     );
