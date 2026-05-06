@@ -175,6 +175,17 @@ export async function linkTelegramUser(
   );
 }
 
+export async function getUserByTelegramId(
+  telegramUserId: bigint,
+): Promise<UserRecord | null> {
+  const row = await queryOne<UserRow>(
+    `SELECT id, email, stripe_customer_id, tier, tier_expires_at, telegram_user_id
+     FROM users WHERE telegram_user_id = $1`,
+    [telegramUserId.toString()],
+  );
+  return row ? toUserRecord(row) : null;
+}
+
 // ---------------------------------------------------------------------------
 // Subscription operations
 // ---------------------------------------------------------------------------

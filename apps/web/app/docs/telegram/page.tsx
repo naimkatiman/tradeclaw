@@ -59,8 +59,17 @@ export default function TelegramPage() {
           language="bash"
           filename="Register the webhook with Telegram"
           code={`curl "https://api.telegram.org/bot<YOUR_TOKEN>/setWebhook" \\
-  -d "url=https://your-instance.com/api/telegram/webhook"`}
+  -H "Content-Type: application/json" \\
+  -d '{"url":"https://your-instance.com/api/telegram/webhook","allowed_updates":["message","chat_join_request","chat_member"]}'`}
         />
+        <p className="text-xs text-zinc-500 mt-3 leading-relaxed">
+          The <code className="text-emerald-400">chat_join_request</code> and{' '}
+          <code className="text-emerald-400">chat_member</code> updates are required for the
+          Pro group access gate — the bot uses them to approve only Pro subscribers and
+          auto-kick users whose subscription has lapsed. Also enable
+          &ldquo;Approve new members&rdquo; in the Pro group&apos;s admin settings, and add
+          the bot as an admin with permission to invite, restrict, and ban users.
+        </p>
       </section>
 
       {/* Env vars */}

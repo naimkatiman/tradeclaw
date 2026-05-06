@@ -122,7 +122,7 @@ export default function TelegramSettingsPage() {
       // Fallback: instruct user to use BotFather / Telegram API directly
       setWebhookResult({
         ok: true,
-        message: `Set webhook via Telegram API:\nPOST https://api.telegram.org/bot<TOKEN>/setWebhook\n{"url":"${webhookUrl}"}`,
+        message: `Set webhook via Telegram API:\nPOST https://api.telegram.org/bot<TOKEN>/setWebhook\n{"url":"${webhookUrl}","allowed_updates":["message","chat_join_request","chat_member"]}`,
       });
     } catch {
       setWebhookResult({ ok: false, message: 'Failed' });
@@ -381,7 +381,7 @@ export default function TelegramSettingsPage() {
             </p>
             <div className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg p-3">
               <code className="text-xs text-zinc-400 break-all">
-                {`curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \\\n  -H "Content-Type: application/json" \\\n  -d '{"url":"${webhookUrl}"}'`}
+                {`curl -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \\\n  -H "Content-Type: application/json" \\\n  -d '{"url":"${webhookUrl}","allowed_updates":["message","chat_join_request","chat_member"]}'`}
               </code>
             </div>
           </div>

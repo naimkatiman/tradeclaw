@@ -5,6 +5,14 @@ import {
   getSubscriber,
 } from '../../../../lib/telegram-subscribers';
 import { getTrackedSignals } from '../../../../lib/tracked-signals';
+import {
+  approveChatJoinRequest,
+  declineChatJoinRequest,
+  revokeAccess,
+  tierForChatId,
+} from '../../../../lib/telegram';
+import { getUserByTelegramId } from '../../../../lib/db';
+import { getUserTier } from '../../../../lib/tier';
 
 const TELEGRAM_API = 'https://api.telegram.org';
 
@@ -16,6 +24,7 @@ interface TelegramFrom {
   id: number;
   username?: string;
   first_name?: string;
+  is_bot?: boolean;
 }
 
 interface TelegramChat {
@@ -29,9 +38,37 @@ interface TelegramMessage {
   text?: string;
 }
 
+interface TelegramChatJoinRequest {
+  chat: TelegramChat;
+  from: TelegramFrom;
+  user_chat_id?: number;
+}
+
+type ChatMemberStatus =
+  | 'creator'
+  | 'administrator'
+  | 'member'
+  | 'restricted'
+  | 'left'
+  | 'kicked';
+
+interface TelegramChatMemberInfo {
+  user: TelegramFrom;
+  status: ChatMemberStatus;
+}
+
+interface TelegramChatMemberUpdate {
+  chat: TelegramChat;
+  from: TelegramFrom;
+  old_chat_member: TelegramChatMemberInfo;
+  new_chat_member: TelegramChatMemberInfo;
+}
+
 interface TelegramUpdate {
   update_id: number;
   message?: TelegramMessage;
+  chat_join_request?: TelegramChatJoinRequest;
+  chat_member?: TelegramChatMemberUpdate;
 }
 
 // ---------------------------------------------------------------------------
@@ -255,6 +292,103 @@ async function handleHelp(chatId: number): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// Pro group access gate
+// ---------------------------------------------------------------------------
+
+/**
+ * Look up the effective tier for a Telegram user ID, using the same
+ * resolver the dashboard uses (Stripe + past_due grace + email grants).
+ * Returns 'free' if the Telegram chat is not linked to any TradeClaw
+ * account, or if the linked account has no paid access.
+ */
+async function resolveTierForTelegramUser(
+  telegramUserId: number,
+): Promise<'free' | 'pro' | 'elite' | 'custom'> {
+  const user = await getUserByTelegramId(BigInt(telegramUserId));
+  if (!user) return 'free';
+  return getUserTier(user.id);
+}
+
+async function dmUpgradePrompt(
+  telegramUserId: number,
+  tier: 'pro' | 'elite',
+): Promise<void> {
+  const label = tier === 'elite' ? 'Elite' : 'Pro';
+  const text = [
+    `Access to the TradeClaw ${label} group is for active ${label} subscribers only\\.`,
+    '',
+    `If you already have a ${label} subscription, link your Telegram first by visiting `,
+    `https://tradeclaw\\.win/dashboard and clicking *Connect Telegram*\\.`,
+    '',
+    `Otherwise upgrade at https://tradeclaw\\.win/pricing — your invite is DMed here `,
+    `automatically right after checkout\\.`,
+  ].join('');
+  try {
+    await sendMessage(telegramUserId, text);
+  } catch (err) {
+    console.error('[telegram-webhook] DM upgrade prompt failed:', err);
+  }
+}
+
+async function handleChatJoinRequest(req: TelegramChatJoinRequest): Promise<void> {
+  const tier = tierForChatId(String(req.chat.id));
+  if (!tier) return; // Unrelated group — ignore.
+
+  const telegramUserId = req.from.id;
+  const userTier = await resolveTierForTelegramUser(telegramUserId);
+
+  // Pro group accepts pro/elite/custom; elite group accepts elite/custom.
+  const allowed =
+    tier === 'pro'
+      ? userTier === 'pro' || userTier === 'elite' || userTier === 'custom'
+      : userTier === 'elite' || userTier === 'custom';
+
+  try {
+    if (allowed) {
+      await approveChatJoinRequest(tier, String(telegramUserId));
+    } else {
+      await declineChatJoinRequest(tier, String(telegramUserId));
+      await dmUpgradePrompt(telegramUserId, tier);
+    }
+  } catch (err) {
+    console.error('[telegram-webhook] chat_join_request handler failed:', err);
+  }
+}
+
+async function handleChatMember(upd: TelegramChatMemberUpdate): Promise<void> {
+  const tier = tierForChatId(String(upd.chat.id));
+  if (!tier) return; // Unrelated group — ignore.
+
+  const oldStatus = upd.old_chat_member.status;
+  const newStatus = upd.new_chat_member.status;
+
+  // Only act on transitions INTO the group as a regular member. Admin
+  // promotions/demotions and self-leaves are not our concern.
+  const wasMember = oldStatus === 'member' || oldStatus === 'restricted';
+  const isMember = newStatus === 'member' || newStatus === 'restricted';
+  if (wasMember || !isMember) return;
+
+  const targetUser = upd.new_chat_member.user;
+  if (targetUser.is_bot) return; // Never auto-kick other bots.
+
+  const userTier = await resolveTierForTelegramUser(targetUser.id);
+  const allowed =
+    tier === 'pro'
+      ? userTier === 'pro' || userTier === 'elite' || userTier === 'custom'
+      : userTier === 'elite' || userTier === 'custom';
+  if (allowed) return;
+
+  // Defense in depth: a non-Pro user ended up inside the group (added by
+  // an admin manually, or the join-request gate was bypassed). Kick now.
+  try {
+    await revokeAccess(String(targetUser.id), tier);
+    await dmUpgradePrompt(targetUser.id, tier);
+  } catch (err) {
+    console.error('[telegram-webhook] chat_member kick failed:', err);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Route handler
 // ---------------------------------------------------------------------------
 
@@ -265,6 +399,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Validate this looks like a Telegram update
     if (typeof body.update_id !== 'number') {
       return NextResponse.json({ error: 'Invalid update' }, { status: 400 });
+    }
+
+    // Pro/Elite group access gate. These updates do not carry a `message`,
+    // so they must be dispatched before the message-only short-circuit
+    // below.
+    if (body.chat_join_request) {
+      await handleChatJoinRequest(body.chat_join_request);
+      return NextResponse.json({ ok: true });
+    }
+    if (body.chat_member) {
+      await handleChatMember(body.chat_member);
+      return NextResponse.json({ ok: true });
     }
 
     const message = body.message;
