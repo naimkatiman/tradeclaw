@@ -131,10 +131,13 @@ export async function POST(req: NextRequest) {
       ],
     );
   } catch (err) {
-    return NextResponse.json(
-      { error: 'db_error', message: err instanceof Error ? err.message : 'unknown' },
-      { status: 500 },
-    );
+    // Server-side log retains the full error for debugging; the response
+    // body must not echo it back. Postgres error messages routinely include
+    // schema details (table names, column names, constraint identifiers)
+    // that are useful to an attacker and have no business in an API
+    // response.
+    console.error('[tv-webhook] db_error:', err);
+    return NextResponse.json({ error: 'db_error' }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

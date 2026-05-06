@@ -30,24 +30,28 @@ describe('POST /api/telegram/link-token', () => {
     expect(res.status).toBe(401);
   });
 
-  it('issues a verifiable token tied to the session userId', async () => {
+  it('issues a verifiable deep link tied to the session userId', async () => {
     mockedRead.mockReturnValueOnce({ userId: 'user-abc', issuedAt: Date.now() });
 
     const res = await POST(new NextRequest('http://localhost/api/telegram/link-token', { method: 'POST' }));
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(typeof body.token).toBe('string');
     expect(body.deepLink).toMatch(/^https:\/\/t\.me\/[^/]+\?start=/);
     expect(body.expiresInSeconds).toBeGreaterThan(0);
+    // Token is no longer surfaced in the body — it lives only in the deep
+    // link query string. This prevents the response body from becoming a
+    // one-time credential that gets cached in dev tools / network logs.
+    expect(body.token).toBeUndefined();
 
-    const verified = verifyTelegramLinkToken(body.token);
+    // Extract the token from the deep link to verify it still binds to the
+    // session userId (the bot route is what consumes it).
+    const tokenInLink = decodeURIComponent(new URL(body.deepLink).searchParams.get('start') ?? '');
+    const verified = verifyTelegramLinkToken(tokenInLink);
     expect(verified?.userId).toBe('user-abc');
   });
 
   it('does not accept a body-supplied userId', async () => {
-    // Even if a malicious caller supplies userId in the request body, the
-    // route must rely solely on the signed session cookie.
     mockedRead.mockReturnValueOnce({ userId: 'real-user', issuedAt: Date.now() });
 
     const res = await POST(
@@ -58,7 +62,8 @@ describe('POST /api/telegram/link-token', () => {
     );
     const body = await res.json();
 
-    const verified = verifyTelegramLinkToken(body.token);
+    const tokenInLink = decodeURIComponent(new URL(body.deepLink).searchParams.get('start') ?? '');
+    const verified = verifyTelegramLinkToken(tokenInLink);
     expect(verified?.userId).toBe('real-user');
   });
 });
