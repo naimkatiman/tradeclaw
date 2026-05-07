@@ -26,6 +26,7 @@ import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
 import { AccuracyMeta } from '../components/accuracy-meta';
 import { SignalExportMenu } from '../components/signal-export-menu';
 import { LockedTP } from '../../components/LockedTP';
+import { DelayCountdown } from '../../components/DelayCountdown';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 import { InfoHint } from '../../components/InfoHint';
@@ -1352,19 +1353,40 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           return (
             <>
               {/* Locked signals — free tier sees pair/direction/confidence + countdown until unlock */}
-              {lockedSignals.length > 0 && (
-                <section className="mb-6">
-                  <div className="flex items-center gap-3 mb-3">
-                    <h2 className="text-xs uppercase tracking-wider text-emerald-400/80 font-mono font-semibold">Unlocking soon</h2>
-                    <span className="text-[10px] text-[var(--text-secondary)] font-mono">{lockedSignals.length} signal{lockedSignals.length !== 1 ? 's' : ''} ahead of free-tier delay</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {lockedSignals.map(stub => (
-                      <LockedSignalCard key={stub.id} stub={stub} />
-                    ))}
-                  </div>
-                </section>
-              )}
+              {lockedSignals.length > 0 && (() => {
+                // Earliest stub drives the section-level countdown banner.
+                // Free-tier delay is 15 min (TIER_DELAY_MS.free) — hardcoded
+                // here because tier.ts is server-only and the constant cannot
+                // be re-exported through tier-client without a wider refactor.
+                const FREE_DELAY_MS = 15 * 60 * 1000;
+                const earliest = lockedSignals.reduce(
+                  (a, b) =>
+                    new Date(a.availableAt).getTime() <= new Date(b.availableAt).getTime()
+                      ? a
+                      : b,
+                );
+                const earliestUnlockMs = new Date(earliest.availableAt).getTime();
+                return (
+                  <section className="mb-6">
+                    <div className="mb-3">
+                      <DelayCountdown
+                        signalTimestamp={earliestUnlockMs - FREE_DELAY_MS}
+                        delayMs={FREE_DELAY_MS}
+                        onUnlock={fetchSignals}
+                      />
+                    </div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <h2 className="text-xs uppercase tracking-wider text-emerald-400/80 font-mono font-semibold">Unlocking soon</h2>
+                      <span className="text-[10px] text-[var(--text-secondary)] font-mono">{lockedSignals.length} signal{lockedSignals.length !== 1 ? 's' : ''} ahead of free-tier delay</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {lockedSignals.map(stub => (
+                        <LockedSignalCard key={stub.id} stub={stub} />
+                      ))}
+                    </div>
+                  </section>
+                );
+              })()}
 
               {/* Main signals (70%+) */}
               {mainSignals.length > 0 && (
