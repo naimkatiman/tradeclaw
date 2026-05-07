@@ -31,5 +31,8 @@ export const FREE_HISTORY_DAYS = 7;
  * downgrades to free. Lives here (client-safe) so the past-due banner can
  * compute its grace deadline without pulling the server tier module.
  * Server resolution (`getUserTier`) re-exports this from ./tier.ts.
+ *
+ * Sized to cover Stripe Smart Retries (~3 weeks). Cutting access at day 7
+ * churned customers whose card update landed on Stripe's later retries.
  */
-export const PAST_DUE_GRACE_DAYS = 7;
+export const PAST_DUE_GRACE_DAYS = 21;

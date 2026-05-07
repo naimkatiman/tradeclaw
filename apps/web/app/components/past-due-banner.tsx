@@ -8,10 +8,10 @@ import { PAST_DUE_GRACE_DAYS } from '../../lib/tier-client';
 /**
  * Red banner shown above the dashboard when the user's last invoice failed.
  *
- * Renders nothing unless `subscriptionStatus === 'past_due'`. During Stripe's
- * 7-day grace window the user keeps Pro access, so the tier banner still
- * shows their tier — this component layers a separate, more urgent prompt
- * on top.
+ * Renders nothing unless `subscriptionStatus === 'past_due'`. During the
+ * grace window (PAST_DUE_GRACE_DAYS) the user keeps Pro access, so the tier
+ * banner still shows their tier — this component layers a separate, more
+ * urgent prompt on top.
  *
  * CTA opens the Stripe billing portal where the customer can update their
  * default payment method (the dunning email already gives them the
