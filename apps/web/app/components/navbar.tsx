@@ -6,6 +6,7 @@ import { Play, Thermometer, ChevronDown, Activity, ShoppingBag, Briefcase, Flask
 import { ThemeToggle } from './theme-toggle';
 import { TradeClawLogo } from '../../components/tradeclaw-logo';
 import { UserMenu } from '../../components/UserMenu';
+import { TierBadge } from '../../components/TierBadge';
 import type { LucideIcon } from 'lucide-react';
 
 interface NavLink {
@@ -182,6 +183,9 @@ export function Navbar() {
           {/* CTA */}
           <div className="flex items-center gap-2 shrink-0">
             <UserMenu size="compact" />
+            <span className="hidden sm:inline-flex">
+              <TierBadge size="sm" />
+            </span>
             <Link
               href="/dashboard"
               className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-300"
