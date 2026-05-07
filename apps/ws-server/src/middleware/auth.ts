@@ -1,8 +1,11 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import type { Tier } from '../tier.js';
 
 const AUTH_SECRET = process.env.AUTH_SECRET;
 const IS_DEV = process.env.NODE_ENV !== 'production';
+
+const VALID_TIERS: ReadonlySet<Tier> = new Set<Tier>(['free', 'pro', 'elite', 'custom']);
 
 // Fail fast in production if secret is missing
 if (!IS_DEV && !AUTH_SECRET) {
@@ -13,17 +16,34 @@ interface TokenPayload {
   sub: string;
   exp: number;
   iat: number;
+  /**
+   * Optional tier claim. When the apps/web token minter starts embedding
+   * the caller's tier we read it here; until then (and for any malformed
+   * or unknown value) the relay falls back to 'free' for fail-closed
+   * symbol gating.
+   */
+  tier?: Tier;
 }
 
 declare module 'fastify' {
   interface FastifyRequest {
     userId?: string;
+    /**
+     * Resolved subscription tier. Always populated by `wsAuth` (or set
+     * to 'free' on the dev-mode anonymous path). Never undefined inside
+     * a request that successfully reached `relayPlugin`.
+     */
+    tier?: Tier;
   }
 }
 
 export async function wsAuth(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-  // Skip auth in development when no secret is configured
-  if (IS_DEV && !AUTH_SECRET) return;
+  // Skip auth in development when no secret is configured. Default to
+  // free tier so any per-symbol gate downstream still applies.
+  if (IS_DEV && !AUTH_SECRET) {
+    request.tier = 'free';
+    return;
+  }
 
   const query = request.query as { token?: string };
   const token = query.token;
@@ -40,6 +60,8 @@ export async function wsAuth(request: FastifyRequest, reply: FastifyReply): Prom
   }
 
   request.userId = payload.sub;
+  request.tier =
+    payload.tier && VALID_TIERS.has(payload.tier) ? payload.tier : 'free';
 }
 
 function verifyToken(token: string): TokenPayload | null {

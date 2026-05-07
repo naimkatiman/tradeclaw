@@ -7,6 +7,7 @@ import type { ProviderManager } from './manager.js';
 import type { RedisService } from '../services/redis.js';
 import { wsAuth } from '../middleware/auth.js';
 import { checkConnectionRate, MessageRateLimiter, startCleanup } from '../middleware/rate-limit.js';
+import { partitionByTier, type Tier } from '../tier.js';
 
 interface RelayOptions extends FastifyPluginOptions {
   providerManager: ProviderManager;
@@ -62,10 +63,15 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
     }
 
     const clientId = `c_${++clientCounter}_${Date.now().toString(36)}`;
+    // Resolved by wsAuth (defaults to 'free' on the dev anonymous path).
+    // Captured at connect time so per-message tier lookups stay O(1) and
+    // don't change mid-connection — the only correct way to upgrade is to
+    // reconnect with a new token after checkout.
+    const tier: Tier = request.tier ?? 'free';
     clients.set(clientId, socket);
     resetIdleTimer(clientId);
 
-    app.log.info({ clientId, ip: request.ip }, 'Client connected');
+    app.log.info({ clientId, ip: request.ip, tier }, 'Client connected');
 
     socket.on('message', (data) => {
       // Message rate limiting (per client)
@@ -97,9 +103,24 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
       }
 
       if (msg.action === 'subscribe') {
+        // Tier gate: drop Pro-only symbols for free callers and surface
+        // them in a structured error frame so the client can render an
+        // upgrade CTA without string-matching.
+        const tierSplit = partitionByTier(validRequested, tier);
+        if (tierSplit.allowed.length === 0 && tierSplit.blocked.length > 0) {
+          sendError(
+            socket,
+            `Symbol(s) require Pro: ${tierSplit.blocked.join(', ')}`,
+          );
+          return;
+        }
+
         // Enforce per-client subscription cap
         const currentCount = subs.getClientSymbols(clientId).length;
-        const allowed = validRequested.slice(0, MAX_SUBSCRIPTIONS_PER_CLIENT - currentCount);
+        const allowed = tierSplit.allowed.slice(
+          0,
+          MAX_SUBSCRIPTIONS_PER_CLIENT - currentCount,
+        );
         if (allowed.length === 0) {
           sendError(socket, `Subscription limit reached (max ${MAX_SUBSCRIPTIONS_PER_CLIENT} symbols)`);
           return;
@@ -107,7 +128,16 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
         const subscribed = subs.subscribe(clientId, allowed);
         const response: WsServerMessage = { type: 'subscribed', symbols: subscribed };
         socket.send(JSON.stringify(response));
-        app.log.info({ clientId, symbols: subscribed }, 'Client subscribed');
+        if (tierSplit.blocked.length > 0) {
+          // Pro-only symbols asked for alongside free symbols: subscribe
+          // the free set, then signal the rest as a single follow-up
+          // error frame. The connection stays open.
+          sendError(
+            socket,
+            `Symbol(s) require Pro: ${tierSplit.blocked.join(', ')}`,
+          );
+        }
+        app.log.info({ clientId, symbols: subscribed, blocked: tierSplit.blocked, tier }, 'Client subscribed');
       } else if (msg.action === 'unsubscribe') {
         const unsubscribed = subs.unsubscribe(clientId, validRequested);
         const response: WsServerMessage = { type: 'unsubscribed', symbols: unsubscribed };
