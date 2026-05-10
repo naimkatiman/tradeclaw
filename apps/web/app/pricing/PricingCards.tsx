@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   TIER_DEFINITIONS,
@@ -93,9 +93,13 @@ function ProCard({ def, interval }: ProCardProps) {
         body: JSON.stringify({ tier: 'pro', interval }),
       });
       if (res.status === 401) {
-        const next = encodeURIComponent('/pricing');
+        // Encode the resume hint into `next` so post-signin lands on
+        // /pricing?resume=checkout&interval=… and the page auto-fires the
+        // POST. Without this, the user has to click "Start Trial" a second
+        // time after signing in — measurable friction at the conversion step.
+        const next = encodeURIComponent(`/pricing?resume=checkout&interval=${interval}`);
         setLoading(false);
-        window.location.href = `/signin?next=${next}&tier=pro&interval=${interval}`;
+        window.location.href = `/signin?next=${next}`;
         return;
       }
       if (!res.ok) {
@@ -216,12 +220,85 @@ function FreeCard({ def }: FreeCardProps) {
 
 export function PricingCards() {
   const [billingInterval, setBillingInterval] = useState<Interval>('monthly');
+  const [resuming, setResuming] = useState(false);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+
+  // Post-signin resume: when a logged-out user clicks "Start Trial",
+  // we redirect them to /signin?next=/pricing?resume=checkout&interval=…
+  // After signin lands them back here we re-fire the checkout POST so the
+  // user doesn't have to click the button a second time.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('resume') !== 'checkout') return;
+
+    const intervalParam = params.get('interval');
+    const requestedInterval: Interval =
+      intervalParam === 'annual' ? 'annual' : 'monthly';
+    setBillingInterval(requestedInterval);
+
+    // Strip resume params so a refresh doesn't double-fire and the URL is
+    // clean once the dust settles.
+    params.delete('resume');
+    params.delete('interval');
+    params.delete('tier');
+    const qs = params.toString();
+    window.history.replaceState(
+      {},
+      '',
+      window.location.pathname + (qs ? `?${qs}` : ''),
+    );
+
+    setResuming(true);
+    void (async () => {
+      try {
+        const res = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ tier: 'pro', interval: requestedInterval }),
+        });
+        if (res.status === 401) {
+          // Still not signed in (cookie didn't make it). Leave the user on
+          // /pricing — they can click the button manually.
+          setResuming(false);
+          return;
+        }
+        if (!res.ok) {
+          const payload = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(payload.error ?? 'Checkout failed');
+        }
+        const payload = (await res.json()) as { url?: string };
+        if (!payload.url) throw new Error('Missing checkout URL');
+        window.location.href = payload.url;
+      } catch (err) {
+        setResuming(false);
+        setResumeError(err instanceof Error ? err.message : 'Checkout failed');
+      }
+    })();
+  }, []);
+
   const freeDef = TIER_DEFINITIONS.find((d) => d.id === 'free');
   const proDef = TIER_DEFINITIONS.find((d) => d.id === 'pro');
   if (!freeDef || !proDef) return null;
 
   return (
     <>
+      {resuming && (
+        <div
+          role="status"
+          className="mx-auto mb-4 max-w-md rounded-lg border border-emerald-500/30 bg-emerald-500/[0.08] px-4 py-2 text-center text-sm text-emerald-200"
+        >
+          Resuming checkout… you'll be redirected to Stripe in a moment.
+        </div>
+      )}
+      {resumeError && (
+        <div
+          role="alert"
+          className="mx-auto mb-4 max-w-md rounded-lg border border-red-500/30 bg-red-500/[0.08] px-4 py-2 text-center text-sm text-red-300"
+        >
+          {resumeError}
+        </div>
+      )}
       <div className="text-center">
         <IntervalToggle value={billingInterval} onChange={setBillingInterval} />
       </div>
