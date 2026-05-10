@@ -11,9 +11,14 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
 
 type BillingInterval = 'monthly' | 'annual';
+type PurchasableTier = 'pro' | 'elite';
 
 function normalizeInterval(value: unknown): BillingInterval | null {
   return value === 'monthly' || value === 'annual' ? value : null;
+}
+
+function normalizeTier(value: unknown): PurchasableTier | null {
+  return value === 'pro' || value === 'elite' ? value : null;
 }
 
 export async function POST(request: NextRequest) {
@@ -23,8 +28,8 @@ export async function POST(request: NextRequest) {
       tier?: unknown;
       interval?: unknown;
     };
-    const priceId = body.priceId;
-    const tier = body.tier;
+    const rawPriceId = body.priceId;
+    const tier = normalizeTier(body.tier);
     const interval = normalizeInterval(body.interval);
 
     // userId is always sourced from the signed session cookie. Trusting a
@@ -41,15 +46,16 @@ export async function POST(request: NextRequest) {
     }
 
     let resolvedPriceId: string | null = null;
-    let resolvedTier: string | null = null;
+    let resolvedTier: PurchasableTier | null = null;
 
-    if (typeof priceId === 'string' && priceId) {
-      resolvedTier = resolveTierFromPriceId(priceId);
-      if (!resolvedTier) {
+    if (typeof rawPriceId === 'string' && rawPriceId) {
+      const tierFromPrice = resolveTierFromPriceId(rawPriceId);
+      if (tierFromPrice !== 'pro' && tierFromPrice !== 'elite') {
         return NextResponse.json({ error: 'Invalid priceId' }, { status: 400 });
       }
-      resolvedPriceId = priceId;
-    } else if ((tier === 'pro' || tier === 'elite') && interval) {
+      resolvedTier = tierFromPrice;
+      resolvedPriceId = rawPriceId;
+    } else if (tier && interval) {
       resolvedTier = tier;
       resolvedPriceId = resolveStripePriceId(tier, interval);
       if (!resolvedPriceId) {
@@ -64,6 +70,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'tier and interval are required when priceId is not provided' },
         { status: 400 },
+      );
+    }
+
+    // Defense in depth: even after resolving the price ID, verify it maps
+    // back to the requested tier. Catches misconfigured env vars where
+    // STRIPE_PRO_*_PRICE_ID points at an Elite product (or vice versa) —
+    // would otherwise charge the customer for the wrong tier and have the
+    // webhook persist whatever tier the price actually maps to.
+    const verifiedTier = resolveTierFromPriceId(resolvedPriceId);
+    if (verifiedTier !== resolvedTier) {
+      console.error(
+        `[stripe-checkout] price→tier mismatch: priceId=${resolvedPriceId} ` +
+          `requested=${resolvedTier} resolved=${verifiedTier ?? 'null'}`,
+      );
+      return NextResponse.json(
+        { error: 'Checkout is temporarily unavailable. Please contact support.' },
+        { status: 503 },
       );
     }
 

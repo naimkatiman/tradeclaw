@@ -85,9 +85,40 @@ describe('POST /api/stripe/checkout', () => {
     expect(mockedGetStripe).not.toHaveBeenCalled();
   });
 
+  it('rejects unsupported tier values with 400', async () => {
+    mockedReadSession.mockReturnValue({ userId: 'user-1', issuedAt: Date.now() });
+
+    const res = await POST(makeRequest({ tier: 'free', interval: 'monthly' }));
+    expect(res.status).toBe(400);
+    expect(mockedResolvePrice).not.toHaveBeenCalled();
+    expect(mockedGetStripe).not.toHaveBeenCalled();
+  });
+
+  it('rejects malformed interval with 400', async () => {
+    mockedReadSession.mockReturnValue({ userId: 'user-1', issuedAt: Date.now() });
+
+    const res = await POST(makeRequest({ tier: 'pro', interval: 'lifetime' }));
+    expect(res.status).toBe(400);
+    expect(mockedResolvePrice).not.toHaveBeenCalled();
+    expect(mockedGetStripe).not.toHaveBeenCalled();
+  });
+
+  it('returns 503 when resolved priceId maps back to a different tier (env misconfigured)', async () => {
+    mockedReadSession.mockReturnValue({ userId: 'user-1', issuedAt: Date.now() });
+    // env says STRIPE_PRO_MONTHLY_PRICE_ID = price_secretly_elite
+    mockedResolvePrice.mockReturnValueOnce('price_secretly_elite');
+    // but that price actually maps to elite
+    mockedResolveTier.mockReturnValueOnce('elite');
+
+    const res = await POST(makeRequest({ tier: 'pro', interval: 'monthly' }));
+    expect(res.status).toBe(503);
+    expect(mockedGetStripe).not.toHaveBeenCalled();
+  });
+
   it('issues a Stripe checkout URL for an authed Pro user (monthly)', async () => {
     mockedReadSession.mockReturnValue({ userId: 'user-1', issuedAt: Date.now() });
     mockedResolvePrice.mockReturnValueOnce('price_pro_monthly');
+    mockedResolveTier.mockReturnValueOnce('pro');
     mockedGetUserById.mockResolvedValueOnce({
       id: 'user-1',
       email: 'pro@example.com',
@@ -134,6 +165,7 @@ describe('POST /api/stripe/checkout', () => {
   it('reuses existing stripeCustomerId on the user record (no DB write-back)', async () => {
     mockedReadSession.mockReturnValue({ userId: 'user-1', issuedAt: Date.now() });
     mockedResolvePrice.mockReturnValueOnce('price_pro_annual');
+    mockedResolveTier.mockReturnValueOnce('pro');
     mockedGetUserById.mockResolvedValueOnce({
       id: 'user-1',
       email: 'pro@example.com',
@@ -167,6 +199,7 @@ describe('POST /api/stripe/checkout', () => {
   it('surfaces Stripe errors as 500 (does not leak partial state)', async () => {
     mockedReadSession.mockReturnValue({ userId: 'user-1', issuedAt: Date.now() });
     mockedResolvePrice.mockReturnValueOnce('price_pro_monthly');
+    mockedResolveTier.mockReturnValueOnce('pro');
     mockedGetUserById.mockResolvedValueOnce({
       id: 'user-1',
       email: 'pro@example.com',
