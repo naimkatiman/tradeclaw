@@ -413,6 +413,54 @@ describe('POST /api/stripe/webhook — tier transitions', () => {
     expect(mockedCancelSub).toHaveBeenCalledWith('sub_1');
   });
 
+  it('customer.subscription.deleted prefers persisted userId over missing metadata', async () => {
+    // Stripe stripped metadata (rare, but possible on archived subs / API drift)
+    // — we still need to downgrade the right user. Persisted row is the source
+    // of truth; metadata is just a fallback hint.
+    mockedGetSubByStripeId.mockResolvedValueOnce({
+      id: 'sub-row-1',
+      userId: 'user-1',
+      stripeSubscriptionId: 'sub_1',
+      stripeCustomerId: 'cus_1',
+      tier: 'elite',
+      status: 'canceled',
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(),
+      cancelAtPeriodEnd: false,
+      trialEnd: null,
+      trialReminderSentAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    mockedGetStripe.mockReturnValue({
+      webhooks: {
+        constructEvent: jest.fn().mockReturnValue({
+          id: 'evt_cancel_no_meta',
+          type: 'customer.subscription.deleted',
+          data: {
+            object: {
+              id: 'sub_1',
+              status: 'canceled',
+              customer: 'cus_1',
+              metadata: {}, // no userId / no tier
+            },
+          },
+        }),
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
+
+    expect(mockedUpdateTier).toHaveBeenCalledTimes(1);
+    const [userId, tier] = mockedUpdateTier.mock.calls[0];
+    expect(userId).toBe('user-1');
+    expect(tier).toBe('free');
+    expect(mockedCancelSub).toHaveBeenCalledWith('sub_1');
+  });
+
   it('customer.subscription.updated (monthly→annual) keeps pro tier and refreshes period_end', async () => {
     const annualEnd = Math.floor(Date.now() / 1000) + 365 * 86400;
     mockedResolveTier.mockReturnValue('pro');

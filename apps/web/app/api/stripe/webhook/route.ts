@@ -226,7 +226,12 @@ async function handleSubscriptionUpdated(
 async function handleSubscriptionDeleted(
   subscription: Stripe.Subscription
 ): Promise<void> {
-  const userId = subscription.metadata?.userId;
+  // Source the userId and tier from our subscriptions table — that's what
+  // checkout persisted at session creation. Trusting metadata fails if Stripe
+  // ever drops it, and metadata.tier defaulting to 'pro' silently misclassifies
+  // Elite cancellations (wrong group revoked, wrong analytics).
+  const existing = await getSubscriptionByStripeId(subscription.id);
+  const userId = existing?.userId ?? subscription.metadata?.userId;
   if (!userId) return;
 
   await updateUserTier(userId, 'free', null);
@@ -239,11 +244,13 @@ async function handleSubscriptionDeleted(
 
   const user = await getUserByStripeCustomerId(stripeCustomerId);
   if (user?.telegramUserId) {
-    // Source the tier from subscription metadata (set at checkout creation)
-    // rather than re-resolving the priceId, which may have been archived
-    // by the time delete fires. Default to 'pro' if metadata is missing.
+    // Prefer the persisted tier (set at checkout) over metadata. Falls back to
+    // metadata only if our row is somehow missing — which would already have
+    // been caught upstream, but defensive.
+    const persistedTier = existing?.tier;
     const metaTier = subscription.metadata?.tier;
-    const tier: 'pro' | 'elite' = metaTier === 'elite' ? 'elite' : 'pro';
+    const tier: 'pro' | 'elite' =
+      persistedTier === 'elite' || metaTier === 'elite' ? 'elite' : 'pro';
     try {
       await revokeAccess(user.telegramUserId.toString(), tier);
     } catch (err) {
