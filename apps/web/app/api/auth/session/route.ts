@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
       isAdmin,
       subscriptionStatus: sub?.status ?? null,
       currentPeriodEnd: sub?.currentPeriodEnd.toISOString() ?? null,
+      cancelAtPeriodEnd: sub?.cancelAtPeriodEnd ?? false,
       trialEnd: sub?.trialEnd?.toISOString() ?? null,
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,

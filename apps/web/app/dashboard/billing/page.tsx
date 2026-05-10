@@ -168,6 +168,17 @@ function UpgradeCard({ tier, interval, currentTier, onError }: UpgradeCardProps)
 // Page
 // ---------------------------------------------------------------------------
 
+function formatLongDate(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
 export default function BillingPage() {
   const { status, session } = useUserSession();
   const userId = session?.userId ?? '';
@@ -182,6 +193,8 @@ export default function BillingPage() {
       : serverTier === 'pro' || serverTier === 'custom'
         ? 'pro'
         : 'free';
+  const cancelAtPeriodEnd = session?.cancelAtPeriodEnd ?? false;
+  const periodEndLabel = formatLongDate(session?.currentPeriodEnd ?? null);
   const [billingInterval, setBillingInterval] = useState<Interval>('monthly');
 
   const plan =
@@ -302,6 +315,17 @@ export default function BillingPage() {
             </div>
             <p className="shrink-0 text-2xl font-bold text-white">{plan.price}</p>
           </div>
+
+          {currentTier !== 'free' && cancelAtPeriodEnd && (
+            <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/[0.08] px-4 py-3 text-sm text-amber-200">
+              <span className="font-semibold">Cancellation scheduled</span>
+              {periodEndLabel ? (
+                <> — your plan ends on <span className="font-semibold">{periodEndLabel}</span>. Reactivate from the billing portal anytime before then.</>
+              ) : (
+                <> — your plan ends at the current period close. Reactivate from the billing portal anytime before then.</>
+              )}
+            </div>
+          )}
 
           {currentTier !== 'free' && (
             <div className="mt-4 border-t border-white/[0.06] pt-4">

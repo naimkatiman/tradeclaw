@@ -21,6 +21,13 @@ export interface ClientSession {
   /** Period end of the current billing cycle. Used to compute the grace deadline. */
   currentPeriodEnd: string | null;
   /**
+   * Stripe sub is set to cancel when the current period ends. Surfaced so the
+   * billing page can show a "Cancels on <date>" banner — otherwise a user who
+   * clicked Cancel in the Stripe portal sees no indication on tradeclaw.win
+   * until access actually drops at period end.
+   */
+  cancelAtPeriodEnd: boolean;
+  /**
    * ISO timestamp of the trial cut-off. Drives the trial countdown banner —
    * shown only when subscriptionStatus === 'trialing' and this is in the
    * future. Null for non-trial subs.
