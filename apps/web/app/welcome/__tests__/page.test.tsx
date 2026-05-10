@@ -32,6 +32,13 @@ jest.mock('../../../lib/stripe', () => ({
   getStripe: jest.fn(),
 }));
 
+// /welcome polls getUserTier until the webhook flips the user off 'free'.
+// Default the mock to 'pro' so the verified-copy test resolves on the first
+// poll instead of spinning the full 5s wait window.
+jest.mock('../../../lib/tier', () => ({
+  getUserTier: jest.fn().mockResolvedValue('pro'),
+}));
+
 // Heavy client components — out of scope for this test. Stub to identifiable
 // nulls so the only meaningful node in the returned tree is the H1.
 jest.mock('../../components/navbar', () => ({
