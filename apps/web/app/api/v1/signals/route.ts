@@ -13,6 +13,11 @@ import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from "../../../../lib/signal-threshol
 
 export const runtime = "nodejs";
 
+// Tier gating reads the per-request session cookie via resolveAccessContext.
+// Force dynamic so the response is never cached across users with
+// different tier access (or stale just after a tier change).
+export const dynamic = "force-dynamic";
+
 const DEFAULT_SYMBOLS = ["BTCUSD", "ETHUSD", "XAUUSD", "XAGUSD", "EURUSD", "GBPUSD"];
 const DEFAULT_TIMEFRAMES = ["H1", "H4"];
 

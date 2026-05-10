@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStrategyBreakdown } from '../../../lib/leaderboard-cache';
 import { resolveAccessContext } from '../../../lib/tier';
 
+// Tier-aware filtering — same gating posture as /api/signals.
+export const dynamic = 'force-dynamic';
+
 const FREE_STRATEGY = 'classic';
 
 export async function GET(request: NextRequest) {

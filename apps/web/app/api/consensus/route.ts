@@ -3,6 +3,10 @@ import { SYMBOLS } from '../../lib/signals';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
 import { resolveAccessContext } from '../../../lib/tier';
 
+// Tier gating depends on the per-request session cookie. Force dynamic so
+// the response is never cached across users with different tier access.
+export const dynamic = 'force-dynamic';
+
 export interface ConsensusEntry {
   pair: string;
   name: string;

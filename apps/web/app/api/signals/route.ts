@@ -15,6 +15,12 @@ import type { TradingSignal } from '../../lib/signals';
 // Re-export types for consumers that imported from here
 export type { TradingSignal, IndicatorSummary } from '../../lib/signals';
 
+// Tier gating depends on the per-request session cookie. Force dynamic so
+// Next.js never caches a tier-specific response across users — and so the
+// post-webhook tier flip is observed on the very next request rather than
+// whenever the route segment cache happens to expire.
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Resolve user tier for gating
