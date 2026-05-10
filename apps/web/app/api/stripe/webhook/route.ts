@@ -151,10 +151,12 @@ async function handleCheckoutCompleted(
   const periodStart = firstItem ? new Date(firstItem.current_period_start * 1000) : new Date();
   const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
-  // Update user tier
-  await updateUserTier(userId, tier, periodEnd);
-
-  // Persist subscription record
+  // Persist subscription record FIRST. getUserTier reads subscriptions
+  // (not users.tier — that column is a denormalized convenience), so a
+  // concurrent /api/auth/session call that lands between these two writes
+  // resolves the new tier as soon as the subscriptions row commits. Doing
+  // updateUserTier first opens a tiny window where getUserTier returns
+  // 'free' even though we've already decided the user is paid.
   await upsertSubscription({
     userId,
     stripeSubscriptionId,
@@ -166,6 +168,9 @@ async function handleCheckoutCompleted(
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
     trialEnd,
   });
+
+  // Then update the denormalized user-row tier cache.
+  await updateUserTier(userId, tier, periodEnd);
 
   // Send Telegram invite if user has linked their Telegram account.
   // sendInviteWithRetry handles transient Telegram API failures internally
