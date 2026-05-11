@@ -15,19 +15,19 @@ const FREE_HISTORY_LABEL = TIER_HISTORY_DAYS.free
   : 'Full history';
 
 const FEATURES: Feature[] = [
-  { label: 'Signal delivery', free: '15-min delay', pro: 'Instant (no delay)' },
+  { label: 'Signal delivery', free: 'Delayed 15 min — moves often played out by then', pro: 'Instant — alert fires while the entry is still live' },
   {
     label: 'Symbols covered',
-    free: `${FREE_SYMBOLS.length} symbols across crypto, forex, commodities, indices`,
-    pro: 'All traded symbols',
+    free: `${FREE_SYMBOLS.length} pairs across crypto, FX, gold, indices`,
+    pro: 'Every traded pair — FX, crypto, gold/silver, oil, US mega-caps, indices',
   },
-  { label: 'Telegram group', free: '@tradeclawwin (public)', pro: 'Private Pro group' },
-  { label: 'TP / SL levels', free: 'TP1 only', pro: 'TP1, TP2, TP3 + SL' },
-  { label: 'Indicators', free: 'RSI, EMA', pro: 'RSI, EMA, MACD, Bollinger, Stochastic + multi-timeframe analysis' },
-  { label: 'Track record', free: 'Public Postgres archive (auditable)', pro: 'Public Postgres archive (auditable)' },
-  { label: 'Signal history', free: FREE_HISTORY_LABEL, pro: 'Full history' },
-  { label: 'Support', free: 'Community', pro: 'Email (24h)' },
-  { label: 'Free trial', free: false, pro: '7 days' },
+  { label: 'Telegram group', free: 'Public @tradeclawwin', pro: 'Private Pro group — same signals you see in the dashboard, no scroll lag' },
+  { label: 'Risk levels', free: 'TP1 only', pro: 'TP1, TP2, TP3 + Stop Loss — full exit plan before you enter' },
+  { label: 'Entry signal', free: 'Basic (RSI, EMA)', pro: 'Confluence-gated — multiple indicators must align across H1/H4/D1 before firing' },
+  { label: 'Track record', free: 'Audit our public Postgres yourself', pro: 'Audit our public Postgres yourself' },
+  { label: 'Signal history', free: FREE_HISTORY_LABEL, pro: 'Unlimited — backtest your own strategies on real outcomes' },
+  { label: 'Support', free: 'Community', pro: 'Email (24h response)' },
+  { label: 'Free trial', free: false, pro: '7 days, no charge if you cancel' },
 ];
 
 function CheckIcon() {
