@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { linkTelegramUser, getUserById } from '../../../lib/db';
 import { sendInvite } from '../../../lib/telegram';
+import { getUserTier } from '../../../lib/tier';
 import { verifyTelegramLinkToken } from '../../../lib/telegram-link-token';
 import { verifyTelegramWebhook } from '../../../lib/telegram-webhook-auth';
 
@@ -141,15 +142,21 @@ async function handleBotUpdate(update: TelegramUpdate): Promise<void> {
 
     await linkTelegramUser(userId, BigInt(telegramUserId));
 
-    // If the user already has an active paid subscription, send invite immediately
-    if (user.tier && user.tier !== 'free') {
+    // Resolve the user's effective tier via getUserTier — this is the same
+    // path the dashboard and API gates use, and it accounts for email grants
+    // (PRO_EMAILS env + pro_email_grants table) which never update the
+    // users.tier column. Reading user.tier directly here meant admin-granted
+    // Pro users got the "free tier" message instead of an invite.
+    const effectiveTier = await getUserTier(userId);
+
+    if (effectiveTier === 'pro' || effectiveTier === 'elite') {
       try {
-        await sendInvite(userId, chatId, user.tier as 'pro' | 'elite');
+        await sendInvite(userId, chatId, effectiveTier);
       } catch (err) {
         console.error('[telegram-bot] Failed to send invite after /start:', err);
         await sendTelegramMessage(
           config,
-          `Your Telegram is now linked to your TradeClaw ${user.tier} account.\n\nYour signal group invite will arrive shortly.`
+          `Your Telegram is now linked to your TradeClaw ${effectiveTier} account.\n\nYour signal group invite will arrive shortly.`
         );
       }
     } else {
