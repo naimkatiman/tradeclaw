@@ -215,6 +215,13 @@ async function handleSubscriptionUpdated(
   const periodEnd = firstItem ? new Date(firstItem.current_period_end * 1000) : null;
   const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
+  // Capture the previously persisted tier BEFORE we overwrite it so we can
+  // detect Pro↔Elite transitions and swap the Telegram groups accordingly.
+  // The persisted row is the source of truth; metadata.tier was set at
+  // checkout and won't reflect an in-portal upgrade.
+  const previous = await getSubscriptionByStripeId(subscription.id);
+  const previousTier = previous?.tier ?? null;
+
   await updateUserTier(userId, tier, periodEnd);
 
   await updateSubscriptionStatus(
@@ -226,6 +233,41 @@ async function handleSubscriptionUpdated(
   // Keep trial_end in sync — promo extensions, manual edits in the Stripe
   // dashboard, and trial-to-paid conversions all flow through this event.
   await setTrialEnd(subscription.id, trialEnd);
+
+  // Telegram group swap on tier change. Before this, an Elite→Pro downgrade
+  // left the user permanently in the Elite group (revenue leak), and a
+  // Pro→Elite upgrade left them out of the Elite group (the thing they just
+  // paid more for). Only fire when the tier actually changed AND the user
+  // has a linked Telegram — otherwise the no-op cost is one DB round-trip.
+  if (previousTier && previousTier !== tier && (previousTier === 'pro' || previousTier === 'elite')) {
+    const customerId =
+      typeof subscription.customer === 'string' ? subscription.customer : null;
+    if (customerId) {
+      const user = await getUserByStripeCustomerId(customerId);
+      if (user?.telegramUserId) {
+        const telegramUserId = user.telegramUserId.toString();
+        // Revoke first, then invite. If invite fails, the user is at least
+        // not in the wrong group anymore — they can recover via
+        // /api/telegram/resend-invite. The reverse order would leave them in
+        // both groups on a partial failure.
+        try {
+          await revokeAccess(telegramUserId, previousTier);
+        } catch (err) {
+          console.error(
+            `[webhook] tier-change revoke failed (prev=${previousTier} new=${tier}):`,
+            err,
+          );
+        }
+        const result = await sendInviteWithRetry(userId, telegramUserId, tier);
+        if (!result.ok) {
+          console.error(
+            `[webhook] tier-change invite failed (prev=${previousTier} new=${tier}):`,
+            `attempts=${result.attempts} retryable=${result.retryable} err=${result.error}`,
+          );
+        }
+      }
+    }
+  }
 }
 
 async function handleSubscriptionDeleted(

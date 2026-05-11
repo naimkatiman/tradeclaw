@@ -26,6 +26,9 @@ jest.mock('../../../../../lib/db', () => ({
 
 jest.mock('../../../../../lib/telegram', () => ({
   sendInvite: jest.fn().mockResolvedValue('invite-link'),
+  sendInviteWithRetry: jest
+    .fn()
+    .mockResolvedValue({ ok: true, attempts: 1, retryable: false }),
   revokeAccess: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -40,10 +43,15 @@ import {
   updateSubscriptionStatus,
   getSubscriptionByStripeId,
   getUserById,
+  getUserByStripeCustomerId,
   tryClaimStripeEvent,
   cancelSubscription,
 } from '../../../../../lib/db';
-import { sendInvite } from '../../../../../lib/telegram';
+import {
+  sendInvite,
+  sendInviteWithRetry,
+  revokeAccess,
+} from '../../../../../lib/telegram';
 import { sendPaymentFailedEmail } from '../../../../../lib/transactional-email';
 import { POST } from '../route';
 
@@ -56,6 +64,9 @@ const mockedUpdateSubStatus = updateSubscriptionStatus as jest.MockedFunction<ty
 const mockedGetSubByStripeId = getSubscriptionByStripeId as jest.MockedFunction<typeof getSubscriptionByStripeId>;
 const mockedGetUserById = getUserById as jest.MockedFunction<typeof getUserById>;
 const mockedSendInvite = sendInvite as jest.MockedFunction<typeof sendInvite>;
+const mockedSendInviteRetry = sendInviteWithRetry as jest.MockedFunction<typeof sendInviteWithRetry>;
+const mockedRevokeAccess = revokeAccess as jest.MockedFunction<typeof revokeAccess>;
+const mockedGetUserByCustomerId = getUserByStripeCustomerId as jest.MockedFunction<typeof getUserByStripeCustomerId>;
 const mockedSendDunning = sendPaymentFailedEmail as jest.MockedFunction<typeof sendPaymentFailedEmail>;
 const mockedCancelSub = cancelSubscription as jest.MockedFunction<typeof cancelSubscription>;
 
@@ -567,5 +578,76 @@ describe('POST /api/stripe/webhook — tier transitions', () => {
     expect(tier).toBe('pro');
     expect((expiresAt as Date).getTime()).toBe(annualEnd * 1000);
     expect(mockedUpdateSubStatus).toHaveBeenCalledWith('sub_1', 'active', expect.any(Date));
+    // Same-tier interval switch — no Telegram group swap.
+    expect(mockedRevokeAccess).not.toHaveBeenCalled();
+    expect(mockedSendInviteRetry).not.toHaveBeenCalled();
+  });
+
+  it('customer.subscription.updated (pro→elite) revokes Pro group and invites to Elite group', async () => {
+    // Without the tier swap, a Pro user who upgrades to Elite via the Stripe
+    // portal would keep their Pro group invite and have NO Elite group invite
+    // — paying more for the tier with worse access. Mirror image of the
+    // Elite→Pro downgrade case which previously left users in the Elite group
+    // permanently after they stopped paying for it.
+    const periodEnd = Math.floor(Date.now() / 1000) + 30 * 86400;
+    mockedResolveTier.mockReturnValue('elite');
+    mockedGetSubByStripeId.mockResolvedValueOnce({
+      id: 'sub-row-1',
+      userId: 'user-1',
+      stripeSubscriptionId: 'sub_1',
+      stripeCustomerId: 'cus_1',
+      tier: 'pro',
+      status: 'active',
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(),
+      cancelAtPeriodEnd: false,
+      trialEnd: null,
+      trialReminderSentAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    mockedGetUserByCustomerId.mockResolvedValueOnce({
+      id: 'user-1',
+      email: 'user@example.com',
+      stripeCustomerId: 'cus_1',
+      tier: 'pro',
+      tierExpiresAt: null,
+      telegramUserId: BigInt(987654321),
+      displayName: null,
+      avatarUrl: null,
+      authProvider: null,
+    });
+
+    mockedGetStripe.mockReturnValue({
+      webhooks: {
+        constructEvent: jest.fn().mockReturnValue({
+          id: 'evt_pro_to_elite',
+          type: 'customer.subscription.updated',
+          data: {
+            object: {
+              id: 'sub_1',
+              status: 'active',
+              cancel_at_period_end: false,
+              customer: 'cus_1',
+              metadata: { userId: 'user-1', tier: 'pro' },
+              items: {
+                data: [
+                  { price: { id: 'price_elite_monthly' }, current_period_end: periodEnd },
+                ],
+              },
+            },
+          },
+        }),
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
+
+    expect(mockedRevokeAccess).toHaveBeenCalledTimes(1);
+    expect(mockedRevokeAccess).toHaveBeenCalledWith('987654321', 'pro');
+    expect(mockedSendInviteRetry).toHaveBeenCalledTimes(1);
+    expect(mockedSendInviteRetry).toHaveBeenCalledWith('user-1', '987654321', 'elite');
   });
 });
