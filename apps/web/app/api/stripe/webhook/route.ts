@@ -264,13 +264,37 @@ async function handleSubscriptionDeleted(
   }
 }
 
+/**
+ * Pull the new billing-period end from an invoice. After a trial converts to
+ * paid, or any successful renewal, the invoice carries the period covered by
+ * the payment in its line items. We persist that period_end so the past_due
+ * grace window in `getUserTier` is anchored to the current cycle, not a stale
+ * value from trial start. Falls back to null when the invoice has no period
+ * info — caller leaves current_period_end untouched in that case.
+ */
+function invoicePeriodEnd(invoice: Stripe.Invoice): Date | null {
+  // Both Stripe API shapes (legacy InvoiceLineItem.period and newer
+  // line.parent.subscription_item_details.period) expose `period.end` as a
+  // unix-seconds number on the first line item. Pick whichever is present.
+  const firstLine = invoice.lines?.data?.[0] as
+    | { period?: { end?: number | null } | null }
+    | undefined;
+  const end = firstLine?.period?.end;
+  return typeof end === 'number' ? new Date(end * 1000) : null;
+}
+
 async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
   // In Stripe API 2026-03-25.dahlia, subscription is at invoice.parent.subscription_details.subscription
   const sub = invoice.parent?.subscription_details?.subscription;
   const subscriptionId = typeof sub === 'string' ? sub : sub?.id ?? null;
   if (!subscriptionId) return;
 
-  await updateSubscriptionStatus(subscriptionId, 'active');
+  // Refresh current_period_end from the invoice. On trial→paid conversion the
+  // first paid period's end lives in the invoice line item and isn't picked up
+  // by handlePaymentSucceeded otherwise — leaving it at the trial-end value
+  // breaks the past_due grace window math in tier.ts:280 on the next renewal.
+  const periodEnd = invoicePeriodEnd(invoice) ?? undefined;
+  await updateSubscriptionStatus(subscriptionId, 'active', periodEnd);
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
@@ -286,7 +310,11 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   const existing = await getSubscriptionByStripeId(subscriptionId);
   const wasAlreadyPastDue = existing?.status === 'past_due';
 
-  await updateSubscriptionStatus(subscriptionId, 'past_due');
+  // Same period_end refresh as handlePaymentSucceeded. The failed invoice still
+  // describes the period the renewal *would have* covered — anchoring the grace
+  // window to that boundary matches our 21-day-past-current-cycle policy.
+  const periodEnd = invoicePeriodEnd(invoice) ?? undefined;
+  await updateSubscriptionStatus(subscriptionId, 'past_due', periodEnd);
 
   if (wasAlreadyPastDue || !existing) return;
 

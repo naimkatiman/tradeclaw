@@ -182,6 +182,11 @@ describe('POST /api/stripe/webhook — idempotency', () => {
 describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
   const ORIGINAL_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
+  // Period end the failed invoice describes. Used to assert handlePaymentFailed
+  // refreshes current_period_end so the past_due grace window stays anchored to
+  // the live cycle, not whatever value happened to be in the DB at trial start.
+  const FAILED_PERIOD_END_SEC = Math.floor(Date.now() / 1000) + 30 * 86400;
+
   function setupPaymentFailedEvent(): void {
     const failedEvent = {
       id: 'evt_failed_1',
@@ -193,6 +198,9 @@ describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
           amount_due: 2900,
           currency: 'usd',
           next_payment_attempt: Math.floor(Date.now() / 1000) + 3 * 86400,
+          lines: {
+            data: [{ period: { end: FAILED_PERIOD_END_SEC } }],
+          },
         },
       },
     };
@@ -244,7 +252,11 @@ describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
     const res = await POST(makeRequest());
     expect(res.status).toBe(200);
 
-    expect(mockedUpdateSubStatus).toHaveBeenCalledWith('sub_failed', 'past_due');
+    expect(mockedUpdateSubStatus).toHaveBeenCalledWith(
+      'sub_failed',
+      'past_due',
+      new Date(FAILED_PERIOD_END_SEC * 1000),
+    );
     expect(mockedSendDunning).toHaveBeenCalledTimes(1);
     const [to, opts] = mockedSendDunning.mock.calls[0];
     expect(to).toBe('user@example.com');
@@ -274,7 +286,11 @@ describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
     const res = await POST(makeRequest());
     expect(res.status).toBe(200);
 
-    expect(mockedUpdateSubStatus).toHaveBeenCalledWith('sub_failed', 'past_due');
+    expect(mockedUpdateSubStatus).toHaveBeenCalledWith(
+      'sub_failed',
+      'past_due',
+      new Date(FAILED_PERIOD_END_SEC * 1000),
+    );
     expect(mockedSendDunning).not.toHaveBeenCalled();
     expect(mockedGetUserById).not.toHaveBeenCalled();
   });
@@ -311,8 +327,61 @@ describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
 
     const res = await POST(makeRequest());
     expect(res.status).toBe(200);
-    expect(mockedUpdateSubStatus).toHaveBeenCalledWith('sub_failed', 'past_due');
+    expect(mockedUpdateSubStatus).toHaveBeenCalledWith(
+      'sub_failed',
+      'past_due',
+      new Date(FAILED_PERIOD_END_SEC * 1000),
+    );
     errSpy.mockRestore();
+  });
+});
+
+describe('POST /api/stripe/webhook — invoice.payment_succeeded period refresh', () => {
+  const ORIGINAL_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+    mockedTryClaim.mockResolvedValue(true);
+  });
+
+  afterAll(() => {
+    process.env.STRIPE_WEBHOOK_SECRET = ORIGINAL_SECRET;
+  });
+
+  it('trial→paid conversion refreshes current_period_end so the past_due grace window is correct on the next cycle', async () => {
+    // The bug: handlePaymentSucceeded used to call updateSubscriptionStatus
+    // with only (id, 'active'), which left current_period_end frozen at the
+    // trial-end value (day 7). When the next renewal failed weeks later, the
+    // grace window in tier.ts (period_end + 21d) was already in the past and
+    // the user lost access with no grace. Persist the live period_end here.
+    const periodEndSec = Math.floor(Date.now() / 1000) + 30 * 86400;
+
+    mockedGetStripe.mockReturnValue({
+      webhooks: {
+        constructEvent: jest.fn().mockReturnValue({
+          id: 'evt_pay_ok',
+          type: 'invoice.payment_succeeded',
+          data: {
+            object: {
+              parent: { subscription_details: { subscription: 'sub_renewed' } },
+              lines: { data: [{ period: { end: periodEndSec } }] },
+            },
+          },
+        }),
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
+
+    expect(mockedUpdateSubStatus).toHaveBeenCalledTimes(1);
+    expect(mockedUpdateSubStatus).toHaveBeenCalledWith(
+      'sub_renewed',
+      'active',
+      new Date(periodEndSec * 1000),
+    );
   });
 });
 
