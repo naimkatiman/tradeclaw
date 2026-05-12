@@ -3,7 +3,12 @@
 
 import { getMultiOHLCV } from './ohlcv';
 import { calculateAllIndicators } from './ta-engine';
-import { generateSignalsFromTA, type StrategyProfileId } from './signal-generator';
+import {
+  generateSignalsFromTA,
+  generateMultiTFSignal,
+  type SignalMode,
+  type StrategyProfileId,
+} from './signal-generator';
 
 // Signal types — shared from @tradeclaw/signals
 import type { TradingSignal, IndicatorSummary } from '@tradeclaw/signals';
@@ -175,6 +180,44 @@ export async function getSignals(params: {
     }
   } catch {
     // TA engine crashed — return empty rather than misleading random signals
+  }
+
+  // MTF re-boost. The per-TF engine in signal-generator.ts caps confidence at
+  // 70 whenever the score-based confidence crosses 75, with the comment
+  // "caller can re-boost via MTF". This is that caller. One MTF call per
+  // (symbol, mode) in parallel, applied to every signal whose direction
+  // matches the dominant TF. Without this, confidence>=85 is structurally
+  // unreachable and the equity card's premium band is permanently empty.
+  if (allSignals.length > 0) {
+    try {
+      const tfMode = (tf: string): SignalMode =>
+        tf === 'M5' || tf === 'M15' ? 'scalp' : 'swing';
+      const mtfKeys = new Set(allSignals.map(s => `${s.symbol}|${tfMode(s.timeframe)}`));
+      const mtfPairs = await Promise.all(
+        [...mtfKeys].map(async key => {
+          const [symbol, mode] = key.split('|') as [string, SignalMode];
+          const mtf = await generateMultiTFSignal(symbol, mode);
+          return [key, mtf] as const;
+        }),
+      );
+      const mtfByKey = new Map(mtfPairs);
+      for (const sig of allSignals) {
+        const mtf = mtfByKey.get(`${sig.symbol}|${tfMode(sig.timeframe)}`);
+        if (!mtf) continue;
+        if (mtf.dominantDirection === sig.direction) {
+          // 3/3 aligned → +15, 2/3 → +5. Clamp at 95 to leave 100 as
+          // unattainable, matching scaleConfidence's own cap.
+          sig.confidence = Math.min(95, sig.confidence + mtf.confluenceBonus);
+        } else if (mtf.isConflicted) {
+          // Mixed TFs (1 vs 2) → -20. Push below PUBLISHED_SIGNAL_MIN_CONFIDENCE
+          // and the downstream cron filter drops the signal. Clamp at 0.
+          sig.confidence = Math.max(0, sig.confidence + mtf.confluenceBonus);
+        }
+        // Dominant direction NEUTRAL or opposite-without-conflict → unchanged.
+      }
+    } catch {
+      // MTF fetch failed — leave signals at engine-emitted confidence.
+    }
   }
 
   // Apply filters
