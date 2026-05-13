@@ -21,6 +21,7 @@ import {
   getAccount,
   getOpenOrders,
   getOrderByClientId,
+  getUserTrades,
   placeOrder,
   type OrderSide,
 } from './binance-futures';
@@ -48,6 +49,9 @@ interface OpenExecution {
   tp1Price: number;
   status: string;
   slMovedToBreakeven: boolean;
+  /** Epoch ms of the entry fill; used as startTime for userTrades PnL backfill. */
+  filledAtMs: number | null;
+  createdAtMs: number;
 }
 
 export async function runPositionManagerTick(): Promise<ManageTickResult> {
@@ -78,7 +82,9 @@ export async function runPositionManagerTick(): Promise<ManageTickResult> {
       const liveQty = livePos ? Math.abs(livePos.positionAmt) : 0;
 
       if (liveQty === 0) {
-        await markClosed(ex.id);
+        const closedAtMs = Date.now();
+        const pnl = await backfillPnl(ex, closedAtMs);
+        await markClosed(ex.id, pnl);
         result.closed++;
         void notifyPositionClosed({
           signalId: ex.signalId,
@@ -162,8 +168,11 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       stop_price: string;
       tp1_price: string;
       status: string;
+      filled_at: Date | null;
+      created_at: Date;
     }>(
-      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status
+      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price,
+              status, filled_at, created_at
          FROM executions
         WHERE broker = $1 AND status IN ('filled','partially_filled','pending')
         ORDER BY created_at ASC`,
@@ -179,9 +188,9 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       stopPrice: Number(r.stop_price),
       tp1Price: Number(r.tp1_price),
       status: r.status,
-      // Phase 1.0: re-derive from Binance state each tick instead of persisting a flag.
-      // We detect "needs breakeven move" by scanning open orders for the entry SL clientId.
       slMovedToBreakeven: false,
+      filledAtMs: r.filled_at ? new Date(r.filled_at).getTime() : null,
+      createdAtMs: new Date(r.created_at).getTime(),
     }));
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
@@ -190,15 +199,77 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
   }
 }
 
-async function markClosed(executionId: string): Promise<void> {
+interface PnlBackfill {
+  realizedPnl: number | null;
+  exitPrice: number | null;
+}
+
+/**
+ * Fetch user trades for the symbol since the entry was filled, then derive:
+ *   - realizedPnl = sum(trade.realizedPnl) + sum(trade.commission)
+ *     (commission in the Binance API is a negative number representing fees paid,
+ *     so adding it correctly reduces the gross PnL)
+ *   - exitPrice = weighted-average price of close-side trades
+ *
+ * Any trade fetch failure is logged and treated as null so it does not block
+ * the status update — the reconciliation query can rerun on rows with null PnL.
+ */
+async function backfillPnl(ex: OpenExecution, closedAtMs: number): Promise<PnlBackfill> {
+  try {
+    const startMs = ex.filledAtMs ?? ex.createdAtMs;
+    const trades = await getUserTrades(ex.symbol, startMs, closedAtMs + 5_000);
+
+    if (trades.length === 0) return { realizedPnl: null, exitPrice: null };
+
+    const closeSide = ex.side === 'BUY' ? 'SELL' : 'BUY';
+    let grossPnl = 0;
+    let totalCommission = 0;
+    let closeQtySum = 0;
+    let closePriceWeighted = 0;
+
+    for (const t of trades) {
+      grossPnl += Number(t.realizedPnl);
+      totalCommission += Number(t.commission);
+      if (t.side === closeSide) {
+        const qty = Number(t.qty);
+        closeQtySum += qty;
+        closePriceWeighted += qty * Number(t.price);
+      }
+    }
+
+    // commission is negative in the API (it's a cost), so adding it reduces PnL.
+    const realizedPnl = grossPnl + totalCommission;
+    const exitPrice = closeQtySum > 0 ? closePriceWeighted / closeQtySum : null;
+
+    return { realizedPnl, exitPrice };
+  } catch (err) {
+    console.error('[pilot/manage] PnL backfill failed for execution', ex.id, ':', getMsg(err));
+    return { realizedPnl: null, exitPrice: null };
+  }
+}
+
+async function markClosed(executionId: string, pnl: PnlBackfill): Promise<void> {
   try {
     await execute(
-      `UPDATE executions SET status='closed', closed_at=NOW(), updated_at=NOW()
+      `UPDATE executions
+          SET status='closed', closed_at=NOW(), updated_at=NOW(),
+              realized_pnl=COALESCE($2, realized_pnl),
+              exit_price=COALESCE($3, exit_price)
         WHERE id=$1 AND status <> 'closed'`,
-      [executionId],
+      [executionId, pnl.realizedPnl ?? null, pnl.exitPrice ?? null],
     );
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
+    // 42703 = column does not exist (exit_price not yet migrated) — degrade gracefully
+    if (code === '42703') {
+      await execute(
+        `UPDATE executions SET status='closed', closed_at=NOW(), updated_at=NOW(),
+                realized_pnl=COALESCE($2, realized_pnl)
+          WHERE id=$1 AND status <> 'closed'`,
+        [executionId, pnl.realizedPnl ?? null],
+      );
+      return;
+    }
     if (code !== '42P01') throw err;
   }
 }

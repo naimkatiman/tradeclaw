@@ -350,6 +350,43 @@ export async function getOrderByClientId(
   }
 }
 
+export interface UserTrade {
+  symbol: string;
+  id: number;
+  orderId: number;
+  side: string;
+  price: string;
+  qty: string;
+  realizedPnl: string;
+  commission: string;
+  commissionAsset: string;
+  time: number;
+  positionSide: string;
+  buyer: boolean;
+  maker: boolean;
+}
+
+/**
+ * Trade history for a symbol since `startTimeMs`. Used for realized-PnL
+ * backfill when a position closes. `endTimeMs` defaults to now.
+ *
+ * Returns ALL trades in the window regardless of order side so callers can
+ * sum both open-trade commissions and close-trade realizedPnl.
+ */
+export async function getUserTrades(
+  symbol: string,
+  startTimeMs: number,
+  endTimeMs?: number,
+): Promise<UserTrade[]> {
+  const params: Record<string, string | number | boolean | undefined> = {
+    symbol,
+    startTime: startTimeMs,
+    limit: 1000,
+  };
+  if (endTimeMs !== undefined) params.endTime = endTimeMs;
+  return request<UserTrade[]>('GET', '/fapi/v1/userTrades', params, true);
+}
+
 // ─── Signed write endpoints (gated by EXECUTION_MODE) ───────────────────────
 
 function ensureWriteAllowed(action: string, payload: Record<string, unknown>): boolean {
