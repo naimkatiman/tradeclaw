@@ -350,6 +350,47 @@ export async function getOrderByClientId(
   }
 }
 
+export interface UserTrade {
+  id: number;
+  orderId: number;
+  symbol: string;
+  side: string;
+  price: string;
+  qty: string;
+  quoteQty: string;
+  realizedPnl: string;
+  commission: string;
+  commissionAsset: string;
+  time: number;
+  maker: boolean;
+  buyer: boolean;
+  positionSide: string;
+}
+
+/**
+ * Per-trade fill history for a symbol since `startTime`.
+ *
+ * Used by the position manager to backfill realized_pnl when a position
+ * closes — Binance's own per-trade realizedPnl is the authoritative figure
+ * (computed from the exchange's bookkeeping, independent of our entry_price).
+ *
+ * In one-way mode, opening trades have realizedPnl = "0"; only reducing /
+ * closing trades carry a non-zero value — so summing all entries since the
+ * fill time gives the correct aggregate without needing order-id correlation.
+ */
+export async function getUserTrades(
+  symbol: string,
+  opts: { startTime?: number; orderId?: number; limit?: number } = {},
+): Promise<UserTrade[]> {
+  const params: Record<string, string | number | boolean | undefined> = {
+    symbol,
+    limit: opts.limit ?? 100,
+  };
+  if (opts.startTime !== undefined) params.startTime = opts.startTime;
+  if (opts.orderId !== undefined) params.orderId = opts.orderId;
+  return request<UserTrade[]>('GET', '/fapi/v1/userTrades', params, true);
+}
+
 // ─── Signed write endpoints (gated by EXECUTION_MODE) ───────────────────────
 
 function ensureWriteAllowed(action: string, payload: Record<string, unknown>): boolean {

@@ -8,10 +8,10 @@
  *   - Move SL to breakeven once TP1 fills (idempotent, marker stored on the
  *     executions row).
  *   - Mark closed when position size hits zero on Binance.
+ *   - Backfill realized_pnl + exit_price from /fapi/v1/userTrades on close.
  *
  * Phase 1.5 (deferred):
  *   - Chandelier trail (max(highestHigh − 3×ATR, breakeven)).
- *   - PnL backfill on close.
  */
 
 import { execute, query } from '../db-pool';
@@ -21,6 +21,7 @@ import {
   getAccount,
   getOpenOrders,
   getOrderByClientId,
+  getUserTrades,
   placeOrder,
   type OrderSide,
 } from './binance-futures';
@@ -48,6 +49,8 @@ interface OpenExecution {
   tp1Price: number;
   status: string;
   slMovedToBreakeven: boolean;
+  filledAt: Date | null;
+  createdAt: Date;
 }
 
 export async function runPositionManagerTick(): Promise<ManageTickResult> {
@@ -78,6 +81,7 @@ export async function runPositionManagerTick(): Promise<ManageTickResult> {
       const liveQty = livePos ? Math.abs(livePos.positionAmt) : 0;
 
       if (liveQty === 0) {
+        await backfillPnlOnClose(ex);
         await markClosed(ex.id);
         result.closed++;
         void notifyPositionClosed({
@@ -114,7 +118,79 @@ export async function runPositionManagerTick(): Promise<ManageTickResult> {
   return result;
 }
 
-// ─── Breakeven move ────────────────────────────────────────────────────
+// ─── PnL backfill ──────────────────────────────────────────────────────────
+
+/**
+ * Fetch per-trade fills from Binance since the entry was filled, sum the
+ * exchange-reported realizedPnl and commission, then write realized_pnl and
+ * exit_price back to the executions row (idempotent: only sets when NULL).
+ *
+ * Binance's per-trade realizedPnl in /fapi/v1/userTrades is the authoritative
+ * figure — it accounts for the actual fill price, partial fills, and funding
+ * adjustments independently of our stored entry_price.
+ *
+ * In one-way mode opening trades carry realizedPnl = "0"; only reducing /
+ * closing legs have a non-zero value. Summing all non-zero entries since
+ * filled_at gives the correct aggregate without needing order-id correlation.
+ */
+async function backfillPnlOnClose(ex: OpenExecution): Promise<void> {
+  // Scope trade lookup to after the entry fill. Fall back to created_at (the
+  // row insert time) when filled_at is null — should not happen for positions
+  // we're seeing on Binance, but handles edge cases defensively.
+  const sinceMs = ex.filledAt ? ex.filledAt.getTime() : ex.createdAt.getTime();
+
+  let trades;
+  try {
+    trades = await getUserTrades(ex.symbol, { startTime: sinceMs });
+  } catch (err) {
+    // Best-effort — log and move on. markClosed will still fire.
+    console.warn(`[pilot/manage] getUserTrades failed (${ex.symbol}):`, getMsg(err));
+    return;
+  }
+
+  if (trades.length === 0) return;
+
+  let grossPnl = 0;
+  let grossCommission = 0;
+  let closingQty = 0;
+  let closingValue = 0;
+
+  for (const t of trades) {
+    const pnl = Number(t.realizedPnl);
+    const comm = Number(t.commission);
+    const qty = Number(t.qty);
+    const price = Number(t.price);
+
+    if (pnl !== 0) {
+      grossPnl += pnl;
+      // commission is a positive magnitude (cost to us regardless of sign)
+      grossCommission += Math.abs(comm);
+      closingQty += qty;
+      closingValue += qty * price;
+    }
+  }
+
+  if (closingQty === 0) return;
+
+  const realizedPnl = grossPnl - grossCommission;
+  const exitPrice = closingValue / closingQty;
+
+  try {
+    await execute(
+      `UPDATE executions
+          SET realized_pnl = $1,
+              exit_price    = $2,
+              updated_at    = NOW()
+        WHERE id = $3
+          AND realized_pnl IS NULL`,
+      [realizedPnl, exitPrice, ex.id],
+    );
+  } catch (err) {
+    console.warn(`[pilot/manage] PnL backfill UPDATE failed (${ex.id}):`, getMsg(err));
+  }
+}
+
+// ─── Breakeven move ────────────────────────────────────────────────────────
 
 async function moveStopToBreakeven(ex: OpenExecution): Promise<boolean> {
   const ids = buildClientIds(ex.signalId);
@@ -148,7 +224,7 @@ async function moveStopToBreakeven(ex: OpenExecution): Promise<boolean> {
   return placed !== null;
 }
 
-// ─── DB helpers ────────────────────────────────────────────────────────
+// ─── DB helpers ────────────────────────────────────────────────────────────
 
 async function fetchOpenExecutions(): Promise<OpenExecution[]> {
   try {
@@ -162,8 +238,11 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       stop_price: string;
       tp1_price: string;
       status: string;
+      filled_at: Date | null;
+      created_at: Date;
     }>(
-      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status
+      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price,
+              status, filled_at, created_at
          FROM executions
         WHERE broker = $1 AND status IN ('filled','partially_filled','pending')
         ORDER BY created_at ASC`,
@@ -182,6 +261,8 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       // Phase 1.0: re-derive from Binance state each tick instead of persisting a flag.
       // We detect "needs breakeven move" by scanning open orders for the entry SL clientId.
       slMovedToBreakeven: false,
+      filledAt: r.filled_at,
+      createdAt: r.created_at,
     }));
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
