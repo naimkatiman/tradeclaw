@@ -328,6 +328,56 @@ export async function getRealizedPnlSince(startTimeMs: number): Promise<IncomeEn
   );
 }
 
+export interface UserTrade {
+  id: number;
+  orderId: number;
+  symbol: string;
+  side: 'BUY' | 'SELL';
+  price: number;
+  qty: number;
+  /** Raw realized PnL for this fill (before commission). Negative = loss. */
+  realizedPnl: number;
+  /** Commission charged. Binance reports this as a negative number; use Math.abs(). */
+  commission: number;
+  commissionAsset: string;
+  time: number;
+  buyer: boolean;
+  maker: boolean;
+  positionSide: string;
+}
+
+/**
+ * Fetch trade fills for a symbol since `startTime`. Used by the position
+ * manager to backfill realized_pnl + exit_price when a position closes.
+ *
+ * Binance caps limit at 1000. For a 4-position account on H1 signals this
+ * stays well under 100 fills per symbol per session.
+ */
+export async function getUserTrades(
+  symbol: string,
+  startTime?: number,
+  limit = 100,
+): Promise<UserTrade[]> {
+  const params: Record<string, string | number | boolean | undefined> = { symbol, limit };
+  if (startTime !== undefined) params.startTime = startTime;
+  const raw = await request<Array<Record<string, unknown>>>('GET', '/fapi/v1/userTrades', params, true);
+  return raw.map((t) => ({
+    id: Number(t.id),
+    orderId: Number(t.orderId),
+    symbol: String(t.symbol),
+    side: String(t.side) as 'BUY' | 'SELL',
+    price: Number(t.price),
+    qty: Number(t.qty),
+    realizedPnl: Number(t.realizedPnl),
+    commission: Number(t.commission),
+    commissionAsset: String(t.commissionAsset),
+    time: Number(t.time),
+    buyer: Boolean(t.buyer),
+    maker: Boolean(t.maker),
+    positionSide: String(t.positionSide),
+  }));
+}
+
 /**
  * Fetch a single order by its client-assigned id. Returns NULL when Binance
  * answers -2013 ("Order does not exist") so callers can treat absent =

@@ -21,6 +21,7 @@ import {
   getAccount,
   getOpenOrders,
   getOrderByClientId,
+  getUserTrades,
   placeOrder,
   type OrderSide,
 } from './binance-futures';
@@ -48,6 +49,7 @@ interface OpenExecution {
   tp1Price: number;
   status: string;
   slMovedToBreakeven: boolean;
+  filledAt: Date | null;
 }
 
 export async function runPositionManagerTick(): Promise<ManageTickResult> {
@@ -78,7 +80,7 @@ export async function runPositionManagerTick(): Promise<ManageTickResult> {
       const liveQty = livePos ? Math.abs(livePos.positionAmt) : 0;
 
       if (liveQty === 0) {
-        await markClosed(ex.id);
+        await closeWithPnl(ex);
         result.closed++;
         void notifyPositionClosed({
           signalId: ex.signalId,
@@ -162,8 +164,9 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       stop_price: string;
       tp1_price: string;
       status: string;
+      filled_at: Date | null;
     }>(
-      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status
+      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status, filled_at
          FROM executions
         WHERE broker = $1 AND status IN ('filled','partially_filled','pending')
         ORDER BY created_at ASC`,
@@ -182,6 +185,7 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       // Phase 1.0: re-derive from Binance state each tick instead of persisting a flag.
       // We detect "needs breakeven move" by scanning open orders for the entry SL clientId.
       slMovedToBreakeven: false,
+      filledAt: r.filled_at ?? null,
     }));
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
@@ -190,16 +194,64 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
   }
 }
 
-async function markClosed(executionId: string): Promise<void> {
+/**
+ * Fetch all closing-direction fills for the position since entry fill time.
+ * Sums realizedPnl and subtracts commissions; computes volume-weighted exit price.
+ * Returns null when userTrades is empty or the API call fails — caller marks
+ * the position closed anyway so we don't block reconciliation on an API blip.
+ */
+async function fetchClosePnl(
+  ex: OpenExecution,
+): Promise<{ realizedPnl: number; exitPrice: number } | null> {
+  try {
+    const startTime = ex.filledAt ? ex.filledAt.getTime() : undefined;
+    const trades = await getUserTrades(ex.symbol, startTime);
+
+    const closingSide: OrderSide = ex.side === 'BUY' ? 'SELL' : 'BUY';
+    const closing = trades.filter((t) => t.side === closingSide);
+    if (closing.length === 0) return null;
+
+    let totalPnl = 0;
+    let totalCommission = 0;
+    let totalQty = 0;
+    let totalCost = 0;
+
+    for (const t of closing) {
+      totalPnl += t.realizedPnl;
+      // Binance returns commission as a negative number; abs() normalises either sign.
+      totalCommission += Math.abs(t.commission);
+      totalQty += t.qty;
+      totalCost += t.price * t.qty;
+    }
+
+    return {
+      realizedPnl: totalPnl - totalCommission,
+      exitPrice: totalQty > 0 ? totalCost / totalQty : 0,
+    };
+  } catch (err) {
+    console.warn('[pilot/manage] PnL backfill fetch failed:', getMsg(err));
+    return null;
+  }
+}
+
+async function closeWithPnl(ex: OpenExecution): Promise<void> {
+  const pnl = await fetchClosePnl(ex);
   try {
     await execute(
-      `UPDATE executions SET status='closed', closed_at=NOW(), updated_at=NOW()
-        WHERE id=$1 AND status <> 'closed'`,
-      [executionId],
+      `UPDATE executions
+          SET status      = 'closed',
+              closed_at   = NOW(),
+              updated_at  = NOW(),
+              realized_pnl = COALESCE($2, realized_pnl),
+              exit_price   = COALESCE($3, exit_price)
+        WHERE id = $1 AND status <> 'closed'`,
+      [ex.id, pnl?.realizedPnl ?? null, pnl?.exitPrice ?? null],
     );
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
-    if (code !== '42P01') throw err;
+    // 42P01 = table missing (migration not applied); 42703 = column missing (031 not applied).
+    // Both are non-fatal on fresh deploys — the managed tick will retry next cycle.
+    if (code !== '42P01' && code !== '42703') throw err;
   }
 }
 
