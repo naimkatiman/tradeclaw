@@ -328,6 +328,58 @@ export async function getRealizedPnlSince(startTimeMs: number): Promise<IncomeEn
   );
 }
 
+export interface UserTrade {
+  id: number;
+  orderId: number;
+  symbol: string;
+  side: OrderSide;
+  price: number;
+  qty: number;
+  /** Gross realized PnL for this fill. Zero for opening fills; non-zero for closing fills. */
+  realizedPnl: number;
+  /** Commission paid. Negative value = cost deducted from account. */
+  commission: number;
+  commissionAsset: string;
+  time: number;
+}
+
+/**
+ * User trade history for a symbol since `startTimeMs`. Used by the position
+ * manager to backfill realized_pnl + exit_price when a position closes.
+ *
+ * Binance caps `limit` at 1000; 200 is sufficient for a single position's fills.
+ */
+export async function getUserTrades(
+  symbol: string,
+  startTimeMs: number,
+  limit = 200,
+): Promise<UserTrade[]> {
+  const raw = await request<Array<{
+    id: number;
+    orderId: number;
+    symbol: string;
+    side: string;
+    price: string;
+    qty: string;
+    realizedPnl: string;
+    commission: string;
+    commissionAsset: string;
+    time: number;
+  }>>('GET', '/fapi/v1/userTrades', { symbol, startTime: startTimeMs, limit }, true);
+  return raw.map((t) => ({
+    id: t.id,
+    orderId: t.orderId,
+    symbol: t.symbol,
+    side: t.side as OrderSide,
+    price: Number(t.price),
+    qty: Number(t.qty),
+    realizedPnl: Number(t.realizedPnl),
+    commission: Number(t.commission),
+    commissionAsset: t.commissionAsset,
+    time: t.time,
+  }));
+}
+
 /**
  * Fetch a single order by its client-assigned id. Returns NULL when Binance
  * answers -2013 ("Order does not exist") so callers can treat absent =

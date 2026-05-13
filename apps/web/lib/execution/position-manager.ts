@@ -8,10 +8,10 @@
  *   - Move SL to breakeven once TP1 fills (idempotent, marker stored on the
  *     executions row).
  *   - Mark closed when position size hits zero on Binance.
+ *   - Backfill realized_pnl + exit_price on close using /fapi/v1/userTrades.
  *
  * Phase 1.5 (deferred):
  *   - Chandelier trail (max(highestHigh − 3×ATR, breakeven)).
- *   - PnL backfill on close.
  */
 
 import { execute, query } from '../db-pool';
@@ -21,8 +21,10 @@ import {
   getAccount,
   getOpenOrders,
   getOrderByClientId,
+  getUserTrades,
   placeOrder,
   type OrderSide,
+  type UserTrade,
 } from './binance-futures';
 import { buildClientIds } from './client-ids';
 import { notifyPositionClosed } from './telegram';
@@ -48,6 +50,8 @@ interface OpenExecution {
   tp1Price: number;
   status: string;
   slMovedToBreakeven: boolean;
+  filledAt: Date | null;
+  createdAt: Date;
 }
 
 export async function runPositionManagerTick(): Promise<ManageTickResult> {
@@ -78,7 +82,7 @@ export async function runPositionManagerTick(): Promise<ManageTickResult> {
       const liveQty = livePos ? Math.abs(livePos.positionAmt) : 0;
 
       if (liveQty === 0) {
-        await markClosed(ex.id);
+        await markClosed(ex);
         result.closed++;
         void notifyPositionClosed({
           signalId: ex.signalId,
@@ -148,6 +152,53 @@ async function moveStopToBreakeven(ex: OpenExecution): Promise<boolean> {
   return placed !== null;
 }
 
+// ─── PnL backfill ─────────────────────────────────────────────────────
+
+interface ClosingPnl {
+  realizedPnl: number;
+  exitPrice: number | null;
+}
+
+async function computeClosingPnl(ex: OpenExecution): Promise<ClosingPnl> {
+  // Use filled_at as the start of the window; fall back to created_at - 1h
+  // to catch cases where the entry fill timestamp wasn't recorded.
+  const startMs = ex.filledAt
+    ? ex.filledAt.getTime()
+    : ex.createdAt.getTime() - 3_600_000;
+
+  let trades: UserTrade[];
+  try {
+    trades = await getUserTrades(ex.symbol, startMs, 200);
+  } catch (err) {
+    console.warn(`[pilot/manage] getUserTrades failed for ${ex.symbol}:`, getMsg(err));
+    return { realizedPnl: 0, exitPrice: null };
+  }
+
+  // Gross PnL: sum of realizedPnl across ALL trades (opening fills have
+  // realizedPnl = 0, so including them is safe and avoids a filter bug).
+  const grossPnl = trades.reduce((sum, t) => sum + t.realizedPnl, 0);
+
+  // Commission: only USDT-denominated commissions can be summed directly
+  // (BNB-denominated commissions would require a price lookup). Commission
+  // values are negative when paid, so adding them reduces the net PnL.
+  const commissionUsd = trades
+    .filter((t) => t.commissionAsset === 'USDT')
+    .reduce((sum, t) => sum + t.commission, 0);
+
+  const realizedPnl = grossPnl + commissionUsd;
+
+  // Exit price: weighted average of the closing (reducing) fills.
+  const closingSide: OrderSide = ex.side === 'BUY' ? 'SELL' : 'BUY';
+  const closingTrades = trades.filter((t) => t.side === closingSide);
+  const totalCloseQty = closingTrades.reduce((sum, t) => sum + t.qty, 0);
+  const exitPrice =
+    totalCloseQty > 0
+      ? closingTrades.reduce((sum, t) => sum + t.price * t.qty, 0) / totalCloseQty
+      : null;
+
+  return { realizedPnl, exitPrice };
+}
+
 // ─── DB helpers ────────────────────────────────────────────────────────
 
 async function fetchOpenExecutions(): Promise<OpenExecution[]> {
@@ -162,8 +213,11 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       stop_price: string;
       tp1_price: string;
       status: string;
+      filled_at: Date | null;
+      created_at: Date;
     }>(
-      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status
+      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price,
+              status, filled_at, created_at
          FROM executions
         WHERE broker = $1 AND status IN ('filled','partially_filled','pending')
         ORDER BY created_at ASC`,
@@ -179,9 +233,9 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       stopPrice: Number(r.stop_price),
       tp1Price: Number(r.tp1_price),
       status: r.status,
-      // Phase 1.0: re-derive from Binance state each tick instead of persisting a flag.
-      // We detect "needs breakeven move" by scanning open orders for the entry SL clientId.
       slMovedToBreakeven: false,
+      filledAt: r.filled_at,
+      createdAt: r.created_at,
     }));
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
@@ -190,15 +244,34 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
   }
 }
 
-async function markClosed(executionId: string): Promise<void> {
+async function markClosed(ex: OpenExecution): Promise<void> {
+  const { realizedPnl, exitPrice } = await computeClosingPnl(ex);
+
   try {
     await execute(
-      `UPDATE executions SET status='closed', closed_at=NOW(), updated_at=NOW()
+      `UPDATE executions
+          SET status='closed',
+              closed_at=NOW(),
+              updated_at=NOW(),
+              realized_pnl=$2,
+              exit_price=$3
         WHERE id=$1 AND status <> 'closed'`,
-      [executionId],
+      [ex.id, realizedPnl, exitPrice],
     );
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
+    // 42703 = column does not exist (exit_price not migrated yet) — fall back
+    // to updating only the columns that exist so a missing migration doesn't
+    // block the close transition.
+    if (code === '42703') {
+      await execute(
+        `UPDATE executions
+            SET status='closed', closed_at=NOW(), updated_at=NOW(), realized_pnl=$2
+          WHERE id=$1 AND status <> 'closed'`,
+        [ex.id, realizedPnl],
+      );
+      return;
+    }
     if (code !== '42P01') throw err;
   }
 }
