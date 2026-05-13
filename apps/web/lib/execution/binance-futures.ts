@@ -259,6 +259,39 @@ export async function get24hVolume(symbol?: string): Promise<Array<{ symbol: str
 
 // ─── Signed read endpoints ──────────────────────────────────────────────────
 
+export interface UserTrade {
+  id: number;
+  orderId: number;
+  symbol: string;
+  /** 'BUY' or 'SELL' — the side of THIS trade, not the position. */
+  side: string;
+  price: string;
+  qty: string;
+  /** Gross position PnL realised by this fill; 0 for entry trades. */
+  realizedPnl: string;
+  commission: string;
+  commissionAsset: string;
+  time: number;
+}
+
+/**
+ * Trades for a symbol, optionally filtered by time. Used by the position
+ * manager to backfill realized_pnl and exit_price when it detects closure.
+ *
+ * Binance caps `limit` at 1000 per call. For a single position lifecycle
+ * (entry + TP1 + runner close) the trade count is 2-4, well within that.
+ */
+export async function getUserTrades(
+  symbol: string,
+  opts?: { startTime?: number; limit?: number },
+): Promise<UserTrade[]> {
+  return request<UserTrade[]>('GET', '/fapi/v1/userTrades', {
+    symbol,
+    startTime: opts?.startTime,
+    limit: opts?.limit ?? 50,
+  }, true);
+}
+
 export async function getAccount(): Promise<BinanceAccount> {
   const raw = await request<{
     totalWalletBalance: string;
