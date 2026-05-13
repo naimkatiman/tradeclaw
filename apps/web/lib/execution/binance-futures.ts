@@ -350,6 +350,39 @@ export async function getOrderByClientId(
   }
 }
 
+/**
+ * Per-trade fill records. Used by position-manager to backfill realized_pnl.
+ * `realizedPnl` is Binance's running P&L for each fill; closing fills have
+ * non-zero values. `commission` is in `commissionAsset` (usually USDT on
+ * USDT-M futures) and must be subtracted from the net PnL.
+ */
+export interface UserTrade {
+  id: number;
+  orderId: number;
+  symbol: string;
+  side: 'BUY' | 'SELL';
+  price: string;
+  qty: string;
+  realizedPnl: string;
+  commission: string;
+  commissionAsset: string;
+  time: number;
+  buyer: boolean;
+  maker: boolean;
+  positionSide: 'BOTH' | 'LONG' | 'SHORT';
+}
+
+/**
+ * Fetch trade fills for a symbol starting from `startTimeMs`.
+ * Used to reconstruct realized PnL after a position closes.
+ * Binance caps limit at 1000; one position's fill history is well under that.
+ */
+export async function getUserTrades(symbol: string, startTimeMs?: number, limit = 200): Promise<UserTrade[]> {
+  const params: Record<string, string | number | boolean | undefined> = { symbol, limit };
+  if (startTimeMs !== undefined) params.startTime = startTimeMs;
+  return request<UserTrade[]>('GET', '/fapi/v1/userTrades', params, true);
+}
+
 // ─── Signed write endpoints (gated by EXECUTION_MODE) ───────────────────────
 
 function ensureWriteAllowed(action: string, payload: Record<string, unknown>): boolean {
