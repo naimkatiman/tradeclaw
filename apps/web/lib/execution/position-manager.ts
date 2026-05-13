@@ -21,8 +21,10 @@ import {
   getAccount,
   getOpenOrders,
   getOrderByClientId,
+  getUserTrades,
   placeOrder,
   type OrderSide,
+  type UserTrade,
 } from './binance-futures';
 import { buildClientIds } from './client-ids';
 import { notifyPositionClosed } from './telegram';
@@ -48,6 +50,8 @@ interface OpenExecution {
   tp1Price: number;
   status: string;
   slMovedToBreakeven: boolean;
+  /** Epoch ms; null when entry order is still pending fill. */
+  filledAtMs: number | null;
 }
 
 export async function runPositionManagerTick(): Promise<ManageTickResult> {
@@ -78,7 +82,11 @@ export async function runPositionManagerTick(): Promise<ManageTickResult> {
       const liveQty = livePos ? Math.abs(livePos.positionAmt) : 0;
 
       if (liveQty === 0) {
-        await markClosed(ex.id);
+        const pnl = await fetchClosePnl(ex).catch((err) => {
+          console.warn(`[pilot/manage] PnL fetch failed for ${ex.id}: ${getMsg(err)} — closing without PnL`);
+          return null;
+        });
+        await markClosed(ex.id, pnl);
         result.closed++;
         void notifyPositionClosed({
           signalId: ex.signalId,
@@ -162,8 +170,9 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       stop_price: string;
       tp1_price: string;
       status: string;
+      filled_at: Date | null;
     }>(
-      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status
+      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status, filled_at
          FROM executions
         WHERE broker = $1 AND status IN ('filled','partially_filled','pending')
         ORDER BY created_at ASC`,
@@ -180,8 +189,8 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       tp1Price: Number(r.tp1_price),
       status: r.status,
       // Phase 1.0: re-derive from Binance state each tick instead of persisting a flag.
-      // We detect "needs breakeven move" by scanning open orders for the entry SL clientId.
       slMovedToBreakeven: false,
+      filledAtMs: r.filled_at ? r.filled_at.getTime() : null,
     }));
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
@@ -190,12 +199,69 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
   }
 }
 
-async function markClosed(executionId: string): Promise<void> {
+interface ClosePnl {
+  realizedPnl: number;
+  exitPrice: number;
+}
+
+/**
+ * Fetch closing trades from Binance and compute net realized PnL + weighted
+ * avg exit price. Looks at trades on the closing side (opposite to entry)
+ * since `filledAtMs`. Commissions in non-USDT assets (e.g. BNB) are logged
+ * but not deducted — USDT-margined futures almost always charge in USDT.
+ */
+async function fetchClosePnl(ex: OpenExecution): Promise<ClosePnl | null> {
+  // Start time: 60 s before fill to catch any timestamp skew; fallback to
+  // 24 h before now when filled_at is missing (pending entry).
+  const startMs = ex.filledAtMs
+    ? ex.filledAtMs - 60_000
+    : Date.now() - 24 * 60 * 60 * 1000;
+
+  const trades = await getUserTrades(ex.symbol, startMs, 200);
+  if (trades.length === 0) return null;
+
+  // Closing trades are on the opposite side from entry.
+  const closeSide: OrderSide = ex.side === 'BUY' ? 'SELL' : 'BUY';
+  const closing = trades.filter(
+    (t) => t.side === closeSide && Number(t.realizedPnl) !== 0,
+  );
+  if (closing.length === 0) return null;
+
+  let totalPnl = 0;
+  let totalQty = 0;
+  let totalNotional = 0;
+
+  for (const t of closing) {
+    const qty = Number(t.qty);
+    const price = Number(t.price);
+    const pnl = Number(t.realizedPnl);
+    const comm = Number(t.commission);
+
+    // Deduct commission only when denominated in USDT — avoids needing BNB
+    // spot price for BNB-discounted commissions.
+    const commUsdt = t.commissionAsset === 'USDT' ? comm : 0;
+    if (t.commissionAsset !== 'USDT' && comm > 0) {
+      console.warn(`[pilot/manage] non-USDT commission (${t.commissionAsset}) on ${ex.symbol} — not deducted from PnL`);
+    }
+
+    totalPnl += pnl - commUsdt;
+    totalQty += qty;
+    totalNotional += qty * price;
+  }
+
+  const exitPrice = totalQty > 0 ? totalNotional / totalQty : 0;
+  return { realizedPnl: totalPnl, exitPrice };
+}
+
+async function markClosed(executionId: string, pnl: ClosePnl | null): Promise<void> {
   try {
     await execute(
-      `UPDATE executions SET status='closed', closed_at=NOW(), updated_at=NOW()
+      `UPDATE executions
+          SET status='closed', closed_at=NOW(), updated_at=NOW(),
+              realized_pnl = COALESCE($2, realized_pnl),
+              exit_price   = COALESCE($3, exit_price)
         WHERE id=$1 AND status <> 'closed'`,
-      [executionId],
+      [executionId, pnl?.realizedPnl ?? null, pnl?.exitPrice ?? null],
     );
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;

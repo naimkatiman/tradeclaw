@@ -328,6 +328,37 @@ export async function getRealizedPnlSince(startTimeMs: number): Promise<IncomeEn
   );
 }
 
+export interface UserTrade {
+  id: number;
+  orderId: number;
+  symbol: string;
+  side: OrderSide;
+  price: string;
+  qty: string;
+  /** Raw PnL from price-delta only; subtract commission separately for net PnL. */
+  realizedPnl: string;
+  commission: string;
+  commissionAsset: string;
+  time: number;
+  positionSide: string;
+  buyer: boolean;
+  maker: boolean;
+}
+
+/**
+ * Account trades for a symbol since `startTimeMs`. `limit` capped by Binance at 1000.
+ * Used by the position manager to backfill realized_pnl when a position closes.
+ */
+export async function getUserTrades(
+  symbol: string,
+  startTimeMs?: number,
+  limit = 100,
+): Promise<UserTrade[]> {
+  const params: Record<string, string | number | boolean | undefined> = { symbol, limit };
+  if (startTimeMs !== undefined) params.startTime = startTimeMs;
+  return request<UserTrade[]>('GET', '/fapi/v1/userTrades', params, true);
+}
+
 /**
  * Fetch a single order by its client-assigned id. Returns NULL when Binance
  * answers -2013 ("Order does not exist") so callers can treat absent =
