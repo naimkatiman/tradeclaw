@@ -34,6 +34,7 @@ import { checkLossKillSwitch } from './risk-rails';
 import { computeATR, computeSize, extractFilters, type SymbolFilters } from './sizing';
 import { notifyEntryFilled } from './telegram';
 import { getTodayUniverse } from './universe-runner';
+import { runRStocksTraderTick } from './rstockstrader-executor';
 
 // Trading firewall — the executor pulls signals only where strategy_id =
 // 'hmm-top3'. TradingView webhook strategies (tv-zaky-classic etc.) land in
@@ -76,6 +77,17 @@ interface PendingSignal {
 }
 
 export async function runExecutorTick(): Promise<ExecutorTickResult> {
+  // ─── Broker dispatch ──────────────────────────────────────────────────────
+  // EXECUTION_BROKER selects the live-trading venue. Default is 'binance'.
+  // Keep per-broker paths entirely separate: R StocksTrader uses MT5-style
+  // lot sizing and attached SL/TP; Binance uses qty + STOP_MARKET brackets.
+  const broker = (process.env.EXECUTION_BROKER ?? 'binance').toLowerCase();
+  if (broker === 'r-stockstrader') {
+    // Coerce result shape to match the shared return type (superset).
+    const r = await runRStocksTraderTick();
+    return { mode: r.mode, processed: r.processed, executed: r.executed, rejected: r.rejected, filtered: r.filtered, errors: r.errors };
+  }
+
   const mode = currentMode();
   const result: ExecutorTickResult = { mode, processed: 0, executed: 0, rejected: 0, filtered: 0, errors: 0 };
 
