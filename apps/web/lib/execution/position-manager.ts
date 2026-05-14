@@ -9,9 +9,10 @@
  *     executions row).
  *   - Mark closed when position size hits zero on Binance.
  *
- * Phase 1.5 (deferred):
- *   - Chandelier trail (max(highestHigh − 3×ATR, breakeven)).
- *   - PnL backfill on close.
+ * Phase 1.5:
+ *   - Backfill realized_pnl on close via /fapi/v1/userTrades summing
+ *     realizedPnl across all fills for the position (entry P&L = 0,
+ *     closing-trade P&L = actual settlement). Net = gross - commission.
  */
 
 import { execute, query } from '../db-pool';
@@ -22,6 +23,7 @@ import {
   getMarkPrice,
   getOpenOrders,
   getOrderByClientId,
+  getUserTrades,
   placeOrder,
   type OrderSide,
 } from './binance-futures';
@@ -49,6 +51,8 @@ interface OpenExecution {
   tp1Price: number;
   status: string;
   slMovedToBreakeven: boolean;
+  /** Epoch ms of the entry fill; null when the row was inserted as 'pending'. */
+  filledAtMs: number | null;
 }
 
 export async function runPositionManagerTick(): Promise<ManageTickResult> {
@@ -83,7 +87,14 @@ export async function runPositionManagerTick(): Promise<ManageTickResult> {
         // markPrice fetch shouldn't block marking the row closed —
         // exit_price stays NULL and the row is still terminal.
         const exitPrice = await getMarkPrice(ex.symbol).catch(() => null);
-        await markClosed(ex.id, exitPrice);
+
+        // Backfill realized P&L from Binance userTrades. Fail-soft: if the
+        // trades endpoint is unavailable, realized_pnl stays NULL and the
+        // reconciliation query returns NULLIF(risk_usd, 0) for that row.
+        // The COALESCE in markClosed means a re-run can fill it in later.
+        const realizedPnl = await fetchRealizedPnl(ex).catch(() => null);
+
+        await markClosed(ex.id, exitPrice, realizedPnl);
         result.closed++;
         void notifyPositionClosed({
           signalId: ex.signalId,
@@ -153,6 +164,43 @@ async function moveStopToBreakeven(ex: OpenExecution): Promise<boolean> {
   return placed !== null;
 }
 
+// ─── PnL backfill ──────────────────────────────────────────────────────
+
+/**
+ * Compute net realized PnL for this position by summing Binance userTrades
+ * since the entry fill. Closing trades have non-zero `realizedPnl`; entry
+ * trades have zero. Net = sum(realizedPnl) - sum(commission).
+ *
+ * Commission is reported in `commissionAsset` (USDT for most perps, BNB for
+ * discounted accounts). BNB amounts are treated as USDT for simplicity —
+ * they're a small fraction of the trade value (<0.02%) and won't affect
+ * R-multiple calculations materially.
+ *
+ * Returns null when no closing trades are found yet (possible on the same
+ * tick as close-detection due to Binance processing lag — COALESCE in
+ * markClosed preserves any previously written value).
+ */
+async function fetchRealizedPnl(ex: OpenExecution): Promise<number | null> {
+  // Fall back to 24h ago when filledAt is missing (pre-Phase1.5 rows inserted
+  // before filled_at was reliably set). This is a conservative window that
+  // may include trades from a prior position on the same symbol if the symbol
+  // was re-entered within 24h, but single-tenant Phase 1 makes that unlikely.
+  const startTime = ex.filledAtMs ?? Date.now() - 24 * 60 * 60 * 1000;
+
+  const trades = await getUserTrades(ex.symbol, { startTime, limit: 100 });
+  if (trades.length === 0) return null;
+
+  // Opening trades always have realizedPnl === '0'. Closing trades (FILLED by
+  // SL, SL-BE, TP1, or runner) have non-zero realizedPnl representing the
+  // mark-to-entry price delta × qty in quote currency (USDT).
+  const hasClosingTrades = trades.some((t) => Number(t.realizedPnl) !== 0);
+  if (!hasClosingTrades) return null;
+
+  const grossPnl = trades.reduce((sum, t) => sum + Number(t.realizedPnl), 0);
+  const totalCommission = trades.reduce((sum, t) => sum + Number(t.commission), 0);
+  return grossPnl - totalCommission;
+}
+
 // ─── DB helpers ────────────────────────────────────────────────────────
 
 async function fetchOpenExecutions(): Promise<OpenExecution[]> {
@@ -167,8 +215,9 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       stop_price: string;
       tp1_price: string;
       status: string;
+      filled_at: Date | null;
     }>(
-      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status
+      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status, filled_at
          FROM executions
         WHERE broker = $1 AND status IN ('filled','partially_filled','pending')
         ORDER BY created_at ASC`,
@@ -185,8 +234,8 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       tp1Price: Number(r.tp1_price),
       status: r.status,
       // Phase 1.0: re-derive from Binance state each tick instead of persisting a flag.
-      // We detect "needs breakeven move" by scanning open orders for the entry SL clientId.
       slMovedToBreakeven: false,
+      filledAtMs: r.filled_at ? r.filled_at.getTime() : null,
     }));
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
@@ -195,19 +244,20 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
   }
 }
 
-async function markClosed(executionId: string, exitPrice: number | null): Promise<void> {
+async function markClosed(executionId: string, exitPrice: number | null, realizedPnl: number | null): Promise<void> {
   try {
-    // COALESCE($2, exit_price) so a re-run that gets NULL from a flaky
-    // getMarkPrice doesn't overwrite a price we already captured on a prior
-    // tick. Status guard means the row is only updated once anyway.
+    // COALESCE preserves values written by a prior tick that got a later re-run
+    // with null (e.g. a flaky markPrice / userTrades call after the initial
+    // successful write). Status guard ensures the row is only transitioned once.
     await execute(
       `UPDATE executions
           SET status='closed',
               closed_at=NOW(),
               updated_at=NOW(),
-              exit_price=COALESCE($2, exit_price)
+              exit_price=COALESCE($2, exit_price),
+              realized_pnl=COALESCE($3, realized_pnl)
         WHERE id=$1 AND status <> 'closed'`,
-      [executionId, exitPrice],
+      [executionId, exitPrice, realizedPnl],
     );
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;

@@ -328,6 +328,44 @@ export async function getRealizedPnlSince(startTimeMs: number): Promise<IncomeEn
   );
 }
 
+export interface UserTrade {
+  symbol: string;
+  id: number;
+  orderId: number;
+  side: string;
+  price: string;
+  qty: string;
+  realizedPnl: string;
+  quoteQty: string;
+  commission: string;
+  commissionAsset: string;
+  time: number;
+  positionSide: string;
+}
+
+/**
+ * Trades for a symbol from a given start time. Used by position-manager to
+ * sum realized PnL across all fills for a position (entry + exit trades).
+ *
+ * Binance sets `realizedPnl = 0` on opening trades and the actual settlement
+ * P&L on closing (reduce-only) trades. Commissions are reported separately and
+ * must be subtracted to get net P&L.
+ *
+ * `limit` defaults to 50; the position manager passes 100 to capture both a
+ * partial TP1 fill and the final SL/runner close in one call.
+ */
+export async function getUserTrades(
+  symbol: string,
+  params?: { orderId?: number; startTime?: number; limit?: number },
+): Promise<UserTrade[]> {
+  return request<UserTrade[]>('GET', '/fapi/v1/userTrades', {
+    symbol,
+    ...(params?.orderId !== undefined && { orderId: params.orderId }),
+    ...(params?.startTime !== undefined && { startTime: params.startTime }),
+    limit: params?.limit ?? 50,
+  }, true);
+}
+
 /**
  * Fetch a single order by its client-assigned id. Returns NULL when Binance
  * answers -2013 ("Order does not exist") so callers can treat absent =
