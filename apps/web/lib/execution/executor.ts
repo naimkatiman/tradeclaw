@@ -9,6 +9,13 @@
  *
  * Idempotency: clientOrderId = signal_id. Binance rejects duplicates, and
  * the SQL pull already excludes signals with an executions row.
+ *
+ * Broker dispatch: EXECUTION_BROKER env var selects the active broker.
+ *   'binance'         (default) — Binance USDT-M Futures
+ *   'r-stockstrader'            — RoboForex R StocksTrader (MetaApi)
+ *
+ * Per-broker code paths are kept separate — do not introduce a shared
+ * abstract broker interface until both paths work end-to-end in production.
  */
 
 import type { PoolClient } from 'pg';
@@ -31,6 +38,12 @@ import {
 import { buildClientIds } from './client-ids';
 import { runEntryFilters } from './filters';
 import { checkLossKillSwitch } from './risk-rails';
+import {
+  createRStocksTraderBridge,
+  readRStocksTraderEnvOrNull,
+  type RStocksTraderInstrumentSpec,
+} from './rstockstrader-bridge';
+import { toRStocksTraderSymbol, type RStocksTraderAssetClass } from './rstockstrader-symbols';
 import { computeATR, computeSize, extractFilters, type SymbolFilters } from './sizing';
 import { notifyEntryFilled } from './telegram';
 import { getTodayUniverse } from './universe-runner';
@@ -44,14 +57,24 @@ const STRATEGY_ID = 'hmm-top3';
 const SIGNAL_LOOKBACK_MINUTES = 5;
 const ADVISORY_LOCK_KEY = 'tradeclaw:executor:hmm-top3';
 const H1_KLINE_LIMIT = 100;        // enough for EMA50 + slope + ADX(14) warmup
-const BROKER = 'binance-futures';
+const BINANCE_BROKER = 'binance-futures';
+const RST_BROKER = 'r-stockstrader';
 const TP1_FRACTION = 0.5;          // half qty at TP1, runner = the rest
+const DEFAULT_ATR_MULTIPLIER = 1.5;
+const DEFAULT_TP_R_MULTIPLE = 1.5;
 
 const cfgInt = (name: string, fallback: number): number => {
   const v = process.env[name];
   if (!v) return fallback;
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+};
+
+const cfgFloat = (name: string, fallback: number): number => {
+  const v = process.env[name];
+  if (!v) return fallback;
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
 };
 
 interface ExecutorTickResult {
@@ -84,6 +107,14 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
     return result;
   }
 
+  // Broker dispatch — per-broker code paths stay separate.
+  const broker = (process.env.EXECUTION_BROKER ?? 'binance').toLowerCase().trim();
+  if (broker === 'r-stockstrader') {
+    return runRStocksTraderExecutorTick(mode, result);
+  }
+
+  // Default: Binance USDT-M Futures path
+
   // PG advisory lock — prevents two overlapping cron firings from both
   // hitting placeOrder for the same signal between the SQL pull and the
   // executions row insert. Held on a dedicated session via withClient so
@@ -97,19 +128,23 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
       return { ...result, skipped: 'locked' };
     }
     try {
-      return await runExecutorTickLocked(mode, result);
+      return await runBinanceExecutorTickLocked(mode, result);
     } finally {
       await releaseExecutorLock(lockClient);
     }
   });
 }
 
-async function runExecutorTickLocked(
+// ═══════════════════════════════════════════════════════════════════════════
+// BINANCE PATH
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function runBinanceExecutorTickLocked(
   mode: ReturnType<typeof currentMode>,
   result: ExecutorTickResult,
 ): Promise<ExecutorTickResult> {
-  // 1. Pull pending signals
-  const signals = await fetchPendingSignals();
+  // 1. Pull pending signals (broker-scoped join so RST executions don't block)
+  const signals = await fetchPendingSignals(BINANCE_BROKER);
   result.processed = signals.length;
   if (signals.length === 0) return result;
 
@@ -123,10 +158,10 @@ async function runExecutorTickLocked(
       getAccount(),
       getTodayUniverse().then((s) => new Set(s) as ReadonlySet<string>),
       buildExchangeInfoMap(),
-      getOpenExecutionCount(),
+      getOpenExecutionCount(BINANCE_BROKER),
     ]);
   } catch (err) {
-    await logError({ stage: 'handshake', errorMsg: getMsg(err) });
+    await logError({ broker: BINANCE_BROKER, stage: 'handshake', errorMsg: getMsg(err) });
     result.errors++;
     return result;
   }
@@ -138,6 +173,7 @@ async function runExecutorTickLocked(
     if (verdict.halted) {
       result.halted = verdict.reason;
       await logError({
+        broker: BINANCE_BROKER,
         stage: 'handshake',
         errorCode: 'loss_kill_switch',
         errorMsg: verdict.reason ?? 'loss_kill',
@@ -148,20 +184,14 @@ async function runExecutorTickLocked(
     }
   } catch (err) {
     // Fail-CLOSED: if we can't read realized PnL, refuse new entries this tick.
-    // Better to skip a profitable signal than to keep trading blind through a
-    // drawdown.
     result.halted = 'kill_switch_check_failed';
-    await logError({ stage: 'handshake', errorCode: 'loss_kill_switch_error', errorMsg: getMsg(err) });
+    await logError({ broker: BINANCE_BROKER, stage: 'handshake', errorCode: 'loss_kill_switch_error', errorMsg: getMsg(err) });
     console.error('[pilot/executor] kill switch check failed — halting tick:', getMsg(err));
     return result;
   }
 
   const maxPositions = cfgInt('EXEC_MAX_POSITIONS', 4);
   let liveOpen = openExecutionCount;
-  // Track symbols that have already opened a position in THIS tick. `account`
-  // is fetched once at tick start and never refreshed inside the loop, so two
-  // signals on the same pair would both pass concurrencyFilter and stack.
-  // Plan §risk-rails forbids pyramiding in v1 — this Set is the gate.
   const inTickSymbols = new Set<string>();
 
   // 3. Iterate signals
@@ -175,6 +205,7 @@ async function runExecutorTickLocked(
       if (!binancePair) {
         result.filtered++;
         await logError({
+          broker: BINANCE_BROKER,
           signalId: sig.id,
           stage: 'filter',
           errorCode: 'symbol_not_binance_eligible',
@@ -186,6 +217,7 @@ async function runExecutorTickLocked(
       if (inTickSymbols.has(binancePair)) {
         result.filtered++;
         await logError({
+          broker: BINANCE_BROKER,
           signalId: sig.id,
           stage: 'filter',
           errorCode: 'symbol_already_entered_in_tick',
@@ -206,6 +238,7 @@ async function runExecutorTickLocked(
       if (!verdict.passed) {
         result.filtered++;
         await logError({
+          broker: BINANCE_BROKER,
           signalId: sig.id,
           stage: 'filter',
           errorCode: verdict.reason,
@@ -218,13 +251,13 @@ async function runExecutorTickLocked(
       const filters = exchangeInfoMap.get(binancePair);
       if (!filters) {
         result.rejected++;
-        await logError({ signalId: sig.id, stage: 'size', errorCode: 'symbol_not_in_exchange_info', errorMsg: `${sig.pair} (${binancePair})` });
+        await logError({ broker: BINANCE_BROKER, signalId: sig.id, stage: 'size', errorCode: 'symbol_not_in_exchange_info', errorMsg: `${sig.pair} (${binancePair})` });
         continue;
       }
       const atr = sig.entryAtr ?? computeATR(klinesH1);
       if (!atr || atr <= 0) {
         result.rejected++;
-        await logError({ signalId: sig.id, stage: 'size', errorCode: 'atr_unavailable', errorMsg: `signal=${sig.id} pair=${sig.pair}` });
+        await logError({ broker: BINANCE_BROKER, signalId: sig.id, stage: 'size', errorCode: 'atr_unavailable', errorMsg: `signal=${sig.id} pair=${sig.pair}` });
         continue;
       }
 
@@ -237,15 +270,11 @@ async function runExecutorTickLocked(
       });
       if (!sizing.ok) {
         result.rejected++;
-        await logError({ signalId: sig.id, stage: 'size', errorCode: sizing.reason, errorMsg: sizing.detail });
+        await logError({ broker: BINANCE_BROKER, signalId: sig.id, stage: 'size', errorCode: sizing.reason, errorMsg: sizing.detail });
         continue;
       }
 
       // 3c. Place bracket.
-      // NOTE: `account` was fetched once at tick start. Positions opened by
-      // earlier signals in the same tick aren't reflected in `account.positions`.
-      // For symbols that just got entered we'd no-op leverage/margin setup
-      // anyway; for fresh symbols this is correct.
       await ensureLeverageAndMargin(binancePair, sizing.leverage, account);
 
       const ids = buildClientIds(sig.id);
@@ -267,7 +296,7 @@ async function runExecutorTickLocked(
         clientOrderId: ids.sl,
         workingType: 'MARK_PRICE',
       }).catch(async (err) => {
-        await logError({ signalId: sig.id, stage: 'place_sl', errorMsg: getMsg(err) });
+        await logError({ broker: BINANCE_BROKER, signalId: sig.id, stage: 'place_sl', errorMsg: getMsg(err) });
         return null;
       });
 
@@ -283,7 +312,7 @@ async function runExecutorTickLocked(
             clientOrderId: ids.tp1,
             workingType: 'MARK_PRICE',
           }).catch(async (err) => {
-            await logError({ signalId: sig.id, stage: 'place_tp', errorMsg: getMsg(err) });
+            await logError({ broker: BINANCE_BROKER, signalId: sig.id, stage: 'place_tp', errorMsg: getMsg(err) });
             return null;
           })
         : null;
@@ -293,17 +322,16 @@ async function runExecutorTickLocked(
         try {
           await cancelOrder(binancePair, entryOrder.orderId);
         } catch (err) {
-          await logError({ signalId: sig.id, stage: 'cancel', errorMsg: getMsg(err) });
+          await logError({ broker: BINANCE_BROKER, signalId: sig.id, stage: 'cancel', errorMsg: getMsg(err) });
         }
         result.rejected++;
         continue;
       }
 
-      // 3e. Persist execution row. We store the Binance-native symbol
-      // (binancePair) — that's what was actually traded. The signal_id FK
-      // preserves the link back to the TradeClaw canonical pair.
+      // 3e. Persist execution row.
       const status = !entryOrder ? 'pending' : (entryOrder.status?.toLowerCase() ?? 'pending');
       await persistExecution({
+        broker: BINANCE_BROKER,
         signalId: sig.id,
         symbol: binancePair,
         side: sig.direction,
@@ -340,13 +368,358 @@ async function runExecutorTickLocked(
       });
     } catch (err) {
       result.errors++;
-      await logError({ signalId: sig.id, stage: 'place_entry', errorMsg: getMsg(err) });
+      await logError({ broker: BINANCE_BROKER, signalId: sig.id, stage: 'place_entry', errorMsg: getMsg(err) });
     }
   }
 
-  console.log(`[pilot/executor] tick: ${JSON.stringify(result)}`);
+  console.log(`[pilot/executor] binance tick: ${JSON.stringify(result)}`);
   return result;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// R STOCKSTRADER PATH
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * RST sizing — lot-based, using tickValue for USD-risk derivation.
+ *
+ * Formula: lots = riskUsd / (stopPips * tickValue)
+ *   where stopPips = |entry - stop| / tickSize
+ *         riskUsd  = equity * EXEC_RISK_PCT / 100
+ *
+ * This is the canonical MetaTrader lot-sizing formula and works correctly
+ * for all asset classes (FX, metals, CFDs) because `tickValue` is already
+ * in the account currency.
+ *
+ * The notional cap (EXEC_FX_PER_TRADE_NOTIONAL_PCT etc.) is applied after
+ * risk-first sizing as a secondary safety limit.
+ */
+interface RSTSizingInput {
+  side: OrderSide;
+  entryPrice: number;
+  atr: number;
+  equityUsd: number;
+  spec: RStocksTraderInstrumentSpec;
+  assetClass: RStocksTraderAssetClass;
+}
+
+interface RSTSizingOk {
+  ok: true;
+  lots: number;
+  stopPrice: number;
+  tp1Price: number;
+  riskUsd: number;
+  notionalUsd: number;
+}
+
+interface RSTSizingFail {
+  ok: false;
+  reason: string;
+  detail: string;
+}
+
+function computeRSTLots(input: RSTSizingInput): RSTSizingOk | RSTSizingFail {
+  const riskPct = cfgFloat('EXEC_RISK_PCT', 1);
+  const atrMult = DEFAULT_ATR_MULTIPLIER;
+  const tpR = DEFAULT_TP_R_MULTIPLE;
+
+  if (input.atr <= 0 || input.entryPrice <= 0 || input.equityUsd <= 0) {
+    return { ok: false, reason: 'invalid_input', detail: `atr=${input.atr} entry=${input.entryPrice} equity=${input.equityUsd}` };
+  }
+
+  const stopDistance = input.atr * atrMult;
+  const rawStopPrice = input.side === 'BUY'
+    ? input.entryPrice - stopDistance
+    : input.entryPrice + stopDistance;
+  const rawTp1Price = input.side === 'BUY'
+    ? input.entryPrice + stopDistance * tpR
+    : input.entryPrice - stopDistance * tpR;
+
+  if (input.spec.minStopDistance > 0 && stopDistance < input.spec.minStopDistance) {
+    return {
+      ok: false,
+      reason: 'stop_too_close',
+      detail: `stopDistance=${stopDistance} minStopDistance=${input.spec.minStopDistance}`,
+    };
+  }
+
+  // Risk-first lot sizing via tickValue
+  const stopPips = stopDistance / input.spec.tickSize;
+  const riskPerLot = stopPips * input.spec.tickValue;
+  if (riskPerLot <= 0) {
+    return { ok: false, reason: 'invalid_tick_value', detail: `tickValue=${input.spec.tickValue} tickSize=${input.spec.tickSize}` };
+  }
+
+  const riskBudget = input.equityUsd * (riskPct / 100);
+  let lots = riskBudget / riskPerLot;
+
+  // Notional cap per asset class (secondary safety limit)
+  const notionalPct = rstNotionalPct(input.assetClass);
+  const notionalCap = input.equityUsd * (notionalPct / 100);
+  const notionalUnrounded = lots * input.spec.contractSize * input.entryPrice;
+  if (notionalUnrounded > notionalCap) {
+    lots = notionalCap / (input.spec.contractSize * input.entryPrice);
+  }
+
+  // Round DOWN to qtyStep
+  lots = Math.floor(lots / input.spec.qtyStep) * input.spec.qtyStep;
+  lots = Number(lots.toFixed(2));
+
+  if (lots <= 0 || lots < input.spec.minQty) {
+    return { ok: false, reason: 'below_min_qty', detail: `lots=${lots} minQty=${input.spec.minQty}` };
+  }
+
+  const roundToTick = (p: number) =>
+    Number((Math.round(p / input.spec.tickSize) * input.spec.tickSize).toFixed(input.spec.digits));
+
+  return {
+    ok: true,
+    lots,
+    stopPrice: roundToTick(rawStopPrice),
+    tp1Price: roundToTick(rawTp1Price),
+    riskUsd: lots * riskPerLot,
+    notionalUsd: lots * input.spec.contractSize * input.entryPrice,
+  };
+}
+
+function rstNotionalPct(assetClass: RStocksTraderAssetClass): number {
+  const raw =
+    assetClass === 'fx' || assetClass === 'metal'
+      ? process.env.EXEC_FX_PER_TRADE_NOTIONAL_PCT
+      : assetClass === 'us-stock' || assetClass === 'us-etf' || assetClass === 'index-cfd'
+      ? process.env.EXEC_STOCK_PER_TRADE_NOTIONAL_PCT
+      : process.env.EXEC_CRYPTO_CFD_PER_TRADE_NOTIONAL_PCT;
+  const n = Number(raw ?? '100');
+  return Number.isFinite(n) && n > 0 ? n : 100;
+}
+
+async function runRStocksTraderExecutorTick(
+  mode: ReturnType<typeof currentMode>,
+  result: ExecutorTickResult,
+): Promise<ExecutorTickResult> {
+  const env = readRStocksTraderEnvOrNull();
+  if (!env) {
+    result.errors++;
+    await logError({
+      broker: RST_BROKER,
+      stage: 'handshake',
+      errorMsg: 'RSTOCKSTRADER_BASE_URL / TOKEN / ACCOUNT_ID missing — cannot start RST tick',
+    });
+    console.error('[pilot/executor] r-stockstrader env vars missing');
+    return result;
+  }
+
+  const bridge = createRStocksTraderBridge(env);
+
+  const signals = await fetchPendingSignals(RST_BROKER);
+  result.processed = signals.length;
+  if (signals.length === 0) return result;
+
+  let accountInfo;
+  let openCount: number;
+  let openPositions;
+  try {
+    [accountInfo, openCount, openPositions] = await Promise.all([
+      bridge.getAccountInfo(),
+      getOpenExecutionCount(RST_BROKER),
+      bridge.listOpenPositions(),
+    ]);
+  } catch (err) {
+    await logError({ broker: RST_BROKER, stage: 'handshake', errorMsg: getMsg(err) });
+    result.errors++;
+    return result;
+  }
+
+  const maxPositions = cfgInt('EXEC_MAX_POSITIONS', 4);
+  let liveOpen = openCount;
+  // Symbols opened in this tick — prevents double-entry on same symbol when
+  // account state was snapshotted before this tick started.
+  const inTickSymbols = new Set<string>();
+
+  for (const sig of signals) {
+    try {
+      // Map TwelveData canonical pair → RST symbol
+      const rstEntry = toRStocksTraderSymbol(sig.pair);
+      if (!rstEntry) {
+        result.filtered++;
+        await logError({
+          broker: RST_BROKER,
+          signalId: sig.id,
+          stage: 'filter',
+          errorCode: 'symbol_not_rstockstrader_eligible',
+          errorMsg: `${sig.pair} has no R StocksTrader mapping`,
+        });
+        continue;
+      }
+
+      const rstSymbol = rstEntry.symbol;
+
+      if (inTickSymbols.has(rstSymbol)) {
+        result.filtered++;
+        continue;
+      }
+
+      // Concurrency: reject if already have a live RST position on this symbol
+      if (openPositions.some((p) => p.symbol === rstSymbol)) {
+        result.filtered++;
+        await logError({
+          broker: RST_BROKER,
+          signalId: sig.id,
+          stage: 'filter',
+          errorCode: 'symbol_has_open_position',
+          errorMsg: `${rstSymbol} already open on RST`,
+        });
+        continue;
+      }
+
+      if (liveOpen >= maxPositions) {
+        result.filtered++;
+        await logError({
+          broker: RST_BROKER,
+          signalId: sig.id,
+          stage: 'filter',
+          errorCode: 'max_positions_reached',
+          errorMsg: `open=${liveOpen} >= max=${maxPositions}`,
+        });
+        break;
+      }
+
+      // ATR — required for sizing; RST has no kline source so we rely on the
+      // value written by the signal generator at signal time.
+      const atr = sig.entryAtr;
+      if (!atr || atr <= 0) {
+        result.rejected++;
+        await logError({
+          broker: RST_BROKER,
+          signalId: sig.id,
+          stage: 'size',
+          errorCode: 'atr_unavailable',
+          errorMsg: `entry_atr null/zero for signal=${sig.id} pair=${sig.pair}`,
+        });
+        continue;
+      }
+
+      // Instrument spec (cached 1h)
+      let spec: RStocksTraderInstrumentSpec;
+      try {
+        spec = await bridge.getInstrumentSpec(rstSymbol);
+        // Overlay the asset class from our symbol map (MetaApi spec doesn't include it)
+        spec = { ...spec, assetClass: rstEntry.assetClass };
+      } catch (err) {
+        result.rejected++;
+        await logError({
+          broker: RST_BROKER,
+          signalId: sig.id,
+          stage: 'size',
+          errorCode: 'instrument_spec_failed',
+          errorMsg: getMsg(err),
+        });
+        continue;
+      }
+
+      // Sizing
+      const sizing = computeRSTLots({
+        side: sig.direction,
+        entryPrice: sig.entryPrice,
+        atr,
+        equityUsd: accountInfo.equity,
+        spec,
+        assetClass: rstEntry.assetClass,
+      });
+      if (!sizing.ok) {
+        result.rejected++;
+        await logError({
+          broker: RST_BROKER,
+          signalId: sig.id,
+          stage: 'size',
+          errorCode: sizing.reason,
+          errorMsg: sizing.detail,
+        });
+        continue;
+      }
+
+      // Place bracket order (entry + attached SL + TP in one call)
+      const clientRef = buildClientIds(sig.id).entry;
+      let placeResult;
+      try {
+        placeResult = await bridge.placeOrder({
+          symbol: rstSymbol,
+          side: sig.direction,
+          type: 'MARKET',
+          qty: sizing.lots,
+          stopLoss: sizing.stopPrice,
+          takeProfit: sizing.tp1Price,
+          clientRef,
+          comment: `TC:${sig.id.slice(0, 8)}`,
+        });
+      } catch (err) {
+        result.errors++;
+        await logError({ broker: RST_BROKER, signalId: sig.id, stage: 'place_entry', errorMsg: getMsg(err) });
+        continue;
+      }
+
+      if (placeResult.status === 'rejected') {
+        result.rejected++;
+        await logError({
+          broker: RST_BROKER,
+          signalId: sig.id,
+          stage: 'place_entry',
+          errorCode: 'broker_rejected',
+          errorMsg: placeResult.rejectReason ?? 'broker rejected order',
+        });
+        continue;
+      }
+
+      // Persist to executions (leverage=1 for RST; margin is implicit)
+      await persistExecution({
+        broker: RST_BROKER,
+        signalId: sig.id,
+        symbol: rstSymbol,
+        side: sig.direction,
+        qty: sizing.lots,
+        entryPrice: placeResult.avgFillPrice ?? sig.entryPrice,
+        stopPrice: sizing.stopPrice,
+        tp1Price: sizing.tp1Price,
+        leverage: 1,
+        notionalUsd: sizing.notionalUsd,
+        riskUsd: sizing.riskUsd,
+        clientOrderId: clientRef,
+        exchangeOrderId: placeResult.brokerOrderId,
+        status: placeResult.status === 'filled' ? 'filled' : 'pending',
+        slOrderId: null,
+        tpOrderId: null,
+        mode: 'testnet', // RST demo accounts are always testnet for Phase 2
+      });
+
+      result.executed++;
+      liveOpen++;
+      inTickSymbols.add(rstSymbol);
+
+      void notifyEntryFilled({
+        signalId: sig.id,
+        symbol: rstSymbol,
+        side: sig.direction,
+        qty: sizing.lots,
+        entryPrice: placeResult.avgFillPrice ?? sig.entryPrice,
+        stopPrice: sizing.stopPrice,
+        tp1Price: sizing.tp1Price,
+        notionalUsd: sizing.notionalUsd,
+        riskUsd: sizing.riskUsd,
+        leverage: 1,
+      });
+    } catch (err) {
+      result.errors++;
+      await logError({ broker: RST_BROKER, signalId: sig.id, stage: 'place_entry', errorMsg: getMsg(err) });
+    }
+  }
+
+  console.log(`[pilot/executor] r-stockstrader tick: ${JSON.stringify(result)}`);
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SHARED HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
 
 // ─── Concurrency helpers ──────────────────────────────────────────────
 
@@ -358,9 +731,6 @@ async function tryAcquireExecutorLock(client: PoolClient): Promise<boolean> {
     );
     return r.rows[0]?.acquired === true;
   } catch (err) {
-    // If the lock query fails (e.g. DB unreachable) skip the tick rather
-    // than running unprotected. Better to miss a tick than to risk a
-    // double-fill bracket race during a DB blip.
     console.error('[pilot/executor] advisory lock acquire failed:', getMsg(err));
     return false;
   }
@@ -379,7 +749,12 @@ async function releaseExecutorLock(client: PoolClient): Promise<void> {
 
 // ─── Data helpers ──────────────────────────────────────────────────────
 
-async function fetchPendingSignals(): Promise<PendingSignal[]> {
+/**
+ * Fetch pending signals not yet executed by `broker`. The JOIN is
+ * broker-scoped so Binance and RST executions are independent — a signal
+ * executed on Binance won't block RST from also trading it (and vice versa).
+ */
+async function fetchPendingSignals(broker: string): Promise<PendingSignal[]> {
   try {
     const rows = await query<{
       id: string;
@@ -393,14 +768,14 @@ async function fetchPendingSignals(): Promise<PendingSignal[]> {
       `SELECT sh.id, sh.pair, sh.timeframe, sh.direction,
               sh.entry_price, sh.entry_atr, sh.created_at
          FROM signal_history sh
-         LEFT JOIN executions e ON e.signal_id = sh.id
+         LEFT JOIN executions e ON e.signal_id = sh.id AND e.broker = $3
         WHERE sh.strategy_id = $1
           AND sh.created_at > NOW() - ($2 || ' minutes')::INTERVAL
           AND (sh.gate_blocked IS NULL OR sh.gate_blocked = FALSE)
           AND e.id IS NULL
         ORDER BY sh.created_at ASC
         LIMIT 50`,
-      [STRATEGY_ID, String(SIGNAL_LOOKBACK_MINUTES)],
+      [STRATEGY_ID, String(SIGNAL_LOOKBACK_MINUTES), broker],
     );
     return rows.map((r) => ({
       id: r.id,
@@ -414,7 +789,7 @@ async function fetchPendingSignals(): Promise<PendingSignal[]> {
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
     if (code === '42P01' || code === '42703') {
-      console.warn('[pilot/executor] schema not ready (executions table or required columns missing) — skipping tick');
+      console.warn('[pilot/executor] schema not ready — skipping tick');
       return [];
     }
     throw err;
@@ -431,13 +806,13 @@ async function buildExchangeInfoMap(): Promise<Map<string, SymbolFilters>> {
   return map;
 }
 
-async function getOpenExecutionCount(): Promise<number> {
+async function getOpenExecutionCount(broker: string): Promise<number> {
   try {
     const rows = await query<{ n: string }>(
       `SELECT COUNT(*)::TEXT AS n FROM executions
         WHERE broker = $1
           AND status IN ('pending','filled','partially_filled')`,
-      [BROKER],
+      [broker],
     );
     return rows.length > 0 ? Number(rows[0].n) : 0;
   } catch (err: unknown) {
@@ -448,6 +823,7 @@ async function getOpenExecutionCount(): Promise<number> {
 }
 
 interface PersistExecArgs {
+  broker: string;
   signalId: string;
   symbol: string;
   side: OrderSide;
@@ -476,7 +852,7 @@ async function persistExecution(a: PersistExecArgs): Promise<void> {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        ON CONFLICT (client_order_id) DO NOTHING`,
       [
-        a.signalId, BROKER, a.mode, a.symbol, a.side, a.qty,
+        a.signalId, a.broker, a.mode, a.symbol, a.side, a.qty,
         a.entryPrice, a.stopPrice, a.tp1Price, a.leverage,
         a.notionalUsd, a.riskUsd, a.clientOrderId, a.exchangeOrderId, a.status,
         a.status === 'filled' ? new Date() : null,
@@ -493,6 +869,7 @@ async function persistExecution(a: PersistExecArgs): Promise<void> {
 }
 
 interface ErrorLogArgs {
+  broker: string;
   signalId?: string;
   executionId?: string;
   stage: 'size' | 'filter' | 'place_entry' | 'place_sl' | 'place_tp' | 'manage' | 'cancel' | 'handshake';
@@ -508,7 +885,7 @@ async function logError(a: ErrorLogArgs): Promise<void> {
         (signal_id, execution_id, broker, stage, error_code, error_msg, payload)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
-        a.signalId ?? null, a.executionId ?? null, BROKER,
+        a.signalId ?? null, a.executionId ?? null, a.broker,
         a.stage, a.errorCode ?? null, a.errorMsg.slice(0, 2000),
         a.payload ? JSON.stringify(a.payload) : null,
       ],
@@ -521,7 +898,6 @@ async function logError(a: ErrorLogArgs): Promise<void> {
 
 async function ensureLeverageAndMargin(symbol: string, leverage: number, account: BinanceAccount): Promise<void> {
   const livePos = account.positions.find((p) => p.symbol === symbol && Math.abs(p.positionAmt) > 0);
-  // Only set if no live position — avoids disturbing user's existing positions on this symbol
   if (livePos) return;
   await setMarginType(symbol, 'ISOLATED');
   await setLeverage(symbol, leverage);

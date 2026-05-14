@@ -1,49 +1,37 @@
 /**
- * R StocksTrader (RoboForex) REST bridge — INTERFACE ONLY.
+ * R StocksTrader (RoboForex) REST bridge — MetaApi v1 convention.
  *
  * Plan: docs/plans/2026-05-08-demo-roboforex-rstockstrader.md §9
  *
- * Implementation deliberately deferred to a follow-up PR. This file pins
- * the surface area so executor.ts dispatch (also a follow-up) can be
- * symmetric with binance-futures.ts: same shape of inputs, same kind of
- * outputs, same idempotency guarantees.
+ * Endpoint paths follow the MetaApi MT5 REST API (the protocol used by
+ * R StocksTrader). Verify each path against the operator dashboard before
+ * first live run — the base URL is operator-configured via
+ * RSTOCKSTRADER_BASE_URL and RoboForex may use a custom sub-path prefix.
  *
- * Endpoint paths and exact field names on the R StocksTrader REST API
- * are intentionally NOT hard-coded here — the operator dashboard is the
- * authoritative source. The implementation PR will pin them once the
- * /instruments and /accounts endpoints have been verified live.
+ * Auth: `auth-token: <token>` header (MetaApi standard).
+ * Rate limit: 10 req/s default, override with RSTOCKSTRADER_RATE_LIMIT_RPS.
  *
- * No runtime calls are made by this module today. Importing it has no
- * side effects beyond pulling type definitions.
+ * Write methods are gated by EXECUTION_MODE, matching binance-futures.ts
+ * behaviour exactly. EXECUTION_MODE=disabled → dry-run log, no HTTP write.
  */
 
 import type { OrderSide } from './binance-futures';
 import type { RStocksTraderAssetClass } from './rstockstrader-symbols';
 
-/**
- * Per-instrument trading rules pulled from `/instruments/{symbol}`.
- * Field names mirror what callers need; the bridge implementation maps
- * them from whatever the R StocksTrader response uses.
- */
+// ─── Public types (unchanged from stub) ────────────────────────────────
+
 export interface RStocksTraderInstrumentSpec {
   symbol: string;
   assetClass: RStocksTraderAssetClass;
-  /** Smallest tradeable size in base units. */
   minQty: number;
-  /** Quantity increment; orders rounded down to a multiple of this. */
   qtyStep: number;
-  /** Price increment; SL/TP rounded to a multiple of this. */
   tickSize: number;
   /**
-   * Contract size in base-asset units per "1 lot" (FX: typically 100 000;
-   * XAUUSD: 100 oz; stocks: 1 share). Required for USD-risk derivation.
+   * USD value of 1 tick move for 1 standard lot, in the account's base
+   * currency. Used for risk-first lot sizing: lots = riskUsd / (stopPips * tickValue).
    */
+  tickValue: number;
   contractSize: number;
-  /**
-   * Minimum distance, in price units, between current price and any
-   * attached SL/TP. Reject locally before posting if the proposed stop
-   * is closer than this.
-   */
   minStopDistance: number;
   digits: number;
 }
@@ -57,41 +45,23 @@ export interface RStocksTraderAccountInfo {
   marginFree: number;
 }
 
-export type RStocksTraderOrderType =
-  // Names will be normalised by the bridge to whatever the R StocksTrader
-  // API expects — callers stay decoupled from the wire format.
-  | 'MARKET'
-  | 'LIMIT'
-  | 'STOP_ENTRY';
+export type RStocksTraderOrderType = 'MARKET' | 'LIMIT' | 'STOP_ENTRY';
 
 export interface RStocksTraderPlaceInput {
   symbol: string;
   side: OrderSide;
   type: RStocksTraderOrderType;
-  /** Quantity in base units; caller has already rounded to qtyStep. */
   qty: number;
-  /** Required for LIMIT and STOP_ENTRY. Ignored for MARKET. */
   triggerPrice?: number;
-  /** Attached stop loss; absolute price, NOT a delta. */
   stopLoss: number;
-  /** Attached take profit; absolute price, NOT a delta. */
   takeProfit: number;
-  /**
-   * Idempotency reference. Same value passed twice → second call must
-   * be a no-op or return the original order id. The bridge maps this
-   * to whatever client-reference field R StocksTrader exposes.
-   * <= 64 chars, alphanumeric + dash + underscore.
-   */
   clientRef: string;
-  /** Optional human-readable comment surfaced in the dashboard. */
   comment?: string;
 }
 
 export interface RStocksTraderPlaceResult {
   brokerOrderId: string;
-  /** Echoed back so callers can correlate even after retries. */
   clientRef: string;
-  /** Status reported at placement time; 'pending' is normal for stop entries. */
   status: 'pending' | 'filled' | 'partially_filled' | 'rejected';
   filledQty?: number;
   avgFillPrice?: number;
@@ -109,48 +79,12 @@ export interface RStocksTraderPosition {
   takeProfit: number | null;
 }
 
-/**
- * Read-side and write-side surface that the executor depends on.
- * Implementations must be safe to construct lazily (e.g. inside a request
- * handler) and must NOT cache mutable state across calls — the executor
- * relies on each call hitting the broker fresh.
- */
 export interface RStocksTraderBridge {
-  /**
-   * Read account equity / balance / margin headroom.
-   * Used for sizing (`equity * EXEC_RISK_PCT / 100`).
-   */
   getAccountInfo(): Promise<RStocksTraderAccountInfo>;
-
-  /**
-   * Per-symbol trading rules. Bridge implementations should cache for ~1h
-   * to amortise the round-trip; key by `symbol`. Cache invalidation is
-   * out of scope for this surface — a process restart clears it.
-   */
   getInstrumentSpec(symbol: string): Promise<RStocksTraderInstrumentSpec>;
-
-  /**
-   * Place a bracket (entry + attached SL + attached TP) in a single REST
-   * call. Bridge MUST surface broker-side rejections as a non-throwing
-   * `status = 'rejected'` result with `rejectReason` populated; only
-   * network / 5xx errors should throw.
-   */
   placeOrder(input: RStocksTraderPlaceInput): Promise<RStocksTraderPlaceResult>;
-
-  /**
-   * Cancel a still-pending entry order. Idempotent: cancelling an already
-   * filled, already cancelled, or unknown order MUST resolve, not throw.
-   */
   cancelOrder(brokerOrderId: string): Promise<void>;
-
-  /** Snapshot of all currently open positions on the configured account. */
   listOpenPositions(): Promise<RStocksTraderPosition[]>;
-
-  /**
-   * Close an open position at market. Used by the kill-switch / position
-   * manager paths, not by the entry executor. Same idempotency rule as
-   * cancelOrder.
-   */
   closePosition(positionId: string): Promise<void>;
 }
 
@@ -160,27 +94,296 @@ export interface RStocksTraderEnv {
   accountId: string;
 }
 
-/**
- * Read environment, validate presence, return a bridge instance.
- * Implementation will throw at call-site (NOT at module-load) if any env
- * var is missing — matches binance-futures.ts behaviour so a misconfigured
- * deploy fails the handshake, not the cold boot.
- */
+// ─── Token bucket rate limiter ──────────────────────────────────────────
+
+class TokenBucket {
+  private tokens: number;
+  private lastRefill: number;
+
+  constructor(private readonly capacity: number, private readonly rps: number) {
+    this.tokens = capacity;
+    this.lastRefill = Date.now();
+  }
+
+  async consume(): Promise<void> {
+    const now = Date.now();
+    const elapsed = now - this.lastRefill;
+    this.tokens = Math.min(this.capacity, this.tokens + (elapsed / 1000) * this.rps);
+    this.lastRefill = now;
+
+    if (this.tokens >= 1) {
+      this.tokens--;
+      return;
+    }
+    const waitMs = Math.ceil(((1 - this.tokens) / this.rps) * 1000);
+    await new Promise<void>((resolve) => setTimeout(resolve, waitMs));
+    this.tokens = 0;
+  }
+}
+
+const RST_RATE_LIMIT_RPS = (() => {
+  const n = Number(process.env.RSTOCKSTRADER_RATE_LIMIT_RPS ?? '10');
+  return Number.isFinite(n) && n > 0 ? n : 10;
+})();
+
+// One bucket shared across all bridge instances in this process.
+const globalBucket = new TokenBucket(RST_RATE_LIMIT_RPS, RST_RATE_LIMIT_RPS);
+
+const REQ_TIMEOUT_MS = 10_000;
+
+function getExecMode(): 'disabled' | 'testnet' | 'live' {
+  const raw = (process.env.EXECUTION_MODE ?? 'disabled').toLowerCase();
+  if (raw === 'testnet' || raw === 'live') return raw;
+  return 'disabled';
+}
+
+// ─── HTTP client ────────────────────────────────────────────────────────
+
+async function rstRequest<T>(
+  method: 'GET' | 'POST' | 'DELETE',
+  path: string,
+  env: RStocksTraderEnv,
+  body?: Record<string, unknown>,
+): Promise<T> {
+  await globalBucket.consume();
+
+  const url = `${env.baseUrl.replace(/\/$/, '')}${path}`;
+  const headers: Record<string, string> = {
+    'auth-token': env.token,
+    'Content-Type': 'application/json',
+  };
+
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(REQ_TIMEOUT_MS),
+  });
+
+  const text = await res.text();
+  let json: unknown;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    throw new Error(`RStocksTrader non-JSON (${res.status}): ${text.slice(0, 200)}`);
+  }
+
+  if (!res.ok) {
+    const err = json as { message?: string; error?: string } | null;
+    throw new Error(
+      `[rst ${res.status}] ${err?.message ?? err?.error ?? text.slice(0, 200)} (${path})`,
+    );
+  }
+
+  return json as T;
+}
+
+// ─── Instrument spec cache (1-hour TTL per symbol, process-scoped) ──────
+
+interface SpecCacheEntry {
+  spec: RStocksTraderInstrumentSpec;
+  expiresAt: number;
+}
+const specCache = new Map<string, SpecCacheEntry>();
+
+// ─── Bridge implementation ──────────────────────────────────────────────
+
+class RStocksTraderBridgeImpl implements RStocksTraderBridge {
+  constructor(private readonly env: RStocksTraderEnv) {}
+
+  async getAccountInfo(): Promise<RStocksTraderAccountInfo> {
+    // MetaApi endpoint: GET /users/current/accounts/{id}/account-information
+    // Verify path against RoboForex operator dashboard before first run.
+    const raw = await rstRequest<{
+      balance: number;
+      equity: number;
+      margin?: number;
+      freeMargin?: number;
+      currency?: string;
+    }>('GET', `/users/current/accounts/${this.env.accountId}/account-information`, this.env);
+
+    return {
+      accountId: this.env.accountId,
+      currency: raw.currency ?? 'USD',
+      balance: raw.balance,
+      equity: raw.equity,
+      marginUsed: raw.margin ?? 0,
+      marginFree: raw.freeMargin ?? raw.equity,
+    };
+  }
+
+  async getInstrumentSpec(symbol: string): Promise<RStocksTraderInstrumentSpec> {
+    const cached = specCache.get(symbol);
+    if (cached && cached.expiresAt > Date.now()) return cached.spec;
+
+    // MetaApi endpoint: GET /users/current/accounts/{id}/symbols/{symbol}/specification
+    const raw = await rstRequest<{
+      symbol: string;
+      tickSize: number;
+      tickValue: number;
+      point?: number;
+      digits: number;
+      minVolume: number;
+      maxVolume?: number;
+      volumeStep: number;
+      contractSize: number;
+      // minStopLevel is in "points"; multiply by point to get price distance.
+      minStopLevel?: number;
+    }>(
+      'GET',
+      `/users/current/accounts/${this.env.accountId}/symbols/${encodeURIComponent(symbol)}/specification`,
+      this.env,
+    );
+
+    const point = raw.point ?? raw.tickSize;
+    const spec: RStocksTraderInstrumentSpec = {
+      symbol: raw.symbol,
+      assetClass: 'fx',            // caller overrides via RSTOCKSTRADER_SYMBOLS lookup
+      minQty: raw.minVolume,
+      qtyStep: raw.volumeStep,
+      tickSize: raw.tickSize,
+      tickValue: raw.tickValue,
+      contractSize: raw.contractSize,
+      minStopDistance: (raw.minStopLevel ?? 0) * point,
+      digits: raw.digits,
+    };
+
+    specCache.set(symbol, { spec, expiresAt: Date.now() + 3_600_000 });
+    return spec;
+  }
+
+  async placeOrder(input: RStocksTraderPlaceInput): Promise<RStocksTraderPlaceResult> {
+    if (getExecMode() === 'disabled') {
+      console.log(`[rst] DRY-RUN placeOrder — EXECUTION_MODE=disabled — symbol=${input.symbol}`);
+      return { brokerOrderId: 'dry-run', clientRef: input.clientRef, status: 'pending' };
+    }
+
+    // Map to MetaApi actionType strings
+    const actionType =
+      input.type === 'MARKET'
+        ? input.side === 'BUY' ? 'ORDER_TYPE_BUY' : 'ORDER_TYPE_SELL'
+        : input.type === 'LIMIT'
+        ? input.side === 'BUY' ? 'ORDER_TYPE_BUY_LIMIT' : 'ORDER_TYPE_SELL_LIMIT'
+        : input.side === 'BUY' ? 'ORDER_TYPE_BUY_STOP' : 'ORDER_TYPE_SELL_STOP';
+
+    const raw = await rstRequest<{
+      numericCode?: number;
+      stringCode?: string;
+      message?: string;
+      orderId?: string;
+      positionId?: string;
+    }>('POST', `/users/current/accounts/${this.env.accountId}/trade`, this.env, {
+      actionType,
+      symbol: input.symbol,
+      volume: input.qty,
+      ...(input.triggerPrice !== undefined ? { openPrice: input.triggerPrice } : {}),
+      stopLoss: input.stopLoss,
+      takeProfit: input.takeProfit,
+      clientId: input.clientRef,
+      comment: input.comment,
+    });
+
+    // MetaApi returns TRADE_RETCODE_REJECT (or similar) for broker rejections
+    const code = raw.stringCode ?? '';
+    if (code.includes('REJECT') || code.includes('ERROR') || (raw.numericCode !== undefined && raw.numericCode !== 10009)) {
+      return {
+        brokerOrderId: raw.orderId ?? 'unknown',
+        clientRef: input.clientRef,
+        status: 'rejected',
+        rejectReason: raw.message ?? raw.stringCode ?? `numericCode=${raw.numericCode}`,
+      };
+    }
+
+    return {
+      brokerOrderId: raw.orderId ?? raw.positionId ?? 'unknown',
+      clientRef: input.clientRef,
+      // Market orders on MT5 fill synchronously; the REST call returns when done.
+      status: 'filled',
+    };
+  }
+
+  async cancelOrder(brokerOrderId: string): Promise<void> {
+    if (getExecMode() === 'disabled') {
+      console.log(`[rst] DRY-RUN cancelOrder — orderId=${brokerOrderId}`);
+      return;
+    }
+    try {
+      await rstRequest(
+        'POST',
+        `/users/current/accounts/${this.env.accountId}/trade`,
+        this.env,
+        { actionType: 'ORDER_CANCEL', orderId: brokerOrderId },
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      // Already filled or cancelled — ignore
+      if (msg.includes('DONE') || msg.includes('10009') || msg.includes('10027')) return;
+      throw err;
+    }
+  }
+
+  async listOpenPositions(): Promise<RStocksTraderPosition[]> {
+    // MetaApi endpoint: GET /users/current/accounts/{id}/positions
+    const raw = await rstRequest<
+      Array<{
+        id: string;
+        symbol: string;
+        type: string;    // 'POSITION_TYPE_BUY' | 'POSITION_TYPE_SELL'
+        volume: number;
+        openPrice: number;
+        profit: number;
+        stopLoss?: number | null;
+        takeProfit?: number | null;
+      }>
+    >('GET', `/users/current/accounts/${this.env.accountId}/positions`, this.env);
+
+    return (Array.isArray(raw) ? raw : []).map((p) => ({
+      positionId: p.id,
+      symbol: p.symbol,
+      side: p.type.includes('BUY') ? 'BUY' : ('SELL' as OrderSide),
+      qty: p.volume,
+      openPrice: p.openPrice,
+      unrealizedPnl: p.profit,
+      stopLoss: p.stopLoss ?? null,
+      takeProfit: p.takeProfit ?? null,
+    }));
+  }
+
+  async closePosition(positionId: string): Promise<void> {
+    if (getExecMode() === 'disabled') {
+      console.log(`[rst] DRY-RUN closePosition — positionId=${positionId}`);
+      return;
+    }
+    try {
+      await rstRequest(
+        'POST',
+        `/users/current/accounts/${this.env.accountId}/trade`,
+        this.env,
+        { actionType: 'POSITION_CLOSE_ID', positionId },
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      // Already closed — idempotent
+      if (msg.includes('DONE') || msg.includes('10009')) return;
+      throw err;
+    }
+  }
+}
+
+// ─── Public factories ───────────────────────────────────────────────────
+
 export function createRStocksTraderBridge(env: RStocksTraderEnv): RStocksTraderBridge {
-  // Implementation deferred. See plan §9.
-  void env;
-  throw new Error(
-    'rstockstrader-bridge: not implemented yet — see docs/plans/2026-05-08-demo-roboforex-rstockstrader.md',
-  );
+  return new RStocksTraderBridgeImpl(env);
 }
 
 /**
- * Read env vars in one place so the executor dispatch layer (follow-up PR)
- * doesn't have to know about RoboForex specifics.
+ * Read env vars in one place so the executor dispatch layer doesn't need to
+ * know about RoboForex specifics. Returns null when any required var is absent
+ * so the caller can fail-fast at handshake time rather than mid-tick.
  *
  * Required env:
- *   RSTOCKSTRADER_BASE_URL    e.g. https://stockstrader.roboforex.com/api/...
- *   RSTOCKSTRADER_TOKEN       Bearer token from the dashboard
+ *   RSTOCKSTRADER_BASE_URL    e.g. https://mt-client-api-v1.agiliumtrade.ai
+ *   RSTOCKSTRADER_TOKEN       Bearer / auth-token from the dashboard
  *   RSTOCKSTRADER_ACCOUNT_ID  Numeric demo account id
  */
 export function readRStocksTraderEnvOrNull(): RStocksTraderEnv | null {
