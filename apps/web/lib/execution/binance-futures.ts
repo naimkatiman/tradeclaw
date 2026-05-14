@@ -411,6 +411,48 @@ export async function cancelAllOrders(symbol: string): Promise<void> {
   await request('DELETE', '/fapi/v1/allOpenOrders', { symbol }, true);
 }
 
+// ─── Trade history ──────────────────────────────────────────────────────────
+
+export interface UserTrade {
+  id: number;
+  orderId: number;
+  symbol: string;
+  side: OrderSide;
+  price: string;
+  qty: string;
+  realizedPnl: string;
+  commission: string;
+  commissionAsset: string;
+  time: number;
+  positionSide: string;
+  maker: boolean;
+  buyer: boolean;
+}
+
+/**
+ * Fetch recent trades for a symbol, optionally bounded by startTimeMs.
+ * Used by the position manager to backfill realized_pnl on close.
+ *
+ * Binance returns up to 1000 per call; 100 is more than enough for a
+ * single-position account within one position's lifetime.
+ */
+export async function getUserTrades(
+  symbol: string,
+  startTimeMs?: number,
+  limit = 100,
+): Promise<UserTrade[]> {
+  return request<UserTrade[]>(
+    'GET',
+    '/fapi/v1/userTrades',
+    {
+      symbol,
+      ...(startTimeMs !== undefined ? { startTime: startTimeMs } : {}),
+      limit,
+    },
+    true,
+  );
+}
+
 // ─── Mode helpers ───────────────────────────────────────────────────────────
 
 export function currentMode(): ExecutionMode {
