@@ -350,6 +350,41 @@ export async function getOrderByClientId(
   }
 }
 
+export interface UserTrade {
+  symbol: string;
+  orderId: number;
+  side: string;
+  price: string;
+  qty: string;
+  realizedPnl: string;
+  commission: string;
+  commissionAsset: string;
+  time: number;
+  quoteQty: string;
+  positionSide: string;
+  maker: boolean;
+  buyer: boolean;
+}
+
+/**
+ * Recent fills for a symbol since `startTimeMs`. Binance caps `limit` at 1000.
+ * Each row carries an exchange-computed `realizedPnl` (gross, before commission)
+ * and a `commission` denominated in `commissionAsset`. Used by the position
+ * manager to backfill `executions.realized_pnl` on close detection.
+ */
+export async function getUserTrades(
+  symbol: string,
+  startTimeMs?: number,
+  limit = 500,
+): Promise<UserTrade[]> {
+  return request<UserTrade[]>(
+    'GET',
+    '/fapi/v1/userTrades',
+    { symbol, startTime: startTimeMs, limit },
+    true,
+  );
+}
+
 // ─── Signed write endpoints (gated by EXECUTION_MODE) ───────────────────────
 
 function ensureWriteAllowed(action: string, payload: Record<string, unknown>): boolean {
