@@ -31,7 +31,13 @@ import {
 import { buildClientIds } from './client-ids';
 import { runEntryFilters } from './filters';
 import { checkLossKillSwitch } from './risk-rails';
-import { computeATR, computeSize, extractFilters, type SymbolFilters } from './sizing';
+import {
+  createRStocksTraderBridge,
+  readRStocksTraderEnvOrNull,
+  type RStocksTraderInstrumentSpec,
+} from './rstockstrader-bridge';
+import { toRStocksTraderSymbol } from './rstockstrader-symbols';
+import { computeATR, computeSize, extractFilters, roundPrice, roundQty, type SymbolFilters } from './sizing';
 import { notifyEntryFilled } from './telegram';
 import { getTodayUniverse } from './universe-runner';
 
@@ -82,6 +88,15 @@ export async function runExecutorTick(): Promise<ExecutorTickResult> {
   if (mode === 'disabled') {
     console.log('[pilot/executor] EXECUTION_MODE=disabled — tick skipped');
     return result;
+  }
+
+  // Broker dispatch — keep paths separate (no shared abstraction on first pass).
+  // Per-broker code asymmetries (MT5 lot vs futures qty, attached vs separate
+  // SL/TP) will leak into any shared interface; wait until two paths are
+  // working end-to-end before extracting common logic.
+  const broker = (process.env.EXECUTION_BROKER ?? 'binance').toLowerCase();
+  if (broker === 'r-stockstrader') {
+    return runRStocksTraderTick(mode, result);
   }
 
   // PG advisory lock — prevents two overlapping cron firings from both
@@ -544,4 +559,294 @@ function roundDownToStep(qty: number, stepSize: number, precision: number): numb
 
 function getMsg(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
+}
+
+// ─── R StocksTrader executor path ─────────────────────────────────────────────
+//
+// Separate from the Binance path by design. R StocksTrader uses attached
+// SL/TP on a single order call, lot semantics (not futures qty), and a
+// different symbol namespace. Sharing code would require parameterising
+// every asymmetry — defer that until both paths are proven.
+
+const RST_BROKER = 'r-stockstrader';
+
+async function runRStocksTraderTick(
+  mode: ExecutorTickResult['mode'],
+  result: ExecutorTickResult,
+): Promise<ExecutorTickResult> {
+  const env = readRStocksTraderEnvOrNull();
+  if (!env) {
+    console.error('[pilot/rst] RSTOCKSTRADER env vars missing — tick skipped');
+    result.errors++;
+    return result;
+  }
+
+  const bridge = createRStocksTraderBridge(env);
+
+  return withClient(async (lockClient) => {
+    const lockAcquired = await tryAcquireExecutorLock(lockClient);
+    if (!lockAcquired) return { ...result, skipped: 'locked' };
+
+    try {
+      const signals = await fetchPendingSignals();
+      result.processed = signals.length;
+      if (signals.length === 0) return result;
+
+      let account;
+      try {
+        account = await bridge.getAccountInfo();
+      } catch (err) {
+        await logRstError({ stage: 'handshake', errorMsg: getMsg(err) });
+        result.errors++;
+        return result;
+      }
+
+      const universe = new Set(await getTodayUniverse());
+      const openCount = await getRstOpenExecutionCount();
+      const maxPositions = cfgInt('EXEC_MAX_POSITIONS', 4);
+      let liveOpen = openCount;
+      const inTickSymbols = new Set<string>();
+
+      for (const sig of signals) {
+        try {
+          const entry = toRStocksTraderSymbol(sig.pair);
+          if (!entry) {
+            result.filtered++;
+            await logRstError({
+              signalId: sig.id,
+              stage: 'filter',
+              errorCode: 'symbol_not_rstockstrader_eligible',
+              errorMsg: `${sig.pair} has no R StocksTrader mapping`,
+            });
+            continue;
+          }
+
+          const { symbol, assetClass } = entry;
+
+          if (inTickSymbols.has(symbol)) {
+            result.filtered++;
+            continue;
+          }
+
+          // Universe + concurrency filter (re-uses existing filters logic with
+          // a synthetic concurrency state — no live position list from RST yet).
+          if (!universe.has(sig.pair) && !universe.has(symbol)) {
+            result.filtered++;
+            await logRstError({
+              signalId: sig.id,
+              stage: 'filter',
+              errorCode: 'not_in_universe',
+              errorMsg: `${sig.pair} not in today's universe`,
+            });
+            continue;
+          }
+          if (liveOpen >= maxPositions) {
+            result.filtered++;
+            await logRstError({
+              signalId: sig.id,
+              stage: 'filter',
+              errorCode: 'max_positions_reached',
+              errorMsg: `liveOpen=${liveOpen} maxPositions=${maxPositions}`,
+            });
+            continue;
+          }
+
+          // Fetch instrument spec for sizing constraints.
+          let spec: RStocksTraderInstrumentSpec;
+          try {
+            spec = await bridge.getInstrumentSpec(symbol);
+          } catch (err) {
+            result.rejected++;
+            await logRstError({ signalId: sig.id, stage: 'size', errorCode: 'instrument_spec_failed', errorMsg: getMsg(err) });
+            continue;
+          }
+
+          // ATR from Binance klines (real market data even when RST is the execution venue).
+          const klinesH1 = await getKlines(symbol.replace('/', ''), '1h', H1_KLINE_LIMIT).catch(
+            () => getKlines(sig.pair.replace('/', '') + 'T', '1h', H1_KLINE_LIMIT).catch(() => [] as BinanceKline[]),
+          );
+          const atr = sig.entryAtr ?? computeATR(klinesH1);
+          if (!atr || atr <= 0) {
+            result.rejected++;
+            await logRstError({ signalId: sig.id, stage: 'size', errorCode: 'atr_unavailable', errorMsg: `pair=${sig.pair}` });
+            continue;
+          }
+
+          // Sizing — use same risk-first formula as Binance. Notional cap is
+          // asset-class specific per plan §6.
+          const notionalPct = rstNotionalPct(assetClass);
+          const rstFilters: SymbolFilters = {
+            stepSize: spec.qtyStep,
+            tickSize: spec.tickSize,
+            minQty: spec.minQty,
+            minNotional: 0,          // RST enforces via minVolume/stopsLevel, not notional
+            quantityPrecision: spec.digits,
+            pricePrecision: spec.digits,
+          };
+
+          const sizing = computeSize({
+            side: sig.direction,
+            entryPrice: sig.entryPrice,
+            atr,
+            equityUsd: account.equity,
+            filters: rstFilters,
+            perTradeNotionalPct: notionalPct,
+          });
+          if (!sizing.ok) {
+            result.rejected++;
+            await logRstError({ signalId: sig.id, stage: 'size', errorCode: sizing.reason, errorMsg: sizing.detail });
+            continue;
+          }
+
+          // Reject if stop distance < minStopDistance (broker-enforced).
+          if (sizing.stopDistance < spec.minStopDistance) {
+            result.rejected++;
+            await logRstError({
+              signalId: sig.id,
+              stage: 'size',
+              errorCode: 'stop_too_close',
+              errorMsg: `stopDist=${sizing.stopDistance} < minStopDistance=${spec.minStopDistance}`,
+            });
+            continue;
+          }
+
+          const ids = buildClientIds(sig.id);
+
+          // R StocksTrader: single bracket call with attached SL + TP.
+          const placed = await bridge.placeOrder({
+            symbol,
+            side: sig.direction,
+            type: 'MARKET',
+            qty: sizing.qty,
+            stopLoss: roundPrice(sizing.stopPrice, rstFilters),
+            takeProfit: roundPrice(sizing.tp1Price, rstFilters),
+            clientRef: ids.entry,
+            comment: `tc:${sig.id}`,
+          });
+
+          if (placed.status === 'rejected') {
+            result.rejected++;
+            await logRstError({
+              signalId: sig.id,
+              stage: 'place_entry',
+              errorCode: 'broker_rejected',
+              errorMsg: placed.rejectReason ?? 'unknown reject',
+            });
+            continue;
+          }
+
+          await persistRstExecution({
+            signalId: sig.id,
+            symbol,
+            side: sig.direction,
+            qty: sizing.qty,
+            entryPrice: placed.avgFillPrice ?? sig.entryPrice,
+            stopPrice: sizing.stopPrice,
+            tp1Price: sizing.tp1Price,
+            leverage: sizing.leverage,
+            notionalUsd: sizing.notionalUsd,
+            riskUsd: sizing.riskUsd,
+            clientOrderId: ids.entry,
+            exchangeOrderId: placed.brokerOrderId || null,
+            status: placed.status === 'filled' ? 'filled' : 'pending',
+            mode: mode === 'testnet' ? 'testnet' : 'live',
+          });
+
+          result.executed++;
+          liveOpen++;
+          inTickSymbols.add(symbol);
+
+          void notifyEntryFilled({
+            signalId: sig.id,
+            symbol,
+            side: sig.direction,
+            qty: sizing.qty,
+            entryPrice: placed.avgFillPrice ?? sig.entryPrice,
+            stopPrice: sizing.stopPrice,
+            tp1Price: sizing.tp1Price,
+            notionalUsd: sizing.notionalUsd,
+            riskUsd: sizing.riskUsd,
+            leverage: sizing.leverage,
+          });
+        } catch (err) {
+          result.errors++;
+          await logRstError({ signalId: sig.id, stage: 'place_entry', errorMsg: getMsg(err) });
+        }
+      }
+
+      console.log(`[pilot/rst] tick: ${JSON.stringify(result)}`);
+      return result;
+    } finally {
+      await releaseExecutorLock(lockClient);
+    }
+  });
+}
+
+function rstNotionalPct(assetClass: string): number {
+  switch (assetClass) {
+    case 'crypto-cfd': return cfgInt('EXEC_CRYPTO_CFD_PER_TRADE_NOTIONAL_PCT', 50);
+    case 'us-stock':
+    case 'us-etf': return cfgInt('EXEC_STOCK_PER_TRADE_NOTIONAL_PCT', 100);
+    default: return cfgInt('EXEC_FX_PER_TRADE_NOTIONAL_PCT', 100); // FX, metals, energy
+  }
+}
+
+async function getRstOpenExecutionCount(): Promise<number> {
+  try {
+    const rows = await query<{ n: string }>(
+      `SELECT COUNT(*)::TEXT AS n FROM executions
+        WHERE broker = $1
+          AND status IN ('pending','filled','partially_filled')`,
+      [RST_BROKER],
+    );
+    return rows.length > 0 ? Number(rows[0].n) : 0;
+  } catch (err: unknown) {
+    const code = (err as { code?: string } | null)?.code;
+    if (code === '42P01') return 0;
+    throw err;
+  }
+}
+
+async function persistRstExecution(a: Omit<PersistExecArgs, 'slOrderId' | 'tpOrderId'>): Promise<void> {
+  try {
+    await execute(
+      `INSERT INTO executions
+        (signal_id, broker, mode, symbol, side, qty, entry_price, stop_price, tp1_price,
+         leverage, notional_usd, risk_usd, client_order_id, exchange_order_id, status,
+         filled_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+       ON CONFLICT (client_order_id) DO NOTHING`,
+      [
+        a.signalId, RST_BROKER, a.mode, a.symbol, a.side, a.qty,
+        a.entryPrice, a.stopPrice, a.tp1Price, a.leverage,
+        a.notionalUsd, a.riskUsd, a.clientOrderId, a.exchangeOrderId, a.status,
+        a.status === 'filled' ? new Date() : null,
+      ],
+    );
+  } catch (err: unknown) {
+    const code = (err as { code?: string } | null)?.code;
+    if (code === '42P01') {
+      console.warn('[pilot/rst] migration 018 not applied — execution not persisted (', a.clientOrderId, ')');
+      return;
+    }
+    throw err;
+  }
+}
+
+async function logRstError(a: Omit<ErrorLogArgs, 'stage'> & { stage: ErrorLogArgs['stage'] }): Promise<void> {
+  try {
+    await execute(
+      `INSERT INTO execution_errors
+        (signal_id, execution_id, broker, stage, error_code, error_msg, payload)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        a.signalId ?? null, a.executionId ?? null, RST_BROKER,
+        a.stage, a.errorCode ?? null, a.errorMsg.slice(0, 2000),
+        a.payload ? JSON.stringify(a.payload) : null,
+      ],
+    );
+  } catch (err: unknown) {
+    const code = (err as { code?: string } | null)?.code;
+    if (code !== '42P01') console.error('[pilot/rst] failed to persist error:', err);
+  }
 }
