@@ -311,6 +311,40 @@ export interface IncomeEntry {
   time: number;
 }
 
+export interface UserTrade {
+  id: number;
+  orderId: number;
+  symbol: string;
+  side: OrderSide;
+  price: string;
+  qty: string;
+  quoteQty: string;
+  realizedPnl: string;
+  commission: string;
+  commissionAsset: string;
+  time: number;
+  positionSide: string;
+  maker: boolean;
+  buyer: boolean;
+}
+
+/**
+ * Fetch individual fills for a symbol since `startTimeMs`. Used by the
+ * position manager to backfill realized_pnl once a position closes.
+ *
+ * realizedPnl per trade is the Binance-computed P&L for the close leg only;
+ * commission is the fee paid (always positive; may be USDT or BNB).
+ * Limit is 1000 per call — enough for any single symbol's history.
+ */
+export async function getUserTrades(symbol: string, startTimeMs: number): Promise<UserTrade[]> {
+  return request<UserTrade[]>(
+    'GET',
+    '/fapi/v1/userTrades',
+    { symbol, startTime: startTimeMs, limit: 1000 },
+    true,
+  );
+}
+
 /**
  * Realized-PnL income entries since `startTimeMs`. Used by the daily/weekly
  * loss kill switches as the authoritative source — independent of our local
