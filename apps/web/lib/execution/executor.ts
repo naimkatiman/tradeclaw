@@ -14,6 +14,7 @@
 import type { PoolClient } from 'pg';
 import { execute, query, withClient } from '../db-pool';
 import { BINANCE_SYMBOLS } from '../../app/lib/ohlcv';
+import { runRStocksTraderTick } from './rstockstrader-executor';
 import {
   cancelOrder,
   currentMode,
@@ -76,6 +77,18 @@ interface PendingSignal {
 }
 
 export async function runExecutorTick(): Promise<ExecutorTickResult> {
+  // Broker dispatch — keep per-broker code paths separate (plan §Hard constraints).
+  // EXECUTION_BROKER defaults to 'binance'; only check it after the mode guard
+  // so EXECUTION_MODE=disabled is still the universal kill-switch regardless of broker.
+  const broker = (process.env.EXECUTION_BROKER ?? 'binance').toLowerCase();
+  if (broker === 'r-stockstrader') {
+    const rst = await runRStocksTraderTick();
+    // Surface the R StocksTrader result in the same shape so the cron route
+    // log stays uniform. ExecutorTickResult and RSTExecutorTickResult are
+    // structurally identical for the fields the cron log cares about.
+    return rst as unknown as ExecutorTickResult;
+  }
+
   const mode = currentMode();
   const result: ExecutorTickResult = { mode, processed: 0, executed: 0, rejected: 0, filtered: 0, errors: 0 };
 
