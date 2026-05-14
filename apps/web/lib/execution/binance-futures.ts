@@ -328,6 +328,40 @@ export async function getRealizedPnlSince(startTimeMs: number): Promise<IncomeEn
   );
 }
 
+export interface BinanceTrade {
+  symbol: string;
+  id: number;
+  orderId: number;
+  side: OrderSide;
+  price: string;
+  qty: string;
+  realizedPnl: string;
+  commission: string;
+  commissionAsset: string;
+  time: number;
+  buyer: boolean;
+  maker: boolean;
+}
+
+/**
+ * User trade fills for a symbol since `startTimeMs`. Binance caps limit at
+ * 1000 per call; a 4-position account with daily rotation stays well under
+ * that. Used by the position manager to backfill realized_pnl on close.
+ */
+export async function getUserTrades(
+  symbol: string,
+  startTimeMs: number,
+  endTimeMs?: number,
+): Promise<BinanceTrade[]> {
+  const params: Record<string, string | number | boolean | undefined> = {
+    symbol,
+    startTime: startTimeMs,
+    limit: 100,
+  };
+  if (endTimeMs !== undefined) params.endTime = endTimeMs;
+  return request<BinanceTrade[]>('GET', '/fapi/v1/userTrades', params, true);
+}
+
 /**
  * Fetch a single order by its client-assigned id. Returns NULL when Binance
  * answers -2013 ("Order does not exist") so callers can treat absent =

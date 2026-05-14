@@ -66,12 +66,17 @@ export interface PositionClosedNotice {
   side: OrderSide;
   qty: number;
   entryPrice: number;
+  realizedPnl?: number | null;
 }
 
 export async function notifyPositionClosed(n: PositionClosedNotice): Promise<void> {
+  const pnlLine = n.realizedPnl != null
+    ? `pnl: ${n.realizedPnl >= 0 ? '+' : ''}${n.realizedPnl.toFixed(2)} USDT\n`
+    : '';
   const text =
     `<b>Pilot ${modeBadge()} closed</b>\n` +
     `${n.side} ${n.symbol}  qty=${n.qty}  entry=${n.entryPrice}\n` +
+    pnlLine +
     `signal: <code>${n.signalId}</code>`;
   await safeSend(text);
 }
