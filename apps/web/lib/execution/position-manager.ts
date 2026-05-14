@@ -22,6 +22,7 @@ import {
   getMarkPrice,
   getOpenOrders,
   getOrderByClientId,
+  getSymbolRealizedPnlSince,
   placeOrder,
   type OrderSide,
 } from './binance-futures';
@@ -49,6 +50,8 @@ interface OpenExecution {
   tp1Price: number;
   status: string;
   slMovedToBreakeven: boolean;
+  filledAt: Date | null;
+  createdAt: Date;
 }
 
 export async function runPositionManagerTick(): Promise<ManageTickResult> {
@@ -83,7 +86,11 @@ export async function runPositionManagerTick(): Promise<ManageTickResult> {
         // markPrice fetch shouldn't block marking the row closed —
         // exit_price stays NULL and the row is still terminal.
         const exitPrice = await getMarkPrice(ex.symbol).catch(() => null);
-        await markClosed(ex.id, exitPrice);
+        // Backfill realized PnL from Binance income ledger. Symbol-scoped
+        // to avoid attributing PnL from concurrent closes on other symbols.
+        // Fail-soft: if the income call fails, realized_pnl stays NULL.
+        const realizedPnl = await fetchSymbolRealizedPnl(ex.symbol, ex.filledAt ?? ex.createdAt);
+        await markClosed(ex.id, exitPrice, realizedPnl);
         result.closed++;
         void notifyPositionClosed({
           signalId: ex.signalId,
@@ -167,8 +174,11 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       stop_price: string;
       tp1_price: string;
       status: string;
+      filled_at: Date | null;
+      created_at: Date;
     }>(
-      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status
+      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status,
+              filled_at, created_at
          FROM executions
         WHERE broker = $1 AND status IN ('filled','partially_filled','pending')
         ORDER BY created_at ASC`,
@@ -187,6 +197,8 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       // Phase 1.0: re-derive from Binance state each tick instead of persisting a flag.
       // We detect "needs breakeven move" by scanning open orders for the entry SL clientId.
       slMovedToBreakeven: false,
+      filledAt: r.filled_at ? new Date(r.filled_at) : null,
+      createdAt: new Date(r.created_at),
     }));
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
@@ -195,19 +207,41 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
   }
 }
 
-async function markClosed(executionId: string, exitPrice: number | null): Promise<void> {
+/**
+ * Fetch realized PnL from Binance's income ledger for a single symbol, starting
+ * at the position's fill time. Returns null on any failure — the caller persists
+ * whatever it gets (null is fine; the kill-switch uses the ledger directly).
+ */
+async function fetchSymbolRealizedPnl(symbol: string, since: Date | null): Promise<number | null> {
+  const sinceMs = since && !isNaN(since.getTime()) ? since.getTime() : null;
+  if (sinceMs === null) return null;
   try {
-    // COALESCE($2, exit_price) so a re-run that gets NULL from a flaky
-    // getMarkPrice doesn't overwrite a price we already captured on a prior
-    // tick. Status guard means the row is only updated once anyway.
+    const entries = await getSymbolRealizedPnlSince(symbol, sinceMs);
+    if (entries.length === 0) return null;
+    return entries.reduce((sum, e) => sum + Number(e.income), 0);
+  } catch {
+    return null;
+  }
+}
+
+async function markClosed(
+  executionId: string,
+  exitPrice: number | null,
+  realizedPnl: number | null,
+): Promise<void> {
+  try {
+    // COALESCE guards: a re-run that produces NULL from a flaky fetch
+    // won't overwrite a value already captured on a prior tick.
+    // Status guard means the row transitions to 'closed' exactly once.
     await execute(
       `UPDATE executions
           SET status='closed',
               closed_at=NOW(),
               updated_at=NOW(),
-              exit_price=COALESCE($2, exit_price)
+              exit_price=COALESCE($2, exit_price),
+              realized_pnl=COALESCE($3, realized_pnl)
         WHERE id=$1 AND status <> 'closed'`,
-      [executionId, exitPrice],
+      [executionId, exitPrice, realizedPnl],
     );
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;

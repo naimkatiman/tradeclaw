@@ -4,6 +4,7 @@ jest.mock('./binance-futures', () => ({
   getMarkPrice: jest.fn(),
   getOpenOrders: jest.fn(() => Promise.resolve([])),
   getOrderByClientId: jest.fn(() => Promise.resolve(null)),
+  getSymbolRealizedPnlSince: jest.fn(() => Promise.resolve([])),
   cancelOrder: jest.fn(),
   placeOrder: jest.fn(),
 }));
@@ -69,7 +70,9 @@ describe('runPositionManagerTick — close detection writes exit_price', () => {
     );
     expect(closeCall).toBeDefined();
     expect(closeCall?.[0]).toContain('exit_price=COALESCE($2, exit_price)');
-    expect(closeCall?.[1]).toEqual(['exec-1', 50250]);
+    expect(closeCall?.[0]).toContain('realized_pnl=COALESCE($3, realized_pnl)');
+    // openRow has no filled_at/created_at → sinceMs=null → income fetch skipped → null
+    expect(closeCall?.[1]).toEqual(['exec-1', 50250, null]);
   });
 
   it('still marks closed with NULL exit_price when getMarkPrice throws (fail-soft)', async () => {
@@ -84,7 +87,7 @@ describe('runPositionManagerTick — close detection writes exit_price', () => {
     const closeCall = mockedExecute.mock.calls.find((c) =>
       typeof c[0] === 'string' && c[0].includes("status='closed'"),
     );
-    expect(closeCall?.[1]).toEqual(['exec-1', null]);
+    expect(closeCall?.[1]).toEqual(['exec-1', null, null]);
   });
 
   it('swallows 42703 (exit_price column missing — pre-031 deploy) without failing the tick', async () => {

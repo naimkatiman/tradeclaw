@@ -25,7 +25,7 @@
 
 import { createHmac } from 'node:crypto';
 
-export type ExecutionMode = 'disabled' | 'testnet' | 'live';
+export type ExecutionMode = 'disabled' | 'testnet' | 'demo' | 'live';
 
 export type OrderSide = 'BUY' | 'SELL';
 export type OrderType =
@@ -103,7 +103,7 @@ const REQ_TIMEOUT_MS = 10_000;
 
 function getMode(): ExecutionMode {
   const raw = (process.env.EXECUTION_MODE ?? 'disabled').toLowerCase();
-  if (raw === 'testnet' || raw === 'live') return raw;
+  if (raw === 'testnet' || raw === 'demo' || raw === 'live') return raw;
   return 'disabled';
 }
 
@@ -324,6 +324,24 @@ export async function getRealizedPnlSince(startTimeMs: number): Promise<IncomeEn
     'GET',
     '/fapi/v1/income',
     { incomeType: 'REALIZED_PNL', startTime: startTimeMs, limit: 1000 },
+    true,
+  );
+}
+
+/**
+ * Realized-PnL income entries for a single symbol since `startTimeMs`.
+ * Symbol-scoped so the position manager doesn't accidentally attribute
+ * PnL from a concurrent close on a different symbol. Fail-soft callers
+ * should catch and return null rather than propagate network errors.
+ */
+export async function getSymbolRealizedPnlSince(
+  symbol: string,
+  startTimeMs: number,
+): Promise<IncomeEntry[]> {
+  return request<IncomeEntry[]>(
+    'GET',
+    '/fapi/v1/income',
+    { incomeType: 'REALIZED_PNL', symbol, startTime: startTimeMs, limit: 1000 },
     true,
   );
 }
