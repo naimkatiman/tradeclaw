@@ -329,6 +329,27 @@ export async function getRealizedPnlSince(startTimeMs: number): Promise<IncomeEn
 }
 
 /**
+ * Fetch income entries of any type since `startTimeMs`, optionally filtered
+ * to a single symbol. Used by the position manager to backfill realized_pnl
+ * on a per-symbol basis when a position closes.
+ *
+ * Passing `symbol` keeps the response set tight — avoids pulling the full
+ * account ledger when only one symbol closed.
+ */
+export async function getIncomeSince(
+  incomeType: string,
+  startTimeMs: number,
+  symbol?: string,
+): Promise<IncomeEntry[]> {
+  return request<IncomeEntry[]>(
+    'GET',
+    '/fapi/v1/income',
+    { incomeType, startTime: startTimeMs, symbol, limit: 200 },
+    true,
+  );
+}
+
+/**
  * Fetch a single order by its client-assigned id. Returns NULL when Binance
  * answers -2013 ("Order does not exist") so callers can treat absent =
  * "never placed" without try/catch noise. Other API errors propagate.

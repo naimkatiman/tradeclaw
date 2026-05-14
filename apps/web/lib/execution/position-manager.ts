@@ -19,6 +19,7 @@ import {
   cancelOrder,
   currentMode,
   getAccount,
+  getIncomeSince,
   getMarkPrice,
   getOpenOrders,
   getOrderByClientId,
@@ -49,6 +50,7 @@ interface OpenExecution {
   tp1Price: number;
   status: string;
   slMovedToBreakeven: boolean;
+  filledAt: Date | null;
 }
 
 export async function runPositionManagerTick(): Promise<ManageTickResult> {
@@ -83,7 +85,8 @@ export async function runPositionManagerTick(): Promise<ManageTickResult> {
         // markPrice fetch shouldn't block marking the row closed —
         // exit_price stays NULL and the row is still terminal.
         const exitPrice = await getMarkPrice(ex.symbol).catch(() => null);
-        await markClosed(ex.id, exitPrice);
+        const realizedPnl = await backfillRealizedPnl(ex);
+        await markClosed(ex.id, exitPrice, realizedPnl);
         result.closed++;
         void notifyPositionClosed({
           signalId: ex.signalId,
@@ -153,6 +156,35 @@ async function moveStopToBreakeven(ex: OpenExecution): Promise<boolean> {
   return placed !== null;
 }
 
+// ─── PnL backfill ──────────────────────────────────────────────────────
+
+/**
+ * Fetch REALIZED_PNL and COMMISSION income entries for `ex.symbol` since
+ * `ex.filledAt` and return the net sum. Returns null on any error or when
+ * `filledAt` is missing — the caller stores null and the row stays
+ * reconcilable via a manual income query later.
+ *
+ * Binance REALIZED_PNL income = gross PnL; COMMISSION income is negative.
+ * Summing both gives the net USD result for this position.
+ */
+async function backfillRealizedPnl(ex: OpenExecution): Promise<number | null> {
+  if (!ex.filledAt) return null;
+  const startMs = ex.filledAt.getTime();
+  try {
+    const [pnlEntries, commEntries] = await Promise.all([
+      getIncomeSince('REALIZED_PNL', startMs, ex.symbol),
+      getIncomeSince('COMMISSION', startMs, ex.symbol),
+    ]);
+    if (pnlEntries.length === 0 && commEntries.length === 0) return null;
+    const gross = pnlEntries.reduce((s, e) => s + Number(e.income), 0);
+    const commission = commEntries.reduce((s, e) => s + Number(e.income), 0);
+    return gross + commission;
+  } catch (err) {
+    console.warn(`[pilot/manage] backfillRealizedPnl failed for ${ex.symbol}:`, getMsg(err));
+    return null;
+  }
+}
+
 // ─── DB helpers ────────────────────────────────────────────────────────
 
 async function fetchOpenExecutions(): Promise<OpenExecution[]> {
@@ -167,8 +199,9 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       stop_price: string;
       tp1_price: string;
       status: string;
+      filled_at: Date | null;
     }>(
-      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status
+      `SELECT id, signal_id, symbol, side, qty, entry_price, stop_price, tp1_price, status, filled_at
          FROM executions
         WHERE broker = $1 AND status IN ('filled','partially_filled','pending')
         ORDER BY created_at ASC`,
@@ -184,6 +217,7 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
       stopPrice: Number(r.stop_price),
       tp1Price: Number(r.tp1_price),
       status: r.status,
+      filledAt: r.filled_at,
       // Phase 1.0: re-derive from Binance state each tick instead of persisting a flag.
       // We detect "needs breakeven move" by scanning open orders for the entry SL clientId.
       slMovedToBreakeven: false,
@@ -195,19 +229,19 @@ async function fetchOpenExecutions(): Promise<OpenExecution[]> {
   }
 }
 
-async function markClosed(executionId: string, exitPrice: number | null): Promise<void> {
+async function markClosed(executionId: string, exitPrice: number | null, realizedPnl: number | null): Promise<void> {
   try {
-    // COALESCE($2, exit_price) so a re-run that gets NULL from a flaky
-    // getMarkPrice doesn't overwrite a price we already captured on a prior
-    // tick. Status guard means the row is only updated once anyway.
+    // COALESCE so a retry that gets NULL from a flaky fetch doesn't clobber
+    // a value already captured. Status guard means the row is only updated once.
     await execute(
       `UPDATE executions
           SET status='closed',
               closed_at=NOW(),
               updated_at=NOW(),
-              exit_price=COALESCE($2, exit_price)
+              exit_price=COALESCE($2, exit_price),
+              realized_pnl=COALESCE($3, realized_pnl)
         WHERE id=$1 AND status <> 'closed'`,
-      [executionId, exitPrice],
+      [executionId, exitPrice, realizedPnl],
     );
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
