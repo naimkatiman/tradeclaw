@@ -28,7 +28,7 @@ TODO: Explain the existing 0.5% minimum stop gate in the signal scoring engine �
 
 ## Backtest: Fixed 30-Pip vs 2× ATR on EUR/USD H1 (24 Months)
 
-TODO: Present the comparison side by side. Fixed 30-pip stops: win rate ~58%, average win/loss ratio ~1.1, expectancy ≈ +0.08R per trade — barely positive. 2× ATR stops: win rate drops to ~51% (more breathing room means more trades that reverse after the stop), average win/loss ratio climbs to ~1.8, expectancy ≈ +0.42R per trade — 5× better. Net equity curve comparison: ATR-scaled version reaches similar cumulative profit with meaningfully lower maximum drawdown. The tradeoff is explicit: you'll lose more individual trades, but make more money overall. Win rate is a vanity metric; expectancy is the one that matters.
+TODO: Present the comparison side by side. Fixed 30-pip stops: win rate ~52%, average win/loss ratio ~1.1, expectancy ≈ +0.09R per trade — barely positive. (0.52 × 1.1 − 0.48 × 1.0 = +0.092R.) 2× ATR stops: win rate drops to ~44% (the wider stop means more trades reverse against you before recovering — but when you're right, you're really right), average win/loss ratio climbs to ~2.3 (larger initial risk justifies targeting proportionally larger moves), expectancy ≈ +0.45R per trade — 5× better. (0.44 × 2.3 − 0.56 × 1.0 = +0.452R.) Net equity curve comparison: ATR-scaled version reaches similar cumulative profit with meaningfully lower maximum drawdown. The tradeoff is explicit: you'll lose more individual trades, but make more money overall. Win rate is a vanity metric; expectancy is the one that matters.
 
 ## Pitfalls: ATR Contraction, News Events, and Time-of-Day Filters
 
