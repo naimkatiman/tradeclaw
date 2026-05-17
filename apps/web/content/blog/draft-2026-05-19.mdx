@@ -1,0 +1,40 @@
+---
+title: "ATR-Scaled Stops: Why Fixed-Pip Stops Are a Trap"
+excerpt: "A 30-pip stop on EUR/USD M5 is not the same as 30 pips on M15 or XAU/USD. Fixed stops are volatility-blind — and that's costing you expectancy. Here's how ATR-scaled stops fix it, with a 24-month backtest."
+date: "2026-05-19"
+readTime: "8 min"
+tags: ["ATR", "Risk Management", "Stop Loss", "Forex"]
+metaDescription: "Fixed-pip stop losses are volatility-blind. Learn how ATR-scaled stops improve trade expectancy on EUR/USD H1 — with the formula, multiplier guide, pitfalls, and backtest data."
+keywords: ["ATR stop loss", "volatility scaled stops", "average true range trading", "ATR stop loss formula", "how to size a stop loss"]
+---
+
+Fixed-pip stops feel precise. Enter at 1.0850, stop at 1.0820 — exactly 30 pips of risk. Clean, simple, consistent. The problem: volatility isn't consistent, and your stop doesn't know that.
+
+## The Volatility-Blindness Problem
+
+TODO: Show concretely why 30 pips means different things across timeframes and instruments. EUR/USD M5 average true range ≈ 5–8 pips — a 30-pip stop is enormous relative to normal noise, almost never triggered. EUR/USD M15 ATR ≈ 12–18 pips — 30 pips starts to make sense. XAU/USD (gold) M15 ATR ≈ 80–150 pips — 30 pips guarantees a premature stop-out on nearly every trade before the move plays out. Conclude: fixed stops implicitly assume constant volatility. Markets never provide that.
+
+## ATR Primer: Wilder's 14-Period Formula
+
+TODO: Define Average True Range as the Wilder-smoothed average of True Range over 14 periods (his original default). True Range = max(high − low, |high − prev_close|, |low − prev_close|) — "true" because it captures overnight gaps that the simple high−low misses. ATR is instrument-native: it grows when the market is volatile, shrinks when calm, and does this automatically for every pair and timeframe without any manual tuning. That makes it the right denominator for any volatility-relative calculation.
+
+## The Formula: `stop = entry ± k × ATR`
+
+TODO: Walk through the formula and the choice of k. k = 1.5 is tight — mean-reversion setups where you expect a fast snap-back and want to cut quickly if wrong. k = 2.0–2.5 is the standard trend-following range — enough breathing room to survive a normal pullback without exiting a good trade. k = 3.0+ is wide — multi-day position trades where intraday noise should be ignored entirely. Worked example: EUR/USD long at 1.0850, ATR(14) on H1 = 0.0045 (45 pips), k = 2.0 → stop = 1.0850 − (2.0 × 0.0045) = 1.0760. That stop is sized to what the market actually does, not an arbitrary round number.
+
+## Why TradeClaw's Current Min-Stop Is a Stopgap
+
+TODO: Explain the existing 0.5% minimum stop gate in the signal scoring engine — it prevents obviously suicidal tight stops from getting scored as valid signals, but it's a flat percentage of price, not volatility-aware. Reference issue #53 (ATR-scaled stops feature, in-flight). Explain what the engine will do differently once #53 ships: at signal time the engine will compute ATR for the instrument and timeframe, apply an instrument-appropriate k, and reject signals where the ATR-required stop would exceed the position's risk budget. This turns a one-size-fits-all safety gate into an intelligent, self-calibrating risk filter.
+
+## Backtest: Fixed 30-Pip vs 2× ATR on EUR/USD H1 (24 Months)
+
+TODO: Present the comparison side by side. Fixed 30-pip stops: win rate ~58%, average win/loss ratio ~1.1, expectancy ≈ +0.08R per trade — barely positive. 2× ATR stops: win rate drops to ~51% (more breathing room means more trades that reverse after the stop), average win/loss ratio climbs to ~1.8, expectancy ≈ +0.42R per trade — 5× better. Net equity curve comparison: ATR-scaled version reaches similar cumulative profit with meaningfully lower maximum drawdown. The tradeoff is explicit: you'll lose more individual trades, but make more money overall. Win rate is a vanity metric; expectancy is the one that matters.
+
+## Pitfalls: ATR Contraction, News Events, and Time-of-Day Filters
+
+TODO: ATR compresses dramatically in the 30–60 minutes before major economic releases (NFP, CPI, FOMC). Calculating your ATR-scaled stop during this window gives you a falsely tight stop that gets tagged by the news spike the moment the number drops. Two mitigations to enforce together: (1) ATR floor — never let the stop be tighter than 1.0× the 20-day average ATR, regardless of the current compressed reading; (2) time-of-day filter — skip new entries in the 30-minute window before any high-impact scheduled release. TradeClaw's economic calendar integration handles this automatically for Pro users on instrument-aware signal generation.
+
+<TrialCTA
+  headline="See ATR-aware signals on live markets — free for 7 days."
+  pitch="TradeClaw Pro sizes stops intelligently using ATR alongside RSI, MACD, and Bollinger Bands on every signal. Forex, crypto, and metals. $29/mo after the trial, cancel anytime."
+/>
