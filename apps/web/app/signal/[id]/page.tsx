@@ -163,7 +163,13 @@ function buildHistoricalSignal(
     indicators: liveIndicators ?? STUB_INDICATORS,
     timeframe: record.timeframe as TradingSignal['timeframe'],
     timestamp: new Date(record.timestamp).toISOString(),
-    status: deriveHistoricalOutcomeStatus(record.outcomes['24h']),
+    // OutcomeStatus has a wider 'unknown' state that SignalStatus doesn't;
+    // collapse 'unknown' → 'active' so historical rows display as live-ish
+    // while we wait for the 4h/24h cron to resolve them.
+    status: (() => {
+      const s = deriveHistoricalOutcomeStatus(record.outcomes['24h']);
+      return s === 'unknown' ? 'active' : s;
+    })(),
     source: 'real',
     dataQuality: 'real',
     entryAtr: record.entryAtr,

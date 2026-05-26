@@ -511,8 +511,14 @@ export function TrackRecordClient() {
   };
 
   const handleBandChange = useCallback((nextBand: EquityBand) => {
-    const nextUrl = buildTrackRecordUrl(pathname, new URLSearchParams(searchParams.toString()), nextBand);
-    router.replace(nextUrl, { scroll: false });
+    const params = new URLSearchParams(searchParams.toString());
+    if (nextBand === 'all') {
+      params.delete('band');
+    } else {
+      params.set('band', nextBand);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }, [pathname, router, searchParams]);
 
   const embeddedBand = scope === 'pro' ? equityBand : 'all';

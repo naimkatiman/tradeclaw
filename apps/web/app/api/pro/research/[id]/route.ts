@@ -3,7 +3,11 @@ import { readSessionFromRequest } from '../../../../../lib/user-session';
 import { getUserTier } from '../../../../../lib/tier';
 import { getResearchJob } from '../../../../../lib/trading-agents/research-jobs';
 
-async function assertProAccess(req: NextRequest) {
+type ProAccess =
+  | { error: NextResponse; session?: undefined }
+  | { error?: undefined; session: { userId: string } };
+
+async function assertProAccess(req: NextRequest): Promise<ProAccess> {
   const session = readSessionFromRequest(req);
   if (!session) {
     return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
@@ -20,9 +24,9 @@ async function assertProAccess(req: NextRequest) {
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+): Promise<NextResponse> {
   const access = await assertProAccess(req);
-  if ('error' in access) {
+  if (access.error) {
     return access.error;
   }
 
