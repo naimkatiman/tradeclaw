@@ -385,6 +385,56 @@ export default function ScreenerClient() {
     setFilters(f => ({ ...f, [key]: value }));
   }
 
+  function exportCSV() {
+    if (sorted.length === 0) return;
+    const headers = [
+      'Symbol',
+      'Name',
+      'Direction',
+      'Confidence',
+      'Price',
+      'RSI',
+      'MACD Histogram',
+      'MACD Signal',
+      'EMA20',
+      'EMA50',
+      'EMA Status',
+      'Timeframe',
+      'Signal ID',
+    ];
+    const escape = (v: string | number) => {
+      const s = String(v);
+      if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+      return s;
+    };
+    const rows = sorted.map(r => [
+      r.symbol,
+      r.name,
+      r.direction,
+      r.confidence,
+      r.price,
+      r.rsi.toFixed(2),
+      r.macdHistogram.toFixed(6),
+      r.macdSignal,
+      r.ema20,
+      r.ema50,
+      r.emaStatus,
+      r.timeframe,
+      r.signalId,
+    ].map(escape).join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `tradeclaw-screener-${date}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   const sorted = [...results]
     .filter(r => !watchlistOnly || watchlist.has(r.symbol))
     .sort((a, b) => {
@@ -524,6 +574,20 @@ export default function ScreenerClient() {
                 </svg>
                 Watchlist Only
                 {watchlist.size > 0 && <span className="px-1.5 py-0.5 rounded-full bg-zinc-500/20 text-zinc-400 text-[9px] font-bold">{watchlist.size}</span>}
+              </button>
+
+              <button
+                onClick={exportCSV}
+                disabled={sorted.length === 0}
+                title={sorted.length === 0 ? 'No results to export' : `Export ${sorted.length} rows to CSV`}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-medium border bg-white/[0.03] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export CSV
               </button>
             </div>
 

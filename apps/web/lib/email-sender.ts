@@ -99,17 +99,22 @@ export interface EmailSendResult {
   providerId?: string;
 }
 
-export async function sendSignalEmail(
+type EmailProvider = 'resend' | 'sendgrid' | 'smtp';
+
+function getProvider(): EmailProvider {
+  const p = (process.env.EMAIL_PROVIDER || 'resend').toLowerCase();
+  if (p === 'sendgrid') return 'sendgrid';
+  if (p === 'smtp') return 'smtp';
+  return 'resend';
+}
+
+async function sendViaResend(
   to: string,
+  from: string,
   signal: AlertSignal,
 ): Promise<EmailSendResult> {
-  if (!to) return { ok: false, reason: 'no_to_address' };
-
   const apiKey = getResendKey();
   if (!apiKey) return { ok: false, reason: 'no_api_key' };
-
-  const from = getFromAddress();
-  if (!from) return { ok: false, reason: 'no_from_address' };
 
   try {
     const res = await fetch(RESEND_API_URL, {
@@ -134,4 +139,101 @@ export async function sendSignalEmail(
   } catch {
     return { ok: false, reason: 'network_error' };
   }
+}
+
+async function sendViaSendGrid(
+  to: string,
+  from: string,
+  signal: AlertSignal,
+): Promise<EmailSendResult> {
+  const apiKey = process.env.SENDGRID_API_KEY;
+  if (!apiKey) return { ok: false, reason: 'no_api_key' };
+
+  try {
+    const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: from.replace(/^.*<|>.*$/g, '').trim() || from },
+        subject: buildSubject(signal),
+        content: [
+          { type: 'text/plain', value: buildPlainText(signal) },
+          { type: 'text/html', value: buildHtml(signal) },
+        ],
+      }),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+
+    if (!res.ok) return { ok: false, reason: 'provider_error' };
+    const msgId = res.headers.get('x-message-id') ?? undefined;
+    return { ok: true, providerId: msgId };
+  } catch {
+    return { ok: false, reason: 'network_error' };
+  }
+}
+
+/**
+ * SMTP delivery via lazy-loaded nodemailer.
+ *
+ * Self-hosters who want to use Gmail / Postfix / Mailgun SMTP rather
+ * than Resend can install nodemailer (`npm install nodemailer
+ * @types/nodemailer`) and set `EMAIL_PROVIDER=smtp` plus the standard
+ * SMTP_* env vars. nodemailer is intentionally not in dependencies so
+ * the default (Resend) deploy stays slim.
+ */
+async function sendViaSMTP(
+  to: string,
+  from: string,
+  signal: AlertSignal,
+): Promise<EmailSendResult> {
+  const host = process.env.SMTP_HOST;
+  const port = parseInt(process.env.SMTP_PORT || '587', 10);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) return { ok: false, reason: 'no_api_key' };
+
+  try {
+    const mod = await import('nodemailer').catch(() => null);
+    if (!mod) {
+      console.warn('[email] nodemailer not installed — install with `npm i nodemailer` to use SMTP');
+      return { ok: false, reason: 'provider_error' };
+    }
+    const nodemailer = (mod as { default?: typeof import('nodemailer') }).default ?? mod;
+    const transport = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { user, pass },
+    });
+
+    const info = await transport.sendMail({
+      from,
+      to,
+      subject: buildSubject(signal),
+      text: buildPlainText(signal),
+      html: buildHtml(signal),
+    });
+    return { ok: true, providerId: info.messageId };
+  } catch {
+    return { ok: false, reason: 'network_error' };
+  }
+}
+
+export async function sendSignalEmail(
+  to: string,
+  signal: AlertSignal,
+): Promise<EmailSendResult> {
+  if (!to) return { ok: false, reason: 'no_to_address' };
+
+  const from = getFromAddress();
+  if (!from) return { ok: false, reason: 'no_from_address' };
+
+  const provider = getProvider();
+  if (provider === 'smtp') return sendViaSMTP(to, from, signal);
+  if (provider === 'sendgrid') return sendViaSendGrid(to, from, signal);
+  return sendViaResend(to, from, signal);
 }

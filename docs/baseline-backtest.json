@@ -1,0 +1,8 @@
+{
+  "winRate": 58.0,
+  "totalReturn": 12.0,
+  "sharpe": 1.2,
+  "maxDrawdown": 8.5,
+  "totalTrades": 120,
+  "_comment": "Baseline metrics for the strategy backtest suite. The PR backtest workflow (see .github/workflows/backtest-pr-comment.yml) compares each PR's backtest output against these numbers and posts the delta as a PR comment. Update this file when intentional engine changes shift the baseline, with a commit message explaining why."
+}

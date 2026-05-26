@@ -56,7 +56,26 @@ Without these, self-hosters get the free-tier experience — which is the same s
 
 If you want to run your own paid tier on top of this code: set your own Stripe keys, run your own premium signal generator, and point `PREMIUM_SIGNAL_SOURCE_URL` at it. The HTTP contract is minimal — `GET <url>` returning `{ signals: TradingSignal[] }` with a Bearer `Authorization` header using `PREMIUM_SIGNAL_SOURCE_KEY`. Returns `[]` (and the hosted deploy keeps working with the DB-backed `premium_signals` table) if the remote is down.
 
-## Self-host with Docker Compose
+## Self-host
+
+### One-liner (no clone required)
+
+```bash
+docker run -p 3000:3000 ghcr.io/naimkatiman/tradeclaw:latest
+```
+
+Open [http://localhost:3000](http://localhost:3000) — you'll get the
+dashboard with the bundled SQLite fallback so you can try it instantly.
+For persistent storage and the full feature set, point `DATABASE_URL`
+at a PostgreSQL instance:
+
+```bash
+docker run -p 3000:3000 \
+  -e DATABASE_URL=postgres://user:pass@host:5432/tradeclaw \
+  ghcr.io/naimkatiman/tradeclaw:latest
+```
+
+### Docker Compose (recommended for production)
 
 ```bash
 git clone https://github.com/naimkatiman/tradeclaw
@@ -68,6 +87,15 @@ docker compose up -d   # or: docker-compose up -d on the legacy CLI
 Open [http://localhost:3000](http://localhost:3000).
 
 Requires PostgreSQL. Run migrations from `apps/web/migrations/` in order.
+
+### Image tags
+
+| Tag | What it tracks |
+| --- | --- |
+| `ghcr.io/naimkatiman/tradeclaw:latest` | Latest push to `main` (auto-built) |
+| `ghcr.io/naimkatiman/tradeclaw:edge` | Same as `latest` — short-lived testing tag |
+| `ghcr.io/naimkatiman/tradeclaw:vX.Y.Z` | A specific release tag |
+| `ghcr.io/naimkatiman/tradeclaw:sha-<git-sha>` | A specific commit |
 
 ## Architecture
 
