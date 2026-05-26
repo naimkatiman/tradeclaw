@@ -53,6 +53,9 @@ const FOREX_SYMBOLS = new Set([
 const STOCK_SYMBOLS = new Set([
   'NVDAUSD', 'TSLAUSD', 'AAPLUSD', 'MSFTUSD', 'GOOGLUSD',
   'AMZNUSD', 'METAUSD', 'SPYUSD', 'QQQUSD',
+  // Top-20 S&P 500 extension (issue #42)
+  'AMDUSD', 'JPMUSD', 'JNJUSD', 'VUSD', 'WMTUSD',
+  'PGUSD', 'UNHUSD', 'HDUSD', 'BACUSD', 'MAUSD', 'XOMUSD',
 ]);
 
 const COMMODITY_SYMBOLS = new Set(['WTIUSD', 'BNOUSD']);

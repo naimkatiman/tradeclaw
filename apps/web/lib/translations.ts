@@ -1,9 +1,11 @@
-export type Locale = "en" | "es" | "zh";
+export type Locale = "en" | "es" | "zh" | "ms" | "ar";
 
-export const SUPPORTED_LOCALES: { code: Locale; label: string; href: string }[] = [
+export const SUPPORTED_LOCALES: { code: Locale; label: string; href: string; dir?: "ltr" | "rtl" }[] = [
   { code: "en", label: "EN", href: "/" },
   { code: "es", label: "ES", href: "/es" },
   { code: "zh", label: "中文", href: "/zh" },
+  { code: "ms", label: "MS", href: "/ms" },
+  { code: "ar", label: "AR", href: "/ar", dir: "rtl" },
 ];
 
 export interface Translations {
@@ -261,8 +263,145 @@ const zh: Translations = {
   },
 };
 
-const translations: Record<Locale, Translations> = { en, es, zh };
+// Malay (Bahasa Malaysia) — initial translation, native-speaker review pending (#16).
+const ms: Translations = {
+  meta: {
+    title: "TradeClaw — Isyarat Dagangan AI Sumber Terbuka",
+    description: "Isyarat dagangan AI dihos sendiri untuk forex, kripto, dan logam. Percuma selamanya. Pasang dalam 5 minit dengan Docker.",
+    ogTitle: "TradeClaw — Berhenti Menyewa Kelebihan Dagangan Anda",
+    ogDescription: "Isyarat dagangan AI sumber terbuka untuk forex, kripto & logam. Dihos sendiri. Percuma selamanya.",
+    keywords: ["isyarat dagangan", "sumber terbuka", "dihos sendiri", "dagangan AI", "isyarat forex", "isyarat kripto"],
+  },
+  hero: {
+    badge: "Sumber Terbuka · Dihos Sendiri · Dikuasakan AI",
+    headline: "Isyarat Dagangan AI.",
+    headlineAccent: "Sumber Terbuka.",
+    headlineSuffix: "Dihos Sendiri.",
+    subheadline: "Isyarat BELI/JUAL masa nyata untuk forex, kripto, dan komoditi. Dihos sendiri, peribadi, dan percuma — tiada langganan, tiada terikat, tiada data dihantar kepada pihak ketiga.",
+    ctaPrimary: "Pasang Percuma dalam 30s",
+    ctaSecondary: "Star di GitHub",
+    signalFeed: "Suapan isyarat langsung",
+  },
+  socialProof: {
+    badge: "Dalam angka",
+    title: "Dipercayai oleh pedagang ",
+    titleAccent: "seluruh dunia",
+    stats: [
+      { label: "Bintang GitHub", description: "Pembangun memberi bintang kepada repo" },
+      { label: "Isyarat Dijana", description: "Isyarat AI dihasilkan setakat ini" },
+      { label: "Aset Disokong", description: "Pasangan forex, kripto & komoditi" },
+      { label: "Instans Aktif", description: "Pemasangan dihos sendiri di seluruh dunia" },
+    ],
+  },
+  howItWorks: {
+    badge: "Mulakan",
+    title: "Pasang dalam ",
+    titleAccent: "kurang dari 2 minit",
+    subtitle: "Tiada akaun vendor, tiada kunci API untuk pembekal isyarat, tiada yuran bulanan. Hanya klon dan jalankan.",
+    steps: [
+      { title: "Klon & Pasang", description: "Klon repo dan jalankan TradeClaw dengan satu arahan Docker Compose. Pemasangan satu klik Railway dan Vercel juga tersedia." },
+      { title: "Konfigurasi Aset", description: "Tetapkan kunci API broker anda dan pilih daripada 12+ pasangan aset merentas kripto, forex, dan komoditi. Konfigurasi ambang amaran dan pemberitahuan Telegram." },
+      { title: "Dapatkan Isyarat AI", description: "Papan pemuka anda akan dipenuhi dengan isyarat BELI/JUAL berkuasa AI dengan skor keyakinan, tahap TP/SL, dan analisis pertemuan pelbagai jangka masa." },
+    ],
+  },
+  deploy: {
+    badge: "Pasang dalam kurang dari 2 minit",
+    title: "Kelebihan dagangan anda.",
+    titleAccent: "Infrastruktur anda.",
+    subtitle: "Pilih kaedah pemasangan pilihan anda. Semua pilihan memberi anda kawalan penuh — tiada terikat dengan vendor, tiada data dikongsi.",
+    requirement: "Memerlukan Docker. Berfungsi pada mana-mana mesin Linux/Mac/Windows.",
+  },
+  faq: {
+    badge: "Soalan lazim",
+    title: "Soalan yang ",
+    titleAccent: "kerap ditanya",
+    items: [
+      { question: "Adakah ia benar-benar percuma?", answer: "Ya, sepenuhnya. TradeClaw adalah perisian sumber terbuka berlesen MIT. Anda tidak membayar apa-apa untuk menggunakannya — bukan sekarang, bukan selamanya. Anda hanya membayar untuk hosting pelayan anda sendiri (Railway free tier, Fly.io, VPS, dsb.), yang biasanya berharga $0–5/bulan." },
+      { question: "Bagaimana isyarat AI berfungsi?", answer: "Enjin isyarat TradeClaw menggabungkan beberapa penunjuk teknikal (RSI, MACD, Jalur Bollinger, EMA, ATR) dengan analisis pertemuan pelbagai jangka masa. Isyarat dikelaskan sebagai BELI/JUAL dengan skor keyakinan (0–100%) yang berasal daripada persetujuan berwajaran merentas jangka masa (M5 hingga D1)." },
+      { question: "Bolehkah saya menggunakannya untuk dagangan langsung?", answer: "TradeClaw menjana isyarat dan menyediakan tahap TP/SL, tetapi tidak melaksanakan dagangan secara automatik. Anda menyambungkan broker anda melalui MetaApi untuk menerima data harga, dan anda yang membuat keputusan untuk bertindak ke atas isyarat." },
+      { question: "Bagaimana saya memasangnya?", answer: "Klon repo, salin .env.example ke .env, tetapkan kelayakan MetaApi anda (pilihan untuk paper trading), kemudian jalankan `docker compose up -d`. Papan pemuka anda akan tersedia di localhost:3000." },
+    ],
+  },
+  cta: {
+    viewComparison: "Lihat perbandingan penuh",
+    viewHeatmap: "Lihat Peta Haba",
+    deployOn: "Pasang pada",
+  },
+};
+
+// Arabic — initial translation, RTL layout. Native-speaker review pending (#16).
+const ar: Translations = {
+  meta: {
+    title: "TradeClaw — إشارات تداول بالذكاء الاصطناعي مفتوحة المصدر",
+    description: "إشارات تداول بالذكاء الاصطناعي ذاتية الاستضافة للفوركس والعملات الرقمية والمعادن. مجانية إلى الأبد. النشر في 5 دقائق مع Docker.",
+    ogTitle: "TradeClaw — توقف عن استئجار ميزتك في التداول",
+    ogDescription: "إشارات تداول بالذكاء الاصطناعي مفتوحة المصدر للفوركس والعملات الرقمية والمعادن.",
+    keywords: ["إشارات التداول", "مفتوح المصدر", "ذاتي الاستضافة", "تداول بالذكاء الاصطناعي", "إشارات الفوركس", "إشارات العملات الرقمية"],
+  },
+  hero: {
+    badge: "مفتوح المصدر · ذاتي الاستضافة · مدعوم بالذكاء الاصطناعي",
+    headline: "إشارات تداول بالذكاء الاصطناعي.",
+    headlineAccent: "مفتوح المصدر.",
+    headlineSuffix: "ذاتي الاستضافة.",
+    subheadline: "إشارات شراء/بيع في الوقت الفعلي للفوركس والعملات الرقمية والسلع. ذاتية الاستضافة، خاصة، ومجانية — بدون اشتراك، بدون قيود، بدون إرسال بيانات لأطراف ثالثة.",
+    ctaPrimary: "انشر مجاناً في 30 ثانية",
+    ctaSecondary: "ضع نجمة على GitHub",
+    signalFeed: "تغذية الإشارات المباشرة",
+  },
+  socialProof: {
+    badge: "بالأرقام",
+    title: "موثوق به من قبل المتداولين ",
+    titleAccent: "حول العالم",
+    stats: [
+      { label: "نجوم GitHub", description: "وضع المطورون نجمة على المستودع" },
+      { label: "الإشارات المنشأة", description: "إشارات الذكاء الاصطناعي المنتجة حتى الآن" },
+      { label: "الأصول المدعومة", description: "أزواج الفوركس والعملات الرقمية والسلع" },
+      { label: "المثيلات النشطة", description: "النشر الذاتي حول العالم" },
+    ],
+  },
+  howItWorks: {
+    badge: "ابدأ",
+    title: "النشر في ",
+    titleAccent: "أقل من دقيقتين",
+    subtitle: "بدون حسابات موردين، بدون مفاتيح API لمزودي الإشارات، بدون رسوم شهرية. فقط استنسخ وشغّل.",
+    steps: [
+      { title: "استنسخ وانشر", description: "استنسخ المستودع وقم بتشغيل TradeClaw بأمر واحد من Docker Compose. النشر بنقرة واحدة على Railway و Vercel متاح أيضًا." },
+      { title: "تكوين الأصول", description: "اضبط مفاتيح API الخاصة بوسيطك واختر من بين 12+ زوج أصول عبر العملات الرقمية والفوركس والسلع. قم بتكوين عتبات التنبيه وإشعارات Telegram." },
+      { title: "احصل على إشارات الذكاء الاصطناعي", description: "ستمتلئ لوحة التحكم بإشارات شراء/بيع مدعومة بالذكاء الاصطناعي مع درجات الثقة ومستويات TP/SL وتحليل التقاء الأطر الزمنية المتعددة." },
+    ],
+  },
+  deploy: {
+    badge: "النشر في أقل من دقيقتين",
+    title: "ميزتك في التداول.",
+    titleAccent: "بنيتك التحتية.",
+    subtitle: "اختر طريقة النشر المفضلة لديك. جميع الخيارات تمنحك التحكم الكامل — بدون قيود الموردين، بدون مشاركة البيانات.",
+    requirement: "يتطلب Docker. يعمل على أي جهاز Linux/Mac/Windows.",
+  },
+  faq: {
+    badge: "الأسئلة الشائعة",
+    title: "أسئلة ",
+    titleAccent: "شائعة",
+    items: [
+      { question: "هل هو حقًا مجاني؟", answer: "نعم، تمامًا. TradeClaw هو برنامج مفتوح المصدر مرخص بـ MIT. أنت لا تدفع شيئًا مقابل استخدامه — لا الآن، ولا أبدًا. أنت فقط تدفع مقابل استضافة الخادم الخاص بك." },
+      { question: "كيف تعمل إشارات الذكاء الاصطناعي؟", answer: "يجمع محرك إشارات TradeClaw بين عدة مؤشرات فنية (RSI، MACD، بولينجر، EMA، ATR) مع تحليل التقاء الأطر الزمنية المتعددة." },
+      { question: "هل يمكنني استخدامه للتداول المباشر؟", answer: "ينشئ TradeClaw الإشارات ويوفر مستويات TP/SL، لكنه لا ينفذ الصفقات تلقائيًا." },
+      { question: "كيف أنشره؟", answer: "استنسخ المستودع، انسخ .env.example إلى .env، اضبط بيانات اعتماد MetaApi، ثم شغّل `docker compose up -d`." },
+    ],
+  },
+  cta: {
+    viewComparison: "عرض المقارنة الكاملة",
+    viewHeatmap: "عرض خريطة الحرارة",
+    deployOn: "النشر على",
+  },
+};
+
+const translations: Record<Locale, Translations> = { en, es, zh, ms, ar };
 
 export function getTranslations(locale: Locale): Translations {
   return translations[locale];
+}
+
+/** Returns "rtl" for Arabic, "ltr" for everything else. */
+export function getTextDirection(locale: Locale): "ltr" | "rtl" {
+  return locale === "ar" ? "rtl" : "ltr";
 }

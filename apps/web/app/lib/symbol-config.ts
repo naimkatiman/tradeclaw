@@ -43,6 +43,17 @@ export const SYMBOLS: SymbolConfig[] = [
   { symbol: 'METAUSD', name: 'Meta', pip: 0.01, basePrice: 580.00, volatility: 8.0, category: 'thematic' },
   { symbol: 'SPYUSD', name: 'S&P 500 ETF', pip: 0.01, basePrice: 580.00, volatility: 4.0, category: 'majors' },
   { symbol: 'QQQUSD', name: 'Nasdaq 100 ETF', pip: 0.01, basePrice: 500.00, volatility: 5.0, category: 'majors' },
+  { symbol: 'AMDUSD',  name: 'AMD',                pip: 0.01, basePrice: 145.00, volatility: 5.0, category: 'thematic' },
+  { symbol: 'JPMUSD',  name: 'JPMorgan',           pip: 0.01, basePrice: 215.00, volatility: 3.0, category: 'thematic' },
+  { symbol: 'JNJUSD',  name: 'Johnson & Johnson',  pip: 0.01, basePrice: 160.00, volatility: 1.5, category: 'thematic' },
+  { symbol: 'VUSD',    name: 'Visa',               pip: 0.01, basePrice: 280.00, volatility: 2.5, category: 'thematic' },
+  { symbol: 'WMTUSD',  name: 'Walmart',            pip: 0.01, basePrice:  80.00, volatility: 1.5, category: 'thematic' },
+  { symbol: 'PGUSD',   name: 'Procter & Gamble',   pip: 0.01, basePrice: 165.00, volatility: 1.5, category: 'thematic' },
+  { symbol: 'UNHUSD',  name: 'UnitedHealth',       pip: 0.01, basePrice: 540.00, volatility: 5.0, category: 'thematic' },
+  { symbol: 'HDUSD',   name: 'Home Depot',         pip: 0.01, basePrice: 380.00, volatility: 4.0, category: 'thematic' },
+  { symbol: 'BACUSD',  name: 'Bank of America',    pip: 0.01, basePrice:  42.00, volatility: 0.8, category: 'thematic' },
+  { symbol: 'MAUSD',   name: 'Mastercard',         pip: 0.01, basePrice: 470.00, volatility: 4.0, category: 'thematic' },
+  { symbol: 'XOMUSD',  name: 'ExxonMobil',         pip: 0.01, basePrice: 115.00, volatility: 2.0, category: 'thematic' },
 ];
 
 export const MAJORS_SYMBOLS: readonly string[] = SYMBOLS

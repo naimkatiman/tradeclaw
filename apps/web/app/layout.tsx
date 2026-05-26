@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SWRegister } from "./components/sw-register";
@@ -99,6 +99,18 @@ export const metadata: Metadata = {
     apple: [{ url: '/apple-icon', sizes: '180x180', type: 'image/png' }],
   },
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "TradeClaw",
+    statusBarStyle: "black-translucent",
+    startupImage: "/apple-icon",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "apple-mobile-web-app-title": "TradeClaw",
+  },
   alternates: {
     languages: {
       "en": "https://tradeclaw.win",
@@ -112,6 +124,16 @@ export const metadata: Metadata = {
       'application/feed+json': [{ url: '/feed.json', title: 'TradeClaw — Live AI Trading Signals (JSON Feed)' }],
     },
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#050505" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
