@@ -72,6 +72,7 @@ function GaugeChart({ used, limit, label }: { used: number; limit: number; label
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function QuotaBar({ name, used, limit, color }: { name: string; used: number; limit: number; color: string }) {
   const pct = Math.min((used / limit) * 100, 100);
   return (

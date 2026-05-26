@@ -224,6 +224,7 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
     const controller = new AbortController();
     let cancelled = false;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     fetch(`/api/leaderboard?pair=${pair}`, { signal: controller.signal })
       .then(r => {

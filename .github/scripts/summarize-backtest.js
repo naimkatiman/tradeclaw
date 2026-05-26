@@ -1,26 +1,32 @@
 #!/usr/bin/env node
 /**
- * Parse the strategy test output (the Jest-style log produced by
- * `npm test --workspace=@tradeclaw/strategies`) and emit a compact
- * summary JSON suitable for posting as a PR comment.
+ * Parse the Jest snapshot at
+ * `packages/strategies/src/__tests__/__snapshots__/integration-snapshot.test.ts.snap`
+ * and emit a compact summary JSON for the backtest PR comment.
  *
- * The current strategies test suite writes BacktestResult objects to
- * console.log via the integration snapshot test. We pull every
- * `winRate`, `totalReturn`, `sharpeRatio`, `maxDrawdown`, and
- * `totalTrades` line, average them across strategies, and emit:
+ * The snapshot is a deterministic record of per-strategy backtest
+ * results — much more reliable to read than the Jest console output.
  *
- *   { winRate, totalReturn, sharpe, maxDrawdown, totalTrades, strategies }
+ *   { winRate, totalReturn, profitFactor, maxDrawdown, totalTrades, strategies }
  *
- * Falls back to a "no-data" summary if no values are found so the PR
- * comment never blocks a doc-only change.
+ * Falls back to a "no-data" summary if the snapshot is missing so the
+ * PR comment never blocks a doc-only change.
  */
 
 const fs = require('fs');
+const path = require('path');
 
-const LOG_PATH = '.cache/backtest-pr/output.log';
+const SNAPSHOT_PATH = path.join(
+  'packages',
+  'strategies',
+  'src',
+  '__tests__',
+  '__snapshots__',
+  'integration-snapshot.test.ts.snap',
+);
 
-function readLog() {
-  try { return fs.readFileSync(LOG_PATH, 'utf8'); }
+function readSnapshot() {
+  try { return fs.readFileSync(SNAPSHOT_PATH, 'utf8'); }
   catch { return ''; }
 }
 
@@ -30,43 +36,49 @@ function avg(arr) {
   return nums.reduce((a, b) => a + b, 0) / nums.length;
 }
 
-function extractMetrics(log) {
-  const winRates = [];
-  const returns = [];
-  const sharpes = [];
-  const drawdowns = [];
-  const tradeCounts = [];
+function parseSnapshot(text) {
+  // The snapshot stores numbers as bare values (`"winRate": 0.1333,`) and
+  // "inf" as a string. Pull each metric per strategy block.
+  const winRateRe = /"winRate":\s*([\-0-9.]+)/g;
+  const returnRe = /"totalReturn":\s*([\-0-9.]+)/g;
+  const profitFactorRe = /"profitFactor":\s*([\-0-9.]+|"inf")/g;
+  const ddRe = /"maxDrawdown":\s*([\-0-9.]+)/g;
+  const tradesRe = /"totalTrades":\s*([0-9]+)/g;
 
-  // Match "winRate: 56.3" or "winRate=0.563" type patterns.
-  const winRateRe = /winRate[:=\s]+([0-9.]+)/gi;
-  const returnRe = /totalReturn[:=\s]+(-?[0-9.]+)/gi;
-  const sharpeRe = /sharpeRatio[:=\s]+(-?[0-9.]+)/gi;
-  const ddRe = /maxDrawdown[:=\s]+([0-9.]+)/gi;
-  const tradesRe = /totalTrades[:=\s]+([0-9]+)/gi;
+  const collect = (re) => {
+    const out = [];
+    let m;
+    while ((m = re.exec(text))) {
+      const v = m[1] === '"inf"' ? Infinity : parseFloat(m[1]);
+      out.push(v);
+    }
+    return out;
+  };
 
+  const winRates = collect(winRateRe);
+  const returns = collect(returnRe);
+  const profitFactors = collect(profitFactorRe).filter(Number.isFinite);
+  const drawdowns = collect(ddRe);
+  const trades = [];
   let m;
-  while ((m = winRateRe.exec(log))) winRates.push(parseFloat(m[1]));
-  while ((m = returnRe.exec(log))) returns.push(parseFloat(m[1]));
-  while ((m = sharpeRe.exec(log))) sharpes.push(parseFloat(m[1]));
-  while ((m = ddRe.exec(log))) drawdowns.push(parseFloat(m[1]));
-  while ((m = tradesRe.exec(log))) tradeCounts.push(parseInt(m[1], 10));
-
-  // Normalize: win rate could be a fraction or a percent.
-  const normWin = avg(winRates.map(v => (v <= 1 ? v * 100 : v)));
-  const normRet = avg(returns.map(v => (Math.abs(v) <= 1 ? v * 100 : v)));
-  const normDD = avg(drawdowns.map(v => (v <= 1 ? v * 100 : v)));
-  const totalTrades = tradeCounts.reduce((a, b) => a + b, 0) || null;
+  while ((m = tradesRe.exec(text))) trades.push(parseInt(m[1], 10));
 
   return {
-    winRate: normWin,
-    totalReturn: normRet,
-    sharpe: avg(sharpes),
-    maxDrawdown: normDD,
-    totalTrades,
+    winRate: nullOr(avg(winRates), v => v * 100),
+    totalReturn: nullOr(avg(returns), v => v * 100),
+    profitFactor: avg(profitFactors),
+    maxDrawdown: nullOr(avg(drawdowns), v => v * 100),
+    totalTrades: trades.length ? trades.reduce((a, b) => a + b, 0) : null,
     strategies: winRates.length,
   };
 }
 
-const log = readLog();
-const summary = log ? extractMetrics(log) : { winRate: null, totalReturn: null, sharpe: null, maxDrawdown: null, totalTrades: null, strategies: 0 };
+function nullOr(v, transform) {
+  return v == null ? null : transform(v);
+}
+
+const text = readSnapshot();
+const summary = text
+  ? parseSnapshot(text)
+  : { winRate: null, totalReturn: null, profitFactor: null, maxDrawdown: null, totalTrades: null, strategies: 0 };
 process.stdout.write(JSON.stringify(summary, null, 2));

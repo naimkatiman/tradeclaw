@@ -391,14 +391,18 @@ export default async function SignalPage(
           {/* Outcome banner — only on historical rows. Surfaces what the
               4h/24h cron has resolved, so the page no longer pretends a
               week-old signal is "live". */}
-          {isHistorical && (
+          {isHistorical && (() => {
+            // Server component renders once per request — Date.now() here is
+            // intentional and the value is stable across all .map iterations.
+            // eslint-disable-next-line react-hooks/purity
+            const now = Date.now();
+            return (
             <div className="mb-6 grid grid-cols-2 gap-2">
               {[
                 { label: '4h', outcome: outcome4h },
                 { label: '24h', outcome: outcome24h },
               ].map(({ label, outcome }) => {
                 const windowMs = label === '4h' ? 4 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
-                const now = Date.now();
                 const pending = isPendingHistoricalOutcome(outcome, record.timestamp, windowMs, now);
                 const expired = isExpiredHistoricalOutcome(outcome, record.timestamp, windowMs, now);
                 const hit = outcome?.hit === true;
@@ -428,7 +432,8 @@ export default async function SignalPage(
                 );
               })}
             </div>
-          )}
+            );
+          })()}
 
           {/* Price levels */}
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-8">
