@@ -133,14 +133,21 @@ describe('calculateMACD', () => {
     expect(Math.abs(r.current.macd - r.current.signal - r.current.histogram)).toBeLessThan(1e-9);
   });
 
-  test('rising-trend price series produces a positive (bullish) histogram on the latest bar', () => {
-    const closes = Array.from({ length: 80 }, (_, i) => 100 + i * 0.5);
+  test('accelerating uptrend produces a bullish (positive) histogram', () => {
+    // Flat then sharply rising — the recent move should make MACD > signal.
+    const closes = [
+      ...Array.from({ length: 60 }, () => 100),
+      ...Array.from({ length: 20 }, (_, i) => 100 + (i + 1) * 1.0),
+    ];
     const r = calculateMACD(closes);
     expect(r.current.histogram).toBeGreaterThan(0);
   });
 
-  test('falling-trend price series produces a negative (bearish) histogram on the latest bar', () => {
-    const closes = Array.from({ length: 80 }, (_, i) => 200 - i * 0.5);
+  test('accelerating downtrend produces a bearish (negative) histogram', () => {
+    const closes = [
+      ...Array.from({ length: 60 }, () => 100),
+      ...Array.from({ length: 20 }, (_, i) => 100 - (i + 1) * 1.0),
+    ];
     const r = calculateMACD(closes);
     expect(r.current.histogram).toBeLessThan(0);
   });

@@ -189,6 +189,27 @@ Pro subscribers get real-time access to all endpoints with full depth.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [good first issues](https://github.com/naimkatiman/tradeclaw/labels/good%20first%20issue).
 
+Hacktoberfest-friendly: PRs against this repo qualify for the
+`hacktoberfest-accepted` label when they pass review.
+
+## Contributors
+
+Thanks to everyone who has helped build TradeClaw — code, docs, bug
+reports, translations, or sharing the project.
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<a href="https://github.com/naimkatiman/tradeclaw/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=naimkatiman/tradeclaw" alt="Contributors" />
+</a>
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://allcontributors.org/)
+specification — contributions of any kind welcome.
+
 ---
 
 <div align="center">

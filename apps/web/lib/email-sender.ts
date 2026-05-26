@@ -197,13 +197,18 @@ async function sendViaSMTP(
   if (!host || !user || !pass) return { ok: false, reason: 'no_api_key' };
 
   try {
-    const mod = await import('nodemailer').catch(() => null);
+    // nodemailer is an optional peer dependency — see .env.example.
+    // The import is dynamic + string-based so TypeScript doesn't try to
+    // resolve the module at build time when it isn't installed.
+    const moduleName = 'nodemailer';
+    const mod: unknown = await import(/* webpackIgnore: true */ moduleName).catch(() => null);
     if (!mod) {
-      console.warn('[email] nodemailer not installed — install with `npm i nodemailer` to use SMTP');
+      console.warn('[email] nodemailer not installed — `npm i nodemailer` to use SMTP');
       return { ok: false, reason: 'provider_error' };
     }
-    const nodemailer = (mod as { default?: typeof import('nodemailer') }).default ?? mod;
-    const transport = nodemailer.createTransport({
+    const nodemailer = (mod as { default?: unknown; createTransport?: unknown }).default ?? mod;
+    const createTransport = (nodemailer as { createTransport: (opts: unknown) => { sendMail: (msg: unknown) => Promise<{ messageId: string }> } }).createTransport;
+    const transport = createTransport({
       host,
       port,
       secure: port === 465,

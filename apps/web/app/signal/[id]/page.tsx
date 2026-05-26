@@ -580,6 +580,7 @@ export default async function SignalPage(
             direction={signal.direction}
             timestamp={signal.timestamp}
             pip={SYMBOLS.find(s => s.symbol === signal.symbol)?.pip ?? 0.01}
+            symbol={signal.symbol}
           />
         ) : (
           <div className="glass-card rounded-2xl p-8 text-center border border-emerald-500/20 bg-emerald-500/5">
