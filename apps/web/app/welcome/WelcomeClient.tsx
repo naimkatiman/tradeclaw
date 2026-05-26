@@ -57,9 +57,11 @@ export function WelcomeClient({ userId }: WelcomeClientProps) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPushState('unsupported');
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (Notification.permission === 'denied') setPushState('denied');
   }, []);
 

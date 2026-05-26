@@ -43,6 +43,7 @@ export function OnboardingOverlay({ signalsLoaded }: OnboardingOverlayProps) {
   useEffect(() => {
     if (signalsLoaded && !state['saw-signal']) {
       markStepDone('saw-signal');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState(getOnboardingState());
     }
   }, [signalsLoaded, state]);

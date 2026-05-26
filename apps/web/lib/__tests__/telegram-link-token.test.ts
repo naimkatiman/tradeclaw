@@ -66,6 +66,7 @@ describe('telegram-link-token', () => {
     // A token signed with the raw USER_SESSION_SECRET (no domain separator)
     // must NOT verify as a telegram-link token. This guards against secret
     // reuse across token classes.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { createHmac } = require('node:crypto') as typeof import('node:crypto');
     const issuedAt = Date.now();
     const payload = `user-123.${issuedAt}`;

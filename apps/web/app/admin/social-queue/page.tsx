@@ -31,6 +31,7 @@ export default function SocialQueuePage() {
       : '/api/admin/social-queue';
     const res = await fetch(url);
     if (res.status === 401) {
+      // eslint-disable-next-line react-hooks/immutability
       window.location.href = '/admin/login?redirect=/admin/social-queue';
       return;
     }
@@ -50,6 +51,7 @@ export default function SocialQueuePage() {
       body: JSON.stringify({ action, id }),
     });
     if (res.status === 401) {
+      // eslint-disable-next-line react-hooks/immutability
       window.location.href = '/admin/login?redirect=/admin/social-queue';
       return;
     }

@@ -29,6 +29,7 @@ export function useSampleData(hasRealData: boolean, timeoutMs = 2000): SampleSig
 
   useEffect(() => {
     if (hasRealData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSamples([]);
       if (timerRef.current) clearTimeout(timerRef.current);
       return;

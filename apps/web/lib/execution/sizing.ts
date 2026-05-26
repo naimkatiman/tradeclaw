@@ -145,7 +145,7 @@ export function computeSize(input: SizingInput): SizingResult | SizingRejection 
 
   // Round qty down to stepSize
   const rawQty = notionalTarget / input.entryPrice;
-  let qty = roundQty(rawQty, input.filters);
+  const qty = roundQty(rawQty, input.filters);
 
   if (qty <= 0) {
     return { ok: false, reason: 'qty_zero', detail: `rawQty=${rawQty} stepSize=${input.filters.stepSize}` };

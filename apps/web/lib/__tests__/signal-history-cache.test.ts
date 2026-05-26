@@ -10,6 +10,7 @@ describe('signal-history-cache', () => {
   beforeEach(() => invalidateHistoryCache());
 
   it('returns injected test data immediately', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fakeRows = [{ id: '1', pair: 'BTCUSD' }] as any;
     _setCacheForTest(fakeRows);
     const result = await getCachedHistory();
@@ -22,6 +23,7 @@ describe('signal-history-cache', () => {
   });
 
   it('invalidation clears the cache', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fakeRows = [{ id: '1', pair: 'BTCUSD' }] as any;
     _setCacheForTest(fakeRows);
     invalidateHistoryCache();
