@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
-import { getSymbolBreakdown } from '../../../lib/signal-metrics';
+import { getSymbolBreakdown, getOperatorMemoryCount } from '../../../lib/signal-metrics';
 import { SYMBOLS } from '../../lib/signals';
+import { snapshotDeliveries } from '../../../lib/delivery-metrics';
+import { renderGenLatencyHistogram } from '../../../lib/gen-latency';
 
 export const dynamic = 'force-dynamic';
 
@@ -116,6 +118,17 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Operator-memory entry count (best-effort; zero on DB failure).
+    let operatorMemoryCount = 0;
+    try {
+      operatorMemoryCount = await getOperatorMemoryCount();
+    } catch {
+      operatorMemoryCount = 0;
+    }
+
+    // Delivery counters (in-process; per-instance, reset on restart).
+    const deliverySamples = snapshotDeliveries();
+
     const lines: Line[] = [
       {
         name: 'tradeclaw_signal_value',
@@ -163,6 +176,18 @@ export async function GET(request: NextRequest) {
         samples: ageSamples,
       },
       {
+        name: 'tradeclaw_webhook_delivery_total',
+        help: 'Alert/webhook delivery attempts by channel and outcome (in-process, per-instance, resets on restart)',
+        type: 'counter',
+        samples: deliverySamples,
+      },
+      {
+        name: 'tradeclaw_operator_memory_entries',
+        help: 'Total operator-memory rows (per user_id+key) in storage',
+        type: 'gauge',
+        samples: [{ labels: {}, value: operatorMemoryCount }],
+      },
+      {
         name: 'tradeclaw_scrape_timestamp_seconds',
         help: 'Unix timestamp (seconds) when these metrics were generated',
         type: 'gauge',
@@ -170,7 +195,7 @@ export async function GET(request: NextRequest) {
       },
     ];
 
-    return new NextResponse(formatLines(lines), {
+    return new NextResponse(formatLines(lines) + renderGenLatencyHistogram(), {
       status: 200,
       headers: {
         'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',

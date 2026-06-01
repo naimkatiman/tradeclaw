@@ -13,6 +13,7 @@ import { getSignals } from '../app/lib/signals';
 import { safeProfileId } from '../app/lib/signal-generator';
 import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
 import { redis, isRedisAvailable, ensureRedis, redisKey } from './redis';
+import { observeSignalGenDuration } from './gen-latency';
 
 const CACHE_KEY = redisKey('signals:latest');
 const CACHE_TTL_SECONDS = 6 * 60; // 6 minutes (cron runs every 5)
@@ -29,9 +30,11 @@ export async function precomputeSignals(): Promise<void> {
   const preset = getActivePreset();
   const profileId = safeProfileId(preset.id);
 
+  const genStartMs = Date.now();
   try {
     // Generate fresh signals (bypass cache to avoid reading stale data)
     const { signals, syntheticSymbols } = await getSignals({}, { skipCache: true });
+    observeSignalGenDuration((Date.now() - genStartMs) / 1000);
 
     const payload: CachedSignalsPayload = {
       signals,

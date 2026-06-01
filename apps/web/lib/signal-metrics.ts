@@ -112,6 +112,13 @@ export async function getSymbolBreakdown(days: number): Promise<SymbolBreakdownR
   });
 }
 
+export async function getOperatorMemoryCount(): Promise<number> {
+  const rows = await query<{ count: string }>(
+    `SELECT COUNT(*)::text AS count FROM operator_memory`,
+  );
+  return rows.length > 0 ? Number(rows[0].count) : 0;
+}
+
 export async function getRecommendations(): Promise<Recommendation[]> {
   const recommendations: Recommendation[] = [];
 

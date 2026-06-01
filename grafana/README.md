@@ -63,6 +63,9 @@ the same compose network.)
 | `tradeclaw_scrape_timestamp_seconds`| gauge | When this scrape was generated (unix seconds) |
 | `tradeclaw_signal_outcomes_total`   | gauge | Resolved outcomes per symbol+result over 30d (hit / sl / open) |
 | `tradeclaw_signal_age_seconds`      | gauge | Seconds since the most recent signal per symbol (freshness) |
+| `tradeclaw_webhook_delivery_total`  | counter | Alert/webhook delivery attempts by `channel` + `status` (in-process, per-instance, resets on restart) |
+| `tradeclaw_operator_memory_entries` | gauge | Total operator-memory rows in storage |
+| `tradeclaw_signal_gen_duration_seconds` | histogram | Signal-generation latency from the cron precompute path (per-instance, resets on restart) |
 
 The dashboard ships two extra panels for these: a **Signal Freshness**
 bar gauge (green <5m, yellow 5–15m, red >15m) that surfaces exchange
