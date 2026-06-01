@@ -189,7 +189,10 @@ jobs:
             PGPASSWORD=postgres psql -h localhost -U postgres -d tradeclaw_test -v ON_ERROR_STOP=1 -f "$f"
           done
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        # The 'mobile' project uses devices['iPhone 14'] (WebKit engine), so
+        # webkit must be installed alongside chromium or every mobile test
+        # errors at browserType.launch.
+        run: npx playwright install --with-deps chromium webkit
       - name: Run E2E suite
         run: npm run test:e2e
       - uses: actions/upload-artifact@v4
