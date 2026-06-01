@@ -215,6 +215,8 @@ curl https://tradeclaw.win/api/strategy-breakdown
 
 Pro subscribers get real-time access to all endpoints with full depth.
 
+**Webhooks / integrations:** see the [webhook integration guide](docs/webhooks.md) for the signal payload schema, polling/cron patterns, and ready-to-run forwarders in [`examples/webhooks/`](examples/webhooks/) (Slack, Discord, n8n, Zapier, Google Sheets).
+
 ## Environment variables
 
 | Variable | Required | Description |
