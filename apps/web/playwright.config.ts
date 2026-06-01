@@ -16,7 +16,7 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    actionTimeout: 10_000,
+    actionTimeout: 15_000,
     navigationTimeout: 30_000,
   },
   projects: [
@@ -30,10 +30,15 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    // In CI, serve a production build: `next dev` compiles each route on first
+    // hit, which under the serial (workers:1) suite stacked up past the job
+    // timeout. `next start` serves precompiled routes — no first-hit latency.
+    // The CI job builds the app in a dedicated step before the suite runs.
+    // Locally we keep `next dev` for fast-refresh DX.
+    command: process.env.CI ? 'npx next start' : 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 180_000,
     env: {
       ADMIN_SECRET: 'correct-secret',
     },

@@ -138,7 +138,7 @@ jobs:
     # Non-blocking until the suite stabilizes. Flip to false once the suite is
     # consistently green against the CI Postgres sidecar.
     continue-on-error: true
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       # Ephemeral Postgres per CI run — avoids any risk of writing test signals
       # to the production Railway DB. Migrations are applied below.
@@ -193,6 +193,15 @@ jobs:
         # webkit must be installed alongside chromium or every mobile test
         # errors at browserType.launch.
         run: npx playwright install --with-deps chromium webkit
+      - name: Build app
+        # Playwright's webServer runs `next start` in CI (precompiled routes),
+        # so the app must be built first. Uses the root build (signals +
+        # trading-agents + apps/web) for parity with the Build job. Migrations
+        # were already applied above.
+        run: npm run build
+        working-directory: ${{ github.workspace }}
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
       - name: Run E2E suite
         run: npm run test:e2e
       - uses: actions/upload-artifact@v4
