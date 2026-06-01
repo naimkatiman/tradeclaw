@@ -96,6 +96,16 @@ Open [http://localhost:3000](http://localhost:3000). Requires PostgreSQL. Migrat
 | `ghcr.io/naimkatiman/tradeclaw:vX.Y.Z` | A specific release tag |
 | `ghcr.io/naimkatiman/tradeclaw:sha-<git-sha>` | A specific commit |
 
+## Monitoring (Grafana + Prometheus)
+
+TradeClaw exposes a Prometheus-compatible metrics endpoint at `/api/metrics` (signal direction, confidence, RSI, counts, freshness, outcomes). An opt-in monitoring stack ships with the compose file:
+
+```bash
+docker compose --profile monitoring up -d   # adds prometheus (:9090) + grafana (:3001)
+```
+
+Then open Grafana at [http://localhost:3001](http://localhost:3001) (default login `admin`/`admin`, override with `GRAFANA_ADMIN_PASSWORD`), add Prometheus (`http://prometheus:9090`) as a data source, and import `grafana/tradeclaw-dashboard.json`. The default `docker compose up` does not start these services. See [`grafana/README.md`](grafana/README.md) for the metrics reference and panel details.
+
 ## Local development (from source)
 
 TradeClaw is an npm-workspaces monorepo. You need Node.js 20+, npm, and a PostgreSQL instance (the web app falls back to bundled SQLite if `DATABASE_URL` is unset, but Postgres is recommended).
