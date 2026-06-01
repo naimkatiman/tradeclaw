@@ -21,6 +21,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # @tradeclaw/signals resolves through its dist build; type-check needs it present.
+      - run: npm run build:signals
       - run: npm run lint
       - run: npx tsc --noEmit --project apps/web/tsconfig.json
 
