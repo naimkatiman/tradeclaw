@@ -4,6 +4,7 @@ import { query, execute } from '../../../../lib/db-pool';
 import { FREE_SYMBOLS } from '../../../../lib/tier';
 import { getBotToken, getFreeChannelId } from '../../../../lib/telegram-channels';
 import { requireCronAuth } from '../../../../lib/cron-auth';
+import { broadcastSignalsToDiscord } from '../../../../lib/discord-broadcast';
 
 // ---------------------------------------------------------------------------
 // GET /api/cron/telegram — Vercel Cron handler (every 4 hours)
@@ -19,15 +20,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // TELEGRAM_FREE_CHANNEL_ID is the canonical name going forward.
     const botToken = getBotToken();
     const channelId = getFreeChannelId();
+    const discordWebhook = process.env.DISCORD_WEBHOOK_URL || null;
+    const telegramConfigured = Boolean(botToken && channelId);
 
-    if (!botToken || !channelId) {
+    if (!telegramConfigured && !discordWebhook) {
       return NextResponse.json(
-        { ok: false, error: 'TELEGRAM_BOT_TOKEN or TELEGRAM_FREE_CHANNEL_ID not configured' },
+        { ok: false, error: 'No broadcast channel configured (set TELEGRAM_BOT_TOKEN + TELEGRAM_FREE_CHANNEL_ID and/or DISCORD_WEBHOOK_URL)' },
         { status: 503 },
       );
     }
 
-    const result = await broadcastTopSignals(channelId, botToken, { freeOnly: true });
+    let telegramOk = false;
+    let telegramMessageId: number | null = null;
+    let telegramError: string | null = null;
+    if (telegramConfigured) {
+      const result = await broadcastTopSignals(channelId!, botToken!, { freeOnly: true });
+      telegramOk = result.success;
+      telegramMessageId = result.messageId ?? null;
+      telegramError = result.error ?? null;
+    }
 
     // Delayed public channel push — free-tier symbols only, 30+ min old.
     // Same channel as the broadcast above; resolved through the same path.
@@ -97,11 +108,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }
     }
 
+    // Broadcast the same free-tier signals to Discord (issue #38), if configured.
+    // Independent of Telegram and deduped via discord_posted_at.
+    let discordPosted = 0;
+    if (discordWebhook) {
+      const discord = await broadcastSignalsToDiscord(discordWebhook);
+      discordPosted = discord.posted;
+    }
+
     return NextResponse.json({
-      ok: result.success,
-      messageId: result.messageId ?? null,
+      ok: telegramConfigured ? telegramOk : true,
+      messageId: telegramMessageId,
       publicPushed,
-      error: result.error ?? null,
+      discordPosted,
+      error: telegramError,
       timestamp: new Date().toISOString(),
     });
   } catch {
