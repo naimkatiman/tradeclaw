@@ -37,7 +37,7 @@ function SigninInner() {
   const [telegramBusy, setTelegramBusy] = useState(false);
   const [telegramErr, setTelegramErr] = useState<string | null>(null);
 
-  const proceedRef = useRef<() => Promise<void>>();
+  const proceedRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
   async function proceedAfterSession(): Promise<void> {
     const checkoutBody =

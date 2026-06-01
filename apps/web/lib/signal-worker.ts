@@ -100,8 +100,9 @@ export async function getSignalsCached(params: {
       const upper = params.direction.toUpperCase();
       signals = signals.filter((s) => s.direction === upper);
     }
-    if (params.minConfidence && params.minConfidence > 0) {
-      signals = signals.filter((s) => s.confidence >= params.minConfidence);
+    const minConfidence = params.minConfidence;
+    if (minConfidence && minConfidence > 0) {
+      signals = signals.filter((s) => s.confidence >= minConfidence);
     }
 
     return { signals, syntheticSymbols: cached.syntheticSymbols };

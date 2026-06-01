@@ -262,6 +262,7 @@ describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
       avatarUrl: null,
       authProvider: null,
       referralCode: null,
+      referredBy: null,
     });
 
     const res = await POST(makeRequest());
@@ -338,6 +339,7 @@ describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
       avatarUrl: null,
       authProvider: null,
       referralCode: null,
+      referredBy: null,
     });
     mockedSendDunning.mockResolvedValueOnce({ ok: false, reason: 'provider_error' });
 
@@ -713,6 +715,7 @@ describe('POST /api/stripe/webhook — tier transitions', () => {
       avatarUrl: null,
       authProvider: null,
       referralCode: null,
+      referredBy: null,
     });
 
     mockedGetStripe.mockReturnValue({
