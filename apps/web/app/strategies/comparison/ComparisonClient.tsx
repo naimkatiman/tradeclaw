@@ -46,6 +46,8 @@ export function ComparisonClient() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    // Reset the spinner whenever the selected period changes before refetching.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     fetch(`/api/strategy-breakdown?period=${period}`)
       .then((res) => {

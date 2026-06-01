@@ -47,6 +47,8 @@ export function LocaleProvider({
   // Hydrate from the persisted preference after mount (avoids SSR mismatch).
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
+    // Hydration must happen after mount to avoid an SSR/client markup mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (isLocale(stored)) setLocaleState(stored);
   }, []);
 

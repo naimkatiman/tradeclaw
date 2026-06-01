@@ -304,7 +304,6 @@ export default async function SignalPage(
 
   const isBuy = signal.direction === 'BUY';
   const signalPath = `/signal/${symbol}-${timeframe}-${direction}`;
-  const now = Date.now();
 
   return (
     <div className="min-h-[100dvh] bg-[#050505] text-white">

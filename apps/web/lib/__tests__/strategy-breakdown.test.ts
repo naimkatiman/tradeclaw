@@ -158,7 +158,7 @@ describe('computeStrategyBreakdown multi-strategy winners', () => {
         outcomes: { '4h': null, '24h': { hit: true, pnlPct: 2.1, price: 100 } },
       },
     ];
-    const result = computeStrategyBreakdown(records as any, 'all');
+    const result = computeStrategyBreakdown(records as unknown as SignalHistoryRecord[], 'all');
     const classic = result.find((r) => r.strategyId === 'classic')!;
     const hmm = result.find((r) => r.strategyId === 'hmm-top3')!;
 
