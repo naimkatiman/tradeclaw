@@ -6,6 +6,7 @@ import { MobileNav } from "./components/mobile-nav";
 import { PWAInstallPrompt } from "./components/pwa-install";
 import { DemoBanner } from "./components/demo-banner";
 import { ThemeProvider } from "./components/theme-provider";
+import { LocaleProvider } from "./components/locale-provider";
 import { SiteFooter } from "./components/site-footer";
 import { MilestoneCelebrationModal } from "../components/milestone-modal";
 import { FeatureUnlockBanner } from "../components/feature-unlock-banner";
@@ -156,22 +157,24 @@ export default function RootLayout({
             <PostHogPageView />
           </Suspense>
           <ThemeProvider>
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
-            <SWRegister />
-            {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && <DemoBanner />}
-            <div className="flex-1 pb-16 md:pb-0">
-              {children}
-            </div>
-            <SiteFooter />
-            <MobileNav />
-            <PWAInstallPrompt />
-            <MilestoneCelebrationModal />
-            <FeatureUnlockBanner />
-            <OnboardingChecklist />
-            <StarProgressBar />
+            <LocaleProvider>
+              <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+              />
+              <SWRegister />
+              {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && <DemoBanner />}
+              <div className="flex-1 pb-16 md:pb-0">
+                {children}
+              </div>
+              <SiteFooter />
+              <MobileNav />
+              <PWAInstallPrompt />
+              <MilestoneCelebrationModal />
+              <FeatureUnlockBanner />
+              <OnboardingChecklist />
+              <StarProgressBar />
+            </LocaleProvider>
           </ThemeProvider>
         </AnalyticsProvider>
       </body>

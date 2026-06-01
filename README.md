@@ -96,6 +96,16 @@ Open [http://localhost:3000](http://localhost:3000). Requires PostgreSQL. Migrat
 | `ghcr.io/naimkatiman/tradeclaw:vX.Y.Z` | A specific release tag |
 | `ghcr.io/naimkatiman/tradeclaw:sha-<git-sha>` | A specific commit |
 
+## Monitoring (Grafana + Prometheus)
+
+TradeClaw exposes a Prometheus-compatible metrics endpoint at `/api/metrics` (signal direction, confidence, RSI, counts, freshness, outcomes). An opt-in monitoring stack ships with the compose file:
+
+```bash
+docker compose --profile monitoring up -d   # adds prometheus (:9090) + grafana (:3001)
+```
+
+Then open Grafana at [http://localhost:3001](http://localhost:3001) (default login `admin`/`admin`, override with `GRAFANA_ADMIN_PASSWORD`), add Prometheus (`http://prometheus:9090`) as a data source, and import `grafana/tradeclaw-dashboard.json`. The default `docker compose up` does not start these services. See [`grafana/README.md`](grafana/README.md) for the metrics reference and panel details.
+
 ## Local development (from source)
 
 TradeClaw is an npm-workspaces monorepo. You need Node.js 20+, npm, and a PostgreSQL instance (the web app falls back to bundled SQLite if `DATABASE_URL` is unset, but Postgres is recommended).
@@ -225,7 +235,7 @@ TradeClaw can push signals over multiple channels, each enabled by env vars:
   - `sendgrid` — `SENDGRID_API_KEY`
   - `smtp` — `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` (requires `npm install nodemailer`)
 - **Daily digest email** — set `EMAIL_TO` (comma-separated) and the `/api/cron/daily-digest` job emails the day's top signals via the configured provider, independently of Telegram.
-- **Webhooks** — see the [webhook integration guide](docs/webhooks.md) and [`examples/webhooks/`](examples/webhooks/).
+- **Webhooks** — see the [webhook integration guide](docs/webhooks.md) for the signal payload schema and polling/cron patterns, plus ready-to-run forwarders in [`examples/webhooks/`](examples/webhooks/) (Slack, Discord, n8n, Zapier, Google Sheets).
 
 See `.env.example` for the full list of notification env vars.
 

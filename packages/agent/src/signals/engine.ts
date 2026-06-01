@@ -101,8 +101,9 @@ function roundPrice(price: number, symbol: SymbolConfig): number {
 
 /**
  * Compute full indicator summary from price data.
+ * Exported for unit testing of the indicator-to-signal threshold mapping.
  */
-function computeIndicators(
+export function computeIndicators(
   prices: { open: number[]; high: number[]; low: number[]; close: number[] },
   symbol: SymbolConfig
 ): IndicatorSummary {
@@ -166,8 +167,9 @@ function computeIndicators(
 
 /**
  * Determine signal direction and confidence from indicators.
+ * Exported for unit testing of the vote aggregator and confidence calculation.
  */
-function evaluateSignal(indicators: IndicatorSummary): {
+export function evaluateSignal(indicators: IndicatorSummary): {
   direction: Direction;
   confidence: number;
 } | null {

@@ -158,6 +158,13 @@ const BUY_CONFIDENCE_THRESHOLD = 70;
 const TIMEFRAMES = ['ALL', 'M5', 'M15', 'H1', 'H4', 'D1'];
 
 
+// US mega-caps + index ETFs (issue #42). Symbols mirror apps/web/app/lib/symbol-config.ts.
+const STOCK_SYMBOLS = [
+  'NVDAUSD', 'TSLAUSD', 'AAPLUSD', 'MSFTUSD', 'GOOGLUSD', 'AMZNUSD', 'METAUSD',
+  'SPYUSD', 'QQQUSD', 'AMDUSD', 'JPMUSD', 'JNJUSD', 'VUSD', 'WMTUSD', 'PGUSD',
+  'UNHUSD', 'HDUSD', 'BACUSD', 'MAUSD', 'XOMUSD',
+];
+
 const ASSET_CLASSES = {
   ALL: [
     'XAUUSD', 'XAGUSD',
@@ -167,6 +174,7 @@ const ASSET_CLASSES = {
     'OPUSD', 'FILUSD', 'INJUSD', 'SUIUSD', 'SEIUSD', 'TIAUSD',
     'RENDERUSD', 'FETUSD', 'AAVEUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
     'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF',
+    ...STOCK_SYMBOLS,
   ],
   CRYPTO: [
     'BTCUSD', 'ETHUSD', 'SOLUSD', 'DOGEUSD', 'BNBUSD', 'XRPUSD',
@@ -177,6 +185,7 @@ const ASSET_CLASSES = {
   ],
   FOREX: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF'],
   METALS: ['XAUUSD', 'XAGUSD'],
+  STOCKS: STOCK_SYMBOLS,
 };
 
 type AssetClass = keyof typeof ASSET_CLASSES;

@@ -6,6 +6,8 @@ import { Play, Thermometer, ChevronDown, Activity, ShoppingBag, Briefcase, Flask
 import { ThemeToggle } from './theme-toggle';
 import { TradeClawLogo } from '../../components/tradeclaw-logo';
 import { UserMenu } from '../../components/UserMenu';
+import { useLocale } from './locale-provider';
+import { SUPPORTED_LOCALES, type Locale } from '../../lib/translations';
 import type { LucideIcon } from 'lucide-react';
 
 interface NavLink {
@@ -92,6 +94,14 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+  const { t, locale, setLocale } = useLocale();
+
+  // Primary-nav labels resolved from the active locale (issue #16, Phase 1).
+  const navLabel: Record<string, string> = {
+    '/dashboard': t.nav.dashboard,
+    '/screener': t.nav.signals,
+    '/track-record': t.nav.trackRecord,
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 24);
@@ -142,7 +152,7 @@ export function Navbar() {
                 href={link.href}
                 className="hover:text-[var(--foreground)] transition-colors duration-300 flex items-center gap-1.5"
               >
-                {link.label}
+                {navLabel[link.href] ?? link.label}
               </Link>
             ))}
 
@@ -185,6 +195,18 @@ export function Navbar() {
 
           {/* CTA */}
           <div className="flex items-center gap-2 shrink-0">
+            <select
+              aria-label={t.nav.language}
+              value={locale}
+              onChange={(e) => setLocale(e.target.value as Locale)}
+              className="bg-transparent border border-[var(--border)] rounded-full px-2 py-1 text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-emerald-500/40 cursor-pointer"
+            >
+              {SUPPORTED_LOCALES.map((l) => (
+                <option key={l.code} value={l.code} className="bg-[var(--bg-card)] text-[var(--foreground)]">
+                  {l.label}
+                </option>
+              ))}
+            </select>
             <UserMenu size="compact" />
             <Link
               href="/dashboard"
