@@ -215,6 +215,20 @@ curl https://tradeclaw.win/api/strategy-breakdown
 
 Pro subscribers get real-time access to all endpoints with full depth.
 
+## Notifications
+
+TradeClaw can push signals over multiple channels, each enabled by env vars:
+
+- **Telegram** — instant per-signal alerts (`TELEGRAM_BOT_TOKEN` + channel IDs).
+- **Email** — instant per-signal alerts and a daily digest. Pick a provider with `EMAIL_PROVIDER`:
+  - `resend` (default) — `RESEND_API_KEY` + `RESEND_FROM_EMAIL`
+  - `sendgrid` — `SENDGRID_API_KEY`
+  - `smtp` — `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` (requires `npm install nodemailer`)
+- **Daily digest email** — set `EMAIL_TO` (comma-separated) and the `/api/cron/daily-digest` job emails the day's top signals via the configured provider, independently of Telegram.
+- **Webhooks** — see the [webhook integration guide](docs/webhooks.md) and [`examples/webhooks/`](examples/webhooks/).
+
+See `.env.example` for the full list of notification env vars.
+
 ## Environment variables
 
 | Variable | Required | Description |
