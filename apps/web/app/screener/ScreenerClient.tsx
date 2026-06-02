@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import type { ScreenerResult, ScreenerMeta } from '../api/screener/route';
 import { SparklineChart } from '../components/charts';
@@ -347,7 +347,9 @@ export default function ScreenerClient() {
     saveWatchlist(next);
   }
 
+  const scanSeqRef = useRef(0);
   const scan = useCallback(async () => {
+    const seq = ++scanSeqRef.current;
     setLoading(true);
     setHasScanned(true);
     try {
@@ -363,12 +365,13 @@ export default function ScreenerClient() {
       const res = await fetch(`/api/screener?${params}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json() as { results: ScreenerResult[]; meta: ScreenerMeta };
+      if (seq !== scanSeqRef.current) return; // a newer scan superseded this response
       setResults(data.results);
       setMeta(data.meta);
     } catch {
-      setResults([]);
+      if (seq === scanSeqRef.current) setResults([]);
     } finally {
-      setLoading(false);
+      if (seq === scanSeqRef.current) setLoading(false);
     }
   }, [filters]);
 
