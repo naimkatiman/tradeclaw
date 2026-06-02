@@ -47,7 +47,7 @@ test.describe('pricing page', () => {
     expect(body).not.toHaveProperty('priceId');
   });
 
-  test('401 from checkout redirects to signin with next and tier info', async ({ page }) => {
+  test('401 from checkout redirects to signin with consolidated resume-checkout next param', async ({ page }) => {
     await page.route('**/api/stripe/checkout', (route) =>
       route.fulfill({ status: 401, contentType: 'application/json', body: '{"error":"unauthorized"}' })
     );
@@ -55,9 +55,14 @@ test.describe('pricing page', () => {
     await page.getByTestId('pro-cta').click();
     await page.waitForURL(/\/signin\?/);
     const url = new URL(page.url());
-    expect(url.searchParams.get('next')).toBe('/pricing');
-    expect(url.searchParams.get('tier')).toBe('pro');
-    expect(url.searchParams.get('interval')).toBe('monthly');
+    // App consolidates the resume hint into a single `next` param; /signin no
+    // longer carries flat tier/interval/priceId params. PricingCards.tsx:103-105.
+    const next = url.searchParams.get('next');
+    expect(next).toBe('/pricing?resume=checkout&interval=monthly');
+    const resumeTarget = new URL(next!, 'http://localhost:3000');
+    expect(resumeTarget.pathname).toBe('/pricing');
+    expect(resumeTarget.searchParams.get('resume')).toBe('checkout');
+    expect(resumeTarget.searchParams.get('interval')).toBe('monthly');
     expect(url.searchParams.get('priceId')).toBeNull();
   });
 
