@@ -18,6 +18,10 @@ name = "tradeclaw"
   PORT = "3000"
   DATABASE_URL = "${{db.DATABASE_URL}}"
   REDIS_URL = "${{redis.REDIS_URL}}"
+  # Web app signs/verifies session cookies, OAuth state and Telegram link tokens
+  # with USER_SESSION_SECRET (lib/user-session.ts fails fast if unset). AUTH_SECRET
+  # is only consumed by the ws-server.
+  USER_SESSION_SECRET = "${{shared.USER_SESSION_SECRET}}"
   AUTH_SECRET = "${{shared.AUTH_SECRET}}"
   APP_URL = "${{shared.APP_URL}}"
 
@@ -53,3 +57,6 @@ name = "ws-server"
   PORT = "4000"
   DATABASE_URL = "${{db.DATABASE_URL}}"
   REDIS_URL = "${{redis.REDIS_URL}}"
+  # ws-server throws at module load in production when AUTH_SECRET is unset
+  # (middleware/auth.ts), so the relay crash-loops without this.
+  AUTH_SECRET = "${{shared.AUTH_SECRET}}"
