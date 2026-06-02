@@ -109,7 +109,10 @@ export class PaperBroker implements IBroker {
     }
 
     const orderId = `paper-${this.nextOrderId++}`;
-    const quantity = Math.floor(order.quantity);
+    // Paper trading has no lot constraint, so honor fractional quantities
+    // (high-priced/fractional assets like XAUUSD/BTCUSD). Flooring would turn a
+    // sub-1-unit order into a phantom 0-unit fill that opens no position.
+    const quantity = order.quantity;
     const cost = quantity * fillPrice;
 
     if (order.direction === 'BUY') {
@@ -230,9 +233,13 @@ export class PaperBroker implements IBroker {
   }
 
   private computePositionsValue(): number {
+    // Sign exposure by direction so equity (cash + positionsValue) is correct.
+    // A long adds its market value; a short is a liability — its cash proceeds
+    // were already credited on open, so it must subtract the buyback cost.
     let total = 0;
     for (const p of this.positions.values()) {
-      total += p.quantity * p.currentPrice;
+      const marketValue = p.quantity * p.currentPrice;
+      total += p.direction === 'long' ? marketValue : -marketValue;
     }
     return total;
   }
