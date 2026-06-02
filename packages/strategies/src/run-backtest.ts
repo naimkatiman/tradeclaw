@@ -121,7 +121,12 @@ function computeSharpe(trades: BacktestTrade[]): number {
 export function runBacktest(candles: OHLCV[], strategy: Strategy): BacktestResult {
   if (candles.length === 0) return zeroResult(strategy.id, 'no-data');
 
-  const signals = strategy.entry.generateSignals(candles, { symbol: 'BACKTEST', timeframe: 'H1' });
+  const generated = strategy.entry.generateSignals(candles, { symbol: 'BACKTEST', timeframe: 'H1' });
+  // Entry modules may return signals in non-chronological order (e.g. hmm-top3
+  // sorts by confidence desc). The overlap guard, drawdown slice, and
+  // equity-curve fill all assume chronological barIndex order, so process a
+  // copy sorted by barIndex ascending without mutating the caller's array.
+  const signals = [...generated].sort((a, b) => a.barIndex - b.barIndex);
 
   if (signals.length === 0) {
     const flat = new Array(candles.length).fill(START_BALANCE);
