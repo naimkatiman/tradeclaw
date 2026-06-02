@@ -420,7 +420,7 @@ export function TrackRecordClient() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const fetchData = useCallback(async (p: Period, off: number, pair: string, direction: DirectionFilter, s: Scope, c: CategoryFilter, band: EquityBand) => {
+  const fetchData = useCallback(async (p: Period, off: number, pair: string, direction: DirectionFilter, s: Scope, c: CategoryFilter, band: EquityBand, isCancelled: () => boolean) => {
     setLoading(true);
     try {
       const historyParams = new URLSearchParams({
@@ -447,6 +447,7 @@ export function TrackRecordClient() {
 
       if (historyRes.status === 'fulfilled' && historyRes.value.ok) {
         const data = await historyRes.value.json();
+        if (isCancelled()) return;
         setStats(data.stats ?? null);
         setRecords(data.records ?? []);
         setTotal(data.total ?? 0);
@@ -455,25 +456,31 @@ export function TrackRecordClient() {
 
       if (leaderboardRes.status === 'fulfilled' && leaderboardRes.value.ok) {
         const data = await leaderboardRes.value.json();
+        if (isCancelled()) return;
         setLeaderboard(data);
       }
 
       if (equityRes.status === 'fulfilled' && equityRes.value.ok) {
         const data = await equityRes.value.json();
+        if (isCancelled()) return;
         setRollingWinRates(data.rollingWinRates ?? null);
       } else {
+        if (isCancelled()) return;
         setRollingWinRates(null);
       }
     } catch {
+      if (isCancelled()) return;
       setRollingWinRates(null);
       // silently fail
     } finally {
-      setLoading(false);
+      if (!isCancelled()) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchData(period, offset, pairFilter, directionFilter, scope, category, equityBand);
+    let cancelled = false;
+    fetchData(period, offset, pairFilter, directionFilter, scope, category, equityBand, () => cancelled);
+    return () => { cancelled = true; };
   }, [period, offset, pairFilter, directionFilter, scope, category, equityBand, fetchData]);
 
   useEffect(() => {

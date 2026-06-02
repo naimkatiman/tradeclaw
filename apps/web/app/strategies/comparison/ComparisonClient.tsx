@@ -46,6 +46,7 @@ export function ComparisonClient() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     // Reset the spinner whenever the selected period changes before refetching.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
@@ -54,9 +55,10 @@ export function ComparisonClient() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then((json) => setData(json))
-      .catch(() => setData(null))
-      .finally(() => setLoading(false));
+      .then((json) => { if (!cancelled) setData(json); })
+      .catch(() => { if (!cancelled) setData(null); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [period]);
 
   const winners = useMemo(() => {
