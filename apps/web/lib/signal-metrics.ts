@@ -53,13 +53,15 @@ export async function getAccuracyTrends(days: number): Promise<AccuracyTrend[]> 
     `SELECT
        created_at::date AS date,
        COUNT(*)::text AS total_signals,
-       COUNT(*) FILTER (WHERE result_4h = 'win')::text AS wins_4h,
-       COUNT(*) FILTER (WHERE result_4h = 'loss')::text AS losses_4h,
-       COUNT(*) FILTER (WHERE result_24h = 'win')::text AS wins_24h,
-       COUNT(*) FILTER (WHERE result_24h = 'loss')::text AS losses_24h,
+       COUNT(*) FILTER (WHERE outcome_4h IS NOT NULL AND (outcome_4h->>'hit')::boolean = TRUE)::text AS wins_4h,
+       COUNT(*) FILTER (WHERE outcome_4h IS NOT NULL AND (outcome_4h->>'hit')::boolean = FALSE AND (outcome_4h->>'pnlPct')::numeric <> 0)::text AS losses_4h,
+       COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL AND (outcome_24h->>'hit')::boolean = TRUE)::text AS wins_24h,
+       COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL AND (outcome_24h->>'hit')::boolean = FALSE AND (outcome_24h->>'pnlPct')::numeric <> 0)::text AS losses_24h,
        COALESCE(AVG(confidence), 0)::text AS avg_confidence
      FROM signal_history
      WHERE created_at >= NOW() - ($1 || ' days')::interval
+       AND is_simulated = FALSE
+       AND gate_blocked = FALSE
      GROUP BY created_at::date
      ORDER BY date DESC`,
     [days],
@@ -81,16 +83,18 @@ export async function getAccuracyTrends(days: number): Promise<AccuracyTrend[]> 
 export async function getSymbolBreakdown(days: number): Promise<SymbolBreakdownRow[]> {
   const rows = await query<SymbolRow>(
     `SELECT
-       symbol,
+       pair AS symbol,
        COUNT(*)::text AS total_signals,
-       COUNT(*) FILTER (WHERE result_4h = 'win')::text AS wins_4h,
-       COUNT(*) FILTER (WHERE result_4h = 'loss')::text AS losses_4h,
-       COUNT(*) FILTER (WHERE result_24h = 'win')::text AS wins_24h,
-       COUNT(*) FILTER (WHERE result_24h = 'loss')::text AS losses_24h,
+       COUNT(*) FILTER (WHERE outcome_4h IS NOT NULL AND (outcome_4h->>'hit')::boolean = TRUE)::text AS wins_4h,
+       COUNT(*) FILTER (WHERE outcome_4h IS NOT NULL AND (outcome_4h->>'hit')::boolean = FALSE AND (outcome_4h->>'pnlPct')::numeric <> 0)::text AS losses_4h,
+       COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL AND (outcome_24h->>'hit')::boolean = TRUE)::text AS wins_24h,
+       COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL AND (outcome_24h->>'hit')::boolean = FALSE AND (outcome_24h->>'pnlPct')::numeric <> 0)::text AS losses_24h,
        COALESCE(AVG(confidence), 0)::text AS avg_confidence
      FROM signal_history
      WHERE created_at >= NOW() - ($1 || ' days')::interval
-     GROUP BY symbol
+       AND is_simulated = FALSE
+       AND gate_blocked = FALSE
+     GROUP BY pair
      ORDER BY COUNT(*) DESC`,
     [days],
   );
