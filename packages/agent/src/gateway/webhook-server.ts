@@ -1,6 +1,24 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { timingSafeEqual } from 'node:crypto';
 import type { BaseChannel } from '../channels/base.js';
 import type { TradingSignal, Direction } from '@tradeclaw/signals';
+
+const MAX_BODY_BYTES = 64 * 1024;
+
+/**
+ * Constant-time comparison of a provided auth header against the configured
+ * secret. Accepts both the raw secret and a `Bearer <secret>` form. Length is
+ * checked first so timingSafeEqual never throws on unequal-length buffers.
+ */
+function isAuthorized(authHeader: string, secret: string): boolean {
+  const candidate = authHeader.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length)
+    : authHeader;
+  const a = Buffer.from(candidate);
+  const b = Buffer.from(secret);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
 
 interface TradingViewAlert {
   symbol?: string;
@@ -35,7 +53,10 @@ function alertToSignal(alert: TradingViewAlert): TradingSignal | null {
 
   const rawDirection = (alert.action || '').toLowerCase();
   const direction: Direction = rawDirection.includes('buy') ? 'BUY' : 'SELL';
-  const price = Number(alert.price) || 0;
+  // A missing/unparseable price would build a signal with entry=0 and SL/TP off
+  // 0, causing divide-by-zero downstream. Drop the alert instead.
+  const price = Number(alert.price);
+  if (!Number.isFinite(price) || price <= 0) return null;
 
   const volatilityPct = 0.005;
   const slDist = price * volatilityPct;
@@ -91,19 +112,41 @@ export class WebhookServer {
       }
 
       if (req.method === 'POST' && (req.url === '/webhook' || req.url === '/tv' || req.url === '/alert')) {
-        const authHeader = req.headers['x-webhook-secret'] || req.headers['authorization'];
-        if (this.secret && authHeader !== this.secret && authHeader !== `Bearer ${this.secret}`) {
+        const rawHeader = req.headers['x-webhook-secret'] || req.headers['authorization'];
+        const authHeader = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
+        if (this.secret && (!authHeader || !isAuthorized(authHeader, this.secret))) {
           res.writeHead(401, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ error: 'Unauthorized' }));
           return;
         }
 
-        const body = await new Promise<string>((resolve, reject) => {
-          let data = '';
-          req.on('data', (chunk: Buffer) => { data += chunk.toString(); });
-          req.on('end', () => resolve(data));
-          req.on('error', reject);
-        });
+        let body: string;
+        try {
+          body = await new Promise<string>((resolve, reject) => {
+            let data = '';
+            let bytes = 0;
+            req.on('data', (chunk: Buffer) => {
+              bytes += chunk.length;
+              if (bytes > MAX_BODY_BYTES) {
+                reject(new Error('PAYLOAD_TOO_LARGE'));
+                req.destroy();
+                return;
+              }
+              data += chunk.toString();
+            });
+            req.on('end', () => resolve(data));
+            req.on('error', reject);
+          });
+        } catch (err) {
+          if (err instanceof Error && err.message === 'PAYLOAD_TOO_LARGE') {
+            res.writeHead(413, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Payload too large' }));
+            return;
+          }
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Could not read request body' }));
+          return;
+        }
 
         const alert = parseTradingViewAlert(body);
         if (!alert) {
