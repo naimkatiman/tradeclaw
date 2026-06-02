@@ -1,0 +1,57 @@
+name: Check BTC Signal
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  # Pattern 1: Simple signal check
+  check-signal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: naimkatiman/tradeclaw/packages/tradeclaw-action@main
+        id: btc
+        with:
+          pair: BTCUSD
+          timeframe: H1
+
+      - name: Show signal
+        run: |
+          echo "Signal found: ${{ steps.btc.outputs.signal_found }}"
+          echo "Direction: ${{ steps.btc.outputs.signal_direction }}"
+          echo "Confidence: ${{ steps.btc.outputs.signal_confidence }}%"
+
+  # Pattern 2: Gate on direction + confidence
+  deploy-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: naimkatiman/tradeclaw/packages/tradeclaw-action@main
+        id: signal
+        with:
+          pair: BTCUSD
+          direction: BUY
+          min_confidence: 75
+
+      - name: Deploy only if bullish
+        if: steps.signal.outputs.signal_found == 'true'
+        run: echo "Deploying — BTC is bullish at ${{ steps.signal.outputs.signal_confidence }}%"
+
+  # Pattern 3: Multi-pair report
+  daily-report:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pair: [BTCUSD, ETHUSD, XAUUSD]
+    steps:
+      - uses: naimkatiman/tradeclaw/packages/tradeclaw-action@main
+        id: signal
+        with:
+          pair: ${{ matrix.pair }}
+          timeframe: D1
+
+      - name: Append to summary
+        run: |
+          echo "### ${{ matrix.pair }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Direction: ${{ steps.signal.outputs.signal_direction }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Confidence: ${{ steps.signal.outputs.signal_confidence }}%" >> $GITHUB_STEP_SUMMARY

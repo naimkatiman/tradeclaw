@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TradeClaw Extension Options</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <div class="hero">
+        <section>
+          <p class="kicker">Chrome extension</p>
+          <h1 class="h1">Connect the browser badge to your TradeClaw instance.</h1>
+          <p class="lead">
+            Point the extension at the public demo or your self-hosted install, then choose which
+            symbols should show in the toolbar popup. The extension fetches from
+            <code class="code" style="padding: 2px 6px; display: inline;">/api/widget/extension</code>.
+          </p>
+          <div class="action-row" style="margin-top: 20px;">
+            <a class="button" href="https://tradeclaw.win/chrome-extension" target="_blank" rel="noreferrer">Install guide</a>
+            <a class="button button-secondary" href="https://tradeclaw.win/api/widget/extension" target="_blank" rel="noreferrer">Preview JSON</a>
+          </div>
+        </section>
+
+        <aside class="panel">
+          <div class="panel-title">Preview</div>
+          <img class="preview" src="/chrome-extension-preview.svg" alt="TradeClaw Chrome extension popup preview" />
+        </aside>
+      </div>
+
+      <section class="card" style="padding: 22px; margin-bottom: 18px;">
+        <div class="panel-title">Base URL</div>
+        <form id="options-form" class="grid" style="gap: 16px;">
+          <div class="grid two">
+            <label class="grid" style="gap: 8px;">
+              <span class="small">TradeClaw base URL</span>
+              <input id="baseUrl" class="field" type="url" placeholder="https://tradeclaw.win" required />
+            </label>
+            <label class="grid" style="gap: 8px;">
+              <span class="small">Visible pairs</span>
+              <div class="option-row" style="flex-wrap: wrap;">
+                <label class="badge muted"><input type="checkbox" data-pair="BTCUSD" checked /> BTCUSD</label>
+                <label class="badge muted"><input type="checkbox" data-pair="ETHUSD" checked /> ETHUSD</label>
+                <label class="badge muted"><input type="checkbox" data-pair="XAUUSD" checked /> XAUUSD</label>
+              </div>
+            </label>
+          </div>
+
+          <div class="button-row">
+            <button class="button" type="submit">Save settings</button>
+            <button id="reset" class="button button-secondary" type="button">Reset defaults</button>
+          </div>
+        </form>
+        <p id="status" class="status">Waiting for your settings…</p>
+      </section>
+
+      <section class="card" style="padding: 22px;">
+        <div class="panel-title">How permissions work</div>
+        <ul class="checklist">
+          <li>The extension saves settings in Chrome sync storage.</li>
+          <li>When you save a new base URL, it requests host access for that origin.</li>
+          <li>Once granted, the popup can fetch live signal data without copying tokens.</li>
+        </ul>
+      </section>
+    </main>
+
+    <script src="./options.js"></script>
+  </body>
+</html>

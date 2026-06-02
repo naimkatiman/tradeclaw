@@ -1,0 +1,7 @@
+{
+  "name": "tradeclaw-extension",
+  "private": true,
+  "version": "0.1.0",
+  "description": "TradeClaw Chrome extension scaffold for live signal badges and install options.",
+  "license": "MIT"
+}

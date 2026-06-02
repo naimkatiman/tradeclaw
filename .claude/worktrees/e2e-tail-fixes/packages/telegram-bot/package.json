@@ -1,0 +1,13 @@
+{
+  "name": "@tradeclaw/telegram-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Telegram bot utilities for TradeClaw signal notifications",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "echo 'No build step for telegram-bot yet'",
+    "lint": "echo 'No lint step for telegram-bot yet'"
+  },
+  "license": "MIT"
+}

@@ -82,13 +82,12 @@ test.describe('Backtest Comparison', () => {
     await dismissStarMilestoneModal(page);
     await page.goto('/backtest');
     await dismissStarMilestoneModal(page);
-    await page.waitForLoadState('domcontentloaded');
-
-    // Page should render config panel
-    await expect(page.getByText('Configuration')).toBeVisible();
+    // Route shows a Suspense fallback until the client page hydrates, then
+    // auto-runs on mount (button reads "Fetching data..." until done). Wait it
+    // out — mirrors the passing sibling test in this file.
+    await expect(page.getByText('Configuration')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText('Preset Strategies')).toBeVisible();
-
-    // Run button should be present
-    await expect(page.getByRole('button', { name: /run backtest/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /run backtest/i })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole('button', { name: /run backtest/i })).toBeEnabled({ timeout: 60_000 });
   });
 });

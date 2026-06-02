@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`preset comparison snapshot produces stable metrics across all 5 presets 1`] = `
+[
+  {
+    "id": "classic",
+    "maxDrawdown": 0.0109,
+    "profitFactor": 0.2235,
+    "totalReturn": -0.01,
+    "totalTrades": 15,
+    "winRate": 0.1333,
+  },
+  {
+    "id": "regime-aware",
+    "maxDrawdown": 0.0034,
+    "profitFactor": 0,
+    "totalReturn": -0.0034,
+    "totalTrades": 3,
+    "winRate": 0,
+  },
+  {
+    "id": "hmm-top3",
+    "maxDrawdown": 0,
+    "profitFactor": "inf",
+    "totalReturn": 0.0011,
+    "totalTrades": 1,
+    "winRate": 1,
+  },
+  {
+    "id": "vwap-ema-bb",
+    "maxDrawdown": 0,
+    "profitFactor": 0,
+    "totalReturn": 0,
+    "totalTrades": 0,
+    "winRate": 0,
+  },
+  {
+    "id": "full-risk",
+    "maxDrawdown": 0,
+    "profitFactor": "inf",
+    "totalReturn": 0.0009,
+    "totalTrades": 1,
+    "winRate": 1,
+  },
+]
+`;

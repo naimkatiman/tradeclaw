@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TradeClaw Signal Badge</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="header">
+        <div>
+          <p class="kicker">TradeClaw</p>
+          <h1 style="font-size: 1.4rem; line-height: 1.1;">Signal badge</h1>
+        </div>
+        <button id="refresh" class="icon-button" type="button" aria-label="Refresh live signals">↻</button>
+      </header>
+
+      <p id="status" class="status">Loading live badges…</p>
+
+      <section class="panel">
+        <div class="panel-title">Live badges</div>
+        <div id="signals" class="signals" aria-live="polite"></div>
+      </section>
+
+      <footer class="footer">
+        <a class="button button-secondary" href="https://tradeclaw.win/dashboard" target="_blank" rel="noreferrer">
+          Open dashboard
+        </a>
+        <button id="options" class="button button-ghost" type="button">Configure</button>
+      </footer>
+    </main>
+
+    <script src="./popup.js"></script>
+  </body>
+</html>

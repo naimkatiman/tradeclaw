@@ -20,13 +20,19 @@ export default defineConfig({
     navigationTimeout: 30_000,
   },
   projects: [
+    // Runs once after the webServer is ready and before the test projects.
+    // Warms the signal-generation paths so the first real assertion doesn't pay
+    // the ~10-15s cold-generation cost (see warmup.setup.ts).
+    { name: 'setup', testMatch: /warmup\.setup\.ts/ },
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
     },
     {
       name: 'mobile',
       use: { ...devices['iPhone 14'] },
+      dependencies: ['setup'],
     },
   ],
   webServer: {
