@@ -282,4 +282,54 @@ All gates green; no regressions vs baseline (every delta is an improvement).
 
 ## Phase B — follow-up pass
 
-_(populated in Phase B.)_
+Independent adversarial re-verification (a reviewer that did not make the fixes read every commit
+diff in `origin/main...HEAD`, the actual code paths, and swept blast-radius).
+
+### Re-verification of Phase A fixes
+- All 22 code-fix commits reviewed against their claim + root cause. **Zero reopened.** Each fixes the
+  stated root cause, matches the ledger, introduces no new bug, and weakens no existing test.
+- The three highest-scrutiny fixes were confirmed correct, not symptom-masking:
+  - H-01 backtest snapshot: the OLD `1 trade / 100% win / inf PF / 0 drawdown` for hmm-top3 + full-risk
+    was the *bug* (confidence-ordered processing skipped earlier bars); the NEW `2 trades / 50% / finite
+    PF / real drawdown` is the true chronological result. A fix that makes the marketed numbers *worse*
+    is not a masked regression.
+  - H-02 paper-broker short equity: traced — SELL 5@200 on 100k → cash 101000, positionsValue −1000,
+    equity 100000; at 180 → equity 100100. Correct.
+  - ws fixes: reconnect single-sourced with in-flight guards; concurrent-cap released on both `close`
+    and `error`; db flush serialized (failed batch re-queued oldest-first, no dup/loss).
+- No new tech debt introduced (zero new TODO/FIXME/HACK/`as any`/`@ts-ignore` in the added lines).
+
+### Regression check
+Clean-room gate at 3f35e39 vs the acb8147 baseline (table under "Phase A gate"): every delta is an
+improvement (build red→green, +9 tests, +5 ws tests); no regressions.
+
+### New findings caught in Phase B
+- **B-1 (HIGH) · ✅ Fixed (bf25a02)** — `apps/web/app/screener/ScreenerClient.tsx:350-373` had the same
+  unguarded param-fetch race as H-11/H-12 (filter scan, last-response-wins) that the Phase A data-fetch
+  pass did not reach. Fixed with a request-sequence ref (ignore superseded responses). Verified
+  `tsc --noEmit` exit 0.
+- **B-2 (MEDIUM) · ✅ Fixed (bf25a02)** — `apps/web/app/commentary/CommentaryClient.tsx:14-26` date-select
+  + 5-min-interval fetch race. Same sequence-ref fix. Verified `tsc --noEmit` exit 0.
+- **B-3 (LOW) · ⚠️ Logged** — `cron/pro/research`, `cron/social/daily`, `cron/social/weekly` use a
+  bespoke `isAuthorized` that already FAILS CLOSED (`if (!secret) return false`) but with a
+  non-timing-safe `===`. Not a vulnerability (no fail-open); consistency follow-up to route them
+  through `requireCronAuth`.
+- **B-4 (LOW) · ⚠️ Logged** — additional param-dependent client fetchers without a cancel/seq guard
+  (`strategies/leaderboard/LeaderboardClient.tsx`, `NotionSignalsClient.tsx`, and several mount-only
+  or user-triggered fetchers). Cosmetic/low-risk (mount-only or single-trigger); deferred to a
+  follow-up sweep. `AccuracyClient`/`PerformanceClient` already use the ref-sequence guard (not gaps).
+
+### Coverage (checked and confirmed clean)
+- Blast-radius: removed ws exports (`checkConnectionRate`/`startCleanup`/`stopCleanup`) have zero
+  remaining references; `admin-gate` `safeStringEqual`/`timingSafeEqual` fully removed, all 3 call
+  sites on `verifyAdminSession`; **all 16 cron routes now fail closed** (none fail-open after M-09);
+  no other unauthenticated broadcast/dispatch endpoint missed (`webhooks/deliver` is middleware
+  admin-gated); no other user-URL SSRF sink unguarded (`alert-channels` already uses the shared guard;
+  Slack is write-time host-allowlisted + admin-gated); no `.timestamp`-as-number consumer broken by
+  H-03.
+- Zero-finding spot-checks (areas Phase A reported nothing): `api/stripe/webhook` (signature verified,
+  fail-closed secret, idempotent claim/release, unknown price throws), `lib/stripe.ts`,
+  `api/auth/magic-link/verify` (single-use token, hardened redirect base) — all clean, nothing missed.
+
+Final gate re-run after the B-1/B-2 fixes: recorded under "Phase A gate" remains representative;
+B fixes are type-clean (`tsc --noEmit` exit 0) and a final full gate is run before the PR.
