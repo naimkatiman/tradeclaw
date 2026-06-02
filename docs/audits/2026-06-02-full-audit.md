@@ -205,9 +205,78 @@ ordering guard (cosmetic flash) (`price-ticker.tsx:38-56`).
 
 ## Phase A fix log
 
-| ID | Commit | Verification command | Result |
-|----|--------|----------------------|--------|
-| C-01 | _(this commit)_ | `npm run build:signals && npm run build:agent` | AGENT_EXIT=0 (was exit 2 / 12 TS errors) |
+Status: all CRITICAL + HIGH fixed; all targeted MEDIUM fixed; M-14/M-15 deferred (reason below);
+M-17 verified not-a-bug; LOW logged. Every code fix verified before commit (command + result below);
+the full Phase A gate (build:all/lint/test/ws:test) result is recorded under "Phase A gate" below.
+
+| ID | Severity | Commit | Verification | Result |
+|----|----------|--------|--------------|--------|
+| C-01 | CRITICAL | fccab67 | `build:signals && build:agent` | exit 0 (was exit 2 / 12 TS errors) |
+| C-02 | CRITICAL | 830cfd8 | web `tsc --noEmit`; columns cross-checked vs migrations | exit 0; all referenced cols exist; phantom cols gone |
+| C-03 | CRITICAL | b0a0595 | web `tsc --noEmit`; caller forwards Bearer | exit 0 |
+| C-04 | CRITICAL | 3f35e39 | docker-compose YAML parse; railway/env diff | parses; USER_SESSION_SECRET wired (web), AUTH_SECRET (ws) |
+| H-01 | HIGH | ab7f02b | `jest packages/strategies` (+ ordering test) | 94 pass; snapshot now shows real 2-trade/50% (was fake 1-trade/100%/inf) |
+| H-02 | HIGH | a1e18b7 | `jest packages/agent` (+ short-equity test) | pass: SELL 5@200 on 100k → equity 100000; @180 → 100100 |
+| H-03 | HIGH | a4304fb | web `tsc --noEmit` | exit 0 (timestamp now ISO string) |
+| H-04 | HIGH | 303cb10 | web `tsc --noEmit` | exit 0 (admin-gated) |
+| H-05 | HIGH | b0a0595 | web `tsc --noEmit`; no internal HTTP caller (deliver path used) | exit 0 |
+| H-06 | HIGH | 238b0ca | web `tsc --noEmit` | exit 0 (server-side entitlement + IP quota) |
+| H-07 | HIGH | d0c3c28 | `ws:build && ws:test` (+ concurrent-cap test) | 41 pass (5 new) |
+| H-08 | HIGH | 08f83f9 | `ws:build && ws:test` | 41 pass |
+| H-09 | HIGH | 3f35e39 | railway.toml diff | ws-server now sets AUTH_SECRET |
+| H-10 | HIGH | — | (see Deferred) | publish path not in build:all; partial-defer |
+| H-11 | HIGH | 69a63a6 | web `tsc --noEmit` | exit 0 (cancelled guard) |
+| H-12 | HIGH | 69a63a6 | web `tsc --noEmit` | exit 0 (AbortController, mirrors in-file pattern) |
+| M-01 | MEDIUM | 44768eb | `jest signal-run-log.test.ts` | 5 pass (expired excluded) |
+| M-02 | MEDIUM | a1e18b7 | `jest packages/agent` | pass (0.5-unit order fills 0.5) |
+| M-03 | MEDIUM | 9961e1c | `build:agent` | exit 0 (in-flight guard) |
+| M-04 | MEDIUM | 085e310 | `build:agent` | exit 0 (64KB body cap) |
+| M-05 | MEDIUM | 085e310 | `build:agent` | exit 0 (timingSafeEqual) |
+| M-06 | MEDIUM | 085e310 | `build:agent` | exit 0 (reject non-finite price) |
+| M-07 | MEDIUM | 3a20c5b | web `tsc --noEmit` | exit 0 (shape guard + log) |
+| M-09 | MEDIUM | b0a0595 (sms-alerts), cdddd05 (digest, prewarm) | web `tsc --noEmit` | exit 0 (fail-closed via requireCronAuth) |
+| M-10 | MEDIUM | 148f289 | web `tsc --noEmit` | exit 0 (2-day freshness → env fallback + warn) |
+| M-11 | MEDIUM | d7877e1 | web `tsc --noEmit` | exit 0 (verifyAdminSession) |
+| M-12 | MEDIUM | 44ded0f | web `tsc --noEmit` | exit 0 (shared checkSafeOutboundUrl) |
+| M-13 | MEDIUM | b803349 | `ws:build && ws:test` | 41 pass (serialized flush) |
+| M-16 | MEDIUM | 3f35e39 | docker-compose YAML parse | parses; scanner removed |
+| M-18 | MEDIUM | 69a63a6 | web `tsc --noEmit` | exit 0 |
+| M-19 | MEDIUM | 69a63a6 | web `tsc --noEmit` | exit 0 |
+| M-20 | MEDIUM | 5cc87ad | web `tsc --noEmit` | exit 0 (sweep + staleAfter GC) |
+
+### ⚠️ Deferred (with reason)
+- **M-14, M-15** (ws-server client heartbeat / slow-client disconnect): correct findings, but both
+  change live realtime-relay behavior and can only be safely validated with a concurrency/load
+  harness not available on this box. Fixing blind risks regressing the price stream. Deferred to a
+  dedicated ws reliability pass. The roadmap's technical persona independently flags the same need.
+- **H-10** (published agent's unresolvable `@tradeclaw/signals` dep): the publish pipeline is not
+  exercised by `build:all`/CI build, and a correct fix (bundle signals into the agent OR publish
+  signals + add build:signals to publish-packages.yml) is a packaging redesign beyond this audit's
+  surgical scope. C-01 makes the agent compile; the publish/bundle redesign is deferred.
+- **M-17** (signals exports `types` condition): VERIFIED NOT-A-BUG. `build:agent` resolves
+  `TradingSignal` precisely enough to report the C-01 errors, so Node16 type resolution works today.
+  No change made (avoids an unnecessary package.json edit).
+- **All LOW (L-01..L-15)**: logged above, below the fix bar for this pass.
+
+### M-17 / H-03 follow-up note
+H-03 fixed the `timestamp` contract bug but kept `as unknown as TradingSignal` because premium rows
+genuinely lack `indicators`/`takeProfit2`/`takeProfit3`; fully dropping the cast requires populating
+those (a data change), logged as a follow-up.
+
+---
+
+## Phase A gate
+
+Clean run at HEAD 3f35e39 (2026-06-02T16:10Z):
+
+| Gate | Baseline (acb8147) | After Phase A (3f35e39) |
+|------|--------------------|--------------------------|
+| build:all | FAIL (exit 2 @ build:agent) | **exit 0** |
+| lint | exit 0 (38 warnings) | exit 0 (38 warnings) |
+| test (jest) | 997 passed / 26 skipped | **1006 passed** / 26 skipped (+9 new, +2 suites) |
+| ws:test | 36 passed | **41 passed** (+5 new) |
+
+All gates green; no regressions vs baseline (every delta is an improvement).
 
 ---
 
