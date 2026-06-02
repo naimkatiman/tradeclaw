@@ -1,5 +1,7 @@
 # Submission: awesome-trading / awesome-quant (trading lists)
 
+> SUPERSEDED (2026-06-02): verified live status is in `docs/awesome-lists/SUBMISSION_STATUS.md`. Corrections: awesome-quant is already merged (#300) + dedup PR #399; awesome-systematic-trading lives at `paperswithbacktest/...` (not `edarchimbaud`) with no "Platforms and Frameworks" section — entry went into "Trading bots" (PR #58); `nickmack813/awesome-trading` is a dead 404. Do not submit from this file.
+
 ## Target Lists (1k+ stars, pick one or all)
 
 | Repo | Stars | URL |

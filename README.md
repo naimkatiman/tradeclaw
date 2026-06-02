@@ -22,7 +22,7 @@ Read this in other languages: [日本語](README.ja.md) · [한국어](README.ko
 
 ---
 
-TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (RSI, MACD, EMA, Bollinger Bands, Stochastic, Supertrend). Every signal is recorded in a Postgres database and published on the [track record](https://tradeclaw.win/track-record) — wins **and** losses, no cherry-picking.
+TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (RSI, MACD, EMA, Bollinger Bands, Stochastic, ADX, Volume). Every signal is recorded in a Postgres database and published on the [track record](https://tradeclaw.win/track-record) — wins **and** losses, no cherry-picking.
 
 > Status: pre-1.0 (`0.1.0`). The signal engine, dashboard, backtester, and self-host path are usable today; APIs and schema may still change between releases.
 
@@ -30,14 +30,14 @@ TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (R
 
 |  | Free | Pro ($29/mo) |
 |--|:----:|:------------:|
-| Symbols | 6 (BTC, ETH, XAU, EUR/USD, SPY, QQQ) | All pairs (forex, crypto, metals, commodities, US equities incl. AMD/MU/GOOGL/AMZN/META) |
-| Signal delay | 15 min | Real-time |
+| Symbols | 6 (BTC, ETH, XAU, EUR/USD, SPY, QQQ) | All pairs (forex, crypto, metals, commodities, US equities incl. NVDA/TSLA/AAPL/MSFT/GOOGL/AMZN/META) |
+| Signal delay | 30 min | Real-time |
 | Take-profit levels | TP1 only | TP1 + TP2 + TP3 |
-| Indicators | RSI + EMA trend | RSI, MACD, BB, Stochastic, Supertrend |
+| Indicators | RSI + EMA trend | RSI, MACD, BB, Stochastic, ADX |
 | Signal history | 7 days | Full archive |
 | Confidence band | Standard (70–84) | Standard + Premium (85+) |
 | Telegram alerts | Public channel (delayed) | Private channel (instant), bot-gated Pro group with auto-kick on tier expiry |
-| Broker execution | — | Binance USDT-perp (testnet) + RoboForex R StocksTrader bridge |
+| Broker execution | — | Binance USDT-perp (testnet); RoboForex R StocksTrader bridge scaffolded (interface only, not implemented) |
 | Track record | Full access | Full access |
 | Self-host | Yes | Yes |
 
@@ -68,7 +68,7 @@ If you want to run your own paid tier on top of this code: set your own Stripe k
 docker run -p 3000:3000 ghcr.io/naimkatiman/tradeclaw:latest
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — you get the dashboard with the bundled SQLite fallback so you can try it instantly. For persistent storage and the full feature set, point `DATABASE_URL` at a PostgreSQL instance:
+Open [http://localhost:3000](http://localhost:3000) — the dashboard loads, but the web app requires a PostgreSQL `DATABASE_URL` and throws on first DB access if it is unset. There is no bundled SQLite fallback. Point `DATABASE_URL` at a PostgreSQL instance:
 
 ```bash
 docker run -p 3000:3000 \
@@ -108,7 +108,7 @@ Then open Grafana at [http://localhost:3001](http://localhost:3001) (default log
 
 ## Local development (from source)
 
-TradeClaw is an npm-workspaces monorepo. You need Node.js 20+, npm, and a PostgreSQL instance (the web app falls back to bundled SQLite if `DATABASE_URL` is unset, but Postgres is recommended).
+TradeClaw is an npm-workspaces monorepo. You need Node.js 20+, npm, and a PostgreSQL instance. The web app requires `DATABASE_URL` and throws on first DB access if it is unset — there is no bundled SQLite fallback.
 
 ```bash
 git clone https://github.com/naimkatiman/tradeclaw
@@ -162,7 +162,7 @@ scripts/
   launch-binance-testnet.sh   Binance testnet bootstrap
 ```
 
-> Note: a `tradeclaw-discord` package exists as early scaffolding. Discord support is proposed in issue #38 and is **not** a shipped, supported integration yet — Telegram is the only chat integration currently wired into the signal flow.
+> Note: the standalone `tradeclaw-discord` bot package (issue #38) remains early scaffolding. The web app's Discord webhook integration, however, is shipped and wired: when `DISCORD_WEBHOOK_URL` is set, the `/api/cron/telegram` broadcast job posts the same free-tier signals to a Discord channel (deduped via `discord_posted_at`), and per-user alert rules can target a Discord webhook channel.
 
 ## How it works
 
@@ -170,7 +170,7 @@ scripts/
 
 ```
 API request → getTrackedSignals() → generateSignalsFromTA()
-  → ta-engine.ts (RSI, MACD, EMA, BB, Stoch, Supertrend)
+  → ta-engine.ts (RSI, MACD, EMA, BB, Stoch, ADX, Volume)
   → recordSignalsAsync() → signal_history table
   → /track-record page
 ```
@@ -183,7 +183,8 @@ Signals are generated as a side effect of API requests — no external scheduler
 /api/prices, OHLCV, SSE
   → market-data-hub (primary, MARKET_DATA_HUB_URL)
   → Binance (crypto fallback)
-  → Yahoo Finance (everything else fallback)
+  → Stooq CSV (forex/metals fallback)
+  → static last-known-good / synthetic (ultimate safety net)
 ```
 
 The hub is the source of truth. The two fallbacks are thin survival paths — they kick in only if the hub returns empty or errors, and OHLCV results from fallbacks are not cached so a hub blip can't lock the dashboard into stale synthetic data.
@@ -192,7 +193,7 @@ The hub is the source of truth. The two fallbacks are thin survival paths — th
 
 ```
 Pro signal → apps/web/lib/execution/executor.ts
-  → Binance USDT-perp (testnet by default) | RoboForex R StocksTrader
+  → Binance USDT-perp (testnet by default); RoboForex R StocksTrader bridge scaffolded (interface only, not implemented)
   → pg advisory lock (single client across full execution path)
   → kill-switch fail-closed if any precondition missing
 ```
@@ -201,13 +202,13 @@ Order placement maps the TradeClaw pair (`BTC/USD`) to the broker contract (`BTC
 
 ## Strategy presets
 
-Five entry strategies, switchable via `SIGNAL_ENGINE_PRESET`:
+Five entry strategies, comparable side-by-side in the backtest UI. In live signal generation, `SIGNAL_ENGINE_PRESET` (default `hmm-top3`) currently selects the preset only as a label on emitted signals — the live engine still generates with the `classic` profile regardless of preset. Per-preset live generation is not yet wired:
 
 | Preset | Logic |
 |--------|-------|
 | `classic` | RSI + MACD + EMA scoring — no regime filter |
-| `regime-aware` | Classic filtered by HMM regime |
-| `hmm-top3` | Regime-aware, top 3 by confidence — **production default** |
+| `regime-aware` | Classic filtered by HMM regime (backtest only; live signal path currently runs the `classic` profile) |
+| `hmm-top3` | Regime-aware, top 3 by confidence — **production default** (the wired default for the executor and signal cron; live regime filtering applies in the backtest engine) |
 | `vwap-ema-bb` | Mean-reversion at BB extremes with VWAP + EMA |
 | `full-risk` | HMM top-3 with risk-weighted allocation |
 
@@ -216,7 +217,7 @@ Compare presets in the [backtest UI](https://tradeclaw.win/backtest) with side-b
 ## API
 
 ```bash
-# Get current signals (free tier — 6 symbols, 15-min delay, 7-day history)
+# Get current signals (free tier — 6 symbols, 30-min delay, 7-day history)
 curl https://tradeclaw.win/api/signals
 
 # Get track record stats
@@ -243,7 +244,7 @@ See `.env.example` for the full list of notification env vars.
 
 | Variable | Required | Description |
 |----------|:--------:|-------------|
-| `DATABASE_URL` | Recommended | PostgreSQL connection string. If unset, the web app uses a bundled SQLite fallback (fine for a quick local try, not for production) |
+| `DATABASE_URL` | Required | PostgreSQL connection string. The web app throws on first DB access if it is unset — there is no SQLite fallback |
 | `MARKET_DATA_HUB_URL` | Yes | Market data hub (primary quote/OHLCV/SSE source). Bare host accepted — `https://` is added if missing |
 | `CRON_SECRET` | Yes | Auth for `/api/cron/*` endpoints |
 | `SIGNAL_ENGINE_PRESET` | No | Strategy preset (default: `hmm-top3`) |
