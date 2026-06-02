@@ -40,13 +40,14 @@ test.describe('Admin Login', () => {
     await expect(page.locator('text=Invalid secret')).toBeVisible();
   });
 
-  test('redirects to dashboard on successful login', async ({ page }) => {
+  test('redirects to admin on successful login', async ({ page }) => {
     await page.locator('input#secret').fill('correct-secret');
     await page.locator('button[type="submit"]').click();
 
-    // Should navigate to dashboard
-    await page.waitForURL('**/dashboard', { timeout: 10_000 });
-    expect(page.url()).toContain('/dashboard');
+    // A login with no ?redirect= param lands on the admin landing page (/admin),
+    // not the public /dashboard (AdminLoginClient.tsx).
+    await page.waitForURL('**/admin', { timeout: 10_000 });
+    expect(page.url()).toContain('/admin');
   });
 
   test('shows loading state during submission', async ({ page }) => {
