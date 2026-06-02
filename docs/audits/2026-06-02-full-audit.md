@@ -43,7 +43,7 @@ Status legend: Open · In progress · Fixed (with proof) · Deferred (with reaso
 
 ### CRITICAL
 
-#### C-01 — `packages/agent` does not compile (breaks `build:all`) · Open
+#### C-01 — `packages/agent` does not compile (breaks `build:all`) · ✅ Fixed
 - **Files:** `packages/agent/src/signals/tracker.ts:62-63,84-85`, `packages/agent/src/channels/telegram.ts:50-51`, `packages/agent/src/channels/discord.ts:49-50` (12 TS errors total)
 - **Root cause:** `@tradeclaw/signals` `TradingSignal` declares `takeProfit2/3: number | null`
   (`packages/signals/src/types.ts:24-25`). The `agent` package consumes them as non-null `number`:
@@ -207,7 +207,7 @@ ordering guard (cosmetic flash) (`price-ticker.tsx:38-56`).
 
 | ID | Commit | Verification command | Result |
 |----|--------|----------------------|--------|
-| _pending_ | | | |
+| C-01 | _(this commit)_ | `npm run build:signals && npm run build:agent` | AGENT_EXIT=0 (was exit 2 / 12 TS errors) |
 
 ---
 

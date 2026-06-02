@@ -46,8 +46,8 @@ export class DiscordChannel implements BaseChannel {
         { name: '\u{1F6D1} Stop Loss', value: `${formatNumber(signal.stopLoss)} (${formatDiff(signal.entry, signal.stopLoss)})`, inline: true },
         { name: '\u200b', value: '\u200b', inline: true },
         { name: '\u{1F3AF} TP1', value: `${formatNumber(signal.takeProfit1)} (${formatDiff(signal.entry, signal.takeProfit1)})`, inline: true },
-        { name: '\u{1F3AF} TP2', value: `${formatNumber(signal.takeProfit2)} (${formatDiff(signal.entry, signal.takeProfit2)})`, inline: true },
-        { name: '\u{1F3AF} TP3', value: `${formatNumber(signal.takeProfit3)} (${formatDiff(signal.entry, signal.takeProfit3)})`, inline: true },
+        ...(signal.takeProfit2 !== null ? [{ name: '\u{1F3AF} TP2', value: `${formatNumber(signal.takeProfit2)} (${formatDiff(signal.entry, signal.takeProfit2)})`, inline: true }] : []),
+        ...(signal.takeProfit3 !== null ? [{ name: '\u{1F3AF} TP3', value: `${formatNumber(signal.takeProfit3)} (${formatDiff(signal.entry, signal.takeProfit3)})`, inline: true }] : []),
         {
           name: '\u{1F4CA} Indicators',
           value: [

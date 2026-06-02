@@ -18,8 +18,8 @@ export interface TrackedSignal {
   confidence: number;
   entry: number;
   tp1: number;
-  tp2: number;
-  tp3: number;
+  tp2: number | null;
+  tp3: number | null;
   sl: number;
   timestamp: string;
   skill: string;
