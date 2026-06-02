@@ -30,6 +30,9 @@ function isPublicFeed(pathname: string): boolean {
 }
 
 function isRateLimited(ip: string, pathname: string): boolean {
+  // E2E-only bypass: the serial CI suite shares one IP and trips this limiter.
+  // Inlined at build time; only the e2e CI build sets it, never production.
+  if (process.env.E2E_DISABLE_RATE_LIMIT === "1") return false;
   const now = Date.now();
   const max = isPublicFeed(pathname)
     ? RATE_LIMIT_MAX_PUBLIC_FEED
