@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDailyDigest, digestToPlainText, digestToHtml, type DailyDigest } from '../../../../lib/daily-digest';
 import { sendEmail } from '../../../../lib/email-sender';
+import { requireCronAuth } from '../../../../lib/cron-auth';
 
 const TELEGRAM_API = 'https://api.telegram.org';
 
@@ -53,14 +54,9 @@ async function sendDigestEmails(digest: DailyDigest): Promise<{ sent: boolean; r
 }
 
 async function handler(request: NextRequest): Promise<NextResponse> {
-  // Auth guard — Vercel cron sends CRON_SECRET as bearer token
-  const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const header = request.headers.get('authorization');
-    if (header !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-  }
+  // Fail-closed: 503 when CRON_SECRET unset, timing-safe bearer compare.
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
 
   try {
     const telegramConfigured = Boolean(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHANNEL_ID);

@@ -2,14 +2,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCachedHistory, invalidateHistoryCache } from '@/lib/signal-history-cache';
 import { refreshAtrCalibration } from '@/app/lib/atr-calibration-cache';
-
-const CRON_SECRET = process.env.CRON_SECRET;
+import { requireCronAuth } from '@/lib/cron-auth';
 
 export async function POST(req: NextRequest) {
-  const auth = req.headers.get('authorization');
-  if (CRON_SECRET && auth !== `Bearer ${CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // Fail-closed: 503 when CRON_SECRET unset, timing-safe bearer compare.
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
   const start = Date.now();
 
