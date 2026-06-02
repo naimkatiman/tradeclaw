@@ -158,6 +158,10 @@ jobs:
     env:
       CI: 'true'
       NEXT_TELEMETRY_DISABLED: '1'
+      # Disable the rolling-window rate limiter for the serial suite only — a
+      # single next-start instance accumulates per-key hits across tests and
+      # returns 429 where tests expect 200/401/403. Set ONLY here; never in prod.
+      E2E_DISABLE_RATE_LIMIT: '1'
       # Sidecar Postgres URL — visible to the migration step, the dev server
       # spawned by Playwright's webServer, and the tests themselves.
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tradeclaw_test

@@ -83,6 +83,12 @@ export async function check(
   window: RateWindow,
   now: number = Date.now(),
 ): Promise<RateDecision> {
+  // E2E-only bypass: never set in production. Gated on a dedicated var so the
+  // real limiter still runs everywhere else (incl. unit tests + Railway prod).
+  if (process.env.E2E_DISABLE_RATE_LIMIT === '1') {
+    return { allowed: true, used: 0, remaining: window.max };
+  }
+
   try {
     await ensureRedis();
     if (isRedisAvailable() && redis) {
