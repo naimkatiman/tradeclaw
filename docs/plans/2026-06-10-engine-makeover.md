@@ -1,7 +1,7 @@
 # Engine Makeover — regime-routed edge, honest track record, broker execution
 
 Date: 2026-06-10
-Status: Phases 0–2 merged to main; Phase 3 code-complete on branch `worktree-phase3-regime-engine` (2026-06-11) — awaiting PR review + merge; Phases 4–5 not yet started
+Status: Phases 0–2 merged to main; Phase 3 code-complete on branch worktree-phase3-regime-engine (awaiting PR review + merge); Phase 4 code-complete on branch worktree-phase4-strategy-dispatch (2026-06-11) — walk-forward gate FAILED on paper, live activation correctly blocked; Phase 5 not yet started
 Owner goal (verbatim intent): consistent profit across three regimes — trending → catch the move, volatile → mean-revert both directions, neutral/range → range-bound with the smallest weight. The track record is the selling point; the engine is the moat.
 Evidence base: 7-agent subsystem audit (2026-06-10, this session) + the 43-agent why-no-uptrend audit (PR #110, `docs/plans/2026-06-10-track-record-pro-uptrend.md`). All claims below were verified against current code on `main` @ `17309cf`.
 
@@ -71,6 +71,19 @@ The owner's spec, implemented as dispatch instead of labels:
 - **Confidence calibration — the only ceiling lifter.** Isotonic/logistic fit of features → realized P(TP1-before-SL) from `signal_history` (correct row filter); published confidence becomes a calibrated probability; shrink the autocorrelated-confluence bonus to its measured incremental value.
 - Every strategy ships through the proven shadow playbook (`full-risk-gates-ab.md`): costed backtest → walk-forward → ≥4wk shadow recording → activate. Pre-registered criteria, no peeking.
 - Gate: per-regime expectancy AFTER modeled costs > 0 on walk-forward AND in shadow before anything enters the Pro broadcast.
+
+**Phase 4 status — code-complete 2026-06-11 on branch `worktree-phase4-strategy-dispatch` (16 commits, aa1ca52..e333857).** Sub-plan: `docs/plans/2026-06-11-phase4-strategy-dispatch.md`.
+
+Machinery built (all shipped, all behind the gate):
+- Pure regime→strategy router + trend-route filter (EMA-50 slope + ADX≥20), and honest strategy attribution — both `signal_history` writers now stamp the strategy that ACTUALLY ran (`scanner` / `classic`), killing the `hmm-top3` misattribution.
+- Calibration features persisted at emission (migration 051: `pre_boost_confidence`, `mtf_agreement`, `confluence_bonus`, `cost_estimate_pct`) — forward-accruing, NULL on history.
+- Regime-conditioned backtest harness (drives entry modules directly, dodging the top-3 window cap; 329-bar window saturates the atrPercentile to match the live writer's labels) + the per-regime walk-forward evidence run.
+- Offline confidence calibrator (isotonic + logistic, time-ordered holdout) REPORTED through `/api/calibration` — published confidence unchanged.
+- Shadow recorder (`TRADECLAW_STRATEGY_ROUTER_MODE`, default shadow) logging the would-be router + calibrated-confidence decisions, changing nothing live.
+
+**Gate result — FAILED on paper (the finding that matters).** Per-regime walk-forward on BTC/ETH/SOL H1 2024-06→2026-06, after crypto-perp costs + live ATR geometry (`docs/research/experiments/regime-routed-walkforward-...json`, REGISTRY 2026-06-11): the trend route (the only non-thin cells, n=142–203) is NEGATIVE on all three symbols (−0.19% to −0.67% expectancy/trade after costs); the volatile and range routes (`vwap-ema-bb`) fire too rarely under live H1 geometry — every positive routed cell is THIN (<30 trades) and inconsistent across symbols. The current entry rules have no deployable per-regime edge after costs. This matches Phase 2's −11% live-geometry+costs baseline. The regime engine is correct; it can only route edge that exists.
+
+**What this gates:** live activation of routing/calibration on the Pro broadcast stays BLOCKED (the umbrella gate: per-regime cost-adjusted expectancy > 0 on walk-forward AND ≥4wk shadow — the walk-forward half is negative). Path forward is a Phase-4.5 strategy-rethink (the entries, not the routing) and/or accruing shadow evidence; activation is a later operator decision against the pre-registered criteria. Confidence-bonus shrink remains data-gated on the migration-051 features accruing ≥4wk.
 
 ### Phase 5 — Execution hardening + webhook go-live (wk 6–10, gated on Phase 4 evidence)
 - Order state machine (re-poll fills, persist transitions, `needs_attention` state); bidirectional reconciliation sweep + startup reconciliation; price-drift gate (reject if mark deviates > X bps/ATR-fraction from `sig.entryPrice`); live slippage measurement (signal price vs `avgPrice`, alert on degradation); runtime (DB/Redis) kill switch with per-symbol/per-strategy granularity.

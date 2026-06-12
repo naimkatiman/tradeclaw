@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
 import { readHistoryAsync, isCountedResolved } from '@/lib/signal-history';
+import {
+  calibrateConfidence,
+  normalizeConfidence,
+  MIN_CALIBRATION_CONFIDENCE,
+  type CalibrationReport,
+} from '@/lib/confidence-calibration';
 
 export const revalidate = 300; // 5-min cache
 
@@ -23,17 +29,12 @@ const BUCKETS = [
   { label: '90-99%', confMin: 0.90, confMax: 1.00, midpoint: 0.945 },
 ];
 
-/**
- * signal_history stores confidence on the 0-100 scale (e.g. 72, 85 — see
- * PRO_PREMIUM_MIN_CONFIDENCE = 85). Normalize to 0-1 for bucketing and Brier.
- * Before this fix the route compared the raw 0-100 value against 0-1 bucket
- * bounds: every bucket was empty, each fell back to winRate = midpoint, and
- * the reliability chart rendered as perfectly calibrated — fabricated by
- * construction. Defensive: values already <= 1 pass through unchanged.
- */
-function normalizeConfidence(raw: number): number {
-  return raw > 1 ? raw / 100 : raw;
-}
+// normalizeConfidence (0-100 → 0-1) + MIN_CALIBRATION_CONFIDENCE (the 0.5 floor)
+// are imported from confidence-calibration.ts — one source of truth shared with
+// the router shadow recorder so the populations never drift. Before that fix the
+// route compared raw 0-100 values against 0-1 bucket bounds: every bucket was
+// empty, each fell back to winRate = midpoint, and the reliability chart rendered
+// as perfectly calibrated — fabricated by construction.
 
 export async function GET() {
   try {
@@ -44,7 +45,7 @@ export async function GET() {
     const resolved = history
       .filter(isCountedResolved)
       .map((s) => ({ ...s, confidence: normalizeConfidence(s.confidence) }))
-      .filter((s) => s.confidence >= 0.5);
+      .filter((s) => s.confidence >= MIN_CALIBRATION_CONFIDENCE);
 
     const buckets: CalibrationBucket[] = BUCKETS.map((b) => {
       // Top bucket is inclusive so confidence exactly 100 (normalized 1.0)
@@ -88,6 +89,22 @@ export async function GET() {
         )
       : null;
 
+    // Phase 4 D7 — REPORTED calibration curves (isotonic + logistic) fit on a
+    // time-ordered holdout over the SAME resolved population used above. This is
+    // read-only reporting: published confidence on signals is NOT changed here.
+    // Returns null when the population is below the calibrator's minimum sample
+    // size — the UI then shows raw buckets only, never a fabricated curve.
+    // v1 calibrates the single feature carried by all history (confidence →
+    // P(win)); multi-feature calibration + the confluence-bonus shrink are
+    // data-gated on the migration-051 columns accruing ≥4wk (see D4/D7).
+    const calibration: CalibrationReport | null = calibrateConfidence(
+      resolved.map((s) => ({
+        ts: s.timestamp,
+        conf: s.confidence,
+        win: s.outcomes['24h']?.hit ? 1 : 0,
+      })),
+    );
+
     return NextResponse.json({
       buckets,
       overallAccuracy,
@@ -95,6 +112,7 @@ export async function GET() {
       isSimulated: totalSignals < 20,
       brier,
       ece,
+      calibration,
       updatedAt: new Date().toISOString(),
     });
   } catch (err) {

@@ -17,15 +17,32 @@ jest.mock('../regime-resolution', () => ({
   ),
 }));
 
+// D8 shadow recorder: mock the mode resolver + the side-effect sink so the
+// invariant test can assert (a) the shadow path runs in shadow/active and is
+// skipped in off, and (b) it NEVER alters the returned decisions. The real sink
+// reads signal_history + the fs log; mocking it keeps this a pure unit test of
+// computeBroadcastDecisions' contract.
+jest.mock('../strategy-router-shadow', () => ({
+  getStrategyRouterMode: jest.fn(() => 'shadow'),
+}));
+
+jest.mock('../router-decisions-log', () => ({
+  recordRouterShadow: jest.fn(() => Promise.resolve()),
+}));
+
 import { computeBroadcastDecisions, type BroadcastCandidate } from '../broadcast-decision';
 import { isWinningCell, getWinningCellsMode } from '../winning-cells';
 import { runRiskPipeline } from '../risk-pipeline';
 import { fetchResolvedRegimeMap } from '../regime-resolution';
+import { getStrategyRouterMode } from '../strategy-router-shadow';
+import { recordRouterShadow } from '../router-decisions-log';
 
 const mockedIsWinningCell = isWinningCell as jest.MockedFunction<typeof isWinningCell>;
 const mockedCellsMode = getWinningCellsMode as jest.MockedFunction<typeof getWinningCellsMode>;
 const mockedPipeline = runRiskPipeline as jest.MockedFunction<typeof runRiskPipeline>;
 const mockedRegimeMap = fetchResolvedRegimeMap as jest.MockedFunction<typeof fetchResolvedRegimeMap>;
+const mockedRouterMode = getStrategyRouterMode as jest.MockedFunction<typeof getStrategyRouterMode>;
+const mockedRecordShadow = recordRouterShadow as jest.MockedFunction<typeof recordRouterShadow>;
 
 function candidate(id: string, symbol: string): BroadcastCandidate {
   return {
@@ -65,6 +82,8 @@ beforeEach(() => {
   mockedRegimeMap.mockResolvedValue({ regimes: new Map(), classTilts: new Map() } as never);
   mockedCellsMode.mockReturnValue('shadow' as never);
   mockedIsWinningCell.mockReturnValue(true as never);
+  mockedRouterMode.mockReturnValue('shadow' as never);
+  mockedRecordShadow.mockResolvedValue(undefined as never);
 });
 
 describe('computeBroadcastDecisions', () => {
@@ -133,5 +152,83 @@ describe('computeBroadcastDecisions', () => {
     const decisions = await computeBroadcastDecisions([a]);
 
     expect(decisions.get('a')).toMatchObject({ blocked: false, recordable: true, regime: 'range' });
+  });
+});
+
+// ── D8 invariant: the shadow recorder is side-effect-only ──────────────
+// The whole point of the shadow recorder is that it changes NOTHING about the
+// live broadcast. These tests prove computeBroadcastDecisions returns IDENTICAL
+// decisions with shadow mode on vs off, and that off skips the recorder.
+describe('computeBroadcastDecisions — D8 shadow recorder is side-effect-only', () => {
+  function setupTwoCandidates() {
+    const a = candidate('a', 'BTCUSD');
+    const b = candidate('b', 'ETHUSD');
+    mockedRegimeMap.mockResolvedValue({ regimes: new Map([['BTCUSD', 'trend']]), classTilts: new Map() } as never);
+    mockedPipeline.mockResolvedValue(pipelineResult(
+      [{ id: 'a', symbol: 'BTCUSD' }],
+      [{ id: 'b', symbol: 'ETHUSD', reason: 'streak blocked', vetoedBy: 'circuit_breaker' }],
+      [{ symbol: 'BTCUSD', positionSizePct: 7.5 }, { symbol: 'ETHUSD', positionSizePct: 0 }],
+    ) as never);
+    return [a, b];
+  }
+
+  // Serialize a decisions map to a stable, comparable shape.
+  function serialize(m: Map<string, unknown>): unknown {
+    return [...m.entries()].map(([k, v]) => [k, v]).sort((x, y) => String(x[0]).localeCompare(String(y[0])));
+  }
+
+  it('returns IDENTICAL decisions with shadow mode ON vs OFF', async () => {
+    const off = await (async () => {
+      mockedRouterMode.mockReturnValue('off' as never);
+      return computeBroadcastDecisions(setupTwoCandidates());
+    })();
+
+    jest.clearAllMocks();
+    mockedRegimeMap.mockResolvedValue({ regimes: new Map(), classTilts: new Map() } as never);
+    mockedCellsMode.mockReturnValue('shadow' as never);
+    mockedIsWinningCell.mockReturnValue(true as never);
+    mockedRecordShadow.mockResolvedValue(undefined as never);
+
+    const shadow = await (async () => {
+      mockedRouterMode.mockReturnValue('shadow' as never);
+      return computeBroadcastDecisions(setupTwoCandidates());
+    })();
+
+    // Byte-identical decision content regardless of shadow mode.
+    expect(serialize(shadow)).toEqual(serialize(off));
+  });
+
+  it('skips the recorder entirely in off mode', async () => {
+    mockedRouterMode.mockReturnValue('off' as never);
+    await computeBroadcastDecisions(setupTwoCandidates());
+    expect(mockedRecordShadow).not.toHaveBeenCalled();
+  });
+
+  it('invokes the recorder in shadow mode without awaiting it (fire-and-forget)', async () => {
+    mockedRouterMode.mockReturnValue('shadow' as never);
+    const decisions = await computeBroadcastDecisions(setupTwoCandidates());
+    expect(mockedRecordShadow).toHaveBeenCalledTimes(1);
+    // Decisions returned regardless — the recorder is not awaited into the result.
+    expect(decisions.size).toBe(2);
+    const [mode, cands] = mockedRecordShadow.mock.calls[0];
+    expect(mode).toBe('shadow');
+    // Candidates passed through unmodified (id/symbol/direction/confidence).
+    expect((cands as Array<{ id: string }>).map((c) => c.id).sort()).toEqual(['a', 'b']);
+  });
+
+  it('invokes the recorder in active mode too (active records like shadow in this branch)', async () => {
+    mockedRouterMode.mockReturnValue('active' as never);
+    await computeBroadcastDecisions(setupTwoCandidates());
+    expect(mockedRecordShadow).toHaveBeenCalledTimes(1);
+    expect(mockedRecordShadow.mock.calls[0][0]).toBe('active');
+  });
+
+  it('does NOT let a recorder rejection break the returned decisions', async () => {
+    mockedRouterMode.mockReturnValue('shadow' as never);
+    mockedRecordShadow.mockRejectedValue(new Error('sink blew up') as never);
+    const decisions = await computeBroadcastDecisions(setupTwoCandidates());
+    // The .catch + recorder's own guard contain it — decisions still returned.
+    expect(decisions.get('a')).toMatchObject({ blocked: false, recordable: true });
+    expect(decisions.get('b')).toMatchObject({ blocked: true, recordable: true });
   });
 });

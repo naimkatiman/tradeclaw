@@ -115,4 +115,87 @@ describe('GET /api/calibration', () => {
       expect(b.winRate).toBeNull();
     }
   });
+
+  // ── Phase 4 D7 — additive reported calibration curves ──────────────
+  // The new `calibration` field is additive: the original buckets/brier/ece
+  // fields stay exactly as they were, and published confidence is never
+  // touched (this route only reads history).
+
+  it('reports calibration: null below the calibrator minimum sample size', async () => {
+    // 2 counted rows — well below MIN_CALIBRATION_SAMPLES (20).
+    mockedHistory.mockResolvedValue([
+      mkRecord({ id: 'a', confidence: 72 }),
+      mkRecord({
+        id: 'b',
+        confidence: 85,
+        outcomes: { '4h': null, '24h': { price: 49500, pnlPct: -1.0, hit: false, target: 'SL' } },
+      }),
+    ]);
+
+    const res = await GET();
+    const body = await res.json();
+
+    // Existing fields intact.
+    expect(body.totalSignals).toBe(2);
+    expect(body.brier).not.toBeNull();
+    expect(Array.isArray(body.buckets)).toBe(true);
+    // Additive field present but null (insufficient data → no fabricated curve).
+    expect(body.calibration).toBeNull();
+  });
+
+  it('reports isotonic + logistic + holdout curves on a sufficient time-ordered population', async () => {
+    // 30 counted rows with distinct timestamps so the holdout split is by time.
+    // Win rate rises with confidence so both fits have signal to learn.
+    const base = 1_700_000_000_000;
+    const rows = Array.from({ length: 30 }, (_, i) => {
+      const confidence = 50 + (i % 5) * 10; // 50,60,70,80,90 → 0.5..0.9 after normalize
+      const hit = (i % 5) >= 2; // higher-confidence cohorts win more often
+      return mkRecord({
+        id: `row-${i}`,
+        confidence,
+        timestamp: base + i * 60_000, // strictly increasing
+        outcomes: {
+          '4h': null,
+          '24h': hit
+            ? { price: 51000, pnlPct: 2.0, hit: true, target: 'TP1' }
+            : { price: 49500, pnlPct: -1.0, hit: false, target: 'SL' },
+        },
+      });
+    });
+    mockedHistory.mockResolvedValue(rows);
+
+    const res = await GET();
+    const body = await res.json();
+
+    // Existing fields untouched and still computed.
+    expect(body.totalSignals).toBe(30);
+    expect(typeof body.brier).toBe('number');
+    expect(body.buckets.length).toBe(5);
+
+    // Additive calibration report present with both methods + holdout.
+    expect(body.calibration).not.toBeNull();
+    expect(body.calibration.method.isotonic).not.toBeNull();
+    expect(Array.isArray(body.calibration.method.isotonic.x)).toBe(true);
+    expect(Array.isArray(body.calibration.method.isotonic.y)).toBe(true);
+    expect(body.calibration.method.logistic).not.toBeNull();
+    expect(typeof body.calibration.method.logistic.a).toBe('number');
+    expect(typeof body.calibration.method.logistic.b).toBe('number');
+    // Holdout reliability: raw vs calibrated Brier on the newer validation slice.
+    expect(typeof body.calibration.holdout.rawBrier).toBe('number');
+    expect(typeof body.calibration.holdout.isotonicBrier).toBe('number');
+    expect(typeof body.calibration.holdout.logisticBrier).toBe('number');
+    expect(body.calibration.sampleSize).toBe(30);
+    expect(body.calibration.holdout.trainSize + body.calibration.holdout.validationSize).toBe(30);
+  });
+
+  it('does not mutate published confidence — input records are read-only', async () => {
+    const rec = mkRecord({ id: 'immut', confidence: 72 });
+    mockedHistory.mockResolvedValue([rec]);
+
+    await GET();
+
+    // The route normalizes a COPY for bucketing; the source record's published
+    // confidence (0-100 scale) must be unchanged after the call.
+    expect(rec.confidence).toBe(72);
+  });
 });

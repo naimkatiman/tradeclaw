@@ -93,9 +93,11 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
     // Writer A of signal_history: request side-effect path. Writer B is the
     // /api/cron/signals route which calls getSignals() the same way and
     // dedups against the same 2h symbol+direction window. Tag with the
-    // active preset so /track-record's per-strategy breakdown reflects
-    // reality.
-    const strategyId = activePresetId;
+    // profile that actually generated the rows (profileId, line 75) so
+    // /track-record's per-strategy breakdown is honest — the env preset id
+    // (e.g. 'hmm-top3') is only a label until it becomes a STRATEGY_PROFILES
+    // entry, and stamping it would misattribute classic-generated rows.
+    const strategyId = profileId;
 
     const filtered = result.signals.filter(
       (signal) =>

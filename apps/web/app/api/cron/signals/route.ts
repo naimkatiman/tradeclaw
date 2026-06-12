@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOHLCV } from '../../../lib/ohlcv';
 import { isMarketOpen } from '../../../lib/market-hours';
 import { getSignals } from '../../../lib/signals';
+import { safeProfileId } from '../../../lib/signal-generator';
 import { getActivePreset } from './preset-dispatch';
 import {
   recordSignalAsync,
@@ -22,6 +23,20 @@ import { recordSignalRun } from '../../../../lib/signal-run-log';
 import { requireCronAuth } from '../../../../lib/cron-auth';
 import { precomputeSignals } from '../../../../lib/signal-worker';
 import { readLiveSignals } from '../../../../lib/signals-live';
+import { costModelFor } from '@tradeclaw/strategies';
+
+/**
+ * Modeled round-trip transaction cost for a signal, as a PERCENT of notional
+ * (Phase 4 D4, migration 051 cost_estimate_pct). Round-trip = entry + exit, so
+ * 2×(feePctPerSide + slippagePctPerSide) from the canonical @tradeclaw/strategies
+ * cost model. Funding is intentionally excluded — hold duration is unknown at
+ * emission, so funding accrual cannot be estimated here (backtests model it
+ * separately). Populated for EVERY recorded cron row.
+ */
+function estimateRoundTripCostPct(symbol: string): number {
+  const c = costModelFor(symbol);
+  return 2 * (c.feePctPerSide + c.slippagePctPerSide);
+}
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
@@ -40,6 +55,11 @@ type NewlyRecordedSignal = {
   takeProfit1: number;
   stopLoss: number;
   timestamp: number;
+  // Calibration features (Phase 4 D4). The MTF triple is only present on the
+  // TA-fallback path; scanner rows leave it undefined and record NULL.
+  preBoostConfidence?: number;
+  mtfAgreement?: number;
+  confluenceBonus?: number;
 };
 
 /**
@@ -47,8 +67,10 @@ type NewlyRecordedSignal = {
  * market open, no recent duplicate). Does NOT persist — Phase 1 re-sequenced
  * the cron so the broadcast gate decision is computed BEFORE persistence and
  * recorded on the row (docs/plans/2026-06-10-engine-makeover.md).
+ *
+ * @internal exported for testing — the GET handler is the only caller.
  */
-async function collectNewSignals(strategyId: string): Promise<{
+export async function collectNewSignals(strategyId: string): Promise<{
   candidates: NewlyRecordedSignal[];
   effectiveStrategyId: string;
 }> {
@@ -62,7 +84,16 @@ async function collectNewSignals(strategyId: string): Promise<{
     takeProfit1: number;
     stopLoss: number;
     timestamp: string;
+    // Calibration features (Phase 4 D4) — populated only on the TA-fallback path.
+    preBoostConfidence?: number;
+    mtfAgreement?: number;
+    confluenceBonus?: number;
   }> = [];
+
+  // The strategy actually responsible for the rows below — assigned in each
+  // branch so the returned attribution is honest and its origin is explicit
+  // (no reassignment of the `strategyId` parameter to track).
+  let effectiveStrategyId: string;
 
   // ── PRIMARY: Prefer Python scanner signals when coverage is adequate ──
   // Mirrors the logic in /api/signals/route.ts so the track record reflects
@@ -82,10 +113,13 @@ async function collectNewSignals(strategyId: string): Promise<{
       stopLoss: s.sl,
       timestamp: s.timestamp,
     }));
-    strategyId = 'scanner'; // tag so track-record breakdown reflects reality
+    effectiveStrategyId = 'scanner'; // tag so track-record breakdown reflects reality
   } else {
-    // ── FALLBACK: Next.js TA engine (hmm-top3 etc.) ──
-    const { signals: rawSignals } = await getSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
+    // ── FALLBACK: Next.js TA engine ──
+    // Resolve strategyId to the profile that will actually run, so stamp and
+    // generation can never diverge (e.g. env preset 'hmm-top3' → 'classic').
+    const profileId = safeProfileId(strategyId);
+    const { signals: rawSignals } = await getSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE, profileId });
     signals = rawSignals
       .filter((s) => s.dataQuality === 'real' && s.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE)
       .map((s) => ({
@@ -98,7 +132,13 @@ async function collectNewSignals(strategyId: string): Promise<{
         takeProfit1: s.takeProfit1,
         stopLoss: s.stopLoss,
         timestamp: s.timestamp,
+        // MTF triple surfaced by the TA engine's re-boost path (signals.ts).
+        // Scanner rows do not carry these — only the TA-fallback path does.
+        preBoostConfidence: s.preBoostConfidence,
+        mtfAgreement: s.mtfAgreement,
+        confluenceBonus: s.confluenceBonus,
       }));
+    effectiveStrategyId = profileId; // honest: stamp what actually generated the rows
   }
 
   const candidates: NewlyRecordedSignal[] = [];
@@ -140,10 +180,13 @@ async function collectNewSignals(strategyId: string): Promise<{
       takeProfit1: sig.takeProfit1,
       stopLoss: sig.stopLoss,
       timestamp,
+      preBoostConfidence: sig.preBoostConfidence,
+      mtfAgreement: sig.mtfAgreement,
+      confluenceBonus: sig.confluenceBonus,
     });
   }
 
-  return { candidates, effectiveStrategyId: strategyId };
+  return { candidates, effectiveStrategyId };
 }
 
 // ── Resolve logic ─────────────────────────────────────────────
@@ -326,6 +369,9 @@ export async function GET(request: NextRequest): Promise<Response> {
     const newSignals: NewlyRecordedSignal[] = [];
     for (const sig of candidates) {
       const d = decisions.get(sig.id);
+      // Calibration features (Phase 4 D4). cost_estimate_pct is universal — every
+      // recorded cron row gets it. The MTF triple is only present on TA-fallback
+      // rows; scanner rows carry undefined and record NULL (honest, expected).
       await recordSignalAsync(
         sig.symbol,
         sig.timeframe,
@@ -345,6 +391,12 @@ export async function GET(request: NextRequest): Promise<Response> {
         d && d.recordable
           ? { regime: d.regime, blocked: d.blocked, blockReason: d.blockReason, allocationPct: d.allocationPct }
           : undefined,
+        {
+          preBoostConfidence: sig.preBoostConfidence,
+          mtfAgreement: sig.mtfAgreement,
+          confluenceBonus: sig.confluenceBonus,
+          costEstimatePct: estimateRoundTripCostPct(sig.symbol),
+        },
       );
       newSignals.push(sig);
     }

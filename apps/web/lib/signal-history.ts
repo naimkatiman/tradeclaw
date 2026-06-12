@@ -89,6 +89,21 @@ export interface SignalHistoryRecord {
   allocationPct?: number;
   /** Wall-clock publish stamp (DB-defaulted NOW() on insert), distinct from bar-time `timestamp`. Undefined on pre-048 rows. */
   publishedAt?: number;
+  // Calibration features (migration 051, Phase 4 D4). The MTF triple is only
+  // populated on the TA-fallback path; scanner rows leave it undefined (NULL),
+  // which is honest and expected. costEstimatePct is populated for every cron row.
+  /** TA-engine confidence BEFORE the MTF confluence bonus (0-100). Undefined on pre-051 rows / scanner rows. */
+  preBoostConfidence?: number;
+  /**
+   * Agreement count from signal-generator.ts's 4-timeframe generateMultiTFSignal
+   * survey (range 0-4). Undefined on pre-051 rows / scanner rows. NOT current.ts's
+   * separate 3-TF agreementCount (range 0-3) — only the 4-TF survey is persisted.
+   */
+  mtfAgreement?: number;
+  /** Confluence bonus actually added to preBoostConfidence at emission. Undefined on pre-051 rows / scanner rows. */
+  confluenceBonus?: number;
+  /** Modeled round-trip cost as a PERCENT of notional: 2×(fee+slippage) per @tradeclaw/strategies costModelFor. Funding excluded. Undefined on pre-051 rows. */
+  costEstimatePct?: number;
   outcomes: {
     '4h': SignalOutcome | null;
     '24h': SignalOutcome | null;
@@ -259,6 +274,10 @@ interface HistoryRow {
   broadcast_block_reason?: string | null;
   allocation_pct?: string | number | null;
   published_at?: string | null;
+  pre_boost_confidence?: string | number | null;
+  mtf_agreement?: string | number | null;
+  confluence_bonus?: string | number | null;
+  cost_estimate_pct?: string | number | null;
 }
 
 function rowToRecord(row: HistoryRow): SignalHistoryRecord {
@@ -291,6 +310,11 @@ function rowToRecord(row: HistoryRow): SignalHistoryRecord {
     broadcastBlockReason: row.broadcast_block_reason ?? undefined,
     allocationPct: row.allocation_pct != null ? Number(row.allocation_pct) : undefined,
     publishedAt: row.published_at ? new Date(row.published_at).getTime() : undefined,
+    // Calibration features (051). NULL → undefined, same as the 048 fields.
+    preBoostConfidence: row.pre_boost_confidence != null ? Number(row.pre_boost_confidence) : undefined,
+    mtfAgreement: row.mtf_agreement != null ? Number(row.mtf_agreement) : undefined,
+    confluenceBonus: row.confluence_bonus != null ? Number(row.confluence_bonus) : undefined,
+    costEstimatePct: row.cost_estimate_pct != null ? Number(row.cost_estimate_pct) : undefined,
     outcomes: {
       '4h': row.outcome_4h ?? null,
       '24h': row.outcome_24h ?? null,
@@ -367,6 +391,30 @@ export interface BroadcastDecisionFields {
   allocationPct?: number;
 }
 
+/**
+ * Calibration features captured at emission (migration 051, Phase 4 D4). The
+ * MTF triple (preBoostConfidence / mtfAgreement / confluenceBonus) is only
+ * available on the TA-fallback path — scanner rows leave it undefined, which
+ * is recorded as NULL (honest: the scanner does not run the MTF survey).
+ * costEstimatePct is the modeled round-trip cost as a PERCENT of notional —
+ * 2×(feePctPerSide + slippagePctPerSide) from @tradeclaw/strategies
+ * costModelFor(symbol); funding excluded (hold duration unknown at emission).
+ * The cron populates it for every recorded row.
+ *
+ * Persisted via the Tier-0 INSERT only. Lower insert tiers (older schemas)
+ * predate the 051 columns and silently ignore these fields.
+ */
+export interface CalibrationFeatures {
+  preBoostConfidence?: number;
+  /**
+   * 4-timeframe agreement count (range 0-4) from signal-generator.ts's
+   * generateMultiTFSignal survey. NOT current.ts's separate 3-TF count.
+   */
+  mtfAgreement?: number;
+  confluenceBonus?: number;
+  costEstimatePct?: number;
+}
+
 export async function recordSignalAsync(
   pair: string,
   timeframe: string,
@@ -384,6 +432,7 @@ export async function recordSignalAsync(
   gateBlocked?: boolean,
   gateReason?: string,
   broadcast?: BroadcastDecisionFields,
+  calibration?: CalibrationFeatures,
 ): Promise<void> {
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
   const ts = timestamp ?? Date.now();
@@ -410,12 +459,16 @@ export async function recordSignalAsync(
       broadcastBlocked: broadcast?.blocked,
       broadcastBlockReason: broadcast?.blockReason,
       allocationPct: broadcast?.allocationPct,
+      preBoostConfidence: calibration?.preBoostConfidence,
+      mtfAgreement: calibration?.mtfAgreement,
+      confluenceBonus: calibration?.confluenceBonus,
+      costEstimatePct: calibration?.costEstimatePct,
     });
     return;
   }
 
   // File fallback
-  recordSignal(pair, timeframe, direction, confidence, entryPrice, sigId, tp1, sl, ts, strategyId, resolvedMode, entryAtr, atrMultiplier, gateBlocked, gateReason, broadcast);
+  recordSignal(pair, timeframe, direction, confidence, entryPrice, sigId, tp1, sl, ts, strategyId, resolvedMode, entryAtr, atrMultiplier, gateBlocked, gateReason, broadcast, calibration);
 }
 
 /**
@@ -446,18 +499,87 @@ interface InsertRowArgs {
   broadcastBlocked?: boolean;
   broadcastBlockReason?: string;
   allocationPct?: number;
+  preBoostConfidence?: number;
+  mtfAgreement?: number;
+  confluenceBonus?: number;
+  costEstimatePct?: number;
 }
 
 let atrColumnsKnownMissing = false;
 let gateColumnsKnownMissing = false;
 let broadcastColumnsKnownMissing = false;
+// Tracked SEPARATELY from broadcastColumnsKnownMissing: a DB can have migration
+// 048 applied but 051 not yet (the tiered-insert fallback exists for exactly
+// this ordering gap). A missing-051 error must downgrade ONLY the calibration
+// columns — never the 048 broadcast columns — so broadcast decisions keep
+// persisting while the 051 deploy catches up.
+let calibrationColumnsKnownMissing = false;
+
+/** Column-name fragments that identify each tier's optional column set in a 42703 message. */
+const CALIBRATION_COLUMN_RE = /pre_boost_confidence|mtf_agreement|confluence_bonus|cost_estimate_pct/;
+const BROADCAST_COLUMN_RE = /regime|broadcast_blocked|broadcast_block_reason|allocation_pct/;
 
 async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
-  // Tier 0: full schema incl. 048 broadcast-scope cols. Only attempted when
-  // the caller actually has a broadcast decision to persist — otherwise the
-  // Tier 1 INSERT is identical in effect and skips a failure probe.
+  // Whether this row carries anything beyond the Tier-1 schema. Tier 0/0b are
+  // only attempted when there's a broadcast decision OR calibration features to
+  // persist — otherwise the Tier 1 INSERT is identical in effect and skips a
+  // failure probe. costEstimatePct is universal on the cron path, so it keeps
+  // the Tier-0 family firing even on the rare broadcast-outage fallback.
+  const hasTier0Payload =
+    args.broadcastBlocked !== undefined ||
+    args.preBoostConfidence !== undefined ||
+    args.mtfAgreement !== undefined ||
+    args.confluenceBonus !== undefined ||
+    args.costEstimatePct !== undefined;
+
+  // Tier 0: full schema incl. 048 broadcast-scope + 051 calibration cols.
+  // A 42703 on a 051 column downgrades ONLY calibration (sets
+  // calibrationColumnsKnownMissing) and falls through to Tier 0b, which still
+  // persists the 048 broadcast decision. A 42703 on a 048 column downgrades
+  // broadcast and falls through to Tier 1. The two flags are independent so a
+  // 051-only deploy gap never disables 048 persistence.
   if (
-    !broadcastColumnsKnownMissing && !atrColumnsKnownMissing && !gateColumnsKnownMissing &&
+    !broadcastColumnsKnownMissing && !calibrationColumnsKnownMissing &&
+    !atrColumnsKnownMissing && !gateColumnsKnownMissing &&
+    hasTier0Payload
+  ) {
+    try {
+      const result = await query<{ id: string }>(
+        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier, gate_blocked, gate_reason, regime, broadcast_blocked, broadcast_block_reason, allocation_pct, pre_boost_confidence, mtf_agreement, confluence_bonus, cost_estimate_pct)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+         ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
+           WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL
+         RETURNING id`,
+        [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null, args.gateBlocked ?? false, args.gateReason ?? null, args.regime ?? null, args.broadcastBlocked ?? null, args.broadcastBlockReason ?? null, args.allocationPct ?? null, args.preBoostConfidence ?? null, args.mtfAgreement ?? null, args.confluenceBonus ?? null, args.costEstimatePct ?? null],
+      );
+      return result.length > 0;
+    } catch (err: unknown) {
+      const code = (err as { code?: string } | null)?.code;
+      const msg = err instanceof Error ? err.message : String(err);
+      // Order matters: a 051-only gap (048 present) must set ONLY the
+      // calibration flag and retry via Tier 0b. Only treat it as a broadcast
+      // gap when a 048 column is the one missing.
+      if (code === '42703' && BROADCAST_COLUMN_RE.test(msg)) {
+        console.warn('[signal-history] migration 048 not applied — falling back to pre-048 INSERT (broadcast decision dropped). Run psql "$DATABASE_URL" -f apps/web/migrations/048_broadcast_scope.sql THEN RESTART the service — this flag sticks for the process lifetime.');
+        broadcastColumnsKnownMissing = true;
+      } else if (code === '42703' && CALIBRATION_COLUMN_RE.test(msg)) {
+        console.warn('[signal-history] migration 051 not applied — falling back to the 048-only INSERT (calibration features dropped, broadcast decision still persisted). Run psql "$DATABASE_URL" -f apps/web/migrations/051_calibration_features.sql THEN RESTART the service — this flag sticks for the process lifetime.');
+        calibrationColumnsKnownMissing = true;
+      } else if (code === '42703') {
+        // Older migration missing too — let the existing tiers diagnose.
+        broadcastColumnsKnownMissing = true;
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  // Tier 0b: 048 broadcast-scope cols present, 051 calibration cols missing.
+  // Persists the broadcast decision (the whole point of the split) and drops
+  // only the calibration fields. Reached when Tier 0 hit a 051-column 42703.
+  if (
+    calibrationColumnsKnownMissing && !broadcastColumnsKnownMissing &&
+    !atrColumnsKnownMissing && !gateColumnsKnownMissing &&
     args.broadcastBlocked !== undefined
   ) {
     try {
@@ -473,11 +595,10 @@ async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
     } catch (err: unknown) {
       const code = (err as { code?: string } | null)?.code;
       const msg = err instanceof Error ? err.message : String(err);
-      if (code === '42703' && /regime|broadcast_blocked|broadcast_block_reason|allocation_pct/.test(msg)) {
+      if (code === '42703' && BROADCAST_COLUMN_RE.test(msg)) {
         console.warn('[signal-history] migration 048 not applied — falling back to pre-048 INSERT (broadcast decision dropped). Run psql "$DATABASE_URL" -f apps/web/migrations/048_broadcast_scope.sql THEN RESTART the service — this flag sticks for the process lifetime.');
         broadcastColumnsKnownMissing = true;
       } else if (code === '42703') {
-        // Older migration missing too — let the existing tiers diagnose.
         broadcastColumnsKnownMissing = true;
       } else {
         throw err;
@@ -567,6 +688,7 @@ export function recordSignal(
   gateBlocked?: boolean,
   gateReason?: string,
   broadcast?: BroadcastDecisionFields,
+  calibration?: CalibrationFeatures,
 ): void {
   const records = readHistoryFile();
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
@@ -586,6 +708,10 @@ export function recordSignal(
     broadcastBlockReason: broadcast?.blockReason,
     allocationPct: broadcast?.allocationPct,
     publishedAt: broadcast !== undefined ? Date.now() : undefined,
+    preBoostConfidence: calibration?.preBoostConfidence,
+    mtfAgreement: calibration?.mtfAgreement,
+    confluenceBonus: calibration?.confluenceBonus,
+    costEstimatePct: calibration?.costEstimatePct,
     outcomes: { '4h': null, '24h': null },
   });
   if (records.length > MAX_RECORDS) records.splice(MAX_RECORDS);
