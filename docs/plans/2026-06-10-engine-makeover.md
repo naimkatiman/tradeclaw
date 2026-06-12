@@ -1,7 +1,7 @@
 # Engine Makeover — regime-routed edge, honest track record, broker execution
 
 Date: 2026-06-10
-Status: Phases 0–2 merged to main; Phase 3 code-complete on branch worktree-phase3-regime-engine (awaiting PR review + merge); Phase 4 code-complete on branch worktree-phase4-strategy-dispatch (2026-06-11) — walk-forward gate FAILED on paper, live activation correctly blocked; Phase 5 not yet started
+Status: Phases 0–2 merged to main; Phase 3 code-complete on branch worktree-phase3-regime-engine (awaiting PR review + merge); Phase 4 code-complete on branch worktree-phase4-strategy-dispatch (2026-06-11) — walk-forward gate FAILED on paper, live activation correctly blocked; Phase 4.5 code-complete on branch worktree-phase4.5-daily-momentum (2026-06-12) — verdict: single-asset OHLCV timing has no deployable edge after costs; strategic pivot to carry/cross-sectional recommended; Phase 5 stays gated; Phase 5 not yet started
 Owner goal (verbatim intent): consistent profit across three regimes — trending → catch the move, volatile → mean-revert both directions, neutral/range → range-bound with the smallest weight. The track record is the selling point; the engine is the moat.
 Evidence base: 7-agent subsystem audit (2026-06-10, this session) + the 43-agent why-no-uptrend audit (PR #110, `docs/plans/2026-06-10-track-record-pro-uptrend.md`). All claims below were verified against current code on `main` @ `17309cf`.
 
@@ -84,6 +84,20 @@ Machinery built (all shipped, all behind the gate):
 **Gate result — FAILED on paper (the finding that matters).** Per-regime walk-forward on BTC/ETH/SOL H1 2024-06→2026-06, after crypto-perp costs + live ATR geometry (`docs/research/experiments/regime-routed-walkforward-...json`, REGISTRY 2026-06-11): the trend route (the only non-thin cells, n=142–203) is NEGATIVE on all three symbols (−0.19% to −0.67% expectancy/trade after costs); the volatile and range routes (`vwap-ema-bb`) fire too rarely under live H1 geometry — every positive routed cell is THIN (<30 trades) and inconsistent across symbols. The current entry rules have no deployable per-regime edge after costs. This matches Phase 2's −11% live-geometry+costs baseline. The regime engine is correct; it can only route edge that exists.
 
 **What this gates:** live activation of routing/calibration on the Pro broadcast stays BLOCKED (the umbrella gate: per-regime cost-adjusted expectancy > 0 on walk-forward AND ≥4wk shadow — the walk-forward half is negative). Path forward is a Phase-4.5 strategy-rethink (the entries, not the routing) and/or accruing shadow evidence; activation is a later operator decision against the pre-registered criteria. Confidence-bonus shrink remains data-gated on the migration-051 features accruing ≥4wk.
+
+### Phase 4.5 — Entry-strategy rethink (verdict: 2026-06-12)
+
+Sub-plan: `docs/plans/2026-06-12-phase4.5-entry-strategy-rethink.md`. Decision memo: `docs/research/2026-06-12-phase4.5-verdict-single-asset-timing.md`.
+
+The question: does any single-asset entry strategy on OHLCV data clear ~0.4% crypto-perp costs? Answered with three studies — a cost-focused literature survey, an empirical 108-cell edge-map on the Phase 4 costed harness, and a deep-daily validation of the literature's #1 candidate (28-day TS momentum, 10 majors × ~2100 daily bars, walk-forward 4 folds).
+
+Verdict: **no config clears the deployable bar.** Signal-flip daily momentum is MARGINAL only because of two launch-era flukes (SOLUSD +189%, AVAXUSD +102%); the ex-fluke cross-symbol mean is −5.25%. Six of the other eight majors are negative. Geometry exits (2R/4R) are flatly negative. Empirical map's only trustworthy positive (classic+4R on H1, BTC +4.50%/ETH +2.93%) is marginal and fragile. C5 (promote a surviving strategy) is SKIPPED — nothing cleared.
+
+Durable asset: the regime engine, the costed harness, honest attribution, the shadow recorder, and the daily-momentum module now form a validated test bench. Its value is that it kills bad strategies before a customer sees them.
+
+Recommendation: carry/funding-rate harvesting as the primary edge-bearing pivot (data-acquisition decision: Binance fapi funding-rate history); cross-sectional momentum as a cheap secondary harness test. Phase 5 stays gated on edge that does not yet exist.
+
+**Phase 4.5 status — code-complete 2026-06-12 on branch `worktree-phase4.5-daily-momentum`.**
 
 ### Phase 5 — Execution hardening + webhook go-live (wk 6–10, gated on Phase 4 evidence)
 - Order state machine (re-poll fills, persist transitions, `needs_attention` state); bidirectional reconciliation sweep + startup reconciliation; price-drift gate (reject if mark deviates > X bps/ATR-fraction from `sig.entryPrice`); live slippage measurement (signal price vs `avgPrice`, alert on degradation); runtime (DB/Redis) kill switch with per-symbol/per-strategy granularity.

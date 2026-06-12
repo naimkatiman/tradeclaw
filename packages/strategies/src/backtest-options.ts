@@ -77,6 +77,30 @@ export interface BacktestOptions {
    * real symbol/timeframe for research runs.
    */
   context?: { symbol: string; timeframe: string };
+  /**
+   * Exit policy (Phase 4.5).
+   *
+   * - `'geometry'` (default): exit on the ATR/fixed TP or SL, whichever the
+   *   price hits first — the legacy behavior, byte-identical when this option
+   *   is absent.
+   * - `'signal-flip'`: ride the trend. The position is held until an
+   *   OPPOSITE-direction entry signal fires at a later bar (exit at that bar's
+   *   close), UNLESS the stop-loss is hit first. Precedence per forward bar:
+   *   SL → opposite-signal flip → EOD. The take-profit is NOT used in this
+   *   mode — the whole point is to hold past any fixed target so a multi-week
+   *   trend is captured, not truncated to its first ATR leg. After a flip exit
+   *   the normal signal loop may immediately open the opposite position (the
+   *   overlap guard releases on close), yielding continuous long↔short
+   *   momentum. This is the research's "long while momentum positive, exit on
+   *   flip" behavior.
+   */
+  exitMode?: 'geometry' | 'signal-flip';
+  /**
+   * Selectivity filter (Phase 4.5). When set, signals with
+   * `confidence < minConfidence` are dropped before the trade loop — "only
+   * the strongest setups". Default undefined = no filter (byte-identical).
+   */
+  minConfidence?: number;
 }
 
 export function costModelFor(symbol: string): CostModel {

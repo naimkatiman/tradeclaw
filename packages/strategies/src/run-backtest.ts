@@ -12,7 +12,12 @@ export interface BacktestTrade {
   pnl: number;
   pnlPct: number;
   win: boolean;
-  exitReason: 'TP' | 'SL' | 'EOD';
+  /**
+   * 'FLIP' only occurs under `exitMode: 'signal-flip'` (an opposite-direction
+   * entry signal closed the position). The default geometry path never emits
+   * it, so widening this union does not change any default-path output.
+   */
+  exitReason: 'TP' | 'SL' | 'EOD' | 'FLIP';
   /** Total friction charged on this trade, % of notional (fees + slippage + funding). Only present when a cost model was supplied. */
   costPct?: number;
 }
@@ -166,6 +171,8 @@ export function runBacktest(candles: OHLCV[], strategy: Strategy, options?: Back
   const geometry = options?.geometry ?? FIXED_LEGACY_GEOMETRY;
   const barHours = options?.barHours ?? 1;
   const hasCosts = options?.costs !== undefined;
+  const exitMode = options?.exitMode ?? 'geometry';
+  const minConfidence = options?.minConfidence;
 
   if (candles.length === 0) return zeroResult(strategy.id, 'no-data');
 
@@ -175,11 +182,32 @@ export function runBacktest(candles: OHLCV[], strategy: Strategy, options?: Back
   // sorts by confidence desc). The overlap guard, drawdown slice, and
   // equity-curve fill all assume chronological barIndex order, so process a
   // copy sorted by barIndex ascending without mutating the caller's array.
-  const signals = [...generated].sort((a, b) => a.barIndex - b.barIndex);
+  // Selectivity filter (opt-in): drop weak setups before the trade loop. When
+  // minConfidence is undefined the filter is a no-op, so the default path is
+  // byte-identical.
+  const sorted = [...generated].sort((a, b) => a.barIndex - b.barIndex);
+  const signals = minConfidence !== undefined
+    ? sorted.filter((s) => s.confidence >= minConfidence)
+    : sorted;
 
   if (signals.length === 0) {
     const flat = new Array(candles.length).fill(START_BALANCE);
     return { ...zeroResult(strategy.id, 'no-signals'), equityCurve: flat };
+  }
+
+  // Signal-flip exit (opt-in): a position exits when an OPPOSITE-direction
+  // entry signal fires at a later bar. Precompute a barIndex → direction lookup
+  // from the (filtered, sorted) signal list ONCE so the forward-exit scan is
+  // O(1) per bar instead of O(n) — the whole scan stays O(total bars), never
+  // O(signals × bars). Empty Map on the geometry path; the inner scan never
+  // reads it there. If two signals share a barIndex (degenerate), last wins.
+  // Built from the POST-minConfidence-filter `signals` list ON PURPOSE: a
+  // signal dropped by selectivity is not a tradable setup, so it must not be
+  // able to close (flip) an open position either — only signals that could
+  // themselves open a trade are allowed to act as flip triggers.
+  const signalDirByBar = new Map<number, EntrySignal['direction']>();
+  if (exitMode === 'signal-flip') {
+    for (const s of signals) signalDirByBar.set(s.barIndex, s.direction);
   }
 
   const trades: BacktestTrade[] = [];
@@ -189,6 +217,12 @@ export function runBacktest(candles: OHLCV[], strategy: Strategy, options?: Back
   let openUntil = -1;
 
   for (const sig of signals) {
+    // `<=` (not `<`) is intentional and load-bearing for signal-flip mode: a
+    // flip exits at bar j and sets openUntil = j, so the opposite signal SITTING
+    // ON bar j (the flip trigger) is gated out and the reversed position opens on
+    // the NEXT signal bar, not the flip bar itself. Do not "tighten" this to `<`
+    // — it would also change the default-path overlap semantics (byte-identical
+    // contract) and let a trade re-enter on its own exit bar.
     if (sig.barIndex <= openUntil) continue;
     const currentDd = computeMaxDrawdown(equityCurve.slice(0, sig.barIndex + 1));
     if (!riskAllows(strategy.risk, trades, currentDd)) continue;
@@ -205,17 +239,38 @@ export function runBacktest(candles: OHLCV[], strategy: Strategy, options?: Back
     let exitBar = sig.barIndex;
     let exitReason: BacktestTrade['exitReason'] = 'EOD';
 
-    for (let j = sig.barIndex + 1; j < candles.length; j++) {
-      const bar = candles[j];
-      if (sig.direction === 'BUY') {
-        if (bar.low <= sl) { exit = sl; exitBar = j; exitReason = 'SL'; break; }
-        if (bar.high >= tp) { exit = tp; exitBar = j; exitReason = 'TP'; break; }
-      } else {
-        if (bar.high >= sl) { exit = sl; exitBar = j; exitReason = 'SL'; break; }
-        if (bar.low <= tp) { exit = tp; exitBar = j; exitReason = 'TP'; break; }
+    if (exitMode === 'signal-flip') {
+      // Ride the trend: hold until an opposite-direction signal flips us out,
+      // unless the SL is hit first. Precedence per bar: SL → flip → EOD. The
+      // TP is deliberately NOT checked — the point is to capture the whole move
+      // past any fixed target. SL stays active as a risk floor.
+      for (let j = sig.barIndex + 1; j < candles.length; j++) {
+        const bar = candles[j];
+        if (sig.direction === 'BUY') {
+          if (bar.low <= sl) { exit = sl; exitBar = j; exitReason = 'SL'; break; }
+        } else {
+          if (bar.high >= sl) { exit = sl; exitBar = j; exitReason = 'SL'; break; }
+        }
+        const dirAtJ = signalDirByBar.get(j);
+        if (dirAtJ !== undefined && dirAtJ !== sig.direction) {
+          exit = bar.close; exitBar = j; exitReason = 'FLIP'; break;
+        }
+        exit = bar.close;
+        exitBar = j;
       }
-      exit = bar.close;
-      exitBar = j;
+    } else {
+      for (let j = sig.barIndex + 1; j < candles.length; j++) {
+        const bar = candles[j];
+        if (sig.direction === 'BUY') {
+          if (bar.low <= sl) { exit = sl; exitBar = j; exitReason = 'SL'; break; }
+          if (bar.high >= tp) { exit = tp; exitBar = j; exitReason = 'TP'; break; }
+        } else {
+          if (bar.high >= sl) { exit = sl; exitBar = j; exitReason = 'SL'; break; }
+          if (bar.low <= tp) { exit = tp; exitBar = j; exitReason = 'TP'; break; }
+        }
+        exit = bar.close;
+        exitBar = j;
+      }
     }
 
     // Friction: slippage worsens both fills, fees charge both sides, funding

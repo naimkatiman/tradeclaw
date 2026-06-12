@@ -1,4 +1,5 @@
 export * from './types';
+export { dailyMomentumEntry } from './entry/daily-momentum';
 export { PRESETS, getPreset, listPresets } from './presets';
 export { selectStrategyForRegime, passesTrendFilter } from './router';
 export type { TrendFilterOptions } from './router';

@@ -100,6 +100,10 @@ function metrics(r: BacktestResult) {
   const costsArg = arg('costs', 'auto');
   const folds = Math.max(1, Number(arg('folds', '4')));
   const outDir = arg('out', 'docs/research/experiments');
+  // Phase 4.5 knobs (all optional; absent = legacy behavior unchanged).
+  const tpRArg = arg('tp-r', '');
+  const exitModeArg = arg('exit-mode', 'geometry');
+  const minConfidenceArg = arg('min-confidence', '');
 
   if (!from || !to) {
     console.error('Required: --from YYYY-MM-DD --to YYYY-MM-DD');
@@ -115,15 +119,46 @@ function metrics(r: BacktestResult) {
     console.error('--folds must be a number');
     process.exit(2);
   }
+  if (exitModeArg !== 'geometry' && exitModeArg !== 'signal-flip') {
+    console.error(`--exit-mode must be 'geometry' or 'signal-flip', got '${exitModeArg}'`);
+    process.exit(2);
+  }
+  const tpR = tpRArg ? Number(tpRArg) : undefined;
+  if (tpR !== undefined && (!Number.isFinite(tpR) || tpR <= 0)) {
+    console.error(`--tp-r must be a positive number, got '${tpRArg}'`);
+    process.exit(2);
+  }
+  const minConfidence = minConfidenceArg ? Number(minConfidenceArg) : undefined;
+  if (minConfidence !== undefined && !Number.isFinite(minConfidence)) {
+    console.error(`--min-confidence must be a number, got '${minConfidenceArg}'`);
+    process.exit(2);
+  }
 
-  const geometry = geometryArg === 'legacy' ? FIXED_LEGACY_GEOMETRY : LIVE_GEOMETRY;
+  // --tp-r overrides the geometry's R-multiple (wide targets as a first-class
+  // flag). Only the ATR ('live') geometry carries tpRMultiple; the legacy fixed
+  // 2%/1% geometry has no R-multiple, so --tp-r is rejected against it rather
+  // than silently ignored.
+  let geometry = geometryArg === 'legacy' ? FIXED_LEGACY_GEOMETRY : LIVE_GEOMETRY;
+  if (tpR !== undefined) {
+    if (geometry.mode !== 'atr') {
+      console.error('--tp-r only applies to the ATR (live) geometry; drop --geometry legacy or --tp-r');
+      process.exit(2);
+    }
+    geometry = { ...geometry, tpRMultiple: tpR };
+  }
   const costs =
     costsArg === 'zero' ? ZERO_COSTS
     : costsArg === 'crypto' ? CRYPTO_PERP_COSTS
     : costsArg === 'fx' ? FX_COSTS
     : costsArg === 'metals' ? METALS_COSTS
     : costModelFor(symbol);
-  const options: BacktestOptions = { costs, geometry, barHours: TF_HOURS[timeframe] ?? 1 };
+  const options: BacktestOptions = {
+    costs,
+    geometry,
+    barHours: TF_HOURS[timeframe] ?? 1,
+    ...(exitModeArg === 'signal-flip' ? { exitMode: 'signal-flip' as const } : {}),
+    ...(minConfidence !== undefined ? { minConfidence } : {}),
+  };
 
   const requestedPresets = presetsArg === 'all'
     ? (Object.keys(PRESETS) as StrategyId[])
@@ -182,12 +217,18 @@ function metrics(r: BacktestResult) {
         (id) => `${id}: top-3 cap applies to the WHOLE window under this runner (production caps per scan cycle) — its numbers are not production-comparable`,
       ),
     ];
+    // Provenance string reflects the ACTUAL R-multiple when --tp-r overrides it,
+    // so a 4R run is not mislabeled as the 2R default. Unchanged when --tp-r is
+    // absent.
+    const geometryLabel = geometryArg === 'legacy'
+      ? 'legacy-fixed-2-1'
+      : `live-atr14x2.5-tp${geometry.mode === 'atr' ? geometry.tpRMultiple : 2}R`;
     const spec = {
       symbol,
       timeframe,
       from,
       to,
-      geometry: geometryArg === 'legacy' ? 'legacy-fixed-2-1' : 'live-atr14x2.5-tp2R',
+      geometry: geometryLabel,
       costs: { ...costs },
       folds,
       candleCount: candles.length,
@@ -196,6 +237,10 @@ function metrics(r: BacktestResult) {
       presets: presetIds,
       entryContext: { symbol, timeframe },
       hmmModels: hmmModelIdentity(),
+      // Phase 4.5 knobs recorded only when set, so the default-run spec is
+      // unchanged (no spurious provenance churn on legacy invocations).
+      ...(exitModeArg === 'signal-flip' ? { exitMode: 'signal-flip' } : {}),
+      ...(minConfidence !== undefined ? { minConfidence } : {}),
       caveats,
     };
     const payload = { meta: { runAt: new Date().toISOString() }, spec, results };
