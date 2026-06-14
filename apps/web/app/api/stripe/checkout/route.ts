@@ -7,6 +7,7 @@ import {
 } from '../../../../lib/db';
 import { readSessionFromRequest } from '../../../../lib/user-session';
 import { trackEvent } from '../../../../lib/analytics';
+import { captureServer } from '../../../../lib/analytics-server';
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
@@ -120,8 +121,11 @@ export async function POST(request: NextRequest) {
 
     const session = await getStripe().checkout.sessions.create(sessionParams);
 
-    // Analytics: trial started (all Pro checkouts include a 7-day trial)
+    // Analytics: trial started (all Pro checkouts include a 7-day trial).
+    // trackEvent is a client no-op on the server; captureServer is the real
+    // server-side record (PostHog node). Awaited but never throws.
     trackEvent('trial_started', { tier: resolvedTier, interval: interval ?? 'monthly', userId });
+    await captureServer('trial_started', userId, { tier: resolvedTier, interval: interval ?? 'monthly' });
 
     // Store the Stripe customer ID on the user record for future sessions
     if (session.customer && typeof session.customer === 'string' && !stripeCustomerId) {

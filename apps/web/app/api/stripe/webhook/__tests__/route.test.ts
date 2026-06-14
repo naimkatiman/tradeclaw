@@ -37,6 +37,11 @@ jest.mock('../../../../../lib/transactional-email', () => ({
   sendPaymentFailedEmail: jest.fn().mockResolvedValue({ ok: true, providerId: 'email_test' }),
 }));
 
+jest.mock('../../../../../lib/analytics-server', () => ({
+  captureServer: jest.fn().mockResolvedValue(undefined),
+  identifyServer: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { getStripe, resolveTierFromPriceId } from '../../../../../lib/stripe';
 import {
   upsertSubscription,
@@ -55,7 +60,11 @@ import {
   revokeAccess,
 } from '../../../../../lib/telegram';
 import { sendPaymentFailedEmail } from '../../../../../lib/transactional-email';
+import { captureServer, identifyServer } from '../../../../../lib/analytics-server';
 import { POST } from '../route';
+
+const mockedCaptureServer = captureServer as jest.MockedFunction<typeof captureServer>;
+const mockedIdentifyServer = identifyServer as jest.MockedFunction<typeof identifyServer>;
 
 const mockedGetStripe = getStripe as jest.MockedFunction<typeof getStripe>;
 const mockedResolveTier = resolveTierFromPriceId as jest.MockedFunction<typeof resolveTierFromPriceId>;
@@ -140,6 +149,13 @@ describe('POST /api/stripe/webhook — idempotency', () => {
     expect(mockedTryClaim).toHaveBeenCalledWith('evt_test_1', 'checkout.session.completed');
     expect(mockedUpsertSub).toHaveBeenCalledTimes(1);
     expect(mockedUpdateTier).toHaveBeenCalledTimes(1);
+
+    // Server-side lifecycle analytics fire on a confirmed checkout.
+    expect(mockedIdentifyServer).toHaveBeenCalledWith('user-1', { tier: 'pro' });
+    expect(mockedCaptureServer).toHaveBeenCalledWith('subscription_started', 'user-1', {
+      tier: 'pro',
+      status: 'trialing',
+    });
   });
 
   it('redelivery (same event_id) short-circuits — no side effects', async () => {
