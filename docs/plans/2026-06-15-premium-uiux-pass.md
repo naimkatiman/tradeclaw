@@ -2,7 +2,7 @@
 
 Date: 2026-06-15
 Owner: Naim
-Status: Plan (Layer 1 pending go)
+Status: Layer 1 done (commit d617e97). Layer 2 done (this commit). Layer 3 pending.
 Source audit: 8-agent fan-out `wf_2bbd7a93-25e` + hand review of design system and core surfaces, benchmarked against 28 Mobbin reference screens (Coinbase, OKX, TradingView, Public, Wealthsimple, Mercury, Airwallex, Neon, Vapi, Mixpanel).
 
 ## Goal
@@ -59,11 +59,16 @@ DEFERRED (long tail, logged not silently dropped): the remaining ~235 files with
 
 Verification: `npm run lint --workspace=apps/web`; Stop-hook tsc on changed TS; visual diff of dashboard + landing + track-record in dark and light; grep that scrollbar/focus no longer reference emerald.
 
-### Layer 2 — Typography + spacing floor (next commit)
+### Layer 2 — Typography (done)
 
-- Remove `text-[8px]/[9px]`; floor UI labels at 12px, body at 16px.
-- Add a display face (Söhne / Switzer / Clash candidate) for h1/h2; raise weight contrast.
-- Big-number headline pattern on track-record (Wealthsimple `$140.00` reference).
+Done this pass:
+- Killed the broken sub-9px floor: `text-[8px]` -> `text-[10px]` across all 6 files that had it (market-context-panel, trailing-week-band-callout, DashboardClient ×6, ScreenerClient, LeaderboardClient, StarHistoryClient = 15 occurrences). Mechanical, no data-vs-chrome judgment, so applied app-wide (unlike the color sweep).
+- Track-record headline: confident big-number treatment (`text-5xl sm:text-6xl tracking-tight`), Wealthsimple `$140.00` reference.
+
+Deferred (logged, not silent):
+- Display face for h1/h2. Kept Geist on purpose — owner direction is "keep identity disciplined", and a font swap is an outward-facing brand change. Optional opt-in later.
+- `text-[9px]` -> `text-[10px]` floor (borderline-readable; ~public surfaces have 1 each). Revisit with the long-tail.
+- 12px label / 16px body floor app-wide: too aggressive for the dense trading tables (TradingView/OKX run ~11px there); needs per-component judgment, not a blanket bump.
 
 ### Layer 3 — Nav IA + chrome declutter (next commit)
 

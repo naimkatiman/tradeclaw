@@ -602,7 +602,7 @@ export function TrackRecordClient() {
           </div>
           <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 mb-2">
             <div className="flex items-baseline gap-2">
-              <span className={`text-5xl font-bold tabular-nums ${
+              <span className={`text-5xl sm:text-6xl font-bold tracking-tight tabular-nums ${
                 stats && stats.totalPnlPct > 0 ? 'text-emerald-400'
                 : stats && stats.totalPnlPct < 0 ? 'text-red-400'
                 : 'text-[var(--foreground)]'

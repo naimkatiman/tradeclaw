@@ -284,7 +284,7 @@ function CopyValueButton({ value }: { value: string }) {
         </svg>
       )}
       {copied && (
-        <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[8px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap pointer-events-none">
+        <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap pointer-events-none">
           Copied!
         </span>
       )}
@@ -302,7 +302,7 @@ function WinRateBadge({ winRate }: { winRate: { wins: number; losses: number; to
     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono border ${color}`}>
       <span className="opacity-60">WR</span>
       <span className="font-bold">{wr}%</span>
-      <span className="opacity-40 text-[8px]">{winRate.wins}/{winRate.total}</span>
+      <span className="opacity-40 text-[10px]">{winRate.wins}/{winRate.total}</span>
     </span>
   );
 }
@@ -497,10 +497,10 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
               {signal.dataQuality === 'real' && <LiveBadge />}
               <DataSourceBadge source={getDataSource(signal.symbol)} />
               {signal.dataQuality === 'synthetic' && (
-                <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">DEMO</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">DEMO</span>
               )}
               {signal.atrCalibration && signal.atrCalibration.confidence !== 'low' && (
-                <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono font-bold border ${
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border ${
                   signal.atrCalibration.confidence === 'high'
                     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                     : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
@@ -509,7 +509,7 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
                 </span>
               )}
               {isDelayed && (
-                <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-zinc-500/10 text-zinc-500 border border-zinc-500/20" title="Free tier signals are delayed 30 minutes">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-500/10 text-zinc-500 border border-zinc-500/20" title="Free tier signals are delayed 30 minutes">
                   15m delay
                 </span>
               )}
@@ -674,7 +674,7 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
               <div key={label} className="flex items-center gap-1 text-[10px] font-mono">
                 <span className="text-[var(--text-secondary)]">{label}</span>
                 {locked ? (
-                  <span className="text-emerald-400/60 bg-emerald-500/8 px-1 py-0.5 rounded text-[8px] font-bold border border-emerald-500/15">PRO</span>
+                  <span className="text-emerald-400/60 bg-emerald-500/8 px-1 py-0.5 rounded text-[10px] font-bold border border-emerald-500/15">PRO</span>
                 ) : (
                   <span className={isBull ? 'text-emerald-400' : isBear ? 'text-red-400' : 'text-[var(--text-secondary)]'}>{value}</span>
                 )}
