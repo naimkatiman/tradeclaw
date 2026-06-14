@@ -4,7 +4,8 @@
 // caller (`tracked-signals.ts`) carries the `server-only` guard for the
 // whole import chain.
 import { readHistoryAsync, type SignalHistoryRecord } from './signal-history';
-import { fetchRegimeMap, getDominantRegime } from './regime-filter';
+import { fetchResolvedRegimeMap } from './regime-resolution';
+import { getDominantRegime } from './regime-filter';
 import type { MarketRegime } from '@tradeclaw/signals';
 
 export interface GateThresholds {
@@ -14,14 +15,15 @@ export interface GateThresholds {
 }
 
 // Regime-aware thresholds. See docs/plans/2026-04-19-dynamic-risk-gates.md
-// for the rationale. neutral preserves the historical defaults so existing
-// callers that don't pass a regime keep their behavior.
+// for the original rationale; re-keyed onto the structural vocabulary in
+// Phase 3 (docs/plans/2026-06-11-phase3-regime-engine.md, D1): trend keeps
+// the old bull row (widest), volatile the old crash row (tightest), range
+// the old neutral row — so range preserves the historical defaults for
+// callers that don't pass a regime.
 export const GATE_THRESHOLDS_BY_REGIME: Record<MarketRegime, GateThresholds> = {
-  crash:    { streakN: 2, drawdownThreshold: 0.05, lookback: 15 },
-  bear:     { streakN: 2, drawdownThreshold: 0.07, lookback: 20 },
-  neutral:  { streakN: 3, drawdownThreshold: 0.10, lookback: 20 },
-  bull:     { streakN: 4, drawdownThreshold: 0.15, lookback: 30 },
-  euphoria: { streakN: 3, drawdownThreshold: 0.08, lookback: 20 },
+  trend:    { streakN: 4, drawdownThreshold: 0.15, lookback: 30 },
+  volatile: { streakN: 2, drawdownThreshold: 0.05, lookback: 15 },
+  range:    { streakN: 3, drawdownThreshold: 0.10, lookback: 20 },
 };
 
 // Baseline expected stddev of resolved pnlPct per regime. Current realized
@@ -29,11 +31,9 @@ export const GATE_THRESHOLDS_BY_REGIME: Record<MarketRegime, GateThresholds> = {
 // the drawdown threshold. Calibrated against the Apr 13-18 tape — refine
 // after 2 weeks of gate-log data lands.
 export const REGIME_VOL_BASELINE_PCT: Record<MarketRegime, number> = {
-  crash:    2.5,
-  bear:     1.8,
-  neutral:  1.5,
-  bull:     2.0,
-  euphoria: 2.5,
+  trend:    2.0,
+  volatile: 2.5,
+  range:    1.5,
 };
 
 // Volatility multiplier clamps. Prevents the vol-scaled DD threshold from
@@ -43,14 +43,16 @@ const VOL_MULTIPLIER_MIN = 0.75;
 const VOL_MULTIPLIER_MAX = 1.5;
 
 // Backward-compat exports — used by existing tests and any external callers
-// that imported the old constants. These are the `neutral` values.
-export const LOOKBACK_RESOLVED = GATE_THRESHOLDS_BY_REGIME.neutral.lookback;
-export const STREAK_N = GATE_THRESHOLDS_BY_REGIME.neutral.streakN;
-export const DRAWDOWN_THRESHOLD = GATE_THRESHOLDS_BY_REGIME.neutral.drawdownThreshold;
+// that imported the old constants. These are the `range` values (numerically
+// identical to the historical neutral defaults).
+export const LOOKBACK_RESOLVED = GATE_THRESHOLDS_BY_REGIME.range.lookback;
+export const STREAK_N = GATE_THRESHOLDS_BY_REGIME.range.streakN;
+export const DRAWDOWN_THRESHOLD = GATE_THRESHOLDS_BY_REGIME.range.drawdownThreshold;
 const START_BALANCE = 10_000;
 
 export function getGateThresholds(regime: MarketRegime): GateThresholds {
-  return GATE_THRESHOLDS_BY_REGIME[regime] ?? GATE_THRESHOLDS_BY_REGIME.neutral;
+  // Unknown labels resolve to range (unified fallback policy, plan D1).
+  return GATE_THRESHOLDS_BY_REGIME[regime] ?? GATE_THRESHOLDS_BY_REGIME.range;
 }
 
 /**
@@ -82,7 +84,7 @@ export function computeVolMultiplier(
     values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
   const stddev = Math.sqrt(variance);
 
-  const baseline = REGIME_VOL_BASELINE_PCT[regime] ?? REGIME_VOL_BASELINE_PCT.neutral;
+  const baseline = REGIME_VOL_BASELINE_PCT[regime] ?? REGIME_VOL_BASELINE_PCT.range;
   if (baseline <= 0) return 1.0;
 
   const raw = stddev / baseline;
@@ -115,8 +117,8 @@ export interface GateState {
  * Empty input → fail-open (allow). When we have no historical data, we don't
  * have evidence to suppress signals.
  *
- * `regime` defaults to 'neutral' so tests and callers that haven't been
- * updated continue to use the historical thresholds.
+ * `regime` defaults to 'range' so tests and callers that don't pass a
+ * regime continue to use the historical (old-neutral) thresholds.
  */
 export interface ComputeGateOptions {
   /** When true, scale thresholds.drawdownThreshold by realized outcome stddev / regime baseline. */
@@ -125,7 +127,7 @@ export interface ComputeGateOptions {
 
 export function computeGateState(
   resolved: readonly ResolvedOutcome[],
-  regime: MarketRegime = 'neutral',
+  regime: MarketRegime = 'range',
   opts: ComputeGateOptions = {},
 ): GateState {
   const thresholds = getGateThresholds(regime);
@@ -264,8 +266,8 @@ export async function fetchGateState(): Promise<GateState> {
   }
 
   try {
-    const regimeMap = await fetchRegimeMap();
-    const regime = getDominantRegime(regimeMap);
+    const regimeResolved = await fetchResolvedRegimeMap();
+    const regime = getDominantRegime(regimeResolved.regimes);
     const thresholds = getGateThresholds(regime);
 
     const all = await readHistoryAsync();
@@ -276,17 +278,17 @@ export async function fetchGateState(): Promise<GateState> {
   } catch (err) {
     // Fail open — log to stderr but never block signals on DB hiccups
     console.error('[full-risk-gates] fetchGateState failed:', err);
-    const neutralThresholds = getGateThresholds('neutral');
+    const rangeThresholds = getGateThresholds('range');
     return {
       gatesAllow: true,
       reason: null,
       streakLossCount: 0,
       currentDrawdownPct: 0,
       dataPoints: 0,
-      regime: 'neutral',
-      thresholds: neutralThresholds,
+      regime: 'range',
+      thresholds: rangeThresholds,
       volMultiplier: 1.0,
-      effectiveDrawdownThreshold: neutralThresholds.drawdownThreshold,
+      effectiveDrawdownThreshold: rangeThresholds.drawdownThreshold,
     };
   }
 }

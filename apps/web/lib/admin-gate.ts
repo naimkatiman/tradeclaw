@@ -2,17 +2,10 @@ import 'server-only';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { timingSafeEqual } from 'node:crypto';
 import { readSessionFromCookies, readSessionFromRequest } from './user-session';
 import { getUserById } from './db';
 import { isAdminEmail } from './admin-emails';
-
-function safeStringEqual(a: string, b: string): boolean {
-  const ab = Buffer.from(a, 'utf8');
-  const bb = Buffer.from(b, 'utf8');
-  if (ab.length !== bb.length) return false;
-  return timingSafeEqual(ab, bb);
-}
+import { verifyAdminSession } from './admin-session';
 
 /**
  * Server-component guard for admin pages. Allows either:
@@ -36,7 +29,7 @@ export async function requireAdmin(): Promise<{ via: 'email' | 'secret'; email?:
   const cookieStore = await cookies();
   const adminSecret = process.env.ADMIN_SECRET;
   const cookieValue = cookieStore.get('tc_admin')?.value;
-  if (adminSecret && cookieValue && safeStringEqual(cookieValue, adminSecret)) {
+  if (adminSecret && (await verifyAdminSession(cookieValue, adminSecret))) {
     return { via: 'secret' };
   }
 
@@ -66,7 +59,7 @@ export async function assertAdminApi(request: Request): Promise<NextResponse | n
     if (match) {
       try {
         const value = decodeURIComponent(match.slice('tc_admin='.length));
-        if (safeStringEqual(value, adminSecret)) return null;
+        if (await verifyAdminSession(value, adminSecret)) return null;
       } catch { /* malformed encoded cookie — fall through to 401 */ }
     }
   }
@@ -96,7 +89,7 @@ export async function getAdminIdentityFromRequest(
     if (match) {
       try {
         const value = decodeURIComponent(match.slice('tc_admin='.length));
-        if (safeStringEqual(value, adminSecret)) return { via: 'secret' };
+        if (await verifyAdminSession(value, adminSecret)) return { via: 'secret' };
       } catch { /* malformed encoded cookie — fall through to null */ }
     }
   }

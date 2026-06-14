@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Navbar } from '../components/navbar';
-import { SiteFooter } from '../../components/landing/site-footer';
 
 const REPO_URL = 'https://github.com/naimkatiman/tradeclaw';
 
@@ -738,7 +737,6 @@ docker compose up -d`}
         </div>
       </section>
 
-      <SiteFooter />
     </div>
   );
 }

@@ -369,16 +369,29 @@ export default function LeaderboardClient() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback((signal: AbortSignal, isCancelled: () => boolean) => {
     setLoading(true);
     setError(null);
-    fetch(`/api/leaderboard?period=${period}&sort=${sortBy}`)
+    fetch(`/api/leaderboard?period=${period}&sort=${sortBy}`, { signal })
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then((d: LeaderboardData) => { setData(d); setLoading(false); })
-      .catch((err) => { setError(err instanceof Error ? err.message : 'Failed to load leaderboard data'); setLoading(false); });
+      .then((d: LeaderboardData) => { if (isCancelled()) return; setData(d); setLoading(false); })
+      .catch((err) => {
+        if (isCancelled() || (err instanceof DOMException && err.name === 'AbortError')) return;
+        setError(err instanceof Error ? err.message : 'Failed to load leaderboard data');
+        setLoading(false);
+      });
   }, [period, sortBy]);
 
-  useEffect(() => { setTimeout(() => fetchData(), 0); }, [fetchData]);
+  useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+    const timer = setTimeout(() => fetchData(controller.signal, () => cancelled), 0);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [fetchData]);
 
   function handleSort(key: SortKey) {
     if (sortBy === key) {

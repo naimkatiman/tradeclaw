@@ -15,6 +15,7 @@ module.exports = {
   ],
   modulePathIgnorePatterns: [
     "/.next/standalone/",
+    "/.claude/worktrees/",
   ],
   transform: {
     ...tsJestTransformCfg,

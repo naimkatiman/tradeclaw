@@ -484,6 +484,7 @@ export async function autoFollowSignal(
     symbol: signal.symbol,
     direction: signal.direction,
     quantity,
+    entryPrice: signal.entry,
     signalId: signal.id,
     stopLoss: signal.stopLoss,
     takeProfit: signal.takeProfit,

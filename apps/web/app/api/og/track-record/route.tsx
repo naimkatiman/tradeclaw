@@ -1,25 +1,23 @@
 import { ImageResponse } from 'next/og';
-import { query } from '../../../../lib/db-pool';
+import { computeTrackRecordStats } from '../../../../lib/track-record-stats';
 
 export const runtime = 'nodejs';
 
 export async function GET() {
-  const rows = await query<{ total: string; wins: string; win_rate: string; total_pnl: string }>(`
-    SELECT
-      COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL)::text AS total,
-      COUNT(*) FILTER (WHERE (outcome_24h->>'hit')::boolean = true)::text AS wins,
-      CASE WHEN COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL) > 0
-        THEN ROUND(COUNT(*) FILTER (WHERE (outcome_24h->>'hit')::boolean = true)::numeric
-          / COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL) * 100, 1)::text
-        ELSE '0' END AS win_rate,
-      COALESCE(ROUND(SUM((outcome_24h->>'pnlPct')::numeric) FILTER (WHERE outcome_24h IS NOT NULL), 2)::text, '0') AS total_pnl
-    FROM signal_history
-    WHERE is_simulated = false AND created_at >= NOW() - INTERVAL '30 days'
-  `);
-
-  const s = rows[0] ?? { total: '0', wins: '0', win_rate: '0', total_pnl: '0' };
-  const pnl = Number(s.total_pnl);
+  // Same resolved-signal logic the page body + /api/signals/equity use:
+  // excludes auto-expired, gate-blocked, and simulated rows. The prior raw
+  // `outcome_24h IS NOT NULL` SQL folded those in, so the card showed a lower
+  // win-rate and different P&L than the page under the same banner. Honesty
+  // contract: surfaces sharing a metric for the same window must compute it
+  // the same way.
+  const stats = await computeTrackRecordStats('all');
+  const pnl = stats.totalPnl;
   const pnlColor = pnl >= 0 ? '#10b981' : '#f43f5e';
+  const s = {
+    total: stats.total.toString(),
+    win_rate: stats.winRate.toString(),
+    total_pnl: stats.totalPnl.toFixed(2),
+  };
 
   return new ImageResponse(
     (
@@ -68,7 +66,7 @@ export async function GET() {
         </div>
 
         <div style={{ fontSize: '22px', color: '#10b981', letterSpacing: '0.12em', marginBottom: '40px' }}>
-          VERIFIED TRACK RECORD — 30 DAYS
+          RECORDED TRACK RECORD — 30 DAYS
         </div>
 
         {/* Stats row */}
@@ -91,7 +89,7 @@ export async function GET() {
 
         {/* Footer */}
         <div style={{ color: '#3f3f46', fontSize: '14px', letterSpacing: '0.05em' }}>
-          tradeclaw.win/track-record — open-source, transparent, verifiable
+          tradeclaw.win/track-record — open-source, transparent, resolved against Binance/Yahoo OHLCV
         </div>
       </div>
     ),

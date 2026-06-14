@@ -4,13 +4,18 @@ set -o pipefail
 # Run this hourly via cron for self-hosted instances without Vercel cron:
 #   0 * * * * /path/to/tradeclaw/scripts/resolve-signal-outcomes.sh
 
-cd "$(dirname "$0")/.." || exit 1
-LOG="$(pwd)/scripts/signal-errors.log"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+LOG="$ROOT/scripts/signal-errors.log"
 
 echo "[$(date -Iseconds)] Resolving signal outcomes..." >> "$LOG"
 
+# lib/signal-history.ts uses process.cwd() to locate data/signal-history.json.
+# Next.js workspace scripts run with cwd = apps/web/, so the resolver must also
+# run from that directory or it will read/write the wrong path (root/data/).
+cd "$ROOT/apps/web" || exit 1
+
 npx tsx -e "
-import { resolveRealOutcomes } from './apps/web/lib/signal-history.ts';
+import { resolveRealOutcomes } from './lib/signal-history.ts';
 resolveRealOutcomes()
   .then(() => {
     console.log('Signal outcomes resolved successfully');

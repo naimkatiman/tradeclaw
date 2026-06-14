@@ -10,6 +10,7 @@ const TOUR_DONE_KEY = 'tc_tour_done';
 const TOUR_AUTO_KEY = 'tc_tour_auto_shown';
 const TOUR_STEP_KEY = 'tc_tour_step';
 const TOUR_NEVER_KEY = 'tc_tour_never';
+const TOUR_VISITS_KEY = 'tc_tour_visits';
 
 /* ------------------------------------------------------------------ */
 /*  Tour steps — targeting REAL dashboard elements                     */
@@ -20,6 +21,9 @@ interface TourStep {
   title: string;
   description: string;
   position?: 'bottom' | 'top' | 'auto';
+  // Phase 1 = core interaction loop (always shown). Phase 2 = advanced steps,
+  // revealed only after the user has demonstrated intent (see isPhase2Unlocked).
+  phase: 1 | 2;
 }
 
 const STEPS: TourStep[] = [
@@ -28,38 +32,69 @@ const STEPS: TourStep[] = [
     title: 'Your market snapshot',
     description:
       'See active signals, buy/sell ratio, average confidence, and market bias at a glance. Use this to gauge overall sentiment before diving in.',
+    phase: 1,
   },
   {
     targetId: 'signal-grid',
     title: 'Reading a signal card',
     description:
       'Each card shows: Confidence (how many indicators agree), Entry (price now), SL (auto-calculated stop using ATR volatility), and TP1–TP3 (profit targets at 1.5×, 2.5×, 3.5× risk). Tap the "?" icons for one-line explanations of each metric.',
+    phase: 1,
   },
   {
     targetId: 'dashboard-filters',
     title: 'Filter by what matters',
     description:
       'Narrow signals by timeframe, direction (BUY/SELL), or asset class. Focus on your preferred market in one click.',
+    phase: 1,
   },
   {
     targetId: 'auto-refresh-toggle',
     title: 'Stay in sync',
     description:
       'Toggle auto-refresh to get signals updated every 30 seconds. Pause it when you want to study a signal without it changing.',
+    phase: 2,
   },
   {
     targetId: 'accuracy-stats',
     title: 'Track signal accuracy',
     description:
       'Check historical accuracy rates. No cherry-picking — every signal outcome is logged with full transparency.',
+    phase: 2,
   },
   {
     targetId: null,
     title: 'Ready to go deeper?',
     description:
       'Try the Backtest page to test strategies on historical data, or set up Telegram alerts to never miss a signal. Tap the export button on any signal to copy it for Telegram, Discord, or TradingView. Happy trading!',
+    phase: 2,
   },
 ];
+
+/* ------------------------------------------------------------------ */
+/*  Progressive disclosure (issue #43)                                  */
+/*  Phase 1 (core loop) always shows. Phase 2 (advanced) unlocks after  */
+/*  the 3rd dashboard visit OR once the tour has been completed once.   */
+/* ------------------------------------------------------------------ */
+
+function readVisitCount(): number {
+  try {
+    return parseInt(localStorage.getItem(TOUR_VISITS_KEY) || '0', 10) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function isPhase2Unlocked(): boolean {
+  try {
+    if (localStorage.getItem(TOUR_DONE_KEY)) return true;
+  } catch { /* ignore */ }
+  return readVisitCount() >= 3;
+}
+
+function getUnlockedSteps(): TourStep[] {
+  return isPhase2Unlocked() ? STEPS : STEPS.filter((s) => s.phase === 1);
+}
 
 /* ------------------------------------------------------------------ */
 /*  Spotlight geometry                                                  */
@@ -115,7 +150,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
       const saved = localStorage.getItem(TOUR_STEP_KEY);
       if (saved !== null) {
         const parsed = parseInt(saved, 10);
-        if (parsed >= 0 && parsed < STEPS.length) return parsed;
+        if (parsed >= 0 && parsed < getUnlockedSteps().length) return parsed;
       }
     } catch { /* ignore */ }
     return 0;
@@ -138,6 +173,15 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
   /* ---- Dispatch onboarding event when tour completes ---- */
   const dispatchTourComplete = useCallback(() => {
     window.dispatchEvent(new CustomEvent('tc:tour-complete'));
+  }, []);
+
+  /* ---- Count dashboard visits (drives phase-2 progressive disclosure) ---- */
+  useEffect(() => {
+    try {
+      if (typeof window === 'undefined') return;
+      if (!window.location.pathname.startsWith('/dashboard')) return;
+      localStorage.setItem(TOUR_VISITS_KEY, String(readVisitCount() + 1));
+    } catch { /* ignore */ }
   }, []);
 
   /* ---- Auto-show on first visit (2s delay, dashboard only) ---- */
@@ -173,7 +217,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
 
   /* ---- Compute spotlight + tooltip placement ---- */
   const updateSpotlight = useCallback((currentStep: number) => {
-    const targetId = STEPS[currentStep]?.targetId;
+    const targetId = getUnlockedSteps()[currentStep]?.targetId;
     if (!targetId) {
       setSpotlightRect(null);
       setPlacement('center');
@@ -268,7 +312,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
   }, [step, saveTourProgress, onClose]);
 
   const next = useCallback(() => {
-    if (step < STEPS.length - 1) {
+    if (step < getUnlockedSteps().length - 1) {
       setStep(s => s + 1);
     } else {
       // Tour complete
@@ -311,8 +355,9 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
 
   if (!active) return null;
 
-  const currentStep = STEPS[step];
-  const isLast = step === STEPS.length - 1;
+  const unlockedSteps = getUnlockedSteps();
+  const currentStep = unlockedSteps[step];
+  const isLast = step === unlockedSteps.length - 1;
   const pad = 10;
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
@@ -448,7 +493,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
       <div
         ref={tooltipRef}
         role="dialog"
-        aria-label={`Tour step ${step + 1} of ${STEPS.length}`}
+        aria-label={`Tour step ${step + 1} of ${unlockedSteps.length}`}
         aria-modal="true"
         className={`bg-zinc-900 border border-emerald-500/30 shadow-2xl shadow-black/40 transition-all duration-400 ${
           isMobile ? 'p-6 pt-4' : 'rounded-xl p-5'
@@ -485,7 +530,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
         {/* Header row */}
         <div className="flex items-center justify-between mb-3">
           <span className="text-[11px] text-zinc-500 font-mono tabular-nums">
-            Step {step + 1} of {STEPS.length}
+            Step {step + 1} of {unlockedSteps.length}
           </span>
           <button
             onClick={skip}
@@ -501,7 +546,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
 
         {/* Step dots */}
         <div className="flex items-center gap-1.5 mb-4">
-          {STEPS.map((_, i) => (
+          {unlockedSteps.map((_, i) => (
             <button
               key={i}
               onClick={() => setStep(i)}
@@ -613,6 +658,23 @@ export function GuidedTourListener() {
     const handler = () => setOpen(true);
     window.addEventListener('tc:start-tour', handler);
     return () => window.removeEventListener('tc:start-tour', handler);
+  }, []);
+
+  // Shift+? restarts the tour from anywhere (issue #43). Mirrors TakeTourButton:
+  // clear the auto-shown flag, then dispatch the same event the button uses.
+  // '/' is included because Shift+/ is how '?' is typed on US layouts.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.shiftKey || (e.key !== '?' && e.key !== '/')) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return;
+      e.preventDefault();
+      try { localStorage.removeItem(TOUR_AUTO_KEY); } catch { /* ignore */ }
+      window.dispatchEvent(new CustomEvent('tc:start-tour'));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   return <GuidedTour open={open} onClose={() => setOpen(false)} />;

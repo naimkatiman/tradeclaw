@@ -10,6 +10,7 @@ interface BandSummary {
   expectancyR: number | null;
   avgRWin: number | null;
   avgRLoss: number | null;
+  breakEvenWinRate: number | null;
 }
 
 interface BandResponse {
@@ -126,7 +127,17 @@ function BandCard({ label, data, accent }: BandCardProps) {
       <div className="mt-1.5 grid grid-cols-3 gap-2 text-[10px] font-mono text-zinc-500">
         <div>
           <div className="text-[8px] uppercase tracking-wider text-zinc-600">Win</div>
-          <div className="text-zinc-300">{data.winRate.toFixed(1)}%</div>
+          <div
+            className={
+              data.breakEvenWinRate !== null
+                ? data.winRate >= data.breakEvenWinRate
+                  ? 'text-emerald-400'
+                  : 'text-red-400'
+                : 'text-zinc-300'
+            }
+          >
+            {data.winRate.toFixed(1)}%
+          </div>
         </div>
         <div>
           <div className="text-[8px] uppercase tracking-wider text-zinc-600">Trades</div>
@@ -140,6 +151,13 @@ function BandCard({ label, data, accent }: BandCardProps) {
               : '—'}
           </div>
         </div>
+      </div>
+      {/* Break-even context: a sub-50% win-rate with asymmetric R:R can still
+         be profitable. Show the bar the win-rate is being judged against. */}
+      <div className="mt-1.5 text-[9px] font-mono text-zinc-600">
+        {data.breakEvenWinRate !== null
+          ? `break-even ${data.breakEvenWinRate}% · 7d window`
+          : 'break-even n/a · 7d window'}
       </div>
     </div>
   );

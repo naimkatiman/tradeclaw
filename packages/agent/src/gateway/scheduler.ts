@@ -6,6 +6,7 @@ export class Scheduler {
   private intervalMs: number;
   private timer: ReturnType<typeof setInterval> | null = null;
   private running: boolean = false;
+  private inFlight: boolean = false;
   private scanCount: number = 0;
   private onScan: () => Promise<void>;
 
@@ -26,7 +27,7 @@ export class Scheduler {
     await this.executeScan();
 
     this.timer = setInterval(async () => {
-      if (this.running) {
+      if (this.running && !this.inFlight) {
         await this.executeScan();
       }
     }, this.intervalMs);
@@ -42,6 +43,7 @@ export class Scheduler {
   }
 
   private async executeScan(): Promise<void> {
+    this.inFlight = true;
     this.scanCount++;
     const startTime = Date.now();
 
@@ -51,6 +53,8 @@ export class Scheduler {
       console.log(`[scheduler] Scan #${this.scanCount} completed in ${duration}ms`);
     } catch (error) {
       console.error(`[scheduler] Scan #${this.scanCount} failed:`, error);
+    } finally {
+      this.inFlight = false;
     }
   }
 
@@ -67,7 +71,7 @@ export class Scheduler {
     if (this.running && this.timer) {
       clearInterval(this.timer);
       this.timer = setInterval(async () => {
-        if (this.running) {
+        if (this.running && !this.inFlight) {
           await this.executeScan();
         }
       }, this.intervalMs);

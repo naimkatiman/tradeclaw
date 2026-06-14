@@ -66,9 +66,18 @@ export interface Translations {
     viewHeatmap: string;
     deployOn: string;
   };
+  // App shell strings (issue #16). Phase 1 covers primary nav + the language
+  // switcher; remaining app surfaces are extracted in Phase 2.
+  nav: {
+    dashboard: string;
+    signals: string;
+    trackRecord: string;
+    language: string;
+  };
 }
 
 const en: Translations = {
+  nav: { dashboard: "Dashboard", signals: "Signals", trackRecord: "Track Record", language: "Language" },
   meta: {
     title: "TradeClaw — Open-Source AI Trading Signals",
     description: "Self-hosted AI trading signals for forex, crypto, and metals. Free forever. Deploy in 5 minutes with Docker.",
@@ -134,6 +143,7 @@ const en: Translations = {
 };
 
 const es: Translations = {
+  nav: { dashboard: "Panel", signals: "Señales", trackRecord: "Historial", language: "Idioma" },
   meta: {
     title: "TradeClaw — Señales de Trading con IA de Código Abierto",
     description: "Señales de trading con IA autoalojadas para forex, cripto y metales. Gratis para siempre. Despliega en 5 minutos con Docker.",
@@ -199,6 +209,7 @@ const es: Translations = {
 };
 
 const zh: Translations = {
+  nav: { dashboard: "仪表板", signals: "信号", trackRecord: "战绩", language: "语言" },
   meta: {
     title: "TradeClaw — 开源 AI 交易信号平台",
     description: "自托管 AI 交易信号，支持外汇、加密货币和贵金属。永久免费。5 分钟内用 Docker 部署。",
@@ -265,6 +276,7 @@ const zh: Translations = {
 
 // Malay (Bahasa Malaysia) — initial translation, native-speaker review pending (#16).
 const ms: Translations = {
+  nav: { dashboard: "Papan Pemuka", signals: "Isyarat", trackRecord: "Rekod Prestasi", language: "Bahasa" },
   meta: {
     title: "TradeClaw — Isyarat Dagangan AI Sumber Terbuka",
     description: "Isyarat dagangan AI dihos sendiri untuk forex, kripto, dan logam. Percuma selamanya. Pasang dalam 5 minit dengan Docker.",
@@ -331,6 +343,7 @@ const ms: Translations = {
 
 // Arabic — initial translation, RTL layout. Native-speaker review pending (#16).
 const ar: Translations = {
+  nav: { dashboard: "لوحة التحكم", signals: "الإشارات", trackRecord: "سجل الأداء", language: "اللغة" },
   meta: {
     title: "TradeClaw — إشارات تداول بالذكاء الاصطناعي مفتوحة المصدر",
     description: "إشارات تداول بالذكاء الاصطناعي ذاتية الاستضافة للفوركس والعملات الرقمية والمعادن. مجانية إلى الأبد. النشر في 5 دقائق مع Docker.",

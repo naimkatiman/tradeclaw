@@ -7,6 +7,7 @@ import {
   sendSlackSignal,
   TEST_SLACK_PAYLOAD,
 } from '@/lib/slack-integration';
+import { assertAdminApi } from '@/lib/admin-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,12 @@ interface SlackRequest {
 }
 
 export async function POST(request: Request) {
+  // Slack integrations are a single global, file-backed config (no per-user model),
+  // so this is operator/admin configuration. Without this gate, any anonymous caller
+  // could enumerate/alter/delete every deployment's Slack config and spam its channels.
+  const authError = await assertAdminApi(request);
+  if (authError) return authError;
+
   try {
     const body = (await request.json()) as SlackRequest;
     const { action } = body;

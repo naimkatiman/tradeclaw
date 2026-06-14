@@ -12,8 +12,10 @@
  *      confidence descending (signal-engine.py line 417).
  *   3. The top-3 cap is applied at the display/consumer layer (commit bbcb39f6
  *      "regime filter → top 3").
- *   4. Regime filter: HMM 5-state (crash/bear/neutral/bull/euphoria) via
- *      REGIME_ALLOCATION_RULES — BEAR/CRASH suppress BUY; other states allow both.
+ *   4. Regime filter: structural HMM (trend/volatile/range, Phase 3 plan D1)
+ *      via REGIME_ALLOCATION_RULES. All structural regimes allow both
+ *      directions, so the filter is currently a pass-through; per-regime
+ *      direction routing arrives with the Phase 4 router (plan D2).
  *      This maps exactly to regimeAwareEntry.
  *   5. Ranking key: confidence only (no volatility scaler, no blended score).
  *      No additional threshold after regime filtering beyond the engine's MIN_CONFIDENCE gate.

@@ -37,7 +37,7 @@ export interface MultiTFResult {
   timeframes: TFDirection[];
   dominantDirection: 'BUY' | 'SELL' | 'NEUTRAL';
   agreementCount: number; // how many of 4 TFs agree
-  confluenceBonus: number; // +15, +5, 0, -20
+  confluenceBonus: number; // +15, +10, +5, 0, -20
   isConflicted: boolean;
   entry: number;
   indicators: IndicatorSummary;
@@ -119,6 +119,23 @@ const MIN_ATR_PCT = 0.0001;  // reduced threshold
 const MIN_BB_WIDTH = 0.3;
 const MIN_RISK_ATR = 0.8;
 const MAX_RISK_ATR = 4.0;
+
+// Blacklisted symbol+direction combos based on track-record audit:
+// These have <=25% win rate over 5+ signals — auto-skip.
+// Base list kept in sync with scripts/scanner-engine.py BLACKLISTED_COMBOS
+// (Binance-style names mapped to broker-style names used here).
+// Next.js-specific additions are based on the 586-signal empirical audit
+// where crypto BUY fallback signals underperform the Python scanner.
+const BLACKLISTED_COMBOS: ReadonlySet<string> = new Set([
+  'SOLUSD_SELL', 'USDJPY_BUY', 'XRPUSD_SELL', 'BTCUSD_SELL',
+  'EURUSD_SELL', 'GBPUSD_SELL', 'ETHUSD_SELL', 'BNBUSD_SELL',
+  'XAUUSD_SELL',
+  // Sub-25% BUY paths from 586-signal empirical audit (2026-06-02)
+  // NOTE: BNBUSD_BUY, BTCUSD_BUY, ETHUSD_BUY un-blacklisted on 2026-06-03
+  // after MACD H1 confirmation filters raised their post-filter win rates
+  // to 70-76% (n=40-42). SOLUSD_BUY remains blocked.
+  'SOLUSD_BUY', 'DOGEUSD_BUY',
+]);
 
 function generateSignalId(
   symbol: string,
@@ -319,8 +336,8 @@ function passesDirectionGate(
   }
 
   if (direction === 'BUY') {
-    // MACD or EMA slope must support direction (not both required)
-    if (macd.current.histogram <= 0 && quality.ema20Slope <= 0) {
+    // MACD must confirm direction — aligns with Python scanner (TC-214/215)
+    if (macd.current.histogram <= 0) {
       return { passes: false, confidenceBoost: 0 };
     }
     if (!isNaN(rsi.current) && (rsi.current < 30 || rsi.current > 78)) {
@@ -330,8 +347,8 @@ function passesDirectionGate(
       return { passes: false, confidenceBoost: 0 };
     }
   } else {
-    // MACD or EMA slope must support direction (not both required)
-    if (macd.current.histogram >= 0 && quality.ema20Slope >= 0) {
+    // MACD must confirm direction — aligns with Python scanner (TC-214/215)
+    if (macd.current.histogram >= 0) {
       return { passes: false, confidenceBoost: 0 };
     }
     if (!isNaN(rsi.current) && (rsi.current > 70 || rsi.current < 22)) {
@@ -823,7 +840,9 @@ export function generateSignalsFromTA(
     });
   }
 
-  return signals;
+  return signals.filter(
+    (s) => !BLACKLISTED_COMBOS.has(`${s.symbol}_${s.direction}`),
+  );
 }
 
 // ─── Multi-Timeframe Analysis ─────────────────────────────────

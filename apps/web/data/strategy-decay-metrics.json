@@ -1,0 +1,102 @@
+{
+  "_meta": {
+    "provenance": "LOCAL scanner/dev samples \u2014 NOT production Railway Postgres. Illustrative of the live engine; production rolling metrics resolve via Writer B cron once wired.",
+    "historical_baseline_pct": 50.8,
+    "decay_rule": "flag when rolling_90d_win_rate < 0.5 * historical_baseline (Satellite Strike Ch7)",
+    "decay_threshold_pct": 25.4,
+    "min_sample_for_window": 20,
+    "win_definition": "web: repo-canonical isCountedResolved (exclude simulated/gateBlocked/auto-expire sentinel pnlPct==0&&!hit on outcomes.24h), win = outcome.hit===true; scanner: TP1_HIT|EXPIRED_PROFIT",
+    "slippage_pct": "pending real data \u2014 no execution fills recorded locally (signal-time prices only)",
+    "cross_source_note": "The 50.8% baseline and zaky_strategy/tradingview_screener are SCANNER methodology (TP1_HIT|EXPIRED_PROFIT from signals.db). hmm-top3's win rate is WEB methodology (isCountedResolved + hit===true on signal-history.json). zaky/tv vs baseline is like-for-like; hmm-top3 vs the baseline is cross-method and only INDICATIVE \u2014 the stricter web win definition understates hmm-top3 against the looser scanner baseline. Satellite placement and the 'watch' call do not depend on this comparison."
+  },
+  "strategies": {
+    "hmm-top3": {
+      "source": "signal-history.json (web app, Writer A/B)",
+      "resolved_signals": 332,
+      "wins": 112,
+      "all_sample_win_rate": 33.7,
+      "rolling_30d": {
+        "n": 201,
+        "wins": 62,
+        "win_rate": 30.8,
+        "insufficient_sample": false
+      },
+      "rolling_90d": {
+        "n": 332,
+        "wins": 112,
+        "win_rate": 33.7,
+        "insufficient_sample": false
+      },
+      "realized_rr_mean_pct": -0.12,
+      "realized_rr_median_pct": -0.45,
+      "date_range": [
+        "2026-04-14",
+        "2026-06-02"
+      ],
+      "by_mode": {
+        "scalp": {
+          "resolved": 114,
+          "win_rate": 36.0
+        },
+        "swing": {
+          "resolved": 218,
+          "win_rate": 32.6
+        }
+      },
+      "decay_status": "watch (all-sample 33.7% below 50.8% baseline)",
+      "auto_demote": false
+    },
+    "zaky_strategy": {
+      "source": "scripts/signals.db (scanner)",
+      "resolved_signals": 209,
+      "wins": 128,
+      "all_sample_win_rate": 61.2,
+      "rolling_30d": {
+        "n": 121,
+        "wins": 71,
+        "win_rate": 58.7,
+        "insufficient_sample": false
+      },
+      "rolling_90d": {
+        "n": 209,
+        "wins": 128,
+        "win_rate": 61.2,
+        "insufficient_sample": false
+      },
+      "realized_rr_mean": 0.26,
+      "realized_rr_n": 140,
+      "date_range": [
+        "2026-04-07",
+        "2026-06-03"
+      ],
+      "decay_status": "healthy",
+      "auto_demote": false
+    },
+    "tradingview_screener": {
+      "source": "scripts/signals.db (scanner)",
+      "resolved_signals": 177,
+      "wins": 80,
+      "all_sample_win_rate": 45.2,
+      "rolling_30d": {
+        "n": 48,
+        "wins": 30,
+        "win_rate": 62.5,
+        "insufficient_sample": false
+      },
+      "rolling_90d": {
+        "n": 177,
+        "wins": 80,
+        "win_rate": 45.2,
+        "insufficient_sample": false
+      },
+      "realized_rr_mean": 0.71,
+      "realized_rr_n": 21,
+      "date_range": [
+        "2026-04-02",
+        "2026-06-02"
+      ],
+      "decay_status": "watch (all-sample 45.2% below 50.8% baseline)",
+      "auto_demote": false
+    }
+  }
+}

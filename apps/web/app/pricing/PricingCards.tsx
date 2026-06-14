@@ -134,7 +134,15 @@ function ProCard({ def, interval }: ProCardProps) {
         <p className="text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
           {def.name}
         </p>
-        <div className="mt-2 flex items-end gap-1">
+        {def.anchorLabel && (
+          <p
+            data-testid="pro-anchor"
+            className="mt-2 text-xs text-[var(--text-secondary)]"
+          >
+            <span className="line-through opacity-70">{def.anchorLabel}</span>
+          </p>
+        )}
+        <div className="mt-1 flex items-end gap-1">
           <span
             data-testid="pro-price-label"
             className="text-4xl font-bold text-[var(--foreground)]"
@@ -144,6 +152,14 @@ function ProCard({ def, interval }: ProCardProps) {
           <span className="mb-1 text-sm text-[var(--text-secondary)]">{priceSuffix}</span>
         </div>
         <p className="mt-1 text-xs text-[var(--text-secondary)]">{priceLabel}</p>
+        {def.perDayLabel && (
+          <p
+            data-testid="pro-per-day"
+            className="mt-1 text-xs font-medium text-emerald-400"
+          >
+            That&apos;s {def.perDayLabel}
+          </p>
+        )}
         <p className="mt-3 text-sm text-[var(--text-secondary)]">{def.tagline}</p>
         <p className="mt-1 text-xs text-[var(--text-secondary)]">{subtext}</p>
       </div>
@@ -335,6 +351,13 @@ function EliteCard({ def, interval }: EliteCardProps) {
   const priceMain = interval === 'annual' ? '$990' : '$99';
   const priceSuffix = interval === 'annual' ? '/yr' : '/mo';
   const subtext = interval === 'annual' ? 'Save $198 vs monthly' : 'Billed monthly, cancel anytime';
+  // Self-serve Elite checkout needs Stripe Elite price IDs. When they are not
+  // configured (the default self-host case — see .env.example), fall back to the
+  // interest form rather than POSTing a tier the checkout API returns 503 on.
+  const eliteCheckoutEnabled = Boolean(
+    process.env.NEXT_PUBLIC_STRIPE_ELITE_MONTHLY_PRICE_ID &&
+      process.env.NEXT_PUBLIC_STRIPE_ELITE_ANNUAL_PRICE_ID,
+  );
 
   async function handleCheckout() {
     setLoading(true);
@@ -381,7 +404,15 @@ function EliteCard({ def, interval }: EliteCardProps) {
         <p className="text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
           {def.name}
         </p>
-        <div className="mt-2 flex items-end gap-1">
+        {def.anchorLabel && (
+          <p
+            data-testid="elite-anchor"
+            className="mt-2 text-xs text-[var(--text-secondary)]"
+          >
+            <span className="line-through opacity-70">{def.anchorLabel}</span>
+          </p>
+        )}
+        <div className="mt-1 flex items-end gap-1">
           <span
             data-testid="elite-price-label"
             className="text-4xl font-bold text-[var(--foreground)]"
@@ -391,6 +422,14 @@ function EliteCard({ def, interval }: EliteCardProps) {
           <span className="mb-1 text-sm text-[var(--text-secondary)]">{priceSuffix}</span>
         </div>
         <p className="mt-1 text-xs text-[var(--text-secondary)]">{priceLabel}</p>
+        {def.perDayLabel && (
+          <p
+            data-testid="elite-per-day"
+            className="mt-1 text-xs font-medium text-purple-400"
+          >
+            That&apos;s {def.perDayLabel}
+          </p>
+        )}
         <p className="mt-3 text-sm text-[var(--text-secondary)]">{def.tagline}</p>
         <p className="mt-1 text-xs text-[var(--text-secondary)]">{subtext}</p>
       </div>
@@ -407,24 +446,29 @@ function EliteCard({ def, interval }: EliteCardProps) {
       </ul>
 
       <div className="mt-auto">
-        <button
-          type="button"
-          data-testid="elite-cta"
-          onClick={handleCheckout}
-          disabled={loading}
-          className="block w-full rounded-lg bg-purple-500 py-2.5 text-center text-sm font-semibold text-white transition-all hover:bg-purple-400 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading ? 'Redirecting…' : 'Start Elite Trial'}
-        </button>
-        <p className="mt-2 text-center text-[11px] leading-relaxed text-[var(--text-secondary)]">
-          Card required.{' '}
-          {interval === 'annual' ? '$990 charged' : '$99 charged'} on day 8.{' '}
-          Cancel anytime before then — no charge.
-        </p>
-        {error && (
-          <p role="alert" className="mt-2 text-center text-xs text-red-400">
-            {error}
-          </p>
+        {eliteCheckoutEnabled ? (
+          <>
+            <button
+              type="button"
+              data-testid="elite-cta"
+              onClick={handleCheckout}
+              disabled={loading}
+              className="block w-full rounded-lg bg-purple-500 py-2.5 text-center text-sm font-semibold text-white transition-all hover:bg-purple-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? 'Redirecting…' : 'Start Elite Trial'}
+            </button>
+            <p className="mt-2 text-center text-[11px] leading-relaxed text-[var(--text-secondary)]">
+              Card required. {priceMain} charged on day 8.{' '}
+              Cancel anytime before then — no charge.
+            </p>
+            {error && (
+              <p role="alert" className="mt-2 text-center text-xs text-red-400">
+                {error}
+              </p>
+            )}
+          </>
+        ) : (
+          <EliteInterestForm source="pricing-elite" />
         )}
       </div>
     </div>

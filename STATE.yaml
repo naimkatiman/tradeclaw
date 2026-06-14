@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-05-30T17:00:04+08:00
+updated: 2026-06-08T13:07:40+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -1850,7 +1850,134 @@ tasks:
       button with pre-filled tweet text. Pure UI addition — no backend changes. Verified
       with `npm run build` (317 pages) and `npm test -- --runInBand` (98 passed, 3 skipped).
 
+  - id: TC-228
+    title: "Signal engine quality pass — un-blacklist crypto BUY paths after MACD filters raised win rates to 70-76%"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Removed BNBUSDT_BUY, BTCUSDT_BUY, and ETHUSDT_BUY from BLACKLISTED_COMBOS in
+      scripts/scanner-engine.py, scripts/signal-outcome-checker.py, and
+      apps/web/app/lib/signal-generator.ts. SQLite track-record audit (385 resolved
+      signals) shows these paths now perform at 70.0%, 71.4%, and 75.6% win rates
+      respectively (n=40-42 each) after MACD H1 confirmation filters (TC-214/215/219/223)
+      eliminated the unconfirmed-momentum signals that were dragging them down.
+      SOLUSDT_BUY (42.4%) and DOGEUSDT_BUY remain blacklisted. Updated the Jest test
+      in signal-generator.test.ts to match the reduced blacklist. Verified with
+      `python3 -m py_compile`, `npm run build` (330 pages), and `npm test -- --runInBand`
+      (101 passed, 3 skipped, 0 failed).
+
+  - id: TC-229
+    title: "Expo mobile app native assets — generate icon, splash, adaptive-icon, favicon PNGs from brand SVG"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Generated apps/mobile/assets/ (icon.png 1024×1024, adaptive-icon.png 1024×1024 transparent,
+      splash.png 1242×2436 dark, favicon.png 48×48) from apps/web/public/icon.svg using sharp.
+      Created scripts/generate-mobile-assets.js for reproducible asset generation.
+      This unblocks EAS Build packaging for distribution. Verified with npm run build (330 pages)
+      and npm test -- --runInBand (110 passed, 3 skipped, 0 failed).
+
+  - id: TC-230
+    title: "Expo EAS Build configuration — eas.json + .gitignore for mobile app distribution"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Created apps/mobile/eas.json with development, preview, and production build profiles.
+      Preview builds as APK for Android internal distribution and simulator builds for iOS.
+      Production profile auto-increments version. Added apps/mobile/.gitignore for Expo
+      build artifacts, native secrets, and local env files. Build verification: npm run build
+      passes (330 pages). Next step for actual distribution: run `eas init` to link an EAS
+      project, then `eas build --profile preview` for internal testing or `eas build --profile
+      production` for app store submission.
+
+  - id: TC-232
+    title: "Copy-trading preview — auto-follow premium signals in paper trading for demo user"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Implements ROADMAP 4.8 preview layer. When a TradingView webhook premium signal arrives
+      at /api/webhooks/tradingview, the route now auto-opens a paper-trade position for the
+      demo user (PUBLIC_WIDGET_DEMO_USER_ID) via autoFollowSignal with 5% position sizing.
+      Skipped when demo user is not configured or when SL/TP are missing. Adds Jest coverage
+      verifying auto-follow is called with correct args, skipped without SL/TP, and skipped
+      when demo user is null. 2026-06-06 follow-up: added missing `entry: p.entry` to the
+      autoFollowSignal call so the route satisfies the FollowSignalInput TypeScript contract.
+      2026-06-08 follow-up: switched INSERT to RETURNING source_id so replayed webhooks
+      (duplicate source_id) are detected via ON CONFLICT DO NOTHING → null result;
+      isNewSignal=false gates autoFollowSignal and prevents duplicate paper positions.
+      Verified with `npm run build` (330 pages) and targeted Jest (6 passed, 0 failed).
+      Committed in 2eeeeebf.
+
+  - id: TC-233
+    title: "Wire Pine Script export into TradingView integration page"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Wired the existing untracked `apps/web/lib/tv-pine-export.ts` helper into
+      `apps/web/app/tradingview-export/TradingViewExportClient.tsx`. Added a second
+      export card that renders the generated Pine Script v5 indicator, plus Copy and
+      Download (.pine) buttons. The script embeds TradeClaw's RSI/MACD/EMA/BB/Stoch
+      weights and alertconditions, so TradingView users can overlay the engine on any
+      chart without manual translation. Verified with `npm run build` (330 pages) and
+      `npm test -- --runInBand` (111 passed, 3 skipped, 0 failed).
+
+  - id: TC-234
+    title: "LinkedIn share button on track record — one-click share verified performance stats"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Added a LinkedIn share button alongside the existing X/Twitter share button on
+      /track-record. Uses the LinkedIn share URL format with pre-filled title/description
+      containing the current win rate and resolved signal count. Advances ROADMAP 4.5
+      content pipeline (LinkedIn organic discovery). Verified with `npm run build`
+      (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped, 0 failed).
+
+  - id: TC-235
+    title: "Weekly performance recap content — X/Twitter + LinkedIn drafts using 63.9% WR milestone"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Created social-drafts/2026-06-07-weekly-recap-x.md (5-tweet thread) and
+      social-drafts/2026-06-07-weekly-recap-linkedin.md (long-form post + first comment).
+      Content highlights: 63.9% non-blacklisted WR, +0.10R expectancy, MACD confirmation
+      and blacklist methodology, full transparency on 54.8% all-time WR, R-multiples
+      blog CTA, Docker deploy CTA. Advances ROADMAP 4.5 content pipeline and 4.3
+      affiliate discoverability. Ready to post. No code changes. Verified with
+      `npm run build` (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped).
+
+  - id: TC-236
+    title: "GitHub Stars Campaign command center — add Launch Campaign tracker to /share page"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Added a Launch Campaign tracker card to apps/web/app/share/ShareClient.tsx
+      with three highest-impact launch channels: Product Hunt, Hacker News (Show HN),
+      and Reddit r/algotrading. Each channel shows status badge, description, link
+      to prep page, and a checkable completion box with localStorage persistence.
+      Progress bar shows completion count. Addresses DAILY_INTEL_LOG 2026-06-07
+      recommendation #4 and advances ROADMAP 4.6 (GitHub Stars Campaign). Verified
+      with `npm run build` (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped).
+
 next_actions:
+  - "2026-06-07: TC-235 complete. Created weekly performance recap content (X thread + LinkedIn post) highlighting 63.9% non-blacklisted WR, +0.10R expectancy, and methodology transparency. Ready for manual posting. Next: execute GitHub Stars Campaign — ProductHunt launch, HN Show HN post, or Reddit r/algotrading submission using existing prep pages (/launch, /hn, /share, /producthunt)."
+  - "2026-06-07: TC-234 complete. Added LinkedIn share button to /track-record so visitors can one-click share verified performance stats. Advances ROADMAP 4.5 content pipeline (LinkedIn organic discovery). Build passes 330 pages, tests 111 passed. Next: create weekly performance recap content for X/LinkedIn using the 63.9% non-blacklisted WR milestone, or continue GitHub Stars Campaign prep."
+  - "2026-06-07: Hourly growth loop ran `scripts/signal-outcome-checker.py` and a SQLite per-combo audit. 0 pending signals resolved. 400 resolved rows overall at 54.8% WR (219W/181L). Excluding current BLACKLISTED_COMBOS, the remaining non-blacklisted combo WR is 63.9% (184W/104L). No new sub-30% symbol+direction combos outside current BLACKLISTED_COMBOS; GBPUSD_BUY (48.6%, n=37) and USDJPY_SELL (44.4%, n=18) are above the <=25% blacklist threshold and remain on watch. No code changes this cycle. Verified with `npm test -- --runInBand` (111 passed, 3 skipped, 0 failed). Next concrete step: wait for fresh resolved signals before next blacklist pass, or pivot to content pipeline / GitHub Stars Campaign."
+  - "2026-06-07: Ran `npm run resolve:outcomes` to advance the Signal Credibility Engine (ROADMAP 1.1/1.4). Resolver exited cleanly. Local Python scanner audit (signals.db, 400 resolved rows) shows overall win rate improved to 54.8% (219W/181L) — up from ~40%. No new sub-30% symbol+direction combos outside the current BLACKLISTED_COMBOS; USDJPY_BUY already suppressed. TC-233 shipped: wired the untracked Pine Script export helper into /tradingview-export with copy + download buttons, advancing ROADMAP 4.4 TradingView profile integration. Verified with `npm run build` (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped, 0 failed)."
+  - "2026-06-07: Refreshed docs/ROADMAP.md 'Current State' section to reflect June 2026 reality. Updated win rate from ~40% to ~55% (54.8% actual), marked mobile app MVP and marketplace scaffold as shipped, noted copy-trading preview status, and replaced stale immediate next actions with current priorities (content pipeline, GitHub Stars Campaign, mobile distribution). Updated Last updated date to 2026-06-07. Verified with `npm run build` (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped, 0 failed)."
+  - "2026-06-06: Ran `npm run resolve:outcomes` to advance the Signal Credibility Engine (ROADMAP 1.1/1.4). Resolver exited cleanly. signal-history.json now contains 586 resolved records + 2 recent pending signals still inside the 24h window (DOGEUSD_M15_SELL, XRPUSD_M15_BUY). SQLite track-record audit of 586 resolved signals shows no new sub-25% symbol+direction combos outside the current BLACKLISTED_COMBOS, so no blacklist update is needed this cycle. Verified with `npm run build` (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped, 0 failed)."
+  - "2026-06-03: Fixed 3 pre-existing TypeScript compilation errors in apps/web/app/api/cron/push-signals/__tests__/route.test.ts — `indicators: {}` did not satisfy the `IndicatorSummary` interface (missing rsi/macd/ema/bollingerBands/stochastic/support/resistance). Replaced with minimal valid indicator objects so `npx tsc --noEmit` passes cleanly across the entire apps/web workspace. Verified with `npm run build` (330 pages) and `npm test -- --runInBand` (101 passed, 3 skipped, 0 failed)."
+  - "2026-06-03: TC-227 complete. Landing page now surfaces the last-100-signal win rate as a proof tile on ProofHero. Recent 100 signals are at 63% WR (up from ~31% all-time), so this directly improves first-visit credibility."
+  - "2026-06-03: TC-226 complete. /tradingview-export is now discoverable from desktop navbar (Community group) and mobile nav. Addresses ROADMAP immediate next action #2 (TradingView profile integration)."
+  - "2026-06-02: TC-225 complete. Synced ETHUSDT_BUY and BTCUSDT_BUY blacklists across Python scanner and Next.js fallback."
+  - "2026-06-02: TC-224 complete. Blacklisted BNBUSD_BUY (9.8%), SOLUSD_BUY (12.5%), DOGEUSD_BUY (22.9%) based on 586-signal empirical audit. Next: monitor if overall WR climbs toward 40%+ after suppressing these crypto BUY paths."
+  - "2026-06-02: TC-220 complete. XAUUSD_SELL blacklisted — 25% historical win rate, worst non-blacklisted combo."
+  - "2026-06-02: TC-219 complete. Added MACD momentum confirmation to Zaky strategy (H1+H4), closing the gap vs confluence engine where proven filters already live."
+  - "2026-06-02: TC-218 complete. GitHub Actions workflow now triggers /api/cron/push-signals every 15 minutes."
+  - "2026-06-02: TC-217 complete. Mobile push notification loop is end-to-end: token registration → backend storage → cron dispatch → Expo push API."
+  - "2026-06-02: TC-222 complete. Next.js signal generator now respects the same BLACKLISTED_COMBOS as the Python scanner, closing the fallback-path leak where degraded scanner coverage exposed low-win-rate combos through the TA engine."
+  - "Signal engine quality pass remains highest ROADMAP priority — monitor rolling win rate and tighten further if it stays below 50%. Next concrete step: wait for fresh resolved outcome data from production to identify new blacklist candidates."
+  - "2026-06-06: TC-230 complete. EAS Build configuration shipped (eas.json with dev/preview/production profiles, .gitignore). ROADMAP immediate next action #3 (Mobile app MVP) next step: run `eas init` + `eas build --profile preview` for internal distribution, then app store submission."
+  - "2026-06-06: TC-231 complete. Marketplace now shows 3 seed providers (Zaky, Alpha Desk, Forex Flow) when DB is empty. ROADMAP immediate next action #4 (Multi-provider marketplace) is now complete through TC-221 + TC-231. Next: invite real external traders to apply as providers."
   - "2026-05-21: published /results backtest validation snapshot with 12-month coverage (1,958 trades, 62.3% weighted win rate, Sharpe 1.53) and linked it from the hero; verified with npm run build."
   - "2026-05-21: /track-record resolution heartbeat now updates continuously and the leaderboard pair-detail modal guards against stale fetch races, so freshness cues stay honest while the page stays open; verified with npm run build."
   - "2026-05-21: allocation dashboard now pulls live gross/net exposure from /api/widget/portfolio instead of placeholder math, so Current Exposure and Headroom reflect the paper-trading snapshot; verified with npm run build."
@@ -1877,6 +2004,8 @@ next_actions:
   - "2026-05-25: fixed Stripe checkout test assertion in `apps/web/app/api/stripe/checkout/__tests__/route.test.ts` to expect `referrerId: ''` in `params.metadata`, matching the production route behavior. Verified with `npm test -- apps/web/app/api/stripe/checkout/__tests__/route.test.ts --runInBand` (10 passed). Full suite now 95 passed, 1 failed (Vitest file picked up by Jest), 3 skipped."
   - "2026-05-25: TC-192 — TradingView webhook signals now mirror into signal_history so the shared outcome resolver tracks premium-signal performance automatically. Prerequisite for ROADMAP 2.7 Strategy Performance Comparison. Verified with `npm run build` and `npm test -- --runInBand`."
   - "2026-05-25: excluded `apps/web/lib/__tests__/signal-history-cache.test.ts` from Jest via `testPathIgnorePatterns` in `jest.config.js`. The file was converted to Vitest syntax but Jest was still scanning it, causing 1 suite failure. Full suite now back to 95 passed, 3 skipped, 0 failed. Build passes (317 pages)."
+  - "2026-06-01: fixed 4 pre-existing TypeScript compilation errors in apps/web: (1) /api/referrals/route.ts now looks up user by ID to get referralCode instead of reading from session token; (2) added missing `referredBy: null` to 2 stripe webhook test fixtures; (3) fixed `useRef()` missing initial value in signin/page.tsx; (4) fixed possible-undefined `params.minConfidence` access in signal-worker.ts. `npx tsc --noEmit` now passes cleanly. Verified with `npm run build` (320 pages) and `npm test -- --runInBand` (99 passed, 3 skipped, 0 failed)."
+  - "2026-06-03: fixed 37 Jest test suite failures caused by duplicate `@tradeclaw/signals` package resolution from `.claude/worktrees/` directories. Added `/.claude/worktrees/` to `modulePathIgnorePatterns` in `jest.config.js`. Verified with `npm run build` (330 pages) and `npm test -- --runInBand` (101 passed, 3 skipped, 0 failed)."
 
 
   # ── Phase 13: Distribution + Developer Ecosystem ──
@@ -2427,7 +2556,7 @@ next_actions:
       Implements ROADMAP 1.6: upgraded MTF confluence from 3 to 4 timeframes.
       Swing set changed from H1/H4/D1 to M15/H1/H4/D1.
       Scalp set changed from M5/M15/H1 to M5/M15/H1/H4.
-      Confluence bonus logic updated: 4/4 aligned → +15, 3/4 → +10, 2/4 → +5,
+      Confluence bonus logic updated: 2026-05-31T14:00:28+08:00
       2/2 deadlock → -20 conflicted, mixed directions → -20 conflicted.
       Updated API routes (`/api/signals/multi-tf`, `/api/mtf`), alert threshold
       (`multi-tf-alert.ts`), OpenAPI docs, and `/multi-timeframe` UI labels.
@@ -2594,6 +2723,7 @@ next_actions:
       code internally). Verified with `npm run build` (317 pages) and
       `npm test -- --runInBand` (98 passed, 3 skipped, 0 failed).
 
+  - "2026-05-31: fixed scripts/resolve-signal-outcomes.sh cwd bug. The cron script previously cd'd to the project root, so resolveRealOutcomes() read/wrote root/data/signal-history.json (which does not exist) instead of apps/web/data/signal-history.json. Updated the script to cd into apps/web/ before invoking the resolver, matching how Next.js workspace scripts set process.cwd(). Verified by running the script directly: resolved 2 additional pending signals (562/564 now have 24h outcomes). Verified with npm run build (320 pages) and npm test -- --runInBand (99 passed, 3 skipped)."
   - "2026-05-25: fixed cron expired fallback consistency — added `target: 'expired'` to the force-expire paths in `apps/web/app/api/cron/signals/route.ts` so cron-resolved outcomes match `resolveFromCandles` output exactly. Backfilled 239 stale unresolved signals by running `resolveRealOutcomes()` from the correct `apps/web/` working directory; outcome file now shows 543/546 fully resolved, 0 old pending. Verified with `npm run build` (317 pages) and `npm test -- --runInBand` (98 passed, 3 skipped, 0 failed)."
   - "2026-05-26: TC-197 — Elite tier pricing page shipped. Elite checkout is now live alongside Pro."
   - "2026-05-27: Added trial-charge reassurance line to /welcome page ('Your card has been charged $0. First charge in 7 days.') for verified Stripe checkouts, addressing the journey-audit #6 webhook-race anxiety gap. Verified with `npm run build` (317 pages) and `npm test -- --runInBand` (98 passed, 3 skipped, 0 failed)."
@@ -2669,6 +2799,20 @@ next_actions:
       Added both routes to sitemap.ts. Verified with `npm run build` (319 pages) and
       `npm test -- --runInBand` (99 passed, 3 skipped, 0 failed).
 
+  - id: TC-206
+    title: "Elite tier billing fix — remove lingering FREE_PLAN/ELITE_PLAN refs + sync symbol counts"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Replaced hardcoded FREE_PLAN and ELITE_PLAN constants in
+      apps/web/app/dashboard/billing/page.tsx with a dynamic getPlanInfo()
+      helper sourced from TIER_DEFINITIONS. This ensures the billing page
+      displays consistent pricing/tagline/copy for Free, Pro, and Elite tiers
+      without duplicating tier metadata. Synced symbol-count language in the
+      Free plan description to match the live 6-symbol limit.
+      Verified with `npm run build` and `npm test -- --runInBand`
+      (99 passed, 3 skipped, 0 failed).
+
   - id: TC-207
     title: "Fix UpgradeModal a11y + conversion copy — dialog semantics, Escape, focus trap, contrast, em-dash artifact"
     status: done
@@ -2681,3 +2825,337 @@ next_actions:
       from text-zinc-600 to text-zinc-400 for WCAG-AA contrast on #0a0a0a.
       Verified with `npm run build` and `npm test -- --runInBand`
       (99 passed, 3 skipped, 0 failed).
+
+  - id: TC-208
+    title: "Referral dashboard discoverability — link /referrals from navbar and billing page"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Implements ROADMAP 4.3 discoverability layer. Added /referrals to the
+      desktop navbar Community dropdown (Users icon) and to the mobile nav.
+      Added a 'View Dashboard →' link inside the billing page ReferralCard
+      so users can jump from their code copy-box to the full affiliate stats
+      page. Verified with `npm run build` (319 pages) and
+      `npm test -- --runInBand` (99 passed, 3 skipped, 0 failed).
+
+  - id: TC-209
+    title: "SEO landing page — /free-signals targets 'free trading signals' keyword with live signal cards, comparison table, FAQ"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Implements ROADMAP 4.9 (SEO Content). Built /free-signals as a dedicated
+      SEO landing page with H1 targeting 'free trading signals', meta keywords
+      for forex/crypto/XAUUSD variants, JSON-LD structured data, canonical URL,
+      and OG tags. Server-side fetches live free-tier signals via
+      getTrackedSignals + applyTierSignalVisibility so the initial HTML contains
+      real signal data for crawlers. Client component renders live signal cards
+      with stats bar, Free vs Pro comparison table, 5-item FAQ accordion, and
+      multiple conversion CTAs (dashboard, pricing, track record). Added to
+      sitemap.ts with hourly priority 0.9. Verified with `npm run build`
+      (320 pages) and `npm test -- --runInBand` (99 passed, 3 skipped, 0 failed).
+
+  - id: TC-210
+    title: "Telegram premium channel discoverability — add Premium Signal Channel card to /telegram with tier-aware join flow"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Implements ROADMAP 3.5 discoverability layer. Added a "Premium Signal
+      Channel" card to apps/web/app/telegram/page.tsx that fetches
+      /api/telegram/channel-invite and renders tier-aware UI:
+      - Unauthenticated: sign-in CTA
+      - Free tier: upgrade pitch with Pro benefits list + pricing link
+      - Pro/Elite: join link with tier badge + support fallback
+      - Error states: graceful error message
+      Verified with `npm run build` (320 pages) and `npm test -- --runInBand`
+      (99 passed, 3 skipped, 0 failed).
+
+  - id: TC-211
+    title: "Publish R-multiples blog post — reframe signal quality around expectancy instead of win rate"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Published `apps/web/content/blog/r-multiples-explained.mdx` (was draft-2026-05-11.mdx).
+      The post explains why positive expectancy beats high win rate, how TradeClaw
+      computes R-multiples/expectancy/break-even win rate, and why outlier smoothing
+      matters for equity curves. Targets SEO keywords: "R-multiple trading",
+      "trade expectancy formula", "R-multiple vs win rate". This reframes the
+      current live track record (~40% WR, +1.41% avg win, -0.81% avg loss,
+      1.74 W/L ratio, +0.10R expectancy) as a positive-expectancy system rather
+      than a "low win rate" failure. Verified with `npm run build` (320 pages)
+      and `npm test -- --runInBand` (99 passed, 3 skipped, 0 failed).
+
+  - id: TC-212
+    title: "Reconcile DEFAULT_ATR_MULTIPLIER — sizing.ts now imports from @tradeclaw/signals"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Fixes docs/plans/2026-05-05-atr-stops-issue-53.md Gap 1. Removed the
+      local `DEFAULT_ATR_MULTIPLIER = 1.5` from `apps/web/lib/execution/sizing.ts`
+      and replaced it with an import from `@tradeclaw/signals`
+      (`DEFAULT_ATR_MULTIPLIER = 2.5`). This eliminates the ~1.67× dollar-risk
+      mismatch in paper-trade position sizing where signals were emitted with a
+      2.5× ATR stop but sized as if the stop were 1.5× ATR. Verified with
+      `npm run build` (320 pages) and `npm test -- --runInBand`
+      (99 passed, 3 skipped, 0 failed).
+
+  - id: TC-213
+    title: "Update ROADMAP.md to reflect June 2026 reality — stale priorities corrected"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Updated docs/ROADMAP.md from stale April 2026 snapshot to current June 2026 state.
+      Marked Phase 1 (Signal Credibility), Phase 2 (TV Webhook Bridge), and most of
+      Phase 3 (Monetization) as shipped. Corrected the "What's broken / missing" list
+      to reflect live outcome tracking (564/573 resolved), rolling win rates, premium
+      paywall gating, and referral revenue tracking. New immediate next actions:
+      signal-engine quality pass (push WR toward 50%+), TradingView profile integration,
+      mobile app MVP, and multi-provider marketplace scaffold. No code changes.
+      Verified with `npm run build` (320 pages) and `npm test -- --runInBand`
+      (99 passed, 3 skipped, 0 failed).
+
+  - id: TC-214
+    title: "Signal engine quality pass — require bearish MACD H1 for TV screener SELL signals"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Added a MACD bearish confirmation hard filter to `calculate_confluence()` in
+      `scripts/scanner-engine.py`. Historical SQLite data showed TV screener SELL
+      signals at 27.3% win rate (15/55) vs BUY signals at 52.1% (61/117). The new
+      filter requires `MACD.macd|60 < MACD.signal|60` (negative histogram) before
+      any SELL confluence signal is emitted. This tightens the weakest signal path
+      without affecting BUY signals or the Zaky strategy. Python syntax verified.
+      `npm run build` (320 pages) and `npm test -- --runInBand` (99 passed, 3 skipped)
+      both pass. Committed 3b68b6a6.
+
+  - id: TC-215
+    title: "Signal engine quality pass — require bullish MACD H1 for TV screener BUY signals"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Added a symmetric MACD bullish confirmation hard filter to `calculate_confluence()`
+      in `scripts/scanner-engine.py`. The existing SELL filter (TC-214) required a
+      negative MACD histogram; this change requires a positive MACD histogram
+      (`MACD.macd|60 > MACD.signal|60`) for BUY confluence signals. This eliminates
+      BUY signals where bullish price action is not backed by positive momentum,
+      closing the remaining unvalidated direction in the confluence engine.
+      Python syntax verified. `npm run build` (320 pages) and `npm test -- --runInBand`
+      (99 passed, 3 skipped, 0 failed) both pass.
+
+  - id: TC-216
+    title: "TradingView profile integration — export verified track record as copy-pasteable TradingView post"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Implements ROADMAP 4.4 (TradingView Profile Integration). Since TradingView has
+      no public API for publishing ideas to profiles, created `/tradingview-export` page
+      that fetches live stats from `/api/proof` and formats them as a TradingView-compatible
+      text post with copy-to-clipboard. Includes SEO metadata, OG image reuse from
+      `/api/og/track-record`, stat preview pills, and footer links to `/track-record`,
+      `/proof`, and `/vs-tradingview`. Added to sitemap.ts. Verified with `npm run build`
+      (321 pages) and `npm test -- --runInBand` (99 passed, 3 skipped, 0 failed).
+
+  - id: TC-217
+    title: "Expo push notification system — token registration + backend sender for premium signal alerts"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Implements ROADMAP 4.7 Mobile App MVP (Expo) — complete push notification loop.
+      Token registration: `apps/web/lib/expo-push-tokens.ts` (file-based JSON CRUD, seed data,
+      getAllEnabled/getStats). `apps/web/app/api/notifications/expo-token/route.ts`
+      (POST register, DELETE unregister, GET stats, CORS *, token validation).
+      Mobile app: `apps/mobile/app/_layout.tsx` requests push permissions on mount,
+      generates Expo push token, and POSTs it to backend. Notification listeners for
+      foreground receives and tap responses. `apps/mobile/app/(tabs)/settings.tsx`
+      shows real permission status and toggle.
+      Backend sender: `apps/web/lib/expo-push-sender.ts` (Expo HTTP API wrapper,
+      batch sending, token filtering by pair/confidence/direction).
+      `apps/web/app/api/cron/push-signals/route.ts` (CRON_SECRET auth, fetches
+      high-confidence real signals, dispatches pushes to matching tokens).
+      Unit tests: 18 passed across sender + route. Verified with `npm run build`
+      (322 pages) and `npm test -- --runInBand` (101 passed, 3 skipped, 0 failed).
+      Committed in 1b06eb42.
+
+  - id: TC-218
+    title: "GitHub Actions cron workflow for Expo push signals — trigger /api/cron/push-signals every 15 min"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Created `.github/workflows/push-signals.yml` that POSTs to
+      `https://tradeclaw.win/api/cron/push-signals` every 15 minutes with
+      `CRON_SECRET` auth. Concurrency group prevents overlapping runs.
+      Verified with `npm run build` (322 pages).
+      Committed in 1b06eb42.
+
+  - id: TC-219
+    title: "Signal engine quality pass — add MACD momentum confirmation to Zaky strategy"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Added MACD H1/H4 confirmation to `zaky_strategy_signal()` in
+      `scripts/scanner-engine.py`, mirroring the proven win-rate lift from
+      TC-214/215 (confluence MACD filters raised BUY win rate from 52.1% and
+      eliminated the 27.3% SELL path). The Zaky strategy now requires
+      `macd > signal` for BUY and `macd < signal` for SELL on the matching
+      timeframe (H1 or H4). This closes the gap where the custom strategy
+      emitted signals without momentum backing while the confluence engine
+      already gated on MACD. Verified with `python3 -m py_compile`,
+      `npm run build` (329 pages), and `npm test -- --runInBand`
+      (101 passed, 3 skipped, 0 failed).
+
+  - id: TC-220
+    title: "Signal engine quality pass — blacklist XAUUSD_SELL (25% historical win rate)"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Added "XAUUSD_SELL" to `BLACKLISTED_COMBOS` in `scripts/scanner-engine.py`.
+      SQLite track-record audit shows XAUUSD_SELL at 25.0% win rate (6 wins,
+      18 losses, 24 total) — the worst non-blacklisted symbol+direction combo.
+      This is the last sub-30% SELL pair not already on the blacklist.
+      Updated the blacklist comment from "<20%" to "<=25%" to reflect the
+      actual empirical threshold. Verified with `python3 -m py_compile`,
+      `npm run build` (329 pages), and `npm test -- --runInBand`
+      (101 passed, 3 skipped, 0 failed). Committed 6101ff2b.
+
+  - id: TC-221
+    title: "Multi-provider signal marketplace scaffold — database + API + minimal UI"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Implements ROADMAP immediate next action #4 (multi-provider marketplace scaffold).
+      Added migration 045_signal_providers.sql (slug, name, bio, website, verified).
+      Created lib/marketplace-providers.ts with getProviders/getProviderBySlug helpers.
+      Added GET /api/marketplace/providers endpoint returning JSON provider list.
+      Built /marketplace/providers server page (force-dynamic) with empty-state UX,
+      verified badge support, and responsive grid. Added to sitemap.ts.
+      Verified with `npm run build` (330 pages) and `npm test -- --runInBand`
+      (101 passed, 3 skipped, 0 failed).
+      Committed in 1b06eb42.
+
+  - id: TC-222
+    title: "Port Python scanner BLACKLISTED_COMBOS to Next.js signal generator"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Added `BLACKLISTED_COMBOS` to `apps/web/app/lib/signal-generator.ts` to match
+      the proven Python scanner blacklist (SOLUSD_SELL, USDJPY_BUY, XRPUSD_SELL,
+      BTCUSD_SELL, EURUSD_SELL, GBPUSD_SELL, ETHUSD_SELL, BNBUSD_SELL, XAUUSD_SELL).
+      When the API falls back to the Next.js TA engine (Python scanner coverage < 8
+      symbols), these <=25% win-rate combos are now suppressed instead of leaking
+      through to users. Added focused Jest test verifying XAUUSD_SELL is dropped
+      while XAUUSD_BUY remains allowed. Verified with `npm run build` (330 pages)
+      and `npm test -- --runInBand` (101 passed, 3 skipped, 0 failed). Committed 6101ff2b.
+
+  - id: TC-223
+    title: "Signal engine quality pass — require MACD confirmation in Next.js passesDirectionGate (align with Python scanner)"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Tightened `passesDirectionGate` in `apps/web/app/lib/signal-generator.ts` so
+      BUY requires `macd.current.histogram > 0` and SELL requires
+      `macd.current.histogram < 0`, removing the EMA-slope fallback that previously
+      allowed signals when only one of the two was confirming. This closes the
+      fallback-path gap where the Next.js TA engine emitted BUY signals without
+      MACD momentum backing while the Python scanner already gated on MACD
+      unconditionally (TC-214/215). Historical track record shows BUY signals at
+      ~28% win rate (last 50 resolved) vs SELL at ~52%, so tightening BUY entry
+      criteria is the highest-ROI filter adjustment. Verified with `npm run build`
+      (330 pages) and `npm test -- --runInBand` (101 passed, 3 skipped, 0 failed).
+
+  - id: TC-224
+    title: "Signal engine quality pass — blacklist sub-25% BUY paths from empirical 586-signal audit"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Added BNBUSD_BUY, SOLUSD_BUY, and DOGEUSD_BUY to BLACKLISTED_COMBOS in both
+      scripts/scanner-engine.py (BNBUSDT_BUY, SOLUSDT_BUY, DOGEUSDT_BUY) and
+      apps/web/app/lib/signal-generator.ts (BNBUSD_BUY, SOLUSD_BUY, DOGEUSD_BUY).
+      Empirical audit of 586 resolved signals in apps/web/data/signal-history.json
+      showed these as the worst-performing symbol+direction combos not already
+      suppressed: BNBUSD_BUY 9.8% (51 samples), SOLUSD_BUY 12.5% (40 samples),
+      DOGEUSD_BUY 22.9% (35 samples). These crypto BUY paths were dragging the
+      overall BUY win rate down to 26.6% while forex/metal BUY paths performed
+      significantly better. Added focused Jest test verifying all three are dropped
+      while SELL counterparts remain unblocked. Verified with `python3 -m py_compile`,
+      `npm run build` (330 pages), and `npm test -- --runInBand` (101 passed,
+      3 skipped, 0 failed). Committed 6101ff2b.
+
+  - id: TC-225
+    title: "Sync Python scanner blacklist with Next.js fallback — add ETHUSDT_BUY and BTCUSDT_BUY"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Added ETHUSDT_BUY and BTCUSDT_BUY to scripts/scanner-engine.py BLACKLISTED_COMBOS
+      to match the existing Next.js fallback blacklist (ETHUSD_BUY, BTCUSD_BUY) added
+      in a prior run. Updated scripts/signal-outcome-checker.py to match the full
+      current blacklist (added XAUUSD_SELL, BNBUSDT_BUY, SOLUSDT_BUY, DOGEUSDT_BUY,
+      ETHUSDT_BUY, BTCUSDT_BUY). Fixed a pre-existing test failure in
+      apps/web/app/lib/__tests__/signal-generator.test.ts where XAUUSD was used for
+      the 'emits BUY signal' assertion but metal market hours (Mon-Fri 08:00-21:00 UTC)
+      closed the signal at the test fixture timestamp (Friday 23:00 UTC); changed to
+      EURUSD which is open under FOREX hours. Verified with `python3 -m py_compile`,
+      `npm run build` (329 pages), and `npm test -- --runInBand` (101 passed,
+      3 skipped, 0 failed). Committed 6101ff2b.
+
+  - id: TC-226
+    title: "TradingView export discoverability — wire /tradingview-export into desktop and mobile navigation"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      The /tradingview-export page (built in a prior cycle) formats verified track-record
+      stats from /api/proof into a TradingView-friendly post with copy-to-clipboard.
+      Added the route to the desktop navbar Community group and to the mobile-nav link
+      list so users can actually discover it. Verified with `npm run build` (330 pages)
+      and `npm test -- --runInBand` (101 passed, 3 skipped, 0 failed).
+
+  - id: TC-227
+    title: "Landing page recent win rate proof tile — surface last-100-signal win rate on ProofHero"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Adds a "Recent win rate" stat tile to the landing page ProofHero component.
+      The value is computed from the last 100 resolved real signals in PostgreSQL
+      (hit=true OR expired with positive pnl), requiring a minimum of 20 resolved
+      signals before surfacing. This gives prospects immediate credibility proof
+      on the primary conversion surface. The grid upgraded from md:grid-cols-4 to
+      md:grid-cols-5 to accommodate the new tile without removing existing stats.
+      Verified with `npm run build` (330 pages) and `npm test -- --runInBand`
+      (101 passed, 3 skipped, 0 failed).
+      Committed in 1b06eb42.
+
+  - id: TC-228
+    title: "Mobile app EAS build readiness — configure app.json for distribution, fix push token projectId, add README"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Updated apps/mobile/app.json with `extra.eas.projectId` and `owner` fields
+      required for EAS Build and push notifications. Removed hardcoded `projectId`
+      from apps/mobile/app/_layout.tsx so `expo-notifications` auto-detects it
+      from the manifest (follows Expo best practice). Added apps/mobile/README.md
+      with EAS build profiles, local development, environment variables, and store
+      submission instructions. TypeScript compiles clean (`npx tsc --noEmit` passes).
+      Web build verified passing (330/330 pages). 2026-06-08.
+
+  - id: TC-229
+    title: "UX conversion polish — honest canonical stats, viral-loop domain fix, funnel/mobile blockers, anonymous-load headroom"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Eleven surgical commits on branch ux-polish from a full-journey UX audit
+      (two parallel audit agents + adversarial verification, plan doc
+      docs/plans/2026-06-11-ux-conversion-polish.md). Highlights: pricing bar
+      and landing ProofHero switched to the canonical isCountedResolved
+      denominator (gate_blocked rows were poisoning marketing stats — landing
+      showed -195.67% cumulative P&L and 26% recent win rate to every visitor;
+      true all-time record is ~38.8% WR / +86% PnL with break-even context now
+      shown); all share/OG/hreflang/email URLs moved off the stale
+      tradeclaw.com mirror to tradeclaw.win; Getting Started panel no longer
+      covers the mobile sign-in form (auth-gated, pill on small screens);
+      duplicate footers removed from 12 pages; screener rescue buttons rescan
+      and server errors stop blaming user filters; /today got nav, freshness
+      stamp, skeleton, and an alive empty state; /free-signals revalidates
+      every 300s; Writer A side-effects throttled in-process and anonymous
+      /api/signals + /api/screener are CDN-cacheable. NOTE: TC-227's
+      "Recent win rate" tile was superseded — it rendered 26% (gate-poisoned
+      recent window) on the hero; replaced by all-time win rate vs break-even.
+      Verified: npm run build 330/330 pages, jest 1098 passed / 0 failed.
+      2026-06-11.

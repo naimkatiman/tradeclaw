@@ -227,6 +227,46 @@ describe('PaperBroker', () => {
     });
   });
 
+  describe('short equity accounting (H-02)', () => {
+    it('does not double-count a short in account equity', async () => {
+      // Open SELL 5 @ 200 on a 100k account — zero P&L at entry.
+      await broker.placeOrder({
+        symbol: 'TSLA',
+        direction: 'SELL',
+        quantity: 5,
+        orderType: 'limit',
+        limitPrice: 200,
+      });
+
+      const atEntry = await broker.getAccount();
+      expect(atEntry.equity).toBe(100_000);
+
+      // Price drops to 180 — short gains 5 * (200-180) = 100.
+      broker.setCurrentPrice('TSLA', 180);
+      const afterMove = await broker.getAccount();
+      expect(afterMove.equity).toBe(100_100);
+    });
+  });
+
+  describe('fractional orders (M-02)', () => {
+    it('fills a sub-1-unit order at the requested fractional quantity', async () => {
+      const result = await broker.placeOrder({
+        symbol: 'BTCUSD',
+        direction: 'BUY',
+        quantity: 0.5,
+        orderType: 'limit',
+        limitPrice: 1000,
+      });
+
+      expect(result.status).toBe('filled');
+      expect(result.filledQuantity).toBe(0.5);
+
+      const positions = await broker.getPositions();
+      expect(positions).toHaveLength(1);
+      expect(positions[0].quantity).toBe(0.5);
+    });
+  });
+
   describe('closePosition', () => {
     it('should remove a position by symbol', async () => {
       await broker.placeOrder({

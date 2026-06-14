@@ -1,5 +1,7 @@
 # Awesome Lists Submission Checklist
 
+> SUPERSEDED (2026-06-02): verified live status is in `docs/awesome-lists/SUBMISSION_STATUS.md`. Use that file as the source of truth.
+
 Step-by-step guide for submitting TradeClaw to each awesome-list. Complete in order — each list has different requirements and review timelines.
 
 ---

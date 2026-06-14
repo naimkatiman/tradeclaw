@@ -13,6 +13,7 @@ import { getSignals } from '../app/lib/signals';
 import { safeProfileId } from '../app/lib/signal-generator';
 import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
 import { redis, isRedisAvailable, ensureRedis, redisKey } from './redis';
+import { observeSignalGenDuration } from './gen-latency';
 
 const CACHE_KEY = redisKey('signals:latest');
 const CACHE_TTL_SECONDS = 6 * 60; // 6 minutes (cron runs every 5)
@@ -29,9 +30,14 @@ export async function precomputeSignals(): Promise<void> {
   const preset = getActivePreset();
   const profileId = safeProfileId(preset.id);
 
+  const genStartMs = Date.now();
   try {
-    // Generate fresh signals (bypass cache to avoid reading stale data)
-    const { signals, syntheticSymbols } = await getSignals({}, { skipCache: true });
+    // Generate fresh signals (bypass cache to avoid reading stale data).
+    // Pass profileId so the generated payload matches the id it is cached under
+    // (readSignalsCache rejects a mismatch); today every preset resolves to
+    // 'classic', so this is behaviour-preserving until a second profile exists.
+    const { signals, syntheticSymbols } = await getSignals({ profileId }, { skipCache: true });
+    observeSignalGenDuration((Date.now() - genStartMs) / 1000);
 
     const payload: CachedSignalsPayload = {
       signals,
@@ -100,8 +106,9 @@ export async function getSignalsCached(params: {
       const upper = params.direction.toUpperCase();
       signals = signals.filter((s) => s.direction === upper);
     }
-    if (params.minConfidence && params.minConfidence > 0) {
-      signals = signals.filter((s) => s.confidence >= params.minConfidence);
+    const minConfidence = params.minConfidence;
+    if (minConfidence != null && minConfidence > 0) {
+      signals = signals.filter((s) => s.confidence >= minConfidence);
     }
 
     return { signals, syntheticSymbols: cached.syntheticSymbols };

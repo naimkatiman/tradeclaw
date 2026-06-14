@@ -190,7 +190,7 @@ export function VsClient() {
   const pineDirection = ind ? derivePineDirection(ind.rsi, ind.macd.histogram) : 'NEUTRAL';
 
   const shareText = `TradeClaw gives you confluence signals with AI explanations — for free. TradingView gives you raw indicators for $60/mo.\n\nSee the live comparison:`;
-  const shareUrl = 'https://tradeclaw.com/vs-tradingview';
+  const shareUrl = 'https://tradeclaw.win/vs-tradingview';
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-20 md:pb-8">

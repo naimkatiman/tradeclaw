@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-06-03",
+  "_meta": {
+    "framework": "Satellite Strike Ch9 \u2014 core/satellite split. Aggressive strategies confined to the satellite sleeve (10-40% cap). Drawdown -> size-cut rules per profile; monthly review per Ch9.4.3.",
+    "core_strategy": "zaky_strategy (highest-conviction, healthy 61.5% local sample)",
+    "satellite_strategies": [
+      "tradingview_screener",
+      "hmm-top3 (on watch)",
+      "candidate setups (pending real data)"
+    ],
+    "provenance": "Win rates referenced are LOCAL scanner/dev samples, not production-verified."
+  },
+  "profiles": [
+    {
+      "profile": "Conservative",
+      "core_pct": 90,
+      "satellite_pct": 10,
+      "max_satellite_pct": 10,
+      "per_trade_risk_pct": 0.25,
+      "drawdown_rules": [
+        "Drawdown 3% from high-water mark -> cut satellite per-trade size by 50%.",
+        "Drawdown 5% -> pause the satellite sleeve entirely (no new aggressive entries; manage existing to exit).",
+        "Drawdown 8% -> cut core (zaky_strategy) per-trade size by 50%.",
+        "Drawdown 10% -> pause all new entries (core and satellite); flat-or-manage only until equity recovers above the 5% drawdown line."
+      ],
+      "allowed_satellite_strategies": [
+        "tradingview_screener"
+      ]
+    },
+    {
+      "profile": "Moderate",
+      "core_pct": 75,
+      "satellite_pct": 25,
+      "max_satellite_pct": 25,
+      "per_trade_risk_pct": 0.5,
+      "drawdown_rules": [
+        "Drawdown 5% from high-water mark -> cut satellite per-trade size by 50%.",
+        "Drawdown 8% -> pause the satellite sleeve entirely.",
+        "Drawdown 12% -> cut core (zaky_strategy) per-trade size by 50%.",
+        "Drawdown 15% -> pause all new entries; manage-to-exit only until equity recovers above the 8% drawdown line."
+      ],
+      "allowed_satellite_strategies": [
+        "tradingview_screener",
+        "scalp variants"
+      ]
+    },
+    {
+      "profile": "Aggressive",
+      "core_pct": 60,
+      "satellite_pct": 40,
+      "max_satellite_pct": 40,
+      "per_trade_risk_pct": 1,
+      "drawdown_rules": [
+        "Drawdown 7% from high-water mark -> cut satellite per-trade size by 50% and drop the decayed hmm-top3 to half its already-reduced size.",
+        "Drawdown 12% -> pause the satellite sleeve entirely (including hmm-top3).",
+        "Drawdown 18% -> cut core (zaky_strategy) per-trade size by 50%.",
+        "Drawdown 22% -> pause all new entries; manage-to-exit only until equity recovers above the 12% drawdown line."
+      ],
+      "allowed_satellite_strategies": [
+        "tradingview_screener",
+        "scalp variants",
+        "hmm-top3 (decayed, reduced size)"
+      ]
+    }
+  ],
+  "monthly_review_checklist": [
+    "Re-run scripts/compute-strategy-decay.py and re-check every strategy's edge-decay flag: DECAYED when rolling-90d win rate < 25.4% (0.5x the 50.8% baseline, Ch7); also note any strategy in 'watch' (below 50.8% baseline but above 25.4%).",
+    "Confirm the core sleeve still holds only the highest-conviction healthy strategy (zaky_strategy, last measured 61.5% local, healthy). If its rolling-90d drops below baseline, downgrade it from core and leave the core sleeve empty rather than promote a satellite strategy.",
+    "Rebalance both sleeves back to the profile's target core/satellite split; trim whichever sleeve drifted above target.",
+    "Demote any strategy that crossed into DECAYED this month out of any larger allocation and into reduced-size satellite-only, or remove it entirely if realized RR is negative (hmm-top3 reference: mean -0.12 pct, local).",
+    "Verify the satellite sleeve cap is within the Ch9 band (10-40%) and matches the profile target (Conservative ~10%, Moderate ~25%, Aggressive ~40%).",
+    "Verify aggressive strategies (tradingview_screener bulk scan, scalp variants, decayed hmm-top3) remain satellite-only and never leaked into the core sleeve.",
+    "Confirm slippage assumption is still flagged 'pending real data' until execution fills are recorded; do not assume zero-cost fills.",
+    "Log the discipline review: date, metrics snapshot used (local scanner/dev sample, not production), every demotion/promotion, the resulting split, and confirmation the satellite cap held."
+  ]
+}

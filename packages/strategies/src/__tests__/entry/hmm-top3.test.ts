@@ -1,7 +1,15 @@
 import candles from '../fixtures/candles-100.json';
 import { hmmTop3Entry } from '../../entry/hmm-top3';
+import { setModel, getDefaultModel } from '@tradeclaw/signals';
 
 describe('hmm-top3 entry module', () => {
+  // Pin the built-in default model (BTCUSD → crypto) so loadModel never walks
+  // the disk: a stale 5-label model JSON in a parent checkout would emit the
+  // loadModel fallback console.warn into the test output.
+  beforeAll(() => {
+    setModel('crypto', getDefaultModel('crypto'));
+  });
+
   it('has id "hmm-top3"', () => {
     expect(hmmTop3Entry.id).toBe('hmm-top3');
   });

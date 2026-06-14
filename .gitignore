@@ -9,6 +9,9 @@ node_modules/
 # Worktrees
 .worktrees/
 
+# Local Claude Code agent state (worktrees, settings, projects) — never track
+.claude/
+
 # Generated data
 scripts/signals.db
 scripts/.signal-engine-last-success
@@ -23,3 +26,4 @@ apps/web/data/performance-metrics.json
 # Python bytecode cache
 __pycache__/
 *.pyc
+apps/web/data/*.db

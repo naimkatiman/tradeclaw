@@ -50,12 +50,19 @@ test.describe('Landing Page', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // Filter out expected dev-mode warnings and hydration mismatches (A/B test variants)
-    const real = errors.filter(
-      (e) =>
+    const real = errors.filter((e) => {
+      const lower = e.toLowerCase();
+      return (
         !e.includes('Warning:') &&
         !e.includes('DevTools') &&
-        !e.includes('Hydration'),
-    );
+        !e.includes('Hydration') &&
+        // Benign CSP report-only diagnostics (frame-ancestors ignored / no
+        // report-to). Enforced CSP violations are not report-only, so they
+        // still fail.
+        !lower.includes('report-only') &&
+        !lower.includes('frame-ancestors')
+      );
+    });
     expect(real).toHaveLength(0);
   });
 });

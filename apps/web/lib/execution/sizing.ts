@@ -11,12 +11,12 @@
  */
 
 import { ATR } from 'trading-signals';
+import { DEFAULT_ATR_MULTIPLIER } from '@tradeclaw/signals';
 import type { BinanceKline, OrderSide } from './binance-futures';
 
 // ─── ATR ─────────────────────────────────────────────────────────────────
 
 export const DEFAULT_ATR_PERIOD = 14;
-export const DEFAULT_ATR_MULTIPLIER = 1.5;
 export const DEFAULT_TP_R_MULTIPLE = 1.5;
 
 /**

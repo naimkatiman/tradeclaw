@@ -20,23 +20,47 @@ export interface RateDecision {
   remaining: number;
 }
 
-const memoryStore: Map<string, number[]> = new Map();
+interface MemEntry {
+  hits: number[];
+  /** Time after which every recorded hit is expired; used to GC idle keys. */
+  staleAfter: number;
+}
+
+const memoryStore: Map<string, MemEntry> = new Map();
+const SWEEP_INTERVAL_MS = 60_000;
+let lastSweep = 0;
+
+/**
+ * Drop entries whose entire window has elapsed. Without this, every distinct key
+ * (e.g. per-IP per-route) leaves a permanent Map entry during a Redis outage and
+ * the process leaks memory until restart.
+ */
+function sweepExpired(now: number): void {
+  for (const [k, e] of memoryStore) {
+    if (e.staleAfter <= now) memoryStore.delete(k);
+  }
+}
 
 function checkInMemory(key: string, window: RateWindow, now: number): RateDecision {
+  if (now - lastSweep > SWEEP_INTERVAL_MS) {
+    sweepExpired(now);
+    lastSweep = now;
+  }
+
   const cutoff = now - window.windowMs;
-  const hits = memoryStore.get(key) ?? [];
+  const hits = memoryStore.get(key)?.hits ?? [];
   const fresh: number[] = [];
   for (const t of hits) {
     if (t > cutoff) fresh.push(t);
   }
 
   if (fresh.length >= window.max) {
-    memoryStore.set(key, fresh);
+    memoryStore.set(key, { hits: fresh, staleAfter: fresh[fresh.length - 1] + window.windowMs });
     return { allowed: false, used: fresh.length, remaining: 0 };
   }
 
   fresh.push(now);
-  memoryStore.set(key, fresh);
+  memoryStore.set(key, { hits: fresh, staleAfter: now + window.windowMs });
   return {
     allowed: true,
     used: fresh.length,
@@ -83,6 +107,12 @@ export async function check(
   window: RateWindow,
   now: number = Date.now(),
 ): Promise<RateDecision> {
+  // E2E-only bypass: never set in production. Gated on a dedicated var so the
+  // real limiter still runs everywhere else (incl. unit tests + Railway prod).
+  if (process.env.E2E_DISABLE_RATE_LIMIT === '1') {
+    return { allowed: true, used: 0, remaining: window.max };
+  }
+
   try {
     await ensureRedis();
     if (isRedisAvailable() && redis) {
@@ -98,4 +128,5 @@ export async function check(
 /** Test-only: clears the in-memory store. */
 export function __resetForTest(): void {
   memoryStore.clear();
+  lastSweep = 0;
 }

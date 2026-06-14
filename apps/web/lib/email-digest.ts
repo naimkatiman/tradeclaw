@@ -282,7 +282,7 @@ export async function generateEmailDigest(options: EmailDigestOptions = {}): Pro
       <table align="center" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
         <tr>
           <td style="padding:0 6px;">
-            <a href="https://tradeclaw.com/dashboard" style="display:inline-block;background-color:#10b981;color:#ffffff;font-size:14px;font-weight:700;padding:12px 24px;border-radius:8px;text-decoration:none;">View Dashboard</a>
+            <a href="https://tradeclaw.win/dashboard" style="display:inline-block;background-color:#10b981;color:#ffffff;font-size:14px;font-weight:700;padding:12px 24px;border-radius:8px;text-decoration:none;">View Dashboard</a>
           </td>
           <td style="padding:0 6px;">
             <a href="https://github.com/naimkatiman/tradeclaw" style="display:inline-block;background-color:#1f2937;color:#ffffff;font-size:14px;font-weight:700;padding:12px 24px;border-radius:8px;text-decoration:none;border:1px solid #374151;">&#11088; Star on GitHub</a>
@@ -297,7 +297,7 @@ export async function generateEmailDigest(options: EmailDigestOptions = {}): Pro
     <td style="padding:16px 24px 32px 24px;text-align:center;">
       <p style="margin:0 0 8px 0;font-size:13px;color:#6b7280;">Self-host your own AI trading signals</p>
       <p style="margin:0;font-size:11px;color:#4b5563;">
-        <a href="https://tradeclaw.com" style="color:#6b7280;text-decoration:underline;">TradeClaw</a>
+        <a href="https://tradeclaw.win" style="color:#6b7280;text-decoration:underline;">TradeClaw</a>
         &nbsp;&middot;&nbsp;
         <a href="https://github.com/naimkatiman/tradeclaw" style="color:#6b7280;text-decoration:underline;">GitHub</a>
         &nbsp;&middot;&nbsp;

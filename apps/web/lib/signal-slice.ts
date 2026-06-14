@@ -2,7 +2,7 @@ import { getCachedHistory } from './signal-history-cache';
 import { isCountedResolved, type SignalHistoryRecord } from './signal-history';
 import { TIER_SYMBOLS, TIER_HISTORY_DAYS } from './tier';
 
-export type SignalScope = 'pro' | 'free';
+export type SignalScope = 'pro' | 'free' | 'broadcast';
 
 const PERIOD_DAYS: Record<string, number> = {
   '7d': 7,
@@ -28,7 +28,9 @@ export interface ResolvedSlice {
 }
 
 export function parseScope(raw: string | null | undefined): SignalScope {
-  return raw === 'free' ? 'free' : 'pro';
+  if (raw === 'free') return 'free';
+  if (raw === 'broadcast') return 'broadcast';
+  return 'pro';
 }
 
 /**
@@ -57,6 +59,12 @@ export async function getResolvedSlice(opts: {
       const cutoff = now - days * 86_400_000;
       scopedRecords = scopedRecords.filter(r => r.timestamp >= cutoff);
     }
+  } else if (opts.scope === 'broadcast') {
+    // Pro-broadcast subset: rows whose gate decision (regime + winning-cells
+    // + risk pipeline) ran at emission AND approved. Strict === false — NULL
+    // (pre-048 rows, or pipeline-outage fallbacks where the gate never ran)
+    // is "decision not recorded" and must not be counted either way.
+    scopedRecords = scopedRecords.filter(r => r.broadcastBlocked === false);
   }
 
   const earliestTimestamp = scopedRecords.length > 0

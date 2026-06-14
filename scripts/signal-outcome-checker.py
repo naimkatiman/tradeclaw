@@ -29,6 +29,12 @@ OUTCOME_WINDOW_HOURS = 8
 BLACKLISTED_COMBOS = {
     "SOLUSDT_SELL", "USDJPY_BUY", "XRPUSDT_SELL", "BTCUSDT_SELL",
     "EURUSD_SELL", "GBPUSD_SELL", "ETHUSDT_SELL", "BNBUSDT_SELL",
+    "XAUUSD_SELL",
+    # Sub-25% BUY paths from 586-signal empirical audit (2026-06-02)
+    # NOTE: BNBUSDT_BUY, BTCUSDT_BUY, ETHUSDT_BUY un-blacklisted on 2026-06-03
+    # after MACD H1 confirmation filters raised their post-filter win rates
+    # to 70-76% (n=40-42). SOLUSDT_BUY remains blocked.
+    "SOLUSDT_BUY", "DOGEUSDT_BUY",
 }
 
 # Binance symbol mapping

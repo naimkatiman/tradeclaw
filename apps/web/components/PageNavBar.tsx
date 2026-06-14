@@ -11,6 +11,7 @@ import {
   BadgeCheck,
   NotebookPen,
   BarChart2,
+  BarChart3,
   Send,
   Wrench,
   Layers,
@@ -90,6 +91,7 @@ const MEMBER_MORE: DropdownGroup[] = [
     links: [
       { href: '/vote', label: 'Vote', icon: BarChart2 },
       { href: '/badges/readme', label: 'Badges', icon: BadgeCheck },
+      { href: '/tradingview-export', label: 'TradingView Export', icon: BarChart3 },
     ],
   },
 ];

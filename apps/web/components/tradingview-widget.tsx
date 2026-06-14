@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 interface TradingViewWidgetProps {
   symbol: string;
@@ -38,6 +38,26 @@ function resolveSymbol(symbol: string): string {
   return SYMBOL_MAP[symbol] ?? symbol;
 }
 
+const MOBILE_QUERY = '(max-width: 640px)';
+
+// SSR-safe matchMedia subscription. useSyncExternalStore avoids calling
+// setState inside an effect (react-hooks/set-state-in-effect) while keeping
+// the server snapshot stable (false) to prevent hydration mismatch.
+function subscribeMobile(callback: () => void): () => void {
+  if (typeof window === 'undefined' || !window.matchMedia) return () => {};
+  const mq = window.matchMedia(MOBILE_QUERY);
+  mq.addEventListener('change', callback);
+  return () => mq.removeEventListener('change', callback);
+}
+
+function getMobileSnapshot(): boolean {
+  return typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia(MOBILE_QUERY).matches;
+}
+
+function useIsMobile(): boolean {
+  return useSyncExternalStore(subscribeMobile, getMobileSnapshot, () => false);
+}
+
 export function TradingViewWidget({
   symbol,
   interval = '60',
@@ -47,6 +67,10 @@ export function TradingViewWidget({
 }: TradingViewWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Shorter chart on phones so it doesn't dominate the viewport (issue #37).
+  const effectiveHeight = isMobile ? Math.min(height, 240) : height;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -54,7 +78,7 @@ export function TradingViewWidget({
     container.innerHTML = '';
     const widgetDiv = document.createElement('div');
     widgetDiv.className = 'tradingview-widget-container__widget';
-    widgetDiv.style.height = `${height}px`;
+    widgetDiv.style.height = `${effectiveHeight}px`;
     widgetDiv.style.width = '100%';
     container.appendChild(widgetDiv);
 
@@ -66,7 +90,7 @@ export function TradingViewWidget({
     script.innerHTML = JSON.stringify({
       autosize: false,
       width: '100%',
-      height,
+      height: effectiveHeight,
       symbol: resolveSymbol(symbol),
       interval,
       timezone: 'Etc/UTC',
@@ -84,11 +108,11 @@ export function TradingViewWidget({
     return () => {
       container.innerHTML = '';
     };
-  }, [symbol, interval, theme, height, studies]);
+  }, [symbol, interval, theme, effectiveHeight, studies]);
 
   return (
-    <div className="tradingview-widget-container" style={{ height, width: '100%' }}>
-      <div ref={containerRef} style={{ height, width: '100%' }} />
+    <div className="tradingview-widget-container" style={{ height: effectiveHeight, width: '100%' }}>
+      <div ref={containerRef} style={{ height: effectiveHeight, width: '100%' }} />
       {!loaded && (
         <div className="absolute inset-0 flex items-center justify-center text-xs text-zinc-500">
           Loading chart…

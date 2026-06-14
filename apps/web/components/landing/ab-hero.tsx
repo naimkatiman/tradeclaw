@@ -73,6 +73,12 @@ function trackImpression(v: Variant) {
     const counts: Record<Variant, number> = raw ? JSON.parse(raw) : { a: 0, b: 0, c: 0 };
     counts[v] = (counts[v] || 0) + 1;
     localStorage.setItem("tc_ab_impressions", JSON.stringify(counts));
+    // Record when tracking first began on this browser so the /ab-stats
+    // dashboard can show an honest "since <date>" instead of an open-ended
+    // count. Only set once.
+    if (!localStorage.getItem("tc_ab_since")) {
+      localStorage.setItem("tc_ab_since", new Date().toISOString());
+    }
   } catch {}
 }
 

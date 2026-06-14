@@ -90,6 +90,7 @@ export interface OrderResponse {
   type: string;
   side: string;
   origQty: string;
+  executedQty: string;
   price: string;
   avgPrice: string;
   stopPrice: string;

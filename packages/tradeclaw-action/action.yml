@@ -44,14 +44,22 @@ runs:
     - name: Fetch TradeClaw Signal
       id: fetch
       shell: bash
+      # All inputs are passed via environment variables, never interpolated directly
+      # into the shell script, to prevent ${{ inputs.* }} expression injection.
+      env:
+        TC_BASE_URL: ${{ inputs.base_url }}
+        TC_PAIR: ${{ inputs.pair }}
+        TC_TIMEFRAME: ${{ inputs.timeframe }}
+        TC_DIRECTION: ${{ inputs.direction }}
+        TC_MIN_CONF: ${{ inputs.min_confidence }}
       run: |
-        RESPONSE=$(curl -sf "${{ inputs.base_url }}/api/v1/signals?pair=${{ inputs.pair }}&timeframe=${{ inputs.timeframe }}&limit=1" 2>/dev/null || echo "error")
+        RESPONSE=$(curl -sf "${TC_BASE_URL}/api/v1/signals?pair=${TC_PAIR}&timeframe=${TC_TIMEFRAME}&limit=1" 2>/dev/null || echo "error")
 
         if [ "$RESPONSE" = "error" ] || [ -z "$RESPONSE" ]; then
-          echo "signal_found=false" >> $GITHUB_OUTPUT
-          echo "signal_direction=" >> $GITHUB_OUTPUT
-          echo "signal_confidence=0" >> $GITHUB_OUTPUT
-          echo "signal_json={}" >> $GITHUB_OUTPUT
+          echo "signal_found=false" >> "$GITHUB_OUTPUT"
+          echo "signal_direction=" >> "$GITHUB_OUTPUT"
+          echo "signal_confidence=0" >> "$GITHUB_OUTPUT"
+          echo "signal_json={}" >> "$GITHUB_OUTPUT"
           echo "::warning::TradeClaw API unavailable"
           exit 0
         fi
@@ -59,10 +67,10 @@ runs:
         SIGNAL_COUNT=$(echo "$RESPONSE" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d.get('data',d) if isinstance(d,dict) else d))" 2>/dev/null || echo "0")
 
         if [ "$SIGNAL_COUNT" = "0" ]; then
-          echo "signal_found=false" >> $GITHUB_OUTPUT
-          echo "signal_direction=" >> $GITHUB_OUTPUT
-          echo "signal_confidence=0" >> $GITHUB_OUTPUT
-          echo "signal_json={}" >> $GITHUB_OUTPUT
+          echo "signal_found=false" >> "$GITHUB_OUTPUT"
+          echo "signal_direction=" >> "$GITHUB_OUTPUT"
+          echo "signal_confidence=0" >> "$GITHUB_OUTPUT"
+          echo "signal_json={}" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
@@ -71,27 +79,25 @@ runs:
         SIGNAL_JSON=$(echo "$RESPONSE" | python3 -c "import json,sys; d=json.load(sys.stdin); arr=d.get('data',d) if isinstance(d,dict) else d; print(json.dumps(arr[0]))" 2>/dev/null || echo "{}")
 
         # Filter by direction
-        FILTER="${{ inputs.direction }}"
-        if [ "$FILTER" != "ALL" ] && [ "$DIRECTION" != "$FILTER" ]; then
-          echo "signal_found=false" >> $GITHUB_OUTPUT
-          echo "signal_direction=$DIRECTION" >> $GITHUB_OUTPUT
-          echo "signal_confidence=$CONFIDENCE" >> $GITHUB_OUTPUT
-          echo "signal_json=$SIGNAL_JSON" >> $GITHUB_OUTPUT
+        if [ "$TC_DIRECTION" != "ALL" ] && [ "$DIRECTION" != "$TC_DIRECTION" ]; then
+          echo "signal_found=false" >> "$GITHUB_OUTPUT"
+          echo "signal_direction=$DIRECTION" >> "$GITHUB_OUTPUT"
+          echo "signal_confidence=$CONFIDENCE" >> "$GITHUB_OUTPUT"
+          echo "signal_json=$SIGNAL_JSON" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
         # Filter by confidence
-        MIN_CONF="${{ inputs.min_confidence }}"
-        if [ "$CONFIDENCE" -lt "$MIN_CONF" ] 2>/dev/null; then
-          echo "signal_found=false" >> $GITHUB_OUTPUT
-          echo "signal_direction=$DIRECTION" >> $GITHUB_OUTPUT
-          echo "signal_confidence=$CONFIDENCE" >> $GITHUB_OUTPUT
-          echo "signal_json=$SIGNAL_JSON" >> $GITHUB_OUTPUT
+        if [ "$CONFIDENCE" -lt "$TC_MIN_CONF" ] 2>/dev/null; then
+          echo "signal_found=false" >> "$GITHUB_OUTPUT"
+          echo "signal_direction=$DIRECTION" >> "$GITHUB_OUTPUT"
+          echo "signal_confidence=$CONFIDENCE" >> "$GITHUB_OUTPUT"
+          echo "signal_json=$SIGNAL_JSON" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
-        echo "signal_found=true" >> $GITHUB_OUTPUT
-        echo "signal_direction=$DIRECTION" >> $GITHUB_OUTPUT
-        echo "signal_confidence=$CONFIDENCE" >> $GITHUB_OUTPUT
-        echo "signal_json=$SIGNAL_JSON" >> $GITHUB_OUTPUT
-        echo "Signal found: ${{ inputs.pair }} $DIRECTION @ ${CONFIDENCE}% confidence"
+        echo "signal_found=true" >> "$GITHUB_OUTPUT"
+        echo "signal_direction=$DIRECTION" >> "$GITHUB_OUTPUT"
+        echo "signal_confidence=$CONFIDENCE" >> "$GITHUB_OUTPUT"
+        echo "signal_json=$SIGNAL_JSON" >> "$GITHUB_OUTPUT"
+        echo "Signal found: ${TC_PAIR} ${DIRECTION} @ ${CONFIDENCE}% confidence"

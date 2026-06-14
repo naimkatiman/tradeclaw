@@ -12,8 +12,11 @@ jest.mock('../../../../lib/signals-live', () => ({
   readLiveSignals: jest.fn(),
 }));
 
+jest.mock('../../../../lib/regime-resolution', () => ({
+  fetchResolvedRegimeMap: jest.fn().mockResolvedValue({ regimes: new Map(), classTilts: new Map() }),
+}));
+
 jest.mock('../../../../lib/regime-filter', () => ({
-  fetchRegimeMap: jest.fn().mockResolvedValue({}),
   filterSignalsByRegime: jest.fn((signals: unknown[]) => signals),
   getDominantRegime: jest.fn().mockReturnValue(null),
 }));

@@ -16,7 +16,7 @@ jest.mock('../../../../lib/signal-history', () => {
 });
 
 jest.mock('../../../../lib/signal-slice', () => ({
-  parseScope: jest.fn((raw: string | null | undefined) => raw === 'free' ? 'free' : 'pro'),
+  parseScope: jest.fn((raw: string | null | undefined) => raw === 'free' ? 'free' : raw === 'broadcast' ? 'broadcast' : 'pro'),
   getResolvedSlice: jest.fn(),
 }));
 
@@ -99,5 +99,61 @@ describe('GET /api/signals/equity rolling win rates', () => {
     });
     expect(body.summary.totalSignals).toBe(4);
     expect(body.summary.winRate).toBe(50);
+  });
+});
+
+describe('GET /api/signals/equity summary metrics', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('pins fixed-fractional sizing constants and caps single-trade equity at HARD_R_CAP', async () => {
+    // entry 100, SL 99 → riskPct = 1% → a +19% close is a raw +19R outlier.
+    primeSlice([
+      record({
+        id: 'cap-19R',
+        entryPrice: 100,
+        sl: 99,
+        outcomes: { '4h': null, '24h': { price: 119, pnlPct: 19, hit: true } },
+      }),
+    ]);
+
+    const res = await GET(makeReq('/api/signals/equity'));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    // Sizing methodology must not silently loosen (the prior 100%-bankroll
+    // blowup is what produced the unrunnable +800%/-69% curve).
+    expect(body.summary.riskPerTradePct).toBe(1.0);
+    expect(body.summary.hardRCap).toBe(8);
+    expect(body.summary.roundTripCostPct).toBe(0.02);
+    // R-stats keep the RAW 19R (engine quality is undistorted)…
+    expect(body.summary.avgRWin).toBe(19);
+    // …but the equity path is bounded: 8R × 1% − 0.02% cost = +7.98% on one trade.
+    expect(body.summary.totalReturn).toBeCloseTo(7.98, 2);
+  });
+
+  it('computes expectancyR from the sized-trade population, not the full-population win-rate', async () => {
+    // A + B are sized (have SL); C is a legacy null-SL resolved row that counts
+    // toward the headline win-rate but not toward sizing or R-stats.
+    primeSlice([
+      record({ id: 'sized-win', entryPrice: 100, sl: 99, outcomes: { '4h': null, '24h': { price: 102, pnlPct: 2, hit: true } } }),
+      record({ id: 'sized-loss', entryPrice: 100, sl: 99, outcomes: { '4h': null, '24h': { price: 99, pnlPct: -1, hit: false } } }),
+      record({ id: 'nullsl-win', entryPrice: 100, sl: undefined, outcomes: { '4h': null, '24h': { price: 105, pnlPct: 5, hit: true } } }),
+    ]);
+
+    const res = await GET(makeReq('/api/signals/equity'));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    // Headline win-rate is full-population (2 wins / 3 resolved) to stay
+    // byte-matched with /api/signals/history.
+    expect(body.summary.winRate).toBe(66.7);
+    expect(body.summary.sizedTrades).toBe(2);
+    expect(body.summary.avgRWin).toBe(2);
+    expect(body.summary.avgRLoss).toBe(-1);
+    // Coherent expectancy uses the sized population: 0.5*(+2R) + 0.5*(-1R) = +0.5R.
+    // The old full-population formula would have returned 0.667*2 + 0.333*-1 = +1.0R.
+    expect(body.summary.expectancyR).toBe(0.5);
   });
 });

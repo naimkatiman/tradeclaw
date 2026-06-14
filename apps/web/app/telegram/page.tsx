@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Send } from 'lucide-react';
+import { Send, Crown, Lock, ArrowRight, MessageCircle } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -52,6 +52,38 @@ export default function TelegramSettingsPage() {
   const [broadcasting, setBroadcasting] = useState(false);
   const [broadcastResult, setBroadcastResult] = useState<{ ok: boolean; message: string } | null>(null);
 
+  // Premium channel state
+  const [premiumChannel, setPremiumChannel] = useState<
+    | { status: 'loading' }
+    | { status: 'unauth' }
+    | { status: 'free' }
+    | { status: 'error'; message: string }
+    | { status: 'ready'; tier: 'pro' | 'elite'; invite: string }
+  >({ status: 'loading' });
+
+  const fetchPremiumChannel = useCallback(async () => {
+    try {
+      const res = await fetch('/api/telegram/channel-invite', { credentials: 'same-origin' });
+      if (res.status === 401) {
+        setPremiumChannel({ status: 'unauth' });
+        return;
+      }
+      if (res.status === 403) {
+        setPremiumChannel({ status: 'free' });
+        return;
+      }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setPremiumChannel({ status: 'error', message: body.error || `HTTP ${res.status}` });
+        return;
+      }
+      const data = (await res.json()) as { tier: 'pro' | 'elite'; invite: string };
+      setPremiumChannel({ status: 'ready', tier: data.tier, invite: data.invite });
+    } catch {
+      setPremiumChannel({ status: 'error', message: 'Failed to load channel invite' });
+    }
+  }, []);
+
   const fetchBroadcastStatus = useCallback(async () => {
     try {
       const res = await fetch('/api/telegram/broadcast');
@@ -70,7 +102,8 @@ export default function TelegramSettingsPage() {
     setWebhookUrl(`${appUrl}/api/telegram/webhook`);
     fetchStatus();
     fetchBroadcastStatus();
-  }, [fetchBroadcastStatus]);
+    fetchPremiumChannel();
+  }, [fetchBroadcastStatus, fetchPremiumChannel]);
 
   async function fetchStatus() {
     setLoading(true);
@@ -285,6 +318,100 @@ export default function TelegramSettingsPage() {
               )}
             </div>
           ) : null}
+        </Card>
+
+        {/* Premium Channel */}
+        <Card>
+          <div className="flex items-center gap-2 mb-1">
+            <Crown className="w-4 h-4 text-amber-400" />
+            <h2 className="font-medium">Premium Signal Channel</h2>
+          </div>
+          <p className="text-sm text-zinc-500 mb-4">
+            Get instant alerts in a private Telegram group before they hit the public feed.
+          </p>
+
+          {premiumChannel.status === 'loading' && (
+            <div className="h-16 flex items-center justify-center">
+              <div className="w-5 h-5 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+            </div>
+          )}
+
+          {premiumChannel.status === 'unauth' && (
+            <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <Lock className="w-4 h-4 text-zinc-500" />
+                <span className="text-sm text-zinc-300">Sign in to unlock your channel invite</span>
+              </div>
+              <a
+                href="/signin?from=telegram"
+                className="inline-flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+              >
+                Sign In <ArrowRight className="w-3 h-3" />
+              </a>
+            </div>
+          )}
+
+          {premiumChannel.status === 'free' && (
+            <div className="rounded-lg border border-amber-500/10 bg-amber-500/[0.03] p-4">
+              <div className="flex items-start gap-3">
+                <MessageCircle className="w-4 h-4 text-amber-400 mt-0.5" />
+                <div>
+                  <p className="text-sm text-zinc-300 mb-1">
+                    Pro and Elite subscribers receive private Telegram alerts with instant signal delivery.
+                  </p>
+                  <ul className="text-xs text-zinc-500 space-y-1 mb-3 list-disc list-inside">
+                    <li>No 30-minute delay — alerts fire while the move is live</li>
+                    <li>High-confidence filter (80%+) only</li>
+                    <li>Direct access to Zaky in the Elite 1-on-1 group</li>
+                  </ul>
+                  <a
+                    href="/pricing?tier=pro&from=telegram"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-black hover:bg-emerald-400 transition-colors"
+                  >
+                    Upgrade to Pro
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {premiumChannel.status === 'error' && (
+            <div className="rounded-lg border border-red-500/10 bg-red-500/[0.03] p-4">
+              <p className="text-sm text-red-400">{premiumChannel.message}</p>
+            </div>
+          )}
+
+          {premiumChannel.status === 'ready' && (
+            <div className="rounded-lg border border-emerald-500/10 bg-emerald-500/[0.03] p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    premiumChannel.tier === 'elite'
+                      ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  }`}
+                >
+                  {premiumChannel.tier}
+                </span>
+                <span className="text-xs text-zinc-500">Private channel access active</span>
+              </div>
+              <a
+                href={premiumChannel.invite}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-black hover:bg-emerald-400 transition-colors"
+              >
+                <MessageCircle className="w-3 h-3" />
+                Join Private Channel
+              </a>
+              <p className="mt-2 text-xs text-zinc-500">
+                Opens Telegram directly. If the link expires, contact{' '}
+                <a href="mailto:support@tradeclaw.win" className="text-emerald-400 hover:underline">
+                  support
+                </a>.
+              </p>
+            </div>
+          )}
         </Card>
 
         {/* Setup Guide */}

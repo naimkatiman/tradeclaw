@@ -46,14 +46,14 @@ describe('/api/auth/telegram', () => {
 
   it('returns 503 when TELEGRAM_BOT_TOKEN is not set', async () => {
     delete process.env.TELEGRAM_BOT_TOKEN;
-    const res = await POST(makeRequest({ id: 1, first_name: 'Test', auth_date: 1, hash: 'x' }) as any);
+    const res = await POST(makeRequest({ id: 1, first_name: 'Test', auth_date: 1, hash: 'x' }) as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(503);
     const data = await res.json();
     expect(data.error).toBe('telegram_not_configured');
   });
 
   it('returns 400 for missing fields', async () => {
-    const res = await POST(makeRequest({ first_name: 'Test', auth_date: 1, hash: 'x' }) as any);
+    const res = await POST(makeRequest({ first_name: 'Test', auth_date: 1, hash: 'x' }) as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(400);
     expect((await res.json()).error).toBe('missing_fields');
   });
@@ -61,7 +61,7 @@ describe('/api/auth/telegram', () => {
   it('returns 401 for invalid hash', async () => {
     mockVerifyTelegramLogin.mockReturnValue(false);
     mockIsTelegramAuthDateFresh.mockReturnValue(true);
-    const res = await POST(makeRequest({ id: 1, first_name: 'Test', auth_date: 1, hash: 'x' }) as any);
+    const res = await POST(makeRequest({ id: 1, first_name: 'Test', auth_date: 1, hash: 'x' }) as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(401);
     expect((await res.json()).error).toBe('invalid_hash');
   });
@@ -69,7 +69,7 @@ describe('/api/auth/telegram', () => {
   it('returns 401 for expired auth_date', async () => {
     mockVerifyTelegramLogin.mockReturnValue(true);
     mockIsTelegramAuthDateFresh.mockReturnValue(false);
-    const res = await POST(makeRequest({ id: 1, first_name: 'Test', auth_date: 1, hash: 'x' }) as any);
+    const res = await POST(makeRequest({ id: 1, first_name: 'Test', auth_date: 1, hash: 'x' }) as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(401);
     expect((await res.json()).error).toBe('auth_expired');
   });
@@ -89,7 +89,7 @@ describe('/api/auth/telegram', () => {
         photo_url: 'https://example.com/photo.jpg',
         auth_date: Math.floor(Date.now() / 1000),
         hash: 'validhash',
-      }) as any,
+      }) as unknown as Parameters<typeof POST>[0],
     );
 
     expect(res.status).toBe(200);
@@ -121,7 +121,7 @@ describe('/api/auth/telegram', () => {
         username: 'testuser',
         auth_date: 1,
         hash: 'x',
-      }) as any,
+      }) as unknown as Parameters<typeof POST>[0],
     );
 
     expect(mockUpsertTelegramUser).toHaveBeenCalledWith(
@@ -141,7 +141,7 @@ describe('/api/auth/telegram', () => {
         first_name: '',
         auth_date: 1,
         hash: 'x',
-      }) as any,
+      }) as unknown as Parameters<typeof POST>[0],
     );
 
     expect(mockUpsertTelegramUser).toHaveBeenCalledWith(
@@ -154,7 +154,7 @@ describe('/api/auth/telegram', () => {
     mockIsTelegramAuthDateFresh.mockReturnValue(true);
     mockUpsertTelegramUser.mockRejectedValue(new Error('db down'));
 
-    const res = await POST(makeRequest({ id: 1, first_name: 'Test', auth_date: 1, hash: 'x' }) as any);
+    const res = await POST(makeRequest({ id: 1, first_name: 'Test', auth_date: 1, hash: 'x' }) as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(500);
     expect((await res.json()).error).toBe('server_error');
   });

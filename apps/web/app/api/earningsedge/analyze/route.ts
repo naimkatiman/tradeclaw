@@ -1,15 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeTranscript } from '@/lib/earningsedge/analyze';
+import { getUserByEmail } from '@/lib/earningsedge/db';
+import { check } from '@/lib/rate-limit';
 
 const FREE_LIMIT = 3;
+const FREE_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+function clientIp(request: NextRequest): string {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    'anon'
+  );
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { transcript, userId, tier } = body as {
+    // body.tier is intentionally NOT trusted — entitlement is resolved server-side below.
+    const { transcript, userId } = body as {
       transcript: string;
       userId?: string;
-      tier?: string;
     };
 
     if (!transcript || transcript.trim().length < 100) {
@@ -26,19 +37,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Free tier limit check (enforced client-side too, but validated here)
-    const usageHeader = request.headers.get('x-ee-usage-count');
-    const usageCount = usageHeader ? parseInt(usageHeader, 10) : 0;
+    // Entitlement resolved server-side: a paid EE tier (verified in ee_users) bypasses
+    // the free limit. Non-paid callers get a server-enforced per-IP daily quota — the
+    // previous client-supplied `tier` body field and `x-ee-usage-count` header were
+    // trivially bypassable, allowing unlimited paid-LLM use.
+    const user = userId ? await getUserByEmail(userId) : null;
+    const isPaid = !!user && user.tier !== 'free';
 
-    if (!userId && !tier && usageCount >= FREE_LIMIT) {
-      return NextResponse.json(
-        {
-          error: 'Free limit reached',
-          code: 'FREE_LIMIT_REACHED',
-          limit: FREE_LIMIT,
-        },
-        { status: 402 },
-      );
+    if (!isPaid) {
+      const decision = await check(`ee-analyze:${clientIp(request)}`, {
+        max: FREE_LIMIT,
+        windowMs: FREE_WINDOW_MS,
+      });
+      if (!decision.allowed) {
+        return NextResponse.json(
+          { error: 'Free limit reached', code: 'FREE_LIMIT_REACHED', limit: FREE_LIMIT },
+          { status: 402 },
+        );
+      }
     }
 
     if (!process.env.OPENROUTER_API_KEY) {

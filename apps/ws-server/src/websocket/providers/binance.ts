@@ -23,6 +23,7 @@ export class BinanceProvider implements MarketDataProvider {
   private refreshTimer: ReturnType<typeof setTimeout> | null = null;
   private reconnectAttempts = 0;
   private connected = false;
+  private connecting = false;
   private intentionalClose = false;
   private connectTime = 0;
 
@@ -36,10 +37,12 @@ export class BinanceProvider implements MarketDataProvider {
     this.intentionalClose = true;
     this.clearTimers();
     if (this.ws) {
+      this.ws.removeAllListeners();
       this.ws.close(1000, 'shutdown');
       this.ws = null;
     }
     this.connected = false;
+    this.connecting = false;
   }
 
   subscribe(symbols: string[]): void {
@@ -75,6 +78,12 @@ export class BinanceProvider implements MarketDataProvider {
   }
 
   private async openConnection(): Promise<void> {
+    // In-flight guard: a connect already in progress (or a live connection)
+    // must not be double-opened. Reconnect is driven from a single source
+    // (the 'close' handler), so a second concurrent attempt would fork the
+    // reconnect lifecycle.
+    if (this.connecting || this.connected) return;
+
     // Build combined stream URL
     const streams = Array.from(this.symbols)
       .map(s => toBinanceSymbol(s))
@@ -85,12 +94,21 @@ export class BinanceProvider implements MarketDataProvider {
 
     const url = `${BINANCE_WS_BASE}?streams=${streams.join('/')}`;
 
+    // Drop any listeners on a stale socket before replacing it so the old
+    // socket's events can't drive reconnect for the new one.
+    if (this.ws) {
+      this.ws.removeAllListeners();
+    }
+
+    this.connecting = true;
+
     return new Promise((resolve, reject) => {
       this.ws = new WebSocket(url);
       let resolved = false;
 
       this.ws.on('open', () => {
         this.connected = true;
+        this.connecting = false;
         this.reconnectAttempts = 0;
         this.connectTime = Date.now();
         this.startPingPong();
@@ -106,8 +124,11 @@ export class BinanceProvider implements MarketDataProvider {
         if (this.pongTimer) { clearTimeout(this.pongTimer); this.pongTimer = null; }
       });
 
-      this.ws.on('close', (code, reason) => {
+      // Single reconnect source: ws always emits 'close' after 'error', so all
+      // reconnect scheduling lives here. The 'error' handler never reschedules.
+      this.ws.on('close', () => {
         this.connected = false;
+        this.connecting = false;
         this.clearTimers();
         if (!this.intentionalClose) {
           this.scheduleReconnect();
@@ -116,6 +137,9 @@ export class BinanceProvider implements MarketDataProvider {
       });
 
       this.ws.on('error', (err) => {
+        // Reject the open promise so the awaiting caller observes the failure,
+        // but do NOT schedule a reconnect here — the imminent 'close' event is
+        // the sole reconnect trigger.
         if (!resolved) { resolved = true; reject(err); }
       });
     });
@@ -159,6 +183,9 @@ export class BinanceProvider implements MarketDataProvider {
   }
 
   private scheduleReconnect(): void {
+    // In-flight guard: never stack more than one pending reconnect timer.
+    if (this.reconnectTimer || this.intentionalClose) return;
+
     const delay = Math.min(
       (2 ** this.reconnectAttempts) * 1000 + Math.random() * 1000,
       MAX_RECONNECT_DELAY_MS
@@ -166,10 +193,13 @@ export class BinanceProvider implements MarketDataProvider {
     this.reconnectAttempts++;
 
     this.reconnectTimer = setTimeout(async () => {
+      this.reconnectTimer = null;
+      // openConnection rejects on socket error, but the resulting 'close'
+      // event reschedules — so swallow here to avoid a second reconnect path.
       try {
         await this.openConnection();
       } catch {
-        this.scheduleReconnect();
+        // Reconnect is driven by the 'close' handler; nothing to do here.
       }
     }, delay);
   }

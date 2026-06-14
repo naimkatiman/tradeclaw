@@ -1,5 +1,6 @@
 import 'server-only';
 import { isSafeOutboundUrl } from './safe-outbound-url';
+import { recordDelivery } from './delivery-metrics';
 
 /**
  * Per-user "preferred platform" senders.
@@ -115,8 +116,10 @@ export async function sendTelegramDm(
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     const data = (await res.json()) as { ok: boolean };
+    recordDelivery('telegram', data.ok === true ? 'success' : 'failed');
     return data.ok === true;
   } catch {
+    recordDelivery('telegram', 'failed');
     return false;
   }
 }
@@ -137,8 +140,10 @@ export async function sendDiscordWebhook(
       body: JSON.stringify(formatDiscordEmbed(signal)),
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
+    recordDelivery('discord', res.ok ? 'success' : 'failed');
     return res.ok;
   } catch {
+    recordDelivery('discord', 'failed');
     return false;
   }
 }
@@ -162,8 +167,10 @@ export async function sendGenericWebhook(
       body: JSON.stringify({ signal, timestamp: new Date().toISOString() }),
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
+    recordDelivery('webhook', res.ok ? 'success' : 'failed');
     return res.ok;
   } catch {
+    recordDelivery('webhook', 'failed');
     return false;
   }
 }
@@ -176,6 +183,7 @@ export async function sendEmail(
   if (!to) return false;
   const { sendSignalEmail } = await import('./email-sender');
   const result = await sendSignalEmail(to, signal);
+  recordDelivery('email', result.ok ? 'success' : 'failed');
   return result.ok;
 }
 

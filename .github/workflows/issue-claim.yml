@@ -1,16 +1,15 @@
-name: Issue Claim & PR Auto-Review
+name: Issue Claim
 
 on:
   issue_comment:
     types: [created]
-  pull_request_target:
-    types: [opened, synchronize, reopened]
 
 jobs:
   # ─── Auto-assign when someone claims an issue ───────────────────────────────
   auto-assign-issue:
     name: Auto-assign issue claim
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: |
       github.event_name == 'issue_comment' &&
       !github.event.issue.pull_request
@@ -108,102 +107,17 @@ jobs:
               ].filter(l => l !== undefined).join('\n'),
             });
 
-  # ─── Auto-review PR when opened or updated ──────────────────────────────────
-  auto-review-pr:
-    name: Auto-review PR
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request_target'
-    permissions:
-      pull-requests: write
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
-        working-directory: apps/web
-
-      - name: Run build check
-        id: build
-        run: npm run build
-        working-directory: apps/web
-        continue-on-error: true
-
-      - name: Run lint check
-        id: lint
-        run: npm run lint
-        working-directory: apps/web
-        continue-on-error: true
-
-      - name: Post review comment
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const buildStatus = '${{ steps.build.outcome }}';
-            const lintStatus = '${{ steps.lint.outcome }}';
-            const author = context.payload.pull_request.user.login;
-            const isSync = context.payload.action === 'synchronize';
-
-            const buildIcon = buildStatus === 'success' ? '✅' : '❌';
-            const lintIcon = lintStatus === 'success' ? '✅' : lintStatus === 'skipped' ? '⚠️' : '❌';
-            const allPass = buildStatus === 'success' && lintStatus === 'success';
-
-            // Don't re-post on every sync — only on open or when something fails
-            if (isSync && allPass) return;
-
-            const body = [
-              `## 🤖 Auto-Review for @${author}`,
-              ``,
-              `| Check | Status |`,
-              `|-------|--------|`,
-              `| 🔨 Build (\`npm run build\`) | ${buildIcon} ${buildStatus} |`,
-              `| 🔍 Lint (\`npm run lint\`) | ${lintIcon} ${lintStatus} |`,
-              ``,
-              allPass
-                ? `### ✅ All checks passed! A maintainer will review shortly.`
-                : `### ❌ Some checks failed — please fix before merging.`,
-              ``,
-              !allPass ? [
-                buildStatus !== 'success' ? `**Build failed** — run \`npm run build\` locally to reproduce and fix.` : '',
-                lintStatus !== 'success' ? `**Lint failed** — run \`npm run lint\` locally to fix issues.` : '',
-              ].filter(Boolean).join('\n') : '',
-              ``,
-              `> _Automated review by TradeClaw CI • [View run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }})_`,
-            ].join('\n');
-
-            // Find and update existing bot comment if exists
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-            });
-
-            const botComment = comments.find(c =>
-              c.user.type === 'Bot' && c.body.includes('🤖 Auto-Review')
-            );
-
-            if (botComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.payload.pull_request.number,
-                body,
-              });
-            }
+# NOTE: The former auto-review-pr job that ran npm run build / npm run lint inside
+# a pull_request_target context has been removed. That pattern executes
+# contributor-controlled code (build scripts, eslint config) under a write-privileged
+# token — a well-known "pwn-request" attack vector.
+#
+# Build and lint checks already run in ci.yml on the pull_request event (read-only
+# token, safe). If a bot comment summarising those results is desired, implement it
+# using the workflow_run trigger pattern:
+#   on:
+#     workflow_run:
+#       workflows: ["CI"]
+#       types: [completed]
+# That fires after ci.yml finishes in the base-repo context and can safely post a
+# PR comment without ever touching untrusted code.

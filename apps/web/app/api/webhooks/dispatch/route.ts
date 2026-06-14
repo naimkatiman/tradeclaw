@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dispatchToAll } from '../../../../lib/webhooks';
 import type { WebhookPayload } from '../../../../lib/webhooks';
+import { requireCronAuth } from '../../../../lib/cron-auth';
 
-// POST /api/webhooks/dispatch — dispatch a signal to all active webhooks
-// This is an internal endpoint called when a new signal fires.
+// POST /api/webhooks/dispatch — dispatch a signal to ALL users' active webhooks.
+// Internal engine endpoint: gated by CRON_SECRET so an anonymous caller cannot
+// fan a spoofed signal out to every subscriber.
 export async function POST(request: NextRequest) {
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
+
   try {
     const body = (await request.json()) as Partial<WebhookPayload>;
 

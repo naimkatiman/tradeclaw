@@ -99,6 +99,13 @@ export interface EmailSendResult {
   providerId?: string;
 }
 
+/** Provider-agnostic email payload. */
+export interface EmailPayload {
+  subject: string;
+  text: string;
+  html: string;
+}
+
 type EmailProvider = 'resend' | 'sendgrid' | 'smtp';
 
 function getProvider(): EmailProvider {
@@ -111,7 +118,7 @@ function getProvider(): EmailProvider {
 async function sendViaResend(
   to: string,
   from: string,
-  signal: AlertSignal,
+  payload: EmailPayload,
 ): Promise<EmailSendResult> {
   const apiKey = getResendKey();
   if (!apiKey) return { ok: false, reason: 'no_api_key' };
@@ -126,9 +133,9 @@ async function sendViaResend(
       body: JSON.stringify({
         from,
         to: [to],
-        subject: buildSubject(signal),
-        text: buildPlainText(signal),
-        html: buildHtml(signal),
+        subject: payload.subject,
+        text: payload.text,
+        html: payload.html,
       }),
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
@@ -144,7 +151,7 @@ async function sendViaResend(
 async function sendViaSendGrid(
   to: string,
   from: string,
-  signal: AlertSignal,
+  payload: EmailPayload,
 ): Promise<EmailSendResult> {
   const apiKey = process.env.SENDGRID_API_KEY;
   if (!apiKey) return { ok: false, reason: 'no_api_key' };
@@ -159,10 +166,10 @@ async function sendViaSendGrid(
       body: JSON.stringify({
         personalizations: [{ to: [{ email: to }] }],
         from: { email: from.replace(/^.*<|>.*$/g, '').trim() || from },
-        subject: buildSubject(signal),
+        subject: payload.subject,
         content: [
-          { type: 'text/plain', value: buildPlainText(signal) },
-          { type: 'text/html', value: buildHtml(signal) },
+          { type: 'text/plain', value: payload.text },
+          { type: 'text/html', value: payload.html },
         ],
       }),
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
@@ -188,7 +195,7 @@ async function sendViaSendGrid(
 async function sendViaSMTP(
   to: string,
   from: string,
-  signal: AlertSignal,
+  payload: EmailPayload,
 ): Promise<EmailSendResult> {
   const host = process.env.SMTP_HOST;
   const port = parseInt(process.env.SMTP_PORT || '587', 10);
@@ -218,9 +225,9 @@ async function sendViaSMTP(
     const info = await transport.sendMail({
       from,
       to,
-      subject: buildSubject(signal),
-      text: buildPlainText(signal),
-      html: buildHtml(signal),
+      subject: payload.subject,
+      text: payload.text,
+      html: payload.html,
     });
     return { ok: true, providerId: info.messageId };
   } catch {
@@ -228,9 +235,13 @@ async function sendViaSMTP(
   }
 }
 
-export async function sendSignalEmail(
+/**
+ * Provider-agnostic send for any subject/text/html email (digests, etc.).
+ * Routes through the same EMAIL_PROVIDER switch and from-address as signal alerts.
+ */
+export async function sendEmail(
   to: string,
-  signal: AlertSignal,
+  payload: EmailPayload,
 ): Promise<EmailSendResult> {
   if (!to) return { ok: false, reason: 'no_to_address' };
 
@@ -238,7 +249,18 @@ export async function sendSignalEmail(
   if (!from) return { ok: false, reason: 'no_from_address' };
 
   const provider = getProvider();
-  if (provider === 'smtp') return sendViaSMTP(to, from, signal);
-  if (provider === 'sendgrid') return sendViaSendGrid(to, from, signal);
-  return sendViaResend(to, from, signal);
+  if (provider === 'smtp') return sendViaSMTP(to, from, payload);
+  if (provider === 'sendgrid') return sendViaSendGrid(to, from, payload);
+  return sendViaResend(to, from, payload);
+}
+
+export async function sendSignalEmail(
+  to: string,
+  signal: AlertSignal,
+): Promise<EmailSendResult> {
+  return sendEmail(to, {
+    subject: buildSubject(signal),
+    text: buildPlainText(signal),
+    html: buildHtml(signal),
+  });
 }

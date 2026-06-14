@@ -21,7 +21,7 @@ export function SignalShareButtons({ signal, signalPath }: Props) {
   const getFullUrl = () =>
     typeof window !== 'undefined'
       ? `${window.location.origin}${signalPath}`
-      : `https://tradeclaw.com${signalPath}`;
+      : `https://tradeclaw.win${signalPath}`;
 
   const tweetText = [
     `${signal.symbol} ${signal.direction} — ${signal.confidence}% confidence`,

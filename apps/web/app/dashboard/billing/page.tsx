@@ -346,6 +346,13 @@ function ReferralCard({ referralCode }: { referralCode: string }) {
             </svg>
             Share on X
           </a>
+
+          <Link
+            href="/referrals"
+            className="mt-3 ml-2 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400 transition-all hover:text-emerald-300"
+          >
+            View Dashboard →
+          </Link>
         </div>
       </div>
     </div>

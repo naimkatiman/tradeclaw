@@ -189,7 +189,7 @@ export async function generateMetadata(
   const direction = resolved?.direction ?? '';
   const timeframe = resolved?.timeframe ?? '';
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tradeclaw.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tradeclaw.win';
   const ogUrl = `${baseUrl}/api/og/signal/${id}`;
 
   return {
@@ -304,7 +304,6 @@ export default async function SignalPage(
 
   const isBuy = signal.direction === 'BUY';
   const signalPath = `/signal/${symbol}-${timeframe}-${direction}`;
-  const now = Date.now();
 
   return (
     <div className="min-h-[100dvh] bg-[#050505] text-white">

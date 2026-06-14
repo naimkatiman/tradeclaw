@@ -40,10 +40,10 @@ interface UseCase {
 
 const USE_CASES: UseCase[] = [
   {
-    avatar: 'A',
-    name: 'Arif M.',
-    role: 'Day Trader',
-    location: 'Singapore 🇸🇬',
+    avatar: 'D',
+    name: 'The Day Trader',
+    role: 'Example persona',
+    location: 'Intraday workflow',
     description:
       'Monitors BTC and ETH intraday signals on H1 timeframe. Gets instant Telegram alerts when confidence crosses 75%. Uses paper trading to validate setups before going live.',
     features: [
@@ -58,10 +58,10 @@ const USE_CASES: UseCase[] = [
     accentColor: 'emerald',
   },
   {
-    avatar: 'K',
-    name: 'Kai L.',
-    role: 'Quant Developer',
-    location: 'Berlin 🇩🇪',
+    avatar: 'Q',
+    name: 'The Quant Developer',
+    role: 'Example persona',
+    location: 'API workflow',
     description:
       'Uses the REST API and CLI to pull signals into a custom Python bot. Sends webhooks to Discord for team alerts. Built a custom VWAP plugin using the plugin system.',
     features: [
@@ -76,10 +76,10 @@ const USE_CASES: UseCase[] = [
     accentColor: 'purple',
   },
   {
-    avatar: 'S',
-    name: 'Sara P.',
-    role: 'Crypto Hobbyist',
-    location: 'Toronto 🇨🇦',
+    avatar: 'H',
+    name: 'The Crypto Hobbyist',
+    role: 'Example persona',
+    location: 'Self-hosted workflow',
     description:
       'Runs TradeClaw on a Raspberry Pi 4 at home. Subscribes to the RSS feed for daily signal digest. Shares signal cards on X when high-confidence setups appear.',
     features: [
@@ -129,7 +129,7 @@ function MockDashboard({ accentColor }: { accentColor: string }) {
       <div className="p-3 space-y-2">
         {/* Stat row */}
         <div className="grid grid-cols-3 gap-2">
-          {['12 Signals', '78% Acc', '10 Pairs'].map((s) => (
+          {['12 Signals', '4 TFs', '10 Pairs'].map((s) => (
             <div key={s} className="bg-white/5 rounded px-2 py-1.5 text-center">
               <div className="text-white/80 text-xs font-bold">{s.split(' ')[0]}</div>
               <div className="text-white/30 text-[10px]">{s.split(' ').slice(1).join(' ')}</div>

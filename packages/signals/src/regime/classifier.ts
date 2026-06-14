@@ -1,23 +1,41 @@
 /**
- * HMM Regime Classifier — Main Entry Point
+ * Structural HMM Regime Classifier — Main Entry Point (Phase 3, plan D6)
  *
- * Loads a pre-trained HMM model (or falls back to hardcoded defaults),
- * computes features from raw price/volume history, and classifies the
- * current market regime.
+ * Classifies the current market regime (trend / volatile / range) from full
+ * OHLCV history: structural feature extraction (features.ts) → per-model
+ * standardization → Viterbi decoding over the trailing T-observation window
+ * (T>1 smoothing) → forward-algorithm posterior as confidence.
+ *
+ * Loads a pre-trained HMM model from disk when available, otherwise falls
+ * back to a documented heuristic default.
  */
 
 import { getSymbolCategory } from '../symbols.js';
 import { forwardAlgorithm, viterbiDecode } from './viterbi.js';
+import {
+  computeRegimeFeatureSeries,
+  featureVectorToArray,
+  REGIME_FEATURE_NAMES,
+} from './features.js';
+import type { RegimeBar, RegimeFeatureVector } from './features.js';
 import type {
   HMMModelParams,
   MarketRegime,
   RegimeClassification,
-  RegimeFeatures,
 } from './types.js';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const VALID_REGIMES = new Set<string>(['crash', 'bear', 'neutral', 'bull', 'euphoria']);
+const VALID_REGIMES = new Set<MarketRegime>(['trend', 'volatile', 'range']);
+
+/**
+ * Default trailing observation window for Viterbi smoothing (plan D6).
+ * Mirrored in scripts/hmm-regime/train_hmm.py (SEQUENCE_LENGTH) — keep in sync.
+ */
+const DEFAULT_SEQUENCE_LENGTH = 64;
+
+/** Minimum feature vectors required to classify at all. */
+const MIN_SEQUENCE_VECTORS = 8;
 
 // ─── Model Loading ───────────────────────────────────────────────────────────
 
@@ -30,6 +48,12 @@ const modelCache = new Map<string, HMMModelParams>();
  * In server-side (Node.js) contexts, attempts to read from disk via dynamic
  * require('fs'). In browser bundles (Next.js client), falls back to default
  * model params. Pre-loaded models can be injected via `setModel()`.
+ *
+ * Fallback policy (plan D6): a model file that exists but fails parsing or
+ * validation must NEVER break inference, and must NEVER fail silently either
+ * — a silent fallback is exactly how the dead regime layer stayed invisible
+ * for months. One deliberate console.warn fires per asset class (the default
+ * model is cached, so it cannot repeat per call).
  */
 export function loadModel(assetClass: 'crypto' | 'forex' | 'metals'): HMMModelParams {
   const cached = modelCache.get(assetClass);
@@ -38,27 +62,38 @@ export function loadModel(assetClass: 'crypto' | 'forex' | 'metals'): HMMModelPa
   // Try loading from disk in Node.js environments only.
   // Use indirect require via globalThis to hide from Turbopack/webpack static analysis.
   if (typeof globalThis.process !== 'undefined' && globalThis.process.versions?.node) {
+    let fs: typeof import('fs') | undefined;
+    let path: typeof import('path') | undefined;
     try {
       const _require = typeof globalThis.require === 'function'
         ? globalThis.require
         : module?.require?.bind(module);
       if (_require) {
-        const fs = _require('f' + 's') as typeof import('fs');
-        const path = _require('pat' + 'h') as typeof import('path');
+        fs = _require('f' + 's') as typeof import('fs');
+        path = _require('pat' + 'h') as typeof import('path');
+      }
+    } catch {
+      // fs not available (browser bundle) — fall through to defaults
+    }
 
-        const modelDir = process.env.HMM_MODEL_DIR
-          || findModelDir(path, fs);
-        const modelPath = path.resolve(modelDir, `${assetClass}_hmm.json`);
+    if (fs && path) {
+      const modelDir = process.env.HMM_MODEL_DIR
+        || findModelDir(path, fs);
+      const modelPath = path.resolve(modelDir, `${assetClass}_hmm.json`);
 
-        if (fs.existsSync(modelPath)) {
+      if (fs.existsSync(modelPath)) {
+        try {
           const model = JSON.parse(fs.readFileSync(modelPath, 'utf-8')) as HMMModelParams;
           validateModel(model);
           modelCache.set(assetClass, model);
           return model;
+        } catch (err: unknown) {
+          const reason = err instanceof Error ? err.message : String(err);
+          console.warn(
+            `[regime] model file invalid for ${assetClass}, using built-in default: ${reason}`,
+          );
         }
       }
-    } catch {
-      // fs not available (browser bundle) — fall through to defaults
     }
   }
 
@@ -74,6 +109,16 @@ export function setModel(assetClass: string, model: HMMModelParams): void {
   modelCache.set(assetClass, model);
 }
 
+/**
+ * Clear the model cache. Exported for white-box tests only — not part of the
+ * package public API (not re-exported from src/index.ts).
+ *
+ * @internal
+ */
+export function clearModelCache(): void {
+  modelCache.clear();
+}
+
 function findModelDir(path: typeof import('path'), fs: typeof import('fs')): string {
   let dir = process.cwd();
   for (let i = 0; i < 10; i++) {
@@ -87,7 +132,7 @@ function findModelDir(path: typeof import('path'), fs: typeof import('fs')): str
 }
 
 /**
- * Validate model dimensions and state labels.
+ * Validate model dimensions, state labels, and standardization parameters.
  * Throws if any constraint is violated.
  */
 function validateModel(model: HMMModelParams): void {
@@ -113,13 +158,42 @@ function validateModel(model: HMMModelParams): void {
     seenLabels.add(label);
   }
 
-  // transition_matrix must be n_states x n_states
+  // Each canonical regime must appear exactly once (forces n_states === 3)
+  for (const regime of VALID_REGIMES) {
+    if (!seenLabels.has(regime)) {
+      throw new Error(`Missing state label "${regime}" — all of ${[...VALID_REGIMES].join(', ')} must appear exactly once`);
+    }
+  }
+
+  // transition_matrix must be n_states x n_states and row-stochastic
   if (model.transition_matrix.length !== n) {
     throw new Error(`transition_matrix has ${model.transition_matrix.length} rows, expected ${n}`);
   }
   for (let i = 0; i < n; i++) {
     if (model.transition_matrix[i].length !== n) {
       throw new Error(`transition_matrix row ${i} has ${model.transition_matrix[i].length} cols, expected ${n}`);
+    }
+    let rowSum = 0;
+    for (const p of model.transition_matrix[i]) {
+      if (!isFinite(p) || p < 0) {
+        throw new Error(`transition_matrix row ${i} has a negative or non-finite entry`);
+      }
+      rowSum += p;
+    }
+    if (Math.abs(rowSum - 1) > 1e-4) {
+      throw new Error(`transition_matrix row ${i} sums to ${rowSum}, expected 1`);
+    }
+  }
+
+  // initial_probs, when present, must match n_states and sum to 1 — a bad
+  // vector silently corrupts forward-algorithm confidences (NaN log terms)
+  if (model.initial_probs !== undefined) {
+    if (!Array.isArray(model.initial_probs) || model.initial_probs.length !== n) {
+      throw new Error(`initial_probs has ${model.initial_probs?.length ?? 0} entries, expected ${n}`);
+    }
+    const piSum = model.initial_probs.reduce((a, b) => a + b, 0);
+    if (Math.abs(piSum - 1) > 1e-4) {
+      throw new Error(`initial_probs sums to ${piSum}, expected 1`);
     }
   }
 
@@ -147,181 +221,145 @@ function validateModel(model: HMMModelParams): void {
       }
     }
   }
+
+  // Standardization params must cover the feature space (plan D6: the
+  // standardization is part of the model — no lookahead at inference)
+  if (!Array.isArray(model.feature_names) || model.feature_names.length !== nFeatures) {
+    throw new Error(`feature_names must have ${nFeatures} entries`);
+  }
+  if (!Array.isArray(model.feature_means) || model.feature_means.length !== nFeatures) {
+    throw new Error(`feature_means must have ${nFeatures} entries`);
+  }
+  if (!Array.isArray(model.feature_stds) || model.feature_stds.length !== nFeatures) {
+    throw new Error(`feature_stds must have ${nFeatures} entries`);
+  }
+  for (const s of model.feature_stds) {
+    if (!isFinite(s) || s <= 0) {
+      throw new Error('feature_stds entries must be positive finite numbers');
+    }
+  }
 }
 
 /**
  * Return a reasonable default model when no trained JSON is available.
  *
- * The parameters are hand-tuned heuristics, NOT trained on data, but they
- * produce plausible regime labels so the system can run in dev/test without
- * the Python training pipeline.
- *
- * Feature order: [rollingVol20d, returns5d, returns20d, volumeZScore]
+ * Hand-tuned heuristic fallback, NOT trained on data. It exists so the
+ * system can classify before the trained model JSON ships — commit C9 of
+ * the Phase 3 plan lands a crypto model trained on real candles, which
+ * supersedes this at runtime via loadModel(). Emission means live in
+ * STANDARDIZED feature space; feature order = REGIME_FEATURE_NAMES:
+ * [adx14, bbBandwidthPct, atrPercentile, returnAutocorr1].
  */
 export function getDefaultModel(assetClass: string): HMMModelParams {
-  const stateLabels: Record<string, MarketRegime> = {
-    '0': 'crash',
-    '1': 'bear',
-    '2': 'neutral',
-    '3': 'bull',
-    '4': 'euphoria',
-  };
+  // Standardization anchors: rough population center/scale of the raw features
+  const featureMeans = [22, 4, 0.5, 0];
+  const featureStds = [10, 3, 0.28, 0.25];
 
-  // Volatility scale varies by asset class
-  const volScale = assetClass === 'crypto' ? 1.5 : assetClass === 'metals' ? 0.8 : 1.0;
-
-  // Emission means: [vol, ret5d, ret20d, volZScore]
+  // Emission means (standardized)
   const emissionMeans: number[][] = [
-    [0.06 * volScale, -0.08, -0.15, 2.0],   // crash: high vol, deep negative returns, high volume
-    [0.03 * volScale, -0.03, -0.06, 0.5],   // bear: moderate vol, mild negative returns
-    [0.015 * volScale, 0.00, 0.00, 0.0],    // neutral: low vol, flat returns
-    [0.025 * volScale, 0.03, 0.06, 0.3],    // bull: moderate vol, positive returns
-    [0.05 * volScale, 0.07, 0.12, 1.5],     // euphoria: high vol, strong positive returns, high volume
+    [1.0, 0.2, 0.2, 0.4],    // trend: elevated ADX, persistent returns
+    [0.3, 1.2, 1.2, -0.6],   // volatile: wide bands, top ATR rank, mean-flipping
+    [-0.8, -0.6, -0.5, 0.0], // range: low ADX, narrow bands, quiet ATR
   ];
 
-  // Diagonal covariance matrices (simplified — features assumed independent)
-  const baseCovDiag = [
-    [0.0004, 0.001, 0.002, 0.5],   // crash
-    [0.0002, 0.0005, 0.001, 0.3],  // bear
-    [0.0001, 0.0003, 0.0005, 0.2], // neutral
-    [0.0002, 0.0005, 0.001, 0.3],  // bull
-    [0.0004, 0.001, 0.002, 0.5],   // euphoria
-  ];
+  // Diagonal covariances of 0.8 in standardized space, expressed as full
+  // matrices (viterbi's Gaussian supports full covariance).
+  const emissionCovariances: number[][][] = emissionMeans.map(() =>
+    Array.from({ length: 4 }, (_, i) =>
+      Array.from({ length: 4 }, (__, j) => (i === j ? 0.8 : 0)),
+    ),
+  );
 
-  const emissionCovariances: number[][][] = baseCovDiag.map(diag => {
-    const cov: number[][] = Array.from({ length: 4 }, (_, i) =>
-      Array.from({ length: 4 }, (__, j) => (i === j ? diag[i] * volScale * volScale : 0)),
-    );
-    return cov;
-  });
-
-  // Transition matrix: regime persistence on diagonal, gradual transitions off-diagonal
+  // Sticky regimes: 0.95 self-transition, 0.025 to each other state
   const transitionMatrix: number[][] = [
-    [0.70, 0.20, 0.05, 0.03, 0.02], // crash tends to stay or move to bear
-    [0.10, 0.60, 0.20, 0.08, 0.02], // bear
-    [0.02, 0.10, 0.70, 0.15, 0.03], // neutral
-    [0.02, 0.05, 0.15, 0.65, 0.13], // bull
-    [0.03, 0.05, 0.07, 0.20, 0.65], // euphoria
+    [0.95, 0.025, 0.025],
+    [0.025, 0.95, 0.025],
+    [0.025, 0.025, 0.95],
   ];
 
   return {
-    n_states: 5,
-    state_labels: stateLabels,
+    n_states: 3,
+    state_labels: { '0': 'trend', '1': 'volatile', '2': 'range' },
     transition_matrix: transitionMatrix,
     emission_means: emissionMeans,
     emission_covariances: emissionCovariances,
-    feature_names: ['rollingVol20d', 'returns5d', 'returns20d', 'volumeZScore'],
+    feature_names: [...REGIME_FEATURE_NAMES],
+    feature_means: featureMeans,
+    feature_stds: featureStds,
     asset_class: assetClass,
-    trained_at: new Date().toISOString(),
+    // Deterministic marker — this model is code, not a training artifact
+    trained_at: 'builtin-fallback',
+    initial_probs: [1 / 3, 1 / 3, 1 / 3],
   };
-}
-
-// ─── Feature Computation ─────────────────────────────────────────────────────
-
-export interface PriceBar {
-  close: number;
-  volume: number;
-  timestamp: number;
-}
-
-/**
- * Compute the 4 regime features from a price history array.
- * Requires at least 21 bars (20-day rolling window + 1 for returns).
- * The array should be sorted oldest-first.
- */
-export function computeFeatures(priceHistory: PriceBar[]): RegimeFeatures {
-  const n = priceHistory.length;
-  if (n < 21) {
-    throw new Error(`Need at least 21 price bars, got ${n}`);
-  }
-
-  const closes = priceHistory.map(b => b.close);
-
-  if (closes.some(c => c <= 0 || !isFinite(c))) {
-    throw new Error('Price history contains non-positive or non-finite close prices');
-  }
-  const volumes = priceHistory.map(b => b.volume);
-
-  // Log returns
-  const logReturns: number[] = [];
-  for (let i = 1; i < n; i++) {
-    logReturns.push(Math.log(closes[i] / closes[i - 1]));
-  }
-
-  // 20-day rolling volatility (std of log returns over last 20 periods)
-  const last20Returns = logReturns.slice(-20);
-  const meanRet = last20Returns.reduce((a, b) => a + b, 0) / 20;
-  let variance = 0;
-  for (const r of last20Returns) {
-    variance += (r - meanRet) ** 2;
-  }
-  variance /= 19; // sample variance
-  const rollingVol20d = Math.sqrt(variance);
-
-  // 5-day cumulative return
-  const returns5d = closes[n - 1] / closes[n - 6] - 1;
-
-  // 20-day cumulative return
-  const returns20d = closes[n - 1] / closes[n - 21] - 1;
-
-  // Volume z-score: (current volume - mean) / std over last 20 bars
-  const last20Vol = volumes.slice(-20);
-  const meanVol = last20Vol.reduce((a, b) => a + b, 0) / 20;
-  let volVar = 0;
-  for (const v of last20Vol) {
-    volVar += (v - meanVol) ** 2;
-  }
-  volVar /= 19;
-  const stdVol = Math.sqrt(volVar);
-  const volumeZScore = stdVol > 0 ? (volumes[n - 1] - meanVol) / stdVol : 0;
-
-  return { rollingVol20d, returns5d, returns20d, volumeZScore };
 }
 
 // ─── Classifier ──────────────────────────────────────────────────────────────
 
+function emptyRegimeRecord(): Record<MarketRegime, number> {
+  return { trend: 0, volatile: 0, range: 0 };
+}
+
 /**
- * Classify the current market regime for a given symbol.
+ * Classify the current market regime for a given symbol from full OHLCV
+ * bars (oldest first).
  *
- * Accepts at least 21 bars of price history (oldest first).
- * Returns the most probable regime, confidence, full probability
- * distribution, and one-step transition probabilities.
+ * Pipeline: structural feature series → trailing up-to-`sequenceLength`
+ * non-null vectors → standardize with the model's train-window params →
+ * Viterbi decode for the state path (T>1 smoothing) → label from the final
+ * Viterbi state → confidence from the forward-algorithm posterior of that
+ * state at the final time step.
+ *
+ * Throws when fewer than 8 feature vectors are available (warmup with
+ * default feature options consumes the first 43 bars).
  */
 export function classifyRegime(
   symbol: string,
-  priceHistory: PriceBar[],
+  bars: RegimeBar[],
+  options: { sequenceLength?: number } = {},
 ): RegimeClassification {
+  // Clamp up to the minimum: a small sequenceLength with ample data must
+  // shrink the smoothing window, not trigger the insufficient-data throw.
+  const sequenceLength = Math.max(
+    options.sequenceLength ?? DEFAULT_SEQUENCE_LENGTH,
+    MIN_SEQUENCE_VECTORS,
+  );
   const assetClass = getSymbolCategory(symbol);
   const model = loadModel(assetClass);
-  const features = computeFeatures(priceHistory);
 
-  // Build observation vector in feature order
-  const obs: number[][] = [
-    [features.rollingVol20d, features.returns5d, features.returns20d, features.volumeZScore],
-  ];
-
-  // Run forward algorithm to get posterior probabilities
-  const posteriors = forwardAlgorithm(obs, model);
-  const probs = posteriors[posteriors.length - 1];
-
-  // Also run Viterbi for the MAP state (consistent with forward for T=1)
-  const viterbiPath = viterbiDecode(obs, model);
-  const bestState = viterbiPath[viterbiPath.length - 1];
-
-  const regime = model.state_labels[String(bestState)];
-  if (!regime || !VALID_REGIMES.has(regime)) {
-    throw new Error(`No valid regime label for state index ${bestState}`);
+  const series = computeRegimeFeatureSeries(bars);
+  const vectors: RegimeFeatureVector[] = [];
+  for (const v of series) {
+    if (v !== null) vectors.push(v);
   }
-  const confidence = probs[bestState];
+  const window = vectors.slice(-sequenceLength);
+  if (window.length < MIN_SEQUENCE_VECTORS) {
+    throw new Error(
+      `insufficient data for regime classification: need >= ${MIN_SEQUENCE_VECTORS} feature vectors`,
+    );
+  }
 
-  // Build probability record
-  const allProbabilities: Record<MarketRegime, number> = {
-    crash: 0,
-    bear: 0,
-    neutral: 0,
-    bull: 0,
-    euphoria: 0,
-  };
+  // Standardize each observation with the model's stored parameters
+  const observations: number[][] = window.map((v) => {
+    const raw = featureVectorToArray(v);
+    return raw.map((x, i) => (x - model.feature_means[i]) / model.feature_stds[i]);
+  });
+
+  // Most-likely state path over the whole window; the final state is the call
+  const statePath = viterbiDecode(observations, model);
+  const finalState = statePath[statePath.length - 1];
+
+  const regime = model.state_labels[String(finalState)];
+  if (!regime || !VALID_REGIMES.has(regime)) {
+    throw new Error(`No valid regime label for state index ${finalState}`);
+  }
+
+  // Forward-algorithm posterior at the final time step → confidence
+  const posteriors = forwardAlgorithm(observations, model);
+  const probs = posteriors[posteriors.length - 1];
+  const confidence = probs[finalState];
+
+  // Posterior over labels at the final time step
+  const allProbabilities = emptyRegimeRecord();
   const seenProbLabels = new Set<string>();
   for (let i = 0; i < model.n_states; i++) {
     const label = model.state_labels[String(i)];
@@ -335,15 +373,9 @@ export function classifyRegime(
     allProbabilities[label] = probs[i];
   }
 
-  // One-step transition probabilities from current regime
-  const transitionProbs: Record<MarketRegime, number> = {
-    crash: 0,
-    bear: 0,
-    neutral: 0,
-    bull: 0,
-    euphoria: 0,
-  };
-  const transRow = model.transition_matrix[bestState];
+  // One-step transition probabilities from the current regime
+  const transitionProbs = emptyRegimeRecord();
+  const transRow = model.transition_matrix[finalState];
   for (let j = 0; j < model.n_states; j++) {
     const label = model.state_labels[String(j)];
     transitionProbs[label] = transRow[j];
@@ -354,7 +386,7 @@ export function classifyRegime(
     confidence,
     allProbabilities,
     transitionProbs,
-    features,
+    features: window[window.length - 1],
     timestamp: new Date().toISOString(),
   };
 }

@@ -158,6 +158,13 @@ const BUY_CONFIDENCE_THRESHOLD = 70;
 const TIMEFRAMES = ['ALL', 'M5', 'M15', 'H1', 'H4', 'D1'];
 
 
+// US mega-caps + index ETFs (issue #42). Symbols mirror apps/web/app/lib/symbol-config.ts.
+const STOCK_SYMBOLS = [
+  'NVDAUSD', 'TSLAUSD', 'AAPLUSD', 'MSFTUSD', 'GOOGLUSD', 'AMZNUSD', 'METAUSD',
+  'SPYUSD', 'QQQUSD', 'AMDUSD', 'JPMUSD', 'JNJUSD', 'VUSD', 'WMTUSD', 'PGUSD',
+  'UNHUSD', 'HDUSD', 'BACUSD', 'MAUSD', 'XOMUSD',
+];
+
 const ASSET_CLASSES = {
   ALL: [
     'XAUUSD', 'XAGUSD',
@@ -167,6 +174,7 @@ const ASSET_CLASSES = {
     'OPUSD', 'FILUSD', 'INJUSD', 'SUIUSD', 'SEIUSD', 'TIAUSD',
     'RENDERUSD', 'FETUSD', 'AAVEUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
     'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF',
+    ...STOCK_SYMBOLS,
   ],
   CRYPTO: [
     'BTCUSD', 'ETHUSD', 'SOLUSD', 'DOGEUSD', 'BNBUSD', 'XRPUSD',
@@ -177,6 +185,7 @@ const ASSET_CLASSES = {
   ],
   FOREX: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF'],
   METALS: ['XAUUSD', 'XAGUSD'],
+  STOCKS: STOCK_SYMBOLS,
 };
 
 type AssetClass = keyof typeof ASSET_CLASSES;
@@ -1375,9 +1384,17 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                 <p className="text-[var(--text-secondary)] text-xs mb-4">
                   Auto-retrying every 15s. Signals appear when the market is active and setups meet the quality threshold.
                 </p>
-                <button onClick={fetchSignals} className="px-4 py-2 rounded-xl text-xs border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/10 transition-all duration-200 font-mono">
-                  Retry now
-                </button>
+                <div className="flex items-center justify-center gap-2">
+                  <button onClick={fetchSignals} className="px-4 py-2 rounded-xl text-xs border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/10 transition-all duration-200 font-mono">
+                    Retry now
+                  </button>
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('tc:start-tour'))}
+                    className="px-4 py-2 rounded-xl text-xs border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-all duration-200 font-mono"
+                  >
+                    Take the tour
+                  </button>
+                </div>
               </div>
             );
           }

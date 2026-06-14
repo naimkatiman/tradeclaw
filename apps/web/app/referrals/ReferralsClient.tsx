@@ -45,6 +45,9 @@ export function ReferralsClient() {
 
   useEffect(() => {
     if (status === 'anonymous') {
+      // Session status resolves client-side after mount; clearing the loading
+      // flag here is the intended response to that async transition.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }

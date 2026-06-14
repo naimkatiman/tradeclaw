@@ -5,6 +5,7 @@
 import { CircuitBreakerEngine } from '../circuit-breaker.js';
 import { DEFAULT_BREAKERS, getBreakersForRegime } from '../breaker-config.js';
 import type { BreakerConfig, RiskMetrics } from '../types.js';
+import type { MarketRegime } from '../../regime/types.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -339,46 +340,46 @@ describe('CircuitBreakerEngine', () => {
   // ─── Regime-Adaptive Breakers ──────────────────────────────────────
 
   describe('getBreakersForRegime()', () => {
-    it('bull regime has wider thresholds than default', () => {
-      const bullBreakers = getBreakersForRegime('bull');
-      const dailyDD = bullBreakers.find((b) => b.type === 'daily_drawdown')!;
-      const maxDD = bullBreakers.find((b) => b.type === 'max_drawdown')!;
+    it('trend regime has wider thresholds than default', () => {
+      const trendBreakers = getBreakersForRegime('trend');
+      const dailyDD = trendBreakers.find((b) => b.type === 'daily_drawdown')!;
+      const maxDD = trendBreakers.find((b) => b.type === 'max_drawdown')!;
 
       expect(dailyDD.threshold).toBe(6); // vs default 3
       expect(maxDD.threshold).toBe(25); // vs default 15
     });
 
-    it('crash regime has tighter thresholds than default', () => {
-      const crashBreakers = getBreakersForRegime('crash');
-      const dailyDD = crashBreakers.find((b) => b.type === 'daily_drawdown')!;
-      const maxDD = crashBreakers.find((b) => b.type === 'max_drawdown')!;
+    it('volatile regime has tighter thresholds than default', () => {
+      const volatileBreakers = getBreakersForRegime('volatile');
+      const dailyDD = volatileBreakers.find((b) => b.type === 'daily_drawdown')!;
+      const maxDD = volatileBreakers.find((b) => b.type === 'max_drawdown')!;
 
       expect(dailyDD.threshold).toBe(2); // vs default 3
       expect(maxDD.threshold).toBe(10); // vs default 15
     });
 
-    it('bull breakers allow 4% daily loss without tripping', () => {
-      const bullBreakers = getBreakersForRegime('bull');
-      const engine = new CircuitBreakerEngine(bullBreakers);
+    it('trend breakers allow 4% daily loss without tripping', () => {
+      const trendBreakers = getBreakersForRegime('trend');
+      const engine = new CircuitBreakerEngine(trendBreakers);
 
-      // 4% daily loss — trips default (3%) but NOT bull (6%)
+      // 4% daily loss — trips default (3%) but NOT trend (6%)
       const risk = engine.evaluate(makeMetrics({ dailyPnlPct: -4 }));
       expect(risk.canTrade).toBe(true);
     });
 
-    it('bull breakers still trip at 6% daily loss', () => {
-      const bullBreakers = getBreakersForRegime('bull');
-      const engine = new CircuitBreakerEngine(bullBreakers);
+    it('trend breakers still trip at 6% daily loss', () => {
+      const trendBreakers = getBreakersForRegime('trend');
+      const engine = new CircuitBreakerEngine(trendBreakers);
 
       const risk = engine.evaluate(makeMetrics({ dailyPnlPct: -6 }));
       expect(risk.canTrade).toBe(false);
     });
 
-    it('correlation limit is 5 in bull regime', () => {
-      const bullBreakers = getBreakersForRegime('bull');
-      const engine = new CircuitBreakerEngine(bullBreakers);
+    it('correlation limit is 5 in trend regime', () => {
+      const trendBreakers = getBreakersForRegime('trend');
+      const engine = new CircuitBreakerEngine(trendBreakers);
 
-      // 4 correlated crypto BUYs — trips default (3) but NOT bull (5)
+      // 4 correlated crypto BUYs — trips default (3) but NOT trend (5)
       const risk = engine.evaluate(
         makeMetrics({
           openPositions: [
@@ -391,21 +392,32 @@ describe('CircuitBreakerEngine', () => {
       );
       expect(risk.canTrade).toBe(true);
     });
+
+    it('falls back to range thresholds for unknown regime labels without throwing', () => {
+      const unknownBreakers = getBreakersForRegime('mystery' as MarketRegime);
+      const rangeBreakers = getBreakersForRegime('range');
+
+      expect(unknownBreakers).toEqual(rangeBreakers);
+      const dailyDD = unknownBreakers.find((b) => b.type === 'daily_drawdown')!;
+      const maxDD = unknownBreakers.find((b) => b.type === 'max_drawdown')!;
+      expect(dailyDD.threshold).toBe(4);
+      expect(maxDD.threshold).toBe(18);
+    });
   });
 
   describe('evaluateForRegime()', () => {
     it('uses regime-specific thresholds', () => {
-      // 4% daily loss trips default but not bull
+      // 4% daily loss trips default but not trend
       const defaultRisk = new CircuitBreakerEngine().evaluate(
         makeMetrics({ dailyPnlPct: -4 }),
       );
-      const bullRisk = CircuitBreakerEngine.evaluateForRegime(
+      const trendRisk = CircuitBreakerEngine.evaluateForRegime(
         makeMetrics({ dailyPnlPct: -4 }),
-        'bull',
+        'trend',
       );
 
       expect(defaultRisk.canTrade).toBe(false);
-      expect(bullRisk.canTrade).toBe(true);
+      expect(trendRisk.canTrade).toBe(true);
     });
   });
 });

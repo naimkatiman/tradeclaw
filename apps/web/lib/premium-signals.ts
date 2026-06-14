@@ -144,7 +144,10 @@ function rowToSignal(r: Row): TradingSignal {
     entry: parseFloat(r.entry),
     stopLoss: r.stop_loss ? parseFloat(r.stop_loss) : 0,
     takeProfit1: r.take_profit_1 ? parseFloat(r.take_profit_1) : 0,
-    timestamp: new Date(r.signal_ts).getTime(),
+    // Contract: TradingSignal.timestamp is an ISO string. Emitting an epoch number here
+    // (masked by the cast below) made Date.parse(signal.timestamp) return NaN in consumers
+    // (explain flip-detection, signal-history emission time). Honor the string contract.
+    timestamp: new Date(r.signal_ts).toISOString(),
     source: 'real',
     dataQuality: 'real',
     signalSource: 'premium',

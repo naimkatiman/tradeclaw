@@ -170,12 +170,26 @@ async function persistSnapshot(
  */
 export async function getTodayUniverse(): Promise<string[]> {
   try {
-    const rows = await query<{ symbol: string }>(
-      `SELECT symbol FROM universe_snapshots
+    const rows = await query<{ symbol: string; snapshot_date: string }>(
+      `SELECT symbol, snapshot_date::text AS snapshot_date FROM universe_snapshots
        WHERE snapshot_date = (SELECT MAX(snapshot_date) FROM universe_snapshots)
          AND included = TRUE`,
     );
-    if (rows.length > 0) return rows.map((r) => r.symbol);
+    if (rows.length > 0) {
+      // Freshness gate: a stale snapshot means the screener has not run recently.
+      // Trading off a days-old universe risks symbols that no longer qualify, so
+      // fall back to the conservative env list + warn rather than trust it.
+      const STALE_AFTER_DAYS = 2;
+      const freshest = Date.parse(`${rows[0].snapshot_date}T00:00:00Z`);
+      const ageDays = (Date.now() - freshest) / 86_400_000;
+      if (Number.isFinite(freshest) && ageDays > STALE_AFTER_DAYS) {
+        console.warn(
+          `[universe] freshest snapshot (${rows[0].snapshot_date}) is ${ageDays.toFixed(1)}d old (> ${STALE_AFTER_DAYS}d) — using env fallback symbols. Run the universe screener.`,
+        );
+        return getFallbackSymbols();
+      }
+      return rows.map((r) => r.symbol);
+    }
   } catch (err: unknown) {
     const code = (err as { code?: string } | null)?.code;
     if (code !== '42P01') throw err;

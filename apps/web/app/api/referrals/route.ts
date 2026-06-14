@@ -3,9 +3,12 @@ import { readSessionFromRequest } from '../../../lib/user-session';
 import {
   getReferralRevenueForReferrer,
   getReferredUsersCount,
+  getUserById,
 } from '../../../lib/db';
 
 export const runtime = 'nodejs';
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
 
 /**
  * GET /api/referrals
@@ -31,14 +34,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [revenue, referredCount] = await Promise.all([
+    const [revenue, referredCount, user] = await Promise.all([
       getReferralRevenueForReferrer(session.userId),
       getReferredUsersCount(session.userId),
+      getUserById(session.userId),
     ]);
 
-    const referralCode = session.referralCode ?? null;
+    const referralCode = user?.referralCode ?? null;
     const referralLink = referralCode
-      ? `https://tradeclaw.win/pricing?ref=${referralCode}`
+      ? `${BASE_URL}/pricing?ref=${referralCode}`
       : null;
 
     return NextResponse.json({

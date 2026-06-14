@@ -15,6 +15,11 @@ const IGNORED_CONSOLE_PATTERNS = [
   // Rate-limit noise from parallel test traffic — not a page-load defect.
   '429',
   'too many requests',
+  // Benign CSP report-only diagnostics — frame-ancestors is ignored in
+  // report-only mode and there's no report-to endpoint. Enforced CSP
+  // violations are NOT report-only, so they still fail the test.
+  'report-only',
+  'frame-ancestors',
 ];
 
 function isIgnoredConsoleMessage(text: string): boolean {

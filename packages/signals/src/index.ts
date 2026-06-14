@@ -58,7 +58,7 @@ export type {
 // ─── Regime Classifier ───────────────────────────────
 export {
   classifyRegime,
-  computeFeatures,
+  applyHysteresis,
   loadModel,
   getDefaultModel,
   setModel,
@@ -69,10 +69,20 @@ export {
 export type {
   MarketRegime,
   RegimeClassification,
-  RegimeFeatures,
   HMMModelParams,
-  PriceBar,
+  HysteresisState,
+  HysteresisOptions,
 } from './regime/index.js';
+export {
+  computeRegimeFeatureSeries,
+  featureVectorToArray,
+  REGIME_FEATURE_NAMES,
+} from './regime/features.js';
+export type {
+  RegimeBar,
+  RegimeFeatureVector,
+  RegimeFeatureOptions,
+} from './regime/features.js';
 
 // ─── Dynamic Allocation ─────────────────────────────
 export {

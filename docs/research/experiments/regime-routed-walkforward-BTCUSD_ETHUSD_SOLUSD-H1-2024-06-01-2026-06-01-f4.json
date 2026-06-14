@@ -1,0 +1,1671 @@
+{
+  "meta": {
+    "runAt": "2026-06-11T15:48:31.140Z"
+  },
+  "spec": {
+    "symbols": [
+      "BTCUSD",
+      "ETHUSD",
+      "SOLUSD"
+    ],
+    "timeframe": "H1",
+    "from": "2024-06-01",
+    "to": "2026-06-01",
+    "geometry": "live-atr14x2.5-tp2R",
+    "costs": {
+      "feePctPerSide": 0.05,
+      "slippagePctPerSide": 0.15,
+      "fundingPctPer8h": 0.01
+    },
+    "folds": 4,
+    "entries": [
+      "classic",
+      "vwap-ema-bb"
+    ],
+    "routedDiagonal": [
+      {
+        "route": "trend",
+        "entry": "classic",
+        "regime": "trend",
+        "note": "classic momentum + C2 trend filter (EMA-50 slope + ADX≥20)"
+      },
+      {
+        "route": "volatile",
+        "entry": "vwap-ema-bb",
+        "regime": "volatile",
+        "note": "mean reversion both directions"
+      },
+      {
+        "route": "range",
+        "entry": "vwap-ema-bb",
+        "regime": "range",
+        "note": "band-edge fade"
+      }
+    ],
+    "regimeConditionWindow": 329,
+    "perSymbolWindow": {
+      "BTCUSD": {
+        "candleCount": 17277,
+        "firstBar": "2024-06-11T04:00:00.000Z",
+        "lastBar": "2026-06-01T00:00:00.000Z"
+      },
+      "ETHUSD": {
+        "candleCount": 17277,
+        "firstBar": "2024-06-11T04:00:00.000Z",
+        "lastBar": "2026-06-01T00:00:00.000Z"
+      },
+      "SOLUSD": {
+        "candleCount": 17277,
+        "firstBar": "2024-06-11T04:00:00.000Z",
+        "lastBar": "2026-06-01T00:00:00.000Z"
+      }
+    },
+    "hmmModels": {
+      "crypto_hmm.json": "3a258e86f3a406f7"
+    },
+    "caveats": [
+      "folds are contiguous sub-periods (stability inspection, not walk-forward optimization); the routed entries have NO fitted parameters, so this is per-regime stability, not in-sample/out-of-sample tuning",
+      "per-fold warmup restarts at the fold boundary: the classifier needs ~329 trailing bars (REGIME_CONDITION_WINDOW) and the entry indicators need their own warmup, so early-fold bars are dropped (conservative) — short folds therefore carry fewer trades per regime than the full range",
+      "THIN CELLS: any (symbol, route, regime) cell with few trades (<30 flagged ⚠) makes the gate unreliable for that cell — sample size is reported per cell so this is visible, not hidden",
+      "the regime classifier runs over a BOUNDED trailing window per signal bar (329 bars), conditioning is EXCLUSIVE (a bar whose regime cannot be confirmed === target is DROPPED), so a regime bucket only ever holds bars provably in that regime",
+      "cost model = crypto perp (fee 0.05%/side + slippage 0.15%/side + funding 0.01%/8h); funding is a sign-agnostic upper bound, so a directional carry could be cheaper than modeled (costs here are conservative, not optimistic)",
+      "expectancy is per-trade FRACTIONAL and position-size-NEUTRAL (mean pnlPct, not notional) — it isolates the entry edge regardless of allocation; it is NOT a compounded return",
+      "the trend route applies the C2 trend filter (EMA-50 slope agrees + ADX≥20) on top of the regime match; volatile/range routes do not — so classic@trend trade counts are strictly ≤ the unfiltered classic-on-trend-bars count"
+    ]
+  },
+  "results": {
+    "BTCUSD": {
+      "full": {
+        "byEntry": [
+          {
+            "entry": "classic",
+            "byRegime": {
+              "trend": {
+                "regime": "trend",
+                "trades": 142,
+                "winRate": 0.3662,
+                "expectancy": -0.004518,
+                "profitFactor": 0.774,
+                "withinRegimeDrawdown": 0.0885
+              },
+              "volatile": {
+                "regime": "volatile",
+                "trades": 308,
+                "winRate": 0.3864,
+                "expectancy": -0.001306,
+                "profitFactor": 0.907,
+                "withinRegimeDrawdown": 0.087
+              },
+              "range": {
+                "regime": "range",
+                "trades": 279,
+                "winRate": 0.3763,
+                "expectancy": -0.001462,
+                "profitFactor": 0.879,
+                "withinRegimeDrawdown": 0.0595
+              }
+            }
+          },
+          {
+            "entry": "vwap-ema-bb",
+            "byRegime": {
+              "trend": {
+                "regime": "trend",
+                "trades": 4,
+                "winRate": 0,
+                "expectancy": -0.023618,
+                "profitFactor": 0,
+                "withinRegimeDrawdown": 0.0094
+              },
+              "volatile": {
+                "regime": "volatile",
+                "trades": 10,
+                "winRate": 0.4,
+                "expectancy": 0.003059,
+                "profitFactor": 1.273,
+                "withinRegimeDrawdown": 0.0056
+              },
+              "range": {
+                "regime": "range",
+                "trades": 36,
+                "winRate": 0.3056,
+                "expectancy": -0.005891,
+                "profitFactor": 0.522,
+                "withinRegimeDrawdown": 0.0255
+              }
+            }
+          }
+        ]
+      },
+      "routedDiagonalFull": [
+        {
+          "route": "trend",
+          "entry": "classic",
+          "regime": "trend",
+          "cell": {
+            "regime": "trend",
+            "trades": 142,
+            "winRate": 0.3662,
+            "expectancy": -0.004518,
+            "profitFactor": 0.774,
+            "withinRegimeDrawdown": 0.0885
+          }
+        },
+        {
+          "route": "volatile",
+          "entry": "vwap-ema-bb",
+          "regime": "volatile",
+          "cell": {
+            "regime": "volatile",
+            "trades": 10,
+            "winRate": 0.4,
+            "expectancy": 0.003059,
+            "profitFactor": 1.273,
+            "withinRegimeDrawdown": 0.0056
+          }
+        },
+        {
+          "route": "range",
+          "entry": "vwap-ema-bb",
+          "regime": "range",
+          "cell": {
+            "regime": "range",
+            "trades": 36,
+            "winRate": 0.3056,
+            "expectancy": -0.005891,
+            "profitFactor": 0.522,
+            "withinRegimeDrawdown": 0.0255
+          }
+        }
+      ],
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2024-06-11",
+          "to": "2024-12-08",
+          "byEntry": [
+            {
+              "entry": "classic",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 40,
+                  "winRate": 0.45,
+                  "expectancy": 0.000278,
+                  "profitFactor": 1.014,
+                  "withinRegimeDrawdown": 0.0333
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 75,
+                  "winRate": 0.4133,
+                  "expectancy": 0.000919,
+                  "profitFactor": 1.065,
+                  "withinRegimeDrawdown": 0.0304
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 70,
+                  "winRate": 0.4,
+                  "expectancy": -0.00083,
+                  "profitFactor": 0.931,
+                  "withinRegimeDrawdown": 0.0173
+                }
+              }
+            },
+            {
+              "entry": "vwap-ema-bb",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 1,
+                  "winRate": 0,
+                  "expectancy": -0.027255,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.0027
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 3,
+                  "winRate": 0.3333,
+                  "expectancy": -0.000198,
+                  "profitFactor": 0.986,
+                  "withinRegimeDrawdown": 0.0043
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 3,
+                  "winRate": 0,
+                  "expectancy": -0.025337,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.0076
+                }
+              }
+            }
+          ],
+          "routedDiagonal": [
+            {
+              "route": "trend",
+              "entry": "classic",
+              "regime": "trend",
+              "cell": {
+                "regime": "trend",
+                "trades": 40,
+                "winRate": 0.45,
+                "expectancy": 0.000278,
+                "profitFactor": 1.014,
+                "withinRegimeDrawdown": 0.0333
+              }
+            },
+            {
+              "route": "volatile",
+              "entry": "vwap-ema-bb",
+              "regime": "volatile",
+              "cell": {
+                "regime": "volatile",
+                "trades": 3,
+                "winRate": 0.3333,
+                "expectancy": -0.000198,
+                "profitFactor": 0.986,
+                "withinRegimeDrawdown": 0.0043
+              }
+            },
+            {
+              "route": "range",
+              "entry": "vwap-ema-bb",
+              "regime": "range",
+              "cell": {
+                "regime": "range",
+                "trades": 3,
+                "winRate": 0,
+                "expectancy": -0.025337,
+                "profitFactor": 0,
+                "withinRegimeDrawdown": 0.0076
+              }
+            }
+          ]
+        },
+        {
+          "label": "fold2",
+          "from": "2024-12-08",
+          "to": "2025-06-06",
+          "byEntry": [
+            {
+              "entry": "classic",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 33,
+                  "winRate": 0.3333,
+                  "expectancy": -0.00836,
+                  "profitFactor": 0.653,
+                  "withinRegimeDrawdown": 0.0413
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 71,
+                  "winRate": 0.4366,
+                  "expectancy": 0.002638,
+                  "profitFactor": 1.197,
+                  "withinRegimeDrawdown": 0.0184
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 61,
+                  "winRate": 0.3607,
+                  "expectancy": -0.000342,
+                  "profitFactor": 0.972,
+                  "withinRegimeDrawdown": 0.0274
+                }
+              }
+            },
+            {
+              "entry": "vwap-ema-bb",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 1,
+                  "winRate": 0,
+                  "expectancy": -0.023725,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.0024
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 2,
+                  "winRate": 0.5,
+                  "expectancy": 0.031101,
+                  "profitFactor": 5.83,
+                  "withinRegimeDrawdown": 0.0013
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 10,
+                  "winRate": 0.3,
+                  "expectancy": -0.006174,
+                  "profitFactor": 0.552,
+                  "withinRegimeDrawdown": 0.0101
+                }
+              }
+            }
+          ],
+          "routedDiagonal": [
+            {
+              "route": "trend",
+              "entry": "classic",
+              "regime": "trend",
+              "cell": {
+                "regime": "trend",
+                "trades": 33,
+                "winRate": 0.3333,
+                "expectancy": -0.00836,
+                "profitFactor": 0.653,
+                "withinRegimeDrawdown": 0.0413
+              }
+            },
+            {
+              "route": "volatile",
+              "entry": "vwap-ema-bb",
+              "regime": "volatile",
+              "cell": {
+                "regime": "volatile",
+                "trades": 2,
+                "winRate": 0.5,
+                "expectancy": 0.031101,
+                "profitFactor": 5.83,
+                "withinRegimeDrawdown": 0.0013
+              }
+            },
+            {
+              "route": "range",
+              "entry": "vwap-ema-bb",
+              "regime": "range",
+              "cell": {
+                "regime": "range",
+                "trades": 10,
+                "winRate": 0.3,
+                "expectancy": -0.006174,
+                "profitFactor": 0.552,
+                "withinRegimeDrawdown": 0.0101
+              }
+            }
+          ]
+        },
+        {
+          "label": "fold3",
+          "from": "2025-06-06",
+          "to": "2025-12-03",
+          "byEntry": [
+            {
+              "entry": "classic",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 30,
+                  "winRate": 0.4333,
+                  "expectancy": 0.001903,
+                  "profitFactor": 1.136,
+                  "withinRegimeDrawdown": 0.0172
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 77,
+                  "winRate": 0.4545,
+                  "expectancy": 0.002175,
+                  "profitFactor": 1.204,
+                  "withinRegimeDrawdown": 0.0134
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 77,
+                  "winRate": 0.4286,
+                  "expectancy": -0.000447,
+                  "profitFactor": 0.953,
+                  "withinRegimeDrawdown": 0.0149
+                }
+              }
+            },
+            {
+              "entry": "vwap-ema-bb",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 1,
+                  "winRate": 0,
+                  "expectancy": -0.018009,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.0018
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 3,
+                  "winRate": 0.6667,
+                  "expectancy": 0.002553,
+                  "profitFactor": 1.449,
+                  "withinRegimeDrawdown": 0.0017
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 9,
+                  "winRate": 0.2222,
+                  "expectancy": -0.005519,
+                  "profitFactor": 0.396,
+                  "withinRegimeDrawdown": 0.005
+                }
+              }
+            }
+          ],
+          "routedDiagonal": [
+            {
+              "route": "trend",
+              "entry": "classic",
+              "regime": "trend",
+              "cell": {
+                "regime": "trend",
+                "trades": 30,
+                "winRate": 0.4333,
+                "expectancy": 0.001903,
+                "profitFactor": 1.136,
+                "withinRegimeDrawdown": 0.0172
+              }
+            },
+            {
+              "route": "volatile",
+              "entry": "vwap-ema-bb",
+              "regime": "volatile",
+              "cell": {
+                "regime": "volatile",
+                "trades": 3,
+                "winRate": 0.6667,
+                "expectancy": 0.002553,
+                "profitFactor": 1.449,
+                "withinRegimeDrawdown": 0.0017
+              }
+            },
+            {
+              "route": "range",
+              "entry": "vwap-ema-bb",
+              "regime": "range",
+              "cell": {
+                "regime": "range",
+                "trades": 9,
+                "winRate": 0.2222,
+                "expectancy": -0.005519,
+                "profitFactor": 0.396,
+                "withinRegimeDrawdown": 0.005
+              }
+            }
+          ]
+        },
+        {
+          "label": "fold4",
+          "from": "2025-12-03",
+          "to": "2026-06-01",
+          "byEntry": [
+            {
+              "entry": "classic",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 38,
+                  "winRate": 0.2895,
+                  "expectancy": -0.009845,
+                  "profitFactor": 0.527,
+                  "withinRegimeDrawdown": 0.0411
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 86,
+                  "winRate": 0.2442,
+                  "expectancy": -0.010124,
+                  "profitFactor": 0.418,
+                  "withinRegimeDrawdown": 0.0845
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 67,
+                  "winRate": 0.2836,
+                  "expectancy": -0.004822,
+                  "profitFactor": 0.671,
+                  "withinRegimeDrawdown": 0.0416
+                }
+              }
+            },
+            {
+              "entry": "vwap-ema-bb",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 1,
+                  "winRate": 0,
+                  "expectancy": -0.025483,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.0025
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 2,
+                  "winRate": 0,
+                  "expectancy": -0.019339,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.0039
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 14,
+                  "winRate": 0.4286,
+                  "expectancy": -0.001762,
+                  "profitFactor": 0.833,
+                  "withinRegimeDrawdown": 0.007
+                }
+              }
+            }
+          ],
+          "routedDiagonal": [
+            {
+              "route": "trend",
+              "entry": "classic",
+              "regime": "trend",
+              "cell": {
+                "regime": "trend",
+                "trades": 38,
+                "winRate": 0.2895,
+                "expectancy": -0.009845,
+                "profitFactor": 0.527,
+                "withinRegimeDrawdown": 0.0411
+              }
+            },
+            {
+              "route": "volatile",
+              "entry": "vwap-ema-bb",
+              "regime": "volatile",
+              "cell": {
+                "regime": "volatile",
+                "trades": 2,
+                "winRate": 0,
+                "expectancy": -0.019339,
+                "profitFactor": 0,
+                "withinRegimeDrawdown": 0.0039
+              }
+            },
+            {
+              "route": "range",
+              "entry": "vwap-ema-bb",
+              "regime": "range",
+              "cell": {
+                "regime": "range",
+                "trades": 14,
+                "winRate": 0.4286,
+                "expectancy": -0.001762,
+                "profitFactor": 0.833,
+                "withinRegimeDrawdown": 0.007
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ETHUSD": {
+      "full": {
+        "byEntry": [
+          {
+            "entry": "classic",
+            "byRegime": {
+              "trend": {
+                "regime": "trend",
+                "trades": 152,
+                "winRate": 0.3158,
+                "expectancy": -0.006724,
+                "profitFactor": 0.754,
+                "withinRegimeDrawdown": 0.1098
+              },
+              "volatile": {
+                "regime": "volatile",
+                "trades": 343,
+                "winRate": 0.3528,
+                "expectancy": -0.003494,
+                "profitFactor": 0.82,
+                "withinRegimeDrawdown": 0.1515
+              },
+              "range": {
+                "regime": "range",
+                "trades": 258,
+                "winRate": 0.3101,
+                "expectancy": -0.006677,
+                "profitFactor": 0.621,
+                "withinRegimeDrawdown": 0.1735
+              }
+            }
+          },
+          {
+            "entry": "vwap-ema-bb",
+            "byRegime": {
+              "trend": {
+                "regime": "trend",
+                "trades": 7,
+                "winRate": 0.1429,
+                "expectancy": -0.020607,
+                "profitFactor": 0.254,
+                "withinRegimeDrawdown": 0.0192
+              },
+              "volatile": {
+                "regime": "volatile",
+                "trades": 13,
+                "winRate": 0.3846,
+                "expectancy": -0.005232,
+                "profitFactor": 0.74,
+                "withinRegimeDrawdown": 0.0142
+              },
+              "range": {
+                "regime": "range",
+                "trades": 17,
+                "winRate": 0.4706,
+                "expectancy": 0.002559,
+                "profitFactor": 1.19,
+                "withinRegimeDrawdown": 0.0067
+              }
+            }
+          }
+        ]
+      },
+      "routedDiagonalFull": [
+        {
+          "route": "trend",
+          "entry": "classic",
+          "regime": "trend",
+          "cell": {
+            "regime": "trend",
+            "trades": 152,
+            "winRate": 0.3158,
+            "expectancy": -0.006724,
+            "profitFactor": 0.754,
+            "withinRegimeDrawdown": 0.1098
+          }
+        },
+        {
+          "route": "volatile",
+          "entry": "vwap-ema-bb",
+          "regime": "volatile",
+          "cell": {
+            "regime": "volatile",
+            "trades": 13,
+            "winRate": 0.3846,
+            "expectancy": -0.005232,
+            "profitFactor": 0.74,
+            "withinRegimeDrawdown": 0.0142
+          }
+        },
+        {
+          "route": "range",
+          "entry": "vwap-ema-bb",
+          "regime": "range",
+          "cell": {
+            "regime": "range",
+            "trades": 17,
+            "winRate": 0.4706,
+            "expectancy": 0.002559,
+            "profitFactor": 1.19,
+            "withinRegimeDrawdown": 0.0067
+          }
+        }
+      ],
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2024-06-11",
+          "to": "2024-12-08",
+          "byEntry": [
+            {
+              "entry": "classic",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 36,
+                  "winRate": 0.3333,
+                  "expectancy": -0.010792,
+                  "profitFactor": 0.618,
+                  "withinRegimeDrawdown": 0.0524
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 91,
+                  "winRate": 0.3736,
+                  "expectancy": -0.00348,
+                  "profitFactor": 0.803,
+                  "withinRegimeDrawdown": 0.0606
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 64,
+                  "winRate": 0.3594,
+                  "expectancy": -0.003924,
+                  "profitFactor": 0.757,
+                  "withinRegimeDrawdown": 0.0402
+                }
+              }
+            },
+            {
+              "entry": "vwap-ema-bb",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 1,
+                  "winRate": 1,
+                  "expectancy": 0.049231,
+                  "profitFactor": "Infinity",
+                  "withinRegimeDrawdown": 0
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 1,
+                  "winRate": 1,
+                  "expectancy": 0.015779,
+                  "profitFactor": "Infinity",
+                  "withinRegimeDrawdown": 0
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 5,
+                  "winRate": 0.4,
+                  "expectancy": -0.00094,
+                  "profitFactor": 0.933,
+                  "withinRegimeDrawdown": 0.0043
+                }
+              }
+            }
+          ],
+          "routedDiagonal": [
+            {
+              "route": "trend",
+              "entry": "classic",
+              "regime": "trend",
+              "cell": {
+                "regime": "trend",
+                "trades": 36,
+                "winRate": 0.3333,
+                "expectancy": -0.010792,
+                "profitFactor": 0.618,
+                "withinRegimeDrawdown": 0.0524
+              }
+            },
+            {
+              "route": "volatile",
+              "entry": "vwap-ema-bb",
+              "regime": "volatile",
+              "cell": {
+                "regime": "volatile",
+                "trades": 1,
+                "winRate": 1,
+                "expectancy": 0.015779,
+                "profitFactor": "Infinity",
+                "withinRegimeDrawdown": 0
+              }
+            },
+            {
+              "route": "range",
+              "entry": "vwap-ema-bb",
+              "regime": "range",
+              "cell": {
+                "regime": "range",
+                "trades": 5,
+                "winRate": 0.4,
+                "expectancy": -0.00094,
+                "profitFactor": 0.933,
+                "withinRegimeDrawdown": 0.0043
+              }
+            }
+          ]
+        },
+        {
+          "label": "fold2",
+          "from": "2024-12-08",
+          "to": "2025-06-06",
+          "byEntry": [
+            {
+              "entry": "classic",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 30,
+                  "winRate": 0.1667,
+                  "expectancy": -0.020195,
+                  "profitFactor": 0.478,
+                  "withinRegimeDrawdown": 0.0748
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 73,
+                  "winRate": 0.3425,
+                  "expectancy": -0.003858,
+                  "profitFactor": 0.828,
+                  "withinRegimeDrawdown": 0.0441
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 57,
+                  "winRate": 0.3158,
+                  "expectancy": -0.006362,
+                  "profitFactor": 0.676,
+                  "withinRegimeDrawdown": 0.0547
+                }
+              }
+            },
+            {
+              "entry": "vwap-ema-bb",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 1,
+                  "winRate": 0,
+                  "expectancy": -0.060789,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.0061
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 4,
+                  "winRate": 0.25,
+                  "expectancy": -0.011947,
+                  "profitFactor": 0.539,
+                  "withinRegimeDrawdown": 0.0075
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 2,
+                  "winRate": 1,
+                  "expectancy": 0.046025,
+                  "profitFactor": "Infinity",
+                  "withinRegimeDrawdown": 0
+                }
+              }
+            }
+          ],
+          "routedDiagonal": [
+            {
+              "route": "trend",
+              "entry": "classic",
+              "regime": "trend",
+              "cell": {
+                "regime": "trend",
+                "trades": 30,
+                "winRate": 0.1667,
+                "expectancy": -0.020195,
+                "profitFactor": 0.478,
+                "withinRegimeDrawdown": 0.0748
+              }
+            },
+            {
+              "route": "volatile",
+              "entry": "vwap-ema-bb",
+              "regime": "volatile",
+              "cell": {
+                "regime": "volatile",
+                "trades": 4,
+                "winRate": 0.25,
+                "expectancy": -0.011947,
+                "profitFactor": 0.539,
+                "withinRegimeDrawdown": 0.0075
+              }
+            },
+            {
+              "route": "range",
+              "entry": "vwap-ema-bb",
+              "regime": "range",
+              "cell": {
+                "regime": "range",
+                "trades": 2,
+                "winRate": 1,
+                "expectancy": 0.046025,
+                "profitFactor": "Infinity",
+                "withinRegimeDrawdown": 0
+              }
+            }
+          ]
+        },
+        {
+          "label": "fold3",
+          "from": "2025-06-06",
+          "to": "2025-12-03",
+          "byEntry": [
+            {
+              "entry": "classic",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 36,
+                  "winRate": 0.5278,
+                  "expectancy": 0.015394,
+                  "profitFactor": 1.865,
+                  "withinRegimeDrawdown": 0.0189
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 89,
+                  "winRate": 0.3258,
+                  "expectancy": -0.003455,
+                  "profitFactor": 0.823,
+                  "withinRegimeDrawdown": 0.0437
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 58,
+                  "winRate": 0.3103,
+                  "expectancy": -0.006287,
+                  "profitFactor": 0.64,
+                  "withinRegimeDrawdown": 0.0435
+                }
+              }
+            },
+            {
+              "entry": "vwap-ema-bb",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 2,
+                  "winRate": 0,
+                  "expectancy": -0.022025,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.0044
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 1,
+                  "winRate": 1,
+                  "expectancy": 0.050855,
+                  "profitFactor": "Infinity",
+                  "withinRegimeDrawdown": 0
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 6,
+                  "winRate": 0.3333,
+                  "expectancy": -0.007714,
+                  "profitFactor": 0.582,
+                  "withinRegimeDrawdown": 0.0051
+                }
+              }
+            }
+          ],
+          "routedDiagonal": [
+            {
+              "route": "trend",
+              "entry": "classic",
+              "regime": "trend",
+              "cell": {
+                "regime": "trend",
+                "trades": 36,
+                "winRate": 0.5278,
+                "expectancy": 0.015394,
+                "profitFactor": 1.865,
+                "withinRegimeDrawdown": 0.0189
+              }
+            },
+            {
+              "route": "volatile",
+              "entry": "vwap-ema-bb",
+              "regime": "volatile",
+              "cell": {
+                "regime": "volatile",
+                "trades": 1,
+                "winRate": 1,
+                "expectancy": 0.050855,
+                "profitFactor": "Infinity",
+                "withinRegimeDrawdown": 0
+              }
+            },
+            {
+              "route": "range",
+              "entry": "vwap-ema-bb",
+              "regime": "range",
+              "cell": {
+                "regime": "range",
+                "trades": 6,
+                "winRate": 0.3333,
+                "expectancy": -0.007714,
+                "profitFactor": 0.582,
+                "withinRegimeDrawdown": 0.0051
+              }
+            }
+          ]
+        },
+        {
+          "label": "fold4",
+          "from": "2025-12-03",
+          "to": "2026-06-01",
+          "byEntry": [
+            {
+              "entry": "classic",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 48,
+                  "winRate": 0.25,
+                  "expectancy": -0.011616,
+                  "profitFactor": 0.555,
+                  "withinRegimeDrawdown": 0.0758
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 91,
+                  "winRate": 0.3407,
+                  "expectancy": -0.005314,
+                  "profitFactor": 0.722,
+                  "withinRegimeDrawdown": 0.0639
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 74,
+                  "winRate": 0.2568,
+                  "expectancy": -0.009646,
+                  "profitFactor": 0.448,
+                  "withinRegimeDrawdown": 0.0732
+                }
+              }
+            },
+            {
+              "entry": "vwap-ema-bb",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 2,
+                  "winRate": 0,
+                  "expectancy": -0.030129,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.006
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 7,
+                  "winRate": 0.2857,
+                  "expectancy": -0.012408,
+                  "profitFactor": 0.451,
+                  "withinRegimeDrawdown": 0.0142
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 4,
+                  "winRate": 0.5,
+                  "expectancy": 0.00061,
+                  "profitFactor": 1.051,
+                  "withinRegimeDrawdown": 0.0028
+                }
+              }
+            }
+          ],
+          "routedDiagonal": [
+            {
+              "route": "trend",
+              "entry": "classic",
+              "regime": "trend",
+              "cell": {
+                "regime": "trend",
+                "trades": 48,
+                "winRate": 0.25,
+                "expectancy": -0.011616,
+                "profitFactor": 0.555,
+                "withinRegimeDrawdown": 0.0758
+              }
+            },
+            {
+              "route": "volatile",
+              "entry": "vwap-ema-bb",
+              "regime": "volatile",
+              "cell": {
+                "regime": "volatile",
+                "trades": 7,
+                "winRate": 0.2857,
+                "expectancy": -0.012408,
+                "profitFactor": 0.451,
+                "withinRegimeDrawdown": 0.0142
+              }
+            },
+            {
+              "route": "range",
+              "entry": "vwap-ema-bb",
+              "regime": "range",
+              "cell": {
+                "regime": "range",
+                "trades": 4,
+                "winRate": 0.5,
+                "expectancy": 0.00061,
+                "profitFactor": 1.051,
+                "withinRegimeDrawdown": 0.0028
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "SOLUSD": {
+      "full": {
+        "byEntry": [
+          {
+            "entry": "classic",
+            "byRegime": {
+              "trend": {
+                "regime": "trend",
+                "trades": 203,
+                "winRate": 0.3645,
+                "expectancy": -0.0019,
+                "profitFactor": 0.935,
+                "withinRegimeDrawdown": 0.1069
+              },
+              "volatile": {
+                "regime": "volatile",
+                "trades": 365,
+                "winRate": 0.3178,
+                "expectancy": -0.004815,
+                "profitFactor": 0.787,
+                "withinRegimeDrawdown": 0.1683
+              },
+              "range": {
+                "regime": "range",
+                "trades": 234,
+                "winRate": 0.2906,
+                "expectancy": -0.007507,
+                "profitFactor": 0.625,
+                "withinRegimeDrawdown": 0.1671
+              }
+            }
+          },
+          {
+            "entry": "vwap-ema-bb",
+            "byRegime": {
+              "trend": {
+                "regime": "trend",
+                "trades": 3,
+                "winRate": 0.6667,
+                "expectancy": 0.050092,
+                "profitFactor": 5.99,
+                "withinRegimeDrawdown": 0.003
+              },
+              "volatile": {
+                "regime": "volatile",
+                "trades": 19,
+                "winRate": 0.1053,
+                "expectancy": -0.030842,
+                "profitFactor": 0.102,
+                "withinRegimeDrawdown": 0.0571
+              },
+              "range": {
+                "regime": "range",
+                "trades": 17,
+                "winRate": 0.5294,
+                "expectancy": 0.01347,
+                "profitFactor": 2.146,
+                "withinRegimeDrawdown": 0.0074
+              }
+            }
+          }
+        ]
+      },
+      "routedDiagonalFull": [
+        {
+          "route": "trend",
+          "entry": "classic",
+          "regime": "trend",
+          "cell": {
+            "regime": "trend",
+            "trades": 203,
+            "winRate": 0.3645,
+            "expectancy": -0.0019,
+            "profitFactor": 0.935,
+            "withinRegimeDrawdown": 0.1069
+          }
+        },
+        {
+          "route": "volatile",
+          "entry": "vwap-ema-bb",
+          "regime": "volatile",
+          "cell": {
+            "regime": "volatile",
+            "trades": 19,
+            "winRate": 0.1053,
+            "expectancy": -0.030842,
+            "profitFactor": 0.102,
+            "withinRegimeDrawdown": 0.0571
+          }
+        },
+        {
+          "route": "range",
+          "entry": "vwap-ema-bb",
+          "regime": "range",
+          "cell": {
+            "regime": "range",
+            "trades": 17,
+            "winRate": 0.5294,
+            "expectancy": 0.01347,
+            "profitFactor": 2.146,
+            "withinRegimeDrawdown": 0.0074
+          }
+        }
+      ],
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2024-06-11",
+          "to": "2024-12-08",
+          "byEntry": [
+            {
+              "entry": "classic",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 49,
+                  "winRate": 0.3878,
+                  "expectancy": 0.003101,
+                  "profitFactor": 1.106,
+                  "withinRegimeDrawdown": 0.0568
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 85,
+                  "winRate": 0.3412,
+                  "expectancy": -0.002515,
+                  "profitFactor": 0.889,
+                  "withinRegimeDrawdown": 0.0487
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 57,
+                  "winRate": 0.3333,
+                  "expectancy": -0.006579,
+                  "profitFactor": 0.683,
+                  "withinRegimeDrawdown": 0.0482
+                }
+              }
+            },
+            {
+              "entry": "vwap-ema-bb",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 1,
+                  "winRate": 1,
+                  "expectancy": 0.098139,
+                  "profitFactor": "Infinity",
+                  "withinRegimeDrawdown": 0
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 3,
+                  "winRate": 0,
+                  "expectancy": -0.040731,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.0122
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 4,
+                  "winRate": 1,
+                  "expectancy": 0.045163,
+                  "profitFactor": "Infinity",
+                  "withinRegimeDrawdown": 0
+                }
+              }
+            }
+          ],
+          "routedDiagonal": [
+            {
+              "route": "trend",
+              "entry": "classic",
+              "regime": "trend",
+              "cell": {
+                "regime": "trend",
+                "trades": 49,
+                "winRate": 0.3878,
+                "expectancy": 0.003101,
+                "profitFactor": 1.106,
+                "withinRegimeDrawdown": 0.0568
+              }
+            },
+            {
+              "route": "volatile",
+              "entry": "vwap-ema-bb",
+              "regime": "volatile",
+              "cell": {
+                "regime": "volatile",
+                "trades": 3,
+                "winRate": 0,
+                "expectancy": -0.040731,
+                "profitFactor": 0,
+                "withinRegimeDrawdown": 0.0122
+              }
+            },
+            {
+              "route": "range",
+              "entry": "vwap-ema-bb",
+              "regime": "range",
+              "cell": {
+                "regime": "range",
+                "trades": 4,
+                "winRate": 1,
+                "expectancy": 0.045163,
+                "profitFactor": "Infinity",
+                "withinRegimeDrawdown": 0
+              }
+            }
+          ]
+        },
+        {
+          "label": "fold2",
+          "from": "2024-12-08",
+          "to": "2025-06-06",
+          "byEntry": [
+            {
+              "entry": "classic",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 45,
+                  "winRate": 0.4,
+                  "expectancy": 0.002252,
+                  "profitFactor": 1.069,
+                  "withinRegimeDrawdown": 0.0433
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 84,
+                  "winRate": 0.2976,
+                  "expectancy": -0.007052,
+                  "profitFactor": 0.727,
+                  "withinRegimeDrawdown": 0.0734
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 44,
+                  "winRate": 0.2955,
+                  "expectancy": -0.007405,
+                  "profitFactor": 0.649,
+                  "withinRegimeDrawdown": 0.0341
+                }
+              }
+            },
+            {
+              "entry": "vwap-ema-bb",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 1,
+                  "winRate": 1,
+                  "expectancy": 0.082254,
+                  "profitFactor": "Infinity",
+                  "withinRegimeDrawdown": 0
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 4,
+                  "winRate": 0,
+                  "expectancy": -0.041003,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.0163
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 1,
+                  "winRate": 0,
+                  "expectancy": -0.034311,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.0034
+                }
+              }
+            }
+          ],
+          "routedDiagonal": [
+            {
+              "route": "trend",
+              "entry": "classic",
+              "regime": "trend",
+              "cell": {
+                "regime": "trend",
+                "trades": 45,
+                "winRate": 0.4,
+                "expectancy": 0.002252,
+                "profitFactor": 1.069,
+                "withinRegimeDrawdown": 0.0433
+              }
+            },
+            {
+              "route": "volatile",
+              "entry": "vwap-ema-bb",
+              "regime": "volatile",
+              "cell": {
+                "regime": "volatile",
+                "trades": 4,
+                "winRate": 0,
+                "expectancy": -0.041003,
+                "profitFactor": 0,
+                "withinRegimeDrawdown": 0.0163
+              }
+            },
+            {
+              "route": "range",
+              "entry": "vwap-ema-bb",
+              "regime": "range",
+              "cell": {
+                "regime": "range",
+                "trades": 1,
+                "winRate": 0,
+                "expectancy": -0.034311,
+                "profitFactor": 0,
+                "withinRegimeDrawdown": 0.0034
+              }
+            }
+          ]
+        },
+        {
+          "label": "fold3",
+          "from": "2025-06-06",
+          "to": "2025-12-03",
+          "byEntry": [
+            {
+              "entry": "classic",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 59,
+                  "winRate": 0.3729,
+                  "expectancy": -0.00251,
+                  "profitFactor": 0.908,
+                  "withinRegimeDrawdown": 0.0428
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 108,
+                  "winRate": 0.3148,
+                  "expectancy": -0.005388,
+                  "profitFactor": 0.755,
+                  "withinRegimeDrawdown": 0.083
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 56,
+                  "winRate": 0.3393,
+                  "expectancy": -0.004211,
+                  "profitFactor": 0.783,
+                  "withinRegimeDrawdown": 0.0435
+                }
+              }
+            },
+            {
+              "entry": "vwap-ema-bb",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 1,
+                  "winRate": 0,
+                  "expectancy": -0.030116,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.003
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 6,
+                  "winRate": 0,
+                  "expectancy": -0.037119,
+                  "profitFactor": 0,
+                  "withinRegimeDrawdown": 0.0221
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 4,
+                  "winRate": 0.5,
+                  "expectancy": 0.007416,
+                  "profitFactor": 1.536,
+                  "withinRegimeDrawdown": 0.003
+                }
+              }
+            }
+          ],
+          "routedDiagonal": [
+            {
+              "route": "trend",
+              "entry": "classic",
+              "regime": "trend",
+              "cell": {
+                "regime": "trend",
+                "trades": 59,
+                "winRate": 0.3729,
+                "expectancy": -0.00251,
+                "profitFactor": 0.908,
+                "withinRegimeDrawdown": 0.0428
+              }
+            },
+            {
+              "route": "volatile",
+              "entry": "vwap-ema-bb",
+              "regime": "volatile",
+              "cell": {
+                "regime": "volatile",
+                "trades": 6,
+                "winRate": 0,
+                "expectancy": -0.037119,
+                "profitFactor": 0,
+                "withinRegimeDrawdown": 0.0221
+              }
+            },
+            {
+              "route": "range",
+              "entry": "vwap-ema-bb",
+              "regime": "range",
+              "cell": {
+                "regime": "range",
+                "trades": 4,
+                "winRate": 0.5,
+                "expectancy": 0.007416,
+                "profitFactor": 1.536,
+                "withinRegimeDrawdown": 0.003
+              }
+            }
+          ]
+        },
+        {
+          "label": "fold4",
+          "from": "2025-12-03",
+          "to": "2026-06-01",
+          "byEntry": [
+            {
+              "entry": "classic",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 49,
+                  "winRate": 0.2857,
+                  "expectancy": -0.00918,
+                  "profitFactor": 0.654,
+                  "withinRegimeDrawdown": 0.0446
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 88,
+                  "winRate": 0.2955,
+                  "expectancy": -0.006641,
+                  "profitFactor": 0.682,
+                  "withinRegimeDrawdown": 0.0641
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 77,
+                  "winRate": 0.2338,
+                  "expectancy": -0.010376,
+                  "profitFactor": 0.452,
+                  "withinRegimeDrawdown": 0.0771
+                }
+              }
+            },
+            {
+              "entry": "vwap-ema-bb",
+              "byRegime": {
+                "trend": {
+                  "regime": "trend",
+                  "trades": 0,
+                  "winRate": 0,
+                  "expectancy": 0,
+                  "profitFactor": null,
+                  "withinRegimeDrawdown": 0
+                },
+                "volatile": {
+                  "regime": "volatile",
+                  "trades": 6,
+                  "winRate": 0.3333,
+                  "expectancy": -0.012847,
+                  "profitFactor": 0.464,
+                  "withinRegimeDrawdown": 0.0126
+                },
+                "range": {
+                  "regime": "range",
+                  "trades": 8,
+                  "winRate": 0.375,
+                  "expectancy": 0.006624,
+                  "profitFactor": 1.481,
+                  "withinRegimeDrawdown": 0.0074
+                }
+              }
+            }
+          ],
+          "routedDiagonal": [
+            {
+              "route": "trend",
+              "entry": "classic",
+              "regime": "trend",
+              "cell": {
+                "regime": "trend",
+                "trades": 49,
+                "winRate": 0.2857,
+                "expectancy": -0.00918,
+                "profitFactor": 0.654,
+                "withinRegimeDrawdown": 0.0446
+              }
+            },
+            {
+              "route": "volatile",
+              "entry": "vwap-ema-bb",
+              "regime": "volatile",
+              "cell": {
+                "regime": "volatile",
+                "trades": 6,
+                "winRate": 0.3333,
+                "expectancy": -0.012847,
+                "profitFactor": 0.464,
+                "withinRegimeDrawdown": 0.0126
+              }
+            },
+            {
+              "route": "range",
+              "entry": "vwap-ema-bb",
+              "regime": "range",
+              "cell": {
+                "regime": "range",
+                "trades": 8,
+                "winRate": 0.375,
+                "expectancy": 0.006624,
+                "profitFactor": 1.481,
+                "withinRegimeDrawdown": 0.0074
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
