@@ -37,7 +37,9 @@ export async function GET(req: NextRequest) {
   if (s.worstSymbol && s.worstSymbol !== s.bestSymbol && s.worstPnlPct !== null) {
     lines.push(`Worst: ${s.worstSymbol} (${s.worstPnlPct >= 0 ? '+' : ''}${s.worstPnlPct.toFixed(2)}%)`);
   }
-  lines.push('', `Full breakdown: ${baseUrl}/track-record`, '#TradeClaw #WeeklyRecap #Trading');
+  // UTM-tag the outbound link for first-party channel attribution (see daily route).
+  const trackUrl = `${baseUrl}/track-record?utm_source=x&utm_medium=social&utm_campaign=weekly_recap`;
+  lines.push('', `Full breakdown: ${trackUrl}`, '#TradeClaw #WeeklyRecap #Trading');
 
   const copy = lines.join('\n');
   const post = await enqueueSummaryPost('weekly_summary', copy, imageUrl, {
