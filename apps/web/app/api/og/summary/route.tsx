@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { query } from '../../../../lib/db-pool';
+import { getSocialSummaryStats } from '../../../../lib/social-summary-stats';
 
 export const runtime = 'nodejs';
 
@@ -7,25 +7,14 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const period = searchParams.get('period') === 'weekly' ? 'weekly' : 'daily';
   const dateStr = searchParams.get('date') ?? new Date().toISOString().slice(0, 10);
-  const interval = period === 'weekly' ? '7 days' : '1 day';
 
-  const rows = await query<{
-    total: string; wins: string; losses: string; win_rate: string; total_pnl: string;
-  }>(`
-    SELECT
-      COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL)::text AS total,
-      COUNT(*) FILTER (WHERE (outcome_24h->>'hit')::boolean = true)::text AS wins,
-      COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL AND (outcome_24h->>'hit')::boolean = false)::text AS losses,
-      CASE WHEN COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL) > 0
-        THEN ROUND(COUNT(*) FILTER (WHERE (outcome_24h->>'hit')::boolean = true)::numeric / COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL) * 100, 1)::text
-        ELSE '0' END AS win_rate,
-      COALESCE(ROUND(SUM((outcome_24h->>'pnlPct')::numeric) FILTER (WHERE outcome_24h IS NOT NULL), 2)::text, '0') AS total_pnl
-    FROM signal_history
-    WHERE is_simulated = false AND created_at >= ($1::date - $2::interval) AND created_at < $1::date + INTERVAL '1 day'
-  `, [dateStr, interval]);
-
-  const s = rows[0] ?? { total: '0', wins: '0', losses: '0', win_rate: '0', total_pnl: '0' };
-  const pnl = Number(s.total_pnl);
+  // Same resolved denominator as /track-record (getSocialSummaryStats →
+  // getResolvedSlice + isCountedResolved): excludes simulated, gate-blocked,
+  // and auto-expired rows. The prior raw SQL counted `outcome_24h IS NOT NULL`,
+  // inflating the win-rate / P&L this shared card advertises against the page
+  // it links to.
+  const s = await getSocialSummaryStats(period, dateStr);
+  const pnl = s.totalPnlPct;
   const pnlColor = pnl >= 0 ? '#10b981' : '#f43f5e';
   const title = period === 'weekly' ? 'WEEKLY SUMMARY' : 'DAILY P/L';
 
@@ -81,12 +70,12 @@ export async function GET(request: Request) {
         <div style={{ display: 'flex', gap: '56px', marginBottom: '40px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ fontSize: '64px', fontWeight: 800, color: pnlColor }}>
-              {pnl >= 0 ? '+' : ''}{s.total_pnl}%
+              {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}%
             </div>
             <div style={{ fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>TOTAL P/L</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: '64px', fontWeight: 800, color: '#ffffff' }}>{s.win_rate}%</div>
+            <div style={{ fontSize: '64px', fontWeight: 800, color: '#ffffff' }}>{s.winRatePct.toFixed(1)}%</div>
             <div style={{ fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>WIN RATE</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
