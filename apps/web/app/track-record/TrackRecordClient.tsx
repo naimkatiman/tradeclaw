@@ -437,6 +437,11 @@ export function TrackRecordClient() {
   // Surfaced at the headline so the headline win-rate reads against the bar the
   // system needs, not a meaningless flat 50%.
   const [headlineBreakEven, setHeadlineBreakEven] = useState<number | null>(null);
+  // Realized (position-sized) compounded return + max drawdown from the equity
+  // summary. Surfaced at the headline so the number a subscriber could actually
+  // earn sits next to the raw unsized total, not buried in the equity card.
+  const [headlineCompoundedReturn, setHeadlineCompoundedReturn] = useState<number | null>(null);
+  const [headlineMaxDrawdown, setHeadlineMaxDrawdown] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
   // Earliest signal we have data for in the current scope. Used to grey out
   // period buttons whose window pre-dates any recorded signal — a 5Y button
@@ -466,6 +471,9 @@ export function TrackRecordClient() {
 
       const equityParams = new URLSearchParams({ period: p, scope: s, band });
       if (c !== 'all') equityParams.set('category', c);
+      // Headline reads summary fields only (rolling win-rates, break-even,
+      // realized return, drawdown) — the curve itself is fetched by EquityCurve.
+      equityParams.set('summaryOnly', '1');
 
       const [historyRes, leaderboardRes, equityRes] = await Promise.allSettled([
         fetch(`/api/signals/history?${historyParams.toString()}`),
@@ -495,10 +503,18 @@ export function TrackRecordClient() {
         setHeadlineBreakEven(
           typeof data.summary?.breakEvenWinRate === 'number' ? data.summary.breakEvenWinRate : null,
         );
+        setHeadlineCompoundedReturn(
+          typeof data.summary?.totalReturn === 'number' ? data.summary.totalReturn : null,
+        );
+        setHeadlineMaxDrawdown(
+          typeof data.summary?.maxDrawdown === 'number' ? data.summary.maxDrawdown : null,
+        );
       } else {
         if (isCancelled()) return;
         setRollingWinRates(null);
         setHeadlineBreakEven(null);
+        setHeadlineCompoundedReturn(null);
+        setHeadlineMaxDrawdown(null);
       }
     } catch {
       if (isCancelled()) return;
@@ -592,7 +608,7 @@ export function TrackRecordClient() {
                 {stats ? `${stats.totalPnlPct > 0 ? '+' : ''}${stats.totalPnlPct}%` : '—'}
               </span>
               <span className="text-sm text-[var(--text-secondary)] inline-flex items-center gap-1">
-                total return
+                total return · unsized
                 <InfoHint text={STAT_HINTS.totalReturnLinear} label="What total return means" />
               </span>
               {/* Provenance stamp — the window this headline actually covers,
@@ -633,6 +649,31 @@ export function TrackRecordClient() {
                 <InfoHint text={STAT_HINTS.resolved} label="What resolved signals means" />
               </span>
             </div>
+            {/* Realized (position-sized) return at headline weight — the number a
+               real subscriber could earn, shown next to the raw unsized total so
+               the achievable figure isn't buried. Paired with max drawdown so the
+               path's cost is never hidden behind the return. */}
+            {headlineCompoundedReturn !== null && (
+              <div className="flex items-baseline gap-1.5">
+                <span className={`text-xl font-semibold tabular-nums ${
+                  headlineCompoundedReturn > 0 ? 'text-emerald-400'
+                  : headlineCompoundedReturn < 0 ? 'text-red-400'
+                  : 'text-[var(--foreground)]'
+                }`}>
+                  {headlineCompoundedReturn > 0 ? '+' : ''}{headlineCompoundedReturn}%
+                </span>
+                <span className="text-xs text-[var(--text-secondary)] inline-flex items-center gap-1">
+                  realized · 1% risk
+                  <InfoHint text={STAT_HINTS.totalReturnCompounded} label="What realized compounded return means" />
+                </span>
+                {headlineMaxDrawdown !== null && (
+                  <span className="text-[11px] font-mono text-red-400/80 inline-flex items-center gap-1">
+                    max drawdown −{headlineMaxDrawdown}%
+                    <InfoHint text={STAT_HINTS.maxDrawdown} label="What max drawdown means" />
+                  </span>
+                )}
+              </div>
+            )}
             {resolutionHeartbeat && (
               <div
                 className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-mono ${
