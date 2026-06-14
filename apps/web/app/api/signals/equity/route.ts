@@ -304,6 +304,13 @@ export async function GET(request: NextRequest) {
     // the marketing pitch.
     const scope = parseScope(searchParams.get('scope'));
     const category = parseCategoryFilter(searchParams.get('category'));
+    // summaryOnly drops the (potentially ~3.3k-point) `points` array and
+    // returns just `summary` + `rollingWinRates`. Summary-only consumers — the
+    // trailing-week band callout compares totalReturn / win-rate / expectancy
+    // across bands and windows — don't need the curve, so they skip shipping
+    // the full point set over the wire on every fetch.
+    const summaryOnly = searchParams.get('summaryOnly') === '1'
+      || searchParams.get('summaryOnly') === 'true';
     // smooth=median2x clamps each trade's pnl to ±2× median(|pnl|) before
     // compounding. Off by default — the marketing surface opts in.
     const smoothParam = searchParams.get('smooth');
@@ -337,7 +344,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
-        points,
+        points: summaryOnly ? [] : points,
         summary,
         rollingWinRates,
         band,

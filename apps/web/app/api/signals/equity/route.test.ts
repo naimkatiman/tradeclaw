@@ -156,4 +156,22 @@ describe('GET /api/signals/equity summary metrics', () => {
     // The old full-population formula would have returned 0.667*2 + 0.333*-1 = +1.0R.
     expect(body.summary.expectancyR).toBe(0.5);
   });
+
+  it('summaryOnly=1 drops the points array but keeps summary + rollingWinRates', async () => {
+    primeSlice([
+      record({ id: 'a', entryPrice: 100, sl: 99, outcomes: { '4h': null, '24h': { price: 102, pnlPct: 2, hit: true } } }),
+      record({ id: 'b', entryPrice: 100, sl: 99, outcomes: { '4h': null, '24h': { price: 99, pnlPct: -1, hit: false } } }),
+    ]);
+
+    const res = await GET(makeReq('/api/signals/equity?summaryOnly=1'));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    // Curve omitted for summary-only consumers…
+    expect(body.points).toEqual([]);
+    // …but the aggregate stats the callout reads are intact.
+    expect(body.summary.totalSignals).toBe(2);
+    expect(body.summary.sizedTrades).toBe(2);
+    expect(body.rollingWinRates).toBeDefined();
+  });
 });
