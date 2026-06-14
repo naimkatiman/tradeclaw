@@ -43,9 +43,9 @@ export function classifyBandComparison(
   const returnDelta = +(premium.totalReturn - all.totalReturn).toFixed(2);
 
   const higherWinRate = premium.winRate >= all.winRate;
-  // Expectancy is the per-trade edge. When it's defined on both bands, require
-  // premium ≥ all; when it's unknowable (no sized trades either side), fall back
-  // to win rate so we never silently treat "unknown" as "better".
+  // Expectancy is the per-trade edge. Require premium ≥ all when both are
+  // defined; if either is unknowable (a band with no sized trades — R is
+  // undefined), fall back to win rate so "unknown" is never read as "better".
   const higherExpectancy =
     premium.expectancyR !== null && all.expectancyR !== null
       ? premium.expectancyR >= all.expectancyR
@@ -70,6 +70,17 @@ export function classifyBandComparison(
       returnDelta,
       tone: 'neutral',
       label: `Premium ${pct(returnDelta)} vs All — fewer trades, not higher accuracy`,
+    };
+  }
+
+  if (returnDelta === 0) {
+    // Identical return with no per-trade edge (we'd have returned premium_better
+    // above otherwise). "Underperformed +0.00%" would be self-contradictory.
+    return {
+      verdict: 'premium_worse',
+      returnDelta,
+      tone: 'neutral',
+      label: 'Premium matched All — no per-trade edge',
     };
   }
 

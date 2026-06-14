@@ -55,18 +55,23 @@ export function TrailingWeekBandCallout() {
       }
     }
     async function load(): Promise<void> {
-      const [all7, prem7, allAll, premAll] = await Promise.all([
-        fetchSummary('7d', 'all'),
-        fetchSummary('7d', 'premium'),
-        fetchSummary('all', 'all'),
-        fetchSummary('all', 'premium'),
-      ]);
-      if (cancelled) return;
-      setData({
-        sevenDay: { all: all7, premium: prem7 },
-        allTime: allAll && premAll ? { all: allAll, premium: premAll } : null,
-      });
-      setLoading(false);
+      try {
+        const [all7, prem7, allAll, premAll] = await Promise.all([
+          fetchSummary('7d', 'all'),
+          fetchSummary('7d', 'premium'),
+          fetchSummary('all', 'all'),
+          fetchSummary('all', 'premium'),
+        ]);
+        if (cancelled) return;
+        setData({
+          sevenDay: { all: all7, premium: prem7 },
+          allTime: allAll && premAll ? { all: allAll, premium: premAll } : null,
+        });
+      } finally {
+        // Always clear loading (unless unmounted) so an unexpected throw can't
+        // leave the callout stuck hidden with no recovery path.
+        if (!cancelled) setLoading(false);
+      }
     }
     load();
     return () => {

@@ -519,6 +519,8 @@ export function TrackRecordClient() {
     } catch {
       if (isCancelled()) return;
       setRollingWinRates(null);
+      setHeadlineCompoundedReturn(null);
+      setHeadlineMaxDrawdown(null);
       // silently fail
     } finally {
       if (!isCancelled()) setLoading(false);

@@ -53,4 +53,24 @@ describe('classifyBandComparison', () => {
     // Higher win rate + higher return, expectancy null → treated as genuine.
     expect(r.verdict).toBe('premium_better');
   });
+
+  it('falls back to win-rate when expectancy is unknowable on ONE side only', () => {
+    // A band with no sized trades reports expectancyR null; the other has data.
+    const all = band({ totalReturn: 1, winRate: 30, expectancyR: 0.04, totalSignals: 200 });
+    const premium = band({ totalReturn: 4, winRate: 35, expectancyR: null, totalSignals: 20 });
+
+    const r = classifyBandComparison(all, premium);
+    expect(r.verdict).toBe('premium_better');
+  });
+
+  it('treats an exactly-equal return with no quality edge as neutral "matched", not "underperformed"', () => {
+    const all = band({ totalReturn: 5.32, winRate: 40, expectancyR: 0.05 });
+    const premium = band({ totalReturn: 5.32, winRate: 38, expectancyR: 0.03, totalSignals: 50 });
+
+    const r = classifyBandComparison(all, premium);
+    expect(r.returnDelta).toBe(0);
+    expect(r.tone).toBe('neutral');
+    expect(r.verdict).toBe('premium_worse');
+    expect(r.label.toLowerCase()).toContain('matched');
+  });
 });
