@@ -810,11 +810,7 @@ export function TrackRecordClient() {
               aria-pressed={scope === value}
               className={`px-3 py-1.5 text-xs font-mono font-medium rounded-md transition-all ${
                 scope === value
-                  ? value === 'pro'
-                    ? 'bg-emerald-500/15 text-emerald-400'
-                    : value === 'broadcast'
-                      ? 'bg-cyan-500/15 text-cyan-400'
-                      : 'bg-white/[0.08] text-[var(--foreground)]'
+                  ? 'bg-white/[0.08] text-[var(--foreground)]'
                   : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
               }`}
             >
@@ -883,8 +879,8 @@ export function TrackRecordClient() {
             )}
           </div>
         ) : scope === 'broadcast' ? (
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 px-4 py-3 text-sm">
-            <div className="flex items-center gap-2 text-cyan-300">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm">
+            <div className="flex items-center gap-2 text-[var(--text-secondary)]">
               <Lock className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
                 Pro broadcast view — only signals the live risk gate approved for the Pro Telegram group. Decisions are recorded per row since 2026-06-10; older signals are excluded.
@@ -892,7 +888,7 @@ export function TrackRecordClient() {
             </div>
             <button
               onClick={() => setScope('pro')}
-              className="shrink-0 rounded-md border border-emerald-500/30 px-3 py-1 text-xs font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/10"
+              className="shrink-0 rounded-md border border-[var(--border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-white/[0.06]"
             >
               Switch to full record
             </button>

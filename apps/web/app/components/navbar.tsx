@@ -131,7 +131,7 @@ export function Navbar() {
       >
         <div
           className={`glass-nav rounded-full px-5 py-2.5 flex items-center justify-between gap-6 w-full max-w-4xl transition-all duration-700 ${
-            scrolled ? 'shadow-[0_0_40px_rgba(16,185,129,0.06)]' : ''
+            scrolled ? 'shadow-[0_8px_40px_rgba(0,0,0,0.35)]' : ''
           }`}
         >
           {/* Logo */}
@@ -200,7 +200,7 @@ export function Navbar() {
               aria-label={t.nav.language}
               value={locale}
               onChange={(e) => setLocale(e.target.value as Locale)}
-              className="bg-transparent border border-[var(--border)] rounded-full px-2 py-1 text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-emerald-500/40 cursor-pointer"
+              className="bg-transparent border border-[var(--border)] rounded-full px-2 py-1 text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--ring)] cursor-pointer"
             >
               {SUPPORTED_LOCALES.map((l) => (
                 <option key={l.code} value={l.code} className="bg-[var(--bg-card)] text-[var(--foreground)]">
