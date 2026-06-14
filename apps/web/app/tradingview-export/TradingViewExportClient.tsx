@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { ClipboardCopy, CheckCircle, ExternalLink, TrendingUp, BarChart3 } from 'lucide-react';
+import { ClipboardCopy, CheckCircle, ExternalLink, TrendingUp, BarChart3, Code2, Download } from 'lucide-react';
 import type { ProofResponse, ProofStats } from '../api/proof/route';
+import { generateTradeClawPineScript } from '../../lib/tv-pine-export';
 
 function formatTvPost(stats: ProofStats): string {
   const lines: string[] = [];
@@ -35,6 +36,7 @@ export function TradingViewExportClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [pineCopied, setPineCopied] = useState(false);
 
   useEffect(() => {
     fetch('/api/proof')
@@ -61,6 +63,27 @@ export function TradingViewExportClient() {
       setTimeout(() => setCopied(false), 2000);
     });
   }, [data]);
+
+  const pineScript = data ? generateTradeClawPineScript(data.stats) : generateTradeClawPineScript();
+
+  const handleCopyPine = useCallback(() => {
+    navigator.clipboard.writeText(pineScript).then(() => {
+      setPineCopied(true);
+      setTimeout(() => setPineCopied(false), 2000);
+    });
+  }, [pineScript]);
+
+  const handleDownloadPine = useCallback(() => {
+    const blob = new Blob([pineScript], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tradeclaw-signal-engine.pine';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [pineScript]);
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -139,6 +162,63 @@ export function TradingViewExportClient() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Pine Script Export */}
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Code2 className="w-4 h-4 text-blue-400" />
+              <span className="text-sm font-medium">TradingView Pine Script Indicator</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCopyPine}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition disabled:opacity-40"
+              >
+                {pineCopied ? (
+                  <>
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <ClipboardCopy className="w-3.5 h-3.5" />
+                    Copy Pine
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleDownloadPine}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-500/10 text-zinc-300 border border-zinc-500/20 hover:bg-zinc-500/20 transition disabled:opacity-40"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Download .pine
+              </button>
+            </div>
+          </div>
+
+          <div className="p-5">
+            {loading && (
+              <div className="flex items-center justify-center py-16">
+                <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {data && (
+              <pre className="whitespace-pre-wrap font-mono text-xs text-zinc-300 bg-black/30 rounded-xl p-4 border border-white/5 leading-relaxed max-h-96 overflow-y-auto">
+                {pineScript}
+              </pre>
+            )}
+
+            <p className="mt-3 text-xs text-zinc-500">
+              Paste this into Pine Editor on TradingView to overlay TradeClaw signals on any chart.
+              Includes RSI, MACD, EMA, Bollinger Bands, and Stochastic with the same weights used by
+              the TradeClaw engine.
+            </p>
           </div>
         </div>
 

@@ -56,4 +56,19 @@ export async function verifyAdminSession(
   return result === 0;
 }
 
+/**
+ * Constant-time string comparison. Edge-runtime safe (no node:crypto), so it
+ * can be used from middleware. Length is compared first; a differing length
+ * returns immediately (the length of a server-held secret is not itself a
+ * useful oracle), otherwise every char is compared to avoid a timing leak.
+ */
+export function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
 export { ADMIN_SESSION_COOKIE };

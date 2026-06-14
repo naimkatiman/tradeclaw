@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Navbar } from "../components/navbar";
-import { SiteFooter } from "../../components/landing/site-footer";
 import { LocalizedLanding } from "../../components/landing/localized-landing";
 import { getTranslations } from "../../lib/translations";
 
@@ -13,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: t.meta.ogTitle,
     description: t.meta.ogDescription,
-    url: "https://tradeclaw.com/es",
+    url: "https://tradeclaw.win/es",
     siteName: "TradeClaw",
     type: "website",
     locale: "es_ES",
@@ -27,10 +26,10 @@ export const metadata: Metadata = {
   },
   alternates: {
     languages: {
-      "en": "https://tradeclaw.com",
-      "es": "https://tradeclaw.com/es",
-      "zh-CN": "https://tradeclaw.com/zh",
-      "x-default": "https://tradeclaw.com",
+      "en": "https://tradeclaw.win",
+      "es": "https://tradeclaw.win/es",
+      "zh-CN": "https://tradeclaw.win/zh",
+      "x-default": "https://tradeclaw.win",
     },
   },
 };
@@ -42,7 +41,6 @@ export default function SpanishPage() {
       <main lang="es">
         <LocalizedLanding t={t} locale="es" />
       </main>
-      <SiteFooter />
     </>
   );
 }

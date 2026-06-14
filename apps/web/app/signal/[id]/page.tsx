@@ -189,7 +189,7 @@ export async function generateMetadata(
   const direction = resolved?.direction ?? '';
   const timeframe = resolved?.timeframe ?? '';
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tradeclaw.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tradeclaw.win';
   const ogUrl = `${baseUrl}/api/og/signal/${id}`;
 
   return {

@@ -24,11 +24,11 @@
 - Compliance pages (Terms, Privacy)
 
 **What's broken / missing:**
-- Win rate is ~40% (positive expectancy +0.10R) but below the original 60% target — engine quality still improving
-- No TradingView profile integration to publish track record externally
-- No mobile app (Expo) for push notifications
-- No multi-provider signal marketplace (other traders publishing signals)
-- No live copy-trading (auto-execute on connected broker accounts)
+- Win rate is ~55% (positive expectancy +0.10R) but below the original 60% target — engine quality still improving
+- No TradingView API for automated profile publishing — copy-paste export available at /tradingview-export
+- Mobile app MVP (Expo) exists with push notifications — next: EAS build for distribution
+- Multi-provider marketplace scaffold exists — next: invite external traders to apply
+- Copy-trading preview exists (auto-follow premium signals in paper trading) — next: live broker integration
 - Free users lack persistent server-side portfolios (localStorage only)
 
 ---
@@ -216,10 +216,10 @@ Step 4: PLATFORM IT (2027)
 
 ## Immediate Next Actions (This Week)
 
-1. **Signal engine quality pass** — tighten entry filters to push win rate from ~40% toward 50%+
-2. **TradingView profile integration** — publish verified track record to TV profile
-3. **Mobile app MVP (Expo)** — push notifications for premium signals
-4. **Multi-provider signal marketplace scaffold** — allow other traders to publish signals
+1. **Signal engine quality pass** — continue monitoring rolling win rate; target 60% before paywall scaling
+2. **Content pipeline** — weekly performance recaps for X/LinkedIn to drive organic discovery
+3. **GitHub Stars Campaign** — ProductHunt launch prep, HN Show, Reddit r/algotrading
+4. **Mobile app distribution** — EAS build and app store submission
 
 ---
 
@@ -236,5 +236,5 @@ Step 4: PLATFORM IT (2027)
 
 ---
 
-*Last updated: 2026-04-05*
+*Last updated: 2026-06-07*
 *Owner: Zaky (TradeClaw)*

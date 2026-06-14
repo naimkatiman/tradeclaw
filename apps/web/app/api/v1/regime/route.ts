@@ -66,7 +66,9 @@ export async function GET(request: NextRequest) {
             success: true,
             data: {
               symbol,
-              regime: 'neutral',
+              // No row yet for this symbol — range is the unified fallback
+              // (plan D1, docs/plans/2026-06-11-phase3-regime-engine.md).
+              regime: 'range',
               confidence: 0,
               features: { rollingVol20d: 0, returns5d: 0, returns20d: 0, volumeZScore: 0 },
               detectedAt: null,

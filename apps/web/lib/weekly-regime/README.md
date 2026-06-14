@@ -8,19 +8,32 @@ Telegram bot and Layer 2 read that card for the rest of the week.
 Operator guide: `docs/operators/weekly-regime.md`.
 Plan / contract: `docs/plans/2026-06-03-weekly-regime-engine.md`.
 
-## `weekly_regime` vs `market_regimes` — do not conflate
+## `weekly_regime` vs `market_regimes` — distinct systems, one sanctioned bridge
 
 | | `weekly_regime` (this module) | `market_regimes` / `regime-filter.ts` |
 |---|---|---|
 | Source | Human-set by the admin | Computed from price action |
 | Granularity | Per asset class (5 classes) | Per symbol |
 | Cadence | Once per week (Monday) | Continuous |
-| States | TRENDING / NEUTRAL | bull / bear / neutral / ... |
+| States | TRENDING / NEUTRAL | trend / volatile / range |
 | Key | `week_start` (Monday, MYT) | per-symbol |
 
-They are conceptually and namewise separate. Keep them that way. The enums and
-interfaces here live only in `types.ts` — do not reuse the algorithmic regime
-types, and do not import this module's types into the algorithmic path.
+They are conceptually and namewise separate. The only sanctioned bridge is
+`lib/regime-resolution.ts` (`fetchResolvedRegimeMap`), which composes the two
+systems under these rules:
+
+- **TRENDING + conviction 3** → hard override: every universe symbol of that
+  class is forced to `'trend'` in the resolved map (including symbols absent
+  from the algo map). Tilt recorded with `hardOverride: true`.
+- **TRENDING + conviction 1–2** → tilt recorded (`hardOverride: false`); regime
+  labels left unchanged. Metadata preserved for Phase 4 strategy dispatch.
+- **NEUTRAL class / null card / card-read failure** → defer to algo (fail-safe).
+  No tilts recorded.
+
+Do not import `weekly-regime/service` into the algorithmic regime path except
+via `regime-resolution.ts`. The enums and interfaces here live only in
+`types.ts` — do not reuse the algorithmic regime types in the weekly-regime
+path.
 
 ## Module layout
 

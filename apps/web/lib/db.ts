@@ -872,7 +872,10 @@ export async function getReferralRevenueForReferrer(referrerId: string): Promise
     createdAt: new Date(r.created_at),
   }));
 
-  const totalShareCents = records.reduce((s, r) => s + r.shareCents, 0);
+  // Exclude cancelled rows so Total == Pending + Paid Out always holds in the UI.
+  const totalShareCents = records
+    .filter((r) => r.status !== 'cancelled')
+    .reduce((s, r) => s + r.shareCents, 0);
   const pendingShareCents = records.filter((r) => r.status === 'pending').reduce((s, r) => s + r.shareCents, 0);
   const paidOutShareCents = records.filter((r) => r.status === 'paid_out').reduce((s, r) => s + r.shareCents, 0);
 

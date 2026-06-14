@@ -39,10 +39,12 @@ export async function GET(request: NextRequest) {
 
     let detailHistory: SignalHistoryRecord[] | null = null;
 
-    // Strategy-filtered and free-scope variants recompute from history; the
-    // unfiltered Pro path still uses the precomputed period:sort cache.
+    // Strategy-filtered, free-scope, and broadcast-scope variants recompute
+    // from history; the unfiltered Pro path still uses the precomputed
+    // period:sort cache. The broadcast scope MUST NOT fall through to the
+    // Pro cache — it would silently serve firehose stats as the gated subset.
     const data = await (async () => {
-      if (scope === 'free') {
+      if (scope === 'free' || scope === 'broadcast') {
         const slice = await getResolvedSlice({ scope, period });
         detailHistory = slice.periodFiltered;
         return computeLeaderboard(slice.periodFiltered, 'all', sortBy, strategyFilter);

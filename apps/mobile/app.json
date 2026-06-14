@@ -37,6 +37,12 @@
           "color": "#10B981"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "tradeclaw"
+      }
+    },
+    "owner": "tradeclaw"
   }
 }

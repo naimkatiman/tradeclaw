@@ -19,6 +19,7 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
+import { StarsWidget } from '../../components/stars-widget';
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
@@ -46,6 +47,11 @@ const VPS_OPTIONS = [
 ];
 
 const MAX_MONTHLY = Math.max(...SAAS_OPTIONS.map((s) => s.monthlyUSD));
+
+// Competitor SaaS / VPS prices are hand-collected list prices that vendors
+// change frequently. Date-stamp them so the page never asserts a stale figure
+// as current fact (Phase 6a honesty contract §5/§6).
+const PRICES_AS_OF = 'June 2026';
 
 type Support = true | false | 'partial';
 
@@ -184,9 +190,9 @@ export default function BenchmarkClient() {
   const savings = saasAnnual;
   const freeVPSMonths = savings > 0 ? Math.round(savings / 4) : 0;
 
-  const tweetText = `I just found out I can replace my $${saas.monthlyUSD}/mo ${saas.name} subscription with TradeClaw — free, open-source, self-hosted on a $4/mo VPS.\n\nThat saves me $${Math.round(saasAnnual)}/year.\n\nhttps://github.com/naimkatiman/tradeclaw\n\n#selfhosted #algotrading #opensource`;
+  const tweetText = `TradeClaw is a free, open-source, self-hosted alternative to ${saas.name} — it runs on a $4/mo VPS.\n\nBased on ${saas.name}'s listed $${saas.monthlyUSD}/mo plan, that's about $${Math.round(saasAnnual)}/year you could keep.\n\nhttps://github.com/naimkatiman/tradeclaw\n\n#selfhosted #algotrading #opensource`;
 
-  const redditText = `I just replaced my $${saas.monthlyUSD}/mo ${saas.name} subscription with TradeClaw — a free, open-source, self-hosted trading platform.\n\nIt runs on a $4/mo VPS (Hetzner) or even Oracle Cloud Free Tier. Saves me $${Math.round(saasAnnual)}/year.\n\nFeatures: live signals, backtesting, custom indicators, Telegram bot, Docker deploy.\n\ngithub.com/naimkatiman/tradeclaw`;
+  const redditText = `TradeClaw is a free, open-source, self-hosted trading platform — an alternative to ${saas.name}.\n\nIt runs on a $4/mo VPS (Hetzner) or even Oracle Cloud Free Tier. Based on ${saas.name}'s listed $${saas.monthlyUSD}/mo plan, that's roughly $${Math.round(saasAnnual)}/year of subscription you could avoid.\n\nFeatures: live signals, backtesting, custom indicators, Telegram bot, Docker deploy.\n\ngithub.com/naimkatiman/tradeclaw`;
 
   const handleShare = useCallback(() => {
     const tweet = encodeURIComponent(tweetText);
@@ -202,7 +208,7 @@ export default function BenchmarkClient() {
           Self-hosting cost analysis
         </div>
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-          Stop Paying <span className="text-rose-400">$200/mo</span> for Trading Tools
+          Stop Paying <span className="text-rose-400">up to ~$108/mo</span> for Trading Tools
         </h1>
         <p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto mb-8">
           TradeClaw is free, open-source, and runs on a <span className="text-emerald-400 font-semibold">$4/mo VPS</span>.
@@ -217,16 +223,23 @@ export default function BenchmarkClient() {
           <div className="glass rounded-2xl px-6 py-4 border border-rose-500/20 bg-gradient-to-br from-rose-500/5 to-transparent text-center">
             <div className="text-3xl font-black text-rose-400">${avgSaaS}</div>
             <div className="text-xs text-[var(--text-secondary)]">Average SaaS / mo</div>
+            <div className="text-[10px] text-[var(--text-secondary)]/70 mt-0.5">mean of {SAAS_OPTIONS.length} curated plans</div>
           </div>
         </div>
+        <p className="mt-4 text-[11px] text-[var(--text-secondary)]/70">
+          Highest single plan shown below is ${MAX_MONTHLY}/mo. Competitor prices are list prices as of {PRICES_AS_OF} — verify current pricing on each vendor&apos;s site.
+        </p>
       </section>
 
       {/* ── Animated Cost Comparison ── */}
       <section ref={barsRef} className="glass rounded-3xl p-6 md:p-8 border border-[var(--border)] mb-8">
-        <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
+        <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
           <TrendingDown className="w-4 h-4 text-rose-400" />
           Monthly Cost Comparison
         </h2>
+        <p className="text-[11px] text-[var(--text-secondary)]/70 mb-5">
+          List prices as of {PRICES_AS_OF}. Plans and pricing change often — verify current rates with each vendor.
+        </p>
         <div className="space-y-4">
           {SAAS_OPTIONS.map((s, i) => (
             <div key={s.id}>
@@ -340,10 +353,13 @@ export default function BenchmarkClient() {
 
       {/* ── VPS Options Table ── */}
       <section className="glass rounded-2xl p-6 border border-[var(--border)] mb-8 overflow-x-auto">
-        <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
+        <h2 className="text-sm font-semibold mb-1 flex items-center gap-2">
           <Server className="w-4 h-4 text-emerald-400" />
           Recommended VPS Providers
         </h2>
+        <p className="text-[11px] text-[var(--text-secondary)]/70 mb-4">
+          Provider pricing and free-tier terms as of {PRICES_AS_OF} — verify current plans before signing up.
+        </p>
         <table className="w-full text-sm min-w-[520px]">
           <thead>
             <tr className="border-b border-[var(--border)]">
@@ -381,10 +397,13 @@ export default function BenchmarkClient() {
 
       {/* ── Feature Comparison Table ── */}
       <section className="glass rounded-2xl p-6 border border-[var(--border)] mb-8 overflow-x-auto">
-        <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
+        <h2 className="text-sm font-semibold mb-1 flex items-center gap-2">
           <Zap className="w-4 h-4 text-emerald-400" />
           Feature Comparison
         </h2>
+        <p className="text-[11px] text-[var(--text-secondary)]/70 mb-4">
+          Feature availability is plan-dependent and reflects a point-in-time snapshot as of {PRICES_AS_OF}. Monthly costs are list prices for the plans named above — verify current tiers with each vendor.
+        </p>
         <table className="w-full text-sm min-w-[640px]">
           <thead>
             <tr className="border-b border-[var(--border)]">
@@ -419,10 +438,13 @@ export default function BenchmarkClient() {
 
       {/* ── Social Proof Kit ── */}
       <section className="glass rounded-3xl p-6 md:p-8 border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 via-transparent to-zinc-500/5 mb-8">
-        <h2 className="text-lg font-semibold mb-6 flex items-center justify-center gap-2">
+        <h2 className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
           <Share2 className="w-4 h-4 text-emerald-400" />
           Social Proof Kit
         </h2>
+        <p className="text-center text-[11px] text-[var(--text-secondary)]/70 mb-6">
+          Savings figures are based on the selected vendor&apos;s listed plan price ({PRICES_AS_OF}), not an audited personal claim. Edit before posting.
+        </p>
 
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           {/* Pre-written tweet */}
@@ -536,11 +558,14 @@ export default function BenchmarkClient() {
         <div className="glass rounded-2xl p-6 border border-zinc-500/20 bg-gradient-to-br from-zinc-500/5 to-transparent">
           <h3 className="font-semibold mb-2 flex items-center gap-2">
             <Star className="w-4 h-4 text-zinc-400 fill-zinc-400" />
-            Join 1,000-star mission
+            Help us grow on GitHub
           </h3>
-          <p className="text-xs text-[var(--text-secondary)] mb-4">
+          <p className="text-xs text-[var(--text-secondary)] mb-3">
             Free, open-source, self-hostable. A GitHub star costs nothing and helps more developers find TradeClaw.
           </p>
+          <div className="mb-4">
+            <StarsWidget />
+          </div>
           <Link
             href="https://github.com/naimkatiman/tradeclaw"
             target="_blank"

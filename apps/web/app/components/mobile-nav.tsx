@@ -22,7 +22,7 @@ const MAIN_NAV = [
   },
   {
     href: '/screener',
-    label: 'Signals',
+    label: 'Screener',
     icon: (
       // Radio-tower broadcast: distinct from charts, reads as "live signal"
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">

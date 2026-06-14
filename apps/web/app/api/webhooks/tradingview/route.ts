@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
-import { execute } from '../../../../lib/db-pool';
+import { queryOne } from '../../../../lib/db-pool';
 import { recordSignalsAsync } from '../../../../lib/signal-history';
 import { autoFollowSignal, getDemoUserId } from '../../../../lib/paper-trading';
 
@@ -110,13 +110,18 @@ export async function POST(req: NextRequest) {
   }
 
   const p = parsed.data;
+  let isNewSignal = false;
   try {
-    await execute(
+    // RETURNING source_id only yields a row when the INSERT actually happened;
+    // on a replayed (duplicate source_id) webhook the ON CONFLICT path returns
+    // nothing, which we use below to keep auto-follow idempotent.
+    const inserted = await queryOne<{ source_id: string }>(
       `INSERT INTO premium_signals
          (source_id, strategy_id, symbol, timeframe, direction, confidence,
           entry, stop_loss, take_profit_1, take_profit_2, raw_payload, signal_ts)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
-       ON CONFLICT (source_id) DO NOTHING`,
+       ON CONFLICT (source_id) DO NOTHING
+       RETURNING source_id`,
       [
         p.source_id,
         p.strategy_id,
@@ -132,6 +137,7 @@ export async function POST(req: NextRequest) {
         new Date(p.signal_ts),
       ],
     );
+    isNewSignal = inserted !== null;
   } catch (err) {
     // Server-side log retains the full error for debugging; the response
     // body must not echo it back. Postgres error messages routinely include
@@ -160,9 +166,10 @@ export async function POST(req: NextRequest) {
   });
 
   // Copy-trading preview: auto-follow premium signals in paper trading
-  // for the demo user (ROADMAP 4.8).
+  // for the demo user (ROADMAP 4.8). Gated on isNewSignal so a replayed
+  // webhook (same source_id) does not open a duplicate paper position.
   const demoUserId = getDemoUserId();
-  if (demoUserId && p.stop_loss != null && p.take_profit_1 != null) {
+  if (isNewSignal && demoUserId && p.stop_loss != null && p.take_profit_1 != null) {
     await autoFollowSignal({
       userId: demoUserId,
       id: p.source_id,

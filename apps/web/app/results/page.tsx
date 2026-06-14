@@ -10,11 +10,11 @@ const ResultsClient = dynamic(() => import('./ResultsClient').then(m => ({ defau
 });
 
 export const metadata: Metadata = {
-  title: 'Backtest Results | TradeClaw',
-  description: 'Verified backtesting results for 5 trading strategies across BTC, ETH, and Gold. 12-month validation snapshot with Sharpe ratios, drawdowns, equity curves, and monthly returns.',
+  title: 'Strategy Profiles (Illustrative) | TradeClaw',
+  description: 'Illustrative strategy profiles for 5 trading strategy archetypes across BTC, ETH, and Gold. Hand-authored example metrics — not engine output. See /track-record for live, tracked performance.',
   openGraph: {
-    title: 'Backtest Results | TradeClaw',
-    description: 'Transparent backtest performance: RSI, MACD, EMA, Bollinger, and Multi-TF strategies on crypto and commodities.',
+    title: 'Strategy Profiles (Illustrative) | TradeClaw',
+    description: 'Illustrative examples of RSI, MACD, EMA, Bollinger, and Multi-TF strategy behavior. For real performance, see the live track record.',
   },
 };
 

@@ -32,8 +32,11 @@ export async function precomputeSignals(): Promise<void> {
 
   const genStartMs = Date.now();
   try {
-    // Generate fresh signals (bypass cache to avoid reading stale data)
-    const { signals, syntheticSymbols } = await getSignals({}, { skipCache: true });
+    // Generate fresh signals (bypass cache to avoid reading stale data).
+    // Pass profileId so the generated payload matches the id it is cached under
+    // (readSignalsCache rejects a mismatch); today every preset resolves to
+    // 'classic', so this is behaviour-preserving until a second profile exists.
+    const { signals, syntheticSymbols } = await getSignals({ profileId }, { skipCache: true });
     observeSignalGenDuration((Date.now() - genStartMs) / 1000);
 
     const payload: CachedSignalsPayload = {

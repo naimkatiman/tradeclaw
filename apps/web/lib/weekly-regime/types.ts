@@ -9,9 +9,9 @@
  * machine-readable card the Telegram bot and Layer-2 consume for the week.
  *
  * DISTINCT from the algorithmic per-symbol `market_regimes` table and
- * `regime-filter.ts` (bull/bear/neutral...). That system is computed from
+ * `regime-filter.ts` (trend/volatile/range). That system is computed from
  * price action per symbol. THIS system is human-set, per-asset-class, weekly.
- * Keep the two conceptually and namewise separate.
+ * The only sanctioned bridge is `lib/regime-resolution.ts`.
  *
  * This file is intentionally free of `server-only` and DB imports so the
  * admin client component can import {@link classifyRegime} for live preview.

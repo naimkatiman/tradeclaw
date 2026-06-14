@@ -8,6 +8,8 @@ import {
 
 export const runtime = 'nodejs';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
+
 /**
  * GET /api/referrals
  *
@@ -40,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     const referralCode = user?.referralCode ?? null;
     const referralLink = referralCode
-      ? `https://tradeclaw.win/pricing?ref=${referralCode}`
+      ? `${BASE_URL}/pricing?ref=${referralCode}`
       : null;
 
     return NextResponse.json({

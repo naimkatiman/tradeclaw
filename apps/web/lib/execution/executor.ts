@@ -32,7 +32,7 @@ import { buildClientIds } from './client-ids';
 import { runEntryFilters } from './filters';
 import { checkLossKillSwitch } from './risk-rails';
 import { computeATR, computeSize, extractFilters, type SymbolFilters } from './sizing';
-import { notifyEntryFilled } from './telegram';
+import { notifyEntryFilled, notifyError } from './telegram';
 import { getTodayUniverse } from './universe-runner';
 
 // Trading firewall — the executor pulls signals only where strategy_id =
@@ -288,14 +288,106 @@ async function runExecutorTickLocked(
           })
         : null;
 
-      // 3d. If SL failed but entry filled, cancel entry to avoid naked exposure
+      // 3d. SL placement failed after the entry order went in. A filled
+      // MARKET entry cannot be cancelled (cancelOrder throws -2011).
+      // Sequence matters: persist the row FIRST — a crash after the entry
+      // fill must never leave the position untracked or the signal
+      // re-pullable (fetchPendingSignals would re-place ids.entry, which
+      // Binance accepts once the original is no longer open). Then cancel
+      // the dangling TP, flatten with a reduce-only MARKET close, and mark
+      // the row closed only on a confirmed FILLED close.
       if (entryOrder && !slOrder) {
-        try {
-          await cancelOrder(binancePair, entryOrder.orderId);
-        } catch (err) {
-          await logError({ signalId: sig.id, stage: 'cancel', errorMsg: getMsg(err) });
+        const entryFilledQty = Number(entryOrder.executedQty) || 0;
+        const entryStatus = (entryOrder.status ?? '').toUpperCase();
+        const positionExists =
+          entryFilledQty > 0 || entryStatus === 'FILLED' || entryStatus === 'PARTIALLY_FILLED';
+
+        await persistExecution({
+          signalId: sig.id,
+          symbol: binancePair,
+          side: sig.direction,
+          qty: sizing.qty,
+          entryPrice: Number(entryOrder.avgPrice ?? entryOrder.price ?? sig.entryPrice) || sig.entryPrice,
+          stopPrice: sizing.stopPrice,
+          tp1Price: sizing.tp1Price,
+          leverage: sizing.leverage,
+          notionalUsd: sizing.notionalUsd,
+          riskUsd: sizing.riskUsd,
+          clientOrderId: ids.entry,
+          exchangeOrderId: entryOrder.orderId?.toString() ?? null,
+          status: positionExists ? 'filled' : 'cancelled',
+          slOrderId: null,
+          tpOrderId: tpOrder?.orderId?.toString() ?? null,
+          mode: isTestnet() ? 'testnet' : 'live',
+        });
+
+        if (tpOrder) {
+          try {
+            await cancelOrder(binancePair, tpOrder.orderId);
+          } catch (err) {
+            await logError({ signalId: sig.id, stage: 'cancel', errorMsg: getMsg(err) });
+          }
         }
-        result.rejected++;
+
+        // Zero-fill entry (e.g. EXPIRED by price protection): no position
+        // exists, nothing to flatten — the row is already 'cancelled'.
+        if (!positionExists) {
+          result.rejected++;
+          continue;
+        }
+
+        const closeQty = roundDownToStep(
+          entryFilledQty > 0 ? entryFilledQty : sizing.qty,
+          filters.stepSize,
+          filters.quantityPrecision,
+        );
+        let closed = false;
+        try {
+          const closeOrder = await placeOrder({
+            symbol: binancePair,
+            side: sig.direction === 'BUY' ? 'SELL' : 'BUY',
+            type: 'MARKET',
+            quantity: closeQty,
+            reduceOnly: true,
+            clientOrderId: ids.close,
+          });
+          // A non-FILLED close (e.g. EXPIRED under the same stressed-book
+          // conditions that broke the SL) means the position is still live.
+          closed = closeOrder != null && (closeOrder.status ?? '').toUpperCase() === 'FILLED';
+          if (closed) {
+            await markEmergencyClosed(ids.entry, Number(closeOrder!.avgPrice) || null);
+          } else {
+            await logError({
+              signalId: sig.id,
+              stage: 'cancel',
+              errorCode: 'naked_position',
+              errorMsg: `emergency close not filled (status=${closeOrder?.status ?? 'null'}) — position is OPEN with no SL`,
+            });
+          }
+        } catch (err) {
+          await logError({
+            signalId: sig.id,
+            stage: 'cancel',
+            errorCode: 'naked_position',
+            errorMsg: `emergency close failed — position is OPEN with no SL: ${getMsg(err)}`,
+          });
+        }
+
+        if (closed) {
+          result.rejected++;
+        } else {
+          // Naked live position: alert the operator (no automated re-protect
+          // exists yet — see plan Phase 5), and count it open so concurrency
+          // caps hold and the position manager tracks the row.
+          void notifyError(
+            'naked_position',
+            sig.id,
+            `${binancePair} ${sig.direction} qty=${closeQty} is LIVE with NO STOP after SL+close failures — manual action required`,
+          );
+          result.errors++;
+          liveOpen++;
+          inTickSymbols.add(binancePair);
+        }
         continue;
       }
 
@@ -489,6 +581,24 @@ async function persistExecution(a: PersistExecArgs): Promise<void> {
       return;
     }
     throw err;
+  }
+}
+
+// Marks the emergency-flatten row terminal. Mirrors position-manager's
+// markClosed column set so the admin executions page renders it normally.
+async function markEmergencyClosed(clientOrderId: string, exitPrice: number | null): Promise<void> {
+  try {
+    await execute(
+      `UPDATE executions
+          SET status='closed',
+              closed_at=NOW(),
+              exit_price=COALESCE($2, exit_price)
+        WHERE client_order_id=$1`,
+      [clientOrderId, exitPrice],
+    );
+  } catch (err: unknown) {
+    const code = (err as { code?: string } | null)?.code;
+    if (code !== '42P01') console.error('[pilot/executor] failed to mark emergency close:', getMsg(err));
   }
 }
 

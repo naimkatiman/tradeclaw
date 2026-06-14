@@ -18,7 +18,7 @@ interface NavLink {
 
 const PRIMARY_LINKS: NavLink[] = [
   { href: '/dashboard', label: 'Dashboard' },
-  { href: '/screener', label: 'Signals' },
+  { href: '/screener', label: 'Screener' },
   { href: '/track-record', label: 'Track Record' },
 ];
 

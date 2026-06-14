@@ -48,53 +48,45 @@ export const DEFAULT_BREAKERS: BreakerConfig[] = [
 ];
 
 // ─── Regime-Adaptive Thresholds ──────────────────────────────────────────
-// Bull/euphoria: wide thresholds → trades breathe → TP3 reachable
-// Bear/crash: tight thresholds → capital preservation
+// Structural mapping (plan D4):
+// trend: widest thresholds → trades breathe → TP3 reachable
+// volatile: tightest thresholds → capital preservation
+// range: middle ground
 
 const REGIME_BREAKER_THRESHOLDS: Record<MarketRegime, Record<BreakerType, number>> = {
-  bull: {
+  trend: {
     daily_drawdown: 6,
     weekly_drawdown: 12,
     max_drawdown: 25,
     consecutive_losses: 7,
     correlation_limit: 5,
   },
-  euphoria: {
-    daily_drawdown: 5,
-    weekly_drawdown: 10,
-    max_drawdown: 20,
-    consecutive_losses: 6,
-    correlation_limit: 4,
-  },
-  neutral: {
-    daily_drawdown: 4,
-    weekly_drawdown: 9,
-    max_drawdown: 18,
-    consecutive_losses: 6,
-    correlation_limit: 4,
-  },
-  bear: {
-    daily_drawdown: 3,
-    weekly_drawdown: 7,
-    max_drawdown: 15,
-    consecutive_losses: 5,
-    correlation_limit: 3,
-  },
-  crash: {
+  volatile: {
     daily_drawdown: 2,
     weekly_drawdown: 5,
     max_drawdown: 10,
     consecutive_losses: 4,
     correlation_limit: 2,
   },
+  range: {
+    daily_drawdown: 4,
+    weekly_drawdown: 9,
+    max_drawdown: 18,
+    consecutive_losses: 6,
+    correlation_limit: 4,
+  },
 };
 
 /**
  * Return breaker configs with thresholds adapted to the current market regime.
- * In bull markets, thresholds are 2x the bear defaults so trades can run to TP3.
+ * In trending markets, thresholds are widest so trades can run to TP3.
+ *
+ * Unknown labels MUST NOT throw (plan D1): the previous throw here cascaded
+ * through the broadcast outage fallback into an UNFILTERED Pro broadcast.
+ * Unknown regimes resolve to the conservative range thresholds instead.
  */
 export function getBreakersForRegime(regime: MarketRegime): BreakerConfig[] {
-  const thresholds = REGIME_BREAKER_THRESHOLDS[regime];
+  const thresholds = REGIME_BREAKER_THRESHOLDS[regime] ?? REGIME_BREAKER_THRESHOLDS.range;
   return DEFAULT_BREAKERS.map((b) => ({
     ...b,
     threshold: thresholds[b.type] ?? b.threshold,

@@ -286,16 +286,29 @@ export async function getSignals(
       for (const sig of allSignals) {
         const mtf = mtfByKey.get(`${sig.symbol}|${tfMode(sig.timeframe)}`);
         if (!mtf) continue;
+        // Capture the pre-boost confidence + MTF survey BEFORE mutating, so the
+        // calibration features (Phase 4 D4) record what shaped the published
+        // confidence. mtfAgreement is the dominant-direction agreement count;
+        // appliedBonus is the bonus actually added (0 when the dominant TF is
+        // neutral or opposite-without-conflict, where confidence is unchanged).
+        const preBoost = sig.confidence;
+        let appliedBonus = 0;
         if (mtf.dominantDirection === sig.direction) {
           // 4/4 aligned → +15, 3/4 → +10, 2/4 → +5. Clamp at 95 to leave 100 as
           // unattainable, matching scaleConfidence's own cap.
+          appliedBonus = mtf.confluenceBonus;
           sig.confidence = Math.min(95, sig.confidence + mtf.confluenceBonus);
         } else if (mtf.isConflicted) {
           // Mixed TFs (1 vs 2) → -20. Push below PUBLISHED_SIGNAL_MIN_CONFIDENCE
           // and the downstream cron filter drops the signal. Clamp at 0.
+          appliedBonus = mtf.confluenceBonus;
           sig.confidence = Math.max(0, sig.confidence + mtf.confluenceBonus);
         }
-        // Dominant direction NEUTRAL or opposite-without-conflict → unchanged.
+        // Dominant direction NEUTRAL or opposite-without-conflict → unchanged
+        // (appliedBonus stays 0).
+        sig.preBoostConfidence = preBoost;
+        sig.mtfAgreement = mtf.agreementCount;
+        sig.confluenceBonus = appliedBonus;
       }
     } catch {
       // MTF fetch failed — leave signals at engine-emitted confidence.

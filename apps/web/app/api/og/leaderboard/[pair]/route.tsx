@@ -105,7 +105,7 @@ export async function GET(
         {/* Footer */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "32px" }}>
           <span style={{ color: "#3f3f46", fontSize: "14px" }}>
-            tradeclaw.com/leaderboard
+            tradeclaw.win/leaderboard
           </span>
           <span style={{ color: "#3f3f46", fontSize: "14px" }}>Free &amp; Open Source</span>
         </div>

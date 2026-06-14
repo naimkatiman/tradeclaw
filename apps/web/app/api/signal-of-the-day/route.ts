@@ -135,10 +135,10 @@ function formatResponse(best: BestSignal, total: number, stale: boolean) {
           `MACD ${best.macdSignal}, EMA trend ${best.emaTrend}. ` +
           `${best.direction === 'BUY' ? 'Bullish' : 'Bearish'} bias across indicators.`,
       },
-      shareUrl: `https://tradeclaw.com/signal/${best.symbol}-${best.timeframe}-${best.direction}`,
+      shareUrl: `https://tradeclaw.win/signal/${best.symbol}-${best.timeframe}-${best.direction}`,
       metadata: {
         source: 'TradeClaw AI Signal Engine',
-        docs: 'https://tradeclaw.com/today',
+        docs: 'https://tradeclaw.win/today',
       },
     },
     { status: 200, headers: { ...BASE_HEADERS, ...extraHeaders } },

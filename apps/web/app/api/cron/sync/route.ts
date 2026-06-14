@@ -105,6 +105,14 @@ export async function GET(request: NextRequest): Promise<Response> {
     results.opsDigest = await callInternal('/api/cron/ops-digest', request);
   }
 
+  // 8. Market regime writer — hourly (minute < 10). 1-2 sync ticks land
+  //    inside each window; the writer's own 30-minute idempotency window
+  //    (regime-writer.ts) absorbs the double-tick and any multi-replica
+  //    double-fire, so no extra guard is needed here.
+  if (isHourSlot(1)) {
+    results.regime = await callInternal('/api/cron/regime', request);
+  }
+
   return NextResponse.json({
     ok: true,
     ran: Object.keys(results),

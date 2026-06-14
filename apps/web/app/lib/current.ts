@@ -35,6 +35,10 @@ export interface MultiTFResult {
   symbol: string;
   timeframes: TFDirection[];
   dominantDirection: 'BUY' | 'SELL' | 'NEUTRAL';
+  // NOTE: this is current.ts's OWN 3-timeframe survey (swing H1/H4/D1,
+  // scalp M5/M15/H1) — range 0–3. It is NOT the persisted `mtf_agreement`
+  // column (migration 051), which comes exclusively from signal-generator.ts's
+  // 4-timeframe generateMultiTFSignal survey (range 0–4). Do not conflate them.
   agreementCount: number; // how many of 3 TFs agree
   confluenceBonus: number; // +15, +5, 0, -20
   isConflicted: boolean;

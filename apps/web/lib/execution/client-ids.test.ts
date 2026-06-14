@@ -5,15 +5,15 @@ describe('buildClientIds', () => {
 
   test('every id is ≤ Binance max length', () => {
     const ids = buildClientIds(UUID_36);
-    for (const id of [ids.entry, ids.sl, ids.tp1, ids.slBe]) {
+    for (const id of [ids.entry, ids.sl, ids.tp1, ids.slBe, ids.close]) {
       expect(id.length).toBeLessThanOrEqual(MAX_CLIENT_ORDER_ID_LEN);
     }
   });
 
-  test('all four ids are unique within a single signal', () => {
+  test('all five ids are unique within a single signal', () => {
     const ids = buildClientIds(UUID_36);
-    const set = new Set([ids.entry, ids.sl, ids.tp1, ids.slBe]);
-    expect(set.size).toBe(4);
+    const set = new Set([ids.entry, ids.sl, ids.tp1, ids.slBe, ids.close]);
+    expect(set.size).toBe(5);
   });
 
   test('different signal ids produce different bases', () => {

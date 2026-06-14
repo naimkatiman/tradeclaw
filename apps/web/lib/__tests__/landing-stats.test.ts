@@ -19,12 +19,11 @@ describe('landing-stats — getLandingStats', () => {
         gross_wins: '15',
         gross_losses: '5',
         closed_count: '42',
+        wins: '26',
+        avg_win_pnl: '3.4',
+        avg_loss_pnl: '-2.0',
       })
       .mockResolvedValueOnce({ c: '7' })
-      .mockResolvedValueOnce({
-        total: '100',
-        wins: '63',
-      })
       .mockResolvedValueOnce({
         pair: 'XAUUSD',
         direction: 'BUY',
@@ -37,13 +36,17 @@ describe('landing-stats — getLandingStats', () => {
 
     const stats = await getLandingStats();
 
-    expect(mockedQueryOne).toHaveBeenCalledTimes(4);
+    expect(mockedQueryOne).toHaveBeenCalledTimes(3);
     expect(stats).toEqual({
       cumulativePnlPct: 12.5,
       profitFactor: 3,
       signalsToday: 7,
-      closedSignals30d: 42,
-      recentWinRate: 63,
+      closedSignals: 42,
+      // 26 / 42 = 61.9%
+      winRatePct: 61.9,
+      // 3.4 / 2.0 = 1.7 → break-even 100 / 2.7 = 37.0
+      payoffRatio: 1.7,
+      breakEvenWinRatePct: 37,
       latestSignal: {
         symbol: 'XAUUSD',
         direction: 'BUY',
@@ -76,19 +79,18 @@ describe('landing-stats — getLandingStats', () => {
     });
   });
 
-  it('returns no latest sample when the latest signal query is empty and keeps profit factor null when there are no losses', async () => {
+  it('returns no latest sample when the latest signal query is empty and withholds win rate below 20 closed', async () => {
     mockedQueryOne
       .mockResolvedValueOnce({
         cumulative: '0',
         gross_wins: '8',
         gross_losses: '0',
         closed_count: '8',
+        wins: '8',
+        avg_win_pnl: '1.0',
+        avg_loss_pnl: null,
       })
       .mockResolvedValueOnce({ c: '0' })
-      .mockResolvedValueOnce({
-        total: '100',
-        wins: '55',
-      })
       .mockResolvedValueOnce(null);
 
     const stats = await getLandingStats();
@@ -97,8 +99,10 @@ describe('landing-stats — getLandingStats', () => {
       cumulativePnlPct: 0,
       profitFactor: null,
       signalsToday: 0,
-      closedSignals30d: 8,
-      recentWinRate: 55,
+      closedSignals: 8,
+      winRatePct: null,
+      payoffRatio: null,
+      breakEvenWinRatePct: null,
       latestSignal: null,
       samples: null,
     });

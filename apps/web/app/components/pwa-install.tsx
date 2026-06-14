@@ -30,8 +30,12 @@ export function PWAInstallPrompt() {
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Show banner after 30 seconds of browsing
-      setTimeout(() => setShowBanner(true), 30000);
+      // Show banner after 30 seconds of browsing — unless the onboarding
+      // checklist panel is open in the same corner; it has priority.
+      setTimeout(() => {
+        if (document.querySelector('[data-onboarding-panel]')) return;
+        setShowBanner(true);
+      }, 30000);
     };
 
     window.addEventListener('beforeinstallprompt', handler);

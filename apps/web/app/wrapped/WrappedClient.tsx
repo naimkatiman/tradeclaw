@@ -344,12 +344,12 @@ export function WrappedClient() {
   }, []);
 
   const shareText = stats
-    ? `My ${stats.year} TradeClaw Wrapped 🎁\n\n📊 ${stats.totalSignals} signals tracked\n🏆 Best pair: ${stats.bestPair} (${formatPct(stats.bestPairWinRate)})\n🎯 Overall accuracy: ${formatPct(stats.overallWinRate)}\n🔥 Longest streak: ${stats.longestStreak} wins\n\nGet your trading wrapped → tradeclaw.com/wrapped`
+    ? `My ${stats.year} TradeClaw Wrapped 🎁\n\n📊 ${stats.totalSignals} signals tracked\n🏆 Best pair: ${stats.bestPair} (${formatPct(stats.bestPairWinRate)})\n🎯 Overall accuracy: ${formatPct(stats.overallWinRate)}\n🔥 Longest streak: ${stats.longestStreak} wins\n\nGet your trading wrapped → tradeclaw.win/wrapped`
     : '';
 
   const handleShare = useCallback(() => {
     if (navigator.share) {
-      navigator.share({ title: `TradeClaw Wrapped ${year}`, text: shareText, url: 'https://tradeclaw.com/wrapped' });
+      navigator.share({ title: `TradeClaw Wrapped ${year}`, text: shareText, url: 'https://tradeclaw.win/wrapped' });
     } else {
       navigator.clipboard.writeText(shareText);
     }

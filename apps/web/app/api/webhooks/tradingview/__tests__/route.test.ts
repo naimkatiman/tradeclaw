@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 
 jest.mock('../../../../../lib/db-pool', () => ({
-  execute: jest.fn(),
+  queryOne: jest.fn(),
 }));
 
 jest.mock('../../../../../lib/signal-history', () => ({
@@ -13,12 +13,12 @@ jest.mock('../../../../../lib/paper-trading', () => ({
   getDemoUserId: jest.fn().mockReturnValue('demo-user-123'),
 }));
 
-import { execute } from '../../../../../lib/db-pool';
+import { queryOne } from '../../../../../lib/db-pool';
 import { recordSignalsAsync } from '../../../../../lib/signal-history';
 import { autoFollowSignal, getDemoUserId } from '../../../../../lib/paper-trading';
 import { POST } from '../route';
 
-const mockedExecute = execute as jest.MockedFunction<typeof execute>;
+const mockedQueryOne = queryOne as jest.MockedFunction<typeof queryOne>;
 const mockedRecordSignalsAsync = recordSignalsAsync as jest.MockedFunction<typeof recordSignalsAsync>;
 const mockedAutoFollowSignal = autoFollowSignal as jest.MockedFunction<typeof autoFollowSignal>;
 const mockedGetDemoUserId = getDemoUserId as jest.MockedFunction<typeof getDemoUserId>;
@@ -54,7 +54,7 @@ describe('POST /api/webhooks/tradingview', () => {
 
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: 'unauthorized' });
-    expect(mockedExecute).not.toHaveBeenCalled();
+    expect(mockedQueryOne).not.toHaveBeenCalled();
   });
 
   it('rejects disallowed strategy ids before touching the DB', async () => {
@@ -75,11 +75,11 @@ describe('POST /api/webhooks/tradingview', () => {
 
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: 'invalid_payload', field: 'strategy_id_not_allowed' });
-    expect(mockedExecute).not.toHaveBeenCalled();
+    expect(mockedQueryOne).not.toHaveBeenCalled();
   });
 
   it('persists a valid TradingView signal and returns ok', async () => {
-    mockedExecute.mockResolvedValueOnce(undefined);
+    mockedQueryOne.mockResolvedValueOnce({ source_id: 'hafiz-xauusd-h1-1716208800' });
 
     const payload = {
       source_id: 'hafiz-xauusd-h1-1716208800',
@@ -100,8 +100,8 @@ describe('POST /api/webhooks/tradingview', () => {
 
     expect(res.status).toBe(200);
     expect(body).toEqual({ ok: true });
-    expect(mockedExecute).toHaveBeenCalledTimes(1);
-    expect(mockedExecute).toHaveBeenCalledWith(
+    expect(mockedQueryOne).toHaveBeenCalledTimes(1);
+    expect(mockedQueryOne).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO premium_signals'),
       [
         'hafiz-xauusd-h1-1716208800',
@@ -122,6 +122,8 @@ describe('POST /api/webhooks/tradingview', () => {
         new Date('2026-05-20T10:00:00.000Z'),
       ],
     );
+    // The INSERT must RETURNING source_id so duplicates can be detected.
+    expect(mockedQueryOne.mock.calls[0][0]).toContain('RETURNING source_id');
     expect(mockedRecordSignalsAsync).toHaveBeenCalledTimes(1);
     expect(mockedRecordSignalsAsync).toHaveBeenCalledWith([
       {
@@ -150,8 +152,35 @@ describe('POST /api/webhooks/tradingview', () => {
     });
   });
 
+  it('does not auto-follow a replayed (duplicate source_id) signal', async () => {
+    // ON CONFLICT DO NOTHING returns no row → isNewSignal=false → no new position.
+    mockedQueryOne.mockResolvedValueOnce(null);
+
+    const payload = {
+      source_id: 'hafiz-xauusd-h1-1716208800',
+      strategy_id: 'tv-hafiz-synergy',
+      symbol: 'XAUUSD',
+      timeframe: 'H1',
+      direction: 'BUY',
+      confidence: 87,
+      entry: 2321.5,
+      stop_loss: 2310.25,
+      take_profit_1: 2332.75,
+      signal_ts: '2026-05-20T10:00:00.000Z',
+    };
+
+    const res = await POST(makeReq(payload, process.env.TV_WEBHOOK_SECRET));
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
+    // History mirror is idempotent on its own, so it still runs.
+    expect(mockedRecordSignalsAsync).toHaveBeenCalledTimes(1);
+    // But the paper-trading position must NOT be opened a second time.
+    expect(mockedAutoFollowSignal).not.toHaveBeenCalled();
+  });
+
   it('defaults confidence to 90 when omitted', async () => {
-    mockedExecute.mockResolvedValueOnce(undefined);
+    mockedQueryOne.mockResolvedValueOnce({ source_id: 'zaky-btcusd-h4-1716208801' });
 
     const payload = {
       source_id: 'zaky-btcusd-h4-1716208801',
@@ -166,7 +195,7 @@ describe('POST /api/webhooks/tradingview', () => {
     const res = await POST(makeReq(payload, process.env.TV_WEBHOOK_SECRET));
 
     expect(res.status).toBe(200);
-    const [, args] = mockedExecute.mock.calls[0];
+    const [, args] = mockedQueryOne.mock.calls[0];
     expect(args).toEqual([
       'zaky-btcusd-h4-1716208801',
       'tv-zaky-classic',
@@ -205,7 +234,7 @@ describe('POST /api/webhooks/tradingview', () => {
   });
 
   it('skips auto-follow when demo user is not configured', async () => {
-    mockedExecute.mockResolvedValueOnce(undefined);
+    mockedQueryOne.mockResolvedValueOnce({ source_id: 'zaky-xauusd-h1-1716208802' });
     mockedGetDemoUserId.mockReturnValue(null);
 
     const payload = {

@@ -1,0 +1,4382 @@
+{
+  "meta": {
+    "runAt": "2026-06-12T11:02:09.767Z"
+  },
+  "spec": {
+    "strategy": "daily-momentum",
+    "entryModule": "dailyMomentumEntry",
+    "lookback": 28,
+    "timeframe": "D1",
+    "folds": 4,
+    "barHours": 24,
+    "costs": {
+      "feePctPerSide": 0.05,
+      "slippagePctPerSide": 0.15,
+      "fundingPctPer8h": 0.01
+    },
+    "configs": [
+      {
+        "id": "signal-flip",
+        "label": "signal-flip (ride to opposite cross, SL floor)",
+        "exitMode": "signal-flip",
+        "geometry": {
+          "mode": "atr",
+          "period": 14,
+          "slMult": 2.5,
+          "tpRMultiple": 2
+        }
+      },
+      {
+        "id": "geometry-2R",
+        "label": "geometry exit @ 2R (LIVE_GEOMETRY)",
+        "exitMode": "geometry",
+        "geometry": {
+          "mode": "atr",
+          "period": 14,
+          "slMult": 2.5,
+          "tpRMultiple": 2
+        }
+      },
+      {
+        "id": "geometry-4R",
+        "label": "geometry exit @ 4R (wide target)",
+        "exitMode": "geometry",
+        "geometry": {
+          "mode": "atr",
+          "period": 14,
+          "slMult": 2.5,
+          "tpRMultiple": 4
+        }
+      }
+    ],
+    "symbols": [
+      "BTCUSD",
+      "ETHUSD",
+      "SOLUSD",
+      "BNBUSD",
+      "XRPUSD",
+      "ADAUSD",
+      "DOGEUSD",
+      "DOTUSD",
+      "LINKUSD",
+      "AVAXUSD"
+    ],
+    "deployableBar": {
+      "meanCostedReturnAndExpectancy": "> 0",
+      "symbolsPositiveAndAdequate": "≥ majority (> half), each with ≥ 30 trades",
+      "foldStability": "> 50% of (symbol × fold) cells positive",
+      "thinFloor": 30
+    },
+    "perSymbolWindow": {
+      "BTCUSD": {
+        "candleCount": 2190,
+        "firstBar": "2020-06-12T00:00:00.000Z",
+        "lastBar": "2026-06-10T00:00:00.000Z"
+      },
+      "ETHUSD": {
+        "candleCount": 2190,
+        "firstBar": "2020-06-12T00:00:00.000Z",
+        "lastBar": "2026-06-10T00:00:00.000Z"
+      },
+      "SOLUSD": {
+        "candleCount": 2130,
+        "firstBar": "2020-08-11T00:00:00.000Z",
+        "lastBar": "2026-06-10T00:00:00.000Z"
+      },
+      "BNBUSD": {
+        "candleCount": 2190,
+        "firstBar": "2020-06-12T00:00:00.000Z",
+        "lastBar": "2026-06-10T00:00:00.000Z"
+      },
+      "XRPUSD": {
+        "candleCount": 2190,
+        "firstBar": "2020-06-12T00:00:00.000Z",
+        "lastBar": "2026-06-10T00:00:00.000Z"
+      },
+      "ADAUSD": {
+        "candleCount": 2190,
+        "firstBar": "2020-06-12T00:00:00.000Z",
+        "lastBar": "2026-06-10T00:00:00.000Z"
+      },
+      "DOGEUSD": {
+        "candleCount": 2190,
+        "firstBar": "2020-06-12T00:00:00.000Z",
+        "lastBar": "2026-06-10T00:00:00.000Z"
+      },
+      "DOTUSD": {
+        "candleCount": 2123,
+        "firstBar": "2020-08-18T00:00:00.000Z",
+        "lastBar": "2026-06-10T00:00:00.000Z"
+      },
+      "LINKUSD": {
+        "candleCount": 2190,
+        "firstBar": "2020-06-12T00:00:00.000Z",
+        "lastBar": "2026-06-10T00:00:00.000Z"
+      },
+      "AVAXUSD": {
+        "candleCount": 2088,
+        "firstBar": "2020-09-22T00:00:00.000Z",
+        "lastBar": "2026-06-10T00:00:00.000Z"
+      }
+    },
+    "caveats": [
+      "folds are contiguous sub-periods (stability inspection, not walk-forward optimization); daily-momentum has NO fitted parameters, so this is across-time stability, not in-sample/out-of-sample tuning",
+      "per-fold indicator warmup restarts at the fold boundary (the 28-bar momentum lookback + the 14-bar ATR), and a position open at fold end force-closes at the last bar — short folds therefore carry fewer trades than the full range",
+      "cost model = crypto perp (fee 0.05%/side + slippage 0.15%/side + funding 0.01%/8h); funding is a sign-agnostic upper bound, so a directional carry could be cheaper than modeled (costs are conservative, not optimistic)",
+      "THIN CELLS: any config×symbol cell with fewer than 30 trades is flagged ⚠THIN — below that count the standard error of the mean dominates, so the cell's return/expectancy is insufficient evidence",
+      "FOLD-STABILITY THIN WEAKNESS: foldStability is the fraction of (symbol × fold) cells with positive costed return, and it counts THIN fold cells (< 30 trades) as if adequate — a positive-but-underpowered fold inflates it. aggregate.<config>.foldCellsThin / foldCellsTotal exposes how many of the cells behind the number were thin, so the stability read can be discounted accordingly (the gate threshold is unchanged — this is a transparency field, not a new gate)",
+      "INFLATING FLUKES: aggregate.<config>.flukeSymbols lists symbols whose extreme positive costed return (≥ +100% absolute, or ≥ 5× the cross-symbol median) inflate meanCostedReturn; meanCostedReturnExFlukes is the mean with them removed. A positive mean driven by one or two flukes is why a config can be MARGINAL (not positive) — read the ex-flukes mean alongside the headline mean",
+      "signal-flip exit rides the trend to the opposite-direction momentum cross with the ATR SL as a floor and NO take-profit (tpRMultiple is ignored in this mode); geometry-2R/4R use the ATR TP/SL ladder",
+      "totalReturn is the compounded fractional return at flat 10%-of-balance allocation; expectancy is the per-trade mean pnlPct (position-size-neutral) — the deployable bar reads BOTH",
+      "lookback is the specced 28-day default — NO tuning; a one-off lookback sensitivity, if reported, is labeled as such and is not the headline"
+    ]
+  },
+  "aggregate": {
+    "signal-flip": {
+      "config": "signal-flip",
+      "symbolsTotal": 10,
+      "symbolsPositiveAndAdequate": 4,
+      "symbolsPositiveRaw": 4,
+      "symbolsThin": 0,
+      "meanCostedReturn": 0.249158,
+      "meanZeroCostReturn": 0.34338,
+      "meanExpectancy": 0.017599,
+      "meanFrictionDrag": 0.094222,
+      "meanTrades": 103.2,
+      "foldStability": 0.375,
+      "foldCellsThin": 32,
+      "foldCellsTotal": 40,
+      "flukeSymbols": [
+        {
+          "symbol": "SOLUSD",
+          "costedReturn": 1.892334,
+          "reason": "≥ +100% absolute"
+        },
+        {
+          "symbol": "AVAXUSD",
+          "costedReturn": 1.019038,
+          "reason": "≥ +100% absolute"
+        }
+      ],
+      "meanCostedReturnExFlukes": -0.052474,
+      "verdict": "MARGINAL",
+      "verdictReasons": [
+        "only 4/10 symbols positive-and-adequate (need ≥6)",
+        "fold stability 38% ≤ 50% (not robust across time)"
+      ],
+      "label": "signal-flip (ride to opposite cross, SL floor)"
+    },
+    "geometry-2R": {
+      "config": "geometry-2R",
+      "symbolsTotal": 10,
+      "symbolsPositiveAndAdequate": 0,
+      "symbolsPositiveRaw": 1,
+      "symbolsThin": 6,
+      "meanCostedReturn": -0.125435,
+      "meanZeroCostReturn": -0.074427,
+      "meanExpectancy": -0.057473,
+      "meanFrictionDrag": 0.051008,
+      "meanTrades": 26.6,
+      "foldStability": 0.3,
+      "foldCellsThin": 40,
+      "foldCellsTotal": 40,
+      "flukeSymbols": [],
+      "meanCostedReturnExFlukes": -0.125435,
+      "verdict": "NEGATIVE",
+      "verdictReasons": [
+        "mean cost-adjusted return -12.54% / expectancy -5.747% not both > 0",
+        "only 0/10 symbols positive-and-adequate (need ≥6)",
+        "mean 26.6 trades/symbol below the 30-trade floor",
+        "fold stability 30% ≤ 50% (not robust across time)"
+      ],
+      "label": "geometry exit @ 2R (LIVE_GEOMETRY)"
+    },
+    "geometry-4R": {
+      "config": "geometry-4R",
+      "symbolsTotal": 10,
+      "symbolsPositiveAndAdequate": 0,
+      "symbolsPositiveRaw": 1,
+      "symbolsThin": 10,
+      "meanCostedReturn": -0.140094,
+      "meanZeroCostReturn": -0.087579,
+      "meanExpectancy": -0.161378,
+      "meanFrictionDrag": 0.052515,
+      "meanTrades": 12.5,
+      "foldStability": 0.3,
+      "foldCellsThin": 40,
+      "foldCellsTotal": 40,
+      "flukeSymbols": [],
+      "meanCostedReturnExFlukes": -0.140094,
+      "verdict": "NEGATIVE",
+      "verdictReasons": [
+        "mean cost-adjusted return -14.01% / expectancy -16.138% not both > 0",
+        "only 0/10 symbols positive-and-adequate (need ≥6)",
+        "mean 12.5 trades/symbol below the 30-trade floor",
+        "fold stability 30% ≤ 50% (not robust across time)"
+      ],
+      "label": "geometry exit @ 4R (wide target)"
+    }
+  },
+  "results": {
+    "BTCUSD": {
+      "candleCount": 2190,
+      "firstBar": "2020-06-12T00:00:00.000Z",
+      "lastBar": "2026-06-10T00:00:00.000Z",
+      "full": {
+        "signal-flip": {
+          "costed": {
+            "totalTrades": 100,
+            "winRate": 0.23,
+            "totalReturn": 0.205785,
+            "expectancy": 0.019771,
+            "profitFactor": 1.62,
+            "maxDrawdown": 0.0597,
+            "sharpeRatio": 1.351,
+            "avgCostPct": 0.7408,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 100,
+            "winRate": 0.26,
+            "totalReturn": 0.297521,
+            "expectancy": 0.027179,
+            "profitFactor": 2.004,
+            "maxDrawdown": 0.05,
+            "sharpeRatio": 1.806,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.091736
+        },
+        "geometry-2R": {
+          "costed": {
+            "totalTrades": 38,
+            "winRate": 0.3158,
+            "totalReturn": -0.139973,
+            "expectancy": -0.038148,
+            "profitFactor": 0.596,
+            "maxDrawdown": 0.1688,
+            "sharpeRatio": -1.376,
+            "avgCostPct": 1.4634,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 38,
+            "winRate": 0.3158,
+            "totalReturn": -0.090744,
+            "expectancy": -0.023514,
+            "profitFactor": 0.717,
+            "maxDrawdown": 0.1415,
+            "sharpeRatio": -0.838,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.049229
+        },
+        "geometry-4R": {
+          "costed": {
+            "totalTrades": 27,
+            "winRate": 0.1481,
+            "totalReturn": -0.196906,
+            "expectancy": -0.079372,
+            "profitFactor": 0.357,
+            "maxDrawdown": 0.2293,
+            "sharpeRatio": -2.358,
+            "avgCostPct": 2.1533,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 27,
+            "winRate": 0.1481,
+            "totalReturn": -0.148672,
+            "expectancy": -0.057839,
+            "profitFactor": 0.452,
+            "maxDrawdown": 0.1894,
+            "sharpeRatio": -1.67,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.048234
+        }
+      },
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2020-06-12",
+          "to": "2021-12-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 25,
+                "winRate": 0.32,
+                "totalReturn": 0.16691,
+                "expectancy": 0.063944,
+                "profitFactor": 3.041,
+                "maxDrawdown": 0.0502,
+                "sharpeRatio": 1.571,
+                "avgCostPct": 0.796,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 25,
+                "winRate": 0.32,
+                "totalReturn": 0.189926,
+                "expectancy": 0.071904,
+                "profitFactor": 3.577,
+                "maxDrawdown": 0.0465,
+                "sharpeRatio": 1.725,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.023016
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 11,
+                "winRate": 0.3636,
+                "totalReturn": -0.045027,
+                "expectancy": -0.039118,
+                "profitFactor": 0.669,
+                "maxDrawdown": 0.1017,
+                "sharpeRatio": -0.559,
+                "avgCostPct": 1.1255,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 11,
+                "winRate": 0.3636,
+                "totalReturn": -0.033142,
+                "expectancy": -0.027864,
+                "profitFactor": 0.744,
+                "maxDrawdown": 0.0968,
+                "sharpeRatio": -0.395,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011885
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 8,
+                "winRate": 0.25,
+                "totalReturn": -0.082392,
+                "expectancy": -0.105016,
+                "profitFactor": 0.325,
+                "maxDrawdown": 0.1195,
+                "sharpeRatio": -1.529,
+                "avgCostPct": 1.6488,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 8,
+                "winRate": 0.25,
+                "totalReturn": -0.070059,
+                "expectancy": -0.088528,
+                "profitFactor": 0.374,
+                "maxDrawdown": 0.1094,
+                "sharpeRatio": -1.301,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012333
+            }
+          }
+        },
+        {
+          "label": "fold2",
+          "from": "2021-12-11",
+          "to": "2023-06-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 27,
+                "winRate": 0.1481,
+                "totalReturn": -0.04742,
+                "expectancy": -0.017681,
+                "profitFactor": 0.528,
+                "maxDrawdown": 0.053,
+                "sharpeRatio": -1.189,
+                "avgCostPct": 0.6456,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 27,
+                "winRate": 0.1481,
+                "totalReturn": -0.0307,
+                "expectancy": -0.011226,
+                "profitFactor": 0.657,
+                "maxDrawdown": 0.0438,
+                "sharpeRatio": -0.729,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.01672
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.076882,
+                "expectancy": -0.087987,
+                "profitFactor": 0.182,
+                "maxDrawdown": 0.0829,
+                "sharpeRatio": -2.626,
+                "avgCostPct": 1.5233,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.064029,
+                "expectancy": -0.072753,
+                "profitFactor": 0.243,
+                "maxDrawdown": 0.0719,
+                "sharpeRatio": -2.182,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012853
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.064724,
+                "expectancy": -0.073179,
+                "profitFactor": 0.313,
+                "maxDrawdown": 0.0736,
+                "sharpeRatio": -1.636,
+                "avgCostPct": 1.5467,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.051528,
+                "expectancy": -0.057712,
+                "profitFactor": 0.393,
+                "maxDrawdown": 0.0654,
+                "sharpeRatio": -1.288,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013196
+            }
+          }
+        },
+        {
+          "label": "fold3",
+          "from": "2023-06-11",
+          "to": "2024-12-08",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 20,
+                "winRate": 0.15,
+                "totalReturn": -0.042522,
+                "expectancy": -0.021631,
+                "profitFactor": 0.23,
+                "maxDrawdown": 0.0523,
+                "sharpeRatio": -2.556,
+                "avgCostPct": 0.7075,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 20,
+                "winRate": 0.2,
+                "totalReturn": -0.028871,
+                "expectancy": -0.014556,
+                "profitFactor": 0.384,
+                "maxDrawdown": 0.0412,
+                "sharpeRatio": -1.613,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013651
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 8,
+                "winRate": 0.5,
+                "totalReturn": 0.006283,
+                "expectancy": 0.008907,
+                "profitFactor": 1.116,
+                "maxDrawdown": 0.042,
+                "sharpeRatio": 0.172,
+                "avgCostPct": 1.5137,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 8,
+                "winRate": 0.5,
+                "totalReturn": 0.018447,
+                "expectancy": 0.024045,
+                "profitFactor": 1.364,
+                "maxDrawdown": 0.039,
+                "sharpeRatio": 0.444,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012164
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 5,
+                "winRate": 0,
+                "totalReturn": -0.068876,
+                "expectancy": -0.141641,
+                "profitFactor": 0,
+                "maxDrawdown": 0.0689,
+                "sharpeRatio": -8.428,
+                "avgCostPct": 2.614,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 5,
+                "winRate": 0,
+                "totalReturn": -0.056463,
+                "expectancy": -0.115501,
+                "profitFactor": 0,
+                "maxDrawdown": 0.0565,
+                "sharpeRatio": -7.118,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012413
+            }
+          }
+        },
+        {
+          "label": "fold4",
+          "from": "2024-12-09",
+          "to": "2026-06-10",
+          "candleCount": 549,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 25,
+                "winRate": 0.2,
+                "totalReturn": 0.017386,
+                "expectancy": 0.007161,
+                "profitFactor": 1.357,
+                "maxDrawdown": 0.0308,
+                "sharpeRatio": 0.49,
+                "avgCostPct": 0.7444,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 25,
+                "winRate": 0.28,
+                "totalReturn": 0.036404,
+                "expectancy": 0.014605,
+                "profitFactor": 1.944,
+                "maxDrawdown": 0.0233,
+                "sharpeRatio": 0.95,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.019018
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 9,
+                "winRate": 0.3333,
+                "totalReturn": 0.002885,
+                "expectancy": 0.004263,
+                "profitFactor": 1.048,
+                "maxDrawdown": 0.0317,
+                "sharpeRatio": 0.087,
+                "avgCostPct": 1.7367,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 9,
+                "winRate": 0.3333,
+                "totalReturn": 0.018668,
+                "expectancy": 0.02163,
+                "profitFactor": 1.375,
+                "maxDrawdown": 0.0209,
+                "sharpeRatio": 0.444,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015783
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 7,
+                "winRate": 0.1429,
+                "totalReturn": -0.028017,
+                "expectancy": -0.039241,
+                "profitFactor": 0.542,
+                "maxDrawdown": 0.0473,
+                "sharpeRatio": -0.646,
+                "avgCostPct": 2.2643,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 7,
+                "winRate": 0.1429,
+                "totalReturn": -0.012499,
+                "expectancy": -0.016599,
+                "profitFactor": 0.749,
+                "maxDrawdown": 0.0389,
+                "sharpeRatio": -0.264,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015518
+            }
+          }
+        }
+      ]
+    },
+    "ETHUSD": {
+      "candleCount": 2190,
+      "firstBar": "2020-06-12T00:00:00.000Z",
+      "lastBar": "2026-06-10T00:00:00.000Z",
+      "full": {
+        "signal-flip": {
+          "costed": {
+            "totalTrades": 86,
+            "winRate": 0.2209,
+            "totalReturn": -0.078855,
+            "expectancy": -0.009002,
+            "profitFactor": 0.747,
+            "maxDrawdown": 0.1284,
+            "sharpeRatio": -0.793,
+            "avgCostPct": 0.7792,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 86,
+            "winRate": 0.2442,
+            "totalReturn": -0.015313,
+            "expectancy": -0.00121,
+            "profitFactor": 0.946,
+            "maxDrawdown": 0.0906,
+            "sharpeRatio": -0.103,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.063542
+        },
+        "geometry-2R": {
+          "costed": {
+            "totalTrades": 32,
+            "winRate": 0.2188,
+            "totalReturn": -0.24888,
+            "expectancy": -0.086813,
+            "profitFactor": 0.374,
+            "maxDrawdown": 0.2731,
+            "sharpeRatio": -2.327,
+            "avgCostPct": 1.6975,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 32,
+            "winRate": 0.2188,
+            "totalReturn": -0.206446,
+            "expectancy": -0.069838,
+            "profitFactor": 0.44,
+            "maxDrawdown": 0.2434,
+            "sharpeRatio": -1.896,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.042434
+        },
+        "geometry-4R": {
+          "costed": {
+            "totalTrades": 25,
+            "winRate": 0.28,
+            "totalReturn": 0.011299,
+            "expectancy": 0.010602,
+            "profitFactor": 1.035,
+            "maxDrawdown": 0.1901,
+            "sharpeRatio": 0.15,
+            "avgCostPct": 2.3584,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 25,
+            "winRate": 0.28,
+            "totalReturn": 0.071954,
+            "expectancy": 0.034186,
+            "profitFactor": 1.242,
+            "maxDrawdown": 0.18,
+            "sharpeRatio": 0.474,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.060655
+        }
+      },
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2020-06-12",
+          "to": "2021-12-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 20,
+                "winRate": 0.2,
+                "totalReturn": -0.078329,
+                "expectancy": -0.040597,
+                "profitFactor": 0.108,
+                "maxDrawdown": 0.0826,
+                "sharpeRatio": -3.997,
+                "avgCostPct": 0.637,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 20,
+                "winRate": 0.2,
+                "totalReturn": -0.066478,
+                "expectancy": -0.034227,
+                "profitFactor": 0.167,
+                "maxDrawdown": 0.0712,
+                "sharpeRatio": -3.272,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011851
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 10,
+                "winRate": 0.1,
+                "totalReturn": -0.184458,
+                "expectancy": -0.200634,
+                "profitFactor": 0.03,
+                "maxDrawdown": 0.1901,
+                "sharpeRatio": -4.149,
+                "avgCostPct": 1.264,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 10,
+                "winRate": 0.1,
+                "totalReturn": -0.173771,
+                "expectancy": -0.187994,
+                "profitFactor": 0.034,
+                "maxDrawdown": 0.18,
+                "sharpeRatio": -4.101,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.010687
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 10,
+                "winRate": 0.1,
+                "totalReturn": -0.184458,
+                "expectancy": -0.200634,
+                "profitFactor": 0.03,
+                "maxDrawdown": 0.1901,
+                "sharpeRatio": -4.149,
+                "avgCostPct": 1.264,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 10,
+                "winRate": 0.1,
+                "totalReturn": -0.173771,
+                "expectancy": -0.187994,
+                "profitFactor": 0.034,
+                "maxDrawdown": 0.18,
+                "sharpeRatio": -4.101,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.010687
+            }
+          }
+        },
+        {
+          "label": "fold2",
+          "from": "2021-12-11",
+          "to": "2023-06-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 21,
+                "winRate": 0.2381,
+                "totalReturn": -0.022485,
+                "expectancy": -0.010268,
+                "profitFactor": 0.756,
+                "maxDrawdown": 0.0375,
+                "sharpeRatio": -0.444,
+                "avgCostPct": 0.7157,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 21,
+                "winRate": 0.2381,
+                "totalReturn": -0.007737,
+                "expectancy": -0.003111,
+                "profitFactor": 0.908,
+                "maxDrawdown": 0.031,
+                "sharpeRatio": -0.131,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014748
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 6,
+                "winRate": 0.3333,
+                "totalReturn": -0.04814,
+                "expectancy": -0.079694,
+                "profitFactor": 0.424,
+                "maxDrawdown": 0.0586,
+                "sharpeRatio": -0.927,
+                "avgCostPct": 2.3,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 6,
+                "winRate": 0.3333,
+                "totalReturn": -0.0347,
+                "expectancy": -0.056694,
+                "profitFactor": 0.522,
+                "maxDrawdown": 0.0547,
+                "sharpeRatio": -0.692,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.01344
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 6,
+                "winRate": 0.3333,
+                "totalReturn": -0.016874,
+                "expectancy": -0.023076,
+                "profitFactor": 0.8,
+                "maxDrawdown": 0.0586,
+                "sharpeRatio": -0.172,
+                "avgCostPct": 2.43,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 6,
+                "winRate": 0.3333,
+                "totalReturn": -0.002281,
+                "expectancy": 0.001224,
+                "profitFactor": 0.969,
+                "maxDrawdown": 0.0547,
+                "sharpeRatio": 0.009,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014593
+            }
+          }
+        },
+        {
+          "label": "fold3",
+          "from": "2023-06-11",
+          "to": "2024-12-08",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 20,
+                "winRate": 0.2,
+                "totalReturn": -0.045066,
+                "expectancy": -0.022798,
+                "profitFactor": 0.425,
+                "maxDrawdown": 0.0556,
+                "sharpeRatio": -1.496,
+                "avgCostPct": 0.8065,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 20,
+                "winRate": 0.25,
+                "totalReturn": -0.02954,
+                "expectancy": -0.014733,
+                "profitFactor": 0.571,
+                "maxDrawdown": 0.0434,
+                "sharpeRatio": -0.934,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015526
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 11,
+                "winRate": 0.3636,
+                "totalReturn": -0.031096,
+                "expectancy": -0.027589,
+                "profitFactor": 0.669,
+                "maxDrawdown": 0.0696,
+                "sharpeRatio": -0.62,
+                "avgCostPct": 1.0927,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 11,
+                "winRate": 0.3636,
+                "totalReturn": -0.019359,
+                "expectancy": -0.016661,
+                "profitFactor": 0.778,
+                "maxDrawdown": 0.0629,
+                "sharpeRatio": -0.373,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011737
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 8,
+                "winRate": 0.25,
+                "totalReturn": -0.01271,
+                "expectancy": -0.013395,
+                "profitFactor": 0.847,
+                "maxDrawdown": 0.0719,
+                "sharpeRatio": -0.165,
+                "avgCostPct": 1.6788,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 8,
+                "winRate": 0.25,
+                "totalReturn": 0.000593,
+                "expectancy": 0.003393,
+                "profitFactor": 1.008,
+                "maxDrawdown": 0.0639,
+                "sharpeRatio": 0.041,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013303
+            }
+          }
+        },
+        {
+          "label": "fold4",
+          "from": "2024-12-09",
+          "to": "2026-06-10",
+          "candleCount": 549,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 24,
+                "winRate": 0.25,
+                "totalReturn": 0.048298,
+                "expectancy": 0.020366,
+                "profitFactor": 1.633,
+                "maxDrawdown": 0.0306,
+                "sharpeRatio": 0.842,
+                "avgCostPct": 0.7813,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 24,
+                "winRate": 0.25,
+                "totalReturn": 0.067968,
+                "expectancy": 0.028178,
+                "profitFactor": 2.016,
+                "maxDrawdown": 0.027,
+                "sharpeRatio": 1.125,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.01967
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 8,
+                "winRate": 0.375,
+                "totalReturn": 0.003685,
+                "expectancy": 0.006653,
+                "profitFactor": 1.048,
+                "maxDrawdown": 0.033,
+                "sharpeRatio": 0.092,
+                "avgCostPct": 1.5475,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 8,
+                "winRate": 0.375,
+                "totalReturn": 0.016168,
+                "expectancy": 0.022128,
+                "profitFactor": 1.234,
+                "maxDrawdown": 0.0276,
+                "sharpeRatio": 0.307,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012483
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 4,
+                "winRate": 0.75,
+                "totalReturn": 0.147443,
+                "expectancy": 0.354262,
+                "profitFactor": 10.017,
+                "maxDrawdown": 0.0148,
+                "sharpeRatio": 2.357,
+                "avgCostPct": 3.5125,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 4,
+                "winRate": 0.75,
+                "totalReturn": 0.162898,
+                "expectancy": 0.389387,
+                "profitFactor": 11.782,
+                "maxDrawdown": 0.0136,
+                "sharpeRatio": 2.466,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015455
+            }
+          }
+        }
+      ]
+    },
+    "SOLUSD": {
+      "candleCount": 2130,
+      "firstBar": "2020-08-11T00:00:00.000Z",
+      "lastBar": "2026-06-10T00:00:00.000Z",
+      "full": {
+        "signal-flip": {
+          "costed": {
+            "totalTrades": 107,
+            "winRate": 0.1869,
+            "totalReturn": 1.892334,
+            "expectancy": 0.123885,
+            "profitFactor": 2.736,
+            "maxDrawdown": 0.1165,
+            "sharpeRatio": 1.602,
+            "avgCostPct": 0.6871,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 107,
+            "winRate": 0.2243,
+            "totalReturn": 2.103755,
+            "expectancy": 0.130756,
+            "profitFactor": 3.056,
+            "maxDrawdown": 0.1043,
+            "sharpeRatio": 1.683,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.211421
+        },
+        "geometry-2R": {
+          "costed": {
+            "totalTrades": 24,
+            "winRate": 0.3333,
+            "totalReturn": -0.182187,
+            "expectancy": -0.077351,
+            "profitFactor": 0.578,
+            "maxDrawdown": 0.238,
+            "sharpeRatio": -1.085,
+            "avgCostPct": 2.2637,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 24,
+            "winRate": 0.3333,
+            "totalReturn": -0.136589,
+            "expectancy": -0.054714,
+            "profitFactor": 0.669,
+            "maxDrawdown": 0.2219,
+            "sharpeRatio": -0.754,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.045598
+        },
+        "geometry-4R": {
+          "costed": {
+            "totalTrades": 16,
+            "winRate": 0.25,
+            "totalReturn": -0.102878,
+            "expectancy": -0.054305,
+            "profitFactor": 0.736,
+            "maxDrawdown": 0.1628,
+            "sharpeRatio": -0.415,
+            "avgCostPct": 3.4319,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 16,
+            "winRate": 0.25,
+            "totalReturn": -0.052575,
+            "expectancy": -0.019986,
+            "profitFactor": 0.855,
+            "maxDrawdown": 0.1323,
+            "sharpeRatio": -0.15,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.050303
+        }
+      },
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2020-08-11",
+          "to": "2022-01-24",
+          "candleCount": 532,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 20,
+                "winRate": 0.2,
+                "totalReturn": 1.319221,
+                "expectancy": 0.524803,
+                "profitFactor": 7.19,
+                "maxDrawdown": 0.0471,
+                "sharpeRatio": 1.465,
+                "avgCostPct": 0.8215,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 20,
+                "winRate": 0.25,
+                "totalReturn": 1.353242,
+                "expectancy": 0.533018,
+                "profitFactor": 7.738,
+                "maxDrawdown": 0.0448,
+                "sharpeRatio": 1.482,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.034021
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 7,
+                "winRate": 0.2857,
+                "totalReturn": -0.134192,
+                "expectancy": -0.193978,
+                "profitFactor": 0.379,
+                "maxDrawdown": 0.1659,
+                "sharpeRatio": -1.162,
+                "avgCostPct": 1.6214,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 7,
+                "winRate": 0.2857,
+                "totalReturn": -0.124005,
+                "expectancy": -0.177763,
+                "profitFactor": 0.406,
+                "maxDrawdown": 0.1577,
+                "sharpeRatio": -1.073,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.010187
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 7,
+                "winRate": 0.2857,
+                "totalReturn": -0.073138,
+                "expectancy": -0.089464,
+                "profitFactor": 0.672,
+                "maxDrawdown": 0.1354,
+                "sharpeRatio": -0.384,
+                "avgCostPct": 1.6857,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 7,
+                "winRate": 0.2857,
+                "totalReturn": -0.061895,
+                "expectancy": -0.072607,
+                "profitFactor": 0.713,
+                "maxDrawdown": 0.1308,
+                "sharpeRatio": -0.313,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011243
+            }
+          }
+        },
+        {
+          "label": "fold2",
+          "from": "2022-01-25",
+          "to": "2023-07-10",
+          "candleCount": 532,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 37,
+                "winRate": 0.1081,
+                "totalReturn": -0.057401,
+                "expectancy": -0.015185,
+                "profitFactor": 0.616,
+                "maxDrawdown": 0.0896,
+                "sharpeRatio": -0.727,
+                "avgCostPct": 0.5516,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 37,
+                "winRate": 0.1081,
+                "totalReturn": -0.038009,
+                "expectancy": -0.009669,
+                "profitFactor": 0.718,
+                "maxDrawdown": 0.0811,
+                "sharpeRatio": -0.457,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.019392
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 6,
+                "winRate": 0.5,
+                "totalReturn": 0.01378,
+                "expectancy": 0.027713,
+                "profitFactor": 1.175,
+                "maxDrawdown": 0.0788,
+                "sharpeRatio": 0.217,
+                "avgCostPct": 2.215,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 6,
+                "winRate": 0.5,
+                "totalReturn": 0.027383,
+                "expectancy": 0.049863,
+                "profitFactor": 1.383,
+                "maxDrawdown": 0.0714,
+                "sharpeRatio": 0.396,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013603
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 5,
+                "winRate": 0.4,
+                "totalReturn": -0.002568,
+                "expectancy": 0.003658,
+                "profitFactor": 0.967,
+                "maxDrawdown": 0.0788,
+                "sharpeRatio": 0.019,
+                "avgCostPct": 2.692,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 5,
+                "winRate": 0.4,
+                "totalReturn": 0.011122,
+                "expectancy": 0.030578,
+                "profitFactor": 1.156,
+                "maxDrawdown": 0.0714,
+                "sharpeRatio": 0.164,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.01369
+            }
+          }
+        },
+        {
+          "label": "fold3",
+          "from": "2023-07-11",
+          "to": "2024-12-23",
+          "candleCount": 532,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 23,
+                "winRate": 0.3043,
+                "totalReturn": 0.381111,
+                "expectancy": 0.1626,
+                "profitFactor": 4.36,
+                "maxDrawdown": 0.0417,
+                "sharpeRatio": 1.089,
+                "avgCostPct": 0.8017,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 23,
+                "winRate": 0.3478,
+                "totalReturn": 0.405408,
+                "expectancy": 0.170617,
+                "profitFactor": 4.879,
+                "maxDrawdown": 0.0351,
+                "sharpeRatio": 1.133,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.024297
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 8,
+                "winRate": 0.5,
+                "totalReturn": 0.004232,
+                "expectancy": 0.008136,
+                "profitFactor": 1.048,
+                "maxDrawdown": 0.0356,
+                "sharpeRatio": 0.096,
+                "avgCostPct": 1.5025,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 8,
+                "winRate": 0.5,
+                "totalReturn": 0.016276,
+                "expectancy": 0.023161,
+                "profitFactor": 1.194,
+                "maxDrawdown": 0.0336,
+                "sharpeRatio": 0.269,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012044
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 5,
+                "winRate": 0.4,
+                "totalReturn": -0.01207,
+                "expectancy": -0.019873,
+                "profitFactor": 0.836,
+                "maxDrawdown": 0.0597,
+                "sharpeRatio": -0.149,
+                "avgCostPct": 2.374,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 5,
+                "winRate": 0.4,
+                "totalReturn": -0.000119,
+                "expectancy": 0.003867,
+                "profitFactor": 0.998,
+                "maxDrawdown": 0.051,
+                "sharpeRatio": 0.03,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011951
+            }
+          }
+        },
+        {
+          "label": "fold4",
+          "from": "2024-12-24",
+          "to": "2026-06-10",
+          "candleCount": 534,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 23,
+                "winRate": 0.3043,
+                "totalReturn": 0.047752,
+                "expectancy": 0.021021,
+                "profitFactor": 1.738,
+                "maxDrawdown": 0.0415,
+                "sharpeRatio": 0.834,
+                "avgCostPct": 0.7809,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 23,
+                "winRate": 0.3913,
+                "totalReturn": 0.066583,
+                "expectancy": 0.02883,
+                "profitFactor": 2.183,
+                "maxDrawdown": 0.0382,
+                "sharpeRatio": 1.109,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.018831
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 2,
+                "winRate": 0.5,
+                "totalReturn": 0.02475,
+                "expectancy": 0.12839,
+                "profitFactor": 2.17,
+                "maxDrawdown": 0.0202,
+                "sharpeRatio": 0.549,
+                "avgCostPct": 7.315,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 2,
+                "winRate": 0.5,
+                "totalReturn": 0.039331,
+                "expectancy": 0.20154,
+                "profitFactor": 3.184,
+                "maxDrawdown": 0.017,
+                "sharpeRatio": 0.766,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014581
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 1,
+                "winRate": 1,
+                "totalReturn": 0.055118,
+                "expectancy": 0.551175,
+                "profitFactor": "Infinity",
+                "maxDrawdown": 0,
+                "sharpeRatio": 0,
+                "avgCostPct": 15.22,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 1,
+                "winRate": 1,
+                "totalReturn": 0.070338,
+                "expectancy": 0.703375,
+                "profitFactor": "Infinity",
+                "maxDrawdown": 0,
+                "sharpeRatio": 0,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.01522
+            }
+          }
+        }
+      ]
+    },
+    "BNBUSD": {
+      "candleCount": 2190,
+      "firstBar": "2020-06-12T00:00:00.000Z",
+      "lastBar": "2026-06-10T00:00:00.000Z",
+      "full": {
+        "signal-flip": {
+          "costed": {
+            "totalTrades": 117,
+            "winRate": 0.1368,
+            "totalReturn": -0.175889,
+            "expectancy": -0.016273,
+            "profitFactor": 0.485,
+            "maxDrawdown": 0.1971,
+            "sharpeRatio": -2.49,
+            "avgCostPct": 0.6464,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 117,
+            "winRate": 0.1624,
+            "totalReturn": -0.111227,
+            "expectancy": -0.009809,
+            "profitFactor": 0.633,
+            "maxDrawdown": 0.1425,
+            "sharpeRatio": -1.452,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.064662
+        },
+        "geometry-2R": {
+          "costed": {
+            "totalTrades": 40,
+            "winRate": 0.225,
+            "totalReturn": -0.254112,
+            "expectancy": -0.070948,
+            "profitFactor": 0.444,
+            "maxDrawdown": 0.2813,
+            "sharpeRatio": -2.189,
+            "avgCostPct": 1.4688,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 40,
+            "winRate": 0.225,
+            "totalReturn": -0.208866,
+            "expectancy": -0.056261,
+            "profitFactor": 0.515,
+            "maxDrawdown": 0.2431,
+            "sharpeRatio": -1.709,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.045246
+        },
+        "geometry-4R": {
+          "costed": {
+            "totalTrades": 13,
+            "winRate": 0.0769,
+            "totalReturn": -0.214484,
+            "expectancy": -0.181929,
+            "profitFactor": 0.118,
+            "maxDrawdown": 0.2431,
+            "sharpeRatio": -3.242,
+            "avgCostPct": 4.6808,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 13,
+            "winRate": 0.0769,
+            "totalReturn": -0.163891,
+            "expectancy": -0.135121,
+            "profitFactor": 0.181,
+            "maxDrawdown": 0.2001,
+            "sharpeRatio": -2.682,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.050593
+        }
+      },
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2020-06-12",
+          "to": "2021-12-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 25,
+                "winRate": 0.12,
+                "totalReturn": -0.084555,
+                "expectancy": -0.034872,
+                "profitFactor": 0.319,
+                "maxDrawdown": 0.087,
+                "sharpeRatio": -1.931,
+                "avgCostPct": 0.5704,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 25,
+                "winRate": 0.16,
+                "totalReturn": -0.071396,
+                "expectancy": -0.029168,
+                "profitFactor": 0.374,
+                "maxDrawdown": 0.0743,
+                "sharpeRatio": -1.587,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013159
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 15,
+                "winRate": 0.2,
+                "totalReturn": -0.162676,
+                "expectancy": -0.115174,
+                "profitFactor": 0.315,
+                "maxDrawdown": 0.1669,
+                "sharpeRatio": -1.984,
+                "avgCostPct": 0.826,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 15,
+                "winRate": 0.2,
+                "totalReturn": -0.152105,
+                "expectancy": -0.106914,
+                "profitFactor": 0.337,
+                "maxDrawdown": 0.1571,
+                "sharpeRatio": -1.844,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.010571
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 8,
+                "winRate": 0,
+                "totalReturn": -0.146,
+                "expectancy": -0.19499,
+                "profitFactor": 0,
+                "maxDrawdown": 0.146,
+                "sharpeRatio": -6.587,
+                "avgCostPct": 1.5737,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 8,
+                "winRate": 0.125,
+                "totalReturn": -0.13507,
+                "expectancy": -0.179252,
+                "profitFactor": 0.02,
+                "maxDrawdown": 0.1379,
+                "sharpeRatio": -5.126,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.01093
+            }
+          }
+        },
+        {
+          "label": "fold2",
+          "from": "2021-12-11",
+          "to": "2023-06-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 31,
+                "winRate": 0.0968,
+                "totalReturn": -0.063022,
+                "expectancy": -0.020811,
+                "profitFactor": 0.362,
+                "maxDrawdown": 0.063,
+                "sharpeRatio": -2.005,
+                "avgCostPct": 0.6042,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 31,
+                "winRate": 0.1613,
+                "totalReturn": -0.045316,
+                "expectancy": -0.014769,
+                "profitFactor": 0.473,
+                "maxDrawdown": 0.0453,
+                "sharpeRatio": -1.367,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.017706
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 10,
+                "winRate": 0.2,
+                "totalReturn": -0.081002,
+                "expectancy": -0.0828,
+                "profitFactor": 0.338,
+                "maxDrawdown": 0.0977,
+                "sharpeRatio": -1.611,
+                "avgCostPct": 1.528,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 10,
+                "winRate": 0.2,
+                "totalReturn": -0.0667,
+                "expectancy": -0.06752,
+                "profitFactor": 0.399,
+                "maxDrawdown": 0.0851,
+                "sharpeRatio": -1.336,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014302
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.038614,
+                "expectancy": -0.040919,
+                "profitFactor": 0.646,
+                "maxDrawdown": 0.0613,
+                "sharpeRatio": -0.52,
+                "avgCostPct": 1.7467,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.02344,
+                "expectancy": -0.023452,
+                "profitFactor": 0.766,
+                "maxDrawdown": 0.0542,
+                "sharpeRatio": -0.291,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015174
+            }
+          }
+        },
+        {
+          "label": "fold3",
+          "from": "2023-06-11",
+          "to": "2024-12-08",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 31,
+                "winRate": 0.129,
+                "totalReturn": 0.05302,
+                "expectancy": 0.017857,
+                "profitFactor": 1.659,
+                "maxDrawdown": 0.0504,
+                "sharpeRatio": 0.635,
+                "avgCostPct": 0.7068,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 31,
+                "winRate": 0.2258,
+                "totalReturn": 0.076138,
+                "expectancy": 0.024925,
+                "profitFactor": 2.147,
+                "maxDrawdown": 0.0412,
+                "sharpeRatio": 0.868,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.023118
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 11,
+                "winRate": 0.2727,
+                "totalReturn": -0.050752,
+                "expectancy": -0.046283,
+                "profitFactor": 0.488,
+                "maxDrawdown": 0.0676,
+                "sharpeRatio": -1.108,
+                "avgCostPct": 1.2618,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 11,
+                "winRate": 0.2727,
+                "totalReturn": -0.037444,
+                "expectancy": -0.033665,
+                "profitFactor": 0.586,
+                "maxDrawdown": 0.0565,
+                "sharpeRatio": -0.8,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013308
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 8,
+                "winRate": 0.125,
+                "totalReturn": -0.070101,
+                "expectancy": -0.089709,
+                "profitFactor": 0.232,
+                "maxDrawdown": 0.0747,
+                "sharpeRatio": -2.095,
+                "avgCostPct": 1.8025,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 8,
+                "winRate": 0.125,
+                "totalReturn": -0.05646,
+                "expectancy": -0.071684,
+                "profitFactor": 0.287,
+                "maxDrawdown": 0.0649,
+                "sharpeRatio": -1.708,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013641
+            }
+          }
+        },
+        {
+          "label": "fold4",
+          "from": "2024-12-09",
+          "to": "2026-06-10",
+          "candleCount": 549,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 25,
+                "winRate": 0.12,
+                "totalReturn": -0.00295,
+                "expectancy": -0.000964,
+                "profitFactor": 0.941,
+                "maxDrawdown": 0.0287,
+                "sharpeRatio": -0.073,
+                "avgCostPct": 0.6988,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 25,
+                "winRate": 0.2,
+                "totalReturn": 0.014572,
+                "expectancy": 0.006024,
+                "profitFactor": 1.383,
+                "maxDrawdown": 0.0211,
+                "sharpeRatio": 0.436,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.017522
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 8,
+                "winRate": 0.375,
+                "totalReturn": 0.001328,
+                "expectancy": 0.003357,
+                "profitFactor": 1.021,
+                "maxDrawdown": 0.0513,
+                "sharpeRatio": 0.051,
+                "avgCostPct": 1.7913,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 8,
+                "winRate": 0.375,
+                "totalReturn": 0.015502,
+                "expectancy": 0.02127,
+                "profitFactor": 1.259,
+                "maxDrawdown": 0.0459,
+                "sharpeRatio": 0.297,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014174
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 4,
+                "winRate": 0.25,
+                "totalReturn": -0.001335,
+                "expectancy": -0.000954,
+                "profitFactor": 0.965,
+                "maxDrawdown": 0.0377,
+                "sharpeRatio": -0.009,
+                "avgCostPct": 3.745,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 4,
+                "winRate": 0.25,
+                "totalReturn": 0.013529,
+                "expectancy": 0.036496,
+                "profitFactor": 1.446,
+                "maxDrawdown": 0.0303,
+                "sharpeRatio": 0.303,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014864
+            }
+          }
+        }
+      ]
+    },
+    "XRPUSD": {
+      "candleCount": 2190,
+      "firstBar": "2020-06-12T00:00:00.000Z",
+      "lastBar": "2026-06-10T00:00:00.000Z",
+      "full": {
+        "signal-flip": {
+          "costed": {
+            "totalTrades": 108,
+            "winRate": 0.2315,
+            "totalReturn": -0.105759,
+            "expectancy": -0.009736,
+            "profitFactor": 0.75,
+            "maxDrawdown": 0.1739,
+            "sharpeRatio": -0.91,
+            "avgCostPct": 0.7397,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 108,
+            "winRate": 0.25,
+            "totalReturn": -0.031723,
+            "expectancy": -0.002338,
+            "profitFactor": 0.919,
+            "maxDrawdown": 0.1349,
+            "sharpeRatio": -0.212,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.074036
+        },
+        "geometry-2R": {
+          "costed": {
+            "totalTrades": 26,
+            "winRate": 0.4231,
+            "totalReturn": 0.010108,
+            "expectancy": 0.009935,
+            "profitFactor": 1.025,
+            "maxDrawdown": 0.1262,
+            "sharpeRatio": 0.145,
+            "avgCostPct": 2.2358,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 26,
+            "winRate": 0.4231,
+            "totalReturn": 0.070301,
+            "expectancy": 0.032293,
+            "profitFactor": 1.188,
+            "maxDrawdown": 0.1125,
+            "sharpeRatio": 0.468,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.060193
+        },
+        "geometry-4R": {
+          "costed": {
+            "totalTrades": 8,
+            "winRate": 0.125,
+            "totalReturn": -0.230243,
+            "expectancy": -0.315019,
+            "profitFactor": 0.144,
+            "maxDrawdown": 0.2691,
+            "sharpeRatio": -2.422,
+            "avgCostPct": 7.885,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 8,
+            "winRate": 0.125,
+            "totalReturn": -0.178349,
+            "expectancy": -0.236169,
+            "profitFactor": 0.214,
+            "maxDrawdown": 0.227,
+            "sharpeRatio": -1.859,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.051894
+        }
+      },
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2020-06-12",
+          "to": "2021-12-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 20,
+                "winRate": 0.25,
+                "totalReturn": 0.003462,
+                "expectancy": 0.003282,
+                "profitFactor": 1.029,
+                "maxDrawdown": 0.0633,
+                "sharpeRatio": 0.083,
+                "avgCostPct": 0.766,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 20,
+                "winRate": 0.25,
+                "totalReturn": 0.018809,
+                "expectancy": 0.010942,
+                "profitFactor": 1.169,
+                "maxDrawdown": 0.0601,
+                "sharpeRatio": 0.27,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015347
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 6,
+                "winRate": 0.5,
+                "totalReturn": 0.025337,
+                "expectancy": 0.057008,
+                "profitFactor": 1.17,
+                "maxDrawdown": 0.1147,
+                "sharpeRatio": 0.253,
+                "avgCostPct": 2.33,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 6,
+                "winRate": 0.5,
+                "totalReturn": 0.039601,
+                "expectancy": 0.080308,
+                "profitFactor": 1.274,
+                "maxDrawdown": 0.1125,
+                "sharpeRatio": 0.354,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014264
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 5,
+                "winRate": 0.2,
+                "totalReturn": -0.131529,
+                "expectancy": -0.271783,
+                "profitFactor": 0.185,
+                "maxDrawdown": 0.1615,
+                "sharpeRatio": -1.719,
+                "avgCostPct": 2.848,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 5,
+                "winRate": 0.2,
+                "totalReturn": -0.119069,
+                "expectancy": -0.243303,
+                "profitFactor": 0.232,
+                "maxDrawdown": 0.155,
+                "sharpeRatio": -1.452,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.01246
+            }
+          }
+        },
+        {
+          "label": "fold2",
+          "from": "2021-12-11",
+          "to": "2023-06-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 27,
+                "winRate": 0.2222,
+                "totalReturn": -0.028389,
+                "expectancy": -0.010386,
+                "profitFactor": 0.659,
+                "maxDrawdown": 0.0423,
+                "sharpeRatio": -0.723,
+                "avgCostPct": 0.6433,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 27,
+                "winRate": 0.2593,
+                "totalReturn": -0.011397,
+                "expectancy": -0.003953,
+                "profitFactor": 0.846,
+                "maxDrawdown": 0.0334,
+                "sharpeRatio": -0.267,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.016992
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 9,
+                "winRate": 0.5556,
+                "totalReturn": 0.075617,
+                "expectancy": 0.084102,
+                "profitFactor": 2.04,
+                "maxDrawdown": 0.028,
+                "sharpeRatio": 1.067,
+                "avgCostPct": 1.4,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 9,
+                "winRate": 0.5556,
+                "totalReturn": 0.089118,
+                "expectancy": 0.098102,
+                "profitFactor": 2.334,
+                "maxDrawdown": 0.0265,
+                "sharpeRatio": 1.24,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013501
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 2,
+                "winRate": 0.5,
+                "totalReturn": 0.010347,
+                "expectancy": 0.053936,
+                "profitFactor": 1.636,
+                "maxDrawdown": 0.0163,
+                "sharpeRatio": 0.352,
+                "avgCostPct": 6.91,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 2,
+                "winRate": 0.5,
+                "totalReturn": 0.024099,
+                "expectancy": 0.123036,
+                "profitFactor": 2.801,
+                "maxDrawdown": 0.0134,
+                "sharpeRatio": 0.677,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013752
+            }
+          }
+        },
+        {
+          "label": "fold3",
+          "from": "2023-06-11",
+          "to": "2024-12-08",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 27,
+                "winRate": 0.1852,
+                "totalReturn": -0.0577,
+                "expectancy": -0.021702,
+                "profitFactor": 0.447,
+                "maxDrawdown": 0.0625,
+                "sharpeRatio": -1.491,
+                "avgCostPct": 0.7222,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 27,
+                "winRate": 0.1852,
+                "totalReturn": -0.039169,
+                "expectancy": -0.01448,
+                "profitFactor": 0.577,
+                "maxDrawdown": 0.0462,
+                "sharpeRatio": -0.957,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.018531
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 6,
+                "winRate": 0.3333,
+                "totalReturn": -0.041472,
+                "expectancy": -0.068059,
+                "profitFactor": 0.499,
+                "maxDrawdown": 0.0578,
+                "sharpeRatio": -0.78,
+                "avgCostPct": 2.435,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 6,
+                "winRate": 0.3333,
+                "totalReturn": -0.027065,
+                "expectancy": -0.043709,
+                "profitFactor": 0.614,
+                "maxDrawdown": 0.0466,
+                "sharpeRatio": -0.546,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014407
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 2,
+                "winRate": 0,
+                "totalReturn": -0.043322,
+                "expectancy": -0.218783,
+                "profitFactor": 0,
+                "maxDrawdown": 0.0433,
+                "sharpeRatio": -4.661,
+                "avgCostPct": 7.45,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 2,
+                "winRate": 0,
+                "totalReturn": -0.028648,
+                "expectancy": -0.144283,
+                "profitFactor": 0,
+                "maxDrawdown": 0.0286,
+                "sharpeRatio": -53.381,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014674
+            }
+          }
+        },
+        {
+          "label": "fold4",
+          "from": "2024-12-09",
+          "to": "2026-06-10",
+          "candleCount": 549,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 31,
+                "winRate": 0.2581,
+                "totalReturn": -0.022612,
+                "expectancy": -0.007044,
+                "profitFactor": 0.77,
+                "maxDrawdown": 0.0737,
+                "sharpeRatio": -0.48,
+                "avgCostPct": 0.7223,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 31,
+                "winRate": 0.2581,
+                "totalReturn": -0.00055,
+                "expectancy": 0.000178,
+                "profitFactor": 0.994,
+                "maxDrawdown": 0.0628,
+                "sharpeRatio": 0.012,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.022062
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 8,
+                "winRate": 0.375,
+                "totalReturn": -0.022113,
+                "expectancy": -0.025657,
+                "profitFactor": 0.758,
+                "maxDrawdown": 0.044,
+                "sharpeRatio": -0.341,
+                "avgCostPct": 1.7875,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 8,
+                "winRate": 0.375,
+                "totalReturn": -0.007924,
+                "expectancy": -0.007782,
+                "profitFactor": 0.903,
+                "maxDrawdown": 0.0359,
+                "sharpeRatio": -0.106,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014189
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 3,
+                "winRate": 0.3333,
+                "totalReturn": 0.009185,
+                "expectancy": 0.036647,
+                "profitFactor": 1.22,
+                "maxDrawdown": 0.0418,
+                "sharpeRatio": 0.18,
+                "avgCostPct": 5.25,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 3,
+                "winRate": 0.3333,
+                "totalReturn": 0.0248,
+                "expectancy": 0.089147,
+                "profitFactor": 1.691,
+                "maxDrawdown": 0.0359,
+                "sharpeRatio": 0.403,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015615
+            }
+          }
+        }
+      ]
+    },
+    "ADAUSD": {
+      "candleCount": 2190,
+      "firstBar": "2020-06-12T00:00:00.000Z",
+      "lastBar": "2026-06-10T00:00:00.000Z",
+      "full": {
+        "signal-flip": {
+          "costed": {
+            "totalTrades": 101,
+            "winRate": 0.2772,
+            "totalReturn": -0.053754,
+            "expectancy": -0.004837,
+            "profitFactor": 0.864,
+            "maxDrawdown": 0.1644,
+            "sharpeRatio": -0.43,
+            "avgCostPct": 0.7731,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 101,
+            "winRate": 0.2871,
+            "totalReturn": 0.022675,
+            "expectancy": 0.002894,
+            "profitFactor": 1.061,
+            "maxDrawdown": 0.1565,
+            "sharpeRatio": 0.249,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.076429
+        },
+        "geometry-2R": {
+          "costed": {
+            "totalTrades": 30,
+            "winRate": 0.4,
+            "totalReturn": -0.060728,
+            "expectancy": -0.016341,
+            "profitFactor": 0.85,
+            "maxDrawdown": 0.2073,
+            "sharpeRatio": -0.297,
+            "avgCostPct": 1.869,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 30,
+            "winRate": 0.4,
+            "totalReturn": -0.007173,
+            "expectancy": 0.002349,
+            "profitFactor": 0.981,
+            "maxDrawdown": 0.1895,
+            "sharpeRatio": 0.042,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.053555
+        },
+        "geometry-4R": {
+          "costed": {
+            "totalTrades": 7,
+            "winRate": 0.1429,
+            "totalReturn": -0.151194,
+            "expectancy": -0.227303,
+            "profitFactor": 0.181,
+            "maxDrawdown": 0.1847,
+            "sharpeRatio": -2.087,
+            "avgCostPct": 8.92,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 7,
+            "winRate": 0.1429,
+            "totalReturn": -0.099155,
+            "expectancy": -0.138103,
+            "profitFactor": 0.437,
+            "maxDrawdown": 0.1763,
+            "sharpeRatio": -0.804,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.052039
+        }
+      },
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2020-06-12",
+          "to": "2021-12-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 30,
+                "winRate": 0.2,
+                "totalReturn": -0.091668,
+                "expectancy": -0.031201,
+                "profitFactor": 0.485,
+                "maxDrawdown": 0.1644,
+                "sharpeRatio": -1.347,
+                "avgCostPct": 0.622,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 30,
+                "winRate": 0.2,
+                "totalReturn": -0.074596,
+                "expectancy": -0.024981,
+                "profitFactor": 0.557,
+                "maxDrawdown": 0.1565,
+                "sharpeRatio": -1.058,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.017072
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 8,
+                "winRate": 0.375,
+                "totalReturn": -0.073492,
+                "expectancy": -0.088071,
+                "profitFactor": 0.59,
+                "maxDrawdown": 0.1687,
+                "sharpeRatio": -0.672,
+                "avgCostPct": 1.5812,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 8,
+                "winRate": 0.375,
+                "totalReturn": -0.061631,
+                "expectancy": -0.072258,
+                "profitFactor": 0.645,
+                "maxDrawdown": 0.1629,
+                "sharpeRatio": -0.548,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011861
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 7,
+                "winRate": 0.1429,
+                "totalReturn": -0.14507,
+                "expectancy": -0.216571,
+                "profitFactor": 0.215,
+                "maxDrawdown": 0.1847,
+                "sharpeRatio": -1.836,
+                "avgCostPct": 1.8786,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 7,
+                "winRate": 0.1429,
+                "totalReturn": -0.133569,
+                "expectancy": -0.197785,
+                "profitFactor": 0.242,
+                "maxDrawdown": 0.1763,
+                "sharpeRatio": -1.656,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011501
+            }
+          }
+        },
+        {
+          "label": "fold2",
+          "from": "2021-12-11",
+          "to": "2023-06-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 23,
+                "winRate": 0.1739,
+                "totalReturn": -0.070402,
+                "expectancy": -0.031306,
+                "profitFactor": 0.381,
+                "maxDrawdown": 0.0819,
+                "sharpeRatio": -1.705,
+                "avgCostPct": 0.6309,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 23,
+                "winRate": 0.1739,
+                "totalReturn": -0.056818,
+                "expectancy": -0.024997,
+                "profitFactor": 0.46,
+                "maxDrawdown": 0.073,
+                "sharpeRatio": -1.328,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013584
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 13,
+                "winRate": 0.3077,
+                "totalReturn": -0.048609,
+                "expectancy": -0.03626,
+                "profitFactor": 0.669,
+                "maxDrawdown": 0.081,
+                "sharpeRatio": -0.651,
+                "avgCostPct": 1.0323,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 13,
+                "winRate": 0.3077,
+                "totalReturn": -0.035726,
+                "expectancy": -0.025937,
+                "profitFactor": 0.742,
+                "maxDrawdown": 0.0737,
+                "sharpeRatio": -0.464,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012883
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 12,
+                "winRate": 0.1667,
+                "totalReturn": -0.102927,
+                "expectancy": -0.088654,
+                "profitFactor": 0.331,
+                "maxDrawdown": 0.1259,
+                "sharpeRatio": -1.792,
+                "avgCostPct": 1.1125,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 12,
+                "winRate": 0.1667,
+                "totalReturn": -0.090778,
+                "expectancy": -0.077529,
+                "profitFactor": 0.372,
+                "maxDrawdown": 0.1171,
+                "sharpeRatio": -1.561,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012149
+            }
+          }
+        },
+        {
+          "label": "fold3",
+          "from": "2023-06-11",
+          "to": "2024-12-08",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 21,
+                "winRate": 0.2381,
+                "totalReturn": 0.001205,
+                "expectancy": 0.000848,
+                "profitFactor": 1.021,
+                "maxDrawdown": 0.0346,
+                "sharpeRatio": 0.052,
+                "avgCostPct": 0.8,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 21,
+                "winRate": 0.2381,
+                "totalReturn": 0.018082,
+                "expectancy": 0.008848,
+                "profitFactor": 1.372,
+                "maxDrawdown": 0.0276,
+                "sharpeRatio": 0.512,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.016877
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 4,
+                "winRate": 0.5,
+                "totalReturn": -0.032277,
+                "expectancy": -0.078884,
+                "profitFactor": 0.485,
+                "maxDrawdown": 0.0608,
+                "sharpeRatio": -0.669,
+                "avgCostPct": 3.0025,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 4,
+                "winRate": 0.5,
+                "totalReturn": -0.020295,
+                "expectancy": -0.048859,
+                "profitFactor": 0.615,
+                "maxDrawdown": 0.051,
+                "sharpeRatio": -0.46,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011982
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 3,
+                "winRate": 0,
+                "totalReturn": -0.072845,
+                "expectancy": -0.248437,
+                "profitFactor": 0,
+                "maxDrawdown": 0.0728,
+                "sharpeRatio": -4.257,
+                "avgCostPct": 4.4,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 3,
+                "winRate": 0,
+                "totalReturn": -0.060185,
+                "expectancy": -0.204437,
+                "profitFactor": 0,
+                "maxDrawdown": 0.0602,
+                "sharpeRatio": -4.303,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.01266
+            }
+          }
+        },
+        {
+          "label": "fold4",
+          "from": "2024-12-09",
+          "to": "2026-06-10",
+          "candleCount": 549,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 22,
+                "winRate": 0.2727,
+                "totalReturn": 0.026721,
+                "expectancy": 0.012966,
+                "profitFactor": 1.292,
+                "maxDrawdown": 0.045,
+                "sharpeRatio": 0.433,
+                "avgCostPct": 0.8827,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 22,
+                "winRate": 0.2727,
+                "totalReturn": 0.046712,
+                "expectancy": 0.021793,
+                "profitFactor": 1.568,
+                "maxDrawdown": 0.0365,
+                "sharpeRatio": 0.71,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.019991
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 8,
+                "winRate": 0.125,
+                "totalReturn": -0.06897,
+                "expectancy": -0.087187,
+                "profitFactor": 0.366,
+                "maxDrawdown": 0.0853,
+                "sharpeRatio": -1.308,
+                "avgCostPct": 1.7725,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 8,
+                "winRate": 0.125,
+                "totalReturn": -0.055917,
+                "expectancy": -0.069462,
+                "profitFactor": 0.461,
+                "maxDrawdown": 0.0804,
+                "sharpeRatio": -0.924,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013053
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 2,
+                "winRate": 0.5,
+                "totalReturn": 0.044575,
+                "expectancy": 0.230329,
+                "profitFactor": 3.033,
+                "maxDrawdown": 0.0219,
+                "sharpeRatio": 0.724,
+                "avgCostPct": 8.065,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 2,
+                "winRate": 0.5,
+                "totalReturn": 0.060422,
+                "expectancy": 0.310979,
+                "profitFactor": 3.842,
+                "maxDrawdown": 0.0213,
+                "sharpeRatio": 0.84,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015847
+            }
+          }
+        }
+      ]
+    },
+    "DOGEUSD": {
+      "candleCount": 2190,
+      "firstBar": "2020-06-12T00:00:00.000Z",
+      "lastBar": "2026-06-10T00:00:00.000Z",
+      "full": {
+        "signal-flip": {
+          "costed": {
+            "totalTrades": 98,
+            "winRate": 0.2755,
+            "totalReturn": -0.113117,
+            "expectancy": -0.011466,
+            "profitFactor": 0.737,
+            "maxDrawdown": 0.1614,
+            "sharpeRatio": -0.906,
+            "avgCostPct": 0.7713,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 98,
+            "winRate": 0.3061,
+            "totalReturn": -0.043909,
+            "expectancy": -0.003752,
+            "profitFactor": 0.893,
+            "maxDrawdown": 0.114,
+            "sharpeRatio": -0.287,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.069208
+        },
+        "geometry-2R": {
+          "costed": {
+            "totalTrades": 6,
+            "winRate": 0.1667,
+            "totalReturn": -0.123744,
+            "expectancy": -0.215169,
+            "profitFactor": 0.117,
+            "maxDrawdown": 0.1401,
+            "sharpeRatio": -2.339,
+            "avgCostPct": 10.52,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 6,
+            "winRate": 0.1667,
+            "totalReturn": -0.068765,
+            "expectancy": -0.109969,
+            "profitFactor": 0.485,
+            "maxDrawdown": 0.1336,
+            "sharpeRatio": -0.663,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.054979
+        },
+        "geometry-4R": {
+          "costed": {
+            "totalTrades": 6,
+            "winRate": 0.1667,
+            "totalReturn": -0.123744,
+            "expectancy": -0.215169,
+            "profitFactor": 0.117,
+            "maxDrawdown": 0.1401,
+            "sharpeRatio": -2.339,
+            "avgCostPct": 10.52,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 6,
+            "winRate": 0.1667,
+            "totalReturn": -0.068765,
+            "expectancy": -0.109969,
+            "profitFactor": 0.485,
+            "maxDrawdown": 0.1336,
+            "sharpeRatio": -0.663,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.054979
+        }
+      },
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2020-06-12",
+          "to": "2021-12-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 17,
+                "winRate": 0.2353,
+                "totalReturn": -0.077279,
+                "expectancy": -0.045526,
+                "profitFactor": 0.521,
+                "maxDrawdown": 0.1096,
+                "sharpeRatio": -1.023,
+                "avgCostPct": 0.8235,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 17,
+                "winRate": 0.2353,
+                "totalReturn": -0.064355,
+                "expectancy": -0.037291,
+                "profitFactor": 0.587,
+                "maxDrawdown": 0.1028,
+                "sharpeRatio": -0.816,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012924
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 6,
+                "winRate": 0.1667,
+                "totalReturn": -0.102542,
+                "expectancy": -0.174078,
+                "profitFactor": 0.268,
+                "maxDrawdown": 0.1401,
+                "sharpeRatio": -1.402,
+                "avgCostPct": 2.305,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 6,
+                "winRate": 0.1667,
+                "totalReturn": -0.090108,
+                "expectancy": -0.151028,
+                "profitFactor": 0.326,
+                "maxDrawdown": 0.1336,
+                "sharpeRatio": -1.152,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012434
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 6,
+                "winRate": 0.1667,
+                "totalReturn": -0.102542,
+                "expectancy": -0.174078,
+                "profitFactor": 0.268,
+                "maxDrawdown": 0.1401,
+                "sharpeRatio": -1.402,
+                "avgCostPct": 2.305,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 6,
+                "winRate": 0.1667,
+                "totalReturn": -0.090108,
+                "expectancy": -0.151028,
+                "profitFactor": 0.326,
+                "maxDrawdown": 0.1336,
+                "sharpeRatio": -1.152,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012434
+            }
+          }
+        },
+        {
+          "label": "fold2",
+          "from": "2021-12-11",
+          "to": "2023-06-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 30,
+                "winRate": 0.1667,
+                "totalReturn": -0.090907,
+                "expectancy": -0.031532,
+                "profitFactor": 0.279,
+                "maxDrawdown": 0.0909,
+                "sharpeRatio": -2.819,
+                "avgCostPct": 0.582,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 30,
+                "winRate": 0.2,
+                "totalReturn": -0.074872,
+                "expectancy": -0.025712,
+                "profitFactor": 0.353,
+                "maxDrawdown": 0.0749,
+                "sharpeRatio": -2.248,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.016035
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 7,
+                "winRate": 0.5714,
+                "totalReturn": 0.064125,
+                "expectancy": 0.093131,
+                "profitFactor": 2.069,
+                "maxDrawdown": 0.0366,
+                "sharpeRatio": 0.872,
+                "avgCostPct": 2.14,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 7,
+                "winRate": 0.5714,
+                "totalReturn": 0.079855,
+                "expectancy": 0.114531,
+                "profitFactor": 2.382,
+                "maxDrawdown": 0.0335,
+                "sharpeRatio": 1.042,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.01573
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 5,
+                "winRate": 0.4,
+                "totalReturn": 0.063556,
+                "expectancy": 0.134319,
+                "profitFactor": 2.356,
+                "maxDrawdown": 0.0469,
+                "sharpeRatio": 0.644,
+                "avgCostPct": 2.89,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 5,
+                "winRate": 0.4,
+                "totalReturn": 0.078551,
+                "expectancy": 0.163219,
+                "profitFactor": 2.803,
+                "maxDrawdown": 0.0436,
+                "sharpeRatio": 0.763,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014995
+            }
+          }
+        },
+        {
+          "label": "fold3",
+          "from": "2023-06-11",
+          "to": "2024-12-08",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 20,
+                "winRate": 0.35,
+                "totalReturn": -0.021283,
+                "expectancy": -0.010475,
+                "profitFactor": 0.681,
+                "maxDrawdown": 0.0324,
+                "sharpeRatio": -0.631,
+                "avgCostPct": 0.7345,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 20,
+                "winRate": 0.4,
+                "totalReturn": -0.006839,
+                "expectancy": -0.00313,
+                "profitFactor": 0.887,
+                "maxDrawdown": 0.0278,
+                "sharpeRatio": -0.18,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014444
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 8,
+                "winRate": 0.25,
+                "totalReturn": -0.105448,
+                "expectancy": -0.13624,
+                "profitFactor": 0.228,
+                "maxDrawdown": 0.1167,
+                "sharpeRatio": -1.898,
+                "avgCostPct": 1.585,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 8,
+                "winRate": 0.25,
+                "totalReturn": -0.093752,
+                "expectancy": -0.12039,
+                "profitFactor": 0.255,
+                "maxDrawdown": 0.1071,
+                "sharpeRatio": -1.752,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011696
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 6,
+                "winRate": 0,
+                "totalReturn": -0.137828,
+                "expectancy": -0.243423,
+                "profitFactor": 0,
+                "maxDrawdown": 0.1378,
+                "sharpeRatio": -5.059,
+                "avgCostPct": 2.345,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 6,
+                "winRate": 0,
+                "totalReturn": -0.125301,
+                "expectancy": -0.219973,
+                "profitFactor": 0,
+                "maxDrawdown": 0.1253,
+                "sharpeRatio": -4.675,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012527
+            }
+          }
+        },
+        {
+          "label": "fold4",
+          "from": "2024-12-09",
+          "to": "2026-06-10",
+          "candleCount": 549,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 26,
+                "winRate": 0.2308,
+                "totalReturn": 0.042548,
+                "expectancy": 0.016902,
+                "profitFactor": 1.492,
+                "maxDrawdown": 0.0616,
+                "sharpeRatio": 0.649,
+                "avgCostPct": 0.8027,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 26,
+                "winRate": 0.2692,
+                "totalReturn": 0.064294,
+                "expectancy": 0.024929,
+                "profitFactor": 1.84,
+                "maxDrawdown": 0.0562,
+                "sharpeRatio": 0.92,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.021746
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 10,
+                "winRate": 0.3,
+                "totalReturn": -0.023911,
+                "expectancy": -0.020522,
+                "profitFactor": 0.828,
+                "maxDrawdown": 0.0648,
+                "sharpeRatio": -0.239,
+                "avgCostPct": 1.336,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 10,
+                "winRate": 0.3,
+                "totalReturn": -0.010728,
+                "expectancy": -0.007162,
+                "profitFactor": 0.917,
+                "maxDrawdown": 0.0558,
+                "sharpeRatio": -0.084,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013183
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 2,
+                "winRate": 0.5,
+                "totalReturn": 0.041802,
+                "expectancy": 0.214509,
+                "profitFactor": 3.316,
+                "maxDrawdown": 0.018,
+                "sharpeRatio": 0.768,
+                "avgCostPct": 8.095,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 2,
+                "winRate": 0.5,
+                "totalReturn": 0.057766,
+                "expectancy": 0.295459,
+                "profitFactor": 4.329,
+                "maxDrawdown": 0.0173,
+                "sharpeRatio": 0.891,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015964
+            }
+          }
+        }
+      ]
+    },
+    "DOTUSD": {
+      "candleCount": 2123,
+      "firstBar": "2020-08-18T00:00:00.000Z",
+      "lastBar": "2026-06-10T00:00:00.000Z",
+      "full": {
+        "signal-flip": {
+          "costed": {
+            "totalTrades": 96,
+            "winRate": 0.3021,
+            "totalReturn": 0.05398,
+            "expectancy": 0.006168,
+            "profitFactor": 1.152,
+            "maxDrawdown": 0.0838,
+            "sharpeRatio": 0.51,
+            "avgCostPct": 0.7922,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 96,
+            "winRate": 0.3125,
+            "totalReturn": 0.1366,
+            "expectancy": 0.01409,
+            "profitFactor": 1.412,
+            "maxDrawdown": 0.0774,
+            "sharpeRatio": 1.122,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.08262
+        },
+        "geometry-2R": {
+          "costed": {
+            "totalTrades": 29,
+            "winRate": 0.3103,
+            "totalReturn": -0.193195,
+            "expectancy": -0.069382,
+            "profitFactor": 0.553,
+            "maxDrawdown": 0.1986,
+            "sharpeRatio": -1.265,
+            "avgCostPct": 1.901,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 29,
+            "winRate": 0.3103,
+            "totalReturn": -0.147064,
+            "expectancy": -0.050372,
+            "profitFactor": 0.641,
+            "maxDrawdown": 0.1777,
+            "sharpeRatio": -0.921,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.046131
+        },
+        "geometry-4R": {
+          "costed": {
+            "totalTrades": 12,
+            "winRate": 0.0833,
+            "totalReturn": -0.204625,
+            "expectancy": -0.184996,
+            "profitFactor": 0.185,
+            "maxDrawdown": 0.2046,
+            "sharpeRatio": -2.281,
+            "avgCostPct": 4.89,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 12,
+            "winRate": 0.0833,
+            "totalReturn": -0.158115,
+            "expectancy": -0.136096,
+            "profitFactor": 0.333,
+            "maxDrawdown": 0.1581,
+            "sharpeRatio": -1.311,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.04651
+        }
+      },
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2020-08-18",
+          "to": "2022-01-29",
+          "candleCount": 530,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 23,
+                "winRate": 0.1739,
+                "totalReturn": -0.018707,
+                "expectancy": -0.007334,
+                "profitFactor": 0.842,
+                "maxDrawdown": 0.0838,
+                "sharpeRatio": -0.264,
+                "avgCostPct": 0.6883,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 23,
+                "winRate": 0.1739,
+                "totalReturn": -0.003131,
+                "expectancy": -0.000452,
+                "profitFactor": 0.971,
+                "maxDrawdown": 0.0774,
+                "sharpeRatio": -0.016,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015576
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 7,
+                "winRate": 0.1429,
+                "totalReturn": -0.155045,
+                "expectancy": -0.232052,
+                "profitFactor": 0.198,
+                "maxDrawdown": 0.1558,
+                "sharpeRatio": -1.822,
+                "avgCostPct": 1.8357,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 7,
+                "winRate": 0.1429,
+                "totalReturn": -0.143643,
+                "expectancy": -0.213695,
+                "profitFactor": 0.216,
+                "maxDrawdown": 0.1465,
+                "sharpeRatio": -1.729,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011402
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 5,
+                "winRate": 0.2,
+                "totalReturn": -0.108169,
+                "expectancy": -0.21674,
+                "profitFactor": 0.306,
+                "maxDrawdown": 0.1558,
+                "sharpeRatio": -1.107,
+                "avgCostPct": 2.632,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 5,
+                "winRate": 0.2,
+                "totalReturn": -0.095974,
+                "expectancy": -0.19042,
+                "profitFactor": 0.345,
+                "maxDrawdown": 0.1465,
+                "sharpeRatio": -0.984,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012195
+            }
+          }
+        },
+        {
+          "label": "fold2",
+          "from": "2022-01-30",
+          "to": "2023-07-13",
+          "candleCount": 530,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 21,
+                "winRate": 0.2857,
+                "totalReturn": -0.026857,
+                "expectancy": -0.012543,
+                "profitFactor": 0.671,
+                "maxDrawdown": 0.04,
+                "sharpeRatio": -0.629,
+                "avgCostPct": 0.6357,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 21,
+                "winRate": 0.2857,
+                "totalReturn": -0.01381,
+                "expectancy": -0.006186,
+                "profitFactor": 0.815,
+                "maxDrawdown": 0.0351,
+                "sharpeRatio": -0.302,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013047
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 7,
+                "winRate": 0.7143,
+                "totalReturn": 0.079582,
+                "expectancy": 0.11253,
+                "profitFactor": 2.847,
+                "maxDrawdown": 0.0235,
+                "sharpeRatio": 1.319,
+                "avgCostPct": 1.8871,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 7,
+                "winRate": 0.7143,
+                "totalReturn": 0.093661,
+                "expectancy": 0.131401,
+                "profitFactor": 3.323,
+                "maxDrawdown": 0.0213,
+                "sharpeRatio": 1.497,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014079
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 6,
+                "winRate": 0.3333,
+                "totalReturn": -0.032675,
+                "expectancy": -0.053488,
+                "profitFactor": 0.533,
+                "maxDrawdown": 0.0519,
+                "sharpeRatio": -0.704,
+                "avgCostPct": 1.89,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 6,
+                "winRate": 0.3333,
+                "totalReturn": -0.021609,
+                "expectancy": -0.034588,
+                "profitFactor": 0.663,
+                "maxDrawdown": 0.0466,
+                "sharpeRatio": -0.451,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011066
+            }
+          }
+        },
+        {
+          "label": "fold3",
+          "from": "2023-07-14",
+          "to": "2024-12-24",
+          "candleCount": 530,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 22,
+                "winRate": 0.1818,
+                "totalReturn": 0.098219,
+                "expectancy": 0.045475,
+                "profitFactor": 2.121,
+                "maxDrawdown": 0.0654,
+                "sharpeRatio": 0.879,
+                "avgCostPct": 0.6918,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 22,
+                "winRate": 0.1818,
+                "totalReturn": 0.114809,
+                "expectancy": 0.052394,
+                "profitFactor": 2.46,
+                "maxDrawdown": 0.0584,
+                "sharpeRatio": 0.999,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.01659
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 6,
+                "winRate": 0.3333,
+                "totalReturn": -0.073307,
+                "expectancy": -0.123853,
+                "profitFactor": 0.266,
+                "maxDrawdown": 0.0921,
+                "sharpeRatio": -1.443,
+                "avgCostPct": 2.175,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 6,
+                "winRate": 0.3333,
+                "totalReturn": -0.060782,
+                "expectancy": -0.102103,
+                "profitFactor": 0.316,
+                "maxDrawdown": 0.0814,
+                "sharpeRatio": -1.299,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012525
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 6,
+                "winRate": 0.3333,
+                "totalReturn": -0.057267,
+                "expectancy": -0.094508,
+                "profitFactor": 0.436,
+                "maxDrawdown": 0.0921,
+                "sharpeRatio": -0.902,
+                "avgCostPct": 2.225,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 6,
+                "winRate": 0.3333,
+                "totalReturn": -0.04426,
+                "expectancy": -0.072258,
+                "profitFactor": 0.51,
+                "maxDrawdown": 0.0814,
+                "sharpeRatio": -0.733,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013007
+            }
+          }
+        },
+        {
+          "label": "fold4",
+          "from": "2024-12-25",
+          "to": "2026-06-10",
+          "candleCount": 533,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 26,
+                "winRate": 0.1154,
+                "totalReturn": -0.112237,
+                "expectancy": -0.045526,
+                "profitFactor": 0.139,
+                "maxDrawdown": 0.1122,
+                "sharpeRatio": -4.128,
+                "avgCostPct": 0.5835,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 26,
+                "winRate": 0.1538,
+                "totalReturn": -0.098624,
+                "expectancy": -0.039691,
+                "profitFactor": 0.179,
+                "maxDrawdown": 0.0986,
+                "sharpeRatio": -3.524,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013613
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.05824,
+                "expectancy": -0.064627,
+                "profitFactor": 0.496,
+                "maxDrawdown": 0.078,
+                "sharpeRatio": -1.01,
+                "avgCostPct": 1.3467,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.046819,
+                "expectancy": -0.051161,
+                "profitFactor": 0.573,
+                "maxDrawdown": 0.0731,
+                "sharpeRatio": -0.767,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011421
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 9,
+                "winRate": 0,
+                "totalReturn": -0.138784,
+                "expectancy": -0.164625,
+                "profitFactor": 0,
+                "maxDrawdown": 0.1388,
+                "sharpeRatio": -27.797,
+                "avgCostPct": 1.3333,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 9,
+                "winRate": 0,
+                "totalReturn": -0.128226,
+                "expectancy": -0.151292,
+                "profitFactor": 0,
+                "maxDrawdown": 0.1282,
+                "sharpeRatio": -20.767,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.010558
+            }
+          }
+        }
+      ]
+    },
+    "LINKUSD": {
+      "candleCount": 2190,
+      "firstBar": "2020-06-12T00:00:00.000Z",
+      "lastBar": "2026-06-10T00:00:00.000Z",
+      "full": {
+        "signal-flip": {
+          "costed": {
+            "totalTrades": 118,
+            "winRate": 0.2203,
+            "totalReturn": -0.152187,
+            "expectancy": -0.013411,
+            "profitFactor": 0.681,
+            "maxDrawdown": 0.2059,
+            "sharpeRatio": -1.355,
+            "avgCostPct": 0.686,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 118,
+            "winRate": 0.2373,
+            "totalReturn": -0.081021,
+            "expectancy": -0.006551,
+            "profitFactor": 0.82,
+            "maxDrawdown": 0.1531,
+            "sharpeRatio": -0.641,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.071166
+        },
+        "geometry-2R": {
+          "costed": {
+            "totalTrades": 14,
+            "winRate": 0.3571,
+            "totalReturn": -0.002913,
+            "expectancy": 0.004981,
+            "profitFactor": 0.987,
+            "maxDrawdown": 0.1195,
+            "sharpeRatio": 0.049,
+            "avgCostPct": 4.4371,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 14,
+            "winRate": 0.3571,
+            "totalReturn": 0.058332,
+            "expectancy": 0.049352,
+            "profitFactor": 1.271,
+            "maxDrawdown": 0.1131,
+            "sharpeRatio": 0.436,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.061245
+        },
+        "geometry-4R": {
+          "costed": {
+            "totalTrades": 4,
+            "winRate": 0.25,
+            "totalReturn": -0.097085,
+            "expectancy": -0.247752,
+            "profitFactor": 0.188,
+            "maxDrawdown": 0.1195,
+            "sharpeRatio": -1.686,
+            "avgCostPct": 15.745,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 4,
+            "winRate": 0.25,
+            "totalReturn": -0.040844,
+            "expectancy": -0.090302,
+            "profitFactor": 0.639,
+            "maxDrawdown": 0.1131,
+            "sharpeRatio": -0.344,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.056241
+        }
+      },
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2020-06-12",
+          "to": "2021-12-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 24,
+                "winRate": 0.1667,
+                "totalReturn": -0.068269,
+                "expectancy": -0.028518,
+                "profitFactor": 0.561,
+                "maxDrawdown": 0.1247,
+                "sharpeRatio": -1.034,
+                "avgCostPct": 0.6675,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 24,
+                "winRate": 0.1667,
+                "totalReturn": -0.053291,
+                "expectancy": -0.021843,
+                "profitFactor": 0.637,
+                "maxDrawdown": 0.1141,
+                "sharpeRatio": -0.771,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014978
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 4,
+                "winRate": 0.25,
+                "totalReturn": -0.077498,
+                "expectancy": -0.192138,
+                "profitFactor": 0.352,
+                "maxDrawdown": 0.1195,
+                "sharpeRatio": -0.987,
+                "avgCostPct": 3.4225,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 4,
+                "winRate": 0.25,
+                "totalReturn": -0.064832,
+                "expectancy": -0.157913,
+                "profitFactor": 0.427,
+                "maxDrawdown": 0.1131,
+                "sharpeRatio": -0.772,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012666
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 4,
+                "winRate": 0.25,
+                "totalReturn": -0.077498,
+                "expectancy": -0.192138,
+                "profitFactor": 0.352,
+                "maxDrawdown": 0.1195,
+                "sharpeRatio": -0.987,
+                "avgCostPct": 3.4225,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 4,
+                "winRate": 0.25,
+                "totalReturn": -0.064832,
+                "expectancy": -0.157913,
+                "profitFactor": 0.427,
+                "maxDrawdown": 0.1131,
+                "sharpeRatio": -0.772,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012666
+            }
+          }
+        },
+        {
+          "label": "fold2",
+          "from": "2021-12-11",
+          "to": "2023-06-10",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 31,
+                "winRate": 0.2903,
+                "totalReturn": -0.019104,
+                "expectancy": -0.005491,
+                "profitFactor": 0.858,
+                "maxDrawdown": 0.1106,
+                "sharpeRatio": -0.251,
+                "avgCostPct": 0.7048,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 31,
+                "winRate": 0.2903,
+                "totalReturn": 0.002459,
+                "expectancy": 0.001558,
+                "profitFactor": 1.02,
+                "maxDrawdown": 0.0975,
+                "sharpeRatio": 0.069,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.021563
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 3,
+                "winRate": 0.3333,
+                "totalReturn": -0.007294,
+                "expectancy": -0.015428,
+                "profitFactor": 0.888,
+                "maxDrawdown": 0.0617,
+                "sharpeRatio": -0.063,
+                "avgCostPct": 5.2,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 3,
+                "winRate": 0.3333,
+                "totalReturn": 0.008517,
+                "expectancy": 0.036572,
+                "profitFactor": 1.16,
+                "maxDrawdown": 0.0501,
+                "sharpeRatio": 0.154,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015811
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 1,
+                "winRate": 1,
+                "totalReturn": 0.061568,
+                "expectancy": 0.615682,
+                "profitFactor": "Infinity",
+                "maxDrawdown": 0,
+                "sharpeRatio": 0,
+                "avgCostPct": 15.64,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 1,
+                "winRate": 1,
+                "totalReturn": 0.077208,
+                "expectancy": 0.772082,
+                "profitFactor": "Infinity",
+                "maxDrawdown": 0,
+                "sharpeRatio": 0,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.01564
+            }
+          }
+        },
+        {
+          "label": "fold3",
+          "from": "2023-06-11",
+          "to": "2024-12-08",
+          "candleCount": 547,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 30,
+                "winRate": 0.1667,
+                "totalReturn": -0.059807,
+                "expectancy": -0.020242,
+                "profitFactor": 0.494,
+                "maxDrawdown": 0.0683,
+                "sharpeRatio": -1.443,
+                "avgCostPct": 0.639,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 30,
+                "winRate": 0.2,
+                "totalReturn": -0.041636,
+                "expectancy": -0.013852,
+                "profitFactor": 0.611,
+                "maxDrawdown": 0.0589,
+                "sharpeRatio": -0.954,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.018171
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.051994,
+                "expectancy": -0.056887,
+                "profitFactor": 0.538,
+                "maxDrawdown": 0.1003,
+                "sharpeRatio": -0.796,
+                "avgCostPct": 1.5433,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.038865,
+                "expectancy": -0.041454,
+                "profitFactor": 0.634,
+                "maxDrawdown": 0.0945,
+                "sharpeRatio": -0.552,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013129
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 7,
+                "winRate": 0,
+                "totalReturn": -0.128995,
+                "expectancy": -0.195212,
+                "profitFactor": 0,
+                "maxDrawdown": 0.129,
+                "sharpeRatio": -9.506,
+                "avgCostPct": 2.08,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 7,
+                "winRate": 0,
+                "totalReturn": -0.115918,
+                "expectancy": -0.174412,
+                "profitFactor": 0,
+                "maxDrawdown": 0.1159,
+                "sharpeRatio": -14.041,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013077
+            }
+          }
+        },
+        {
+          "label": "fold4",
+          "from": "2024-12-09",
+          "to": "2026-06-10",
+          "candleCount": 549,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 29,
+                "winRate": 0.1724,
+                "totalReturn": -0.043559,
+                "expectancy": -0.015112,
+                "profitFactor": 0.56,
+                "maxDrawdown": 0.0676,
+                "sharpeRatio": -1.187,
+                "avgCostPct": 0.6141,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 29,
+                "winRate": 0.1724,
+                "totalReturn": -0.026393,
+                "expectancy": -0.008971,
+                "profitFactor": 0.698,
+                "maxDrawdown": 0.0582,
+                "sharpeRatio": -0.683,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.017166
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.046171,
+                "expectancy": -0.049625,
+                "profitFactor": 0.616,
+                "maxDrawdown": 0.0462,
+                "sharpeRatio": -0.629,
+                "avgCostPct": 1.3433,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.034512,
+                "expectancy": -0.036192,
+                "profitFactor": 0.69,
+                "maxDrawdown": 0.0409,
+                "sharpeRatio": -0.459,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011659
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 5,
+                "winRate": 0.4,
+                "totalReturn": 0.059042,
+                "expectancy": 0.122358,
+                "profitFactor": 2.08,
+                "maxDrawdown": 0.0547,
+                "sharpeRatio": 0.725,
+                "avgCostPct": 2.896,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 5,
+                "winRate": 0.4,
+                "totalReturn": 0.07391,
+                "expectancy": 0.151318,
+                "profitFactor": 2.453,
+                "maxDrawdown": 0.0509,
+                "sharpeRatio": 0.852,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.014868
+            }
+          }
+        }
+      ]
+    },
+    "AVAXUSD": {
+      "candleCount": 2088,
+      "firstBar": "2020-09-22T00:00:00.000Z",
+      "lastBar": "2026-06-10T00:00:00.000Z",
+      "full": {
+        "signal-flip": {
+          "costed": {
+            "totalTrades": 101,
+            "winRate": 0.1782,
+            "totalReturn": 1.019038,
+            "expectancy": 0.090887,
+            "profitFactor": 2.058,
+            "maxDrawdown": 0.1282,
+            "sharpeRatio": 1.218,
+            "avgCostPct": 0.6694,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 101,
+            "winRate": 0.2178,
+            "totalReturn": 1.156439,
+            "expectancy": 0.097581,
+            "profitFactor": 2.272,
+            "maxDrawdown": 0.123,
+            "sharpeRatio": 1.303,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.137401
+        },
+        "geometry-2R": {
+          "costed": {
+            "totalTrades": 27,
+            "winRate": 0.3704,
+            "totalReturn": -0.058725,
+            "expectancy": -0.015495,
+            "profitFactor": 0.861,
+            "maxDrawdown": 0.1693,
+            "sharpeRatio": -0.217,
+            "avgCostPct": 1.9911,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 27,
+            "winRate": 0.3704,
+            "totalReturn": -0.007252,
+            "expectancy": 0.004417,
+            "profitFactor": 0.982,
+            "maxDrawdown": 0.1624,
+            "sharpeRatio": 0.061,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.051473
+        },
+        "geometry-4R": {
+          "costed": {
+            "totalTrades": 7,
+            "winRate": 0.2857,
+            "totalReturn": -0.091077,
+            "expectancy": -0.118536,
+            "profitFactor": 0.586,
+            "maxDrawdown": 0.1693,
+            "sharpeRatio": -0.537,
+            "avgCostPct": 8.56,
+            "reason": null
+          },
+          "zeroCost": {
+            "totalTrades": 7,
+            "winRate": 0.2857,
+            "totalReturn": -0.037376,
+            "expectancy": -0.032936,
+            "profitFactor": 0.823,
+            "maxDrawdown": 0.1624,
+            "sharpeRatio": -0.132,
+            "avgCostPct": 0,
+            "reason": null
+          },
+          "frictionDrag": 0.053701
+        }
+      },
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2020-09-22",
+          "to": "2022-02-25",
+          "candleCount": 522,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 24,
+                "winRate": 0.1667,
+                "totalReturn": 0.813729,
+                "expectancy": 0.320311,
+                "profitFactor": 4.081,
+                "maxDrawdown": 0.1282,
+                "sharpeRatio": 1.142,
+                "avgCostPct": 0.7133,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 24,
+                "winRate": 0.1667,
+                "totalReturn": 0.843042,
+                "expectancy": 0.327444,
+                "profitFactor": 4.366,
+                "maxDrawdown": 0.123,
+                "sharpeRatio": 1.164,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.029313
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 7,
+                "winRate": 0.2857,
+                "totalReturn": -0.158415,
+                "expectancy": -0.234251,
+                "profitFactor": 0.253,
+                "maxDrawdown": 0.1693,
+                "sharpeRatio": -1.471,
+                "avgCostPct": 1.8443,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 7,
+                "winRate": 0.2857,
+                "totalReturn": -0.146922,
+                "expectancy": -0.215808,
+                "profitFactor": 0.279,
+                "maxDrawdown": 0.1624,
+                "sharpeRatio": -1.39,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011493
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 7,
+                "winRate": 0.2857,
+                "totalReturn": -0.119992,
+                "expectancy": -0.165949,
+                "profitFactor": 0.454,
+                "maxDrawdown": 0.1693,
+                "sharpeRatio": -0.799,
+                "avgCostPct": 1.8486,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 7,
+                "winRate": 0.2857,
+                "totalReturn": -0.107973,
+                "expectancy": -0.147463,
+                "profitFactor": 0.489,
+                "maxDrawdown": 0.1624,
+                "sharpeRatio": -0.722,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.012019
+            }
+          }
+        },
+        {
+          "label": "fold2",
+          "from": "2022-02-26",
+          "to": "2023-08-01",
+          "candleCount": 522,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 23,
+                "winRate": 0.3913,
+                "totalReturn": 0.055591,
+                "expectancy": 0.02482,
+                "profitFactor": 1.704,
+                "maxDrawdown": 0.0359,
+                "sharpeRatio": 0.733,
+                "avgCostPct": 0.8109,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 23,
+                "winRate": 0.3913,
+                "totalReturn": 0.075211,
+                "expectancy": 0.032929,
+                "profitFactor": 2.04,
+                "maxDrawdown": 0.0304,
+                "sharpeRatio": 0.943,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.01962
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 6,
+                "winRate": 0.5,
+                "totalReturn": 0.01987,
+                "expectancy": 0.036052,
+                "profitFactor": 1.329,
+                "maxDrawdown": 0.0579,
+                "sharpeRatio": 0.348,
+                "avgCostPct": 2.15,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 6,
+                "winRate": 0.5,
+                "totalReturn": 0.033045,
+                "expectancy": 0.057552,
+                "profitFactor": 1.6,
+                "maxDrawdown": 0.0528,
+                "sharpeRatio": 0.554,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013175
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 3,
+                "winRate": 1,
+                "totalReturn": 0.139144,
+                "expectancy": 0.446582,
+                "profitFactor": "Infinity",
+                "maxDrawdown": 0,
+                "sharpeRatio": 3.208,
+                "avgCostPct": 4.78,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 3,
+                "winRate": 1,
+                "totalReturn": 0.154703,
+                "expectancy": 0.494382,
+                "profitFactor": "Infinity",
+                "maxDrawdown": 0,
+                "sharpeRatio": 3.273,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015559
+            }
+          }
+        },
+        {
+          "label": "fold3",
+          "from": "2023-08-02",
+          "to": "2025-01-04",
+          "candleCount": 522,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 23,
+                "winRate": 0.2609,
+                "totalReturn": 0.310477,
+                "expectancy": 0.134613,
+                "profitFactor": 4.263,
+                "maxDrawdown": 0.0358,
+                "sharpeRatio": 1.039,
+                "avgCostPct": 0.7165,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 23,
+                "winRate": 0.3043,
+                "totalReturn": 0.331361,
+                "expectancy": 0.141778,
+                "profitFactor": 4.881,
+                "maxDrawdown": 0.0271,
+                "sharpeRatio": 1.087,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.020884
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 9,
+                "winRate": 0.3333,
+                "totalReturn": -0.023125,
+                "expectancy": -0.0233,
+                "profitFactor": 0.779,
+                "maxDrawdown": 0.047,
+                "sharpeRatio": -0.302,
+                "avgCostPct": 1.2367,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 9,
+                "winRate": 0.4444,
+                "totalReturn": -0.012109,
+                "expectancy": -0.010933,
+                "profitFactor": 0.875,
+                "maxDrawdown": 0.0437,
+                "sharpeRatio": -0.143,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011016
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 4,
+                "winRate": 0.5,
+                "totalReturn": 0.02937,
+                "expectancy": 0.078324,
+                "profitFactor": 1.723,
+                "maxDrawdown": 0.0298,
+                "sharpeRatio": 0.459,
+                "avgCostPct": 3.295,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 4,
+                "winRate": 0.5,
+                "totalReturn": 0.042925,
+                "expectancy": 0.111274,
+                "profitFactor": 2.151,
+                "maxDrawdown": 0.0272,
+                "sharpeRatio": 0.655,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.013555
+            }
+          }
+        },
+        {
+          "label": "fold4",
+          "from": "2025-01-05",
+          "to": "2026-06-10",
+          "candleCount": 522,
+          "byConfig": {
+            "signal-flip": {
+              "costed": {
+                "totalTrades": 29,
+                "winRate": 0.069,
+                "totalReturn": -0.085503,
+                "expectancy": -0.03058,
+                "profitFactor": 0.264,
+                "maxDrawdown": 0.0855,
+                "sharpeRatio": -2.64,
+                "avgCostPct": 0.5945,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 29,
+                "winRate": 0.1724,
+                "totalReturn": -0.069582,
+                "expectancy": -0.024635,
+                "profitFactor": 0.328,
+                "maxDrawdown": 0.0696,
+                "sharpeRatio": -2.076,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015921
+            },
+            "geometry-2R": {
+              "costed": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.047021,
+                "expectancy": -0.050434,
+                "profitFactor": 0.621,
+                "maxDrawdown": 0.047,
+                "sharpeRatio": -0.619,
+                "avgCostPct": 1.37,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 9,
+                "winRate": 0.2222,
+                "totalReturn": -0.035233,
+                "expectancy": -0.036734,
+                "profitFactor": 0.699,
+                "maxDrawdown": 0.0417,
+                "sharpeRatio": -0.443,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.011788
+            },
+            "geometry-4R": {
+              "costed": {
+                "totalTrades": 4,
+                "winRate": 0.5,
+                "totalReturn": 0.108907,
+                "expectancy": 0.27222,
+                "profitFactor": 3.905,
+                "maxDrawdown": 0.0375,
+                "sharpeRatio": 1.177,
+                "avgCostPct": 3.6025,
+                "reason": null
+              },
+              "zeroCost": {
+                "totalTrades": 4,
+                "winRate": 0.5,
+                "totalReturn": 0.123971,
+                "expectancy": 0.308245,
+                "profitFactor": 4.407,
+                "maxDrawdown": 0.0364,
+                "sharpeRatio": 1.252,
+                "avgCostPct": 0,
+                "reason": null
+              },
+              "frictionDrag": 0.015064
+            }
+          }
+        }
+      ]
+    }
+  }
+}

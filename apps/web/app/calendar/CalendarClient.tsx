@@ -13,7 +13,6 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { Navbar } from '../components/navbar';
-import { SiteFooter } from '../../components/landing/site-footer';
 
 /* ─── Seeded PRNG ───────────────────────────────────────────────────────── */
 
@@ -349,7 +348,6 @@ export function CalendarClient() {
           </Link>
         </div>
       </div>
-      <SiteFooter />
     </div>
   );
 }

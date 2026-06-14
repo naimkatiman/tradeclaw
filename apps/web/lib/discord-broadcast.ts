@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { query, execute } from './db-pool';
+import { query, queryOne, execute } from './db-pool';
 import { FREE_SYMBOLS } from './tier';
 import { sendDiscordWebhook, type AlertSignal } from './alert-channels';
 
@@ -78,10 +78,24 @@ export async function broadcastSignalsToDiscord(webhookUrl: string): Promise<Dis
 
   let posted = 0;
   for (const row of pending) {
+    // Atomically claim the row before sending. The sync timer double-fires
+    // inside the 4h slot (~:00 and ~:05), so two invocations can select the
+    // same row; the conditional UPDATE ... WHERE discord_posted_at IS NULL
+    // ensures only one wins. Release the claim on send failure so the next
+    // run retries it (keeps the file's "at most once per 2h window" contract).
+    const claim = await queryOne<{ id: string }>(
+      `UPDATE signal_history SET discord_posted_at = NOW()
+       WHERE id = $1 AND discord_posted_at IS NULL
+       RETURNING id`,
+      [row.id],
+    );
+    if (!claim) continue;
+
     const ok = await sendDiscordWebhook({ webhookUrl }, rowToAlertSignal(row));
     if (ok) {
-      await execute(`UPDATE signal_history SET discord_posted_at = NOW() WHERE id = $1`, [row.id]);
       posted++;
+    } else {
+      await execute(`UPDATE signal_history SET discord_posted_at = NULL WHERE id = $1`, [row.id]);
     }
   }
 

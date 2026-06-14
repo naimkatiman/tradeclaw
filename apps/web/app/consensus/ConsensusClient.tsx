@@ -36,9 +36,21 @@ function BullBearGauge({ bullish }: { bullish: number }) {
 }
 
 function TrendIcon({ trend }: { trend: ConsensusEntry['trend24h'] }) {
-  if (trend === 'UP') return <TrendingUp className="w-4 h-4 text-emerald-400" />;
-  if (trend === 'DOWN') return <TrendingDown className="w-4 h-4 text-rose-400" />;
-  return <Minus className="w-4 h-4 text-zinc-500" />;
+  // trend24h is algorithmically derived (not a measured 24h price change),
+  // so it is marked "est." per the honesty contract (rule 7).
+  const icon =
+    trend === 'UP' ? <TrendingUp className="w-4 h-4 text-emerald-400" />
+    : trend === 'DOWN' ? <TrendingDown className="w-4 h-4 text-rose-400" />
+    : <Minus className="w-4 h-4 text-zinc-500" />;
+  return (
+    <span
+      className="inline-flex items-center gap-0.5"
+      title="estimated — not a measured 24h price change"
+    >
+      {icon}
+      <span className="text-[10px] font-medium text-zinc-500 leading-none">est.</span>
+    </span>
+  );
 }
 
 function ConsensusRow({ entry }: { entry: ConsensusEntry }) {
@@ -52,7 +64,12 @@ function ConsensusRow({ entry }: { entry: ConsensusEntry }) {
           <span className="font-mono font-bold text-white">{entry.pair}</span>
           <span className="text-xs text-zinc-500">{entry.name}</span>
           {entry.source === 'synthetic' && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">ESTIMATED</span>
+            <span
+              className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30"
+              title="estimated — no live signals available for this pair yet"
+            >
+              ESTIMATED
+            </span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -174,13 +191,14 @@ export default function ConsensusClient() {
             Market Consensus
           </h1>
           <p className="text-zinc-400 mb-6 max-w-xl mx-auto">
-            Aggregate buy/sell signal distribution across all tracked assets — updated every 60 seconds from live signal engine.
+            Aggregate buy/sell signal distribution from H1 + H4 signals across all tracked assets — updated every 60 seconds from the live signal engine, or estimated data when live signals are unavailable.
           </p>
 
           {/* Overall gauge */}
           {data && (
             <div className="max-w-md mx-auto mb-6">
               <BullBearGauge bullish={data.overallBullish} />
+              <p className="text-[11px] text-zinc-500 mt-1">across current H1 + H4 signals</p>
             </div>
           )}
 
@@ -204,12 +222,15 @@ export default function ConsensusClient() {
 
           {/* Total signals */}
           {data && (
-            <div className="flex items-center justify-center gap-4 text-sm text-zinc-400 mb-4">
-              <span className="text-emerald-400 font-semibold">{data.totalBuySignals} BUY signals</span>
-              <span className="text-zinc-600">·</span>
-              <span className="text-rose-400 font-semibold">{data.totalSellSignals} SELL signals</span>
-              <span className="text-zinc-600">·</span>
-              <span>Bias: <span className={`font-semibold ${bias === 'Bullish' ? 'text-emerald-400' : bias === 'Bearish' ? 'text-rose-400' : 'text-zinc-300'}`}>{bias}</span></span>
+            <div className="mb-4">
+              <div className="flex items-center justify-center gap-4 text-sm text-zinc-400">
+                <span className="text-emerald-400 font-semibold">{data.totalBuySignals} BUY signals</span>
+                <span className="text-zinc-600">·</span>
+                <span className="text-rose-400 font-semibold">{data.totalSellSignals} SELL signals</span>
+                <span className="text-zinc-600">·</span>
+                <span>Bias: <span className={`font-semibold ${bias === 'Bullish' ? 'text-emerald-400' : bias === 'Bearish' ? 'text-rose-400' : 'text-zinc-300'}`}>{bias}</span></span>
+              </div>
+              <p className="text-[11px] text-zinc-500 mt-1">counts current open H1 + H4 signals (not a 24h history)</p>
             </div>
           )}
 
@@ -254,7 +275,8 @@ export default function ConsensusClient() {
 
       {/* Per-asset grid */}
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <h2 className="text-lg font-semibold mb-4 text-zinc-300">Per-Asset Breakdown</h2>
+        <h2 className="text-lg font-semibold mb-1 text-zinc-300">Per-Asset Breakdown</h2>
+        <p className="text-xs text-zinc-500 mb-4">Buy/sell counts and average confidence reflect currently open H1 + H4 signals per pair.</p>
         <div className="grid md:grid-cols-2 gap-4">
           {data?.entries.map(entry => (
             <ConsensusRow key={entry.pair} entry={entry} />

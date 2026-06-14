@@ -40,7 +40,7 @@ function CodeSnippet({ code }: { code: string }) {
 export function EmbedButton({ pair, embedPath, label = 'Embed', width, height }: Props) {
   const [open, setOpen] = useState(false);
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tradeclaw.com';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tradeclaw.win';
 
   const path = embedPath ?? (pair ? `/embed/${pair}` : '/embed');
   const w = width ?? (pair ? 320 : 600);

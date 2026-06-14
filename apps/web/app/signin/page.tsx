@@ -4,7 +4,6 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '../components/navbar';
-import { SiteFooter } from '../../components/landing/site-footer';
 
 function SigninInner() {
   const params = useSearchParams();
@@ -179,10 +178,18 @@ function SigninInner() {
 
   const oauthErrorMessage = (() => {
     if (!oauthError) return null;
-    if (oauthError === 'oauth_not_configured') {
-      return 'OAuth sign-in is not configured on this server. Contact support.';
+    switch (oauthError) {
+      case 'oauth_not_configured':
+        return 'OAuth sign-in is not configured on this server. Contact support.';
+      case 'expired':
+        return 'That sign-in link expired — enter your email below and we’ll send a fresh one.';
+      case 'consumed':
+        return 'That sign-in link was already used — request a new one below.';
+      case 'not_found':
+        return 'That sign-in link is no longer valid — request a new one below.';
+      default:
+        return 'Sign-in failed. Please try again.';
     }
-    return `Sign-in failed (${oauthError}). Please try again.`;
   })();
 
   const hasTelegram = !!process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
@@ -224,11 +231,9 @@ function SigninInner() {
           </p>
         )}
 
-        {status === 'checking' ? (
-          <p className="mt-10 text-center text-sm text-[var(--text-secondary)]">
-            Checking your session…
-          </p>
-        ) : (
+        {/* Buttons render immediately; the background session check redirects
+            already-signed-in users instead of withholding the form. */}
+        {(
           <div className="mt-10 flex flex-col gap-4 rounded-2xl border border-[var(--border)] bg-[var(--glass-bg)] p-6">
             <a
               href={googleHref}
@@ -313,7 +318,6 @@ export default function SigninPage() {
       >
         <SigninInner />
       </Suspense>
-      <SiteFooter />
     </>
   );
 }

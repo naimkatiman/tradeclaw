@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAdminSession } from "./lib/admin-session";
+import { verifyAdminSession, safeEqual } from "./lib/admin-session";
 
 // ---------------------------------------------------------------------------
 // 1. Rate-limit store (in-memory, per-IP, resets every 60 s)
@@ -217,19 +217,21 @@ export async function middleware(request: NextRequest) {
         adminSecretWarningLogged = true;
       }
     } else {
-      // Check Bearer header (for external API calls)
+      // Check Bearer header (for external API calls). The scheme name is
+      // case-insensitive per RFC 7235, so accept any-case "bearer".
       const authHeader = request.headers.get("authorization");
-      const bearerToken = authHeader?.startsWith("Bearer ")
-        ? authHeader.slice(7)
-        : null;
+      const bearerMatch = authHeader?.match(/^Bearer\s+(.+)$/i) ?? null;
+      const bearerToken = bearerMatch ? bearerMatch[1] : null;
 
       // Check httpOnly cookie (for browser sessions)
       const cookieToken = request.cookies.get("tc_admin")?.value ?? null;
 
-      // Bearer tokens are still compared against the raw secret for API clients
+      // Bearer accepts either a signed session token or the raw ADMIN_SECRET
+      // (constant-time compared) for programmatic API clients / curl scripts.
       const bearerOk =
         bearerToken !== null &&
-        (await verifyAdminSession(bearerToken, adminSecret));
+        ((await verifyAdminSession(bearerToken, adminSecret)) ||
+          safeEqual(bearerToken, adminSecret));
       // Cookie tokens are verified as signed sessions
       const cookieOk =
         cookieToken !== null &&

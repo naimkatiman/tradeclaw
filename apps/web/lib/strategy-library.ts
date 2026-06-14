@@ -19,7 +19,7 @@ import path from 'path';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 
-export type RegimeFit = 'trending' | 'neutral' | 'both';
+export type RegimeFit = 'trend' | 'range' | 'both';
 export type Aggressiveness = 'core' | 'satellite';
 
 export interface MeasuredStrategy {

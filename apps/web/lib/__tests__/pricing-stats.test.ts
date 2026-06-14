@@ -7,6 +7,8 @@ describe('pricing-stats — computePricingStats', () => {
       closedSignalsAllTime: 0,
       winRatePct: null,
       cumulativePnlPct: 0,
+      payoffRatio: null,
+      breakEvenWinRatePct: null,
     });
   });
 
@@ -55,5 +57,43 @@ describe('pricing-stats — computePricingStats', () => {
     expect(stats.closedSignalsAllTime).toBe(0);
     expect(stats.winRatePct).toBeNull();
     expect(stats.cumulativePnlPct).toBe(0);
+    expect(stats.payoffRatio).toBeNull();
+    expect(stats.breakEvenWinRatePct).toBeNull();
+  });
+
+  it('computes payoff ratio and break-even win rate from avg win/loss', () => {
+    const agg: RawPricingAgg = {
+      closed_count: '100',
+      wins: '40',
+      cumulative_pnl: '50',
+      avg_win_pnl: '3.4',
+      avg_loss_pnl: '-2.0',
+    };
+    const stats = computePricingStats(agg);
+    // payoff = 3.4 / 2.0 = 1.7 → break-even = 100 / 2.7 = 37.0
+    expect(stats.payoffRatio).toBeCloseTo(1.7, 1);
+    expect(stats.breakEvenWinRatePct).toBeCloseTo(37.0, 1);
+  });
+
+  it('returns null payoff when there are no losses (or no wins)', () => {
+    const noLosses: RawPricingAgg = {
+      closed_count: '10',
+      wins: '10',
+      cumulative_pnl: '20',
+      avg_win_pnl: '2.0',
+      avg_loss_pnl: null,
+    };
+    expect(computePricingStats(noLosses).payoffRatio).toBeNull();
+    expect(computePricingStats(noLosses).breakEvenWinRatePct).toBeNull();
+
+    const noWins: RawPricingAgg = {
+      closed_count: '10',
+      wins: '0',
+      cumulative_pnl: '-20',
+      avg_win_pnl: null,
+      avg_loss_pnl: '-2.0',
+    };
+    expect(computePricingStats(noWins).payoffRatio).toBeNull();
+    expect(computePricingStats(noWins).breakEvenWinRatePct).toBeNull();
   });
 });

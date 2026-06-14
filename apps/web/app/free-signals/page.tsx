@@ -4,6 +4,8 @@ import { getTrackedSignals } from '../../lib/tracked-signals';
 import { applyTierSignalVisibility, getStrategiesForTier } from '../../lib/tier';
 import { WATCHLIST_MIN_CONFIDENCE } from '../../lib/signal-thresholds';
 
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: 'Free Trading Signals — Live AI Signals for Crypto, Forex & Gold | TradeClaw',
   description:

@@ -12,19 +12,19 @@ exports[`preset comparison snapshot produces stable metrics across all 5 presets
   },
   {
     "id": "regime-aware",
-    "maxDrawdown": 0.0034,
+    "maxDrawdown": 0.0036,
     "profitFactor": 0,
-    "totalReturn": -0.0034,
+    "totalReturn": -0.0036,
     "totalTrades": 3,
     "winRate": 0,
   },
   {
     "id": "hmm-top3",
     "maxDrawdown": 0.0012,
-    "profitFactor": 0.9374,
-    "totalReturn": -0.0001,
-    "totalTrades": 2,
-    "winRate": 0.5,
+    "profitFactor": 3.0924,
+    "totalReturn": 0.0025,
+    "totalTrades": 3,
+    "winRate": 0.6667,
   },
   {
     "id": "vwap-ema-bb",
@@ -37,10 +37,10 @@ exports[`preset comparison snapshot produces stable metrics across all 5 presets
   {
     "id": "full-risk",
     "maxDrawdown": 0.001,
-    "profitFactor": 0.773,
-    "totalReturn": -0.0002,
-    "totalTrades": 2,
-    "winRate": 0.5,
+    "profitFactor": 2.4726,
+    "totalReturn": 0.0015,
+    "totalTrades": 3,
+    "winRate": 0.6667,
   },
 ]
 `;

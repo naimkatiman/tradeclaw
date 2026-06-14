@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Navbar } from "../components/navbar";
-import { SiteFooter } from "../../components/landing/site-footer";
 import { LocalizedLanding } from "../../components/landing/localized-landing";
 import { getTranslations } from "../../lib/translations";
 
@@ -13,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: t.meta.ogTitle,
     description: t.meta.ogDescription,
-    url: "https://tradeclaw.com/ms",
+    url: "https://tradeclaw.win/ms",
     siteName: "TradeClaw",
     type: "website",
     locale: "ms_MY",
@@ -27,12 +26,12 @@ export const metadata: Metadata = {
   },
   alternates: {
     languages: {
-      "en": "https://tradeclaw.com",
-      "es": "https://tradeclaw.com/es",
-      "zh-CN": "https://tradeclaw.com/zh",
-      "ms": "https://tradeclaw.com/ms",
-      "ar": "https://tradeclaw.com/ar",
-      "x-default": "https://tradeclaw.com",
+      "en": "https://tradeclaw.win",
+      "es": "https://tradeclaw.win/es",
+      "zh-CN": "https://tradeclaw.win/zh",
+      "ms": "https://tradeclaw.win/ms",
+      "ar": "https://tradeclaw.win/ar",
+      "x-default": "https://tradeclaw.win",
     },
   },
 };
@@ -44,7 +43,6 @@ export default function MalayPage() {
       <main lang="ms">
         <LocalizedLanding t={t} locale="ms" />
       </main>
-      <SiteFooter />
     </>
   );
 }

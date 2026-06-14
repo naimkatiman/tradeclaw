@@ -96,7 +96,7 @@ export async function GET() {
         {/* Footer */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
           <span style={{ color: "#3f3f46", fontSize: "14px" }}>
-            tradeclaw.com/leaderboard
+            tradeclaw.win/leaderboard
           </span>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ color: "#3f3f46", fontSize: "14px" }}>⭐ Star on GitHub</span>

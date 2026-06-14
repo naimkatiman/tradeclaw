@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Activity, TrendingUp, TrendingDown, Minus, Zap, AlertTriangle } from 'lucide-react';
+import { Activity, TrendingUp, MoveHorizontal, Zap } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────
 
-type RegimeName = 'crash' | 'bear' | 'neutral' | 'bull' | 'euphoria';
+type RegimeName = 'trend' | 'volatile' | 'range';
 
 interface RegimeEntry {
   symbol: string;
@@ -30,14 +30,12 @@ interface RegimeApiResponse {
 // ─── Constants ───────────────────────────────────────────────
 
 const REGIME_CONFIG: Record<RegimeName, { color: string; bg: string; border: string; label: string }> = {
-  crash:    { color: '#DC2626', bg: 'rgba(220, 38, 38, 0.12)', border: 'rgba(220, 38, 38, 0.3)', label: 'Crash' },
-  bear:     { color: '#F97316', bg: 'rgba(249, 115, 22, 0.12)', border: 'rgba(249, 115, 22, 0.3)', label: 'Bear' },
-  neutral:  { color: '#6B7280', bg: 'rgba(107, 114, 128, 0.12)', border: 'rgba(107, 114, 128, 0.3)', label: 'Neutral' },
-  bull:     { color: '#22C55E', bg: 'rgba(34, 197, 94, 0.12)', border: 'rgba(34, 197, 94, 0.3)', label: 'Bull' },
-  euphoria: { color: '#A855F7', bg: 'rgba(168, 85, 247, 0.12)', border: 'rgba(168, 85, 247, 0.3)', label: 'Euphoria' },
+  trend:    { color: '#22C55E', bg: 'rgba(34, 197, 94, 0.12)', border: 'rgba(34, 197, 94, 0.3)', label: 'Trend' },
+  volatile: { color: '#DC2626', bg: 'rgba(220, 38, 38, 0.12)', border: 'rgba(220, 38, 38, 0.3)', label: 'Volatile' },
+  range:    { color: '#6B7280', bg: 'rgba(107, 114, 128, 0.12)', border: 'rgba(107, 114, 128, 0.3)', label: 'Range' },
 };
 
-const REGIME_ORDER: RegimeName[] = ['crash', 'bear', 'neutral', 'bull', 'euphoria'];
+const REGIME_ORDER: RegimeName[] = ['trend', 'volatile', 'range'];
 
 const ASSET_CLASSES: Record<string, string> = {
   BTCUSD: 'crypto', ETHUSD: 'crypto',
@@ -51,16 +49,14 @@ const ASSET_CLASSES: Record<string, string> = {
 function normalizeRegime(raw: string): RegimeName {
   const lower = raw.toLowerCase();
   if (REGIME_ORDER.includes(lower as RegimeName)) return lower as RegimeName;
-  return 'neutral';
+  return 'range'; // unified unknown-label fallback (plan D1)
 }
 
 function getRegimeIcon(regime: RegimeName) {
   switch (regime) {
-    case 'crash': return <AlertTriangle className="w-4 h-4" />;
-    case 'bear': return <TrendingDown className="w-4 h-4" />;
-    case 'neutral': return <Minus className="w-4 h-4" />;
-    case 'bull': return <TrendingUp className="w-4 h-4" />;
-    case 'euphoria': return <Zap className="w-4 h-4" />;
+    case 'trend': return <TrendingUp className="w-4 h-4" />;
+    case 'volatile': return <Zap className="w-4 h-4" />;
+    case 'range': return <MoveHorizontal className="w-4 h-4" />;
   }
 }
 
@@ -153,7 +149,7 @@ function SymbolCard({ entry }: { entry: RegimeEntry }) {
 }
 
 function RegimeDistribution({ entries }: { entries: RegimeEntry[] }) {
-  const counts: Record<RegimeName, number> = { crash: 0, bear: 0, neutral: 0, bull: 0, euphoria: 0 };
+  const counts: Record<RegimeName, number> = { trend: 0, volatile: 0, range: 0 };
   for (const e of entries) {
     const r = normalizeRegime(e.regime);
     counts[r]++;
@@ -219,11 +215,11 @@ export function RegimeClient() {
   }, [fetchData]);
 
   // Determine dominant regime
-  const regimeCounts: Record<RegimeName, number> = { crash: 0, bear: 0, neutral: 0, bull: 0, euphoria: 0 };
+  const regimeCounts: Record<RegimeName, number> = { trend: 0, volatile: 0, range: 0 };
   for (const e of data) {
     regimeCounts[normalizeRegime(e.regime)]++;
   }
-  const dominant = REGIME_ORDER.reduce((a, b) => (regimeCounts[a] >= regimeCounts[b] ? a : b), 'neutral' as RegimeName);
+  const dominant = REGIME_ORDER.reduce((a, b) => (regimeCounts[a] >= regimeCounts[b] ? a : b), 'range' as RegimeName);
   const dominantConfig = REGIME_CONFIG[dominant];
 
   return (

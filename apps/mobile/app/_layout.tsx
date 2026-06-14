@@ -21,9 +21,7 @@ async function registerForPushNotificationsAsync() {
     return null;
   }
 
-  const tokenData = await Notifications.getExpoPushTokenAsync({
-    projectId: 'tradeclaw',
-  });
+  const tokenData = await Notifications.getExpoPushTokenAsync();
 
   return tokenData.data;
 }

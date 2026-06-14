@@ -47,20 +47,20 @@ export async function ProofHero() {
   }
 
   const hasEnoughClosed =
-    stats != null && stats.closedSignals30d >= MIN_CLOSED_SIGNALS_FOR_PF;
+    stats != null && stats.closedSignals >= MIN_CLOSED_SIGNALS_FOR_PF;
 
   return (
     <section data-testid="proof-hero" className="mx-auto mt-10 max-w-5xl px-4">
       <div className="mb-6 text-center">
         <p className="text-lg text-[var(--text-secondary)]">
-          Live signals (5-min cadence), backed by the last 30 days of live performance.
+          Live signals (5-min cadence), backed by every resolved outcome since launch.
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         {hasEnoughClosed && stats && (
           <StatTile
-            label="Cumulative P&L (30d)"
+            label="Cumulative P&L (all-time)"
             value={formatPct(stats.cumulativePnlPct)}
             tone={stats.cumulativePnlPct >= 0 ? 'positive' : 'negative'}
           />
@@ -72,11 +72,19 @@ export async function ProofHero() {
             tone={stats.profitFactor >= 1.3 ? 'positive' : 'neutral'}
           />
         )}
-        {stats != null && stats.recentWinRate != null && (
+        {hasEnoughClosed && stats && stats.winRatePct != null && (
           <StatTile
-            label="Recent win rate"
-            value={`${stats.recentWinRate}%`}
-            tone={stats.recentWinRate >= 55 ? 'positive' : stats.recentWinRate >= 45 ? 'neutral' : 'negative'}
+            label="Win rate (all-time)"
+            value={`${stats.winRatePct.toFixed(1)}%`}
+            tone={
+              stats.breakEvenWinRatePct == null
+                ? 'neutral'
+                : stats.winRatePct >= stats.breakEvenWinRatePct + 1
+                  ? 'positive'
+                  : stats.winRatePct >= stats.breakEvenWinRatePct
+                    ? 'neutral'
+                    : 'negative'
+            }
           />
         )}
         <StatTile
@@ -91,6 +99,13 @@ export async function ProofHero() {
           small
         />
       </div>
+
+      {hasEnoughClosed && stats && stats.payoffRatio != null && stats.breakEvenWinRatePct != null && (
+        <p className="mt-3 text-center text-xs text-[var(--text-secondary)]">
+          Wins average {stats.payoffRatio.toFixed(1)}x the size of losses — break-even win
+          rate at this risk/reward is {stats.breakEvenWinRatePct.toFixed(1)}%.
+        </p>
+      )}
 
       {stats?.samples && (
         <div className="mt-10">

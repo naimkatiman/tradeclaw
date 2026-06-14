@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-06-06T23:00:00+08:00
+updated: 2026-06-08T13:07:40+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -1902,9 +1902,68 @@ tasks:
       verifying auto-follow is called with correct args, skipped without SL/TP, and skipped
       when demo user is null. 2026-06-06 follow-up: added missing `entry: p.entry` to the
       autoFollowSignal call so the route satisfies the FollowSignalInput TypeScript contract.
-      Verified with `npx tsc --noEmit` (0 errors), targeted Jest (5 passed), and `npm run build`.
+      2026-06-08 follow-up: switched INSERT to RETURNING source_id so replayed webhooks
+      (duplicate source_id) are detected via ON CONFLICT DO NOTHING → null result;
+      isNewSignal=false gates autoFollowSignal and prevents duplicate paper positions.
+      Verified with `npm run build` (330 pages) and targeted Jest (6 passed, 0 failed).
+      Committed in 2eeeeebf.
+
+  - id: TC-233
+    title: "Wire Pine Script export into TradingView integration page"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Wired the existing untracked `apps/web/lib/tv-pine-export.ts` helper into
+      `apps/web/app/tradingview-export/TradingViewExportClient.tsx`. Added a second
+      export card that renders the generated Pine Script v5 indicator, plus Copy and
+      Download (.pine) buttons. The script embeds TradeClaw's RSI/MACD/EMA/BB/Stoch
+      weights and alertconditions, so TradingView users can overlay the engine on any
+      chart without manual translation. Verified with `npm run build` (330 pages) and
+      `npm test -- --runInBand` (111 passed, 3 skipped, 0 failed).
+
+  - id: TC-234
+    title: "LinkedIn share button on track record — one-click share verified performance stats"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Added a LinkedIn share button alongside the existing X/Twitter share button on
+      /track-record. Uses the LinkedIn share URL format with pre-filled title/description
+      containing the current win rate and resolved signal count. Advances ROADMAP 4.5
+      content pipeline (LinkedIn organic discovery). Verified with `npm run build`
+      (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped, 0 failed).
+
+  - id: TC-235
+    title: "Weekly performance recap content — X/Twitter + LinkedIn drafts using 63.9% WR milestone"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Created social-drafts/2026-06-07-weekly-recap-x.md (5-tweet thread) and
+      social-drafts/2026-06-07-weekly-recap-linkedin.md (long-form post + first comment).
+      Content highlights: 63.9% non-blacklisted WR, +0.10R expectancy, MACD confirmation
+      and blacklist methodology, full transparency on 54.8% all-time WR, R-multiples
+      blog CTA, Docker deploy CTA. Advances ROADMAP 4.5 content pipeline and 4.3
+      affiliate discoverability. Ready to post. No code changes. Verified with
+      `npm run build` (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped).
+
+  - id: TC-236
+    title: "GitHub Stars Campaign command center — add Launch Campaign tracker to /share page"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Added a Launch Campaign tracker card to apps/web/app/share/ShareClient.tsx
+      with three highest-impact launch channels: Product Hunt, Hacker News (Show HN),
+      and Reddit r/algotrading. Each channel shows status badge, description, link
+      to prep page, and a checkable completion box with localStorage persistence.
+      Progress bar shows completion count. Addresses DAILY_INTEL_LOG 2026-06-07
+      recommendation #4 and advances ROADMAP 4.6 (GitHub Stars Campaign). Verified
+      with `npm run build` (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped).
 
 next_actions:
+  - "2026-06-07: TC-235 complete. Created weekly performance recap content (X thread + LinkedIn post) highlighting 63.9% non-blacklisted WR, +0.10R expectancy, and methodology transparency. Ready for manual posting. Next: execute GitHub Stars Campaign — ProductHunt launch, HN Show HN post, or Reddit r/algotrading submission using existing prep pages (/launch, /hn, /share, /producthunt)."
+  - "2026-06-07: TC-234 complete. Added LinkedIn share button to /track-record so visitors can one-click share verified performance stats. Advances ROADMAP 4.5 content pipeline (LinkedIn organic discovery). Build passes 330 pages, tests 111 passed. Next: create weekly performance recap content for X/LinkedIn using the 63.9% non-blacklisted WR milestone, or continue GitHub Stars Campaign prep."
+  - "2026-06-07: Hourly growth loop ran `scripts/signal-outcome-checker.py` and a SQLite per-combo audit. 0 pending signals resolved. 400 resolved rows overall at 54.8% WR (219W/181L). Excluding current BLACKLISTED_COMBOS, the remaining non-blacklisted combo WR is 63.9% (184W/104L). No new sub-30% symbol+direction combos outside current BLACKLISTED_COMBOS; GBPUSD_BUY (48.6%, n=37) and USDJPY_SELL (44.4%, n=18) are above the <=25% blacklist threshold and remain on watch. No code changes this cycle. Verified with `npm test -- --runInBand` (111 passed, 3 skipped, 0 failed). Next concrete step: wait for fresh resolved signals before next blacklist pass, or pivot to content pipeline / GitHub Stars Campaign."
+  - "2026-06-07: Ran `npm run resolve:outcomes` to advance the Signal Credibility Engine (ROADMAP 1.1/1.4). Resolver exited cleanly. Local Python scanner audit (signals.db, 400 resolved rows) shows overall win rate improved to 54.8% (219W/181L) — up from ~40%. No new sub-30% symbol+direction combos outside the current BLACKLISTED_COMBOS; USDJPY_BUY already suppressed. TC-233 shipped: wired the untracked Pine Script export helper into /tradingview-export with copy + download buttons, advancing ROADMAP 4.4 TradingView profile integration. Verified with `npm run build` (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped, 0 failed)."
+  - "2026-06-07: Refreshed docs/ROADMAP.md 'Current State' section to reflect June 2026 reality. Updated win rate from ~40% to ~55% (54.8% actual), marked mobile app MVP and marketplace scaffold as shipped, noted copy-trading preview status, and replaced stale immediate next actions with current priorities (content pipeline, GitHub Stars Campaign, mobile distribution). Updated Last updated date to 2026-06-07. Verified with `npm run build` (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped, 0 failed)."
   - "2026-06-06: Ran `npm run resolve:outcomes` to advance the Signal Credibility Engine (ROADMAP 1.1/1.4). Resolver exited cleanly. signal-history.json now contains 586 resolved records + 2 recent pending signals still inside the 24h window (DOGEUSD_M15_SELL, XRPUSD_M15_BUY). SQLite track-record audit of 586 resolved signals shows no new sub-25% symbol+direction combos outside the current BLACKLISTED_COMBOS, so no blacklist update is needed this cycle. Verified with `npm run build` (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped, 0 failed)."
   - "2026-06-03: Fixed 3 pre-existing TypeScript compilation errors in apps/web/app/api/cron/push-signals/__tests__/route.test.ts — `indicators: {}` did not satisfy the `IndicatorSummary` interface (missing rsi/macd/ema/bollingerBands/stochastic/support/resistance). Replaced with minimal valid indicator objects so `npx tsc --noEmit` passes cleanly across the entire apps/web workspace. Verified with `npm run build` (330 pages) and `npm test -- --runInBand` (101 passed, 3 skipped, 0 failed)."
   - "2026-06-03: TC-227 complete. Landing page now surfaces the last-100-signal win rate as a proof tile on ProofHero. Recent 100 signals are at 63% WR (up from ~31% all-time), so this directly improves first-visit credibility."
@@ -3062,3 +3121,41 @@ next_actions:
       Verified with `npm run build` (330 pages) and `npm test -- --runInBand`
       (101 passed, 3 skipped, 0 failed).
       Committed in 1b06eb42.
+
+  - id: TC-228
+    title: "Mobile app EAS build readiness — configure app.json for distribution, fix push token projectId, add README"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Updated apps/mobile/app.json with `extra.eas.projectId` and `owner` fields
+      required for EAS Build and push notifications. Removed hardcoded `projectId`
+      from apps/mobile/app/_layout.tsx so `expo-notifications` auto-detects it
+      from the manifest (follows Expo best practice). Added apps/mobile/README.md
+      with EAS build profiles, local development, environment variables, and store
+      submission instructions. TypeScript compiles clean (`npx tsc --noEmit` passes).
+      Web build verified passing (330/330 pages). 2026-06-08.
+
+  - id: TC-229
+    title: "UX conversion polish — honest canonical stats, viral-loop domain fix, funnel/mobile blockers, anonymous-load headroom"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Eleven surgical commits on branch ux-polish from a full-journey UX audit
+      (two parallel audit agents + adversarial verification, plan doc
+      docs/plans/2026-06-11-ux-conversion-polish.md). Highlights: pricing bar
+      and landing ProofHero switched to the canonical isCountedResolved
+      denominator (gate_blocked rows were poisoning marketing stats — landing
+      showed -195.67% cumulative P&L and 26% recent win rate to every visitor;
+      true all-time record is ~38.8% WR / +86% PnL with break-even context now
+      shown); all share/OG/hreflang/email URLs moved off the stale
+      tradeclaw.com mirror to tradeclaw.win; Getting Started panel no longer
+      covers the mobile sign-in form (auth-gated, pill on small screens);
+      duplicate footers removed from 12 pages; screener rescue buttons rescan
+      and server errors stop blaming user filters; /today got nav, freshness
+      stamp, skeleton, and an alive empty state; /free-signals revalidates
+      every 300s; Writer A side-effects throttled in-process and anonymous
+      /api/signals + /api/screener are CDN-cacheable. NOTE: TC-227's
+      "Recent win rate" tile was superseded — it rendered 26% (gate-poisoned
+      recent window) on the hero; replaced by all-time win rate vs break-even.
+      Verified: npm run build 330/330 pages, jest 1098 passed / 0 failed.
+      2026-06-11.

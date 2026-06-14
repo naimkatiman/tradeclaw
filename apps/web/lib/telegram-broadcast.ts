@@ -15,7 +15,8 @@
 import { type TradingSignal } from '../app/lib/signals';
 import { readLiveSignals, type LiveSignal } from './signals-live';
 import { getTrackedSignals } from './tracked-signals';
-import { fetchRegimeMap, filterSignalsByRegime } from './regime-filter';
+import { fetchResolvedRegimeMap } from './regime-resolution';
+import { filterSignalsByRegime } from './regime-filter';
 import { markTelegramPosted } from './signal-history';
 import { runRiskPipeline, type RiskReport } from './risk-pipeline';
 import { isFreeSymbol } from './tier-client';
@@ -281,7 +282,9 @@ export async function broadcastTopSignals(
   opts: { freeOnly?: boolean } = {},
 ): Promise<BroadcastResult> {
   // Use the same Python engine source as the dashboard (DB → signals-live.json)
-  const regimeMap = await fetchRegimeMap();
+  // No try/catch: fetchResolvedRegimeMap documents a never-rejects invariant.
+  const resolved = await fetchResolvedRegimeMap();
+  const regimeMap = resolved.regimes;
   let mapped: TradingSignal[] = [];
 
   const liveData = await readLiveSignals();

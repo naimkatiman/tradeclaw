@@ -3,7 +3,6 @@ import { readSessionFromCookies } from '../../lib/user-session';
 import { getStripe } from '../../lib/stripe';
 import { getUserTier } from '../../lib/tier';
 import { Navbar } from '../components/navbar';
-import { SiteFooter } from '../../components/landing/site-footer';
 import { WelcomeClient } from './WelcomeClient';
 
 // The welcome page is reached on Stripe's success_url redirect. The webhook
@@ -78,7 +77,6 @@ export default async function WelcomePage({ searchParams }: Props) {
           </div>
         </div>
       </main>
-      <SiteFooter />
     </>
   );
 }

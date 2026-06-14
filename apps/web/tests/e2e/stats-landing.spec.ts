@@ -24,7 +24,7 @@ test.describe('/api/stats/landing', () => {
     expect(typeof body.signalsToday).toBe('number');
     expect(body).toHaveProperty('cumulativePnlPct');
     expect(body).toHaveProperty('profitFactor');
-    expect(body).toHaveProperty('closedSignals30d');
+    expect(body).toHaveProperty('closedSignals');
     expect(body).toHaveProperty('latestSignal');
     expect(body).toHaveProperty('samples');
   });

@@ -290,7 +290,7 @@ export async function GET(
             }}
           >
             <span style={{ color: '#27272a', fontSize: '13px', letterSpacing: '0.05em' }}>
-              tradeclaw.com — Open-Source AI Trading Signals
+              tradeclaw.win — Open-Source AI Trading Signals
             </span>
             <span style={{ color: '#3f3f46', fontSize: '12px' }}>{fmtDate}</span>
           </div>

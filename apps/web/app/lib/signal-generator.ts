@@ -37,7 +37,7 @@ export interface MultiTFResult {
   timeframes: TFDirection[];
   dominantDirection: 'BUY' | 'SELL' | 'NEUTRAL';
   agreementCount: number; // how many of 4 TFs agree
-  confluenceBonus: number; // +15, +5, 0, -20
+  confluenceBonus: number; // +15, +10, +5, 0, -20
   isConflicted: boolean;
   entry: number;
   indicators: IndicatorSummary;
