@@ -35,7 +35,6 @@ import { isPendingHistoricalSignal } from '../../lib/signal-history-status';
 import type { TradingSignal } from '@tradeclaw/signals';
 import type { LockedSignalStub } from '../../lib/tier';
 import type { TFDirection } from '../lib/signal-generator';
-import { OnboardingOverlay } from '../components/onboarding-overlay';
 import { markStepDone } from '@/lib/onboarding-state';
 import { useUserSession } from '../../lib/hooks/use-user-tier';
 import { classifySignalOutcome, type OutcomeStatus } from '@/lib/signal-outcome';
@@ -1500,7 +1499,6 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           <p className="text-xs text-zinc-800 mt-1">Signal analysis is for educational purposes only. Not financial advice.</p>
         </footer>
       </div>
-      <OnboardingOverlay signalsLoaded={signals.length > 0} />
       {/* Signal toasts */}
       <SignalToast />
     </div>

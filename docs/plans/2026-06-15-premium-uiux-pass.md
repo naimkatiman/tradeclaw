@@ -2,7 +2,7 @@
 
 Date: 2026-06-15
 Owner: Naim
-Status: Layer 1 done (commit d617e97). Layer 2 done (this commit). Layer 3 pending.
+Status: Layers 1-3 done (L1 d617e97, L2 d143e6b, L3 this commit). PR #127 covers L1+L2. Long-tail deferred (see Out of scope).
 Source audit: 8-agent fan-out `wf_2bbd7a93-25e` + hand review of design system and core surfaces, benchmarked against 28 Mobbin reference screens (Coinbase, OKX, TradingView, Public, Wealthsimple, Mercury, Airwallex, Neon, Vapi, Mixpanel).
 
 ## Goal
@@ -70,11 +70,17 @@ Deferred (logged, not silent):
 - `text-[9px]` -> `text-[10px]` floor (borderline-readable; ~public surfaces have 1 each). Revisit with the long-tail.
 - 12px label / 16px body floor app-wide: too aggressive for the dense trading tables (TradingView/OKX run ~11px there); needs per-component judgment, not a blanket bump.
 
-### Layer 3 — Nav IA + chrome declutter (next commit)
+### Layer 3 — Chrome declutter (done)
 
-- Navbar: 3 primary links + structured 4-section mega-menu; demote long tail to footer.
-- Overlay coordinator: max one non-modal nudge at a time; gate PWA prompt to onboarding completion; remove duplicate onboarding system.
-- Remove global grain overlay; scope aurora/scanline to hero only.
+Done this pass:
+- Removed the global grain overlay (body class in layout.tsx + the dead `.grain-overlay::before` rule in globals.css). App-wide.
+- Removed the duplicate onboarding system: deleted `OnboardingOverlay` (top-center content-blocker) + its render in DashboardClient. OnboardingChecklist (root, bottom pill) remains the single onboarding surface.
+- Navbar "More" mega-menu polish: divider section headers, muted icons, roomier rows, and fixed the light-theme bug (`hover:text-white` -> `hover:text-[var(--foreground)]`, was invisible in light mode). Kept width at 380px after a 600px/3-col attempt clipped the left edge on narrow viewports (the More button sits mid-nav).
+
+Deferred (logged, not silent):
+- Full mobile overlay coordinator (PWA / feature-unlock / star-progress / onboarding share the bottom corner). Needs a shared state machine + careful testing; higher risk than the rest. PWA prompt is already gated (7-day cooldown, standalone check, onboarding-panel check).
+- Nav link-count curation (the ~37-link mega-menu). Which links to cut is a product decision — flagged for owner, not guessed.
+- Aurora/scanline are opt-in per-surface already (not global like grain was), so left as-is.
 
 ## Out of scope (deferred, per owner scope choice)
 

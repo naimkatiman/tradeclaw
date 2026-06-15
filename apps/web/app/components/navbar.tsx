@@ -168,21 +168,21 @@ export function Navbar() {
               </button>
 
               {moreOpen && (
-                <div className="absolute top-full right-0 mt-3 w-[340px] rounded-2xl border border-[var(--border)] backdrop-blur-2xl bg-[var(--bg-card)]/95 shadow-2xl shadow-black/40 p-5 grid grid-cols-2 gap-6">
+                <div className="absolute top-full right-0 mt-3 w-[380px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[var(--border)] backdrop-blur-2xl bg-[var(--bg-card)]/95 shadow-2xl shadow-black/40 p-5 grid grid-cols-2 gap-x-5 gap-y-4">
                   {MORE_GROUPS.map((group) => (
                     <div key={group.label}>
-                      <span className="text-[10px] uppercase tracking-widest text-[var(--text-secondary)] font-semibold mb-2 block">
+                      <span className="text-[10px] uppercase tracking-widest text-[var(--text-secondary)] font-semibold mb-2 pb-1.5 border-b border-[var(--border)] block">
                         {group.label}
                       </span>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-0.5">
                         {group.links.map((link) => (
                           <Link
                             key={link.href}
                             href={link.href}
                             onClick={() => setMoreOpen(false)}
-                            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--glass-bg)] transition-colors duration-200"
+                            className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)] transition-colors duration-200"
                           >
-                            {link.icon && <link.icon className="w-3 h-3" />}
+                            {link.icon && <link.icon className="w-3.5 h-3.5 opacity-70" />}
                             {link.label}
                           </Link>
                         ))}
