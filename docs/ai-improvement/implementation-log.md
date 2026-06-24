@@ -1,5 +1,60 @@
 # TradeClaw AI Improvement Implementation Log
 
+## 2026-06-24 05:31 MPST (+0800) — graphify-out ignore hygiene (docs/tracking only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw` on the Mini `gpt-5.4-mini` tier, daily schedule `27 5 * * *`.
+
+Decision: kept the low-risk `.gitignore` hygiene change that ignores generated `graphify-out/` output so future status scans do not pick up the graphify cache folder. The live working tree before the docs refresh showed only the pre-existing `.gitignore` modification. Code changes: `.gitignore` only.
+
+External source applied: continuous-improvement — re-scanned live status and verified the change before reporting.
+External source applied: ponytail — chose the smallest safe fix by ignoring generated output instead of touching the generated tree itself.
+External source applied: graphify — treated `graphify-out/` as generated knowledge-graph output that should stay out of the repo status surface.
+
+Files inspected / context read:
+- `C:/Ai/tradeclaw/.gitignore`
+- `C:/Ai/tradeclaw/STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- current `git status --short --branch --untracked-files=all`
+- `git diff -- .gitignore`
+- `git ls-files graphify-out | wc -l`
+- `git check-ignore -v graphify-out/graph.html graphify-out/manifest.json graphify-out/GRAPH_REPORT.md`
+
+Files changed / artifacts updated this run:
+- `.gitignore`
+- `docs/ai-improvement/implementation-log.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Application/runtime behavior changes: none. Code changes: `.gitignore` only.
+
+Verification run and results:
+
+```text
+timestamp: 2026-06-24 05:31 MPST (+0800)
+
+git status --short --branch --untracked-files=all
+-> ## fix/track-record-compliance-copy...origin/fix/track-record-compliance-copy
+->  M .gitignore
+
+git diff -- .gitignore
+-> diff --git a/.gitignore b/.gitignore
+-> added graphify-out/ ignore rule under the generated-data section
+
+git ls-files graphify-out | wc -l
+-> 0
+
+git check-ignore -v graphify-out/graph.html graphify-out/manifest.json graphify-out/GRAPH_REPORT.md
+-> .gitignore:32:graphify-out/ ...
+```
+
+Final static/read-back verification after tracking-doc updates:
+
+- Re-read `docs/ai-improvement/implementation-log.md`, `STATE.yaml`, and `KANBAN.md` after the final writes; the inserted 2026-06-24 tradeclaw row was still present and the following 2026-06-22 MobileIB0TelegramApp row remained intact.
+- `git status --short --branch --untracked-files=all` -> `## fix/track-record-compliance-copy...origin/fix/track-record-compliance-copy`; modified files now shown were `.gitignore`, `STATE.yaml`, and `docs/ai-improvement/implementation-log.md`.
+- `git diff --shortstat` -> `3 files changed, 66 insertions(+), 17 deletions(-)`.
+- `git diff --check` -> exit `0`; only the expected LF->CRLF warning for `docs/ai-improvement/implementation-log.md`, no whitespace-error lines.
+- `git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md` -> exit `1` expected; only the expected LF->CRLF warning for `C:/Ai/_zaky_ai_board/KANBAN.md`, no whitespace-error lines.
+
 ## 2026-06-22 05:30 MPST (+0800) — post-metrics verification checkpoint refresh (docs-only)
 
 Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw` on the Mini `gpt-5.4-mini` tier, daily schedule `27 5 * * *`.
