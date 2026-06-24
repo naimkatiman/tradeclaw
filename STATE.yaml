@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-06-22T05:30:00+08:00
+updated: 2026-06-24T05:31:00+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -8,26 +8,17 @@ description: >
   Goal: viral GitHub repo, thousands of stars.
 
 ai_improvement_last_run:
-  at: 2026-06-22T05:30:00+08:00
+  at: 2026-06-24T05:31:00+08:00
   agent: CEO Zaky recurring Product + Engineering repository improvement agent
-  scope: docs-only post-metrics verification checkpoint refresh for the unchanged remote-aligned feature branch and dirty tree
+  scope: docs-only graphify-out ignore hygiene; generated review output now excluded from status noise
   notes: >
     Current checkout remains fix/track-record-compliance-copy at 528cd3c8,
     aligned with origin/fix/track-record-compliance-copy (ahead/behind 0/0).
-    Local main remains da2afa06 ahead of origin/main. Fresh fetch plus merge-base
-    probe kept origin/main changed paths at zero and dirty/origin overlap at zero.
-    Refreshed the existing docs/ai-improvement source-review metrics packet,
-    handoff, verification matrix, README, implementation log, STATE.yaml, and the
-    central board with the 05:30 verification checkpoint rather than adding new
-    runtime work. Dirty set remains 13 paths (12 tracked modified files plus
-    untracked source-review-metrics.md); pre-checkpoint tracked shortstat before
-    this run's tracking edits was 12 files / 1,879 insertions / 226 deletions.
-    Verification snapshot: targeted app ESLint exit 0, npm run typecheck:web exit 0,
-    targeted Jest 2 suites / 22 tests pass in 1.76s with --forceExit, npm run build
-    --workspace=apps/web exit 0 with Next.js 16.2.6, 332/332 static pages, and known warnings only,
-    entrypoint syntax/help markers pass, package parse passes, and focused
-    source/test/config pygount reports 1,419 files / 144,113 code / 16,085 comments.
-    Code changes: none this run.
+    The live working tree before the docs refresh showed only the pre-existing
+    .gitignore modification. Added graphify-out/ to .gitignore so generated
+    graphify knowledge-graph output stays out of future status/dirty-tree review.
+    Verified git status, git diff, git ls-files graphify-out, and git
+    check-ignore. Code changes: .gitignore only this run.
 
 tasks:
   - id: TC-001
