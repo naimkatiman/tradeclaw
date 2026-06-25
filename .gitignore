@@ -27,3 +27,6 @@ apps/web/data/performance-metrics.json
 __pycache__/
 *.pyc
 apps/web/data/*.db
+
+# graphify knowledge-graph output (generated, ~8MB)
+graphify-out/

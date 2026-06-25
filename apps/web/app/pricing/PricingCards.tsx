@@ -248,6 +248,24 @@ export function PricingCards() {
   const [resuming, setResuming] = useState(false);
   const [resumeError, setResumeError] = useState<string | null>(null);
 
+  // Referral capture: persist the inbound ?ref code to the tc_ref cookie so it
+  // survives the signin round-trip and the later checkout POST. The checkout
+  // route resolves the code → referrer server-side (a code, never a user id, is
+  // exposed to the client). Without this, referral links land on /pricing?ref=…
+  // and the code is silently dropped, so the reward plumbing never fires.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const raw = new URLSearchParams(window.location.search).get('ref');
+    const code = raw ? raw.toUpperCase() : null;
+    // Match the server's referral-code shape (uppercase hex) so a code the
+    // client stores is one the checkout route can actually resolve.
+    if (code && /^[0-9A-F]{1,32}$/.test(code)) {
+      const maxAge = 60 * 60 * 24 * 30; // 30 days
+      const secure = window.location.protocol === 'https:' ? '; secure' : '';
+      document.cookie = `tc_ref=${encodeURIComponent(code)}; path=/; max-age=${maxAge}; samesite=lax${secure}`;
+    }
+  }, []);
+
   // Post-signin resume: when a logged-out user clicks "Start Trial",
   // we redirect them to /signin?next=/pricing?resume=checkout&interval=…
   // After signin lands them back here we re-fire the checkout POST so the

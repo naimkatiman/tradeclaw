@@ -1,0 +1,24 @@
+{
+  "name": "@naimkatiman/tradeclaw-strategy-audit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hybrid Playwright + OpenAI computer-use runner for productized TradeClaw strategy audits.",
+  "bin": {
+    "tradeclaw-audit": "./src/cli.mjs"
+  },
+  "scripts": {
+    "audit": "node ./src/cli.mjs",
+    "check": "node --check ./src/cli.mjs && node --check ./src/browser.mjs && node --check ./src/computer-use.mjs && node --check ./src/report.mjs",
+    "test": "node --test ./test/*.test.mjs",
+    "validate:fixture": "node ./src/cli.mjs --request ./examples/audit-request.json --fixture ./examples/fixture-results.json --out ./tmp/fixture-validation"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "openai": ">=6.0.0 <8",
+    "playwright": ">=1.50.0 <2"
+  },
+  "license": "MIT"
+}
