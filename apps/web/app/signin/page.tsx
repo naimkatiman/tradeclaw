@@ -162,7 +162,15 @@ function SigninInner() {
       const res = await fetch('/api/auth/magic-link/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailInput }),
+        // Forward any checkout intent so the emailed link resumes checkout
+        // after sign-in instead of dropping the user on /dashboard.
+        body: JSON.stringify({
+          email: emailInput,
+          ...(priceId ? { priceId } : {}),
+          ...(tier ? { tier } : {}),
+          ...(interval ? { interval } : {}),
+          ...(next ? { next } : {}),
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

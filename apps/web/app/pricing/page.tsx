@@ -103,7 +103,7 @@ export default async function PricingPage() {
                     {stats.cumulativePnlPct.toFixed(1)}%
                   </div>
                   <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-secondary)]">
-                    Cumulative PnL
+                    Historical PnL
                   </div>
                 </div>
               </div>
@@ -118,6 +118,9 @@ export default async function PricingPage() {
                 <Link href="/track-record" className="text-emerald-400 hover:underline">
                   Verify the full archive →
                 </Link>
+              </p>
+              <p className="mt-1 text-center text-[11px] text-[var(--text-secondary)]">
+                Historical archive only — not a forecast or guarantee of future results.
               </p>
             </div>
           </div>

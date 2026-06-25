@@ -1,4 +1,6 @@
 // apps/web/lib/__tests__/onboarding-state.test.ts
+jest.mock('../analytics', () => ({ trackEvent: jest.fn() }));
+
 import {
   getOnboardingState,
   markStepDone,
@@ -6,6 +8,9 @@ import {
   resetOnboarding,
   type OnboardingState,
 } from '../onboarding-state';
+import { trackEvent } from '../analytics';
+
+const mockedTrackEvent = trackEvent as jest.MockedFunction<typeof trackEvent>;
 
 const STEPS = ['saw-signal', 'opened-detail', 'set-alert'] as const;
 
@@ -20,7 +25,10 @@ beforeAll(() => {
     },
   });
 });
-beforeEach(() => { Object.keys(store).forEach(k => delete store[k]); });
+beforeEach(() => {
+  Object.keys(store).forEach(k => delete store[k]);
+  mockedTrackEvent.mockClear();
+});
 
 describe('onboarding state', () => {
   it('returns all steps incomplete on first call', () => {
@@ -51,5 +59,23 @@ describe('onboarding state', () => {
     markStepDone('saw-signal');
     resetOnboarding();
     expect(getOnboardingState()['saw-signal']).toBe(false);
+  });
+
+  it('fires the activation event once when opened-detail transitions to done', () => {
+    markStepDone('opened-detail');
+    expect(mockedTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockedTrackEvent).toHaveBeenCalledWith('activated', { step: 'opened-detail' });
+  });
+
+  it('does not re-fire activation when opened-detail is marked again', () => {
+    markStepDone('opened-detail');
+    markStepDone('opened-detail');
+    expect(mockedTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fire activation for other onboarding steps', () => {
+    markStepDone('saw-signal');
+    markStepDone('set-alert');
+    expect(mockedTrackEvent).not.toHaveBeenCalled();
   });
 });

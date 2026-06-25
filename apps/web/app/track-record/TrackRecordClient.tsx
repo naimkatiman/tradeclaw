@@ -651,10 +651,10 @@ export function TrackRecordClient() {
                 <InfoHint text={STAT_HINTS.resolved} label="What resolved signals means" />
               </span>
             </div>
-            {/* Realized (position-sized) return at headline weight — the number a
-               real subscriber could earn, shown next to the raw unsized total so
-               the achievable figure isn't buried. Paired with max drawdown so the
-               path's cost is never hidden behind the return. */}
+            {/* Realized (position-sized) return at headline weight — a standardized 1%-risk
+               research model shown next to the raw unsized total so the modeled figure isn't
+               buried. Paired with max drawdown so the path's cost is never hidden behind the
+               return. Analytics view, not a promise of subscriber returns. */}
             {headlineCompoundedReturn !== null && (
               <div className="flex items-baseline gap-1.5">
                 <span className={`text-xl font-semibold tabular-nums ${
@@ -712,10 +712,20 @@ export function TrackRecordClient() {
             />
           </div>
           <p className="text-sm text-[var(--text-secondary)]">
-            Headline total return is the raw sum of per-signal market % (no sizing). The equity card below
-            shows the position-sized version — 1% risk per trade after blended round-trip costs — which is
-            what a real subscriber would actually earn. Two views, same trades. Resolved trades only —
-            gate-blocked and expired rows are surfaced separately, not folded in.
+            Headline total return is the raw sum of per-signal market % before position sizing. The equity
+            card shows a standardized research model using 1% notional risk per trade after blended
+            round-trip cost assumptions, so you can compare signals on a consistent basis. It is a
+            historical analytics view, not a promise of subscriber returns. Real outcomes can differ because
+            of timing, spreads, slippage, fees, order execution, sizing, and whether a user follows any
+            signal. Resolved trades only — pending, expired, and gate-blocked rows are surfaced separately
+            instead of being folded into win-rate statistics.
+          </p>
+          <p className="mt-3 rounded-md border border-zinc-600/30 bg-zinc-800/20 px-3 py-2 text-[11px] leading-relaxed text-[var(--text-secondary)]">
+            <strong className="font-semibold text-[var(--foreground)]">Risk notice:</strong> TradeClaw provides
+            educational signal analytics and historical research. Signals are not financial advice, investment
+            recommendations, or guaranteed outcomes. Trading involves substantial risk, including loss of
+            capital. Past performance does not predict future results. Always test with paper trading and
+            independent risk controls before using real funds.
           </p>
           {rollingWinRates && (
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
