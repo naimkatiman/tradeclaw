@@ -3,9 +3,12 @@ import type Stripe from 'stripe';
 import { getStripe, resolveTierFromPriceId, resolveStripePriceId } from '../../../../lib/stripe';
 import {
   getUserById,
+  getUserByReferralCode,
   updateUserStripeCustomerId,
 } from '../../../../lib/db';
 import { readSessionFromRequest } from '../../../../lib/user-session';
+import { trackEvent } from '../../../../lib/analytics';
+import { captureServer } from '../../../../lib/analytics-server';
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
@@ -97,6 +100,20 @@ export async function POST(request: NextRequest) {
       stripeCustomerId = user.stripeCustomerId;
     }
 
+    // Referral attribution. The pricing page stores the inbound ?ref code in the
+    // tc_ref cookie; we resolve it to the referrer's user id SERVER-SIDE so the
+    // client can never inject an arbitrary referrerId (gift/impersonation), and
+    // we drop self-referrals. The webhook records metadata.referrerId as the
+    // referred_by user id, so an unknown/invalid code resolves to '' (no reward).
+    let referrerId = '';
+    const refCode = request.cookies.get('tc_ref')?.value?.trim().toUpperCase();
+    if (refCode && /^[0-9A-F]{1,32}$/.test(refCode)) {
+      const referrer = await getUserByReferralCode(refCode);
+      if (referrer && referrer.id !== userId) {
+        referrerId = referrer.id;
+      }
+    }
+
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: 'subscription',
       payment_method_types: ['card'],
@@ -104,7 +121,7 @@ export async function POST(request: NextRequest) {
       success_url: `${BASE_URL}/welcome?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/pricing`,
       client_reference_id: userId,
-      metadata: { tier: resolvedTier, userId },
+      metadata: { tier: resolvedTier, userId, referrerId },
       subscription_data: {
         metadata: { userId, tier: resolvedTier },
         trial_period_days: 7,
@@ -117,6 +134,12 @@ export async function POST(request: NextRequest) {
     }
 
     const session = await getStripe().checkout.sessions.create(sessionParams);
+
+    // Analytics: trial started (all Pro checkouts include a 7-day trial).
+    // trackEvent is a client no-op on the server; captureServer is the real
+    // server-side record (PostHog node). Awaited but never throws.
+    trackEvent('trial_started', { tier: resolvedTier, interval: interval ?? 'monthly', userId });
+    await captureServer('trial_started', userId, { tier: resolvedTier, interval: interval ?? 'monthly' });
 
     // Store the Stripe customer ID on the user record for future sessions
     if (session.customer && typeof session.customer === 'string' && !stripeCustomerId) {

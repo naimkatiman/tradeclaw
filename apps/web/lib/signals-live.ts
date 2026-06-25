@@ -56,6 +56,8 @@ export interface LiveSignal {
   win_rate?: WinRateData | null;
   cross_validation?: CrossValidation | null;
   source: string;
+  signalSource?: 'algo' | 'premium';
+  strategyName?: string;
   timestamp: string;
   expires_in_minutes: number;
 }
@@ -103,6 +105,7 @@ export async function readLiveSignals(): Promise<{
   generatedAt: string | null;
   reliability?: ReliabilityData;
   engineVersion?: string;
+  stats?: LiveSignalsData['stats'];
 } | null> {
   return readLiveSignalsFromFile();
 }
@@ -116,11 +119,11 @@ async function readLiveSignalsFromFile(): Promise<{
   generatedAt: string | null;
   reliability?: ReliabilityData;
   engineVersion?: string;
+  stats?: LiveSignalsData['stats'];
 } | null> {
   const possiblePaths = [
     join(process.cwd(), 'data', 'signals-live.json'),
     join(process.cwd(), '..', '..', 'data', 'signals-live.json'),
-    '/home/naim/.openclaw/workspace/tradeclaw/data/signals-live.json',
   ];
 
   for (const filePath of possiblePaths) {
@@ -141,6 +144,7 @@ async function readLiveSignalsFromFile(): Promise<{
         generatedAt: data.generated_at,
         reliability: data.reliability,
         engineVersion: data.engine_version,
+        stats: data.stats,
       };
     } catch {
       continue;
@@ -167,6 +171,8 @@ export function mapLiveSignalToV1(s: LiveSignal) {
     macd: s.indicators?.macd_histogram ?? s.indicators?.macd_h1 ?? 0,
     generatedAt: s.timestamp,
     shareUrl: `https://tradeclaw.win/signal/${s.symbol}-${s.timeframe}-${s.signal}`,
+    signalSource: s.signalSource ?? 'algo',
+    strategyName: s.strategyName ?? null,
     candle_status: s.candle_status ?? null,
     win_rate: s.win_rate ?? null,
     cross_validation: s.cross_validation ?? null,

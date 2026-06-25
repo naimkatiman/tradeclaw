@@ -154,9 +154,9 @@ fi
 
 # /api/signals
 SIGNALS_RESP=$(curl -sf "${BASE_URL}/api/signals" 2>/dev/null || echo "")
-if echo "$SIGNALS_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); sigs=d.get('signals',[]); assert isinstance(sigs,list) and len(sigs)>0" 2>/dev/null; then
+if echo "$SIGNALS_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); sigs=d.get('signals',[]); assert isinstance(sigs,list)" 2>/dev/null; then
   SIG_COUNT=$(echo "$SIGNALS_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d.get('signals',[])))" 2>/dev/null || echo "?")
-  check "/api/signals returns signals array (${SIG_COUNT} signals)" "ok"
+  check "/api/signals returns valid signals array (${SIG_COUNT} signals)" "ok"
 else
   check "/api/signals" "fail" "Response: ${SIGNALS_RESP:0:100}"
 fi

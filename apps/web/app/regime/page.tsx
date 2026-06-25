@@ -4,7 +4,7 @@ import { RegimeClient } from './RegimeClient';
 export const metadata: Metadata = {
   title: 'Market Regime Monitor — HMM Classification | TradeClaw',
   description:
-    'Live Hidden Markov Model regime classification across all trading pairs (refreshed every 5 minutes). Track crash, bear, neutral, bull, and euphoria states.',
+    'Live Hidden Markov Model regime classification across all trading pairs (refreshed every 5 minutes). Track trend, volatile, and range states.',
   openGraph: {
     title: 'Market Regime Monitor — HMM Classification',
     description:

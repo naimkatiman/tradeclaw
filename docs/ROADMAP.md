@@ -5,24 +5,31 @@
 
 ---
 
-## Current State (April 2026)
+## Current State (June 2026)
 
 **What exists:**
 - 30+ symbol coverage (crypto, forex, metals) with 7 real TA indicators
-- 190+ page Next.js dashboard (signals, backtest, paper trading, leaderboard)
+- 320+ page Next.js dashboard (signals, backtest, paper trading, leaderboard, operator console)
 - Docker Compose self-host + Vercel live demo at tradeclaw.win
-- Telegram + Discord bot infrastructure
-- Stripe billing scaffolding (Pro/Elite tiers)
-- WebSocket live price streaming
-- SSE price endpoint, OG images, badges, API docs
+- Telegram + Discord bot infrastructure + premium channel gating
+- Stripe billing with Pro ($29/mo) + Elite ($99/mo) checkout + 7-day trial
+- WebSocket + SSE live price streaming
+- OG images, badges, API docs, RSS/Atom feeds
+- Automated outcome tracker — TP/SL/expired resolution runs hourly (564/573 signals resolved)
+- Rolling 7d/30d/90d win-rate snapshots on /track-record
+- TradingView webhook receiver mirroring premium signals into history
+- Free-tier 30-min delayed signal preview + full paywall gating
+- API key tier rate limits (Free 10/hr, Pro 100/hr, Elite unlimited)
+- Referral revenue tracking (20% share on Stripe payments)
+- Compliance pages (Terms, Privacy)
 
 **What's broken / missing:**
-- Signals always show "pending" — no outcome tracker (TP/SL hit detection)
-- No win rate tracking = no proof of signal quality
-- No premium tier actually gated behind paywall
-- No TradingView webhook integration (Zaky's personal strategies can't feed in)
-- No user accounts / portfolios for free users
-- No social proof (no public track record page)
+- Win rate is ~55% (positive expectancy +0.10R) but below the original 60% target — engine quality still improving
+- No TradingView API for automated profile publishing — copy-paste export available at /tradingview-export
+- Mobile app MVP (Expo) exists with push notifications — next: EAS build for distribution
+- Multi-provider marketplace scaffold exists — next: invite external traders to apply
+- Copy-trading preview exists (auto-follow premium signals in paper trading) — next: live broker integration
+- Free users lack persistent server-side portfolios (localStorage only)
 
 ---
 
@@ -39,7 +46,7 @@
 | 1.5 | **Candle-Close Validation** — only emit signals on candle close (not mid-bar noise) | P1 | May W1 |
 | 1.6 | **Multi-Timeframe Confluence Score** — upgrade confidence scoring with 4-TF agreement | P1 | May W2 |
 | 1.7 | **Telegram Alerts on High-Confidence Signals** — auto-push when confidence >= 80% | P1 | May W3 |
-| 1.8 | **Backtest Validation** — run signals engine against 6 months of historical data, publish results | P1 | Jun W1 |
+| 1.8 | **Backtest Validation** — publish /results validation snapshot from 12 months of historical data | P1 | Jun W1 |
 
 **Milestone:** Public track record showing 60%+ win rate across 30+ symbols. This is the foundation for everything else.
 
@@ -209,10 +216,10 @@ Step 4: PLATFORM IT (2027)
 
 ## Immediate Next Actions (This Week)
 
-1. **Fix the "always pending" bug** — implement outcome tracker (signal close detection)
-2. **Add win rate calculation** — rolling 7d/30d/90d metrics
-3. **Build `/track-record` page** — public performance dashboard
-4. **Set up TradingView webhook endpoint** — `POST /api/webhooks/tradingview`
+1. **Signal engine quality pass** — continue monitoring rolling win rate; target 60% before paywall scaling
+2. **Content pipeline** — weekly performance recaps for X/LinkedIn to drive organic discovery
+3. **GitHub Stars Campaign** — ProductHunt launch prep, HN Show, Reddit r/algotrading
+4. **Mobile app distribution** — EAS build and app store submission
 
 ---
 
@@ -229,5 +236,5 @@ Step 4: PLATFORM IT (2027)
 
 ---
 
-*Last updated: 2026-04-05*
+*Last updated: 2026-06-07*
 *Owner: Zaky (TradeClaw)*

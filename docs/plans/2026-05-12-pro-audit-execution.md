@@ -9,10 +9,10 @@
 | # | Action | Branch | Status |
 |---|---|---|---|
 | 1 | tier-pro-followups C1-C4 | `fix/tier-pro-followups` | **DONE** — PR #69 (`c8339c3c`) + `bbae0f2f` |
-| 2 | Quote `/track-record` numbers on pricing page | `feat/pricing-track-record-numbers` | pending |
-| 3 | T-3d trial-ending email with realized missed P&L | `feat/trial-t3d-email` | pending |
-| 4 | Elite "Coming Soon" + waitlist + WTP survey | `feat/elite-coming-soon` | pending |
-| 5 | Reframe Pro features as outcomes (copy) | `chore/pro-feature-copy` | pending |
+| 2 | Quote `/track-record` numbers on pricing page | `feat/pricing-track-record-numbers` | **DONE** — all-time resolved count, win rate, and cumulative PnL now render on `/pricing` |
+| 3 | T-3d trial-ending email with realized missed P&L | `feat/trial-t3d-email` | **DONE** — T-3d sweep now computes missed Pro P&L and sends the enriched reminder |
+| 4 | Elite "Coming Soon" + waitlist + WTP survey | `feat/elite-coming-soon` | **DONE** — Elite waitlist card + interest form now capture live-trade / copy-trade intent and WTP |
+| 5 | Reframe Pro features as outcomes (copy) | `chore/pro-feature-copy` | **DONE** — pricing page + tier copy updated; `npm run build` passes |
 
 ## Course-correction (2026-05-12)
 

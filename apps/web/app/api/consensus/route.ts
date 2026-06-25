@@ -17,7 +17,7 @@ export interface ConsensusEntry {
   dominantDirection: 'BUY' | 'SELL' | 'NEUTRAL';
   avgBuyConfidence: number;
   avgSellConfidence: number;
-  trend24h: 'UP' | 'DOWN' | 'FLAT'; // vs 24h prior snapshot
+  trend24h: 'UP' | 'DOWN' | 'FLAT'; // ESTIMATED — derived from pair + current hour + buyRatio, NOT a measured 24h price change. Rendered with an "est." marker on the client.
   source: 'live' | 'synthetic'; // whether data comes from real signals or is algorithmically generated
 }
 
@@ -38,7 +38,9 @@ const CONSENSUS_PAIRS = [
   'GBPUSD', 'USDJPY', 'GBPJPY', 'AUDUSD', 'USDCAD',
 ];
 
-// Simulate 24h trend with deterministic logic based on current hour
+// ESTIMATED indicator — NOT a measured 24h price change. Deterministically
+// derived from the pair's char codes, the current hour, and the live buyRatio.
+// The client renders this with a visible "est." marker (honesty contract rule 7).
 function getTrend24h(pair: string, buyRatio: number): 'UP' | 'DOWN' | 'FLAT' {
   const hourSeed = new Date().getHours();
   const hash = (pair.charCodeAt(0) * 7 + pair.charCodeAt(1) * 13 + hourSeed) % 3;

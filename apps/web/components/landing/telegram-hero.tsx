@@ -34,7 +34,7 @@ export function TelegramHero() {
             entry={62410}
             tp1={62980}
             timestampLabel="14:02 UTC"
-            delayLabel="Public channel — 15 min behind"
+            delayLabel="Public channel — 30 min behind"
           />
           <SampleTelegramCard
             tier="pro"

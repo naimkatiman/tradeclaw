@@ -21,7 +21,6 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { Navbar } from '../components/navbar';
-import { SiteFooter } from '../../components/landing/site-footer';
 
 /* ─── Types ────────────────────────────────────────────────────────────── */
 
@@ -452,7 +451,6 @@ export function ReadmeScoreClient() {
           </Link>
         </div>
       </div>
-      <SiteFooter />
     </div>
   );
 }

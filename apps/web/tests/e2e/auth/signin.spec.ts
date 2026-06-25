@@ -96,11 +96,19 @@ test.describe('signin page — Google-only auth', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // 6. Generic OAuth error renders
+  // 6. Generic OAuth error renders — human copy, never raw internal codes
   // ---------------------------------------------------------------------------
   test('generic OAuth error message matches Sign-in failed pattern', async ({ page }) => {
     await page.goto('/signin?error=state_mismatch');
-    await expect(page.getByText(/Sign-in failed.*state_mismatch/i)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/Sign-in failed\. Please try again\./i)).toBeVisible({ timeout: 10_000 });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 6b. Magic-link error codes get guidance toward the email form
+  // ---------------------------------------------------------------------------
+  test('expired magic link steers the user to request a fresh one', async ({ page }) => {
+    await page.goto('/signin?error=expired');
+    await expect(page.getByText(/link expired/i)).toBeVisible({ timeout: 10_000 });
   });
 });
 

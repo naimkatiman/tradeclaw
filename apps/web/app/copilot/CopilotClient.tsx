@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Bot, CheckCircle2, RefreshCcw, Send, ShieldAlert, Sparkles, TrendingUp } from 'lucide-react';
+import { ArrowRight, CheckCircle2, MessageSquare, RefreshCcw, Send, TrendingUp, Zap } from 'lucide-react';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 import { PageNavBar } from '../../components/PageNavBar';
 
@@ -173,6 +173,20 @@ function SignalPreview({ signal, index }: { signal: Signal; index: number }) {
   );
 }
 
+function TypingIndicator() {
+  return (
+    <div className="flex justify-start">
+      <div className="rounded-2xl border border-[var(--border)] bg-black/20 px-4 py-3">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 animate-bounce rounded-full bg-emerald-400 [animation-delay:0ms]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-emerald-400 [animation-delay:150ms]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-emerald-400 [animation-delay:300ms]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CopilotClient() {
   const [signals, setSignals] = useState<Signal[]>([]);
   const [lockedSignals, setLockedSignals] = useState<Signal[]>([]);
@@ -180,19 +194,29 @@ export function CopilotClient() {
     {
       id: 'welcome',
       role: 'assistant',
-      text: 'I am the no-LLM TradeClaw copilot. Ask me which pair is strongest, what the risk profile looks like, or how to turn a signal into a repeatable strategy.',
+      text: 'I am the TradeClaw signal copilot. Ask me which pair is strongest, what the risk profile looks like, or how to turn a signal into a repeatable strategy.',
       cards: [],
     },
   ]);
-  const [input, setInput] = useState('Which pair looks strongest right now?');
+  const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [typing, setTyping] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const rankedSignals = useMemo(() => sortSignals(signals), [signals]);
   const topThree = rankedSignals.slice(0, 3);
   const buyCount = signals.filter((signal) => signal.direction === 'BUY').length;
   const sellCount = signals.filter((signal) => signal.direction === 'SELL').length;
+
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, typing]);
 
   const loadSignals = async (showSpinner = true) => {
     if (showSpinner) setRefreshing(true);
@@ -223,10 +247,20 @@ export function CopilotClient() {
     const trimmed = input.trim();
     if (!trimmed) return;
 
-    const reply = buildReply(trimmed, rankedSignals);
     setMessages((current) => [
       ...current,
       { id: `user-${Date.now()}`, role: 'user', text: trimmed },
+    ]);
+    setInput('');
+    setTyping(true);
+
+    // Brief delay to simulate processing and show typing indicator
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
+    const reply = buildReply(trimmed, rankedSignals);
+    setTyping(false);
+    setMessages((current) => [
+      ...current,
       {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
@@ -234,16 +268,21 @@ export function CopilotClient() {
         cards: reply.cards,
       },
     ]);
-    setInput('');
   };
 
   const sendPrompt = (prompt: string) => {
-    setInput(prompt);
+    setMessages((current) => [
+      ...current,
+      { id: `user-${Date.now()}`, role: 'user', text: prompt },
+    ]);
+    setInput('');
+    setTyping(true);
+
     setTimeout(() => {
       const reply = buildReply(prompt, rankedSignals);
+      setTyping(false);
       setMessages((current) => [
         ...current,
-        { id: `user-${Date.now()}`, role: 'user', text: prompt },
         {
           id: `assistant-${Date.now()}`,
           role: 'assistant',
@@ -251,8 +290,7 @@ export function CopilotClient() {
           cards: reply.cards,
         },
       ]);
-      setInput('');
-    }, 0);
+    }, 600);
   };
 
   const strongest = rankedSignals[0];
@@ -263,29 +301,23 @@ export function CopilotClient() {
       <PageNavBar />
 
       <div className="relative mx-auto max-w-7xl px-4 py-6">
+        {/* Hero — compact with 2 CTAs */}
         <section className="rounded-3xl border border-[var(--border)] bg-[var(--glass-bg)] p-6 shadow-xl shadow-black/10">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl space-y-4">
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-400">
-                <Bot className="h-3.5 w-3.5" />
-                No-LLM public copilot
+                <Zap className="h-3.5 w-3.5" />
+                Free, instant answers
               </div>
               <div>
                 <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
                   Ask the <span className="text-emerald-400">signal copilot</span>
                 </h1>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-secondary)] md:text-base">
-                  Template-driven answers powered by the live signal feed. It highlights the strongest pair, explains risk, and sends curious visitors into the dashboard and strategy builder.
+                  Get instant answers about the strongest pairs, risk profiles, and market direction — powered by the live signal feed.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => void loadSignals()}
-                  className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--background)]/40 px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition-colors hover:border-emerald-500/30 hover:text-emerald-400"
-                >
-                  <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                  Refresh live feed
-                </button>
                 <Link
                   href="/dashboard"
                   className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/25"
@@ -293,51 +325,81 @@ export function CopilotClient() {
                   Open Dashboard
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link
-                  href="/strategy-builder"
-                  className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/20"
-                >
-                  Open Builder
-                </Link>
-                <Link
-                  href="/pricing"
+                <button
+                  onClick={() => void loadSignals()}
                   className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--background)]/40 px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition-colors hover:border-emerald-500/30 hover:text-emerald-400"
                 >
-                  See Pro pricing
-                </Link>
+                  <RefreshCcw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  Refresh feed
+                </button>
               </div>
             </div>
 
+            {/* Stat cards with empty states */}
             <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[360px] lg:grid-cols-1 xl:grid-cols-3">
               <div className="rounded-2xl border border-[var(--border)] bg-black/20 p-4">
                 <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Live signals</div>
-                <div className="mt-2 text-2xl font-bold text-white">{loading ? '—' : signals.length}</div>
-                <div className="mt-1 text-xs text-[var(--text-secondary)]">{lockedSignals.length ? `${lockedSignals.length} locked` : 'Public feed'}</div>
+                {loading ? (
+                  <div className="mt-2 h-7 w-10 animate-pulse rounded bg-white/10" />
+                ) : signals.length > 0 ? (
+                  <>
+                    <div className="mt-2 text-2xl font-bold text-white">{signals.length}</div>
+                    <div className="mt-1 text-xs text-[var(--text-secondary)]">{lockedSignals.length ? `${lockedSignals.length} locked` : 'Public feed'}</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mt-2 text-2xl font-bold text-[var(--text-secondary)]">0</div>
+                    <div className="mt-1 text-xs text-[var(--text-secondary)]">Check back soon</div>
+                  </>
+                )}
               </div>
               <div className="rounded-2xl border border-[var(--border)] bg-black/20 p-4">
                 <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Direction mix</div>
-                <div className="mt-2 text-2xl font-bold text-emerald-400">{buyCount}/{sellCount}</div>
-                <div className="mt-1 text-xs text-[var(--text-secondary)]">BUY vs SELL</div>
+                {loading ? (
+                  <div className="mt-2 h-7 w-12 animate-pulse rounded bg-white/10" />
+                ) : signals.length > 0 ? (
+                  <>
+                    <div className="mt-2 text-2xl font-bold text-emerald-400">{buyCount}/{sellCount}</div>
+                    <div className="mt-1 text-xs text-[var(--text-secondary)]">BUY vs SELL</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mt-2 text-2xl font-bold text-[var(--text-secondary)]">--/--</div>
+                    <div className="mt-1 text-xs text-[var(--text-secondary)]">No active signals</div>
+                  </>
+                )}
               </div>
               <div className="rounded-2xl border border-[var(--border)] bg-black/20 p-4">
                 <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Top setup</div>
-                <div className="mt-2 text-lg font-bold text-white">{strongest ? strongest.symbol : '—'}</div>
-                <div className="mt-1 text-xs text-[var(--text-secondary)]">{strongest ? `${strongest.timeframe} · ${strongest.confidence}%` : 'Waiting for data'}</div>
+                {loading ? (
+                  <div className="mt-2 h-6 w-20 animate-pulse rounded bg-white/10" />
+                ) : strongest ? (
+                  <>
+                    <div className="mt-2 text-lg font-bold text-white">{strongest.symbol}</div>
+                    <div className="mt-1 text-xs text-[var(--text-secondary)]">{strongest.timeframe} · {strongest.confidence}%</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mt-2 text-lg font-bold text-[var(--text-secondary)]">—</div>
+                    <div className="mt-1 text-xs text-[var(--text-secondary)]">Waiting for data</div>
+                  </>
+                )}
               </div>
             </div>
           </div>
         </section>
 
         <section className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-          <div className="rounded-3xl border border-[var(--border)] bg-[var(--glass-bg)] p-5">
+          {/* Chat panel with scroll container */}
+          <div className="flex flex-col rounded-3xl border border-[var(--border)] bg-[var(--glass-bg)] p-5">
             <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] pb-4">
               <div>
                 <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Conversation</div>
-                <div className="text-sm font-semibold text-white">Ask a question and get a live, template-based answer</div>
+                <div className="text-sm font-semibold text-white">Ask a question and get a live answer</div>
               </div>
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-400">
-                <Sparkles className="h-3.5 w-3.5" />
-                No token cost
+                <Zap className="h-3.5 w-3.5" />
+                Instant
               </div>
             </div>
 
@@ -353,9 +415,13 @@ export function CopilotClient() {
               ))}
             </div>
 
-            <div className="mt-5 space-y-4">
+            {/* Scrollable chat area */}
+            <div className="mt-5 max-h-[480px] flex-1 space-y-4 overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
               {messages.map((message) => (
-                <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  key={message.id}
+                  className={`flex animate-[fadeSlideIn_0.3s_ease-out] ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
                   <div className={`max-w-[92%] rounded-2xl border px-4 py-3 text-sm ${message.role === 'user' ? 'border-emerald-500/30 bg-emerald-500/15 text-white' : 'border-[var(--border)] bg-black/20 text-[var(--foreground)]'}`}>
                     <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-[var(--text-secondary)]">
                       {message.role === 'user' ? 'You' : 'Copilot'}
@@ -372,6 +438,8 @@ export function CopilotClient() {
                   </div>
                 </div>
               ))}
+              {typing ? <TypingIndicator /> : null}
+              <div ref={chatEndRef} />
             </div>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
@@ -389,7 +457,8 @@ export function CopilotClient() {
               />
               <button
                 onClick={() => void handleSubmit()}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/20 px-4 py-3 text-sm font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/30"
+                disabled={!input.trim()}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/20 px-4 py-3 text-sm font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Send className="h-4 w-4" />
                 Send
@@ -398,14 +467,34 @@ export function CopilotClient() {
           </div>
 
           <div className="space-y-6">
+            {/* How it works — replaces trust/conversion card */}
             <div className="rounded-3xl border border-[var(--border)] bg-[var(--glass-bg)] p-5">
               <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
-                <ShieldAlert className="h-4 w-4 text-amber-400" />
-                Trust + conversion cues
+                <MessageSquare className="h-4 w-4 text-emerald-400" />
+                How it works
               </div>
-              <div className="mt-3 space-y-3 text-sm text-[var(--text-secondary)]">
-                <p>Public visitors can inspect live signals immediately, then move into the Builder, Marketplace, or Pricing when they want to go deeper.</p>
-                <p>That keeps the first session useful even when the visitor is not ready to sign in.</p>
+              <div className="mt-4 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-xs font-bold text-emerald-400">1</div>
+                  <div>
+                    <div className="text-sm font-medium text-white">Ask a question</div>
+                    <div className="mt-0.5 text-xs text-[var(--text-secondary)]">Use the quick prompts or type your own question about signals and risk.</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-xs font-bold text-emerald-400">2</div>
+                  <div>
+                    <div className="text-sm font-medium text-white">See live signals</div>
+                    <div className="mt-0.5 text-xs text-[var(--text-secondary)]">Get ranked answers with entry, stop, and take-profit levels from the live feed.</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-xs font-bold text-emerald-400">3</div>
+                  <div>
+                    <div className="text-sm font-medium text-white">Go deeper</div>
+                    <div className="mt-0.5 text-xs text-[var(--text-secondary)]">Open the Dashboard for full charts, or the Strategy Builder to backtest setups.</div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -417,32 +506,32 @@ export function CopilotClient() {
                 </div>
                 <TrendingUp className="h-5 w-5 text-emerald-400" />
               </div>
-              <div className="mt-4 space-y-3">
-                {topThree.map((signal, index) => (
-                  <SignalPreview key={signal.id} signal={signal} index={index} />
-                ))}
-              </div>
+              {topThree.length > 0 ? (
+                <div className="mt-4 space-y-3">
+                  {topThree.map((signal, index) => (
+                    <SignalPreview key={signal.id} signal={signal} index={index} />
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-4 rounded-2xl border border-dashed border-[var(--border)] p-6 text-center">
+                  <TrendingUp className="mx-auto h-8 w-8 text-[var(--text-secondary)]/40" />
+                  <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                    {loading ? 'Loading signals...' : 'No signals right now. Try refreshing the feed.'}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </section>
-
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--glass-bg)] px-5 py-4 text-sm text-[var(--text-secondary)]">
-          <div>
-            Last updated: {lastUpdated ? new Date(lastUpdated).toLocaleString() : 'unknown'}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/strategies" className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--background)]/40 px-3 py-2 text-xs font-semibold text-[var(--foreground)] transition-colors hover:border-emerald-500/30 hover:text-emerald-400">
-              Strategy Builder
-            </Link>
-            <Link href="/strategies/leaderboard" className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--background)]/40 px-3 py-2 text-xs font-semibold text-[var(--foreground)] transition-colors hover:border-emerald-500/30 hover:text-emerald-400">
-              Strategy leaderboard
-            </Link>
-            <Link href="/pricing" className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--background)]/40 px-3 py-2 text-xs font-semibold text-[var(--foreground)] transition-colors hover:border-emerald-500/30 hover:text-emerald-400">
-              Pricing
-            </Link>
-          </div>
-        </div>
       </div>
+
+      {/* CSS for message animation */}
+      <style>{`
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }

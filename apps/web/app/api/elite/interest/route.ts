@@ -54,7 +54,7 @@ function parseBody(raw: unknown): { ok: true; body: ParsedBody } | { ok: false; 
 export async function POST(req: NextRequest): Promise<Response> {
   const ip = getClientIp(req);
   const rateKey = `elite-interest:${ip ?? 'anon'}`;
-  const decision = check(rateKey, { max: RATE_LIMIT_MAX, windowMs: RATE_LIMIT_WINDOW_MS });
+  const decision = await check(rateKey, { max: RATE_LIMIT_MAX, windowMs: RATE_LIMIT_WINDOW_MS });
   if (!decision.allowed) {
     return NextResponse.json(
       { error: 'rate_limited', retryAfterSec: 60 },

@@ -1,0 +1,33 @@
+name: Push Signals
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+# Prevent overlapping runs.
+concurrency:
+  group: push-signals
+  cancel-in-progress: false
+
+permissions:
+  contents: none
+
+jobs:
+  dispatch-push-signals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger Expo push notification cron
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          curl -fsSL -X POST \
+            https://tradeclaw.win/api/cron/push-signals \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json" \
+            -o /tmp/tradeclaw-push-signals.json
+
+          cat /tmp/tradeclaw-push-signals.json

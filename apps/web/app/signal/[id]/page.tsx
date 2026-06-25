@@ -5,16 +5,20 @@ import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 import type { Metadata } from 'next';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
 import { getRecordByIdAsync, type SignalHistoryRecord } from '../../../lib/signal-history';
-import { resolveAccessContextFromCookies, getUserTier } from '../../../lib/tier';
+import { resolveAccessContextFromCookies, getUserTier, TIER_SYMBOLS } from '../../../lib/tier';
+import { isFreeSymbol } from '../../../lib/tier-client';
 import { readSessionFromCookies } from '../../../lib/user-session';
 import { SignalShareButtons } from '../../components/signal-share-buttons';
 import { EmbedButton } from '../../components/embed-button';
 import { AIAnalysisPanel } from '../../components/ai-analysis-panel';
 import { SetAlertButton } from '../../components/set-alert-button';
 import { SignalChartSection } from './SignalChartSection';
-import { SYMBOLS, type TradingSignal } from '../../lib/signals';
+import { SYMBOLS, type TradingSignal, getStrategyName } from '../../lib/signals';
 import { InfoHint } from '../../../components/InfoHint';
 import { STAT_HINTS } from '../../../lib/stat-hints';
+import { deriveHistoricalOutcomeStatus } from '../../../lib/signal-outcome';
+import { trackEvent } from '../../../lib/analytics';
+import { isExpiredHistoricalOutcome, isPendingHistoricalOutcome } from '../../../lib/signal-history-status';
 
 const HINT_ENTRY = 'Mid-price at signal emission. Slippage and spread are applied later when computing P&L.';
 const HINT_STOP_LOSS = 'Risk anchor — sized at ATR × multiplier from entry. SL hit = -1R, TP1 hit = +1R reference for the equity card.';
@@ -160,12 +164,19 @@ function buildHistoricalSignal(
     indicators: liveIndicators ?? STUB_INDICATORS,
     timeframe: record.timeframe as TradingSignal['timeframe'],
     timestamp: new Date(record.timestamp).toISOString(),
-    status: 'active',
+    // OutcomeStatus has a wider 'unknown' state that SignalStatus doesn't;
+    // collapse 'unknown' → 'active' so historical rows display as live-ish
+    // while we wait for the 4h/24h cron to resolve them.
+    status: (() => {
+      const s = deriveHistoricalOutcomeStatus(record.outcomes['24h']);
+      return s === 'unknown' ? 'active' : s;
+    })(),
     source: 'real',
     dataQuality: 'real',
     entryAtr: record.entryAtr,
     atrMultiplier: record.atrMultiplier,
     strategyId: record.strategyId,
+    strategyName: getStrategyName(record.timeframe),
   };
 }
 
@@ -178,7 +189,7 @@ export async function generateMetadata(
   const direction = resolved?.direction ?? '';
   const timeframe = resolved?.timeframe ?? '';
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tradeclaw.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tradeclaw.win';
   const ogUrl = `${baseUrl}/api/og/signal/${id}`;
 
   return {
@@ -203,6 +214,9 @@ export default async function SignalPage(
 ) {
   const { id } = await params;
 
+  // Analytics: track signal detail views
+  trackEvent('signal_viewed', { signalId: id });
+
   // Look up the historical row first. This makes /signal/SIG-* URLs render
   // a permanent record of what we said at emission, instead of re-running
   // live TA and 404'ing whenever the current setup no longer produces the
@@ -221,8 +235,6 @@ export default async function SignalPage(
   const taResult = await getTrackedSignals({ symbol, timeframe, direction, ctx });
   const liveSignal = taResult.signals[0] ?? null;
 
-  if (!record && !liveSignal) notFound();
-
   // Tier gate: this page is a public preview surface (SEO + conversion funnel),
   // so we render any symbol the teaser surfaces — but free/anon viewers see
   // TP2/TP3 masked. Price chart is also Pro-only (handled below).
@@ -230,6 +242,52 @@ export default async function SignalPage(
   const session = await readSessionFromCookies();
   const tier = session?.userId ? await getUserTier(session.userId) : 'free';
   const isPaid = tier !== 'free';
+
+  // If no signal data found AND the symbol is Pro-only for this user,
+  // show a descriptive gate instead of a generic 404.
+  if (!record && !liveSignal) {
+    const isProOnlySymbol = !isFreeSymbol(symbol) && TIER_SYMBOLS.pro.includes(symbol);
+    if (!isPaid && isProOnlySymbol) {
+      return (
+        <div className="min-h-[100dvh] bg-[#050505] text-white flex flex-col">
+          <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#050505]/90 backdrop-blur-xl">
+            <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+              <Link href="/" className="flex items-center gap-1.5 shrink-0">
+                <TradeClawLogo className="h-4 w-4 shrink-0" id="signal" />
+                <span className="text-sm font-semibold">Trade<span className="text-emerald-400">Claw</span></span>
+              </Link>
+              <Link href="/dashboard" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+                View All Signals →
+              </Link>
+            </div>
+          </nav>
+          <div className="flex-1 flex items-center justify-center px-4">
+            <div className="text-center max-w-sm">
+              <div className="mb-4 mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                <Lock className="h-6 w-6 text-emerald-400" />
+              </div>
+              <h1 className="text-lg font-semibold text-white mb-2">{symbol} is a Pro symbol</h1>
+              <p className="text-sm text-zinc-400 mb-6">
+                Signals for {symbol} are available on the Pro plan. Free accounts cover 6 symbols: BTC, ETH, XAU, EUR, SPY, QQQ.
+              </p>
+              <Link
+                href="/pricing?from=pro-only-symbol"
+                className="inline-flex items-center rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-black hover:bg-emerald-400 transition-colors"
+              >
+                Upgrade to Pro -- $29/mo
+              </Link>
+              <div className="mt-3">
+                <Link href="/dashboard" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
+                  Back to free signals
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    notFound();
+  }
 
   const baseSignal: TradingSignal = record
     ? buildHistoricalSignal(record, liveSignal?.indicators ?? null)
@@ -283,6 +341,34 @@ export default async function SignalPage(
                   {signal.direction}
                 </span>
                 <span className="text-zinc-500 text-sm font-mono">{signal.timeframe}</span>
+                <span
+                  className={`px-2.5 py-1 rounded-full border text-[10px] font-bold tracking-wider font-mono ${
+                    signal.status === 'expired'
+                      ? 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+                      : signal.status === 'stopped'
+                        ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                        : signal.status === 'hit_tp1' || signal.status === 'hit_tp2' || signal.status === 'hit_tp3'
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                          : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+                  }`}
+                >
+                  {signal.status === 'expired'
+                    ? 'expired'
+                    : signal.status === 'stopped'
+                      ? 'stopped'
+                      : signal.status === 'hit_tp1'
+                        ? 'TP1 hit'
+                        : signal.status === 'hit_tp2'
+                          ? 'TP2 hit'
+                          : signal.status === 'hit_tp3'
+                            ? 'TP3 hit'
+                            : 'active'}
+                </span>
+                {signal.strategyName && (
+                  <span className="px-2.5 py-1 rounded-full border text-[10px] font-bold tracking-wider font-mono bg-purple-500/10 text-purple-400 border-purple-500/20">
+                    {signal.strategyName}
+                  </span>
+                )}
                 <span className="text-zinc-700 text-xs font-mono">
                   {new Date(signal.timestamp).toLocaleString([], {
                     month: 'short', day: 'numeric',
@@ -321,13 +407,20 @@ export default async function SignalPage(
           {/* Outcome banner — only on historical rows. Surfaces what the
               4h/24h cron has resolved, so the page no longer pretends a
               week-old signal is "live". */}
-          {isHistorical && (
+          {isHistorical && (() => {
+            // Server component renders once per request — Date.now() here is
+            // intentional and the value is stable across all .map iterations.
+            // eslint-disable-next-line react-hooks/purity
+            const now = Date.now();
+            return (
             <div className="mb-6 grid grid-cols-2 gap-2">
               {[
                 { label: '4h', outcome: outcome4h },
                 { label: '24h', outcome: outcome24h },
               ].map(({ label, outcome }) => {
-                const pending = outcome == null;
+                const windowMs = label === '4h' ? 4 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+                const pending = isPendingHistoricalOutcome(outcome, record.timestamp, windowMs, now);
+                const expired = isExpiredHistoricalOutcome(outcome, record.timestamp, windowMs, now);
                 const hit = outcome?.hit === true;
                 const tone = pending
                   ? 'text-zinc-500 border-white/5'
@@ -343,7 +436,7 @@ export default async function SignalPage(
                       {label} outcome
                     </div>
                     <div className="text-sm font-semibold font-mono mt-0.5">
-                      {pending ? 'pending' : hit ? 'TP hit' : 'SL hit'}
+                      {pending ? 'pending' : expired ? 'expired' : hit ? 'TP hit' : 'SL hit'}
                       {outcome?.pnlPct != null && (
                         <span className="ml-2 text-xs opacity-80 tabular-nums">
                           {outcome.pnlPct > 0 ? '+' : ''}
@@ -355,7 +448,8 @@ export default async function SignalPage(
                 );
               })}
             </div>
-          )}
+            );
+          })()}
 
           {/* Price levels */}
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-8">
@@ -507,6 +601,7 @@ export default async function SignalPage(
             direction={signal.direction}
             timestamp={signal.timestamp}
             pip={SYMBOLS.find(s => s.symbol === signal.symbol)?.pip ?? 0.01}
+            symbol={signal.symbol}
           />
         ) : (
           <div className="glass-card rounded-2xl p-8 text-center border border-emerald-500/20 bg-emerald-500/5">

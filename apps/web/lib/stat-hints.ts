@@ -29,7 +29,7 @@ export const STAT_HINTS = {
   resolved:
     'Signals with a real 24h outcome (TP or SL hit). Excludes still-open trades, auto-expired rows, and gate-blocked signals. The engine fires across the full multi-symbol multi-timeframe stream — a real subscriber filtering for high-confidence setups would execute a small fraction of these.',
   expired:
-    'Signal had no TP or SL hit within the 48h tracking window. Recorded for transparency, not counted in win-rate.',
+    'Signal left the tracking window without a TP or SL hit, or it was auto-expired by the resolver. Recorded for transparency, not counted in win-rate.',
   gateBlocked:
     'Engine emitted the signal but the full-risk gate refused entry (e.g. spread too wide, news lockout). Not counted toward equity.',
   pending: 'Signal is still inside the 24h tracking window. Outcome not yet known.',

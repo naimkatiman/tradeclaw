@@ -25,7 +25,7 @@ export function SampleTelegramCard(props: SampleTelegramCardProps) {
     >
       <header className="mb-2 flex items-center justify-between text-xs uppercase tracking-widest">
         <span className={isPro ? 'text-emerald-400' : 'text-[var(--text-secondary)]'}>
-          {isPro ? 'Pro · No delay' : 'Free · 15-min delay'}
+          {isPro ? 'Pro · No delay' : 'Free · 30-min delay'}
         </span>
         <span className="text-[var(--text-secondary)]">{timestampLabel}</span>
       </header>

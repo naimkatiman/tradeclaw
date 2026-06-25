@@ -28,7 +28,8 @@ The cadence agent (Sunday 9am SGT) is allowed to read this file when sourcing to
 
 ## TradeClaw vs TradingView: When You'd Pick Each (Honestly)
 
-- **Source signal.** Route `apps/web/app/vs-tradingview/page.tsx` exists with no blog post pointing to it. Comparison-keyword opportunity.
+- **Status.** Published 2026-05-21 as `apps/web/content/blog/tradeclaw-vs-tradingview.mdx`.
+- **Source signal.** Existing `/vs-tradingview` route now has a published companion post at `apps/web/content/blog/tradeclaw-vs-tradingview.mdx`.
 - **Hook.** Honest framing up front: TradingView is a charting platform, TradeClaw is a signal engine. They're not the same product.
 - **Audience.** TradingView Pro subscribers evaluating alternatives; OSS-curious traders comparing tools; cost-conscious users hitting TV's tier walls.
 - **Outline.**

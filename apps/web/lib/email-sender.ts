@@ -99,17 +99,29 @@ export interface EmailSendResult {
   providerId?: string;
 }
 
-export async function sendSignalEmail(
-  to: string,
-  signal: AlertSignal,
-): Promise<EmailSendResult> {
-  if (!to) return { ok: false, reason: 'no_to_address' };
+/** Provider-agnostic email payload. */
+export interface EmailPayload {
+  subject: string;
+  text: string;
+  html: string;
+}
 
+type EmailProvider = 'resend' | 'sendgrid' | 'smtp';
+
+function getProvider(): EmailProvider {
+  const p = (process.env.EMAIL_PROVIDER || 'resend').toLowerCase();
+  if (p === 'sendgrid') return 'sendgrid';
+  if (p === 'smtp') return 'smtp';
+  return 'resend';
+}
+
+async function sendViaResend(
+  to: string,
+  from: string,
+  payload: EmailPayload,
+): Promise<EmailSendResult> {
   const apiKey = getResendKey();
   if (!apiKey) return { ok: false, reason: 'no_api_key' };
-
-  const from = getFromAddress();
-  if (!from) return { ok: false, reason: 'no_from_address' };
 
   try {
     const res = await fetch(RESEND_API_URL, {
@@ -121,9 +133,9 @@ export async function sendSignalEmail(
       body: JSON.stringify({
         from,
         to: [to],
-        subject: buildSubject(signal),
-        text: buildPlainText(signal),
-        html: buildHtml(signal),
+        subject: payload.subject,
+        text: payload.text,
+        html: payload.html,
       }),
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
@@ -134,4 +146,121 @@ export async function sendSignalEmail(
   } catch {
     return { ok: false, reason: 'network_error' };
   }
+}
+
+async function sendViaSendGrid(
+  to: string,
+  from: string,
+  payload: EmailPayload,
+): Promise<EmailSendResult> {
+  const apiKey = process.env.SENDGRID_API_KEY;
+  if (!apiKey) return { ok: false, reason: 'no_api_key' };
+
+  try {
+    const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: from.replace(/^.*<|>.*$/g, '').trim() || from },
+        subject: payload.subject,
+        content: [
+          { type: 'text/plain', value: payload.text },
+          { type: 'text/html', value: payload.html },
+        ],
+      }),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+
+    if (!res.ok) return { ok: false, reason: 'provider_error' };
+    const msgId = res.headers.get('x-message-id') ?? undefined;
+    return { ok: true, providerId: msgId };
+  } catch {
+    return { ok: false, reason: 'network_error' };
+  }
+}
+
+/**
+ * SMTP delivery via lazy-loaded nodemailer.
+ *
+ * Self-hosters who want to use Gmail / Postfix / Mailgun SMTP rather
+ * than Resend can install nodemailer (`npm install nodemailer
+ * @types/nodemailer`) and set `EMAIL_PROVIDER=smtp` plus the standard
+ * SMTP_* env vars. nodemailer is intentionally not in dependencies so
+ * the default (Resend) deploy stays slim.
+ */
+async function sendViaSMTP(
+  to: string,
+  from: string,
+  payload: EmailPayload,
+): Promise<EmailSendResult> {
+  const host = process.env.SMTP_HOST;
+  const port = parseInt(process.env.SMTP_PORT || '587', 10);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) return { ok: false, reason: 'no_api_key' };
+
+  try {
+    // nodemailer is an optional peer dependency — see .env.example.
+    // The import is dynamic + string-based so TypeScript doesn't try to
+    // resolve the module at build time when it isn't installed.
+    const moduleName = 'nodemailer';
+    const mod: unknown = await import(/* webpackIgnore: true */ moduleName).catch(() => null);
+    if (!mod) {
+      console.warn('[email] nodemailer not installed — `npm i nodemailer` to use SMTP');
+      return { ok: false, reason: 'provider_error' };
+    }
+    const nodemailer = (mod as { default?: unknown; createTransport?: unknown }).default ?? mod;
+    const createTransport = (nodemailer as { createTransport: (opts: unknown) => { sendMail: (msg: unknown) => Promise<{ messageId: string }> } }).createTransport;
+    const transport = createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { user, pass },
+    });
+
+    const info = await transport.sendMail({
+      from,
+      to,
+      subject: payload.subject,
+      text: payload.text,
+      html: payload.html,
+    });
+    return { ok: true, providerId: info.messageId };
+  } catch {
+    return { ok: false, reason: 'network_error' };
+  }
+}
+
+/**
+ * Provider-agnostic send for any subject/text/html email (digests, etc.).
+ * Routes through the same EMAIL_PROVIDER switch and from-address as signal alerts.
+ */
+export async function sendEmail(
+  to: string,
+  payload: EmailPayload,
+): Promise<EmailSendResult> {
+  if (!to) return { ok: false, reason: 'no_to_address' };
+
+  const from = getFromAddress();
+  if (!from) return { ok: false, reason: 'no_from_address' };
+
+  const provider = getProvider();
+  if (provider === 'smtp') return sendViaSMTP(to, from, payload);
+  if (provider === 'sendgrid') return sendViaSendGrid(to, from, payload);
+  return sendViaResend(to, from, payload);
+}
+
+export async function sendSignalEmail(
+  to: string,
+  signal: AlertSignal,
+): Promise<EmailSendResult> {
+  return sendEmail(to, {
+    subject: buildSubject(signal),
+    text: buildPlainText(signal),
+    html: buildHtml(signal),
+  });
 }

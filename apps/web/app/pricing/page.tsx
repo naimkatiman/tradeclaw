@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Navbar } from '../components/navbar';
-import { SiteFooter } from '../../components/landing/site-footer';
 import { PricingCards } from './PricingCards';
 import { FREE_SYMBOLS } from '../../lib/tier-client';
 import { TIER_HISTORY_DAYS } from '../../lib/tier';
@@ -12,6 +11,7 @@ interface Feature {
   label: string;
   free: string | boolean;
   pro: string | boolean;
+  elite: string | boolean;
 }
 
 const FREE_HISTORY_LABEL = TIER_HISTORY_DAYS.free
@@ -19,19 +19,22 @@ const FREE_HISTORY_LABEL = TIER_HISTORY_DAYS.free
   : 'Full history';
 
 const FEATURES: Feature[] = [
-  { label: 'Signal delivery', free: 'Delayed 15 min — moves often played out by then', pro: 'Instant — alert fires while the entry is still live' },
+  { label: 'Signal delivery', free: 'Delayed 30 min — moves often played out by then', pro: 'Instant — alert fires while the move is still live', elite: 'Priority instant — alerts reach you before Pro users' },
   {
     label: 'Symbols covered',
     free: `${FREE_SYMBOLS.length} pairs across crypto, FX, gold, indices`,
-    pro: 'Every traded pair — FX, crypto, gold/silver, oil, US mega-caps, indices',
+    pro: 'The whole market you actually watch — FX, crypto, metals, oil, US mega-caps, indices',
+    elite: 'Same full market coverage as Pro',
   },
-  { label: 'Telegram group', free: 'Public @tradeclawwin', pro: 'Private Pro group — same signals you see in the dashboard, no scroll lag' },
-  { label: 'Risk levels', free: 'TP1 only', pro: 'TP1, TP2, TP3 + Stop Loss — full exit plan before you enter' },
-  { label: 'Entry signal', free: 'Basic (RSI, EMA)', pro: 'Higher-conviction setups — multiple indicators must align across H1/H4/D1 before a signal fires' },
-  { label: 'Track record', free: 'Audit our public Postgres yourself', pro: 'Every entry, exit, and outcome is recorded in our public Postgres archive' },
-  { label: 'Signal history', free: FREE_HISTORY_LABEL, pro: 'Unlimited real outcomes for backtests, audits, and strategy checks' },
-  { label: 'Support', free: 'Community', pro: 'Email (24h response)' },
-  { label: 'Free trial', free: false, pro: '7 days, no charge if you cancel' },
+  { label: 'Telegram group', free: 'Public @tradeclawwin', pro: 'Private Pro group — same live signals, no scroll lag', elite: 'Private 1-on-1 group with Zaky for setup and review' },
+  { label: 'Risk levels', free: 'TP1 only', pro: 'TP1, TP2, TP3 + Stop Loss — exit plan before you enter', elite: 'Same full risk plan as Pro' },
+  { label: 'Entry signal', free: 'Basic (RSI, EMA)', pro: 'Confluence-gated entries — multiple indicators must align across H1/H4/D1', elite: 'Same confluence-gated entries as Pro' },
+  { label: 'Track record', free: 'Audit our public Postgres yourself', pro: 'Every entry, exit, and outcome is recorded in our public Postgres archive', elite: 'Same public audit trail as Pro' },
+  { label: 'Signal history', free: FREE_HISTORY_LABEL, pro: 'Unlimited real outcomes for backtests, audits, and strategy checks', elite: 'Same unlimited history as Pro' },
+  { label: 'Strategy builder', free: false, pro: false, elite: 'Compose and backtest custom indicator rules' },
+  { label: 'Webhook forwarding', free: false, pro: false, elite: 'Pipe signals to your own broker or bot' },
+  { label: 'Support', free: 'Community', pro: 'Email (24h response)', elite: 'Priority email (same-day response)' },
+  { label: 'Free trial', free: false, pro: '7 days, no charge if you cancel', elite: '7 days, no charge if you cancel' },
 ];
 
 function CheckIcon() {
@@ -100,15 +103,24 @@ export default async function PricingPage() {
                     {stats.cumulativePnlPct.toFixed(1)}%
                   </div>
                   <div className="mt-1 text-xs uppercase tracking-wider text-[var(--text-secondary)]">
-                    Cumulative PnL
+                    Historical PnL
                   </div>
                 </div>
               </div>
-              <p className="mt-4 text-center text-xs text-[var(--text-secondary)]">
-                Every signal, entry, and outcome is recorded in our public Postgres.{' '}
+              {stats.payoffRatio != null && stats.breakEvenWinRatePct != null && (
+                <p className="mt-4 text-center text-xs text-[var(--text-secondary)]">
+                  Wins average {stats.payoffRatio.toFixed(1)}x the size of losses — break-even
+                  win rate at this risk/reward is {stats.breakEvenWinRatePct.toFixed(1)}%.
+                </p>
+              )}
+              <p className="mt-2 text-center text-xs text-[var(--text-secondary)]">
+                All-time, every resolved signal. Recorded live in our public Postgres.{' '}
                 <Link href="/track-record" className="text-emerald-400 hover:underline">
                   Verify the full archive →
                 </Link>
+              </p>
+              <p className="mt-1 text-center text-[11px] text-[var(--text-secondary)]">
+                Historical archive only — not a forecast or guarantee of future results.
               </p>
             </div>
           </div>
@@ -127,6 +139,7 @@ export default async function PricingPage() {
                   <th className="py-3 pl-6 pr-4 text-left text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Feature</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Free</th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-emerald-400">Pro</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-purple-400">Elite</th>
                 </tr>
               </thead>
               <tbody>
@@ -135,6 +148,7 @@ export default async function PricingPage() {
                     <td className="py-3 pl-6 pr-4 font-medium text-[var(--foreground)]">{feature.label}</td>
                     <td className="px-4 py-3 text-center">{renderValue(feature.free)}</td>
                     <td className="px-4 py-3 text-center">{renderValue(feature.pro)}</td>
+                    <td className="px-4 py-3 text-center">{renderValue(feature.elite)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -185,7 +199,6 @@ export default async function PricingPage() {
           </p>
         </div>
       </main>
-      <SiteFooter />
     </>
   );
 }

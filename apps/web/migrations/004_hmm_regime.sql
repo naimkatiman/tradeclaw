@@ -1,17 +1,37 @@
 -- HMM regime engine: market regime tracking, circuit breakers, order execution, portfolio snapshots.
 -- All DDL is idempotent (IF NOT EXISTS) so this migration is safe to re-run.
+--
+-- TimescaleDB note: hypertables require every UNIQUE / PRIMARY KEY index to include the
+-- partition column. market_regimes and portfolio_snapshots therefore use composite PKs.
 
 -- ============================================================
--- 1. Market regime history
+-- 1. Market regime history (TimescaleDB hypertable)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS market_regimes (
-  id SERIAL PRIMARY KEY,
+  id SERIAL,
   symbol VARCHAR(20) NOT NULL,
   regime VARCHAR(20) NOT NULL CHECK (regime IN ('crash', 'bear', 'neutral', 'bull', 'euphoria')),
   confidence DECIMAL(5,4) NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
   features JSONB NOT NULL DEFAULT '{}',
-  detected_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  detected_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (id, detected_at)
 );
+
+-- Heal databases where an earlier run created the table with a single-column PK on id.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint c
+    JOIN pg_class t ON c.conrelid = t.oid
+    WHERE t.relname = 'market_regimes'
+      AND c.contype = 'p'
+      AND array_length(c.conkey, 1) = 1
+  ) THEN
+    ALTER TABLE market_regimes DROP CONSTRAINT market_regimes_pkey;
+    ALTER TABLE market_regimes ADD PRIMARY KEY (id, detected_at);
+  END IF;
+END
+$$;
 
 CREATE INDEX IF NOT EXISTS idx_market_regimes_symbol ON market_regimes(symbol);
 CREATE INDEX IF NOT EXISTS idx_market_regimes_detected_at ON market_regimes(detected_at DESC);
@@ -61,10 +81,10 @@ CREATE INDEX IF NOT EXISTS idx_orders_signal_id ON orders(signal_id);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at DESC);
 
 -- ============================================================
--- 4. Portfolio snapshots (for equity curve)
+-- 4. Portfolio snapshots (TimescaleDB hypertable, drives equity curve)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS portfolio_snapshots (
-  id SERIAL PRIMARY KEY,
+  id SERIAL,
   total_equity DECIMAL(18,2) NOT NULL,
   cash DECIMAL(18,2) NOT NULL,
   positions_value DECIMAL(18,2) NOT NULL DEFAULT 0,
@@ -73,8 +93,24 @@ CREATE TABLE IF NOT EXISTS portfolio_snapshots (
   regime VARCHAR(20),
   active_breakers TEXT[] NOT NULL DEFAULT '{}',
   allocation_pct DECIMAL(5,2) NOT NULL DEFAULT 0,
-  snapshot_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  snapshot_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (id, snapshot_at)
 );
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint c
+    JOIN pg_class t ON c.conrelid = t.oid
+    WHERE t.relname = 'portfolio_snapshots'
+      AND c.contype = 'p'
+      AND array_length(c.conkey, 1) = 1
+  ) THEN
+    ALTER TABLE portfolio_snapshots DROP CONSTRAINT portfolio_snapshots_pkey;
+    ALTER TABLE portfolio_snapshots ADD PRIMARY KEY (id, snapshot_at);
+  END IF;
+END
+$$;
 
 CREATE INDEX IF NOT EXISTS idx_portfolio_snapshots_at ON portfolio_snapshots(snapshot_at DESC);
 

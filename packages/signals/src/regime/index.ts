@@ -6,23 +6,24 @@
 export type {
   MarketRegime,
   RegimeClassification,
-  RegimeFeatures,
   HMMModelParams,
-} from './types';
+} from './types.js';
 
 // Classifier
 export {
   classifyRegime,
-  computeFeatures,
   loadModel,
   getDefaultModel,
   setModel,
-} from './classifier';
-export type { PriceBar } from './classifier';
+} from './classifier.js';
+
+// Hysteresis / min-dwell
+export { applyHysteresis } from './hysteresis.js';
+export type { HysteresisState, HysteresisOptions } from './hysteresis.js';
 
 // Viterbi (exposed for advanced usage / testing)
 export {
   computeGaussianLogPdf,
   forwardAlgorithm,
   viterbiDecode,
-} from './viterbi';
+} from './viterbi.js';

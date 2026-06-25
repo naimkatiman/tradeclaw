@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readKeys, createKey, listKeysByEmail } from '@/lib/api-keys';
+import { readKeys, createKey, listKeysByEmail, TIER_RATE_LIMITS } from '@/lib/api-keys';
+import type { ApiKeyTier } from '@/lib/api-keys';
 import { readSessionFromRequest } from '@/lib/user-session';
 import { getTierFromRequest, upgradeRequiredBody, meetsMinimumTier } from '@/lib/tier';
 import { getUserById } from '@/lib/db';
@@ -82,11 +83,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'At least one scope required' }, { status: 400 });
     }
 
+    // Derive key tier from the user's subscription tier.
+    const keyTier: ApiKeyTier =
+      tier === 'elite' ? 'elite' : tier === 'pro' ? 'pro' : 'free';
+
     const key = createKey({
       name: String(name),
       email: String(email),
       description: typeof description === 'string' ? description : '',
       scopes: resolvedScopes,
+      tier: keyTier,
     });
     // Return the full key ONCE on creation
     return NextResponse.json(

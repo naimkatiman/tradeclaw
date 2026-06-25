@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireCronAuth } from '../../../../lib/cron-auth';
 import { readSubscribers } from '../../../../lib/telegram-subscribers';
 
 const TELEGRAM_API = 'https://api.telegram.org';
@@ -127,6 +128,10 @@ async function sendTelegramMessage(
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // Require cron/admin authentication — this endpoint can broadcast to all subscribers
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
+
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) {
     return NextResponse.json({ error: 'TELEGRAM_BOT_TOKEN not configured' }, { status: 503 });

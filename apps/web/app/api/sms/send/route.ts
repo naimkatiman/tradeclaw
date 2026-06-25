@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireCronAuth } from '@/lib/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,11 +8,19 @@ interface SendSmsBody {
   message: string;
 }
 
+// E.164: optional +, leading non-zero country digit, up to 15 digits total.
+const E164 = /^\+?[1-9]\d{6,14}$/;
+
 /**
- * POST /api/sms/send — Send SMS via Twilio REST API (raw fetch, no SDK)
+ * POST /api/sms/send — Send SMS via Twilio REST API (raw fetch, no SDK).
+ * Internal-only: the sole legitimate caller is /api/cron/sms-alerts (server-to-server),
+ * so the route is gated by CRON_SECRET. Without this, anyone could relay billed SMS.
  * Requires TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER env vars.
  */
 export async function POST(request: NextRequest) {
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
+
   try {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -30,6 +39,13 @@ export async function POST(request: NextRequest) {
     if (!to || !message) {
       return NextResponse.json(
         { sent: false, error: 'Missing required fields: to, message' },
+        { status: 400 },
+      );
+    }
+
+    if (!E164.test(to)) {
+      return NextResponse.json(
+        { sent: false, error: 'Invalid destination number (expected E.164)' },
         { status: 400 },
       );
     }

@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { query, queryOne, execute } from './db-pool';
+import { isSafeOutboundUrl } from './safe-outbound-url';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -93,31 +94,12 @@ function toConfig(row: WebhookRow): WebhookConfig {
 // ---------------------------------------------------------------------------
 
 function isUnsafeUrl(url: string): boolean {
-  if (!/^https:\/\//i.test(url)) return true;
-  if (/^(file|ftp|data):\/\//i.test(url)) return true;
-
-  let hostname: string;
-  try {
-    hostname = new URL(url).hostname;
-  } catch {
-    return true;
-  }
-
-  if (hostname === '[::1]' || hostname === '::1') return true;
-  if (/^\[?f[cd]/i.test(hostname)) return true;
-
-  const ipv4Match = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-  if (ipv4Match) {
-    const [, a, b] = ipv4Match.map(Number);
-    if (a === 127) return true;
-    if (a === 10) return true;
-    if (a === 172 && b >= 16 && b <= 31) return true;
-    if (a === 192 && b === 168) return true;
-    if (a === 169 && b === 254) return true;
-  }
-
-  if (hostname === 'localhost' || hostname.endsWith('.localhost')) return true;
-  return false;
+  // Single source of truth for SSRF checks (lib/safe-outbound-url). It additionally
+  // covers 0.0.0.0/8, CGNAT (100.64/10), multicast, cloud-metadata hostnames,
+  // IPv4-mapped IPv6, and .local/.internal suffixes that the previous bespoke
+  // check missed; new URL() also normalizes decimal/hex IP literals before the
+  // range test, closing the numeric-IP bypass.
+  return !isSafeOutboundUrl(url);
 }
 
 // ---------------------------------------------------------------------------

@@ -22,6 +22,7 @@ jest.mock('../../../../../lib/db', () => ({
   tryClaimStripeEvent: jest.fn(),
   setTrialEnd: jest.fn().mockResolvedValue(undefined),
   releaseStripeEvent: jest.fn().mockResolvedValue(undefined),
+  createReferralRevenue: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../../../../lib/telegram', () => ({
@@ -36,6 +37,11 @@ jest.mock('../../../../../lib/transactional-email', () => ({
   sendPaymentFailedEmail: jest.fn().mockResolvedValue({ ok: true, providerId: 'email_test' }),
 }));
 
+jest.mock('../../../../../lib/analytics-server', () => ({
+  captureServer: jest.fn().mockResolvedValue(undefined),
+  identifyServer: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { getStripe, resolveTierFromPriceId } from '../../../../../lib/stripe';
 import {
   upsertSubscription,
@@ -46,6 +52,7 @@ import {
   getUserByStripeCustomerId,
   tryClaimStripeEvent,
   cancelSubscription,
+  createReferralRevenue,
 } from '../../../../../lib/db';
 import {
   sendInvite,
@@ -53,7 +60,11 @@ import {
   revokeAccess,
 } from '../../../../../lib/telegram';
 import { sendPaymentFailedEmail } from '../../../../../lib/transactional-email';
+import { captureServer, identifyServer } from '../../../../../lib/analytics-server';
 import { POST } from '../route';
+
+const mockedCaptureServer = captureServer as jest.MockedFunction<typeof captureServer>;
+const mockedIdentifyServer = identifyServer as jest.MockedFunction<typeof identifyServer>;
 
 const mockedGetStripe = getStripe as jest.MockedFunction<typeof getStripe>;
 const mockedResolveTier = resolveTierFromPriceId as jest.MockedFunction<typeof resolveTierFromPriceId>;
@@ -69,6 +80,7 @@ const mockedRevokeAccess = revokeAccess as jest.MockedFunction<typeof revokeAcce
 const mockedGetUserByCustomerId = getUserByStripeCustomerId as jest.MockedFunction<typeof getUserByStripeCustomerId>;
 const mockedSendDunning = sendPaymentFailedEmail as jest.MockedFunction<typeof sendPaymentFailedEmail>;
 const mockedCancelSub = cancelSubscription as jest.MockedFunction<typeof cancelSubscription>;
+const mockedCreateReferralRevenue = createReferralRevenue as jest.MockedFunction<typeof createReferralRevenue>;
 
 function makeRequest(): NextRequest {
   const body = JSON.stringify({});
@@ -137,6 +149,13 @@ describe('POST /api/stripe/webhook — idempotency', () => {
     expect(mockedTryClaim).toHaveBeenCalledWith('evt_test_1', 'checkout.session.completed');
     expect(mockedUpsertSub).toHaveBeenCalledTimes(1);
     expect(mockedUpdateTier).toHaveBeenCalledTimes(1);
+
+    // Server-side lifecycle analytics fire on a confirmed checkout.
+    expect(mockedIdentifyServer).toHaveBeenCalledWith('user-1', { tier: 'pro' });
+    expect(mockedCaptureServer).toHaveBeenCalledWith('subscription_started', 'user-1', {
+      tier: 'pro',
+      status: 'trialing',
+    });
   });
 
   it('redelivery (same event_id) short-circuits — no side effects', async () => {
@@ -258,6 +277,8 @@ describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
       displayName: null,
       avatarUrl: null,
       authProvider: null,
+      referralCode: null,
+      referredBy: null,
     });
 
     const res = await POST(makeRequest());
@@ -333,6 +354,8 @@ describe('POST /api/stripe/webhook — invoice.payment_failed dunning', () => {
       displayName: null,
       avatarUrl: null,
       authProvider: null,
+      referralCode: null,
+      referredBy: null,
     });
     mockedSendDunning.mockResolvedValueOnce({ ok: false, reason: 'provider_error' });
 
@@ -393,6 +416,97 @@ describe('POST /api/stripe/webhook — invoice.payment_succeeded period refresh'
       'active',
       new Date(periodEndSec * 1000),
     );
+  });
+
+  it('records 20% referral revenue when a referred user pays', async () => {
+    const periodEndSec = Math.floor(Date.now() / 1000) + 30 * 86400;
+
+    mockedGetStripe.mockReturnValue({
+      webhooks: {
+        constructEvent: jest.fn().mockReturnValue({
+          id: 'evt_pay_ref',
+          type: 'invoice.payment_succeeded',
+          data: {
+            object: {
+              id: 'inv_123',
+              customer: 'cus_referred',
+              amount_paid: 2900,
+              parent: { subscription_details: { subscription: 'sub_ref' } },
+              lines: { data: [{ period: { end: periodEndSec } }] },
+            },
+          },
+        }),
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    mockedGetUserByCustomerId.mockResolvedValue({
+      id: 'user-referred',
+      email: 'referred@example.com',
+      stripeCustomerId: 'cus_referred',
+      tier: 'pro',
+      tierExpiresAt: null,
+      telegramUserId: null,
+      displayName: null,
+      avatarUrl: null,
+      authProvider: null,
+      referralCode: null,
+      referredBy: 'user-referrer',
+    });
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
+
+    expect(mockedCreateReferralRevenue).toHaveBeenCalledTimes(1);
+    expect(mockedCreateReferralRevenue).toHaveBeenCalledWith({
+      referrerId: 'user-referrer',
+      referredId: 'user-referred',
+      stripeInvoiceId: 'inv_123',
+      amountCents: 2900,
+      shareCents: 580,
+    });
+  });
+
+  it('skips referral revenue when the user was not referred', async () => {
+    const periodEndSec = Math.floor(Date.now() / 1000) + 30 * 86400;
+
+    mockedGetStripe.mockReturnValue({
+      webhooks: {
+        constructEvent: jest.fn().mockReturnValue({
+          id: 'evt_pay_noref',
+          type: 'invoice.payment_succeeded',
+          data: {
+            object: {
+              id: 'inv_456',
+              customer: 'cus_notreferred',
+              amount_paid: 2900,
+              parent: { subscription_details: { subscription: 'sub_noref' } },
+              lines: { data: [{ period: { end: periodEndSec } }] },
+            },
+          },
+        }),
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    mockedGetUserByCustomerId.mockResolvedValue({
+      id: 'user-notreferred',
+      email: 'notreferred@example.com',
+      stripeCustomerId: 'cus_notreferred',
+      tier: 'pro',
+      tierExpiresAt: null,
+      telegramUserId: null,
+      displayName: null,
+      avatarUrl: null,
+      authProvider: null,
+      referralCode: null,
+      referredBy: null,
+    });
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
+
+    expect(mockedCreateReferralRevenue).not.toHaveBeenCalled();
   });
 });
 
@@ -616,6 +730,8 @@ describe('POST /api/stripe/webhook — tier transitions', () => {
       displayName: null,
       avatarUrl: null,
       authProvider: null,
+      referralCode: null,
+      referredBy: null,
     });
 
     mockedGetStripe.mockReturnValue({

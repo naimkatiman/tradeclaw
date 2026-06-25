@@ -45,6 +45,8 @@ function mapSignal(s: {
   stopLoss: number;
   indicators?: { rsi?: { value: number }; macd?: { histogram: number } };
   timestamp: string;
+  signalSource?: 'algo' | 'premium';
+  strategyName?: string;
 }) {
   return {
     id: s.id,
@@ -58,6 +60,8 @@ function mapSignal(s: {
     rsi: s.indicators?.rsi?.value,
     macd: s.indicators?.macd?.histogram,
     generatedAt: s.timestamp,
+    signalSource: s.signalSource ?? 'algo',
+    strategyName: s.strategyName,
     shareUrl: `https://tradeclaw.win/signal/${s.symbol}-${s.timeframe}-${s.direction}`,
   };
 }
@@ -92,10 +96,12 @@ export async function GET(req: NextRequest) {
 
   try {
     // Try reading from Python-generated signals-live.json first
+    const MIN_LIVE_SYMBOLS_CHECKED = 8;
     if (useLive) {
       const liveData = await readLiveSignals();
+      const liveCoverageOk = liveData && (liveData.stats?.symbols_checked ?? Infinity) >= MIN_LIVE_SYMBOLS_CHECKED;
 
-      if (liveData && !liveData.isStale) {
+      if (liveData && !liveData.isStale && liveCoverageOk) {
         let signals = liveData.signals
           .filter((s: LiveSignal) => s.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE);
 
@@ -137,9 +143,11 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      // If stale, add header but fall through to realtime
+      // If stale or degraded coverage, add header but fall through to realtime
       if (liveData?.isStale) {
         headers["X-Signal-Stale"] = "true";
+      } else if (liveData && !liveCoverageOk) {
+        headers["X-Signal-Stale"] = "low-coverage";
       }
     }
 

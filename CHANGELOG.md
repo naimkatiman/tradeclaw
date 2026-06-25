@@ -8,7 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_No changes yet._
+- Docs: clarified the Docker Compose quick-start command for both the modern `docker compose` and legacy `docker-compose` CLIs.
 
 ---
 

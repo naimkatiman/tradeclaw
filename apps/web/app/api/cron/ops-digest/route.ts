@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireCronAuth } from '../../../../lib/cron-auth';
 import { loadTodayCounts } from '../../../../lib/ops-dashboard';
+import { checkRegimeHealth, type RegimeHealth } from '../../../../lib/regime-health';
 import {
   parseOpsAdminIds,
   renderTodayMessage,
 } from '../../../../lib/telegram-ops-commands';
-import { sendTelegramMessage } from '../../../../lib/telegram-send';
+import { escapeHtml, sendTelegramMessage } from '../../../../lib/telegram-send';
 
 // Daily ops digest — pushes the "Today" panel to every OPS_TELEGRAM_ADMIN_IDS
 // recipient. Scheduled via /api/cron/sync at hour=23 UTC.
@@ -22,6 +23,32 @@ interface DigestResult {
   adminCount: number;
   sent: number;
   failures: Array<{ chatId: string; error: string }>;
+}
+
+function renderRegimeHealthSection(health: RegimeHealth): string {
+  const lines: string[] = ['<b>Regime health (last 24h)</b>'];
+  lines.push(
+    `Rows: <b>${health.regimeRows24h}</b> · symbols: <b>${health.distinctSymbols24h}</b> · ` +
+      `latest: <code>${escapeHtml(health.latestDetectedAt ?? 'never')}</code>`,
+  );
+  if (health.staleRegime) {
+    lines.push('⚠ regime map stale (latest row over 2h old, or none)');
+  }
+  if (health.allOneLabel24h.allOne) {
+    lines.push(
+      `⚠ all 24h rows carry one label: <code>${escapeHtml(health.allOneLabel24h.label ?? '')}</code>`,
+    );
+  }
+  if (health.staleCandles.length > 0) {
+    const list = health.staleCandles
+      .map((c) => `${c.symbol} (${c.latestTs === null ? 'none' : new Date(c.latestTs).toISOString()})`)
+      .join(', ');
+    lines.push(`⚠ stale H1 candles: ${escapeHtml(list)}`);
+  }
+  if (!health.staleRegime && !health.allOneLabel24h.allOne && health.staleCandles.length === 0) {
+    lines.push('All checks passing.');
+  }
+  return lines.join('\n');
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -48,6 +75,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     body =
       '<b>TradeClaw Ops digest — data fetch failed</b>\n\n' +
       `<code>${err instanceof Error ? err.message : 'unknown error'}</code>`;
+  }
+
+  // Regime-health section (Phase 3, plan D8): direct-SQL freshness check so
+  // a dead regime layer is visible in the daily digest. A health-check
+  // failure must not kill the digest — it degrades to an explicit line.
+  try {
+    body += '\n\n' + renderRegimeHealthSection(await checkRegimeHealth());
+  } catch (err) {
+    body +=
+      '\n\n⚠ regime health check failed: ' +
+      `<code>${escapeHtml(err instanceof Error ? err.message : 'unknown error')}</code>`;
   }
 
   const results = await Promise.all(

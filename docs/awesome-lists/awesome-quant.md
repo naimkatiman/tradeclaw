@@ -1,5 +1,7 @@
 # awesome-quant Submission
 
+> SUPERSEDED (2026-06-02): already merged (PR #300) and de-duplicated via PR #399. No new submission needed. See `docs/awesome-lists/SUBMISSION_STATUS.md`.
+
 **Repository:** https://github.com/wilsonfreitas/awesome-quant
 **Category:** `JavaScript — Trading Systems`
 **Status:** Planned

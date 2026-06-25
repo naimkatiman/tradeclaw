@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 
+export type ApiKeyTier = 'free' | 'pro' | 'elite';
+
 export interface ApiKey {
   id: string;
   key: string; // tc_live_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX (32 hex chars)
@@ -12,11 +14,11 @@ export interface ApiKey {
   createdAt: number;
   lastUsedAt: number | null;
   requestCount: number;
-  rateLimit: number; // requests per hour
+  rateLimit: number; // requests per hour; 0 = unlimited
   status: 'active' | 'revoked';
   // kept for backward-compat with existing [id]/route.ts toggle handler
   active: boolean;
-  tier: 'free' | 'pro';
+  tier: ApiKeyTier;
 }
 
 export interface RateLimitEntry {
@@ -35,9 +37,16 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const KEYS_FILE = path.join(DATA_DIR, 'api-keys.json');
 const USAGE_FILE = path.join(DATA_DIR, 'api-key-usage.json');
 
-const DEFAULT_RATE_LIMIT = 1000; // per hour
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
+
+// Tier-aligned rate limits per ROADMAP 3.6
+// Elite gets 0 (unlimited) — checkRateLimit skips enforcement when limit <= 0.
+export const TIER_RATE_LIMITS: Record<ApiKeyTier, number> = {
+  free: 10,
+  pro: 100,
+  elite: 0,
+};
 
 function ensureDir() {
   try {
@@ -64,7 +73,7 @@ function seedKeys(): ApiKey[] {
       createdAt: now - 14 * DAY_MS,
       lastUsedAt: now - 2 * DAY_MS,
       requestCount: 340,
-      rateLimit: DEFAULT_RATE_LIMIT,
+      rateLimit: TIER_RATE_LIMITS['free'],
       status: 'revoked',
       active: false,
       tier: 'free',
@@ -79,7 +88,7 @@ function seedKeys(): ApiKey[] {
       createdAt: now - 7 * DAY_MS,
       lastUsedAt: now - DAY_MS,
       requestCount: 892,
-      rateLimit: DEFAULT_RATE_LIMIT,
+      rateLimit: TIER_RATE_LIMITS['free'],
       status: 'revoked',
       active: false,
       tier: 'free',
@@ -94,7 +103,7 @@ function seedKeys(): ApiKey[] {
       createdAt: now - 3 * DAY_MS,
       lastUsedAt: now - 3600000,
       requestCount: 1247,
-      rateLimit: DEFAULT_RATE_LIMIT,
+      rateLimit: TIER_RATE_LIMITS['free'],
       status: 'revoked',
       active: false,
       tier: 'free',
@@ -124,6 +133,7 @@ export function createKey(opts: {
   email: string;
   description?: string;
   scopes?: ('signals' | 'leaderboard' | 'screener')[];
+  tier?: ApiKeyTier;
 }): ApiKey {
   const keys = readKeys();
   const newKey: ApiKey = {
@@ -136,10 +146,10 @@ export function createKey(opts: {
     createdAt: Date.now(),
     lastUsedAt: null,
     requestCount: 0,
-    rateLimit: DEFAULT_RATE_LIMIT,
+    rateLimit: TIER_RATE_LIMITS[opts.tier ?? 'free'],
     status: 'active',
     active: true,
-    tier: 'free',
+    tier: opts.tier ?? 'free',
   };
   keys.push(newKey);
   writeKeys(keys);
@@ -226,6 +236,11 @@ function writeUsage(data: Record<string, RateLimitEntry>) {
 }
 
 export function checkRateLimit(keyId: string, hourlyLimit: number): { allowed: boolean; remaining: number; resetAt: number } {
+  // Elite / unlimited tier: skip enforcement entirely
+  if (hourlyLimit <= 0) {
+    return { allowed: true, remaining: -1, resetAt: Date.now() + HOUR_MS };
+  }
+
   const now = Date.now();
   const usage = readUsage();
   const entry = usage[keyId];
@@ -258,7 +273,11 @@ export function getUsageStats(keyId: string, hourlyLimit: number): UsageStats {
   // Approximate today's requests from the key's total (no per-day tracking; use requestCount as total)
   const keys = readKeys();
   const key = keys.find((k) => k.id === keyId);
-  const requestsToday = key ? Math.min(key.requestCount, hourlyLimit * 24) : 0;
+  const requestsToday = key
+    ? hourlyLimit <= 0
+      ? key.requestCount
+      : Math.min(key.requestCount, hourlyLimit * 24)
+    : 0;
 
   const resetAt = hourEntry ? hourEntry.windowStart + HOUR_MS : now + HOUR_MS;
 

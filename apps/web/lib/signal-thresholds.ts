@@ -1,5 +1,6 @@
 export const PUBLISHED_SIGNAL_MIN_CONFIDENCE = 70;
 export const WATCHLIST_MIN_CONFIDENCE = 60;
+export const HIGH_CONFIDENCE_THRESHOLD = 80;
 
 export const STRATEGY_MIN_CONFIDENCE: Record<string, number> = {
   classic: 50,

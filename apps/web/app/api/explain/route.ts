@@ -33,7 +33,7 @@ async function enforceExplainQuota(req: NextRequest): Promise<NextResponse | nul
   const { readSessionFromRequest } = await import('../../../lib/user-session');
   const session = readSessionFromRequest(req);
   const key = rateLimitKey(req, session?.userId);
-  const decision = rateLimitCheck(key, { max: EXPLAIN_FREE_MAX, windowMs: EXPLAIN_WINDOW_MS });
+  const decision = await rateLimitCheck(key, { max: EXPLAIN_FREE_MAX, windowMs: EXPLAIN_WINDOW_MS });
 
   if (!decision.allowed) {
     return NextResponse.json(

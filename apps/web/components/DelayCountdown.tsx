@@ -22,8 +22,8 @@ function formatRemaining(ms: number): string {
 
 /**
  * Live countdown rendered when a free-tier user is waiting for the next
- * signal to clear the 15-min delay. Hides itself once unlocked and calls
- * onUnlock so the parent can refetch.
+ * signal to clear the free-tier delay (30 min, driven by the delayMs prop).
+ * Hides itself once unlocked and calls onUnlock so the parent can refetch.
  */
 export function DelayCountdown({
   signalTimestamp,

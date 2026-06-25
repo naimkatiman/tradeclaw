@@ -16,17 +16,20 @@ import { NextRequest } from 'next/server';
 jest.mock('../../../../lib/premium-signals', () => ({
   getPremiumSignalsFor: jest.fn(),
   listPremiumSignalsSince: jest.fn(),
+  getDelayedPremiumSignals: jest.fn(),
 }));
 
 // Mock the access resolver. Each test sets the return value before importing
 // the route handler so the per-test access posture takes effect.
 jest.mock('../../../../lib/tier', () => ({
   resolveAccessContext: jest.fn(),
+  TIER_DELAY_MS: { free: 30 * 60 * 1000, pro: 0, elite: 0, custom: 0 },
 }));
 
 import {
   getPremiumSignalsFor,
   listPremiumSignalsSince,
+  getDelayedPremiumSignals,
 } from '../../../../lib/premium-signals';
 import { resolveAccessContext } from '../../../../lib/tier';
 import { GET } from '../route';
@@ -36,6 +39,9 @@ const mockedGetPremiumSignalsFor = getPremiumSignalsFor as jest.MockedFunction<
 >;
 const mockedListPremiumSignalsSince = listPremiumSignalsSince as jest.MockedFunction<
   typeof listPremiumSignalsSince
+>;
+const mockedGetDelayedPremiumSignals = getDelayedPremiumSignals as jest.MockedFunction<
+  typeof getDelayedPremiumSignals
 >;
 const mockedResolveAccessContext = resolveAccessContext as jest.MockedFunction<
   typeof resolveAccessContext
@@ -50,33 +56,60 @@ describe('GET /api/premium-signals — tier gating', () => {
     jest.clearAllMocks();
   });
 
-  it('anonymous caller (free tier, classic only) → { signals: [], locked: true }', async () => {
+  it('anonymous caller (free tier) → delayed premium signals from getDelayedPremiumSignals', async () => {
     mockedResolveAccessContext.mockResolvedValueOnce({
       tier: 'free',
       unlockedStrategies: new Set(['classic']),
     });
+    const fakeSignal = {
+      id: 'r-1',
+      strategyId: 'tv-zaky-classic',
+      symbol: 'EURUSD',
+      timeframe: 'H1',
+      direction: 'BUY' as const,
+      confidence: 90,
+      entry: 1.08,
+    } as Awaited<ReturnType<typeof getDelayedPremiumSignals>>[number];
+    mockedGetDelayedPremiumSignals.mockResolvedValueOnce([fakeSignal]);
 
     const res = await GET(makeReq());
     const body = await res.json();
 
-    expect(body).toEqual({ signals: [], locked: true });
+    expect(body.locked).toBe(false);
+    expect(body.delayed).toBe(true);
+    expect(body.signals).toHaveLength(1);
+    expect(mockedGetDelayedPremiumSignals).toHaveBeenCalledWith(
+      30 * 60 * 1000,
+      expect.objectContaining({ limit: 50 }),
+    );
     expect(mockedGetPremiumSignalsFor).not.toHaveBeenCalled();
     expect(mockedListPremiumSignalsSince).not.toHaveBeenCalled();
   });
 
-  it('free Stripe sub (classic only) → { signals: [], locked: true } (matches anonymous)', async () => {
-    // Free tier carries the same single-strategy set as anonymous; the route
-    // gates on size <= 1 so behavior must match.
+  it('free Stripe sub → delayed premium signals with masked stopLoss', async () => {
     mockedResolveAccessContext.mockResolvedValueOnce({
       tier: 'free',
       unlockedStrategies: new Set(['classic']),
     });
+    const fakeSignal = {
+      id: 'r-2',
+      strategyId: 'tv-zaky-classic',
+      symbol: 'XAUUSD',
+      timeframe: 'H1',
+      direction: 'SELL' as const,
+      confidence: 88,
+      entry: 2345.6,
+      stopLoss: 2350.0,
+      takeProfit1: 2335.0,
+    } as Awaited<ReturnType<typeof getDelayedPremiumSignals>>[number];
+    mockedGetDelayedPremiumSignals.mockResolvedValueOnce([fakeSignal]);
 
     const res = await GET(makeReq());
     const body = await res.json();
 
-    expect(body.locked).toBe(true);
-    expect(body.signals).toEqual([]);
+    expect(body.locked).toBe(false);
+    expect(body.delayed).toBe(true);
+    expect(body.signals[0].stopLoss).toBeNull();
   });
 
   it('pro Stripe sub → returns rows from premium_signals via getPremiumSignalsFor', async () => {

@@ -83,7 +83,7 @@ export function LeaderboardClient() {
 
   const shareLeaderboard = async () => {
     const top = ranked[0];
-    const text = top
+    const text = top && top.performance
       ? `TradeClaw Strategy Leaderboard: #1 ${top.name} with a ${top.performance.sharpeRatio.toFixed(2)} Sharpe, ${top.performance.profitFactor.toFixed(1)} PF, and ${top.performance.winRate}% win rate. ${window.location.origin}/strategies/leaderboard`
       : `TradeClaw Strategy Leaderboard: public backtest rankings and community proof. ${window.location.origin}/strategies/leaderboard`;
 

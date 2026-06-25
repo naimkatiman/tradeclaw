@@ -31,15 +31,30 @@ import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 import { InfoHint } from '../../components/InfoHint';
 import { STAT_HINTS } from '../../lib/stat-hints';
+import { isPendingHistoricalSignal } from '../../lib/signal-history-status';
 import type { TradingSignal } from '@tradeclaw/signals';
 import type { LockedSignalStub } from '../../lib/tier';
 import type { TFDirection } from '../lib/signal-generator';
-import { OnboardingOverlay } from '../components/onboarding-overlay';
 import { markStepDone } from '@/lib/onboarding-state';
 import { useUserSession } from '../../lib/hooks/use-user-tier';
 import { classifySignalOutcome, type OutcomeStatus } from '@/lib/signal-outcome';
 
 const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];
+
+/**
+ * Detect whether the advanced indicators have been masked by the free-tier filter.
+ * The server sets MACD, Stochastic, and BB to sentinel zero values when masking.
+ * Real data practically never hits all three simultaneously.
+ */
+function isIndicatorMasked(indicators: TradingSignal['indicators']): boolean {
+  return (
+    indicators.macd.histogram === 0 &&
+    indicators.macd.signal === 'neutral' &&
+    indicators.stochastic.k === 0 &&
+    indicators.stochastic.d === 0 &&
+    indicators.bollingerBands.bandwidth === 0
+  );
+}
 
 function OnboardingBanner() {
   const [visible, setVisible] = useState(() => {
@@ -142,6 +157,13 @@ const BUY_CONFIDENCE_THRESHOLD = 70;
 const TIMEFRAMES = ['ALL', 'M5', 'M15', 'H1', 'H4', 'D1'];
 
 
+// US mega-caps + index ETFs (issue #42). Symbols mirror apps/web/app/lib/symbol-config.ts.
+const STOCK_SYMBOLS = [
+  'NVDAUSD', 'TSLAUSD', 'AAPLUSD', 'MSFTUSD', 'GOOGLUSD', 'AMZNUSD', 'METAUSD',
+  'SPYUSD', 'QQQUSD', 'AMDUSD', 'JPMUSD', 'JNJUSD', 'VUSD', 'WMTUSD', 'PGUSD',
+  'UNHUSD', 'HDUSD', 'BACUSD', 'MAUSD', 'XOMUSD',
+];
+
 const ASSET_CLASSES = {
   ALL: [
     'XAUUSD', 'XAGUSD',
@@ -151,6 +173,7 @@ const ASSET_CLASSES = {
     'OPUSD', 'FILUSD', 'INJUSD', 'SUIUSD', 'SEIUSD', 'TIAUSD',
     'RENDERUSD', 'FETUSD', 'AAVEUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
     'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF',
+    ...STOCK_SYMBOLS,
   ],
   CRYPTO: [
     'BTCUSD', 'ETHUSD', 'SOLUSD', 'DOGEUSD', 'BNBUSD', 'XRPUSD',
@@ -161,6 +184,7 @@ const ASSET_CLASSES = {
   ],
   FOREX: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF'],
   METALS: ['XAUUSD', 'XAGUSD'],
+  STOCKS: STOCK_SYMBOLS,
 };
 
 type AssetClass = keyof typeof ASSET_CLASSES;
@@ -259,7 +283,7 @@ function CopyValueButton({ value }: { value: string }) {
         </svg>
       )}
       {copied && (
-        <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[8px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap pointer-events-none">
+        <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap pointer-events-none">
           Copied!
         </span>
       )}
@@ -277,7 +301,7 @@ function WinRateBadge({ winRate }: { winRate: { wins: number; losses: number; to
     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono border ${color}`}>
       <span className="opacity-60">WR</span>
       <span className="font-bold">{wr}%</span>
-      <span className="opacity-40 text-[8px]">{winRate.wins}/{winRate.total}</span>
+      <span className="opacity-40 text-[10px]">{winRate.wins}/{winRate.total}</span>
     </span>
   );
 }
@@ -400,10 +424,11 @@ function LockedSignalCard({ stub }: { stub: LockedSignalStub }) {
 }
 
 const OUTCOME_STYLE: Record<OutcomeStatus, { label: string; cls: string; icon: string }> = {
-  tp3_hit:  { label: 'TP3 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
-  tp2_hit:  { label: 'TP2 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
-  tp1_hit:  { label: 'TP1 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
+  hit_tp3:  { label: 'TP3 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
+  hit_tp2:  { label: 'TP2 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
+  hit_tp1:  { label: 'TP1 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
   stopped:  { label: 'Stopped',  cls: 'bg-rose-500/15 text-rose-300 border-rose-500/40',          icon: '🛑' },
+  expired:  { label: 'Expired',   cls: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30',          icon: '⌛' },
   active:   { label: 'Active',   cls: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30',          icon: '⏳' },
   unknown:  { label: '—',         cls: 'bg-transparent text-zinc-500 border-transparent',          icon: '·' },
 };
@@ -423,7 +448,7 @@ function OutcomeBadge({ status, progressPct }: { status: OutcomeStatus; progress
   );
 }
 
-function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onToggleFavorite }: { signal: TradingSignal; livePrice?: number | null; tfDirections?: TFDirection[]; onSelect?: (signal: TradingSignal) => void; isFavorite?: boolean; onToggleFavorite?: (id: string) => void }) {
+function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onToggleFavorite, isDelayed }: { signal: TradingSignal; livePrice?: number | null; tfDirections?: TFDirection[]; onSelect?: (signal: TradingSignal) => void; isFavorite?: boolean; onToggleFavorite?: (id: string) => void; isDelayed?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const [chartVisible, setChartVisible] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
@@ -471,15 +496,20 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
               {signal.dataQuality === 'real' && <LiveBadge />}
               <DataSourceBadge source={getDataSource(signal.symbol)} />
               {signal.dataQuality === 'synthetic' && (
-                <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">DEMO</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">DEMO</span>
               )}
               {signal.atrCalibration && signal.atrCalibration.confidence !== 'low' && (
-                <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono font-bold border ${
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border ${
                   signal.atrCalibration.confidence === 'high'
                     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                     : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                 }`}>
                   SL {signal.atrCalibration.multiplier}× ATR
+                </span>
+              )}
+              {isDelayed && (
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-500/10 text-zinc-500 border border-zinc-500/20" title="Free tier signals are delayed 30 minutes">
+                  15m delay
                 </span>
               )}
             </div>
@@ -628,21 +658,29 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
 
       {/* Quick indicators */}
       <div className="flex flex-wrap gap-2 mt-3">
-        {[
-          { label: 'RSI', value: signal.indicators.rsi.value.toFixed(0), signal: signal.indicators.rsi.signal },
-          { label: 'MACD', value: signal.indicators.macd.histogram > 0 ? `+${signal.indicators.macd.histogram}` : String(signal.indicators.macd.histogram), signal: signal.indicators.macd.signal },
-          { label: 'Trend', value: signal.indicators.ema.trend.toUpperCase(), signal: signal.indicators.ema.trend },
-          { label: 'Stoch', value: `${signal.indicators.stochastic.k}`, signal: signal.indicators.stochastic.signal },
-        ].map(({ label, value, signal: sig }) => {
-          const isBull = sig === 'bullish' || sig === 'oversold' || sig === 'up';
-          const isBear = sig === 'bearish' || sig === 'overbought' || sig === 'down';
-          return (
-            <div key={label} className="flex items-center gap-1 text-[10px] font-mono">
-              <span className="text-[var(--text-secondary)]">{label}</span>
-              <span className={isBull ? 'text-emerald-400' : isBear ? 'text-red-400' : 'text-[var(--text-secondary)]'}>{value}</span>
-            </div>
-          );
-        })}
+        {(() => {
+          const masked = isIndicatorMasked(signal.indicators);
+          const items = [
+            { label: 'RSI', value: signal.indicators.rsi.value.toFixed(0), signal: signal.indicators.rsi.signal, locked: false },
+            { label: 'MACD', value: signal.indicators.macd.histogram > 0 ? `+${signal.indicators.macd.histogram}` : String(signal.indicators.macd.histogram), signal: signal.indicators.macd.signal, locked: masked },
+            { label: 'Trend', value: signal.indicators.ema.trend.toUpperCase(), signal: signal.indicators.ema.trend, locked: false },
+            { label: 'Stoch', value: `${signal.indicators.stochastic.k}`, signal: signal.indicators.stochastic.signal, locked: masked },
+          ];
+          return items.map(({ label, value, signal: sig, locked }) => {
+            const isBull = sig === 'bullish' || sig === 'oversold' || sig === 'up';
+            const isBear = sig === 'bearish' || sig === 'overbought' || sig === 'down';
+            return (
+              <div key={label} className="flex items-center gap-1 text-[10px] font-mono">
+                <span className="text-[var(--text-secondary)]">{label}</span>
+                {locked ? (
+                  <span className="text-emerald-400/60 bg-emerald-500/8 px-1 py-0.5 rounded text-[10px] font-bold border border-emerald-500/15">PRO</span>
+                ) : (
+                  <span className={isBull ? 'text-emerald-400' : isBear ? 'text-red-400' : 'text-[var(--text-secondary)]'}>{value}</span>
+                )}
+              </div>
+            );
+          });
+        })()}
         <div className="flex items-center gap-1.5 ml-auto">
           <SignalExportMenu signal={signal} />
           <span className="text-[10px] font-mono text-[var(--text-secondary)]">{expanded ? '▴' : '▾'} details</span>
@@ -679,7 +717,7 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
                   ATR Stop: {signal.atrCalibration.multiplier}× {signal.atrCalibration.confidence === 'low' ? '(default)' : `(${signal.atrCalibration.confidence})`}
                 </span>
               )}
-              <span>BB Width: {signal.indicators.bollingerBands.bandwidth.toFixed(2)}%</span>
+              <span>BB Width: {isIndicatorMasked(signal.indicators) ? <span className="text-emerald-400/60">PRO</span> : `${signal.indicators.bollingerBands.bandwidth.toFixed(2)}%`}</span>
               <span className={signal.dataQuality === 'real' ? 'text-emerald-400' : 'text-zinc-400'}>
                 {signal.dataQuality === 'real' ? 'real-tracked' : 'demo-seeded'}
               </span>
@@ -756,9 +794,10 @@ function SignalHistory() {
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(data => {
         if (data?.records) {
+          const now = Date.now();
           // Show up to 10 resolved + up to 5 pending = 15 max
           const resolved = (data.records as HistoryRecord[]).filter((r: HistoryRecord) => r.outcomes['24h'] !== null).slice(0, 10);
-          const pending = (data.records as HistoryRecord[]).filter((r: HistoryRecord) => r.outcomes['24h'] === null).slice(0, 5);
+          const pending = (data.records as HistoryRecord[]).filter((r: HistoryRecord) => isPendingHistoricalSignal(r, now)).slice(0, 5);
           setRecords([...resolved, ...pending]);
         }
         if (data?.stats) setHistoryStats(data.stats);
@@ -1344,9 +1383,17 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                 <p className="text-[var(--text-secondary)] text-xs mb-4">
                   Auto-retrying every 15s. Signals appear when the market is active and setups meet the quality threshold.
                 </p>
-                <button onClick={fetchSignals} className="px-4 py-2 rounded-xl text-xs border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/10 transition-all duration-200 font-mono">
-                  Retry now
-                </button>
+                <div className="flex items-center justify-center gap-2">
+                  <button onClick={fetchSignals} className="px-4 py-2 rounded-xl text-xs border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/10 transition-all duration-200 font-mono">
+                    Retry now
+                  </button>
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('tc:start-tour'))}
+                    className="px-4 py-2 rounded-xl text-xs border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-all duration-200 font-mono"
+                  >
+                    Take the tour
+                  </button>
+                </div>
               </div>
             );
           }
@@ -1355,10 +1402,10 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               {/* Locked signals — free tier sees pair/direction/confidence + countdown until unlock */}
               {lockedSignals.length > 0 && (() => {
                 // Earliest stub drives the section-level countdown banner.
-                // Free-tier delay is 15 min (TIER_DELAY_MS.free) — hardcoded
+                // Free-tier delay is 30 min (TIER_DELAY_MS.free) — hardcoded
                 // here because tier.ts is server-only and the constant cannot
                 // be re-exported through tier-client without a wider refactor.
-                const FREE_DELAY_MS = 15 * 60 * 1000;
+                const FREE_DELAY_MS = 30 * 60 * 1000;
                 const earliest = lockedSignals.reduce(
                   (a, b) =>
                     new Date(a.availableAt).getTime() <= new Date(b.availableAt).getTime()
@@ -1392,7 +1439,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               {mainSignals.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {mainSignals.map(signal => (
-                    <SignalCard key={signal.id} signal={signal} livePrice={prices.get(signal.symbol)?.price ?? null} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
+                    <SignalCard key={signal.id} signal={signal} livePrice={prices.get(signal.symbol)?.price ?? null} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} isDelayed={lockedSignals.length > 0} />
                   ))}
                 </div>
               )}
@@ -1452,7 +1499,6 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           <p className="text-xs text-zinc-800 mt-1">Signal analysis is for educational purposes only. Not financial advice.</p>
         </footer>
       </div>
-      <OnboardingOverlay signalsLoaded={signals.length > 0} />
       {/* Signal toasts */}
       <SignalToast />
     </div>

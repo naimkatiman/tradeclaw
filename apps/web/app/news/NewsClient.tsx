@@ -157,6 +157,9 @@ export default function NewsClient({ initial }: { initial: NewsData }) {
   const [data, setData] = useState<NewsData>(initial);
   const [loading, setLoading] = useState(false);
   const [hasError, setHasError] = useState(initial.error ?? false);
+  const [lastSuccessfulRefreshAt, setLastSuccessfulRefreshAt] = useState(
+    initial.mock ? null : initial.updatedAt,
+  );
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -166,6 +169,9 @@ export default function NewsClient({ initial }: { initial: NewsData }) {
       if (res.ok) {
         const json = await res.json();
         setData(json);
+        if (!json.mock) {
+          setLastSuccessfulRefreshAt(json.updatedAt);
+        }
         setHasError(false);
       } else {
         setHasError(true);
@@ -244,24 +250,63 @@ export default function NewsClient({ initial }: { initial: NewsData }) {
           </button>
         </div>
 
-        {/* Error State */}
-        {hasError && data.trending.length === 0 && (
-          <div className="mb-10 rounded-xl border border-zinc-500/30 bg-zinc-500/5 p-6 text-center">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <AlertTriangle className="h-5 w-5 text-zinc-400" />
-              <span className="text-sm font-medium text-zinc-400">Unable to load news</span>
+        {/* Data Health */}
+        {(data.mock || hasError) && (
+          <div
+            className={`mb-8 rounded-xl border p-4 md:p-5 ${
+              data.mock
+                ? 'border-amber-500/30 bg-amber-500/10'
+                : 'border-zinc-500/30 bg-zinc-500/5'
+            }`}
+          >
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div className="flex items-start gap-3">
+                <div
+                  className={`mt-0.5 rounded-full p-2 ${
+                    data.mock ? 'bg-amber-500/15 text-amber-400' : 'bg-zinc-700/60 text-zinc-400'
+                  }`}
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className={`text-sm font-semibold ${data.mock ? 'text-amber-300' : 'text-zinc-200'}`}>
+                    {data.mock ? 'Upstream data is degraded' : 'Last refresh failed'}
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-400 max-w-2xl">
+                    {data.mock
+                      ? 'CoinGecko returned fallback demo data, so the page stays usable while live market news recovers.'
+                      : 'TradeClaw is showing the last known news snapshot until the upstream feed responds again.'}
+                  </p>
+                </div>
+              </div>
+              <div className="text-xs text-zinc-400 md:text-right">
+                <div className="font-medium text-zinc-300">
+                  Last successful refresh:{' '}
+                  {lastSuccessfulRefreshAt
+                    ? new Date(lastSuccessfulRefreshAt).toLocaleString()
+                    : 'No successful live refresh yet'}
+                </div>
+                <div className="mt-1">
+                  Current snapshot: {new Date(data.updatedAt).toLocaleString()}
+                  {data.mock ? ' (demo fallback)' : ''}
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-zinc-400 mb-4">
-              Check your connection or try again later.
-            </p>
-            <button
-              onClick={refresh}
-              disabled={loading}
-              className="inline-flex items-center gap-2 rounded-lg bg-zinc-500/10 border border-zinc-500/30 px-4 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-500/20 transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              {loading ? 'Retrying...' : 'Try Again'}
-            </button>
+            {hasError && data.trending.length === 0 && (
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={refresh}
+                  disabled={loading}
+                  className="inline-flex items-center gap-2 rounded-lg bg-zinc-500/10 border border-zinc-500/30 px-4 py-2 text-sm font-medium text-zinc-400 hover:bg-zinc-500/20 transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  {loading ? 'Retrying...' : 'Try Again'}
+                </button>
+                <span className="text-xs text-zinc-500">
+                  Your cached data stays visible until a fresh response arrives.
+                </span>
+              </div>
+            )}
           </div>
         )}
 

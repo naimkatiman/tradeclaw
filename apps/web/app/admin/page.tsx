@@ -9,6 +9,8 @@ import {
   ExternalLink,
   Gauge,
   KeyRound,
+  Brain,
+  Library,
 } from 'lucide-react';
 import { requireAdmin } from '../../lib/admin-gate';
 import { query, queryOne } from '../../lib/db-pool';
@@ -171,10 +173,22 @@ export default async function AdminIndexPage() {
         </h2>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           <Tile
+            href="/admin/operator"
+            title="AI Operator"
+            body="Memory, tools registry, and connector health for the AI operator."
+            icon={Brain}
+          />
+          <Tile
             href="/admin/ops"
             title="Ops Dashboard"
             body="Signal engine health: 24h counts, gate-blocked signals, last cron run."
             icon={Gauge}
+          />
+          <Tile
+            href="/admin/strategy-library"
+            title="Strategy Library"
+            body="Versioned strategy library, edge-decay tracking, and Satellite Strike allocation cards."
+            icon={Library}
           />
           <Tile
             href="/admin/pro-grants"

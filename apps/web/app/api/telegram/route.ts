@@ -4,6 +4,11 @@ import { sendInvite } from '../../../lib/telegram';
 import { getUserTier } from '../../../lib/tier';
 import { verifyTelegramLinkToken } from '../../../lib/telegram-link-token';
 import { verifyTelegramWebhook } from '../../../lib/telegram-webhook-auth';
+import {
+  handleSetRegime,
+  handleConfirmRegime,
+  handleShowRegime,
+} from '../../../lib/weekly-regime/bot-commands';
 
 interface TelegramConfig {
   botToken: string;
@@ -168,6 +173,27 @@ async function handleBotUpdate(update: TelegramUpdate): Promise<void> {
           `(instant no-delay signal delivery on the 5-minute cron, dedicated chat & admin topics) — your invite is DMed here automatically right after checkout.`
       );
     }
+    return;
+  }
+
+  // Weekly Regime Card commands (Layer 1). Writes are admin-gated inside the
+  // handlers via ADMIN_TELEGRAM_IDS; /regime is read-only and public.
+  if (text.startsWith('/setregime')) {
+    const { reply } = await handleSetRegime({ text, telegramUserId });
+    await sendTelegramMessage(config, reply);
+    return;
+  }
+
+  if (text.startsWith('/confirmregime')) {
+    const { reply } = await handleConfirmRegime({ telegramUserId });
+    await sendTelegramMessage(config, reply);
+    return;
+  }
+
+  if (text.startsWith('/regime')) {
+    const { reply } = await handleShowRegime();
+    await sendTelegramMessage(config, reply);
+    return;
   }
 }
 

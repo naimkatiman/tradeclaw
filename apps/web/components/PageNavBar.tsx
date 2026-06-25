@@ -11,6 +11,7 @@ import {
   BadgeCheck,
   NotebookPen,
   BarChart2,
+  BarChart3,
   Send,
   Wrench,
   Layers,
@@ -20,9 +21,11 @@ import {
   Activity,
   ShieldCheck,
   Trophy,
+  GitBranch,
 } from 'lucide-react';
 import { TradeClawLogo } from './tradeclaw-logo';
 import { UserMenu } from './UserMenu';
+import { useUserSession } from '../lib/hooks/use-user-tier';
 import type { LucideIcon } from 'lucide-react';
 
 interface NavLink {
@@ -61,6 +64,7 @@ const MEMBER_MORE: DropdownGroup[] = [
     label: 'Trading Tools',
     links: [
       { href: '/strategy-builder', label: 'Strategy Builder', icon: Wrench },
+      { href: '/strategy-rules', label: 'Strategy Rules', icon: GitBranch },
       { href: '/strategies/leaderboard', label: 'Strategy Leaderboard', icon: Trophy },
       { href: '/multi-timeframe', label: 'Multi-TF', icon: Layers },
       { href: '/paper-trading', label: 'Paper Trading', icon: Crosshair },
@@ -87,6 +91,7 @@ const MEMBER_MORE: DropdownGroup[] = [
     links: [
       { href: '/vote', label: 'Vote', icon: BarChart2 },
       { href: '/badges/readme', label: 'Badges', icon: BadgeCheck },
+      { href: '/tradingview-export', label: 'TradingView Export', icon: BarChart3 },
     ],
   },
 ];
@@ -133,6 +138,8 @@ function selectNav(pathname: string): NavSet {
 
 export function PageNavBar() {
   const pathname = usePathname();
+  const { status, session } = useUserSession();
+  const isFree = status === 'authenticated' && (session?.tier === 'free' || !session?.tier);
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
 
@@ -265,7 +272,15 @@ export function PageNavBar() {
         </div>
 
         {/* Identity affordance — visible on all breakpoints. */}
-        <div className="ml-auto md:ml-0 flex items-center">
+        <div className="ml-auto md:ml-0 flex items-center gap-2">
+          {isFree && variant === 'member' && (
+            <Link
+              href="/pricing?from=navbar"
+              className="hidden sm:inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+            >
+              Upgrade
+            </Link>
+          )}
           <UserMenu />
         </div>
       </div>

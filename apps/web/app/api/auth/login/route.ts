@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { secureCookieDefault } from '../../../../lib/cookie-flags';
+import {
+  createAdminSession,
+  ADMIN_SESSION_COOKIE,
+} from '../../../../lib/admin-session';
 
-const COOKIE_NAME = 'tc_admin';
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 function safeStringEqual(a: string, b: string): boolean {
@@ -29,13 +32,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid secret' }, { status: 401 });
     }
 
+    // Issue a signed session token instead of storing the raw secret in the cookie
+    const sessionToken = await createAdminSession(adminSecret);
+
     const response = NextResponse.json({ ok: true });
-    response.cookies.set(COOKIE_NAME, adminSecret, {
+    response.cookies.set(ADMIN_SESSION_COOKIE, sessionToken, {
       httpOnly: true,
       secure: secureCookieDefault(),
-      // Strict — the admin cookie value IS the secret. Lax let cross-site
-      // GET navigations carry it; with Strict the cookie only attaches to
-      // same-site requests, which suits a top-level admin UI.
       sameSite: 'strict',
       path: '/',
       maxAge: MAX_AGE,

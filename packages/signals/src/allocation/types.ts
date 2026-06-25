@@ -5,7 +5,7 @@
  * and portfolio risk management.
  */
 
-import type { MarketRegime } from '../regime/types';
+import type { MarketRegime } from '../regime/types.js';
 
 export interface AllocationRules {
   /** Maximum % of portfolio that can be in open positions. */

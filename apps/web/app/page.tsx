@@ -2,7 +2,6 @@ import { Navbar } from "./components/navbar";
 import { ABHero } from "../components/landing/ab-hero";
 import { HowItWorks } from "../components/landing/how-it-works";
 import { FAQAccordion } from "../components/landing/faq-accordion";
-import { SiteFooter } from "../components/landing/site-footer";
 import { LiveDemoEmbed } from "../components/landing/live-demo-embed";
 import { LiveHeroSignals } from "../components/landing/live-hero-signals";
 import { LiveActivityStrip } from "../components/landing/live-activity-strip";
@@ -31,7 +30,6 @@ export default function Home() {
         <EmailCTA />
         <FAQAccordion />
       </main>
-      <SiteFooter />
     </>
   );
 }

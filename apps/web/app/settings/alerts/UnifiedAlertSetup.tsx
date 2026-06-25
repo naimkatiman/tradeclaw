@@ -16,6 +16,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useUserTier } from '../../../lib/hooks/use-user-tier';
+import { useUpgradeModal } from '../../../components/UpgradeModal';
 import AlertChannelConfigPanel from './AlertChannelConfig';
 
 const FREE_ACTIVE_RULE_CAP = 3;
@@ -76,6 +77,7 @@ function defaultRule(): Omit<AlertRule, 'id'> {
 export default function UnifiedAlertSetup() {
   const tier = useUserTier();
   const isFree = tier === null || tier === 'free';
+  const { showUpgrade, modal: upgradeModal } = useUpgradeModal();
   const [rules, setRules] = useState<AlertRule[]>([]);
   const [draft, setDraft] = useState(defaultRule());
   const [saving, setSaving] = useState(false);
@@ -101,6 +103,15 @@ export default function UnifiedAlertSetup() {
   }, []);
 
   async function handleCreate() {
+    // Pre-check: if free user is at cap, show modal instead of hitting API
+    if (isFree && draft.enabled && activeCount >= FREE_ACTIVE_RULE_CAP) {
+      showUpgrade(
+        'Alert rule limit reached',
+        `Free accounts can have ${FREE_ACTIVE_RULE_CAP} active alert rules. Upgrade to Pro for unlimited rules across all symbols and channels.`,
+        'alert-rules-cap',
+      );
+      return;
+    }
     setSaving(true);
     setError(null);
     setAtCap(false);
@@ -155,6 +166,7 @@ export default function UnifiedAlertSetup() {
       className="min-h-screen bg-[#050505] text-white"
       style={{ fontFamily: 'var(--font-geist-sans, sans-serif)' }}
     >
+      {upgradeModal}
       <div className="border-b border-[#1a1a1a]">
         <div className="max-w-3xl mx-auto px-6 py-6">
           <Link

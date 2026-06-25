@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 import pkg from '../../../package.json';
 
 export const dynamic = 'force-dynamic';
@@ -48,6 +50,15 @@ export async function GET() {
         signal: AbortSignal.timeout(3000),
       });
       if (!res.ok && res.status !== 200) throw new Error('SSE unavailable');
+    }),
+    checkService('Scanner', async () => {
+      const healthPath = join(process.cwd(), 'data', 'scanner-health.json');
+      if (!existsSync(healthPath)) throw new Error('Scanner health file missing');
+      const raw = readFileSync(healthPath, 'utf-8');
+      const health = JSON.parse(raw) as { status?: string; timestamp?: string };
+      if (health.status !== 'operational') throw new Error(`Scanner status: ${health.status ?? 'unknown'}`);
+      const lastTs = health.timestamp ? new Date(health.timestamp).getTime() : 0;
+      if (Date.now() - lastTs > 15 * 60 * 1000) throw new Error('Scanner health stale (>15min)');
     }),
   ]);
 

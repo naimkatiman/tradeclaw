@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import { currentWinStreak } from '../streak';
 
 const t = (pnlPct: number, closedAt = Date.now()) => ({ pnlPct, closedAt });

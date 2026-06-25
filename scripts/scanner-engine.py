@@ -11,7 +11,9 @@ Architecture:
 import json
 import os
 import random
+import re
 import sqlite3
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,7 +21,6 @@ from uuid import uuid4
 
 import pandas as pd
 import requests
-from tradingview_screener import Query, Column
 
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_DIR = SCRIPT_DIR.parent
@@ -27,6 +28,28 @@ DATA_DIR = PROJECT_DIR / "data"
 DB_PATH = SCRIPT_DIR / "signals.db"
 OUTPUT_FILE = DATA_DIR / "signals-live.json"
 TELEGRAM_STATE_FILE = DATA_DIR / "telegram-alert-state.json"
+HEALTH_FILE = DATA_DIR / "scanner-health.json"
+
+def write_health(status: str, reason: str | None = None) -> None:
+    payload = {
+        "status": status,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    if reason:
+        payload["reason"] = reason
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        HEALTH_FILE.write_text(json.dumps(payload, indent=2))
+    except Exception:
+        pass
+
+try:
+    from tradingview_screener.query import Query, URL
+    write_health("operational")
+except ImportError as e:
+    write_health("degraded", reason=f"tradingview_screener unavailable: {e}")
+    print(f"[scanner-engine] Degraded: tradingview_screener not available ({e})", flush=True)
+    sys.exit(0)
 def get_min_confidence() -> int:
     """Read adaptive threshold from outcome checker. Default 70, raises to 75 if win rate drops."""
     threshold_file = SCRIPT_DIR / "confidence_threshold.txt"
@@ -56,10 +79,16 @@ BINANCE_CROSS_VALIDATION_BONUS = 3  # bonus when Binance confirms price
 # SELL signals require 3+ TF confluence (BUY only needs 2)
 SELL_MIN_CONFLUENCE = 3
 # Blacklisted symbol+direction combos based on track-record audit:
-# These have <20% avg accuracy over 5+ signals — auto-skip
+# These have <=25% win rate over 5+ signals — auto-skip
 BLACKLISTED_COMBOS = {
     "SOLUSDT_SELL", "USDJPY_BUY", "XRPUSDT_SELL", "BTCUSDT_SELL",
     "EURUSD_SELL", "GBPUSD_SELL", "ETHUSDT_SELL", "BNBUSDT_SELL",
+    "XAUUSD_SELL",
+    # Sub-25% BUY paths from 586-signal empirical audit (2026-06-02)
+    # NOTE: BNBUSDT_BUY, BTCUSDT_BUY, ETHUSDT_BUY un-blacklisted on 2026-06-03
+    # after MACD H1 confirmation filters (TC-214/215/219/223) raised their
+    # post-filter win rates to 70-76% (n=40-42). SOLUSDT_BUY remains blocked.
+    "SOLUSDT_BUY", "DOGEUSDT_BUY",
 }
 
 # ─── Market Hours ─────────────────────────────────────────────
@@ -104,6 +133,28 @@ TARGET_SYMBOLS = {
         "symbols": ["XAUUSD", "XAGUSD"],
     },
 }
+
+
+def build_market_query(market: str) -> Query:
+    """Build a market-scoped TradingView query without helper exports.
+
+    The system Python environment ships a slimmer `tradingview_screener`
+    build that does not expose the convenience `crypto()/forex()/cfd()`
+    helpers. `Query(market)` also defaults to stock-screening filters, so we
+    reset the payload to the minimal market-only shape here.
+    """
+
+    q = Query()
+    q.url = URL.format(market=market)
+    q.query = {
+        "markets": [market],
+        "symbols": {},
+        "options": {"lang": "en"},
+        "columns": [],
+        "range": [0, 50],
+        "ignore_unknown_fields": False,
+    }
+    return q
 
 TF_COLS = {
     "M5":  "Recommend.All|5",
@@ -191,6 +242,11 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
         else:
             vwap_ok = False
 
+        # ── MACD momentum confirmation (proven win-rate lift from TC-214/215) ──
+        macd_col = "MACD.macd|60" if tf_label == "H1" else "MACD.macd|240"
+        signal_col = "MACD.signal|60" if tf_label == "H1" else "MACD.signal|240"
+        macd_val = (row.get(macd_col) or 0) - (row.get(signal_col) or 0)
+
         direction = None
         reasons = []
 
@@ -202,7 +258,8 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
         # ── BUY conditions ──
         if (buy_combo not in BLACKLISTED_COMBOS
                 and close > ema20 and st_trend_up and ema_fan_bull
-                and 40 < rsi < 70 and vwap_bull):
+                and 40 < rsi < 70 and vwap_bull
+                and macd_val > 0):
             direction = "BUY"
             reasons.append(f"EMA fan aligned bullish ({tf_label})")
             reasons.append(f"Price > EMA20 ({round(ema20, 2)})")
@@ -210,11 +267,13 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
                 reasons.append(f"Price > VWAP ({round(vwap, 2)})")
             reasons.append(f"Supertrend proxy: uptrend (above {round(st_lower, 2)})")
             reasons.append(f"RSI {round(rsi, 1)} — momentum confirmed")
+            reasons.append(f"MACD {tf_label} confirms bullish momentum")
 
         # ── SELL conditions ──
         elif (sell_combo not in BLACKLISTED_COMBOS
                 and close < ema20 and st_trend_down and ema_fan_bear
-                and 30 < rsi < 60 and vwap_bear):
+                and 30 < rsi < 60 and vwap_bear
+                and macd_val < 0):
             direction = "SELL"
             reasons.append(f"EMA fan aligned bearish ({tf_label})")
             reasons.append(f"Price < EMA20 ({round(ema20, 2)})")
@@ -222,6 +281,7 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
                 reasons.append(f"Price < VWAP ({round(vwap, 2)})")
             reasons.append(f"Supertrend proxy: downtrend (below {round(st_upper, 2)})")
             reasons.append(f"RSI {round(rsi, 1)} — momentum confirmed")
+            reasons.append(f"MACD {tf_label} confirms bearish momentum")
 
         if not direction:
             continue
@@ -288,15 +348,15 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
         if confidence < MIN_CONFIDENCE:
             continue
 
-        # TP/SL from ATR — R:R = 1:1 / 1:2 (risk 1.5 ATR to gain 1.5/3.0 ATR).
-        # TP1 was 3.0*ATR — unreachable inside the 8h outcome window, so most
-        # directionally-correct signals expired below the "win" threshold.
+        # TP/SL from ATR — R:R = 1:1.33 / 1:2 (risk 1.5 ATR to gain 2.0/3.0 ATR).
+        # Tightened on 2026-04-21 so TP1 can be reached inside the 8h outcome
+        # window instead of expiring below the "win" threshold.
         if direction == "BUY":
-            tp1 = round(close + atr * 1.5, 6)
+            tp1 = round(close + atr * 2.0, 6)
             tp2 = round(close + atr * 3.0, 6)
             sl  = round(close - atr * 1.5, 6)
         else:
-            tp1 = round(close - atr * 1.5, 6)
+            tp1 = round(close - atr * 2.0, 6)
             tp2 = round(close - atr * 3.0, 6)
             sl  = round(close + atr * 1.5, 6)
 
@@ -328,6 +388,7 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
             "win_rate": wr_data if wr_data else None,
             "cross_validation": binance_validation if binance_validation.get("validated") else None,
             "source": "zaky_strategy",
+            "strategy_name": "Intraday" if tf_label == "H1" else "Swing",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "expires_in_minutes": 120 if tf_label == "H4" else 60,
         }
@@ -401,7 +462,7 @@ def cross_validate_price(symbol: str, tv_price: float, binance_prices: dict[str,
 def get_win_rates(conn: sqlite3.Connection) -> dict[str, dict]:
     """
     Calculate historical win rate per symbol+direction from signals.db.
-    A "win" = TP1_HIT, EXPIRED_PROFIT, or accuracy >= 0.5 (partial progress).
+    A "win" = TP1_HIT or EXPIRED_PROFIT.
     win_rate = wins / total (not avg accuracy — that understated profitable expiries).
     Blacklisted combos are excluded so legacy bad signals don't poison new scores.
     Returns: { "BTCUSDT_BUY": { "wins": 5, "losses": 2, "total": 7, "win_rate": 71.4 }, ... }
@@ -420,10 +481,9 @@ def get_win_rates(conn: sqlite3.Connection) -> dict[str, dict]:
         cursor = conn.execute(f"""
             SELECT symbol, signal,
                    COUNT(*) as total,
-                   SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT')
-                                 OR accuracy >= 0.5 THEN 1 ELSE 0 END) as wins,
+                   SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT') THEN 1 ELSE 0 END) as wins,
                    SUM(CASE WHEN outcome = 'SL_HIT'
-                                 OR (outcome = 'EXPIRED_LOSS' AND accuracy < 0.5)
+                                 OR outcome = 'EXPIRED_LOSS'
                              THEN 1 ELSE 0 END) as losses
             FROM signals
             WHERE outcome IS NOT NULL AND outcome != 'LEGACY'
@@ -497,19 +557,22 @@ def fetch_market(market, info, max_retries=3):
         "Recommend.All|60", "Recommend.All|240",
     ]
 
+    symbol_pattern = "^(" + "|".join(re.escape(sym) for sym in info["symbols"]) + ")(?:\\..*)?$"
     last_exc = None
     for attempt in range(max_retries):
         try:
-            q = Query().set_markets(market).select(*cols)
-            if info["exchange"]:
-                q = q.where(
-                    Column("exchange").isin([info["exchange"]]),
-                    Column("name").isin(info["symbols"]),
-                )
-            else:
-                q = q.where(Column("name").isin(info["symbols"]))
-            q = q.limit(50)
+            q = build_market_query(market)
+            q = q.select(*cols)
+            q = q.order_by("volume", ascending=False)
+            market_limits = {
+                "crypto": 5000,
+                "forex": 2000,
+                "cfd": 1000,
+            }
+            q = q.limit(market_limits.get(market, 2000))
             _, df = q.get_scanner_data()
+            if "name" in df.columns:
+                df = df[df["name"].astype(str).str.match(symbol_pattern, na=False)]
             return df
         except Exception as e:
             last_exc = e
@@ -590,6 +653,16 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
                 if rsi_h4 < 65:  # Not overbought enough to justify counter-trend SELL
                     return None, []
 
+    # ── MACD confirmation ──
+    # Require bullish MACD on H1 for BUY, bearish MACD on H1 for SELL.
+    # Historical track record shows signals without MACD confirmation
+    # have significantly lower win rates.
+    macd_h1 = (row.get("MACD.macd|60") or 0) - (row.get("MACD.signal|60") or 0)
+    if direction_candidate == "BUY" and macd_h1 <= 0:
+        return None, []
+    if direction_candidate == "SELL" and macd_h1 >= 0:
+        return None, []
+
     # Require at least one higher TF (H1 or H4) in agreeing set — filters M5/M15 noise
     has_htf = any(tf in agreeing for tf in ["H1", "H4"])
     if len(agreeing) < 2 or not has_htf:
@@ -642,15 +715,16 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
             entry = row.get("close", 0) or 0
             atr = row.get("ATR") or (entry * 0.01)
 
-            # TP/SL scaled for 4h outcome window:
-            # TP1 = 3.0x ATR, TP2 = 4.5x ATR, SL = 1.5x ATR → R:R = 1:2 / 1:3
+            # TP/SL scaled for 8h outcome window:
+            # TP1 = 2.0x ATR, TP2 = 3.0x ATR, SL = 1.5x ATR → R:R = 1:1.33 / 1:2
+            # Tightened on 2026-04-21 — old TP1 was unreachable in-window.
             if direction == "BUY":
-                tp1 = round(entry + atr * 3.0, 6)
-                tp2 = round(entry + atr * 4.5, 6)
+                tp1 = round(entry + atr * 2.0, 6)
+                tp2 = round(entry + atr * 3.0, 6)
                 sl  = round(entry - atr * 1.5, 6)
             else:
-                tp1 = round(entry - atr * 3.0, 6)
-                tp2 = round(entry - atr * 4.5, 6)
+                tp1 = round(entry - atr * 2.0, 6)
+                tp2 = round(entry - atr * 3.0, 6)
                 sl  = round(entry + atr * 1.5, 6)
 
             reasons = [f"TF confluence: {', '.join(agreeing)} all {direction}"]
@@ -884,7 +958,11 @@ def main():
         best_rows = {}
         for _, row in df.iterrows():
             raw_name = str(row.get("name", ""))
-            sym = raw_name.replace("BINANCE:", "").replace("FX:", "").replace("OANDA:", "").replace("FXCM:", "")
+            sym = re.sub(
+                r"\..*$",
+                "",
+                raw_name.replace("BINANCE:", "").replace("FX:", "").replace("OANDA:", "").replace("FXCM:", ""),
+            )
             # Count how many TFs have a clear signal (not neutral)
             tf_count = sum(1 for col in TF_COLS.values() if row.get(col) is not None and abs(row.get(col, 0)) >= 0.5)
             if sym not in best_rows or tf_count > best_rows[sym][1]:
@@ -939,11 +1017,11 @@ def main():
                 # Dynamic cooldown: extend to 12h if last signal was a loser
                 cooldown_hours = COOLDOWN_HOURS_BASE
                 last_outcome = conn.execute("""
-                    SELECT outcome, accuracy FROM signals
+                    SELECT outcome FROM signals
                     WHERE symbol = ? AND signal = ? AND outcome IS NOT NULL
                     ORDER BY fired_at DESC LIMIT 1
                 """, (s["symbol"], s["signal"])).fetchone()
-                if last_outcome and last_outcome[1] is not None and last_outcome[1] < 0.3:
+                if last_outcome and last_outcome[0] in ("SL_HIT", "EXPIRED_LOSS"):
                     cooldown_hours = 12  # extend cooldown after a loss
 
                 # Check cooldown: was this symbol+direction fired recently?

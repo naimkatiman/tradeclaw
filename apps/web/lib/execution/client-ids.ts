@@ -21,6 +21,7 @@ export interface ExecutionClientIds {
   sl: string;
   tp1: string;
   slBe: string;
+  close: string;
 }
 
 export function buildClientIds(signalId: string): ExecutionClientIds {
@@ -31,5 +32,6 @@ export function buildClientIds(signalId: string): ExecutionClientIds {
     sl: `${base}-sl`,
     tp1: `${base}-tp1`,
     slBe: `${base}-slbe`,
+    close: `${base}-x`,
   };
 }

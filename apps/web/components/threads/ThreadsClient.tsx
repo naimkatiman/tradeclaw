@@ -94,7 +94,7 @@ const THREADS: Thread[] = [
         text: `How do you actually generate a reliable trading signal?\n\nNot "RSI below 30 = buy." That's too simple.\n\nHere's the confluence approach we use in TradeClaw (open source) 🧵\n\n${REPO_URL}`,
       },
       {
-        text: `1/ The problem with single-indicator signals:\n\nRSI alone: 52% accuracy (barely better than a coin flip)\nMACD alone: 54% accuracy\nEMA crossover alone: 51% accuracy\n\nNone are reliable. The edge comes from confluence — multiple indicators agreeing.`,
+        text: `1/ The problem with single-indicator signals:\n\nRSI alone whipsaws in strong trends\nMACD alone lags at turning points\nEMA crossovers alone chop you up in ranges\n\nNo single read is reliable. The edge comes from confluence — multiple independent indicators agreeing.`,
       },
       {
         text: `2/ Confluence scoring:\n\nInstead of binary signals, each indicator returns a score:\n\n• RSI < 30 (oversold) → +20 pts for BUY\n• RSI > 70 (overbought) → +20 pts for SELL\n• MACD bullish crossover → +20 pts for BUY\n• Price above EMA20 AND EMA50 → +20 pts for BUY\n\nSum → confidence score 0-100.`,

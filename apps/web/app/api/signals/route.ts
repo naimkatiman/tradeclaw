@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../lib/signals';
 import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 import { readLiveSignals } from '../../../lib/signals-live';
-import { fetchRegimeMap, filterSignalsByRegime, getDominantRegime } from '../../../lib/regime-filter';
+import { fetchResolvedRegimeMap } from '../../../lib/regime-resolution';
+import { filterSignalsByRegime, getDominantRegime } from '../../../lib/regime-filter';
 import { readSessionFromRequest } from '../../../lib/user-session';
 import {
   getUserTier,
@@ -30,6 +31,14 @@ export async function GET(request: NextRequest) {
       : 'free' as const;
     const delayMs = TIER_DELAY_MS[tier];
 
+    // Anonymous responses are identical for everyone within the 5-min data
+    // window — let shared caches absorb them. Signed-in responses are
+    // tier-gated and stay private. ('private, s-maxage' was contradictory:
+    // private forbids the shared caches s-maxage addresses.)
+    const cacheControl = session?.userId
+      ? 'private, no-store'
+      : 'public, max-age=60, stale-while-revalidate=240';
+
     const { searchParams } = new URL(request.url);
     const symbolFilter = searchParams.get('symbol')?.toUpperCase();
     const timeframeFilter = searchParams.get('timeframe')?.toUpperCase() || searchParams.get('tf')?.toUpperCase();
@@ -46,13 +55,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch regime data for direction filtering
-    const regimeMap = await fetchRegimeMap();
+    const resolved = await fetchResolvedRegimeMap();
+    const regimeMap = resolved.regimes;
     const dominantRegime = getDominantRegime(regimeMap);
 
-    // === PRIMARY: Read from PostgreSQL (falls back to signals-live.json) ===
+    // === PRIMARY: Read from live file (Python scanner) with coverage gate ===
+    // Falls back to TA engine when the scanner output is degraded.
+    const MIN_LIVE_SYMBOLS_CHECKED = 8;
     const liveData = await readLiveSignals();
 
-    if (liveData && !liveData.isStale && liveData.signals.length > 0) {
+    const liveCoverageOk = liveData && (liveData.stats?.symbols_checked ?? Infinity) >= MIN_LIVE_SYMBOLS_CHECKED;
+    if (liveData && !liveData.isStale && liveData.signals.length > 0 && liveCoverageOk) {
       let signals = liveData.signals;
 
       // Apply filters
@@ -85,6 +98,8 @@ export async function GET(request: NextRequest) {
         } : undefined,
         source: 'real',
         dataQuality: 'real',
+        signalSource: s.signalSource ?? 'algo',
+        strategyName: s.strategyName,
         timestamp: s.timestamp,
         status: 'active',
       }));
@@ -116,20 +131,31 @@ export async function GET(request: NextRequest) {
         lockedSignals: lockedMapped,
         syntheticSymbols: [],  // no synthetic — real data from Python engine
       }, {
-        headers: { 'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60' },
+        headers: { 'Cache-Control': cacheControl },
       });
     }
 
-    // === FALLBACK: Use existing TA engine if signals-live.json is missing/stale/empty ===
-    const { signals: rawSignals, syntheticSymbols } = await getTrackedSignalsForRequest(request, {
+    // === FALLBACK: Serve from async worker cache instead of generating synchronously ===
+    const { getSignalsCached } = await import('../../../lib/signal-worker');
+    const { signals: cachedSignals, syntheticSymbols } = await getSignalsCached({
       symbol: symbolFilter || undefined,
       timeframe: timeframeFilter || undefined,
       direction: directionFilter || undefined,
       minConfidence,
     });
 
+    // Side effects (recording, alerts, social queue) still run in the
+    // background via getTrackedSignalsForRequest so we don't lose catch-up
+    // behavior when the worker cache is serving the response.
+    getTrackedSignalsForRequest(request, {
+      symbol: symbolFilter || undefined,
+      timeframe: timeframeFilter || undefined,
+      direction: directionFilter || undefined,
+      minConfidence,
+    }).catch(() => {});
+
     // Regime filter: remove signals going against the current market regime
-    const signals = filterSignalsByRegime(rawSignals, regimeMap);
+    const signals = filterSignalsByRegime(cachedSignals, regimeMap);
 
     // Tier-based gating: symbol filter, TP masking, delay
     const gatedSignals = signals
@@ -154,7 +180,7 @@ export async function GET(request: NextRequest) {
       lockedSignals,
       syntheticSymbols,
     }, {
-      headers: { 'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60' },
+      headers: { 'Cache-Control': cacheControl },
     });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

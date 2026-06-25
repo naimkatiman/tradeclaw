@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 export type ClientTier = 'free' | 'pro' | 'elite' | 'custom';
 export type ClientSubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'trialing' | null;
-export type ClientAuthProvider = 'google' | 'github' | null;
+export type ClientAuthProvider = 'google' | 'github' | 'telegram' | null;
 
 export interface ClientSession {
   userId: string;
@@ -39,6 +39,8 @@ export interface ClientSession {
   avatarUrl: string | null;
   /** Provider used for the row's first-ever sign-in. Never updated thereafter. */
   authProvider: ClientAuthProvider;
+  /** Affiliate referral code for the 20% revenue-share program. */
+  referralCode?: string;
 }
 
 interface SessionResponse {

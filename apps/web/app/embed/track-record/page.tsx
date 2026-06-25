@@ -1,34 +1,22 @@
-import { query } from '../../../lib/db-pool';
+import { computeTrackRecordStats, parseBand, type TrackRecordBand } from '../../../lib/track-record-stats';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 60;
 
-interface Stats { total: number; wins: number; winRate: number; totalPnl: number }
+type Band = TrackRecordBand;
 
-async function loadStats(): Promise<Stats> {
-  const rows = await query<{ total: string; wins: string; win_rate: string; total_pnl: string }>(`
-    SELECT
-      COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL)::text AS total,
-      COUNT(*) FILTER (WHERE (outcome_24h->>'hit')::boolean = true)::text AS wins,
-      CASE WHEN COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL) > 0
-        THEN ROUND(COUNT(*) FILTER (WHERE (outcome_24h->>'hit')::boolean = true)::numeric
-          / COUNT(*) FILTER (WHERE outcome_24h IS NOT NULL) * 100, 1)::text
-        ELSE '0' END AS win_rate,
-      COALESCE(ROUND(SUM((outcome_24h->>'pnlPct')::numeric) FILTER (WHERE outcome_24h IS NOT NULL), 2)::text, '0') AS total_pnl
-    FROM signal_history
-    WHERE is_simulated = false AND created_at >= NOW() - INTERVAL '30 days'
-  `);
-  const r = rows[0] ?? { total: '0', wins: '0', win_rate: '0', total_pnl: '0' };
-  return { total: +r.total, wins: +r.wins, winRate: +r.win_rate, totalPnl: +r.total_pnl };
-}
-
-export default async function TrackRecordEmbedPage({ searchParams }: { searchParams: Promise<{ theme?: string }> }) {
-  const { theme } = await searchParams;
+export default async function TrackRecordEmbedPage({ searchParams }: { searchParams: Promise<{ theme?: string; band?: string }> }) {
+  const { theme, band: rawBand } = await searchParams;
+  const band = parseBand(rawBand);
   const dark = theme !== 'light';
-  const s = await loadStats();
+  // Same resolved-signal logic as the page body + OG card: excludes
+  // auto-expired, gate-blocked, and simulated rows. Replaces the raw
+  // `outcome_24h IS NOT NULL` SQL that disagreed with the page numbers.
+  const s = await computeTrackRecordStats(band);
   const pnlColor = s.totalPnl >= 0 ? '#10b981' : '#f43f5e';
   const borderColor = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  const bandLabel = band === 'premium' ? 'premium band' : band === 'standard' ? 'standard band' : 'all signals';
 
   return (
     <main
@@ -46,7 +34,7 @@ export default async function TrackRecordEmbedPage({ searchParams }: { searchPar
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <div style={{ fontSize: '12px', letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.7 }}>
-          TradeClaw — verified track record (30d)
+          {`TradeClaw — recorded track record (30d, ${bandLabel})`}
         </div>
         <a href="https://tradeclaw.win/track-record" target="_blank" rel="noopener" style={{ fontSize: '11px', color: '#10b981', textDecoration: 'none' }}>
           tradeclaw.win →

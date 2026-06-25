@@ -1,22 +1,23 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
+import { useEffect, useState, useCallback, useRef, Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { TradeClawLogo } from '../../components/tradeclaw-logo';
 import { useSearchParams } from 'next/navigation';
 import type { PriceAlert } from '../../lib/price-alerts';
-
-const SUPPORTED_SYMBOLS = [
-  'BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD',
-  'USDJPY', 'XAGUSD', 'AUDUSD', 'XRPUSD', 'USDCAD',
-];
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
+
 import {
   requestNotificationPermission,
   getNotificationPermission,
   sendAlertTriggeredNotification,
   registerServiceWorker,
 } from '../../lib/notifications';
+
+const SUPPORTED_SYMBOLS = [
+  'BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD',
+  'USDJPY', 'XAGUSD', 'AUDUSD', 'XRPUSD', 'USDCAD',
+];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -40,6 +41,23 @@ function timeAgo(iso: string): string {
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
   return `${Math.floor(h / 24)}d ago`;
+}
+
+function formatDistanceReason(alert: PriceAlert, livePrice?: number): string {
+  if (!Number.isFinite(livePrice ?? Number.NaN)) {
+    return 'Waiting for a live price quote for this symbol.';
+  }
+
+  const live = livePrice as number;
+  const distance = distancePct(live, alert.targetPrice);
+  const hit = alert.direction === 'above' ? live >= alert.targetPrice : live <= alert.targetPrice;
+
+  if (hit) {
+    return 'Price has crossed the target; the next sweep should mark this alert triggered.';
+  }
+
+  const directionText = alert.direction === 'above' ? 'below' : 'above';
+  return `Current price is ${distance.toFixed(2)}% ${directionText} your target.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -459,6 +477,65 @@ function EditAlertModal({ alert, onClose, onUpdated }: EditAlertModalProps) {
 }
 
 // ---------------------------------------------------------------------------
+// Debug panel — shows the last matched alert, or the closest active alert with
+// its live-price distance and a plain-English reason it has not fired yet.
+// Client-only, read-only: reuses usePriceStream + existing alerts state.
+// ---------------------------------------------------------------------------
+
+interface DebugPanelProps {
+  alerts: PriceAlert[];
+}
+
+function DebugPanel({ alerts }: DebugPanelProps) {
+  const [open, setOpen] = useState(false);
+  const { prices, state } = usePriceStream(SUPPORTED_SYMBOLS);
+
+  const snapshot = useMemo(() => {
+    const lastTriggered = alerts
+      .filter(a => a.status === 'triggered' && a.triggeredAt)
+      .sort((a, b) => new Date(b.triggeredAt!).getTime() - new Date(a.triggeredAt!).getTime())[0] ?? null;
+
+    let closest: { alert: PriceAlert; livePrice?: number; distance: number } | null = null;
+    for (const alert of alerts) {
+      if (alert.status !== 'active') continue;
+      const livePrice = prices.get(alert.symbol)?.price;
+      const ref = livePrice ?? alert.currentPrice;
+      const distance = distancePct(ref, alert.targetPrice);
+      if (!closest || distance < closest.distance) {
+        closest = { alert, livePrice, distance };
+      }
+    }
+
+    return { lastTriggered, closest };
+  }, [alerts, prices]);
+
+  const title = snapshot.lastTriggered ? 'Last matched alert' : snapshot.closest ? 'Closest active alert' : 'No alerts to inspect';
+  const body = snapshot.lastTriggered
+    ? `${snapshot.lastTriggered.symbol} ${snapshot.lastTriggered.direction === 'above' ? 'rose above' : 'fell below'} ${formatPrice(snapshot.lastTriggered.targetPrice)} — triggered ${timeAgo(snapshot.lastTriggered.triggeredAt!)}.`
+    : snapshot.closest
+      ? `${snapshot.closest.alert.symbol} ${snapshot.closest.alert.direction} ${formatPrice(snapshot.closest.alert.targetPrice)}. ${formatDistanceReason(snapshot.closest.alert, snapshot.closest.livePrice)}${snapshot.closest.livePrice === undefined ? ` (stream ${state})` : ` Live now: ${formatPrice(snapshot.closest.livePrice)} (${snapshot.closest.distance.toFixed(2)}% away).`}`
+      : 'There are no active or triggered alerts.';
+
+  return (
+    <div className="mb-6 border border-[var(--border)] rounded-xl bg-white/[0.02]">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-3 py-2 text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold"
+      >
+        <span>Debug — Alert Matching</span>
+        <span className="font-mono normal-case">{open ? 'hide' : 'show'}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 border-t border-[var(--border)] pt-2">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1">{title}</div>
+          <p className="text-xs text-[var(--foreground)] font-mono leading-relaxed">{body}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main page (inner — uses useSearchParams, needs Suspense wrapper)
 // ---------------------------------------------------------------------------
 
@@ -616,7 +693,7 @@ function AlertsPageInner() {
                 </span>
               )}
             </h1>
-            <p className="text-xs text-[var(--text-secondary)] mt-0.5">Set target price triggers with browser notifications</p>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">Set target price triggers with browser notifications and optional Telegram DMs</p>
           </div>
           <button
             onClick={() => setShowCreate(true)}
@@ -667,6 +744,8 @@ function AlertsPageInner() {
           </div>
         ) : (
           <>
+            <DebugPanel alerts={alerts} />
+
             {/* Active alerts */}
             <section className="mb-6">
               <div className="flex items-center justify-between mb-3">

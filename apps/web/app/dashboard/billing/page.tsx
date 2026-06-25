@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useUserSession } from '../../../lib/hooks/use-user-tier';
+import { TIER_DEFINITIONS } from '../../../lib/stripe-tiers';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -18,34 +19,31 @@ interface PlanInfo {
   color: string;
 }
 
-const FREE_PLAN: PlanInfo = {
-  name: 'Free',
-  price: '$0/mo',
-  description: 'Delayed signals, 6 symbols across asset classes, public Telegram channel.',
-  color: 'text-zinc-400',
-};
-
-const ELITE_PLAN: PlanInfo = {
-  name: 'Elite',
-  price: 'Contact us',
-  description: 'Everything in Pro plus the private Elite Telegram group and direct support.',
-  color: 'text-amber-400',
-};
-
-function proPlan(interval: Interval): PlanInfo {
-  if (interval === 'annual') {
+function getPlanInfo(tier: Tier, interval: Interval = 'monthly'): PlanInfo {
+  const def = TIER_DEFINITIONS.find((d) => d.id === tier);
+  if (tier === 'free') {
     return {
-      name: 'Pro (Annual)',
-      price: '$290/yr',
-      description: 'Instant (no-delay) signal delivery, all symbols, private Pro Telegram group. Save $58 vs monthly.',
-      color: 'text-emerald-400',
+      name: 'Free',
+      price: '$0/mo',
+      description:
+        def?.tagline ?? 'Delayed signals, 6 symbols across asset classes, public Telegram channel.',
+      color: 'text-zinc-400',
     };
   }
+  const priceDisplay =
+    tier === 'pro'
+      ? interval === 'annual'
+        ? '$290/yr'
+        : '$29/mo'
+      : interval === 'annual'
+        ? '$990/yr'
+        : '$99/mo';
   return {
-    name: 'Pro',
-    price: '$29/mo',
-    description: 'Instant (no-delay) signal delivery, all symbols, private Pro Telegram group.',
-    color: 'text-emerald-400',
+    name: def?.name ?? tier,
+    price: priceDisplay,
+    description:
+      def?.tagline ?? '',
+    color: tier === 'pro' ? 'text-emerald-400' : 'text-amber-400',
   };
 }
 
@@ -101,7 +99,7 @@ interface UpgradeCardProps {
 
 function UpgradeCard({ tier, interval, currentTier, onError }: UpgradeCardProps) {
   const [loading, setLoading] = useState(false);
-  const plan = proPlan(interval);
+  const plan = getPlanInfo('pro', interval);
   const isCurrentPlan = currentTier === tier;
   const isDowngrade = false;
 
@@ -179,6 +177,188 @@ function formatLongDate(iso: string | null): string | null {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Premium Telegram Channel card
+// ---------------------------------------------------------------------------
+
+function PremiumChannelCard({ tier }: { tier: Exclude<Tier, 'free'> }) {
+  const [invite, setInvite] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function fetchInvite() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/telegram/channel-invite');
+      const data = (await res.json()) as { invite?: string; error?: string };
+      if (!res.ok || !data.invite) {
+        setError(data.error ?? 'Could not load invite link.');
+        return;
+      }
+      setInvite(data.invite);
+      window.open(data.invite, '_blank', 'noopener,noreferrer');
+    } catch {
+      setError('Could not load invite link.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const label = tier === 'elite' ? 'Elite' : 'Pro';
+  const color = tier === 'elite' ? 'text-amber-400' : 'text-emerald-400';
+
+  return (
+    <div className="mt-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
+      <div className="flex items-start gap-3">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          className={`mt-0.5 shrink-0 ${color}`}
+        >
+          <path
+            d="M17.5 3L2.5 8.5l5 2 2 5 8-12.5z"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M7.5 10.5l2.5 2.5"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+          />
+        </svg>
+        <div className="w-full">
+          <p className="font-semibold text-white">Join the {label} Telegram channel</p>
+          <p className="mt-1 text-sm text-zinc-400">
+            Get real-time high-confidence signals, priority alerts, and strategy
+            commentary posted directly to the private {label} channel.
+          </p>
+
+          {error && (
+            <p className="mt-2 text-xs text-red-400">{error}</p>
+          )}
+
+          <div className="mt-3 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={fetchInvite}
+              disabled={loading}
+              className={`inline-block rounded-lg px-4 py-2 text-sm font-semibold transition-all border disabled:opacity-50 ${
+                tier === 'elite'
+                  ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border-amber-500/30'
+                  : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border-emerald-500/30'
+              }`}
+            >
+              {loading ? 'Fetching link…' : `Open ${label} channel`}
+            </button>
+            {invite && (
+              <span className="text-xs text-zinc-500">Link loaded — check your new tab.</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Referral card
+// ---------------------------------------------------------------------------
+
+function ReferralCard({ referralCode }: { referralCode: string }) {
+  const [copied, setCopied] = useState(false);
+  const link = `https://tradeclaw.win/pricing?ref=${referralCode}`;
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback not needed — modern browsers support clipboard API
+    }
+  }
+
+  const shareText = encodeURIComponent(
+    'I use TradeClaw for real-time AI trading signals. Get 7 days free Pro with my link:',
+  );
+  const shareUrl = encodeURIComponent(link);
+
+  return (
+    <div className="mt-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
+      <div className="flex items-start gap-3">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          className="mt-0.5 shrink-0 text-emerald-400"
+        >
+          <path
+            d="M12.5 7.5L7.5 12.5M7.5 7.5l5 5"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M15 10a5 5 0 11-10 0 5 5 0 0110 0z"
+            stroke="currentColor"
+            strokeWidth="1.4"
+          />
+        </svg>
+        <div className="w-full">
+          <p className="font-semibold text-white">Refer &amp; Earn</p>
+          <p className="mt-1 text-sm text-zinc-400">
+            Share TradeClaw with traders you know. When they subscribe via your
+            link, you earn <span className="text-emerald-400 font-semibold">20% revenue share</span>.
+          </p>
+
+          <div className="mt-3 flex items-center gap-2">
+            <input
+              type="text"
+              readOnly
+              value={link}
+              className="flex-1 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-300 outline-none focus:border-emerald-500/40"
+              onFocus={(e) => e.target.select()}
+            />
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="rounded-lg border border-white/10 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-white/5"
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+
+          <a
+            href={`https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-zinc-300 transition-all hover:bg-white/10 border border-white/10"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+            Share on X
+          </a>
+
+          <Link
+            href="/referrals"
+            className="mt-3 ml-2 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400 transition-all hover:text-emerald-300"
+          >
+            View Dashboard →
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BillingPage() {
   const { status, session } = useUserSession();
   const userId = session?.userId ?? '';
@@ -197,12 +377,7 @@ export default function BillingPage() {
   const periodEndLabel = formatLongDate(session?.currentPeriodEnd ?? null);
   const [billingInterval, setBillingInterval] = useState<Interval>('monthly');
 
-  const plan =
-    currentTier === 'free'
-      ? FREE_PLAN
-      : currentTier === 'elite'
-        ? ELITE_PLAN
-        : proPlan('monthly');
+  const plan = getPlanInfo(currentTier, billingInterval);
   const [error, setError] = useState<string | null>(null);
   const isLoading = status === 'loading';
   const isDemo = status === 'anonymous';
@@ -434,7 +609,7 @@ export default function BillingPage() {
                   <p className="font-semibold text-white">Join the public Telegram channel</p>
                   <p className="mt-1 text-sm text-zinc-400">
                     Free tier signals are posted to{' '}
-                    <span className="font-mono text-zinc-300">@tradeclawwin</span> with a 15-minute delay.
+                    <span className="font-mono text-zinc-300">@tradeclawwin</span> with a 30-minute delay.
                     The private Pro group unlocks after upgrade.
                   </p>
                   <a
@@ -470,6 +645,16 @@ export default function BillingPage() {
             </div>
           </div>
         </div>
+
+        {/* Premium Telegram Channel — Pro / Elite only */}
+        {currentTier !== 'free' && (
+          <PremiumChannelCard tier={currentTier} />
+        )}
+
+        {/* Referral program */}
+        {session?.referralCode && (
+          <ReferralCard referralCode={session.referralCode} />
+        )}
 
         {/* Annual plan callout — only relevant on the Pro/free tiers */}
         {currentTier !== 'elite' && (

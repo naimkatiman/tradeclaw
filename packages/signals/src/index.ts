@@ -13,11 +13,14 @@ export type {
   SubscriptionMessage,
   WsClientMessage,
   WsServerMessage,
-} from './types';
+} from './types.js';
+
+export { getStrategyName } from './types.js';
 
 // ─── Utilities ─────────────────────────────────────────
 
-export { generateSignalId, clamp, formatNumber, formatDiff, emaTrendText } from './utils';
+export { generateSignalId, clamp, formatNumber, formatDiff, emaTrendText } from './utils.js';
+export type { StrategyName } from './types.js';
 
 // ─── Indicators ───────────────────────────────────────
 // Canonical indicator implementations live in apps/web/app/lib/ta-engine.ts
@@ -32,10 +35,10 @@ export {
   calculateStochastic,
   findSupportLevels,
   findResistanceLevels,
-} from './indicators';
+} from './indicators.js';
 
 // ADX is only in ta-engine.ts — re-export the local scalar version for tests
-export { calculateADX } from './indicators-adx';
+export { calculateADX } from './indicators-adx.js';
 
 // ─── ATR Calibration ──────────────────────────────────
 export {
@@ -43,33 +46,43 @@ export {
   DEFAULT_ATR_MULTIPLIER,
   MIN_CALIBRATION_SAMPLES,
   ATR_MULTIPLIER_GRID,
-} from './atr-calibration';
+} from './atr-calibration.js';
 export type {
   OutcomeSample,
   CalibrationOptions,
   CalibrationResult,
   CalibrationConfidence,
   SampleOutcome,
-} from './atr-calibration';
+} from './atr-calibration.js';
 
 // ─── Regime Classifier ───────────────────────────────
 export {
   classifyRegime,
-  computeFeatures,
+  applyHysteresis,
   loadModel,
   getDefaultModel,
   setModel,
   computeGaussianLogPdf,
   forwardAlgorithm,
   viterbiDecode,
-} from './regime/index';
+} from './regime/index.js';
 export type {
   MarketRegime,
   RegimeClassification,
-  RegimeFeatures,
   HMMModelParams,
-  PriceBar,
-} from './regime/index';
+  HysteresisState,
+  HysteresisOptions,
+} from './regime/index.js';
+export {
+  computeRegimeFeatureSeries,
+  featureVectorToArray,
+  REGIME_FEATURE_NAMES,
+} from './regime/features.js';
+export type {
+  RegimeBar,
+  RegimeFeatureVector,
+  RegimeFeatureOptions,
+} from './regime/features.js';
 
 // ─── Dynamic Allocation ─────────────────────────────
 export {
@@ -80,14 +93,14 @@ export {
   getTierWeight,
   REGIME_ALLOCATION_RULES,
   getAllocationRules,
-} from './allocation/index';
+} from './allocation/index.js';
 export type {
   AllocationRules,
   AllocationResult,
   PortfolioState,
   PositionSummary,
   SignalInput,
-} from './allocation/index';
+} from './allocation/index.js';
 
 // ─── Circuit Breakers & Risk Veto ───────────────────────
 export {
@@ -96,7 +109,7 @@ export {
   vetoCheck,
   DEFAULT_BREAKERS,
   getBreakersForRegime,
-} from './risk/index';
+} from './risk/index.js';
 export type {
   BreakerType,
   BreakerAction,
@@ -108,7 +121,7 @@ export type {
   TradeOutcome,
   RiskMetrics,
   VetoSignalInput,
-} from './risk/index';
+} from './risk/index.js';
 
 // ─── Symbols ──────────────────────────────────────────
 
@@ -119,4 +132,4 @@ export {
   getSymbolCategory,
   updateBasePrice,
   getBasePrice,
-} from './symbols';
+} from './symbols.js';

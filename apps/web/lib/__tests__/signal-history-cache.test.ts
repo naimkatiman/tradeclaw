@@ -1,15 +1,21 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import {
   getCachedHistory,
   invalidateHistoryCache,
   _setCacheForTest,
 } from '../signal-history-cache';
 
-jest.mock('../signal-history');
+vi.mock('../signal-history', () => ({
+  readHistoryAsync: vi.fn().mockResolvedValue([]),
+}));
 
 describe('signal-history-cache', () => {
-  beforeEach(() => invalidateHistoryCache());
+  beforeEach(async () => {
+    await invalidateHistoryCache();
+  });
 
   it('returns injected test data immediately', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fakeRows = [{ id: '1', pair: 'BTCUSD' }] as any;
     _setCacheForTest(fakeRows);
     const result = await getCachedHistory();
@@ -22,9 +28,10 @@ describe('signal-history-cache', () => {
   });
 
   it('invalidation clears the cache', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fakeRows = [{ id: '1', pair: 'BTCUSD' }] as any;
     _setCacheForTest(fakeRows);
-    invalidateHistoryCache();
+    await invalidateHistoryCache();
     const result = await getCachedHistory();
     expect(result).toEqual([]);
   });

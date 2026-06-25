@@ -10,7 +10,7 @@ import {
   DEFAULT_ATR_MULTIPLIER,
   ATR_MULTIPLIER_GRID,
   MIN_CALIBRATION_SAMPLES,
-} from '../atr-calibration';
+} from '../atr-calibration.js';
 
 function makeSample(partial: Partial<OutcomeSample> & Pick<OutcomeSample, 'outcome' | 'entryAtr' | 'stopDistance'>): OutcomeSample {
   return {

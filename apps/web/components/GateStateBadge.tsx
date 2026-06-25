@@ -7,7 +7,10 @@ interface GateSnapshot {
   mode: 'shadow' | 'active' | 'off';
   gatesAllow: boolean;
   reason: string | null;
-  regime: 'crash' | 'bear' | 'neutral' | 'bull' | 'euphoria';
+  // Wire value — resolved through resolveRegimeStyle so an unexpected label
+  // (legacy vocabulary, future additions) degrades gracefully instead of
+  // crashing the badge at render (plan D1).
+  regime: string;
   streakLossCount: number;
   currentDrawdownPct: number;
   dataPoints: number;
@@ -16,13 +19,29 @@ interface GateSnapshot {
   effectiveDrawdownThreshold: number;
 }
 
-const REGIME_STYLES: Record<GateSnapshot['regime'], { label: string; className: string }> = {
-  crash:    { label: 'CRASH',    className: 'text-red-400 bg-red-500/10 border-red-500/30' },
-  bear:     { label: 'BEAR',     className: 'text-orange-400 bg-orange-500/10 border-orange-500/30' },
-  neutral:  { label: 'NEUTRAL',  className: 'text-zinc-300 bg-zinc-500/10 border-zinc-500/30' },
-  bull:     { label: 'BULL',     className: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' },
-  euphoria: { label: 'EUPHORIA', className: 'text-amber-300 bg-amber-500/10 border-amber-500/30' },
+interface RegimeStyle {
+  label: string;
+  className: string;
+}
+
+const REGIME_STYLES: Record<'trend' | 'volatile' | 'range', RegimeStyle> = {
+  trend:    { label: 'TREND',    className: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' },
+  volatile: { label: 'VOLATILE', className: 'text-red-400 bg-red-500/10 border-red-500/30' },
+  range:    { label: 'RANGE',    className: 'text-zinc-300 bg-zinc-500/10 border-zinc-500/30' },
 };
+
+const FALLBACK_CLASS = 'text-zinc-500 bg-zinc-500/10 border-zinc-500/30';
+
+/**
+ * Lookup-with-default: unknown labels surface the raw value in a muted style
+ * rather than throwing at render. Exported for tests.
+ */
+export function resolveRegimeStyle(regime: string | null | undefined): RegimeStyle {
+  if (regime && Object.prototype.hasOwnProperty.call(REGIME_STYLES, regime)) {
+    return REGIME_STYLES[regime as keyof typeof REGIME_STYLES];
+  }
+  return { label: regime ? regime.toUpperCase() : 'UNKNOWN', className: FALLBACK_CLASS };
+}
 
 export function GateStateBadge() {
   const [snap, setSnap] = useState<GateSnapshot | null>(null);
@@ -49,7 +68,7 @@ export function GateStateBadge() {
 
   if (!snap) return null;
 
-  const regimeStyle = REGIME_STYLES[snap.regime];
+  const regimeStyle = resolveRegimeStyle(snap.regime);
   const Icon =
     snap.mode === 'off' ? ShieldOff : snap.gatesAllow ? ShieldCheck : ShieldAlert;
   const statusColor =

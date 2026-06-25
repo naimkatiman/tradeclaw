@@ -40,25 +40,14 @@ test.describe('Admin Login', () => {
     await expect(page.locator('text=Invalid secret')).toBeVisible();
   });
 
-  test('redirects to dashboard on successful login', async ({ page }) => {
-    // Mock the login API to return success
-    await page.route('/api/auth/login', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ ok: true }),
-        headers: {
-          'Set-Cookie': 'tc_admin=test-secret; Path=/; HttpOnly',
-        },
-      });
-    });
-
+  test('redirects to admin on successful login', async ({ page }) => {
     await page.locator('input#secret').fill('correct-secret');
     await page.locator('button[type="submit"]').click();
 
-    // Should navigate to dashboard
-    await page.waitForURL('**/dashboard', { timeout: 10_000 });
-    expect(page.url()).toContain('/dashboard');
+    // A login with no ?redirect= param lands on the admin landing page (/admin),
+    // not the public /dashboard (AdminLoginClient.tsx).
+    await page.waitForURL('**/admin', { timeout: 10_000 });
+    expect(page.url()).toContain('/admin');
   });
 
   test('shows loading state during submission', async ({ page }) => {

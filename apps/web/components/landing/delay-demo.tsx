@@ -41,7 +41,7 @@ export function DelayDemo({ pro, free }: DelayDemoProps) {
         entry={free.entry}
         tp1={free.tp1}
         timestampLabel={formatClock(free.createdAt)}
-        delayLabel="Delivered 15 minutes after the Pro alert"
+        delayLabel="Delivered 30 minutes after the Pro alert"
       />
     </div>
   );

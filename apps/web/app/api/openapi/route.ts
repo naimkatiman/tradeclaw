@@ -69,7 +69,7 @@ export async function GET() {
         get: {
           tags: ['Signals'],
           summary: 'Multi-timeframe confluence analysis',
-          description: 'Evaluates H1, H4, D1 signals per symbol and returns agreement scores. 3/3 alignment yields +15 confluence bonus.',
+          description: 'Evaluates M15, H1, H4, D1 signals per symbol and returns agreement scores. 4/4 alignment yields +15 confluence bonus.',
           operationId: 'getMultiTfSignals',
           parameters: [
             { name: 'pair', in: 'query', schema: { type: 'string' }, description: 'Filter to a single symbol', example: 'BTCUSD' },

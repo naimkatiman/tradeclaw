@@ -120,3 +120,219 @@
   already covering it.
   Action: `openclaw cron disable d955d941-d7e3-4b2c-9658-a014cb6c922d`.
   Canonical scheduler going forward: system cron at 5-min cadence.
+[2026-05-21T12:15:07+0800] FAIL #32 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T12:20:04+0800] FAIL #33 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T12:25:06+0800] FAIL #34 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T12:30:08+0800] FAIL #35 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T12:35:08+0800] FAIL #36 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T12:40:07+0800] FAIL #37 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T16:05:05+0800] FAIL #38 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T16:10:08+0800] FAIL #39 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T16:15:09+0800] FAIL #40 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T16:20:05+0800] FAIL #41 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T16:25:09+0800] FAIL #42 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T16:30:05+0800] FAIL #43 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T16:35:09+0800] FAIL #44 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T16:40:09+0800] FAIL #45 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T16:45:05+0800] FAIL #46 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T16:50:09+0800] FAIL #47 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T16:55:08+0800] FAIL #48 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T17:00:05+0800] FAIL #49 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T17:05:04+0800] FAIL #50 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T17:10:03+0800] FAIL #51 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T17:15:01+0800] FAIL #52 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T17:20:02+0800] FAIL #53 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T17:25:02+0800] FAIL #54 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T17:30:01+0800] FAIL #55 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T17:35:02+0800] FAIL #56 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T17:40:01+0800] FAIL #57 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T17:45:02+0800] FAIL #58 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T17:50:01+0800] FAIL #59 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T17:55:02+0800] FAIL #60 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T18:00:01+0800] FAIL #61 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T18:05:02+0800] FAIL #62 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T18:10:02+0800] FAIL #63 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T18:15:02+0800] FAIL #64 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T18:20:02+0800] FAIL #65 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T18:25:01+0800] FAIL #66 — scanner-engine.py exited 1
+Traceback (most recent call last):
+  File "/home/naim/.openclaw/workspace/tradeclaw/scripts/scanner-engine.py", line 23, in <module>
+    from tradingview_screener import cfd as cfd_query, crypto as crypto_query, forex as forex_query
+ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.local/lib/python3.12/site-packages/tradingview_screener/__init__.py)
+
+[2026-05-21T11:27:42Z] SUCCESS — scanner-engine.py now runs cleanly (1 confluence, 0 individual, 0 errors).
+
+[2026-05-27T09:09:57+08:00] Resolving signal outcomes...
+Signal outcomes resolved successfully
+[2026-05-31T12:12:03+08:00] Resolving signal outcomes...
+Signal outcomes resolved successfully

@@ -91,7 +91,12 @@ async function main() {
     ssl: { rejectUnauthorized: false },
   });
 
-  console.log('Loading signal_history (resolved hmm-top3 only)...');
+  console.log('Loading signal_history (resolved hmm-top3 only, PR-#110 outcome semantics)...');
+  // PR #110 alignment: drift-expired closes (target='expired') and the
+  // auto-expire sentinel (pnlPct=0 AND hit=false) are NOT real trade
+  // outcomes — the original +22.6pp validation of these gates counted them
+  // and may be partly an artifact. COALESCE handles legacy rows lacking a
+  // target field.
   const { rows } = await pool.query(`
     SELECT id, pair, direction, created_at,
            (outcome_24h->>'hit')::boolean    AS hit,
@@ -100,9 +105,25 @@ async function main() {
     WHERE strategy_id = 'hmm-top3'
       AND is_simulated = FALSE
       AND outcome_24h IS NOT NULL
+      AND COALESCE(outcome_24h->>'target', '') <> 'expired'
+      -- Rows lacking pnlPct or hit are unusable for the drawdown/streak
+      -- replay (they would coerce to 0% / loss) — exclude them EXPLICITLY
+      -- rather than letting three-valued NULL logic drop or keep them by
+      -- accident, and count what was dropped.
+      AND (outcome_24h->>'pnlPct') IS NOT NULL
+      AND (outcome_24h->>'hit') IS NOT NULL
+      AND NOT ((outcome_24h->>'pnlPct')::numeric = 0 AND (outcome_24h->>'hit')::boolean = FALSE)
     ORDER BY created_at ASC
   `);
-  console.log(`Loaded ${rows.length} resolved signals.\n`);
+  const { rows: droppedRows } = await pool.query(`
+    SELECT COUNT(*)::int AS n
+    FROM signal_history
+    WHERE strategy_id = 'hmm-top3'
+      AND is_simulated = FALSE
+      AND outcome_24h IS NOT NULL
+      AND ((outcome_24h->>'pnlPct') IS NULL OR (outcome_24h->>'hit') IS NULL)
+  `);
+  console.log(`Loaded ${rows.length} resolved signals (expired + sentinel rows excluded per PR #110; ${droppedRows[0].n} rows dropped for missing pnlPct/hit fields).\n`);
 
   if (rows.length < 50) {
     console.error('Not enough resolved signals for a meaningful simulation.');

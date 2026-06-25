@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Trophy } from 'lucide-react';
+import { Trophy, BarChart3 } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import type { ReactNode } from 'react';
 
@@ -22,7 +22,7 @@ const MAIN_NAV = [
   },
   {
     href: '/screener',
-    label: 'Signals',
+    label: 'Screener',
     icon: (
       // Radio-tower broadcast: distinct from charts, reads as "live signal"
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -93,6 +93,15 @@ const MENU_SECTIONS: MenuSection[] = [
         ),
       },
       {
+        href: '/premium-signals',
+        label: 'Premium',
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14" />
+          </svg>
+        ),
+      },
+      {
         href: '/alerts',
         label: 'Alerts',
         icon: (
@@ -123,6 +132,11 @@ const MENU_SECTIONS: MenuSection[] = [
             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
           </svg>
         ),
+      },
+      {
+        href: '/strategies/comparison',
+        label: 'Strategy Comparison',
+        icon: <BarChart3 size={18} strokeWidth={1.6} />,
       },
       {
         href: '/strategies/leaderboard',
@@ -163,6 +177,11 @@ const MENU_SECTIONS: MenuSection[] = [
             <path d="M2 12l10 5 10-5" />
           </svg>
         ),
+      },
+      {
+        href: '/strategy-rules',
+        label: 'Rules',
+        icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16" /><path d="M4 12h10" /><path d="M4 18h16" /><path d="M14 9l4 3-4 3" /></svg>,
       },
       {
         href: '/indicators/builder',

@@ -13,6 +13,7 @@ import { Star, Radio, CheckCircle2 } from "lucide-react";
 import { AnimatedChartHero } from "../animated-chart-hero";
 import { TradeClawIconArtwork } from "../brand/tradeclaw-icon-artwork";
 import { useHeroPrices, formatPairPrice } from "../../lib/hooks/use-hero-prices";
+import { trackEvent, registerSuperProperties } from "../../lib/analytics";
 
 const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
 
@@ -73,6 +74,12 @@ function trackImpression(v: Variant) {
     const counts: Record<Variant, number> = raw ? JSON.parse(raw) : { a: 0, b: 0, c: 0 };
     counts[v] = (counts[v] || 0) + 1;
     localStorage.setItem("tc_ab_impressions", JSON.stringify(counts));
+    // Record when tracking first began on this browser so the /ab-stats
+    // dashboard can show an honest "since <date>" instead of an open-ended
+    // count. Only set once.
+    if (!localStorage.getItem("tc_ab_since")) {
+      localStorage.setItem("tc_ab_since", new Date().toISOString());
+    }
   } catch {}
 }
 
@@ -457,6 +464,11 @@ export function ABHero() {
     setTimeout(() => {
       setVariant(v);
       trackImpression(v);
+      // Stamp the variant on every subsequent PostHog event (conversions,
+      // activation, pageviews) so the test measures business outcomes by
+      // variant, not just hero clicks. Plus a real server-visible impression.
+      registerSuperProperties({ hero_variant: v });
+      trackEvent('hero_viewed', { variant: v });
       setMounted(true);
     }, 0);
 

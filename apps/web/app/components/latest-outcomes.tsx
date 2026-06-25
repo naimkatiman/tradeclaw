@@ -63,22 +63,15 @@ export function LatestOutcomes({
       try {
         // Fetch resolved signals (both wins and losses to show honest results)
         const historyFetchLimit = Math.min(limit * 6, 60);
-        const res = await fetch(`/api/signals/history?limit=${historyFetchLimit}`);
+        const res = await fetch(`/api/signals/history?limit=${historyFetchLimit}&sort=resolved-first`);
         if (!res.ok) return;
         const data = await res.json();
         const records: HistoryApiRecord[] = data.records ?? [];
 
-        // Get resolved signals first, then pending ones as backfill
-        const resolved = records.filter(
-          (r: HistoryApiRecord) => r.outcomes['24h'] !== null || r.outcomes['4h'] !== null,
-        );
-        const pending = records.filter(
-          (r: HistoryApiRecord) => r.outcomes['24h'] === null && r.outcomes['4h'] === null,
-        );
-
-        // Prioritize resolved, fill remaining with pending
-        const selected = [...resolved, ...pending].slice(0, limit);
-        setOutcomes(selected.map(toOutcomeData));
+        // The API already returns resolved rows first, followed by only
+        // genuinely pending rows inside the 24h window. Stale unresolved rows
+        // are excluded server-side so they never render as "pending" here.
+        setOutcomes(records.slice(0, limit).map(toOutcomeData));
       } catch {
         // silent fail
       } finally {

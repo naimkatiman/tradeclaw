@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SWRegister } from "./components/sw-register";
@@ -6,11 +6,15 @@ import { MobileNav } from "./components/mobile-nav";
 import { PWAInstallPrompt } from "./components/pwa-install";
 import { DemoBanner } from "./components/demo-banner";
 import { ThemeProvider } from "./components/theme-provider";
+import { LocaleProvider } from "./components/locale-provider";
 import { SiteFooter } from "./components/site-footer";
 import { MilestoneCelebrationModal } from "../components/milestone-modal";
 import { FeatureUnlockBanner } from "../components/feature-unlock-banner";
 import { OnboardingChecklist } from "../components/onboarding";
 import { StarProgressBar } from "../components/star-progress-bar";
+import { AnalyticsProvider } from "../components/AnalyticsProvider";
+import { PostHogPageView } from "../components/PostHogPageView";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -99,6 +103,18 @@ export const metadata: Metadata = {
     apple: [{ url: '/apple-icon', sizes: '180x180', type: 'image/png' }],
   },
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "TradeClaw",
+    statusBarStyle: "black-translucent",
+    startupImage: "/apple-icon",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "apple-mobile-web-app-title": "TradeClaw",
+  },
   alternates: {
     languages: {
       "en": "https://tradeclaw.win",
@@ -114,6 +130,16 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#050505" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -125,25 +151,32 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col grain-overlay" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
-        <ThemeProvider>
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-          />
-          <SWRegister />
-          {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && <DemoBanner />}
-          <div className="flex-1 pb-16 md:pb-0">
-            {children}
-          </div>
-          <SiteFooter />
-          <MobileNav />
-          <PWAInstallPrompt />
-          <MilestoneCelebrationModal />
-          <FeatureUnlockBanner />
-          <OnboardingChecklist />
-          <StarProgressBar />
-        </ThemeProvider>
+      <body className="min-h-full flex flex-col" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+        <AnalyticsProvider>
+          <Suspense fallback={null}>
+            <PostHogPageView />
+          </Suspense>
+          <ThemeProvider>
+            <LocaleProvider>
+              <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+              />
+              <SWRegister />
+              {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && <DemoBanner />}
+              <div className="flex-1 pb-16 md:pb-0">
+                {children}
+              </div>
+              <SiteFooter />
+              <MobileNav />
+              <PWAInstallPrompt />
+              <MilestoneCelebrationModal />
+              <FeatureUnlockBanner />
+              <OnboardingChecklist />
+              <StarProgressBar />
+            </LocaleProvider>
+          </ThemeProvider>
+        </AnalyticsProvider>
       </body>
     </html>
   );

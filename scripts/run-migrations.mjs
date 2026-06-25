@@ -43,7 +43,9 @@ if (files.length === 0) {
 
 const c = new Client({
   connectionString,
-  ssl: { rejectUnauthorized: false },
+  ssl: connectionString.includes('railway.app')
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
 await c.connect();

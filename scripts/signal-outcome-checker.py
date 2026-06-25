@@ -20,8 +20,8 @@ SCRIPT_DIR = Path(__file__).parent
 DB_PATH = SCRIPT_DIR / "signals.db"
 
 # How long to wait before checking outcome.
-# Was 4h; bumped to 8h when TP1 was at 3*ATR. TP1 is now 1.5*ATR (see scanner-engine.py),
-# which is reachable inside this window. Leaving at 8h for safety margin.
+# Window stays at 8h. Paired with TP1 = 2.0×ATR (see scanner-engine.py).
+# Tightened on 2026-04-21 so TP1 can be reached within the window.
 OUTCOME_WINDOW_HOURS = 8
 
 # Combos the scanner no longer emits. Excluded from win-rate aggregates so that
@@ -29,6 +29,12 @@ OUTCOME_WINDOW_HOURS = 8
 BLACKLISTED_COMBOS = {
     "SOLUSDT_SELL", "USDJPY_BUY", "XRPUSDT_SELL", "BTCUSDT_SELL",
     "EURUSD_SELL", "GBPUSD_SELL", "ETHUSDT_SELL", "BNBUSDT_SELL",
+    "XAUUSD_SELL",
+    # Sub-25% BUY paths from 586-signal empirical audit (2026-06-02)
+    # NOTE: BNBUSDT_BUY, BTCUSDT_BUY, ETHUSDT_BUY un-blacklisted on 2026-06-03
+    # after MACD H1 confirmation filters raised their post-filter win rates
+    # to 70-76% (n=40-42). SOLUSDT_BUY remains blocked.
+    "SOLUSDT_BUY", "DOGEUSDT_BUY",
 }
 
 # Binance symbol mapping
@@ -226,7 +232,7 @@ def check_outcomes():
     conn.commit()
 
     # Print updated win rates.
-    # Win = TP1_HIT, EXPIRED_PROFIT, or accuracy >= 0.5 (partial progress toward TP1).
+    # Win = TP1_HIT or EXPIRED_PROFIT.
     # EXPIRED_PROFIT was previously counted as a loss if progress < 0.5 — even
     # though the signal was directionally correct and closed profitable.
     if updated > 0:
@@ -245,53 +251,46 @@ def check_outcomes():
         rates = conn.execute(f"""
             SELECT symbol, signal,
                    COUNT(*) as total,
-                   SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT')
-                                 OR accuracy >= 0.5 THEN 1 ELSE 0 END) as wins,
-                   ROUND(AVG(accuracy) * 100, 1) as avg_accuracy
+                   SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT') THEN 1 ELSE 0 END) as wins,
+                   ROUND(100.0 * SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT') THEN 1 ELSE 0 END) / COUNT(*), 1) as win_rate_pct
             FROM signals
             WHERE outcome IS NOT NULL AND outcome != 'LEGACY'
             {bl_filter}
             GROUP BY symbol, signal
-            ORDER BY (1.0 * SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT')
-                                         OR accuracy >= 0.5 THEN 1 ELSE 0 END)
-                      / COUNT(*)) DESC
+            ORDER BY win_rate_pct DESC
         """, bl_params).fetchall()
 
         for r in rates:
-            win_pct = round(100.0 * r["wins"] / r["total"], 1) if r["total"] else 0
             print(
                 f"  {r['symbol']} {r['signal']}: "
-                f"{win_pct}% win rate ({r['wins']}/{r['total']}) "
-                f"— {r['avg_accuracy']}% avg accuracy"
+                f"{r['win_rate_pct']}% win rate ({r['wins']}/{r['total']} wins)"
             )
 
-        # Adaptive threshold uses the new win-rate definition, not avg accuracy.
+        # Adaptive threshold uses the new win-rate definition.
         overall = conn.execute(f"""
             SELECT COUNT(*) as total,
-                   SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT')
-                                 OR accuracy >= 0.5 THEN 1 ELSE 0 END) as wins,
-                   ROUND(AVG(accuracy) * 100, 1) as avg_accuracy
+                   SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT') THEN 1 ELSE 0 END) as wins,
+                   ROUND(100.0 * SUM(CASE WHEN outcome IN ('TP1_HIT', 'EXPIRED_PROFIT') THEN 1 ELSE 0 END) / COUNT(*), 1) as win_rate_pct
             FROM signals
             WHERE outcome IS NOT NULL AND outcome != 'LEGACY'
             {bl_filter}
         """, bl_params).fetchone()
 
         if overall and overall["total"] >= 10:
-            win_rate = round(100.0 * overall["wins"] / overall["total"], 1)
+            win_rate = overall["win_rate_pct"]
             print(
                 f"\nOverall win rate: {win_rate}% "
-                f"({overall['wins']}/{overall['total']}) "
-                f"— avg accuracy {overall['avg_accuracy']}%"
+                f"({overall['wins']}/{overall['total']} wins)"
             )
             threshold_file = SCRIPT_DIR / "confidence_threshold.txt"
             if win_rate < 40:
-                print("⚠️  Win rate below 40% — raising confidence threshold to 80%")
+                print("WARN: win rate below 40% — raising confidence threshold to 80%")
                 threshold_file.write_text("80")
             elif win_rate < 55:
-                print("⚠️  Win rate below 55% — raising confidence threshold to 75%")
+                print("WARN: win rate below 55% — raising confidence threshold to 75%")
                 threshold_file.write_text("75")
             elif win_rate > 70:
-                print("✅ Win rate above 70% — lowering confidence threshold to 70%")
+                print("OK: win rate above 70% — lowering confidence threshold to 70%")
                 threshold_file.write_text("70")
     else:
         print("No signals updated this run.")

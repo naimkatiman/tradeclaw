@@ -76,8 +76,8 @@ describe('tier — canonical constants', () => {
     expect(TIER_HISTORY_DAYS.pro).toBeNull();
   });
 
-  it('TIER_DELAY_MS.free is exactly 15 minutes, pro has no delay', () => {
-    expect(TIER_DELAY_MS.free).toBe(15 * 60 * 1000);
+  it('TIER_DELAY_MS.free is exactly 30 minutes, pro has no delay', () => {
+    expect(TIER_DELAY_MS.free).toBe(30 * 60 * 1000);
     expect(TIER_DELAY_MS.pro).toBe(0);
   });
 
@@ -102,7 +102,7 @@ describe('tier — toLockedStub', () => {
       confidence: 78,
       timestamp: '2026-05-02T12:00:00.000Z',
     });
-    const stub = toLockedStub(sig, 15 * 60 * 1000);
+    const stub = toLockedStub(sig, 30 * 60 * 1000);
 
     expect(stub).toEqual({
       id: 'sig-locked-1',
@@ -110,7 +110,7 @@ describe('tier — toLockedStub', () => {
       direction: 'BUY',
       timeframe: 'H1',
       confidence: 78,
-      availableAt: '2026-05-02T12:15:00.000Z',
+      availableAt: '2026-05-02T12:30:00.000Z',
       locked: true,
     });
     expect(Object.keys(stub).sort()).toEqual(
@@ -128,8 +128,8 @@ describe('tier — toLockedStub', () => {
   it('availableAt = timestamp + delayMs', () => {
     const tsMs = Date.UTC(2026, 4, 2, 12, 0, 0);
     const sig = makeSignal({ timestamp: new Date(tsMs).toISOString() });
-    const stub = toLockedStub(sig, 15 * 60 * 1000);
-    expect(new Date(stub.availableAt).getTime()).toBe(tsMs + 15 * 60 * 1000);
+    const stub = toLockedStub(sig, 30 * 60 * 1000);
+    expect(new Date(stub.availableAt).getTime()).toBe(tsMs + 30 * 60 * 1000);
   });
 
   it('locked is the literal true (not just truthy)', () => {
@@ -138,7 +138,7 @@ describe('tier — toLockedStub', () => {
   });
 
   it('splitDelayed separates visible signals from locked public-safe stubs', () => {
-    const delayMs = 15 * 60 * 1000;
+    const delayMs = 30 * 60 * 1000;
     const now = Date.now();
     const old = makeSignal({
       id: 'old-signal',

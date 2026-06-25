@@ -40,10 +40,10 @@ interface UseCase {
 
 const USE_CASES: UseCase[] = [
   {
-    avatar: 'A',
-    name: 'Arif M.',
-    role: 'Day Trader',
-    location: 'Singapore 🇸🇬',
+    avatar: 'D',
+    name: 'The Day Trader',
+    role: 'Example persona',
+    location: 'Intraday workflow',
     description:
       'Monitors BTC and ETH intraday signals on H1 timeframe. Gets instant Telegram alerts when confidence crosses 75%. Uses paper trading to validate setups before going live.',
     features: [
@@ -58,10 +58,10 @@ const USE_CASES: UseCase[] = [
     accentColor: 'emerald',
   },
   {
-    avatar: 'K',
-    name: 'Kai L.',
-    role: 'Quant Developer',
-    location: 'Berlin 🇩🇪',
+    avatar: 'Q',
+    name: 'The Quant Developer',
+    role: 'Example persona',
+    location: 'API workflow',
     description:
       'Uses the REST API and CLI to pull signals into a custom Python bot. Sends webhooks to Discord for team alerts. Built a custom VWAP plugin using the plugin system.',
     features: [
@@ -76,10 +76,10 @@ const USE_CASES: UseCase[] = [
     accentColor: 'purple',
   },
   {
-    avatar: 'S',
-    name: 'Sara P.',
-    role: 'Crypto Hobbyist',
-    location: 'Toronto 🇨🇦',
+    avatar: 'H',
+    name: 'The Crypto Hobbyist',
+    role: 'Example persona',
+    location: 'Self-hosted workflow',
     description:
       'Runs TradeClaw on a Raspberry Pi 4 at home. Subscribes to the RSS feed for daily signal digest. Shares signal cards on X when high-confidence setups appear.',
     features: [
@@ -129,7 +129,7 @@ function MockDashboard({ accentColor }: { accentColor: string }) {
       <div className="p-3 space-y-2">
         {/* Stat row */}
         <div className="grid grid-cols-3 gap-2">
-          {['12 Signals', '78% Acc', '10 Pairs'].map((s) => (
+          {['12 Signals', '4 TFs', '10 Pairs'].map((s) => (
             <div key={s} className="bg-white/5 rounded px-2 py-1.5 text-center">
               <div className="text-white/80 text-xs font-bold">{s.split(' ')[0]}</div>
               <div className="text-white/30 text-[10px]">{s.split(' ').slice(1).join(' ')}</div>
@@ -169,6 +169,7 @@ function MockDashboard({ accentColor }: { accentColor: string }) {
 export function ShowcaseClient() {
   const [stars, setStars] = useState<number | null>(null);
   const [signals, setSignals] = useState<Signal[]>([]);
+  const [winRates, setWinRates] = useState<Record<string, number>>({});
   const [copied, setCopied] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_tick, setTick] = useState(0);
@@ -177,6 +178,18 @@ export function ShowcaseClient() {
     fetch('/api/github-stars')
       .then((r) => r.json())
       .then((d) => setStars(d.stars ?? d.stargazers_count ?? null))
+      .catch(() => {});
+
+    fetch('/api/v1/win-rates')
+      .then((r) => r.json())
+      .then((d) => {
+        const next: Record<string, number> = {};
+        for (const entry of Array.isArray(d.win_rates) ? d.win_rates : []) {
+          if (!entry?.symbol || !entry?.direction || typeof entry.win_rate !== 'number') continue;
+          next[`${entry.symbol}_${entry.direction}`] = entry.win_rate;
+        }
+        setWinRates(next);
+      })
       .catch(() => {});
 
     const fetchSignals = () => {
@@ -387,9 +400,25 @@ export function ShowcaseClient() {
                     </div>
                     <span className="text-white/50 text-xs">{sig.confidence}%</span>
                   </div>
-                  {sig.timeframe && (
-                    <div className="text-white/30 text-[10px] mt-1">{sig.timeframe}</div>
-                  )}
+                  <div className="mt-1 flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.16em] text-white/30">
+                    <span>{sig.timeframe ?? '—'}</span>
+                    <span
+                      className={`font-semibold ${
+                        winRates[`${sig.pair}_${sig.direction}`] !== undefined
+                          ? winRates[`${sig.pair}_${sig.direction}`] >= 60
+                            ? 'text-emerald-400'
+                            : winRates[`${sig.pair}_${sig.direction}`] >= 50
+                              ? 'text-zinc-300'
+                              : 'text-rose-400'
+                          : 'text-white/25'
+                      }`}
+                    >
+                      WR{' '}
+                      {winRates[`${sig.pair}_${sig.direction}`] !== undefined
+                        ? `${winRates[`${sig.pair}_${sig.direction}`]}%`
+                        : '—'}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

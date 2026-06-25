@@ -51,9 +51,9 @@ export const TIER_HISTORY_DAYS: Record<Tier, number | null> = {
   custom: null,
 };
 
-// Signal delay in ms (free gets 15-min delay)
+// Signal delay in ms (free gets 30-min delay per ROADMAP pricing model)
 export const TIER_DELAY_MS: Record<Tier, number> = {
-  free: 15 * 60 * 1000,
+  free: 30 * 60 * 1000,
   pro: 0,
   elite: 0,
   custom: 0,

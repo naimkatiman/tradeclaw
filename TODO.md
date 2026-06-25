@@ -1,5 +1,5 @@
 # TradeClaw — Task Status
-_Updated: 2026-04-03 02:17 MYT_
+_Updated: 2026-05-21 03:10 UTC_
 
 ## Completed ✅
 
@@ -11,6 +11,6 @@ _Updated: 2026-04-03 02:17 MYT_
 - [x] **Build & verify** — `npm run build` passes clean ✅
 
 ## Next Sprint (TBD)
-- [ ] Outcome tracker — auto-check if past signals hit TP or SL, update signals.db
-- [ ] Win rate display on frontend signal cards
-- [ ] Alert user on Telegram when 4-TF confluence signal fires
+- [x] Outcome tracker — auto-check if past signals hit TP or SL, update signals.db
+- [x] Win rate display on frontend signal cards
+- [x] Alert user on Telegram when 4-TF confluence signal fires

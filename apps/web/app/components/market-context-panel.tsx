@@ -167,7 +167,7 @@ export function MarketContextPanel() {
           <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
             Market Context
           </span>
-          <span className="px-1.5 py-0.5 rounded text-[8px] font-bold tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
             LIVE
           </span>
         </div>

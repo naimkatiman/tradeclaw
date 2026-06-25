@@ -2,8 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Search, Check, X, Clock } from 'lucide-react';
-import { DataProvenanceBadge, getDataProvenance } from '@/components/data-provenance-badge';
+import { DataProvenanceBadge, getDataProvenanceFromCounts } from '@/components/data-provenance-badge';
 import { MetricMeta } from '@/components/metric-meta';
+import {
+  isExpiredHistoricalSignal,
+  isPendingHistoricalSignal,
+} from '../../lib/signal-history-status';
 
 /* ── Types ── */
 interface SignalOutcome {
@@ -31,12 +35,19 @@ interface SignalRecord {
 interface Stats {
   totalSignals: number;
   resolved: number;
+  /** Live (non-simulated) row count across full filtered history. */
+  live: number;
+  /** Simulated seed-row count across full filtered history. */
+  simulated: number;
   wins: number;
   losses: number;
   winRate: number;
   totalPnlPct: number;
   avgPnlPct: number;
+  /** Avg confidence over ALL filtered records (resolved + open + simulated). */
   avgConfidence: number;
+  /** Avg confidence over the same resolved population the win-rate uses. */
+  avgConfidenceResolved: number;
 }
 
 interface APIResponse {
@@ -44,6 +55,8 @@ interface APIResponse {
   total: number;
   offset: number;
   limit: number;
+  earliestTimestamp: number | null;
+  latestTimestamp: number | null;
   stats: Stats;
 }
 
@@ -70,11 +83,25 @@ function formatPrice(price: number, pair: string): string {
   return price.toFixed(2);
 }
 
+function formatDateShort(ts: number): string {
+  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/** "Mar 4, 2026 – Jun 13, 2026" window label for the stat cards. */
+function formatWindow(earliest: number | null, latest: number | null): string | null {
+  if (!earliest || !latest) return null;
+  const a = formatDateShort(earliest);
+  const b = formatDateShort(latest);
+  return a === b ? a : `${a} – ${b}`;
+}
+
 /* ── Component ── */
 export function AccuracyClient() {
   const [records, setRecords] = useState<SignalRecord[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [total, setTotal] = useState(0);
+  const [earliestTs, setEarliestTs] = useState<number | null>(null);
+  const [latestTs, setLatestTs] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pair, setPair] = useState('ALL');
@@ -102,6 +129,8 @@ export function AccuracyClient() {
       setRecords(data.records);
       setStats(data.stats);
       setTotal(data.total);
+      setEarliestTs(data.earliestTimestamp ?? null);
+      setLatestTs(data.latestTimestamp ?? null);
       setError(null);
     } catch (err) {
       if (id === fetchRef.current) setError(err instanceof Error ? err.message : 'Failed to load signal history');
@@ -114,13 +143,16 @@ export function AccuracyClient() {
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
+  // Provenance must reflect the FULL filtered history (live vs simulated
+  // counts from stats), not the 25-row page in `records`. A page can be
+  // all-live while the whole track record is mixed.
   const provenance = useMemo(
-    () => getDataProvenance({ records, ...(stats ?? {}) }),
-    [records, stats],
+    () => getDataProvenanceFromCounts({ live: stats?.live, simulated: stats?.simulated }),
+    [stats],
   );
 
   const openCount = useMemo(
-    () => records.filter((r) => r.outcomes['24h'] === null && !r.isSimulated).length,
+    () => records.filter((r) => isPendingHistoricalSignal(r)).length,
     [records],
   );
 
@@ -189,27 +221,40 @@ export function AccuracyClient() {
 
       {/* Stats Cards */}
       {stats && stats.totalSignals > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard label="Total Signals" value={stats.totalSignals.toString()} />
-          <StatCard
-            label="Win Rate"
-            value={`${stats.winRate}%`}
-            color={stats.winRate >= 60 ? 'text-emerald-400' : stats.winRate >= 50 ? 'text-zinc-400' : 'text-rose-400'}
-          />
-          <StatCard
-            label="Avg P&L"
-            value={`${stats.avgPnlPct >= 0 ? '+' : ''}${stats.avgPnlPct}%`}
-            color={stats.avgPnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}
-          />
-          <StatCard label="Avg Confidence" value={`${stats.avgConfidence}%`} />
-          <StatCard label="Wins" value={stats.wins.toString()} color="text-emerald-400" />
-          <StatCard label="Losses" value={stats.losses.toString()} color="text-rose-400" />
-          <StatCard
-            label="Total P&L"
-            value={`${stats.totalPnlPct >= 0 ? '+' : ''}${stats.totalPnlPct}%`}
-            color={stats.totalPnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}
-          />
-          <StatCard label="Resolved" value={`${stats.resolved}/${stats.totalSignals}`} />
+        <div className="space-y-2">
+          {(() => {
+            const win = formatWindow(earliestTs, latestTs);
+            return win ? (
+              <p className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">
+                Win rate, Avg P&amp;L and Total P&amp;L cover {win} · n={stats.resolved} resolved
+              </p>
+            ) : null;
+          })()}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <StatCard label="Total Signals" value={stats.totalSignals.toString()} />
+            <StatCard
+              label="Win Rate"
+              value={`${stats.winRate}%`}
+              color={stats.winRate >= 60 ? 'text-emerald-400' : stats.winRate >= 50 ? 'text-zinc-400' : 'text-rose-400'}
+            />
+            <StatCard
+              label="Avg P&L"
+              value={`${stats.avgPnlPct >= 0 ? '+' : ''}${stats.avgPnlPct}%`}
+              color={stats.avgPnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}
+            />
+            <StatCard
+              label="Avg Confidence (resolved)"
+              value={`${stats.avgConfidenceResolved}%`}
+            />
+            <StatCard label="Wins" value={stats.wins.toString()} color="text-emerald-400" />
+            <StatCard label="Losses" value={stats.losses.toString()} color="text-rose-400" />
+            <StatCard
+              label="Total P&L"
+              value={`${stats.totalPnlPct >= 0 ? '+' : ''}${stats.totalPnlPct}%`}
+              color={stats.totalPnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}
+            />
+            <StatCard label="Resolved" value={`${stats.resolved}/${stats.totalSignals}`} />
+          </div>
         </div>
       )}
 
@@ -224,7 +269,7 @@ export function AccuracyClient() {
             <MetricMeta
               align="right"
               sampleSize={timelineEvents.length}
-              openCount={timelineEvents.filter((r) => r.outcomes['24h'] === null).length}
+              openCount={timelineEvents.filter((r) => isPendingHistoricalSignal(r)).length}
               lastUpdated={lastUpdated}
               sampleLabel="shown"
             />
@@ -234,9 +279,15 @@ export function AccuracyClient() {
               const o24 = r.outcomes['24h'];
               const o4 = r.outcomes['4h'];
               const resolved = o24 ?? o4;
-              const status: 'win' | 'loss' | 'open' = resolved
+              const pending = isPendingHistoricalSignal(r);
+              const expired = !resolved && isExpiredHistoricalSignal(r);
+              const status: 'win' | 'loss' | 'open' | 'expired' = resolved
                 ? resolved.hit ? 'win' : 'loss'
-                : 'open';
+                : pending
+                  ? 'open'
+                  : expired
+                    ? 'expired'
+                    : 'open';
               const dotColor =
                 status === 'win'
                   ? 'bg-emerald-400'
@@ -267,9 +318,13 @@ export function AccuracyClient() {
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">
                         <Check className="inline h-3 w-3" /> WIN
                       </span>
-                    ) : (
+                    ) : status === 'loss' ? (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/15 text-rose-400">
                         <X className="inline h-3 w-3" /> LOSS
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-zinc-500/15 text-zinc-500">
+                        EXPIRED
                       </span>
                     )}
                     {resolved && (
@@ -311,7 +366,11 @@ export function AccuracyClient() {
           </div>
           <div className="flex justify-between mt-1">
             <span className="text-[10px] text-emerald-500 font-mono">{stats.winRate}% WIN</span>
-            <span className="text-[10px] text-rose-500 font-mono">{(100 - stats.winRate).toFixed(1)}% LOSS</span>
+            {/* Loss% from losses/resolved (not 100−winRate) so pending/expired
+                rows are not silently folded into the loss share. */}
+            <span className="text-[10px] text-rose-500 font-mono">
+              {stats.resolved > 0 ? +(stats.losses / stats.resolved * 100).toFixed(1) : 0}% LOSS
+            </span>
           </div>
         </div>
       )}
@@ -489,7 +548,10 @@ export function AccuracyClient() {
         <p className="text-xs text-zinc-500 leading-relaxed">
           Every signal is recorded at generation time with its entry price and confidence score.
           Outcomes are evaluated at 4-hour and 24-hour windows against actual price movement.
-          No cherry-picking, no hindsight edits. Self-hosted users can verify all data in{' '}
+          No cherry-picking, no hindsight edits. The hosted deployment stores this history in{' '}
+          <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">Postgres</code> (the{' '}
+          <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">signal_history</code> table);
+          self-hosted users without <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">DATABASE_URL</code> can verify all data in{' '}
           <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">data/signal-history.json</code>.
         </p>
       </div>

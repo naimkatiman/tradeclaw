@@ -3,7 +3,7 @@
  * Canonical implementation lives in apps/web/app/lib/ta-engine.ts.
  * This scalar version is kept for backward compat with tests and the agent package.
  */
-import { clamp } from './utils';
+import { clamp } from './utils.js';
 
 export function calculateADX(
   high: number[],

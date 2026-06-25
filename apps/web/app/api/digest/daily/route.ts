@@ -51,8 +51,8 @@ export async function GET(req: NextRequest) {
       topSignals,
       metadata: {
         source: 'TradeClaw AI Signal Engine',
-        docs: 'https://tradeclaw.com/digest',
-        apiDocs: 'https://tradeclaw.com/api-docs',
+        docs: 'https://tradeclaw.win/digest',
+        apiDocs: 'https://tradeclaw.win/api-docs',
         repo: 'https://github.com/naimkatiman/tradeclaw',
       },
     };

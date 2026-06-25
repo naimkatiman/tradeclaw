@@ -302,7 +302,7 @@ export default function StarHistoryClient() {
               {data.weeks.map((w, i) => (
                 <div key={w.week} className="w-[10px]">
                   {i % 13 === 0 && (
-                    <span className="text-[8px] text-zinc-500 whitespace-nowrap absolute">
+                    <span className="text-[10px] text-zinc-500 whitespace-nowrap absolute">
                       {new Date(w.week).toLocaleDateString('en-US', { month: 'short' })}
                     </span>
                   )}
@@ -316,7 +316,7 @@ export default function StarHistoryClient() {
             <div className="flex flex-col gap-[2px] shrink-0">
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
                 <div key={i} className="w-4 h-[10px] flex items-center justify-end">
-                  {i % 2 === 1 && <span className="text-[8px] text-zinc-500">{d}</span>}
+                  {i % 2 === 1 && <span className="text-[10px] text-zinc-500">{d}</span>}
                 </div>
               ))}
             </div>
@@ -359,7 +359,7 @@ export default function StarHistoryClient() {
                     })}
                     {/* Milestone marker */}
                     {milestoneCrossed && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] text-amber-400 whitespace-nowrap">
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] text-amber-400 whitespace-nowrap">
                         ⭐{milestoneCrossed}
                       </div>
                     )}

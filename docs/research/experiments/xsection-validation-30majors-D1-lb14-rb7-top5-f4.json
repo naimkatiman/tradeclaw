@@ -1,0 +1,344 @@
+{
+  "meta": {
+    "runAt": "2026-06-13T00:18:48.345Z"
+  },
+  "spec": {
+    "track": "B-xsection",
+    "universe": [
+      "BTCUSD",
+      "ETHUSD",
+      "SOLUSD",
+      "BNBUSD",
+      "XRPUSD",
+      "ADAUSD",
+      "DOGEUSD",
+      "DOTUSD",
+      "LINKUSD",
+      "AVAXUSD",
+      "LTCUSD",
+      "BCHUSD",
+      "ETCUSD",
+      "XLMUSD",
+      "TRXUSD",
+      "ATOMUSD",
+      "NEARUSD",
+      "FILUSD",
+      "UNIUSD",
+      "AAVEUSD",
+      "SANDUSD",
+      "MANAUSD",
+      "ICPUSD",
+      "ALGOUSD",
+      "VETUSD",
+      "AXSUSD",
+      "THETAUSD",
+      "GRTUSD",
+      "HBARUSD",
+      "INJUSD"
+    ],
+    "lookback": 14,
+    "rebalanceEvery": 7,
+    "topK": 5,
+    "sideCost": 0.002,
+    "folds": 4,
+    "subwindowFrom": "2024-06-01",
+    "gates": {
+      "vsBasket": "return AND Sharpe > basket",
+      "foldsExcessPositive": "≥ 3/4"
+    },
+    "gridDays": 2190,
+    "caveats": [
+      "survivorship: the 30-symbol universe is TODAY'S liquid majors — an optimistic bias the full-window numbers inherit; the 2024-06→end subwindow (all 30 listed) is the bias-mitigated read and the gate verdict quotes BOTH",
+      "eligibility is listing-date-aware (a symbol ranks only with lookback+1 stored bars), which removes look-ahead but not selection bias",
+      "costs: 0.2%/side (Phase 2 crypto model) charged on actual turnover at each rebalance; the basket benchmark pays the SAME costs through the SAME machinery",
+      "weights are fixed between rebalances (drift ignored) and a held symbol's missing bar contributes 0 that day — both simplifications are symmetric across strategy and benchmark",
+      "B2 long-short is gross 1.0 dollar-neutral UNLEVERED; short-leg funding flows are NOT modeled here (Track A quantifies funding separately)",
+      "the gate benchmark is the equal-weight basket, NOT zero: rotation must beat passive holding of the same universe or it is churn",
+      "gates are FROZEN in docs/plans/2026-06-13-phase5-carry-xsection-research.md — any deviation is a protocol break and must be called out in the memo"
+    ]
+  },
+  "full": {
+    "b1": {
+      "finalEquity": 14.2548123746,
+      "totalReturn": 13.2548123746,
+      "sharpe": 1.061983,
+      "maxDrawdown": 0.8928284574,
+      "totalTurnoverCost": 0.6628,
+      "missingPositionDays": 0,
+      "firstTs": 1592006400000,
+      "lastTs": 1781136000000,
+      "rebalanceCount": 311,
+      "meanEligible": 29.2
+    },
+    "b2": {
+      "finalEquity": 0.8735652141,
+      "totalReturn": -0.1264347859,
+      "sharpe": 0.463316,
+      "maxDrawdown": 0.5349135154,
+      "totalTurnoverCost": 0.7236,
+      "missingPositionDays": 0,
+      "firstTs": 1592006400000,
+      "lastTs": 1781136000000,
+      "rebalanceCount": 311,
+      "meanEligible": 29.2
+    },
+    "basket": {
+      "finalEquity": 8.5896465792,
+      "totalReturn": 7.5896465792,
+      "sharpe": 0.855915,
+      "maxDrawdown": 0.8374078923,
+      "totalTurnoverCost": 0.0041922378,
+      "missingPositionDays": 0,
+      "firstTs": 1592006400000,
+      "lastTs": 1781136000000,
+      "rebalanceCount": 311,
+      "meanEligible": 29.2
+    },
+    "btc": {
+      "finalEquity": 7.0460206414,
+      "totalReturn": 6.0460206414,
+      "sharpe": 0.853633,
+      "maxDrawdown": 0.7662925432,
+      "totalTurnoverCost": 0.002,
+      "missingPositionDays": 0,
+      "firstTs": 1592006400000,
+      "lastTs": 1781136000000,
+      "rebalanceCount": 311,
+      "meanEligible": 1
+    },
+    "folds": [
+      {
+        "label": "fold1",
+        "from": "2020-06-13",
+        "to": "2021-12-11",
+        "b1": {
+          "totalReturn": 44.0620968101,
+          "sharpe": 2.822137,
+          "excess": 16.9661206989
+        },
+        "b2": {
+          "totalReturn": -0.1368543846,
+          "sharpe": 0.358722,
+          "excess": -27.2328304958
+        },
+        "basket": {
+          "totalReturn": 27.0959761112,
+          "sharpe": 2.770806
+        }
+      },
+      {
+        "label": "fold2",
+        "from": "2021-12-12",
+        "to": "2023-06-11",
+        "b1": {
+          "totalReturn": -0.8115782747,
+          "sharpe": -0.732534,
+          "excess": -0.0486858439
+        },
+        "b2": {
+          "totalReturn": -0.1586535511,
+          "sharpe": 0.12774,
+          "excess": 0.6042388797
+        },
+        "basket": {
+          "totalReturn": -0.7628924308,
+          "sharpe": -0.817907
+        }
+      },
+      {
+        "label": "fold3",
+        "from": "2023-06-12",
+        "to": "2024-12-09",
+        "b1": {
+          "totalReturn": 2.2764391603,
+          "sharpe": 1.605981,
+          "excess": -0.4269888489
+        },
+        "b2": {
+          "totalReturn": -0.0534808184,
+          "sharpe": 0.436201,
+          "excess": -2.7569088276
+        },
+        "basket": {
+          "totalReturn": 2.7034280092,
+          "sharpe": 1.700059
+        }
+      },
+      {
+        "label": "fold4",
+        "from": "2024-12-10",
+        "to": "2026-06-11",
+        "b1": {
+          "totalReturn": -0.6963301666,
+          "sharpe": -0.666552,
+          "excess": 0.0217713803
+        },
+        "b2": {
+          "totalReturn": -0.1630566895,
+          "sharpe": 0.100909,
+          "excess": 0.5550448574
+        },
+        "basket": {
+          "totalReturn": -0.7181015469,
+          "sharpe": -0.83412
+        }
+      }
+    ],
+    "gates": {
+      "B1": {
+        "pass": false,
+        "reasons": [
+          "only 2/4 folds with positive excess (need ≥3)"
+        ]
+      },
+      "B2": {
+        "pass": false,
+        "reasons": [
+          "return -12.64% ≤ basket 758.96% (rotation that matches the basket is churn)",
+          "Sharpe 0.46 ≤ basket 0.86",
+          "only 2/4 folds with positive excess (need ≥3)"
+        ]
+      }
+    }
+  },
+  "subwindow": {
+    "b1": {
+      "finalEquity": 0.5300887094,
+      "totalReturn": -0.4699112906,
+      "sharpe": 0.117017,
+      "maxDrawdown": 0.7765586397,
+      "totalTurnoverCost": 0.2268,
+      "missingPositionDays": 0,
+      "firstTs": 1717200000000,
+      "lastTs": 1781136000000,
+      "rebalanceCount": 104,
+      "meanEligible": 30
+    },
+    "b2": {
+      "finalEquity": 0.8785332873,
+      "totalReturn": -0.1214667127,
+      "sharpe": 0.347026,
+      "maxDrawdown": 0.2892013762,
+      "totalTurnoverCost": 0.246,
+      "missingPositionDays": 0,
+      "firstTs": 1717200000000,
+      "lastTs": 1781136000000,
+      "rebalanceCount": 104,
+      "meanEligible": 30
+    },
+    "basket": {
+      "finalEquity": 0.497096456,
+      "totalReturn": -0.502903544,
+      "sharpe": -0.116831,
+      "maxDrawdown": 0.7831045946,
+      "totalTurnoverCost": 0.002,
+      "missingPositionDays": 0,
+      "firstTs": 1717200000000,
+      "lastTs": 1781136000000,
+      "rebalanceCount": 104,
+      "meanEligible": 30
+    },
+    "btc": {
+      "finalEquity": 0.9587862886,
+      "totalReturn": -0.0412137114,
+      "sharpe": 0.185742,
+      "maxDrawdown": 0.511588857,
+      "totalTurnoverCost": 0.002,
+      "missingPositionDays": 0,
+      "firstTs": 1717200000000,
+      "lastTs": 1781136000000,
+      "rebalanceCount": 104,
+      "meanEligible": 1
+    },
+    "folds": [
+      {
+        "label": "fold1",
+        "from": "2024-06-01",
+        "to": "2024-12-02",
+        "b1": {
+          "totalReturn": 1.2539920692,
+          "sharpe": 2.524723,
+          "excess": 0.2820345942
+        },
+        "b2": {
+          "totalReturn": 0.0181810736,
+          "sharpe": 0.63202,
+          "excess": -0.9537764014
+        },
+        "basket": {
+          "totalReturn": 0.971957475,
+          "sharpe": 2.337868
+        }
+      },
+      {
+        "label": "fold2",
+        "from": "2024-12-03",
+        "to": "2025-06-05",
+        "b1": {
+          "totalReturn": -0.5321853624,
+          "sharpe": -1.539295,
+          "excess": -0.0583446363
+        },
+        "b2": {
+          "totalReturn": -0.1734595656,
+          "sharpe": -1.255063,
+          "excess": 0.3003811605
+        },
+        "basket": {
+          "totalReturn": -0.4738407261,
+          "sharpe": -1.22244
+        }
+      },
+      {
+        "label": "fold3",
+        "from": "2025-06-06",
+        "to": "2025-12-07",
+        "b1": {
+          "totalReturn": -0.3057267421,
+          "sharpe": -0.497633,
+          "excess": -0.124230275
+        },
+        "b2": {
+          "totalReturn": -0.0175092226,
+          "sharpe": 0.457681,
+          "excess": 0.1639872445
+        },
+        "basket": {
+          "totalReturn": -0.1814964671,
+          "sharpe": -0.167676
+        }
+      },
+      {
+        "label": "fold4",
+        "from": "2025-12-08",
+        "to": "2026-06-11",
+        "b1": {
+          "totalReturn": -0.3988659241,
+          "sharpe": -1.203788,
+          "excess": -0.0706409456
+        },
+        "b2": {
+          "totalReturn": -0.0906400721,
+          "sharpe": -0.236115,
+          "excess": 0.2375849064
+        },
+        "basket": {
+          "totalReturn": -0.3282249785,
+          "sharpe": -1.054501
+        }
+      }
+    ],
+    "gates": {
+      "B1": {
+        "pass": false,
+        "reasons": [
+          "only 1/4 folds with positive excess (need ≥3)"
+        ]
+      },
+      "B2": {
+        "pass": true,
+        "reasons": []
+      }
+    }
+  }
+}

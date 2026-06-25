@@ -28,7 +28,10 @@ export function useSampleData(hasRealData: boolean, timeoutMs = 2000): SampleSig
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (hasRealData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSamples([]);
       if (timerRef.current) clearTimeout(timerRef.current);
       return;
@@ -43,13 +46,14 @@ export function useSampleData(hasRealData: boolean, timeoutMs = 2000): SampleSig
           ...s,
           _isSample: true as const,
         }));
-        setSamples(tagged);
+        if (!cancelled && !hasRealData) setSamples(tagged);
       } catch {
         // silent
       }
     }, timeoutMs);
 
     return () => {
+      cancelled = true;
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [hasRealData, timeoutMs]);

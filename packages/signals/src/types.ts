@@ -2,6 +2,17 @@ export type Direction = 'BUY' | 'SELL';
 export type Timeframe = 'M5' | 'M15' | 'H1' | 'H4' | 'D1';
 export type SignalStatus = 'active' | 'hit_tp1' | 'hit_tp2' | 'hit_tp3' | 'stopped' | 'expired';
 
+/** Human-readable strategy name derived from the signal's timeframe. */
+export type StrategyName = 'Scalper' | 'Intraday' | 'Swing';
+
+export function getStrategyName(timeframe: string): StrategyName | undefined {
+  const tf = timeframe.toUpperCase();
+  if (tf === 'M5' || tf === 'M15') return 'Scalper';
+  if (tf === 'H1') return 'Intraday';
+  if (tf === 'H4' || tf === 'D1') return 'Swing';
+  return undefined;
+}
+
 export interface TradingSignal {
   id: string;
   symbol: string;
@@ -19,6 +30,10 @@ export interface TradingSignal {
   // Web-specific (optional)
   source?: 'real' | 'fallback';
   dataQuality?: 'real' | 'synthetic';
+  /** Signal provenance — distinguishes built-in TA engine from external premium feeds. */
+  signalSource?: 'algo' | 'premium';
+  /** Human-readable strategy name derived from timeframe (Scalper / Intraday / Swing). */
+  strategyName?: StrategyName;
   /** ATR stop calibration metadata — shows whether SL uses a per-symbol calibrated multiplier or the global default. */
   atrCalibration?: { multiplier: number; confidence: 'low' | 'medium' | 'high' };
   /** ATR value in price units at the moment this signal was emitted. Persisted so calibration can grid-search without re-fetching candles. */
@@ -29,6 +44,22 @@ export interface TradingSignal {
   skill?: string;
   /** Which strategy preset generated this signal. Matches SIGNAL_ENGINE_PRESET env var. */
   strategyId?: string;
+  // Calibration features (optional; engine-makeover Phase 4 D4) — surfaced from
+  // the MTF re-boost path so they can be persisted at emission. Only the
+  // TA-fallback path populates these; scanner rows leave them undefined. Mobile
+  // ignores unknown payload fields, so adding them is contract-safe.
+  /** TA-engine confidence BEFORE the MTF confluence bonus was applied (0-100). */
+  preBoostConfidence?: number;
+  /**
+   * Agreement count from signal-generator.ts's 4-timeframe generateMultiTFSignal
+   * survey (range 0-4) — how many of the 4 surveyed timeframes agreed on the
+   * dominant direction at emission. NOTE for calibrator authors: this is NOT
+   * the same as the 3-timeframe `agreementCount` on current.ts's separate
+   * MultiTFResult (range 0-3); only the 4-TF survey feeds the persisted value.
+   */
+  mtfAgreement?: number;
+  /** Confluence bonus actually added to preBoostConfidence (e.g. +15 / +10 / +5 / -20 / 0). */
+  confluenceBonus?: number;
 }
 
 export interface IndicatorSummary {

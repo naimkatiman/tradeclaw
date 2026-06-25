@@ -187,8 +187,9 @@ export default function LiveClient() {
     void fetchSignals();
     void fetchHourCount();
 
-    // Table refreshes every 10s
-    pollRef.current = setInterval(() => void fetchSignals(), 10_000);
+    // Table refreshes every 60s — the engine itself only produces new
+    // signals on a 5-min cadence, so faster polling is pure server load.
+    pollRef.current = setInterval(() => void fetchSignals(), 60_000);
     // Hour counter refreshes every 30s
     counterPollRef.current = setInterval(() => void fetchHourCount(), 30_000);
     // Clock tick every second

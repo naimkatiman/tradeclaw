@@ -221,9 +221,10 @@ export function ComparisonTable() {
         </div>
 
         <p className="mt-6 text-center text-xs text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
-          92% of traders using generic AI agents for trading lost money in 2025.
           Purpose-built tools with transparent, auditable technical analysis
-          outperform black-box agent plugins. Prices as of March 2026.
+          are easier to audit than black-box agent plugins: every TradeClaw
+          signal shows its indicator inputs and is tracked publicly after the
+          fact. Prices as of March 2026.
         </p>
       </div>
     </section>

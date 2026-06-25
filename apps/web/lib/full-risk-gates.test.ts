@@ -14,13 +14,13 @@ import type { SignalHistoryRecord, SignalOutcome } from './signal-history';
 const win = (pnl: number): ResolvedOutcome => ({ hit: true, pnlPct: pnl });
 const loss = (pnl: number): ResolvedOutcome => ({ hit: false, pnlPct: pnl });
 
-describe('computeGateState — default (neutral) regime', () => {
+describe('computeGateState — default (range) regime', () => {
   test('empty history → allow (fail-open)', () => {
     const state = computeGateState([]);
     expect(state.gatesAllow).toBe(true);
     expect(state.reason).toBeNull();
     expect(state.dataPoints).toBe(0);
-    expect(state.regime).toBe('neutral');
+    expect(state.regime).toBe('range');
   });
 
   test(`last ${STREAK_N} all losses → block (streak gate)`, () => {
@@ -85,33 +85,33 @@ describe('computeGateState — default (neutral) regime', () => {
 
 describe('computeGateState — regime-aware thresholds', () => {
   test('getGateThresholds returns correct table per regime', () => {
-    expect(getGateThresholds('crash')).toEqual(GATE_THRESHOLDS_BY_REGIME.crash);
-    expect(getGateThresholds('bull')).toEqual(GATE_THRESHOLDS_BY_REGIME.bull);
-    expect(getGateThresholds('neutral').streakN).toBe(STREAK_N);
-    expect(getGateThresholds('neutral').drawdownThreshold).toBe(DRAWDOWN_THRESHOLD);
+    expect(getGateThresholds('volatile')).toEqual(GATE_THRESHOLDS_BY_REGIME.volatile);
+    expect(getGateThresholds('trend')).toEqual(GATE_THRESHOLDS_BY_REGIME.trend);
+    expect(getGateThresholds('range').streakN).toBe(STREAK_N);
+    expect(getGateThresholds('range').drawdownThreshold).toBe(DRAWDOWN_THRESHOLD);
   });
 
-  test('crash regime: 2 consecutive losses trigger streak (neutral would not)', () => {
+  test('volatile regime: 2 consecutive losses trigger streak (range would not)', () => {
     const hist: ResolvedOutcome[] = [loss(-1), loss(-1)];
-    expect(computeGateState(hist, 'neutral').gatesAllow).toBe(true);  // neutral needs 3
-    const crashState = computeGateState(hist, 'crash');
-    expect(crashState.gatesAllow).toBe(false);
-    expect(crashState.reason).toMatch(/streak_blocked.*regime=crash/);
-    expect(crashState.thresholds.streakN).toBe(2);
+    expect(computeGateState(hist, 'range').gatesAllow).toBe(true);  // range needs 3
+    const volatileState = computeGateState(hist, 'volatile');
+    expect(volatileState.gatesAllow).toBe(false);
+    expect(volatileState.reason).toMatch(/streak_blocked.*regime=volatile/);
+    expect(volatileState.thresholds.streakN).toBe(2);
   });
 
-  test('bull regime: 3 consecutive losses do NOT trigger streak (neutral would)', () => {
+  test('trend regime: 3 consecutive losses do NOT trigger streak (range would)', () => {
     const hist: ResolvedOutcome[] = [loss(-1), loss(-1), loss(-1)];
-    expect(computeGateState(hist, 'neutral').gatesAllow).toBe(false); // blocks at 3
-    const bullState = computeGateState(hist, 'bull');
-    expect(bullState.gatesAllow).toBe(true);                          // bull needs 4
-    expect(bullState.streakLossCount).toBe(3);
-    expect(bullState.thresholds.streakN).toBe(4);
+    expect(computeGateState(hist, 'range').gatesAllow).toBe(false); // blocks at 3
+    const trendState = computeGateState(hist, 'trend');
+    expect(trendState.gatesAllow).toBe(true);                       // trend needs 4
+    expect(trendState.streakLossCount).toBe(3);
+    expect(trendState.thresholds.streakN).toBe(4);
   });
 
-  test('bull regime: ~11% drawdown does NOT trigger (neutral would block at 10%)', () => {
-    // Same shape as the neutral drawdown test but ends with a small win so
-    // the newest-4 window for bull (streakN=4) does not trip the streak gate.
+  test('trend regime: ~11% drawdown does NOT trigger (range would block at 10%)', () => {
+    // Same shape as the range drawdown test but ends with a small win so
+    // the newest-4 window for trend (streakN=4) does not trip the streak gate.
     // Sequence produces ~11% drawdown from the run-up peak.
     const oldestFirst: ResolvedOutcome[] = [
       win(5), win(5), win(5), win(5), win(5),
@@ -122,89 +122,89 @@ describe('computeGateState — regime-aware thresholds', () => {
     ];
     const newestFirst = oldestFirst.slice().reverse();
 
-    // Neutral: DD ~11% > 10% → blocked (DD gate, streak only at 2)
-    expect(computeGateState(newestFirst, 'neutral').gatesAllow).toBe(false);
+    // Range: DD ~11% > 10% → blocked (DD gate, streak only at 2)
+    expect(computeGateState(newestFirst, 'range').gatesAllow).toBe(false);
 
-    // Bull: streakN=4, newest window [win, loss, loss, loss] → 3/4, no streak
+    // Trend: streakN=4, newest window [win, loss, loss, loss] → 3/4, no streak
     // block. DD ~11% < 15% threshold → DD doesn't fire either. Allow.
-    const bullState = computeGateState(newestFirst, 'bull');
-    expect(bullState.gatesAllow).toBe(true);
-    expect(bullState.currentDrawdownPct).toBeLessThan(
-      GATE_THRESHOLDS_BY_REGIME.bull.drawdownThreshold * 100,
+    const trendState = computeGateState(newestFirst, 'trend');
+    expect(trendState.gatesAllow).toBe(true);
+    expect(trendState.currentDrawdownPct).toBeLessThan(
+      GATE_THRESHOLDS_BY_REGIME.trend.drawdownThreshold * 100,
     );
   });
 
   test('vol scaling off by default: computeGateState returns multiplier=1.0', () => {
-    const state = computeGateState([], 'neutral');
+    const state = computeGateState([], 'range');
     expect(state.volMultiplier).toBe(1.0);
     expect(state.effectiveDrawdownThreshold).toBe(
-      GATE_THRESHOLDS_BY_REGIME.neutral.drawdownThreshold,
+      GATE_THRESHOLDS_BY_REGIME.range.drawdownThreshold,
     );
   });
 
-  test('crash regime: 6% drawdown triggers (neutral would allow at 10%)', () => {
+  test('volatile regime: 6% drawdown triggers (range would allow at 10%)', () => {
     // Sequence producing ~6% drawdown: 3 wins +3% then 6 losses of -1.2%
     // Peak after wins ≈ 10927, then 6×(-1.2%) → ≈ 10165, DD ≈ 6.97%
     const oldestFirst: ResolvedOutcome[] = [
       win(3), win(3), win(3),
-      // Avoid a loss streak longer than crash.streakN - 1 = 1 by interleaving
-      // wins of 0% so we isolate the drawdown gate behavior.
+      // Avoid a loss streak longer than volatile.streakN - 1 = 1 by
+      // interleaving wins of 0% so we isolate the drawdown gate behavior.
       loss(-1.2), win(0), loss(-1.2), win(0),
       loss(-1.2), win(0), loss(-1.2), win(0),
       loss(-1.2), win(0), loss(-1.2),
     ];
     const newestFirst = oldestFirst.slice().reverse();
 
-    // Neutral: DD threshold 10%, this sequence is ~7% → allow
-    expect(computeGateState(newestFirst, 'neutral').gatesAllow).toBe(true);
+    // Range: DD threshold 10%, this sequence is ~7% → allow
+    expect(computeGateState(newestFirst, 'range').gatesAllow).toBe(true);
 
-    // Crash: DD threshold 5%, streakN 2 — interleaved zeros mean no 2-loss
+    // Volatile: DD threshold 5%, streakN 2 — interleaved zeros mean no 2-loss
     // streak triggers, but DD > 5% should fire.
-    const crashState = computeGateState(newestFirst, 'crash');
-    expect(crashState.gatesAllow).toBe(false);
-    expect(crashState.reason).toMatch(/drawdown_blocked.*regime=crash/);
-    expect(crashState.currentDrawdownPct).toBeGreaterThan(
-      GATE_THRESHOLDS_BY_REGIME.crash.drawdownThreshold * 100,
+    const volatileState = computeGateState(newestFirst, 'volatile');
+    expect(volatileState.gatesAllow).toBe(false);
+    expect(volatileState.reason).toMatch(/drawdown_blocked.*regime=volatile/);
+    expect(volatileState.currentDrawdownPct).toBeGreaterThan(
+      GATE_THRESHOLDS_BY_REGIME.volatile.drawdownThreshold * 100,
     );
   });
 });
 
 describe('computeVolMultiplier', () => {
   test('returns 1.0 for < 5 samples (not enough signal)', () => {
-    expect(computeVolMultiplier([win(1), loss(-1), win(1), loss(-1)], 'neutral')).toBe(1.0);
+    expect(computeVolMultiplier([win(1), loss(-1), win(1), loss(-1)], 'range')).toBe(1.0);
   });
 
   test('returns 1.0 when realized stddev matches regime baseline', () => {
-    // Neutral baseline is 1.5%. Build a sample with stddev ≈ 1.5.
+    // Range baseline is 1.5%. Build a sample with stddev ≈ 1.5.
     // Values alternating ±1.5 have mean 0, stddev = 1.5.
     const samples: ResolvedOutcome[] = [
       win(1.5), loss(-1.5), win(1.5), loss(-1.5),
       win(1.5), loss(-1.5), win(1.5), loss(-1.5),
     ];
-    const mult = computeVolMultiplier(samples, 'neutral');
+    const mult = computeVolMultiplier(samples, 'range');
     expect(mult).toBeCloseTo(1.0, 1);
   });
 
   test('clamps to 1.5 in high vol (stddev >> baseline)', () => {
-    // Neutral baseline 1.5. Values alternating ±5% → stddev 5 → ratio 3.33 → clamped to 1.5.
+    // Range baseline 1.5. Values alternating ±5% → stddev 5 → ratio 3.33 → clamped to 1.5.
     const samples: ResolvedOutcome[] = [
       win(5), loss(-5), win(5), loss(-5),
       win(5), loss(-5), win(5), loss(-5),
     ];
-    expect(computeVolMultiplier(samples, 'neutral')).toBe(1.5);
+    expect(computeVolMultiplier(samples, 'range')).toBe(1.5);
   });
 
   test('clamps to 0.75 in low vol (stddev << baseline)', () => {
-    // Neutral baseline 1.5. Values ±0.2% → stddev 0.2 → ratio 0.13 → clamped to 0.75.
+    // Range baseline 1.5. Values ±0.2% → stddev 0.2 → ratio 0.13 → clamped to 0.75.
     const samples: ResolvedOutcome[] = [
       win(0.2), loss(-0.2), win(0.2), loss(-0.2),
       win(0.2), loss(-0.2), win(0.2), loss(-0.2),
     ];
-    expect(computeVolMultiplier(samples, 'neutral')).toBe(0.75);
+    expect(computeVolMultiplier(samples, 'range')).toBe(0.75);
   });
 
   test('vol-scaled state: high vol loosens DD threshold', () => {
-    // Same ~11% DD sequence that gets blocked on static neutral.
+    // Same ~11% DD sequence that gets blocked on static range thresholds.
     const oldestFirst: ResolvedOutcome[] = [
       win(5), win(5), win(5), win(5), win(5),
       loss(-1), loss(-1), loss(-1), loss(-1), loss(-1),
@@ -213,16 +213,16 @@ describe('computeVolMultiplier', () => {
     ];
     const newestFirst = oldestFirst.slice().reverse();
 
-    const staticState = computeGateState(newestFirst, 'neutral');
+    const staticState = computeGateState(newestFirst, 'range');
     expect(staticState.gatesAllow).toBe(false); // 11% > 10%
 
     // With vol scaling: this sequence has high realized stddev (mix of +5 and -1)
     // which lifts the multiplier above 1.0, pushing the effective DD threshold
     // above 10% — should now allow.
-    const scaledState = computeGateState(newestFirst, 'neutral', { volScaling: true });
+    const scaledState = computeGateState(newestFirst, 'range', { volScaling: true });
     expect(scaledState.volMultiplier).toBeGreaterThan(1.0);
     expect(scaledState.effectiveDrawdownThreshold).toBeGreaterThan(
-      GATE_THRESHOLDS_BY_REGIME.neutral.drawdownThreshold,
+      GATE_THRESHOLDS_BY_REGIME.range.drawdownThreshold,
     );
   });
 

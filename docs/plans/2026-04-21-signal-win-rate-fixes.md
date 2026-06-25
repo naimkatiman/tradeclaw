@@ -1,6 +1,6 @@
 # Signal Win-Rate Fixes Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Fix the local signal scanner's reported 26% win rate by correcting TP/SL geometry, win-counting math, missing OHLC data for forex/metals, blacklist gaps, and legacy stats pollution.
 
@@ -37,7 +37,7 @@ No new files. No test infrastructure exists in `scripts/` — verification is pe
 - Modify: `scripts/scanner-engine.py:603-612` (confluence TP/SL)
 - Modify: `scripts/signal-outcome-checker.py:23-25` (stale comment about TP1 multiplier)
 
-- [ ] **Step 1: Open `scripts/scanner-engine.py` and find the Zaky-strategy TP/SL block (around line 289).** Confirm the current text is:
+- [x] **Step 1: Open `scripts/scanner-engine.py` and find the Zaky-strategy TP/SL block (around line 289).** Confirm the current text is:
 
 ```python
         # TP/SL from ATR — R:R = 1:2 / 1:3 (risk 1.5 ATR to gain 3.0/4.5 ATR)
@@ -51,7 +51,7 @@ No new files. No test infrastructure exists in `scripts/` — verification is pe
             sl  = round(close + atr * 1.5, 6)
 ```
 
-- [ ] **Step 2: Replace with the tightened multipliers:**
+- [x] **Step 2: Replace with the tightened multipliers:**
 
 ```python
         # TP/SL from ATR — R:R = 1:1.33 / 1:2 (risk 1.5 ATR to gain 2.0/3.0 ATR)
@@ -67,7 +67,7 @@ No new files. No test infrastructure exists in `scripts/` — verification is pe
             sl  = round(close + atr * 1.5, 6)
 ```
 
-- [ ] **Step 3: Find the confluence-path TP/SL block (around line 603).** Confirm the current text is:
+- [x] **Step 3: Find the confluence-path TP/SL block (around line 603).** Confirm the current text is:
 
 ```python
             # TP/SL scaled for 4h outcome window:
@@ -82,7 +82,7 @@ No new files. No test infrastructure exists in `scripts/` — verification is pe
                 sl  = round(entry + atr * 1.5, 6)
 ```
 
-- [ ] **Step 4: Replace with the tightened multipliers:**
+- [x] **Step 4: Replace with the tightened multipliers:**
 
 ```python
             # TP/SL scaled for 8h outcome window (per signal-outcome-checker.py):
@@ -98,7 +98,7 @@ No new files. No test infrastructure exists in `scripts/` — verification is pe
                 sl  = round(entry + atr * 1.5, 6)
 ```
 
-- [ ] **Step 5: Update the stale comment in `scripts/signal-outcome-checker.py` (lines 23-25).** Current text:
+- [x] **Step 5: Update the stale comment in `scripts/signal-outcome-checker.py` (lines 23-25).** Current text:
 
 ```python
 # How long to wait before checking outcome.
@@ -117,15 +117,15 @@ Replace with:
 OUTCOME_WINDOW_HOURS = 8
 ```
 
-- [ ] **Step 6: Verify no `* 3.0` or `* 4.5` ATR multipliers remain in either file.**
+- [x] **Step 6: Verify no old TP1 `3.0`/`4.5` ATR multipliers remain in either file.**
 
 Run:
 ```bash
-grep -nE 'atr \* [34]\.' scripts/scanner-engine.py scripts/signal-outcome-checker.py
+grep -nE 'tp1 = .*\* 3\.0|tp1 = .*\* 4\.5|TP1 = 3\.0x ATR|TP1 = 4\.5x ATR' scripts/scanner-engine.py scripts/signal-outcome-checker.py
 ```
 Expected: no output (nothing matches).
 
-- [ ] **Step 7: Smoke-test the scanner runs without error.**
+- [x] **Step 7: Smoke-test the scanner runs without error.**
 
 Run:
 ```bash
@@ -133,7 +133,7 @@ cd /home/naim/.openclaw/workspace/tradeclaw && python3 scripts/scanner-engine.py
 ```
 Expected: prints `Done: N confluence | M individual | 0 errors` and any signals fired show TP1 closer to entry than before. No tracebacks.
 
-- [ ] **Step 8: Commit.**
+- [x] **Step 8: Commit.**
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw
@@ -153,7 +153,7 @@ git commit -m "fix(scanner): tighten TP1 to 2× ATR so 8h outcome window can rea
 - Modify: `scripts/signal-outcome-checker.py:199-211` (per-symbol win rates printed each run)
 - Modify: `scripts/signal-outcome-checker.py:213-219` (overall win rate driving adaptive threshold)
 
-- [ ] **Step 1: Update `get_win_rates` in `scripts/scanner-engine.py`.** Find the SQL (around line 405) and replace the `wins`/`losses` aggregations:
+- [x] **Step 1: Update `get_win_rates` in `scripts/scanner-engine.py`.** Find the SQL (around line 405) and replace the `wins`/`losses` aggregations:
 
 Current:
 ```python
@@ -183,7 +183,7 @@ Replace with:
         """)
 ```
 
-- [ ] **Step 2: Update the row unpacking + dict in `get_win_rates`.** Just below the SQL, find:
+- [x] **Step 2: Update the row unpacking + dict in `get_win_rates`.** Just below the SQL, find:
 
 ```python
         for row in cursor.fetchall():
@@ -210,7 +210,7 @@ Replace with (rename local variable; keep dict key `win_rate` so callers/output 
             }
 ```
 
-- [ ] **Step 3: Update the cooldown logic in `scripts/scanner-engine.py` (around line 899).** It currently uses `last_outcome[1] < 0.3` (an accuracy threshold) to extend the cooldown. Switch to outcome-based.
+- [x] **Step 3: Update the cooldown logic in `scripts/scanner-engine.py` (around line 899).** It currently uses `last_outcome[1] < 0.3` (an accuracy threshold) to extend the cooldown. Switch to outcome-based.
 
 Current:
 ```python
@@ -234,7 +234,7 @@ Replace with:
                     cooldown_hours = 12  # extend cooldown after a loss
 ```
 
-- [ ] **Step 4: Update the per-symbol stats query in `scripts/signal-outcome-checker.py` (around line 199).**
+- [x] **Step 4: Update the per-symbol stats query in `scripts/signal-outcome-checker.py` (around line 199).**
 
 Current:
 ```python
@@ -270,7 +270,7 @@ Replace with:
             print(f"  {r['symbol']} {r['signal']}: {r['win_rate_pct']}% win rate ({r['wins']}/{r['total']} wins)")
 ```
 
-- [ ] **Step 5: Update the overall stats query + adaptive-threshold block in `scripts/signal-outcome-checker.py` (around line 213).**
+- [x] **Step 5: Update the overall stats query + adaptive-threshold block in `scripts/signal-outcome-checker.py` (around line 213).**
 
 Current:
 ```python
@@ -327,7 +327,7 @@ Replace with (use outcome-based win rate, exclude LEGACY, keep the same threshol
 
 (Emoji removed per global rules — `lucide icons. Do not use emoji.`)
 
-- [ ] **Step 6: Verify with the DB.** Run:
+- [x] **Step 6: Verify with the DB.** Run:
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw && python3 -c "
@@ -348,14 +348,14 @@ Expected output (approximately, before any backfill):
 total=146 wins=70 win_rate=47.9%
 ```
 
-- [ ] **Step 7: Smoke-test the outcome checker.**
+- [x] **Step 7: Smoke-test the outcome checker.**
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw && python3 scripts/signal-outcome-checker.py 2>&1 | tail -40
 ```
 Expected: per-symbol lines say "win rate" not "avg accuracy"; final line says `Overall win rate: 47.x% (70/146 wins)` (or close, depending on what new outcomes finalized this run); the threshold file may flip from `75` → `70` if win rate now exceeds 70% on more recent rows.
 
-- [ ] **Step 8: Commit.**
+- [x] **Step 8: Commit.**
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw
@@ -372,7 +372,7 @@ git commit -m "fix(signals): count EXPIRED_PROFIT as a win in win-rate stats"
 **Files:**
 - Modify: `scripts/signal-outcome-checker.py:78-116` (`get_price_range`)
 
-- [ ] **Step 1: Find the existing `get_price_range` function in `scripts/signal-outcome-checker.py` (lines 78-116).**
+- [x] **Step 1: Find the existing `get_price_range` function in `scripts/signal-outcome-checker.py` (lines 78-116).**
 
 Current end-of-function fallback:
 ```python
@@ -383,7 +383,7 @@ Current end-of-function fallback:
     return None
 ```
 
-- [ ] **Step 2: Replace the entire fallback block with a yfinance OHLC fetch over the actual window.** Insert immediately before the snapshot fallback so Yahoo OHLC is tried first, snapshot becomes last-resort:
+- [x] **Step 2: Replace the entire fallback block with a yfinance OHLC fetch over the actual window.** Insert immediately before the snapshot fallback so Yahoo OHLC is tried first, snapshot becomes last-resort:
 
 ```python
     # Yahoo Finance fallback: fetch OHLC over the actual outcome window.
@@ -415,7 +415,7 @@ Current end-of-function fallback:
     return None
 ```
 
-- [ ] **Step 3: Verify yfinance is installed.**
+- [x] **Step 3: Verify yfinance is installed.**
 
 Run:
 ```bash
@@ -423,7 +423,7 @@ python3 -c "import yfinance; print(yfinance.__version__)"
 ```
 Expected: a version string (already imported elsewhere in the file). If `ModuleNotFoundError`, install with `pip install yfinance` and rerun. (Do not add yfinance to a `requirements.txt` in this task — it's already a runtime dep used by `get_current_price`.)
 
-- [ ] **Step 4: Smoke-test the new path on a forex symbol.** The script filename has a hyphen, so import via `importlib`. Run from the `scripts/` directory:
+- [x] **Step 4: Smoke-test the new path on a forex symbol.** The script filename has a hyphen, so import via `importlib`. Run from the `scripts/` directory:
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw/scripts && python3 -c "
@@ -440,7 +440,7 @@ print('high != low?', result[0] != result[1] if result else 'N/A — got None')
 ```
 Expected: `high != low` (proves OHLC came from Yahoo history, not the snapshot fallback). If `high == low`, yfinance returned no rows for that window — fine for very recent timestamps but flag if it happens for a >24h-old signal.
 
-- [ ] **Step 5: Re-evaluate forex/metals signals with the new data.** This is a one-shot DB update — clear `outcome` for blacklisted/forex rows so the next checker run re-evaluates them with real OHLC:
+- [x] **Step 5: Re-evaluate forex/metals signals with the new data.** This is a one-shot DB update — clear `outcome` for blacklisted/forex rows so the next checker run re-evaluates them with real OHLC:
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw && python3 -c "
@@ -452,14 +452,14 @@ print(f'cleared {n} forex/metals signals for re-evaluation')
 "
 ```
 
-- [ ] **Step 6: Run the outcome checker to re-evaluate.**
+- [x] **Step 6: Run the outcome checker to re-evaluate.**
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw && python3 scripts/signal-outcome-checker.py 2>&1 | tail -30
 ```
 Expected: per-row lines for forex/metals show `[H=... L=... C=...]` with three different numbers (not the single-price form). At least some rows that were previously `SL_HIT` or `EXPIRED_LOSS` should now be `TP1_HIT` or `EXPIRED_PROFIT` because the checker can now see intra-window highs/lows.
 
-- [ ] **Step 7: Commit.**
+- [x] **Step 7: Commit.**
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw
@@ -476,7 +476,7 @@ git commit -m "fix(checker): fetch yfinance OHLC over outcome window for forex/m
 **Files:**
 - Modify: `scripts/scanner-engine.py:56-61` (`BLACKLISTED_COMBOS`)
 
-- [ ] **Step 1: Open `scripts/scanner-engine.py` and find `BLACKLISTED_COMBOS` (line 58).**
+- [x] **Step 1: Open `scripts/scanner-engine.py` and find `BLACKLISTED_COMBOS` (line 58).**
 
 Current:
 ```python
@@ -486,7 +486,7 @@ BLACKLISTED_COMBOS = {
 }
 ```
 
-- [ ] **Step 2: Add `BNBUSDT_SELL`:**
+- [x] **Step 2: Add `BNBUSDT_SELL`:**
 
 ```python
 BLACKLISTED_COMBOS = {
@@ -495,13 +495,13 @@ BLACKLISTED_COMBOS = {
 }
 ```
 
-- [ ] **Step 3: Verify the entry is present.** Run:
+- [x] **Step 3: Verify the entry is present.** Run:
 ```bash
 grep -n 'BNBUSDT_SELL' scripts/scanner-engine.py
 ```
 Expected: at least one line within the `BLACKLISTED_COMBOS` set.
 
-- [ ] **Step 4: Commit.**
+- [x] **Step 4: Commit.**
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw
@@ -518,7 +518,7 @@ git commit -m "fix(scanner): blacklist BNBUSDT_SELL — 0/6 win rate in audit"
 **Files:**
 - Migrate: `scripts/signals.db` (one-shot SQL UPDATE)
 
-- [ ] **Step 1: Snapshot the DB first** (so the change is reversible):
+- [x] **Step 1: Snapshot the DB first** (so the change is reversible):
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw && cp scripts/signals.db "scripts/signals.db.bak.$(date +%Y%m%d-%H%M%S)"
@@ -526,7 +526,7 @@ ls -lh scripts/signals.db scripts/signals.db.bak.*
 ```
 Expected: original + new `.bak.<timestamp>` file of the same size.
 
-- [ ] **Step 2: See exactly what would change before mutating.** Run:
+- [x] **Step 2: See exactly what would change before mutating.** Run:
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw && python3 -c "
@@ -541,7 +541,7 @@ for combo in BL:
 ```
 Expected: a list with row counts per combo (USDJPY_BUY ~14, SOLUSDT_SELL ~11, etc.).
 
-- [ ] **Step 3: Apply the migration.** Run:
+- [x] **Step 3: Apply the migration.** Run:
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw && python3 -c "
@@ -564,7 +564,7 @@ print(f'total: {total}')
 ```
 Expected: prints per-combo counts and a total. Total should match the sum from Step 2.
 
-- [ ] **Step 4: Verify the new overall win rate.** Run:
+- [x] **Step 4: Verify the new overall win rate.** Run:
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw && python3 -c "
@@ -581,7 +581,7 @@ print(f'post-migration: total={r[0]} wins={r[1]} win_rate={r[2]}%')
 ```
 Expected: a higher win rate than the ~48% from Task 2's verification (the legacy-bad combos no longer count). Likely in the 55-65% range — exact value depends on the data at run time.
 
-- [ ] **Step 5: Commit.** The DB is `.gitignore`d in most setups, so verify before staging:
+- [x] **Step 5: Commit.** The DB is `.gitignore`d in most setups, so verify before staging:
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw && git check-ignore scripts/signals.db || echo "NOT IGNORED - DB will be committed"
@@ -599,13 +599,17 @@ git commit -m "chore(signals): mark past blacklisted-combo outcomes as LEGACY"
 
 Either way, leave the `scripts/signals.db.bak.*` snapshot in place for one week before deleting.
 
+**Status — 2026-05-20:** Applied locally. 55 historical rows across the eight blacklisted combos were marked `LEGACY`; the non-LEGACY baseline now reads 244 total / 137 wins / 56.1% win rate.
+
+**Task 6 verification — 2026-05-20:** Final head-to-head query now shows 92/299 = 30.8% under the old accuracy rule versus 152/299 = 50.8% under outcome-based counting. `python3 scripts/signal-outcome-checker.py` reports `No signals updated this run.` and `npm run build` passes.
+
 ---
 
 ## Task 6: Final verification + plan link in commit history
 
 **Why:** Confirm the cumulative change moves the win rate decisively above the 26% baseline and tie the work to the plan doc per the global rule "cite [plan] in the commit".
 
-- [ ] **Step 1: Run a head-to-head comparison query.**
+- [x] **Step 1: Run a head-to-head comparison query.**
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw && python3 -c "
@@ -628,7 +632,7 @@ NEW (outcome-based, no LEGACY):    ~50/80  = ~60%+
 ```
 Exact numbers depend on what Task 3 re-evaluation produced and how many rows Task 5 marked LEGACY.
 
-- [ ] **Step 2: One full end-to-end cycle.** Run scanner then checker to confirm the full loop is healthy:
+- [x] **Step 2: One full end-to-end cycle.** Run scanner then checker to confirm the full loop is healthy:
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw && python3 scripts/scanner-engine.py 2>&1 | tail -10
@@ -637,7 +641,7 @@ python3 scripts/signal-outcome-checker.py 2>&1 | tail -10
 ```
 Expected: scanner produces signals (or "0 confluence" if market is dead), checker prints per-symbol "win rate" lines and overall win rate matching Step 1.
 
-- [ ] **Step 3: Tag the plan in a follow-up commit message** (per global CLAUDE.md "cite it in the commit"). If you used a single rolling commit per task above, this step is no-op — the previous five commits already exist. Otherwise, append a `docs:` commit:
+- [x] **Step 3: Tag the plan in a follow-up commit message** (per global CLAUDE.md "cite it in the commit"). If you used a single rolling commit per task above, this step is no-op — the previous five commits already exist. Otherwise, append a `docs:` commit:
 
 ```bash
 cd /home/naim/.openclaw/workspace/tradeclaw
@@ -645,7 +649,7 @@ git log --oneline -7
 ```
 Expected: the five commits from Tasks 1-5 (or 4, if the DB commit was skipped) all visible. If any commit message is missing the plan reference, fix forward with a future commit — never amend.
 
-- [ ] **Step 4: Update memory.** Save the new baseline win rate so future audits have a reference point:
+- [x] **Step 4: Update memory.** Save the new baseline win rate so future audits have a reference point:
 
 Add to `/home/naim/.claude/projects/-home-naim--openclaw-workspace-tradeclaw/memory/` as `project_signal_win_rate_baseline.md` (frontmatter + one-line index entry in `MEMORY.md`). Body should record: `Post-fix win rate as of 2026-04-21: <NEW%> on <total> non-LEGACY rows. Prior baseline 26% under accuracy>=0.5. Driven by docs/plans/2026-04-21-signal-win-rate-fixes.md.`
 

@@ -8,13 +8,13 @@ export type {
   AllocationResult,
   PortfolioState,
   PositionSummary,
-} from './types';
+} from './types.js';
 
 // Regime rules
 export {
   REGIME_ALLOCATION_RULES,
   getAllocationRules,
-} from './regime-rules';
+} from './regime-rules.js';
 
 // Allocator
 export {
@@ -23,5 +23,5 @@ export {
   SYMBOL_TIER,
   getSymbolTier,
   getTierWeight,
-} from './allocator';
-export type { SignalInput } from './allocator';
+} from './allocator.js';
+export type { SignalInput } from './allocator.js';

@@ -17,7 +17,7 @@ export function getPool(): Pool {
       ssl: connectionString.includes('railway.app')
         ? { rejectUnauthorized: false }
         : false,
-      max: 10,
+      max: 30,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
     });

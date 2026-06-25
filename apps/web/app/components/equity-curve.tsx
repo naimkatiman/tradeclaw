@@ -101,7 +101,7 @@ function drawChart(
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillText(
-      'Performance tracking will begin once signals are recorded and verified',
+      'Performance tracking will begin once signals are recorded and resolved',
       w / 2,
       midY + 24,
     );
@@ -291,7 +291,7 @@ function drawChart(
   };
 }
 
-type EquityScope = 'pro' | 'free';
+type EquityScope = 'pro' | 'free' | 'broadcast';
 type EquityBand = 'all' | 'premium' | 'standard';
 
 interface EquityCurveProps {
@@ -367,12 +367,26 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
     ? +(HYPOTHETICAL_START * (1 + summary.totalReturn / 100)).toFixed(0)
     : HYPOTHETICAL_START;
 
+  // Distinct UTC calendar days the Sharpe is computed over. Each point is one
+  // sized trade; Sharpe buckets these by day, so the honest N for a daily-
+  // bucketed annualized Sharpe is the day count, not the trade count. A 5-day
+  // Sharpe must not read like a 500-day one.
+  const sharpeDays = points.length
+    ? new Set(points.map(p => new Date(p.timestamp).toISOString().slice(0, 10))).size
+    : 0;
+
+  // Date range the window actually covers — first→last sized trade.
+  const rangeLabel = points.length
+    ? `${formatDate(points[0].timestamp)} – ${formatDate(points[points.length - 1].timestamp)}`
+    : null;
+
   const isPro = scope === 'pro';
+  const isBroadcast = scope === 'broadcast';
 
   return (
     <section
       className={`glass-card rounded-2xl p-5 mb-6 border-l-2 ${
-        isPro ? 'border-emerald-500/50' : 'border-white/10'
+        isPro ? 'border-emerald-500/50' : isBroadcast ? 'border-cyan-500/50' : 'border-white/10'
       }`}
     >
       {/* Header */}
@@ -384,21 +398,27 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
               className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider ${
                 isPro
                   ? 'bg-emerald-500/15 text-emerald-400'
-                  : 'bg-white/[0.06] text-zinc-400'
+                  : isBroadcast
+                    ? 'bg-cyan-500/15 text-cyan-400'
+                    : 'bg-white/[0.06] text-zinc-400'
               }`}
             >
               <Lock className="h-3 w-3" aria-hidden="true" />
-              {isPro ? 'Pro' : 'Free'} view
+              {isPro ? 'Pro' : isBroadcast ? 'Broadcast' : 'Free'} view
             </span>
           </h2>
           <p className="text-[11px] text-zinc-600 mt-0.5">
             {isPro
               ? summary
-                ? `Full Pro track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per trade` : ''}, after ${summary.roundTripCostPct}% round-trip costs. Verified against real market data.`
-                : 'Full Pro track record. Verified against real market data.'
-              : summary
-                ? `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after costs.`
-                : `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see.`}
+                ? `Full Pro track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per trade` : ''}, after ${summary.roundTripCostPct}% round-trip costs. Resolved against Binance/Yahoo OHLCV.`
+                : 'Full Pro track record. Resolved against Binance/Yahoo OHLCV.'
+              : isBroadcast
+                ? summary
+                  ? `Gate-approved broadcast subset — decisions recorded since 2026-06-10. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after ${summary.roundTripCostPct}% round-trip costs.`
+                  : 'Gate-approved broadcast subset — decisions recorded since 2026-06-10.'
+                : summary
+                  ? `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after costs.`
+                  : `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see.`}
           </p>
           {summary && summary.sizedTrades !== undefined && summary.sizedTrades > 0 && (
             <p className="text-[10px] text-zinc-600 mt-1">
@@ -454,6 +474,23 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
           </button>
         </div>
       </div>
+
+      {/* Persistent smoothed-curve banner — when the P95 clip is ACTIVE the
+         curve is NOT the raw paper-trade path. The tiny toggle label alone is
+         easy to miss in a shared or embedded screenshot, so surface a visible
+         amber banner whenever smooth mode is on, regardless of whether a cap
+         was computed. */}
+      {smooth && (
+        <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-300">
+          <span aria-hidden="true" className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-400" />
+          <span>
+            Outlier-smoothed view (P95-clipped) — this is <strong>not</strong> the raw equity path.
+            The top and bottom 5% of trade outcomes are clamped
+            {smoothMeta?.capR != null ? ` to ±${smoothMeta.capR}R` : ''}; raw drawdown is larger.
+            Turn off &ldquo;Smoothed&rdquo; for the unmodified curve.
+          </span>
+        </div>
+      )}
 
       {/* Stats overlay — Total Return and Max Drawdown are presented as a
          barbell, equal weight. Win-rate-only or return-only framing hides
@@ -532,6 +569,11 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
               <div className="text-xs font-mono font-semibold text-zinc-300 tabular-nums">
                 {summary.sharpeRatio !== null ? summary.sharpeRatio.toFixed(2) : '—'}
               </div>
+              <div className="text-[9px] text-zinc-600 mt-0.5 font-mono">
+                {summary.sharpeRatio !== null
+                  ? `over ${sharpeDays} trading day${sharpeDays === 1 ? '' : 's'}`
+                  : `needs ≥5 days (have ${sharpeDays})`}
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3 mb-4">
@@ -571,6 +613,19 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
               </div>
             </div>
           </div>
+          {/* R-stat denominator note — avg R per win/loss, expectancy and the
+             break-even win-rate come from the SIZED-TRADE subset (rows with an
+             SL so R is defined), which can differ from resolved signals. Show
+             that N so a thin R-stat isn't mistaken for a deep one. */}
+          {summary.sizedTrades !== undefined && (
+            <p className="text-[10px] text-zinc-600 -mt-2 mb-4 font-mono">
+              R-stats over {summary.sizedTrades.toLocaleString()} sized trade{summary.sizedTrades === 1 ? '' : 's'}
+              {summary.sizedTrades !== summary.totalSignals
+                ? ` (of ${summary.totalSignals.toLocaleString()} resolved — legacy rows without a stop are excluded)`
+                : ''}
+              {rangeLabel ? ` · ${rangeLabel}` : ''}
+            </p>
+          )}
         </>
       )}
 

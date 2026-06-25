@@ -1,17 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// Edge-runtime safe constant-time string compare. `node:crypto.timingSafeEqual`
-// is not available on Vercel Edge — fall back to an XOR loop. The length
-// branch is fine here since the admin secret length is server-configured
-// and not attacker-influenced.
-function safeStringEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return result === 0;
-}
+import { verifyAdminSession, safeEqual } from "./lib/admin-session";
 
 // ---------------------------------------------------------------------------
 // 1. Rate-limit store (in-memory, per-IP, resets every 60 s)
@@ -42,6 +30,9 @@ function isPublicFeed(pathname: string): boolean {
 }
 
 function isRateLimited(ip: string, pathname: string): boolean {
+  // E2E-only bypass: the serial CI suite shares one IP and trips this limiter.
+  // Inlined at build time; only the e2e CI build sets it, never production.
+  if (process.env.E2E_DISABLE_RATE_LIMIT === "1") return false;
   const now = Date.now();
   const max = isPublicFeed(pathname)
     ? RATE_LIMIT_MAX_PUBLIC_FEED
@@ -169,7 +160,7 @@ function applySecurityHeaders(
 // ---------------------------------------------------------------------------
 let adminSecretWarningLogged = false;
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const method = request.method;
 
@@ -226,17 +217,25 @@ export function middleware(request: NextRequest) {
         adminSecretWarningLogged = true;
       }
     } else {
-      // Check Bearer header (for external API calls)
+      // Check Bearer header (for external API calls). The scheme name is
+      // case-insensitive per RFC 7235, so accept any-case "bearer".
       const authHeader = request.headers.get("authorization");
-      const bearerToken = authHeader?.startsWith("Bearer ")
-        ? authHeader.slice(7)
-        : null;
+      const bearerMatch = authHeader?.match(/^Bearer\s+(.+)$/i) ?? null;
+      const bearerToken = bearerMatch ? bearerMatch[1] : null;
 
       // Check httpOnly cookie (for browser sessions)
       const cookieToken = request.cookies.get("tc_admin")?.value ?? null;
 
-      const bearerOk = bearerToken !== null && safeStringEqual(bearerToken, adminSecret);
-      const cookieOk = cookieToken !== null && safeStringEqual(cookieToken, adminSecret);
+      // Bearer accepts either a signed session token or the raw ADMIN_SECRET
+      // (constant-time compared) for programmatic API clients / curl scripts.
+      const bearerOk =
+        bearerToken !== null &&
+        ((await verifyAdminSession(bearerToken, adminSecret)) ||
+          safeEqual(bearerToken, adminSecret));
+      // Cookie tokens are verified as signed sessions
+      const cookieOk =
+        cookieToken !== null &&
+        (await verifyAdminSession(cookieToken, adminSecret));
       if (!bearerOk && !cookieOk) {
         // If it's a browser request (Accept: text/html), redirect to login
         const accept = request.headers.get("accept") ?? "";

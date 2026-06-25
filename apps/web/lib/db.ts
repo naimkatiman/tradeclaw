@@ -5,6 +5,7 @@
  */
 
 import { query, queryOne, execute } from './db-pool';
+import { randomBytes } from 'node:crypto';
 
 /**
  * E2E test gate — same shape as the one in tier.ts. When all three conditions
@@ -33,7 +34,9 @@ export interface UserRecord {
   telegramUserId: bigint | null;
   displayName: string | null;
   avatarUrl: string | null;
-  authProvider: 'google' | 'github' | null;
+  authProvider: 'google' | 'github' | 'telegram' | null;
+  referralCode: string | null;
+  referredBy: string | null;
 }
 
 export interface SubscriptionRecord {
@@ -77,6 +80,8 @@ interface UserRow {
   name: string | null;
   avatar_url: string | null;
   auth_provider: string | null;
+  referral_code: string | null;
+  referred_by: string | null;
 }
 
 function toUserRecord(row: UserRow): UserRecord {
@@ -90,14 +95,18 @@ function toUserRecord(row: UserRow): UserRecord {
     displayName: row.name,
     avatarUrl: row.avatar_url,
     authProvider:
-      row.auth_provider === 'google' || row.auth_provider === 'github'
+      row.auth_provider === 'google' ||
+      row.auth_provider === 'github' ||
+      row.auth_provider === 'telegram'
         ? row.auth_provider
         : null,
+    referralCode: row.referral_code,
+    referredBy: row.referred_by,
   };
 }
 
 const USER_COLUMNS = `id, email, stripe_customer_id, tier, tier_expires_at,
-  telegram_user_id, name, avatar_url, auth_provider`;
+  telegram_user_id, name, avatar_url, auth_provider, referral_code, referred_by`;
 
 interface SubscriptionRow {
   id: string;
@@ -153,6 +162,8 @@ export async function getUserById(userId: string): Promise<UserRecord | null> {
       displayName: 'E2E Pro User',
       avatarUrl: null,
       authProvider: null,
+      referralCode: null,
+      referredBy: null,
     };
   }
   const row = await queryOne<UserRow>(
@@ -171,17 +182,35 @@ export async function getUserByEmail(email: string): Promise<UserRecord | null> 
 }
 
 /**
+ * Resolve a referral code (the value behind /pricing?ref=…) to the referring
+ * user. Codes are stored uppercase hex (generateReferralCode), so the caller
+ * is expected to normalize to uppercase before lookup. Returns null for an
+ * unknown code — the checkout flow then simply records no referral.
+ */
+export async function getUserByReferralCode(code: string): Promise<UserRecord | null> {
+  const row = await queryOne<UserRow>(
+    `SELECT ${USER_COLUMNS} FROM users WHERE referral_code = $1`,
+    [code],
+  );
+  return row ? toUserRecord(row) : null;
+}
+
+/**
  * Find-or-create a user by email. Used by the passwordless session flow so
  * first-time visitors get a row on their first signin attempt.
  */
+function generateReferralCode(): string {
+  return randomBytes(4).toString('hex').toUpperCase();
+}
+
 export async function upsertUserByEmail(email: string): Promise<UserRecord> {
   const normalized = email.trim().toLowerCase();
   const row = await queryOne<UserRow>(
-    `INSERT INTO users (email)
-     VALUES ($1)
+    `INSERT INTO users (email, referral_code)
+     VALUES ($1, $2)
      ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
      RETURNING ${USER_COLUMNS}`,
-    [normalized],
+    [normalized, generateReferralCode()],
   );
   if (!row) throw new Error('upsertUserByEmail: insert returned no row');
   return toUserRecord(row);
@@ -212,16 +241,49 @@ export interface UserProfileInput {
 export async function upsertUserProfile(input: UserProfileInput): Promise<UserRecord> {
   const normalized = input.email.trim().toLowerCase();
   const row = await queryOne<UserRow>(
-    `INSERT INTO users (email, name, avatar_url, auth_provider)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO users (email, name, avatar_url, auth_provider, referral_code)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (email) DO UPDATE SET
        name       = EXCLUDED.name,
        avatar_url = EXCLUDED.avatar_url,
        updated_at = NOW()
      RETURNING ${USER_COLUMNS}`,
-    [normalized, input.displayName, input.avatarUrl, input.authProvider],
+    [normalized, input.displayName, input.avatarUrl, input.authProvider, generateReferralCode()],
   );
   if (!row) throw new Error('upsertUserProfile: insert returned no row');
+  return toUserRecord(row);
+}
+
+export interface TelegramUserInput {
+  telegramUserId: bigint;
+  displayName: string | null;
+  avatarUrl: string | null;
+}
+
+/**
+ * Find-or-create a user from Telegram Login Widget data.
+ *
+ * Telegram does not always provide an email, so we use a deterministic
+ * synthetic email (`telegram_<id>@tradeclaw.local`) to satisfy the NOT NULL
+ * UNIQUE constraint. If a user with this telegram_user_id already exists we
+ * update their name/avatar; otherwise we insert a new row.
+ */
+export async function upsertTelegramUser(
+  input: TelegramUserInput,
+): Promise<UserRecord> {
+  const email = `telegram_${input.telegramUserId.toString()}@tradeclaw.local`;
+  const row = await queryOne<UserRow>(
+    `INSERT INTO users (email, name, avatar_url, auth_provider, telegram_user_id, referral_code)
+     VALUES ($1, $2, $3, 'telegram', $4, $5)
+     ON CONFLICT (email) DO UPDATE SET
+       name             = EXCLUDED.name,
+       avatar_url       = EXCLUDED.avatar_url,
+       telegram_user_id = EXCLUDED.telegram_user_id,
+       updated_at       = NOW()
+     RETURNING ${USER_COLUMNS}`,
+    [email, input.displayName, input.avatarUrl, input.telegramUserId.toString(), generateReferralCode()],
+  );
+  if (!row) throw new Error('upsertTelegramUser: insert returned no row');
   return toUserRecord(row);
 }
 
@@ -735,5 +797,110 @@ export async function insertAdminAuditLog(input: AdminAuditLogInput): Promise<vo
       input.payload === undefined ? null : JSON.stringify(input.payload),
     ],
   );
+}
+
+// ---------------------------------------------------------------------------
+// Referral rewards
+// ---------------------------------------------------------------------------
+
+export interface ReferralRewardInput {
+  referrerId: string;
+  referredId: string;
+  rewardType: 'trial_extension' | 'subscription_credit';
+  rewardValue: number;
+}
+
+export async function createReferralReward(input: ReferralRewardInput): Promise<void> {
+  await execute(
+    `INSERT INTO referral_rewards (referrer_id, referred_id, reward_type, reward_value, status)
+     VALUES ($1, $2, $3, $4, 'pending')
+     ON CONFLICT (referrer_id, referred_id) DO NOTHING`,
+    [input.referrerId, input.referredId, input.rewardType, input.rewardValue],
+  );
+}
+
+export async function setUserReferredBy(userId: string, referrerId: string): Promise<void> {
+  await execute(
+    `UPDATE users SET referred_by = $1 WHERE id = $2 AND referred_by IS NULL`,
+    [referrerId, userId],
+  );
+}
+
+export interface ReferralRevenueInput {
+  referrerId: string;
+  referredId: string;
+  stripeInvoiceId: string;
+  amountCents: number;
+  shareCents: number;
+}
+
+export async function createReferralRevenue(input: ReferralRevenueInput): Promise<void> {
+  await execute(
+    `INSERT INTO referral_revenue (referrer_id, referred_id, stripe_invoice_id, amount_cents, share_cents, status)
+     VALUES ($1, $2, $3, $4, $5, 'pending')
+     ON CONFLICT (referred_id, stripe_invoice_id) DO NOTHING`,
+    [input.referrerId, input.referredId, input.stripeInvoiceId, input.amountCents, input.shareCents],
+  );
+}
+
+export interface ReferralRevenueRecord {
+  id: string;
+  referrerId: string;
+  referredId: string;
+  stripeInvoiceId: string;
+  amountCents: number;
+  shareCents: number;
+  status: 'pending' | 'paid_out' | 'cancelled';
+  createdAt: Date;
+}
+
+export async function getReferralRevenueForReferrer(referrerId: string): Promise<{
+  totalShareCents: number;
+  pendingShareCents: number;
+  paidOutShareCents: number;
+  records: ReferralRevenueRecord[];
+}> {
+  const rows = await query<{
+    id: string;
+    referrer_id: string;
+    referred_id: string;
+    stripe_invoice_id: string;
+    amount_cents: number;
+    share_cents: number;
+    status: string;
+    created_at: string;
+  }>(
+    `SELECT id, referrer_id, referred_id, stripe_invoice_id, amount_cents, share_cents, status, created_at
+     FROM referral_revenue WHERE referrer_id = $1 ORDER BY created_at DESC`,
+    [referrerId],
+  );
+
+  const records: ReferralRevenueRecord[] = rows.map((r) => ({
+    id: r.id,
+    referrerId: r.referrer_id,
+    referredId: r.referred_id,
+    stripeInvoiceId: r.stripe_invoice_id,
+    amountCents: r.amount_cents,
+    shareCents: r.share_cents,
+    status: r.status as ReferralRevenueRecord['status'],
+    createdAt: new Date(r.created_at),
+  }));
+
+  // Exclude cancelled rows so Total == Pending + Paid Out always holds in the UI.
+  const totalShareCents = records
+    .filter((r) => r.status !== 'cancelled')
+    .reduce((s, r) => s + r.shareCents, 0);
+  const pendingShareCents = records.filter((r) => r.status === 'pending').reduce((s, r) => s + r.shareCents, 0);
+  const paidOutShareCents = records.filter((r) => r.status === 'paid_out').reduce((s, r) => s + r.shareCents, 0);
+
+  return { totalShareCents, pendingShareCents, paidOutShareCents, records };
+}
+
+export async function getReferredUsersCount(referrerId: string): Promise<number> {
+  const rows = await query<{ count: string }>(
+    `SELECT COUNT(*) as count FROM users WHERE referred_by = $1`,
+    [referrerId],
+  );
+  return parseInt(rows[0]?.count ?? '0', 10);
 }
 

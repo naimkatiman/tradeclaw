@@ -44,9 +44,6 @@ jest.mock('../../../lib/tier', () => ({
 jest.mock('../../components/navbar', () => ({
   Navbar: () => null,
 }));
-jest.mock('../../../components/landing/site-footer', () => ({
-  SiteFooter: () => null,
-}));
 jest.mock('../WelcomeClient', () => ({
   WelcomeClient: () => null,
 }));

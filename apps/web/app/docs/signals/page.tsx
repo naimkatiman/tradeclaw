@@ -310,9 +310,9 @@ function calcRSI(closes: number[], period = 14): RSIResult {
     stoch_d: number;
   };
   timestamp: string;     // ISO 8601
-  status: 'active' | 'tp1_hit' | 'tp2_hit' | 'tp3_hit' | 'sl_hit' | 'expired';
+  status: 'active' | 'hit_tp1' | 'hit_tp2' | 'hit_tp3' | 'sl_hit' | 'expired';
 }`}
-        />
+          />
       </section>
 
       {/* Multi-timeframe */}

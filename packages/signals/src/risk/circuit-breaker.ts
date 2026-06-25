@@ -5,16 +5,16 @@
  * breakers that halt, reduce, or close trading activity.
  */
 
-import type { MarketRegime } from '../regime/types';
-import { getSymbolCategory } from '../index';
-import { DEFAULT_BREAKERS, getBreakersForRegime } from './breaker-config';
+import type { MarketRegime } from '../regime/types.js';
+import { getSymbolCategory } from '../index.js';
+import { DEFAULT_BREAKERS, getBreakersForRegime } from './breaker-config.js';
 import type {
   BreakerConfig,
   BreakerState,
   BreakerType,
   RiskMetrics,
   RiskState,
-} from './types';
+} from './types.js';
 
 export class CircuitBreakerEngine {
   private readonly configs: Map<BreakerType, BreakerConfig>;

@@ -1,4 +1,6 @@
 import { query, queryOne } from './db-pool';
+import { getUserById } from './db';
+import { escapeHtml, sendTelegramMessage } from './telegram-send';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -216,6 +218,41 @@ export interface CheckResult {
   checkedAt: string;
 }
 
+export function formatAlertTriggeredMessage(alert: PriceAlert): string {
+  const current = Number.isFinite(alert.currentPrice) ? alert.currentPrice.toFixed(4) : '—';
+  const target = Number.isFinite(alert.targetPrice) ? alert.targetPrice.toFixed(4) : '—';
+  const directionVerb = alert.direction === 'above' ? 'rose above' : 'fell below';
+  const note = alert.note ? `<br><i>${escapeHtml(alert.note)}</i>` : '';
+
+  return [
+    '<b>Price alert triggered</b>',
+    `<b>${escapeHtml(alert.symbol)}</b> ${directionVerb} <b>${escapeHtml(target)}</b>`,
+    `Current: <b>${escapeHtml(current)}</b>`,
+    alert.timeWindow ? `Window: <b>${escapeHtml(alert.timeWindow)}</b>` : '',
+    note,
+  ].filter(Boolean).join('\n');
+}
+
+export async function sendTriggeredAlertNotifications(alerts: PriceAlert[]): Promise<{ sent: number; skipped: number }> {
+  let sent = 0;
+  let skipped = 0;
+
+  for (const alert of alerts) {
+    const user = await getUserById(alert.userId);
+    const telegramUserId = user?.telegramUserId?.toString();
+    if (!telegramUserId) {
+      skipped += 1;
+      continue;
+    }
+
+    const result = await sendTelegramMessage(telegramUserId, formatAlertTriggeredMessage(alert));
+    if (result.ok) sent += 1;
+    else skipped += 1;
+  }
+
+  return { sent, skipped };
+}
+
 /**
  * Flip every active alert whose target is satisfied by `currentPrices`.
  * Sweeps across ALL users — callers are responsible for auth (CRON_SECRET).
@@ -254,6 +291,8 @@ export async function checkAlertsAcrossUsers(
        WHERE id = ANY($1::text[])`,
       [toFlip, nowIso],
     );
+
+    await sendTriggeredAlertNotifications(triggered);
   }
 
   return { triggered, checkedAt: nowIso };

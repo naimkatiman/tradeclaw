@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import { isMarketOpen, getMarketStatus } from '../market-hours';
 
 // All timestamps are pinned to specific UTC instants. Day-of-week is stable

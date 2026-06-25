@@ -16,7 +16,7 @@ interface UnlockItem {
 const UNLOCKS: UnlockItem[] = [
   { day: 3, message: 'New: Filter signals by RSI range', linkText: 'Try Screener', href: '/screener' },
   { day: 5, message: 'Ready to test these signals? Paper trade risk-free', linkText: 'Try Paper Trading', href: '/paper-trading' },
-  { day: 7, message: 'This pattern backtests at 67% win rate', linkText: 'Try Backtest', href: '/backtest' },
+  { day: 7, message: 'Test any setup against recent historical data', linkText: 'Try Backtest', href: '/backtest' },
   { day: 10, message: 'Build your own strategy from indicator combos', linkText: 'Strategy Builder', href: '/strategy-builder' },
   { day: 14, message: 'Power user detected — unlock custom integrations', linkText: 'Plugins', href: '/plugins' },
 ];

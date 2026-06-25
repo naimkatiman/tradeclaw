@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getActiveSmsSubscribers } from '@/lib/sms-subscribers';
+import { requireCronAuth } from '@/lib/cron-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,14 +9,9 @@ export const dynamic = 'force-dynamic';
  * Fetches top signals, matches against SMS subscribers, sends SMS via /api/sms/send.
  */
 export async function GET(request: NextRequest) {
-  // Auth guard — Vercel cron sends CRON_SECRET as bearer token
-  const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const header = request.headers.get('authorization');
-    if (header !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-  }
+  // Fail-closed: 503 when CRON_SECRET unset, timing-safe bearer compare.
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
 
   try {
     const subscribers = await getActiveSmsSubscribers();
@@ -85,7 +81,11 @@ export async function GET(request: NextRequest) {
       try {
         const smsRes = await fetch(`${baseUrl}/api/sms/send`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            // /api/sms/send is gated by CRON_SECRET; forward it on this server-to-server call.
+            ...(process.env.CRON_SECRET ? { Authorization: `Bearer ${process.env.CRON_SECRET}` } : {}),
+          },
           body: JSON.stringify({ to: sub.phone, message }),
         });
         const smsData = (await smsRes.json()) as { sent: boolean; error?: string };

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, startTransition } from 'react';
 import Link from 'next/link';
+import { PageNavBar } from '../../components/PageNavBar';
 import {
   Zap,
   TrendingUp,
@@ -9,7 +10,6 @@ import {
   Target,
   Share2,
   CheckCircle2,
-  RefreshCw,
   Star,
   ArrowRight,
   BarChart3,
@@ -94,6 +94,7 @@ export function TodayClient() {
   const [data, setData] = useState<TodayData | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [freshnessLabel, setFreshnessLabel] = useState<string | null>(null);
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -107,13 +108,31 @@ export function TodayClient() {
 
   const signal = data?.signalOfTheDay;
 
+  // Recomputed in an effect (Date.now is impure during render) and ticked
+  // every minute so the label stays honest while the tab sits open.
+  const generatedAt = data?.generatedAt;
+  useEffect(() => {
+    const compute = (): string | null => {
+      if (!generatedAt) return null;
+      const ageMs = Date.now() - new Date(generatedAt).getTime();
+      if (!Number.isFinite(ageMs) || ageMs < 0) return null;
+      const mins = Math.round(ageMs / 60000);
+      if (mins < 1) return 'Generated just now';
+      if (mins < 60) return `Generated ${mins}m ago`;
+      return `Generated ${Math.round(mins / 60)}h ago`;
+    };
+    setFreshnessLabel(compute()); // eslint-disable-line react-hooks/set-state-in-effect
+    const timer = setInterval(() => setFreshnessLabel(compute()), 60_000);
+    return () => clearInterval(timer);
+  }, [generatedAt]);
+
   const shareText = signal
-    ? `🎯 Signal of the Day from TradeClaw\n\n${signal.symbol} ${signal.direction} @ ${signal.entry}\nConfidence: ${signal.confidence}%\nTP1: ${signal.takeProfit1} | SL: ${signal.stopLoss}\n\nhttps://tradeclaw.com/today`
+    ? `🎯 Signal of the Day from TradeClaw\n\n${signal.symbol} ${signal.direction} @ ${signal.entry}\nConfidence: ${signal.confidence}%\nTP1: ${signal.takeProfit1} | SL: ${signal.stopLoss}\n\nhttps://tradeclaw.win/today`
     : '';
 
   const handleShare = () => {
     if (navigator.share) {
-      navigator.share({ title: 'TradeClaw Signal of the Day', text: shareText, url: 'https://tradeclaw.com/today' });
+      navigator.share({ title: 'TradeClaw Signal of the Day', text: shareText, url: 'https://tradeclaw.win/today' });
     } else {
       navigator.clipboard.writeText(shareText);
       setCopied(true);
@@ -122,17 +141,15 @@ export function TodayClient() {
   };
 
   const tweetUrl = signal
-    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(`🎯 Signal of the Day: ${signal.symbol} ${signal.direction} (${signal.confidence}% confidence)\n\nTP1: ${signal.takeProfit1} | SL: ${signal.stopLoss}\n\n`)}&url=${encodeURIComponent('https://tradeclaw.com/today')}`
+    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(`🎯 Signal of the Day: ${signal.symbol} ${signal.direction} (${signal.confidence}% confidence)\n\nTP1: ${signal.takeProfit1} | SL: ${signal.stopLoss}\n\n`)}&url=${encodeURIComponent('https://tradeclaw.win/today')}`
     : '#';
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+      <PageNavBar />
       {/* Header */}
       <div className="border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="max-w-4xl mx-auto px-4 py-6 md:py-10">
-          <Link href="/" className="text-xs font-medium flex items-center gap-1.5 mb-4" style={{ color: 'var(--text-secondary)' }}>
-            ← Back to TradeClaw
-          </Link>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg" style={{ background: 'var(--accent-muted)' }}>
               <Zap size={20} className="text-emerald-500" />
@@ -147,13 +164,54 @@ export function TodayClient() {
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <RefreshCw size={24} className="animate-spin text-emerald-500" />
+          <div className="rounded-2xl p-6 md:p-8 border animate-pulse" style={{ borderColor: 'var(--border)', background: 'var(--glass-bg)' }}>
+            <div className="h-3 w-48 rounded bg-[var(--border)] mb-6" />
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <div className="h-8 w-40 rounded bg-[var(--border)] mb-3" />
+                <div className="h-3 w-56 rounded bg-[var(--border)]" />
+              </div>
+              <div className="h-28 w-28 rounded-full border-8 border-[var(--border)]" />
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <div className="h-16 rounded-xl bg-[var(--border)]" />
+              <div className="h-16 rounded-xl bg-[var(--border)]" />
+              <div className="h-16 rounded-xl bg-[var(--border)]" />
+              <div className="h-16 rounded-xl bg-[var(--border)]" />
+            </div>
+            <div className="h-20 rounded-xl bg-[var(--border)]" />
           </div>
         ) : !signal ? (
           <div className="text-center py-20">
             <p className="text-lg font-medium mb-2">No signals available right now</p>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Check back soon — signals refresh every few minutes.</p>
+            <p className="text-sm mb-8" style={{ color: 'var(--text-secondary)' }}>Check back soon — signals refresh every few minutes.</p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/track-record"
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/20"
+              >
+                <BarChart3 size={16} />
+                See the live track record
+              </Link>
+              <Link
+                href="/free-signals"
+                className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors hover:bg-[var(--glass-bg)]"
+                style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+              >
+                <Activity size={16} />
+                Browse free signals
+              </Link>
+              <a
+                href="https://github.com/naimkatiman/tradeclaw"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors hover:bg-[var(--glass-bg)]"
+                style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+              >
+                <Star size={16} />
+                Star on GitHub
+              </a>
+            </div>
           </div>
         ) : (
           <div className="space-y-6">
@@ -180,6 +238,7 @@ export function TodayClient() {
                     <Clock size={14} style={{ color: 'var(--text-secondary)' }} />
                     <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                       {data?.date} • {data?.totalSignalsAnalyzed} signals analyzed
+                      {freshnessLabel ? ` • ${freshnessLabel}` : ''}
                     </span>
                   </div>
                   <span

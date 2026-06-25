@@ -15,11 +15,13 @@ import {
   TrendingUp,
   RefreshCw,
 } from 'lucide-react';
+import { buildScopeAccessRows, getUsageAccessSummary } from '@/lib/api-usage';
 
 interface UsageData {
   keyId: string;
   keyName: string;
   status: string;
+  tier: 'free' | 'pro' | 'elite';
   scopes: string[];
   requestsThisHour: number;
   requestsToday: number;
@@ -28,20 +30,13 @@ interface UsageData {
   resetAt: string;
 }
 
-interface EndpointBreakdown {
-  name: string;
-  path: string;
-  requests: number;
-  limit: number;
-  color: string;
-}
-
 function GaugeChart({ used, limit, label }: { used: number; limit: number; label: string }) {
-  const pct = Math.min((used / limit) * 100, 100);
+  const isUnlimited = limit <= 0;
+  const pct = isUnlimited ? 0 : Math.min((used / limit) * 100, 100);
   const radius = 54;
   const circumference = Math.PI * radius; // semi-circle
   const offset = circumference - (pct / 100) * circumference;
-  const color = pct >= 90 ? '#ef4444' : pct >= 70 ? '#a1a1aa' : '#10b981';
+  const color = isUnlimited ? '#10b981' : pct >= 90 ? '#ef4444' : pct >= 70 ? '#a1a1aa' : '#10b981';
 
   return (
     <div className="flex flex-col items-center">
@@ -67,10 +62,10 @@ function GaugeChart({ used, limit, label }: { used: number; limit: number; label
         />
         {/* Center text */}
         <text x="60" y="50" textAnchor="middle" fill={color} fontSize="20" fontWeight="bold">
-          {pct.toFixed(0)}%
+          {isUnlimited ? '∞' : `${pct.toFixed(0)}%`}
         </text>
         <text x="60" y="64" textAnchor="middle" fill="var(--text-secondary)" fontSize="8">
-          {used.toLocaleString()} / {limit.toLocaleString()}
+          {used.toLocaleString()} / {isUnlimited ? '∞' : limit.toLocaleString()}
         </text>
       </svg>
       <span className="text-xs text-[var(--text-secondary)] -mt-1">{label}</span>
@@ -78,18 +73,48 @@ function GaugeChart({ used, limit, label }: { used: number; limit: number; label
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function QuotaBar({ name, used, limit, color }: { name: string; used: number; limit: number; color: string }) {
-  const pct = Math.min((used / limit) * 100, 100);
+  const isUnlimited = limit <= 0;
+  const pct = isUnlimited ? 0 : Math.min((used / limit) * 100, 100);
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
         <span className="text-[var(--text-secondary)]">{name}</span>
-        <span className="text-[var(--foreground)] font-medium">{used}/{limit}</span>
+        <span className="text-[var(--foreground)] font-medium">{used}/{isUnlimited ? '∞' : limit}</span>
       </div>
       <div className="h-2 rounded-full bg-[var(--background)] border border-[var(--border)] overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700 ease-out"
-          style={{ width: `${pct}%`, backgroundColor: color }}
+          style={{ width: `${isUnlimited ? '100%' : `${pct}%`}`, backgroundColor: color }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ScopeAccessCard({ name, path, enabled, helperText }: { name: string; path: string; enabled: boolean; helperText: string }) {
+  const statusLabel = enabled ? 'Enabled' : 'Locked';
+  const statusClass = enabled
+    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+    : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--background)]/60 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold text-[var(--foreground)]">{name}</div>
+          <div className="text-[10px] font-mono text-[var(--text-secondary)]">{path}</div>
+        </div>
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusClass}`}>
+          {statusLabel}
+        </span>
+      </div>
+      <p className="mt-2 text-xs text-[var(--text-secondary)]">{helperText}</p>
+      <div className="mt-3 h-2 rounded-full bg-[var(--background)] border border-[var(--border)] overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-700 ${enabled ? 'bg-emerald-500' : 'bg-zinc-700'}`}
+          style={{ width: enabled ? '100%' : '18%' }}
         />
       </div>
     </div>
@@ -157,15 +182,9 @@ export default function APIUsageClient() {
     fetchUsage(apiKey);
   }
 
-  // Mock per-endpoint breakdown
-  const endpoints: EndpointBreakdown[] = usage
-    ? [
-        { name: 'Signals', path: '/api/v1/signals', requests: Math.floor(usage.requestsToday * 0.55), limit: usage.rateLimit, color: '#10b981' },
-        { name: 'Leaderboard', path: '/api/v1/leaderboard', requests: Math.floor(usage.requestsToday * 0.25), limit: usage.rateLimit, color: '#8b5cf6' },
-        { name: 'Health', path: '/api/v1/health', requests: Math.floor(usage.requestsToday * 0.12), limit: usage.rateLimit, color: '#3b82f6' },
-        { name: 'Badge', path: '/api/v1/badge', requests: Math.floor(usage.requestsToday * 0.08), limit: usage.rateLimit, color: '#a1a1aa' },
-      ]
-    : [];
+  const isProKey = usage?.tier === 'pro';
+  const accessRows = usage ? buildScopeAccessRows(usage.scopes) : [];
+  const accessSummary = usage ? getUsageAccessSummary(usage.scopes) : { enabledCount: 0, totalCount: 0, allEnabled: false };
 
   return (
     <div className="min-h-screen bg-[var(--background)] pt-24 pb-20 md:pb-16 px-4">
@@ -282,15 +301,26 @@ export default function APIUsageClient() {
               </div>
             </div>
 
-            {/* Per-endpoint breakdown */}
+            {/* Scope access breakdown */}
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-6">
-              <h3 className="text-sm font-semibold text-[var(--foreground)] mb-4 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-purple-400" />
-                Per-Endpoint Breakdown
-              </h3>
-              <div className="space-y-3">
-                {endpoints.map((ep) => (
-                  <QuotaBar key={ep.path} name={`${ep.name} (${ep.path})`} used={ep.requests} limit={ep.limit} color={ep.color} />
+              <div className="flex items-center justify-between gap-4 mb-4">
+                <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-purple-400" />
+                  Scope Access
+                </h3>
+                <span
+                  className={`px-2 py-1 rounded-full text-[10px] font-medium border ${
+                    accessSummary.allEnabled
+                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+                  }`}
+                >
+                  {accessSummary.enabledCount}/{accessSummary.totalCount} scopes enabled
+                </span>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {accessRows.map((row) => (
+                  <ScopeAccessCard key={row.path} {...row} />
                 ))}
               </div>
             </div>
@@ -346,8 +376,12 @@ export default function APIUsageClient() {
             {/* Pro tier */}
             <div className="rounded-2xl border border-purple-500/20 bg-[var(--bg-card)] p-6 relative overflow-hidden">
               <div className="absolute top-3 right-3">
-                <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 text-[10px] font-medium">
-                  Coming Soon
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                  isProKey
+                    ? 'bg-emerald-500/10 text-emerald-400'
+                    : 'bg-purple-500/10 text-purple-400'
+                }`}>
+                  {isProKey ? 'Live Pro key' : 'Upgrade available'}
                 </span>
               </div>
               <div className="flex items-center gap-2 mb-3">
@@ -355,26 +389,40 @@ export default function APIUsageClient() {
                   <Shield className="w-4 h-4 text-purple-400" />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-[var(--foreground)]">Pro Tier</div>
-                  <div className="text-[10px] text-[var(--text-secondary)]">For power users</div>
+                  <div className="text-sm font-semibold text-[var(--foreground)]">
+                    {isProKey ? 'Pro Tier Active' : 'Pro Tier'}
+                  </div>
+                  <div className="text-[10px] text-[var(--text-secondary)]">
+                    {isProKey
+                      ? 'This key is already on the Pro tier.'
+                      : 'Unlock higher throughput and priority support.'}
+                  </div>
                 </div>
               </div>
               <div className="space-y-2 text-xs text-[var(--text-secondary)]">
                 <div className="flex justify-between">
-                  <span>Daily requests</span>
-                  <span className="text-[var(--foreground)] font-medium">1,000 / day</span>
+                  <span>Current tier</span>
+                  <span className="text-[var(--foreground)] font-medium">
+                    {usage ? usage.tier : 'free'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Rate limit</span>
-                  <span className="text-[var(--foreground)] font-medium">60 req / min</span>
+                  <span className="text-[var(--foreground)] font-medium">
+                    {usage ? `${usage.rateLimit.toLocaleString()} / hr` : '1,000 / hr'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Endpoints</span>
-                  <span className="text-[var(--foreground)] font-medium">All v1 + v2 API</span>
+                  <span>Requests today</span>
+                  <span className="text-[var(--foreground)] font-medium">
+                    {usage ? usage.requestsToday.toLocaleString() : '—'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Priority support</span>
-                  <span className="text-purple-400 font-medium">✓</span>
+                  <span>Upgrade CTA</span>
+                  <Link href="/pricing?from=api-usage" className="text-purple-400 font-medium hover:text-purple-300">
+                    {isProKey ? 'Manage plan →' : 'Go Pro →'}
+                  </Link>
                 </div>
               </div>
             </div>

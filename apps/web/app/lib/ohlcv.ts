@@ -68,6 +68,14 @@ const BINANCE_INTERVALS: Record<string, string> = {
   D1: '1d',
 };
 
+const TIMEFRAME_MS: Record<string, number> = {
+  M5: 5 * 60 * 1000,
+  M15: 15 * 60 * 1000,
+  H1: 60 * 60 * 1000,
+  H4: 4 * 60 * 60 * 1000,
+  D1: 24 * 60 * 60 * 1000,
+};
+
 // In-memory cache with TTL
 interface CacheEntry {
   data: OHLCV[];
@@ -100,6 +108,20 @@ function setCache(key: string, data: OHLCV[], source: OHLCVSource): void {
       if (now >= v.expires) cache.delete(k);
     }
   }
+}
+
+/**
+ * Trim any candles whose scheduled close time is still in the future.
+ *
+ * Upstream feeds sometimes include the currently-forming bar. TradeClaw's
+ * public signal engine should only work from confirmed candle closes, so we
+ * drop any bar whose close timestamp has not arrived yet.
+ */
+export function trimClosedCandles(candles: OHLCV[], timeframe: string, now = Date.now()): OHLCV[] {
+  const duration = TIMEFRAME_MS[timeframe];
+  if (!duration || candles.length === 0) return candles;
+
+  return candles.filter((candle) => candle.timestamp + duration <= now);
 }
 
 /**
@@ -314,6 +336,8 @@ export async function getOHLCV(
       source = 'synthetic';
     }
   }
+
+  candles = trimClosedCandles(candles, timeframe);
 
   // Cache only real-source data. Caching synthetic locks in stale state for
   // 5 min after a transient hub failure — even when hub recovers, subsequent

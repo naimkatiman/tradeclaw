@@ -1,7 +1,19 @@
 {
 	"folders": [
 		{
-			"path": "../Roboforex"
+			"path": "."
+		},
+		{
+			"path": "../MobileIB0TelegramApp"
+		},
+		{
+			"path": "../continuous-improvement"
+		},
+		{
+			"path": "../halalflow"
+		},
+		{
+			"path": "../../../.hermes"
 		}
 	],
 	"settings": {}

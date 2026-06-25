@@ -1,0 +1,470 @@
+{
+  "spec": {
+    "task": "regime-hmm-walkforward",
+    "symbols": [
+      "BTCUSD",
+      "ETHUSD",
+      "SOLUSD"
+    ],
+    "timeframe": "H1",
+    "feature_names": [
+      "adx14",
+      "bbBandwidthPct",
+      "atrPercentile",
+      "returnAutocorr1"
+    ],
+    "feature_source": "scripts/research/export-regime-features.ts (TS features.ts is the only feature implementation \u2014 plan D5; this trainer never recomputes features)",
+    "pooled_window": {
+      "from": "2024-06-12T12:00:00.000Z",
+      "to": "2026-06-11T03:00:00.000Z",
+      "vectors": {
+        "BTCUSD": 17488,
+        "ETHUSD": 17488,
+        "SOLUSD": 17488
+      }
+    },
+    "walk_forward": {
+      "train_months": 12,
+      "test_months": 3,
+      "step_months": 3,
+      "month_ms": 2629800000,
+      "boundary_rule": "fixed boundaries derived from the pooled data start; folds dropped when pooled test bars < 168"
+    },
+    "em": {
+      "n_states": 3,
+      "covariance": "full + ridge 0.0001",
+      "seed": 42,
+      "max_iter": 300,
+      "tol": 1e-06,
+      "init": "deterministic ADX-tercile (no randomness)"
+    },
+    "runtime_mirror": {
+      "sequence_length": 64,
+      "min_dwell_bars": 6,
+      "override_confidence": 0.8,
+      "forward_bars": 24,
+      "note": "test bars classified exactly as production: trailing-64 Viterbi terminal state, forward-posterior confidence, applyHysteresis smoothing; forward outcomes/distributions reported on the smoothed (persisted) labels"
+    },
+    "final_model_policy": "fitted on the full pooled window; walk-forward folds estimate this procedure's out-of-sample behaviour",
+    "determinism": "seed 42, fixed fold boundaries, trained_at = data window end; byte-identical model + report on re-run over the same feature files"
+  },
+  "folds": [
+    {
+      "fold": 1,
+      "train": {
+        "from": "2024-06-12T12:00:00.000Z",
+        "to": "2025-06-12T18:00:00.000Z",
+        "obs": 26298
+      },
+      "test": {
+        "from": "2025-06-12T18:00:00.000Z",
+        "to": "2025-09-12T01:30:00.000Z",
+        "obs": 6576
+      },
+      "em": {
+        "iterations": 75,
+        "converged": true,
+        "ll_per_obs": -4.122786
+      },
+      "state_labels": {
+        "2": "trend",
+        "1": "volatile",
+        "0": "range"
+      },
+      "distribution_raw": {
+        "trend": 0.1998,
+        "volatile": 0.4043,
+        "range": 0.3958
+      },
+      "distribution_smoothed": {
+        "trend": 0.1998,
+        "volatile": 0.4037,
+        "range": 0.3964
+      },
+      "flips_per_week_raw": 7.95,
+      "flips_per_week_smoothed": 7.95,
+      "mean_dwell_bars": 20.9,
+      "per_symbol": {
+        "BTCUSD": {
+          "test_bars": 2192,
+          "distribution_smoothed": {
+            "trend": 0.1401,
+            "volatile": 0.2669,
+            "range": 0.5931
+          },
+          "flips_raw": 80,
+          "flips_smoothed": 80,
+          "flips_per_week_smoothed": 6.13,
+          "mean_dwell_bars": 27.1,
+          "fwd_skipped_noncontiguous": 0
+        },
+        "ETHUSD": {
+          "test_bars": 2192,
+          "distribution_smoothed": {
+            "trend": 0.2231,
+            "volatile": 0.4215,
+            "range": 0.3554
+          },
+          "flips_raw": 104,
+          "flips_smoothed": 104,
+          "flips_per_week_smoothed": 7.97,
+          "mean_dwell_bars": 20.9,
+          "fwd_skipped_noncontiguous": 0
+        },
+        "SOLUSD": {
+          "test_bars": 2192,
+          "distribution_smoothed": {
+            "trend": 0.2363,
+            "volatile": 0.5228,
+            "range": 0.2409
+          },
+          "flips_raw": 127,
+          "flips_smoothed": 127,
+          "flips_per_week_smoothed": 9.73,
+          "mean_dwell_bars": 17.1,
+          "fwd_skipped_noncontiguous": 0
+        }
+      },
+      "forward_outcomes_smoothed": {
+        "trend": {
+          "n": 1314,
+          "mean_ret": 0.004795,
+          "std_ret": 0.032392,
+          "mean_abs_ret": 0.024779
+        },
+        "volatile": {
+          "n": 2655,
+          "mean_ret": 0.003016,
+          "std_ret": 0.033271,
+          "mean_abs_ret": 0.024721
+        },
+        "range": {
+          "n": 2607,
+          "mean_ret": 0.006432,
+          "std_ret": 0.027723,
+          "mean_abs_ret": 0.019811
+        },
+        "abs_return_separation": 0.004968
+      },
+      "degenerate_single_label": false
+    },
+    {
+      "fold": 2,
+      "train": {
+        "from": "2024-09-11T19:30:00.000Z",
+        "to": "2025-09-12T01:30:00.000Z",
+        "obs": 26298
+      },
+      "test": {
+        "from": "2025-09-12T01:30:00.000Z",
+        "to": "2025-12-12T09:00:00.000Z",
+        "obs": 6573
+      },
+      "em": {
+        "iterations": 92,
+        "converged": true,
+        "ll_per_obs": -4.164945
+      },
+      "state_labels": {
+        "2": "trend",
+        "1": "volatile",
+        "0": "range"
+      },
+      "distribution_raw": {
+        "trend": 0.3228,
+        "volatile": 0.4035,
+        "range": 0.2737
+      },
+      "distribution_smoothed": {
+        "trend": 0.3224,
+        "volatile": 0.4032,
+        "range": 0.2745
+      },
+      "flips_per_week_raw": 9.3,
+      "flips_per_week_smoothed": 9.25,
+      "mean_dwell_bars": 18.0,
+      "per_symbol": {
+        "BTCUSD": {
+          "test_bars": 2191,
+          "distribution_smoothed": {
+            "trend": 0.2688,
+            "volatile": 0.4062,
+            "range": 0.325
+          },
+          "flips_raw": 116,
+          "flips_smoothed": 116,
+          "flips_per_week_smoothed": 8.89,
+          "mean_dwell_bars": 18.7,
+          "fwd_skipped_noncontiguous": 0
+        },
+        "ETHUSD": {
+          "test_bars": 2191,
+          "distribution_smoothed": {
+            "trend": 0.3601,
+            "volatile": 0.3711,
+            "range": 0.2688
+          },
+          "flips_raw": 124,
+          "flips_smoothed": 122,
+          "flips_per_week_smoothed": 9.35,
+          "mean_dwell_bars": 17.8,
+          "fwd_skipped_noncontiguous": 0
+        },
+        "SOLUSD": {
+          "test_bars": 2191,
+          "distribution_smoothed": {
+            "trend": 0.3382,
+            "volatile": 0.4322,
+            "range": 0.2296
+          },
+          "flips_raw": 124,
+          "flips_smoothed": 124,
+          "flips_per_week_smoothed": 9.51,
+          "mean_dwell_bars": 17.5,
+          "fwd_skipped_noncontiguous": 0
+        }
+      },
+      "forward_outcomes_smoothed": {
+        "trend": {
+          "n": 2119,
+          "mean_ret": -0.001673,
+          "std_ret": 0.036269,
+          "mean_abs_ret": 0.025844
+        },
+        "volatile": {
+          "n": 2650,
+          "mean_ret": -0.006802,
+          "std_ret": 0.032948,
+          "mean_abs_ret": 0.02458
+        },
+        "range": {
+          "n": 1804,
+          "mean_ret": -0.001755,
+          "std_ret": 0.035833,
+          "mean_abs_ret": 0.026235
+        },
+        "abs_return_separation": 0.001655
+      },
+      "degenerate_single_label": false
+    },
+    {
+      "fold": 3,
+      "train": {
+        "from": "2024-12-12T03:00:00.000Z",
+        "to": "2025-12-12T09:00:00.000Z",
+        "obs": 26298
+      },
+      "test": {
+        "from": "2025-12-12T09:00:00.000Z",
+        "to": "2026-03-13T16:30:00.000Z",
+        "obs": 6576
+      },
+      "em": {
+        "iterations": 75,
+        "converged": true,
+        "ll_per_obs": -4.176689
+      },
+      "state_labels": {
+        "2": "trend",
+        "1": "volatile",
+        "0": "range"
+      },
+      "distribution_raw": {
+        "trend": 0.2681,
+        "volatile": 0.3584,
+        "range": 0.3735
+      },
+      "distribution_smoothed": {
+        "trend": 0.2675,
+        "volatile": 0.3604,
+        "range": 0.3721
+      },
+      "flips_per_week_raw": 7.79,
+      "flips_per_week_smoothed": 7.79,
+      "mean_dwell_bars": 21.4,
+      "per_symbol": {
+        "BTCUSD": {
+          "test_bars": 2192,
+          "distribution_smoothed": {
+            "trend": 0.2486,
+            "volatile": 0.2965,
+            "range": 0.4548
+          },
+          "flips_raw": 102,
+          "flips_smoothed": 102,
+          "flips_per_week_smoothed": 7.82,
+          "mean_dwell_bars": 21.3,
+          "fwd_skipped_noncontiguous": 0
+        },
+        "ETHUSD": {
+          "test_bars": 2192,
+          "distribution_smoothed": {
+            "trend": 0.2651,
+            "volatile": 0.3891,
+            "range": 0.3458
+          },
+          "flips_raw": 102,
+          "flips_smoothed": 102,
+          "flips_per_week_smoothed": 7.82,
+          "mean_dwell_bars": 21.3,
+          "fwd_skipped_noncontiguous": 0
+        },
+        "SOLUSD": {
+          "test_bars": 2192,
+          "distribution_smoothed": {
+            "trend": 0.2888,
+            "volatile": 0.3955,
+            "range": 0.3157
+          },
+          "flips_raw": 101,
+          "flips_smoothed": 101,
+          "flips_per_week_smoothed": 7.74,
+          "mean_dwell_bars": 21.5,
+          "fwd_skipped_noncontiguous": 0
+        }
+      },
+      "forward_outcomes_smoothed": {
+        "trend": {
+          "n": 1759,
+          "mean_ret": -0.00604,
+          "std_ret": 0.043953,
+          "mean_abs_ret": 0.03205
+        },
+        "volatile": {
+          "n": 2370,
+          "mean_ret": -0.000882,
+          "std_ret": 0.033903,
+          "mean_abs_ret": 0.026098
+        },
+        "range": {
+          "n": 2447,
+          "mean_ret": -0.003809,
+          "std_ret": 0.022733,
+          "mean_abs_ret": 0.016358
+        },
+        "abs_return_separation": 0.015692
+      },
+      "degenerate_single_label": false
+    },
+    {
+      "fold": 4,
+      "train": {
+        "from": "2025-03-13T10:30:00.000Z",
+        "to": "2026-03-13T16:30:00.000Z",
+        "obs": 26298
+      },
+      "test": {
+        "from": "2026-03-13T16:30:00.000Z",
+        "to": "2026-06-11T03:00:00.001Z",
+        "obs": 6441
+      },
+      "em": {
+        "iterations": 38,
+        "converged": true,
+        "ll_per_obs": -4.228329
+      },
+      "state_labels": {
+        "2": "trend",
+        "1": "volatile",
+        "0": "range"
+      },
+      "distribution_raw": {
+        "trend": 0.2071,
+        "volatile": 0.347,
+        "range": 0.4459
+      },
+      "distribution_smoothed": {
+        "trend": 0.2068,
+        "volatile": 0.3475,
+        "range": 0.4457
+      },
+      "flips_per_week_raw": 8.16,
+      "flips_per_week_smoothed": 8.16,
+      "mean_dwell_bars": 20.4,
+      "per_symbol": {
+        "BTCUSD": {
+          "test_bars": 2147,
+          "distribution_smoothed": {
+            "trend": 0.1756,
+            "volatile": 0.3423,
+            "range": 0.4821
+          },
+          "flips_raw": 95,
+          "flips_smoothed": 95,
+          "flips_per_week_smoothed": 7.43,
+          "mean_dwell_bars": 22.4,
+          "fwd_skipped_noncontiguous": 0
+        },
+        "ETHUSD": {
+          "test_bars": 2147,
+          "distribution_smoothed": {
+            "trend": 0.2413,
+            "volatile": 0.3349,
+            "range": 0.4238
+          },
+          "flips_raw": 110,
+          "flips_smoothed": 110,
+          "flips_per_week_smoothed": 8.61,
+          "mean_dwell_bars": 19.3,
+          "fwd_skipped_noncontiguous": 0
+        },
+        "SOLUSD": {
+          "test_bars": 2147,
+          "distribution_smoothed": {
+            "trend": 0.2035,
+            "volatile": 0.3652,
+            "range": 0.4313
+          },
+          "flips_raw": 108,
+          "flips_smoothed": 108,
+          "flips_per_week_smoothed": 8.45,
+          "mean_dwell_bars": 19.7,
+          "fwd_skipped_noncontiguous": 0
+        }
+      },
+      "forward_outcomes_smoothed": {
+        "trend": {
+          "n": 1332,
+          "mean_ret": -0.008195,
+          "std_ret": 0.029668,
+          "mean_abs_ret": 0.022582
+        },
+        "volatile": {
+          "n": 2187,
+          "mean_ret": -0.002399,
+          "std_ret": 0.026096,
+          "mean_abs_ret": 0.020015
+        },
+        "range": {
+          "n": 2850,
+          "mean_ret": 0.000577,
+          "std_ret": 0.023828,
+          "mean_abs_ret": 0.017884
+        },
+        "abs_return_separation": 0.004699
+      },
+      "degenerate_single_label": false
+    }
+  ],
+  "summary": {
+    "n_folds": 4,
+    "mean_flips_per_week_smoothed": 8.29,
+    "mean_dwell_bars": 20.2,
+    "degenerate_folds": []
+  },
+  "final_model": {
+    "path": "scripts/hmm-regime/models/crypto_hmm.json",
+    "sha256": "beefdc83b04326dd15a2b592639576692e9fd4105177a0e4399b7fd5fb2e8827",
+    "trained_at": "2026-06-11T03:00:00.000Z",
+    "state_labels": {
+      "2": "trend",
+      "1": "volatile",
+      "0": "range"
+    },
+    "em": {
+      "iterations": 88,
+      "converged": true,
+      "ll_per_obs": -4.185766
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyTelegramWebhook } from '../../../../lib/telegram-webhook-auth';
 import {
   addSubscriber,
   removeSubscriber,
@@ -394,6 +395,10 @@ async function handleChatMember(upd: TelegramChatMemberUpdate): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // Reject any request that does not present the correct Telegram webhook secret
+  const authError = verifyTelegramWebhook(request);
+  if (authError) return authError;
+
   try {
     const body = (await request.json()) as TelegramUpdate;
 

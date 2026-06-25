@@ -38,6 +38,7 @@ describe('computeAccuracyContext', () => {
       row('BTCUSD', 'H1', true, now - 1000),
       { pair: 'BTCUSD', timeframe: 'H1', created_at: new Date(now - 2000).toISOString(), outcomes: { '24h': { hit: false, pnlPct: 0 } } },
     ];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ctx = computeAccuracyContext(rows as any, 'BTCUSD', 'H1');
     expect(ctx!.sampleSize).toBe(1);
     expect(ctx!.winRate).toBe(100);
@@ -49,6 +50,7 @@ describe('computeAccuracyContext', () => {
       row('ETHUSD', 'M15', true, now - 1000),
       { pair: 'ETHUSD', timeframe: 'M15', created_at: new Date(now).toISOString(), outcomes: { '24h': null } },
     ];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ctx = computeAccuracyContext(rows as any, 'ETHUSD', 'M15');
     expect(ctx!.sampleSize).toBe(1);
     expect(ctx!.winRate).toBe(100);

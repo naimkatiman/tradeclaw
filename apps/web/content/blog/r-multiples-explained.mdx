@@ -1,0 +1,127 @@
+---
+title: "R-Multiples Explained: How TradeClaw Now Measures Trade Quality"
+excerpt: "Win rate is a trap. R-multiples and expectancy are the only metrics that tell you whether a trading strategy actually makes money over time. Here's how TradeClaw computes them, and why we smooth extreme outliers."
+date: "2026-05-11"
+readTime: "8 min"
+tags: ["R-multiple", "Risk Management", "Expectancy"]
+metaDescription: "TradeClaw explains R-multiples, expectancy, and outlier-smoothed equity so you can judge signal quality beyond win rate."
+keywords: ["R-multiple trading", "trade expectancy formula", "R-multiple vs win rate"]
+---
+
+Win rate is one of the easiest metrics to misunderstand in trading. A system can win more often than it loses and still bleed money if the average loser is larger than the average winner. That is why TradeClaw now surfaces R-multiples and expectancy on the track-record and equity views: they show whether a strategy has actual edge, not just pretty screenshots.
+
+## The Win-Rate Trap
+
+Imagine 100 trades. Sixty-five of them win, but the average win is only +$80 while the average loss is -$150. The math looks like this:
+
+- 65 wins × +$80 = +$5,200
+- 35 losses × -$150 = -$5,250
+- Net result = **-$50**
+
+That strategy has a 65% win rate and still loses money.
+
+This is why win rate alone is not enough. You need to know how much you make when you win, how much you lose when you are wrong, and how those outcomes compare in risk units.
+
+## What "R" Actually Means
+
+R is the amount you risk on a single trade. If you risk $100, then:
+
+- a +$100 winner is +1R
+- a +$250 winner is +2.5R
+- a -$100 loss is -1R
+
+You can define R in dollars, percent of equity, or points. The important part is that every trade is normalized against the same initial risk. That makes strategies comparable across symbols, timeframes, and account sizes.
+
+A simple formula is:
+
+```text
+R-multiple = (exit - entry) / initial risk
+```
+
+If you have a $1,000 account and risk 1% per trade, your risk is $10. A trade that earns $25 is +2.5R. A trade that loses $10 is -1R.
+
+## Expectancy: The Metric That Tells the Truth
+
+Expectancy answers the question: "How much do I expect to make, in risk units, per trade over time?"
+
+The formula is:
+
+```text
+expectancy = (P(win) × avgWin_R) + (P(loss) × avgLoss_R)
+```
+
+Because losses are negative, the second term subtracts from the first.
+
+Example:
+
+- Win rate = 55%
+- Average win = +1.8R
+- Average loss = -1.0R
+
+Then:
+
+```text
+expectancy = (0.55 × 1.8) + (0.45 × -1.0)
+expectancy = 0.99 - 0.45
+expectancy = +0.54R
+```
+
+That means the system is worth about +0.54R per trade on average. If your average loss is cleanly capped at -1R, a positive expectancy system can still be excellent even when the win rate is well below 50%.
+
+That is the core lesson: **positive expectancy beats high win rate**.
+
+## How TradeClaw Computes R-Multiples
+
+TradeClaw computes these metrics from the closed-signal history and exposes them in the equity API and the track-record UI.
+
+The live metrics include:
+
+- `avgRWin` — average R-multiple of winning trades
+- `avgRLoss` — average R-multiple of losing trades
+- `expectancyR` — expected R per trade
+- `breakEvenWinRate` — the win rate needed to break even given the observed win/loss sizes
+
+That matters because the dashboard can now show whether a strategy is profitable in risk terms, not just whether it has a shiny hit rate.
+
+You can see those numbers on the public track-record page, alongside the equity curve and rolling win-rate windows. The same history also powers the leaderboard and signal performance breakdowns, so the whole product speaks one language: R.
+
+## Why We Added Outlier Smoothing
+
+Raw equity curves can be misleading if a single extreme trade dominates the chart. One lucky +12R gap fill can make a system look smarter than it really is.
+
+To reduce that distortion, TradeClaw uses an outlier-smoothed equity path for sizing: each trade’s R-multiple is capped at 8R before compounding. That cap sits just above the extreme tail of the live distribution, so it clips only the most unrealistic single-trade spikes while preserving the structure of the curve.
+
+A few important details:
+
+- The **equity curve** is smoothed for readability and realism.
+- The **raw R-multiple statistics** stay raw, so expectancy is not distorted.
+- The UI can therefore show both the true system quality and a more believable growth path.
+
+That combination is deliberate. It keeps the chart honest without hiding the underlying edge.
+
+## Practical Use: Position Sizing From R
+
+Once you know expectancy, R becomes a practical money-management tool.
+
+If a strategy has +0.5R expectancy and you risk 1% of equity per trade, then the long-run expectation is roughly +0.5% per trade before compounding and execution variance. That does not mean every trade will make half a percent. It means the average trade, over a large sample, is worth about half the risk you put on.
+
+That helps with three decisions:
+
+1. **Sizing** — if the system is positive expectancy, size consistently instead of improvising.
+2. **Scaling up** — increase size only after the edge is stable across enough trades.
+3. **Filtering** — if a subset of signals has better expectancy, focus on those instead of chasing win rate.
+
+Expectancy also gives you a more realistic conversation about drawdowns. A system with a strong win rate but negative expectancy is a trap. A system with moderate win rate and strong positive expectancy can be a compounding machine.
+
+## Bottom Line
+
+If you want to evaluate a trading system honestly, do not start with win rate. Start with R-multiples, expectancy, and the shape of the equity curve.
+
+That is why TradeClaw now emphasizes trade quality instead of just trade frequency. The question is no longer "How often does it win?" The better question is:
+
+**Does the system make enough R per trade to deserve your capital?**
+
+<TrialCTA
+  headline="See R-multiples on every TradeClaw signal — free for 7 days."
+  pitch="TradeClaw Pro now ships R-multiple and expectancy on every closed trade, with outlier smoothing across the equity curve. $29/mo after the trial, cancel anytime."
+/>

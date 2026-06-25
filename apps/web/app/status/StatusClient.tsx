@@ -18,6 +18,7 @@ import {
   ChevronUp,
   Inbox,
   BarChart3,
+  Search,
 } from 'lucide-react';
 
 interface ServiceStatus {
@@ -67,6 +68,7 @@ const SERVICE_ICONS: Record<string, typeof Activity> = {
   API: Server,
   Database: Database,
   'SSE Feed': Radio,
+  Scanner: Search,
 };
 
 function formatUptime(seconds: number): string {
