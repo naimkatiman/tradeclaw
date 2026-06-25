@@ -27,3 +27,9 @@ apps/web/data/performance-metrics.json
 __pycache__/
 *.pyc
 apps/web/data/*.db
+
+# Graphify knowledge-graph output (generated)
+graphify-out/
+
+# strategy-audit-agent runtime output (logs, fixture runs)
+packages/strategy-audit-agent/tmp/
