@@ -1,195 +1,204 @@
 # TradeClaw Quickstart Guide
 
-Get trading signals running in under 5 minutes. No coding required.
+Get the self-hostable TradeClaw stack running locally, then verify it before sharing it with users. This guide is for the current Docker Compose + PostgreSQL path; there is no bundled SQLite fallback.
 
 ---
 
 ## Prerequisites
 
-- Docker & Docker Compose installed ([Get Docker](https://docs.docker.com/get-docker/))
-- 2GB RAM minimum (4GB recommended)
-- Port 3000 available
+- Docker with the Compose plugin installed ([Get Docker](https://docs.docker.com/get-docker/)).
+- 4GB RAM recommended for the web app, Timescale/PostgreSQL, Redis, and websocket relay.
+- Ports available locally:
+  - `3000` for the Next.js web app (`APP_PORT`).
+  - `4000` for the websocket relay (`WS_SERVER_PORT`).
+  - Optional monitoring: `9090` for Prometheus and `3001` for Grafana.
 
-## Option 1: Docker Compose (Recommended)
+## Option 1: Docker Compose (recommended)
 
 ```bash
-# Clone the repo
 git clone https://github.com/naimkatiman/tradeclaw.git
 cd tradeclaw
-
-# Copy environment config
 cp .env.example .env
-
-# Start everything
-docker compose up -d
 ```
 
-Open `http://localhost:3000` — you'll see the signal dashboard.
-
-**That's it.** You're running AI trading signals for forex, crypto, and metals.
-
-### What's Running
-
-| Service | Port | Description |
-|---------|------|-------------|
-| Web Dashboard | 3000 | Signal dashboard, charts, paper trading |
-| API Server | 3001 | REST API for signals, history, backtesting |
-| Scanner | — | Background signal engine (polls every 60s) |
-| TimescaleDB | 5432 | Time-series database for signal history |
-| Redis | 6379 | Cache layer for real-time data |
-
-### Check Health
+Edit `.env` before starting the stack. Required local values:
 
 ```bash
-curl http://localhost:3000/api/health
-# → {"status":"ok","version":"0.1.0","services":{"db":"connected","redis":"connected","scanner":"running"}}
+DB_PASSWORD=<generate with: openssl rand -hex 16>
+USER_SESSION_SECRET=<generate with: openssl rand -hex 32>
+AUTH_SECRET=<generate with: openssl rand -hex 32>
+APP_URL=http://localhost:3000
 ```
 
-## Option 2: Railway (One-Click Cloud Deploy)
+Then validate and start Compose:
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/tradeclaw)
+```bash
+docker compose config --quiet
+docker compose up -d --build
+```
 
-Railway provisions everything automatically. Free tier works for evaluation.
+Open [http://localhost:3000](http://localhost:3000). After startup, run the [self-host smoke checklist](self-host-smoke-checklist.md) before sharing the instance or debugging higher-level features.
 
-## Option 3: Manual Setup (Development)
+### What's running
+
+| Service | Default port | Description |
+|---|---:|---|
+| `app` | 3000 | Next.js standalone server: dashboard, pages, and REST API routes such as `/api/health`, `/api/signals`, `/api/metrics` |
+| `ws-server` | 4000 | Fastify websocket / market-data relay with `/health` |
+| `db` | internal 5432 | Timescale/PostgreSQL for signal history, users, subscriptions, telemetry, and migrations |
+| `redis` | internal 6379 | Cache used by the web app and websocket relay |
+| `migrate` | one-shot | Applies `apps/web/migrations/*.sql` in filename order |
+| `prometheus` / `grafana` | 9090 / 3001 | Optional monitoring profile started with `docker compose --profile monitoring up -d` |
+
+### Health checks
+
+```bash
+curl -fsS http://localhost:3000/api/health
+curl -fsS http://localhost:3000/api/v1/health
+curl -fsS http://localhost:4000/health
+```
+
+Expected result:
+
+- `/api/health` returns JSON containing `"status":"ok"`.
+- `/api/v1/health` returns JSON containing `"ok":true` and `"status":"healthy"`.
+- `/health` on port `4000` returns websocket-relay status. It can be `degraded` when upstream providers are disconnected; that is different from the process being down.
+
+Signal API smoke check:
+
+```bash
+curl -fsS http://localhost:3000/api/signals | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{const d=JSON.parse(s); if(!Array.isArray(d.signals)) process.exit(1); console.log('signals=' + d.signals.length);})"
+```
+
+For the full checklist, including migrations, Redis, metrics, monitoring, troubleshooting, and safe cleanup, use:
+
+```bash
+bash scripts/test-docker.sh
+# or keep containers after the run:
+CLEANUP=false bash scripts/test-docker.sh
+```
+
+## Option 2: Single Docker image
+
+The single image is useful when you already have PostgreSQL available elsewhere. The app still needs `DATABASE_URL`; DB-backed routes fail on first access if it is missing.
+
+```bash
+docker run -p 3000:3000 \
+  -e DATABASE_URL='postgres://user:password@host:5432/tradeclaw' \
+  -e USER_SESSION_SECRET='<generate with openssl rand -hex 32>' \
+  ghcr.io/naimkatiman/tradeclaw:latest
+```
+
+For new self-hosters, Docker Compose is safer because it provisions Postgres, Redis, migrations, and the websocket relay together.
+
+## Option 3: Local development from source
+
+Use this when changing code locally rather than validating a production-style Compose stack.
 
 ```bash
 git clone https://github.com/naimkatiman/tradeclaw.git
 cd tradeclaw
-
-# Install dependencies
 npm install
-
-# Set up environment
 cp .env.example .env
-# Edit .env with your database URLs
-
-# Initialize database
-npm run db:push
-
-# Start development server
+# set DATABASE_URL, USER_SESSION_SECRET, AUTH_SECRET, and any optional tokens you need
+npm run build:signals
 npm run dev
 ```
 
----
+Postgres is still required for DB-backed app paths. Migrations are raw SQL files under `apps/web/migrations/`; the Docker path applies them automatically, and local development can use the same database plus `node scripts/run-migrations.mjs` when needed.
 
-## Configuration
-
-### Environment Variables
-
-Edit `.env` to customize:
+Common checks:
 
 ```bash
-# Core
-NODE_ENV=production
-PORT=3000
-
-# Database
-DATABASE_URL=postgresql://tradeclaw:tradeclaw@db:5432/tradeclaw
-
-# Redis
-REDIS_URL=redis://redis:6379
-
-# Scanner Settings
-SCAN_INTERVAL=60          # Signal refresh interval (seconds)
-DEFAULT_LEVERAGE=1000     # Default leverage (1:1000)
-DEFAULT_CAPITAL=500       # Default paper trading capital ($)
-
-# Telegram Bot (optional)
-TELEGRAM_BOT_TOKEN=       # Get from @BotFather
-TELEGRAM_CHAT_ID=         # Your chat/group ID
-
-# Assets to scan (comma-separated)
-ASSETS=XAUUSD,XAGUSD,EURUSD,GBPUSD,USDJPY,AUDUSD,BTCUSD,ETHUSD,XRPUSD,SOLUSD,ADAUSD,US30,NAS100,SPX500,GER40
+npm run lint
+npm test
+npm run build
 ```
 
-### Adding/Removing Assets
-
-Edit `ASSETS` in `.env`. Supported asset types:
-- **Forex:** EURUSD, GBPUSD, USDJPY, AUDUSD, etc.
-- **Metals:** XAUUSD, XAGUSD
-- **Crypto:** BTCUSD, ETHUSD, XRPUSD, SOLUSD, ADAUSD
-- **Indices:** US30, NAS100, SPX500, GER40
-
-### Telegram Integration
-
-1. Create a bot via [@BotFather](https://t.me/BotFather)
-2. Get your chat ID via [@userinfobot](https://t.me/userinfobot)
-3. Set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in `.env`
-4. Restart: `docker compose restart`
-5. Signals push automatically to your Telegram
+CI also runs `npx tsc --noEmit --project apps/web/tsconfig.json` because the Next.js build is configured separately from the TypeScript typecheck.
 
 ---
 
-## Dashboard Tour
+## Configuration quick map
 
-### Signal Cards
-Each asset shows:
-- **Direction:** BUY (green) or SELL (red)
-- **Confidence:** 0-100% score based on indicator alignment
-- **Entry Zone:** Fibonacci-precise entry range
-- **TP Levels:** TP1 (1.618 Fib), TP2, TP3
-- **Stop Loss:** ATR-based dynamic SL
+Edit `.env` from `.env.example`. Do not paste real production secrets into issue reports, screenshots, AI prompts, or logs.
 
-### Timeframe Filters
-Toggle between: ALL | M5 | M15 | H1 | H4 | D1
+| Area | Variables |
+|---|---|
+| Compose database | `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
+| Web app URL/session | `APP_PORT`, `APP_URL`, `USER_SESSION_SECRET` |
+| Websocket relay | `WS_SERVER_PORT`, `NEXT_PUBLIC_WS_URL`, `AUTH_SECRET` |
+| Postgres connection | `DATABASE_URL` for non-Compose/local external DB paths |
+| Redis | `REDIS_URL` |
+| Cron | `CRON_SECRET` for `/api/cron/*` endpoints |
+| Telegram | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_FREE_CHANNEL_ID`, `TELEGRAM_CHANNEL_ID`, `TELEGRAM_PRO_GROUP_ID` |
+| Stripe / paid tiers | `STRIPE_*`, `NEXT_PUBLIC_STRIPE_*` |
+| Premium feed / brokers | `PREMIUM_SIGNAL_SOURCE_*`, `BINANCE_*`, `ROBOFOREX_RST_*` |
+| Email / digest | `EMAIL_PROVIDER`, `RESEND_*`, `SENDGRID_API_KEY`, `SMTP_*`, `EMAIL_TO` |
 
-Signals align across timeframes — a D1 BUY with H4 BUY confirmation is stronger than M5 alone.
+## Telegram integration
 
-### Paper Trading
-Click any signal to enter a paper trade. Track P&L in real-time without risking money.
+1. Create a bot via [@BotFather](https://t.me/BotFather).
+2. Add the bot to the channel/group you want to use and grant the permissions required for posting or Pro-group invites.
+3. Set `TELEGRAM_BOT_TOKEN` and the relevant channel/group IDs in `.env`:
+   - `TELEGRAM_FREE_CHANNEL_ID` for free/public signal broadcasts.
+   - `TELEGRAM_CHANNEL_ID` for legacy/public channel paths still supported by the app.
+   - `TELEGRAM_PRO_GROUP_ID` for Pro group invite and membership checks.
+4. Restart the affected service:
 
-### Signal History
-30-day lookback with searchable history. See past signals, accuracy rates, and P&L if you followed them.
-
-### Leaderboard
-Assets ranked by signal accuracy. See which pairs are performing best.
-
----
-
-## Architecture
-
+```bash
+docker compose restart app
 ```
-┌─────────────────────────────────────────────┐
-│                 Web Dashboard                │
-│            (Next.js + Canvas Charts)         │
-├─────────────────────────────────────────────┤
-│                  API Layer                   │
-│         (REST + WebSocket for live)          │
-├──────────┬──────────────┬───────────────────┤
-│ Scanner  │  Signal      │   Paper Trading   │
-│ Engine   │  History     │   Engine          │
-├──────────┴──────────────┴───────────────────┤
-│     TimescaleDB          │      Redis       │
-│   (signal storage)       │   (real-time)    │
-└──────────────────────────┴──────────────────┘
+
+## Dashboard tour
+
+### Signal cards
+
+Each signal can show direction, confidence, entry, stop loss, take-profit levels, indicator context, source/provenance, and tier-gated fields depending on the viewer's access level.
+
+### Public vs Pro access
+
+Anonymous/free users get the public signal experience with limited symbols, delayed access, and masked premium levels. Pro/Elite access depends on session/tier data and optional hosted credentials. Self-hosters can run the open-source framework and wire their own Stripe, Telegram, premium feed, or broker credentials.
+
+### Paper trading and track record
+
+The dashboard, paper trading, and track-record surfaces are designed around transparent signal history: wins and losses should remain visible, not cherry-picked.
+
+## Architecture sketch
+
+```text
+Browser / API client
+  -> Next.js app (:3000)
+    -> signal API + dashboard + track record + billing/webhooks/Telegram routes
+    -> PostgreSQL / Timescale migrations and signal history
+    -> Redis cache
+  -> websocket relay (:4000)
+    -> provider manager + Redis-backed streaming status
 ```
+
+The REST API is served by the same Next.js app on port `3000`; there is no separate API server on `3001` in the current Compose path.
 
 ---
 
 ## FAQ
 
 **Q: Is this a trading bot? Will it execute trades?**
-A: No. TradeClaw generates signals (BUY/SELL recommendations). You decide whether to act on them. Execution is on your roadmap but not in v0.1.0.
+A: TradeClaw is primarily a signal platform. Broker execution scaffolding exists for gated Pro/testnet workflows, but self-hosters should treat execution as approval- and credential-sensitive. Paper trade first, and never wire live broker credentials without a reviewed plan and kill-switch posture.
 
 **Q: Where does the data come from?**
-A: CoinGecko (crypto), metals.live (metals), fawazahmed0 (forex). All free, no API keys needed.
-
-**Q: How accurate are the signals?**
-A: Accuracy varies by asset and timeframe. Check the leaderboard for real-time accuracy tracking. Paper trade first.
+A: The app prefers configured market-data/pro signal sources when available, otherwise it uses the repository's documented fallback paths such as the market-data hub, Binance/Stooq fallbacks, cached/live scanner output, and TA-engine fallback behavior. Check `README.md` and the smoke checklist for the current source-of-truth description before changing signal behavior.
 
 **Q: Can I add my own indicators?**
-A: Yes. See `/packages/scanner/src/indicators/` for the indicator interface. PRs welcome.
+A: Start with `packages/signals/src/*`, `apps/web/app/lib/ta-engine.ts`, and existing strategy/backtest tests. Trading-rule changes affect product trust and should be scoped with tests before they are merged.
 
 **Q: Is this really free?**
-A: Yes. MIT license. No hidden costs, no freemium gates, no tokens.
+A: The repository is MIT-licensed and self-hostable. Hosted convenience, paid tiers, premium feed operations, Stripe, private Telegram groups, and broker credentials depend on the environment values you configure for your deploy.
 
 ---
 
-## Next Steps
+## Next steps
 
-- ⭐ [Star on GitHub](https://github.com/naimkatiman/tradeclaw) — helps others find TradeClaw
-- 💬 [Join Discord](https://discord.gg/tradeclaw) — community signals discussion
-- 🐛 [Report Issues](https://github.com/naimkatiman/tradeclaw/issues) — help improve TradeClaw
-- 📖 [Read the Docs](./README.md) — full documentation
-- 🚀 [Alpha Screener](https://alphascreener.io) — managed cloud version (coming soon)
+- Run the [self-host smoke checklist](self-host-smoke-checklist.md).
+- Read the full [README](../README.md) for product, Free vs Pro, API, environment, and contribution details.
+- Open issues or PRs at [github.com/naimkatiman/tradeclaw](https://github.com/naimkatiman/tradeclaw).
+- Star the repo if TradeClaw helped you self-host faster.
