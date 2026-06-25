@@ -13,6 +13,7 @@ import { Star, Radio, CheckCircle2 } from "lucide-react";
 import { AnimatedChartHero } from "../animated-chart-hero";
 import { TradeClawIconArtwork } from "../brand/tradeclaw-icon-artwork";
 import { useHeroPrices, formatPairPrice } from "../../lib/hooks/use-hero-prices";
+import { trackEvent, registerSuperProperties } from "../../lib/analytics";
 
 const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
 
@@ -463,6 +464,11 @@ export function ABHero() {
     setTimeout(() => {
       setVariant(v);
       trackImpression(v);
+      // Stamp the variant on every subsequent PostHog event (conversions,
+      // activation, pageviews) so the test measures business outcomes by
+      // variant, not just hero clicks. Plus a real server-visible impression.
+      registerSuperProperties({ hero_variant: v });
+      trackEvent('hero_viewed', { variant: v });
       setMounted(true);
     }, 0);
 

@@ -54,7 +54,7 @@ function confTextColor(v: number): string {
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return (
-    <span className={`ml-1 text-[8px] inline-block ${active ? 'text-emerald-400' : 'text-[var(--text-secondary)]'}`}>
+    <span className={`ml-1 text-[10px] inline-block ${active ? 'text-emerald-400' : 'text-[var(--text-secondary)]'}`}>
       {active ? (dir === 'asc' ? '▲' : '▼') : '⬍'}
     </span>
   );
