@@ -1,0 +1,54 @@
+---
+title: "Sub-Second Signals: How TradeClaw's New WebSocket Feed Replaces Polling"
+excerpt: "TradeClaw is moving from polling to a true WebSocket price feed. Here's what that means for signal latency, API consumers, and every trader who depends on fresh data."
+date: "2026-06-22"
+readTime: "8 min"
+tags: ["WebSocket", "Real-Time", "Infrastructure", "Feature"]
+metaDescription: "TradeClaw is replacing its polling-based price feed with a WebSocket stream for sub-second price updates. Learn how it works, what changes for users and API consumers, and how to prepare."
+keywords: ["websocket trading signals", "real-time forex price feed", "replace polling websocket crypto", "live trading data stream", "trading api websocket"]
+---
+
+TradeClaw has always generated signals from OHLCV candles pulled on an interval. Polling works — until the market moves faster than your poll rate. The new WebSocket feed (roadmap item [rm-002](/roadmap)) eliminates that ceiling entirely.
+
+## Why Polling Falls Short
+
+TODO: Explain the fundamental problem with HTTP polling for financial data. Cover introduced latency proportional to poll interval, stale candle data between polls, missed intra-candle micro-moves that shift indicator values before the next poll, and the upstream exchange rate-limit cost of polling at high frequency. Include a concrete example: a 30-second poll interval means a signal generated at second 1 of a candle won’t fire until second 30.
+
+## How WebSocket Connections Work
+
+TODO: Walk through the WebSocket lifecycle from first principles: HTTP Upgrade handshake, persistent TCP channel, binary/text message frames, ping/pong keepalive heartbeat, and what happens on disconnect. Explain TradeClaw’s planned reconnection strategy — exponential backoff with jitter — and why naive "reconnect immediately" loops cause thundering-herd problems on exchange APIs. A simple ASCII sequence diagram would help here.
+
+## TradeClaw's Architecture Before and After
+
+TODO: Describe the current polling loop — configurable interval, ccxt REST fetch, in-memory OHLCV cache, TA engine consumption — and identify the exact latency floor it creates. Then describe the target architecture: exchange WebSocket feed → normalised tick buffer → TA engine triggered on new close → signal emission. Highlight that the TA engine itself doesn’t need to change, only the data ingestion layer.
+
+## What Changes for End Users
+
+TODO: Compare the before/after user experience. Concrete improvements: signal timestamps that reflect the actual price move rather than the next poll boundary, chart prices that update without a visible stutter, signal history entries with sub-second precision. Flag anything that stays the same (signal scoring weights, supported pairs, plan tiers).
+
+## What Changes for API Consumers
+
+TODO: Document the WebSocket connection for API subscribers. The existing ws-server runs at port 4000 (configured via `NEXT_PUBLIC_WS_URL` env var, or auto-detected from `window.location.hostname`). The WebSocket path is `/ws` — e.g. `ws://localhost:4000/ws` in development, `wss://your-host:4000/ws` in production. There is also an SSE fallback at `/api/prices/stream` that the frontend uses when WebSocket fails.
+
+For the signal payload, reference the `StreamSignal` interface in `apps/web/lib/hooks/use-price-stream.ts`:
+```
+{
+  id: string
+  pair: string          // e.g. "EUR/USD"
+  direction: 'BUY' | 'SELL'
+  confidence: number    // 0–100, maps to the 90-point scoring output
+  entry: number         // price at signal emission
+  timestamp: number     // Unix ms
+  reason: string        // human-readable scoring summary
+}
+```
+Cover: subscribe message (`{ action: 'subscribe', symbols: string[] }`), the `WsServerMessage` union (`tick`, `subscribed`, `unsubscribed`, `error` types), and how to reconnect gracefully in client code. Include a minimal JavaScript snippet using the native `WebSocket` class and a Python `websockets` example.
+
+## Timeline and How to Vote
+
+TODO: Share the current rm-002 status (in-progress as of this writing), expected milestone, and a link to the public roadmap at `/roadmap`. Explain how the upvote count on each roadmap item directly influences engineering prioritisation — rm-002 sits at 118 votes, second-highest in the Trading category. Encourage readers to vote if this feature matters to their workflow.
+
+<TrialCTA
+  headline="Get the freshest signals available — and WebSocket streaming the moment it ships."
+  pitch="TradeClaw Pro already delivers the lowest-latency polling-based signals on the market. WebSocket streaming is included in all Pro plans from day one — no upgrade needed."
+/>
