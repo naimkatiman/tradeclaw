@@ -21,7 +21,7 @@ interface UsageData {
   keyId: string;
   keyName: string;
   status: string;
-  tier: 'free' | 'pro';
+  tier: 'free' | 'pro' | 'elite';
   scopes: string[];
   requestsThisHour: number;
   requestsToday: number;
@@ -31,11 +31,12 @@ interface UsageData {
 }
 
 function GaugeChart({ used, limit, label }: { used: number; limit: number; label: string }) {
-  const pct = Math.min((used / limit) * 100, 100);
+  const isUnlimited = limit <= 0;
+  const pct = isUnlimited ? 0 : Math.min((used / limit) * 100, 100);
   const radius = 54;
   const circumference = Math.PI * radius; // semi-circle
   const offset = circumference - (pct / 100) * circumference;
-  const color = pct >= 90 ? '#ef4444' : pct >= 70 ? '#a1a1aa' : '#10b981';
+  const color = isUnlimited ? '#10b981' : pct >= 90 ? '#ef4444' : pct >= 70 ? '#a1a1aa' : '#10b981';
 
   return (
     <div className="flex flex-col items-center">
@@ -61,10 +62,10 @@ function GaugeChart({ used, limit, label }: { used: number; limit: number; label
         />
         {/* Center text */}
         <text x="60" y="50" textAnchor="middle" fill={color} fontSize="20" fontWeight="bold">
-          {pct.toFixed(0)}%
+          {isUnlimited ? '∞' : `${pct.toFixed(0)}%`}
         </text>
         <text x="60" y="64" textAnchor="middle" fill="var(--text-secondary)" fontSize="8">
-          {used.toLocaleString()} / {limit.toLocaleString()}
+          {used.toLocaleString()} / {isUnlimited ? '∞' : limit.toLocaleString()}
         </text>
       </svg>
       <span className="text-xs text-[var(--text-secondary)] -mt-1">{label}</span>
@@ -72,18 +73,20 @@ function GaugeChart({ used, limit, label }: { used: number; limit: number; label
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function QuotaBar({ name, used, limit, color }: { name: string; used: number; limit: number; color: string }) {
-  const pct = Math.min((used / limit) * 100, 100);
+  const isUnlimited = limit <= 0;
+  const pct = isUnlimited ? 0 : Math.min((used / limit) * 100, 100);
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
         <span className="text-[var(--text-secondary)]">{name}</span>
-        <span className="text-[var(--foreground)] font-medium">{used}/{limit}</span>
+        <span className="text-[var(--foreground)] font-medium">{used}/{isUnlimited ? '∞' : limit}</span>
       </div>
       <div className="h-2 rounded-full bg-[var(--background)] border border-[var(--border)] overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700 ease-out"
-          style={{ width: `${pct}%`, backgroundColor: color }}
+          style={{ width: `${isUnlimited ? '100%' : `${pct}%`}`, backgroundColor: color }}
         />
       </div>
     </div>

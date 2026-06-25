@@ -11,6 +11,12 @@ export class DatabaseService {
   private pool: pg.Pool | null = null;
   private buffer: NormalizedTick[] = [];
   private flushTimer: ReturnType<typeof setInterval> | null = null;
+  // Serializes flush(): only one INSERT runs at a time. A flush requested while
+  // one is in flight sets the dirty flag, and the running flush loops once more
+  // on completion. This prevents concurrent splices of a mutating buffer and
+  // overlapping failure re-queues from duplicating or reordering rows.
+  private flushing = false;
+  private flushDirty = false;
 
   constructor(databaseUrl?: string) {
     if (!databaseUrl) return;
@@ -60,7 +66,30 @@ export class DatabaseService {
   }
 
   private async flush(): Promise<void> {
-    if (!this.pool || this.buffer.length === 0) return;
+    // Serialize: if a flush is already running, mark dirty and let the running
+    // flush pick up the newly buffered ticks on its next loop iteration.
+    if (this.flushing) {
+      this.flushDirty = true;
+      return;
+    }
+
+    this.flushing = true;
+    try {
+      let ok = true;
+      do {
+        this.flushDirty = false;
+        ok = await this.flushOnce();
+        // Loop again only when more ticks arrived during the INSERT and the
+        // last INSERT succeeded. On failure, stop and let the 1s interval retry
+        // so a persistent DB outage can't spin a hot retry loop.
+      } while (ok && this.flushDirty && this.buffer.length > 0);
+    } finally {
+      this.flushing = false;
+    }
+  }
+
+  private async flushOnce(): Promise<boolean> {
+    if (!this.pool || this.buffer.length === 0) return true;
 
     const batch = this.buffer.splice(0);
 
@@ -85,12 +114,16 @@ export class DatabaseService {
         `INSERT INTO ticks (time, symbol, bid, ask, mid, provider) VALUES ${values.join(', ')}`,
         params,
       );
+      return true;
     } catch {
-      // Re-add failed batch, but cap total buffer to prevent memory exhaustion
+      // Re-add the failed batch at the front (it holds the oldest ticks), then
+      // cap total buffer to prevent memory exhaustion by dropping the OLDEST
+      // excess from the front — newer ticks are kept.
       this.buffer.unshift(...batch);
       if (this.buffer.length > MAX_BUFFER_SIZE) {
-        this.buffer.splice(MAX_BUFFER_SIZE);
+        this.buffer.splice(0, this.buffer.length - MAX_BUFFER_SIZE);
       }
+      return false;
     }
   }
 

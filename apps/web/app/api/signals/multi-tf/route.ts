@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     const bullish = results.filter(r => r.dominantDirection === 'BUY').length;
     const bearish = results.filter(r => r.dominantDirection === 'SELL').length;
     const conflicted = results.filter(r => r.isConflicted).length;
-    const allAligned = results.filter(r => r.agreementCount === 3).length;
+    const allAligned = results.filter(r => r.agreementCount === 4).length;
 
     return NextResponse.json({
       timestamp: new Date().toISOString(),

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../lib/signals';
 import { getMultiOHLCV } from '../../lib/ohlcv';
 import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
+import { readSessionFromRequest } from '../../../lib/user-session';
 
 export interface ScreenerResult {
   symbol: string;
@@ -120,6 +121,12 @@ export async function GET(request: NextRequest) {
     const mostBullish = deduped.filter(r => r.direction === 'BUY')[0]?.symbol ?? null;
     const mostBearish = deduped.filter(r => r.direction === 'SELL')[0]?.symbol ?? null;
 
+    // Anonymous scans are identical for everyone within the 5-min data
+    // window — let shared caches absorb them. Signed-in scans stay private.
+    const cacheControl = readSessionFromRequest(request)?.userId
+      ? 'private, no-store'
+      : 'public, max-age=60, stale-while-revalidate=240';
+
     return NextResponse.json({
       results: deduped,
       meta: {
@@ -133,6 +140,8 @@ export async function GET(request: NextRequest) {
         scannedAt: new Date().toISOString(),
         timeframe,
       } satisfies ScreenerMeta,
+    }, {
+      headers: { 'Cache-Control': cacheControl },
     });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

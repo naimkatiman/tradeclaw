@@ -7,6 +7,7 @@ import {
   type TierDefinition,
 } from '../../lib/stripe-tiers';
 import { EliteInterestForm } from '../../components/EliteInterestForm';
+import { trackEvent } from '../../lib/analytics';
 
 type Interval = 'monthly' | 'annual';
 
@@ -87,6 +88,7 @@ function ProCard({ def, interval }: ProCardProps) {
   async function handleCheckout() {
     setLoading(true);
     setError(null);
+    trackEvent('subscription_clicked', { tier: 'pro', interval });
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
@@ -109,6 +111,7 @@ function ProCard({ def, interval }: ProCardProps) {
       }
       const payload = (await res.json()) as { url?: string };
       if (!payload.url) throw new Error('Missing checkout URL');
+      trackEvent('checkout_started', { tier: 'pro', interval });
       window.location.href = payload.url;
     } catch (err) {
       setLoading(false);
@@ -131,7 +134,15 @@ function ProCard({ def, interval }: ProCardProps) {
         <p className="text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
           {def.name}
         </p>
-        <div className="mt-2 flex items-end gap-1">
+        {def.anchorLabel && (
+          <p
+            data-testid="pro-anchor"
+            className="mt-2 text-xs text-[var(--text-secondary)]"
+          >
+            <span className="line-through opacity-70">{def.anchorLabel}</span>
+          </p>
+        )}
+        <div className="mt-1 flex items-end gap-1">
           <span
             data-testid="pro-price-label"
             className="text-4xl font-bold text-[var(--foreground)]"
@@ -141,6 +152,14 @@ function ProCard({ def, interval }: ProCardProps) {
           <span className="mb-1 text-sm text-[var(--text-secondary)]">{priceSuffix}</span>
         </div>
         <p className="mt-1 text-xs text-[var(--text-secondary)]">{priceLabel}</p>
+        {def.perDayLabel && (
+          <p
+            data-testid="pro-per-day"
+            className="mt-1 text-xs font-medium text-emerald-400"
+          >
+            That&apos;s {def.perDayLabel}
+          </p>
+        )}
         <p className="mt-3 text-sm text-[var(--text-secondary)]">{def.tagline}</p>
         <p className="mt-1 text-xs text-[var(--text-secondary)]">{subtext}</p>
       </div>
@@ -229,6 +248,24 @@ export function PricingCards() {
   const [resuming, setResuming] = useState(false);
   const [resumeError, setResumeError] = useState<string | null>(null);
 
+  // Referral capture: persist the inbound ?ref code to the tc_ref cookie so it
+  // survives the signin round-trip and the later checkout POST. The checkout
+  // route resolves the code → referrer server-side (a code, never a user id, is
+  // exposed to the client). Without this, referral links land on /pricing?ref=…
+  // and the code is silently dropped, so the reward plumbing never fires.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const raw = new URLSearchParams(window.location.search).get('ref');
+    const code = raw ? raw.toUpperCase() : null;
+    // Match the server's referral-code shape (uppercase hex) so a code the
+    // client stores is one the checkout route can actually resolve.
+    if (code && /^[0-9A-F]{1,32}$/.test(code)) {
+      const maxAge = 60 * 60 * 24 * 30; // 30 days
+      const secure = window.location.protocol === 'https:' ? '; secure' : '';
+      document.cookie = `tc_ref=${encodeURIComponent(code)}; path=/; max-age=${maxAge}; samesite=lax${secure}`;
+    }
+  }, []);
+
   // Post-signin resume: when a logged-out user clicks "Start Trial",
   // we redirect them to /signin?next=/pricing?resume=checkout&interval=…
   // After signin lands them back here we re-fire the checkout POST so the
@@ -239,8 +276,10 @@ export function PricingCards() {
     if (params.get('resume') !== 'checkout') return;
 
     const intervalParam = params.get('interval');
+    const tierParam = params.get('tier');
     const requestedInterval: Interval =
       intervalParam === 'annual' ? 'annual' : 'monthly';
+    const requestedTier = tierParam === 'elite' ? 'elite' : 'pro';
     setBillingInterval(requestedInterval);
 
     // Strip resume params so a refresh doesn't double-fire and the URL is
@@ -261,7 +300,7 @@ export function PricingCards() {
         const res = await fetch('/api/stripe/checkout', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ tier: 'pro', interval: requestedInterval }),
+          body: JSON.stringify({ tier: requestedTier, interval: requestedInterval }),
         });
         if (res.status === 401) {
           // Still not signed in (cookie didn't make it). Leave the user on
@@ -285,7 +324,8 @@ export function PricingCards() {
 
   const freeDef = TIER_DEFINITIONS.find((d) => d.id === 'free');
   const proDef = TIER_DEFINITIONS.find((d) => d.id === 'pro');
-  if (!freeDef || !proDef) return null;
+  const eliteDef = TIER_DEFINITIONS.find((d) => d.id === 'elite');
+  if (!freeDef || !proDef || !eliteDef) return null;
 
   return (
     <>
@@ -308,61 +348,146 @@ export function PricingCards() {
       <div className="text-center">
         <IntervalToggle value={billingInterval} onChange={setBillingInterval} />
       </div>
-      <div className="mx-auto mt-2 grid max-w-3xl gap-6 sm:grid-cols-2">
+      <div className="mx-auto mt-2 grid max-w-5xl gap-6 lg:grid-cols-3">
         <FreeCard def={freeDef} />
         <ProCard def={proDef} interval={billingInterval} />
+        <EliteCard def={eliteDef} interval={billingInterval} />
       </div>
-      <EliteComingSoonCard />
     </>
   );
 }
 
-function EliteComingSoonCard() {
+interface EliteCardProps {
+  def: TierDefinition;
+  interval: Interval;
+}
+
+function EliteCard({ def, interval }: EliteCardProps) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const priceLabel = interval === 'annual' ? def.annualPriceLabel : def.monthlyPriceLabel;
+  const priceMain = interval === 'annual' ? '$990' : '$99';
+  const priceSuffix = interval === 'annual' ? '/yr' : '/mo';
+  const subtext = interval === 'annual' ? 'Save $198 vs monthly' : 'Billed monthly, cancel anytime';
+  // Self-serve Elite checkout needs Stripe Elite price IDs. When they are not
+  // configured (the default self-host case — see .env.example), fall back to the
+  // interest form rather than POSTing a tier the checkout API returns 503 on.
+  const eliteCheckoutEnabled = Boolean(
+    process.env.NEXT_PUBLIC_STRIPE_ELITE_MONTHLY_PRICE_ID &&
+      process.env.NEXT_PUBLIC_STRIPE_ELITE_ANNUAL_PRICE_ID,
+  );
+
+  async function handleCheckout() {
+    setLoading(true);
+    setError(null);
+    trackEvent('subscription_clicked', { tier: 'elite', interval });
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ tier: 'elite', interval }),
+      });
+      if (res.status === 401) {
+        const next = encodeURIComponent(`/pricing?resume=checkout&interval=${interval}&tier=elite`);
+        setLoading(false);
+        window.location.href = `/signin?next=${next}`;
+        return;
+      }
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(payload.error ?? 'Checkout failed');
+      }
+      const payload = (await res.json()) as { url?: string };
+      if (!payload.url) throw new Error('Missing checkout URL');
+      trackEvent('checkout_started', { tier: 'elite', interval });
+      window.location.href = payload.url;
+    } catch (err) {
+      setLoading(false);
+      setError(err instanceof Error ? err.message : 'Checkout failed');
+    }
+  }
+
   return (
     <div
-      data-testid="elite-coming-soon-card"
-      className="mx-auto mt-8 max-w-3xl rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/[0.04] to-emerald-500/[0.04] p-6 shadow-[0_0_40px_rgba(245,158,11,0.06)]"
+      data-testid="elite-card"
+      className="relative flex flex-col rounded-2xl border border-purple-500/40 bg-purple-500/5 p-6 shadow-[0_0_40px_rgba(168,85,247,0.08)]"
     >
-      <div className="grid gap-6 md:grid-cols-2">
-        <div>
-          <div className="mb-3 flex items-center gap-2">
-            <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-amber-300">
-              Coming soon
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
-              Elite
-            </span>
-          </div>
-          <h3 className="text-2xl font-bold text-[var(--foreground)]">
-            Hands-off Pro.
-          </h3>
-          <p className="mt-2 text-sm text-[var(--text-secondary)]">
-            Pricing TBD — help us set it. Tell us which pieces you&apos;d use and what you&apos;d pay.
+      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+        <span className="rounded-full bg-purple-500 px-3 py-0.5 text-xs font-semibold text-black">
+          For Power Users
+        </span>
+      </div>
+
+      <div className="mb-4">
+        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
+          {def.name}
+        </p>
+        {def.anchorLabel && (
+          <p
+            data-testid="elite-anchor"
+            className="mt-2 text-xs text-[var(--text-secondary)]"
+          >
+            <span className="line-through opacity-70">{def.anchorLabel}</span>
           </p>
-          <ul className="mt-5 flex flex-col gap-3 text-sm text-[var(--foreground)]">
-            <li className="flex items-start gap-2">
-              <span className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
-              <div>
-                <div className="font-semibold text-emerald-400">Copy trade</div>
-                <div className="text-[var(--text-secondary)]">
-                  Your account mirrors our Pro signals automatically — entries, exits, sizing. The moat.
-                </div>
-              </div>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full bg-amber-400" />
-              <div>
-                <div className="font-semibold text-[var(--foreground)]">Connect to live trade</div>
-                <div className="text-[var(--text-secondary)]">
-                  Pro signals pushed straight to your broker (MT5, Alpaca, IB), no manual entry.
-                </div>
-              </div>
-            </li>
-          </ul>
+        )}
+        <div className="mt-1 flex items-end gap-1">
+          <span
+            data-testid="elite-price-label"
+            className="text-4xl font-bold text-[var(--foreground)]"
+          >
+            {priceMain}
+          </span>
+          <span className="mb-1 text-sm text-[var(--text-secondary)]">{priceSuffix}</span>
         </div>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] p-5">
-          <EliteInterestForm source="pricing" />
-        </div>
+        <p className="mt-1 text-xs text-[var(--text-secondary)]">{priceLabel}</p>
+        {def.perDayLabel && (
+          <p
+            data-testid="elite-per-day"
+            className="mt-1 text-xs font-medium text-purple-400"
+          >
+            That&apos;s {def.perDayLabel}
+          </p>
+        )}
+        <p className="mt-3 text-sm text-[var(--text-secondary)]">{def.tagline}</p>
+        <p className="mt-1 text-xs text-[var(--text-secondary)]">{subtext}</p>
+      </div>
+
+      <ul className="mb-6 flex flex-col gap-2">
+        {def.features.map((h) => (
+          <li key={h} className="flex items-start gap-2 text-sm text-[var(--foreground)]">
+            <span className="mt-0.5 shrink-0 text-purple-400">
+              <CheckIcon />
+            </span>
+            {h}
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-auto">
+        {eliteCheckoutEnabled ? (
+          <>
+            <button
+              type="button"
+              data-testid="elite-cta"
+              onClick={handleCheckout}
+              disabled={loading}
+              className="block w-full rounded-lg bg-purple-500 py-2.5 text-center text-sm font-semibold text-white transition-all hover:bg-purple-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? 'Redirecting…' : 'Start Elite Trial'}
+            </button>
+            <p className="mt-2 text-center text-[11px] leading-relaxed text-[var(--text-secondary)]">
+              Card required. {priceMain} charged on day 8.{' '}
+              Cancel anytime before then — no charge.
+            </p>
+            {error && (
+              <p role="alert" className="mt-2 text-center text-xs text-red-400">
+                {error}
+              </p>
+            )}
+          </>
+        ) : (
+          <EliteInterestForm source="pricing-elite" />
+        )}
       </div>
     </div>
   );

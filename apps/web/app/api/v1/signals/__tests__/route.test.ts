@@ -39,7 +39,7 @@ import { GET } from '../route';
 const mockedReadLiveSignals = readLiveSignals as jest.MockedFunction<typeof readLiveSignals>;
 const mockedGetTier = getTierFromRequest as jest.MockedFunction<typeof getTierFromRequest>;
 
-// Default to 30 min ago so the free-tier 15-min delay never accidentally
+// Default to 30 min ago so the free-tier 30-min delay never accidentally
 // hides a signal we expect a free caller to see. Tests that exercise the
 // delay filter explicitly override `timestamp`.
 const OLD_TIMESTAMP = new Date(Date.now() - 30 * 60_000).toISOString();
@@ -117,7 +117,7 @@ describe('GET /api/v1/signals — tier gating', () => {
     expect(ids).not.toContain('prem-edge');
   });
 
-  it('free caller does not see signals fresher than the 15-min delay', async () => {
+  it('free caller does not see signals fresher than the 30-min delay', async () => {
     mockedGetTier.mockResolvedValueOnce('free');
     const now = Date.now();
     mockedReadLiveSignals.mockResolvedValueOnce({

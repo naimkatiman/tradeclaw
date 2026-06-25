@@ -368,9 +368,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "The peak-to-trough decline in portfolio or account value, expressed as a percentage from the highest point. Drawdown measures the downside risk of a strategy and is a key metric for evaluating trading performance. Understanding drawdown tolerance is essential for maintaining psychological discipline during losing streaks.",
     tcRelevance:
-      "TradeClaw tracks live drawdown across your strategies and backtests, alerting you on each signal tick when drawdown approaches your configured maximum tolerance to prevent catastrophic losses.",
+      "TradeClaw's public equity curve on /track-record displays drawdown alongside returns — the live record deliberately shows peak-to-trough declines instead of smoothing them away, so you can judge whether the strategy's worst stretches fit your tolerance.",
     relatedTerms: ["max-drawdown", "sharpe-ratio", "risk-reward"],
-    relatedPage: "/results",
+    relatedPage: "/track-record",
     tags: ["risk", "performance", "decline"],
   },
 
@@ -593,9 +593,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A measure of risk-adjusted return calculated as the portfolio return minus the risk-free rate, divided by the standard deviation of returns. A higher Sharpe ratio indicates better return per unit of risk. Values above 1 are generally considered acceptable, above 2 very good, and above 3 excellent.",
     tcRelevance:
-      "TradeClaw calculates Sharpe ratios for every strategy backtest and live portfolio, letting you compare performance on a risk-adjusted basis rather than raw returns alone.",
+      "TradeClaw computes a daily-bucketed, annualized Sharpe ratio from the live tracked-signal equity curve on /track-record, and the interactive /backtest page reports Sharpe per strategy preset run.",
     relatedTerms: ["sortino-ratio", "max-drawdown", "calmar-ratio"],
-    relatedPage: "/results",
+    relatedPage: "/track-record",
     tags: ["risk-adjusted", "return", "volatility"],
   },
   {
@@ -607,9 +607,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A variation of the Sharpe ratio that only penalizes downside volatility rather than total volatility. It is calculated using the downside deviation instead of standard deviation. The Sortino ratio is more appropriate for evaluating strategies where upside volatility is desirable and should not be penalized.",
     tcRelevance:
-      "TradeClaw reports Sortino ratios alongside Sharpe ratios in backtest results, giving you a clearer picture of downside risk that matters more than upside variance.",
+      "TradeClaw currently reports Sharpe rather than Sortino on its track record. The distinction matters for strategies with asymmetric returns — upside volatility should not be penalized — and a Sortino view of the public equity curve is on the roadmap.",
     relatedTerms: ["sharpe-ratio", "max-drawdown", "drawdown"],
-    relatedPage: "/results",
+    relatedPage: "/track-record",
     tags: ["risk-adjusted", "downside", "return"],
   },
   {
@@ -621,9 +621,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "The largest peak-to-trough decline in a portfolio or strategy over a given time period. It represents the worst-case scenario an investor would have experienced. Max drawdown is critical for evaluating the risk of a strategy and determining if you can psychologically and financially handle its worst periods.",
     tcRelevance:
-      "TradeClaw prominently displays max drawdown in all backtest and live performance reports, enabling you to stress-test whether a strategy fits your risk tolerance before committing real capital.",
+      "Max drawdown is shown on TradeClaw's live equity curve at /track-record and in every /backtest preset comparison — the public record displays it prominently so you can stress-test whether a strategy fits your risk tolerance before committing real capital.",
     relatedTerms: ["drawdown", "calmar-ratio", "sharpe-ratio"],
-    relatedPage: "/results",
+    relatedPage: "/track-record",
     tags: ["risk", "worst-case", "decline"],
   },
   {
@@ -649,9 +649,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "The ratio of gross profits to gross losses over a given period. A profit factor greater than 1.0 means the strategy is profitable overall. Values above 1.5 are generally considered good, and above 2.0 are excellent. It is a simple but powerful metric for assessing overall strategy profitability.",
     tcRelevance:
-      "TradeClaw computes profit factor across all backtest results and leaderboard entries, making it easy to compare strategies and identify which produce the most consistent edge.",
+      "TradeClaw computes profit factor from live tracked signal outcomes — it appears on the landing proof panel once enough signals have resolved — so the comparison rests on real recorded data rather than simulated runs.",
     relatedTerms: ["win-rate", "sharpe-ratio", "r-multiple"],
-    relatedPage: "/results",
+    relatedPage: "/track-record",
     tags: ["profitability", "ratio", "gross"],
   },
   {
@@ -721,7 +721,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A condition where a trading strategy is excessively optimized to historical data, performing perfectly on past data but poorly on new, unseen data. Overfitting occurs when a model captures noise rather than genuine market patterns. It is the most common pitfall in strategy development and the primary reason backtests fail to translate to live performance.",
     tcRelevance:
-      "TradeClaw combats overfitting through walk-forward analysis, out-of-sample testing, and Monte Carlo simulations in its backtest engine, ensuring strategy robustness before deployment.",
+      "TradeClaw's primary defense against overfitting is its public forward track record: every published signal's outcome is recorded and scored after the fact, so performance evidence comes from live data rather than optimized backtests. The backtest page compares strategy presets on recent data using a disclosed fixed TP/SL model.",
     relatedTerms: ["backtesting", "sharpe-ratio", "win-rate"],
     relatedPage: "/backtest",
     tags: ["bias", "optimization", "robustness"],

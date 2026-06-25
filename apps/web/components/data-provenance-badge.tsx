@@ -94,3 +94,21 @@ export function getDataProvenance(data: {
   if (hasSim && !hasLive) return 'simulated';
   return 'live';
 }
+
+/**
+ * Derive provenance from FULL-HISTORY counts (live vs simulated), not a
+ * paginated page slice. A page can be all-live while the full track record is
+ * mixed — `getDataProvenance` over the visible page would mislabel that as
+ * "Live verified". Callers with whole-history totals must use this instead.
+ */
+export function getDataProvenanceFromCounts(counts: {
+  live?: number;
+  simulated?: number;
+}): DataProvenance {
+  const live = counts.live ?? 0;
+  const simulated = counts.simulated ?? 0;
+  if (live === 0 && simulated === 0) return 'empty';
+  if (live > 0 && simulated > 0) return 'mixed';
+  if (simulated > 0 && live === 0) return 'simulated';
+  return 'live';
+}

@@ -43,11 +43,19 @@ function canonicaliseValue(v: unknown): unknown {
   return sorted;
 }
 
+// Mirrors isRealOutcome from ./signal-history — an auto-expire placeholder
+// ({ pnlPct: 0, hit: false, target: 'expired' }) is NOT a real trade outcome.
+function isRealOutcome(o: { pnlPct?: number; hit?: boolean } | null): boolean {
+  if (!o) return false;
+  if (o.pnlPct === 0 && !o.hit) return false;
+  return true;
+}
+
 function computeHashAndCounts(rows: HistoryRowForHash[]): { hash: string; counts: RunCounts } {
   const counts: RunCounts = { total: rows.length, verified: 0, wins: 0, losses: 0, pending: 0 };
   for (const r of rows) {
-    const o4h = r.outcome_4h as { hit?: boolean } | null;
-    const o24h = r.outcome_24h as { hit?: boolean } | null;
+    const o4h = r.outcome_4h as { pnlPct?: number; hit?: boolean } | null;
+    const o24h = r.outcome_24h as { pnlPct?: number; hit?: boolean } | null;
     if (o4h === null && o24h === null) {
       counts.pending += 1;
       continue;
@@ -55,7 +63,8 @@ function computeHashAndCounts(rows: HistoryRowForHash[]): { hash: string; counts
     counts.verified += 1;
     if (o24h?.hit === true || o4h?.hit === true) {
       counts.wins += 1;
-    } else {
+    } else if (isRealOutcome(o24h) || isRealOutcome(o4h)) {
+      // Only count a loss when at least one outcome is a real (non-expired) miss.
       counts.losses += 1;
     }
   }
@@ -89,6 +98,7 @@ export async function recordSignalRun(args: RecordRunArgs): Promise<bigint | nul
       `SELECT id, created_at::text AS created_at, outcome_4h, outcome_24h
        FROM signal_history
        WHERE created_at <= $1
+         AND is_simulated = FALSE
        ORDER BY id`,
       [args.runStartedAt.toISOString()],
     );

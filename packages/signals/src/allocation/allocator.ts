@@ -59,13 +59,13 @@ export interface SignalInput {
  * Baseline volatility per regime. When current vol exceeds baseline,
  * position size is scaled down proportionally to keep risk constant.
  * Values are approximate 20-day rolling vol (std of log returns).
+ * Structural mapping (plan D3): trend inherits the old trending baseline,
+ * volatile the old extreme-vol baseline, range the old quiet baseline.
  */
 const REGIME_BASELINE_VOL: Record<MarketRegime, number> = {
-  crash: 0.06,
-  bear: 0.03,
-  neutral: 0.015,
-  bull: 0.025,
-  euphoria: 0.05,
+  trend: 0.025,
+  volatile: 0.06,
+  range: 0.015,
 };
 
 /**
@@ -79,7 +79,9 @@ export function computeVolatilityScaler(
   currentVol: number,
   regime: MarketRegime,
 ): number {
-  const baseline = REGIME_BASELINE_VOL[regime];
+  // Unknown labels fall back to the range baseline (plan D1) — an undefined
+  // lookup here would propagate NaN into position sizing.
+  const baseline = REGIME_BASELINE_VOL[regime] ?? REGIME_BASELINE_VOL.range;
   if (currentVol <= 0 || currentVol <= baseline) return 1.0;
   const scaler = baseline / currentVol;
   return Math.max(scaler, 0.25); // floor at 25% of normal size

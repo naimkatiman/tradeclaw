@@ -79,10 +79,16 @@ BINANCE_CROSS_VALIDATION_BONUS = 3  # bonus when Binance confirms price
 # SELL signals require 3+ TF confluence (BUY only needs 2)
 SELL_MIN_CONFLUENCE = 3
 # Blacklisted symbol+direction combos based on track-record audit:
-# These have <20% avg accuracy over 5+ signals — auto-skip
+# These have <=25% win rate over 5+ signals — auto-skip
 BLACKLISTED_COMBOS = {
     "SOLUSDT_SELL", "USDJPY_BUY", "XRPUSDT_SELL", "BTCUSDT_SELL",
     "EURUSD_SELL", "GBPUSD_SELL", "ETHUSDT_SELL", "BNBUSDT_SELL",
+    "XAUUSD_SELL",
+    # Sub-25% BUY paths from 586-signal empirical audit (2026-06-02)
+    # NOTE: BNBUSDT_BUY, BTCUSDT_BUY, ETHUSDT_BUY un-blacklisted on 2026-06-03
+    # after MACD H1 confirmation filters (TC-214/215/219/223) raised their
+    # post-filter win rates to 70-76% (n=40-42). SOLUSDT_BUY remains blocked.
+    "SOLUSDT_BUY", "DOGEUSDT_BUY",
 }
 
 # ─── Market Hours ─────────────────────────────────────────────
@@ -236,6 +242,11 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
         else:
             vwap_ok = False
 
+        # ── MACD momentum confirmation (proven win-rate lift from TC-214/215) ──
+        macd_col = "MACD.macd|60" if tf_label == "H1" else "MACD.macd|240"
+        signal_col = "MACD.signal|60" if tf_label == "H1" else "MACD.signal|240"
+        macd_val = (row.get(macd_col) or 0) - (row.get(signal_col) or 0)
+
         direction = None
         reasons = []
 
@@ -247,7 +258,8 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
         # ── BUY conditions ──
         if (buy_combo not in BLACKLISTED_COMBOS
                 and close > ema20 and st_trend_up and ema_fan_bull
-                and 40 < rsi < 70 and vwap_bull):
+                and 40 < rsi < 70 and vwap_bull
+                and macd_val > 0):
             direction = "BUY"
             reasons.append(f"EMA fan aligned bullish ({tf_label})")
             reasons.append(f"Price > EMA20 ({round(ema20, 2)})")
@@ -255,11 +267,13 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
                 reasons.append(f"Price > VWAP ({round(vwap, 2)})")
             reasons.append(f"Supertrend proxy: uptrend (above {round(st_lower, 2)})")
             reasons.append(f"RSI {round(rsi, 1)} — momentum confirmed")
+            reasons.append(f"MACD {tf_label} confirms bullish momentum")
 
         # ── SELL conditions ──
         elif (sell_combo not in BLACKLISTED_COMBOS
                 and close < ema20 and st_trend_down and ema_fan_bear
-                and 30 < rsi < 60 and vwap_bear):
+                and 30 < rsi < 60 and vwap_bear
+                and macd_val < 0):
             direction = "SELL"
             reasons.append(f"EMA fan aligned bearish ({tf_label})")
             reasons.append(f"Price < EMA20 ({round(ema20, 2)})")
@@ -267,6 +281,7 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
                 reasons.append(f"Price < VWAP ({round(vwap, 2)})")
             reasons.append(f"Supertrend proxy: downtrend (below {round(st_upper, 2)})")
             reasons.append(f"RSI {round(rsi, 1)} — momentum confirmed")
+            reasons.append(f"MACD {tf_label} confirms bearish momentum")
 
         if not direction:
             continue
@@ -373,6 +388,7 @@ def zaky_strategy_signal(row, symbol_name, candle_statuses=None, win_rates=None,
             "win_rate": wr_data if wr_data else None,
             "cross_validation": binance_validation if binance_validation.get("validated") else None,
             "source": "zaky_strategy",
+            "strategy_name": "Intraday" if tf_label == "H1" else "Swing",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "expires_in_minutes": 120 if tf_label == "H4" else 60,
         }
@@ -636,6 +652,16 @@ def calculate_confluence(row, symbol_name, candle_statuses=None, win_rates=None,
             if direction_candidate == "SELL" and price_above_ema200:
                 if rsi_h4 < 65:  # Not overbought enough to justify counter-trend SELL
                     return None, []
+
+    # ── MACD confirmation ──
+    # Require bullish MACD on H1 for BUY, bearish MACD on H1 for SELL.
+    # Historical track record shows signals without MACD confirmation
+    # have significantly lower win rates.
+    macd_h1 = (row.get("MACD.macd|60") or 0) - (row.get("MACD.signal|60") or 0)
+    if direction_candidate == "BUY" and macd_h1 <= 0:
+        return None, []
+    if direction_candidate == "SELL" and macd_h1 >= 0:
+        return None, []
 
     # Require at least one higher TF (H1 or H4) in agreeing set — filters M5/M15 noise
     has_htf = any(tf in agreeing for tf in ["H1", "H4"])

@@ -17,7 +17,7 @@ export async function generateMetadata(
   const timeframe = parts[parts.length - 2];
   const symbol = parts.slice(0, parts.length - 2).join('-');
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tradeclaw.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tradeclaw.win';
   const ogUrl = `${baseUrl}/api/og/signal/${id}`;
   const pageUrl = `${baseUrl}/alert/${id}`;
 

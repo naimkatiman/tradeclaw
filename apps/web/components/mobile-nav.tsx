@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Mail, Bell, BookOpen, Heart, BarChart2, Cloud, Send, Database } from 'lucide-react';
+import { Mail, Bell, BookOpen, Heart, BarChart2, BarChart3, Cloud, Send, Database, Users } from 'lucide-react';
 
 interface MobileNavProps {
   onClose?: () => void;
@@ -28,6 +28,8 @@ const MOBILE_LINKS = [
   { href: '/fly', label: 'Fly.io Deploy', icon: Cloud },
   { href: '/supabase', label: 'Supabase Setup', icon: Database },
   { href: '/sponsors', label: 'Sponsors', icon: Heart },
+  { href: '/referrals', label: 'Referrals', icon: Users },
+  { href: '/tradingview-export', label: 'TradingView Export', icon: BarChart3 },
 ] as const;
 
 export function MobileNav({ onClose }: MobileNavProps) {

@@ -11,7 +11,7 @@ const FAQS: FAQItem[] = [
   {
     question: "Is there a free tier?",
     answer:
-      "Yes. The open-source framework is MIT-licensed and free forever — you can self-host the entire stack. On tradeclaw.win we also offer a Free hosted tier: 6 symbols across crypto, forex, commodities, and index ETFs; 15-minute delayed signals; public Telegram channel; 7 days of signal history. Pro ($29/mo, 7-day trial) upgrades that to instant (no-delay) signal delivery on the 5-minute cron, all traded symbols, private Pro Telegram group, full TP1/TP2/TP3 + SL levels, and unlimited signal history with CSV export. See /data-freshness for exact cadences.",
+      "Yes. The open-source framework is MIT-licensed and free forever — you can self-host the entire stack. On tradeclaw.win we also offer a Free hosted tier: 6 symbols across crypto, forex, commodities, and index ETFs; 30-minute delayed signals; public Telegram channel; 7 days of signal history. Pro ($29/mo, 7-day trial) upgrades that to instant (no-delay) signal delivery on the 5-minute cron, all traded symbols, private Pro Telegram group, full TP1/TP2/TP3 + SL levels, and unlimited signal history with CSV export. See /data-freshness for exact cadences.",
   },
   {
     question: "How do AI signals work?",
@@ -31,7 +31,7 @@ const FAQS: FAQItem[] = [
   {
     question: "What's the difference between self-hosting and Pro?",
     answer:
-      "Same signal engine, different delivery. Self-host the open-source repo for full control and zero recurring cost — you run the stack and wait 15 minutes on public signals. TradeClaw Pro at $29/mo gives you instant delivery, private Pro Telegram group, every traded symbol, and three take-profit levels plus stop-loss on each signal. Same math, faster execution.",
+      "Same signal engine, different delivery. Self-host the open-source repo for full control and zero recurring cost — you run the stack and wait 30 minutes on public signals. TradeClaw Pro at $29/mo gives you instant delivery, private Pro Telegram group, every traded symbol, and three take-profit levels plus stop-loss on each signal. Same math, faster execution.",
   },
 ];
 

@@ -7,9 +7,9 @@ import {
 
 describe('symbol-config asset categories', () => {
   it('pins the current tracked universe and category counts', () => {
-    expect(SYMBOLS.length).toBe(26);
+    expect(SYMBOLS.length).toBe(37);
     expect(MAJORS_SYMBOLS.length).toBe(8);
-    expect(THEMATIC_SYMBOLS.length).toBe(18);
+    expect(THEMATIC_SYMBOLS.length).toBe(29);
   });
 
   it('assigns every symbol to exactly one supported category', () => {

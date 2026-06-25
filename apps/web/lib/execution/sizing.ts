@@ -11,12 +11,12 @@
  */
 
 import { ATR } from 'trading-signals';
+import { DEFAULT_ATR_MULTIPLIER } from '@tradeclaw/signals';
 import type { BinanceKline, OrderSide } from './binance-futures';
 
 // ─── ATR ─────────────────────────────────────────────────────────────────
 
 export const DEFAULT_ATR_PERIOD = 14;
-export const DEFAULT_ATR_MULTIPLIER = 1.5;
 export const DEFAULT_TP_R_MULTIPLE = 1.5;
 
 /**
@@ -145,7 +145,7 @@ export function computeSize(input: SizingInput): SizingResult | SizingRejection 
 
   // Round qty down to stepSize
   const rawQty = notionalTarget / input.entryPrice;
-  let qty = roundQty(rawQty, input.filters);
+  const qty = roundQty(rawQty, input.filters);
 
   if (qty <= 0) {
     return { ok: false, reason: 'qty_zero', detail: `rawQty=${rawQty} stepSize=${input.filters.stepSize}` };

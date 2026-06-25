@@ -4,8 +4,8 @@
  * Final gatekeeper that approves or rejects trading signals based on
  * the current risk state produced by the circuit breaker engine.
  *
- * Regime-aware: in trending markets (bull/euphoria), high-confidence
- * signals can bypass halt_new breakers so trades can run to TP3.
+ * Regime-aware: in trending markets, high-confidence signals can bypass
+ * halt_new breakers so trades can run to TP3.
  * close_all is always enforced as the ultimate safety net.
  */
 
@@ -18,8 +18,8 @@ export interface VetoSignalInput {
   confidence: number;
 }
 
-/** Regimes where high-confidence signals can bypass halt_new. */
-const TRENDING_REGIMES: MarketRegime[] = ['bull', 'euphoria'];
+/** Regimes where high-confidence signals can bypass halt_new (plan D4). */
+const TRENDING_REGIMES: MarketRegime[] = ['trend'];
 
 /** Minimum confidence to bypass halt_new in trending markets. */
 const HIGH_CONFIDENCE_THRESHOLD = 80;

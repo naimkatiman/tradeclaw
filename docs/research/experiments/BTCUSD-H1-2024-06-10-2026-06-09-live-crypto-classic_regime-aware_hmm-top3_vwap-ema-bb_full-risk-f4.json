@@ -1,0 +1,354 @@
+{
+  "meta": {
+    "runAt": "2026-06-10T09:07:45.465Z"
+  },
+  "spec": {
+    "symbol": "BTCUSD",
+    "timeframe": "H1",
+    "from": "2024-06-10",
+    "to": "2026-06-09",
+    "geometry": "live-atr14x2.5-tp2R",
+    "costs": {
+      "feePctPerSide": 0.05,
+      "slippagePctPerSide": 0.15,
+      "fundingPctPer8h": 0.01
+    },
+    "folds": 4,
+    "candleCount": 17497,
+    "firstBar": "2024-06-10T00:00:00.000Z",
+    "lastBar": "2026-06-09T00:00:00.000Z",
+    "presets": [
+      "classic",
+      "regime-aware",
+      "hmm-top3",
+      "vwap-ema-bb",
+      "full-risk"
+    ],
+    "entryContext": {
+      "symbol": "BTCUSD",
+      "timeframe": "H1"
+    },
+    "hmmModels": {
+      "crypto_hmm.json": "d55d6470bbc8894b",
+      "forex_hmm.json": "3fed844542a87d83",
+      "metals_hmm.json": "3a3c0b81e43b8e56"
+    },
+    "caveats": [
+      "folds are contiguous sub-periods (stability inspection, not walk-forward optimization); per-fold indicator/regime warmup restarts and open trades force-close EOD at fold end",
+      "hmm-top3: top-3 cap applies to the WHOLE window under this runner (production caps per scan cycle) — its numbers are not production-comparable",
+      "full-risk: top-3 cap applies to the WHOLE window under this runner (production caps per scan cycle) — its numbers are not production-comparable"
+    ]
+  },
+  "results": {
+    "classic": {
+      "full": {
+        "totalTrades": 375,
+        "winRate": 0.3307,
+        "profitFactor": 0.809,
+        "maxDrawdown": 0.1417,
+        "sharpeRatio": -1.796,
+        "totalReturn": -0.1112,
+        "avgCostPct": 0.4551,
+        "reason": null
+      },
+      "folds": [
+        {
+          "totalTrades": 98,
+          "winRate": 0.3673,
+          "profitFactor": 1,
+          "maxDrawdown": 0.0431,
+          "sharpeRatio": 0.017,
+          "totalReturn": -0.0001,
+          "avgCostPct": 0.4519,
+          "reason": null,
+          "from": "2024-06-10",
+          "to": "2024-12-09"
+        },
+        {
+          "totalTrades": 74,
+          "winRate": 0.3378,
+          "profitFactor": 0.797,
+          "maxDrawdown": 0.0442,
+          "sharpeRatio": -0.848,
+          "totalReturn": -0.0262,
+          "avgCostPct": 0.4648,
+          "reason": null,
+          "from": "2024-12-09",
+          "to": "2025-06-09"
+        },
+        {
+          "totalTrades": 99,
+          "winRate": 0.3434,
+          "profitFactor": 0.799,
+          "maxDrawdown": 0.0444,
+          "sharpeRatio": -0.962,
+          "totalReturn": -0.0254,
+          "avgCostPct": 0.4509,
+          "reason": null,
+          "from": "2025-06-09",
+          "to": "2025-12-08"
+        },
+        {
+          "totalTrades": 104,
+          "winRate": 0.2885,
+          "profitFactor": 0.655,
+          "maxDrawdown": 0.0604,
+          "sharpeRatio": -1.878,
+          "totalReturn": -0.0602,
+          "avgCostPct": 0.4494,
+          "reason": null,
+          "from": "2025-12-08",
+          "to": "2026-06-09"
+        }
+      ]
+    },
+    "regime-aware": {
+      "full": {
+        "totalTrades": 6,
+        "winRate": 0.5,
+        "profitFactor": 2.028,
+        "maxDrawdown": 0.0061,
+        "sharpeRatio": 0.762,
+        "totalReturn": 0.0063,
+        "avgCostPct": 0.441,
+        "reason": null
+      },
+      "folds": [
+        {
+          "totalTrades": 6,
+          "winRate": 0.5,
+          "profitFactor": 2.028,
+          "maxDrawdown": 0.0061,
+          "sharpeRatio": 0.762,
+          "totalReturn": 0.0063,
+          "avgCostPct": 0.441,
+          "reason": null,
+          "from": "2024-06-10",
+          "to": "2024-12-09"
+        },
+        {
+          "totalTrades": 6,
+          "winRate": 0.1667,
+          "profitFactor": 0.141,
+          "maxDrawdown": 0.0136,
+          "sharpeRatio": -2.541,
+          "totalReturn": -0.0136,
+          "avgCostPct": 0.4425,
+          "reason": null,
+          "from": "2024-12-09",
+          "to": "2025-06-09"
+        },
+        {
+          "totalTrades": 13,
+          "winRate": 0.5385,
+          "profitFactor": 1.424,
+          "maxDrawdown": 0.0084,
+          "sharpeRatio": 0.572,
+          "totalReturn": 0.0061,
+          "avgCostPct": 0.4435,
+          "reason": null,
+          "from": "2025-06-09",
+          "to": "2025-12-08"
+        },
+        {
+          "totalTrades": 3,
+          "winRate": 0,
+          "profitFactor": 0,
+          "maxDrawdown": 0.0087,
+          "sharpeRatio": -10.95,
+          "totalReturn": -0.0087,
+          "avgCostPct": 0.4463,
+          "reason": null,
+          "from": "2025-12-08",
+          "to": "2026-06-09"
+        }
+      ]
+    },
+    "hmm-top3": {
+      "full": {
+        "totalTrades": 3,
+        "winRate": 0.3333,
+        "profitFactor": 0.691,
+        "maxDrawdown": 0.0077,
+        "sharpeRatio": -0.297,
+        "totalReturn": -0.0024,
+        "avgCostPct": 0.4308,
+        "reason": null
+      },
+      "folds": [
+        {
+          "totalTrades": 3,
+          "winRate": 0.3333,
+          "profitFactor": 0.225,
+          "maxDrawdown": 0.0066,
+          "sharpeRatio": -1.221,
+          "totalReturn": -0.0066,
+          "avgCostPct": 0.4267,
+          "reason": null,
+          "from": "2024-06-10",
+          "to": "2024-12-09"
+        },
+        {
+          "totalTrades": 3,
+          "winRate": 0,
+          "profitFactor": 0,
+          "maxDrawdown": 0.0077,
+          "sharpeRatio": -5.763,
+          "totalReturn": -0.0077,
+          "avgCostPct": 0.4446,
+          "reason": null,
+          "from": "2024-12-09",
+          "to": "2025-06-09"
+        },
+        {
+          "totalTrades": 3,
+          "winRate": 0,
+          "profitFactor": 0,
+          "maxDrawdown": 0.0057,
+          "sharpeRatio": -28.59,
+          "totalReturn": -0.0057,
+          "avgCostPct": 0.4221,
+          "reason": null,
+          "from": "2025-06-09",
+          "to": "2025-12-08"
+        },
+        {
+          "totalTrades": 3,
+          "winRate": 0.6667,
+          "profitFactor": 2.341,
+          "maxDrawdown": 0.0042,
+          "sharpeRatio": 0.762,
+          "totalReturn": 0.0058,
+          "avgCostPct": 0.4571,
+          "reason": null,
+          "from": "2025-12-08",
+          "to": "2026-06-09"
+        }
+      ]
+    },
+    "vwap-ema-bb": {
+      "full": {
+        "totalTrades": 6,
+        "winRate": 0.1667,
+        "profitFactor": 0.345,
+        "maxDrawdown": 0.0081,
+        "sharpeRatio": -1.288,
+        "totalReturn": -0.0081,
+        "avgCostPct": 0.4379,
+        "reason": null
+      },
+      "folds": [
+        {
+          "totalTrades": 6,
+          "winRate": 0.1667,
+          "profitFactor": 0.345,
+          "maxDrawdown": 0.0081,
+          "sharpeRatio": -1.288,
+          "totalReturn": -0.0081,
+          "avgCostPct": 0.4379,
+          "reason": null,
+          "from": "2024-06-10",
+          "to": "2024-12-09"
+        },
+        {
+          "totalTrades": 5,
+          "winRate": 0.2,
+          "profitFactor": 1.115,
+          "maxDrawdown": 0.0054,
+          "sharpeRatio": 0.098,
+          "totalReturn": 0.0008,
+          "avgCostPct": 0.49,
+          "reason": null,
+          "from": "2024-12-09",
+          "to": "2025-06-09"
+        },
+        {
+          "totalTrades": 6,
+          "winRate": 0.1667,
+          "profitFactor": 0.164,
+          "maxDrawdown": 0.0055,
+          "sharpeRatio": -2.375,
+          "totalReturn": -0.0055,
+          "avgCostPct": 0.4267,
+          "reason": null,
+          "from": "2025-06-09",
+          "to": "2025-12-08"
+        },
+        {
+          "totalTrades": 6,
+          "winRate": 0.3333,
+          "profitFactor": 0.233,
+          "maxDrawdown": 0.0064,
+          "sharpeRatio": -1.65,
+          "totalReturn": -0.0064,
+          "avgCostPct": 0.4088,
+          "reason": null,
+          "from": "2025-12-08",
+          "to": "2026-06-09"
+        }
+      ]
+    },
+    "full-risk": {
+      "full": {
+        "totalTrades": 3,
+        "winRate": 0.3333,
+        "profitFactor": 0.505,
+        "maxDrawdown": 0.0056,
+        "sharpeRatio": -0.297,
+        "totalReturn": -0.0028,
+        "avgCostPct": 0.4308,
+        "reason": null
+      },
+      "folds": [
+        {
+          "totalTrades": 3,
+          "winRate": 0.3333,
+          "profitFactor": 0.217,
+          "maxDrawdown": 0.0046,
+          "sharpeRatio": -1.221,
+          "totalReturn": -0.0046,
+          "avgCostPct": 0.4267,
+          "reason": null,
+          "from": "2024-06-10",
+          "to": "2024-12-09"
+        },
+        {
+          "totalTrades": 3,
+          "winRate": 0,
+          "profitFactor": 0,
+          "maxDrawdown": 0.005,
+          "sharpeRatio": -5.763,
+          "totalReturn": -0.005,
+          "avgCostPct": 0.4446,
+          "reason": null,
+          "from": "2024-12-09",
+          "to": "2025-06-09"
+        },
+        {
+          "totalTrades": 3,
+          "winRate": 0,
+          "profitFactor": 0,
+          "maxDrawdown": 0.0037,
+          "sharpeRatio": -28.59,
+          "totalReturn": -0.0037,
+          "avgCostPct": 0.4221,
+          "reason": null,
+          "from": "2025-06-09",
+          "to": "2025-12-08"
+        },
+        {
+          "totalTrades": 3,
+          "winRate": 0.6667,
+          "profitFactor": 2.345,
+          "maxDrawdown": 0.0032,
+          "sharpeRatio": 0.762,
+          "totalReturn": 0.0044,
+          "avgCostPct": 0.4571,
+          "reason": null,
+          "from": "2025-12-08",
+          "to": "2026-06-09"
+        }
+      ]
+    }
+  }
+}

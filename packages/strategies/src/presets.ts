@@ -16,7 +16,7 @@ export const PRESETS: Record<StrategyId, Strategy> = {
   'regime-aware': {
     id: 'regime-aware',
     name: 'Regime Aware',
-    description: 'Classic signals filtered by HMM regime. Rejects counter-trend trades.',
+    description: 'Classic signals gated by the structural HMM regime classifier (pass-through until the Phase 4 router).',
     entry: regimeAwareEntry,
     allocation: { kind: 'regime-dynamic' },
     risk: { kind: 'daily-streak' },

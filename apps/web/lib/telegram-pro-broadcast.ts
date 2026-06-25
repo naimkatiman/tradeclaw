@@ -3,6 +3,7 @@ import 'server-only';
 import { getBotToken, getProGroupId, getProSignalsTopicId } from './telegram-channels';
 import { getSignalTelegramProMessageId, markTelegramProPosted } from './signal-history';
 import { recordBroadcastResult } from './observability';
+import { recordDelivery } from './delivery-metrics';
 
 /**
  * Pro-tier real-time broadcast.
@@ -156,6 +157,7 @@ export async function broadcastSignalsToProGroup(
       };
       if (data.ok) {
         sent++;
+        recordDelivery('telegram_pro_broadcast', 'success');
         // Persist message_id so the position-monitor cron can post TP/SL
         // outcome replies threaded under the original signal in the Pro
         // group. Uses telegram_pro_message_id, separate from the free
@@ -167,9 +169,11 @@ export async function broadcastSignalsToProGroup(
         }
       } else {
         failed++;
+        recordDelivery('telegram_pro_broadcast', 'failed');
       }
     } catch {
       failed++;
+      recordDelivery('telegram_pro_broadcast', 'failed');
     }
   }
 

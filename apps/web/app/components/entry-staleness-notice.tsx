@@ -14,7 +14,7 @@ interface Props {
 }
 
 /**
- * Free-tier signals can be 15+ minutes delayed; even for paid users prices move
+ * Free-tier signals can be 30+ minutes delayed; even for paid users prices move
  * between signal generation and the first read. This notice surfaces how far
  * the market has drifted from the stamped entry and whether that drift is
  * favorable for the signal's direction. Hidden when |delta| <= threshold.

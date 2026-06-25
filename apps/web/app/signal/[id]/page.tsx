@@ -13,10 +13,11 @@ import { EmbedButton } from '../../components/embed-button';
 import { AIAnalysisPanel } from '../../components/ai-analysis-panel';
 import { SetAlertButton } from '../../components/set-alert-button';
 import { SignalChartSection } from './SignalChartSection';
-import { SYMBOLS, type TradingSignal } from '../../lib/signals';
+import { SYMBOLS, type TradingSignal, getStrategyName } from '../../lib/signals';
 import { InfoHint } from '../../../components/InfoHint';
 import { STAT_HINTS } from '../../../lib/stat-hints';
 import { deriveHistoricalOutcomeStatus } from '../../../lib/signal-outcome';
+import { trackEvent } from '../../../lib/analytics';
 import { isExpiredHistoricalOutcome, isPendingHistoricalOutcome } from '../../../lib/signal-history-status';
 
 const HINT_ENTRY = 'Mid-price at signal emission. Slippage and spread are applied later when computing P&L.';
@@ -163,12 +164,19 @@ function buildHistoricalSignal(
     indicators: liveIndicators ?? STUB_INDICATORS,
     timeframe: record.timeframe as TradingSignal['timeframe'],
     timestamp: new Date(record.timestamp).toISOString(),
-    status: deriveHistoricalOutcomeStatus(record.outcomes['24h']),
+    // OutcomeStatus has a wider 'unknown' state that SignalStatus doesn't;
+    // collapse 'unknown' → 'active' so historical rows display as live-ish
+    // while we wait for the 4h/24h cron to resolve them.
+    status: (() => {
+      const s = deriveHistoricalOutcomeStatus(record.outcomes['24h']);
+      return s === 'unknown' ? 'active' : s;
+    })(),
     source: 'real',
     dataQuality: 'real',
     entryAtr: record.entryAtr,
     atrMultiplier: record.atrMultiplier,
     strategyId: record.strategyId,
+    strategyName: getStrategyName(record.timeframe),
   };
 }
 
@@ -181,7 +189,7 @@ export async function generateMetadata(
   const direction = resolved?.direction ?? '';
   const timeframe = resolved?.timeframe ?? '';
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tradeclaw.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tradeclaw.win';
   const ogUrl = `${baseUrl}/api/og/signal/${id}`;
 
   return {
@@ -205,6 +213,9 @@ export default async function SignalPage(
   { params }: { params: Promise<Params> }
 ) {
   const { id } = await params;
+
+  // Analytics: track signal detail views
+  trackEvent('signal_viewed', { signalId: id });
 
   // Look up the historical row first. This makes /signal/SIG-* URLs render
   // a permanent record of what we said at emission, instead of re-running
@@ -353,6 +364,11 @@ export default async function SignalPage(
                             ? 'TP3 hit'
                             : 'active'}
                 </span>
+                {signal.strategyName && (
+                  <span className="px-2.5 py-1 rounded-full border text-[10px] font-bold tracking-wider font-mono bg-purple-500/10 text-purple-400 border-purple-500/20">
+                    {signal.strategyName}
+                  </span>
+                )}
                 <span className="text-zinc-700 text-xs font-mono">
                   {new Date(signal.timestamp).toLocaleString([], {
                     month: 'short', day: 'numeric',
@@ -391,14 +407,18 @@ export default async function SignalPage(
           {/* Outcome banner — only on historical rows. Surfaces what the
               4h/24h cron has resolved, so the page no longer pretends a
               week-old signal is "live". */}
-          {isHistorical && (
+          {isHistorical && (() => {
+            // Server component renders once per request — Date.now() here is
+            // intentional and the value is stable across all .map iterations.
+            // eslint-disable-next-line react-hooks/purity
+            const now = Date.now();
+            return (
             <div className="mb-6 grid grid-cols-2 gap-2">
               {[
                 { label: '4h', outcome: outcome4h },
                 { label: '24h', outcome: outcome24h },
               ].map(({ label, outcome }) => {
                 const windowMs = label === '4h' ? 4 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
-                const now = Date.now();
                 const pending = isPendingHistoricalOutcome(outcome, record.timestamp, windowMs, now);
                 const expired = isExpiredHistoricalOutcome(outcome, record.timestamp, windowMs, now);
                 const hit = outcome?.hit === true;
@@ -428,7 +448,8 @@ export default async function SignalPage(
                 );
               })}
             </div>
-          )}
+            );
+          })()}
 
           {/* Price levels */}
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-8">
@@ -580,6 +601,7 @@ export default async function SignalPage(
             direction={signal.direction}
             timestamp={signal.timestamp}
             pip={SYMBOLS.find(s => s.symbol === signal.symbol)?.pip ?? 0.01}
+            symbol={signal.symbol}
           />
         ) : (
           <div className="glass-card rounded-2xl p-8 text-center border border-emerald-500/20 bg-emerald-500/5">

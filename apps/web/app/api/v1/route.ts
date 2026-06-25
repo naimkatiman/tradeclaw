@@ -43,7 +43,7 @@ export async function GET() {
         },
         regime: {
           url: "/api/v1/regime",
-          description: "HMM-based market regime classification (crash/bear/neutral/bull/euphoria)",
+          description: "HMM-based structural market regime classification (trend/volatile/range)",
           params: {
             symbol: "Filter by symbol (e.g. BTCUSD). Omit for all symbols.",
           },

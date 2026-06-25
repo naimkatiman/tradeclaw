@@ -1,0 +1,42 @@
+---
+title: "Announcing the TradeClaw Python SDK: pip install tradeclaw"
+excerpt: "Python is the language of algo trading. Now TradeClaw speaks it natively — one package, three lines of code, and you're pulling live multi-indicator signals into any Python script, Jupyter notebook, or trading bot."
+date: "2026-06-01"
+readTime: "8 min"
+tags: ["Python", "SDK", "Developer", "API"]
+metaDescription: "The TradeClaw Python SDK lets you query live trading signals, stream WebSocket updates, and integrate with pandas in three lines. Complete setup guide and code examples."
+keywords: ["python trading signals api", "tradeclaw python sdk", "pip install tradeclaw", "python technical analysis api", "trading bot python"]
+---
+
+Python is the lingua franca of algorithmic trading. Backtesting libraries, data pipelines, Jupyter notebooks, machine-learning models — they all speak Python. Until now, connecting them to TradeClaw meant crafting HTTP requests by hand: auth headers on every call, manual JSON parsing, no type hints, and no retry logic built in.
+
+That changes today. The TradeClaw Python SDK is entering public beta.
+
+## Why a Native SDK Instead of Raw REST
+
+TODO: Explain the friction of curl/requests-based Python automation — repeated auth header boilerplate, manual JSON parsing, no IDE autocompletion, no built-in retry on 429. Contrast with `import tradeclaw; client.signals.latest("BTCUSD")` returning a typed `TradingSignal` object. Note that the SDK wraps the same REST + WebSocket API the dashboard uses, so feature parity with the UI is guaranteed and the SDK tracks every API release automatically.
+
+## Installation and Authentication
+
+TODO: Walk through `pip install tradeclaw` (Python 3.10+, no native deps). Show the two auth paths: `TRADECLAW_API_KEY` environment variable (recommended for CI/production) and the explicit `TradeClaw(api_key="tc_...")` constructor (useful in notebooks). Explain where to get the API key: Settings → Developer on the dashboard. For free-tier limits, cite `apps/web/app/developer/page.tsx` ("1,000 requests/day") — but verify against `apps/web/lib/api-keys.ts` TIER_RATE_LIMITS (currently `free: 10/hour`) before publishing; these two numbers need to be reconciled with engineering first.
+
+## Your First Signal in 3 Lines
+
+TODO: Show the minimal working example — `from tradeclaw import TradeClaw`, `tc = TradeClaw()`, `print(tc.signals.latest("BTCUSD"))`. Annotate the `TradingSignal` fields from `packages/signals/src/types.ts`: `direction` ("BUY"/"SELL"), `confidence` (0–100), `entry`, `stopLoss`, `takeProfit1`, `takeProfit2`, `takeProfit3`, `indicators` (nested object with per-indicator values), `timeframe`, `timestamp`, `status`. Compare side-by-side with the equivalent `curl /api/v1/signals?symbol=BTCUSD` plus `jq` to show why the SDK reduces setup friction. Include the full signal JSON as a code block.
+
+## Working with pandas
+
+TODO: Show `tc.signals.history("EURUSD", limit=100).to_dataframe()` — this wraps the `/api/signals/history` endpoint (`apps/web/app/api/signals/history/route.ts`), which supports query params: `pair`, `direction`, `outcome` (win/loss/pending), `period`, `limit` (max 200), `offset`. The endpoint requires a Pro key for CSV export but returns JSON for all tiers. Convert the response to a `pd.DataFrame` with a DatetimeIndex. Demonstrate filtering for high-confidence signals: `df[df.confidence >= 75]`. Show a minimal matplotlib equity-curve plot. Mention polars interop via `.to_arrow()`.
+
+## Async Streaming with asyncio
+
+TODO: Show the `async for signal in tc.stream("XAUUSD", "EURUSD"):` pattern for real-time signal delivery over WebSocket (roadmap item rm-002, currently in progress). Include reconnect handling with the `max_reconnects` parameter and graceful shutdown via `await tc.aclose()`. Note the streaming endpoint requires a Pro plan key.
+
+## Error Handling and Rate Limits
+
+TODO: Document the exception hierarchy — `TradeclawAuthError` (401), `TradeclawRateLimitError` (429, includes `retry_after` attribute), `TradeclawTimeoutError`, and the base `TradeclawError`. Show the recommended retry-with-backoff snippet using `tenacity`. Rate limits per `apps/web/lib/api-keys.ts` TIER_RATE_LIMITS: free 10 req/hour, pro 100 req/hour, elite unlimited — cross-check against `apps/web/app/developer/page.tsx` and align both before publishing. Show how to check remaining quota via `tc.quota()`.
+
+<TrialCTA
+  headline="Get your API key and start building — free for 7 days."
+  pitch="The TradeClaw Python SDK is available on every plan. Pro unlocks full signal history, WebSocket streaming, and higher API rate limits. $29/mo after trial, cancel anytime."
+/>

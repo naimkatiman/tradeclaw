@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import type { ScreenerResult, ScreenerMeta } from '../api/screener/route';
+import { SYMBOLS } from '../lib/symbol-config';
 import { SparklineChart } from '../components/charts';
 import { PageNavBar } from '../../components/PageNavBar';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
@@ -53,7 +54,7 @@ function confTextColor(v: number): string {
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return (
-    <span className={`ml-1 text-[8px] inline-block ${active ? 'text-emerald-400' : 'text-[var(--text-secondary)]'}`}>
+    <span className={`ml-1 text-[10px] inline-block ${active ? 'text-emerald-400' : 'text-[var(--text-secondary)]'}`}>
       {active ? (dir === 'asc' ? '▲' : '▼') : '⬍'}
     </span>
   );
@@ -311,6 +312,7 @@ export default function ScreenerClient() {
   const [meta, setMeta] = useState<ScreenerMeta | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasScanned, setHasScanned] = useState(false);
+  const [scanError, setScanError] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('confidence');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [watchlist, setWatchlist] = useState<Set<string>>(new Set());
@@ -331,6 +333,20 @@ export default function ScreenerClient() {
     scan();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Re-scan when filters change after the first scan (debounced) — the
+  // empty-state rescue buttons depend on this to actually fetch new results.
+  const filtersTouchedRef = useRef(false);
+  useEffect(() => {
+    if (!filtersTouchedRef.current) {
+      filtersTouchedRef.current = true;
+      return;
+    }
+    const timer = setTimeout(() => {
+      void scan();
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [filters]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function saveWatchlist(next: Set<string>) {
     setWatchlist(next);
     try {
@@ -347,7 +363,9 @@ export default function ScreenerClient() {
     saveWatchlist(next);
   }
 
+  const scanSeqRef = useRef(0);
   const scan = useCallback(async () => {
+    const seq = ++scanSeqRef.current;
     setLoading(true);
     setHasScanned(true);
     try {
@@ -363,12 +381,20 @@ export default function ScreenerClient() {
       const res = await fetch(`/api/screener?${params}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json() as { results: ScreenerResult[]; meta: ScreenerMeta };
+      if (seq !== scanSeqRef.current) return; // a newer scan superseded this response
       setResults(data.results);
       setMeta(data.meta);
+      setScanError(false);
     } catch {
-      setResults([]);
+      if (seq === scanSeqRef.current) {
+        // A failed scan is a server problem, not a filter problem — clear the
+        // stale tiles and flag it so the empty state doesn't blame the user.
+        setResults([]);
+        setMeta(null);
+        setScanError(true);
+      }
     } finally {
-      setLoading(false);
+      if (seq === scanSeqRef.current) setLoading(false);
     }
   }, [filters]);
 
@@ -383,6 +409,56 @@ export default function ScreenerClient() {
 
   function patchFilter<K extends keyof Filters>(key: K, value: Filters[K]) {
     setFilters(f => ({ ...f, [key]: value }));
+  }
+
+  function exportCSV() {
+    if (sorted.length === 0) return;
+    const headers = [
+      'Symbol',
+      'Name',
+      'Direction',
+      'Confidence',
+      'Price',
+      'RSI',
+      'MACD Histogram',
+      'MACD Signal',
+      'EMA20',
+      'EMA50',
+      'EMA Status',
+      'Timeframe',
+      'Signal ID',
+    ];
+    const escape = (v: string | number) => {
+      const s = String(v);
+      if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+      return s;
+    };
+    const rows = sorted.map(r => [
+      r.symbol,
+      r.name,
+      r.direction,
+      r.confidence,
+      r.price,
+      r.rsi.toFixed(2),
+      r.macdHistogram.toFixed(6),
+      r.macdSignal,
+      r.ema20,
+      r.ema50,
+      r.emaStatus,
+      r.timeframe,
+      r.signalId,
+    ].map(escape).join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `tradeclaw-screener-${date}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   const sorted = [...results]
@@ -420,7 +496,7 @@ export default function ScreenerClient() {
             <h1 className="text-xl font-bold tracking-tight">Asset Screener</h1>
           </div>
           <p className="text-xs text-[var(--text-secondary)]">
-            Scan all {12} assets for setups matching your custom criteria · Powered by real TA engine
+            Scan all {SYMBOLS.length} assets for setups matching your custom criteria · Powered by real TA engine
           </p>
         </div>
 
@@ -525,6 +601,20 @@ export default function ScreenerClient() {
                 Watchlist Only
                 {watchlist.size > 0 && <span className="px-1.5 py-0.5 rounded-full bg-zinc-500/20 text-zinc-400 text-[9px] font-bold">{watchlist.size}</span>}
               </button>
+
+              <button
+                onClick={exportCSV}
+                disabled={sorted.length === 0}
+                title={sorted.length === 0 ? 'No results to export' : `Export ${sorted.length} rows to CSV`}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-medium border bg-white/[0.03] border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export CSV
+              </button>
             </div>
 
             <button
@@ -593,7 +683,7 @@ export default function ScreenerClient() {
               <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
             <p className="text-[var(--text-secondary)] text-sm font-medium">Set your filters and tap Scan Now</p>
-            <p className="text-zinc-800 text-xs mt-1">Scans {12} assets across forex, crypto & metals</p>
+            <p className="text-zinc-800 text-xs mt-1">Scans {SYMBOLS.length} assets across forex, crypto & metals</p>
           </div>
         ) : (
           <>
@@ -644,30 +734,47 @@ export default function ScreenerClient() {
                       <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
                     </svg>
                   </div>
-                  <p className="text-sm font-medium text-[var(--foreground)] mb-1">No assets match your filters</p>
-                  <p className="text-xs text-[var(--text-secondary)] mb-4 max-w-sm mx-auto">
-                    Your current criteria are too restrictive. Try one of these:
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    <button
-                      onClick={() => patchFilter('minConfidence', 50)}
-                      className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                    >
-                      Lower confidence to 50%
-                    </button>
-                    <button
-                      onClick={() => { patchFilter('rsiMin', 10); patchFilter('rsiMax', 90); }}
-                      className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                    >
-                      Widen RSI range
-                    </button>
-                    <button
-                      onClick={() => { patchFilter('direction', 'all'); patchFilter('macdFilter', 'any'); patchFilter('emaFilter', 'any'); }}
-                      className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
-                    >
-                      Reset all filters
-                    </button>
-                  </div>
+                  {scanError ? (
+                    <>
+                      <p className="text-sm font-medium text-[var(--foreground)] mb-1">Scan failed</p>
+                      <p className="text-xs text-[var(--text-secondary)] mb-4 max-w-sm mx-auto">
+                        Market data didn’t load — this wasn’t your filters.
+                      </p>
+                      <button
+                        onClick={() => void scan()}
+                        className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                      >
+                        Retry scan
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium text-[var(--foreground)] mb-1">No assets match your filters</p>
+                      <p className="text-xs text-[var(--text-secondary)] mb-4 max-w-sm mx-auto">
+                        Your current criteria are too restrictive. Try one of these:
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        <button
+                          onClick={() => patchFilter('minConfidence', 50)}
+                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                        >
+                          Lower confidence to 50%
+                        </button>
+                        <button
+                          onClick={() => { patchFilter('rsiMin', 10); patchFilter('rsiMax', 90); }}
+                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                        >
+                          Widen RSI range
+                        </button>
+                        <button
+                          onClick={() => { patchFilter('direction', 'all'); patchFilter('macdFilter', 'any'); patchFilter('emaFilter', 'any'); }}
+                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                        >
+                          Reset all filters
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
               {!loading && sorted.length > 0 && (
@@ -844,28 +951,43 @@ export default function ScreenerClient() {
                           <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
                         </svg>
                       </div>
-                      <p className="text-sm font-medium text-[var(--foreground)] mb-1">No assets match your filters</p>
-                      <p className="text-xs text-[var(--text-secondary)] mb-3">Try lowering confidence, widening RSI, or resetting filters.</p>
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => patchFilter('minConfidence', 50)}
-                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                        >
-                          Lower confidence to 50%
-                        </button>
-                        <button
-                          onClick={() => { patchFilter('rsiMin', 10); patchFilter('rsiMax', 90); }}
-                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                        >
-                          Widen RSI range
-                        </button>
-                        <button
-                          onClick={() => { patchFilter('direction', 'all'); patchFilter('macdFilter', 'any'); patchFilter('emaFilter', 'any'); }}
-                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
-                        >
-                          Reset all filters
-                        </button>
-                      </div>
+                      {scanError ? (
+                        <>
+                          <p className="text-sm font-medium text-[var(--foreground)] mb-1">Scan failed</p>
+                          <p className="text-xs text-[var(--text-secondary)] mb-3">Market data didn’t load — this wasn’t your filters.</p>
+                          <button
+                            onClick={() => void scan()}
+                            className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                          >
+                            Retry scan
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm font-medium text-[var(--foreground)] mb-1">No assets match your filters</p>
+                          <p className="text-xs text-[var(--text-secondary)] mb-3">Try lowering confidence, widening RSI, or resetting filters.</p>
+                          <div className="flex justify-center gap-2">
+                            <button
+                              onClick={() => patchFilter('minConfidence', 50)}
+                              className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                            >
+                              Lower confidence to 50%
+                            </button>
+                            <button
+                              onClick={() => { patchFilter('rsiMin', 10); patchFilter('rsiMax', 90); }}
+                              className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                            >
+                              Widen RSI range
+                            </button>
+                            <button
+                              onClick={() => { patchFilter('direction', 'all'); patchFilter('macdFilter', 'any'); patchFilter('emaFilter', 'any'); }}
+                              className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                            >
+                              Reset all filters
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </td>
                   </tr>
                 )}

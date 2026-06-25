@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { countRecentMagicLinkEmails, issueMagicLink } from '../../../../../lib/magic-link';
+import { buildVerifyIntentQuery } from '../../../../../lib/magic-link-redirect';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -7,7 +8,14 @@ export const dynamic = 'force-dynamic';
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 
 export async function POST(req: NextRequest) {
-  const { email } = (await req.json().catch(() => ({}))) as { email?: string };
+  const body = (await req.json().catch(() => ({}))) as {
+    email?: string;
+    priceId?: string;
+    tier?: string;
+    interval?: string;
+    next?: string;
+  };
+  const email = body.email;
   const normalized = (email ?? '').toLowerCase().trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
     return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
@@ -34,7 +42,11 @@ export async function POST(req: NextRequest) {
 
   const { raw } = await issueMagicLink(normalized);
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
-  const link = `${base}/api/auth/magic-link/verify?token=${encodeURIComponent(raw)}`;
+  // Carry any checkout intent through the link so /verify can resume checkout
+  // instead of dropping the user on /dashboard. All values are sanitized here
+  // and re-sanitized at verify time (the link query is attacker-visible).
+  const intentQuery = buildVerifyIntentQuery(body);
+  const link = `${base}/api/auth/magic-link/verify?token=${encodeURIComponent(raw)}${intentQuery}`;
 
   const sendRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',

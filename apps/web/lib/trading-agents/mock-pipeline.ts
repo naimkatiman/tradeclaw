@@ -318,6 +318,44 @@ function toIsoTradeDate(date = new Date()): string {
   return date.toISOString().slice(0, 10);
 }
 
+/**
+ * Minimal runtime shape guard for the JS<->Python bridge contract. Each stage
+ * output is optional in the result, but when present the consumer maps/joins
+ * over nested arrays (analyst.bullishFactors/bearishFactors/sources,
+ * risk.risks). On drift we console.error so the contract break is observable
+ * and return the parsed value unchanged — the existing per-stage `if (!run.x)`
+ * checks remain the source of control flow.
+ */
+function validateTradingAgentsRunResult(parsed: unknown): TradingAgentsRunResult {
+  if (parsed === null || typeof parsed !== 'object') {
+    console.error('[trading-agents] bridge output is not a JSON object — contract drift:', parsed);
+    return parsed as TradingAgentsRunResult;
+  }
+
+  const result = parsed as Record<string, unknown>;
+
+  const analyst = result.analyst as Record<string, unknown> | undefined;
+  if (analyst !== undefined && analyst !== null) {
+    if (
+      !Array.isArray(analyst.bullishFactors) ||
+      !Array.isArray(analyst.bearishFactors) ||
+      !Array.isArray(analyst.sources)
+    ) {
+      console.error(
+        '[trading-agents] analyst output missing expected arrays (bullishFactors/bearishFactors/sources) — contract drift:',
+        analyst,
+      );
+    }
+  }
+
+  const risk = result.risk as Record<string, unknown> | undefined;
+  if (risk !== undefined && risk !== null && !Array.isArray(risk.risks)) {
+    console.error('[trading-agents] risk output missing expected array (risks) — contract drift:', risk);
+  }
+
+  return parsed as TradingAgentsRunResult;
+}
+
 function parseTradingAgentsOutput(stdout: string): TradingAgentsRunResult {
   const trimmed = stdout.trim();
   if (!trimmed) {
@@ -325,7 +363,7 @@ function parseTradingAgentsOutput(stdout: string): TradingAgentsRunResult {
   }
 
   try {
-    return JSON.parse(trimmed) as TradingAgentsRunResult;
+    return validateTradingAgentsRunResult(JSON.parse(trimmed));
   } catch {
     const lastJsonLine = trimmed
       .split(/\r?\n/)
@@ -333,7 +371,7 @@ function parseTradingAgentsOutput(stdout: string): TradingAgentsRunResult {
       .find((line) => line.trim().startsWith('{') || line.trim().startsWith('['));
 
     if (lastJsonLine) {
-      return JSON.parse(lastJsonLine) as TradingAgentsRunResult;
+      return validateTradingAgentsRunResult(JSON.parse(lastJsonLine));
     }
 
     throw new Error('TradingAgents bridge output was not valid JSON');

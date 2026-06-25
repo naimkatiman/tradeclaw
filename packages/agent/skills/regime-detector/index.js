@@ -4,25 +4,25 @@ import { generateSignals } from '../../dist/signals/engine.js';
  * Market Regime Detector Skill
  *
  * Classifies current market into one of three regimes:
- * - TRENDING: ADX > 25 + normal Bollinger bandwidth (>= 1.5%)
- * - RANGING: ADX < 25 (no directional conviction)
+ * - TREND: ADX > 25 + normal Bollinger bandwidth (>= 1.5%)
+ * - RANGE: ADX < 25 (no directional conviction)
  * - VOLATILE: ADX >= 20 + compressed Bollinger bands (< 1.5%) — squeeze/breakout setup
  *
  * Applies regime-specific confidence adjustments:
- * - Trending: boost trend-aligned, penalize counter-trend
- * - Ranging: boost mean-reversion, penalize trend-chasing
+ * - Trend: boost trend-aligned, penalize counter-trend
+ * - Range: boost mean-reversion, penalize trend-chasing
  * - Volatile: boost breakout signals
  */
 export class RegimeDetectorSkill {
   name = 'regime-detector';
-  description = 'Classifies market as trending/ranging/volatile using ADX + Bollinger bandwidth.';
+  description = 'Classifies market as trend/range/volatile using ADX + Bollinger bandwidth.';
   version = '0.1.0';
 
   classifyRegime(adxValue, adxTrending, bbBandwidth) {
-    if (adxTrending && bbBandwidth >= 1.5) return 'trending';
+    if (adxTrending && bbBandwidth >= 1.5) return 'trend';
     if (adxValue >= 20 && bbBandwidth < 1.5) return 'volatile';
-    if (!adxTrending) return 'ranging';
-    return 'trending';
+    if (!adxTrending) return 'range';
+    return 'trend';
   }
 
   analyze(symbol, timeframes) {
@@ -38,14 +38,14 @@ export class RegimeDetectorSkill {
 
       let confidenceAdj = 0;
 
-      if (regime === 'trending') {
+      if (regime === 'trend') {
         if (signal.direction === 'BUY' && ema.trend === 'up') confidenceAdj = 8;
         else if (signal.direction === 'SELL' && ema.trend === 'down') confidenceAdj = 8;
         else if (signal.direction === 'BUY' && ema.trend === 'down') confidenceAdj = -15;
         else if (signal.direction === 'SELL' && ema.trend === 'up') confidenceAdj = -15;
       }
 
-      if (regime === 'ranging') {
+      if (regime === 'range') {
         if (signal.direction === 'BUY' && rsi.signal === 'oversold') confidenceAdj = 8;
         else if (signal.direction === 'SELL' && rsi.signal === 'overbought') confidenceAdj = 8;
         if (signal.direction === 'BUY' && rsi.signal === 'overbought') confidenceAdj = -10;

@@ -10,8 +10,8 @@
  *   4. Regime         — ADX(14) on H1 ≥ 20
  *
  * The plan specified an additional "HMM regime ≠ ranging" check, but the
- * production HMM classifier writes to `market_regimes` with vocabulary
- * (crash|bear|neutral|bull|euphoria) that doesn't match this module's
+ * `market_regimes` vocabulary (canonical trend|volatile|range as of Phase 3,
+ * docs/plans/2026-06-11-phase3-regime-engine.md) doesn't match this module's
  * (trending|ranging|unknown) — and no signal source actually populates a
  * regime field on `signal_history`. The previous implementation passed the
  * literal 'trending' from the executor, making the HMM branch a no-op.

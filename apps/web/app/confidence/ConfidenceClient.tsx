@@ -144,16 +144,19 @@ function getSliderAccentClass(color: string): string {
 }
 
 /* ── code snippet ─────────────────────────────────────────────────────── */
-const CODE_SNIPPET = `// TradeClaw Confidence Scoring Formula (matches signal-generator.ts)
-// 5 indicators scored 0–max points, total raw max = 90
+const CODE_SNIPPET = `// TradeClaw confidence scoring — weights match this calculator's INDICATORS.
+// 6 indicators, each scored 0–100, weighted to a 0–100 confidence.
 const WEIGHTS = {
-  RSI: 20,   MACD: 25,  EMA: 20,
-  STOCH: 15, BB: 10,    // total = 90
+  RSI: 0.20, MACD: 0.20, EMA: 0.20,
+  BB:  0.15, STOCH: 0.15, VOLUME: 0.10, // total = 1.00
 };
 
-// Raw score → confidence % (scaled to 48–95 range)
-function scaleConfidence(rawScore: number): number {
-  return Math.min(95, Math.max(48, Math.round(42 + rawScore * 0.62)));
+// Confidence = weighted sum of the per-indicator 0–100 scores.
+function confidence(scores: Record<string, number>): number {
+  const raw =
+    scores.rsi   * 0.20 + scores.macd  * 0.20 + scores.ema    * 0.20 +
+    scores.bb    * 0.15 + scores.stoch * 0.15 + scores.volume * 0.10;
+  return Math.round(raw); // 0–100
 }
 
 // Thresholds (granular tiers):
@@ -162,7 +165,8 @@ function scaleConfidence(rawScore: number): number {
 //  58–64 → published (marginal)
 //  65–72 → published (moderate)
 //  73+   → auto-broadcast to Telegram & webhooks
-//  75+   → capped at 70 unless multi-TF confluence confirms`;
+//  75+   → capped at 70 unless multi-TF confluence (H1+H4+D1) confirms;
+//          with confluence, +confluence bonus, capped at 95`;
 
 /* ── main component ───────────────────────────────────────────────────── */
 export default function ConfidenceClient() {
@@ -220,6 +224,10 @@ export default function ConfidenceClient() {
         {/* ── Live Score Display ── */}
         <div className={`rounded-2xl border p-8 text-center transition-all duration-300 ${getScoreBg(confidence)}`}>
           <div className="flex flex-col items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
+              <Calculator className="w-3 h-3" />
+              Interactive demo — not a live signal
+            </span>
             <span className="text-xs uppercase tracking-widest text-[var(--text-secondary)] font-semibold">
               Confidence Score
             </span>
@@ -251,8 +259,11 @@ export default function ConfidenceClient() {
 
         {/* ── Presets ── */}
         <div>
-          <p className="text-xs uppercase tracking-widest text-[var(--text-secondary)] font-semibold mb-3">
+          <p className="text-xs uppercase tracking-widest text-[var(--text-secondary)] font-semibold mb-1">
             Load a Preset
+          </p>
+          <p className="text-xs text-[var(--text-secondary)] mb-3">
+            Illustrative examples to explore the formula — not historical signals.
           </p>
           <div className="flex flex-wrap gap-3">
             {PRESETS.map((preset) => (
@@ -428,7 +439,7 @@ export default function ConfidenceClient() {
               <div className="w-3 h-3 rounded-full bg-zinc-500/60" />
               <div className="w-3 h-3 rounded-full bg-emerald-500/60" />
               <span className="ml-2 text-xs text-[var(--text-secondary)] font-mono">
-                signal-generator.ts
+                confidence formula (simplified)
               </span>
             </div>
             <button

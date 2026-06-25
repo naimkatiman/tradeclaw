@@ -16,7 +16,7 @@ const COLUMNS: FooterColumn[] = [
     heading: 'Product',
     links: [
       { href: '/dashboard', label: 'Dashboard' },
-      { href: '/screener', label: 'Signals' },
+      { href: '/screener', label: 'Screener' },
       { href: '/backtest', label: 'Backtest' },
       { href: '/pricing', label: 'Pricing' },
       { href: '/demo', label: 'Live demo' },
@@ -98,9 +98,19 @@ export function SiteFooter() {
 
         <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-[var(--border)] pt-6 text-[11px] text-[var(--text-secondary)] sm:flex-row sm:items-center">
           <p>&copy; {year} TradeClaw. MIT licensed.</p>
-          <p className="max-w-md sm:text-right">
-            Trading involves risk. Signals are informational only and are not financial advice.
-          </p>
+          <div className="flex flex-wrap items-center gap-3 sm:text-right">
+            <Link href="/terms" className="hover:text-[var(--foreground)] transition-colors">
+              Terms
+            </Link>
+            <span className="text-[var(--border)]">|</span>
+            <Link href="/privacy" className="hover:text-[var(--foreground)] transition-colors">
+              Privacy
+            </Link>
+            <span className="text-[var(--border)]">|</span>
+            <span className="max-w-md">
+              Trading involves risk. Signals are informational only and are not financial advice.
+            </span>
+          </div>
         </div>
       </div>
     </footer>

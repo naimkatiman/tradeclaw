@@ -5,9 +5,21 @@ on:
     - cron: "*/5 * * * *"
   workflow_dispatch:
 
+# Prevent overlapping runs. If a run takes >5 minutes the next scheduled
+# trigger would start while signals are still being marked as posted — causing
+# duplicate Telegram alerts. cancel-in-progress: false lets the active run
+# finish; the queued run is skipped rather than cancelled.
+concurrency:
+  group: signal-alerts
+  cancel-in-progress: false
+
+permissions:
+  contents: none
+
 jobs:
   post-new-signals:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Detect new signals and post immediate Telegram alerts
         env:

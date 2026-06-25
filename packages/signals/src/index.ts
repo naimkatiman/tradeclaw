@@ -15,9 +15,12 @@ export type {
   WsServerMessage,
 } from './types.js';
 
+export { getStrategyName } from './types.js';
+
 // ─── Utilities ─────────────────────────────────────────
 
 export { generateSignalId, clamp, formatNumber, formatDiff, emaTrendText } from './utils.js';
+export type { StrategyName } from './types.js';
 
 // ─── Indicators ───────────────────────────────────────
 // Canonical indicator implementations live in apps/web/app/lib/ta-engine.ts
@@ -55,7 +58,7 @@ export type {
 // ─── Regime Classifier ───────────────────────────────
 export {
   classifyRegime,
-  computeFeatures,
+  applyHysteresis,
   loadModel,
   getDefaultModel,
   setModel,
@@ -66,10 +69,20 @@ export {
 export type {
   MarketRegime,
   RegimeClassification,
-  RegimeFeatures,
   HMMModelParams,
-  PriceBar,
+  HysteresisState,
+  HysteresisOptions,
 } from './regime/index.js';
+export {
+  computeRegimeFeatureSeries,
+  featureVectorToArray,
+  REGIME_FEATURE_NAMES,
+} from './regime/features.js';
+export type {
+  RegimeBar,
+  RegimeFeatureVector,
+  RegimeFeatureOptions,
+} from './regime/features.js';
 
 // ─── Dynamic Allocation ─────────────────────────────
 export {

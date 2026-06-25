@@ -1,5 +1,7 @@
 # Submission: awesome-selfhosted
 
+> SUPERSEDED (2026-06-02): verified live status is in `docs/awesome-lists/SUBMISSION_STATUS.md`. This draft is wrong — awesome-selfhosted is submitted as a YAML file in the `awesome-selfhosted-data` repo (not a README line), and the project is on HOLD until ~2026-07-25 (4-month-age rule). Use `community/awesome-submissions/tradeclaw.yml`. Do not submit from this file.
+
 **Target repo:** https://github.com/awesome-selfhosted/awesome-selfhosted
 **Stars:** ~22k
 

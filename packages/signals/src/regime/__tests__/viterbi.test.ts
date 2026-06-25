@@ -15,7 +15,7 @@ import type { HMMModelParams } from '../types.js';
 function twoStateModel(): HMMModelParams {
   return {
     n_states: 2,
-    state_labels: { '0': 'bear', '1': 'bull' },
+    state_labels: { '0': 'range', '1': 'trend' },
     transition_matrix: [
       [0.7, 0.3],
       [0.4, 0.6],
@@ -114,12 +114,12 @@ describe('forwardAlgorithm', () => {
   it('assigns higher probability to correct state', () => {
     const model = twoStateModel();
     // Observation near state 1's mean (+1)
-    const resultBull = forwardAlgorithm([[1.5]], model);
-    expect(resultBull[0][1]).toBeGreaterThan(resultBull[0][0]);
+    const resultHigh = forwardAlgorithm([[1.5]], model);
+    expect(resultHigh[0][1]).toBeGreaterThan(resultHigh[0][0]);
 
     // Observation near state 0's mean (-1)
-    const resultBear = forwardAlgorithm([[-1.5]], model);
-    expect(resultBear[0][0]).toBeGreaterThan(resultBear[0][1]);
+    const resultLow = forwardAlgorithm([[-1.5]], model);
+    expect(resultLow[0][0]).toBeGreaterThan(resultLow[0][1]);
   });
 
   it('handles multi-step sequences', () => {
@@ -133,7 +133,7 @@ describe('forwardAlgorithm', () => {
       const sum = probs.reduce((a, b) => a + b, 0);
       expect(sum).toBeCloseTo(1.0, 6);
     }
-    // Last observation (+1.2) should favor state 1 (bull)
+    // Last observation (+1.2) should favor state 1
     expect(result[4][1]).toBeGreaterThan(result[4][0]);
   });
 });
@@ -156,12 +156,12 @@ describe('viterbiDecode', () => {
 
   it('decodes a sequence with a clear regime switch', () => {
     const model = twoStateModel();
-    // Bear regime followed by bull regime
+    // Low-mean state followed by high-mean state
     const obs = [[-1.5], [-1.0], [-1.2], [1.0], [1.5], [1.2]];
     const path = viterbiDecode(obs, model);
 
     expect(path).toHaveLength(6);
-    // First few should be state 0 (bear), last few state 1 (bull)
+    // First few should be state 0, last few state 1
     expect(path[0]).toBe(0);
     expect(path[1]).toBe(0);
     expect(path[4]).toBe(1);

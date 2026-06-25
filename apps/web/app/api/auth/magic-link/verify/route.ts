@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { consumeMagicLink } from '../../../../../lib/magic-link';
+import { resolveMagicLinkTarget } from '../../../../../lib/magic-link-redirect';
 // TODO(magic-link): swap to upsertUserProfile once magic-link supports a
 // display name on the verify form. Until then magic-link users get
 // displayName/avatarUrl/authProvider all null, which the navbar handles
@@ -40,7 +41,21 @@ export async function GET(req: NextRequest) {
 
   const user = await upsertUserByEmail(result.email);
   const sessionToken = createSessionToken(user.id);
-  const res = NextResponse.redirect(new URL('/dashboard', origin));
+
+  // Resume any checkout intent carried on the link instead of always landing on
+  // /dashboard (mirrors the Google OAuth callback). Re-sanitized inside.
+  const sp = req.nextUrl.searchParams;
+  const target = resolveMagicLinkTarget(
+    {
+      priceId: sp.get('priceId'),
+      tier: sp.get('tier'),
+      interval: sp.get('interval'),
+      next: sp.get('next'),
+    },
+    origin,
+  );
+
+  const res = NextResponse.redirect(target);
   res.cookies.set(USER_SESSION_COOKIE, sessionToken, sessionCookieOptions());
   return res;
 }

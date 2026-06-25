@@ -10,10 +10,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Lint & Type Check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,13 +25,31 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # @tradeclaw/signals resolves through its dist build; type-check needs it present.
+      - run: npm run build:signals
       - run: npm run lint
       - run: npx tsc --noEmit --project apps/web/tsconfig.json
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
 
   build:
     name: Build
     runs-on: ubuntu-latest
     needs: lint
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -43,6 +65,7 @@ jobs:
     name: Docker Build
     runs-on: ubuntu-latest
     needs: build
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -121,7 +144,7 @@ jobs:
     # Non-blocking until the suite stabilizes. Flip to false once the suite is
     # consistently green against the CI Postgres sidecar.
     continue-on-error: true
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       # Ephemeral Postgres per CI run — avoids any risk of writing test signals
       # to the production Railway DB. Migrations are applied below.
@@ -141,6 +164,10 @@ jobs:
     env:
       CI: 'true'
       NEXT_TELEMETRY_DISABLED: '1'
+      # Disable the rolling-window rate limiter for the serial suite only — a
+      # single next-start instance accumulates per-key hits across tests and
+      # returns 429 where tests expect 200/401/403. Set ONLY here; never in prod.
+      E2E_DISABLE_RATE_LIMIT: '1'
       # Sidecar Postgres URL — visible to the migration step, the dev server
       # spawned by Playwright's webServer, and the tests themselves.
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tradeclaw_test
@@ -158,6 +185,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
         working-directory: ${{ github.workspace }}
+      - name: Build signals (dev server resolves @tradeclaw/signals from dist)
+        run: npm run build:signals
+        working-directory: ${{ github.workspace }}
       - name: Apply migrations to sidecar Postgres
         # Bypass the Railway-tuned migration runner (which forces SSL) by
         # piping each .sql file through psql directly. CI starts from an empty
@@ -169,7 +199,19 @@ jobs:
             PGPASSWORD=postgres psql -h localhost -U postgres -d tradeclaw_test -v ON_ERROR_STOP=1 -f "$f"
           done
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        # The 'mobile' project uses devices['iPhone 14'] (WebKit engine), so
+        # webkit must be installed alongside chromium or every mobile test
+        # errors at browserType.launch.
+        run: npx playwright install --with-deps chromium webkit
+      - name: Build app
+        # Playwright's webServer runs `next start` in CI (precompiled routes),
+        # so the app must be built first. Uses the root build (signals +
+        # trading-agents + apps/web) for parity with the Build job. Migrations
+        # were already applied above.
+        run: npm run build
+        working-directory: ${{ github.workspace }}
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
       - name: Run E2E suite
         run: npm run test:e2e
       - uses: actions/upload-artifact@v4
@@ -177,19 +219,19 @@ jobs:
         with:
           name: playwright-report
           path: apps/web/playwright-report
-          retention-days: 14
+          retention-days: 3
           if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-junit
           path: apps/web/test-results/results.xml
-          retention-days: 14
+          retention-days: 3
           if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-traces
           path: apps/web/test-results
-          retention-days: 7
+          retention-days: 3
           if-no-files-found: ignore

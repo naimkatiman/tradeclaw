@@ -1,5 +1,7 @@
 # Submission: awesome-quant (wilsonfreitas/awesome-quant)
 
+> SUPERSEDED (2026-06-02): TradeClaw is already merged into awesome-quant (PR #300, 2026-03-28) and was accidentally added twice. Dedup PR #399 removes the duplicate. No new submission needed. Verified live status: `docs/awesome-lists/SUBMISSION_STATUS.md`.
+
 **Target:** https://github.com/wilsonfreitas/awesome-quant
 **Stars:** ~4,500+
 

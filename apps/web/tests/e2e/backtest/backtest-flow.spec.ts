@@ -24,11 +24,12 @@ test.describe('Backtest Single-Preset Flow', () => {
     await dismissStarMilestoneModal(page);
     await page.goto('/backtest');
     await dismissStarMilestoneModal(page);
-    await page.waitForLoadState('domcontentloaded');
-
-    await expect(page.getByText('Configuration')).toBeVisible();
+    // The route shows a Suspense fallback until the heavy client page hydrates,
+    // and the page auto-runs on mount (button label flips to "Fetching data..."
+    // until the run finishes). Wait those out — mirrors the passing siblings.
+    await expect(page.getByText('Configuration')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText('Preset Strategies')).toBeVisible();
-    await expect(page.getByRole('button', { name: /run backtest/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /run backtest/i })).toBeVisible({ timeout: 60_000 });
   });
 
   test('auto-run completes and shows metrics table', async ({ page }) => {

@@ -314,10 +314,10 @@ export default function MultiTimeframePage() {
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-4 mb-4 text-[10px] font-mono text-[var(--text-secondary)]">
           <span className="flex items-center gap-1.5">
-            <span className="text-emerald-400">+15%</span> All 3 TFs agree
+            <span className="text-emerald-400">+15%</span> All 4 TFs agree
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="text-emerald-400">+5%</span> 2 of 3 TFs agree
+            <span className="text-emerald-400">+5%</span> 2 of 4 TFs agree
           </span>
           <span className="flex items-center gap-1.5">
             <span className="text-zinc-400">−20%</span> TFs in conflict

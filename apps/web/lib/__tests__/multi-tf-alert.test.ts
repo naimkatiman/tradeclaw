@@ -25,7 +25,7 @@ function makeAlignedResult(overrides: Partial<MultiTFResult> = {}): MultiTFResul
       { timeframe: 'D1', direction: 'BUY', confidence: 78, buyScore: 1, sellScore: 0 },
     ],
     dominantDirection: 'BUY',
-    agreementCount: 3,
+    agreementCount: 4,
     confluenceBonus: 15,
     isConflicted: false,
     entry: 106500,

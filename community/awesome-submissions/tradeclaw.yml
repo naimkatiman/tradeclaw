@@ -1,0 +1,22 @@
+# Ready-to-submit entry for awesome-selfhosted-data.
+# DO NOT submit before ~2026-07-25 (the list requires "first released more than
+# 4 months ago"; TradeClaw released v0.1.0 on 2026-03-25). Prior PR #2234 was
+# closed unmerged for being too new.
+#
+# To submit: copy this file (without these comment lines) to
+# software/tradeclaw.yml in a fork of awesome-selfhosted/awesome-selfhosted-data,
+# open one PR. The bot fills stargazers_count / updated_at / current_release /
+# commit_history / archived automatically — do not add them.
+name: TradeClaw
+website_url: https://tradeclaw.win
+source_code_url: https://github.com/naimkatiman/tradeclaw
+description: Trading signal platform that generates BUY/SELL/HOLD signals from technical indicators (RSI, MACD, Bollinger Bands, EMA) for forex, crypto and commodities, with a backtesting engine, REST API and Telegram/Discord alerts.
+licenses:
+  - MIT
+platforms:
+  - Nodejs
+  - Docker
+tags:
+  - Money, Budgeting & Management
+depends_3rdparty: true
+demo_url: https://tradeclaw.win/dashboard

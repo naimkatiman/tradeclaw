@@ -7,7 +7,11 @@ import {
   listResearchJobs,
 } from '../../../../lib/trading-agents/research-jobs';
 
-async function assertProAccess(req: Request) {
+type ProAccess =
+  | { error: NextResponse; session?: undefined }
+  | { error?: undefined; session: { userId: string } };
+
+async function assertProAccess(req: Request): Promise<ProAccess> {
   const session = readSessionFromRequest(req);
   if (!session) {
     return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
@@ -21,9 +25,9 @@ async function assertProAccess(req: Request) {
   return { session };
 }
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
   const access = await assertProAccess(req);
-  if ('error' in access) {
+  if (access.error) {
     return access.error;
   }
   const { session } = access;
@@ -55,9 +59,9 @@ export async function POST(req: Request) {
   );
 }
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<NextResponse> {
   const access = await assertProAccess(req);
-  if ('error' in access) {
+  if (access.error) {
     return access.error;
   }
   const { session } = access;

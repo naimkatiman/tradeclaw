@@ -19,8 +19,6 @@ import { test, expect } from '@playwright/test';
  * - `lockedSignals` stubs carry no price information
  */
 
-const BASE_URL = 'https://tradeclaw.win';
-
 /** A syntactically valid but cryptographically invalid session cookie value. */
 const FAKE_SESSION_TOKEN =
   'fake-user-id.1700000000000.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
@@ -30,7 +28,7 @@ const MALFORMED_SESSION_TOKEN = 'not.a.valid.hmac.token.at.all';
 
 test.describe('Premium gating — negative-path (unauthenticated / invalid session)', () => {
   test('GET /api/signals without auth returns 200 with free tier payload', async ({ request }) => {
-    const res = await request.get(`${BASE_URL}/api/signals`);
+    const res = await request.get('/api/signals');
     expect([200, 500]).toContain(res.status());
 
     if (res.status() === 200) {
@@ -40,7 +38,7 @@ test.describe('Premium gating — negative-path (unauthenticated / invalid sessi
   });
 
   test('GET /api/signals?premium=1 without auth returns 200 with free tier (no hard rejection)', async ({ request }) => {
-    const res = await request.get(`${BASE_URL}/api/signals?premium=1`);
+    const res = await request.get('/api/signals?premium=1');
     // Route ignores the premium param — no dedicated gating on it.
     // Unauthenticated → free tier → 200 with degraded payload.
     expect([200, 500]).toContain(res.status());
@@ -54,7 +52,7 @@ test.describe('Premium gating — negative-path (unauthenticated / invalid sessi
   test('GET /api/signals with bogus Authorization header resolves to free tier', async ({ request }) => {
     // The route does not read Authorization headers — only the tc_user_session cookie.
     // A bogus Bearer token must not elevate access.
-    const res = await request.get(`${BASE_URL}/api/signals`, {
+    const res = await request.get('/api/signals', {
       headers: { Authorization: 'Bearer fake-key-12345' },
     });
     expect([200, 500]).toContain(res.status());
@@ -66,7 +64,7 @@ test.describe('Premium gating — negative-path (unauthenticated / invalid sessi
   });
 
   test('GET /api/signals with syntactically valid but fake session cookie resolves to free tier', async ({ request }) => {
-    const res = await request.get(`${BASE_URL}/api/signals`, {
+    const res = await request.get('/api/signals', {
       headers: {
         Cookie: `tc_user_session=${encodeURIComponent(FAKE_SESSION_TOKEN)}`,
       },
@@ -81,7 +79,7 @@ test.describe('Premium gating — negative-path (unauthenticated / invalid sessi
   });
 
   test('GET /api/signals with malformed session cookie resolves to free tier', async ({ request }) => {
-    const res = await request.get(`${BASE_URL}/api/signals`, {
+    const res = await request.get('/api/signals', {
       headers: {
         Cookie: `tc_user_session=${encodeURIComponent(MALFORMED_SESSION_TOKEN)}`,
       },
@@ -95,7 +93,7 @@ test.describe('Premium gating — negative-path (unauthenticated / invalid sessi
   });
 
   test('free-tier response masks pro-only signal fields', async ({ request }) => {
-    const res = await request.get(`${BASE_URL}/api/signals`);
+    const res = await request.get('/api/signals');
     expect([200, 500]).toContain(res.status());
 
     if (res.status() !== 200) return;
@@ -120,7 +118,7 @@ test.describe('Premium gating — negative-path (unauthenticated / invalid sessi
   });
 
   test('lockedSignals stubs contain no price information', async ({ request }) => {
-    const res = await request.get(`${BASE_URL}/api/signals`);
+    const res = await request.get('/api/signals');
     expect([200, 500]).toContain(res.status());
 
     if (res.status() !== 200) return;

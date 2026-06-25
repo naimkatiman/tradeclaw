@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import type { DailyCommentary } from '../lib/market-commentary';
 import { PageNavBar } from '../../components/PageNavBar';
@@ -10,18 +10,21 @@ export function CommentaryClient() {
   const [archive, setArchive] = useState<DailyCommentary[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const fetchSeqRef = useRef(0);
 
   const fetchCommentary = useCallback(async (date?: string) => {
+    const seq = ++fetchSeqRef.current;
     setLoading(true);
     try {
       const url = date ? `/api/commentary/${date}` : '/api/commentary';
       const res = await fetch(url);
       const data = await res.json();
+      if (seq !== fetchSeqRef.current) return; // superseded by a newer date selection
       setCommentary(data);
     } catch {
       // silently fail — shows loading state
     } finally {
-      setLoading(false);
+      if (seq === fetchSeqRef.current) setLoading(false);
     }
   }, []);
 

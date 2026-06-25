@@ -15,10 +15,12 @@
 import { type TradingSignal } from '../app/lib/signals';
 import { readLiveSignals, type LiveSignal } from './signals-live';
 import { getTrackedSignals } from './tracked-signals';
-import { fetchRegimeMap, filterSignalsByRegime } from './regime-filter';
+import { fetchResolvedRegimeMap } from './regime-resolution';
+import { filterSignalsByRegime } from './regime-filter';
 import { markTelegramPosted } from './signal-history';
 import { runRiskPipeline, type RiskReport } from './risk-pipeline';
 import { isFreeSymbol } from './tier-client';
+import { HIGH_CONFIDENCE_THRESHOLD } from './signal-thresholds';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -280,18 +282,20 @@ export async function broadcastTopSignals(
   opts: { freeOnly?: boolean } = {},
 ): Promise<BroadcastResult> {
   // Use the same Python engine source as the dashboard (DB → signals-live.json)
-  const regimeMap = await fetchRegimeMap();
+  // No try/catch: fetchResolvedRegimeMap documents a never-rejects invariant.
+  const resolved = await fetchResolvedRegimeMap();
+  const regimeMap = resolved.regimes;
   let mapped: TradingSignal[] = [];
 
   const liveData = await readLiveSignals();
   if (liveData && !liveData.isStale && liveData.signals.length > 0) {
     mapped = liveData.signals
-      .filter((s) => s.confidence >= 70)
+      .filter((s) => s.confidence >= HIGH_CONFIDENCE_THRESHOLD)
       .map(mapLiveToTradingSignal);
   } else {
     // Intentionally no license ctx — Telegram broadcasts are public, so only
     // the free classic strategy is emitted.
-    const { signals: fallbackSignals } = await getTrackedSignals({ minConfidence: 70 });
+    const { signals: fallbackSignals } = await getTrackedSignals({ minConfidence: HIGH_CONFIDENCE_THRESHOLD });
     mapped = fallbackSignals;
   }
 

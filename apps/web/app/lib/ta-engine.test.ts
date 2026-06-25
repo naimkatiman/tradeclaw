@@ -1,4 +1,12 @@
-import { calculateRSI, calculateADX, calculateVolumeSMA } from './ta-engine';
+import {
+  calculateRSI,
+  calculateADX,
+  calculateVolumeSMA,
+  calculateMACD,
+  calculateEMAs,
+  calculateBollingerBands,
+  calculateStochastic,
+} from './ta-engine';
 
 describe('calculateRSI', () => {
 
@@ -107,6 +115,89 @@ describe('calculateADX', () => {
     expect(result.adx.length).toBe(len);
     expect(result.plusDI.length).toBe(len);
     expect(result.minusDI.length).toBe(len);
+  });
+});
+
+describe('calculateMACD', () => {
+  test('returns finite values when given enough data', () => {
+    const closes = Array.from({ length: 60 }, (_, i) => 100 + Math.sin(i / 5) * 5);
+    const result = calculateMACD(closes);
+    expect(Number.isFinite(result.current.macd)).toBe(true);
+    expect(Number.isFinite(result.current.signal)).toBe(true);
+    expect(Number.isFinite(result.current.histogram)).toBe(true);
+  });
+
+  test('histogram equals macdLine - signalLine on the last valid bar', () => {
+    const closes = Array.from({ length: 80 }, (_, i) => 100 + Math.sin(i / 7));
+    const r = calculateMACD(closes);
+    expect(Math.abs(r.current.macd - r.current.signal - r.current.histogram)).toBeLessThan(1e-9);
+  });
+
+  test('accelerating uptrend produces a bullish (positive) histogram', () => {
+    // Flat then sharply rising — the recent move should make MACD > signal.
+    const closes = [
+      ...Array.from({ length: 60 }, () => 100),
+      ...Array.from({ length: 20 }, (_, i) => 100 + (i + 1) * 1.0),
+    ];
+    const r = calculateMACD(closes);
+    expect(r.current.histogram).toBeGreaterThan(0);
+  });
+
+  test('accelerating downtrend produces a bearish (negative) histogram', () => {
+    const closes = [
+      ...Array.from({ length: 60 }, () => 100),
+      ...Array.from({ length: 20 }, (_, i) => 100 - (i + 1) * 1.0),
+    ];
+    const r = calculateMACD(closes);
+    expect(r.current.histogram).toBeLessThan(0);
+  });
+});
+
+describe('calculateEMAs', () => {
+  test('ema20 > ema50 > ema200 on a strong uptrend (golden cross territory)', () => {
+    const closes = Array.from({ length: 250 }, (_, i) => 100 + i * 0.2);
+    const r = calculateEMAs(closes);
+    expect(r.current.ema20).toBeGreaterThan(r.current.ema50);
+    expect(r.current.ema50).toBeGreaterThan(r.current.ema200);
+  });
+
+  test('ema20 < ema50 < ema200 on a strong downtrend (death cross territory)', () => {
+    const closes = Array.from({ length: 250 }, (_, i) => 300 - i * 0.2);
+    const r = calculateEMAs(closes);
+    expect(r.current.ema20).toBeLessThan(r.current.ema50);
+    expect(r.current.ema50).toBeLessThan(r.current.ema200);
+  });
+});
+
+describe('calculateBollingerBands', () => {
+  test('upper > middle > lower always', () => {
+    const closes = Array.from({ length: 60 }, (_, i) => 100 + Math.cos(i / 3) * 2);
+    const r = calculateBollingerBands(closes);
+    expect(r.current.upper).toBeGreaterThan(r.current.middle);
+    expect(r.current.middle).toBeGreaterThan(r.current.lower);
+  });
+
+  test('bandwidth is larger for a volatile series than a flat one', () => {
+    const flat = Array.from({ length: 60 }, () => 100);
+    const noisy = Array.from({ length: 60 }, (_, i) => 100 + (i % 2 === 0 ? 5 : -5));
+    const flatR = calculateBollingerBands(flat);
+    const noisyR = calculateBollingerBands(noisy);
+    const flatBW = flatR.current.upper - flatR.current.lower;
+    const noisyBW = noisyR.current.upper - noisyR.current.lower;
+    expect(noisyBW).toBeGreaterThan(flatBW);
+  });
+});
+
+describe('calculateStochastic', () => {
+  test('returns %K and %D within [0, 100]', () => {
+    const highs = Array.from({ length: 50 }, (_, i) => 102 + Math.sin(i / 4));
+    const lows = highs.map(h => h - 2);
+    const closes = highs.map((h, i) => (h + lows[i]) / 2);
+    const r = calculateStochastic(highs, lows, closes);
+    expect(r.current.k).toBeGreaterThanOrEqual(0);
+    expect(r.current.k).toBeLessThanOrEqual(100);
+    expect(r.current.d).toBeGreaterThanOrEqual(0);
+    expect(r.current.d).toBeLessThanOrEqual(100);
   });
 });
 

@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       authProvider: user.authProvider,
+      referralCode: user.referralCode,
     },
   });
 }

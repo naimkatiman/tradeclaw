@@ -21,6 +21,18 @@ export interface TierDefinition {
   annualPriceLabel: string;
   features: string[];
   kind: 'free' | 'stripe' | 'contact';
+  /**
+   * Truthful anchor shown struck-through above the price. We anchor against
+   * the real market — comparable hosted signal/scanner dashboards cost
+   * $200-500/mo (cited in pre-launch content). This is NOT a fake former
+   * price for this product; do not invent a "was $X" here.
+   */
+  anchorLabel?: string;
+  /**
+   * Affordability framing: annual cost expressed per day, e.g. "$0.79/day".
+   * Derived from the annual price / 365. Undefined for non-paid tiers.
+   */
+  perDayLabel?: string;
   /** Name of the NEXT_PUBLIC_ env var holding the monthly priceId. Undefined for non-Stripe tiers. */
   monthlyPriceIdEnv?: string;
   /** Name of the NEXT_PUBLIC_ env var holding the annual priceId. Undefined for non-Stripe tiers. */
@@ -36,8 +48,9 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
     annualPriceLabel: '',
     kind: 'free',
     features: [
+      'Free forever — public @tradeclawwin signals and our public track record, audit the edge before you pay',
       '6 symbols across crypto, forex, commodities, indices',
-      '15-minute delayed signals',
+      '30-minute delayed signals',
       'TP1 target only',
       'Last 7 days signal history',
     ],
@@ -48,11 +61,13 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
     tagline: 'Real-time signals while the move is still live, with full analytics.',
     monthlyPriceLabel: '$29',
     annualPriceLabel: '$290/yr — save $58',
+    anchorLabel: 'Comparable SaaS dashboards: $200-500/mo',
+    perDayLabel: '$0.79/day billed annually',
     kind: 'stripe',
     monthlyPriceIdEnv: 'NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID',
     annualPriceIdEnv: 'NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID',
     features: [
-      'Catch the move while it is still tradable — alerts land instantly, not 15 minutes late',
+      'Catch the move while it is still tradable — alerts land instantly, not 30 minutes late',
       'Trade the whole market you actually watch — FX, crypto, metals, oil, US mega-caps, and indices',
       'Only take higher-conviction setups — confluence across H1/H4/D1 before a signal fires',
       'Plan the exit before you enter — TP1, TP2, TP3, and Stop Loss on every Pro signal',
@@ -60,6 +75,26 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
       'Backtest your edge against unlimited real outcomes and audit trails',
       'Audit every entry, exit, and outcome in our public Postgres archive',
       'Try Pro for 7 days and cancel anytime',
+    ],
+  },
+  {
+    id: 'elite',
+    name: 'Elite',
+    tagline: 'Everything in Pro plus priority alerts, direct access, and advanced tooling.',
+    monthlyPriceLabel: '$99',
+    annualPriceLabel: '$990/yr — save $198',
+    anchorLabel: 'Comparable SaaS dashboards: $200-500/mo',
+    perDayLabel: '$2.71/day billed annually',
+    kind: 'stripe',
+    monthlyPriceIdEnv: 'NEXT_PUBLIC_STRIPE_ELITE_MONTHLY_PRICE_ID',
+    annualPriceIdEnv: 'NEXT_PUBLIC_STRIPE_ELITE_ANNUAL_PRICE_ID',
+    features: [
+      'Everything in Pro',
+      'Priority alerts — signals reach you before Pro users',
+      'Strategy builder — compose and backtest custom indicator rules',
+      '1-on-1 Telegram group with Zaky for setup and review',
+      'Webhook forwarding — pipe signals to your own broker or bot',
+      'Priority email support with same-day response',
     ],
   },
 ];
@@ -80,6 +115,8 @@ export function getClientPriceId(
   const known: Record<string, string | undefined> = {
     NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID,
     NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID,
+    NEXT_PUBLIC_STRIPE_ELITE_MONTHLY_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_ELITE_MONTHLY_PRICE_ID,
+    NEXT_PUBLIC_STRIPE_ELITE_ANNUAL_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_ELITE_ANNUAL_PRICE_ID,
   };
   return known[envName] ?? null;
 }

@@ -217,7 +217,12 @@ function computeEquityCurve(
   const dailyValues = [...dailyReturnPct.values()];
   if (dailyValues.length >= 5) {
     const mean = dailyValues.reduce((s, v) => s + v, 0) / dailyValues.length;
-    const variance = dailyValues.reduce((s, v) => s + (v - mean) ** 2, 0) / dailyValues.length;
+    // Sample variance (÷ N-1, Bessel's correction): daily returns are a SAMPLE
+    // of the strategy's day-to-day behaviour, not the whole population, so the
+    // population estimator (÷ N) under-states stddev and inflates Sharpe — the
+    // bias is largest at the N=5 floor (~12%). Guard above guarantees N≥5 so
+    // N-1≥4 > 0.
+    const variance = dailyValues.reduce((s, v) => s + (v - mean) ** 2, 0) / (dailyValues.length - 1);
     const stddev = Math.sqrt(variance);
     if (stddev > 0) {
       sharpeRatio = +((mean / stddev) * Math.sqrt(365)).toFixed(2);
@@ -229,11 +234,17 @@ function computeEquityCurve(
   const avgRWin = winRCount > 0 ? +(winRSum / winRCount).toFixed(2) : null;
   const avgRLoss = lossRCount > 0 ? +(lossRSum / lossRCount).toFixed(2) : null;
   const winRateFraction = sorted.length > 0 ? wins / sorted.length : 0;
-  // Expectancy(R) = p(win) * avgRWin + p(loss) * avgRLoss. Break-even
-  // win-rate solves expectancy = 0, i.e. p* = -avgRLoss / (avgRWin - avgRLoss).
-  // Both halves need at least one trade or expectancy is unknowable.
+  // Expectancy(R) = p(win) * avgRWin + p(loss) * avgRLoss. It MUST use the same
+  // population the R-averages come from — the sized-trade subset (rows with SL).
+  // The headline winRate is full-population (includes legacy null-SL resolved
+  // rows) to preserve the byte-match with /api/signals/history; mixing that
+  // full-population win-rate with SL-subset R-averages produces an incoherent
+  // expectancy whenever the two populations differ. Break-even win-rate solves
+  // expectancy = 0, i.e. p* = -avgRLoss / (avgRWin - avgRLoss). Both halves need
+  // at least one trade or expectancy is unknowable.
+  const sizedWinRate = winRCount + lossRCount > 0 ? winRCount / (winRCount + lossRCount) : 0;
   const expectancyR = avgRWin !== null && avgRLoss !== null
-    ? +(winRateFraction * avgRWin + (1 - winRateFraction) * avgRLoss).toFixed(2)
+    ? +(sizedWinRate * avgRWin + (1 - sizedWinRate) * avgRLoss).toFixed(2)
     : null;
   const breakEvenWinRate = avgRWin !== null && avgRLoss !== null && avgRWin - avgRLoss !== 0
     ? +(((-avgRLoss) / (avgRWin - avgRLoss)) * 100).toFixed(1)
@@ -293,6 +304,13 @@ export async function GET(request: NextRequest) {
     // the marketing pitch.
     const scope = parseScope(searchParams.get('scope'));
     const category = parseCategoryFilter(searchParams.get('category'));
+    // summaryOnly drops the (potentially ~3.3k-point) `points` array and
+    // returns just `summary` + `rollingWinRates`. Summary-only consumers — the
+    // trailing-week band callout compares totalReturn / win-rate / expectancy
+    // across bands and windows — don't need the curve, so they skip shipping
+    // the full point set over the wire on every fetch.
+    const summaryOnly = searchParams.get('summaryOnly') === '1'
+      || searchParams.get('summaryOnly') === 'true';
     // smooth=median2x clamps each trade's pnl to ±2× median(|pnl|) before
     // compounding. Off by default — the marketing surface opts in.
     const smoothParam = searchParams.get('smooth');
@@ -326,7 +344,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
-        points,
+        points: summaryOnly ? [] : points,
         summary,
         rollingWinRates,
         band,

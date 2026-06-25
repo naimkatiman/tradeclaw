@@ -1,8 +1,17 @@
 import candles from './fixtures/candles-100.json';
 import { runBacktest } from '../run-backtest';
 import { getPreset, listPresets } from '../presets';
+import { setModel, getDefaultModel } from '@tradeclaw/signals';
 
 describe('runBacktest', () => {
+  // Pin the built-in default model so loadModel never walks the disk: the
+  // default backtest context symbol 'BACKTEST' resolves to the forex asset
+  // class, and a stale 5-label model JSON in a parent checkout would emit
+  // the loadModel fallback console.warn into the test output.
+  beforeAll(() => {
+    setModel('forex', getDefaultModel('forex'));
+  });
+
   it('is deterministic for the same inputs', () => {
     const preset = getPreset('classic');
     const a = runBacktest(candles as any, preset);

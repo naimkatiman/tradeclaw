@@ -43,6 +43,8 @@ function arrangeProUserWithLinkedTelegram() {
     displayName: null,
     avatarUrl: null,
     authProvider: null,
+    referralCode: null,
+      referredBy: null,
   });
   mockedGetSub.mockResolvedValueOnce({
     id: 'sub-row-1',

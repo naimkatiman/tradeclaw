@@ -21,5 +21,4 @@ const outPath = resolve(__dirname, "..", "public", "openapi.json");
 mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, JSON.stringify(buildOpenApiSpec(), null, 2) + "\n", "utf8");
 
-// eslint-disable-next-line no-console
 console.log(`[openapi] wrote ${outPath}`);

@@ -1,10 +1,9 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '../components/navbar';
-import { SiteFooter } from '../../components/landing/site-footer';
 
 function SigninInner() {
   const params = useSearchParams();
@@ -34,28 +33,10 @@ function SigninInner() {
   const [magicSent, setMagicSent] = useState(false);
   const [magicErr, setMagicErr] = useState<string | null>(null);
   const [magicBusy, setMagicBusy] = useState(false);
+  const [telegramBusy, setTelegramBusy] = useState(false);
+  const [telegramErr, setTelegramErr] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch('/api/auth/session', { credentials: 'same-origin' });
-        const data = await res.json();
-        if (cancelled) return;
-        if (data?.data?.userId) {
-          await proceedAfterSession();
-          return;
-        }
-      } catch {
-        /* fall through to button */
-      }
-      if (!cancelled) setStatus('idle');
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const proceedRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
   async function proceedAfterSession(): Promise<void> {
     const checkoutBody =
@@ -104,6 +85,75 @@ function SigninInner() {
     router.replace('/dashboard');
   }
 
+  proceedRef.current = proceedAfterSession;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/auth/session', { credentials: 'same-origin' });
+        const data = await res.json();
+        if (cancelled) return;
+        if (data?.data?.userId) {
+          await proceedAfterSession();
+          return;
+        }
+      } catch {
+        /* fall through to button */
+      }
+      if (!cancelled) setStatus('idle');
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Telegram Login Widget
+  useEffect(() => {
+    const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+    if (!botUsername || typeof window === 'undefined') return;
+
+    const w = window as unknown as Record<string, unknown>;
+    w.onTelegramAuth = async (user: unknown) => {
+      setTelegramBusy(true);
+      setTelegramErr(null);
+      try {
+        const res = await fetch('/api/auth/telegram', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify(user),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error ?? 'Telegram sign-in failed');
+        }
+        await proceedRef.current?.();
+      } catch (err) {
+        setTelegramErr(err instanceof Error ? err.message : 'Failed');
+        setTelegramBusy(false);
+      }
+    };
+
+    const container = document.getElementById('telegram-login-container');
+    if (container && !document.getElementById('telegram-widget-script')) {
+      const script = document.createElement('script');
+      script.id = 'telegram-widget-script';
+      script.src = 'https://telegram.org/js/telegram-widget.js?22';
+      script.async = true;
+      script.setAttribute('data-telegram-login', botUsername);
+      script.setAttribute('data-size', 'large');
+      script.setAttribute('data-onauth', 'onTelegramAuth');
+      script.setAttribute('data-request-access', 'write');
+      container.appendChild(script);
+    }
+
+    return () => {
+      delete w.onTelegramAuth;
+    };
+  }, []);
+
   async function sendMagicLink(e: React.FormEvent) {
     e.preventDefault();
     setMagicBusy(true);
@@ -112,7 +162,15 @@ function SigninInner() {
       const res = await fetch('/api/auth/magic-link/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailInput }),
+        // Forward any checkout intent so the emailed link resumes checkout
+        // after sign-in instead of dropping the user on /dashboard.
+        body: JSON.stringify({
+          email: emailInput,
+          ...(priceId ? { priceId } : {}),
+          ...(tier ? { tier } : {}),
+          ...(interval ? { interval } : {}),
+          ...(next ? { next } : {}),
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -128,11 +186,21 @@ function SigninInner() {
 
   const oauthErrorMessage = (() => {
     if (!oauthError) return null;
-    if (oauthError === 'oauth_not_configured') {
-      return 'OAuth sign-in is not configured on this server. Contact support.';
+    switch (oauthError) {
+      case 'oauth_not_configured':
+        return 'OAuth sign-in is not configured on this server. Contact support.';
+      case 'expired':
+        return 'That sign-in link expired — enter your email below and we’ll send a fresh one.';
+      case 'consumed':
+        return 'That sign-in link was already used — request a new one below.';
+      case 'not_found':
+        return 'That sign-in link is no longer valid — request a new one below.';
+      default:
+        return 'Sign-in failed. Please try again.';
     }
-    return `Sign-in failed (${oauthError}). Please try again.`;
   })();
+
+  const hasTelegram = !!process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
 
   return (
     <main className="min-h-screen bg-[var(--background)] pt-28 pb-24 px-4">
@@ -148,8 +216,8 @@ function SigninInner() {
           </h1>
           <p className="mt-3 text-sm text-[var(--text-secondary)]">
             {priceId || (tier === 'pro' && hasCheckoutInterval)
-              ? 'Sign in with Google or GitHub — we’ll send you to secure Stripe checkout.'
-              : 'Sign in with Google or GitHub to access your dashboard.'}
+              ? 'Sign in with Google, GitHub, or Telegram — we’ll send you to secure Stripe checkout.'
+              : 'Sign in with Google, GitHub, or Telegram to access your dashboard.'}
           </p>
         </div>
 
@@ -165,11 +233,15 @@ function SigninInner() {
           </p>
         )}
 
-        {status === 'checking' ? (
-          <p className="mt-10 text-center text-sm text-[var(--text-secondary)]">
-            Checking your session…
+        {telegramErr && (
+          <p className="mt-6 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-center text-sm text-red-300">
+            {telegramErr}
           </p>
-        ) : (
+        )}
+
+        {/* Buttons render immediately; the background session check redirects
+            already-signed-in users instead of withholding the form. */}
+        {(
           <div className="mt-10 flex flex-col gap-4 rounded-2xl border border-[var(--border)] bg-[var(--glass-bg)] p-6">
             <a
               href={googleHref}
@@ -192,6 +264,19 @@ function SigninInner() {
               </svg>
               Continue with GitHub
             </a>
+            {hasTelegram && (
+              <div className="relative">
+                <div
+                  id="telegram-login-container"
+                  className="flex justify-center"
+                />
+                {telegramBusy && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/40">
+                    <span className="text-xs text-white">Signing in…</span>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="my-4 flex items-center gap-3 text-[10px] uppercase tracking-wider text-zinc-500">
               <span className="flex-1 h-px bg-white/10" /> or <span className="flex-1 h-px bg-white/10" />
             </div>
@@ -241,7 +326,6 @@ export default function SigninPage() {
       >
         <SigninInner />
       </Suspense>
-      <SiteFooter />
     </>
   );
 }

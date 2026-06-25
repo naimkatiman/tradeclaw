@@ -10,7 +10,7 @@ test.describe('landing proof hero', () => {
     await page.goto('/');
     const hero = page.getByTestId('proof-hero');
     await expect(hero).toContainText(/Pro:\s*<1s/i);
-    await expect(hero).toContainText(/Free:\s*15\s*min/i);
+    await expect(hero).toContainText(/Free:\s*30\s*min/i);
   });
 
   test('does NOT lead hero with a standalone win-rate percentage', async ({ page }) => {

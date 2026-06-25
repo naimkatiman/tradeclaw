@@ -10,7 +10,7 @@ jest.mock('../../../../lib/signal-history-cache', () => ({
 }));
 
 jest.mock('../../../../lib/signal-slice', () => ({
-  parseScope: jest.fn((raw: string | null | undefined) => raw === 'free' ? 'free' : 'pro'),
+  parseScope: jest.fn((raw: string | null | undefined) => raw === 'free' ? 'free' : raw === 'broadcast' ? 'broadcast' : 'pro'),
   getResolvedSlice: jest.fn(),
 }));
 
@@ -64,6 +64,27 @@ function makeReq(path: string): NextRequest {
 describe('GET /api/leaderboard category filtering', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('scope=broadcast recomputes from the broadcast slice instead of serving the Pro cache', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getResolvedSlice } = require('../../../../lib/signal-slice') as { getResolvedSlice: jest.Mock };
+    getResolvedSlice.mockResolvedValueOnce({
+      scopedRecords: [],
+      periodFiltered: [],
+      resolved: [],
+      cutoffTs: null,
+      earliestTimestamp: null,
+    });
+
+    const res = await GET(makeReq('/api/leaderboard?scope=broadcast'));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    // The Pro firehose cache must NOT be consulted for the gated subset.
+    expect(mockedGetLeaderboard).not.toHaveBeenCalled();
+    expect(getResolvedSlice).toHaveBeenCalledWith(expect.objectContaining({ scope: 'broadcast' }));
+    expect(body.assets).toEqual([]);
   });
 
   it('filters assets and recomputes overall for majors', async () => {

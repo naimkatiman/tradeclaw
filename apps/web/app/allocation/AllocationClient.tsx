@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { PieChart, TrendingUp, TrendingDown, Minus, Zap, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { PieChart, TrendingUp, MoveHorizontal, Zap, ShieldCheck } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────
 
-type RegimeName = 'crash' | 'bear' | 'neutral' | 'bull' | 'euphoria';
+type RegimeName = 'trend' | 'volatile' | 'range';
 
 interface RegimeEntry {
   symbol: string;
@@ -33,38 +33,35 @@ interface PortfolioSnapshot {
 // ─── Constants ───────────────────────────────────────────────
 
 const REGIME_COLORS: Record<RegimeName, { color: string; bg: string; border: string }> = {
-  crash:    { color: '#DC2626', bg: 'rgba(220, 38, 38, 0.12)', border: 'rgba(220, 38, 38, 0.3)' },
-  bear:     { color: '#F97316', bg: 'rgba(249, 115, 22, 0.12)', border: 'rgba(249, 115, 22, 0.3)' },
-  neutral:  { color: '#6B7280', bg: 'rgba(107, 114, 128, 0.12)', border: 'rgba(107, 114, 128, 0.3)' },
-  bull:     { color: '#22C55E', bg: 'rgba(34, 197, 94, 0.12)', border: 'rgba(34, 197, 94, 0.3)' },
-  euphoria: { color: '#A855F7', bg: 'rgba(168, 85, 247, 0.12)', border: 'rgba(168, 85, 247, 0.3)' },
+  trend:    { color: '#22C55E', bg: 'rgba(34, 197, 94, 0.12)', border: 'rgba(34, 197, 94, 0.3)' },
+  volatile: { color: '#DC2626', bg: 'rgba(220, 38, 38, 0.12)', border: 'rgba(220, 38, 38, 0.3)' },
+  range:    { color: '#6B7280', bg: 'rgba(107, 114, 128, 0.12)', border: 'rgba(107, 114, 128, 0.3)' },
 };
 
+// Display mirror of REGIME_ALLOCATION_RULES in
+// packages/signals/src/allocation/regime-rules.ts (plan D3) — the previous
+// table showed values that never matched the engine. Keep in sync.
 const ALLOCATION_RULES: AllocationRule[] = [
-  { regime: 'crash',    maxExposure: '0%',   leverage: '1x', directions: 'None',       maxPosition: '0%',  tightenStops: true },
-  { regime: 'bear',     maxExposure: '25%',  leverage: '1x', directions: 'SELL only',  maxPosition: '5%',  tightenStops: true },
-  { regime: 'neutral',  maxExposure: '50%',  leverage: '2x', directions: 'BUY & SELL', maxPosition: '10%', tightenStops: false },
-  { regime: 'bull',     maxExposure: '80%',  leverage: '3x', directions: 'BUY & SELL', maxPosition: '15%', tightenStops: false },
-  { regime: 'euphoria', maxExposure: '60%',  leverage: '2x', directions: 'BUY only',   maxPosition: '10%', tightenStops: true },
+  { regime: 'trend',    maxExposure: '80%', leverage: '2x', directions: 'BUY & SELL', maxPosition: '15%', tightenStops: false },
+  { regime: 'volatile', maxExposure: '40%', leverage: '1x', directions: 'BUY & SELL', maxPosition: '8%',  tightenStops: true },
+  { regime: 'range',    maxExposure: '30%', leverage: '1x', directions: 'BUY & SELL', maxPosition: '6%',  tightenStops: false },
 ];
 
-const REGIME_ORDER: RegimeName[] = ['crash', 'bear', 'neutral', 'bull', 'euphoria'];
+const REGIME_ORDER: RegimeName[] = ['trend', 'volatile', 'range'];
 
 // ─── Helpers ─────────────────────────────────────────────────
 
 function normalizeRegime(raw: string): RegimeName {
   const lower = raw.toLowerCase();
   if (REGIME_ORDER.includes(lower as RegimeName)) return lower as RegimeName;
-  return 'neutral';
+  return 'range'; // unified unknown-label fallback (plan D1)
 }
 
 function getRegimeIcon(regime: RegimeName) {
   switch (regime) {
-    case 'crash': return <AlertTriangle className="w-4 h-4" />;
-    case 'bear': return <TrendingDown className="w-4 h-4" />;
-    case 'neutral': return <Minus className="w-4 h-4" />;
-    case 'bull': return <TrendingUp className="w-4 h-4" />;
-    case 'euphoria': return <Zap className="w-4 h-4" />;
+    case 'trend': return <TrendingUp className="w-4 h-4" />;
+    case 'volatile': return <Zap className="w-4 h-4" />;
+    case 'range': return <MoveHorizontal className="w-4 h-4" />;
   }
 }
 
@@ -112,17 +109,34 @@ export function AllocationClient() {
   }, [fetchData]);
 
   // Determine dominant regime from API data
-  const regimeCounts: Record<RegimeName, number> = { crash: 0, bear: 0, neutral: 0, bull: 0, euphoria: 0 };
+  const regimeCounts: Record<RegimeName, number> = { trend: 0, volatile: 0, range: 0 };
   for (const e of regimeData) {
     regimeCounts[normalizeRegime(e.regime)]++;
   }
-  const dominant = REGIME_ORDER.reduce((a, b) => (regimeCounts[a] >= regimeCounts[b] ? a : b), 'neutral' as RegimeName);
-  const activeRule = ALLOCATION_RULES.find((r) => r.regime === dominant);
+  const dominant = REGIME_ORDER.reduce((a, b) => (regimeCounts[a] >= regimeCounts[b] ? a : b), 'range' as RegimeName);
+  // dominant is normalized onto the 3-state union and ALLOCATION_RULES covers
+  // all three, so this lookup cannot miss.
+  const activeRule = ALLOCATION_RULES.find((r) => r.regime === dominant)!;
 
   // Calculate current allocation summary
-  const maxExposureNum = activeRule ? parseInt(activeRule.maxExposure) : 50;
+  const maxExposureNum = parseInt(activeRule.maxExposure);
   const currentExposure = portfolioSnapshot?.grossExposurePct ?? null;
   const headroom = currentExposure !== null ? +(maxExposureNum - currentExposure).toFixed(1) : null;
+
+  // Regime freshness — most recent classification timestamp across symbols and
+  // how many symbols were classified, so the "Active Regime" figure shows when
+  // and over how many symbols it was detected rather than reading as live.
+  const classifiedCount = regimeData.length;
+  const latestDetectedAt = regimeData.reduce<string | null>((latest, e) => {
+    if (!e.detectedAt) return latest;
+    if (!latest || e.detectedAt > latest) return e.detectedAt;
+    return latest;
+  }, null);
+  const detectedAtLabel = latestDetectedAt
+    ? new Date(latestDetectedAt).toLocaleString('en-US', {
+        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
+      })
+    : null;
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-20 md:pb-8">
@@ -158,11 +172,21 @@ export function AllocationClient() {
               <p className="text-2xl font-bold" style={{ color: REGIME_COLORS[dominant].color }}>
                 {dominant.charAt(0).toUpperCase() + dominant.slice(1)}
               </p>
+              <p className="text-[10px] text-[var(--text-secondary)] mt-1 font-mono">
+                {classifiedCount} symbol{classifiedCount === 1 ? '' : 's'} classified
+                {detectedAtLabel ? ` · detected ${detectedAtLabel}` : ''}
+              </p>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-5">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <ShieldCheck className="w-4 h-4 text-[var(--text-secondary)]" />
                 <span className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Current Exposure</span>
+                <span
+                  className="inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/25"
+                  title="These exposure figures come from a paper-trading demo account, not real capital."
+                >
+                  Paper / demo account
+                </span>
               </div>
               <p className="text-2xl font-bold text-[var(--foreground)]">
                 {currentExposure === null ? 'N/A' : `${currentExposure.toFixed(1)}%`}
@@ -181,9 +205,15 @@ export function AllocationClient() {
               </p>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-5">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <TrendingUp className="w-4 h-4 text-[var(--text-secondary)]" />
                 <span className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Headroom</span>
+                <span
+                  className="inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/25"
+                  title="Headroom is derived from the paper-trading demo account exposure, not real capital."
+                >
+                  Paper / demo account
+                </span>
               </div>
               <p className={`text-2xl font-bold ${headroom === null ? 'text-[var(--foreground)]' : headroom > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {headroom === null ? 'N/A' : `${headroom.toFixed(1)}%`}
@@ -200,7 +230,15 @@ export function AllocationClient() {
         {/* Allocation rules table */}
         <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] overflow-hidden mb-8">
           <div className="px-5 py-4 border-b border-[var(--border)]">
-            <h2 className="text-sm font-semibold text-[var(--foreground)] uppercase tracking-wider">Allocation Rules by Regime</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-sm font-semibold text-[var(--foreground)] uppercase tracking-wider">Allocation Rules by Regime</h2>
+              <span
+                className="inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/25"
+                title="Static display mirror of the engine's REGIME_ALLOCATION_RULES (packages/signals/src/allocation/regime-rules.ts). Not fetched live — kept in sync manually."
+              >
+                Policy rules — not fetched live from the engine
+              </span>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -262,7 +300,14 @@ export function AllocationClient() {
         {/* Per-symbol allocation */}
         {!loading && regimeData.length > 0 && (
           <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-5">
-            <h2 className="text-sm font-semibold text-[var(--foreground)] mb-4 uppercase tracking-wider">Per-Symbol Regime Allocation</h2>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <h2 className="text-sm font-semibold text-[var(--foreground)] uppercase tracking-wider">Per-Symbol Regime Allocation</h2>
+              <span className="text-[10px] font-mono text-[var(--text-secondary)]">
+                {classifiedCount} symbol{classifiedCount === 1 ? '' : 's'} classified
+                {detectedAtLabel ? ` · detected ${detectedAtLabel}` : ''}
+                {' · Max pos / Dir are policy rules, not live engine values'}
+              </span>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {regimeData.map((entry) => {
                 const regime = normalizeRegime(entry.regime);

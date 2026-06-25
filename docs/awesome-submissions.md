@@ -1,5 +1,7 @@
 # TradeClaw — Awesome Lists Submission Kit
 
+> SUPERSEDED (2026-06-02): verified live status is in `docs/awesome-lists/SUBMISSION_STATUS.md`. This kit has stale/incorrect details (e.g. license listed as AGPL-3.0 — it is MIT — and a README-line edit for awesome-selfhosted, which actually uses YAML in the data repo). Do not submit from this file.
+
 > Last updated: 2026-03-28
 > GitHub: https://github.com/naimkatiman/tradeclaw
 

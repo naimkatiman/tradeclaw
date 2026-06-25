@@ -5,7 +5,7 @@ import type { MultiTFResult, SignalMode } from '../../app/lib/signal-generator';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const STATE_FILE = path.join(DATA_DIR, 'multi-tf-confluence-alerts.json');
-const ALERT_THRESHOLD = 3;
+const ALERT_THRESHOLD = 4;
 
 interface AlertState {
   lastKey: string | null;

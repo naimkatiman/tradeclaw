@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useUserSession } from "../../lib/hooks/use-user-tier";
 import {
   CheckCircle2,
   Circle,
@@ -259,6 +260,7 @@ function ConfettiBurst() {
 export function OnboardingChecklist() {
   const pathname = usePathname();
   const store = useSyncExternalStore(subscribeStore, getStoreSnapshot, getServerStoreSnapshot);
+  const session = useUserSession();
 
   const [mounted, setMounted] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -269,6 +271,21 @@ export function OnboardingChecklist() {
     setMounted(true); // eslint-disable-line react-hooks/set-state-in-effect
     ensureConfettiStyles();
   }, []);
+
+  /* First visit on a small screen starts as the pill, not the full panel */
+  useEffect(() => {
+    if (!mounted) return;
+    try {
+      if (
+        localStorage.getItem("tc-onboarding-minimized") == null &&
+        window.innerWidth < 768
+      ) {
+        setMinimizedStore(true);
+      }
+    } catch {
+      /* localStorage unavailable */
+    }
+  }, [mounted]);
 
   /* Track route visits — mutates external store, not React state */
   useEffect(() => {
@@ -334,8 +351,10 @@ export function OnboardingChecklist() {
     setMinimizedStore(false);
   }, []);
 
-  /* Don&apos;t render until mounted or if permanently dismissed */
-  if (!mounted || store.onboarded) return null;
+  /* Render only for signed-in users who haven't finished or dismissed it.
+     Anonymous visitors get the marketing funnel, not a product checklist —
+     and on mobile the full panel used to cover the sign-in form entirely. */
+  if (!mounted || store.onboarded || session.status !== "authenticated") return null;
 
   /* ---- Minimized pill ---- */
   if (store.minimized) {
@@ -362,7 +381,7 @@ export function OnboardingChecklist() {
 
   /* ---- Full panel ---- */
   return (
-    <div className="fixed bottom-20 right-4 z-50 w-[340px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-zinc-700/80 bg-zinc-900/95 shadow-2xl shadow-black/50 backdrop-blur-xl md:bottom-6">
+    <div data-onboarding-panel className="fixed bottom-20 right-4 z-50 w-[340px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-zinc-700/80 bg-zinc-900/95 shadow-2xl shadow-black/50 backdrop-blur-xl md:bottom-6">
       {/* Confetti overlay */}
       {showConfetti && <ConfettiBurst />}
 
@@ -380,14 +399,14 @@ export function OnboardingChecklist() {
         <div className="flex items-center gap-1">
           <button
             onClick={handleMinimize}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
             aria-label="Minimize onboarding checklist"
           >
             <ChevronDown className="h-4 w-4" />
           </button>
           <button
             onClick={handleDismiss}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
             aria-label="Close onboarding checklist"
           >
             <X className="h-4 w-4" />

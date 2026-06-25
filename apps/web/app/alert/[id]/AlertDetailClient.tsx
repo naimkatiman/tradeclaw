@@ -29,7 +29,7 @@ export function AlertDetailClient({ signal, id }: Props) {
   const pageUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/alert/${id}`
-      : `https://tradeclaw.com/alert/${id}`;
+      : `https://tradeclaw.win/alert/${id}`;
 
   const signalText = [
     `📊 ${signal.symbol} ${signal.direction} — ${signal.confidence}% confidence`,

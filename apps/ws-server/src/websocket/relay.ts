@@ -6,7 +6,7 @@ import { SubscriptionManager } from './subscriptions.js';
 import type { ProviderManager } from './manager.js';
 import type { RedisService } from '../services/redis.js';
 import { wsAuth } from '../middleware/auth.js';
-import { checkConnectionRate, MessageRateLimiter, startCleanup } from '../middleware/rate-limit.js';
+import { acquireConnection, releaseConnection, MessageRateLimiter } from '../middleware/rate-limit.js';
 import { partitionByTier, type Tier } from '../tier.js';
 
 interface RelayOptions extends FastifyPluginOptions {
@@ -27,9 +27,6 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
   const clients: Map<string, WebSocket> = new Map();
   const idleTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
   const rateLimiter = new MessageRateLimiter();
-
-  // Start rate-limit cleanup timer
-  startCleanup();
 
   // Connect to all symbols on startup
   const allSymbols = getAllSymbols();
@@ -56,11 +53,19 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
 
   // WebSocket route — auth preHandler + connection rate limiting
   app.get('/ws', { websocket: true, preHandler: [wsAuth] }, (socket, request) => {
-    // Connection rate limiting (per IP)
-    if (!checkConnectionRate(request.ip)) {
+    // Concurrent connection limiting (per IP). Reserve a slot now; release it
+    // exactly once when the socket closes or errors.
+    if (!acquireConnection(request.ip)) {
       socket.close(4029, 'Too many connections');
       return;
     }
+
+    let released = false;
+    const releaseSlot = (): void => {
+      if (released) return;
+      released = true;
+      releaseConnection(request.ip);
+    };
 
     const clientId = `c_${++clientCounter}_${Date.now().toString(36)}`;
     // Resolved by wsAuth (defaults to 'free' on the dev anonymous path).
@@ -149,6 +154,7 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
     });
 
     socket.on('close', () => {
+      releaseSlot();
       subs.removeClient(clientId);
       clients.delete(clientId);
       rateLimiter.remove(clientId);
@@ -157,6 +163,7 @@ export async function relayPlugin(app: FastifyInstance, opts: RelayOptions) {
     });
 
     socket.on('error', (err) => {
+      releaseSlot();
       app.log.error({ clientId, err }, 'Client socket error');
       subs.removeClient(clientId);
       clients.delete(clientId);

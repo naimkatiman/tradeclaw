@@ -29,7 +29,10 @@ const mod = require('../signal-history') as {
     },
     candles: OHLCV[],
     windowComplete?: boolean,
-  ) => { outcome: { price: number; pnlPct: number; hit: boolean }; maxAdverseExcursion: number } | null;
+  ) => {
+    outcome: { price: number; pnlPct: number; hit: boolean; target?: 'TP1' | 'TP2' | 'TP3' | 'SL' | 'expired' };
+    maxAdverseExcursion: number;
+  } | null;
 };
 
 const resolve = mod._resolveFromCandlesForTest;

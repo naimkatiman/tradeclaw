@@ -163,3 +163,45 @@ export function digestToPlainText(digest: DailyDigest): string {
 
   return lines.join('\n');
 }
+
+function htmlEsc(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Return a mobile-friendly HTML version of the digest for email delivery.
+ * Content mirrors the Telegram digest (today's top signals by confidence).
+ */
+export function digestToHtml(digest: DailyDigest): string {
+  const wrap = (inner: string): string =>
+    `<div style="background:#050505;color:#e5e5e5;font-family:-apple-system,Segoe UI,Roboto,sans-serif;padding:24px;max-width:600px;margin:0 auto;">` +
+    `<h1 style="color:#10b981;font-size:18px;margin:0 0 16px;">📅 Daily Signal Digest — ${htmlEsc(digest.date)}</h1>` +
+    inner +
+    `<p style="color:#737373;font-size:12px;margin-top:24px;">🤖 <a href="https://tradeclaw.win" style="color:#10b981;">TradeClaw</a> · Not financial advice. DYOR.</p>` +
+    `</div>`;
+
+  if (digest.count === 0) {
+    return wrap(`<p style="color:#a3a3a3;">No high-confidence signals today. Markets quiet.</p>`);
+  }
+
+  const cards = digest.signals
+    .map((sig, i) => {
+      const color = sig.direction === 'BUY' ? '#10b981' : '#ef4444';
+      const rsi = sig.indicators.rsi ? `RSI ${sig.indicators.rsi.value.toFixed(1)}` : '';
+      const macd = sig.indicators.macd ? `MACD ${sig.indicators.macd.signal}` : '';
+      const meta = [rsi, macd].filter(Boolean).join(' · ');
+      return (
+        `<div style="border:1px solid #1f1f1f;border-radius:12px;padding:16px;margin-bottom:12px;">` +
+        `<div style="font-weight:600;color:${color};font-size:15px;">#${i + 1} ${htmlEsc(sig.direction)} ${htmlEsc(sig.symbol)} · ${sig.confidence}%</div>` +
+        `<div style="font-size:13px;color:#a3a3a3;margin-top:6px;">Entry $${htmlEsc(fmtPrice(sig.entry))} · TP $${htmlEsc(fmtPrice(sig.takeProfit1))} · SL $${htmlEsc(fmtPrice(sig.stopLoss))}</div>` +
+        (meta ? `<div style="font-size:12px;color:#737373;margin-top:4px;">${htmlEsc(meta)}</div>` : '') +
+        `</div>`
+      );
+    })
+    .join('');
+
+  return wrap(`<p style="color:#a3a3a3;font-size:13px;margin:0 0 16px;">Top ${digest.count} signals by confidence</p>${cards}`);
+}

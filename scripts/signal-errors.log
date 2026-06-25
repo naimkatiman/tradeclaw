@@ -332,3 +332,7 @@ ImportError: cannot import name 'cfd' from 'tradingview_screener' (/home/naim/.l
 
 [2026-05-21T11:27:42Z] SUCCESS — scanner-engine.py now runs cleanly (1 confluence, 0 individual, 0 errors).
 
+[2026-05-27T09:09:57+08:00] Resolving signal outcomes...
+Signal outcomes resolved successfully
+[2026-05-31T12:12:03+08:00] Resolving signal outcomes...
+Signal outcomes resolved successfully

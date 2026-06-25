@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ChevronDown, LogOut, CreditCard, ShieldCheck, User } from 'lucide-react';
+import { ChevronDown, LogOut, CreditCard, ShieldCheck, User, Users } from 'lucide-react';
 import { useUserSession, type ClientSession } from '../lib/hooks/use-user-tier';
 
 interface UserMenuProps {
@@ -160,6 +160,15 @@ export function UserMenu({ size = 'default' }: UserMenuProps) {
           >
             <CreditCard className="w-3.5 h-3.5" />
             {session.tier === 'free' ? 'Upgrade to Pro' : 'Billing'}
+          </Link>
+          <Link
+            href="/referrals"
+            onClick={() => setOpen(false)}
+            role="menuitem"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-zinc-300 hover:bg-white/5 hover:text-white"
+          >
+            <Users className="w-3.5 h-3.5" />
+            Referrals
           </Link>
           {session.isAdmin && (
             <Link

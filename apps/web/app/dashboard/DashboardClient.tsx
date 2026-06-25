@@ -35,7 +35,6 @@ import { isPendingHistoricalSignal } from '../../lib/signal-history-status';
 import type { TradingSignal } from '@tradeclaw/signals';
 import type { LockedSignalStub } from '../../lib/tier';
 import type { TFDirection } from '../lib/signal-generator';
-import { OnboardingOverlay } from '../components/onboarding-overlay';
 import { markStepDone } from '@/lib/onboarding-state';
 import { useUserSession } from '../../lib/hooks/use-user-tier';
 import { classifySignalOutcome, type OutcomeStatus } from '@/lib/signal-outcome';
@@ -158,6 +157,13 @@ const BUY_CONFIDENCE_THRESHOLD = 70;
 const TIMEFRAMES = ['ALL', 'M5', 'M15', 'H1', 'H4', 'D1'];
 
 
+// US mega-caps + index ETFs (issue #42). Symbols mirror apps/web/app/lib/symbol-config.ts.
+const STOCK_SYMBOLS = [
+  'NVDAUSD', 'TSLAUSD', 'AAPLUSD', 'MSFTUSD', 'GOOGLUSD', 'AMZNUSD', 'METAUSD',
+  'SPYUSD', 'QQQUSD', 'AMDUSD', 'JPMUSD', 'JNJUSD', 'VUSD', 'WMTUSD', 'PGUSD',
+  'UNHUSD', 'HDUSD', 'BACUSD', 'MAUSD', 'XOMUSD',
+];
+
 const ASSET_CLASSES = {
   ALL: [
     'XAUUSD', 'XAGUSD',
@@ -167,6 +173,7 @@ const ASSET_CLASSES = {
     'OPUSD', 'FILUSD', 'INJUSD', 'SUIUSD', 'SEIUSD', 'TIAUSD',
     'RENDERUSD', 'FETUSD', 'AAVEUSD', 'PEPEUSD', 'SHIBUSD', 'WIFUSD',
     'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF',
+    ...STOCK_SYMBOLS,
   ],
   CRYPTO: [
     'BTCUSD', 'ETHUSD', 'SOLUSD', 'DOGEUSD', 'BNBUSD', 'XRPUSD',
@@ -177,6 +184,7 @@ const ASSET_CLASSES = {
   ],
   FOREX: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF'],
   METALS: ['XAUUSD', 'XAGUSD'],
+  STOCKS: STOCK_SYMBOLS,
 };
 
 type AssetClass = keyof typeof ASSET_CLASSES;
@@ -275,7 +283,7 @@ function CopyValueButton({ value }: { value: string }) {
         </svg>
       )}
       {copied && (
-        <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[8px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap pointer-events-none">
+        <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap pointer-events-none">
           Copied!
         </span>
       )}
@@ -293,7 +301,7 @@ function WinRateBadge({ winRate }: { winRate: { wins: number; losses: number; to
     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono border ${color}`}>
       <span className="opacity-60">WR</span>
       <span className="font-bold">{wr}%</span>
-      <span className="opacity-40 text-[8px]">{winRate.wins}/{winRate.total}</span>
+      <span className="opacity-40 text-[10px]">{winRate.wins}/{winRate.total}</span>
     </span>
   );
 }
@@ -488,10 +496,10 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
               {signal.dataQuality === 'real' && <LiveBadge />}
               <DataSourceBadge source={getDataSource(signal.symbol)} />
               {signal.dataQuality === 'synthetic' && (
-                <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">DEMO</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">DEMO</span>
               )}
               {signal.atrCalibration && signal.atrCalibration.confidence !== 'low' && (
-                <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono font-bold border ${
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border ${
                   signal.atrCalibration.confidence === 'high'
                     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                     : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
@@ -500,7 +508,7 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
                 </span>
               )}
               {isDelayed && (
-                <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-zinc-500/10 text-zinc-500 border border-zinc-500/20" title="Free tier signals are delayed 15 minutes">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-500/10 text-zinc-500 border border-zinc-500/20" title="Free tier signals are delayed 30 minutes">
                   15m delay
                 </span>
               )}
@@ -665,7 +673,7 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
               <div key={label} className="flex items-center gap-1 text-[10px] font-mono">
                 <span className="text-[var(--text-secondary)]">{label}</span>
                 {locked ? (
-                  <span className="text-emerald-400/60 bg-emerald-500/8 px-1 py-0.5 rounded text-[8px] font-bold border border-emerald-500/15">PRO</span>
+                  <span className="text-emerald-400/60 bg-emerald-500/8 px-1 py-0.5 rounded text-[10px] font-bold border border-emerald-500/15">PRO</span>
                 ) : (
                   <span className={isBull ? 'text-emerald-400' : isBear ? 'text-red-400' : 'text-[var(--text-secondary)]'}>{value}</span>
                 )}
@@ -1375,9 +1383,17 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                 <p className="text-[var(--text-secondary)] text-xs mb-4">
                   Auto-retrying every 15s. Signals appear when the market is active and setups meet the quality threshold.
                 </p>
-                <button onClick={fetchSignals} className="px-4 py-2 rounded-xl text-xs border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/10 transition-all duration-200 font-mono">
-                  Retry now
-                </button>
+                <div className="flex items-center justify-center gap-2">
+                  <button onClick={fetchSignals} className="px-4 py-2 rounded-xl text-xs border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/10 transition-all duration-200 font-mono">
+                    Retry now
+                  </button>
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('tc:start-tour'))}
+                    className="px-4 py-2 rounded-xl text-xs border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-all duration-200 font-mono"
+                  >
+                    Take the tour
+                  </button>
+                </div>
               </div>
             );
           }
@@ -1386,10 +1402,10 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               {/* Locked signals — free tier sees pair/direction/confidence + countdown until unlock */}
               {lockedSignals.length > 0 && (() => {
                 // Earliest stub drives the section-level countdown banner.
-                // Free-tier delay is 15 min (TIER_DELAY_MS.free) — hardcoded
+                // Free-tier delay is 30 min (TIER_DELAY_MS.free) — hardcoded
                 // here because tier.ts is server-only and the constant cannot
                 // be re-exported through tier-client without a wider refactor.
-                const FREE_DELAY_MS = 15 * 60 * 1000;
+                const FREE_DELAY_MS = 30 * 60 * 1000;
                 const earliest = lockedSignals.reduce(
                   (a, b) =>
                     new Date(a.availableAt).getTime() <= new Date(b.availableAt).getTime()
@@ -1483,7 +1499,6 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           <p className="text-xs text-zinc-800 mt-1">Signal analysis is for educational purposes only. Not financial advice.</p>
         </footer>
       </div>
-      <OnboardingOverlay signalsLoaded={signals.length > 0} />
       {/* Signal toasts */}
       <SignalToast />
     </div>

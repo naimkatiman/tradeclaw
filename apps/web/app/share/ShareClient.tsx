@@ -373,6 +373,32 @@ const TIMING_TIPS: { platform: string; icon: LucideIcon; bestTime: string; tip: 
   },
 ];
 
+const CAMPAIGN_KEY = 'tradeclaw-campaign-steps';
+
+const CAMPAIGN_STEPS = [
+  {
+    id: 'producthunt',
+    name: 'Product Hunt',
+    description: 'Schedule launch, prepare hunter kit, gallery captions',
+    href: '/producthunt',
+    status: 'ready' as const,
+  },
+  {
+    id: 'hackernews',
+    name: 'Hacker News — Show HN',
+    description: 'Submit during weekday 8–10am EST with optimal title',
+    href: '/hn',
+    status: 'ready' as const,
+  },
+  {
+    id: 'reddit-algotrading',
+    name: 'Reddit r/algotrading',
+    description: 'Post track-record proof with 63.9% verified win rate',
+    href: '#reddit-algotrading',
+    status: 'ready' as const,
+  },
+];
+
 const STORAGE_KEY = 'tradeclaw-shared-platforms';
 
 // ── CopyButton ─────────────────────────────────────────────────────────────────
@@ -464,6 +490,7 @@ function CopyLinkButton() {
 export function ShareClient() {
   const [stars, setStars] = useState(STARS_FALLBACK);
   const [shared, setShared] = useState<Partial<Record<PlatformId, boolean>>>({});
+  const [campaignDone, setCampaignDone] = useState<Partial<Record<string, boolean>>>({});
 
   // Load share tracking from localStorage
   useEffect(() => {
@@ -471,6 +498,8 @@ export function ShareClient() {
       try {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) setShared(JSON.parse(stored));
+        const camp = localStorage.getItem(CAMPAIGN_KEY);
+        if (camp) setCampaignDone(JSON.parse(camp));
       } catch {
         // ignore
       }
@@ -503,9 +532,22 @@ export function ShareClient() {
     });
   }
 
+  function toggleCampaign(id: string) {
+    setCampaignDone(prev => {
+      const next = { ...prev, [id]: !prev[id] };
+      try {
+        localStorage.setItem(CAMPAIGN_KEY, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }
+
   const sharedCount = PLATFORM_IDS.filter(id => shared[id]).length;
   const starsPercent = (stars / STARS_GOAL) * 100;
   const sharePercent = (sharedCount / PLATFORM_IDS.length) * 100;
+  const campaignCount = CAMPAIGN_STEPS.filter(s => campaignDone[s.id]).length;
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -586,6 +628,71 @@ export function ShareClient() {
             </svg>
             Star on GitHub — it&#39;s free!
           </a>
+        </div>
+      </section>
+
+      {/* ── Launch Campaign Tracker ── */}
+      <section className="px-6 pb-12 max-w-3xl mx-auto">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-base font-semibold text-[var(--foreground)]">Launch Campaign</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                Track progress across the three highest-impact launch channels
+              </p>
+            </div>
+            <span className="text-2xl font-bold text-emerald-400 tabular-nums">
+              {campaignCount}<span className="text-[var(--text-secondary)] text-lg">/{CAMPAIGN_STEPS.length}</span>
+            </span>
+          </div>
+          <div className="w-full bg-[var(--bg-card)] rounded-full h-2 mb-5 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
+              style={{ width: `${(campaignCount / CAMPAIGN_STEPS.length) * 100}%` }}
+            />
+          </div>
+          <div className="space-y-2">
+            {CAMPAIGN_STEPS.map(step => (
+              <div
+                key={step.id}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
+                  campaignDone[step.id]
+                    ? 'bg-emerald-500/5 border-emerald-500/20'
+                    : 'bg-[var(--bg-card)]/50 border-[var(--border)]/50'
+                }`}
+              >
+                <button
+                  onClick={() => toggleCampaign(step.id)}
+                  className={`shrink-0 w-5 h-5 rounded border flex items-center justify-center transition-all ${
+                    campaignDone[step.id] ? 'bg-emerald-500 border-emerald-500' : 'border-zinc-600'
+                  }`}
+                >
+                  {campaignDone[step.id] && (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-medium ${campaignDone[step.id] ? 'text-emerald-300 line-through' : 'text-[var(--foreground)]'}`}>
+                      {step.name}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      {step.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">{step.description}</p>
+                </div>
+                <Link
+                  href={step.href}
+                  className="shrink-0 text-xs text-emerald-400 hover:text-emerald-300 font-medium"
+                >
+                  Open →
+                </Link>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

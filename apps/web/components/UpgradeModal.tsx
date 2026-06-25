@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Lock, X } from 'lucide-react';
 
@@ -22,20 +22,59 @@ interface UpgradeModalProps {
  * response. Used wherever a free-tier action would be rejected server-side.
  */
 export function UpgradeModal({ open, onClose, title, reason, from }: UpgradeModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const titleId = 'upgrade-modal-title';
+
+  useEffect(() => {
+    if (!open) return;
+    // Focus the close button when the modal opens
+    closeRef.current?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button, textarea, input, select'
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={onClose}
+      aria-hidden="true"
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className="relative w-full max-w-sm mx-4 rounded-2xl border border-emerald-500/20 bg-[#0a0a0a] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
+          ref={closeRef}
           onClick={onClose}
-          className="absolute top-3 right-3 text-zinc-600 hover:text-zinc-300 transition-colors"
+          className="absolute top-3 right-3 text-zinc-400 hover:text-zinc-200 transition-colors"
           aria-label="Close"
         >
           <X size={16} />
@@ -45,18 +84,18 @@ export function UpgradeModal({ open, onClose, title, reason, from }: UpgradeModa
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20">
             <Lock size={20} className="text-emerald-400" />
           </div>
-          <h3 className="text-sm font-semibold text-white mb-1.5">{title}</h3>
+          <h3 id={titleId} className="text-sm font-semibold text-white mb-1.5">{title}</h3>
           <p className="text-xs text-zinc-400 leading-relaxed mb-5">{reason}</p>
 
           <Link
             href={`/pricing?from=${encodeURIComponent(from)}`}
             className="w-full rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-black hover:bg-emerald-400 transition-colors text-center"
           >
-            Upgrade to Pro -- $29/mo
+            Upgrade to Pro · $29/mo
           </Link>
           <button
             onClick={onClose}
-            className="mt-2 text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+            className="mt-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
           >
             Maybe later
           </button>

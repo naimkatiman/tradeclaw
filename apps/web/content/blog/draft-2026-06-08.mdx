@@ -1,0 +1,40 @@
+---
+title: "How TradeClaw's Weekly Regime Engine Locks In Market Context Before the Open"
+excerpt: "Before you place a single trade, the market has a personality for the week. TradeClaw's Weekly Regime Engine classifies that personality — TRENDING or NEUTRAL — and locks it in by Monday noon so every signal filter downstream can adapt."
+date: "2026-06-08"
+readTime: "8 min"
+tags: ["Weekly Regime", "Market Context", "Signal Scoring", "Feature"]
+metaDescription: "TradeClaw's Weekly Regime Engine classifies each week as TRENDING or NEUTRAL and locks the result by Monday noon — so your signal filters adapt automatically."
+keywords: ["weekly market regime classification", "regime detection trading system", "TradeClaw weekly setup", "market regime trading", "TRENDING NEUTRAL regime"]
+---
+
+Before you place a single trade, the market has a personality for the week. TradeClaw's new Weekly Regime Engine classifies that personality — TRENDING or NEUTRAL — and locks it in by Monday noon so every signal filter downstream adapts automatically.
+
+## What Is a Market Regime — and Why Monday Context Matters
+
+TODO: Explain the concept of market regimes (trending vs ranging/neutral). Why classifying the week's context before placing trades changes risk tolerance, entry criteria, and position sizing. Use the analogy of a weather forecast before a hike versus reacting mid-trail. Link to the signal scoring post for readers who want depth on how context feeds filters.
+
+## The Four-Step Classification Flow
+
+TODO: Walk through the pipeline in detail: (1) operator writes Monday notes into the Telegram bot, (2) free-text is mapped to validated regime cards using the typed schema, (3) the classification engine assigns TRENDING or NEUTRAL, (4) the Monday noon lock gate prevents mid-week regime drift. Describe what "locking" means in practice — no further /setregime commands accepted after noon unless an explicit override is issued.
+
+## Inside the Weekly Regime Card Schema
+
+TODO: Describe the typed model — what fields a regime card captures (volatility tier, trend direction, liquidity context, key levels). Explain why a rigid schema beats free-text for downstream consumers like the signal scorer. Show a sanitised example card. Reference the Layer 1 typed model introduced in the feature.
+
+## Telegram Commands: /setregime, /confirmregime, /regime
+
+TODO: Describe the operator workflow step by step. How `/setregime` drafts a candidate regime card from the operator's notes, `/confirmregime` locks it in before the noon gate, and `/regime` surfaces the current active card on demand. Emphasise the confirmation step as a deliberate human-in-the-loop safeguard — the system will not self-classify without operator sign-off.
+
+## How Signal Scoring Adapts to the Locked Regime
+
+TODO: Explain what changes downstream when regime = TRENDING versus NEUTRAL. Which filters tighten, which relax, and why. Show a concrete example — breakout continuation signals receive a higher weight multiplier in TRENDING weeks while mean-reversion setups are deprioritised. In NEUTRAL weeks the weights flip. Tie back to the [how-we-score-signals](/blog/how-we-score-signals) post.
+
+## A Practical Example: Three False Breakouts We Would Have Filtered
+
+TODO: Walk through an illustrative NEUTRAL-regime week where three momentum breakout signals fired on EURUSD and GBPJPY. Show how the regime-aware filter would have suppressed each one based on the locked NEUTRAL card. Include a before/after signal count table.
+
+<TrialCTA
+  headline="Let the market tell you what week it's having."
+  pitch="TradeClaw's Weekly Regime Engine classifies market context every Monday so your signal filters are calibrated before the first candle closes. Start your free trial and see the regime card for this week."
+/>

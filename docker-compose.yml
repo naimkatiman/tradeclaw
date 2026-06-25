@@ -56,6 +56,9 @@ services:
       DATABASE_URL: postgres://${DB_USER:-tradeclaw}:${DB_PASSWORD:?Set DB_PASSWORD in .env}@db:5432/${DB_NAME:-tradeclaw}
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
+      # Web app session/OAuth/link-token signing. Required — the app fails fast
+      # (and every sign-in 500s) without it. The ws-server uses AUTH_SECRET instead.
+      USER_SESSION_SECRET: ${USER_SESSION_SECRET:?Set USER_SESSION_SECRET in .env}
       AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env}
       APP_URL: ${APP_URL:-http://localhost:3000}
     depends_on:
@@ -72,26 +75,11 @@ services:
       retries: 5
     restart: unless-stopped
 
-  scanner:
-    build:
-      context: .
-      dockerfile: Dockerfile.scanner
-    environment:
-      DATABASE_URL: postgres://${DB_USER:-tradeclaw}:${DB_PASSWORD:?Set DB_PASSWORD in .env}@db:5432/${DB_NAME:-tradeclaw}
-      REDIS_URL: redis://redis:6379
-      SCAN_INTERVAL: ${SCAN_INTERVAL:-60}
-      SCAN_INSTRUMENTS: ${SCAN_INSTRUMENTS:-all}
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
-      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
-      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
-      WEBHOOK_URL: ${WEBHOOK_URL:-}
-      MIN_CONFIDENCE: ${MIN_CONFIDENCE:-70}
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
+  # NOTE: the previous `scanner` service ran packages/core (a types/util library with
+  # no runnable entry), so the container exited immediately and restart-looped while
+  # silently ignoring the SCAN_* env vars. Removed. The real interval scanner is the
+  # agent daemon (packages/agent, `npm run agent:start`); add a service that builds and
+  # runs it if/when self-hosters need an in-compose scanner.
 
   ws-server:
     build:
@@ -117,6 +105,38 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # Monitoring stack (opt-in): `docker compose --profile monitoring up -d`.
+  # Scrapes the app's /api/metrics endpoint. Kept out of the default stack so
+  # `docker compose up` stays lean.
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: ["monitoring"]
+    volumes:
+      - ./grafana/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    extra_hosts:
+      # Lets prometheus.yml's host.docker.internal target resolve on Linux.
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    profiles: ["monitoring"]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
 volumes:
   db_data:
   redis_data:
+  prometheus_data:
+  grafana_data:
