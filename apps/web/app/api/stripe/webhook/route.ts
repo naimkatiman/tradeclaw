@@ -18,6 +18,7 @@ import {
 } from '../../../../lib/db';
 import { sendInviteWithRetry, revokeAccess } from '../../../../lib/telegram';
 import { sendPaymentFailedEmail } from '../../../../lib/transactional-email';
+import { captureServer, identifyServer } from '../../../../lib/analytics-server';
 
 // Must read raw body for Stripe signature verification
 export const dynamic = 'force-dynamic';
@@ -212,6 +213,11 @@ async function handleCheckoutCompleted(
       }
     }
   }
+
+  // Server-confirmed lifecycle analytics (PostHog node). Wrapped internally so
+  // it can never fail the webhook; awaited so the event flushes before freeze.
+  await identifyServer(userId, { tier });
+  await captureServer('subscription_started', userId, { tier, status: subscription.status });
 }
 
 async function handleSubscriptionUpdated(
@@ -309,6 +315,11 @@ async function handleSubscriptionDeleted(
   await updateUserTier(userId, 'free', null);
   await cancelSubscription(subscription.id);
 
+  // Server-confirmed churn analytics — fired before the Telegram-only early
+  // return below so it records for every cancelled user. Never throws.
+  await identifyServer(userId, { tier: 'free' });
+  await captureServer('subscription_churned', userId, { previousTier: existing?.tier ?? null });
+
   // Revoke Telegram group access
   const stripeCustomerId =
     typeof subscription.customer === 'string' ? subscription.customer : null;
@@ -371,6 +382,9 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
     if (customerId) {
       try {
         const user = await getUserByStripeCustomerId(customerId);
+        if (user) {
+          await captureServer('subscription_paid', user.id, { amountCents: amountPaid });
+        }
         if (user?.referredBy) {
           const shareCents = Math.floor(amountPaid * 0.2);
           if (shareCents > 0) {
