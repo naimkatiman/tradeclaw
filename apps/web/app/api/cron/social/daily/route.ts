@@ -26,12 +26,16 @@ export async function GET(req: NextRequest) {
   const pnlStr = `${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}`;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
   const imageUrl = `${baseUrl}/api/og/summary?period=daily&date=${today}`;
+  // UTM-tag the outbound link so social-driven signups are attributable in
+  // analytics. (First-party auto-posts have no individual referrer, so a
+  // user-to-user ref code is not used here — that belongs on user share links.)
+  const trackUrl = `${baseUrl}/track-record?utm_source=x&utm_medium=social&utm_campaign=daily_summary`;
   const copy = [
     `Today on TradeClaw: ${s.total} signals resolved`,
     `${s.wins}W / ${s.losses}L (${winRate}%)`,
     `P/L: ${pnlStr}%`,
     '',
-    `Track live: ${baseUrl}/track-record`,
+    `Track live: ${trackUrl}`,
     '#TradeClaw #Trading #Signals',
   ].join('\n');
 

@@ -182,6 +182,20 @@ export async function getUserByEmail(email: string): Promise<UserRecord | null> 
 }
 
 /**
+ * Resolve a referral code (the value behind /pricing?ref=…) to the referring
+ * user. Codes are stored uppercase hex (generateReferralCode), so the caller
+ * is expected to normalize to uppercase before lookup. Returns null for an
+ * unknown code — the checkout flow then simply records no referral.
+ */
+export async function getUserByReferralCode(code: string): Promise<UserRecord | null> {
+  const row = await queryOne<UserRow>(
+    `SELECT ${USER_COLUMNS} FROM users WHERE referral_code = $1`,
+    [code],
+  );
+  return row ? toUserRecord(row) : null;
+}
+
+/**
  * Find-or-create a user by email. Used by the passwordless session flow so
  * first-time visitors get a row on their first signin attempt.
  */
