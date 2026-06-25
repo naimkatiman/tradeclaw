@@ -87,6 +87,8 @@ docker compose up -d   # or: docker-compose up -d on the legacy CLI
 
 Open [http://localhost:3000](http://localhost:3000). Requires PostgreSQL. Migrations live in `apps/web/migrations/` and should be applied in filename order against your `DATABASE_URL`.
 
+After the stack starts, run the [self-host smoke checklist](docs/self-host-smoke-checklist.md) to verify Compose config, migrations, app health, websocket health, metrics, and optional monitoring before sharing the instance.
+
 ### Image tags
 
 | Tag | What it tracks |
@@ -124,7 +126,9 @@ Common workspace scripts (all defined in the root `package.json`):
 | Command | What it does |
 |---|---|
 | `npm run dev` | Run the web app (`apps/web`) in dev mode |
-| `npm run build` | Build `packages/signals`, then `apps/web` |
+| `npm run build` | Build `packages/signals`, `packages/trading-agents`, then the Next.js web app (bundle/static generation; TypeScript validation is a separate CI check) |
+| `npm run typecheck:web` | Build the shared signal package, then run the web TypeScript check used by CI |
+| `npm run build:signals` | Build the shared signal package only (also run by `typecheck:web`) |
 | `npm run build:all` | Build `signals` + `agent` + web + ws-server |
 | `npm run start` | Start the built web app |
 | `npm run lint` | Lint `apps/web` |
@@ -134,6 +138,8 @@ Common workspace scripts (all defined in the root `package.json`):
 | `npm run agent` | Run the trading-agent CLI (`packages/agent`) |
 | `npm run agent:start` / `agent:scan` / `agent:server` | Start the agent loop, run a one-off scan, or run the agent HTTP server |
 | `npm run resolve:outcomes` | Resolve real outcomes for recorded signals |
+
+For the long-form TypeScript command and why `next build` is not a typecheck, see [`docs/ai-improvement/build-typecheck-parity.md`](docs/ai-improvement/build-typecheck-parity.md).
 
 The Expo/React Native client in `apps/mobile` has its own `package.json` and is run with the Expo CLI from inside that workspace.
 

@@ -5,12 +5,13 @@ import Link from 'next/link';
 import {
   BarChart2,
   TrendingUp,
-  Users,
   Star,
   ExternalLink,
   Share2,
   Trophy,
   Activity,
+  Target,
+  Gauge,
   RefreshCw,
   ChevronRight,
 } from 'lucide-react';
@@ -18,12 +19,12 @@ import {
 interface ReportData {
   weekOf: string;
   isoWeek: number;
+  hasEnoughData: boolean;
   totalSignals: number;
   winRate: number;
   topAsset: string;
   topAccuracy: number;
-  newContributors: number;
-  starsThisWeek: number;
+  avgConfidence: number;
   dailyBreakdown: [number, number, number, number, number, number, number];
   generatedAt: string;
 }
@@ -69,7 +70,6 @@ function BarChart({ data }: { data: number[] }) {
       const barH = (val / max) * chartH;
       const y = padY + chartH - barH;
 
-      // Gradient fill
       const grad = ctx.createLinearGradient(0, y, 0, y + barH);
       grad.addColorStop(0, 'rgba(16,185,129,0.9)');
       grad.addColorStop(1, 'rgba(16,185,129,0.2)');
@@ -78,26 +78,18 @@ function BarChart({ data }: { data: number[] }) {
       ctx.roundRect(x, y, barW, barH, 3);
       ctx.fill();
 
-      // Value label
       ctx.fillStyle = 'rgba(255,255,255,0.6)';
       ctx.font = `600 9px -apple-system, sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillText(String(val), x + barW / 2, y - 4);
 
-      // Day label
       ctx.fillStyle = 'rgba(255,255,255,0.4)';
       ctx.font = `500 9px -apple-system, sans-serif`;
       ctx.fillText(DAYS[i], x + barW / 2, H - 4);
     });
   }, [data]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="w-full"
-      style={{ height: 160 }}
-    />
-  );
+  return <canvas ref={canvasRef} className="w-full" style={{ height: 160 }} />;
 }
 
 export default function ReportClient() {
@@ -109,7 +101,7 @@ export default function ReportClient() {
     if (isRefresh) setRefreshing(true);
     try {
       const res = await fetch('/api/report');
-      const json = await res.json() as ReportData;
+      const json = (await res.json()) as ReportData;
       setData(json);
     } catch {
       // silent fail
@@ -124,14 +116,14 @@ export default function ReportClient() {
   }, []);
 
   const handleShare = () => {
-    if (!data) return;
+    if (!data || !data.hasEnoughData) return;
     const tweet = encodeURIComponent(
       `📊 TradeClaw Weekly Pulse — Week ${data.isoWeek}\n\n` +
-      `⚡ ${data.totalSignals} signals fired\n` +
-      `🎯 ${data.winRate}% win rate\n` +
-      `🏆 Top asset: ${data.topAsset} (${data.topAccuracy}% accuracy)\n\n` +
-      `Open-source AI trading signals → https://github.com/naimkatiman/tradeclaw\n\n` +
-      `#algotrading #opensource #tradeclaw`
+        `⚡ ${data.totalSignals} signals resolved\n` +
+        `🎯 ${data.winRate}% win rate\n` +
+        `🏆 Top asset: ${data.topAsset} (${data.topAccuracy}% accuracy)\n\n` +
+        `Open-source AI trading signals → https://github.com/naimkatiman/tradeclaw\n\n` +
+        `#algotrading #opensource #tradeclaw`,
     );
     window.open(`https://twitter.com/intent/tweet?text=${tweet}`, '_blank');
   };
@@ -155,7 +147,7 @@ export default function ReportClient() {
   const stats = [
     {
       icon: Activity,
-      label: 'Signals Generated',
+      label: 'Signals Resolved',
       value: data.totalSignals.toLocaleString(),
       sub: 'This week',
       color: 'text-emerald-400',
@@ -170,18 +162,18 @@ export default function ReportClient() {
       bg: 'from-blue-500/10 to-transparent',
     },
     {
-      icon: Users,
-      label: 'New Contributors',
-      value: data.newContributors === 0 ? 'None yet' : `+${data.newContributors}`,
-      sub: 'GitHub this week',
+      icon: Target,
+      label: 'Top Accuracy',
+      value: `${data.topAccuracy}%`,
+      sub: data.topAsset === '—' ? 'No data yet' : data.topAsset,
       color: 'text-purple-400',
       bg: 'from-purple-500/10 to-transparent',
     },
     {
-      icon: Star,
-      label: 'New Stars',
-      value: `+${data.starsThisWeek}`,
-      sub: 'Toward 1,000',
+      icon: Gauge,
+      label: 'Avg Confidence',
+      value: `${data.avgConfidence}`,
+      sub: 'Resolved signals',
       color: 'text-zinc-400',
       bg: 'from-zinc-500/10 to-transparent',
     },
@@ -199,11 +191,10 @@ export default function ReportClient() {
         </div>
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-              Weekly Pulse
-            </h1>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Weekly Pulse</h1>
             <p className="text-[var(--text-secondary)] text-sm max-w-xl">
-              Signals fired, win rates, top performers — every week, auto-generated from TradeClaw live data.
+              Signals resolved, win rates, top performers — every week, auto-generated from
+              TradeClaw&apos;s real resolved signal history.
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -215,80 +206,100 @@ export default function ReportClient() {
               <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh
             </button>
-            <button
-              onClick={handleShare}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-            >
-              <Share2 className="w-3 h-3" />
-              Share on X
-            </button>
+            {data.hasEnoughData && (
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+              >
+                <Share2 className="w-3 h-3" />
+                Share on X
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className={`glass rounded-2xl p-4 bg-gradient-to-br ${s.bg} border border-[var(--border)]`}
-          >
-            <div className="flex items-center gap-1.5 mb-2">
-              <s.icon className={`w-3.5 h-3.5 ${s.color}`} />
-              <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest font-semibold">
-                {s.label}
-              </span>
-            </div>
-            <div className={`text-2xl font-bold tracking-tight mb-0.5 ${s.color}`}>
-              {s.value}
-            </div>
-            <div className="text-[10px] text-[var(--text-secondary)]">{s.sub}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Main content grid */}
-      <div className="grid md:grid-cols-3 gap-6">
-        {/* Bar chart — spans 2 cols */}
-        <div className="md:col-span-2 glass rounded-2xl p-5 border border-[var(--border)]">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold flex items-center gap-2">
-              <BarChart2 className="w-4 h-4 text-emerald-400" />
-              Signals per day
-            </h2>
-            <span className="text-[10px] text-[var(--text-secondary)]">Mon – Sun</span>
-          </div>
-          <BarChart data={data.dailyBreakdown} />
+      {!data.hasEnoughData ? (
+        /* Honest empty state — no fabricated numbers until real signals resolve */
+        <div className="glass rounded-2xl p-8 border border-[var(--border)] text-center mb-8">
+          <Activity className="w-6 h-6 text-emerald-400 mx-auto mb-3" />
+          <h2 className="text-lg font-semibold mb-2">Not enough resolved signals this week yet</h2>
+          <p className="text-sm text-[var(--text-secondary)] max-w-md mx-auto">
+            Real weekly numbers appear once at least 5 signals resolve.{' '}
+            <span className="text-[var(--foreground)]">{data.totalSignals}</span> resolved so far
+            this week. Check back as more outcomes settle, or see the{' '}
+            <Link href="/accuracy" className="text-emerald-400 hover:text-emerald-300">
+              full accuracy data
+            </Link>
+            .
+          </p>
         </div>
-
-        {/* Top asset card */}
-        <div className="glass rounded-2xl p-5 border border-[var(--border)] bg-gradient-to-br from-zinc-500/5 to-transparent flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Trophy className="w-4 h-4 text-zinc-400" />
-              <span className="text-sm font-semibold">Top Asset</span>
-            </div>
-            <div className="text-4xl font-bold tracking-tight mb-1">{data.topAsset}</div>
-            <div className="text-sm text-[var(--text-secondary)] mb-4">
-              {data.topAccuracy}% accuracy this week
-            </div>
-            <div className="w-full bg-white/5 rounded-full h-1.5 mb-1">
+      ) : (
+        <>
+          {/* Stats grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            {stats.map((s) => (
               <div
-                className="bg-gradient-to-r from-zinc-400 to-zinc-300 h-1.5 rounded-full"
-                style={{ width: `${data.topAccuracy}%` }}
-              />
-            </div>
-            <div className="text-[10px] text-[var(--text-secondary)]">Accuracy rate</div>
+                key={s.label}
+                className={`glass rounded-2xl p-4 bg-gradient-to-br ${s.bg} border border-[var(--border)]`}
+              >
+                <div className="flex items-center gap-1.5 mb-2">
+                  <s.icon className={`w-3.5 h-3.5 ${s.color}`} />
+                  <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest font-semibold">
+                    {s.label}
+                  </span>
+                </div>
+                <div className={`text-2xl font-bold tracking-tight mb-0.5 ${s.color}`}>{s.value}</div>
+                <div className="text-[10px] text-[var(--text-secondary)]">{s.sub}</div>
+              </div>
+            ))}
           </div>
-          <Link
-            href={`/signal/${data.topAsset}-H1-BUY`}
-            className="mt-4 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-300 transition-colors"
-          >
-            View latest signal
-            <ChevronRight className="w-3 h-3" />
-          </Link>
-        </div>
-      </div>
+
+          {/* Main content grid */}
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 glass rounded-2xl p-5 border border-[var(--border)]">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold flex items-center gap-2">
+                  <BarChart2 className="w-4 h-4 text-emerald-400" />
+                  Signals per day
+                </h2>
+                <span className="text-[10px] text-[var(--text-secondary)]">Mon – Sun</span>
+              </div>
+              <BarChart data={data.dailyBreakdown} />
+            </div>
+
+            {/* Top asset card */}
+            <div className="glass rounded-2xl p-5 border border-[var(--border)] bg-gradient-to-br from-zinc-500/5 to-transparent flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Trophy className="w-4 h-4 text-zinc-400" />
+                  <span className="text-sm font-semibold">Top Asset</span>
+                </div>
+                <div className="text-4xl font-bold tracking-tight mb-1">{data.topAsset}</div>
+                <div className="text-sm text-[var(--text-secondary)] mb-4">
+                  {data.topAccuracy}% accuracy this week
+                </div>
+                <div className="w-full bg-white/5 rounded-full h-1.5 mb-1">
+                  <div
+                    className="bg-gradient-to-r from-zinc-400 to-zinc-300 h-1.5 rounded-full"
+                    style={{ width: `${data.topAccuracy}%` }}
+                  />
+                </div>
+                <div className="text-[10px] text-[var(--text-secondary)]">Accuracy rate</div>
+              </div>
+              {data.topAsset !== '—' && (
+                <Link
+                  href={`/signal/${data.topAsset}-H1-BUY`}
+                  className="mt-4 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-300 transition-colors"
+                >
+                  View latest signal
+                  <ChevronRight className="w-3 h-3" />
+                </Link>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* GitHub Discussions + CTA */}
       <div className="mt-6 grid md:grid-cols-2 gap-4">
