@@ -1,16 +1,14 @@
 # TradeClaw AI Improvement Baseline
 
-Last updated: 2026-06-22 05:30 MPST (+0800)
+Last updated: 2026-06-25 05:31 MPST (+0800)
 Agent: CEO Zaky recurring Product + Engineering repository improvement agent
-Scope of latest run: docs-only post-metrics verification checkpoint refresh for the unchanged remote-aligned feature branch plus dirty working tree; application behavior unchanged.
+Scope of latest run: docs-only monetization strategy-audit package verification and AI tracking refresh; no runtime behavior changes.
 
 ## Executive Summary
 
-TradeClaw is no longer just the small scaffold described by the oldest PM context. The live repository is a broad self-hostable + hosted trading-signal platform: a Next.js 16 web app, PostgreSQL/Redis-backed signal history, subscription/tier gates, Telegram/Discord/email/webhook distribution, a websocket market-data relay, Expo mobile shell, multiple npm workspace packages, research scripts, Docker Compose, and a mature GitHub Actions pipeline.
+TradeClaw now has a verified standalone strategy-audit monetization path: a product-facing audit note, a dedicated `packages/strategy-audit-agent` workspace package, and a fresh AI-improvement note that documents the safe boundary. The audit package turns existing Backtest Lab output into a historical-only paid deliverable; it does not change live execution, billing, or broker access. Code changes: none from this run.
 
-The safest high-value first increment is this durable repo/product baseline. It gives future 30-minute agents a grounded map before touching trading logic, auth, billing, DB migrations, or deployment. Code changes: none.
-
-Latest recurring increment: refreshed current verification evidence at 05:30 MPST without changing the branch, source, tests, package scripts, runtime behavior, trading logic, tier definitions, DB schema, env vars, Compose services, cron behavior, deployment targets, or secrets. Fresh `git fetch --prune` still shows current branch `fix/track-record-compliance-copy` at `528cd3c8 fix(pricing): reframe cumulative-PnL stat as historical, add forecast disclaimer`, upstream `origin/fix/track-record-compliance-copy`, ahead/behind `0 / 0`; local `main` remains `da2afa06 [origin/main: ahead 1]`; merge-base with `origin/main` remains `004190974821f789b8b56979680de03fd77ebcad`; `origin/main` changed-path set remains zero; dirty/remote overlap remains zero. The dirty set is still **13 paths**: 12 tracked modified files plus untracked `docs/ai-improvement/source-review-metrics.md`. Pre-checkpoint tracked shortstat is now 12 files / 1,879 insertions / 226 deletions after prior tracking updates. Verification reran targeted app ESLint, `npm run typecheck:web`, targeted Jest (2 suites / 22 tests, 1.76s), `npm run build --workspace=apps/web` (exit 0, Next.js 16.2.6, compiled in 14.4s, 332/332 static pages, known warnings only), entrypoint syntax/help markers, package parse, and focused source/test/config `pygount` (1,419 files / 144,113 code / 16,085 comments). Code changes: none this run.
+Latest recurring increment: verified the new strategy-audit package with `npm test`, `npm run check`, and `npm run validate:fixture`; the fixture run produced `Completed: 3/4` and wrote `packages/strategy-audit-agent/tmp/fixture-validation/report.md`. The current checkout still contains the pre-existing `package-lock.json` modification plus the untracked audit package/docs surfaces, but this run only added AI-improvement documentation and state updates.
 
 Previous recurring increment: refreshed current verification evidence at 08:36 MPST without changing the branch, source, tests, package scripts, runtime behavior, trading logic, tier definitions, DB schema, env vars, Compose services, cron behavior, deployment targets, or secrets. Fresh `git fetch --prune` still shows current branch `fix/track-record-compliance-copy` at `528cd3c8 fix(pricing): reframe cumulative-PnL stat as historical, add forecast disclaimer`, upstream `origin/fix/track-record-compliance-copy`, ahead/behind `0 / 0`; local `main` remains `da2afa06 [origin/main: ahead 1]`; merge-base with `origin/main` remains `004190974821f789b8b56979680de03fd77ebcad`; `origin/main` changed-path set remains zero; dirty/remote overlap remains zero. The dirty set is still **13 paths**: 12 tracked modified files plus untracked `docs/ai-improvement/source-review-metrics.md`. Pre-checkpoint tracked shortstat is now 12 files / 1,611 insertions / 226 deletions after prior tracking updates. Verification reran targeted app ESLint, `npm run typecheck:web`, targeted Jest (2 suites / 22 tests), `npm run build --workspace=apps/web` (exit 0, 332/332 static pages, known warnings only), entrypoint syntax/help markers, package parse, and focused source/test/config `pygount` (1,419 files / 144,113 code / 16,085 comments). Code changes: none this run.
 
@@ -65,6 +63,8 @@ Business value:
 - `package.json` — npm workspaces across `apps/*` and `packages/*`; root scripts for `dev`, `build`, `typecheck:web`, `lint`, `test`, `test:e2e`, websocket server, and signal outcome resolution.
 - `README.md` — public product pitch, self-hosting, Free vs Pro, env vars, monitoring, repo layout, signal flow, market data, execution, strategy presets, API, notifications, and contribution links.
 - `docs/signal-data-lineage.md` — maintainer map for scanner/TA signal generation, tier disclosure, `signal_history`, outcome resolution, premium feeds, Pro/public broadcasts, and public proof surfaces.
+- `docs/MONETIZATION_STRATEGY_AUDIT.md` — product-facing companion note for the fixed-price, historical-only strategy-audit offer.
+- `docs/ai-improvement/monetization-strategy-audit.md` — current AI-improvement note with package verification and next-move guidance.
 - `docs/ai-improvement/uncommitted-source-verification-handoff.md` — current remote-clean, remote-aligned feature-branch/dirty-tree handoff that distinguishes current branch `fix/track-record-compliance-copy` at `528cd3c8`, upstream parity with `origin/fix/track-record-compliance-copy`, local `main` at `da2afa06`, the remaining dirty non-AI review-lane files, and AI tracking/status docs modified by recurring-agent bookkeeping.
 - `docs/ai-improvement/source-review-metrics.md` — current docs-only review-leverage packet with branch/upstream/merge-base counts, grouped dirty-lane numstats, source/test/config `pygount` metrics, verification snapshot, anti-scope, and recommended review sequence before new runtime work.
 - `docs/ai-improvement/verification-command-matrix.md` — command matrix for reviewing/stabilizing the current feature-branch commits, dirty review lanes, the source-review metrics artifact, and AI tracking/status docs before new runtime work.
@@ -93,6 +93,7 @@ Business value:
 
 - `packages/signals` — shared signal types, indicators, ATR calibration, regimes, allocation, risk/circuit-breaker exports, symbols.
 - `packages/strategies` — deterministic strategy/backtest engine and Jest test suite.
+- `packages/strategy-audit-agent` — standalone Playwright/OpenAI computer-use runner for the productized strategy audit; verified with tests/check/fixture.
 - `packages/agent` and `packages/trading-agents` — trading agent runtime/CLI and integration bridge types.
 - `packages/cli`, `tradeclaw-cli`, `create-tradeclaw`, `tradeclaw-js`, `tradeclaw-mcp`, `tradeclaw-action`, `tradeclaw-demo`, `tradeclaw-extension`, `telegram-bot`, `tradeclaw-discord` — ecosystem and distribution/integration packages at varying maturity levels.
 
@@ -106,6 +107,7 @@ Business value:
 - **Trust-first product copy:** README and app emphasize verified track record, no cherry-picking, and explicit self-host vs hosted differences.
 - **Fail-closed access control:** tier resolution and session helpers fall back to free access; E2E bypasses are gated by `NODE_ENV !== 'production'`.
 - **Tier-safe disclosure:** free users receive delayed `lockedSignals` stubs instead of premium price levels.
+- **Service-first monetization stays isolated:** the strategy-audit package repackages existing analysis output into a historical-only paid deliverable; keep checkout, billing, broker, and live-execution surfaces out of scope until owner/Fatin approve distribution.
 - **Signal provenance matters:** scanner rows are tagged differently from TA fallback rows; README documents that live `SIGNAL_ENGINE_PRESET` is currently a label in some paths rather than full per-preset generation.
 - **Side effects are throttled/fire-and-forget:** request paths avoid blocking users on recording, social enqueue, or alert dispatch.
 - **DB migrations are append-only and central to behavior:** changes here affect billing, signal history, gating, audit logs, research jobs, and should require approval unless purely docs/tests.
