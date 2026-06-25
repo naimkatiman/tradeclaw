@@ -1,11 +1,23 @@
 project: tradeclaw
-updated: 2026-06-08T13:07:40+08:00
+updated: 2026-06-25T05:31:00+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
   Public mode = limited. Admin = full.
   Alpha Screener = confirmed SaaS brand for users who don't want to self-host. Tradesmart name is dropped.
   Goal: viral GitHub repo, thousands of stars.
+
+ai_improvement_last_run:
+  at: 2026-06-25T05:31:00+08:00
+  agent: CEO Zaky recurring Product + Engineering repository improvement agent
+  scope: docs-only monetization strategy-audit package verification and AI tracking refresh; no runtime behavior changes
+  notes: >
+    The checkout now carries the untracked strategy-audit package/docs surfaces
+    plus the pre-existing package-lock.json workspace-link change. Verified the
+    standalone package with npm test, npm run check, and npm run validate:fixture,
+    then refreshed the repo-local AI-improvement docs, implementation log, and
+    central board. Keep the monetization audit historical-only until owner/Fatin
+    approve any payment, broker, or live-execution wiring.
 
 tasks:
   - id: TC-001
@@ -36,13 +48,13 @@ tasks:
     title: GitHub Actions CI/CD pipeline
     status: done
     owner: pm-tradeclaw
-    notes: "GitHub repo topics set (10 topics), build verified passing 2026-03-25"
+    notes: "GitHub repo topics set (10 topics), build verified passing 2026-03-25. 2026-06-18: recurring Zaky docs-only pass documented build/typecheck parity in docs/ai-improvement/build-typecheck-parity.md, capturing that Next build skips TypeScript validation while CI runs build:signals before web tsc. 2026-06-18: recurring Zaky tooling-only pass added root npm run typecheck:web as a local alias for the verified build:signals + web tsc sequence without changing CI or Next build behavior. 2026-06-19: recurring Zaky docs-only pass added docs/ai-improvement/middleware-proxy-migration-note.md to triage the Next 16 middleware-to-proxy build warning and keep the actual convention rename owner/Fatin-approved because middleware protects global auth/rate/security-header behavior. 2026-06-19: recurring Zaky docs-only handoff added docs/ai-improvement/uncommitted-source-verification-handoff.md and verification-command-matrix.md after detecting accumulated uncommitted docs/tooling/test/static diffs; next move is Fatin/owner source-diff stabilization before new runtime work. 2026-06-19: recurring Zaky docs-only refresh updated that handoff/matrix after local commit da2afa06 made the AI docs/test artifacts committed-but-unpushed and left 8 tracked modified files; next move is local commit posture plus dirty-lane stabilization before new runtime/build-warning work. 2026-06-19: recurring Zaky docs-only refresh updated the handoff/matrix again after recurring AI tracking/status docs became part of the dirty tree, distinguishing 12 modified tracked files (8 prior dirty lanes + 4 AI tracking docs) and preserving source-diff stabilization as the next move before new runtime work. 2026-06-19 16:35: recurring Zaky docs-only refresh updated the handoff/matrix/README/STATE after current status showed 13 tracked modified files by adding the track-record trust-copy source lane (`apps/web/app/track-record/TrackRecordClient.tsx`) to the prior dirty-lane inventory; next move remains Fatin/owner stabilization before new runtime work."
 
   - id: TC-006
     title: Docker Compose one-click deploy
     status: done
     owner: pm-tradeclaw
-    notes: "Quick Start simplified to 3 steps with docker compose; README now also mentions the legacy docker-compose CLI alias. Build verified 2026-05-18. Deploy buttons added 2026-03-25"
+    notes: "Quick Start simplified to 3 steps with docker compose; README now also mentions the legacy docker-compose CLI alias. Build verified 2026-05-18. Deploy buttons added 2026-03-25. 2026-06-18: recurring Zaky docs/DX pass added docs/self-host-smoke-checklist.md and linked it from README Docker Compose setup for post-deploy verification of Compose config, migrations, app health, websocket health, metrics, and monitoring. 2026-06-18: recurring Zaky setup-doc pass aligned docs/QUICKSTART.md and docker-entrypoint.sh help/comment text with the current Compose/PostgreSQL/websocket/metrics flow without changing runtime behavior."
 
   - id: TC-007
     title: Alpha Screener integration docs (SaaS upsell path)
@@ -60,7 +72,15 @@ tasks:
       `.github/ISSUE_TEMPLATE/feature_request.md` and `.github/ISSUE_TEMPLATE/question.md`,
       updated `.github/PULL_REQUEST_TEMPLATE.md`, and added a `README.md` Contributors section
       with all-contributors markers + `.all-contributorsrc`. Added `hacktoberfest` topic to
-      `prerak2612/tradeclaw` once `gh` authentication was available.
+      `prerak2612/tradeclaw` once `gh` authentication was available. 2026-06-18: recurring
+      Zaky docs/DX pass realigned CONTRIBUTING setup and extension guidance with root
+      `.env.example`, current workspace scripts, `packages/signals`, and web TA engine paths.
+      2026-06-18: recurring Zaky build/typecheck parity pass updated README and CONTRIBUTING
+      command guidance so contributors run `npm run build:signals` before the CI-style web
+      `npx tsc --noEmit --project apps/web/tsconfig.json` check; application behavior unchanged.
+      2026-06-18: recurring Zaky tooling/DX pass added and documented root `npm run
+      typecheck:web` as the short contributor command for that verified sequence; CI,
+      Next config, runtime behavior, package dependencies, and deployment targets unchanged.
 
   # ── Phase 2: Real Signal Engine + Viral Features ──
 
@@ -74,6 +94,10 @@ tasks:
       /api/signals endpoint with filtering. Multi-asset: BTCUSD, ETHUSD, XAUUSD,
       XAGUSD, EURUSD, GBPUSD, USDJPY + more. Synthetic fallback when APIs fail.
       5-min cache. Build passes. Already deployed. 2026-03-27
+      2026-06-18: recurring Zaky docs-only pass added `docs/signal-data-lineage.md`
+      to map scanner output, TA fallback, tier-gated disclosure, signal_history,
+      outcome resolution, premium feeds, Pro/public broadcasts, and public proof
+      surfaces before future signal behavior changes.
 
   - id: TC-010
     title: "Public demo mode — no auth, live signals viewable by anyone"
@@ -83,6 +107,21 @@ tasks:
       Already implemented: Dashboard, signals, leaderboard, backtest, strategy-builder
       all fully public with zero auth. Broker config, telegram settings, billing are
       separate admin pages. No middleware or auth gates on core routes. Verified 2026-03-27.
+      2026-06-18: recurring Zaky test-only pass extended `/api/signals` route-response
+      coverage so free fresh standard-band signals return only public-safe `lockedSignals`
+      stubs with no entry, SL/TP, indicator, or reason leakage; runtime behavior unchanged.
+      2026-06-18: recurring Zaky follow-up mirrored that locked-stub non-leak test on
+      the TA worker fallback branch when live scanner output is unavailable; runtime
+      behavior unchanged.
+      2026-06-18: recurring Zaky test-only pass added the paired TA worker fallback
+      Pro/full-detail route-response test, proving fallback `signals[0]` preserves
+      entry, SL/TP levels, reasons, indicators, and fallback provenance for paid
+      access while keeping runtime behavior unchanged.
+      2026-06-18: recurring Zaky test-only pass completed fallback premium-band
+      route-response parity: free callers drop confidence >=85 fallback rows with
+      no locked stub, while Pro callers retain the premium fallback signal with
+      full entry, SL/TP levels, reasons, indicators, and provenance; runtime
+      behavior unchanged.
 
   - id: TC-011
     title: "SEO landing page that converts — og:image, structured data, CTA"
@@ -527,7 +566,9 @@ tasks:
       mock signal card, emerald accents). README.md restructured to ~220 lines: banner at top,
       Live Demo section, expanded comparison table, screenshots section with OG image URLs,
       cleaner Quick Start. docs/github-social-preview.md with setup instructions.
-      Build passes 86 pages. Committed 02dd92ec. 2026-03-28
+      Build passes 86 pages. Committed 02dd92ec. 2026-03-28. 2026-06-18:
+      recurring Zaky polish pass removed the duplicate `x` attribute from the
+      README/social-preview banner SVG and verified XML parsing plus targeted pygount.
 
   - id: TC-043
     title: "Contributor onboarding — /contribute page, good-first-issue generator, mentorship program"

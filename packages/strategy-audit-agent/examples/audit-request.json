@@ -1,0 +1,20 @@
+{
+  "customer": {
+    "name": "Paid Pilot",
+    "reference": "pilot-001"
+  },
+  "objective": "Test whether two standard TradeClaw strategies remain usable across BTC and ETH after slippage is enabled.",
+  "strategyRules": "Run the unmodified EMA Crossover + RSI and ATR Trend Follow presets. Do not tune parameters after seeing results.",
+  "baseUrl": "https://tradeclaw.win",
+  "symbols": ["BTCUSD", "ETHUSD"],
+  "timeframes": ["H1"],
+  "periods": ["90D"],
+  "strategies": ["EMA Crossover + RSI", "ATR Trend Follow"],
+  "initialBalance": 10000,
+  "riskPerTradePercent": 1,
+  "includeSlippage": true,
+  "mode": "hybrid",
+  "maxRuns": 8,
+  "allowComputerFallback": true,
+  "outputLabel": "pilot-001"
+}
