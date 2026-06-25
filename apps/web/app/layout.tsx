@@ -151,7 +151,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col grain-overlay" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+      <body className="min-h-full flex flex-col" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
         <AnalyticsProvider>
           <Suspense fallback={null}>
             <PostHogPageView />
