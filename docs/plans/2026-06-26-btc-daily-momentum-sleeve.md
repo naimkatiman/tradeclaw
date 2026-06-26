@@ -2,8 +2,42 @@
 
 Date: 2026-06-26
 Branch: worktree-btc-daily-sleeve (off main @ df8adeb4)
-Status: Phase 0 (pre-registration). Committed BEFORE any fresh-fold re-run so the
-symbol/spec/gate cannot be cherry-picked after seeing results.
+Status: KILLED at Phase 1 (2026-06-26). The pre-registered drift/reproduction
+check FAILED — see "Phase 1 outcome" below. The sleeve is NOT built. This doc is
+retained as the honest decision record. Phase 0 pre-registration was committed
+BEFORE the re-run, so the kill is a clean, non-cherry-picked result.
+
+## Phase 1 outcome: KILLED — the edge does not reproduce
+
+A fresh 6-year Binance BTC D1 backfill (2020-06-26 → 2026-06-25, 2191 bars) re-run
+through the SAME validator + config inverts the committed result on a ~2-week
+window shift:
+
+| metric (signal-flip, costed) | committed 2026-06-12 | fresh 2026-06-26 |
+|---|---|---|
+| window | 2020-06-12 → 2026-06-10 | 2020-06-26 → 2026-06-25 |
+| trades | 100 | 99 |
+| win rate | 23% | 18.2% |
+| total return | +20.58% | −8.70% |
+| expectancy | +0.0198 | −0.0090 |
+| profit factor | 1.62 | 0.67 |
+| Sharpe | +1.35 | −1.28 |
+| max drawdown | 5.97% | 12.68% |
+
+VERDICT: NEGATIVE across all three exit configs. Decisively: even at ZERO cost the
+fresh window is negative (totalReturn −2.05%, Sharpe −0.25) — not a cost story; the
+raw 28d momentum signal itself has no edge on current BTC data. A real edge does
+not flip from Sharpe +1.35 to −1.28 on a two-week window shift; the committed
++0.0198R was a window-fragile artifact carried by a few right-tail trades (23% win
+rate). This confirms the overfit/survivorship risk this spec flagged.
+
+Conclusion: there is NO deployable single-asset timing edge — not even the one
+candidate that appeared to clear costs. The shadow harness is NOT built. Honest
+paths remaining: a funding-carry pivot (structurally different; failed its own gate,
+needs a maker-cost re-spec) or repositioning the product off raw P&L.
+
+Fresh evidence: docs/research/experiments/daily-momentum-validation-BTCUSD-D1-f4.json
+(this run). Phases 1-5 below are retained for context but NOT executed.
 
 ## Why this exists
 
