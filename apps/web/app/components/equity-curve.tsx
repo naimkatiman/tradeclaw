@@ -28,6 +28,7 @@ interface EquitySummary {
   breakEvenWinRate: number | null;
   riskPerTradePct?: number;
   roundTripCostPct?: number;
+  avgCostR?: number | null;
   hardRCap?: number;
 }
 
@@ -410,11 +411,11 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
           <p className="text-[11px] text-zinc-600 mt-0.5">
             {isPro
               ? summary
-                ? `Full Pro track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per trade` : ''}, after ${summary.roundTripCostPct}% round-trip costs. Resolved against Binance/Yahoo OHLCV.`
+                ? `Full Pro track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per trade` : ''}, after real per-symbol round-trip costs (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/trade). Resolved against Binance/Yahoo OHLCV.`
                 : 'Full Pro track record. Resolved against Binance/Yahoo OHLCV.'
               : isBroadcast
                 ? summary
-                  ? `Gate-approved broadcast subset — decisions recorded since 2026-06-10. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after ${summary.roundTripCostPct}% round-trip costs.`
+                  ? `Gate-approved broadcast subset — decisions recorded since 2026-06-10. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after real per-symbol round-trip costs (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/trade).`
                   : 'Gate-approved broadcast subset — decisions recorded since 2026-06-10.'
                 : summary
                   ? `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after costs.`

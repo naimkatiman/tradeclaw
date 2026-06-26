@@ -14,7 +14,7 @@ export const STAT_HINTS = {
   totalReturnLinear:
     'Sum of per-signal % outcomes (raw market price-to-price). Reads "if every signal printed at exact entry/exit, this is what the trades summed to." Not a sized return — see the equity card below for the position-sized version.',
   totalReturnCompounded:
-    'Compounded equity from $10,000 with 1% risk per trade (fixed-fractional sizing), per-trade R-multiple capped at 8R (above P99 of the live distribution — clips only unrealistic single-trade outliers), and 0.02% round-trip costs deducted (2bps blended, realistic for selective execution at a major retail venue). Differs from the raw price-to-price sum at the top of the page.',
+    "Compounded equity from $10,000 with 1% risk per trade (fixed-fractional sizing), per-trade R-multiple capped at 8R (above P99 of the live distribution — clips only unrealistic single-trade outliers), and each trade's REAL recorded round-trip cost deducted (per-symbol: ~0.40% crypto, ~0.10% metals, ~0.04% FX of notional — not a flat blended guess). Differs from the raw price-to-price sum at the top of the page.",
   avgPnl: 'Total return ÷ resolved signals. The average outcome of one trade in this window.',
 
   // ── Win-rate flavours ────────────────────────────────────────
