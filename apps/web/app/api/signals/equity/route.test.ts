@@ -178,6 +178,27 @@ describe('GET /api/signals/equity summary metrics', () => {
     // Coherent expectancy uses the sized population: 0.5*(+2R) + 0.5*(-1R) = +0.5R.
     // The old full-population formula would have returned 0.667*2 + 0.333*-1 = +1.0R.
     expect(body.summary.expectancyR).toBe(0.5);
+    // Net expectancy subtracts the real per-trade cost (BTCUSD model = 0.40R):
+    // +0.50R gross − 0.40R cost = +0.10R net.
+    expect(body.summary.netExpectancyR).toBe(0.1);
+  });
+
+  it('net expectancy subtracts real cost, exposing a gross-positive engine as net-negative', async () => {
+    // Gross expectancy is a thin +0.25R, but BTCUSD's real round-trip cost
+    // (0.40R at a 1% stop) drags net expectancy below zero — the engine-has-no-
+    // net-edge reality the public equity curve must reflect.
+    primeSlice([
+      record({ id: 'win-1R', pair: 'BTCUSD', entryPrice: 100, sl: 99, outcomes: { '4h': null, '24h': { price: 101, pnlPct: 1, hit: true } } }),
+      record({ id: 'loss-half-R', pair: 'BTCUSD', entryPrice: 100, sl: 99, outcomes: { '4h': null, '24h': { price: 99.5, pnlPct: -0.5, hit: false } } }),
+    ]);
+
+    const res = await GET(makeReq('/api/signals/equity'));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.summary.expectancyR).toBe(0.25);     // gross: 0.5*(+1R) + 0.5*(-0.5R)
+    expect(body.summary.avgCostR).toBe(0.4);          // BTCUSD model cost
+    expect(body.summary.netExpectancyR).toBe(-0.15);  // 0.25 − 0.40 → net-negative
   });
 
   it('summaryOnly=1 drops the points array but keeps summary + rollingWinRates', async () => {

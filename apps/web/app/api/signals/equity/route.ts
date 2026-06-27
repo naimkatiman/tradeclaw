@@ -75,8 +75,11 @@ export interface EquitySummary {
   avgRWin: number | null;
   /** Average R-multiple of losing trades (signed, typically ~-1). Null when no SL data on any loser. */
   avgRLoss: number | null;
-  /** Expectancy in R per trade: winRate * avgRWin + lossRate * avgRLoss. The break-even line for win-rate context. */
+  /** GROSS expectancy in R per trade: winRate * avgRWin + lossRate * avgRLoss. Pre-cost — engine quality only. */
   expectancyR: number | null;
+  /** NET expectancy in R per trade: gross expectancyR minus avgCostR. This is the per-trade edge that actually
+   *  compounds the equity curve; it can be negative even when gross expectancy is positive. Null when either input is null. */
+  netExpectancyR: number | null;
   /** Win-rate that would make expectancy = 0 given the observed avgRWin / avgRLoss. */
   breakEvenWinRate: number | null;
   /** Sizing assumption surfaced to the UI so the chart caption can quote the methodology. */
@@ -273,6 +276,14 @@ function computeEquityCurve(
   const breakEvenWinRate = avgRWin !== null && avgRLoss !== null && avgRWin - avgRLoss !== 0
     ? +(((-avgRLoss) / (avgRWin - avgRLoss)) * 100).toFixed(1)
     : null;
+  // Net expectancy = gross expectancy minus the real per-trade cost in R. Subtract
+  // the SAME 2dp cost the card's breakdown sub-line shows, so the headline net always
+  // equals (displayed gross − displayed cost) exactly — no ±0.01R drift from avgCostR's
+  // 3rd decimal. (avgCostR itself stays 3dp for the precise caption disclosure.) A
+  // gross-positive engine can read net-negative here — the honest signal the curve reflects.
+  const netExpectancyR = expectancyR !== null && avgCostR !== null
+    ? +(expectancyR - +avgCostR.toFixed(2)).toFixed(2)
+    : null;
 
   return {
     points,
@@ -286,6 +297,7 @@ function computeEquityCurve(
       avgRWin,
       avgRLoss,
       expectancyR,
+      netExpectancyR,
       breakEvenWinRate,
       riskPerTradePct: RISK_PER_TRADE_PCT,
       roundTripCostPct: avgRoundTripNotionalPct,
