@@ -25,6 +25,7 @@ interface EquitySummary {
   avgRWin: number | null;
   avgRLoss: number | null;
   expectancyR: number | null;
+  netExpectancyR?: number | null;
   breakEvenWinRate: number | null;
   riskPerTradePct?: number;
   roundTripCostPct?: number;
@@ -381,6 +382,11 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
     ? `${formatDate(points[0].timestamp)} – ${formatDate(points[points.length - 1].timestamp)}`
     : null;
 
+  // Headline expectancy prefers NET (gross − real cost) so it agrees in sign with
+  // the equity curve — a green +0.01R gross beside a -100% curve reads as broken.
+  // Falls back to gross only when cost wasn't available.
+  const expectancyShown = summary ? (summary.netExpectancyR ?? summary.expectancyR) : null;
+
   const isPro = scope === 'pro';
   const isBroadcast = scope === 'broadcast';
 
@@ -598,20 +604,25 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
             </div>
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
-                Expectancy
+                Expectancy (net)
                 <InfoHint text={STAT_HINTS.expectancyR} label="What expectancy means" />
               </div>
               <div className={`text-xs font-mono font-semibold tabular-nums ${
-                summary.expectancyR !== null && summary.expectancyR > 0
+                expectancyShown != null && expectancyShown > 0
                   ? 'text-emerald-400'
-                  : summary.expectancyR !== null && summary.expectancyR < 0
+                  : expectancyShown != null && expectancyShown < 0
                     ? 'text-red-400'
                     : 'text-zinc-300'
               }`}>
-                {summary.expectancyR !== null
-                  ? `${summary.expectancyR >= 0 ? '+' : ''}${summary.expectancyR.toFixed(2)}R`
+                {expectancyShown != null
+                  ? `${expectancyShown >= 0 ? '+' : ''}${expectancyShown.toFixed(2)}R`
                   : '—'}
               </div>
+              {summary.netExpectancyR != null && summary.expectancyR !== null && summary.avgCostR != null && (
+                <div className="text-[9px] text-zinc-600 mt-0.5 font-mono">
+                  {summary.expectancyR >= 0 ? '+' : ''}{summary.expectancyR.toFixed(2)}R gross − {summary.avgCostR.toFixed(2)}R cost
+                </div>
+              )}
             </div>
           </div>
           {/* R-stat denominator note — avg R per win/loss, expectancy and the
