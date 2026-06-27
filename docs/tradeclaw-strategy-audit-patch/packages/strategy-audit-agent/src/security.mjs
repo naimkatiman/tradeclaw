@@ -20,8 +20,8 @@ const INJECTION_PATTERNS = [
 
 export function assertUrlAllowed(rawUrl, allowedHosts) {
   const url = new URL(rawUrl);
-  if (!allowedHosts.has(url.hostname)) {
-    throw new Error(`Navigation blocked: ${url.hostname} is not allowlisted`);
+  if (!allowedHosts.has(url.hostname) && !allowedHosts.has(url.host)) {
+    throw new Error(`Navigation blocked: ${url.host} is not allowlisted`);
   }
   const path = url.pathname.toLowerCase();
   const blocked = BLOCKED_PATH_PARTS.find((part) => path.includes(part));
