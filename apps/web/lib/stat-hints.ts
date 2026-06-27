@@ -55,7 +55,7 @@ export const STAT_HINTS = {
   avgRLoss:
     'Average R-multiple of losing trades. Should sit near -1.0R when stops fill cleanly. Values closer to 0 indicate slippage in your favor; further from 0 indicates gap losses worse than -1R.',
   expectancyR:
-    'Expected R per trade: winRate × avgRWin + lossRate × avgRLoss. Positive expectancy is the only thing that matters long-run — win rate alone is misleading. +0.10R means each signal is worth about 10% of the risked amount on average.',
+    'Expected R per trade AFTER real round-trip cost: (winRate × avgRWin + lossRate × avgRLoss) − average cost in R. The tile shows the NET figure; the sub-line breaks out gross expectancy minus cost. Net is what actually compounds the equity curve — gross alone ignores fees/slippage and overstates the edge. A positive gross with a negative net means costs eat the edge, which is exactly why the curve can fall while gross looks fine. Positive NET expectancy is the only thing that matters long-run.',
   breakEvenWinRate:
     'Win-rate the system needs to break even given its observed avgRWin and avgRLoss. If actual win-rate exceeds this, the system has positive expectancy — even if the win-rate is below 50%.',
 
