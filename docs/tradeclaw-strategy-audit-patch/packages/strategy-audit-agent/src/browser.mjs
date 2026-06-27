@@ -26,6 +26,26 @@ async function firstVisible(locator) {
   return null;
 }
 
+async function inputNearVisibleLabel(page, pattern) {
+  const labels = page.locator("label").filter({ hasText: pattern });
+  const count = await labels.count();
+
+  for (let index = 0; index < count; index += 1) {
+    const label = labels.nth(index);
+    if (!await label.isVisible().catch(() => false)) continue;
+
+    const nested = await firstVisible(label.locator("input, textarea"));
+    if (nested) return nested;
+
+    const sibling = await firstVisible(
+      label.locator("xpath=following-sibling::*[self::input or self::textarea][1]"),
+    );
+    if (sibling) return sibling;
+  }
+
+  return null;
+}
+
 async function clickChoice(page, value) {
   for (const label of uiAliases(value)) {
     const exactName = new RegExp(`^\\s*${escapeRegExp(label)}\\s*$`, "i");
@@ -71,6 +91,12 @@ async function fillRequired(page, labelPatterns, value, fieldName) {
     const byPlaceholder = await firstVisible(page.getByPlaceholder(pattern));
     if (byPlaceholder) {
       await byPlaceholder.fill(String(value));
+      return;
+    }
+
+    const bySiblingLabel = await inputNearVisibleLabel(page, pattern);
+    if (bySiblingLabel) {
+      await bySiblingLabel.fill(String(value));
       return;
     }
   }
@@ -152,18 +178,11 @@ export async function createIsolatedBrowser({ headless = true } = {}) {
   });
 
   await context.route("**/*", async (route) => {
-    const request = route.request();
-    if (!request.isNavigationRequest()) {
-      await route.continue();
-      return;
-    }
     try {
-      const url = new URL(request.url());
-      if (!["http:", "https:"].includes(url.protocol)) {
-        await route.continue();
-        return;
+      const url = new URL(route.request().url());
+      if (["http:", "https:"].includes(url.protocol)) {
+        assertUrlAllowed(url.toString(), allowedHosts);
       }
-      assertUrlAllowed(url.toString(), allowedHosts);
       await route.continue();
     } catch {
       await route.abort("blockedbyclient");
