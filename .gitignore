@@ -32,4 +32,5 @@ apps/web/data/*.db
 graphify-out/
 
 # strategy-audit-agent runtime output (logs, fixture runs)
+/audit-output/
 packages/strategy-audit-agent/tmp/
