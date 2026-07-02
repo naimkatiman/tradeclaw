@@ -2,11 +2,43 @@ import { DelayDemo } from './delay-demo';
 import { SampleTelegramCard } from './sample-telegram-card';
 import { getLandingStats } from '../../lib/landing-stats';
 
-const MIN_CLOSED_SIGNALS_FOR_PF = 10;
+/**
+ * ProofHero — the honest, cost-adjusted result, up front.
+ *
+ * Reframed 2026-06-28: the section no longer headlines gross "Cumulative P&L"
+ * as a win (that figure is pre-cost and misleading). Instead it pulls the REAL
+ * cost-adjusted numbers from the same source of truth the track-record page
+ * uses — /api/signals/equity?summaryOnly=1 — so net expectancy after cost,
+ * total return after cost, and the real round-trip cost are shown live and can
+ * never drift from the equity curve. We do not duplicate or hardcode the cost
+ * math. See docs/plans/2026-06-27-reposition-off-raw-pnl.md.
+ */
 
-function formatPct(n: number): string {
-  const sign = n >= 0 ? '+' : '';
-  return `${sign}${n.toFixed(2)}%`;
+interface EquitySummary {
+  totalReturn: number;
+  maxDrawdown: number;
+  winRate: number;
+  totalSignals: number;
+  sizedTrades?: number;
+  expectancyR: number | null;
+  netExpectancyR?: number | null;
+  breakEvenWinRate: number | null;
+  roundTripCostPct?: number;
+  avgCostR?: number | null;
+}
+
+async function fetchEquitySummary(): Promise<EquitySummary | null> {
+  try {
+    const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+    const res = await fetch(`${base}/api/signals/equity?summaryOnly=1&scope=pro`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data?.summary ?? null) as EquitySummary | null;
+  } catch {
+    return null;
+  }
 }
 
 function StatTile({
@@ -46,69 +78,66 @@ export async function ProofHero() {
     stats = null;
   }
 
-  const hasEnoughClosed =
-    stats != null && stats.closedSignals >= MIN_CLOSED_SIGNALS_FOR_PF;
+  const eq = await fetchEquitySummary();
 
   return (
     <section data-testid="proof-hero" className="mx-auto mt-10 max-w-5xl px-4">
       <div className="mb-6 text-center">
-        <p className="text-lg text-[var(--text-secondary)]">
-          Live signals (5-min cadence), backed by every resolved outcome since launch.
+        <h2 className="text-2xl font-bold tracking-tight text-white">
+          We charge every trade its real execution cost. Here&apos;s what&apos;s left.
+        </h2>
+        <p className="mx-auto mt-2 max-w-2xl text-sm text-[var(--text-secondary)]">
+          The headline isn&apos;t a win. After real per-symbol round-trip costs, the
+          engine&apos;s net expectancy is negative — single-asset timing doesn&apos;t beat
+          what it costs to trade. These numbers update live and match the full{' '}
+          <a href="/track-record" className="underline hover:text-white">
+            cost-adjusted track record
+          </a>
+          .
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        {hasEnoughClosed && stats && (
+      {eq ? (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           <StatTile
-            label="Cumulative P&L (all-time)"
-            value={formatPct(stats.cumulativePnlPct)}
-            tone={stats.cumulativePnlPct >= 0 ? 'positive' : 'negative'}
+            label="Net expectancy / trade (after cost)"
+            value={eq.netExpectancyR != null ? `${eq.netExpectancyR >= 0 ? '+' : ''}${eq.netExpectancyR}R` : '—'}
+            tone={eq.netExpectancyR != null && eq.netExpectancyR < 0 ? 'negative' : 'neutral'}
           />
-        )}
-        {hasEnoughClosed && stats && stats.profitFactor !== null && (
           <StatTile
-            label="Profit factor"
-            value={stats.profitFactor.toFixed(2)}
-            tone={stats.profitFactor >= 1.3 ? 'positive' : 'neutral'}
+            label="Total return (after cost)"
+            value={`${eq.totalReturn >= 0 ? '+' : ''}${eq.totalReturn}%`}
+            tone={eq.totalReturn < 0 ? 'negative' : 'positive'}
           />
-        )}
-        {hasEnoughClosed && stats && stats.winRatePct != null && (
           <StatTile
-            label="Win rate (all-time)"
-            value={`${stats.winRatePct.toFixed(1)}%`}
-            tone={
-              stats.breakEvenWinRatePct == null
-                ? 'neutral'
-                : stats.winRatePct >= stats.breakEvenWinRatePct + 1
-                  ? 'positive'
-                  : stats.winRatePct >= stats.breakEvenWinRatePct
-                    ? 'neutral'
-                    : 'negative'
-            }
+            label="Real round-trip cost"
+            value={eq.avgCostR != null ? `${eq.roundTripCostPct ?? '—'}% ≈ ${eq.avgCostR}R` : '—'}
+            tone="neutral"
+            small
           />
-        )}
-        <StatTile
-          label="Signals today"
-          value={String(stats?.signalsToday ?? 0)}
-          tone="neutral"
-        />
-        <StatTile
-          label="Delivery lag"
-          value="Pro: <1s · Free: 30min"
-          tone="neutral"
-          small
-        />
-      </div>
-
-      {hasEnoughClosed && stats && stats.payoffRatio != null && stats.breakEvenWinRatePct != null && (
-        <p className="mt-3 text-center text-xs text-[var(--text-secondary)]">
-          Wins average {stats.payoffRatio.toFixed(1)}x the size of losses — break-even win
-          rate at this risk/reward is {stats.breakEvenWinRatePct.toFixed(1)}%.
+          <StatTile
+            label="Trades resolved"
+            value={String(eq.sizedTrades ?? eq.totalSignals)}
+            tone="neutral"
+          />
+          <StatTile
+            label="Win rate vs break-even"
+            value={eq.breakEvenWinRate != null ? `${eq.winRate}% / ${eq.breakEvenWinRate}%` : `${eq.winRate}%`}
+            tone="neutral"
+            small
+          />
+        </div>
+      ) : (
+        <p className="text-center text-sm text-[var(--text-secondary)]">
+          The cost-adjusted result loads on the{' '}
+          <a href="/track-record" className="underline hover:text-white">track record</a>.
         </p>
       )}
 
+      {/* Product demo (secondary): what Pro delivery looks like. Not a profit
+          claim — just the delivery surface. */}
       {stats?.samples && (
-        <div className="mt-10">
+        <div className="mt-12">
           <h2 className="mb-3 text-center text-sm font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
             Pro (no delay) vs Free (30-min delay)
           </h2>
