@@ -33,7 +33,7 @@ No dependency installation, package-lock mutation, DB/schema migration, auth/aut
 
 ## Verification snapshot
 
-Commands run from `C:/Ai/tradeclaw` during this handoff:
+Commands run from the repository root during this handoff:
 
 ```text
 npx tsc --noEmit --pretty false --module nodenext --moduleResolution nodenext --target es2022 --lib es2022 --types node --esModuleInterop --skipLibCheck scripts/research/recost-segment.ts
@@ -48,9 +48,9 @@ DATABASE_PUBLIC_URL= DATABASE_URL= npx tsx scripts/research/recost-segment.ts
 git diff --check
 → exit 0
 
-git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+git diff --no-index --check -- /dev/null ../_zaky_ai_board/KANBAN.md
 → exit 1
-→ warning: in the working copy of 'C:/Ai/_zaky_ai_board/KANBAN.md', LF will be replaced by CRLF the next time Git touches it
+→ warning: in the working copy of '../_zaky_ai_board/KANBAN.md', LF will be replaced by CRLF the next time Git touches it
 ```
 
 ## Guardrails for the next run
