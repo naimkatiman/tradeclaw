@@ -1,5 +1,5 @@
 import { Navbar } from "./components/navbar";
-import { ABHero } from "../components/landing/ab-hero";
+import { Hero } from "../components/landing/ab-hero";
 import { HowItWorks } from "../components/landing/how-it-works";
 import { FAQAccordion } from "../components/landing/faq-accordion";
 import { LiveDemoEmbed } from "../components/landing/live-demo-embed";
@@ -19,11 +19,25 @@ export default function Home() {
       <main>
         <div className="relative isolate overflow-hidden">
           <BackgroundDecor variant="hero" />
-          <ABHero />
+          <Hero />
         </div>
-        <LiveHeroSignals />
-        <TelegramHero />
+
+        {/* Honesty proof first — the real, cost-adjusted result. */}
         <ProofHero />
+
+        {/* Transparency exhibit — the live engine output, explicitly NOT a
+            profit claim. Demoted from its old hero position. */}
+        <section className="mx-auto mt-12 max-w-6xl px-4">
+          <div className="mb-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-[12px] leading-relaxed text-amber-200/90">
+            <strong className="font-semibold">Live engine output, recorded for transparency.</strong>{" "}
+            This is what the engine emits in real time — it is not advice and not a
+            profit claim. After real execution costs the engine has no net edge
+            (see the cost-adjusted result above).
+          </div>
+          <LiveHeroSignals />
+        </section>
+
+        <TelegramHero />
         <LiveActivityStrip />
         <LiveDemoEmbed />
         <HowItWorks />
