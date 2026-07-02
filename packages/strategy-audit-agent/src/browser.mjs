@@ -17,12 +17,75 @@ function uiAliases(value) {
   return aliases[value] ?? [value];
 }
 
+const PRESET_LABELS = [
+  "Classic",
+  "Regime Aware",
+  "HMM Top-3",
+  "VWAP + EMA + Bollinger",
+  "Full Risk Pipeline",
+];
+
+function normalizePresetKey(value) {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[+&]/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+const PRESET_ALIAS_MAP = new Map([
+  ["classic", ["Classic"]],
+  ["regime aware", ["Regime Aware"]],
+  ["hmm top 3", ["HMM Top-3"]],
+  ["vwap ema bb", ["VWAP + EMA + Bollinger"]],
+  ["vwap ema bollinger", ["VWAP + EMA + Bollinger"]],
+  ["full risk pipeline", ["Full Risk Pipeline"]],
+]);
+
+function presetLabelsForStrategy(strategy) {
+  const labels = PRESET_ALIAS_MAP.get(normalizePresetKey(strategy));
+  if (!labels) {
+    throw new Error(
+      `Unsupported TradeClaw preset ${JSON.stringify(strategy)}. ` +
+        `Use one of: ${PRESET_LABELS.join(", ")}.`,
+    );
+  }
+  return labels;
+}
+
+function textMatchesAnyPreset(text, labels) {
+  const key = normalizePresetKey(text);
+  return labels.some((label) => normalizePresetKey(label) === key);
+}
+
 async function firstVisible(locator) {
   const count = await locator.count();
   for (let index = 0; index < count; index += 1) {
     const candidate = locator.nth(index);
     if (await candidate.isVisible().catch(() => false)) return candidate;
   }
+  return null;
+}
+
+async function inputNearVisibleLabel(page, pattern) {
+  const labels = page.locator("label").filter({ hasText: pattern });
+  const count = await labels.count();
+
+  for (let index = 0; index < count; index += 1) {
+    const label = labels.nth(index);
+    if (!await label.isVisible().catch(() => false)) continue;
+
+    const nested = await firstVisible(label.locator("input, textarea"));
+    if (nested) return nested;
+
+    const sibling = await firstVisible(
+      label.locator("xpath=following-sibling::*[self::input or self::textarea][1]"),
+    );
+    if (sibling) return sibling;
+  }
+
   return null;
 }
 
@@ -73,6 +136,12 @@ async function fillRequired(page, labelPatterns, value, fieldName) {
       await byPlaceholder.fill(String(value));
       return;
     }
+
+    const bySiblingLabel = await inputNearVisibleLabel(page, pattern);
+    if (bySiblingLabel) {
+      await bySiblingLabel.fill(String(value));
+      return;
+    }
   }
   throw new Error(`${fieldName} control was not found; refusing to report an unverified assumption`);
 }
@@ -82,6 +151,39 @@ async function checkedState(locator) {
   if (ariaChecked === "true") return true;
   if (ariaChecked === "false") return false;
   return locator.isChecked().catch(() => null);
+}
+
+async function setPresetSelection(page, strategy) {
+  const targetLabels = presetLabelsForStrategy(strategy);
+  const presetControls = [];
+  const labels = page.locator("label");
+  const count = await labels.count();
+
+  for (let index = 0; index < count; index += 1) {
+    const label = labels.nth(index);
+    if (!await label.isVisible().catch(() => false)) continue;
+
+    const text = (await label.innerText().catch(() => "")).trim();
+    if (!textMatchesAnyPreset(text, PRESET_LABELS)) continue;
+
+    const checkbox = await firstVisible(label.locator('input[type="checkbox"]'));
+    if (!checkbox) continue;
+    presetControls.push({ text, checkbox });
+  }
+
+  const targetControls = presetControls.filter((control) => textMatchesAnyPreset(control.text, targetLabels));
+  if (targetControls.length === 0) {
+    throw new Error(`Preset checkbox for ${JSON.stringify(strategy)} was not found`);
+  }
+
+  for (const { checkbox } of targetControls) {
+    if (await checkedState(checkbox) === false) await checkbox.click();
+  }
+
+  for (const { text, checkbox } of presetControls) {
+    if (textMatchesAnyPreset(text, targetLabels)) continue;
+    if (await checkedState(checkbox) === true) await checkbox.click();
+  }
 }
 
 async function setSlippageRequired(page, enabled) {
@@ -152,18 +254,11 @@ export async function createIsolatedBrowser({ headless = true } = {}) {
   });
 
   await context.route("**/*", async (route) => {
-    const request = route.request();
-    if (!request.isNavigationRequest()) {
-      await route.continue();
-      return;
-    }
     try {
-      const url = new URL(request.url());
-      if (!["http:", "https:"].includes(url.protocol)) {
-        await route.continue();
-        return;
+      const url = new URL(route.request().url());
+      if (["http:", "https:"].includes(url.protocol)) {
+        assertUrlAllowed(url.toString(), allowedHosts);
       }
-      assertUrlAllowed(url.toString(), allowedHosts);
       await route.continue();
     } catch {
       await route.abort("blockedbyclient");
@@ -190,7 +285,7 @@ export async function runDeterministicBacktest({ page, request, run, artifactDir
   await clickChoice(page, run.symbol);
   await clickChoice(page, run.timeframe);
   await clickChoice(page, run.period);
-  await clickChoice(page, run.strategy);
+  await setPresetSelection(page, run.strategy);
 
   await fillRequired(page, [/initial balance/i, /starting balance/i], run.initialBalance, "Initial balance");
   await fillRequired(page, [/risk per trade/i, /risk %/i], run.riskPerTradePercent, "Risk per trade");

@@ -63,7 +63,7 @@ export function allowedHostsFromEnv() {
   const configured = process.env.TRADECLAW_ALLOWED_HOSTS;
   const hosts = configured
     ? configured.split(",").map((host) => host.trim()).filter(Boolean)
-    : ["tradeclaw.win", "localhost", "127.0.0.1"];
+    : ["tradeclaw.win", "www.tradeclaw.win", "localhost", "127.0.0.1"];
   return new Set(hosts);
 }
 
@@ -77,9 +77,10 @@ export function normalizeAuditRequest(input) {
   if (!['http:', 'https:'].includes(baseUrl.protocol)) {
     throw new Error("baseUrl must use http or https");
   }
-  if (!allowedHostsFromEnv().has(baseUrl.hostname)) {
+  const allowedHosts = allowedHostsFromEnv();
+  if (!allowedHosts.has(baseUrl.hostname) && !allowedHosts.has(baseUrl.host)) {
     throw new Error(
-      `baseUrl host ${baseUrl.hostname} is not allowlisted. ` +
+      `baseUrl host ${baseUrl.host} is not allowlisted. ` +
         "Set TRADECLAW_ALLOWED_HOSTS explicitly to add a controlled host.",
     );
   }

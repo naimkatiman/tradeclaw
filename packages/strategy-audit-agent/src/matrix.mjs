@@ -8,12 +8,19 @@ function slug(value) {
 
 export function buildAuditMatrix(request) {
   const runs = [];
+  const runIds = new Set();
 
   for (const symbol of request.symbols) {
     for (const timeframe of request.timeframes) {
       for (const period of request.periods) {
         for (const strategy of request.strategies) {
           const id = [symbol, timeframe, period, strategy].map(slug).join("__");
+          if (runIds.has(id)) {
+            throw new Error(
+              `Duplicate audit run id ${id}; adjust strategy labels or request values to avoid artifact overwrite.`,
+            );
+          }
+          runIds.add(id);
           runs.push({
             id,
             symbol,
