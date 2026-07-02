@@ -126,11 +126,34 @@ describe('GET /api/signals/equity summary metrics', () => {
     // blowup is what produced the unrunnable +800%/-69% curve).
     expect(body.summary.riskPerTradePct).toBe(1.0);
     expect(body.summary.hardRCap).toBe(8);
-    expect(body.summary.roundTripCostPct).toBe(0.02);
+    // BTCUSD with no recorded cost → model fallback: crypto RT = 0.40% notional.
+    // riskPct = 1% (entry 100, SL 99), so cost in R = 0.40 / 1 = 0.40R.
+    expect(body.summary.roundTripCostPct).toBe(0.4);
+    expect(body.summary.avgCostR).toBe(0.4);
     // R-stats keep the RAW 19R (engine quality is undistorted)…
     expect(body.summary.avgRWin).toBe(19);
-    // …but the equity path is bounded: 8R × 1% − 0.02% cost = +7.98% on one trade.
-    expect(body.summary.totalReturn).toBeCloseTo(7.98, 2);
+    // …but the equity path is bounded: (8R − 0.40R) × 1% = +7.60% on one trade.
+    expect(body.summary.totalReturn).toBeCloseTo(7.60, 2);
+  });
+
+  it("deducts each row's real recorded round-trip cost, not a flat rate", async () => {
+    // Identical +2R win (entry 100, SL 99 → riskPct 1%), differing only in the
+    // recorded cost. Cost in R = cost%_notional ÷ riskPct, so the curve diverges.
+    primeSlice([
+      record({ id: 'cheap-fx', pair: 'EURUSD', entryPrice: 100, sl: 99, costEstimatePct: 0.04, outcomes: { '4h': null, '24h': { price: 102, pnlPct: 2, hit: true } } }),
+    ]);
+    let res = await GET(makeReq('/api/signals/equity'));
+    let body = await res.json();
+    expect(body.summary.avgCostR).toBe(0.04);
+    expect(body.summary.totalReturn).toBeCloseTo(1.96, 2); // (2 − 0.04) × 1%
+
+    primeSlice([
+      record({ id: 'pricey-crypto', pair: 'BTCUSD', entryPrice: 100, sl: 99, costEstimatePct: 0.4, outcomes: { '4h': null, '24h': { price: 102, pnlPct: 2, hit: true } } }),
+    ]);
+    res = await GET(makeReq('/api/signals/equity'));
+    body = await res.json();
+    expect(body.summary.avgCostR).toBe(0.4);
+    expect(body.summary.totalReturn).toBeCloseTo(1.60, 2); // (2 − 0.40) × 1%
   });
 
   it('computes expectancyR from the sized-trade population, not the full-population win-rate', async () => {
@@ -155,6 +178,27 @@ describe('GET /api/signals/equity summary metrics', () => {
     // Coherent expectancy uses the sized population: 0.5*(+2R) + 0.5*(-1R) = +0.5R.
     // The old full-population formula would have returned 0.667*2 + 0.333*-1 = +1.0R.
     expect(body.summary.expectancyR).toBe(0.5);
+    // Net expectancy subtracts the real per-trade cost (BTCUSD model = 0.40R):
+    // +0.50R gross − 0.40R cost = +0.10R net.
+    expect(body.summary.netExpectancyR).toBe(0.1);
+  });
+
+  it('net expectancy subtracts real cost, exposing a gross-positive engine as net-negative', async () => {
+    // Gross expectancy is a thin +0.25R, but BTCUSD's real round-trip cost
+    // (0.40R at a 1% stop) drags net expectancy below zero — the engine-has-no-
+    // net-edge reality the public equity curve must reflect.
+    primeSlice([
+      record({ id: 'win-1R', pair: 'BTCUSD', entryPrice: 100, sl: 99, outcomes: { '4h': null, '24h': { price: 101, pnlPct: 1, hit: true } } }),
+      record({ id: 'loss-half-R', pair: 'BTCUSD', entryPrice: 100, sl: 99, outcomes: { '4h': null, '24h': { price: 99.5, pnlPct: -0.5, hit: false } } }),
+    ]);
+
+    const res = await GET(makeReq('/api/signals/equity'));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.summary.expectancyR).toBe(0.25);     // gross: 0.5*(+1R) + 0.5*(-0.5R)
+    expect(body.summary.avgCostR).toBe(0.4);          // BTCUSD model cost
+    expect(body.summary.netExpectancyR).toBe(-0.15);  // 0.25 − 0.40 → net-negative
   });
 
   it('summaryOnly=1 drops the points array but keeps summary + rollingWinRates', async () => {

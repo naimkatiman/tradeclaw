@@ -602,7 +602,7 @@ export function TrackRecordClient() {
           </div>
           <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 mb-2">
             <div className="flex items-baseline gap-2">
-              <span className={`text-5xl font-bold tabular-nums ${
+              <span className={`text-5xl sm:text-6xl font-bold tracking-tight tabular-nums ${
                 stats && stats.totalPnlPct > 0 ? 'text-emerald-400'
                 : stats && stats.totalPnlPct < 0 ? 'text-red-400'
                 : 'text-[var(--foreground)]'
@@ -651,10 +651,10 @@ export function TrackRecordClient() {
                 <InfoHint text={STAT_HINTS.resolved} label="What resolved signals means" />
               </span>
             </div>
-            {/* Realized (position-sized) return at headline weight — the number a
-               real subscriber could earn, shown next to the raw unsized total so
-               the achievable figure isn't buried. Paired with max drawdown so the
-               path's cost is never hidden behind the return. */}
+            {/* Realized (position-sized) return at headline weight — a standardized 1%-risk
+               research model shown next to the raw unsized total so the modeled figure isn't
+               buried. Paired with max drawdown so the path's cost is never hidden behind the
+               return. Analytics view, not a promise of subscriber returns. */}
             {headlineCompoundedReturn !== null && (
               <div className="flex items-baseline gap-1.5">
                 <span className={`text-xl font-semibold tabular-nums ${
@@ -712,10 +712,20 @@ export function TrackRecordClient() {
             />
           </div>
           <p className="text-sm text-[var(--text-secondary)]">
-            Headline total return is the raw sum of per-signal market % (no sizing). The equity card below
-            shows the position-sized version — 1% risk per trade after blended round-trip costs — which is
-            what a real subscriber would actually earn. Two views, same trades. Resolved trades only —
-            gate-blocked and expired rows are surfaced separately, not folded in.
+            Headline total return is the raw sum of per-signal market % before position sizing. The equity
+            card shows a standardized research model using 1% notional risk per trade after blended
+            round-trip cost assumptions, so you can compare signals on a consistent basis. It is a
+            historical analytics view, not a promise of subscriber returns. Real outcomes can differ because
+            of timing, spreads, slippage, fees, order execution, sizing, and whether a user follows any
+            signal. Resolved trades only — pending, expired, and gate-blocked rows are surfaced separately
+            instead of being folded into win-rate statistics.
+          </p>
+          <p className="mt-3 rounded-md border border-zinc-600/30 bg-zinc-800/20 px-3 py-2 text-[11px] leading-relaxed text-[var(--text-secondary)]">
+            <strong className="font-semibold text-[var(--foreground)]">Risk notice:</strong> TradeClaw provides
+            educational signal analytics and historical research. Signals are not financial advice, investment
+            recommendations, or guaranteed outcomes. Trading involves substantial risk, including loss of
+            capital. Past performance does not predict future results. Always test with paper trading and
+            independent risk controls before using real funds.
           </p>
           {rollingWinRates && (
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -810,11 +820,7 @@ export function TrackRecordClient() {
               aria-pressed={scope === value}
               className={`px-3 py-1.5 text-xs font-mono font-medium rounded-md transition-all ${
                 scope === value
-                  ? value === 'pro'
-                    ? 'bg-emerald-500/15 text-emerald-400'
-                    : value === 'broadcast'
-                      ? 'bg-cyan-500/15 text-cyan-400'
-                      : 'bg-white/[0.08] text-[var(--foreground)]'
+                  ? 'bg-white/[0.08] text-[var(--foreground)]'
                   : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
               }`}
             >
@@ -883,8 +889,8 @@ export function TrackRecordClient() {
             )}
           </div>
         ) : scope === 'broadcast' ? (
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 px-4 py-3 text-sm">
-            <div className="flex items-center gap-2 text-cyan-300">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm">
+            <div className="flex items-center gap-2 text-[var(--text-secondary)]">
               <Lock className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
                 Pro broadcast view — only signals the live risk gate approved for the Pro Telegram group. Decisions are recorded per row since 2026-06-10; older signals are excluded.
@@ -892,7 +898,7 @@ export function TrackRecordClient() {
             </div>
             <button
               onClick={() => setScope('pro')}
-              className="shrink-0 rounded-md border border-emerald-500/30 px-3 py-1 text-xs font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/10"
+              className="shrink-0 rounded-md border border-[var(--border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-white/[0.06]"
             >
               Switch to full record
             </button>

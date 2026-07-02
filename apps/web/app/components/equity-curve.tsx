@@ -25,9 +25,11 @@ interface EquitySummary {
   avgRWin: number | null;
   avgRLoss: number | null;
   expectancyR: number | null;
+  netExpectancyR?: number | null;
   breakEvenWinRate: number | null;
   riskPerTradePct?: number;
   roundTripCostPct?: number;
+  avgCostR?: number | null;
   hardRCap?: number;
 }
 
@@ -380,6 +382,11 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
     ? `${formatDate(points[0].timestamp)} – ${formatDate(points[points.length - 1].timestamp)}`
     : null;
 
+  // Headline expectancy prefers NET (gross − real cost) so it agrees in sign with
+  // the equity curve — a green +0.01R gross beside a -100% curve reads as broken.
+  // Falls back to gross only when cost wasn't available.
+  const expectancyShown = summary ? (summary.netExpectancyR ?? summary.expectancyR) : null;
+
   const isPro = scope === 'pro';
   const isBroadcast = scope === 'broadcast';
 
@@ -410,11 +417,11 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
           <p className="text-[11px] text-zinc-600 mt-0.5">
             {isPro
               ? summary
-                ? `Full Pro track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per trade` : ''}, after ${summary.roundTripCostPct}% round-trip costs. Resolved against Binance/Yahoo OHLCV.`
+                ? `Full Pro track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per trade` : ''}, after real per-symbol round-trip costs (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/trade). Resolved against Binance/Yahoo OHLCV.`
                 : 'Full Pro track record. Resolved against Binance/Yahoo OHLCV.'
               : isBroadcast
                 ? summary
-                  ? `Gate-approved broadcast subset — decisions recorded since 2026-06-10. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after ${summary.roundTripCostPct}% round-trip costs.`
+                  ? `Gate-approved broadcast subset — decisions recorded since 2026-06-10. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after real per-symbol round-trip costs (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/trade).`
                   : 'Gate-approved broadcast subset — decisions recorded since 2026-06-10.'
                 : summary
                   ? `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after costs.`
@@ -597,20 +604,25 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
             </div>
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
-                Expectancy
+                Expectancy (net)
                 <InfoHint text={STAT_HINTS.expectancyR} label="What expectancy means" />
               </div>
               <div className={`text-xs font-mono font-semibold tabular-nums ${
-                summary.expectancyR !== null && summary.expectancyR > 0
+                expectancyShown != null && expectancyShown > 0
                   ? 'text-emerald-400'
-                  : summary.expectancyR !== null && summary.expectancyR < 0
+                  : expectancyShown != null && expectancyShown < 0
                     ? 'text-red-400'
                     : 'text-zinc-300'
               }`}>
-                {summary.expectancyR !== null
-                  ? `${summary.expectancyR >= 0 ? '+' : ''}${summary.expectancyR.toFixed(2)}R`
+                {expectancyShown != null
+                  ? `${expectancyShown >= 0 ? '+' : ''}${expectancyShown.toFixed(2)}R`
                   : '—'}
               </div>
+              {summary.netExpectancyR != null && summary.expectancyR !== null && summary.avgCostR != null && (
+                <div className="text-[9px] text-zinc-600 mt-0.5 font-mono">
+                  {summary.expectancyR >= 0 ? '+' : ''}{summary.expectancyR.toFixed(2)}R gross − {summary.avgCostR.toFixed(2)}R cost
+                </div>
+              )}
             </div>
           </div>
           {/* R-stat denominator note — avg R per win/loss, expectancy and the

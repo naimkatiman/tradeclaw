@@ -1,0 +1,42 @@
+---
+title: "Introducing TradeClaw Journal: Log Trades, Run Autopsies, and Plan Like a Pro"
+excerpt: "TradeClaw's new Journal feature brings structured trade logging, post-trade autopsies, pre-session game plans, and custom rule checklists into one place — so your mistakes don't repeat and your edge compounds."
+date: "2026-05-25"
+readTime: "8 min"
+tags: ["Journal", "Trade Logging", "Feature Announcement", "Post-Trade Review"]
+metaDescription: "Introducing TradeClaw Journal: log every trade, run structured autopsies, write pre-session game plans, and define custom rules that enforce your own process — all in one place."
+keywords: ["trading journal app", "trade log software", "post-trade analysis tool", "trading autopsy", "trade review app"]
+---
+
+Keeping a trading journal is the advice every mentor gives and most traders ignore. The friction of context-switching to a spreadsheet after a stressful trade is real — so it doesn't happen consistently, and without consistency the journal never compounds into insight.
+
+TradeClaw Journal ships that workflow inside the platform, attached to the signals you already see. Here's what it does and why the structure matters.
+
+## What Trade Logging Actually Captures
+
+TODO: Explain the trade log entry form — required fields (symbol, direction, entry/exit price, size, P&L), optional fields (timeframe, setup type, session), and how entries can link automatically to a TradeClaw signal or be created manually. Emphasise that attaching to a signal gives the entry pre-filled context (score, indicators, regime at the time of the signal) without any extra work from the trader.
+
+## Autopsies: The Structured Retrospective
+
+TODO: Walk through the autopsy flow — what was the plan vs what actually happened, execution quality rating (1–5), lessons field, and the "would I take this trade again?" binary. Explain why structure matters: free-form notes decay in usefulness, but structured fields let the Operator Insights strip aggregate patterns across dozens of trades (e.g., "Your SELL autopsies on XAU during the Asia session have a 0.4 avg execution rating — your worst category").
+
+## Game Plans: Writing Your Pre-Session Thesis
+
+TODO: Describe the game plan feature — a structured pre-session document where the trader writes their directional bias, key levels, conditions that would confirm or invalidate the thesis, and the maximum number of trades they plan to take. Explain how a game plan links forward to trades taken during that session, so the autopsy can compare "what I planned" vs "what I did" with one click. Cover why having a written plan changes the post-trade emotional dynamic.
+
+## Custom Rules: Enforcing Your Own Process
+
+TODO: Cover custom rules — user-defined checklists that appear at trade-log time. Examples: "Did I wait for the signal score to exceed 70?", "Did I check the economic calendar?", "Was my stop set to at least 1.5× ATR?". Rules can be marked required (cannot submit the log without answering) or advisory (soft warning only). Explain how this closes the loop between knowing what you should do and actually checking it in the moment of emotional pressure.
+
+## How Journal Feeds the Operator Insights Strip
+
+TODO: Explain the connection between Journal data and the Operator dashboard's Insights summary strip (shipped in the same release week). The strip surfaces auto-generated insights like your best-performing setup type, time-of-day win-rate patterns, and average execution quality by symbol. Explain how Journal data persistence via the new Postgres backend ensures insights survive container restarts. Link to the Operator dashboard for readers who want to explore that angle.
+
+## Getting Started in Three Steps
+
+TODO: Give a concise first-steps walkthrough — where Journal appears in the nav, how to create your first entry, and the recommended loop: write a Game Plan before the session → log each trade during the session → complete an Autopsy within 30 minutes of closing. End with a note that Journal entries are stored per-user in the operator's Postgres backend, so they survive restarts and are fully queryable for your own analysis.
+
+<TrialCTA
+  headline="Start your first trade journal entry free — no spreadsheet required."
+  pitch="TradeClaw Journal is included in every plan. Log trades, run autopsies, write game plans, and let the Operator surface patterns across your history. 7-day Pro trial, cancel anytime."
+/>
