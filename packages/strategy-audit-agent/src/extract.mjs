@@ -44,6 +44,8 @@ export function extractBacktestMetrics(rawText) {
     totalTrades: firstMatch(text, [
       /Total\s+Trades\s*[:\n]?\s*([\d,.]+)/i,
       /Number\s+of\s+Trades\s*[:\n]?\s*([\d,.]+)/i,
+      /Signals\s*[:\n]?\s*([\d,.]+)\s+trades/i,
+      /(?:^|\n)\s*([\d,.]+)\s+trades\b/im,
       /(?:^|\n)Trades\s*[:\n]?\s*([\d,.]+)/im,
     ]),
   };

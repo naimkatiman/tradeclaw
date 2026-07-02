@@ -36,6 +36,13 @@ test("buildAuditMatrix rejects broad searches above the declared cap", () => {
   );
 });
 
+test("buildAuditMatrix rejects strategy labels that collide into one run id", () => {
+  assert.throws(
+    () => buildAuditMatrix({ ...request, strategies: ["HMM Top-3", "HMM Top 3"] }),
+    /Duplicate audit run id/,
+  );
+});
+
 test("buildAuditMatrix caps expensive computer-only matrices", () => {
   assert.throws(
     () => buildAuditMatrix({ ...request, mode: "computer", maxRuns: 48, symbols: ["BTCUSD", "ETHUSD", "XAUUSD"] }),
