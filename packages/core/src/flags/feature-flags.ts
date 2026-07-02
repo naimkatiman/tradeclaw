@@ -66,15 +66,16 @@ export const FEATURE_FLAGS = {
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;
 
 /** A minimal env source. `process.env` satisfies this shape. */
-export type EnvSource = Readonly<Record<string, string | undefined>>;
+export type EnvSource = Readonly<Record<string, unknown>>;
 
 /**
  * Parse an environment string into a boolean.
  * Truthy: "1", "true", "yes", "on" (case-insensitive). Everything else is false.
- * `undefined` or empty returns `undefined` so the caller can fall back to the default.
+ * `undefined`, `null`, non-string, or empty values return `undefined` so the caller can fall back to the default.
  */
-export function parseBooleanEnv(raw: string | undefined): boolean | undefined {
-  if (raw === undefined) return undefined;
+export function parseBooleanEnv(raw: unknown): boolean | undefined {
+  if (raw === undefined || raw === null) return undefined;
+  if (typeof raw !== 'string') return undefined;
   const normalized = raw.trim().toLowerCase();
   if (normalized === '') return undefined;
   return (
@@ -89,14 +90,14 @@ export function parseBooleanEnv(raw: string | undefined): boolean | undefined {
  * Resolve a single flag against an env source, falling back to its default.
  * Pure: no global state, no I/O.
  */
-export function resolveFlag(flag: FeatureFlagKey, env: EnvSource): boolean {
+export function resolveFlag(flag: FeatureFlagKey, env?: EnvSource | null): boolean {
   const def = FEATURE_FLAGS[flag];
-  const fromEnv = parseBooleanEnv(env[def.envVar]);
+  const fromEnv = parseBooleanEnv(env?.[def.envVar]);
   return fromEnv === undefined ? def.defaultValue : fromEnv;
 }
 
 /** Resolve every flag against an env source. */
-export function resolveAllFlags(env: EnvSource): Record<FeatureFlagKey, boolean> {
+export function resolveAllFlags(env?: EnvSource | null): Record<FeatureFlagKey, boolean> {
   const out = {} as Record<FeatureFlagKey, boolean>;
   for (const key of Object.keys(FEATURE_FLAGS) as FeatureFlagKey[]) {
     out[key] = resolveFlag(key, env);
