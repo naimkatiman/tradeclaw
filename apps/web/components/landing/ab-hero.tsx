@@ -15,7 +15,7 @@
  * rename it to hero.tsx.)
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { AnimatedChartHero } from "../animated-chart-hero";
@@ -23,6 +23,16 @@ import { TradeClawIconArtwork } from "../brand/tradeclaw-icon-artwork";
 import { trackEvent } from "../../lib/analytics";
 
 const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
+
+// Hydration gate without setState-in-effect (react-hooks/set-state-in-effect):
+// server snapshot renders the skeleton, the client snapshot flips to true on mount.
+const emptySubscribe = () => () => {};
+const useMounted = () =>
+  useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
 
 function HeroBrandLockup() {
   return (
@@ -42,10 +52,9 @@ function HeroBrandLockup() {
 
 export function Hero() {
   const [stars, setStars] = useState<number | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
 
   useEffect(() => {
-    setMounted(true);
     trackEvent("hero_viewed", { variant: "honest" });
 
     fetch("https://api.github.com/repos/naimkatiman/tradeclaw")
