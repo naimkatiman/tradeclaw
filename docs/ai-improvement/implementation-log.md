@@ -1,5 +1,90 @@
 # TradeClaw AI Improvement Implementation Log
 
+## 2026-07-02 06:46 MPST (+0800) — verification-only refresh of the existing docs-only checkpoint (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.
+
+Decision: refreshed the existing docs-only checkpoint for the new day, kept the read-only research CLI `scripts/research/recost-segment.ts` documented as an intentional local tool, and re-verified its fail-closed no-DB behavior. The root README discoverability hook remains in place. Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned live repo status before writing the refresh and kept the checkpoint grounded in real outputs.
+External source applied: https://github.com/DietrichGebert/ponytail — kept the increment to the smallest useful change: verification-only docs refresh, not new runtime work.
+External source applied: https://github.com/safishamsi/graphify — kept the AI tracking surfaces aligned across README/handoff/matrix/log/STATE/board.
+
+Files inspected / context read:
+- `C:/Ai/tradeclaw/scripts/research/recost-segment.ts`
+- `C:/Ai/tradeclaw/README.md`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Files changed / artifacts updated this run:
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `docs/ai-improvement/implementation-log.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+- `git status --short --branch --ahead-behind --untracked-files=all` still shows `## loop/standup-2026-06-26...origin/loop/standup-2026-06-26` with `M README.md`, `M STATE.yaml`, `M docs/ai-improvement/README.md`, `M docs/ai-improvement/implementation-log.md`, `M docs/ai-improvement/uncommitted-source-verification-handoff.md`, `M docs/ai-improvement/verification-command-matrix.md`, and `?? scripts/research/recost-segment.ts`.
+- `npx tsc --noEmit --pretty false --module nodenext --moduleResolution nodenext --target es2022 --lib es2022 --types node --esModuleInterop --skipLibCheck scripts/research/recost-segment.ts` exited 0.
+- `DATABASE_PUBLIC_URL= DATABASE_URL= npx tsx scripts/research/recost-segment.ts` exited 1 and printed the expected missing-DB guard message.
+- `git diff --check` exited 0.
+- `git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md` exited 1 as expected and printed only the LF→CRLF normalization warning, with no whitespace-error lines.
+
+Recommended next move: keep `scripts/research/recost-segment.ts` as an intentional local research utility, and when live Postgres access is available run the real-data probe against Railway Postgres to answer the cost edge question.
+
+Settlement note (2026-07-02, added when this drift was committed): the probe was already answered against production Postgres on 2026-06-26 — the identical script was merged to main in PR #136 (`df8adeb4`) and run over 3,796 resolved trades: gross +0.0149R, net −0.4317R/trade, no asset-class × band cell net-positive at n ≥ 100 (see `docs/plans/2026-06-26-real-cost-track-record.md`). The "pending prod DB" status these checkpoints carried was doc-drift against the already-merged result; only the `--json` per-cell artifact remains uncommitted.
+
+## 2026-06-30 06:41 MPST (+0800) — recost-segment keep-and-document refresh (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.
+
+Decision: refreshed the existing docs-only checkpoint for the current dirty tree, kept the read-only research CLI `scripts/research/recost-segment.ts` as an intentional local tool, and surfaced it in the root README scripts list so future agents can find it quickly. The CLI still typechecked cleanly and failed closed without DB env before the repo-local AI tracking docs were refreshed. Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned git status, inspected the live source/docs before editing, and verified with real commands.
+External source applied: https://github.com/safishamsi/graphify — mapped the relationship between the equity route, calibration migration, and the new read-only research CLI before deciding the script is safe and isolated.
+External source applied: https://github.com/DietrichGebert/ponytail — chose the smallest useful increment: verification plus docs refresh, no broad code churn.
+
+Files inspected / context read:
+- `C:/Ai/tradeclaw/scripts/research/recost-segment.ts`
+- `C:/Ai/tradeclaw/README.md`
+- `C:/Ai/tradeclaw/apps/web/app/api/signals/equity/route.ts`
+- `C:/Ai/tradeclaw/apps/web/app/api/signals/equity/route.test.ts`
+- `C:/Ai/tradeclaw/apps/web/migrations/051_calibration_features.sql`
+- `C:/Ai/tradeclaw/scripts/research/run-backtest-cli.ts`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Files changed / artifacts updated this run:
+- `README.md`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `docs/ai-improvement/implementation-log.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+- `git status --short --branch --ahead-behind --untracked-files=all` showed `## loop/standup-2026-06-26...origin/loop/standup-2026-06-26` with `M README.md`, `M STATE.yaml`, `M docs/ai-improvement/README.md`, `M docs/ai-improvement/implementation-log.md`, `M docs/ai-improvement/uncommitted-source-verification-handoff.md`, `M docs/ai-improvement/verification-command-matrix.md`, and `?? scripts/research/recost-segment.ts`.
+- `git diff --shortstat --` returned `6 files changed, 108 insertions(+), 119 deletions(-)`.
+- `npx tsc --noEmit --pretty false --module nodenext --moduleResolution nodenext --target es2022 --lib es2022 --types node --esModuleInterop --skipLibCheck scripts/research/recost-segment.ts` exited 0.
+
+- `README.md` read-back confirmed the `scripts/` section now includes `research/recost-segment.ts`.
+- `git diff --check` exited 0.
+- `git diff --no-index --check -- /dev/null /c/Ai/_zaky_ai_board/KANBAN.md` exited 1 as expected for a diff and produced no whitespace-error output.
+
+Recommended next move: keep `scripts/research/recost-segment.ts` as an intentional local research utility, and when live Postgres access is available run the real-data probe against Railway Postgres to answer the cost edge question.
+
 ## 2026-06-25 05:31 MPST (+0800) — monetization strategy-audit package verification and docs refresh (docs/tracking only)
 
 Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw` on the Mini `gpt-5.4-mini` tier, daily schedule `27 5 * * *`.
