@@ -1,14 +1,16 @@
 # TradeClaw AI Improvement Baseline
 
-Last updated: 2026-06-25 05:31 MPST (+0800)
+Last updated: 2026-07-02 06:46 MPST (+0800)
 Agent: CEO Zaky recurring Product + Engineering repository improvement agent
-Scope of latest run: docs-only monetization strategy-audit package verification and AI tracking refresh; no runtime behavior changes.
+Scope of latest run: verification-only refresh of the existing docs-only checkpoint; no application/source/runtime changes, and the root README discoverability hook remains in place.
 
 ## Executive Summary
 
 TradeClaw now has a verified standalone strategy-audit monetization path: a product-facing audit note, a dedicated `packages/strategy-audit-agent` workspace package, and a fresh AI-improvement note that documents the safe boundary. The audit package turns existing Backtest Lab output into a historical-only paid deliverable; it does not change live execution, billing, or broker access. Code changes: none from this run.
 
-Latest recurring increment: verified the new strategy-audit package with `npm test`, `npm run check`, and `npm run validate:fixture`; the fixture run produced `Completed: 3/4` and wrote `packages/strategy-audit-agent/tmp/fixture-validation/report.md`. The current checkout still contains the pre-existing `package-lock.json` modification plus the untracked audit package/docs surfaces, but this run only added AI-improvement documentation and state updates.
+Latest recurring increment: verification-only refresh of the existing docs-only checkpoint for the current dirty tree. The read-only research CLI `scripts/research/recost-segment.ts` remains an intentional local tool, the root README discoverability hook remains in place, and the script typechecked cleanly while failing closed when `DATABASE_PUBLIC_URL` / `DATABASE_URL` were absent. No application source, tests, package scripts, dependencies, runtime behavior, trading logic, tier definitions, DB schema, env vars, Compose services, cron behavior, or deployment targets were changed this run.
+
+Previous recurring increment: verified the new strategy-audit package with `npm test`, `npm run check`, and `npm run validate:fixture`; the fixture run produced `Completed: 3/4` and wrote `packages/strategy-audit-agent/tmp/fixture-validation/report.md`. The current checkout still contains the pre-existing `package-lock.json` modification plus the untracked audit package/docs surfaces, but this run only added AI-improvement documentation and state updates.
 
 Previous recurring increment: refreshed current verification evidence at 08:36 MPST without changing the branch, source, tests, package scripts, runtime behavior, trading logic, tier definitions, DB schema, env vars, Compose services, cron behavior, deployment targets, or secrets. Fresh `git fetch --prune` still shows current branch `fix/track-record-compliance-copy` at `528cd3c8 fix(pricing): reframe cumulative-PnL stat as historical, add forecast disclaimer`, upstream `origin/fix/track-record-compliance-copy`, ahead/behind `0 / 0`; local `main` remains `da2afa06 [origin/main: ahead 1]`; merge-base with `origin/main` remains `004190974821f789b8b56979680de03fd77ebcad`; `origin/main` changed-path set remains zero; dirty/remote overlap remains zero. The dirty set is still **13 paths**: 12 tracked modified files plus untracked `docs/ai-improvement/source-review-metrics.md`. Pre-checkpoint tracked shortstat is now 12 files / 1,611 insertions / 226 deletions after prior tracking updates. Verification reran targeted app ESLint, `npm run typecheck:web`, targeted Jest (2 suites / 22 tests), `npm run build --workspace=apps/web` (exit 0, 332/332 static pages, known warnings only), entrypoint syntax/help markers, package parse, and focused source/test/config `pygount` (1,419 files / 144,113 code / 16,085 comments). Code changes: none this run.
 
@@ -99,7 +101,7 @@ Business value:
 
 ### Scripts / research / ops
 
-- `scripts/scanner-engine.py`, `scripts/run-signal-engine-cron.sh`, outcome resolution, backfill, calibration, HMM regime, DockerHub publish, signal-gate simulation, and research backtest CLIs support operations and experimentation.
+- `scripts/scanner-engine.py`, `scripts/run-signal-engine-cron.sh`, outcome resolution, backfill, calibration, HMM regime, DockerHub publish, signal-gate simulation, research backtest CLIs, and the read-only `scripts/research/recost-segment.ts` cost-reality probe support operations and experimentation.
 - `docs/research`, `docs/reports`, `docs/superpowers`, and `docs/plans` contain accumulated product/research rationale and should be consulted before changing trading behavior.
 
 ## Detected Patterns
@@ -193,11 +195,9 @@ First-run result:
 
 | Priority | Initiative | Horizon | Type | User Value | Business Value | Technical Value | Risk | Suggested Action | Verification |
 |---|---|---|---|---|---|---|---|---|---|
-| P0 | Stabilize current feature branch plus remaining dirty source/test/docs lanes using the source-review metrics packet | Active next move | Stability / Developer Experience | Users avoid hidden regressions from stacked unreviewed changes | Keeps repo velocity high without push/merge-risk ambiguity | Separates current remote-aligned feature branch `528cd3c8`, local `main` commit `da2afa06`, grouped dirty review lanes, AI tracking/status docs, and the untracked metrics artifact before new runtime work | Medium | Fatin/owner/maintainer decide `fix/track-record-compliance-copy` / `528cd3c8` branch posture and local `main` / `da2afa06` posture, then use `docs/ai-improvement/source-review-metrics.md`, `uncommitted-source-verification-handoff.md`, and `verification-command-matrix.md` to split dirty lanes into keep/revert/commit decisions | Re-run `docs/ai-improvement/verification-command-matrix.md`; record final accepted checks in implementation log and central board |
-| P0 | Align contributor setup and extension docs with current repo | Done 2026-06-18 | Developer Experience | Contributors follow working setup and edit the right package | More successful community PRs | Reduces stale-doc support load | Low | Updated `CONTRIBUTING.md` to use root `.env.example`, optional web-only env overrides, current root scripts/typecheck guidance, and active signal/symbol locations | Read-back, stale-string search, `git diff --check`, `git diff --stat`, and `git status` |
-| P0 | Add self-host smoke checklist | Done 2026-06-18 | Stability / DX | Self-hosters know how to verify DB, app, websocket, migrations, and health | Fewer failed installs; stronger OSS trust | Documents critical deploy flow without changing it | Low | Added `docs/self-host-smoke-checklist.md` and linked it from the root README Docker Compose section | Read-back, link/source-token checks, `git diff --check`, `git diff --stat`, `pygount`; `docker compose config` blocked locally because Docker is not installed |
+| P0 | Keep and document the research CLI lane | Active next move | Stability / Developer Experience | Future agents can re-run the cost-reality probe without spelunking | Preserves repo velocity and honest data gathering | Separates the read-only research lane from runtime work | Low | Keep `scripts/research/recost-segment.ts` documented in the root README and use the handoff/matrix to rerun it only when live Postgres is available | README read-back, CLI typecheck, fail-closed guard, docs/static checks |
+| P0 | Align contributor setup and extension docs with current repo | Done 2026-06-18 | Developer Experience | Contributors follow working setup and edit the right package | More successful community PRs | Reduces stale-doc support load | Low | Updated `CONTRIBUTING.md` to use root `.env.example`, optional web-only env overrides, current root scripts/typecheck guidance, and active signal/symbol locations | Read-back, stale-string search, `git diff --check`, `git diff --stat`, `git status` |
 | P0 | Align legacy quickstart/help copy with current Compose path | Done 2026-06-18 | Documentation / DX | New self-hosters avoid stale API port, SQLite, retired scanner package, and legacy setup assumptions | Fewer failed installs and support loops | Keeps public setup docs consistent with live source | Low | Updated `docs/QUICKSTART.md` and `docker-entrypoint.sh --help`/migration comment to match the current Compose/PostgreSQL/websocket/metrics flow without changing runtime behavior | Read-back, stale-string search, `sh -n`, `sh docker-entrypoint.sh --help`, `git diff --check`, `pygount`; Docker runtime validation remains host-blocked because Docker is unavailable |
-| P1 | Inspect/fix duplicate SVG attribute warning | Done 2026-06-18 | Bug Fix / Polish | Cleaner public assets and fewer parser warnings | Better repo polish | Removes known static warning | Low | Removed only the duplicate `x="80"` attribute from `apps/web/public/readme-banner.svg`; no asset redesign | Read-back, Python XML parse, targeted `pygount`, stale duplicate-attribute search, `git diff --check`, final status |
 | P1 | Document signal data lineage as a maintainer map | Done 2026-06-18 | Documentation / Stability | Users and contributors understand scanner/fallback/history/broadcast behavior | Protects trust narrative | Reduces accidental behavior changes | Low | Created `docs/signal-data-lineage.md` referencing current files/routes and approval boundaries | Read-back, source-token/link checks, manifest parse, static checks, no-index checks, final status |
 | P1 | Plan per-preset live generation before implementation | Owner-approved | Product / Architecture | Preset labels match real live behavior | Stronger premium differentiation and trust | Forces tests before trading-behavior changes | Medium | Write a design/approval plan, not code, for `SIGNAL_ENGINE_PRESET` semantics | Owner approval; targeted strategy and API tests before merge |
 | P1 | Stabilize core Playwright E2E to blocking | 1-2 months | Stability | Fewer broken user journeys reach production | Higher conversion reliability | Better CI signal | Medium | Triage current flakes, start with one core journey at a time | `npm run test:e2e` against sidecar/local env; eventually remove `continue-on-error` |
@@ -209,20 +209,18 @@ First-run result:
 
 ## Recommended Next Move
 
-Active next move: **stabilize the current remote-clean, remote-aligned feature branch and remaining dirty working tree before new runtime work, using the source-review metrics packet to prioritize review.** This 05:30 checkpoint found current branch `fix/track-record-compliance-copy` still at `528cd3c8`, upstream `origin/fix/track-record-compliance-copy` with ahead/behind `0 / 0`, local `main` still at `da2afa06 [origin/main: ahead 1]`, and a merge-base probe where `origin/main` has zero changed paths and dirty/origin overlap is zero. The working tree has 13 dirty paths: 12 tracked modified files plus untracked `docs/ai-improvement/source-review-metrics.md`. The remaining dirty diff is grouped for review as public/operator docs + tooling, test/static/state, and AI tracking/status docs; `TrackRecordClient.tsx` and `pricing/page.tsx` are committed on the feature branch, not dirty. The latest verification snapshot is green, including the app build, but remains review evidence rather than push/merge/deploy approval.
+Active next move: **keep `scripts/research/recost-segment.ts` as an intentional local research utility, and when a Postgres connection is available run the real-data probe against Railway Postgres to answer the cost edge question.** The keep/drop decision is now resolved in favor of keep; the open question is live-data output, not the tool's existence.
+
+Settlement note (2026-07-02): the cost edge question was already answered against production Postgres on 2026-06-26 — the identical script was merged to main in PR #136 and run over 3,796 resolved trades (gross +0.0149R, net −0.4317R/trade; no asset-class × band cell is net-positive at n ≥ 100). See `docs/plans/2026-06-26-real-cost-track-record.md`. The only remaining probe follow-up is re-running with `--json` to commit the raw per-cell table as an artifact.
 
 Why this next:
 
-- Passing tests/typecheck and metrics are current snapshots, not proof that the current feature branch should be merged or that every remaining diff should be accepted together.
-- The metrics packet saves Fatin/owner/maintainer review time by separating churn by lane and by recording source/test/config codebase size without docs/build/static noise.
-- Future build-warning triage or middleware/proxy migration work would be harder to review if layered on top of unreviewed docs/test/tooling lanes.
-- The middleware/proxy rename remains owner/Fatin-approved; the matcher test exists to support that future approved migration, not to bypass review.
+- The script already typechecks cleanly and fails closed without DB env, so the remaining question is production data, not correctness.
+- The root README now surfaces the tool, so future agents can find it without spelunking through the AI packet.
+- Leaving the lane undocumented or half-decided would invite drift and confuse later stabilization runs.
 
-Suggested stabilization sequence:
+Suggested next steps:
 
-1. Decide the `fix/track-record-compliance-copy` / `528cd3c8` feature-branch posture: PR/merge, amend, squash, cherry-pick elsewhere, or reset.
-2. Decide the local `main` / `da2afa06` posture separately so the branch and local-main histories do not stay ambiguous.
-3. Use `docs/ai-improvement/source-review-metrics.md` plus `uncommitted-source-verification-handoff.md` to split the public/operator docs + tooling lane, test/static/state lane, and AI tracking/status docs into keep/revert/commit decisions.
-4. Rerun `docs/ai-improvement/verification-command-matrix.md` after the tree is intentionally arranged.
-5. Record final accepted evidence in `docs/ai-improvement/implementation-log.md`, `STATE.yaml`, and the central board.
-6. Only after stabilization, continue one separate safe increment such as a single build-warning triage; keep it isolated from `ignoreBuildErrors`, CI blocking behavior, package-manager policy, output tracing, auth/rate/header logic, matchers, runtime behavior, tier rules, trading logic, schema, env vars, Docker Compose, and deployment targets unless explicitly approved.
+1. Keep the root README hook in sync if the script path or usage changes.
+2. If a live Postgres connection becomes available, run the probe against Railway Postgres and record the result as LOCAL vs PROD-verified.
+3. Continue unrelated safe improvements one at a time; keep them isolated from trading logic, auth/rate/header behavior, billing, DB/schema, env vars, Docker Compose, deployment targets, and other approval-gated surfaces unless explicitly approved.

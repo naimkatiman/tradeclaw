@@ -166,6 +166,7 @@ packages/
 
 scripts/
   launch-binance-testnet.sh   Binance testnet bootstrap
+  research/recost-segment.ts   Read-only cost-reality probe for signal-history re-costing (`npx tsx scripts/research/recost-segment.ts`)
 ```
 
 > Note: the standalone `tradeclaw-discord` bot package (issue #38) remains early scaffolding. The web app's Discord webhook integration, however, is shipped and wired: when `DISCORD_WEBHOOK_URL` is set, the `/api/cron/telegram` broadcast job posts the same free-tier signals to a Discord channel (deduped via `discord_posted_at`), and per-user alert rules can target a Discord webhook channel.
