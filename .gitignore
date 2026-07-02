@@ -30,3 +30,7 @@ apps/web/data/*.db
 
 # graphify knowledge-graph output (generated, ~8MB)
 graphify-out/
+
+# strategy-audit-agent runtime output (logs, fixture runs)
+/audit-output/
+packages/strategy-audit-agent/tmp/
