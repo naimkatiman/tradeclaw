@@ -27,7 +27,15 @@ Offer research and pricing rationale: see `docs/tradeclaw-strategy-audit-patch/d
 
 ## Result
 
-Fill after stop date. Do not leave open past the stop date.
+<!-- TODO:
+Required Data:
+- Observed primary metric: Count of paid pilot slots.
+  Verification arithmetic: Sum of payments received / price per slot ($79-$199) = total paid.
+- Guardrail status: Human production time per report.
+  Verification arithmetic: Total human production time / total reports generated = average time (must be < 45 minutes).
+Examples & Narrative:
+- E.g., "Observed primary metric: 4 paid slots ($556 total revenue). Guardrail status: 35 minutes average production time."
+-->
 
 - Observed primary metric:
 - Guardrail status:
