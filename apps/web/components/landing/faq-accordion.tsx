@@ -11,7 +11,7 @@ const FAQS: FAQItem[] = [
   {
     question: "Is there a free tier?",
     answer:
-      "Yes. The open-source framework is MIT-licensed and free forever — you can self-host the entire stack. On tradeclaw.win we also offer a Free hosted tier: 6 symbols across crypto, forex, commodities, and index ETFs; 30-minute delayed signals; public Telegram channel; 7 days of signal history. Pro ($29/mo, 7-day trial) upgrades that to instant (no-delay) signal delivery on the 5-minute cron, all traded symbols, private Pro Telegram group, full TP1/TP2/TP3 + SL levels, and unlimited signal history with CSV export. See /data-freshness for exact cadences.",
+      "Yes. The open-source framework is MIT-licensed and free forever — you can self-host the entire stack. On tradeclaw.win the hosted Free tier covers 6 symbols across crypto, forex, commodities, and index ETFs, with 30-minute delayed signals, the public Telegram channel, and 7 days of signal history. Paid subscriptions are no longer offered. See /data-freshness for exact cadences.",
   },
   {
     question: "How do AI signals work?",
@@ -29,9 +29,9 @@ const FAQS: FAQItem[] = [
       "Clone the repo, copy .env.example to .env, set your MetaApi credentials (optional for paper trading), then run `docker compose up -d`. Your dashboard is ready at localhost:3000. For cloud deploy, use the one-click Railway or Vercel buttons in the repo README.",
   },
   {
-    question: "What's the difference between self-hosting and Pro?",
+    question: "Is anything paywalled?",
     answer:
-      "Same signal engine, different delivery. Self-host the open-source repo for full control and zero recurring cost — you run the stack and wait 30 minutes on public signals. TradeClaw Pro at $29/mo gives you instant delivery, private Pro Telegram group, every traded symbol, and three take-profit levels plus stop-loss on each signal. Same math, faster execution.",
+      "Nothing is for sale. Every feature is free and the entire codebase is MIT-licensed — self-host it, fork it, audit it. We publish the full track record, wins and losses, charged at modeled real-world execution costs.",
   },
 ];
 
