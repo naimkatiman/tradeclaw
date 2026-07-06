@@ -25,7 +25,6 @@ import {
 } from 'lucide-react';
 import { TradeClawLogo } from './tradeclaw-logo';
 import { UserMenu } from './UserMenu';
-import { useUserSession } from '../lib/hooks/use-user-tier';
 import type { LucideIcon } from 'lucide-react';
 
 interface NavLink {
@@ -138,8 +137,6 @@ function selectNav(pathname: string): NavSet {
 
 export function PageNavBar() {
   const pathname = usePathname();
-  const { status, session } = useUserSession();
-  const isFree = status === 'authenticated' && (session?.tier === 'free' || !session?.tier);
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
 
@@ -273,14 +270,6 @@ export function PageNavBar() {
 
         {/* Identity affordance — visible on all breakpoints. */}
         <div className="ml-auto md:ml-0 flex items-center gap-2">
-          {isFree && variant === 'member' && (
-            <Link
-              href="/pricing?from=navbar"
-              className="hidden sm:inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-            >
-              Upgrade
-            </Link>
-          )}
           <UserMenu />
         </div>
       </div>
