@@ -48,7 +48,7 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
     annualPriceLabel: '',
     kind: 'free',
     features: [
-      'Free forever — public @tradeclawwin signals and our public track record, audit the edge before you pay',
+      'Free forever — public @tradeclawwin signals and our public track record',
       '6 symbols across crypto, forex, commodities, indices',
       '30-minute delayed signals',
       'TP1 target only',
@@ -58,7 +58,7 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
   {
     id: 'pro',
     name: 'Pro',
-    tagline: 'Real-time signals while the move is still live, with full analytics.',
+    tagline: 'Real-time signal delivery with full analytics.',
     monthlyPriceLabel: '$29',
     annualPriceLabel: '$290/yr — save $58',
     anchorLabel: 'Comparable SaaS dashboards: $200-500/mo',
@@ -67,14 +67,14 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
     monthlyPriceIdEnv: 'NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID',
     annualPriceIdEnv: 'NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID',
     features: [
-      'Catch the move while it is still tradable — alerts land instantly, not 30 minutes late',
-      'Trade the whole market you actually watch — FX, crypto, metals, oil, US mega-caps, and indices',
-      'Only take higher-conviction setups — confluence across H1/H4/D1 before a signal fires',
-      'Plan the exit before you enter — TP1, TP2, TP3, and Stop Loss on every Pro signal',
-      'Get Pro alerts in a private Telegram group while the move is still alive',
-      'Backtest your edge against unlimited real outcomes and audit trails',
+      'Real-time delivery — no 30-minute delay',
+      'Full symbol coverage — FX, crypto, metals, oil, US mega-caps, and indices',
+      'Confluence across H1/H4/D1 before a signal fires',
+      'TP1, TP2, TP3, and Stop Loss on every Pro signal',
+      'Pro alerts in a private Telegram group',
+      'Unlimited signal history for backtests and audits',
       'Audit every entry, exit, and outcome in our public Postgres archive',
-      'Try Pro for 7 days and cancel anytime',
+      'Cancel anytime',
     ],
   },
   {
@@ -90,7 +90,7 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
     annualPriceIdEnv: 'NEXT_PUBLIC_STRIPE_ELITE_ANNUAL_PRICE_ID',
     features: [
       'Everything in Pro',
-      'Priority alerts — signals reach you before Pro users',
+      'Priority alert delivery',
       'Strategy builder — compose and backtest custom indicator rules',
       '1-on-1 Telegram group with Zaky for setup and review',
       'Webhook forwarding — pipe signals to your own broker or bot',

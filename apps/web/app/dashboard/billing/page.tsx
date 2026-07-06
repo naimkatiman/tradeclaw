@@ -51,17 +51,6 @@ function getPlanInfo(tier: Tier, interval: Interval = 'monthly'): PlanInfo {
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function createCheckoutSession(interval: Interval): Promise<string> {
-  const res = await fetch('/api/stripe/checkout', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tier: 'pro', interval }),
-  });
-  const data = (await res.json()) as { url?: string; error?: string };
-  if (!res.ok || !data.url) throw new Error(data.error ?? 'Failed to create checkout session');
-  return data.url;
-}
-
 async function createPortalSession(): Promise<string> {
   const res = await fetch('/api/stripe/portal', {
     method: 'POST',
@@ -87,78 +76,6 @@ function StatusBadge({ tier }: { tier: Tier }) {
     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${colors[tier]}`}>
       {tier.toUpperCase()}
     </span>
-  );
-}
-
-interface UpgradeCardProps {
-  tier: Exclude<Tier, 'free'>;
-  interval: Interval;
-  currentTier: Tier;
-  onError: (msg: string) => void;
-}
-
-function UpgradeCard({ tier, interval, currentTier, onError }: UpgradeCardProps) {
-  const [loading, setLoading] = useState(false);
-  const plan = getPlanInfo('pro', interval);
-  const isCurrentPlan = currentTier === tier;
-  const isDowngrade = false;
-
-  async function handleClick() {
-    setLoading(true);
-    try {
-      if (currentTier !== 'free') {
-        // Existing subscriber → Stripe Portal to switch interval
-        const url = await createPortalSession();
-        window.location.href = url;
-        return;
-      }
-      const url = await createCheckoutSession(interval);
-      window.location.href = url;
-    } catch (err: unknown) {
-      onError(err instanceof Error ? err.message : 'Something went wrong');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <div
-      className={`rounded-2xl border p-5 ${
-        isCurrentPlan
-          ? 'border-emerald-500/30 bg-emerald-950/10'
-          : 'border-white/[0.06] bg-white/[0.02]'
-      }`}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className={`font-semibold ${plan.color}`}>{plan.name}</p>
-          <p className="mt-0.5 text-sm text-zinc-400">{plan.description}</p>
-        </div>
-        <p className="shrink-0 font-semibold text-white">{plan.price}</p>
-      </div>
-
-      <div className="mt-4">
-        {isCurrentPlan ? (
-          <span className="text-sm text-emerald-400">Current plan</span>
-        ) : (
-          <button
-            onClick={handleClick}
-            disabled={loading}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all disabled:opacity-60 ${
-              isDowngrade
-                ? 'border border-white/10 text-zinc-300 hover:bg-white/5'
-                : 'bg-emerald-500 text-black hover:bg-emerald-400'
-            }`}
-          >
-            {loading
-              ? 'Redirecting…'
-              : isDowngrade
-              ? 'Downgrade via Portal'
-              : `Upgrade to ${plan.name}`}
-          </button>
-        )}
-      </div>
-    </div>
   );
 }
 
@@ -375,9 +292,8 @@ export default function BillingPage() {
         : 'free';
   const cancelAtPeriodEnd = session?.cancelAtPeriodEnd ?? false;
   const periodEndLabel = formatLongDate(session?.currentPeriodEnd ?? null);
-  const [billingInterval, setBillingInterval] = useState<Interval>('monthly');
 
-  const plan = getPlanInfo(currentTier, billingInterval);
+  const plan = getPlanInfo(currentTier);
   const [error, setError] = useState<string | null>(null);
   const isLoading = status === 'loading';
   const isDemo = status === 'anonymous';
@@ -527,59 +443,6 @@ export default function BillingPage() {
           )}
         </div>
 
-        {/* Upgrade / switch plans — Elite is the top paid tier; route them to
-            the portal via the Manage Billing button above instead of offering
-            a downgrade-shaped "Change plan" prompt. */}
-        {currentTier !== 'elite' && (
-        <div className="mt-8">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
-              {currentTier === 'free' ? 'Upgrade your plan' : 'Change plan'}
-            </h2>
-            {currentTier === 'free' && (
-              <div
-                role="group"
-                aria-label="Billing interval"
-                className="inline-flex rounded-full border border-white/10 bg-white/[0.03] p-0.5 text-xs"
-              >
-                <button
-                  type="button"
-                  aria-pressed={billingInterval === 'monthly'}
-                  onClick={() => setBillingInterval('monthly')}
-                  className={`rounded-full px-3 py-1 font-medium transition-colors ${
-                    billingInterval === 'monthly'
-                      ? 'bg-white text-black'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  Monthly
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={billingInterval === 'annual'}
-                  onClick={() => setBillingInterval('annual')}
-                  className={`rounded-full px-3 py-1 font-medium transition-colors ${
-                    billingInterval === 'annual'
-                      ? 'bg-white text-black'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  Annual <span className="ml-1 text-emerald-400">save 17%</span>
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col gap-3">
-            <UpgradeCard
-              tier="pro"
-              interval={billingInterval}
-              currentTier={currentTier}
-              onError={setError}
-            />
-          </div>
-        </div>
-        )}
-
         {/* Telegram connect */}
         <div className="mt-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
           <div className="flex items-start gap-3">
@@ -656,8 +519,9 @@ export default function BillingPage() {
           <ReferralCard referralCode={session.referralCode} />
         )}
 
-        {/* Annual plan callout — only relevant on the Pro/free tiers */}
-        {currentTier !== 'elite' && (
+        {/* Annual plan callout — existing Pro subscribers can switch interval
+            via the Stripe portal. Nothing is for sale to free users. */}
+        {currentTier === 'pro' && (
           <div className="mt-6 rounded-xl border border-emerald-500/20 bg-emerald-950/10 px-5 py-4">
             <p className="text-sm text-emerald-300">
               <span className="font-semibold">Save 17%</span> with annual billing — Pro
