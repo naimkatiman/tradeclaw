@@ -42,18 +42,10 @@ export async function GET(req: NextRequest) {
   const user = await upsertUserByEmail(result.email);
   const sessionToken = createSessionToken(user.id);
 
-  // Resume any checkout intent carried on the link instead of always landing on
+  // Honor a safe `next` carried on the link instead of always landing on
   // /dashboard (mirrors the Google OAuth callback). Re-sanitized inside.
   const sp = req.nextUrl.searchParams;
-  const target = resolveMagicLinkTarget(
-    {
-      priceId: sp.get('priceId'),
-      tier: sp.get('tier'),
-      interval: sp.get('interval'),
-      next: sp.get('next'),
-    },
-    origin,
-  );
+  const target = resolveMagicLinkTarget({ next: sp.get('next') }, origin);
 
   const res = NextResponse.redirect(target);
   res.cookies.set(USER_SESSION_COOKIE, sessionToken, sessionCookieOptions());

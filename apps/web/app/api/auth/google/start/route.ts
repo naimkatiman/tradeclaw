@@ -37,12 +37,9 @@ export async function GET(request: NextRequest) {
 
   const url = new URL(request.url);
   const next = safeNext(url.searchParams.get('next'));
-  const priceId = url.searchParams.get('priceId') ?? undefined;
-  const tier = url.searchParams.get('tier') ?? undefined;
-  const interval = url.searchParams.get('interval') ?? undefined;
 
   const nonce = newNonce();
-  const state = encodeState({ nonce, next, priceId, tier, interval });
+  const state = encodeState({ nonce, next });
 
   const redirectUri = getRedirectUri(request);
   const authorize = new URL(GOOGLE_AUTH_URL);
