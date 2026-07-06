@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-// Tier-journey E2E: verify the public/private visibility contract end-to-end.
+// Tier-gating E2E: verify the public/private visibility contract end-to-end.
 // Anonymous visitors should never see entry / SL / TP values on any surface —
 // not in the wire payload, not in the landing DOM, not on the detail page.
+// (Harvested from the retired tier-journey spec; the checkout/pricing journey
+// no longer exists, but the tier gate is live until Phase 2.)
 
 test.describe('public teaser API — /api/signals/public', () => {
   test('returns teaser shape only (no entry/SL/TP/id)', async ({ request }) => {
@@ -41,19 +43,18 @@ test.describe('public teaser API — /api/signals/public', () => {
 });
 
 test.describe('landing hero — anonymous visitor', () => {
-  test('hero renders without exposing tradable numbers', async ({ page }) => {
+  test('hero strip renders without exposing tradable numbers', async ({ page }) => {
     await page.goto('/');
-    // Wait for either live signals or placeholder state to render.
-    // `.first()` because the navbar also has a "Live signals" link.
-    await expect(page.getByText(/Live signals|Generating signals/).first()).toBeVisible({
+    // Wait for the public-preview strip to render in live, recent, or empty state.
+    await expect(page.getByText(/— public preview/).first()).toBeVisible({
       timeout: 15_000,
     });
 
     // The hero strip must not reference Entry / SL / TP as data labels — those
     // only exist on the private detail page and dashboard signal cards.
-    // Case-sensitive: marketing CTAs like "Unlock entry & TP →" use lowercase;
-    // actual data labels are always capitalized ("Entry", "Stop Loss", "TP1").
-    const heroRegion = page.locator('section').filter({ hasText: /Live signals/ }).first();
+    // Case-sensitive: actual data labels are always capitalized ("Entry",
+    // "Stop Loss", "TP1").
+    const heroRegion = page.locator('section').filter({ hasText: /public preview/ }).first();
     if (await heroRegion.count()) {
       await expect(heroRegion).not.toContainText(/\bEntry\b/);
       await expect(heroRegion).not.toContainText(/\bStop Loss\b/);
@@ -63,7 +64,7 @@ test.describe('landing hero — anonymous visitor', () => {
 });
 
 test.describe('signal detail page — anonymous tier gating', () => {
-  test('anonymous view shows locked pills and an upgrade CTA', async ({ page, request }) => {
+  test('anonymous view shows locked pills and the gate card', async ({ page, request }) => {
     // Pull a real signal triple from the public teaser so the URL routes to an
     // active signal rather than a made-up symbol.
     const teaserRes = await request.get('/api/signals/public');
@@ -79,24 +80,20 @@ test.describe('signal detail page — anonymous tier gating', () => {
 
     // Signals are generated fresh per request — the teaser triple may not
     // resolve a few hundred ms later when the page re-runs TA. Wait for
-    // either the not-found heading or the upgrade CTA to materialize, then
+    // either the not-found heading or a masked pill to materialize, then
     // skip if we landed on 404.
     const notFoundHeading = page.getByRole('heading', { name: /page not found/i });
-    const cta = page.getByRole('link', { name: /upgrade to pro/i }).first();
+    const maskedPill = page.getByText('••••').first();
     await Promise.race([
       notFoundHeading.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => null),
-      cta.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => null),
+      maskedPill.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => null),
     ]);
     const notFoundCount = await notFoundHeading.count();
-    test.skip(notFoundCount > 0, 'Teaser→detail signal race produced 404 — skipping CTA assertion.');
-
-    // The upgrade CTA must be visible for anon — it's the conversion funnel.
-    await expect(cta).toBeVisible({ timeout: 15_000 });
-    await expect(cta).toHaveAttribute('href', /\/pricing(\?|$)/);
+    test.skip(notFoundCount > 0, 'Teaser→detail signal race produced 404 — skipping gating assertion.');
 
     // The locked-price pills use `••••` as the masked visual. At least one
     // should be present on the page (entry, SL, or TP1 — all masked for anon).
-    await expect(page.getByText('••••').first()).toBeVisible();
+    await expect(maskedPill).toBeVisible();
 
     // The chart section should be replaced with the gate card, so the Pro
     // chart-only copy "Price chart with entry, SL, and TP lines is a Pro
@@ -104,32 +101,6 @@ test.describe('signal detail page — anonymous tier gating', () => {
     await expect(
       page.getByText(/Price chart with entry, SL, and TP lines is a Pro feature/i),
     ).toBeVisible();
-  });
-
-  test('clicking the upgrade CTA lands on /pricing', async ({ page, request }) => {
-    const teaserRes = await request.get('/api/signals/public');
-    const teaser = await teaserRes.json();
-    test.skip(
-      !teaser.signals || teaser.signals.length === 0,
-      'No live signals available — skipping CTA navigation test.',
-    );
-
-    const sig = teaser.signals[0];
-    await page.goto(`/signal/${sig.symbol}-${sig.timeframe}-${sig.direction}`);
-
-    const notFoundHeading = page.getByRole('heading', { name: /page not found/i });
-    const cta = page.getByRole('link', { name: /upgrade to pro/i }).first();
-    await Promise.race([
-      notFoundHeading.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => null),
-      cta.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => null),
-    ]);
-    const notFoundCount = await notFoundHeading.count();
-    test.skip(notFoundCount > 0, 'Teaser→detail signal race produced 404 — skipping CTA navigation test.');
-
-    await cta.click();
-
-    await expect(page).toHaveURL(/\/pricing/);
-    await expect(page.getByRole('heading', { name: /stop renting your edge/i })).toBeVisible();
   });
 });
 

@@ -14,7 +14,7 @@ setup('warm signal-generation paths', async ({ request }) => {
   const screener = await request.get('/api/screener', { timeout: 60_000 });
   expect(screener.ok()).toBeTruthy();
 
-  // Public teaser path (tier-journey / landing) — same OHLCV warm.
+  // Public teaser path (landing) — same OHLCV warm.
   const teaser = await request.get('/api/signals/public', { timeout: 60_000 });
   expect(teaser.ok()).toBeTruthy();
 });
