@@ -1,33 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { Locale, Translations } from "../../lib/translations";
 import { LocaleSwitcher } from "./locale-switcher";
-import { useHeroPrices, formatPairPrice } from "../../lib/hooks/use-hero-prices";
 
 const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
-
-const SIGNAL_TEMPLATE: ReadonlyArray<{
-  symbol: string;
-  direction: "BUY" | "SELL";
-  confidence: number;
-}> = [
-  { symbol: "XAU/USD", direction: "BUY", confidence: 87 },
-  { symbol: "BTC/USD", direction: "SELL", confidence: 74 },
-  { symbol: "EUR/USD", direction: "BUY", confidence: 81 },
-  { symbol: "GBP/JPY", direction: "SELL", confidence: 68 },
-  { symbol: "ETH/USD", direction: "BUY", confidence: 79 },
-  { symbol: "OIL/USD", direction: "SELL", confidence: 72 },
-];
-const HERO_LABELS = SIGNAL_TEMPLATE.map((s) => s.symbol);
-
-const STAT_TARGETS = [847, 52000, 12, 430];
-const STAT_SUFFIXES = ["+", "+", "", "+"];
 
 const STEP_CODES = [
   "docker compose up -d",
   "SYMBOLS=EURUSD,BTCUSD,XAUUSD",
-  "Signal: XAU/USD BUY @ 87%",
+  "Signal: BUY or SELL + confidence score",
 ];
 
 const STEP_NUMBERS = ["01", "02", "03"];
@@ -38,62 +20,10 @@ const DEPLOY_OPTIONS = [
   { name: "Docker", color: "text-blue-400", bg: "bg-blue-500/8 border-blue-500/20 hover:border-blue-500/40" },
 ];
 
-/* ─── Count-up hook ─── */
-function useCountUp(target: number, duration: number, triggered: boolean) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!triggered) return;
-    let start = 0;
-    const increment = target / (duration / 16);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= target) { setCount(target); clearInterval(timer); }
-      else setCount(Math.floor(start));
-    }, 16);
-    return () => clearInterval(timer);
-  }, [target, duration, triggered]);
-  return count;
-}
-
-function StatCard({ target, suffix, label, description }: { target: number; suffix: string; label: string; description: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [triggered, setTriggered] = useState(false);
-  const count = useCountUp(target, 1800, triggered);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setTriggered(true); observer.disconnect(); }
-    }, { threshold: 0.5 });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={ref} className="glass-card rounded-2xl p-8 text-center flex flex-col items-center gap-2">
-      <div className="text-4xl font-bold tabular-nums tracking-tight text-white sm:text-5xl">
-        {count >= 1000 ? (count / 1000).toFixed(count >= 10000 ? 0 : 1) + "k" : count.toLocaleString()}
-        <span className="text-emerald-400">{suffix}</span>
-      </div>
-      <div className="text-sm font-semibold text-zinc-300">{label}</div>
-      <div className="text-xs text-zinc-600 max-w-[150px]">{description}</div>
-    </div>
-  );
-}
-
 /* ─── Main localized landing ─── */
 export function LocalizedLanding({ t, locale }: { t: Translations; locale: Locale }) {
   const [stars, setStars] = useState<number | null>(null);
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
-  const { prices } = useHeroPrices(HERO_LABELS);
-  const tickerSignals = useMemo(() => {
-    const live = SIGNAL_TEMPLATE.map((tpl) => ({
-      ...tpl,
-      price: formatPairPrice(tpl.symbol, prices[tpl.symbol]?.price ?? null),
-    }));
-    return [...live, ...live];
-  }, [prices]);
 
   useEffect(() => {
     fetch("https://api.github.com/repos/naimkatiman/tradeclaw")
@@ -143,28 +73,6 @@ export function LocalizedLanding({ t, locale }: { t: Translations; locale: Local
             {t.hero.subheadline}
           </p>
 
-          {/* Signal ticker */}
-          <div className="relative mt-10 overflow-hidden rounded-xl border border-white/8 bg-[#0a0a0a]">
-            <div className="flex items-center gap-2 border-b border-white/5 px-4 py-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-600">{t.hero.signalFeed}</span>
-            </div>
-            <div className="overflow-hidden py-3">
-              <div className="flex gap-3 w-max" style={{ animation: "ticker 30s linear infinite" }}>
-                {tickerSignals.map((sig, i) => (
-                  <div key={i} className="flex items-center gap-2 rounded-lg border border-white/6 bg-white/3 px-3 py-2 text-xs whitespace-nowrap">
-                    <span className="font-mono font-medium text-white">{sig.symbol}</span>
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide ${sig.direction === "BUY" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
-                      {sig.direction}
-                    </span>
-                    <span className="text-zinc-500">{sig.confidence}%</span>
-                    <span className="font-mono text-zinc-400">{sig.price}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
           {/* CTAs */}
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <a href="#deploy" className="group flex items-center gap-2.5 rounded-full bg-emerald-500 px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98]">
@@ -179,26 +87,6 @@ export function LocalizedLanding({ t, locale }: { t: Translations; locale: Local
               </svg>
               {stars !== null ? `★ ${stars}` : t.hero.ctaSecondary}
             </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Social Proof / Stats ─── */}
-      <section className="px-6 py-24 bg-[#050505]">
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-14">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-1.5 text-xs uppercase tracking-widest text-zinc-500">
-              {t.socialProof.badge}
-            </div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-white">
-              {t.socialProof.title}
-              <span className="text-emerald-400">{t.socialProof.titleAccent}</span>
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {t.socialProof.stats.map((stat, i) => (
-              <StatCard key={i} target={STAT_TARGETS[i]} suffix={STAT_SUFFIXES[i]} label={stat.label} description={stat.description} />
-            ))}
           </div>
         </div>
       </section>
