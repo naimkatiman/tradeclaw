@@ -8,9 +8,6 @@ export const OAUTH_STATE_MAX_AGE_SECONDS = 60 * 10; // 10 minutes
 export interface OAuthStatePayload {
   nonce: string;
   next?: string;
-  priceId?: string;
-  tier?: string;
-  interval?: string;
   issuedAt: number;
 }
 

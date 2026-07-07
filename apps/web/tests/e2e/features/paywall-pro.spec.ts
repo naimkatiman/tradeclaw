@@ -1,9 +1,8 @@
 import { createHmac } from 'node:crypto';
 import { test, expect } from '@playwright/test';
 
-// Authenticated Pro paywall — the unlocked side of tier-journey.spec.ts which
-// only covers the anonymous lockdown. After payment the user must SEE entry,
-// stop-loss, and TP values rather than the `••••` masked pills.
+// Authenticated Pro paywall — the unlocked side of the tier gate. A Pro user
+// must SEE entry, stop-loss, and TP values rather than the `••••` masked pills.
 //
 // Session is forged with the same HMAC pattern used in auth/signin.spec.ts so
 // the test does not need a live OAuth round-trip. The cookie is the only auth

@@ -1,7 +1,3 @@
-import { DelayDemo } from './delay-demo';
-import { SampleTelegramCard } from './sample-telegram-card';
-import { getLandingStats } from '../../lib/landing-stats';
-
 /**
  * ProofHero — the honest, cost-adjusted result, up front.
  *
@@ -13,6 +9,8 @@ import { getLandingStats } from '../../lib/landing-stats';
  * never drift from the equity curve. We do not duplicate or hardcode the cost
  * math. See docs/plans/2026-06-27-reposition-off-raw-pnl.md.
  */
+
+const GITHUB_URL = 'https://github.com/naimkatiman/tradeclaw';
 
 interface EquitySummary {
   totalReturn: number;
@@ -71,23 +69,16 @@ function StatTile({
 }
 
 export async function ProofHero() {
-  let stats = null as Awaited<ReturnType<typeof getLandingStats>> | null;
-  try {
-    stats = await getLandingStats();
-  } catch {
-    stats = null;
-  }
-
   const eq = await fetchEquitySummary();
 
   return (
     <section data-testid="proof-hero" className="mx-auto mt-10 max-w-5xl px-4">
       <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold tracking-tight text-white">
-          We charge every trade its real execution cost. Here&apos;s what&apos;s left.
-        </h2>
+        <h1 className="text-2xl font-bold tracking-tight text-white">
+          We charge every sized trade its modeled execution cost. Here&apos;s what&apos;s left.
+        </h1>
         <p className="mx-auto mt-2 max-w-2xl text-sm text-[var(--text-secondary)]">
-          The headline isn&apos;t a win. After real per-symbol round-trip costs, the
+          The headline isn&apos;t a win. After modeled per-symbol round-trip costs, the
           engine&apos;s net expectancy is negative — single-asset timing doesn&apos;t beat
           what it costs to trade. These numbers update live and match the full{' '}
           <a href="/track-record" className="underline hover:text-white">
@@ -110,7 +101,7 @@ export async function ProofHero() {
             tone={eq.totalReturn < 0 ? 'negative' : 'positive'}
           />
           <StatTile
-            label="Real round-trip cost"
+            label="Modeled round-trip cost"
             value={eq.avgCostR != null ? `${eq.roundTripCostPct ?? '—'}% ≈ ${eq.avgCostR}R` : '—'}
             tone="neutral"
             small
@@ -134,44 +125,25 @@ export async function ProofHero() {
         </p>
       )}
 
-      {/* Product demo (secondary): what Pro delivery looks like. Not a profit
-          claim — just the delivery surface. */}
-      {stats?.samples && (
-        <div className="mt-12">
-          <h2 className="mb-3 text-center text-sm font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
-            Pro (no delay) vs Free (30-min delay)
-          </h2>
-          <DelayDemo pro={stats.samples.pro} free={stats.samples.free} />
-        </div>
-      )}
-
-      {stats?.samples && (
-        <div className="mt-10">
-          <h2 className="mb-3 text-center text-sm font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
-            This is exactly what lands in your Telegram
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <SampleTelegramCard
-              tier="free"
-              symbol={stats.samples.free.symbol}
-              direction={stats.samples.free.direction}
-              entry={stats.samples.free.entry}
-              tp1={stats.samples.free.tp1}
-              timestampLabel={new Date(stats.samples.free.createdAt).toUTCString()}
-              delayLabel="Delivered 30 minutes after Pro"
-            />
-            <SampleTelegramCard
-              tier="pro"
-              symbol={stats.samples.pro.symbol}
-              direction={stats.samples.pro.direction}
-              entry={stats.samples.pro.entry}
-              tp1={stats.samples.pro.tp1}
-              sl={stats.samples.pro.sl}
-              timestampLabel={new Date(stats.samples.pro.createdAt).toUTCString()}
-            />
-          </div>
-        </div>
-      )}
+      <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+        <a
+          href="/track-record"
+          className="group flex items-center gap-2.5 rounded-full bg-emerald-500 px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98]"
+        >
+          See the full track record
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">
+            <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </a>
+        <a
+          href={GITHUB_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-7 py-3 text-sm font-medium text-zinc-300 transition-all duration-200 hover:border-white/20 hover:bg-white/8 hover:text-white"
+        >
+          View the source on GitHub
+        </a>
+      </div>
     </section>
   );
 }

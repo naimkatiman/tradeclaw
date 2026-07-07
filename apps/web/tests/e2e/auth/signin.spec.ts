@@ -72,10 +72,10 @@ test.describe('signin page — Google-only auth', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // 4. Google button href preserves checkout query params
+  // 4. Google button href preserves the next param
   // ---------------------------------------------------------------------------
-  test('Google button href propagates priceId and next params', async ({ page }) => {
-    await page.goto('/signin?priceId=price_test&next=%2Fwelcome');
+  test('Google button href propagates the next param', async ({ page }) => {
+    await page.goto('/signin?next=%2Fwelcome');
     const googleLink = page.getByRole('link', { name: /Continue with Google/i });
     await expect(googleLink).toBeVisible({ timeout: 15_000 });
 
@@ -83,7 +83,6 @@ test.describe('signin page — Google-only auth', () => {
     expect(href).toBeTruthy();
     const u = new URL(href!, 'http://localhost:3000');
     expect(u.pathname).toBe('/api/auth/google/start');
-    expect(u.searchParams.get('priceId')).toBe('price_test');
     expect(u.searchParams.get('next')).toBe('/welcome');
   });
 

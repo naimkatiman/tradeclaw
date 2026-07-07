@@ -43,7 +43,7 @@ const FEATURES: Array<{ icon: LucideIcon; title: string; desc: string }> = [
 const TAGLINES = [
   'Self-hosted AI trading signals. Free forever. Deploy in 5 min.',
   'Open-source Bloomberg terminal for indie traders.',
-  'Stop renting your trading edge. Own it.',
+  'Open-source trading transparency. Every signal logged, graded, and published — wins and losses.',
 ];
 
 const SHORT_DESC =

@@ -10,9 +10,6 @@ const RATE_LIMIT_WINDOW_SECONDS = 60;
 export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => ({}))) as {
     email?: string;
-    priceId?: string;
-    tier?: string;
-    interval?: string;
     next?: string;
   };
   const email = body.email;
@@ -42,9 +39,9 @@ export async function POST(req: NextRequest) {
 
   const { raw } = await issueMagicLink(normalized);
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://tradeclaw.win';
-  // Carry any checkout intent through the link so /verify can resume checkout
-  // instead of dropping the user on /dashboard. All values are sanitized here
-  // and re-sanitized at verify time (the link query is attacker-visible).
+  // Carry `next` through the link so /verify can land the user back where
+  // they started instead of dropping them on /dashboard. Sanitized here and
+  // re-sanitized at verify time (the link query is attacker-visible).
   const intentQuery = buildVerifyIntentQuery(body);
   const link = `${base}/api/auth/magic-link/verify?token=${encodeURIComponent(raw)}${intentQuery}`;
 

@@ -152,15 +152,17 @@ export function UserMenu({ size = 'default' }: UserMenuProps) {
             <User className="w-3.5 h-3.5" />
             Profile & Settings
           </Link>
-          <Link
-            href={session.tier === 'free' ? '/pricing?from=usermenu' : '/dashboard/billing'}
-            onClick={() => setOpen(false)}
-            role="menuitem"
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-zinc-300 hover:bg-white/5 hover:text-white"
-          >
-            <CreditCard className="w-3.5 h-3.5" />
-            {session.tier === 'free' ? 'Upgrade to Pro' : 'Billing'}
-          </Link>
+          {session.tier !== 'free' && (
+            <Link
+              href="/dashboard/billing"
+              onClick={() => setOpen(false)}
+              role="menuitem"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-zinc-300 hover:bg-white/5 hover:text-white"
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              Billing
+            </Link>
+          )}
           <Link
             href="/referrals"
             onClick={() => setOpen(false)}

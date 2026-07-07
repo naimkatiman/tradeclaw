@@ -115,31 +115,15 @@ export async function GET(request: NextRequest) {
     return errorRedirect(request, 'user_upsert_failed');
   }
 
-  // Decide where to send the browser. If the original signin URL carried a
-  // checkout payload (priceId or tier=pro&interval=...), bounce back through
-  // /signin so its existing auto-checkout effect runs (it sees the session
-  // cookie and POSTs to /api/stripe/checkout). Otherwise go to next or /dashboard.
-  const hasCheckoutPayload =
-    !!state.priceId || (state.tier === 'pro' && (state.interval === 'monthly' || state.interval === 'annual'));
-
   // Re-apply safeNext on every read of state.next. The /start route
   // sanitized at write time, but a leaked or attacker-crafted state blob
   // could carry a `//evil.com/` value that would otherwise resolve to a
   // different origin via scheme-relative URL parsing.
   const safeStateNext = safeNext(state.next);
 
-  let target: URL;
-  if (hasCheckoutPayload) {
-    target = new URL('/signin', appOrigin(request));
-    if (state.priceId) target.searchParams.set('priceId', state.priceId);
-    if (state.tier) target.searchParams.set('tier', state.tier);
-    if (state.interval) target.searchParams.set('interval', state.interval);
-    if (safeStateNext) target.searchParams.set('next', safeStateNext);
-  } else if (safeStateNext) {
-    target = new URL(safeStateNext, appOrigin(request));
-  } else {
-    target = new URL('/dashboard', appOrigin(request));
-  }
+  const target = safeStateNext
+    ? new URL(safeStateNext, appOrigin(request))
+    : new URL('/dashboard', appOrigin(request));
 
   const token = createSessionToken(userId);
   const res = NextResponse.redirect(target.toString(), { status: 302 });

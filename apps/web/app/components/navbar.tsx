@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Play, Thermometer, ChevronDown, Activity, ShoppingBag, Briefcase, FlaskConical, BarChart2, BarChart3, Server, Star, Rocket, Mail, Heart, HandHeart, Cloud, MessageSquare, User, Database, BookOpen, Trophy, Crown, Users } from 'lucide-react';
+import { Play, Thermometer, ChevronDown, Activity, ShoppingBag, Briefcase, FlaskConical, BarChart2, BarChart3, Server, Star, Rocket, Mail, Heart, HandHeart, Cloud, MessageSquare, User, Database, BookOpen, Trophy, Users } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { TradeClawLogo } from '../../components/tradeclaw-logo';
 import { UserMenu } from '../../components/UserMenu';
@@ -32,7 +32,6 @@ const MORE_GROUPS: DropdownGroup[] = [
     label: 'Trading',
     links: [
       { href: '/heatmap', label: 'Heatmap', icon: Thermometer },
-      { href: '/premium-signals', label: 'Premium Signals', icon: Crown },
       { href: '/paper-trading', label: 'Paper Trading' },
       { href: '/alerts', label: 'Alerts' },
       { href: '/multi-timeframe', label: 'Multi-TF' },

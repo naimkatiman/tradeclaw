@@ -6,11 +6,10 @@ test.describe('landing proof hero', () => {
     await expect(page.getByTestId('proof-hero')).toBeVisible();
   });
 
-  test('shows the delivery lag tile', async ({ page }) => {
+  test('links to the full track record as the primary CTA', async ({ page }) => {
     await page.goto('/');
     const hero = page.getByTestId('proof-hero');
-    await expect(hero).toContainText(/Pro:\s*<1s/i);
-    await expect(hero).toContainText(/Free:\s*30\s*min/i);
+    await expect(hero.getByRole('link', { name: /See the full track record/i })).toBeVisible();
   });
 
   test('does NOT lead hero with a standalone win-rate percentage', async ({ page }) => {
