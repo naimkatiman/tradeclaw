@@ -335,45 +335,20 @@ CREATE TABLE IF NOT EXISTS broadcast_state (
 );
 
 -- ---------------------------------------------------------------------------
--- 19. App Users & Subscriptions  (lib/db.ts)
+-- 19. App Users  (lib/db.ts)
+-- Monetization (subscriptions, tiers, Telegram invites) was removed in
+-- Phase 2 of the free/open-source pivot — everything is free.
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS app_users (
-  id                  TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  email               TEXT UNIQUE NOT NULL,
-  stripe_customer_id  TEXT,
-  tier                TEXT NOT NULL DEFAULT 'free' CHECK (tier IN ('free', 'pro', 'elite')),
-  tier_expires_at     TIMESTAMPTZ,
-  telegram_user_id    BIGINT
-);
-
-CREATE TABLE IF NOT EXISTS subscriptions (
-  id                      TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  user_id                 TEXT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
-  stripe_subscription_id  TEXT UNIQUE NOT NULL,
-  stripe_customer_id      TEXT NOT NULL,
-  tier                    TEXT NOT NULL CHECK (tier IN ('pro', 'elite')),
-  status                  TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'past_due', 'canceled', 'trialing')),
-  current_period_start    TIMESTAMPTZ NOT NULL,
-  current_period_end      TIMESTAMPTZ NOT NULL,
-  cancel_at_period_end    BOOLEAN NOT NULL DEFAULT false,
-  created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at              TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS telegram_invites (
   id                TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  user_id           TEXT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
-  tier              TEXT NOT NULL CHECK (tier IN ('pro', 'elite')),
-  invite_link       TEXT NOT NULL,
-  telegram_chat_id  BIGINT NOT NULL,
-  is_active         BOOLEAN NOT NULL DEFAULT true,
-  created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
-  expires_at        TIMESTAMPTZ
+  email             TEXT UNIQUE NOT NULL,
+  name              TEXT,
+  avatar_url        TEXT,
+  auth_provider     TEXT CHECK (auth_provider IN ('google', 'github', 'telegram')),
+  telegram_user_id  BIGINT
 );
 
 CREATE INDEX IF NOT EXISTS idx_app_users_email ON app_users(email);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
-CREATE INDEX IF NOT EXISTS idx_telegram_invites_user ON telegram_invites(user_id);
 
 -- ============================================================================
 -- Row Level Security (RLS)
