@@ -1,4 +1,5 @@
 import { queryOne } from './db-pool';
+import { NOT_DARK_STRATEGY_SQL } from './signal-history';
 
 export interface SignalPayload {
   symbol: string;
@@ -63,6 +64,8 @@ export async function getLandingStats(): Promise<LandingStats> {
          FROM signal_history
         WHERE outcome_24h IS NOT NULL
           AND is_simulated = FALSE
+          -- Dark partner strategies (tv-*) never enter public stats.
+          AND ${NOT_DARK_STRATEGY_SQL}
           AND COALESCE(gate_blocked, FALSE) = FALSE
           -- Auto-expired (no TP/SL hit) rows are transparency-only, not
           -- resolved trades — exclude from cumulative P&L / profit factor to
@@ -103,6 +106,7 @@ export async function getLandingStats(): Promise<LandingStats> {
        FROM signal_history
       WHERE created_at >= date_trunc('day', NOW())
         AND is_simulated = FALSE
+        AND ${NOT_DARK_STRATEGY_SQL}
         AND COALESCE(gate_blocked, FALSE) = FALSE`
   );
   const signalsToday = Number(todayRes?.c ?? 0);
@@ -111,6 +115,7 @@ export async function getLandingStats(): Promise<LandingStats> {
     `SELECT pair, direction, entry_price, tp1, sl, confidence, created_at
        FROM signal_history
       WHERE is_simulated = FALSE
+        AND ${NOT_DARK_STRATEGY_SQL}
         AND COALESCE(gate_blocked, FALSE) = FALSE
       ORDER BY created_at DESC
       LIMIT 1`
