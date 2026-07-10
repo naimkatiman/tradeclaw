@@ -40,11 +40,10 @@ export function TermsClient() {
         </div>
 
         <div>
-          <h2 className="mb-2 text-lg font-semibold text-[var(--foreground)]">4. Subscriptions & Billing</h2>
+          <h2 className="mb-2 text-lg font-semibold text-[var(--foreground)]">4. Free Service</h2>
           <p>
-            Pro and Elite subscriptions are billed via Stripe. You may cancel at any time through the billing
-            portal. No refunds are provided for partial billing periods unless required by law. Prices are
-            subject to change with 30 days notice.
+            TradeClaw is free to use. Nothing on the platform is sold and no payment details are collected.
+            The service is provided &quot;as is&quot; with no uptime or availability commitments.
           </p>
         </div>
 
@@ -52,8 +51,7 @@ export function TermsClient() {
           <h2 className="mb-2 text-lg font-semibold text-[var(--foreground)]">5. Open Source License</h2>
           <p>
             The TradeClaw codebase is released under the MIT License. You are free to self-host, modify, and
-            distribute the software subject to the terms of that license. The MIT License does not extend to
-            paid subscription services, hosted data, or premium signal content.
+            distribute the software subject to the terms of that license.
           </p>
         </div>
 
