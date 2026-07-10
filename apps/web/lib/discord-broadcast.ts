@@ -1,8 +1,13 @@
 import 'server-only';
 
 import { query, queryOne, execute } from './db-pool';
-import { FREE_SYMBOLS } from './tier';
+import { NOT_DARK_STRATEGY_SQL } from './signal-history';
 import { sendDiscordWebhook, type AlertSignal } from './alert-channels';
+
+// Inlined from the deleted tier canon (Phase 2 pass A). Mirrors the public
+// Telegram channel's curated symbol list; pass B owns the broadcast rework
+// and may widen or drop this list.
+const PUBLIC_CHANNEL_SYMBOLS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'SPYUSD', 'QQQUSD'] as const;
 
 /**
  * Env-keyed Discord broadcaster for TradeClaw's own generated signals (issue #38).
@@ -59,6 +64,8 @@ export async function broadcastSignalsToDiscord(webhookUrl: string): Promise<Dis
     FROM signal_history sh
     WHERE discord_posted_at IS NULL
       AND is_simulated = false
+      -- Dark partner strategies (tv-*) are never publicly broadcast.
+      AND ${NOT_DARK_STRATEGY_SQL}
       AND pair = ANY($1)
       AND confidence >= 80
       AND created_at >= NOW() - INTERVAL '2 hours'
@@ -73,7 +80,7 @@ export async function broadcastSignalsToDiscord(webhookUrl: string): Promise<Dis
     ORDER BY pair, direction, confidence DESC, created_at DESC
     LIMIT 10
     `,
-    [[...FREE_SYMBOLS]],
+    [[...PUBLIC_CHANNEL_SYMBOLS]],
   );
 
   let posted = 0;

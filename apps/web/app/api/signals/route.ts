@@ -4,40 +4,18 @@ import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 import { readLiveSignals } from '../../../lib/signals-live';
 import { fetchResolvedRegimeMap } from '../../../lib/regime-resolution';
 import { filterSignalsByRegime, getDominantRegime } from '../../../lib/regime-filter';
-import { readSessionFromRequest } from '../../../lib/user-session';
-import {
-  getUserTier,
-  filterSignalByTier,
-  TIER_DELAY_MS,
-  splitDelayed,
-} from '../../../lib/tier';
-import type { TradingSignal } from '../../lib/signals';
-
 // Re-export types for consumers that imported from here
 export type { TradingSignal, IndicatorSummary } from '../../lib/signals';
 
-// Tier gating depends on the per-request session cookie. Force dynamic so
-// Next.js never caches a tier-specific response across users — and so the
-// post-webhook tier flip is observed on the very next request rather than
-// whenever the route segment cache happens to expire.
+// Responses are identical for everyone (the tier system is gone), but the
+// route still runs per-request side effects (recording, alert fan-out) and
+// reads the live signals file, so keep it dynamic.
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    // Resolve user tier for gating
-    const session = readSessionFromRequest(request);
-    const tier = session?.userId
-      ? await getUserTier(session.userId)
-      : 'free' as const;
-    const delayMs = TIER_DELAY_MS[tier];
-
-    // Anonymous responses are identical for everyone within the 5-min data
-    // window — let shared caches absorb them. Signed-in responses are
-    // tier-gated and stay private. ('private, s-maxage' was contradictory:
-    // private forbids the shared caches s-maxage addresses.)
-    const cacheControl = session?.userId
-      ? 'private, no-store'
-      : 'public, max-age=60, stale-while-revalidate=240';
+    // Same response for everyone — let shared caches absorb it.
+    const cacheControl = 'public, max-age=60, stale-while-revalidate=240';
 
     const { searchParams } = new URL(request.url);
     const symbolFilter = searchParams.get('symbol')?.toUpperCase();
@@ -107,28 +85,19 @@ export async function GET(request: NextRequest) {
       // Regime filter: remove signals going against the current market regime
       mapped = filterSignalsByRegime(mapped, regimeMap);
 
-      // Tier-based gating: symbol filter, TP masking, delay
-      const gatedMapped = mapped
-        .map(s => filterSignalByTier(s as unknown as TradingSignal, tier))
-        .filter((s): s is NonNullable<typeof s> => s !== null);
-
-      const { visible: visibleMapped, locked: lockedMapped } = splitDelayed(gatedMapped, delayMs);
-
       return NextResponse.json({
-        count: visibleMapped.length,
+        count: mapped.length,
         timestamp: new Date().toISOString(),
-        tier,
         engine: {
           source: 'tradingview-confluence',
-          real: visibleMapped.length,
+          real: mapped.length,
           fallback: 0,
           version: '3.1.0',
           generated_at: liveData.generatedAt,
           regime: dominantRegime,
         },
         filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence, minConfluence },
-        signals: visibleMapped,
-        lockedSignals: lockedMapped,
+        signals: mapped,
         syntheticSymbols: [],  // no synthetic — real data from Python engine
       }, {
         headers: { 'Cache-Control': cacheControl },
@@ -157,27 +126,18 @@ export async function GET(request: NextRequest) {
     // Regime filter: remove signals going against the current market regime
     const signals = filterSignalsByRegime(cachedSignals, regimeMap);
 
-    // Tier-based gating: symbol filter, TP masking, delay
-    const gatedSignals = signals
-      .map(s => filterSignalByTier(s, tier))
-      .filter((s): s is NonNullable<typeof s> => s !== null);
-
-    const { visible: visibleSignals, locked: lockedSignals } = splitDelayed(gatedSignals, delayMs);
-
     return NextResponse.json({
-      count: visibleSignals.length,
+      count: signals.length,
       timestamp: new Date().toISOString(),
-      tier,
       engine: {
-        real: visibleSignals.filter(s => s.source === 'real').length,
-        fallback: visibleSignals.filter(s => s.source === 'fallback').length,
+        real: signals.filter(s => s.source === 'real').length,
+        fallback: signals.filter(s => s.source === 'fallback').length,
         version: '2.1.0',
         note: liveData?.isStale ? 'TA engine fallback (live signals file is stale)' : 'TA engine fallback (live signals file not present — expected on Railway, written only by local Python scanner)',
         regime: dominantRegime,
       },
       filters: { symbol: symbolFilter, timeframe: timeframeFilter, direction: directionFilter, minConfidence },
-      signals: visibleSignals,
-      lockedSignals,
+      signals,
       syntheticSymbols,
     }, {
       headers: { 'Cache-Control': cacheControl },

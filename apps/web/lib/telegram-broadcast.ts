@@ -19,8 +19,15 @@ import { fetchResolvedRegimeMap } from './regime-resolution';
 import { filterSignalsByRegime } from './regime-filter';
 import { markTelegramPosted } from './signal-history';
 import { runRiskPipeline, type RiskReport } from './risk-pipeline';
-import { isFreeSymbol } from './tier-client';
 import { HIGH_CONFIDENCE_THRESHOLD } from './signal-thresholds';
+
+// Inlined from the deleted tier canon (Phase 2 pass A). Which symbols the
+// public channel curates is a Telegram broadcast decision, not a tier gate;
+// pass B owns the Telegram rework and may widen or drop this list.
+const PUBLIC_CHANNEL_SYMBOLS = new Set(['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'SPYUSD', 'QQQUSD']);
+function isPublicChannelSymbol(symbol: string): boolean {
+  return PUBLIC_CHANNEL_SYMBOLS.has(symbol);
+}
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -272,9 +279,9 @@ function mapLiveToTradingSignal(s: LiveSignal): TradingSignal {
  * Fetch top signals, post EACH as a separate message (like WolfX),
  * and save message_id to signal_history for reply threading.
  *
- * @param opts.freeOnly - when true, restrict broadcast to FREE_SYMBOLS
- *   (BTCUSD/ETHUSD/XAUUSD). Used for the public Telegram channel.
- *   When false/undefined, all symbols pass (for paid Pro/Elite groups).
+ * @param opts.freeOnly - when true, restrict broadcast to the public
+ *   channel's curated symbol list (PUBLIC_CHANNEL_SYMBOLS). All current
+ *   callers pass true; false/undefined broadcasts every symbol.
  */
 export async function broadcastTopSignals(
   channelId: string,
@@ -301,7 +308,7 @@ export async function broadcastTopSignals(
 
   let filtered = filterSignalsByRegime(mapped, regimeMap);
   if (opts.freeOnly) {
-    filtered = filtered.filter((s) => isFreeSymbol(s.symbol));
+    filtered = filtered.filter((s) => isPublicChannelSymbol(s.symbol));
   }
   const top = filtered.slice(0, 3);
 

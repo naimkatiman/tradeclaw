@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isCountedResolved, type SignalHistoryRecord } from '../../../../lib/signal-history';
-import { PRO_PREMIUM_MIN_CONFIDENCE } from '../../../../lib/tier';
+import { HIGH_CONFIDENCE_BAND_MIN } from '../../../../lib/signal-thresholds';
 import { getResolvedSlice, parseScope, type SignalScope } from '../../../../lib/signal-slice';
 import { parseCategoryFilter, symbolsForCategory } from '../../../lib/symbol-config';
 import { costModelFor } from '@tradeclaw/strategies';
@@ -113,8 +113,8 @@ function parseBand(raw: string | null): EquityBand {
 }
 
 function inBand(record: SignalHistoryRecord, band: EquityBand): boolean {
-  if (band === 'premium') return record.confidence >= PRO_PREMIUM_MIN_CONFIDENCE;
-  if (band === 'standard') return record.confidence < PRO_PREMIUM_MIN_CONFIDENCE;
+  if (band === 'premium') return record.confidence >= HIGH_CONFIDENCE_BAND_MIN;
+  if (band === 'standard') return record.confidence < HIGH_CONFIDENCE_BAND_MIN;
   return true;
 }
 
@@ -336,9 +336,8 @@ export async function GET(request: NextRequest) {
     const period = searchParams.get('period');
     const band = parseBand(searchParams.get('band'));
     // Mirror /api/signals/history: scope=pro (default) is the full track
-    // record; scope=free narrows to free-tier symbols + 1d window. Track
-    // record is intentionally not gated by caller tier — the comparison is
-    // the marketing pitch.
+    // record; scope=broadcast narrows to gate-approved rows. Everything is
+    // free — there is no tier window on any scope.
     const scope = parseScope(searchParams.get('scope'));
     const category = parseCategoryFilter(searchParams.get('category'));
     // summaryOnly drops the (potentially ~3.3k-point) `points` array and

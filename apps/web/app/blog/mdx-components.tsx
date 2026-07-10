@@ -2,7 +2,15 @@ import Link from 'next/link';
 import type { ComponentPropsWithoutRef } from 'react';
 import { EmailCapture } from './components/EmailCapture';
 import { RelatedPosts } from './components/RelatedPosts';
-import { TrialCTA } from './components/TrialCTA';
+
+/**
+ * TradeClaw is fully free — the trial CTA component was deleted with the
+ * tier system. Legacy MDX posts still contain <TrialCTA …/> tags; this
+ * null stub keeps them rendering until a content pass strips the tags.
+ */
+function TrialCTA() {
+  return null;
+}
 
 type AnchorProps = ComponentPropsWithoutRef<'a'>;
 

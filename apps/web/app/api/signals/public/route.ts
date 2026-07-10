@@ -1,25 +1,24 @@
 import { NextResponse } from 'next/server';
 import { getTrackedSignals } from '../../../../lib/tracked-signals';
-import { toTeaser } from '../../../../lib/signal-teaser';
-import { getStrategiesForTier } from '../../../../lib/tier';
 import { redis, isRedisAvailable, redisKey } from '../../../../lib/redis';
+import type { TradingSignal } from '../../../lib/signals';
 
 const CACHE_TTL_SECONDS = 60;
-const CACHE_KEY = redisKey('signals:public:teasers');
+const CACHE_KEY = redisKey('signals:public:full');
 
-interface TeaserCache {
+interface PublicCache {
   count: number;
-  signals: ReturnType<typeof toTeaser>[];
+  signals: TradingSignal[];
   cachedAt: number;
 }
 
 /**
  * GET /api/signals/public
  *
- * Anonymous teaser feed for the marketing landing. Callers get
- * symbol/direction/confidence/timestamp only — no id, no entry, no
- * stop, no targets. Safe to cache publicly. Scraping a full page
- * of these reveals nothing actionable.
+ * Anonymous signal feed. The teaser masking is retired — everything is free
+ * for everyone, so anonymous callers get the same full signal payload
+ * (entry, SL, TPs, indicators) as /api/signals. Path kept for existing
+ * consumers. Safe to cache publicly.
  */
 export async function GET(): Promise<NextResponse> {
   try {
@@ -28,7 +27,7 @@ export async function GET(): Promise<NextResponse> {
       try {
         const raw = await redis.get(CACHE_KEY);
         if (raw) {
-          const parsed = JSON.parse(raw) as TeaserCache;
+          const parsed = JSON.parse(raw) as PublicCache;
           const ageSeconds = (Date.now() - parsed.cachedAt) / 1000;
           if (ageSeconds < CACHE_TTL_SECONDS) {
             return NextResponse.json(
@@ -42,18 +41,15 @@ export async function GET(): Promise<NextResponse> {
       }
     }
 
-    const { signals } = await getTrackedSignals({
-      ctx: { unlockedStrategies: getStrategiesForTier('free') },
-    });
-    const teasers = signals.map(toTeaser);
-    const response = { count: teasers.length, signals: teasers };
+    const { signals } = await getTrackedSignals({});
+    const response = { count: signals.length, signals };
 
     // Write to Redis cache
     if (isRedisAvailable() && redis) {
       try {
-        const cachePayload: TeaserCache = {
+        const cachePayload: PublicCache = {
           count: response.count,
-          signals: teasers,
+          signals,
           cachedAt: Date.now(),
         };
         await redis.set(CACHE_KEY, JSON.stringify(cachePayload), 'EX', CACHE_TTL_SECONDS);

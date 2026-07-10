@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateSignalExplanation } from '../../lib/signal-explainer';
 import { getTrackedSignalsForRequest } from '../../../lib/tracked-signals';
 import { getPreviousDirectionAsync } from '../../../lib/signal-history';
-import { getTierFromRequest, upgradeRequiredBody, meetsMinimumTier } from '../../../lib/tier';
 import { check as rateLimitCheck } from '../../../lib/rate-limit';
 import type { TradingSignal } from '../../lib/signals';
 
-const EXPLAIN_FREE_MAX = 10;
+// Abuse guard for the LLM call — not a tier gate. One generous limit for
+// every caller (the tier system is gone).
+const EXPLAIN_MAX_PER_WINDOW = 50;
 const EXPLAIN_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 /**
@@ -22,32 +23,29 @@ function rateLimitKey(req: NextRequest, userId: string | undefined): string {
 }
 
 /**
- * Gate: Pro+ bypass; free/anon callers get 10 calls / 24h rolling.
+ * Abuse guard: every caller gets the same rolling window on the LLM call.
  * Returns a NextResponse when the caller is denied; returns null when
  * the call should proceed.
  */
 async function enforceExplainQuota(req: NextRequest): Promise<NextResponse | null> {
-  const tier = await getTierFromRequest(req);
-  if (meetsMinimumTier(tier, 'pro')) return null;
-
   const { readSessionFromRequest } = await import('../../../lib/user-session');
   const session = readSessionFromRequest(req);
   const key = rateLimitKey(req, session?.userId);
-  const decision = await rateLimitCheck(key, { max: EXPLAIN_FREE_MAX, windowMs: EXPLAIN_WINDOW_MS });
+  const decision = await rateLimitCheck(key, { max: EXPLAIN_MAX_PER_WINDOW, windowMs: EXPLAIN_WINDOW_MS });
 
   if (!decision.allowed) {
     return NextResponse.json(
-      upgradeRequiredBody({
-        reason: `AI Analysis is limited to ${EXPLAIN_FREE_MAX} calls per 24 hours on Free. Upgrade to Pro for unlimited.`,
-        source: 'explain-quota',
+      {
+        error: 'rate_limited',
+        reason: `AI Analysis is limited to ${EXPLAIN_MAX_PER_WINDOW} calls per 24 hours.`,
         limit: {
           kind: 'rate',
           used: decision.used,
-          max: EXPLAIN_FREE_MAX,
+          max: EXPLAIN_MAX_PER_WINDOW,
           windowHours: 24,
         },
-      }),
-      { status: 402 },
+      },
+      { status: 429 },
     );
   }
   return null;

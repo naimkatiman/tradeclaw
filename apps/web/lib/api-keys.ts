@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 
+/** Legacy label persisted on pre-pivot key rows. No longer written. */
 export type ApiKeyTier = 'free' | 'pro' | 'elite';
 
 export interface ApiKey {
@@ -18,7 +19,8 @@ export interface ApiKey {
   status: 'active' | 'revoked';
   // kept for backward-compat with existing [id]/route.ts toggle handler
   active: boolean;
-  tier: ApiKeyTier;
+  /** Legacy field on pre-pivot rows; keys are no longer tiered. */
+  tier?: ApiKeyTier;
 }
 
 export interface RateLimitEntry {
@@ -40,13 +42,10 @@ const USAGE_FILE = path.join(DATA_DIR, 'api-key-usage.json');
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
-// Tier-aligned rate limits per ROADMAP 3.6
-// Elite gets 0 (unlimited) — checkRateLimit skips enforcement when limit <= 0.
-export const TIER_RATE_LIMITS: Record<ApiKeyTier, number> = {
-  free: 10,
-  pro: 100,
-  elite: 0,
-};
+// Single rate limit for every key — the tier ladder is gone. Sized at the
+// former paid limit. checkRateLimit skips enforcement when a stored legacy
+// row carries limit <= 0.
+export const API_RATE_LIMIT_PER_HOUR = 100;
 
 function ensureDir() {
   try {
@@ -73,10 +72,9 @@ function seedKeys(): ApiKey[] {
       createdAt: now - 14 * DAY_MS,
       lastUsedAt: now - 2 * DAY_MS,
       requestCount: 340,
-      rateLimit: TIER_RATE_LIMITS['free'],
+      rateLimit: API_RATE_LIMIT_PER_HOUR,
       status: 'revoked',
       active: false,
-      tier: 'free',
     },
     {
       id: 'demo-key-2',
@@ -88,10 +86,9 @@ function seedKeys(): ApiKey[] {
       createdAt: now - 7 * DAY_MS,
       lastUsedAt: now - DAY_MS,
       requestCount: 892,
-      rateLimit: TIER_RATE_LIMITS['free'],
+      rateLimit: API_RATE_LIMIT_PER_HOUR,
       status: 'revoked',
       active: false,
-      tier: 'free',
     },
     {
       id: 'demo-key-3',
@@ -103,10 +100,9 @@ function seedKeys(): ApiKey[] {
       createdAt: now - 3 * DAY_MS,
       lastUsedAt: now - 3600000,
       requestCount: 1247,
-      rateLimit: TIER_RATE_LIMITS['free'],
+      rateLimit: API_RATE_LIMIT_PER_HOUR,
       status: 'revoked',
       active: false,
-      tier: 'free',
     },
   ];
 }
@@ -133,7 +129,6 @@ export function createKey(opts: {
   email: string;
   description?: string;
   scopes?: ('signals' | 'leaderboard' | 'screener')[];
-  tier?: ApiKeyTier;
 }): ApiKey {
   const keys = readKeys();
   const newKey: ApiKey = {
@@ -146,10 +141,9 @@ export function createKey(opts: {
     createdAt: Date.now(),
     lastUsedAt: null,
     requestCount: 0,
-    rateLimit: TIER_RATE_LIMITS[opts.tier ?? 'free'],
+    rateLimit: API_RATE_LIMIT_PER_HOUR,
     status: 'active',
     active: true,
-    tier: opts.tier ?? 'free',
   };
   keys.push(newKey);
   writeKeys(keys);
@@ -236,7 +230,7 @@ function writeUsage(data: Record<string, RateLimitEntry>) {
 }
 
 export function checkRateLimit(keyId: string, hourlyLimit: number): { allowed: boolean; remaining: number; resetAt: number } {
-  // Elite / unlimited tier: skip enforcement entirely
+  // Unlimited keys (legacy limit <= 0): skip enforcement entirely
   if (hourlyLimit <= 0) {
     return { allowed: true, remaining: -1, resetAt: Date.now() + HOUR_MS };
   }

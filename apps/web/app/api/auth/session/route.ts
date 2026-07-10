@@ -20,33 +20,16 @@ export async function GET(request: NextRequest) {
     return res;
   }
   const { isAdminEmail } = await import('../../../../lib/admin-emails');
-  const { getUserTier } = await import('../../../../lib/tier');
-  const { getUserSubscription } = await import('../../../../lib/db');
   const isAdmin = isAdminEmail(user.email);
-  // Resolve effective tier (DB sub OR email grant) so the client gates match
-  // what server routes use via resolveAccessContext. Also surface the raw
-  // Stripe subscription status so the dashboard can render a past_due
-  // banner during the grace window — the effective tier hides past_due
-  // until the grace expires, so the banner needs the unmasked state.
-  const [tier, sub] = await Promise.all([
-    getUserTier(user.id),
-    getUserSubscription(user.id),
-  ]);
   return NextResponse.json({
     success: true,
     data: {
       userId: user.id,
       email: user.email,
-      tier,
       isAdmin,
-      subscriptionStatus: sub?.status ?? null,
-      currentPeriodEnd: sub?.currentPeriodEnd.toISOString() ?? null,
-      cancelAtPeriodEnd: sub?.cancelAtPeriodEnd ?? false,
-      trialEnd: sub?.trialEnd?.toISOString() ?? null,
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       authProvider: user.authProvider,
-      referralCode: user.referralCode,
     },
   });
 }

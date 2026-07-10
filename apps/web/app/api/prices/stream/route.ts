@@ -10,7 +10,7 @@
 import { NextRequest } from 'next/server';
 import { getLivePrices, SYMBOLS, getSignals, type TradingSignal } from '../../../lib/signals';
 import { fetchHubQuotes, isHubEnabled } from '../../../lib/data-providers';
-import { applyTierSignalVisibility, getTierFromRequest, type Tier } from '../../../../lib/tier';
+
 
 /* ── Known symbols (used to validate ?pairs= query param) ── */
 const KNOWN_SYMBOLS = new Set(SYMBOLS.map(s => s.symbol));
@@ -57,10 +57,10 @@ async function fetchHubPrices(): Promise<Map<string, { price: number; change24h:
 }
 
 /* ── Fetch real signals from the TA engine ── */
-async function fetchVisibleSignals(tier: Tier): Promise<TradingSignal[]> {
+async function fetchVisibleSignals(): Promise<TradingSignal[]> {
   try {
     const { signals } = await getSignals({});
-    return applyTierSignalVisibility(signals, tier).visible;
+    return signals;
   } catch {
     return [];
   }
@@ -143,7 +143,7 @@ async function fetchBinancePrices(): Promise<Map<string, { price: number; change
 
 /* ── GET handler ── */
 export async function GET(req: NextRequest) {
-  const tier = await getTierFromRequest(req);
+
   const pairsParam = req.nextUrl.searchParams.get('pairs');
   const requestedPairs = pairsParam
     ? pairsParam.split(',').filter(s => KNOWN_SYMBOLS.has(s))
@@ -265,7 +265,7 @@ export async function GET(req: NextRequest) {
         if (closed) return;
         void (async () => {
           try {
-            const signals = await fetchVisibleSignals(tier);
+            const signals = await fetchVisibleSignals();
             if (closed) return;
             for (const sig of signals) {
               if (emittedSignalIds.has(sig.id)) continue;
@@ -300,7 +300,7 @@ export async function GET(req: NextRequest) {
         if (closed) return;
         void (async () => {
           try {
-            const signals = await fetchVisibleSignals(tier);
+            const signals = await fetchVisibleSignals();
             if (closed) return;
             for (const sig of signals) {
               if (emittedSignalIds.has(sig.id)) continue;

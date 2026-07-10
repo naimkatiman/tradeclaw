@@ -11,22 +11,10 @@ import {
   MessageCircle,
   Mail,
   Webhook as WebhookIcon,
-  Sparkles,
   CircleAlert,
   TrendingUp,
 } from 'lucide-react';
-import { useUserTier } from '../../../lib/hooks/use-user-tier';
-import { useUpgradeModal } from '../../../components/UpgradeModal';
 import AlertChannelConfigPanel from './AlertChannelConfig';
-
-const FREE_ACTIVE_RULE_CAP = 3;
-
-interface UpgradeRequiredBody {
-  error: 'upgrade_required';
-  reason: string;
-  limit?: { kind: 'rate' | 'count'; used: number; max: number; windowHours?: number };
-  upgradeUrl: string;
-}
 
 type Channel = 'telegram' | 'discord' | 'email' | 'webhook';
 
@@ -75,18 +63,11 @@ function defaultRule(): Omit<AlertRule, 'id'> {
 }
 
 export default function UnifiedAlertSetup() {
-  const tier = useUserTier();
-  const isFree = tier === null || tier === 'free';
-  const { showUpgrade, modal: upgradeModal } = useUpgradeModal();
   const [rules, setRules] = useState<AlertRule[]>([]);
   const [draft, setDraft] = useState(defaultRule());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [atCap, setAtCap] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-
-  const activeCount = rules.filter((r) => r.enabled).length;
-  const remainingFree = Math.max(0, FREE_ACTIVE_RULE_CAP - activeCount);
 
   useEffect(() => {
     fetch('/api/alert-rules')
@@ -103,30 +84,14 @@ export default function UnifiedAlertSetup() {
   }, []);
 
   async function handleCreate() {
-    // Pre-check: if free user is at cap, show modal instead of hitting API
-    if (isFree && draft.enabled && activeCount >= FREE_ACTIVE_RULE_CAP) {
-      showUpgrade(
-        'Alert rule limit reached',
-        `Free accounts can have ${FREE_ACTIVE_RULE_CAP} active alert rules. Upgrade to Pro for unlimited rules across all symbols and channels.`,
-        'alert-rules-cap',
-      );
-      return;
-    }
     setSaving(true);
     setError(null);
-    setAtCap(false);
     try {
       const res = await fetch('/api/alert-rules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(draft),
       });
-      if (res.status === 402) {
-        const d = (await res.json()) as UpgradeRequiredBody;
-        setError(d.reason);
-        setAtCap(true);
-        return;
-      }
       if (!res.ok) {
         const d = await res.json();
         setError(typeof d.error === 'string' ? d.error : JSON.stringify(d.error));
@@ -166,7 +131,6 @@ export default function UnifiedAlertSetup() {
       className="min-h-screen bg-[#050505] text-white"
       style={{ fontFamily: 'var(--font-geist-sans, sans-serif)' }}
     >
-      {upgradeModal}
       <div className="border-b border-[#1a1a1a]">
         <div className="max-w-3xl mx-auto px-6 py-6">
           <Link
@@ -191,25 +155,6 @@ export default function UnifiedAlertSetup() {
           <div className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
             <CircleAlert className="h-4 w-4 mt-0.5 flex-shrink-0" />
             <span>{loadError}</span>
-          </div>
-        )}
-
-        {isFree && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-4 py-3">
-            <div className="flex items-center gap-2 text-xs text-emerald-300">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span className="font-mono">
-                Free tier: {activeCount} / {FREE_ACTIVE_RULE_CAP} active rules used
-                {remainingFree === 0 ? ' (at cap)' : ''}
-              </span>
-            </div>
-            <Link
-              href="/pricing?from=alert-rules"
-              className="inline-flex items-center gap-1 shrink-0 rounded-md bg-emerald-500 px-3 py-1 text-[11px] font-semibold text-black transition-colors hover:bg-emerald-400"
-            >
-              Unlimited on Pro
-              <ArrowLeft className="h-3 w-3 rotate-180" />
-            </Link>
           </div>
         )}
 
@@ -314,14 +259,6 @@ export default function UnifiedAlertSetup() {
                 <CircleAlert className="h-3.5 w-3.5 flex-shrink-0" />
                 {error}
               </p>
-              {atCap && (
-                <Link
-                  href="/pricing?from=alert-rules"
-                  className="shrink-0 rounded-md bg-emerald-500 px-2.5 py-1 text-[11px] font-semibold text-black hover:bg-emerald-400 transition-colors"
-                >
-                  Upgrade
-                </Link>
-              )}
             </div>
           )}
 

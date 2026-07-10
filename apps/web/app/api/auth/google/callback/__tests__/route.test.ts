@@ -105,15 +105,10 @@ describe('GET /api/auth/google/callback', () => {
     mockedUpsertUser.mockResolvedValueOnce({
       id: 'user-1',
       email: 'naim@example.com',
-      stripeCustomerId: null,
-      tier: 'free',
-      tierExpiresAt: null,
       telegramUserId: null,
       displayName: null,
       avatarUrl: null,
       authProvider: null,
-      referralCode: null,
-      referredBy: null,
     });
 
     const fetchMock = setFetch([
@@ -184,15 +179,10 @@ describe('GET /api/auth/google/callback', () => {
     mockedUpsertUser.mockResolvedValueOnce({
       id: 'user-1',
       email: 'naim@example.com',
-      stripeCustomerId: null,
-      tier: 'free',
-      tierExpiresAt: null,
       telegramUserId: null,
       displayName: null,
       avatarUrl: null,
       authProvider: null,
-      referralCode: null,
-      referredBy: null,
     });
     setFetch([
       { ok: true, json: async () => ({ access_token: 'gat_xyz' }) },
@@ -322,15 +312,10 @@ describe('GET /api/auth/google/callback', () => {
     mockedUpsertUser.mockResolvedValueOnce({
       id: 'user-1',
       email: 'naim@example.com',
-      stripeCustomerId: null,
-      tier: 'free',
-      tierExpiresAt: null,
       telegramUserId: null,
       displayName: 'Naim',
       avatarUrl: null,
       authProvider: 'google',
-      referralCode: null,
-      referredBy: null,
     });
     setFetch([
       { ok: true, json: async () => ({ access_token: 'gat_xyz' }) },
@@ -369,15 +354,10 @@ describe('GET /api/auth/google/callback', () => {
     mockedUpsertUser.mockResolvedValueOnce({
       id: 'user-1',
       email: 'naim@example.com',
-      stripeCustomerId: null,
-      tier: 'free',
-      tierExpiresAt: null,
       telegramUserId: null,
       displayName: null,
       avatarUrl: null,
       authProvider: 'google',
-      referralCode: null,
-      referredBy: null,
     });
     setFetch([
       { ok: true, json: async () => ({ access_token: 'gat_xyz' }) },

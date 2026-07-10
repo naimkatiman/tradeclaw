@@ -1,8 +1,13 @@
 import { getCachedHistory } from './signal-history-cache';
 import { isCountedResolved, type SignalHistoryRecord } from './signal-history';
-import { TIER_SYMBOLS, TIER_HISTORY_DAYS } from './tier';
 
-export type SignalScope = 'pro' | 'free' | 'broadcast';
+/**
+ * 'pro' is the full row set (name kept for URL/query-param compatibility —
+ * scope=pro links exist in the wild). 'free' is accepted by parseScope and
+ * mapped to the full set: the tier windows are gone, everyone gets everything.
+ * 'broadcast' remains an honest segmentation (gate-approved rows only).
+ */
+export type SignalScope = 'pro' | 'broadcast';
 
 const PERIOD_DAYS: Record<string, number> = {
   '7d': 7,
@@ -14,7 +19,7 @@ const PERIOD_DAYS: Record<string, number> = {
 };
 
 export interface ResolvedSlice {
-  /** Records after scope filter (free narrows to free symbols + 24h window). */
+  /** Records after scope filter ('broadcast' narrows to gate-approved rows). */
   scopedRecords: SignalHistoryRecord[];
   /** Records after scope + period filter. The shared row set both endpoints stat from. */
   periodFiltered: SignalHistoryRecord[];
@@ -28,7 +33,6 @@ export interface ResolvedSlice {
 }
 
 export function parseScope(raw: string | null | undefined): SignalScope {
-  if (raw === 'free') return 'free';
   if (raw === 'broadcast') return 'broadcast';
   return 'pro';
 }
@@ -50,16 +54,11 @@ export async function getResolvedSlice(opts: {
   const all = await getCachedHistory();
   const now = Date.now();
 
-  let scopedRecords = all;
-  if (opts.scope === 'free') {
-    const allowed = TIER_SYMBOLS.free;
-    const days = TIER_HISTORY_DAYS.free;
-    scopedRecords = scopedRecords.filter(r => allowed.includes(r.pair));
-    if (days !== null) {
-      const cutoff = now - days * 86_400_000;
-      scopedRecords = scopedRecords.filter(r => r.timestamp >= cutoff);
-    }
-  } else if (opts.scope === 'broadcast') {
+  // TradingView partner strategies stay dark pending partner sign-off (plan
+  // open decision #4) — exclude any tv-* rows from every public slice
+  // (history, equity, leaderboard, track-record stats) in one place.
+  let scopedRecords = all.filter(r => !(r.strategyId ?? '').startsWith('tv-'));
+  if (opts.scope === 'broadcast') {
     // Pro-broadcast subset: rows whose gate decision (regime + winning-cells
     // + risk pipeline) ran at emission AND approved. Strict === false — NULL
     // (pre-048 rows, or pipeline-outage fallbacks where the gate never ran)

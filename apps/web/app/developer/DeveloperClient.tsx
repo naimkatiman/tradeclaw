@@ -115,7 +115,7 @@ export default function DeveloperClient() {
             TradeClaw <span className="text-emerald-400">Developer API</span>
           </h1>
           <p className="text-[var(--text-secondary)] text-sm max-w-xl">
-            Access live trading signals (5-minute cadence) programmatically. Free tier includes 1,000 requests/day.
+            Access live trading signals (5-minute cadence) programmatically. One plan: free — 100 requests/hour per key.
           </p>
         </div>
 
@@ -199,14 +199,14 @@ export default function DeveloperClient() {
                             ? 'bg-red-500/20 text-red-400'
                             : 'bg-emerald-500/20 text-emerald-400'
                         }`}>
-                          {k.status ?? 'Free'}
+                          {k.status ?? 'active'}
                         </span>
                       </div>
                       <div className="mt-2">
                         <div className="flex justify-between text-xs text-[var(--text-secondary)]">
-                          <span>{(k.requestCount ?? 0).toLocaleString()} / {(k.rateLimit ?? 1000).toLocaleString()} req/hr</span>
+                          <span>{(k.requestCount ?? 0).toLocaleString()} / {(k.rateLimit ?? 100).toLocaleString()} req/hr</span>
                         </div>
-                        <UsageBar used={k.requestCount ?? 0} limit={k.rateLimit ?? 1000} />
+                        <UsageBar used={k.requestCount ?? 0} limit={k.rateLimit ?? 100} />
                       </div>
                       <p className="text-xs text-[var(--text-secondary)] mt-1.5">
                         Created {new Date(k.createdAt).toLocaleDateString()}
@@ -251,12 +251,11 @@ export default function DeveloperClient() {
             </div>
 
             <div className="glass-card rounded-xl p-5">
-              <h2 className="text-sm font-semibold mb-3">Free tier limits</h2>
+              <h2 className="text-sm font-semibold mb-3">Limits — one plan: free</h2>
               <ul className="space-y-1.5 text-xs text-[var(--text-secondary)]">
-                <li className="flex justify-between"><span>Requests / day</span><span className="text-white">1,000</span></li>
-                <li className="flex justify-between"><span>Keys</span><span className="text-white">5</span></li>
-                <li className="flex justify-between"><span>Rate limit</span><span className="text-white">10 req/s</span></li>
-                <li className="flex justify-between"><span>History</span><span className="text-white">7 days</span></li>
+                <li className="flex justify-between"><span>Rate limit</span><span className="text-white">100 req/hr per key</span></li>
+                <li className="flex justify-between"><span>History</span><span className="text-white">Full archive</span></li>
+                <li className="flex justify-between"><span>Self-hosted</span><span className="text-white">Unlimited</span></li>
               </ul>
             </div>
           </div>

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAllOpenPositionsForSweep, closePosition, type Position } from '../../../../lib/paper-trading';
 import {
   getSignalTelegramMessageId,
-  getSignalTelegramProMessageId,
   recordTradeOutcomeToHistory,
 } from '../../../../lib/signal-history';
 import {
@@ -13,8 +12,6 @@ import {
 import {
   getBotToken,
   getFreeChannelId,
-  getProGroupId,
-  getProSignalsTopicId,
 } from '../../../../lib/telegram-channels';
 import { requireCronAuth } from '../../../../lib/cron-auth';
 
@@ -246,9 +243,8 @@ async function sendTelegramOutcomeReply(
     Date.now(),
   );
 
-  // Fan out to both channels in parallel. Each is independent: if the
-  // signal was posted to the free channel but not the Pro group (or vice
-  // versa), the missing-message-id branch short-circuits cleanly.
+  // Public channel outcome reply — the missing-message-id branch
+  // short-circuits cleanly when the signal was never posted.
   const baseInput = {
     symbol: position.symbol,
     direction: position.direction,
@@ -260,50 +256,17 @@ async function sendTelegramOutcomeReply(
     period,
   };
 
-  const [freeChannelId, proGroupId] = [getFreeChannelId(), getProGroupId()];
+  const freeChannelId = getFreeChannelId();
+  if (!freeChannelId) return;
 
-  const tasks: Promise<unknown>[] = [];
-
-  if (freeChannelId) {
-    tasks.push(
-      (async () => {
-        const originalMessageId = await getSignalTelegramMessageId(
-          position.signalId!,
-        );
-        if (!originalMessageId) return;
-        try {
-          await broadcastOutcomeReply(freeChannelId, botToken, {
-            ...baseInput,
-            originalMessageId,
-          });
-        } catch {
-          // Non-critical — don't fail the position close
-        }
-      })(),
-    );
+  const originalMessageId = await getSignalTelegramMessageId(position.signalId!);
+  if (!originalMessageId) return;
+  try {
+    await broadcastOutcomeReply(freeChannelId, botToken, {
+      ...baseInput,
+      originalMessageId,
+    });
+  } catch {
+    // Non-critical — don't fail the position close
   }
-
-  if (proGroupId) {
-    const proTopicId = getProSignalsTopicId() ?? undefined;
-    tasks.push(
-      (async () => {
-        const originalMessageId = await getSignalTelegramProMessageId(
-          position.signalId!,
-        );
-        if (!originalMessageId) return;
-        try {
-          await broadcastOutcomeReply(
-            proGroupId,
-            botToken,
-            { ...baseInput, originalMessageId },
-            proTopicId,
-          );
-        } catch {
-          // Non-critical — don't fail the position close
-        }
-      })(),
-    );
-  }
-
-  await Promise.all(tasks);
 }

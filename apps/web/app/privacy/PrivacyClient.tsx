@@ -18,8 +18,7 @@ export function PrivacyClient() {
           </p>
           <ul className="list-disc space-y-1 pl-5">
             <li>
-              <strong>Account data:</strong> email address (if you sign up), Telegram username (optional),
-              and subscription tier.
+              <strong>Account data:</strong> email address (if you sign up) and Telegram username (optional).
             </li>
             <li>
               <strong>Usage data:</strong> API key usage counts, signal history, and feature preferences
@@ -38,7 +37,6 @@ export function PrivacyClient() {
           <p className="mb-2">We use collected data solely to:</p>
           <ul className="list-disc space-y-1 pl-5">
             <li>Provide and maintain signal generation, backtesting, and dashboard services.</li>
-            <li>Process subscriptions and billing through Stripe.</li>
             <li>Send optional Telegram or browser notifications you configure.</li>
             <li>Improve signal accuracy and platform performance via aggregated, anonymized metrics.</li>
           </ul>
@@ -48,10 +46,6 @@ export function PrivacyClient() {
           <h2 className="mb-2 text-lg font-semibold text-[var(--foreground)]">3. Third-Party Services</h2>
           <p className="mb-2">We rely on a small number of trusted third parties:</p>
           <ul className="list-disc space-y-1 pl-5">
-            <li>
-              <strong>Stripe</strong> — payment processing. Card details are handled directly by Stripe
-              and never touch our servers.
-            </li>
             <li>
               <strong>Telegram Bot API</strong> — optional alert delivery. Messages are sent only when
               you explicitly subscribe.

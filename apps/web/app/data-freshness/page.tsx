@@ -101,7 +101,7 @@ const SIGNALS_AND_DERIVED: FreshnessRow[] = [
     surface: "Telegram / Slack / Discord alerts",
     cadence: "Fire on the 5-minute cron tick when a fresh signal qualifies",
     source: "Cron + bot dispatcher",
-    notes: "Pro-tier subscribers get alerts without delay. Free-tier alerts may be delayed by tier policy — see /pricing.",
+    notes: "Alerts are real-time for everyone — there are no tiers and no delays.",
   },
 ];
 
