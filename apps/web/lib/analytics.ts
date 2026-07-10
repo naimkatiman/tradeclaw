@@ -9,9 +9,6 @@ import posthog from 'posthog-js';
 
 export type AnalyticsEvent =
   | 'signal_viewed'
-  | 'subscription_clicked'
-  | 'checkout_started'
-  | 'trial_started'
   | 'hero_viewed'
   | 'activated';
 
@@ -31,11 +28,9 @@ export function trackEvent(
 }
 
 /**
- * Register PostHog super properties — persisted on this browser and attached to
- * EVERY subsequent event. Used to stamp the hero A/B variant onto all downstream
- * events (pageviews, subscription_clicked, checkout_started, activated, …) so
- * the experiment measures conversion + activation by variant, not just hero
- * clicks. No-op when analytics is unconfigured; never throws.
+ * Register PostHog super properties — persisted on this browser and attached
+ * to EVERY subsequent event. No-op when analytics is unconfigured; never
+ * throws.
  */
 export function registerSuperProperties(
   properties: Record<string, string | number | boolean | null>,

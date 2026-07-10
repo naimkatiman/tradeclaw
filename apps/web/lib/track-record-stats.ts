@@ -1,6 +1,6 @@
 import { isCountedResolved } from './signal-history';
 import { getResolvedSlice } from './signal-slice';
-import { PRO_PREMIUM_MIN_CONFIDENCE } from './tier';
+import { HIGH_CONFIDENCE_BAND_MIN } from './signal-thresholds';
 
 export type TrackRecordBand = 'all' | 'premium' | 'standard';
 
@@ -38,9 +38,9 @@ export async function computeTrackRecordStats(band: TrackRecordBand): Promise<Tr
 
   let resolved = slice.resolved;
   if (band === 'premium') {
-    resolved = resolved.filter(r => r.confidence >= PRO_PREMIUM_MIN_CONFIDENCE);
+    resolved = resolved.filter(r => r.confidence >= HIGH_CONFIDENCE_BAND_MIN);
   } else if (band === 'standard') {
-    resolved = resolved.filter(r => r.confidence < PRO_PREMIUM_MIN_CONFIDENCE);
+    resolved = resolved.filter(r => r.confidence < HIGH_CONFIDENCE_BAND_MIN);
   }
   // Re-apply the canonical resolved predicate after the band filter so the
   // denominator stays identical to the page body's definition.

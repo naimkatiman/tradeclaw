@@ -40,15 +40,10 @@ function fakeUser(overrides: Partial<{ telegramUserId: bigint | null }> = {}) {
   return {
     id: 'u1',
     email: 'u1@example.com',
-    stripeCustomerId: null,
-    tier: 'free' as const,
-    tierExpiresAt: null,
     telegramUserId: null,
     displayName: null,
     avatarUrl: null,
     authProvider: null,
-    referralCode: null,
-      referredBy: null,
     ...overrides,
   };
 }
