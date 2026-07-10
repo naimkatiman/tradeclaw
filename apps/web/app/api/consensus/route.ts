@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../lib/signals';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
-import { resolveAccessContext } from '../../../lib/tier';
 
-// Tier gating depends on the per-request session cookie. Force dynamic so
-// the response is never cached across users with different tier access.
 export const dynamic = 'force-dynamic';
 
 export interface ConsensusEntry {
@@ -49,13 +46,12 @@ function getTrend24h(pair: string, buyRatio: number): 'UP' | 'DOWN' | 'FLAT' {
   return 'FLAT';
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const ctx = await resolveAccessContext(req);
     // Fetch signals for multiple timeframes to build consensus
     const [h1Result, h4Result] = await Promise.allSettled([
-      getTrackedSignals({ timeframe: 'H1', minConfidence: 0, ctx }),
-      getTrackedSignals({ timeframe: 'H4', minConfidence: 0, ctx }),
+      getTrackedSignals({ timeframe: 'H1', minConfidence: 0 }),
+      getTrackedSignals({ timeframe: 'H4', minConfidence: 0 }),
     ]);
 
     const allSignals = [

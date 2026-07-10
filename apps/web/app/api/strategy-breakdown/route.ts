@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStrategyBreakdown } from '../../../lib/leaderboard-cache';
-import { resolveAccessContext } from '../../../lib/tier';
 
-// Tier-aware filtering — same gating posture as /api/signals.
 export const dynamic = 'force-dynamic';
-
-const FREE_STRATEGY = 'classic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,17 +10,16 @@ export async function GET(request: NextRequest) {
     const period: '7d' | '30d' | 'all' =
       rawPeriod === '7d' ? '7d' : rawPeriod === '30d' ? '30d' : 'all';
 
-    const access = await resolveAccessContext(request);
     const rows = await getStrategyBreakdown(period);
-    const visible = rows.filter((r) =>
-      access.unlockedStrategies.has(r.strategyId ?? FREE_STRATEGY),
-    );
+    // TradingView partner strategies stay dark pending partner sign-off
+    // (plan open decision #4).
+    const visible = rows.filter((r) => !(r.strategyId ?? '').startsWith('tv-'));
 
     return NextResponse.json(
       { period, rows: visible, generatedAt: new Date().toISOString() },
       {
         headers: {
-          'Cache-Control': 'private, no-store',
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
           'Access-Control-Allow-Origin': '*',
         },
       },

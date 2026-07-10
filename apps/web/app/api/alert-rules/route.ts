@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getAlertRulesForUser, createAlertRule } from '@/lib/alert-rules-db';
 import { readSessionFromRequest } from '@/lib/user-session';
-import { getTierFromRequest, upgradeRequiredBody, meetsMinimumTier } from '@/lib/tier';
-
-const FREE_ACTIVE_RULE_CAP = 3;
 
 const CreateSchema = z.object({
   name: z.string().min(1).max(100),
@@ -15,6 +12,13 @@ const CreateSchema = z.object({
   channels: z.array(z.enum(['telegram', 'discord', 'email', 'webhook'])).min(1),
   enabled: z.boolean().default(true),
 });
+
+/**
+ * Flat per-user abuse cap (not a tier gate — everyone gets the same limit).
+ * Each active rule fans out server-side deliveries on every matching signal,
+ * so an unbounded count is an outbound-request/email amplification vector.
+ */
+const ACTIVE_RULE_CAP = 20;
 
 export async function GET(req: NextRequest) {
   const session = readSessionFromRequest(req);
@@ -40,27 +44,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  // Tier cap: Free accounts are limited to 3 active rules. Disabled rules
-  // don't consume quota — creating a draft/disabled rule is always fine.
-  // Pro+ bypass entirely.
-  const tier = await getTierFromRequest(req);
-  if (!meetsMinimumTier(tier, 'pro') && parsed.data.enabled) {
-    const existing = await getAlertRulesForUser(session.userId);
-    const activeCount = existing.filter((r) => r.enabled).length;
-    if (activeCount >= FREE_ACTIVE_RULE_CAP) {
-      return NextResponse.json(
-        upgradeRequiredBody({
-          reason: `Free accounts can have ${FREE_ACTIVE_RULE_CAP} active alert rules. Upgrade to Pro for unlimited.`,
-          source: 'alert-rules',
-          limit: {
-            kind: 'count',
-            used: activeCount,
-            max: FREE_ACTIVE_RULE_CAP,
-          },
-        }),
-        { status: 402 },
-      );
-    }
+  const existing = await getAlertRulesForUser(session.userId);
+  const activeCount = existing.filter((r) => r.enabled).length;
+  if (parsed.data.enabled && activeCount >= ACTIVE_RULE_CAP) {
+    return NextResponse.json(
+      {
+        error: `Active alert rule limit reached (${ACTIVE_RULE_CAP}). Disable or delete an existing rule first.`,
+      },
+      { status: 429 },
+    );
   }
 
   const rule = await createAlertRule(session.userId, parsed.data);

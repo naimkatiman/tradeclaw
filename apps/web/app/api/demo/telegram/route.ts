@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSignals } from '@/app/lib/signals';
-import { applyTierSignalVisibility, FREE_SYMBOLS } from '@/lib/tier';
+import { getSignals, SYMBOLS } from '@/app/lib/signals';
 
 // In-memory rate limiter: chatId → last send timestamp (ms)
 const rateLimitMap = new Map<string, number>();
 const RATE_LIMIT_MS = 60_000; // 1 request per chat ID per 60s
 
-const ALLOWED_PAIRS: readonly string[] = FREE_SYMBOLS;
+const ALLOWED_PAIRS: readonly string[] = SYMBOLS.map((s) => s.symbol);
 
 function escapeV2(text: string): string {
   return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
@@ -54,27 +53,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { visible, locked } = applyTierSignalVisibility(signals, 'free');
-    const visibleSignal = visible[0];
-    const lockedSignal = locked[0];
-    const preview = visibleSignal
+    const sig = signals[0];
+    const preview = sig
       ? {
-          pair: visibleSignal.symbol,
-          direction: visibleSignal.direction,
-          confidence: visibleSignal.confidence,
-          timeframe: visibleSignal.timeframe,
-          locked: false,
+          pair: sig.symbol,
+          direction: sig.direction,
+          confidence: sig.confidence,
+          timeframe: sig.timeframe,
         }
-      : lockedSignal
-        ? {
-            pair: lockedSignal.symbol,
-            direction: lockedSignal.direction,
-            confidence: lockedSignal.confidence,
-            timeframe: lockedSignal.timeframe,
-            locked: true,
-            availableAt: lockedSignal.availableAt,
-          }
-        : null;
+      : null;
 
     if (!preview) {
       return NextResponse.json(
@@ -93,12 +80,8 @@ export async function POST(req: NextRequest) {
       escapeV2('━━━━━━━━━━━━━━━━━'),
       `📊 *Confidence:* ${escapeV2(String(preview.confidence))}% ${escapeV2(confBar)}`,
       `⏱ *Timeframe:* ${escapeV2(preview.timeframe)}`,
-      preview.locked && preview.availableAt
-        ? `🔒 *Public Delay:* ${escapeV2(`available at ${new Date(preview.availableAt).toISOString()}`)}`
-        : `✅ *Public Status:* ${escapeV2('delay-cleared preview')}`,
       '',
-      escapeV2('Entry, take-profit, and stop-loss levels are hidden in this public demo.'),
-      escapeV2('Open the dashboard for delayed public signals or upgrade for instant (no-delay) delivery on the 5-minute cron.'),
+      escapeV2('This is a delivery demo. Full signals — entry, TP, and SL — are free on the dashboard.'),
       '',
       escapeV2('📈 Powered by TradeClaw — tradeclaw.win'),
       escapeV2('⚠️ For educational purposes only. Not financial advice.'),
