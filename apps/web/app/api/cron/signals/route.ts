@@ -9,15 +9,12 @@ import {
   getRecentRecordForSymbolAsync,
   getPendingRecordsAsync,
   updateRecordsAsync,
-  updateBroadcastDecisionAsync,
   markTelegramPosted,
   resolveFromCandles,
   getOutcomeResolutionTimeframe,
-  getUnpostedProSignalsAsync,
   type SignalHistoryRecord,
 } from '../../../../lib/signal-history';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
-import { broadcastSignalsToProGroup } from '../../../../lib/telegram-pro-broadcast';
 import { computeBroadcastDecisions } from '../../../../lib/broadcast-decision';
 import { recordSignalRun } from '../../../../lib/signal-run-log';
 import { requireCronAuth } from '../../../../lib/cron-auth';
@@ -306,44 +303,17 @@ export async function GET(request: NextRequest): Promise<Response> {
     const preset = getActivePreset();
     const { candidates, effectiveStrategyId } = await collectNewSignals(preset.id);
 
-    // Catch-up set: tracked-signals.ts still records via /api/signals when
-    // free traffic hits, but only broadcasts when the caller is paid. Those
-    // rows land in signal_history with telegram_pro_message_id NULL and
-    // would otherwise stay unposted. Pull them in here and rely on the
-    // broadcaster's per-id dedup to make repeated cron ticks idempotent.
-    const CATCHUP_WINDOW_MS = 10 * 60 * 1000;
-    let catchupSignals: NewlyRecordedSignal[] = [];
-    try {
-      const catchupRecords = await getUnpostedProSignalsAsync(CATCHUP_WINDOW_MS);
-      const candidateIds = new Set(candidates.map((s) => s.id));
-      catchupSignals = catchupRecords
-        .filter((r) => !candidateIds.has(r.id) && r.tp1 != null && r.sl != null)
-        .map((r) => ({
-          id: r.id,
-          symbol: r.pair,
-          timeframe: r.timeframe,
-          direction: r.direction,
-          confidence: r.confidence,
-          entry: r.entryPrice,
-          takeProfit1: r.tp1 as number,
-          stopLoss: r.sl as number,
-          timestamp: r.timestamp,
-        }));
-    } catch (err) {
-      console.warn(
-        '[cron/signals] Catch-up query failed; broadcasting freshly recorded signals only:',
-        err instanceof Error ? err.message : String(err),
-      );
-    }
+    // The Pro-broadcast catch-up query (telegram_pro_message_id IS NULL) is
+    // gone with the tier system — the gate decision now covers only the
+    // fresh candidates recorded this tick.
 
     // Phase 1 re-sequence: ONE gate decision per tick, computed BEFORE
-    // persistence, over the merged set (new candidates + catch-up). The
-    // decision (winning-cells curation → risk pipeline: circuit breakers +
-    // allocator + veto + LLM advisory) is recorded on each row so the
-    // Pro-broadcast subset is measurable. Pipeline failure falls back to
-    // unfiltered broadcast (Pro must not silently mute) — those rows record
-    // NO decision (NULL) because the gate never actually ran.
-    const broadcastInputs: NewlyRecordedSignal[] = [...candidates, ...catchupSignals];
+    // persistence. The decision (winning-cells curation → risk pipeline:
+    // circuit breakers + allocator + veto + LLM advisory) is recorded on
+    // each row so the scope=broadcast subset is measurable. Pipeline
+    // failure falls back to "no decision computed": those rows record
+    // NULL because the gate never actually ran.
+    const broadcastInputs: NewlyRecordedSignal[] = [...candidates];
     // computeBroadcastDecisions guards its internals (regime fetch + pipeline),
     // but an unexpected throw here must not skip recording/resolution — fall
     // back to "no decision computed": rows record NULL and broadcast
@@ -401,52 +371,22 @@ export async function GET(request: NextRequest): Promise<Response> {
       newSignals.push(sig);
     }
 
-    // Late-stamp catch-up rows (recorded earlier by the request path with no
-    // broadcast decision). Only fills NULL — never overwrites.
-    const catchupDecisions = catchupSignals
-      .map((s) => decisions.get(s.id))
-      .filter((d): d is NonNullable<typeof d> => d !== undefined && d.recordable)
-      .map((d) => ({ id: d.id, regime: d.regime, blocked: d.blocked, blockReason: d.blockReason, allocationPct: d.allocationPct }));
-    try {
-      await updateBroadcastDecisionAsync(catchupDecisions);
-    } catch (err) {
-      console.warn(
-        '[cron/signals] Failed to stamp catch-up broadcast decisions:',
-        err instanceof Error ? err.message : String(err),
-      );
-    }
-
     const { resolved, pending, errors } = await resolveOldSignals();
 
     const taggedSignals = newSignals.map((s) => ({ ...s, strategyId: preset.id }));
 
-    // Pro Telegram broadcast — fire on the deterministic 5-min cron cadence.
-    // After the duplicate-spam audit (2026-05-03) this is the SINGLE source
-    // of Pro broadcasts: the dedup gate inside broadcastSignalsToProGroup
-    // catches any retries. Broadcast set = rows the decision approved
-    // (blocked === false), identical to the pre-Phase-1 curated ∩ approved.
+    // The Pro Telegram broadcast is gone (everything is free — the public
+    // channel broadcast lives in /api/cron/telegram). The gate decision is
+    // still computed and recorded per row so scope=broadcast analytics stay
+    // measurable.
     const vetoedCount = [...decisions.values()].filter((d) => d.blocked && !d.blockReason?.startsWith('winning_cells')).length;
     if (vetoedCount > 0) {
-      console.warn(`[cron/signals] Risk pipeline vetoed ${vetoedCount} Pro signal(s) — decisions recorded on rows`);
+      console.warn(`[cron/signals] Risk pipeline vetoed ${vetoedCount} signal(s) — decisions recorded on rows`);
     }
     const curatedCount = [...decisions.values()].filter((d) => !d.blockReason?.startsWith('winning_cells')).length;
-    const broadcastable = broadcastInputs
+    const broadcastableCount = broadcastInputs
       .filter((s) => decisions.get(s.id)?.blocked === false)
-      .map((s) => ({
-        id: s.id,
-        symbol: s.symbol,
-        timeframe: s.timeframe,
-        direction: s.direction,
-        confidence: s.confidence,
-        entry: s.entry,
-        takeProfit1: s.takeProfit1,
-        stopLoss: s.stopLoss,
-        gateBlocked: false,
-      }));
-    const broadcastableCount = broadcastable.length;
-    if (broadcastable.length > 0) {
-      broadcastSignalsToProGroup(broadcastable).catch(() => undefined);
-    }
+      .length;
 
     const auditRowId = await recordSignalRun({
       runStartedAt,
@@ -461,13 +401,9 @@ export async function GET(request: NextRequest): Promise<Response> {
       resolved,
       pending,
       errors: errors.length > 0 ? errors : undefined,
-      // Catch-up pipeline observability — tells operators (and the synthetic
-      // verification script) how many unposted-tradable rows the cron pulled
-      // and where they fell out of the broadcast pipeline. Cheap to surface
-      // and useful when a tradable signal silently fails to reach the Pro
-      // group. Counts cover the merged set (newSignals + catchupSignals).
-      catchup: {
-        considered: catchupSignals.length,
+      // Gate-decision observability — how many of this tick's candidates
+      // survived curation and how many the risk pipeline approved.
+      gate: {
         curatedCount,
         broadcastableCount,
       },

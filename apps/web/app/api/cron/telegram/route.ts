@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { broadcastTopSignals } from '../../../../lib/telegram-broadcast';
 import { query, execute } from '../../../../lib/db-pool';
-import { FREE_SYMBOLS } from '../../../../lib/tier';
+import { NOT_DARK_STRATEGY_SQL } from '../../../../lib/signal-history';
 import { getBotToken, getFreeChannelId } from '../../../../lib/telegram-channels';
+
+// Inlined from the deleted tier canon (Phase 2 pass A). The public channel's
+// symbol curation is a Telegram broadcast decision, not a tier gate; pass B
+// owns the Telegram rework and may widen or drop this list.
+const PUBLIC_CHANNEL_SYMBOLS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'SPYUSD', 'QQQUSD'] as const;
 import { requireCronAuth } from '../../../../lib/cron-auth';
 import { broadcastSignalsToDiscord } from '../../../../lib/discord-broadcast';
 
@@ -59,6 +64,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         FROM signal_history sh
         WHERE telegram_posted_at IS NULL
           AND is_simulated = false
+          -- Dark partner strategies (tv-*) are never publicly broadcast.
+          AND ${NOT_DARK_STRATEGY_SQL}
           AND pair = ANY($1)
           AND confidence >= 80
           AND created_at >= NOW() - INTERVAL '2 hours'
@@ -72,7 +79,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           )
         ORDER BY pair, direction, confidence DESC, created_at DESC
         LIMIT 10
-      `, [[...FREE_SYMBOLS]]);
+      `, [[...PUBLIC_CHANNEL_SYMBOLS]]);
 
       for (const sig of pending) {
         const decimals = sig.pair.includes('JPY') ? 3 : 5;
@@ -85,7 +92,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           `Confidence: ${sig.confidence}%`,
           `TF: ${sig.timeframe}`,
           '',
-          `<a href="https://tradeclaw.win/track-record">Track Record</a> | <a href="https://tradeclaw.win/pricing">Upgrade to Pro</a>`,
+          `<a href="https://tradeclaw.win/track-record">Track Record</a>`,
         ].filter(Boolean).join('\n');
 
         try {
