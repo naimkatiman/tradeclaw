@@ -1,38 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTrackedSignals } from "../../../../lib/tracked-signals";
-import {
-  resolveAccessContext,
-  getTierFromRequest,
-  TIER_DELAY_MS,
-  TIER_SYMBOLS,
-  PRO_PREMIUM_MIN_CONFIDENCE,
-  type Tier,
-} from "../../../../lib/tier";
 import { readLiveSignals, mapLiveSignalToV1, type LiveSignal } from "../../../../lib/signals-live";
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from "../../../../lib/signal-thresholds";
 
 export const runtime = "nodejs";
 
-// Tier gating reads the per-request session cookie via resolveAccessContext.
-// Force dynamic so the response is never cached across users with
-// different tier access (or stale just after a tier change).
+// Responses are identical for every caller (the tier system is gone) but the
+// route reads the live signals file per request, so keep it dynamic.
 export const dynamic = "force-dynamic";
 
 const DEFAULT_SYMBOLS = ["BTCUSD", "ETHUSD", "XAUUSD", "XAGUSD", "EURUSD", "GBPUSD"];
 const DEFAULT_TIMEFRAMES = ["H1", "H4"];
-
-function applyTierGate(signals: LiveSignal[], tier: Tier): LiveSignal[] {
-  const allowedSymbols = new Set(TIER_SYMBOLS[tier]);
-  const delayMs = TIER_DELAY_MS[tier];
-  const cutoff = delayMs > 0 ? Date.now() - delayMs : null;
-
-  return signals.filter((s) => {
-    if (!allowedSymbols.has(s.symbol)) return false;
-    if (tier === "free" && s.confidence >= PRO_PREMIUM_MIN_CONFIDENCE) return false;
-    if (cutoff !== null && new Date(s.timestamp).getTime() > cutoff) return false;
-    return true;
-  });
-}
 
 function mapSignal(s: {
   id: string;
@@ -75,22 +53,11 @@ export async function GET(req: NextRequest) {
   const useLive = searchParams.get("source") !== "realtime"; // Default to live file
 
   const now = new Date().toISOString();
-  // The v1 API is shared CORS public, so cached responses must not contain
-  // tier-specific fields. We resolve tier early and key the response on it
-  // so a Pro browser hitting the same edge cache as a free caller doesn't
-  // poison either side.
-  const tier = await getTierFromRequest(req);
-  // Free / unauthenticated callers can be CDN-cached for 60s; authenticated
-  // callers must NOT be cached (Vary: Cookie is unreliable on some edges
-  // and X-TradeClaw-Tier was previously CORS-readable, leaking tier
-  // cross-origin). Drop the tier header entirely; tier still travels in
-  // the JSON body but only same-origin code reads it.
+  // The v1 API is shared CORS public and identical for every caller — CDN
+  // caching is safe across the board.
   const headers: Record<string, string> = {
-    "Cache-Control": tier === 'free' ? "public, s-maxage=60" : "private, no-store",
+    "Cache-Control": "public, s-maxage=60",
     "X-TradeClaw-Version": "v1",
-    // Vary on Cookie AND Authorization so shared CDN cache does not poison
-    // tiers across cookie-auth (browser) and bearer-token (SDK) callers.
-    Vary: "Cookie, Authorization",
     "Access-Control-Allow-Origin": "*",
   };
 
@@ -104,9 +71,6 @@ export async function GET(req: NextRequest) {
       if (liveData && !liveData.isStale && liveCoverageOk) {
         let signals = liveData.signals
           .filter((s: LiveSignal) => s.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE);
-
-        // Tier gate first — symbol allowlist, premium-band hide, free-tier delay.
-        signals = applyTierGate(signals, tier);
 
         // Apply filters
         if (pair) {
@@ -136,7 +100,6 @@ export async function GET(req: NextRequest) {
             source: "live-file",
             engineVersion: liveData.engineVersion ?? "v4",
             reliability: liveData.reliability ?? null,
-            tier,
             signals: results.map(mapLiveSignalToV1),
           },
           { headers: { ...headers, "X-Signal-Source": "live-file" } }
@@ -153,18 +116,13 @@ export async function GET(req: NextRequest) {
 
     // Fallback: real-time TA engine
     // Strategy: query per-symbol to maximize signal yield.
-    const ctx = await resolveAccessContext(req);
-    const allowedSymbols = new Set(TIER_SYMBOLS[tier]);
-    const delayMs = TIER_DELAY_MS[tier];
-    const cutoff = delayMs > 0 ? Date.now() - delayMs : null;
-    const candidateSymbols = pair ? [pair.replace("/", "")] : DEFAULT_SYMBOLS;
-    const symbolsToQuery = candidateSymbols.filter((s) => allowedSymbols.has(s));
+    const symbolsToQuery = pair ? [pair.replace("/", "")] : DEFAULT_SYMBOLS;
     const timeframesToQuery = timeframe ? [timeframe] : DEFAULT_TIMEFRAMES;
 
     const allResults = await Promise.allSettled(
       symbolsToQuery.flatMap((sym) =>
         timeframesToQuery.map((tf) =>
-          getTrackedSignals({ symbol: sym, timeframe: tf, ctx })
+          getTrackedSignals({ symbol: sym, timeframe: tf })
         )
       )
     );
@@ -172,10 +130,7 @@ export async function GET(req: NextRequest) {
     let allSignals = allResults
       .filter((r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof getTrackedSignals>>> => r.status === "fulfilled")
       .flatMap((r) => r.value.signals)
-      .filter((s) => s.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE)
-      .filter((s) => allowedSymbols.has(s.symbol))
-      .filter((s) => tier !== "free" || s.confidence < PRO_PREMIUM_MIN_CONFIDENCE)
-      .filter((s) => cutoff === null || new Date(s.timestamp).getTime() <= cutoff);
+      .filter((s) => s.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE);
 
     if (direction) allSignals = allSignals.filter((s) => s.direction === direction);
 
@@ -199,7 +154,6 @@ export async function GET(req: NextRequest) {
         total: deduped.length,
         generatedAt: now,
         source: "realtime",
-        tier,
         signals: results.map(mapSignal),
       },
       { headers: { ...headers, "X-Signal-Source": "realtime" } }
@@ -216,7 +170,6 @@ export async function GET(req: NextRequest) {
         error: "upstream_unavailable",
         generatedAt: now,
         signals: [],
-        tier,
       },
       { status: 503, headers }
     );
