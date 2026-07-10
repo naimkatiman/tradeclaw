@@ -24,7 +24,7 @@ const MILESTONES: Array<{ stars: number; icon: LucideIcon; feature: string; desc
   {
     stars: 500,
     icon: Cloud,
-    feature: "Hosted cloud version (free tier)",
+    feature: "Hosted cloud version — free",
     desc: "No Docker required — sign up and get signals instantly, free forever",
   },
   {

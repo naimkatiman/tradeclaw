@@ -8,12 +8,20 @@
  * nothing tradable.
  *
  * Per-card links route to `/signal/<symbol>-<timeframe>-<direction>`
- * which is tier-gated at the server — free/anon viewers see locked
- * price pills + upgrade CTA there.
+ * where the full signal detail (entry, SL, TP ladder, chart) is free
+ * for everyone.
  */
 
 import Link from 'next/link';
-import type { SignalTeaser } from '../../lib/signal-teaser';
+
+/** Lightweight public teaser shape served by /api/signals/public. */
+interface SignalTeaser {
+  symbol: string;
+  timeframe: string;
+  direction: 'BUY' | 'SELL';
+  confidence: number;
+  timestamp: number;
+}
 
 interface TeaserResponse {
   count: number;

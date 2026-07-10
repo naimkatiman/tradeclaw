@@ -194,12 +194,12 @@ export function TodayClient() {
                 See the live track record
               </Link>
               <Link
-                href="/free-signals"
+                href="/screener"
                 className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors hover:bg-[var(--glass-bg)]"
                 style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
               >
                 <Activity size={16} />
-                Browse free signals
+                Browse the screener
               </Link>
               <a
                 href="https://github.com/naimkatiman/tradeclaw"
