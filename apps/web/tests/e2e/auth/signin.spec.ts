@@ -31,17 +31,7 @@ test.describe('signin page — Google-only auth', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // 2. Unauthenticated /dashboard/billing redirects to /signin
-  // ---------------------------------------------------------------------------
-  test('unauthenticated /dashboard/billing redirects to /signin', async ({ page }) => {
-    await page.goto('/dashboard/billing', { waitUntil: 'domcontentloaded' });
-    await page.waitForURL(/\/signin/, { timeout: 15_000 });
-    const url = new URL(page.url());
-    expect(url.pathname).toBe('/signin');
-  });
-
-  // ---------------------------------------------------------------------------
-  // 3. Signin page has Google as primary CTA + a magic-link fallback below
+  // 2. Signin page has Google as primary CTA + a magic-link fallback below
   // ---------------------------------------------------------------------------
   // signin/page.tsx ships both Google OAuth (primary) and a magic-link email
   // form (fallback, separated by an "or" divider). This test asserts the
@@ -72,10 +62,10 @@ test.describe('signin page — Google-only auth', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // 4. Google button href preserves the next param
+  // 3. Google button href preserves the next param
   // ---------------------------------------------------------------------------
   test('Google button href propagates the next param', async ({ page }) => {
-    await page.goto('/signin?next=%2Fwelcome');
+    await page.goto('/signin?next=%2Fdashboard');
     const googleLink = page.getByRole('link', { name: /Continue with Google/i });
     await expect(googleLink).toBeVisible({ timeout: 15_000 });
 
@@ -83,7 +73,7 @@ test.describe('signin page — Google-only auth', () => {
     expect(href).toBeTruthy();
     const u = new URL(href!, 'http://localhost:3000');
     expect(u.pathname).toBe('/api/auth/google/start');
-    expect(u.searchParams.get('next')).toBe('/welcome');
+    expect(u.searchParams.get('next')).toBe('/dashboard');
   });
 
   // ---------------------------------------------------------------------------

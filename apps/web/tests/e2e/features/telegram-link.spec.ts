@@ -15,8 +15,7 @@ function makeSessionToken(userId: string, secret: string): string {
 
 const USER_SESSION_SECRET = process.env.USER_SESSION_SECRET ?? '';
 const sessionSecretAvailable = USER_SESSION_SECRET.length >= 16;
-const PRO_TIER_STUB_AVAILABLE = process.env.E2E_FORCE_PRO_TIER === 'true';
-const PRO_USER_ID = process.env.E2E_PRO_USER_ID ?? 'e2e-pro-user';
+const E2E_USER_ID = 'e2e-user';
 
 test.describe('telegram link-token API', () => {
   test('POST without session returns 401', async ({ request }) => {
@@ -26,13 +25,10 @@ test.describe('telegram link-token API', () => {
     expect(body.error).toMatch(/Not signed in/i);
   });
 
-  test('POST with pro session returns deepLink and 600s TTL', async ({ request, baseURL }) => {
-    test.skip(
-      !sessionSecretAvailable || !PRO_TIER_STUB_AVAILABLE,
-      'Needs USER_SESSION_SECRET and E2E_FORCE_PRO_TIER=true',
-    );
+  test('POST with a signed-in session returns deepLink and 600s TTL', async ({ request, baseURL }) => {
+    test.skip(!sessionSecretAvailable, 'Needs USER_SESSION_SECRET');
 
-    const token = makeSessionToken(PRO_USER_ID, USER_SESSION_SECRET);
+    const token = makeSessionToken(E2E_USER_ID, USER_SESSION_SECRET);
     const cookieDomain = new URL(baseURL ?? 'http://localhost:3000').hostname;
     const cookieHeader = `tc_user_session=${encodeURIComponent(token)}`;
 
