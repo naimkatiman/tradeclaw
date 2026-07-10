@@ -3,15 +3,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Lock } from 'lucide-react';
 import { PageNavBar } from '@/components/PageNavBar';
-import { useUserTier } from '@/lib/hooks/use-user-tier';
 import { EquityCurve } from '@/app/components/equity-curve';
 import { TrailingWeekBandCallout } from '@/app/components/trailing-week-band-callout';
 import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 import { InfoHint } from '@/components/InfoHint';
 import { STAT_HINTS } from '@/lib/stat-hints';
-import { FREE_HISTORY_DAYS, FREE_SYMBOLS } from '@/lib/tier-client';
 import { isExpiredHistoricalOutcome, isPendingHistoricalOutcome } from '@/lib/signal-history-status';
 import { deriveHistoricalOutcomeStatus } from '@/lib/signal-outcome';
 import { symbolsForCategory, type CategoryFilter } from '@/app/lib/symbol-config';
@@ -255,7 +252,7 @@ function formatOutcomeCell(
 
 
 type DirectionFilter = 'ALL' | 'BUY' | 'SELL';
-type Scope = 'pro' | 'free' | 'broadcast';
+type Scope = 'pro' | 'broadcast';
 type EquityBand = 'premium' | 'standard' | 'all';
 
 function parseEquityBand(raw: string | null): EquityBand {
@@ -415,11 +412,7 @@ export function TrackRecordClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const tier = useUserTier();
-  const isPaidUser = tier !== null && tier !== 'free';
-  // Default tab: Pro track record. Everyone sees the full product's
-  // verified outcomes by default — that's the marketing play. Free tab
-  // is a comparison view showing what the free experience delivers.
+  // Default tab: full track record. Broadcast is the gate-approved subset.
   const [scope, setScope] = useState<Scope>('pro');
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [period, setPeriod] = useState<Period>('all');
@@ -550,11 +543,6 @@ export function TrackRecordClient() {
     () => getResolutionHeartbeat(leaderboard?.overall.lastUpdated, now),
     [leaderboard?.overall.lastUpdated, now],
   );
-  const freeCategoryHasSymbols = useMemo(() => {
-    if (scope !== 'free' || category === 'all') return true;
-    const freeSet = new Set<string>(FREE_SYMBOLS);
-    return symbolsForCategory(category).some(symbol => freeSet.has(symbol));
-  }, [scope, category]);
   const categoryCaption = useMemo(() => {
     if (category === 'majors') {
       return `${symbolsForCategory('majors').length} highest-liquidity instruments. The cleanest read on strategy quality.`;
@@ -562,11 +550,9 @@ export function TrackRecordClient() {
     if (category === 'thematic') {
       return `${symbolsForCategory('thematic').length} narrative-driven symbols. Wider coverage, more noise — useful for breadth, not for headline win rate.`;
     }
-    if (scope === 'free') return `Every free-tier symbol in the last ${FREE_HISTORY_DAYS} days.`;
     if (scope === 'broadcast') return 'Gate-approved signals only — decisions recorded since 2026-06-10.';
     return 'Every tracked symbol, full archive.';
   }, [category, scope]);
-  const noFreeSymbolsInCategory = scope === 'free' && category !== 'all' && !freeCategoryHasSymbols;
 
   const handleCategoryChange = (nextCategory: CategoryFilter) => {
     setCategory(nextCategory);
@@ -802,16 +788,15 @@ export function TrackRecordClient() {
           })}
         </div>
 
-        {/* Scope tabs — default Pro (full firehose), Free is a comparison
-            view, Broadcast is the subset the risk gate APPROVED for the Pro
-            group (decision recorded per row since migration 048; approval is
-            not delivery — outage fallbacks and failed sends differ). */}
+        {/* Scope tabs — default full firehose; Broadcast is the subset the
+            risk gate APPROVED for the Telegram broadcast (decision recorded
+            per row since migration 048; approval is not delivery — outage
+            fallbacks and failed sends differ). */}
         <div className="mb-3 flex items-center gap-1 p-1 rounded-lg bg-white/[0.04] w-fit">
           {(
             [
-              { value: 'pro', label: 'Pro track record' },
-              { value: 'free', label: 'Free track record' },
-              { value: 'broadcast', label: 'Pro broadcast (gated)' },
+              { value: 'pro', label: 'Full track record' },
+              { value: 'broadcast', label: 'Broadcast (gated)' },
             ] as const
           ).map(({ value, label }) => (
             <button
@@ -831,7 +816,7 @@ export function TrackRecordClient() {
         {scope === 'broadcast' && (
           <p className="mb-3 text-[11px] text-[var(--text-secondary)] max-w-xl">
             Only signals the live gate (regime + curation + risk pipeline) approved
-            for the Pro Telegram broadcast. Gate decisions are recorded per row
+            for the Telegram broadcast. Gate decisions are recorded per row
             since 2026-06-10 — earlier signals carry no decision and are excluded
             from this view entirely.
           </p>
@@ -872,28 +857,16 @@ export function TrackRecordClient() {
         {scope === 'pro' ? (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm">
             <div className="flex items-center gap-2 text-emerald-300">
-              <Lock className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
-                {isPaidUser
-                  ? 'Pro track record — every signal across every symbol, full archive.'
-                  : 'Pro track record — these are the signals Pro subscribers receive live. Your Free tier would see only a subset.'}
+                Full track record — every signal across every symbol, full archive. Free for everyone.
               </span>
             </div>
-            {!isPaidUser && (
-              <Link
-                href="/pricing?from=track-record"
-                className="shrink-0 rounded-md bg-emerald-500 px-3 py-1 text-xs font-semibold text-black transition-colors hover:bg-emerald-400"
-              >
-                Get these signals live
-              </Link>
-            )}
           </div>
-        ) : scope === 'broadcast' ? (
+        ) : (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm">
             <div className="flex items-center gap-2 text-[var(--text-secondary)]">
-              <Lock className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
-                Pro broadcast view — only signals the live risk gate approved for the Pro Telegram group. Decisions are recorded per row since 2026-06-10; older signals are excluded.
+                Broadcast view — only signals the live risk gate approved for the Telegram broadcast. Decisions are recorded per row since 2026-06-10; older signals are excluded.
               </span>
             </div>
             <button
@@ -901,21 +874,6 @@ export function TrackRecordClient() {
               className="shrink-0 rounded-md border border-[var(--border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-white/[0.06]"
             >
               Switch to full record
-            </button>
-          </div>
-        ) : (
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm">
-            <div className="flex items-center gap-2 text-[var(--text-secondary)]">
-              <Lock className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>
-                Free-tier view — last {FREE_HISTORY_DAYS} days across {FREE_SYMBOLS.length} symbols (crypto, forex, metals, indices). This is the slice free subscribers see.
-              </span>
-            </div>
-            <button
-              onClick={() => setScope('pro')}
-              className="shrink-0 rounded-md border border-emerald-500/30 px-3 py-1 text-xs font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/10"
-            >
-              Switch to Pro view
             </button>
           </div>
         )}
@@ -1047,14 +1005,14 @@ export function TrackRecordClient() {
 
         {/* Trailing-7d callout — Premium-band vs full-firehose side-by-side
            over the last week. Renders ABOVE the equity curve so the regime
-           context lands before the long-form chart. Pro scope only — the
-           free slice is too narrow for a band split. */}
+           context lands before the long-form chart. Full scope only — the
+           broadcast subset is too narrow for a band split. */}
         {scope === 'pro' && <TrailingWeekBandCallout />}
 
         {/* Equity Curve — component accepts a narrower period set; map unsupported periods to 'all'.
-           Scope mirrors the tab above so Pro vs Free are clearly distinct charts.
-           Band toggle is exposed only on Pro scope; Free scope is a narrow free-tier
-           slice where a premium split isn't meaningful. */}
+           Scope mirrors the tab above (full record vs gate-approved broadcast).
+           Band toggle is exposed only on the full scope; the broadcast subset
+           is too narrow for a premium-band split to be meaningful. */}
           <EquityCurve
           period={period === '7d' || period === '30d' ? period : 'all'}
           scope={scope}
@@ -1134,9 +1092,7 @@ export function TrackRecordClient() {
                   {!loading && leaderboard?.assets.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)]">
-                        {noFreeSymbolsInCategory
-                          ? 'No free-tier symbols in this category.'
-                          : 'No data for this period yet.'}
+                        No data for this period yet.
                       </td>
                     </tr>
                   )}
@@ -1298,9 +1254,7 @@ export function TrackRecordClient() {
                   {!loading && records.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)]">
-                        {noFreeSymbolsInCategory
-                          ? 'No free-tier symbols in this category.'
-                          : pairFilter !== 'ALL' || directionFilter !== 'ALL'
+                        {pairFilter !== 'ALL' || directionFilter !== 'ALL'
                           ? 'No signals match these filters.'
                           : 'No signals for this period yet.'}
                       </td>

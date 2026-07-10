@@ -1,10 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Lock } from 'lucide-react';
 import { InfoHint } from '@/components/InfoHint';
 import { STAT_HINTS } from '@/lib/stat-hints';
-import { FREE_HISTORY_DAYS } from '@/lib/tier-client';
 import type { CategoryFilter } from '@/app/lib/symbol-config';
 
 interface EquityPoint {
@@ -293,7 +291,7 @@ function drawChart(
   };
 }
 
-type EquityScope = 'pro' | 'free' | 'broadcast';
+type EquityScope = 'pro' | 'broadcast';
 type EquityBand = 'all' | 'premium' | 'standard';
 
 interface EquityCurveProps {
@@ -387,13 +385,12 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
   // Falls back to gross only when cost wasn't available.
   const expectancyShown = summary ? (summary.netExpectancyR ?? summary.expectancyR) : null;
 
-  const isPro = scope === 'pro';
   const isBroadcast = scope === 'broadcast';
 
   return (
     <section
       className={`glass-card rounded-2xl p-5 mb-6 border-l-2 ${
-        isPro ? 'border-emerald-500/50' : isBroadcast ? 'border-cyan-500/50' : 'border-white/10'
+        isBroadcast ? 'border-cyan-500/50' : 'border-emerald-500/50'
       }`}
     >
       {/* Header */}
@@ -403,29 +400,22 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
             Signal Performance — Auto Paper-Traded
             <span
               className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider ${
-                isPro
-                  ? 'bg-emerald-500/15 text-emerald-400'
-                  : isBroadcast
-                    ? 'bg-cyan-500/15 text-cyan-400'
-                    : 'bg-white/[0.06] text-zinc-400'
+                isBroadcast
+                  ? 'bg-cyan-500/15 text-cyan-400'
+                  : 'bg-emerald-500/15 text-emerald-400'
               }`}
             >
-              <Lock className="h-3 w-3" aria-hidden="true" />
-              {isPro ? 'Pro' : isBroadcast ? 'Broadcast' : 'Free'} view
+              {isBroadcast ? 'Broadcast' : 'Full'} view
             </span>
           </h2>
           <p className="text-[11px] text-zinc-600 mt-0.5">
-            {isPro
+            {isBroadcast
               ? summary
-                ? `Full Pro track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per trade` : ''}, after real per-symbol round-trip costs (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/trade). Resolved against Binance/Yahoo OHLCV.`
-                : 'Full Pro track record. Resolved against Binance/Yahoo OHLCV.'
-              : isBroadcast
-                ? summary
-                  ? `Gate-approved broadcast subset — decisions recorded since 2026-06-10. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after real per-symbol round-trip costs (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/trade).`
-                  : 'Gate-approved broadcast subset — decisions recorded since 2026-06-10.'
-                : summary
-                  ? `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after costs.`
-                  : `Free-tier slice — last ${FREE_HISTORY_DAYS} days on free symbols only. Subset of what Pro subscribers see.`}
+                ? `Gate-approved broadcast subset — decisions recorded since 2026-06-10. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after real per-symbol round-trip costs (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/trade).`
+                : 'Gate-approved broadcast subset — decisions recorded since 2026-06-10.'
+              : summary
+                ? `Full track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per trade` : ''}, after real per-symbol round-trip costs (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/trade). Resolved against Binance/Yahoo OHLCV.`
+                : 'Full track record. Resolved against Binance/Yahoo OHLCV.'}
           </p>
           {summary && summary.sizedTrades !== undefined && summary.sizedTrades > 0 && (
             <p className="text-[10px] text-zinc-600 mt-1">
