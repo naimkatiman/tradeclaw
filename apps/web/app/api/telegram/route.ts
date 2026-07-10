@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { linkTelegramUser, getUserById } from '../../../lib/db';
-import { sendInvite } from '../../../lib/telegram';
-import { getUserTier } from '../../../lib/tier';
 import { verifyTelegramLinkToken } from '../../../lib/telegram-link-token';
 import { verifyTelegramWebhook } from '../../../lib/telegram-webhook-auth';
 import {
@@ -147,32 +145,13 @@ async function handleBotUpdate(update: TelegramUpdate): Promise<void> {
 
     await linkTelegramUser(userId, BigInt(telegramUserId));
 
-    // Resolve the user's effective tier via getUserTier — this is the same
-    // path the dashboard and API gates use, and it accounts for email grants
-    // (PRO_EMAILS env + pro_email_grants table) which never update the
-    // users.tier column. Reading user.tier directly here meant admin-granted
-    // Pro users got the "free tier" message instead of an invite.
-    const effectiveTier = await getUserTier(userId);
-
-    if (effectiveTier === 'pro' || effectiveTier === 'elite') {
-      try {
-        await sendInvite(userId, chatId, effectiveTier);
-      } catch (err) {
-        console.error('[telegram-bot] Failed to send invite after /start:', err);
-        await sendTelegramMessage(
-          config,
-          `Your Telegram is now linked to your TradeClaw ${effectiveTier} account.\n\nYour signal group invite will arrive shortly.`
-        );
-      }
-    } else {
-      await sendTelegramMessage(
-        config,
-        `Your Telegram account is now linked to TradeClaw.\n\n` +
-          `For now, follow the free public channel for delayed signals: https://t.me/tradeclawwin\n\n` +
-          `Upgrade to Pro at https://tradeclaw.win/pricing to unlock the private Pro group ` +
-          `(instant no-delay signal delivery on the 5-minute cron, dedicated chat & admin topics) — your invite is DMed here automatically right after checkout.`
-      );
-    }
+    // No invites to mint — everything is free. Point at the public channel.
+    await sendTelegramMessage(
+      config,
+      `Your Telegram account is now linked to TradeClaw.\n\n` +
+        `Follow the public channel for signals: https://t.me/tradeclawwin\n\n` +
+        `Everything on tradeclaw.win is free — full signals, history, and the track record.`
+    );
     return;
   }
 
