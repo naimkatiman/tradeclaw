@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-12T00:26:16+08:00
+updated: 2026-07-12T00:43:56+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -2001,7 +2001,7 @@ tasks:
 
   - id: TC-237
     title: "Release the Cost Field 3D transparency experience to main and Railway"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
     notes: >
       Release integration started 2026-07-11 from PR #156 at ec49d446 on top of
@@ -2016,7 +2016,7 @@ tasks:
       documented pattern and already passes production and Docker builds.
       Carried forward the only coherent source work from the divergent local
       checkout: strict fail-before-DB argument validation for the read-only
-      recost probe with 13 focused CLI boundary tests, while excluding stale docs,
+      recost probe with 20 focused CLI boundary tests, while excluding stale docs,
       generated browser artifacts, and old banner/state drift. Reworked the
       unrelated flaky screener E2E to allow the documented 60-second cold path,
       expose non-200 responses directly, and assert only the visible responsive
@@ -2038,6 +2038,14 @@ tasks:
       limit. Tests now accept the honest empty-result UI and give the signal cron
       its existing 60-second cold-path allowance. Focused verification of all
       affected specs passes 27/27 on desktop and mobile (2 expected skips).
+      Final GitHub run 29159841120 passed all six jobs, including the complete
+      Playwright E2E and Docker builds. PR #156 squash-merged to main as 7b0ad0fb.
+      Railway web deployment aa4313c2-133b-4771-96aa-edb57343f29f reached SUCCESS
+      with image sha256:686563d8bc4598edd7ac32a426e2cf3f4299f3b2a827e76ee2ef1d6af05e1ebc.
+      Live verification on tradeclaw.win returned 200 for the homepage, /research,
+      /methodology, /why-long-term, /open-data, and /api/health; the Cost Field
+      signature is present and /api/research/cost-field returned 4,035 aligned
+      gross-R/cost-R/class data points across crypto, metals, and FX.
 
 next_actions:
   - "2026-06-07: TC-235 complete. Created weekly performance recap content (X thread + LinkedIn post) highlighting 63.9% non-blacklisted WR, +0.10R expectancy, and methodology transparency. Ready for manual posting. Next: execute GitHub Stars Campaign — ProductHunt launch, HN Show HN post, or Reddit r/algotrading submission using existing prep pages (/launch, /hn, /share, /producthunt)."
