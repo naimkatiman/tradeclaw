@@ -7,7 +7,7 @@
  * imported dynamically so three.js never enters the initial bundle.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import dynamic from 'next/dynamic';
 import { StaticCostField, type CostFieldData } from './static-cost-field';
 import type { CostFieldMode } from './CostFieldScene';
@@ -18,17 +18,22 @@ const CostFieldScene = dynamic(
 );
 
 const DATA_URL = '/api/research/cost-field';
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
+function subscribeReducedMotion(onChange: () => void): () => void {
+  const mq = window.matchMedia(REDUCED_MOTION_QUERY);
+  mq.addEventListener('change', onChange);
+  return () => mq.removeEventListener('change', onChange);
+}
+
+// SSR-safe subscription: server snapshot is false, client reads matchMedia.
+// useSyncExternalStore avoids the setState-in-effect the lint rule forbids.
 function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(mq.matches);
-    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-  return reduced;
+  return useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
+    () => false,
+  );
 }
 
 function webglAvailable(): boolean {
@@ -47,11 +52,12 @@ export function CostFieldHero() {
   const [failed, setFailed] = useState(false);
   const [mode, setMode] = useState<CostFieldMode>('auto');
   const [phase, setPhase] = useState<'gross' | 'net'>('gross');
-  const [canWebgl, setCanWebgl] = useState<boolean | null>(null);
+  // WebGL support is a fixed client capability; probe once in a lazy
+  // initializer (SSR-guarded) rather than setting state inside an effect.
+  const [canWebgl] = useState(() => typeof document !== 'undefined' && webglAvailable());
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    setCanWebgl(webglAvailable());
     let cancelled = false;
     fetch(DATA_URL)
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))

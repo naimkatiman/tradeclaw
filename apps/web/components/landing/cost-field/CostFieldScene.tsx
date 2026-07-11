@@ -83,8 +83,13 @@ export function CostFieldScene({ data, mode, onPhaseChange }: CostFieldSceneProp
   const phaseRef = useRef<'gross' | 'net'>('gross');
   const onPhaseChangeRef = useRef(onPhaseChange);
 
-  modeRef.current = mode;
-  onPhaseChangeRef.current = onPhaseChange;
+  // Keep the latest mode / callback readable from the long-lived RAF loop
+  // without re-running the scene effect. Written after commit, never during
+  // render (refs must not be mutated in the render body).
+  useEffect(() => {
+    modeRef.current = mode;
+    onPhaseChangeRef.current = onPhaseChange;
+  });
 
   useEffect(() => {
     const container = containerRef.current;
