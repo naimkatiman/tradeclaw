@@ -31,6 +31,10 @@ const geistMono = Geist_Mono({
 const bigShoulders = Big_Shoulders({
   variable: "--font-big-shoulders",
   subsets: ["latin"],
+  // Next's font metrics table has no fallback-override entry for this face;
+  // without this flag every compile logs a warning. Display-only usage does
+  // not need a metrics-matched fallback.
+  adjustFontFallback: false,
 });
 
 const jsonLd = [
