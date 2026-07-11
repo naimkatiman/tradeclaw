@@ -1,9 +1,16 @@
 name: Daily Track Record Post
 
 on:
-  schedule:
-    # 14:00 UTC = 22:00 MYT (after US close)
-    - cron: '0 14 * * *'
+  # Schedule parked 2026-07-11: dry-run dispatch 29150198868 proved the
+  # install/secret fixes work (Chromium launched, secrets set) but Cloudflare's
+  # managed challenge blocks even headless Chromium from runner IPs —
+  # page.goto times out at networkidle because the challenge keeps the page
+  # busy. Re-enable once the owner's Cloudflare WAF skip rule covers
+  # /track-record for GitHub-runner traffic; verify with a dry_run=true
+  # dispatch first.
+  # schedule:
+  #   # 14:00 UTC = 22:00 MYT (after US close)
+  #   - cron: '0 14 * * *'
   workflow_dispatch:
     inputs:
       dry_run:
