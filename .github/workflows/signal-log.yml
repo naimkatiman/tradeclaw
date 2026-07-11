@@ -13,11 +13,17 @@ name: Signal Log
 #
 # This workflow no longer writes to the repo — `permissions: contents: read`
 # is enforced. The Vercel/Railway 5-min internal cron already covers normal
-# operation; this scheduled job is a backup trigger every 6 hours.
+# operation; this job was a backup trigger every 6 hours until its schedule
+# was disabled (see below) — manual dispatch remains available.
 
 on:
-  schedule:
-    - cron: "0 */6 * * *"
+  # Schedule disabled 2026-07-11: Cloudflare's managed challenge on
+  # tradeclaw.win 403s GitHub-hosted runner traffic before it reaches the app
+  # (every run red since 2026-05-05). The internal 5-min cron covers normal
+  # operation, so only the backup redundancy is lost. Re-enable once a
+  # Cloudflare WAF skip rule covers /api/cron/*.
+  # schedule:
+  #   - cron: "0 */6 * * *"
   workflow_dispatch:
 
 permissions:

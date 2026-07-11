@@ -1,8 +1,14 @@
 name: Signal Alerts
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"
+  # Schedule disabled 2026-07-11: Cloudflare's managed challenge on
+  # tradeclaw.win 403s GitHub-hosted runner traffic before it reaches the app
+  # (0 successes in ~1,900 runs since 2026-05-02; GitHub throttles the 5-min
+  # schedule to roughly 27 runs/day). Re-enable once a Cloudflare WAF skip
+  # rule covers /api/cron/* — the endpoint already enforces bearer
+  # CRON_SECRET app-side.
+  # schedule:
+  #   - cron: "*/5 * * * *"
   workflow_dispatch:
 
 # Prevent overlapping runs. If a run takes >5 minutes the next scheduled

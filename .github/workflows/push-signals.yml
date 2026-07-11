@@ -1,8 +1,17 @@
 name: Push Signals
 
 on:
-  schedule:
-    - cron: "*/15 * * * *"
+  # Schedule disabled 2026-07-11: Cloudflare's managed challenge on
+  # tradeclaw.win 403s GitHub-hosted runner traffic before it reaches the app
+  # (0 successes in 753 runs since this workflow was created). Re-enable once
+  # a Cloudflare WAF skip rule covers /api/cron/* — the endpoint already
+  # enforces bearer CRON_SECRET app-side. NOTE: unlike the other cron
+  # endpoints, /api/cron/push-signals has no slot in the internal
+  # /api/cron/sync fanout, so this workflow was the ONLY trigger for Expo
+  # pushes; the durable fix is a fanout slot (loopback, immune to
+  # Cloudflare), not just the WAF rule.
+  # schedule:
+  #   - cron: "*/15 * * * *"
   workflow_dispatch:
 
 # Prevent overlapping runs.
