@@ -1,0 +1,18 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.ws-server"
+watchPatterns = [
+  "/railway.ws-server.toml",
+  "/Dockerfile.ws-server",
+  "/.dockerignore",
+  "/package.json",
+  "/package-lock.json",
+  "/apps/ws-server/**",
+  "/packages/signals/**",
+]
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
