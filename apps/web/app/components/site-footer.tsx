@@ -23,6 +23,16 @@ const COLUMNS: FooterColumn[] = [
     ],
   },
   {
+    heading: 'Transparency',
+    links: [
+      { href: '/research', label: 'What we tested and killed' },
+      { href: '/methodology', label: 'Methodology' },
+      { href: '/why-long-term', label: 'Why long-term' },
+      { href: '/open-data', label: 'Open data' },
+      { href: '/calibration', label: 'Calibration' },
+    ],
+  },
+  {
     heading: 'Resources',
     links: [
       { href: '/blog', label: 'Blog' },
@@ -61,7 +71,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-16 border-t border-[var(--border)] bg-[var(--bg-card)]/40 py-10 text-sm">
       <div className="mx-auto max-w-6xl px-4">
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
           {COLUMNS.map((col) => (
             <div key={col.heading}>
               <h3 className="text-[11px] uppercase tracking-widest text-[var(--text-secondary)] font-semibold mb-3">

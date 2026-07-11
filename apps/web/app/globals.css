@@ -22,6 +22,9 @@
   --radius-button: 0.5rem;
   --radius-card: 0.875rem;
   --radius-pill: 9999px;
+  /* Display face — brand surfaces only (hero headlines, section-opening
+     statements ≥28px). Body/UI stays Geist. See DESIGN.md Typography. */
+  --font-display: var(--font-big-shoulders), var(--font-geist-sans), sans-serif;
 }
 
 /* Light theme (default) */

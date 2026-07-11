@@ -6,7 +6,6 @@ import { LiveHeroSignals } from "../components/landing/live-hero-signals";
 import { LiveActivityStrip } from "../components/landing/live-activity-strip";
 import { ProofHero } from "../components/landing/proof-hero";
 import { EmailCTA } from "../components/landing/email-cta";
-import { BackgroundDecor } from "../components/background/BackgroundDecor";
 
 export const revalidate = 60;
 
@@ -15,9 +14,9 @@ export default function Home() {
     <>
       <Navbar />
       <main className="pt-28">
-        {/* Honesty proof first — the real, cost-adjusted result. */}
+        {/* Honesty proof first — the real, cost-adjusted result. The Cost
+            Field scene IS the hero imagery; no decorative background layer. */}
         <div className="relative isolate overflow-hidden">
-          <BackgroundDecor variant="hero" />
           <ProofHero />
         </div>
 

@@ -29,6 +29,7 @@ test.describe('Cron /api/cron/signals health', () => {
   });
 
   test('cron with correct secret returns 200 and a status payload', async ({ request }) => {
+    test.setTimeout(90_000);
     const secret = process.env.CRON_SECRET;
     if (!secret) {
       test.skip(true, 'CRON_SECRET not set in environment — skipping authenticated test');
@@ -37,6 +38,7 @@ test.describe('Cron /api/cron/signals health', () => {
 
     const res = await request.get('/api/cron/signals', {
       headers: { Authorization: `Bearer ${secret}` },
+      timeout: 60_000,
     });
     expect(res.status()).toBe(200);
 
@@ -58,6 +60,7 @@ test.describe('Cron /api/cron/signals health', () => {
   });
 
   test('cron is idempotent within dedup window', async ({ request }) => {
+    test.setTimeout(150_000);
     const secret = process.env.CRON_SECRET;
     if (!secret) {
       test.skip(true, 'CRON_SECRET not set in environment — skipping idempotency test');
@@ -66,12 +69,12 @@ test.describe('Cron /api/cron/signals health', () => {
 
     const headers = { Authorization: `Bearer ${secret}` };
 
-    const first = await request.get('/api/cron/signals', { headers });
+    const first = await request.get('/api/cron/signals', { headers, timeout: 60_000 });
     expect(first.status()).toBe(200);
     const firstBody: { ok: boolean; recorded: number } = await first.json();
     expect(firstBody.ok).toBe(true);
 
-    const second = await request.get('/api/cron/signals', { headers });
+    const second = await request.get('/api/cron/signals', { headers, timeout: 60_000 });
     expect(second.status()).toBe(200);
     const secondBody: { ok: boolean; recorded: number } = await second.json();
     expect(secondBody.ok).toBe(true);

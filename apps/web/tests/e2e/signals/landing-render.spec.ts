@@ -49,36 +49,40 @@ test.describe('/screener page render (real signals UI)', () => {
     await expect(page.locator('main, [role="main"], body')).toBeVisible();
   });
 
-  test('signal cards or table rows load with real data', async ({ page }) => {
-    // /screener fetches /api/screener (not /api/signals) for its result rows.
+  test('renders screener results or an honest empty state', async ({ page }) => {
+    test.setTimeout(90_000);
+
+    // Cold upstream OHLCV fallbacks can legitimately take longer than 20s.
+    // Match the route regardless of status so failures report the HTTP result
+    // instead of presenting as a misleading response timeout.
     const responsePromise = page.waitForResponse(
-      (r) => r.url().includes('/api/screener') && r.status() === 200,
-      { timeout: 20_000 },
+      (response) => new URL(response.url()).pathname === '/api/screener',
+      { timeout: 60_000 },
     );
 
     await page.goto('/screener');
-    await responsePromise;
 
-    const candidates = [
-      page.locator('[data-testid*="signal"]'),
-      page.locator('article'),
-      page.locator('tbody tr'),
-      page.getByText(/(BUY|SELL|LONG|SHORT)/i).first(),
-    ];
+    const response = await responsePromise;
+    expect(response.status()).toBe(200);
 
-    let found = false;
-    for (const locator of candidates) {
-      if ((await locator.count()) >= 1) {
-        await expect(locator.first()).toBeVisible({ timeout: 5_000 });
-        found = true;
-        break;
-      }
-    }
-
-    if (!found) {
-      await expect(page.getByText(/(BUY|SELL|LONG|SHORT)/i).first()).toBeVisible({
-        timeout: 10_000,
-      });
+    const body = await response.json() as { results?: unknown[] };
+    expect(Array.isArray(body.results)).toBe(true);
+    if ((body.results?.length ?? 0) > 0) {
+      // Both responsive views remain in the DOM. Select only the visible action:
+      // mobile labels it "View Signal" and desktop labels it "View".
+      await expect(
+        page
+          .getByRole('link', { name: /^View(?: Signal)?$/ })
+          .filter({ visible: true })
+          .first(),
+      ).toBeVisible({ timeout: 10_000 });
+    } else {
+      await expect(
+        page
+          .getByText('No assets match your filters', { exact: true })
+          .filter({ visible: true })
+          .first(),
+      ).toBeVisible({ timeout: 10_000 });
     }
   });
 

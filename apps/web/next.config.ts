@@ -1,7 +1,17 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+
+  // Pin the workspace root to THIS checkout. Without it, Turbopack walks up
+  // to the nearest lockfile; from a .claude/worktrees checkout that resolves
+  // to the parent repo and Turbopack scans every worktree (dev server hangs
+  // at multi-GB memory).
+  turbopack: {
+    root: path.join(__dirname, "../.."),
+    resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
+  },
 
   // Bundle MDX blog content into the standalone build so the dynamic blog
   // route and sitemap can read frontmatter at runtime if SSG falls back.
@@ -12,11 +22,6 @@ const nextConfig: NextConfig = {
 
   // Transpile workspace packages
   transpilePackages: ["@tradeclaw/signals"],
-
-  // Turbopack: resolve .js to .ts for workspace packages using Node16 resolution
-  turbopack: {
-    resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
-  },
 
   // Skip TypeScript type-check during build (tsc runs separately via lint/CI)
   typescript: {
