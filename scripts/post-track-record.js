@@ -31,7 +31,19 @@ async function screenshot() {
     colorScheme: "dark",
   });
   const page = await ctx.newPage();
-  const resp = await page.goto(URL, { waitUntil: "networkidle", timeout: 60_000 });
+  let resp;
+  try {
+    resp = await page.goto(URL, { waitUntil: "networkidle", timeout: 60_000 });
+  } catch (err) {
+    // The Cloudflare challenge keeps the page busy from datacenter IPs so
+    // networkidle never settles (run 29150198868, 2026-07-11). Capture
+    // whatever rendered before failing so the artifact shows what the runner saw.
+    await page.screenshot({ path: file, fullPage: true }).catch(() => {});
+    await browser.close();
+    throw new Error(
+      `Page load failed: ${String(err && err.message).split("\n")[0]} Diagnostic screenshot: ${file}`,
+    );
+  }
   // let charts finish animating
   await page.waitForTimeout(2500);
   // Refuse to post anything that isn't the track record. Cloudflare's managed
