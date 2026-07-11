@@ -60,11 +60,13 @@ export async function GET(request: NextRequest) {
 
     for (const r of sorted) {
       if (r.sl == null || r.entryPrice <= 0) continue;
+      const outcome = r.outcomes?.['24h'];
+      if (!outcome) continue;
       const riskPct = (Math.abs(r.entryPrice - r.sl) / r.entryPrice) * 100;
       if (riskPct <= 0) continue;
 
       t.push(r.timestamp);
-      grossR.push(+(r.outcomes['24h']!.pnlPct / riskPct).toFixed(3));
+      grossR.push(+(outcome.pnlPct / riskPct).toFixed(3));
       costR.push(+(roundTripCostNotionalPct(r) / riskPct).toFixed(3));
       cls.push(classIndexFor(r.pair));
     }

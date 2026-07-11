@@ -105,6 +105,27 @@ describe('GET /api/research/cost-field', () => {
     expect(body.t).toEqual([1_000]);
   });
 
+  it('skips a malformed resolved row with no 24h outcome instead of failing the endpoint', async () => {
+    primeSlice([
+      record({ id: 'sized', timestamp: 1_000 }),
+      record({
+        id: 'missing-outcome',
+        timestamp: 2_000,
+        outcomes: {
+          '4h': { price: 101, pnlPct: 1, hit: true },
+        } as unknown as SignalHistoryRecord['outcomes'],
+      }),
+    ]);
+
+    const res = await GET(makeReq('/api/research/cost-field'));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.count).toBe(1);
+    expect(body.resolvedTotal).toBe(2);
+    expect(body.t).toEqual([1_000]);
+  });
+
   it('orders trades by timestamp regardless of slice order', async () => {
     primeSlice([
       record({ id: 'later', costEstimatePct: 0.5, timestamp: 5_000 }),
