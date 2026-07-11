@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-02T06:46:00+08:00
+updated: 2026-07-12T00:08:04+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -1998,6 +1998,40 @@ tasks:
       Progress bar shows completion count. Addresses DAILY_INTEL_LOG 2026-06-07
       recommendation #4 and advances ROADMAP 4.6 (GitHub Stars Campaign). Verified
       with `npm run build` (330 pages) and `npm test -- --runInBand` (111 passed, 3 skipped).
+
+  - id: TC-237
+    title: "Release the Cost Field 3D transparency experience to main and Railway"
+    status: in_progress
+    owner: pm-tradeclaw
+    notes: >
+      Release integration started 2026-07-11 from PR #156 at ec49d446 on top of
+      origin/main de242989. Scope is the data-driven Cost Field hero, public
+      /api/research/cost-field dataset, and the /research, /methodology,
+      /why-long-term, and /open-data transparency pages. Pre-merge work is
+      validating two review threads and isolating the legacy screener E2E race;
+      the original dirty standup worktree is preserved and excluded from release.
+      Review pass: added a defensive missing-24h-outcome guard to the Cost Field
+      route plus a regression test (5/5 focused tests pass). Retained the current
+      Turbopack root expression because it matches this installed Next version's
+      documented pattern and already passes production and Docker builds.
+      Carried forward the only coherent source work from the divergent local
+      checkout: strict fail-before-DB argument validation for the read-only
+      recost probe with 13 focused CLI boundary tests, while excluding stale docs,
+      generated browser artifacts, and old banner/state drift. Reworked the
+      unrelated flaky screener E2E to allow the documented 60-second cold path,
+      expose non-200 responses directly, and assert only the visible responsive
+      result action instead of the hidden desktop DOM on mobile.
+      Recost validation was completed before release: the day window is capped,
+      query interval input is parameterized, blank JSON paths and malformed or
+      injection-shaped values fail before DB access, parser diagnostics escape
+      control characters, and the script now describes its local-file side effect
+      accurately. Focused checks pass: Cost Field 5/5, recost CLI 20/20,
+      web typecheck, and lint with 0 errors (31 pre-existing warnings).
+      Release gates: `npm run build` passed with 325/325 static pages, and the
+      focused screener Playwright run passed 13/13 across desktop and mobile.
+      A local full-Jest run exceeded the five-minute shell limit without emitting
+      a failure; PR #156's full unit check was green before these focused additions,
+      and the pushed head must pass the fresh GitHub unit check before merge.
 
 next_actions:
   - "2026-06-07: TC-235 complete. Created weekly performance recap content (X thread + LinkedIn post) highlighting 63.9% non-blacklisted WR, +0.10R expectancy, and methodology transparency. Ready for manual posting. Next: execute GitHub Stars Campaign — ProductHunt launch, HN Show HN post, or Reddit r/algotrading submission using existing prep pages (/launch, /hn, /share, /producthunt)."
