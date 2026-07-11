@@ -10,7 +10,8 @@
  * script answers the only question that matters before any strategy bet:
  * at the real cost, does ANY asset-class x band subset clear its own cost?
  *
- * It mutates nothing. It only reads signal_history.
+ * It mutates no database state. It only reads signal_history; `--json` writes
+ * (and can overwrite) the operator-selected local artifact path.
  *
  * Run (needs a Postgres connection — local checkout has none):
  *   1. Put DATABASE_PUBLIC_URL=postgresql://... in apps/web/.env.local
@@ -18,6 +19,10 @@
  *   2. railway login && railway run -- npx tsx scripts/research/recost-segment.ts
  *
  *   npx tsx scripts/research/recost-segment.ts [--days N] [--min-n N] [--json path]
+ *
+ * `--days` and `--min-n` must be positive integers; unknown options,
+ * duplicate flags, and missing flag values fail before any database connection
+ * is opened.
  */
 import fs from 'fs';
 import path from 'path';
@@ -43,8 +48,10 @@ const HARD_R_CAP = 8;
 const STARTING_EQUITY = 10_000;
 /** equity/route.ts:31 — the FLAT cost the public curve uses today (% equity). */
 const PUBLISHED_FLAT_COST_PCT = 0.02;
-/** tier.ts:143 — premium band threshold. */
+/** Historical >=85 analysis band retained for reproducibility; not a current product tier. */
 const PRO_PREMIUM_MIN_CONFIDENCE = 85;
+/** Keep the interval inside PostgreSQL's practical range and the probe's research horizon. */
+const MAX_DAYS = 36_500;
 
 type AssetClass = 'crypto' | 'metals' | 'fx' | 'stocks/cmdty';
 type Band = 'all' | 'standard' | 'premium';
@@ -208,15 +215,79 @@ function computeCell(trades: Trade[], minN: number): CellStats {
   };
 }
 
-async function main() {
-  const args = process.argv.slice(2);
-  const getArg = (name: string): string | undefined => {
-    const i = args.indexOf(name);
-    return i >= 0 ? args[i + 1] : undefined;
+class CliInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CliInputError';
+  }
+}
+
+function printableArg(value: string): string {
+  return JSON.stringify(value).slice(1, -1);
+}
+
+function parsePositiveIntegerArg(name: string, value: string | undefined, fallback: number | null): number | null {
+  if (value === undefined) return fallback;
+  if (!/^\d+$/.test(value)) {
+    throw new CliInputError(`Invalid ${name}: expected a positive integer, got "${printableArg(value)}".`);
+  }
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    throw new CliInputError(`Invalid ${name}: expected a positive integer, got "${printableArg(value)}".`);
+  }
+  return parsed;
+}
+
+interface CliArgs {
+  days: number | null;
+  minN: number;
+  jsonPath: string | undefined;
+}
+
+function parseCliArgs(args: string[]): CliArgs {
+  const raw: { days?: string; minN?: string; jsonPath?: string } = {};
+
+  for (let i = 0; i < args.length; i++) {
+    const name = args[i];
+    if (name !== '--days' && name !== '--min-n' && name !== '--json') {
+      throw new CliInputError(`Unknown argument: ${printableArg(name)}. Expected --days, --min-n, or --json.`);
+    }
+
+    const value = args[i + 1];
+    if (value === undefined || value.startsWith('--')) {
+      throw new CliInputError(`Missing value for ${name}.`);
+    }
+
+    if (name === '--days') {
+      if (raw.days !== undefined) throw new CliInputError('Duplicate argument: --days.');
+      raw.days = value;
+    }
+    if (name === '--min-n') {
+      if (raw.minN !== undefined) throw new CliInputError('Duplicate argument: --min-n.');
+      raw.minN = value;
+    }
+    if (name === '--json') {
+      if (raw.jsonPath !== undefined) throw new CliInputError('Duplicate argument: --json.');
+      if (value.trim().length === 0) throw new CliInputError('Invalid --json: expected a non-empty path.');
+      raw.jsonPath = value;
+    }
+    i++;
+  }
+
+  const days = parsePositiveIntegerArg('--days', raw.days, null);
+  if (days !== null && days > MAX_DAYS) {
+    throw new CliInputError(`Invalid --days: must be at most ${MAX_DAYS}, got "${days}".`);
+  }
+
+  return {
+    days,
+    minN: parsePositiveIntegerArg('--min-n', raw.minN, 100) as number,
+    jsonPath: raw.jsonPath,
   };
-  const days = getArg('--days') ? Number(getArg('--days')) : null;
-  const minN = getArg('--min-n') ? Number(getArg('--min-n')) : 100;
-  const jsonPath = getArg('--json');
+}
+
+async function main() {
+  const { days, minN, jsonPath } = parseCliArgs(process.argv.slice(2));
 
   const cs = connString();
   const pool = new Pool({
@@ -227,7 +298,11 @@ async function main() {
   });
 
   const where = ['is_simulated = FALSE', 'outcome_24h IS NOT NULL', 'COALESCE(gate_blocked, FALSE) = FALSE'];
-  if (days) where.push(`created_at >= NOW() - INTERVAL '${days} days'`);
+  const queryParams: number[] = [];
+  if (days) {
+    queryParams.push(days);
+    where.push(`created_at >= NOW() - $${queryParams.length}::int * INTERVAL '1 day'`);
+  }
   const sql = `
     SELECT pair, confidence, entry_price, sl, cost_estimate_pct, created_at,
            (outcome_24h->>'pnlPct')::float  AS pnl_pct,
@@ -237,8 +312,12 @@ async function main() {
     WHERE ${where.join(' AND ')}
     ORDER BY created_at ASC`;
 
-  const { rows } = await pool.query<Row>(sql);
-  await pool.end();
+  let rows: Row[];
+  try {
+    ({ rows } = await pool.query<Row>(sql, queryParams));
+  } finally {
+    await pool.end();
+  }
 
   const trades: Trade[] = [];
   let droppedNoSl = 0;
@@ -313,6 +392,10 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error(err);
+  if (err instanceof CliInputError) {
+    console.error(err.message);
+  } else {
+    console.error(err);
+  }
   process.exit(1);
 });
