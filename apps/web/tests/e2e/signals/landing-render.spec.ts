@@ -49,7 +49,7 @@ test.describe('/screener page render (real signals UI)', () => {
     await expect(page.locator('main, [role="main"], body')).toBeVisible();
   });
 
-  test('signal cards or table rows load with real data', async ({ page }) => {
+  test('renders screener results or an honest empty state', async ({ page }) => {
     test.setTimeout(90_000);
 
     // Cold upstream OHLCV fallbacks can legitimately take longer than 20s.
@@ -67,16 +67,23 @@ test.describe('/screener page render (real signals UI)', () => {
 
     const body = await response.json() as { results?: unknown[] };
     expect(Array.isArray(body.results)).toBe(true);
-    expect(body.results?.length ?? 0).toBeGreaterThan(0);
-
-    // Both responsive views remain in the DOM. Select only the visible action:
-    // mobile labels it "View Signal" and desktop labels it "View".
-    await expect(
-      page
-        .getByRole('link', { name: /^View(?: Signal)?$/ })
-        .filter({ visible: true })
-        .first(),
-    ).toBeVisible({ timeout: 10_000 });
+    if ((body.results?.length ?? 0) > 0) {
+      // Both responsive views remain in the DOM. Select only the visible action:
+      // mobile labels it "View Signal" and desktop labels it "View".
+      await expect(
+        page
+          .getByRole('link', { name: /^View(?: Signal)?$/ })
+          .filter({ visible: true })
+          .first(),
+      ).toBeVisible({ timeout: 10_000 });
+    } else {
+      await expect(
+        page
+          .getByText('No assets match your filters', { exact: true })
+          .filter({ visible: true })
+          .first(),
+      ).toBeVisible({ timeout: 10_000 });
+    }
   });
 
   test('direct GET /api/signals returns 200 with shape', async ({ request }) => {

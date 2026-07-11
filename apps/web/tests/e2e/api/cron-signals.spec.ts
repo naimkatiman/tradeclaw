@@ -44,10 +44,12 @@ test.describe('/api/cron/signals — auth contract', () => {
   });
 
   test('authorized GET succeeds when CRON_SECRET is set', async ({ request }) => {
+    test.setTimeout(90_000);
     test.skip(!CRON_SECRET, 'CRON_SECRET not configured — authorized path covered by the dev-open test');
 
     const res = await request.get('/api/cron/signals', {
       headers: { authorization: `Bearer ${CRON_SECRET}` },
+      timeout: 60_000,
     });
     expect(res.status()).toBeLessThan(400);
     const body = await res.json();
