@@ -23,16 +23,21 @@ jobs:
           node-version: '20'
 
       - name: Install Playwright
+        # npm ci reproduces the lockfile-pinned playwright; invoking the install
+        # CLI via the module path guarantees the CLI that downloads the browser
+        # is the same version require("playwright") loads. A floating
+        # `npm install playwright@^1.59.1` here left two playwright generations
+        # in node_modules once upstream drifted past 1.59.x, crashing at
+        # browser launch with a browser-build mismatch.
         run: |
-          npm init -y
-          npm install playwright@^1.59.1
-          npx playwright install --with-deps chromium
+          npm ci
+          node node_modules/playwright/cli.js install --with-deps chromium
 
       - name: Screenshot + post
         env:
           TRACK_RECORD_URL: https://tradeclaw.win/track-record
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TRADECLAW_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TRADECLAW_TELEGRAM_CHANNEL_ID }}
           DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
         run: node scripts/post-track-record.js
 

@@ -39,30 +39,35 @@ Try to describe the use case (who it helps and why), not just the feature idea.
 
 ### Areas We Need Help
 
-- **New indicators** — add to `packages/core/src/indicators/`
-- **New assets** — extend symbol list in `packages/core/src/symbols.ts`
-- **UI improvements** — React components in `apps/web/components/`
-- **Documentation** — add to `docs/` or improve README
+- **New indicators / signal helpers** — canonical app logic lives in `apps/web/app/lib/ta-engine.ts`; shared testable exports live in `packages/signals/src/indicators.ts` and `packages/signals/src/indicators-adx.ts`
+- **New symbols / markets** — extend `packages/signals/src/symbols.ts` and update tier/docs coverage when the public product surface changes
+- **UI improvements** — React components in `apps/web/components/` and route-level UI in `apps/web/app/`
+- **Documentation** — add to `docs/` or improve README/setup guides
 - **Translations** — i18n support planned, translators welcome
 
 ## Development Setup
 
-TradeClaw is a Next.js + packages monorepo.
+TradeClaw is an npm-workspaces monorepo with a Next.js web app, shared packages, a websocket server, and optional Docker Compose services.
 
 ```bash
 git clone https://github.com/naimkatiman/tradeclaw.git
 cd tradeclaw
 npm install
 
-# Web app env
+# Root env used by Docker Compose, scripts, and most local setup docs
+cp .env.example .env
+# Fill DATABASE_URL and required local secrets before using DB-backed pages/APIs.
+
+# Optional web-app-only overrides for OAuth/hosted settings
 cp apps/web/.env.example apps/web/.env.local
 
-# Run dev server
+# Run the Next.js web app (apps/web) on :3000
 npm run dev
 ```
 
 Notes:
-- If a change touches the signal engine or core logic, you’ll often want to validate it via the relevant package commands, then re-check the web app.
+- There is no bundled SQLite fallback. DB-backed pages and APIs require PostgreSQL via `DATABASE_URL`; Docker Compose starts Postgres/Redis/migrations for the full self-host path.
+- If a change touches the signal engine or shared trading logic, validate the relevant package/tests first, then re-check the web app.
 - For UI changes, make sure the local dev server starts cleanly after dependencies are installed.
 
 ## Code Style
@@ -79,24 +84,26 @@ Formatting/linting:
 
 ## Testing
 
-Run the following from the repo root:
+Run the checks that match your change from the repo root:
 
 ```bash
 npm run lint
-npm run build
+npm run typecheck:web                         # builds @tradeclaw/signals, then runs the CI web typecheck
 npm test
+npm run build
 ```
 
 Notes:
-- `npm test` is best-effort; if your PR doesn’t affect logic that’s covered by tests, you may not need to add new ones.
-- If you add/modify indicator logic or trading rules, please also run `npm run build` to ensure the app compiles with the new code.
+- `npm test` runs the Jest unit suite. Add or update targeted tests when your change touches covered trading logic, access gates, alerts, or integration helpers.
+- `next build` is configured to skip TypeScript failures, so use `npm run typecheck:web` for web TypeScript changes. That alias builds `@tradeclaw/signals` first because the web app resolves the workspace package from its built output, then runs the same `tsc --noEmit --project apps/web/tsconfig.json` check used by CI.
+- Run `npm run test:e2e` for PRs that change browser journeys, routing, auth/session, pricing, or conversion-critical UI.
 
 ## PR Workflow (What maintainers expect)
 
 - A clear PR title that matches the change type (e.g., “Fix: …”, “Feat: …”).
 - A brief description of the problem/goal.
 - Evidence/tests:
-  - lint/build passing for all PRs
+  - lint + relevant typecheck/build evidence for all PRs
   - tests updated/added when the change includes logic covered by tests
 - No secrets:
   - don’t commit `.env` files

@@ -28,7 +28,7 @@ __pycache__/
 *.pyc
 apps/web/data/*.db
 
-# Graphify knowledge-graph output (generated)
+# graphify knowledge-graph output (generated, ~8MB)
 graphify-out/
 
 # strategy-audit-agent runtime output (logs, fixture runs)

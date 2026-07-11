@@ -1,45 +1,30 @@
 # TradeClaw Verification Command Matrix
 
-Date: 2026-06-19 06:58 MPST (+0800)
+Date: 2026-07-02 06:46 MPST (+0800)
 Agent: CEO Zaky recurring Product + Engineering repository improvement agent
 
-Use this matrix when stabilizing the current uncommitted TradeClaw working tree. It is not permission to merge everything as-is; it is the minimum evidence packet for the current accumulated docs/test/static-gate lanes.
+Use this matrix for the current verification-only docs refresh and the read-only research lane. The working tree still has the root README hook alongside the AI-tracking docs, STATE, and the untracked research CLI.
 
 ## Current stabilization matrix
 
 | Lane | Command / check | Current result | Notes |
 |---|---|---|---|
-| Working tree inventory | `git status --short --branch --untracked-files=all` | Dirty tree: 8 tracked modified files plus untracked test/docs artifacts before this handoff. | Re-run before review; the exact untracked list will now include this handoff and matrix too. |
-| Tracked diff summary | `git diff --name-status`, `git diff --shortstat`, `git diff --numstat` | 8 tracked files; 465 insertions / 150 deletions before this handoff. | Splits across README/CONTRIBUTING/STATE, signal tests, SVG, Docker entrypoint, quickstart, and package script. |
-| Signal + middleware tests | `npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand` | Tests passed, then process timed out at 300s because Jest did not exit after the middleware import kept an async handle alive. | Do not ignore the open-handle symptom; either use `--forceExit` only for snapshot verification or add an owner-reviewed cleanup/test strategy later. |
-| Signal + middleware snapshot | `npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit` | Exit 0; 2 suites passed; 22 tests passed. | Snapshot proves the current added tests' assertions pass; it does not prove every accumulated diff is merge-ready. |
-| Web TypeScript contract | `npm run typecheck:web` | Exit 0; `@tradeclaw/signals` built; web `tsc --noEmit` printed no diagnostics. | This is the repo-local alias for the CI-style web typecheck and remains separate from `next build`. |
-| Entrypoint syntax/help | `sh -n docker-entrypoint.sh && sh docker-entrypoint.sh --help` plus marker read | Exit 0; help includes `DATABASE_URL`, `Docker Compose recommended`, and `docs/self-host-smoke-checklist.md`. | Does not prove the full Compose stack runs; Docker smoke remains host/operator-dependent. |
-| Package manifest parse | `node -e "JSON.parse(fs.readFileSync('package.json','utf8'))"` | `package_json_parse_ok`. | Covers syntax only, not npm install/lockfile policy. |
-| Static docs/tracking checks | `git diff --check`; no-index checks for untracked docs/central board fallback | Exit 0 for `git diff --check`; expected exit 1 for /dev/null no-index checks, with only LF→CRLF normalization warnings. | Final outputs are recorded in the implementation log for this run. |
+| Working tree inventory | `git status --short --branch --ahead-behind --untracked-files=all` | `## loop/standup-2026-06-26...origin/loop/standup-2026-06-26`; `M README.md`, `M STATE.yaml`, `M docs/ai-improvement/README.md`, `M docs/ai-improvement/implementation-log.md`, `M docs/ai-improvement/uncommitted-source-verification-handoff.md`, `M docs/ai-improvement/verification-command-matrix.md`, `?? scripts/research/recost-segment.ts`. | Current docs refresh stays limited to the AI-tracking docs, STATE, and the untracked research CLI; the root README hook remains in place. |
+| Tracked diff summary | `docs-only delta` | exact shortstat omitted in this verification-only refresh | Keeps the matrix aligned to the live docs refresh without pinning a stale line-count snapshot. |
+| Research CLI typecheck | `npx tsc --noEmit --pretty false --module nodenext --moduleResolution nodenext --target es2022 --lib es2022 --types node --esModuleInterop --skipLibCheck scripts/research/recost-segment.ts` | exit 0 | Confirms the CLI is syntactically and type-wise valid in standalone mode. |
+| No-DB guard | `DATABASE_PUBLIC_URL= DATABASE_URL= npx tsx scripts/research/recost-segment.ts` | exit 1; missing-DB message printed | Expected fail-closed behavior when no Postgres connection is available. |
+| Root README discoverability hook | read-back of `README.md` scripts section | `scripts/research/recost-segment.ts` is documented under `scripts/` | Future agents can find the tool without spelunking through the AI packet. |
+| Post-refresh docs/static checks | `git diff --check`; `git diff --no-index --check -- /dev/null ../_zaky_ai_board/KANBAN.md` | `git diff --check` exited 0; the board no-index check exited 1 with only the LF→CRLF warning and no whitespace-error lines. | Confirms the docs refresh is clean and the external board row has no Markdown whitespace issues. |
 
-## Recommended full review verification after keep/revert/split decisions
-
-Run from the repo root after the working tree is intentionally arranged:
+## Recommended next verification
 
 ```bash
-git status --short --branch --untracked-files=all
+git status --short --branch --ahead-behind --untracked-files=all
 git diff --name-status
-git diff --shortstat
-npm run typecheck:web
-npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit
-npm run lint
-npm test
-npm run build
-sh -n docker-entrypoint.sh
+git diff --check
+git diff --no-index --check -- /dev/null ../_zaky_ai_board/KANBAN.md
+npx tsc --noEmit --pretty false --module nodenext --moduleResolution nodenext --target es2022 --lib es2022 --types node --esModuleInterop --skipLibCheck scripts/research/recost-segment.ts
+DATABASE_PUBLIC_URL= DATABASE_URL= npx tsx scripts/research/recost-segment.ts
 ```
 
-If Docker is available on the reviewer host and the self-host docs/help lane is being accepted, also run:
-
-```bash
-docker compose config --quiet
-# optional local smoke, after filling a local .env only:
-docker compose up -d --build
-```
-
-Keep production secrets, webhook tokens, broker credentials, Stripe keys, Telegram bot tokens, and database passwords out of logs, screenshots, issue comments, and AI prompts.
+If a live Postgres connection becomes available, run `scripts/research/recost-segment.ts` against Railway Postgres and record the result as LOCAL vs PROD-verified.

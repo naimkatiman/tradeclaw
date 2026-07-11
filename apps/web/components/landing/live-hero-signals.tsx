@@ -8,12 +8,20 @@
  * nothing tradable.
  *
  * Per-card links route to `/signal/<symbol>-<timeframe>-<direction>`
- * which is tier-gated at the server — free/anon viewers see locked
- * price pills + upgrade CTA there.
+ * where the full signal detail (entry, SL, TP ladder, chart) is free
+ * for everyone.
  */
 
 import Link from 'next/link';
-import type { SignalTeaser } from '../../lib/signal-teaser';
+
+/** Lightweight public teaser shape served by /api/signals/public. */
+interface SignalTeaser {
+  symbol: string;
+  timeframe: string;
+  direction: 'BUY' | 'SELL';
+  confidence: number;
+  timestamp: number;
+}
 
 interface TeaserResponse {
   count: number;
@@ -110,26 +118,34 @@ export async function LiveHeroSignals() {
           {/* Header bar */}
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/8">
             <div className="flex items-center gap-2">
-              <span
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: '#10b981',
-                  display: 'inline-block',
-                  animation: 'lhsPulse 2s ease infinite',
-                }}
-              />
-              <style>{`@keyframes lhsPulse{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
+              {hasRealSignals && (
+                <>
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: '#10b981',
+                      display: 'inline-block',
+                      animation: 'lhsPulse 2s ease infinite',
+                    }}
+                  />
+                  <style>{`@keyframes lhsPulse{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
+                </>
+              )}
               <span className="text-white/60 text-xs font-medium">
-                {mode === 'recent' ? 'Recent signals — public preview' : 'Live signals — public preview'}
+                {mode === 'recent'
+                  ? 'Recent signals — public preview'
+                  : mode === 'live'
+                    ? 'Live signals — public preview'
+                    : 'Signals — public preview'}
               </span>
             </div>
             <Link
-              href="/pricing?from=hero"
+              href="/track-record"
               className="text-emerald-400 hover:text-emerald-300 text-xs transition-colors"
             >
-              Unlock entry &amp; TP →
+              See resolved outcomes →
             </Link>
           </div>
 
@@ -181,10 +197,10 @@ export async function LiveHeroSignals() {
                   );
                 })}
                 <Link
-                  href="/pricing?from=hero-all"
+                  href="/track-record"
                   className="flex-shrink-0 flex items-center gap-1 px-4 py-3 text-emerald-400 hover:text-emerald-300 text-xs transition-colors whitespace-nowrap"
                 >
-                  Upgrade for full signals →
+                  See resolved outcomes →
                 </Link>
               </>
             ) : (
@@ -214,8 +230,7 @@ export async function LiveHeroSignals() {
                   </div>
                 ))}
                 <div className="flex-shrink-0 flex items-center gap-1.5 px-4 py-3 text-white/40 text-xs whitespace-nowrap">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
-                  No signals in this window — scanner is live, check back shortly
+                  No signals to show right now.
                 </div>
               </>
             )}

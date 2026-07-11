@@ -174,7 +174,7 @@ function BandCard({ label, data, accent }: BandCardProps) {
       </div>
       <div className="mt-1.5 grid grid-cols-3 gap-2 text-[10px] font-mono text-zinc-500">
         <div>
-          <div className="text-[8px] uppercase tracking-wider text-zinc-600">Win</div>
+          <div className="text-[10px] uppercase tracking-wider text-zinc-600">Win</div>
           <div
             className={
               data.breakEvenWinRate !== null
@@ -188,11 +188,11 @@ function BandCard({ label, data, accent }: BandCardProps) {
           </div>
         </div>
         <div>
-          <div className="text-[8px] uppercase tracking-wider text-zinc-600">Trades</div>
+          <div className="text-[10px] uppercase tracking-wider text-zinc-600">Trades</div>
           <div className="text-zinc-300">{data.totalSignals.toLocaleString()}</div>
         </div>
         <div>
-          <div className="text-[8px] uppercase tracking-wider text-zinc-600">Exp.</div>
+          <div className="text-[10px] uppercase tracking-wider text-zinc-600">Exp.</div>
           <div className="text-zinc-300">
             {data.expectancyR !== null
               ? `${data.expectancyR >= 0 ? '+' : ''}${data.expectancyR.toFixed(2)}R`

@@ -8,10 +8,6 @@ jest.mock('../alert-channels', () => ({
   sendDiscordWebhook: jest.fn(),
 }));
 
-jest.mock('../tier', () => ({
-  FREE_SYMBOLS: ['BTCUSD', 'ETHUSD'],
-}));
-
 import { broadcastSignalsToDiscord } from '../discord-broadcast';
 import { query, queryOne, execute } from '../db-pool';
 import { sendDiscordWebhook } from '../alert-channels';

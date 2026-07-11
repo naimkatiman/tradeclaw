@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveRealOutcomes, isCountedResolved, isRealOutcome, type SignalHistoryRecord } from '../../../../lib/signal-history';
 import { getResolvedSlice, parseScope } from '../../../../lib/signal-slice';
-import { getTierFromRequest, meetsMinimumTier, upgradeRequiredBody } from '../../../../lib/tier';
 import { parseCategoryFilter, symbolsForCategory } from '../../../lib/symbol-config';
 
 const CSV_HEADERS = [
@@ -68,29 +67,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const format = searchParams.get('format')?.toLowerCase();
 
-    if (format === 'csv') {
-      const tier = await getTierFromRequest(request);
-      if (!meetsMinimumTier(tier, 'pro')) {
-        return NextResponse.json(
-          upgradeRequiredBody({
-            reason: 'Signal history CSV export requires Pro.',
-            source: 'signals-history-csv',
-          }),
-          { status: 402 },
-        );
-      }
-    }
-
     await resolveRealOutcomes();
 
-    // `scope=pro` (default) shows all-symbol / full-history track record as a
-    // marketing surface — past outcomes have no tradable edge. `scope=free`
-    // restricts to the free-tier symbol whitelist and 24h window so anyone
-    // can compare what the free experience delivers against Pro.
-    //
-    // Track record is intentionally NOT gated by the caller's tier. Gating
-    // here would hide the product's capability from the exact people we need
-    // to show it to.
+    // `scope=pro` (default, name kept for URL compatibility) is the full
+    // all-symbol, full-history row set. Everything is free — the CSV export
+    // and the history window are no longer gated.
     const scope = parseScope(searchParams.get('scope'));
     const category = parseCategoryFilter(searchParams.get('category'));
 

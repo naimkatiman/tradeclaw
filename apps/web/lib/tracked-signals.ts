@@ -2,7 +2,6 @@ import 'server-only';
 
 import { getSignals } from '../app/lib/signals';
 import { safeProfileId } from '../app/lib/signal-generator';
-import { getPremiumSignalsFor } from './premium-signals';
 import { recordSignalsAsync } from './signal-history';
 import { invalidateHistoryCache } from './signal-history-cache';
 import { enqueueSignalPost } from './social-queue';
@@ -10,26 +9,16 @@ import { PUBLISHED_SIGNAL_MIN_CONFIDENCE, minConfidenceFor } from './signal-thre
 import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
 import { fetchGateState, getGateMode } from './full-risk-gates';
 import { logGateDecision, buildGateLogEntry, type SignalForLog } from './gate-log';
-import { resolveAccessContext, getStrategiesForTier } from './tier';
-import type { Tier } from './stripe';
 import {
   getWinningCellsMode,
   isWinningCell,
   WINNING_CELLS_GATE_REASON,
 } from './winning-cells';
 
-function isPaidTier(tier: Tier | undefined): boolean {
-  return tier === 'pro' || tier === 'elite' || tier === 'custom';
-}
-
-// Inlined to break the dependency on ./licenses during the license→tier
-// migration. Phase D removes ./licenses entirely; the value never changes.
-const FREE_STRATEGY = 'classic';
-
 /**
- * Priority order for picking a caller's "effective" strategy view. Higher
- * index = more premium. The first match in reverse order wins. Inlined from
- * the deprecated licenses module so this file no longer imports it.
+ * Priority order for picking the "effective" strategy view. Higher index =
+ * lower published confidence floor. With the tier system gone every caller
+ * gets the full built-in set, so the floor is that of the highest entry.
  */
 const STRATEGY_PRIORITY = [
   'classic',
@@ -39,22 +28,13 @@ const STRATEGY_PRIORITY = [
   'full-risk',
 ] as const;
 
-function pickHighestUnlocked(unlocked: Set<string> | ReadonlySet<string>): string {
-  for (let i = STRATEGY_PRIORITY.length - 1; i >= 0; i--) {
-    const sid = STRATEGY_PRIORITY[i];
-    if (unlocked.has(sid)) return sid;
-  }
-  return FREE_STRATEGY;
-}
-
 /**
- * Structural shape of any caller carrying a strategy access set. Accepts
- * `AccessContext` (canonical) or any literal `{ unlockedStrategies: Set<string> }`.
+ * TradingView partner strategies stay DARK pending partner sign-off (plan
+ * open decision #4). Rows keep accruing via /api/webhooks/tradingview into
+ * premium_signals, but nothing tv-* is served on any public surface.
  */
-interface StrategyAccess {
-  unlockedStrategies: Set<string> | ReadonlySet<string>;
-  /** Caller's resolved tier. Optional on the literal shape; missing → 'free'. */
-  tier?: Tier;
+function isDarkStrategy(strategyId: string | undefined | null): boolean {
+  return (strategyId ?? '').startsWith('tv-');
 }
 
 export interface GetTrackedSignalsParams {
@@ -62,8 +42,6 @@ export interface GetTrackedSignalsParams {
   timeframe?: string;
   direction?: string;
   minConfidence?: number;
-  /** Strategy access for read-time filtering. Defaults to anonymous ({classic}). */
-  ctx?: StrategyAccess;
 }
 
 // In-process throttle for the Writer A side-effect pipeline. The DB dedup
@@ -83,11 +61,6 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
   const activePresetId = getActivePreset().id;
   const profileId = safeProfileId(activePresetId);
   const result = await getSignals({ ...params, profileId });
-  const ctx: StrategyAccess = params.ctx ?? {
-    unlockedStrategies: getStrategiesForTier('free'),
-    tier: 'free',
-  };
-  const callerIsPaid = isPaidTier(ctx.tier);
 
   if (result.signals.length > 0) {
     // Writer A of signal_history: request side-effect path. Writer B is the
@@ -150,9 +123,10 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
     }
 
     // Winning-cells publish gate — per-signal evaluation. See
-    // lib/winning-cells.ts for the cell list and methodology. Default mode
-    // 'shadow' logs without altering publish behavior; set
-    // WINNING_CELLS_MODE=active on Railway to start gating.
+    // lib/winning-cells.ts for the cell list and methodology. Recording is
+    // stamped in all modes; the response is no longer stripped — the strip
+    // was a free-tier curation, and the tier system is gone (everyone sees
+    // the full symbol set the paid view used to get).
     const winningCellsMode = getWinningCellsMode();
     const winningCellsBlockedIds = new Set<string>();
     if (winningCellsMode !== 'off') {
@@ -209,15 +183,6 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       // through, unlike full-risk-gate which is all-or-nothing).
       const tradablePayload = recordPayload.filter((s) => !s.gateBlocked);
 
-      // Pro Telegram fan-out runs ONLY on the 5-min cron in
-      // /api/cron/signals. Removed the request-side broadcast here because
-      // every paid hit (dashboard SSR, /api/signals, /api/consensus, etc.)
-      // re-broadcast the same signal id — same M15 candle = same id =
-      // duplicate Telegram posts. Cron-only path is sub-5-min latency,
-      // still well within the "real-time vs free 4h" promise, and gives
-      // us one post per signal automatically. The dedup gate inside
-      // broadcastSignalsToProGroup remains as defence in depth.
-
       // Fan out to user alert rules — fire and forget
       const dispatchUrl = process.env.NEXT_PUBLIC_APP_URL
         ? `${process.env.NEXT_PUBLIC_APP_URL}/api/alert-rules/dispatch`
@@ -261,91 +226,35 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       const blockedIds = new Set(blockedSignals.map((b) => b.id));
       result.signals = result.signals.filter((s) => !blockedIds.has(s.id));
     }
-    // Winning-cells gate strips per-signal in active mode — but paid
-    // callers bypass the strip. Winning-cells is a curation gate (which
-    // pairs we promote to free users), not a safety gate, so Pro/Elite/
-    // Custom subscribers must continue to see the full symbol set the
-    // pricing page promises. Recording is unchanged: the row is still
-    // stamped gate_blocked=true so the public track record stays
-    // self-consistent. Full-risk gate (above) remains tier-agnostic
-    // because it is a drawdown protection that benefits everyone.
-    if (winningCellsActive && winningCellsBlockedIds.size > 0 && !callerIsPaid) {
-      result.signals = result.signals.filter(
-        (s) => !winningCellsBlockedIds.has(s.id),
-      );
-    }
   }
 
-  // Read-time license filter — keep free classic, drop anything the caller
-  // doesn't have a grant for. Recording above was not filtered, so the DB
-  // retains the full historical set for backtests.
-  result.signals = result.signals.filter((s) => {
-    const sid = s.strategyId ?? FREE_STRATEGY;
-    return ctx.unlockedStrategies.has(sid);
-  });
+  // Partner strategies stay dark (see isDarkStrategy). Everything else is
+  // free for everyone — the tier read-filter is gone.
+  result.signals = result.signals.filter((s) => !isDarkStrategy(s.strategyId));
 
-  // Per-caller confidence floor. Premium callers get a lower floor so they
-  // see signals the free published threshold would have suppressed.
-  const floor = minConfidenceFor(pickHighestUnlocked(ctx.unlockedStrategies));
-  if (floor < PUBLISHED_SIGNAL_MIN_CONFIDENCE) {
-    result.signals = result.signals.filter((s) => s.confidence >= floor);
-  } else {
-    result.signals = result.signals.filter(
-      (s) => s.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE,
-    );
-  }
+  // Published confidence floor. Every caller now gets the lowest floor the
+  // built-in strategy set allows (formerly the paid view).
+  const floor = Math.min(
+    PUBLISHED_SIGNAL_MIN_CONFIDENCE,
+    ...STRATEGY_PRIORITY.map((sid) => minConfidenceFor(sid)),
+  );
+  result.signals = result.signals.filter((s) => s.confidence >= floor);
 
-  // Merge premium signals. Two possible sources:
-  //   1. premium_signals DB table (TradingView webhook ingest) — always on.
-  //   2. Remote HTTP feed at PREMIUM_SIGNAL_SOURCE_URL — only on tradeclaw.win
-  //      deploys that set the env var. Self-hosts see [] here.
-  //
-  // getPremiumSignalsFor is license-gated inside and returns [] for free-only
-  // callers. The HTTP source is double-gated here by the local license check
-  // so a misconfigured remote cannot leak premium strategies to a free caller.
-  try {
-    const { fetchPremiumFromHttp } = await import('./premium-signal-source');
-    const [fromDb, fromHttp] = await Promise.all([
-      getPremiumSignalsFor(ctx, {
-        symbol: params.symbol,
-        timeframe: params.timeframe,
-        direction: params.direction,
-      }),
-      fetchPremiumFromHttp(),
-    ]);
-
-    const httpAllowed = fromHttp.filter((s) =>
-      ctx.unlockedStrategies.has(s.strategyId ?? FREE_STRATEGY),
-    );
-
-    const extras = [...fromDb, ...httpAllowed];
-    if (extras.length > 0) {
-      const seen = new Set(result.signals.map((s) => s.id));
-      const deduped = extras.filter((s) => {
-        if (seen.has(s.id)) return false;
-        seen.add(s.id);
-        return true;
-      });
-      result.signals = [...result.signals, ...deduped].sort(
-        (a, b) => b.confidence - a.confidence,
-      );
-    }
-  } catch {
-    // Premium table missing, remote down, or DB blip — don't break the free path.
-  }
+  // The premium_signals merge (TradingView webhook ingest + remote HTTP feed)
+  // was removed: those feeds are partner-owned and stay dark per plan open
+  // decision #4. Ingestion continues via /api/webhooks/tradingview; nothing
+  // is served from it here.
 
   return result;
 }
 
 /**
- * Convenience wrapper: resolves the access context from the Request,
- * then delegates to getTrackedSignals. Preferred for any API route or
- * server component that has a Request in hand.
+ * Convenience wrapper kept for call-site compatibility: with the tier system
+ * removed there is no per-request access context, so this simply delegates.
  */
 export async function getTrackedSignalsForRequest(
-  req: Request,
-  params: Omit<GetTrackedSignalsParams, 'ctx'> = {},
+  _req: Request,
+  params: GetTrackedSignalsParams = {},
 ) {
-  const ctx = await resolveAccessContext(req);
-  return getTrackedSignals({ ...params, ctx });
+  return getTrackedSignals(params);
 }

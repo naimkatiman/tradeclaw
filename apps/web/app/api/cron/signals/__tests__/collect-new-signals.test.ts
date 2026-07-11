@@ -42,9 +42,6 @@ jest.mock('../../../../../lib/signal-history', () => ({
 jest.mock('../../../../../lib/signal-thresholds', () => ({
   PUBLISHED_SIGNAL_MIN_CONFIDENCE: 65,
 }));
-jest.mock('../../../../../lib/telegram-pro-broadcast', () => ({
-  broadcastSignalsToProGroup: jest.fn().mockResolvedValue(undefined),
-}));
 jest.mock('../../../../../lib/broadcast-decision', () => ({
   computeBroadcastDecisions: jest.fn().mockResolvedValue(new Map()),
 }));

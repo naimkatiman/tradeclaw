@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { readSessionFromRequest } from '../../../../lib/user-session';
-import { getUserTier } from '../../../../lib/tier';
+import { getUserById } from '../../../../lib/db';
+import { isAdminEmail } from '../../../../lib/admin-emails';
 import {
   createResearchJob,
   getResearchJob,
@@ -11,22 +12,34 @@ type ProAccess =
   | { error: NextResponse; session?: undefined }
   | { error?: undefined; session: { userId: string } };
 
+// Sign-in is still required (jobs are per-user); the tier gate is gone.
 async function assertProAccess(req: Request): Promise<ProAccess> {
   const session = readSessionFromRequest(req);
   if (!session) {
     return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
   }
 
-  const tier = await getUserTier(session.userId);
-  if (tier !== 'pro' && tier !== 'elite' && tier !== 'custom') {
-    return { error: NextResponse.json({ error: 'Pro access required' }, { status: 403 }) };
-  }
-
   return { session };
 }
 
-export async function POST(req: Request): Promise<NextResponse> {
+/**
+ * Job creation is admin-only: each job drains through a python3-spawning LLM
+ * pipeline, and the removed Pro-payment barrier was its only abuse guard.
+ * Reads stay signed-in; the drain cron stays CRON_SECRET-gated.
+ */
+async function assertAdminAccess(req: Request): Promise<ProAccess> {
   const access = await assertProAccess(req);
+  if (access.error) return access;
+
+  const user = await getUserById(access.session.userId);
+  if (!isAdminEmail(user?.email)) {
+    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
+  }
+  return access;
+}
+
+export async function POST(req: Request): Promise<NextResponse> {
+  const access = await assertAdminAccess(req);
   if (access.error) {
     return access.error;
   }

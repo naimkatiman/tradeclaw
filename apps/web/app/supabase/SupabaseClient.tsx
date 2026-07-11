@@ -58,7 +58,7 @@ CREATE TABLE webhooks (
 --   telegram_subscribers, sms_subscribers,
 --   plugins, price_alerts, votes, pledges,
 --   push_subscriptions, slack_integrations,
---   app_users, subscriptions, and more...`;
+--   app_users, and more...`;
 
 const MIGRATE_PREVIEW = `#!/usr/bin/env node
 // Reads data/*.json → upserts into Supabase

@@ -81,8 +81,8 @@ export default function ApiPage() {
         <h2 className="text-2xl font-semibold text-white mb-4">Authentication</h2>
         <p className="text-zinc-400 mb-3 leading-relaxed">
           Public endpoints (signals, prices, health) require no authentication.
-          Tier-gated endpoints check the <code className="text-emerald-400 bg-white/5 px-1.5 py-0.5 rounded text-xs">Authorization</code> header
-          or a session cookie set by the Stripe checkout flow.
+          Endpoints that act on your account check the <code className="text-emerald-400 bg-white/5 px-1.5 py-0.5 rounded text-xs">Authorization</code> header
+          or your session cookie. API keys share a single free rate limit of 100 requests per hour.
         </p>
         <CodeBlock
           language="bash"

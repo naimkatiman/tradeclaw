@@ -8,18 +8,11 @@ import { Navbar } from '../components/navbar';
 function SigninInner() {
   const params = useSearchParams();
   const router = useRouter();
-  const priceId = params.get('priceId') ?? '';
-  const tier = params.get('tier') ?? '';
-  const interval = params.get('interval') ?? '';
   const next = params.get('next') ?? '';
   const oauthError = params.get('error') ?? '';
-  const hasCheckoutInterval = interval === 'monthly' || interval === 'annual';
 
   const oauthQuery = (() => {
     const u = new URLSearchParams();
-    if (priceId) u.set('priceId', priceId);
-    if (tier) u.set('tier', tier);
-    if (interval) u.set('interval', interval);
     if (next) u.set('next', next);
     const qs = u.toString();
     return qs ? `?${qs}` : '';
@@ -27,8 +20,6 @@ function SigninInner() {
   const googleHref = `/api/auth/google/start${oauthQuery}`;
   const githubHref = `/api/auth/github/start${oauthQuery}`;
 
-  const [status, setStatus] = useState<'checking' | 'idle' | 'error'>('checking');
-  const [error, setError] = useState<string | null>(null);
   const [emailInput, setEmailInput] = useState('');
   const [magicSent, setMagicSent] = useState(false);
   const [magicErr, setMagicErr] = useState<string | null>(null);
@@ -39,46 +30,7 @@ function SigninInner() {
   const proceedRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
   async function proceedAfterSession(): Promise<void> {
-    const checkoutBody =
-      priceId
-        ? { priceId }
-        : tier === 'pro' && hasCheckoutInterval
-          ? { tier: 'pro', interval: interval as 'monthly' | 'annual' }
-          : null;
-
-    if (checkoutBody) {
-      try {
-        const res = await fetch('/api/stripe/checkout', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          credentials: 'same-origin',
-          body: JSON.stringify(checkoutBody),
-        });
-        const data = await res.json();
-        if (res.ok && data?.url) {
-          window.location.href = data.url as string;
-          return;
-        }
-        throw new Error(data?.error ?? 'Failed to start checkout');
-      } catch (err: unknown) {
-        if (next && next.startsWith('/') && !next.startsWith('//')) {
-          const url = new URL(next, window.location.origin);
-          url.searchParams.set('error', 'checkout_failed');
-          router.replace(url.pathname + url.search);
-          return;
-        }
-        setError(err instanceof Error ? err.message : 'Checkout failed');
-        setStatus('error');
-        return;
-      }
-    }
     if (next && next.startsWith('/') && !next.startsWith('//')) {
-      if (!priceId && !(tier === 'pro' && hasCheckoutInterval) && (next.startsWith('/pricing') || next.startsWith('/dashboard/billing'))) {
-        const url = new URL(next, window.location.origin);
-        url.searchParams.set('error', 'checkout_unavailable');
-        router.replace(url.pathname + url.search);
-        return;
-      }
       router.replace(next);
       return;
     }
@@ -101,7 +53,6 @@ function SigninInner() {
       } catch {
         /* fall through to button */
       }
-      if (!cancelled) setStatus('idle');
     })();
     return () => {
       cancelled = true;
@@ -162,7 +113,12 @@ function SigninInner() {
       const res = await fetch('/api/auth/magic-link/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailInput }),
+        // Forward `next` so the emailed link lands the user back where they
+        // started instead of a generic dashboard.
+        body: JSON.stringify({
+          email: emailInput,
+          ...(next ? { next } : {}),
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -199,29 +155,19 @@ function SigninInner() {
       <div className="mx-auto max-w-md">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
-            {priceId || (tier === 'pro' && hasCheckoutInterval) ? 'Checkout' : 'Sign in'}
+            Sign in
           </p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--foreground)]">
-            {priceId || (tier === 'pro' && hasCheckoutInterval)
-              ? 'One step before payment'
-              : 'Sign in to TradeClaw'}
+            Sign in to TradeClaw
           </h1>
           <p className="mt-3 text-sm text-[var(--text-secondary)]">
-            {priceId || (tier === 'pro' && hasCheckoutInterval)
-              ? 'Sign in with Google, GitHub, or Telegram — we’ll send you to secure Stripe checkout.'
-              : 'Sign in with Google, GitHub, or Telegram to access your dashboard.'}
+            Sign in with Google, GitHub, or Telegram to access your dashboard.
           </p>
         </div>
 
         {oauthErrorMessage && (
           <p className="mt-6 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-center text-sm text-red-300">
             {oauthErrorMessage}
-          </p>
-        )}
-
-        {error && (
-          <p className="mt-6 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-center text-sm text-red-300">
-            {error}
           </p>
         )}
 
@@ -295,10 +241,11 @@ function SigninInner() {
               </form>
             )}
             <p className="text-center text-xs text-[var(--text-secondary)]">
-              By continuing you agree to our terms.{' '}
-              <Link href="/pricing?from=signin" className="text-emerald-400 hover:underline">
-                See pricing
+              By continuing you agree to our{' '}
+              <Link href="/terms" className="text-emerald-400 hover:underline">
+                terms
               </Link>
+              .
             </p>
           </div>
         )}

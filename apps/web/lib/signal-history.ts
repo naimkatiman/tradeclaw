@@ -345,11 +345,27 @@ function writeHistoryFile(records: SignalHistoryRecord[]): void {
 
 // ── Read ─────────────────────────────────────────────────────
 
+// Partner content ingested but never publicly rendered — plan Open decision #4.
+export const DARK_STRATEGY_PREFIXES = ['tv-'] as const;
+
+/** True when the row belongs to a dark (never-publicly-rendered) strategy. */
+export function isDarkStrategy(strategyId: string | null | undefined): boolean {
+  const id = strategyId ?? '';
+  return DARK_STRATEGY_PREFIXES.some((prefix) => id.startsWith(prefix));
+}
+
+/**
+ * SQL predicate mirroring isDarkStrategy for raw signal_history SELECTs that
+ * bypass readHistoryAsync (public broadcast + landing-stat queries).
+ */
+export const NOT_DARK_STRATEGY_SQL =
+  `(strategy_id IS NULL OR strategy_id NOT LIKE 'tv-%')`;
+
 export async function readHistoryAsync(
   options: { sinceMs?: number } = {},
 ): Promise<SignalHistoryRecord[]> {
   if (!isDbEnabled()) {
-    const all = readHistoryFile();
+    const all = readHistoryFile().filter(r => !isDarkStrategy(r.strategyId));
     return options.sinceMs !== undefined
       ? all.filter(r => r.timestamp >= options.sinceMs!)
       : all;
@@ -359,6 +375,7 @@ export async function readHistoryAsync(
     const rows = await query<HistoryRow>(
       `SELECT * FROM signal_history
        WHERE is_simulated = FALSE
+         AND ${NOT_DARK_STRATEGY_SQL}
          AND created_at >= $1
        ORDER BY created_at DESC
        LIMIT $2`,
@@ -370,6 +387,7 @@ export async function readHistoryAsync(
   const rows = await query<HistoryRow>(
     `SELECT * FROM signal_history
      WHERE is_simulated = FALSE
+       AND ${NOT_DARK_STRATEGY_SQL}
      ORDER BY created_at DESC
      LIMIT $1`,
     [MAX_RECORDS],
@@ -1179,14 +1197,18 @@ export async function getRecentRecordForSymbolAsync(
 export async function getRecordByIdAsync(
   id: string,
 ): Promise<SignalHistoryRecord | undefined> {
+  // Dark-strategy rows are never publicly rendered — an id lookup for a tv-*
+  // row returns undefined so /signal/[id] 404s (correct behavior).
   if (isDbEnabled()) {
     const row = await queryOne<HistoryRow>(
-      `SELECT * FROM signal_history WHERE id = $1 LIMIT 1`,
+      `SELECT * FROM signal_history
+       WHERE id = $1 AND ${NOT_DARK_STRATEGY_SQL}
+       LIMIT 1`,
       [id],
     );
     return row ? rowToRecord(row) : undefined;
   }
-  return readHistoryFile().find(r => r.id === id);
+  return readHistoryFile().find(r => r.id === id && !isDarkStrategy(r.strategyId));
 }
 
 export function getRecentRecordForSymbol(
@@ -1305,68 +1327,6 @@ export async function getSignalTelegramMessageId(
     [signalId],
   );
   return row?.telegram_message_id ? Number(row.telegram_message_id) : undefined;
-}
-
-/**
- * Pro-tier reply threading. Stores the message_id of the Pro group post
- * separately from the free public channel's message_id (different
- * chat_ids, different message_id namespaces — using the same field
- * would mis-target outcome replies).
- */
-export async function markTelegramProPosted(
-  signalId: string,
-  messageId: number,
-): Promise<void> {
-  if (!isDbEnabled()) return;
-  await execute(
-    `UPDATE signal_history
-     SET telegram_pro_message_id = $2
-     WHERE id = $1`,
-    [signalId, messageId],
-  );
-}
-
-export async function getSignalTelegramProMessageId(
-  signalId: string,
-): Promise<number | undefined> {
-  if (!isDbEnabled()) return undefined;
-  const row = await queryOne<{ telegram_pro_message_id: string | null }>(
-    `SELECT telegram_pro_message_id FROM signal_history WHERE id = $1`,
-    [signalId],
-  );
-  return row?.telegram_pro_message_id
-    ? Number(row.telegram_pro_message_id)
-    : undefined;
-}
-
-/**
- * Tradable signals from the last `withinMs` window that have not yet been
- * posted to the Pro Telegram group. Powers the cron's catch-up broadcast
- * for rows the request-side writer recorded but never broadcast (because
- * `callerIsPaid` was false on a free-tier hit to /api/signals).
- *
- * The broadcaster has its own dedup gate keyed on `telegram_pro_message_id`,
- * so re-passing rows here is idempotent — at most one Telegram round-trip
- * per signal id over the lifetime of the row.
- *
- * Returns ascending by `created_at` so older catch-up rows broadcast first.
- */
-export async function getUnpostedProSignalsAsync(
-  withinMs: number,
-): Promise<SignalHistoryRecord[]> {
-  if (!isDbEnabled()) return [];
-  const cutoff = new Date(Date.now() - withinMs).toISOString();
-  const rows = await query<HistoryRow>(
-    `SELECT * FROM signal_history
-     WHERE telegram_pro_message_id IS NULL
-       AND COALESCE(gate_blocked, false) = false
-       AND tp1 IS NOT NULL
-       AND sl IS NOT NULL
-       AND created_at >= $1
-     ORDER BY created_at ASC`,
-    [cutoff],
-  );
-  return rows.map(rowToRecord);
 }
 
 // ── Bulk update (cron resolution) ────────────────────────────

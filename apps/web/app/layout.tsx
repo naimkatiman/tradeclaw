@@ -72,9 +72,9 @@ export const metadata: Metadata = {
     "algorithmic trading open source",
   ],
   openGraph: {
-    title: "TradeClaw — Stop Renting Your Trading Edge",
+    title: "TradeClaw — Open-Source Trading Transparency",
     description:
-      "Live AI trading signals for forex, crypto & metals on a 5-minute cadence. Open-source framework. Hosted Pro tier available.",
+      "Live AI trading signals for forex, crypto & metals on a 5-minute cadence. Open-source framework.",
     url: "https://tradeclaw.win",
     siteName: "TradeClaw",
     type: "website",
@@ -151,7 +151,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col grain-overlay" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+      <body className="min-h-full flex flex-col" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
         <AnalyticsProvider>
           <Suspense fallback={null}>
             <PostHogPageView />

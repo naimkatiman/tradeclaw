@@ -31,10 +31,10 @@ export function EmailCTA() {
     <section className="max-w-3xl mx-auto px-4 py-12">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-6 sm:p-8 text-center">
         <p className="text-sm font-semibold text-[var(--foreground)] mb-1">
-          Never miss a high-conviction signal
+          Weekly digest of every resolved outcome — wins and losses.
         </p>
         <p className="text-xs text-[var(--text-secondary)] mb-5">
-          Free weekly digest — top signals, accuracy stats, leaderboard highlights.
+          Free weekly email — resolved signals, accuracy stats, and what changed.
         </p>
         {status === 'done' ? (
           <p className="text-sm text-emerald-400 flex items-center justify-center gap-1.5">

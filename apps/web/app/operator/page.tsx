@@ -1,23 +1,18 @@
 import type { Metadata } from 'next';
 
 import { readSessionFromCookies } from '../../lib/user-session';
-import { getUserTier, type Tier } from '../../lib/tier';
 import { listOperatorMemory } from '../../lib/operator-memory';
 import { listTools } from '../../lib/tools-registry';
 import { getConnectorStatuses } from '../../lib/connector-health';
 import { getAccuracyTrends, getRecommendations } from '../../lib/signal-metrics';
 
 export const metadata: Metadata = {
-  title: 'Operator | TradeClaw Pro',
+  title: 'Operator | TradeClaw',
   description: 'Unified operator dashboard for memory, tools, connectors, and signal insights.',
   robots: { index: false, follow: false },
 };
 
 export const dynamic = 'force-dynamic';
-
-function isProTier(tier: Tier) {
-  return tier === 'pro' || tier === 'elite' || tier === 'custom';
-}
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('en-US').format(value);
@@ -59,13 +54,13 @@ function recommendationColor(type: 'warning' | 'info' | 'success') {
   }
 }
 
-function LockedPreview() {
+function SignedOutPreview() {
   return (
     <main className="min-h-screen bg-[#050505] px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
         <section className="rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-8 shadow-2xl shadow-black/30">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-400">
-            Pro operator preview
+            Operator preview
           </p>
           <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl space-y-4">
@@ -73,18 +68,11 @@ function LockedPreview() {
                 One command center for memory, tools, connectors, and live insights.
               </h1>
               <p className="text-sm leading-6 text-zinc-400 sm:text-base">
-                The unified operator dashboard is a Pro-gated workspace. Upgrade to see the live
-                memory sidebar, the tool registry summary, connector health, and the latest signal
-                recommendations in one place.
+                Sign in to see the live memory sidebar, the tool registry summary, connector
+                health, and the latest signal recommendations in one place. Free for everyone.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <a
-                href="/pricing?from=operator"
-                className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
-              >
-                Upgrade to Pro
-              </a>
               <a
                 href="/login?from=/operator"
                 className="rounded-lg border border-white/10 bg-white/[0.03] px-5 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-white/[0.06]"
@@ -115,13 +103,12 @@ function LockedPreview() {
 
 export default async function OperatorPage() {
   const session = await readSessionFromCookies();
-  const tier = session?.userId ? await getUserTier(session.userId) : 'free';
 
-  if (!isProTier(tier)) {
-    return <LockedPreview />;
+  if (!session?.userId) {
+    return <SignedOutPreview />;
   }
 
-  const userId = session!.userId;
+  const userId = session.userId;
   const [memoryEntries, tools, connectors, trends, recommendations] = await Promise.all([
     listOperatorMemory(userId),
     listTools(),
@@ -158,7 +145,7 @@ export default async function OperatorPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-4">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-400">
-                Pro operator dashboard
+                Operator dashboard
               </p>
               <div className="max-w-3xl space-y-3">
                 <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -171,11 +158,7 @@ export default async function OperatorPage() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px] lg:grid-cols-1 xl:grid-cols-3">
-              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4">
-                <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">Tier</div>
-                <div className="mt-2 text-lg font-semibold text-white">{tier.toUpperCase()}</div>
-              </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[420px] lg:grid-cols-1 xl:grid-cols-2">
               <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4">
                 <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">Connectors</div>
                 <div className="mt-2 text-lg font-semibold text-white">

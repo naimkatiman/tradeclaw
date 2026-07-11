@@ -4,10 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
 import { PageNavBar } from '../../components/PageNavBar';
-import { TierBanner } from '../components/tier-banner';
 import { EntryStalenessNotice } from '../components/entry-staleness-notice';
-import { PastDueBanner } from '../components/past-due-banner';
-import { TrialCountdown } from '../components/trial-countdown';
 import { LiveTicker } from '../../components/live-ticker';
 import { SignalToast } from '../../components/signal-toast';
 import { ConnectionStatus } from '../../components/connection-status';
@@ -16,7 +13,6 @@ import { StarsWidget } from '../../components/stars-widget';
 import { HintBadge } from '../../components/feature-highlights';
 import { VisitStreak } from '../../components/visit-streak';
 import { GateStateBadge } from '../../components/GateStateBadge';
-import { TelegramInviteBadge } from '../components/TelegramInviteBadge';
 import { ReEngagementBanner } from '../../components/re-engagement-banner';
 import { SignalChart } from '../components/charts';
 import { generateBars } from '../lib/chart-utils';
@@ -25,37 +21,18 @@ import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } 
 import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
 import { AccuracyMeta } from '../components/accuracy-meta';
 import { SignalExportMenu } from '../components/signal-export-menu';
-import { LockedTP } from '../../components/LockedTP';
-import { DelayCountdown } from '../../components/DelayCountdown';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 import { InfoHint } from '../../components/InfoHint';
 import { STAT_HINTS } from '../../lib/stat-hints';
 import { isPendingHistoricalSignal } from '../../lib/signal-history-status';
 import type { TradingSignal } from '@tradeclaw/signals';
-import type { LockedSignalStub } from '../../lib/tier';
 import type { TFDirection } from '../lib/signal-generator';
-import { OnboardingOverlay } from '../components/onboarding-overlay';
 import { markStepDone } from '@/lib/onboarding-state';
 import { useUserSession } from '../../lib/hooks/use-user-tier';
 import { classifySignalOutcome, type OutcomeStatus } from '@/lib/signal-outcome';
 
 const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];
-
-/**
- * Detect whether the advanced indicators have been masked by the free-tier filter.
- * The server sets MACD, Stochastic, and BB to sentinel zero values when masking.
- * Real data practically never hits all three simultaneously.
- */
-function isIndicatorMasked(indicators: TradingSignal['indicators']): boolean {
-  return (
-    indicators.macd.histogram === 0 &&
-    indicators.macd.signal === 'neutral' &&
-    indicators.stochastic.k === 0 &&
-    indicators.stochastic.d === 0 &&
-    indicators.bollingerBands.bandwidth === 0
-  );
-}
 
 function OnboardingBanner() {
   const [visible, setVisible] = useState(() => {
@@ -94,13 +71,11 @@ function OnboardingBanner() {
 }
 
 function ConnectTelegramButton() {
-  const { status, session } = useUserSession();
+  const { status } = useUserSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (status !== 'authenticated') return null;
-  const tier = session?.tier ?? 'free';
-  const isPaid = tier !== 'free';
 
   async function open() {
     setLoading(true);
@@ -124,11 +99,7 @@ function ConnectTelegramButton() {
     }
   }
 
-  const buttonLabel = loading
-    ? 'Generating link…'
-    : isPaid
-      ? 'Connect Telegram (Pro group access)'
-      : 'Link Telegram for Pro';
+  const buttonLabel = loading ? 'Generating link…' : 'Connect Telegram';
 
   return (
     <div className="flex flex-col items-center gap-1">
@@ -142,11 +113,6 @@ function ConnectTelegramButton() {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
         {buttonLabel}
       </button>
-      {!isPaid && (
-        <p className="text-[11px] text-zinc-500 max-w-[20rem] text-center">
-          Linking alone won&apos;t add you to the Pro group. <Link href="/pricing?from=dashboard-link-info" className="text-emerald-400 hover:underline">Upgrade to Pro</Link> and the bot DMs your private invite automatically.
-        </p>
-      )}
       {error && <p className="text-[11px] text-red-400">{error}</p>}
     </div>
   );
@@ -284,7 +250,7 @@ function CopyValueButton({ value }: { value: string }) {
         </svg>
       )}
       {copied && (
-        <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[8px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap pointer-events-none">
+        <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap pointer-events-none">
           Copied!
         </span>
       )}
@@ -302,7 +268,7 @@ function WinRateBadge({ winRate }: { winRate: { wins: number; losses: number; to
     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono border ${color}`}>
       <span className="opacity-60">WR</span>
       <span className="font-bold">{wr}%</span>
-      <span className="opacity-40 text-[8px]">{winRate.wins}/{winRate.total}</span>
+      <span className="opacity-40 text-[10px]">{winRate.wins}/{winRate.total}</span>
     </span>
   );
 }
@@ -366,64 +332,6 @@ function SignalExplanation({ signal }: { signal: TradingSignal }) {
   );
 }
 
-function formatCountdown(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000));
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
-
-function LockedSignalCard({ stub }: { stub: LockedSignalStub }) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  const remainingMs = new Date(stub.availableAt).getTime() - now;
-  const isBuy = stub.direction === 'BUY';
-
-  return (
-    <article className="glass-card rounded-2xl p-3.5 sm:p-5 relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-emerald-500/[0.04] to-transparent" />
-      <div className="relative flex items-start justify-between gap-2 mb-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-sm font-semibold text-[var(--foreground)] font-mono tracking-tight">{stub.symbol}</span>
-            <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border ${
-              isBuy
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
-                : 'bg-rose-500/10 text-rose-400 border-rose-500/25'
-            }`}>{stub.direction}</span>
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">LOCKED</span>
-          </div>
-          <div className="text-[11px] text-[var(--text-secondary)] font-mono mt-0.5">{stub.timeframe}</div>
-        </div>
-        <div className="text-right">
-          <div className={`text-sm font-bold font-mono tabular-nums ${
-            stub.confidence >= 80 ? 'text-emerald-400' : stub.confidence >= 65 ? 'text-zinc-400' : 'text-red-400'
-          }`}>{stub.confidence}%</div>
-          <div className="text-[10px] text-[var(--text-secondary)]">confidence</div>
-        </div>
-      </div>
-      <div className="relative flex items-center justify-between gap-3 pt-2 border-t border-white/[0.05]">
-        <div>
-          <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-mono">Unlocks in</div>
-          <div className="text-lg font-mono font-semibold tabular-nums text-[var(--foreground)] mt-0.5">
-            {formatCountdown(remainingMs)}
-          </div>
-        </div>
-        <Link
-          href="/pricing?from=locked-signal"
-          className="inline-flex items-center gap-1 rounded-md bg-emerald-500 px-3 py-1.5 text-[11px] font-semibold text-black hover:bg-emerald-400 transition-colors"
-        >
-          Unlock now
-        </Link>
-      </div>
-    </article>
-  );
-}
-
 const OUTCOME_STYLE: Record<OutcomeStatus, { label: string; cls: string; icon: string }> = {
   hit_tp3:  { label: 'TP3 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
   hit_tp2:  { label: 'TP2 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
@@ -449,7 +357,7 @@ function OutcomeBadge({ status, progressPct }: { status: OutcomeStatus; progress
   );
 }
 
-function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onToggleFavorite, isDelayed }: { signal: TradingSignal; livePrice?: number | null; tfDirections?: TFDirection[]; onSelect?: (signal: TradingSignal) => void; isFavorite?: boolean; onToggleFavorite?: (id: string) => void; isDelayed?: boolean }) {
+function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onToggleFavorite }: { signal: TradingSignal; livePrice?: number | null; tfDirections?: TFDirection[]; onSelect?: (signal: TradingSignal) => void; isFavorite?: boolean; onToggleFavorite?: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   const [chartVisible, setChartVisible] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
@@ -497,20 +405,15 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
               {signal.dataQuality === 'real' && <LiveBadge />}
               <DataSourceBadge source={getDataSource(signal.symbol)} />
               {signal.dataQuality === 'synthetic' && (
-                <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">DEMO</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">DEMO</span>
               )}
               {signal.atrCalibration && signal.atrCalibration.confidence !== 'low' && (
-                <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono font-bold border ${
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border ${
                   signal.atrCalibration.confidence === 'high'
                     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                     : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                 }`}>
                   SL {signal.atrCalibration.multiplier}× ATR
-                </span>
-              )}
-              {isDelayed && (
-                <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-zinc-500/10 text-zinc-500 border border-zinc-500/20" title="Free tier signals are delayed 30 minutes">
-                  15m delay
                 </span>
               )}
             </div>
@@ -631,53 +534,38 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
           { label: 'TP1', value: signal.takeProfit1, color: 'text-emerald-400', hint: 'Take Profit 1 — closest target at ~1.5× the risk distance. Highest probability of being hit.' },
           { label: 'TP2', value: signal.takeProfit2, color: 'text-emerald-400', hint: 'Take Profit 2 — mid target at ~2.5× risk. Consider partial close at TP1 and let the rest run.' },
           { label: 'TP3', value: signal.takeProfit3, color: 'text-emerald-400', hint: 'Take Profit 3 — stretch target at ~3.5× risk. Only hit in strong moves.' },
-        ].map(({ label, value, color, hint }) => {
-          const isLockedTP =
-            (label === 'TP2' || label === 'TP3') && (value === null || value === undefined);
-          return (
-            <div key={label} className="bg-white/[0.02] rounded-lg py-1.5 px-1">
-              <div className="flex items-center justify-center gap-0.5 text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">
-                {label}
-                <HintBadge label={hint} />
-              </div>
-              {isLockedTP ? (
-                <div className="flex items-center justify-center">
-                  <LockedTP level={label === 'TP2' ? 2 : 3} from="signal-card" />
-                </div>
-              ) : (
-                <div className={`flex items-center justify-center gap-0.5 text-[10px] font-mono font-semibold tabular-nums ${color}`}>
-                  {formatPrice(value)}
-                  {(label === 'SL' || label.startsWith('TP')) && (
-                    <CopyValueButton value={formatPrice(value)} />
-                  )}
-                </div>
+        ].map(({ label, value, color, hint }) => (
+          <div key={label} className="bg-white/[0.02] rounded-lg py-1.5 px-1">
+            <div className="flex items-center justify-center gap-0.5 text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">
+              {label}
+              <HintBadge label={hint} />
+            </div>
+            <div className={`flex items-center justify-center gap-0.5 text-[10px] font-mono font-semibold tabular-nums ${color}`}>
+              {formatPrice(value)}
+              {(label === 'SL' || label.startsWith('TP')) && (
+                <CopyValueButton value={formatPrice(value)} />
               )}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
 
       {/* Quick indicators */}
       <div className="flex flex-wrap gap-2 mt-3">
         {(() => {
-          const masked = isIndicatorMasked(signal.indicators);
           const items = [
-            { label: 'RSI', value: signal.indicators.rsi.value.toFixed(0), signal: signal.indicators.rsi.signal, locked: false },
-            { label: 'MACD', value: signal.indicators.macd.histogram > 0 ? `+${signal.indicators.macd.histogram}` : String(signal.indicators.macd.histogram), signal: signal.indicators.macd.signal, locked: masked },
-            { label: 'Trend', value: signal.indicators.ema.trend.toUpperCase(), signal: signal.indicators.ema.trend, locked: false },
-            { label: 'Stoch', value: `${signal.indicators.stochastic.k}`, signal: signal.indicators.stochastic.signal, locked: masked },
+            { label: 'RSI', value: signal.indicators.rsi.value.toFixed(0), signal: signal.indicators.rsi.signal },
+            { label: 'MACD', value: signal.indicators.macd.histogram > 0 ? `+${signal.indicators.macd.histogram}` : String(signal.indicators.macd.histogram), signal: signal.indicators.macd.signal },
+            { label: 'Trend', value: signal.indicators.ema.trend.toUpperCase(), signal: signal.indicators.ema.trend },
+            { label: 'Stoch', value: `${signal.indicators.stochastic.k}`, signal: signal.indicators.stochastic.signal },
           ];
-          return items.map(({ label, value, signal: sig, locked }) => {
+          return items.map(({ label, value, signal: sig }) => {
             const isBull = sig === 'bullish' || sig === 'oversold' || sig === 'up';
             const isBear = sig === 'bearish' || sig === 'overbought' || sig === 'down';
             return (
               <div key={label} className="flex items-center gap-1 text-[10px] font-mono">
                 <span className="text-[var(--text-secondary)]">{label}</span>
-                {locked ? (
-                  <span className="text-emerald-400/60 bg-emerald-500/8 px-1 py-0.5 rounded text-[8px] font-bold border border-emerald-500/15">PRO</span>
-                ) : (
-                  <span className={isBull ? 'text-emerald-400' : isBear ? 'text-red-400' : 'text-[var(--text-secondary)]'}>{value}</span>
-                )}
+                <span className={isBull ? 'text-emerald-400' : isBear ? 'text-red-400' : 'text-[var(--text-secondary)]'}>{value}</span>
               </div>
             );
           });
@@ -718,7 +606,7 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
                   ATR Stop: {signal.atrCalibration.multiplier}× {signal.atrCalibration.confidence === 'low' ? '(default)' : `(${signal.atrCalibration.confidence})`}
                 </span>
               )}
-              <span>BB Width: {isIndicatorMasked(signal.indicators) ? <span className="text-emerald-400/60">PRO</span> : `${signal.indicators.bollingerBands.bandwidth.toFixed(2)}%`}</span>
+              <span>BB Width: {signal.indicators.bollingerBands.bandwidth.toFixed(2)}%</span>
               <span className={signal.dataQuality === 'real' ? 'text-emerald-400' : 'text-zinc-400'}>
                 {signal.dataQuality === 'real' ? 'real-tracked' : 'demo-seeded'}
               </span>
@@ -952,7 +840,6 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
     return [];
   });
   const [syntheticSymbols, setSyntheticSymbols] = useState<string[]>(initialSyntheticSymbols || []);
-  const [lockedSignals, setLockedSignals] = useState<LockedSignalStub[]>([]);
   const [tfMap, setTfMap] = useState<Map<string, TFDirection[]>>(new Map());
   const [loading, setLoading] = useState(() => {
     if (initialSignals && initialSignals.length > 0) return false;
@@ -1006,7 +893,6 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       if (signalsRes.status === 'fulfilled') {
         setSignals(signalsRes.value.signals);
         setSyntheticSymbols(signalsRes.value.syntheticSymbols || []);
-        setLockedSignals(signalsRes.value.lockedSignals || []);
         setCachedSignals(signalsRes.value.signals);
       }
       if (mtfRes.status === 'fulfilled' && mtfRes.value.results) {
@@ -1099,9 +985,6 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       <BackgroundDecor variant="dashboard" />
       <GuidedTourListener />
       <PageNavBar />
-      <PastDueBanner />
-      <TrialCountdown />
-      <TierBanner />
       <OnboardingBanner />
       <ReEngagementBanner />
 
@@ -1400,47 +1283,11 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           }
           return (
             <>
-              {/* Locked signals — free tier sees pair/direction/confidence + countdown until unlock */}
-              {lockedSignals.length > 0 && (() => {
-                // Earliest stub drives the section-level countdown banner.
-                // Free-tier delay is 30 min (TIER_DELAY_MS.free) — hardcoded
-                // here because tier.ts is server-only and the constant cannot
-                // be re-exported through tier-client without a wider refactor.
-                const FREE_DELAY_MS = 30 * 60 * 1000;
-                const earliest = lockedSignals.reduce(
-                  (a, b) =>
-                    new Date(a.availableAt).getTime() <= new Date(b.availableAt).getTime()
-                      ? a
-                      : b,
-                );
-                const earliestUnlockMs = new Date(earliest.availableAt).getTime();
-                return (
-                  <section className="mb-6">
-                    <div className="mb-3">
-                      <DelayCountdown
-                        signalTimestamp={earliestUnlockMs - FREE_DELAY_MS}
-                        delayMs={FREE_DELAY_MS}
-                        onUnlock={fetchSignals}
-                      />
-                    </div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <h2 className="text-xs uppercase tracking-wider text-emerald-400/80 font-mono font-semibold">Unlocking soon</h2>
-                      <span className="text-[10px] text-[var(--text-secondary)] font-mono">{lockedSignals.length} signal{lockedSignals.length !== 1 ? 's' : ''} ahead of free-tier delay</span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {lockedSignals.map(stub => (
-                        <LockedSignalCard key={stub.id} stub={stub} />
-                      ))}
-                    </div>
-                  </section>
-                );
-              })()}
-
               {/* Main signals (70%+) */}
               {mainSignals.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {mainSignals.map(signal => (
-                    <SignalCard key={signal.id} signal={signal} livePrice={prices.get(signal.symbol)?.price ?? null} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} isDelayed={lockedSignals.length > 0} />
+                    <SignalCard key={signal.id} signal={signal} livePrice={prices.get(signal.symbol)?.price ?? null} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
                   ))}
                 </div>
               )}
@@ -1455,7 +1302,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                 </div>
               )}
 
-              {/* Telegram CTAs: public free channel + private Pro group connect */}
+              {/* Telegram CTAs: public channel + account linking */}
               <div className="mt-6 mb-2 flex flex-wrap items-center justify-center gap-3">
                 <a
                   href="https://t.me/tradeclawwin"
@@ -1467,7 +1314,6 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                   Join free public channel
                 </a>
                 <ConnectTelegramButton />
-                <TelegramInviteBadge />
               </div>
 
               {/* Potential signals (50-69%) */}
@@ -1500,7 +1346,6 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           <p className="text-xs text-zinc-800 mt-1">Signal analysis is for educational purposes only. Not financial advice.</p>
         </footer>
       </div>
-      <OnboardingOverlay signalsLoaded={signals.length > 0} />
       {/* Signal toasts */}
       <SignalToast />
     </div>

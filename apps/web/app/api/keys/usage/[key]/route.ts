@@ -21,7 +21,6 @@ export async function GET(
       keyId: keyMeta.id,
       keyName: keyMeta.name,
       status: keyMeta.status,
-      tier: keyMeta.tier,
       scopes: keyMeta.scopes,
       requestsThisHour: stats.requestsThisHour,
       requestsToday: stats.requestsToday,

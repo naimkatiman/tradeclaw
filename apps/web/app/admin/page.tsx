@@ -8,7 +8,6 @@ import {
   Activity,
   ExternalLink,
   Gauge,
-  KeyRound,
   Brain,
   Library,
 } from 'lucide-react';
@@ -25,20 +24,15 @@ export const dynamic = 'force-dynamic';
 
 interface Counts {
   users: number;
-  proSubs: number;
   signals24h: number;
   premiumSignals: number;
 }
 
 async function loadCounts(): Promise<Counts> {
-  const fallback: Counts = { users: 0, proSubs: 0, signals24h: 0, premiumSignals: 0 };
+  const fallback: Counts = { users: 0, signals24h: 0, premiumSignals: 0 };
   try {
-    const [users, proSubs, signals24h, premiumSignals] = await Promise.all([
+    const [users, signals24h, premiumSignals] = await Promise.all([
       queryOne<{ c: string }>(`SELECT COUNT(*)::text AS c FROM users`),
-      queryOne<{ c: string }>(
-        `SELECT COUNT(*)::text AS c FROM subscriptions
-         WHERE status IN ('active','trialing') AND tier IN ('pro','elite','custom')`,
-      ),
       queryOne<{ c: string }>(
         `SELECT COUNT(*)::text AS c FROM signal_history
          WHERE created_at > NOW() - INTERVAL '24 hours'`,
@@ -49,7 +43,6 @@ async function loadCounts(): Promise<Counts> {
     ]);
     return {
       users: Number(users?.c ?? '0'),
-      proSubs: Number(proSubs?.c ?? '0'),
       signals24h: Number(signals24h?.c ?? '0'),
       premiumSignals: Number(premiumSignals?.c ?? '0'),
     };
@@ -61,14 +54,13 @@ async function loadCounts(): Promise<Counts> {
 interface RecentUser {
   id: string;
   email: string;
-  tier: string;
   created_at: string;
 }
 
 async function loadRecentUsers(): Promise<RecentUser[]> {
   try {
     return await query<RecentUser>(
-      `SELECT id, email, tier, created_at::text
+      `SELECT id, email, created_at::text
        FROM users
        ORDER BY created_at DESC
        LIMIT 10`,
@@ -160,9 +152,8 @@ export default async function AdminIndexPage() {
         </div>
 
         {/* Stats */}
-        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3">
           <StatCard label="Users" value={counts.users} icon={Users} />
-          <StatCard label="Active Pro Subs" value={counts.proSubs} icon={ShieldCheck} />
           <StatCard label="Signals (24h)" value={counts.signals24h} icon={Activity} />
           <StatCard label="Premium Signals" value={counts.premiumSignals} icon={Database} />
         </div>
@@ -191,12 +182,6 @@ export default async function AdminIndexPage() {
             icon={Library}
           />
           <Tile
-            href="/admin/pro-grants"
-            title="Pro Grants"
-            body="Grant or revoke Pro tier by email without redeploying."
-            icon={KeyRound}
-          />
-          <Tile
             href="/admin/social-queue"
             title="Social Queue"
             body="Approve, reject, or post queued social media content."
@@ -213,19 +198,6 @@ export default async function AdminIndexPage() {
             title="Pilot Executions"
             body="Open positions, recent fills, errors, and today's symbol universe."
             icon={Activity}
-          />
-          <Tile
-            href="/dashboard/billing"
-            title="Billing (own account)"
-            body="Manage Stripe subscription for the signed-in admin."
-            icon={ShieldCheck}
-          />
-          <Tile
-            href="https://dashboard.stripe.com/customers"
-            title="Stripe Customers"
-            body="Open the live Stripe dashboard in a new tab."
-            icon={ExternalLink}
-            external
           />
           <Tile
             href="https://railway.app/dashboard"
@@ -245,14 +217,13 @@ export default async function AdminIndexPage() {
             <thead className="bg-white/[0.03] text-left text-xs uppercase tracking-wider text-zinc-500">
               <tr>
                 <th className="px-4 py-2.5 font-medium">Email</th>
-                <th className="px-4 py-2.5 font-medium">Tier</th>
                 <th className="px-4 py-2.5 font-medium">Created</th>
               </tr>
             </thead>
             <tbody>
               {recentUsers.length === 0 && (
                 <tr>
-                  <td className="px-4 py-6 text-center text-zinc-500" colSpan={3}>
+                  <td className="px-4 py-6 text-center text-zinc-500" colSpan={2}>
                     No users yet.
                   </td>
                 </tr>
@@ -260,17 +231,6 @@ export default async function AdminIndexPage() {
               {recentUsers.map((u) => (
                 <tr key={u.id} className="border-t border-white/[0.04]">
                   <td className="px-4 py-2.5 font-mono text-xs text-white">{u.email}</td>
-                  <td className="px-4 py-2.5">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                        u.tier === 'pro' || u.tier === 'elite' || u.tier === 'custom'
-                          ? 'bg-emerald-500/15 text-emerald-400'
-                          : 'bg-zinc-800 text-zinc-400'
-                      }`}
-                    >
-                      {u.tier}
-                    </span>
-                  </td>
                   <td className="px-4 py-2.5 text-xs text-zinc-500">
                     {new Date(u.created_at).toISOString().slice(0, 19).replace('T', ' ')}
                   </td>

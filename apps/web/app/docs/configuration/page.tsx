@@ -5,7 +5,7 @@ import { getPrevNext } from '../nav-config';
 
 export const metadata: Metadata = {
   title: 'Configuration',
-  description: 'All environment variables, Stripe setup, Telegram bot config, and database options.',
+  description: 'All environment variables, Telegram bot config, and database options.',
 };
 
 
@@ -35,27 +35,12 @@ export default function ConfigurationPage() {
 NEXT_PUBLIC_BASE_URL=https://tradeclaw.win
 
 # ---------------------------------------------------------------------------
-# Stripe (optional — needed for billing/subscriptions)
-# ---------------------------------------------------------------------------
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_PUBLISHABLE_KEY=pk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
-STRIPE_PRO_MONTHLY_PRICE_ID=price_...
-STRIPE_PRO_ANNUAL_PRICE_ID=price_...
-
-NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID=price_...
-NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID=price_...
-
-# ---------------------------------------------------------------------------
 # Telegram (optional — needed for bot alerts)
 # ---------------------------------------------------------------------------
 TELEGRAM_BOT_TOKEN=...
 NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=YourBotUsername
 
 TELEGRAM_FREE_CHANNEL_ID=-100...
-TELEGRAM_PRO_GROUP_ID=-100...
-TELEGRAM_ELITE_GROUP_ID=-100...
 
 # ---------------------------------------------------------------------------
 # Database
@@ -63,7 +48,7 @@ TELEGRAM_ELITE_GROUP_ID=-100...
 DATABASE_URL=postgresql://user:password@host:5432/tradeclaw
 
 # ---------------------------------------------------------------------------
-# Redis (optional — for Elite tier rate limiting)
+# Redis (optional — for API rate limiting)
 # ---------------------------------------------------------------------------
 UPSTASH_REDIS_REST_URL=https://...
 UPSTASH_REDIS_REST_TOKEN=...`}
@@ -146,7 +131,7 @@ UPSTASH_REDIS_REST_TOKEN=...`}
       <section className="mb-10">
         <h2 className="text-2xl font-semibold text-white mb-4">Redis</h2>
         <p className="text-sm text-zinc-500 mb-4">
-          Redis is optional. It is used for API rate limiting on the Elite tier. If not configured,
+          Redis is optional. It is used for API rate limiting. If not configured,
           rate limiting falls back to in-memory (not suitable for multi-instance deployments).
         </p>
         <div className="rounded-xl border border-white/6 overflow-hidden">
@@ -190,47 +175,11 @@ UPSTASH_REDIS_REST_TOKEN=...`}
               {[
                 { name: 'TELEGRAM_BOT_TOKEN', desc: 'Bot API token from @BotFather. Format: 123456789:ABC...' },
                 { name: 'NEXT_PUBLIC_TELEGRAM_BOT_USERNAME', desc: 'Your bot\'s @username (without @). Used for deep-link generation.' },
-                { name: 'TELEGRAM_FREE_CHANNEL_ID', desc: 'Channel ID for free-tier signal broadcasts. Use a negative number for channels/groups.' },
-                { name: 'TELEGRAM_PRO_GROUP_ID', desc: 'Group ID for Pro subscribers.' },
-                { name: 'TELEGRAM_ELITE_GROUP_ID', desc: 'Group ID for Elite subscribers.' },
+                { name: 'TELEGRAM_FREE_CHANNEL_ID', desc: 'Channel ID for public signal broadcasts. Use a negative number for channels/groups.' },
                 { name: 'WEB_PUSH_VAPID_PUBLIC_KEY', desc: 'VAPID public key for browser push. Generate with: npx web-push generate-vapid-keys' },
                 { name: 'WEB_PUSH_VAPID_PRIVATE_KEY', desc: 'VAPID private key. Server-only — never expose to the browser.' },
                 { name: 'WEB_PUSH_VAPID_SUBJECT', desc: 'Contact URL or mailto: for push providers (e.g. mailto:ops@example.com).' },
                 { name: 'NEXT_PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY', desc: 'Same value as WEB_PUSH_VAPID_PUBLIC_KEY, exposed to the client for pushManager.subscribe.' },
-              ].map(row => (
-                <tr key={row.name} className="border-b border-white/4 last:border-0">
-                  <td className="px-4 py-3 align-top whitespace-nowrap"><code className="text-xs text-emerald-300 font-mono">{row.name}</code></td>
-                  <td className="px-4 py-3 align-top text-sm text-zinc-400">{row.desc}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* Stripe */}
-      <section className="mb-10">
-        <h2 className="text-2xl font-semibold text-white mb-4">Stripe</h2>
-        <p className="text-sm text-zinc-500 mb-4">
-          Stripe is entirely optional. Remove all Stripe variables to disable the billing UI.
-          The app runs fully without Stripe — all features are available without a subscription
-          in the default open-source configuration.
-        </p>
-        <div className="rounded-xl border border-white/6 overflow-hidden">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-white/6 bg-white/[0.02]">
-                <th className="px-4 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wide">Variable</th>
-                <th className="px-4 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wide">Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { name: 'STRIPE_SECRET_KEY', desc: 'Server-side API key. Never expose to the browser.' },
-                { name: 'STRIPE_PUBLISHABLE_KEY', desc: 'Client-safe publishable key.' },
-                { name: 'STRIPE_WEBHOOK_SECRET', desc: 'Webhook signing secret for verifying Stripe events.' },
-                { name: 'STRIPE_PRO_MONTHLY_PRICE_ID', desc: 'Price ID for the Pro monthly plan.' },
-                { name: 'STRIPE_PRO_ANNUAL_PRICE_ID', desc: 'Price ID for the Pro annual plan.' },
               ].map(row => (
                 <tr key={row.name} className="border-b border-white/4 last:border-0">
                   <td className="px-4 py-3 align-top whitespace-nowrap"><code className="text-xs text-emerald-300 font-mono">{row.name}</code></td>

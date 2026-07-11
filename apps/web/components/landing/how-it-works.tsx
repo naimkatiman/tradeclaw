@@ -65,7 +65,7 @@ const STEPS = [
         <path d="M19 5h-4M19 5v4" />
       </svg>
     ),
-    code: "Signal: XAU/USD BUY @ 87%",
+    code: "Signal: BUY or SELL + confidence score",
   },
 ];
 
@@ -79,11 +79,11 @@ export function HowItWorks() {
           </div>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-[var(--foreground)]">
             Deploy in{" "}
-            <span className="text-emerald-400">under 2 minutes</span>
+            <span className="text-emerald-400">minutes</span>
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-base text-[var(--text-secondary)]">
-            No vendor accounts, no API keys for signal providers, no monthly
-            fees. Just clone and run.
+            MIT-licensed and self-hosted. Bring your own broker keys — no fees
+            to us, ever.
           </p>
         </div>
 

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isCountedResolved, type SignalHistoryRecord } from '../../../../lib/signal-history';
-import { PRO_PREMIUM_MIN_CONFIDENCE } from '../../../../lib/tier';
+import { HIGH_CONFIDENCE_BAND_MIN } from '../../../../lib/signal-thresholds';
 import { getResolvedSlice, parseScope, type SignalScope } from '../../../../lib/signal-slice';
 import { parseCategoryFilter, symbolsForCategory } from '../../../lib/symbol-config';
+import { costModelFor } from '@tradeclaw/strategies';
 
 export type EquityScope = SignalScope;
 
@@ -20,15 +21,23 @@ const STARTING_EQUITY = 10_000;
 const RISK_PER_TRADE_PCT = 1.0;
 
 /**
- * Round-trip transaction cost deducted from each trade's pnl, in percent.
- * 2bps is the realistic blended cost for a SELECTIVE subscriber executing
- * via a major retail venue (FX 1-2bps, crypto 5-10bps with rebates, indices
- * 1-3bps). The engine's full firehose is ~100 trades/day; a 5bps blended
- * cost compounds to ~78% drag over 3,000 trades and overwhelms the +0.06R
- * gross expectancy. 2bps reflects that a real subscriber both pays less per
- * trade (size sensitivity) and trades less than the engine prints.
+ * Per-trade round-trip cost is the REAL recorded cost for each signal
+ * (cost_estimate_pct, migration 051 = 2×(fee+slippage) of notional per
+ * @tradeclaw/strategies costModelFor, funding excluded). This replaces the
+ * prior flat 0.02% blended guess, which undercharged crypto ~20x (real crypto
+ * RT ≈ 0.40% vs metals ≈ 0.10%, FX ≈ 0.04%) and made the public equity curve
+ * materially more optimistic than a subscriber's true result. Pre-051 rows
+ * with no recorded cost fall back to the model cost for their asset class.
  */
-const ROUND_TRIP_COST_PCT = 0.02;
+function roundTripCostNotionalPct(
+  record: Pick<SignalHistoryRecord, 'pair' | 'costEstimatePct'>,
+): number {
+  if (record.costEstimatePct != null && record.costEstimatePct > 0) {
+    return record.costEstimatePct;
+  }
+  const c = costModelFor(record.pair);
+  return 2 * (c.feePctPerSide + c.slippagePctPerSide);
+}
 
 /**
  * Hard cap on per-trade R-multiple for equity sizing. Bounds single-trade
@@ -66,14 +75,22 @@ export interface EquitySummary {
   avgRWin: number | null;
   /** Average R-multiple of losing trades (signed, typically ~-1). Null when no SL data on any loser. */
   avgRLoss: number | null;
-  /** Expectancy in R per trade: winRate * avgRWin + lossRate * avgRLoss. The break-even line for win-rate context. */
+  /** GROSS expectancy in R per trade: winRate * avgRWin + lossRate * avgRLoss. Pre-cost — engine quality only. */
   expectancyR: number | null;
+  /** NET expectancy in R per trade: gross expectancyR minus avgCostR. This is the per-trade edge that actually
+   *  compounds the equity curve; it can be negative even when gross expectancy is positive. Null when either input is null. */
+  netExpectancyR: number | null;
   /** Win-rate that would make expectancy = 0 given the observed avgRWin / avgRLoss. */
   breakEvenWinRate: number | null;
   /** Sizing assumption surfaced to the UI so the chart caption can quote the methodology. */
   riskPerTradePct: number;
-  /** Round-trip cost deducted per trade, in percent. */
+  /** Realized average per-trade round-trip cost as % of notional, computed from
+   *  each row's real recorded cost (cost_estimate_pct) — NOT a flat guess. */
   roundTripCostPct: number;
+  /** Realized average per-trade cost in R (cost%_notional ÷ riskPct). This is
+   *  what the equity path actually deducts; the notional % above understates the
+   *  impact because tight stops magnify the R cost. Null when no sized trades. */
+  avgCostR: number | null;
   /** Hard R-cap applied to per-trade sizing — bounds single-trade equity contribution. */
   hardRCap: number;
 }
@@ -96,8 +113,8 @@ function parseBand(raw: string | null): EquityBand {
 }
 
 function inBand(record: SignalHistoryRecord, band: EquityBand): boolean {
-  if (band === 'premium') return record.confidence >= PRO_PREMIUM_MIN_CONFIDENCE;
-  if (band === 'standard') return record.confidence < PRO_PREMIUM_MIN_CONFIDENCE;
+  if (band === 'premium') return record.confidence >= HIGH_CONFIDENCE_BAND_MIN;
+  if (band === 'standard') return record.confidence < HIGH_CONFIDENCE_BAND_MIN;
   return true;
 }
 
@@ -154,6 +171,9 @@ function computeEquityCurve(
   let winRCount = 0;
   let lossRSum = 0;
   let lossRCount = 0;
+  // Realized cost accumulators — averaged over sized trades for the summary.
+  let costRSum = 0;
+  let costNotionalSum = 0;
 
   for (const r of sorted) {
     const rawPnl = r.outcomes['24h']!.pnlPct;
@@ -186,10 +206,15 @@ function computeEquityCurve(
     const effectiveRCap = rCap !== null ? Math.min(rCap, HARD_R_CAP) : HARD_R_CAP;
     const rMultipleSized = Math.max(-effectiveRCap, Math.min(effectiveRCap, rMultiple));
 
-    // Fixed-fractional equity change: RISK_PER_TRADE_PCT × R, minus blended
-    // round-trip cost. Loss tail is bounded near -(RISK_PER_TRADE_PCT + cost%);
-    // wins compound at rMultiple × RISK_PER_TRADE_PCT.
-    const tradeReturnPct = rMultipleSized * RISK_PER_TRADE_PCT - ROUND_TRIP_COST_PCT;
+    // Fixed-fractional equity change: RISK_PER_TRADE_PCT × R, minus this row's
+    // REAL round-trip cost. 1R == riskPct of price == RISK_PER_TRADE_PCT% of
+    // equity, so the notional cost converts to R as cost%_notional ÷ riskPct.
+    // Loss tail ≈ -(RISK_PER_TRADE_PCT + costR×RISK); wins compound at R×RISK.
+    const costNotionalPct = roundTripCostNotionalPct(r);
+    const tradeCostR = costNotionalPct / riskPct;
+    costRSum += tradeCostR;
+    costNotionalSum += costNotionalPct;
+    const tradeReturnPct = (rMultipleSized - tradeCostR) * RISK_PER_TRADE_PCT;
     equity *= 1 + tradeReturnPct / 100;
     sizedTrades++;
 
@@ -233,6 +258,8 @@ function computeEquityCurve(
 
   const avgRWin = winRCount > 0 ? +(winRSum / winRCount).toFixed(2) : null;
   const avgRLoss = lossRCount > 0 ? +(lossRSum / lossRCount).toFixed(2) : null;
+  const avgCostR = sizedTrades > 0 ? +(costRSum / sizedTrades).toFixed(3) : null;
+  const avgRoundTripNotionalPct = sizedTrades > 0 ? +(costNotionalSum / sizedTrades).toFixed(3) : 0;
   const winRateFraction = sorted.length > 0 ? wins / sorted.length : 0;
   // Expectancy(R) = p(win) * avgRWin + p(loss) * avgRLoss. It MUST use the same
   // population the R-averages come from — the sized-trade subset (rows with SL).
@@ -249,6 +276,14 @@ function computeEquityCurve(
   const breakEvenWinRate = avgRWin !== null && avgRLoss !== null && avgRWin - avgRLoss !== 0
     ? +(((-avgRLoss) / (avgRWin - avgRLoss)) * 100).toFixed(1)
     : null;
+  // Net expectancy = gross expectancy minus the real per-trade cost in R. Subtract
+  // the SAME 2dp cost the card's breakdown sub-line shows, so the headline net always
+  // equals (displayed gross − displayed cost) exactly — no ±0.01R drift from avgCostR's
+  // 3rd decimal. (avgCostR itself stays 3dp for the precise caption disclosure.) A
+  // gross-positive engine can read net-negative here — the honest signal the curve reflects.
+  const netExpectancyR = expectancyR !== null && avgCostR !== null
+    ? +(expectancyR - +avgCostR.toFixed(2)).toFixed(2)
+    : null;
 
   return {
     points,
@@ -262,9 +297,11 @@ function computeEquityCurve(
       avgRWin,
       avgRLoss,
       expectancyR,
+      netExpectancyR,
       breakEvenWinRate,
       riskPerTradePct: RISK_PER_TRADE_PCT,
-      roundTripCostPct: ROUND_TRIP_COST_PCT,
+      roundTripCostPct: avgRoundTripNotionalPct,
+      avgCostR,
       hardRCap: HARD_R_CAP,
     },
   };
@@ -299,9 +336,8 @@ export async function GET(request: NextRequest) {
     const period = searchParams.get('period');
     const band = parseBand(searchParams.get('band'));
     // Mirror /api/signals/history: scope=pro (default) is the full track
-    // record; scope=free narrows to free-tier symbols + 1d window. Track
-    // record is intentionally not gated by caller tier — the comparison is
-    // the marketing pitch.
+    // record; scope=broadcast narrows to gate-approved rows. Everything is
+    // free — there is no tier window on any scope.
     const scope = parseScope(searchParams.get('scope'));
     const category = parseCategoryFilter(searchParams.get('category'));
     // summaryOnly drops the (potentially ~3.3k-point) `points` array and

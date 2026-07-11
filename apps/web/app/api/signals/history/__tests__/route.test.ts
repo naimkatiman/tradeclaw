@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
 import type { SignalHistoryRecord } from '../../../../../lib/signal-history';
-import * as tier from '../../../../../lib/tier';
 
 function countsAsRealOutcome(outcome: SignalHistoryRecord['outcomes']['24h']): boolean {
   return Boolean(outcome && (outcome.pnlPct !== 0 || outcome.hit));
@@ -22,7 +21,7 @@ jest.mock('../../../../../lib/signal-history', () => {
 });
 
 jest.mock('../../../../../lib/signal-slice', () => ({
-  parseScope: jest.fn((raw: string | null | undefined) => raw === 'free' ? 'free' : raw === 'broadcast' ? 'broadcast' : 'pro'),
+  parseScope: jest.fn((raw: string | null | undefined) => raw === 'broadcast' ? 'broadcast' : 'pro'),
   getResolvedSlice: jest.fn(),
 }));
 
@@ -178,19 +177,7 @@ describe('GET /api/signals/history category filtering', () => {
     expect(body.stats.totalSignals).toBe(1);
   });
 
-  it('requires Pro for CSV export', async () => {
-    primeSlice([record({ id: 'btc-1', pair: 'BTCUSD' })]);
-
-    const res = await GET(makeReq('/api/signals/history?format=csv'));
-    const body = await res.json();
-
-    expect(res.status).toBe(402);
-    expect(body.error).toBe('upgrade_required');
-    expect(body.reason).toContain('CSV export requires Pro');
-  });
-
-  it('exports filtered CSV for Pro callers', async () => {
-    jest.spyOn(tier, 'getTierFromRequest').mockResolvedValueOnce('pro');
+  it('exports filtered CSV for anonymous callers — no tier gate', async () => {
     primeSlice([
       record({ id: 'btc-1', pair: 'BTCUSD', strategyId: 'classic', gateReason: 'ok' }),
       record({ id: 'eth-1', pair: 'ETHUSD' }),

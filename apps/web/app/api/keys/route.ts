@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readKeys, createKey, listKeysByEmail, TIER_RATE_LIMITS } from '@/lib/api-keys';
-import type { ApiKeyTier } from '@/lib/api-keys';
+import { readKeys, createKey, listKeysByEmail } from '@/lib/api-keys';
 import { readSessionFromRequest } from '@/lib/user-session';
-import { getTierFromRequest, upgradeRequiredBody, meetsMinimumTier } from '@/lib/tier';
 import { getUserById } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -35,19 +33,6 @@ export async function POST(req: NextRequest) {
     const session = readSessionFromRequest(req);
     if (!session?.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // 2. Must be Pro+. API access is a Pro feature.
-    const tier = await getTierFromRequest(req);
-    if (!meetsMinimumTier(tier, 'pro')) {
-      return NextResponse.json(
-        upgradeRequiredBody({
-          reason:
-            'API access is a Pro feature. Free dashboards stay free — upgrade to mint API keys.',
-          source: 'api-keys',
-        }),
-        { status: 402 },
-      );
     }
 
     const body = await req.json() as Record<string, unknown>;
@@ -83,16 +68,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'At least one scope required' }, { status: 400 });
     }
 
-    // Derive key tier from the user's subscription tier.
-    const keyTier: ApiKeyTier =
-      tier === 'elite' ? 'elite' : tier === 'pro' ? 'pro' : 'free';
-
     const key = createKey({
       name: String(name),
       email: String(email),
       description: typeof description === 'string' ? description : '',
       scopes: resolvedScopes,
-      tier: keyTier,
     });
     // Return the full key ONCE on creation
     return NextResponse.json(

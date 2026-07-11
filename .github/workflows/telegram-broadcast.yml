@@ -1,8 +1,13 @@
 name: Telegram Broadcast
 
 on:
-  schedule:
-    - cron: "0 */4 * * *"
+  # Schedule disabled 2026-07-11: Cloudflare's managed challenge on
+  # tradeclaw.win 403s GitHub-hosted runner traffic — even this plain GET of
+  # the public /api/digest/daily with a descriptive User-Agent (every run red
+  # since 2026-05-02). Re-enable once a Cloudflare WAF skip rule covers
+  # /api/digest/*.
+  # schedule:
+  #   - cron: "0 */4 * * *"
   workflow_dispatch:
 
 jobs:

@@ -105,15 +105,10 @@ describe('GET /api/auth/google/callback', () => {
     mockedUpsertUser.mockResolvedValueOnce({
       id: 'user-1',
       email: 'naim@example.com',
-      stripeCustomerId: null,
-      tier: 'free',
-      tierExpiresAt: null,
       telegramUserId: null,
       displayName: null,
       avatarUrl: null,
       authProvider: null,
-      referralCode: null,
-      referredBy: null,
     });
 
     const fetchMock = setFetch([
@@ -175,51 +170,7 @@ describe('GET /api/auth/google/callback', () => {
     ).toBe(true);
   });
 
-  it('checkout-payload state bounces back through /signin with priceId/tier/interval preserved', async () => {
-    mockedDecodeState.mockReturnValue({
-      nonce: 'a'.repeat(32),
-      issuedAt: Date.now(),
-      tier: 'pro',
-      interval: 'monthly',
-    });
-    mockedUpsertUser.mockResolvedValueOnce({
-      id: 'user-1',
-      email: 'naim@example.com',
-      stripeCustomerId: null,
-      tier: 'free',
-      tierExpiresAt: null,
-      telegramUserId: null,
-      displayName: null,
-      avatarUrl: null,
-      authProvider: null,
-      referralCode: null,
-      referredBy: null,
-    });
-    setFetch([
-      { ok: true, json: async () => ({ access_token: 'gat_xyz' }) },
-      { ok: true, json: async () => ({ email: 'naim@example.com', email_verified: true }) },
-    ]);
-
-    const res = await GET(
-      makeRequest({
-        url: 'http://localhost:3000/api/auth/google/callback?code=auth_code&state=fake_state',
-        cookies: { tc_oauth_state: 'a'.repeat(32) },
-      }),
-    );
-
-    expect(res.status).toBe(302);
-    const location = new URL(res.headers.get('location')!);
-    expect(location.pathname).toBe('/signin');
-    expect(location.searchParams.get('tier')).toBe('pro');
-    expect(location.searchParams.get('interval')).toBe('monthly');
-
-    // Session cookie still issued — the /signin landing then reads it and
-    // POSTs to /api/stripe/checkout from the client effect.
-    const setCookies = res.headers.getSetCookie();
-    expect(setCookies.some((c) => c.startsWith('tc_user_session='))).toBe(true);
-  });
-
-  it('honors state.next when there is no checkout payload', async () => {
+  it('honors state.next', async () => {
     mockedDecodeState.mockReturnValue({
       nonce: 'a'.repeat(32),
       issuedAt: Date.now(),
@@ -228,15 +179,10 @@ describe('GET /api/auth/google/callback', () => {
     mockedUpsertUser.mockResolvedValueOnce({
       id: 'user-1',
       email: 'naim@example.com',
-      stripeCustomerId: null,
-      tier: 'free',
-      tierExpiresAt: null,
       telegramUserId: null,
       displayName: null,
       avatarUrl: null,
       authProvider: null,
-      referralCode: null,
-      referredBy: null,
     });
     setFetch([
       { ok: true, json: async () => ({ access_token: 'gat_xyz' }) },
@@ -254,7 +200,7 @@ describe('GET /api/auth/google/callback', () => {
     expect(new URL(res.headers.get('location')!).pathname).toBe('/track-record');
   });
 
-  it('redirects to /signin?error=oauth_not_configured when client id is missing (no Stripe call)', async () => {
+  it('redirects to /signin?error=oauth_not_configured when client id is missing', async () => {
     delete process.env.GOOGLE_OAUTH_CLIENT_ID;
     const fetchMock = setFetch([]);
 
@@ -366,15 +312,10 @@ describe('GET /api/auth/google/callback', () => {
     mockedUpsertUser.mockResolvedValueOnce({
       id: 'user-1',
       email: 'naim@example.com',
-      stripeCustomerId: null,
-      tier: 'free',
-      tierExpiresAt: null,
       telegramUserId: null,
       displayName: 'Naim',
       avatarUrl: null,
       authProvider: 'google',
-      referralCode: null,
-      referredBy: null,
     });
     setFetch([
       { ok: true, json: async () => ({ access_token: 'gat_xyz' }) },
@@ -413,15 +354,10 @@ describe('GET /api/auth/google/callback', () => {
     mockedUpsertUser.mockResolvedValueOnce({
       id: 'user-1',
       email: 'naim@example.com',
-      stripeCustomerId: null,
-      tier: 'free',
-      tierExpiresAt: null,
       telegramUserId: null,
       displayName: null,
       avatarUrl: null,
       authProvider: 'google',
-      referralCode: null,
-      referredBy: null,
     });
     setFetch([
       { ok: true, json: async () => ({ access_token: 'gat_xyz' }) },

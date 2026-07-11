@@ -53,7 +53,6 @@ test.describe('Dashboard Page', () => {
 test.describe('Key Pages Load', () => {
   const pages = [
     { path: '/docs', name: 'Documentation' },
-    { path: '/pricing', name: 'Pricing' },
     { path: '/how-it-works', name: 'How It Works' },
     { path: '/leaderboard', name: 'Leaderboard' },
     { path: '/performance', name: 'Performance' },
@@ -68,4 +67,10 @@ test.describe('Key Pages Load', () => {
       await expect(page.locator('body')).toBeVisible();
     });
   }
+
+  test('/pricing redirects to /track-record', async ({ page }) => {
+    const res = await page.goto('/pricing');
+    expect(res?.status()).toBeLessThan(500);
+    await expect(page).toHaveURL(/\/track-record/);
+  });
 });

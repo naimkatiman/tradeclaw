@@ -34,9 +34,9 @@ beforeEach(() => {
 });
 
 describe('parseScope', () => {
-  it('accepts broadcast and defaults unknown values to pro', () => {
+  it('accepts broadcast and defaults everything else (including legacy free) to pro', () => {
     expect(parseScope('broadcast')).toBe('broadcast');
-    expect(parseScope('free')).toBe('free');
+    expect(parseScope('free')).toBe('pro');
     expect(parseScope('pro')).toBe('pro');
     expect(parseScope('nonsense')).toBe('pro');
     expect(parseScope(null)).toBe('pro');

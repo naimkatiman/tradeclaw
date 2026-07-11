@@ -39,7 +39,11 @@ function toStringArray(value: unknown): string[] {
 function loadPosts(): BlogPost[] {
   if (!fs.existsSync(CONTENT_DIR)) return [];
 
-  const files = fs.readdirSync(CONTENT_DIR).filter((f) => f.endsWith('.mdx'));
+  // draft-*.mdx files are unpublished editorial scaffolding — never list or
+  // build them as public pages.
+  const files = fs
+    .readdirSync(CONTENT_DIR)
+    .filter((f) => f.endsWith('.mdx') && !f.startsWith('draft-'));
 
   const posts = files.map<BlogPost>((file) => {
     const slug = file.replace(/\.mdx$/, '');

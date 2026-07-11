@@ -1,12 +1,42 @@
-import { DelayDemo } from './delay-demo';
-import { SampleTelegramCard } from './sample-telegram-card';
-import { getLandingStats } from '../../lib/landing-stats';
+/**
+ * ProofHero — the honest, cost-adjusted result, up front.
+ *
+ * Reframed 2026-06-28: the section no longer headlines gross "Cumulative P&L"
+ * as a win (that figure is pre-cost and misleading). Instead it pulls the REAL
+ * cost-adjusted numbers from the same source of truth the track-record page
+ * uses — /api/signals/equity?summaryOnly=1 — so net expectancy after cost,
+ * total return after cost, and the real round-trip cost are shown live and can
+ * never drift from the equity curve. We do not duplicate or hardcode the cost
+ * math. See docs/plans/2026-06-27-reposition-off-raw-pnl.md.
+ */
 
-const MIN_CLOSED_SIGNALS_FOR_PF = 10;
+const GITHUB_URL = 'https://github.com/naimkatiman/tradeclaw';
 
-function formatPct(n: number): string {
-  const sign = n >= 0 ? '+' : '';
-  return `${sign}${n.toFixed(2)}%`;
+interface EquitySummary {
+  totalReturn: number;
+  maxDrawdown: number;
+  winRate: number;
+  totalSignals: number;
+  sizedTrades?: number;
+  expectancyR: number | null;
+  netExpectancyR?: number | null;
+  breakEvenWinRate: number | null;
+  roundTripCostPct?: number;
+  avgCostR?: number | null;
+}
+
+async function fetchEquitySummary(): Promise<EquitySummary | null> {
+  try {
+    const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+    const res = await fetch(`${base}/api/signals/equity?summaryOnly=1&scope=pro`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data?.summary ?? null) as EquitySummary | null;
+  } catch {
+    return null;
+  }
 }
 
 function StatTile({
@@ -39,110 +69,81 @@ function StatTile({
 }
 
 export async function ProofHero() {
-  let stats = null as Awaited<ReturnType<typeof getLandingStats>> | null;
-  try {
-    stats = await getLandingStats();
-  } catch {
-    stats = null;
-  }
-
-  const hasEnoughClosed =
-    stats != null && stats.closedSignals >= MIN_CLOSED_SIGNALS_FOR_PF;
+  const eq = await fetchEquitySummary();
 
   return (
     <section data-testid="proof-hero" className="mx-auto mt-10 max-w-5xl px-4">
       <div className="mb-6 text-center">
-        <p className="text-lg text-[var(--text-secondary)]">
-          Live signals (5-min cadence), backed by every resolved outcome since launch.
+        <h1 className="text-2xl font-bold tracking-tight text-white">
+          We charge every sized trade its modeled execution cost. Here&apos;s what&apos;s left.
+        </h1>
+        <p className="mx-auto mt-2 max-w-2xl text-sm text-[var(--text-secondary)]">
+          The headline isn&apos;t a win. After modeled per-symbol round-trip costs, the
+          engine&apos;s net expectancy is negative — single-asset timing doesn&apos;t beat
+          what it costs to trade. These numbers update live and match the full{' '}
+          <a href="/track-record" className="underline hover:text-white">
+            cost-adjusted track record
+          </a>
+          .
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        {hasEnoughClosed && stats && (
+      {eq ? (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           <StatTile
-            label="Cumulative P&L (all-time)"
-            value={formatPct(stats.cumulativePnlPct)}
-            tone={stats.cumulativePnlPct >= 0 ? 'positive' : 'negative'}
+            label="Net expectancy / trade (after cost)"
+            value={eq.netExpectancyR != null ? `${eq.netExpectancyR >= 0 ? '+' : ''}${eq.netExpectancyR}R` : '—'}
+            tone={eq.netExpectancyR != null && eq.netExpectancyR < 0 ? 'negative' : 'neutral'}
           />
-        )}
-        {hasEnoughClosed && stats && stats.profitFactor !== null && (
           <StatTile
-            label="Profit factor"
-            value={stats.profitFactor.toFixed(2)}
-            tone={stats.profitFactor >= 1.3 ? 'positive' : 'neutral'}
+            label="Total return (after cost)"
+            value={`${eq.totalReturn >= 0 ? '+' : ''}${eq.totalReturn}%`}
+            tone={eq.totalReturn < 0 ? 'negative' : 'positive'}
           />
-        )}
-        {hasEnoughClosed && stats && stats.winRatePct != null && (
           <StatTile
-            label="Win rate (all-time)"
-            value={`${stats.winRatePct.toFixed(1)}%`}
-            tone={
-              stats.breakEvenWinRatePct == null
-                ? 'neutral'
-                : stats.winRatePct >= stats.breakEvenWinRatePct + 1
-                  ? 'positive'
-                  : stats.winRatePct >= stats.breakEvenWinRatePct
-                    ? 'neutral'
-                    : 'negative'
-            }
+            label="Modeled round-trip cost"
+            value={eq.avgCostR != null ? `${eq.roundTripCostPct ?? '—'}% ≈ ${eq.avgCostR}R` : '—'}
+            tone="neutral"
+            small
           />
-        )}
-        <StatTile
-          label="Signals today"
-          value={String(stats?.signalsToday ?? 0)}
-          tone="neutral"
-        />
-        <StatTile
-          label="Delivery lag"
-          value="Pro: <1s · Free: 30min"
-          tone="neutral"
-          small
-        />
-      </div>
-
-      {hasEnoughClosed && stats && stats.payoffRatio != null && stats.breakEvenWinRatePct != null && (
-        <p className="mt-3 text-center text-xs text-[var(--text-secondary)]">
-          Wins average {stats.payoffRatio.toFixed(1)}x the size of losses — break-even win
-          rate at this risk/reward is {stats.breakEvenWinRatePct.toFixed(1)}%.
+          <StatTile
+            label="Trades resolved"
+            value={String(eq.sizedTrades ?? eq.totalSignals)}
+            tone="neutral"
+          />
+          <StatTile
+            label="Win rate vs break-even"
+            value={eq.breakEvenWinRate != null ? `${eq.winRate}% / ${eq.breakEvenWinRate}%` : `${eq.winRate}%`}
+            tone="neutral"
+            small
+          />
+        </div>
+      ) : (
+        <p className="text-center text-sm text-[var(--text-secondary)]">
+          The cost-adjusted result loads on the{' '}
+          <a href="/track-record" className="underline hover:text-white">track record</a>.
         </p>
       )}
 
-      {stats?.samples && (
-        <div className="mt-10">
-          <h2 className="mb-3 text-center text-sm font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
-            Pro (no delay) vs Free (30-min delay)
-          </h2>
-          <DelayDemo pro={stats.samples.pro} free={stats.samples.free} />
-        </div>
-      )}
-
-      {stats?.samples && (
-        <div className="mt-10">
-          <h2 className="mb-3 text-center text-sm font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
-            This is exactly what lands in your Telegram
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <SampleTelegramCard
-              tier="free"
-              symbol={stats.samples.free.symbol}
-              direction={stats.samples.free.direction}
-              entry={stats.samples.free.entry}
-              tp1={stats.samples.free.tp1}
-              timestampLabel={new Date(stats.samples.free.createdAt).toUTCString()}
-              delayLabel="Delivered 30 minutes after Pro"
-            />
-            <SampleTelegramCard
-              tier="pro"
-              symbol={stats.samples.pro.symbol}
-              direction={stats.samples.pro.direction}
-              entry={stats.samples.pro.entry}
-              tp1={stats.samples.pro.tp1}
-              sl={stats.samples.pro.sl}
-              timestampLabel={new Date(stats.samples.pro.createdAt).toUTCString()}
-            />
-          </div>
-        </div>
-      )}
+      <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+        <a
+          href="/track-record"
+          className="group flex items-center gap-2.5 rounded-full bg-emerald-500 px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98]"
+        >
+          See the full track record
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">
+            <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </a>
+        <a
+          href={GITHUB_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-7 py-3 text-sm font-medium text-zinc-300 transition-all duration-200 hover:border-white/20 hover:bg-white/8 hover:text-white"
+        >
+          View the source on GitHub
+        </a>
+      </div>
     </section>
   );
 }

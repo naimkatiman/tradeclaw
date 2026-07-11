@@ -6,27 +6,16 @@ test.describe('Navbar UX', () => {
     await page.waitForLoadState('domcontentloaded');
   });
 
-  test('does not render duplicate tier badges in the header', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name === 'mobile', 'Tier pill is hidden on small viewports');
+  test('does not render tier badges in the header', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile', 'Desktop header layout');
 
     const nav = page.locator('nav').first();
     await expect(nav).toBeVisible();
 
-    // Anonymous sessions render "Sign in" instead of a tier pill, so wait for
-    // the user-menu trigger (authenticated layout) before asserting; otherwise
-    // pass through with the looser duplicate-FREE check below.
-    const trigger = nav.locator('[data-testid="user-menu-trigger"]');
-    if (await trigger.count()) {
-      await expect(trigger).toBeVisible();
-      const tierMatches = trigger.getByText(/^(FREE|PRO|PROFESSIONAL|TEAM)$/);
-      await expect(tierMatches).toHaveCount(1);
-    }
-
-    // Regardless of auth state: the header band must never render the same
-    // tier label twice. This is the regression we just fixed (UserMenu pill +
-    // standalone TierBadge both rendering "FREE").
-    const freeOccurrences = await nav.getByText(/^FREE$/).count();
-    expect(freeOccurrences).toBeLessThanOrEqual(1);
+    // Tiers no longer exist: the header must never render a tier pill,
+    // regardless of auth state.
+    const tierMatches = nav.getByText(/^(FREE|PRO|PROFESSIONAL|TEAM|ELITE)$/);
+    await expect(tierMatches).toHaveCount(0);
   });
 
   test('primary navigation links route correctly', async ({ page }, testInfo) => {

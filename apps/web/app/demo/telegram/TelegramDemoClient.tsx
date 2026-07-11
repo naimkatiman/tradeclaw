@@ -29,8 +29,6 @@ interface SignalResult {
   direction: 'BUY' | 'SELL';
   confidence: number;
   timeframe: string;
-  locked?: boolean;
-  availableAt?: string;
 }
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
@@ -243,9 +241,7 @@ export default function TelegramDemoClient() {
                 </div>
                 <div className="rounded-lg bg-zinc-800 p-2">
                   <div className="text-zinc-500 mb-1">Status</div>
-                  <div className="font-mono font-medium text-white">
-                    {result.locked ? 'Delayed' : 'Preview'}
-                  </div>
+                  <div className="font-mono font-medium text-white">Preview</div>
                 </div>
               </div>
             </div>

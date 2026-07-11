@@ -1,5 +1,1501 @@
 # TradeClaw AI Improvement Implementation Log
 
+## 2026-07-02 06:46 MPST (+0800) — verification-only refresh of the existing docs-only checkpoint (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.
+
+Decision: refreshed the existing docs-only checkpoint for the new day, kept the read-only research CLI `scripts/research/recost-segment.ts` documented as an intentional local tool, and re-verified its fail-closed no-DB behavior. The root README discoverability hook remains in place. Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned live repo status before writing the refresh and kept the checkpoint grounded in real outputs.
+External source applied: https://github.com/DietrichGebert/ponytail — kept the increment to the smallest useful change: verification-only docs refresh, not new runtime work.
+External source applied: https://github.com/safishamsi/graphify — kept the AI tracking surfaces aligned across README/handoff/matrix/log/STATE/board.
+
+Files inspected / context read:
+- `C:/Ai/tradeclaw/scripts/research/recost-segment.ts`
+- `C:/Ai/tradeclaw/README.md`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Files changed / artifacts updated this run:
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `docs/ai-improvement/implementation-log.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+- `git status --short --branch --ahead-behind --untracked-files=all` still shows `## loop/standup-2026-06-26...origin/loop/standup-2026-06-26` with `M README.md`, `M STATE.yaml`, `M docs/ai-improvement/README.md`, `M docs/ai-improvement/implementation-log.md`, `M docs/ai-improvement/uncommitted-source-verification-handoff.md`, `M docs/ai-improvement/verification-command-matrix.md`, and `?? scripts/research/recost-segment.ts`.
+- `npx tsc --noEmit --pretty false --module nodenext --moduleResolution nodenext --target es2022 --lib es2022 --types node --esModuleInterop --skipLibCheck scripts/research/recost-segment.ts` exited 0.
+- `DATABASE_PUBLIC_URL= DATABASE_URL= npx tsx scripts/research/recost-segment.ts` exited 1 and printed the expected missing-DB guard message.
+- `git diff --check` exited 0.
+- `git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md` exited 1 as expected and printed only the LF→CRLF normalization warning, with no whitespace-error lines.
+
+Recommended next move: keep `scripts/research/recost-segment.ts` as an intentional local research utility, and when live Postgres access is available run the real-data probe against Railway Postgres to answer the cost edge question.
+
+Settlement note (2026-07-02, added when this drift was committed): the probe was already answered against production Postgres on 2026-06-26 — the identical script was merged to main in PR #136 (`df8adeb4`) and run over 3,796 resolved trades: gross +0.0149R, net −0.4317R/trade, no asset-class × band cell net-positive at n ≥ 100 (see `docs/plans/2026-06-26-real-cost-track-record.md`). The "pending prod DB" status these checkpoints carried was doc-drift against the already-merged result; only the `--json` per-cell artifact remains uncommitted.
+
+## 2026-06-30 06:41 MPST (+0800) — recost-segment keep-and-document refresh (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.
+
+Decision: refreshed the existing docs-only checkpoint for the current dirty tree, kept the read-only research CLI `scripts/research/recost-segment.ts` as an intentional local tool, and surfaced it in the root README scripts list so future agents can find it quickly. The CLI still typechecked cleanly and failed closed without DB env before the repo-local AI tracking docs were refreshed. Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned git status, inspected the live source/docs before editing, and verified with real commands.
+External source applied: https://github.com/safishamsi/graphify — mapped the relationship between the equity route, calibration migration, and the new read-only research CLI before deciding the script is safe and isolated.
+External source applied: https://github.com/DietrichGebert/ponytail — chose the smallest useful increment: verification plus docs refresh, no broad code churn.
+
+Files inspected / context read:
+- `C:/Ai/tradeclaw/scripts/research/recost-segment.ts`
+- `C:/Ai/tradeclaw/README.md`
+- `C:/Ai/tradeclaw/apps/web/app/api/signals/equity/route.ts`
+- `C:/Ai/tradeclaw/apps/web/app/api/signals/equity/route.test.ts`
+- `C:/Ai/tradeclaw/apps/web/migrations/051_calibration_features.sql`
+- `C:/Ai/tradeclaw/scripts/research/run-backtest-cli.ts`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Files changed / artifacts updated this run:
+- `README.md`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `docs/ai-improvement/implementation-log.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+- `git status --short --branch --ahead-behind --untracked-files=all` showed `## loop/standup-2026-06-26...origin/loop/standup-2026-06-26` with `M README.md`, `M STATE.yaml`, `M docs/ai-improvement/README.md`, `M docs/ai-improvement/implementation-log.md`, `M docs/ai-improvement/uncommitted-source-verification-handoff.md`, `M docs/ai-improvement/verification-command-matrix.md`, and `?? scripts/research/recost-segment.ts`.
+- `git diff --shortstat --` returned `6 files changed, 108 insertions(+), 119 deletions(-)`.
+- `npx tsc --noEmit --pretty false --module nodenext --moduleResolution nodenext --target es2022 --lib es2022 --types node --esModuleInterop --skipLibCheck scripts/research/recost-segment.ts` exited 0.
+
+- `README.md` read-back confirmed the `scripts/` section now includes `research/recost-segment.ts`.
+- `git diff --check` exited 0.
+- `git diff --no-index --check -- /dev/null /c/Ai/_zaky_ai_board/KANBAN.md` exited 1 as expected for a diff and produced no whitespace-error output.
+
+Recommended next move: keep `scripts/research/recost-segment.ts` as an intentional local research utility, and when live Postgres access is available run the real-data probe against Railway Postgres to answer the cost edge question.
+
+## 2026-06-25 05:31 MPST (+0800) — monetization strategy-audit package verification and docs refresh (docs/tracking only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw` on the Mini `gpt-5.4-mini` tier, daily schedule `27 5 * * *`.
+
+Decision: documented the new historical-only strategy-audit monetization path and verified the standalone `packages/strategy-audit-agent` workspace package. The audit package turns existing Backtest Lab output into a paid deliverable without touching live trade execution, billing, or broker access. Code changes: none this run.
+
+External source applied: continuous-improvement — inspected live files, verified the package with real commands, and kept the increment scoped to one coherent change.
+External source applied: ponytail — chose the smallest safe increment: docs/tracking plus package verification, no checkout/broker wiring.
+External source applied: graphify — treated the root audit doc, the AI-improvement note, the package workspace, and the state/board surfaces as one connected monetization node.
+External source applied: zaky-improvement-stack — kept the monetization experiment historical-only and approval-gated on payment/broker wiring.
+
+Files inspected / context read:
+- `C:/Ai/tradeclaw/docs/MONETIZATION_STRATEGY_AUDIT.md`
+- `C:/Ai/tradeclaw/docs/ai-improvement/README.md`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/package.json`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/src/cli.mjs`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/src/security.mjs`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/src/config.mjs`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/src/browser.mjs`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/src/report.mjs`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/src/matrix.mjs`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/src/extract.mjs`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/src/computer-use.mjs`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/test/security.test.mjs`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/test/extract.test.mjs`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/test/matrix.test.mjs`
+- `C:/Ai/tradeclaw/packages/strategy-audit-agent/test/report.test.mjs`
+- `C:/Ai/tradeclaw/package-lock.json`
+- current `git status --short --branch --ahead-behind`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `C:/Ai/tradeclaw/STATE.yaml`
+
+Files changed / artifacts updated this run:
+- `docs/ai-improvement/monetization-strategy-audit.md`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+```text
+npm test
+-> 8 tests passed, 0 failed
+
+npm run check
+-> exit 0
+
+npm run validate:fixture
+-> Report: C:\Ai\tradeclaw\packages\strategy-audit-agent\tmp\fixture-validation\report.md
+-> Completed: 3/4
+```
+
+Current checkout note: the pre-existing `package-lock.json` workspace-link change for `@naimkatiman/tradeclaw-strategy-audit` is still present in the worktree; this run did not modify it further.
+
+Recommended next move: decide whether to promote the strategy-audit package to a tracked product experiment or keep it as a local prototype until owner/Fatin approve any payment/broker wiring.
+
+## 2026-06-24 05:31 MPST (+0800) — graphify-out ignore hygiene (docs/tracking only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw` on the Mini `gpt-5.4-mini` tier, daily schedule `27 5 * * *`.
+
+Decision: kept the low-risk `.gitignore` hygiene change that ignores generated `graphify-out/` output so future status scans do not pick up the graphify cache folder. The live working tree before the docs refresh showed only the pre-existing `.gitignore` modification. Code changes: `.gitignore` only.
+
+External source applied: continuous-improvement — re-scanned live status and verified the change before reporting.
+External source applied: ponytail — chose the smallest safe fix by ignoring generated output instead of touching the generated tree itself.
+External source applied: graphify — treated `graphify-out/` as generated knowledge-graph output that should stay out of the repo status surface.
+
+Files inspected / context read:
+- `C:/Ai/tradeclaw/.gitignore`
+- `C:/Ai/tradeclaw/STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- current `git status --short --branch --untracked-files=all`
+- `git diff -- .gitignore`
+- `git ls-files graphify-out | wc -l`
+- `git check-ignore -v graphify-out/graph.html graphify-out/manifest.json graphify-out/GRAPH_REPORT.md`
+
+Files changed / artifacts updated this run:
+- `.gitignore`
+- `docs/ai-improvement/implementation-log.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Application/runtime behavior changes: none. Code changes: `.gitignore` only.
+
+Verification run and results:
+
+```text
+timestamp: 2026-06-24 05:31 MPST (+0800)
+
+git status --short --branch --untracked-files=all
+-> ## fix/track-record-compliance-copy...origin/fix/track-record-compliance-copy
+->  M .gitignore
+
+git diff -- .gitignore
+-> diff --git a/.gitignore b/.gitignore
+-> added graphify-out/ ignore rule under the generated-data section
+
+git ls-files graphify-out | wc -l
+-> 0
+
+git check-ignore -v graphify-out/graph.html graphify-out/manifest.json graphify-out/GRAPH_REPORT.md
+-> .gitignore:32:graphify-out/ ...
+```
+
+Final static/read-back verification after tracking-doc updates:
+
+- Re-read `docs/ai-improvement/implementation-log.md`, `STATE.yaml`, and `KANBAN.md` after the final writes; the inserted 2026-06-24 tradeclaw row was still present and the following 2026-06-22 MobileIB0TelegramApp row remained intact.
+- `git status --short --branch --untracked-files=all` -> `## fix/track-record-compliance-copy...origin/fix/track-record-compliance-copy`; modified files now shown were `.gitignore`, `STATE.yaml`, and `docs/ai-improvement/implementation-log.md`.
+- `git diff --shortstat` -> `3 files changed, 66 insertions(+), 17 deletions(-)`.
+- `git diff --check` -> exit `0`; only the expected LF->CRLF warning for `docs/ai-improvement/implementation-log.md`, no whitespace-error lines.
+- `git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md` -> exit `1` expected; only the expected LF->CRLF warning for `C:/Ai/_zaky_ai_board/KANBAN.md`, no whitespace-error lines.
+
+## 2026-06-22 05:30 MPST (+0800) — post-metrics verification checkpoint refresh (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw` on the Mini `gpt-5.4-mini` tier, daily schedule `27 5 * * *`.
+
+Decision: stopped before new runtime/source/test work because the branch and dirty lanes still need owner/Fatin review, but refreshed current verification evidence so reviewers do not rely on the 05:29 checkpoint. Fresh `git fetch --prune` kept `fix/track-record-compliance-copy` at `528cd3c8` aligned with `origin/fix/track-record-compliance-copy` (`0 / 0` ahead/behind), local `main` at `da2afa06 [origin/main: ahead 1]`, merge-base `004190974821f789b8b56979680de03fd77ebcad`, `origin/main` changed-path count `0`, HEAD changed-path count `11`, dirty-path count `13`, and dirty/remote overlap `0`. Code changes: none this run.
+
+External source applied: continuous-improvement — re-scanned git status/history, fetched remote state, read the shared template and AI artifacts, planned one docs-only checkpoint, and verified with real commands before reporting.
+External source applied: source-review-metrics-packet / trading-anti-mc post-metrics example — refreshed the existing metrics, handoff, matrix, README, STATE, and board artifacts rather than layering new runtime work on top of unresolved branch/dirty lanes.
+External source applied: shadcn/improve — converted the branch and dirty-lane evidence into a concrete review sequence with real commands and expected warnings.
+External source applied: ponytail — chose restraint and verification refresh over adding code to an unresolved review stack.
+External source applied: graphify — treated branch, upstream, local main, dirty lanes, build/typecheck, app build warnings, STATE.yaml, and the central board as related review nodes before updating tracking.
+External source applied: codebase-inspection/pygount — re-measured source/test/config size with dependency, docs, build, data, and public-static folders excluded.
+
+Files inspected / context read:
+- `C:/Ai/_zaky_ai_board/agent_prompt_template.md`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `STATE.yaml`
+- `package.json`
+- `apps/web/package.json`
+- `apps/web/AGENTS.md`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `docs/ai-improvement/source-review-metrics.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- current `git status`, `git fetch --prune`, branch/upstream/merge-base probes, dirty path counts, targeted verification output, app build output, and source/test/config `pygount` output.
+
+Files changed / artifacts updated this run:
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/source-review-metrics.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `docs/ai-improvement/implementation-log.md`
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+
+```text
+timestamp: 2026-06-22 05:30 MPST (+0800)
+git fetch --prune -> exit 0
+branch: fix/track-record-compliance-copy
+head: 528cd3c8
+upstream: origin/fix/track-record-compliance-copy
+ahead_behind: 0 0
+merge_base: 004190974821f789b8b56979680de03fd77ebcad
+remote_paths: 0
+head_paths: 11
+dirty_paths: 13
+dirty_tracked: 12
+dirty_untracked: 1
+overlap_paths: 0
+tracked_shortstat: 12 files changed, 1,879 insertions(+), 226 deletions(-)
+docs/tooling lane: 5 files changed, 178 insertions(+), 144 deletions(-)
+test/static/state lane: 3 files changed, 309 insertions(+), 6 deletions(-)
+AI tracking/status lane: 4 files changed, 1,392 insertions(+), 76 deletions(-)
+
+npm run lint --workspace=apps/web -- app/api/signals/__tests__/route.test.ts __tests__/middleware.test.ts
+-> exit 0; no warnings.
+
+npm run typecheck:web
+-> exit 0; build:signals + tsc --noEmit.
+
+npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit
+-> exit 0; 2 suites passed, 22 tests passed, time 1.76 s.
+-> Force-exit notice remains because a middleware import keeps an async handle open.
+
+npm run build --workspace=apps/web
+-> exit 0; Next.js 16.2.6 compiled in 14.4s and generated 332/332 static pages in 5.4s.
+-> Known warnings remained: workspace-root inference from multiple lockfiles, middleware-to-proxy convention warning, unexpected NFT trace from `apps/web/next.config.ts`, `url.parse()` deprecation notices, and edge runtime static-generation warning.
+-> Build still reports `Skipping validation of types`; `npm run typecheck:web` above is the separate web TypeScript contract.
+
+sh -n docker-entrypoint.sh && sh docker-entrypoint.sh --help plus marker/package probe
+-> entrypoint_help_markers_ok: True
+-> package_json_parse_ok: yes
+
+uvx --from pygount pygount --format=summary ... apps packages scripts docker-compose.yml Dockerfile docker-entrypoint.sh package.json
+-> Sum: 1,419 files / 144,113 code / 16,085 comments
+-> largest active languages: TSX 501 files / 73,962 code; TypeScript 723 files / 62,469 code
+```
+
+Static/read-back verification after artifact updates:
+
+```text
+read-back
+-> implementation-log top entry, README latest-run summary, source-review metrics top/current sections, handoff top/current sections, verification matrix current rows, STATE.yaml `ai_improvement_last_run`, and central board tradeclaw row were read back successfully.
+
+git diff --check
+-> exit 0; LF→CRLF normalization warnings for edited Markdown files only, no whitespace/conflict-marker errors.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/implementation-log.md
+-> exit 1 expected for /dev/null comparison; LF→CRLF normalization warning only, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/source-review-metrics.md
+-> exit 1 expected for /dev/null comparison; LF→CRLF normalization warning only, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+-> exit 1 expected for /dev/null comparison; no whitespace-error lines.
+
+stale-marker probe scoped to current docs/ai-improvement artifacts
+    -> returned zero hits.
+
+    secondary verifier pass
+    -> independent reviewer confirmed the active 05:30 checkpoint is internally consistent; stale 05:29 / 1.665s / 13.6s / 1744 / 1257 values remain confined to older historical rows only.
+
+    final no-temp counts
+-> remote_paths: 0
+-> head_paths: 11
+-> dirty_paths: 13
+-> overlap_paths: 0
+
+git status --short --branch --untracked-files=all
+-> branch `fix/track-record-compliance-copy...origin/fix/track-record-compliance-copy`; 12 tracked modified files plus untracked `docs/ai-improvement/source-review-metrics.md`.
+```
+
+Recommended next move: owner/Fatin/maintainer decide the feature-branch and local-main posture, then split/review public/operator docs + tooling, test/static/state, and AI tracking/status lanes before new runtime/build-warning work.
+
+## 2026-06-21 05:29 MPST (+0800) — post-metrics verification checkpoint refresh (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw` on the Max `gpt-5.5` tier, daily schedule `27 5 * * *`.
+
+Decision: stopped before new runtime/source/test work because the branch and dirty lanes still need owner/Fatin review, but refreshed current verification evidence so reviewers do not rely on the 08:36 checkpoint. Fresh `git fetch --prune` kept `fix/track-record-compliance-copy` at `528cd3c8` aligned with `origin/fix/track-record-compliance-copy` (`0 / 0` ahead/behind), local `main` at `da2afa06 [origin/main: ahead 1]`, merge-base `004190974821f789b8b56979680de03fd77ebcad`, `origin/main` changed-path count `0`, HEAD changed-path count `11`, dirty-path count `13`, and dirty/remote overlap `0`. Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned git status/history, fetched remote state, read the shared template and AI artifacts, planned one docs-only checkpoint, and verified with real commands before reporting.
+External source applied: Zaky improvement stack `references/source-review-metrics-packet.md` and `references/trading-anti-mc-post-metrics-checkpoint-example.md` — refreshed the existing metrics/handoff/matrix artifacts rather than layering new runtime work on top of unresolved branch/dirty lanes.
+External source applied: https://github.com/shadcn/improve — converted the current branch/dirty-lane evidence into an execution-ready review sequence with concrete commands and known warnings.
+External source applied: https://github.com/DietrichGebert/ponytail — chose restraint and verification refresh over adding code to an unresolved review stack.
+External source applied: https://github.com/safishamsi/graphify — treated branch, upstream, local main, dirty lanes, build/typecheck, app build warnings, `STATE.yaml`, and the central board as related review nodes before updating tracking.
+External source applied: codebase-inspection/pygount — re-measured source/test/config size with dependency, docs, build, data, and public-static folders excluded.
+
+Files inspected / context read:
+
+- `C:/Ai/_zaky_ai_board/agent_prompt_template.md`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `STATE.yaml`
+- `package.json`
+- `apps/web/package.json`
+- `apps/web/AGENTS.md`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `docs/ai-improvement/source-review-metrics.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- current `git status`, `git fetch --prune`, branch/upstream/merge-base probes, dirty path counts, targeted verification output, app build output, and source/test/config `pygount` output.
+
+Files changed / artifacts updated this run:
+
+- `docs/ai-improvement/README.md` — latest-run summary, active risk, and recommended next move now reference the 05:30 verification checkpoint.
+- `docs/ai-improvement/source-review-metrics.md` — refreshed purpose/date, pre-checkpoint lane shortstats, and verification snapshot.
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md` — refreshed purpose/date, pre-checkpoint lane shortstats, and verification snapshot.
+- `docs/ai-improvement/verification-command-matrix.md` — refreshed checkpoint date and matrix rows for tracked diff summary, targeted Jest, and app build evidence.
+- `STATE.yaml` — updated `ai_improvement_last_run` per project-local operator rules.
+- `C:/Ai/_zaky_ai_board/KANBAN.md` — central board row for this run.
+- `docs/ai-improvement/implementation-log.md` — this run log entry.
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+
+```text
+MPST timestamp probe
+→ 2026-06-21 05:29 MPST (+0800)
+
+git fetch --prune
+→ exit 0
+
+branch/upstream/merge-base probe
+→ current branch: fix/track-record-compliance-copy
+→ HEAD: 528cd3c8 fix(pricing): reframe cumulative-PnL stat as historical, add forecast disclaimer
+→ upstream: origin/fix/track-record-compliance-copy
+→ ahead/behind vs upstream: 0 / 0
+→ local main: da2afa06 [origin/main: ahead 1]
+→ merge-base: 004190974821f789b8b56979680de03fd77ebcad
+→ remote_paths=0
+→ head_paths=11
+→ dirty_paths=13
+→ overlap_paths=0
+
+pre-checkpoint tracked shortstats
+→ all tracked dirty files: 12 files / 1744 insertions / 226 deletions
+→ public/operator docs + tooling lane: 5 files / 178 insertions / 144 deletions
+→ test/static/state lane: 3 files / 309 insertions / 6 deletions
+→ AI tracking/status docs lane: 4 files / 1257 insertions / 76 deletions
+
+npm run lint --workspace=apps/web -- app/api/signals/__tests__/route.test.ts __tests__/middleware.test.ts
+→ exit 0; targeted ESLint printed no warnings.
+
+npm run typecheck:web
+→ exit 0; ran `npm run build:signals && tsc --noEmit --project apps/web/tsconfig.json`.
+
+npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit
+→ exit 0
+→ PASS apps/web/app/api/signals/__tests__/route.test.ts
+→ PASS apps/web/__tests__/middleware.test.ts
+→ Test Suites: 2 passed, 2 total
+→ Tests: 22 passed, 22 total
+→ Time: 1.665 s
+→ Force-exit notice remains because a middleware import keeps an async handle alive.
+
+npm run build --workspace=apps/web
+→ exit 0; Next.js 16.2.6 compiled successfully in 13.6s and generated 332/332 static pages in 5.7s.
+→ Known warnings remained: workspace-root inference from multiple lockfiles, middleware-to-proxy convention warning, unexpected NFT trace from `apps/web/next.config.ts`, `url.parse()` deprecation notices, and edge runtime static-generation warning.
+→ Build still reports `Skipping validation of types`; `npm run typecheck:web` above is the separate web TypeScript contract.
+
+sh -n docker-entrypoint.sh and `sh docker-entrypoint.sh --help` marker probe
+→ shell syntax exit 0
+→ `DATABASE_URL`, `Docker Compose recommended`, and `docs/self-host-smoke-checklist.md` markers were present.
+→ package_json_parse_ok
+→ temp verification script removed successfully.
+
+uvx --from pygount pygount --format=summary ... apps packages scripts docker-compose.yml Dockerfile docker-entrypoint.sh package.json
+→ Sum: 1,419 files / 144,113 code / 16,085 comments
+→ largest active languages: TSX 501 files / 73,962 code; TypeScript 723 files / 62,469 code
+```
+
+Static/read-back verification after artifact updates:
+
+```text
+read-back
+→ implementation-log top entry, AI README latest-run summary, source-review metrics purpose/lane sections, handoff purpose/shortstats, verification matrix current rows, STATE.yaml `ai_improvement_last_run`, and central board top tradeclaw row plus following dashboard row were read back successfully.
+
+git diff --check
+→ exit 0; LF→CRLF normalization warnings for edited Markdown files only, no whitespace/conflict-marker errors.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/implementation-log.md
+→ exit 1 expected for /dev/null comparison; LF→CRLF normalization warning only, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/source-review-metrics.md
+→ exit 1 expected for /dev/null comparison; LF→CRLF normalization warning only, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+→ exit 1 expected for /dev/null comparison; no output/no whitespace-error lines.
+
+stale-marker probe scoped to current docs/ai-improvement artifacts
+→ returned zero hits.
+
+final no-temp counts
+→ remote_paths=0
+→ head_paths=11
+→ dirty_paths=13
+→ overlap_paths=0
+
+git status --short --branch --untracked-files=all
+→ branch `fix/track-record-compliance-copy...origin/fix/track-record-compliance-copy`; 12 tracked modified files plus untracked `docs/ai-improvement/source-review-metrics.md`.
+```
+
+Recommended next move: owner/Fatin/maintainer decide the `fix/track-record-compliance-copy` / `528cd3c8` feature-branch posture and local `main` / `da2afa06` posture, then use `docs/ai-improvement/source-review-metrics.md`, `uncommitted-source-verification-handoff.md`, and `verification-command-matrix.md` to split/review the public/operator docs + tooling lane, test/static/state lane, and AI tracking/status docs before new runtime/build-warning work.
+
+## 2026-06-20 08:36 MPST (+0800) — post-metrics verification checkpoint refresh (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.
+
+Decision: stopped before new runtime/source/test work because the branch and dirty lanes still need owner/Fatin review, but refreshed current verification evidence so reviewers do not rely on the 05:26 checkpoint. Fresh `git fetch --prune` kept `fix/track-record-compliance-copy` at `528cd3c8` aligned with `origin/fix/track-record-compliance-copy` (`0 / 0` ahead/behind), local `main` at `da2afa06 [origin/main: ahead 1]`, merge-base `004190974821f789b8b56979680de03fd77ebcad`, `origin/main` changed-path count `0`, HEAD changed-path count `11`, dirty-path count `13`, and dirty/remote overlap `0`. Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned git status/history, fetched remote state, read the shared template and AI artifacts, planned one docs-only checkpoint, and verified with real commands before reporting.
+External source applied: Zaky improvement stack `references/source-review-metrics-packet.md` — refreshed the existing metrics/handoff/matrix artifacts rather than layering new runtime work on top of unresolved branch/dirty lanes.
+External source applied: https://github.com/shadcn/improve — converted the current branch/dirty-lane evidence into an execution-ready review sequence with concrete commands and known warnings.
+External source applied: https://github.com/DietrichGebert/ponytail — chose restraint and verification refresh over adding code to an unresolved review stack.
+External source applied: https://github.com/safishamsi/graphify — treated branch, upstream, local main, dirty lanes, build/typecheck, app build warnings, `STATE.yaml`, and the central board as related review nodes before updating tracking.
+External source applied: codebase-inspection/pygount — re-measured source/test/config size with dependency, docs, build, data, and public-static folders excluded.
+
+Files inspected / context read:
+
+- `C:/Ai/_zaky_ai_board/agent_prompt_template.md`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `STATE.yaml`
+- `package.json`
+- `apps/web/package.json`
+- `apps/web/AGENTS.md`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `docs/ai-improvement/source-review-metrics.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- current `git status`, `git fetch --prune`, branch/upstream/merge-base probes, dirty path counts, targeted verification output, app build output, and source/test/config `pygount` output.
+
+Files changed / artifacts updated this run:
+
+- `docs/ai-improvement/README.md` — latest-run summary, active risk, and recommended next move now reference the 08:36 verification checkpoint.
+- `docs/ai-improvement/source-review-metrics.md` — refreshed purpose/date and pre-checkpoint lane shortstats.
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md` — refreshed purpose/date, pre-checkpoint lane shortstats, and 08:36 evidence framing.
+- `docs/ai-improvement/verification-command-matrix.md` — refreshed checkpoint date and tracked diff summary row.
+- `STATE.yaml` — updated `ai_improvement_last_run` per project-local operator rules.
+- `C:/Ai/_zaky_ai_board/KANBAN.md` — central board row for this run.
+- `docs/ai-improvement/implementation-log.md` — this run log entry.
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+
+```text
+MPST timestamp probe
+→ 2026-06-20 08:36 MPST (+0800)
+
+git fetch --prune
+→ exit 0
+
+branch/upstream/merge-base probe
+→ current branch: fix/track-record-compliance-copy
+→ HEAD: 528cd3c8 fix(pricing): reframe cumulative-PnL stat as historical, add forecast disclaimer
+→ upstream: origin/fix/track-record-compliance-copy
+→ ahead/behind vs upstream: 0 / 0
+→ local main: da2afa06 [origin/main: ahead 1]
+→ merge-base: 004190974821f789b8b56979680de03fd77ebcad
+→ remote_paths=0
+→ head_paths=11
+→ dirty_paths=13
+→ overlap_paths=0
+
+pre-checkpoint tracked shortstats
+→ all tracked dirty files: 12 files / 1611 insertions / 226 deletions
+→ public/operator docs + tooling lane: 5 files / 178 insertions / 144 deletions
+→ test/static/state lane: 3 files / 307 insertions / 6 deletions
+→ AI tracking/status docs lane: 4 files / 1126 insertions / 76 deletions
+
+npm run lint --workspace=apps/web -- app/api/signals/__tests__/route.test.ts __tests__/middleware.test.ts
+→ exit 0; targeted ESLint printed no warnings.
+
+npm run typecheck:web
+→ exit 0; ran `npm run build:signals && tsc --noEmit --project apps/web/tsconfig.json`.
+
+npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit
+→ exit 0
+→ PASS apps/web/app/api/signals/__tests__/route.test.ts
+→ PASS apps/web/__tests__/middleware.test.ts
+→ Test Suites: 2 passed, 2 total
+→ Tests: 22 passed, 22 total
+→ Force-exit notice remains because a middleware import keeps an async handle alive.
+
+npm run build --workspace=apps/web
+→ exit 0; Next.js 16.2.6 compiled successfully and generated 332/332 static pages.
+→ Known warnings remained: workspace-root inference from multiple lockfiles, middleware-to-proxy convention warning, unexpected NFT trace from `apps/web/next.config.ts`, `url.parse()` deprecation notices, and edge runtime static-generation warning.
+→ Build still reports `Skipping validation of types`; `npm run typecheck:web` above is the separate web TypeScript contract.
+
+sh -n docker-entrypoint.sh && sh docker-entrypoint.sh --help plus marker/package probe
+→ entrypoint_help_markers_ok
+→ package_json_parse_ok
+→ temp_help_removed=true
+
+uvx --from pygount pygount --format=summary ... apps packages scripts docker-compose.yml Dockerfile docker-entrypoint.sh package.json
+→ Sum: 1,419 files / 144,113 code / 16,085 comments
+→ largest active languages: TSX 501 files / 73,962 code; TypeScript 723 files / 62,469 code
+```
+
+Static/read-back verification after artifact updates:
+
+```text
+read-back
+→ implementation-log top entry, AI README latest-run/risk/recommended-next sections, source-review metrics purpose/date, handoff purpose/date, verification-matrix tracked diff row, STATE.yaml `ai_improvement_last_run`, and central board top tradeclaw row plus following QuranGPT row were read back successfully.
+
+git diff --check
+→ exit 0; LF→CRLF normalization warnings for edited Markdown files only, no whitespace/conflict-marker errors.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/implementation-log.md
+→ exit 1 expected for /dev/null comparison; LF→CRLF normalization warning only, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/source-review-metrics.md
+→ exit 1 expected for /dev/null comparison; LF→CRLF normalization warning only, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+→ exit 1 expected for /dev/null comparison; no output/no whitespace-error lines.
+
+stale-marker probe scoped to current docs/ai-improvement artifacts
+→ returned zero hits.
+
+FINAL_NO_TEMP_COUNTS
+→ remote_paths=0
+→ head_paths=11
+→ dirty_paths=13
+→ overlap_paths=0
+
+git status --short --branch --untracked-files=all
+→ branch `fix/track-record-compliance-copy...origin/fix/track-record-compliance-copy`; 12 tracked modified files plus untracked `docs/ai-improvement/source-review-metrics.md`.
+```
+
+Recommended next move: owner/Fatin/maintainer decide the `fix/track-record-compliance-copy` / `528cd3c8` feature-branch posture and local `main` / `da2afa06` posture, then use `docs/ai-improvement/source-review-metrics.md`, `uncommitted-source-verification-handoff.md`, and `verification-command-matrix.md` to split/review the public/operator docs + tooling lane, test/static/state lane, and AI tracking/status docs before new runtime/build-warning work.
+
+## 2026-06-20 05:26 MPST (+0800) — post-metrics verification checkpoint refresh (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.
+
+Decision: stopped before new runtime/source/test work because the branch and dirty lanes still need owner/Fatin review, but refreshed the current verification evidence instead of creating duplicate metrics or changing code. Fresh `git fetch --prune` kept `fix/track-record-compliance-copy` at `528cd3c8` aligned with `origin/fix/track-record-compliance-copy` (`0 / 0` ahead/behind), local `main` at `da2afa06 [origin/main: ahead 1]`, merge-base `004190974821f789b8b56979680de03fd77ebcad`, `origin/main` changed-path count `0`, dirty-path count `13`, and dirty/remote overlap `0`. Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned git status/history, fetched remote state, read the shared template and AI artifacts, planned one docs-only checkpoint, and verified with real commands before reporting.
+External source applied: Zaky improvement stack `references/source-review-metrics-packet.md` — used the existing metrics/handoff/matrix artifacts as the review surface and refreshed evidence rather than layering new runtime work.
+External source applied: https://github.com/shadcn/improve — converted the current branch/dirty-lane evidence into an execution-ready review sequence with concrete commands and known warnings.
+External source applied: https://github.com/DietrichGebert/ponytail — chose restraint and documentation/verification over adding code to an unresolved review stack.
+External source applied: https://github.com/safishamsi/graphify — treated branch, upstream, local main, dirty lanes, build/typecheck, app build warnings, `STATE.yaml`, and the central board as related review nodes before updating tracking.
+External source applied: codebase-inspection/pygount — re-measured source/test/config size with dependency, docs, build, data, and public-static folders excluded.
+
+Files inspected / context read:
+
+- `C:/Ai/_zaky_ai_board/agent_prompt_template.md`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `STATE.yaml`
+- `package.json`
+- `apps/web/package.json`
+- `apps/web/AGENTS.md`
+- `README.md`
+- `docker-entrypoint.sh`
+- `apps/web/app/api/signals/__tests__/route.test.ts`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `docs/ai-improvement/source-review-metrics.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- current `git status`, `git fetch --prune`, branch/upstream/merge-base probes, dirty path counts, targeted verification output, app build output, and source/test/config `pygount` output.
+
+Files changed / artifacts updated this run:
+
+- `docs/ai-improvement/README.md` — latest-run summary, active risk, and recommended next move now reference the 05:26 verification checkpoint.
+- `docs/ai-improvement/source-review-metrics.md` — refreshed purpose/date and verification snapshot with app build evidence.
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md` — refreshed purpose/date and verification snapshot with app build evidence.
+- `docs/ai-improvement/verification-command-matrix.md` — added the current app build snapshot row and warnings.
+- `STATE.yaml` — updated `ai_improvement_last_run` per project-local operator rules.
+- `C:/Ai/_zaky_ai_board/KANBAN.md` — central board row for this run.
+- `docs/ai-improvement/implementation-log.md` — this run log entry.
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+
+```text
+MPST timestamp probe
+→ 2026-06-20 05:26 MPST (+0800)
+
+git fetch --prune
+→ exit 0
+
+branch/upstream/merge-base probe
+→ current branch: fix/track-record-compliance-copy
+→ HEAD: 528cd3c8 fix(pricing): reframe cumulative-PnL stat as historical, add forecast disclaimer
+→ upstream: origin/fix/track-record-compliance-copy
+→ ahead/behind vs upstream: 0 / 0
+→ local main: da2afa06 [origin/main: ahead 1]
+→ merge-base: 004190974821f789b8b56979680de03fd77ebcad
+→ remote_paths=0
+→ head_paths=11
+→ dirty_paths=13
+→ overlap_paths=0
+
+npm run lint --workspace=apps/web -- app/api/signals/__tests__/route.test.ts __tests__/middleware.test.ts
+→ exit 0; targeted ESLint printed no warnings.
+
+npm run typecheck:web
+→ exit 0; ran `npm run build:signals && tsc --noEmit --project apps/web/tsconfig.json`.
+
+npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit
+→ exit 0
+→ PASS apps/web/app/api/signals/__tests__/route.test.ts
+→ PASS apps/web/__tests__/middleware.test.ts
+→ Test Suites: 2 passed, 2 total
+→ Tests: 22 passed, 22 total
+→ Force-exit notice remains because a middleware import keeps an async handle alive.
+
+npm run build --workspace=apps/web
+→ exit 0; Next.js 16.2.6 compiled successfully and generated 332/332 static pages.
+→ Known warnings remained: workspace-root inference from multiple lockfiles, middleware-to-proxy convention warning, unexpected NFT trace from `apps/web/next.config.ts`, `url.parse()` deprecation notices, and edge runtime static-generation warning.
+→ Build still reports `Skipping validation of types`; `npm run typecheck:web` above is the separate web TypeScript contract.
+
+sh -n docker-entrypoint.sh && sh docker-entrypoint.sh --help plus marker/package probe
+→ entrypoint_help_markers_ok
+→ package_json_parse_ok
+→ temp_help_removed=true
+
+uvx --from pygount pygount --format=summary ... apps packages scripts docker-compose.yml Dockerfile docker-entrypoint.sh package.json
+→ Sum: 1,419 files / 144,113 code / 16,085 comments
+→ largest active languages: TSX 501 files / 73,962 code; TypeScript 723 files / 62,469 code
+```
+
+Note: the combined verification wrapper printed harmless Bash `printf` section-heading warnings because a few heading formats began with dashes; all actual verification commands above returned exit 0.
+
+Static/read-back verification after artifact updates:
+
+```text
+read-back
+→ implementation-log top entry, AI README latest-run/risk/recommended-next sections, source-review metrics purpose/verification sections, handoff purpose/verification sections, verification-matrix app-build row, STATE.yaml `ai_improvement_last_run`, and central board top tradeclaw row plus following Roboforex row were read back successfully.
+
+git diff --check
+→ exit 0; only LF→CRLF normalization warnings for edited Markdown files, no whitespace/conflict-marker errors.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/implementation-log.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/source-review-metrics.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+→ exit 1 expected for /dev/null comparison; no whitespace-error lines printed.
+
+stale-marker probe scoped to current docs/ai-improvement artifacts
+→ returned zero hits.
+
+FINAL_NO_TEMP_COUNTS
+→ remote_paths=0
+→ head_paths=11
+→ dirty_paths=13
+→ overlap_paths=0
+
+git status --short --branch --untracked-files=all
+→ branch `fix/track-record-compliance-copy...origin/fix/track-record-compliance-copy`; 12 tracked modified files plus untracked `docs/ai-improvement/source-review-metrics.md`.
+```
+
+Recommended next move: owner/Fatin/maintainer decide the `fix/track-record-compliance-copy` / `528cd3c8` feature-branch posture and local `main` / `da2afa06` posture, then use `docs/ai-improvement/source-review-metrics.md`, `uncommitted-source-verification-handoff.md`, and `verification-command-matrix.md` to split/review the public/operator docs + tooling lane, test/static/state lane, and AI tracking/status docs before new runtime/build-warning work.
+
+## 2026-06-20 02:14 MPST (+0800) — remote-aligned feature-branch source-review checkpoint refresh (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.
+
+Decision: stopped before new runtime/source/test work because the branch and dirty lanes still need owner/Fatin review, and the active AI-improvement artifacts were stale. The previous metrics packet described `fix/track-record-compliance-copy` at `b52aae7d` with no upstream. Fresh `git fetch --prune` now shows the branch at `528cd3c8`, aligned with `origin/fix/track-record-compliance-copy` (`0 / 0` ahead/behind), while local `main` remains `da2afa06 [origin/main: ahead 1]`. Refreshed the existing source-review metrics packet, handoff, matrix, AI README, STATE.yaml, and central board so review starts from current evidence. Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned git status/history, fetched remote state, read shared template and AI artifacts, planned one docs-only checkpoint, and verified with real commands before reporting.
+External source applied: Zaky improvement stack `references/source-review-metrics-packet.md` — refreshed an existing review-leverage packet instead of adding code on top of unresolved branch/dirty lanes.
+External source applied: https://github.com/shadcn/improve — converted current branch/upstream/dirty-lane evidence into an execution-ready, file-specific review sequence.
+External source applied: https://github.com/DietrichGebert/ponytail — chose documentation/metrics refresh over adding new runtime work to an unstable review stack.
+External source applied: https://github.com/safishamsi/graphify — mapped current feature branch, local main, merge-base, dirty lanes, AI tracking docs, `STATE.yaml`, and central board as related review surfaces before updating artifacts.
+External source applied: codebase-inspection/pygount — measured source/test/config size with dependency, docs, build, data, and public-static folders excluded.
+
+Files inspected / context read:
+
+- `C:/Ai/_zaky_ai_board/agent_prompt_template.md`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `STATE.yaml`
+- `AGENTS.md`
+- `apps/web/AGENTS.md`
+- `package.json`
+- `apps/web/package.json`
+- `.github/workflows/ci.yml`
+- `README.md`
+- `apps/web/app/pricing/page.tsx`
+- `apps/web/app/track-record/TrackRecordClient.tsx`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `docs/ai-improvement/source-review-metrics.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- current `git status`, `git fetch --prune`, branch/upstream/merge-base probes, dirty path counts, split shortstats/numstats, targeted verification output, and source/test/config `pygount` output.
+
+Files changed / artifacts updated this run:
+
+- `docs/ai-improvement/source-review-metrics.md` — refreshed branch/upstream posture, merge-base/dirty-overlap counts, pygount metrics, verification snapshot, anti-scope, and review sequence.
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md` — refreshed from stale `b52aae7d` / no-upstream wording to current `528cd3c8` / upstream-aligned feature-branch evidence.
+- `docs/ai-improvement/verification-command-matrix.md` — refreshed stabilization matrix for the remote-aligned feature branch, dirty lanes, and metrics artifact.
+- `docs/ai-improvement/README.md` — latest-run summary, repo map, detected pattern, risk/backlog row, and recommended next move now point to the current checkpoint.
+- `STATE.yaml` — updated `ai_improvement_last_run` per project-local operator rules.
+- `C:/Ai/_zaky_ai_board/KANBAN.md` — central board row for this run.
+- `docs/ai-improvement/implementation-log.md` — this run log entry.
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+
+```text
+git fetch --prune
+→ exit 0
+
+branch/upstream/merge-base probe
+→ current branch: fix/track-record-compliance-copy
+→ HEAD: 528cd3c8 fix(pricing): reframe cumulative-PnL stat as historical, add forecast disclaimer
+→ upstream: origin/fix/track-record-compliance-copy
+→ ahead/behind vs upstream: 0 / 0
+→ local main: da2afa06 [origin/main: ahead 1]
+→ merge-base: 004190974821f789b8b56979680de03fd77ebcad
+→ remote_paths=0
+→ dirty_paths=13
+→ overlap_paths=0
+→ untracked: docs/ai-improvement/source-review-metrics.md
+
+git diff --shortstat -- CONTRIBUTING.md README.md docs/QUICKSTART.md docker-entrypoint.sh package.json
+→ 5 files changed, 178 insertions(+), 144 deletions(-)
+
+git diff --shortstat -- STATE.yaml apps/web/app/api/signals/__tests__/route.test.ts apps/web/public/readme-banner.svg
+→ 3 files changed, 306 insertions(+), 6 deletions(-)
+
+git diff --shortstat --no-renames "$BASE"..HEAD
+→ 11 files changed, 2530 insertions(+), 9 deletions(-)
+
+uvx --from pygount pygount --format=summary ... apps packages scripts docker-compose.yml Dockerfile docker-entrypoint.sh package.json
+→ Sum: 1,419 files / 144,113 code / 16,085 comments
+→ largest active languages: TSX 501 files / 73,962 code; TypeScript 723 files / 62,469 code
+
+npm run lint --workspace=apps/web -- app/api/signals/__tests__/route.test.ts __tests__/middleware.test.ts
+→ exit 0; targeted ESLint printed no warnings.
+
+npm run typecheck:web
+→ exit 0; ran `npm run build:signals && tsc --noEmit --project apps/web/tsconfig.json`.
+
+npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit
+→ exit 0
+→ PASS apps/web/app/api/signals/__tests__/route.test.ts
+→ PASS apps/web/__tests__/middleware.test.ts
+→ Test Suites: 2 passed, 2 total
+→ Tests: 22 passed, 22 total
+→ Force-exit notice remains because a middleware import keeps an async handle alive.
+
+sh -n docker-entrypoint.sh && sh docker-entrypoint.sh --help plus marker/package probe
+→ entrypoint_help_markers_ok
+→ package_json_parse_ok
+→ temp_help_removed=true
+```
+
+Static/read-back verification after artifact updates:
+
+```text
+read-back
+→ source-review metrics packet, handoff, verification matrix, implementation-log top entry, AI README latest-run/recommended-next sections, STATE.yaml `ai_improvement_last_run`, and central board top tradeclaw row were read back successfully.
+
+marker probe scoped to docs/ai-improvement/*.md
+→ final-verification marker probe returned zero hits.
+
+git diff --check
+→ exit 0; only LF→CRLF normalization warnings for edited Markdown files, no whitespace/conflict-marker errors.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/implementation-log.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/source-review-metrics.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+→ exit 1 expected for /dev/null comparison; no whitespace-error lines printed.
+
+FINAL_NO_TEMP_COUNTS
+→ remote_paths=0
+→ dirty_paths=13
+→ overlap_paths=0
+
+git status --short --branch --untracked-files=all
+→ branch `fix/track-record-compliance-copy...origin/fix/track-record-compliance-copy`; 12 tracked modified files plus untracked `docs/ai-improvement/source-review-metrics.md`.
+```
+
+Recommended next move: owner/Fatin/maintainer decide the `fix/track-record-compliance-copy` / `528cd3c8` feature-branch posture and local `main` / `da2afa06` posture, then use `docs/ai-improvement/source-review-metrics.md`, `uncommitted-source-verification-handoff.md`, and `verification-command-matrix.md` to split/review the public/operator docs + tooling lane, test/static/state lane, and AI tracking/status docs before new runtime/build-warning work.
+
+## 2026-06-19 23:00 MPST (+0800) — source-review metrics packet for remote-clean branch/dirty-tree review (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.
+
+Decision: stopped before new runtime/source/test work because the current branch and dirty tree still need owner/Fatin review, but the existing plain handoff did not provide enough review-leverage metrics. Added `docs/ai-improvement/source-review-metrics.md` as a docs-only packet that groups dirty-lane churn, records post-packet dirty-path counts, captures source/test/config `pygount` size, and keeps branch/local-main posture review as the active next move. Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned git status/history, fetched remote state, read shared template and AI artifacts, planned one docs-only increment, and verified with real commands before reporting.
+External source applied: Zaky improvement stack `references/source-review-metrics-packet.md` — used the dirty-tree metrics packet pattern because a plain handoff already existed and the next useful action was review leverage, not new runtime work.
+External source applied: https://github.com/shadcn/improve — converted current branch/dirty-lane evidence into an execution-ready, file-specific review sequence.
+External source applied: https://github.com/DietrichGebert/ponytail — chose documentation/metrics over adding code on top of unresolved branch and dirty lanes.
+External source applied: https://github.com/safishamsi/graphify — mapped current branch, local main, merge-base, dirty lanes, AI tracking docs, `STATE.yaml`, and the central board as related review surfaces before updating artifacts.
+External source applied: codebase-inspection/pygount — measured source/test/config size with dependency, docs, build, data, and public-static folders excluded.
+
+Files inspected / context read:
+
+- `C:/Ai/_zaky_ai_board/agent_prompt_template.md`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `STATE.yaml`
+- `package.json`
+- `apps/web/package.json`
+- `CONTRIBUTING.md`
+- `README.md`
+- `docs/QUICKSTART.md`
+- `docker-entrypoint.sh`
+- `apps/web/app/api/signals/__tests__/route.test.ts`
+- `apps/web/public/readme-banner.svg`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- current `git status`, `git fetch --prune`, branch/upstream/merge-base probes, dirty path counts, split shortstats/numstats, and source/test/config `pygount` output.
+
+Files changed / artifacts updated this run:
+
+- `docs/ai-improvement/source-review-metrics.md` — new docs-only review packet with branch posture, remote/dirty overlap, grouped dirty-lane numstats, source/test/config `pygount`, verification snapshot, anti-scope, and recommended review sequence.
+- `docs/ai-improvement/README.md` — latest-run summary, repo map, detected pattern, risk/backlog row, and recommended next move now point reviewers to the metrics packet.
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md` — refreshed to include the post-packet dirty-path count and metrics packet in the review sequence.
+- `docs/ai-improvement/verification-command-matrix.md` — added source-review metrics lane and updated dirty-path expectations.
+- `STATE.yaml` — updated `ai_improvement_last_run` per project-local operator rules.
+- `C:/Ai/_zaky_ai_board/KANBAN.md` — central board row for this run.
+- `docs/ai-improvement/implementation-log.md` — this run log entry.
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+
+```text
+git fetch --prune
+→ exit 0
+
+branch/merge-base probe
+→ current branch: fix/track-record-compliance-copy
+→ HEAD: b52aae7d fix(track-record): replace implied-earnings claim with compliance-safe analytics copy
+→ local main: da2afa06 [origin/main: ahead 1]
+→ merge-base: 004190974821f789b8b56979680de03fd77ebcad
+→ remote_paths=0
+→ pre-packet dirty_paths=12
+→ post-packet dirty_paths=13
+→ overlap_paths=0
+→ untracked: docs/ai-improvement/source-review-metrics.md
+
+git diff --shortstat -- CONTRIBUTING.md README.md docs/QUICKSTART.md docker-entrypoint.sh package.json
+→ 5 files changed, 178 insertions(+), 144 deletions(-)
+
+git diff --shortstat -- STATE.yaml apps/web/app/api/signals/__tests__/route.test.ts apps/web/public/readme-banner.svg
+→ 3 files changed, 301 insertions(+), 6 deletions(-)
+
+git diff --shortstat --no-renames "$BASE"..HEAD
+→ 10 files changed, 2526 insertions(+), 8 deletions(-)
+
+uvx --from pygount pygount --format=summary ... apps packages scripts docker-compose.yml Dockerfile docker-entrypoint.sh package.json
+→ Sum: 1,419 files / 144,110 code / 16,085 comments
+→ largest active languages: TSX 501 files / 73,959 code; TypeScript 723 files / 62,469 code
+
+npm run lint --workspace=apps/web -- app/api/signals/__tests__/route.test.ts __tests__/middleware.test.ts
+→ exit 0; targeted ESLint printed no warnings.
+
+npm run typecheck:web
+→ exit 0; ran `npm run build:signals && tsc --noEmit --project apps/web/tsconfig.json`.
+
+npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit
+→ exit 0
+→ PASS apps/web/app/api/signals/__tests__/route.test.ts
+→ PASS apps/web/__tests__/middleware.test.ts
+→ Test Suites: 2 passed, 2 total
+→ Tests: 22 passed, 22 total
+→ Force-exit notice remains because a middleware import keeps an async handle alive.
+
+sh -n docker-entrypoint.sh && sh docker-entrypoint.sh --help plus marker/package probe
+→ entrypoint_help_markers_ok
+→ package_json_parse_ok
+→ temp_help_removed=true
+```
+
+Static/read-back verification after artifact updates:
+
+```text
+FINAL_NO_TEMP_COUNTS
+→ remote_paths=0
+→ dirty_paths=13
+→ overlap_paths=0
+→ source_metrics_lines=191
+
+read-back
+→ source-review metrics packet, implementation-log top entry, AI README latest-run/recommended-next sections, handoff, verification matrix, STATE.yaml `ai_improvement_last_run`, and central board top tradeclaw row were read back successfully.
+
+git diff --check (rerun after final implementation-log patch)
+→ exit 0; only LF→CRLF normalization warnings for edited Markdown files, no whitespace/conflict-marker errors.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/implementation-log.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/source-review-metrics.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git status --short --branch --untracked-files=all
+→ branch `fix/track-record-compliance-copy`; 12 tracked modified files plus untracked `docs/ai-improvement/source-review-metrics.md`.
+```
+
+Recommended next move: owner/Fatin/maintainer decide the `fix/track-record-compliance-copy` / `b52aae7d` branch posture and local `main` / `da2afa06` posture, then use `docs/ai-improvement/source-review-metrics.md`, `uncommitted-source-verification-handoff.md`, and `verification-command-matrix.md` to split/review the public/operator docs + tooling lane, test/static/state lane, and AI tracking/status docs before new runtime/build-warning work.
+
+## 2026-06-19 19:46 MPST (+0800) — remote-clean branch/dirty-tree handoff refresh (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.
+
+Decision: stopped before adding new runtime/source/test work because the live checkout changed materially from the prior handoff. Current branch is `fix/track-record-compliance-copy` at `b52aae7d`, has no upstream, and includes the track-record compliance-copy change in `HEAD`; local `main` remains `da2afa06 [origin/main: ahead 1]`. `git fetch --prune` plus merge-base comparison found `origin/main` changed-path set zero and dirty/origin overlap zero. Refreshed the existing handoff, verification matrix, AI README, project state, and central board so reviewers see 12 tracked dirty files (8 non-AI review-lane files + 4 AI tracking/status docs) and no untracked files. Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned git status/history, remote merge-base state, current AI artifacts, project state, central board, and relevant manifests before acting; selected one stabilization/documentation increment and verified with real commands.
+External source applied: Zaky improvement stack `references/uncommitted-source-verification-handoff.md` — followed the remote-clean/local-lane and stale-handoff refresh pattern when a prior handoff misclassified the current branch/source state.
+External source applied: https://github.com/shadcn/improve — converted the branch/status mismatch into an execution-ready, file-specific stabilization plan instead of broad advice.
+External source applied: https://github.com/DietrichGebert/ponytail — chose documentation/restraint over layering another code change onto unreviewed branch and dirty lanes.
+External source applied: https://github.com/safishamsi/graphify — mapped relationships between current branch `b52aae7d`, local `main` `da2afa06`, remote-clean merge-base state, 8 dirty non-AI lanes, AI tracking/status docs, STATE.yaml, and the central board before recommending review order.
+External source applied: https://github.com/Nutlope/hallmark — kept the track-record copy as a public trust/legal review surface and documented that it is committed branch copy rather than silently treating it as accepted runtime behavior.
+
+Files inspected / context read:
+
+- `C:/Ai/_zaky_ai_board/agent_prompt_template.md`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `STATE.yaml`
+- `apps/web/AGENTS.md`
+- `package.json`
+- `apps/web/package.json`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- current `git status --short --branch --untracked-files=all`, `git fetch --prune`, `git branch -vv`, upstream probe, merge-base comparison, `git show --stat --oneline HEAD --`, recent git log, `git diff --name-status`, split shortstats, and `git diff -- apps/web/app/track-record/TrackRecordClient.tsx`
+
+Files changed / artifacts updated this run:
+
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md` — refreshed from a stale main/track-record-dirty handoff to a remote-clean local-branch handoff with current branch `fix/track-record-compliance-copy`, `b52aae7d`, no upstream, zero origin changed paths since merge-base, and no uncommitted track-record diff.
+- `docs/ai-improvement/verification-command-matrix.md` — refreshed the stabilization matrix so reviewers verify the current branch commits, 8 dirty non-AI files, and AI tracking/status docs.
+- `docs/ai-improvement/README.md` — updated latest-run summary, repo map, detected pattern, risk/backlog row, and recommended next move.
+- `STATE.yaml` — updated timestamp and added `ai_improvement_last_run` per project-local operator rules.
+- `C:/Ai/_zaky_ai_board/KANBAN.md` — central board row for this run.
+- `docs/ai-improvement/implementation-log.md` — this run log entry.
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+
+```text
+git status --short --branch --untracked-files=all
+→ ## fix/track-record-compliance-copy
+→  M CONTRIBUTING.md
+→  M README.md
+→  M STATE.yaml
+→  M apps/web/app/api/signals/__tests__/route.test.ts
+→  M apps/web/public/readme-banner.svg
+→  M docker-entrypoint.sh
+→  M docs/QUICKSTART.md
+→  M docs/ai-improvement/README.md
+→  M docs/ai-improvement/implementation-log.md
+→  M docs/ai-improvement/uncommitted-source-verification-handoff.md
+→  M docs/ai-improvement/verification-command-matrix.md
+→  M package.json
+
+# no output from: git ls-files --others --exclude-standard
+
+git branch -vv
+→ * fix/track-record-compliance-copy b52aae7d fix(track-record): replace implied-earnings claim with compliance-safe analytics copy
+→   main                             da2afa06 [origin/main: ahead 1] test(web): add middleware matcher characterization test + docs
+
+upstream probe
+→ no upstream
+
+git merge-base HEAD origin/main
+→ 004190974821f789b8b56979680de03fd77ebcad
+
+git diff --name-status 004190974821f789b8b56979680de03fd77ebcad..origin/main
+→ no changed paths; dirty/origin overlap is zero
+
+git show --stat --oneline --no-renames HEAD --
+→ b52aae7d fix(track-record): replace implied-earnings claim with compliance-safe analytics copy
+→ apps/web/app/track-record/TrackRecordClient.tsx | 26 +++++++++++++++++--------
+→ 1 file changed, 18 insertions(+), 8 deletions(-)
+
+git diff --shortstat --  # pre-refresh snapshot
+→ 12 files changed, 990 insertions(+), 222 deletions(-)
+
+git diff --shortstat -- CONTRIBUTING.md README.md STATE.yaml apps/web/app/api/signals/__tests__/route.test.ts apps/web/public/readme-banner.svg docker-entrypoint.sh docs/QUICKSTART.md package.json
+→ 8 files changed, 465 insertions(+), 150 deletions(-)
+
+git diff --shortstat -- docs/ai-improvement/README.md docs/ai-improvement/implementation-log.md docs/ai-improvement/uncommitted-source-verification-handoff.md docs/ai-improvement/verification-command-matrix.md
+→ 4 files changed, 525 insertions(+), 72 deletions(-)
+
+git diff -- apps/web/app/track-record/TrackRecordClient.tsx
+→ no output; the track-record compliance copy is committed in HEAD, not dirty.
+
+npm run lint --workspace=apps/web -- app/api/signals/__tests__/route.test.ts __tests__/middleware.test.ts
+→ exit 0; ESLint printed no warnings for the targeted files.
+
+npm run typecheck:web
+→ exit 0
+→ ran `npm run build:signals && tsc --noEmit --project apps/web/tsconfig.json`; `@tradeclaw/signals` built and web TypeScript printed no diagnostics.
+
+npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit
+→ exit 0
+→ PASS apps/web/app/api/signals/__tests__/route.test.ts
+→ PASS apps/web/__tests__/middleware.test.ts
+→ Test Suites: 2 passed, 2 total
+→ Tests: 22 passed, 22 total
+→ Force-exit notice remains because the middleware import keeps an async handle alive.
+
+sh -n docker-entrypoint.sh && sh docker-entrypoint.sh --help plus marker/package probe
+→ entrypoint_help_markers_ok
+→ package_json_parse_ok
+→ temp_help_removed=true
+```
+
+Static/read-back verification after artifact updates:
+
+```text
+read-back
+→ handoff, verification matrix, AI README latest-run section, implementation log top entry, STATE.yaml `ai_improvement_last_run`, and central board top row were read back successfully.
+
+git diff --check
+→ exit 0; only LF→CRLF normalization warnings for edited Markdown files, no whitespace/conflict-marker errors.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/README.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/implementation-log.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+stale-marker probes scoped to active README, handoff, and matrix
+→ retired dirty-lane/count wording returned zero hits.
+
+git status --short --branch --untracked-files=all
+→ branch `fix/track-record-compliance-copy`; 12 tracked modified files; no untracked files.
+```
+
+Recommended next move: owner/Fatin/maintainer decide the `fix/track-record-compliance-copy` / `b52aae7d` branch posture and local `main` / `da2afa06` posture, then split/review the 8 dirty non-AI files plus AI tracking/status docs and rerun `docs/ai-improvement/verification-command-matrix.md`. Do not start new runtime/build-warning work until that stabilization decision is made; the middleware/proxy migration remains owner/Fatin-approved.
+
+## 2026-06-19 16:35 MPST (+0800) — track-record dirty-lane handoff refresh (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.
+
+Decision: stopped before adding new runtime/source/test work because the repo remains local-ahead and dirty, and the active handoff/matrix undercounted the current dirty tree after `apps/web/app/track-record/TrackRecordClient.tsx` appeared as an additional modified source file. Refreshed the existing handoff, verification matrix, AI README, project state, and central board to separate three lanes: local commit `da2afa06`, the now-9 prior dirty review-lane files (including the track-record trust-copy source lane), and 4 AI tracking/status docs. Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned git status, current AI artifacts, project state, central board, and the new dirty source file before acting; selected one stabilization/documentation increment and verified with real commands.
+External source applied: Zaky improvement stack `references/uncommitted-source-verification-handoff.md` — followed the trigger for local-ahead plus dirty-tree handoff refreshes when active tracking docs and a new pre-existing source lane make prior counts stale.
+External source applied: https://github.com/shadcn/improve — converted the current status mismatch into an execution-ready, file-specific stabilization plan instead of broad advice.
+External source applied: https://github.com/DietrichGebert/ponytail — chose documentation/restraint over layering another code change onto unreviewed lanes.
+External source applied: https://github.com/safishamsi/graphify — mapped relationships between local commit history, the 9 prior dirty lanes, AI tracking/status docs, STATE.yaml, and central board before recommending review order.
+External source applied: https://github.com/Nutlope/hallmark — treated the track-record return wording as a public trust/copy-quality surface and classified it for owner/Fatin review rather than silently accepting stronger or weaker marketing claims.
+
+Files inspected / context read:
+
+- `C:/Ai/_zaky_ai_board/agent_prompt_template.md`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `STATE.yaml`
+- `apps/web/AGENTS.md`
+- `package.json`
+- `apps/web/package.json`
+- `apps/web/app/track-record/TrackRecordClient.tsx`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- current `git status`, `git diff --name-status`, `git diff --shortstat`, `git diff -- apps/web/app/track-record/TrackRecordClient.tsx`, `git show --stat --oneline HEAD --`, and recent git log
+
+Files changed / artifacts updated this run:
+
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md` — refreshed from the 12-file AI-tracking/status handoff to a 13-file local-ahead/dirty-tree handoff with a distinct track-record trust-copy source lane.
+- `docs/ai-improvement/verification-command-matrix.md` — refreshed the stabilization matrix so reviewers rerun checks against local commit `da2afa06`, the 9 prior dirty files, and the AI tracking/status docs.
+- `docs/ai-improvement/README.md` — updated latest-run summary, repo map, detected pattern, risk/backlog row, and recommended next move.
+- `STATE.yaml` — updated timestamp and TC-005 note per project-local operator rules.
+- `C:/Ai/_zaky_ai_board/KANBAN.md` — central board row for this run.
+- `docs/ai-improvement/implementation-log.md` — this run log entry.
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+
+```text
+git status --short --branch --untracked-files=all
+→ ## main...origin/main [ahead 1]
+→  M CONTRIBUTING.md
+→  M README.md
+→  M STATE.yaml
+→  M apps/web/app/api/signals/__tests__/route.test.ts
+→  M apps/web/app/track-record/TrackRecordClient.tsx
+→  M apps/web/public/readme-banner.svg
+→  M docker-entrypoint.sh
+→  M docs/QUICKSTART.md
+→  M docs/ai-improvement/README.md
+→  M docs/ai-improvement/implementation-log.md
+→  M docs/ai-improvement/uncommitted-source-verification-handoff.md
+→  M docs/ai-improvement/verification-command-matrix.md
+→  M package.json
+
+# no output from: git ls-files --others --exclude-standard
+
+git show --stat --oneline --no-renames HEAD --
+→ da2afa06 test(web): add middleware matcher characterization test + docs
+→ 9 files changed, 2508 insertions(+)
+
+git diff --shortstat --  # pre-refresh snapshot
+→ 13 files changed, 857 insertions(+), 224 deletions(-)
+
+git diff --shortstat -- CONTRIBUTING.md README.md STATE.yaml apps/web/app/api/signals/__tests__/route.test.ts apps/web/app/track-record/TrackRecordClient.tsx apps/web/public/readme-banner.svg docker-entrypoint.sh docs/QUICKSTART.md package.json
+→ 9 files changed, 476 insertions(+), 158 deletions(-)
+
+git diff --shortstat -- docs/ai-improvement/README.md docs/ai-improvement/implementation-log.md docs/ai-improvement/uncommitted-source-verification-handoff.md docs/ai-improvement/verification-command-matrix.md
+→ 4 files changed, 381 insertions(+), 66 deletions(-)
+
+git diff -- apps/web/app/track-record/TrackRecordClient.tsx
+→ copy-only diff: rewrites the realized-return note from “what a real subscriber would actually earn” to a standardized 1%-risk research analytics model and explicitly says it is not a promise of subscriber returns.
+
+npm run lint --workspace=apps/web -- app/track-record/TrackRecordClient.tsx app/api/signals/__tests__/route.test.ts __tests__/middleware.test.ts
+→ exit 0
+→ 1 warning remains: `apps/web/app/track-record/TrackRecordClient.tsx` line 266 `buildTrackRecordUrl` is defined but never used.
+→ initial root `npx eslint ...` exited 2 because root ESLint v9 could not find a root `eslint.config.*`; the workspace command above was the successful final lint evidence.
+
+npm run typecheck:web
+→ exit 0
+→ ran `npm run build:signals && tsc --noEmit --project apps/web/tsconfig.json`; `@tradeclaw/signals` built and web TypeScript printed no diagnostics.
+
+npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit
+→ exit 0
+→ PASS apps/web/app/api/signals/__tests__/route.test.ts
+→ PASS apps/web/__tests__/middleware.test.ts
+→ Test Suites: 2 passed, 2 total
+→ Tests: 22 passed, 22 total
+→ Force-exit notice remains because the middleware import keeps an async handle alive.
+
+sh -n docker-entrypoint.sh && sh docker-entrypoint.sh --help
+→ exit 0; help includes `DATABASE_URL`, `Docker Compose recommended`, and `docs/self-host-smoke-checklist.md` markers.
+
+node package/help marker probe
+→ entrypoint_help_markers_ok
+→ package_json_parse_ok
+→ temp_help_removed=true
+```
+
+Pre-log static/read-back verification after refreshing the handoff/matrix/README/STATE/board and before adding this entry:
+
+```text
+read-back
+→ handoff, verification matrix, AI README latest-run section, STATE timestamp/TC-005 note, and central board top row were read back successfully.
+
+git diff --check
+→ exit 0; only LF→CRLF normalization warnings for edited Markdown files, no whitespace/conflict-marker errors.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/uncommitted-source-verification-handoff.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/verification-command-matrix.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/README.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+```
+
+Recommended next move: owner/Fatin/maintainer decide the `da2afa06` local commit posture (`keep/push`, amend, squash, cherry-pick elsewhere, or reset), then split/review the 9 prior dirty files plus AI tracking/status docs and rerun `docs/ai-improvement/verification-command-matrix.md`. Do not start new runtime/build-warning work until that stabilization decision is made; the middleware/proxy migration remains owner/Fatin-approved.
+
+## 2026-06-19 13:24 MPST (+0800) — AI tracking/status dirty-tree handoff refresh (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.
+
+Decision: stopped before adding new runtime/source/test work because the repo remains local-ahead and dirty, and the active handoff/matrix undercounted the current dirty tree after recurring-agent tracking docs themselves became modified. Refreshed the existing handoff, verification matrix, AI README, project state, and central board to separate three lanes: local commit `da2afa06`, the 8 prior dirty review-lane files, and 4 AI tracking/status docs (`docs/ai-improvement/README.md`, this implementation log, `uncommitted-source-verification-handoff.md`, and `verification-command-matrix.md`). Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned git status, current AI artifacts, project state, central board, and relevant dirty-lane files before acting; selected one stabilization/documentation increment and verified with real commands.
+External source applied: Zaky improvement stack `references/uncommitted-source-verification-handoff.md` — followed the trigger for local-ahead plus dirty-tree handoff refreshes where active AI tracking docs are themselves dirty and need a distinct lane.
+External source applied: https://github.com/shadcn/improve — converted the current status mismatch into an execution-ready, file-specific stabilization plan instead of broad advice.
+External source applied: https://github.com/DietrichGebert/ponytail — chose documentation/restraint over layering another test, build-warning fix, or runtime change onto unreviewed lanes.
+External source applied: https://github.com/safishamsi/graphify — mapped relationships between local commit history, the 8 prior dirty lanes, AI tracking/status docs, STATE.yaml, and central board before recommending review order.
+
+Files inspected / context read:
+
+- `C:/Ai/_zaky_ai_board/agent_prompt_template.md`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `STATE.yaml`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `docs/ai-improvement/build-typecheck-parity.md`
+- `docs/ai-improvement/middleware-proxy-migration-note.md`
+- `package.json`
+- `docker-entrypoint.sh`
+- `docs/QUICKSTART.md`
+- `apps/web/app/api/signals/__tests__/route.test.ts`
+- current `git status`, `git diff --name-status`, `git diff --shortstat`, `git diff --numstat`, `git show --stat --oneline HEAD --`, and recent git log
+
+Files changed / artifacts updated this run:
+
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md` — refreshed from the 8-file remaining-dirty inventory to a 12-file local-ahead/dirty-tree handoff with a distinct AI tracking/status docs lane.
+- `docs/ai-improvement/verification-command-matrix.md` — refreshed the stabilization matrix so reviewers rerun checks against local commit `da2afa06`, the 8 prior dirty files, and the AI tracking/status docs.
+- `docs/ai-improvement/README.md` — updated latest-run summary, repo map, detected pattern, risk/backlog row, and recommended next move.
+- `STATE.yaml` — updated timestamp and TC-005 note per project-local operator rules.
+- `C:/Ai/_zaky_ai_board/KANBAN.md` — central board row for this run.
+- `docs/ai-improvement/implementation-log.md` — this run log entry.
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+
+```text
+git status --short --branch --untracked-files=all
+→ ## main...origin/main [ahead 1]
+→  M CONTRIBUTING.md
+→  M README.md
+→  M STATE.yaml
+→  M apps/web/app/api/signals/__tests__/route.test.ts
+→  M apps/web/public/readme-banner.svg
+→  M docker-entrypoint.sh
+→  M docs/QUICKSTART.md
+→  M docs/ai-improvement/README.md
+→  M docs/ai-improvement/implementation-log.md
+→  M docs/ai-improvement/uncommitted-source-verification-handoff.md
+→  M docs/ai-improvement/verification-command-matrix.md
+→  M package.json
+
+# no output from: git ls-files --others --exclude-standard
+
+git show --stat --oneline --no-renames HEAD --
+→ da2afa06 test(web): add middleware matcher characterization test + docs
+→ 9 files changed, 2508 insertions(+)
+
+git diff --shortstat --  # pre-refresh snapshot
+→ 12 files changed, 699 insertions(+), 215 deletions(-)
+
+git diff --shortstat -- CONTRIBUTING.md README.md STATE.yaml apps/web/app/api/signals/__tests__/route.test.ts apps/web/public/readme-banner.svg docker-entrypoint.sh docs/QUICKSTART.md package.json
+→ 8 files changed, 465 insertions(+), 150 deletions(-)
+
+git diff --shortstat -- docs/ai-improvement/README.md docs/ai-improvement/implementation-log.md docs/ai-improvement/uncommitted-source-verification-handoff.md docs/ai-improvement/verification-command-matrix.md
+→ 4 files changed, 234 insertions(+), 65 deletions(-)
+
+npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit
+→ exit 0
+→ PASS apps/web/app/api/signals/__tests__/route.test.ts
+→ PASS apps/web/__tests__/middleware.test.ts
+→ Test Suites: 2 passed, 2 total
+→ Tests: 22 passed, 22 total
+→ Force-exit notice remains because the middleware import keeps an async handle alive.
+
+npm run typecheck:web
+→ exit 0
+→ ran `npm run build:signals && tsc --noEmit --project apps/web/tsconfig.json`; `@tradeclaw/signals` built and web TypeScript printed no diagnostics.
+
+sh -n docker-entrypoint.sh && sh docker-entrypoint.sh --help
+→ exit 0; help includes `DATABASE_URL`, `Docker Compose recommended`, and `docs/self-host-smoke-checklist.md` markers.
+
+node package/help marker probe
+→ entrypoint_help_markers_ok
+→ temp_help_removed
+→ package_json_parse_ok
+```
+
+Pre-log static/read-back verification after refreshing the handoff/matrix/README/STATE/board and before adding this entry:
+
+```text
+read-back
+→ handoff, verification matrix, AI README latest-run section, STATE timestamp/TC-005 note, and central board top row were read back or patch-confirmed successfully.
+
+git diff --check
+→ exit 0; only LF→CRLF normalization warnings for edited Markdown files, no whitespace/conflict-marker errors.
+
+git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/uncommitted-source-verification-handoff.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/verification-command-matrix.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/README.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+```
+
+Post-log static rerun before final reporting:
+
+```text
+git diff --check
+→ exit 0; only LF→CRLF normalization warnings for edited Markdown files, no whitespace/conflict-marker errors.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/implementation-log.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+temp probe cleanup
+→ `.hermes-entrypoint-help.txt` absent.
+
+git status --short --branch --untracked-files=all
+→ still `main...origin/main [ahead 1]` with 12 tracked modified files and no untracked files.
+```
+
+Recommended next move: owner/Fatin/maintainer decide the `da2afa06` local commit posture (`keep/push`, amend, squash, cherry-pick elsewhere, or reset), then split/review the 8 prior dirty files plus AI tracking/status docs and rerun `docs/ai-improvement/verification-command-matrix.md`. Do not start new runtime/build-warning work until that stabilization decision is made; the middleware/proxy migration remains owner/Fatin-approved.
+
+## 2026-06-19 10:15 MPST (+0800) — local-ahead/dirty-tree handoff refresh (docs-only)
+
+Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.
+
+Decision: stopped before adding new runtime/source/test work because the repo is now both local-ahead and dirty: `main...origin/main [ahead 1]` with local commit `da2afa06` carrying the AI improvement docs, middleware matcher characterization test, self-host smoke checklist, and signal-lineage doc, while 8 tracked files remain modified in the working tree. Refreshed the existing handoff/matrix/AI README instead of creating a duplicate handoff so future runs no longer treat the AI docs/test artifacts as untracked. Code changes: none this run.
+
+External source applied: https://github.com/naimkatiman/continuous-improvement — re-scanned git status, existing AI artifacts, project state, and central board before acting; selected one safe stabilization/documentation increment and verified with real commands.
+External source applied: Zaky improvement stack `references/uncommitted-source-verification-handoff.md` — followed the refresh trigger for a prior handoff whose AI docs/tests were later included in a local committed-but-unpushed `HEAD` commit, while a dirty working tree remains.
+External source applied: https://github.com/shadcn/improve — converted the current local-ahead/dirty-tree state into a file-specific stabilization plan instead of broad advice.
+External source applied: https://github.com/DietrichGebert/ponytail — chose documentation/restraint over layering another test or build-warning fix on top of unreviewed lanes.
+External source applied: https://github.com/safishamsi/graphify — mapped the relationship between local commit history, working-tree docs/tooling/test/static lanes, and project/central tracking before recommending review order.
+
+Files inspected / context read:
+
+- `C:/Ai/_zaky_ai_board/agent_prompt_template.md`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `STATE.yaml`
+- `README.md`
+- `CONTRIBUTING.md`
+- `package.json`
+- `docker-entrypoint.sh`
+- `docs/QUICKSTART.md`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `docs/ai-improvement/middleware-proxy-migration-note.md`
+- `docs/ai-improvement/build-typecheck-parity.md`
+- `apps/web/app/api/signals/__tests__/route.test.ts`
+- current `git status`, `git diff --name-status`, `git diff --shortstat`, `git diff --numstat`, `git show --stat --oneline HEAD --`, and recent git log
+
+Files changed / artifacts updated this run:
+
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md` — refreshed from the old untracked-artifact handoff to a local-ahead/dirty-tree handoff distinguishing `da2afa06` from the 8 remaining modified tracked files.
+- `docs/ai-improvement/verification-command-matrix.md` — refreshed the stabilization matrix for the current local commit plus remaining dirty lanes.
+- `docs/ai-improvement/README.md` — updated latest-run summary, repo map, detected pattern, risk/backlog row, and recommended next move.
+- `STATE.yaml` — updated timestamp and TC-005 note per project-local operator rules.
+- `C:/Ai/_zaky_ai_board/KANBAN.md` — central board row for this run.
+- `docs/ai-improvement/implementation-log.md` — this run log entry.
+
+Application/runtime behavior changes: none. Code changes: none this run.
+
+Verification run and results:
+
+```text
+git status --short --branch --untracked-files=all
+→ ## main...origin/main [ahead 1]
+→  M CONTRIBUTING.md
+→  M README.md
+→  M STATE.yaml
+→  M apps/web/app/api/signals/__tests__/route.test.ts
+→  M apps/web/public/readme-banner.svg
+→  M docker-entrypoint.sh
+→  M docs/QUICKSTART.md
+→  M package.json
+
+git show --stat --oneline --no-renames HEAD --
+→ da2afa06 test(web): add middleware matcher characterization test + docs
+→ 9 files changed, 2508 insertions(+)
+
+git diff --shortstat
+→ 8 files changed, 465 insertions(+), 150 deletions(-)
+
+npx jest --runTestsByPath apps/web/app/api/signals/__tests__/route.test.ts apps/web/__tests__/middleware.test.ts --runInBand --forceExit
+→ exit 0
+→ PASS apps/web/app/api/signals/__tests__/route.test.ts
+→ PASS apps/web/__tests__/middleware.test.ts
+→ Test Suites: 2 passed, 2 total
+→ Tests: 22 passed, 22 total
+→ Force-exit notice remains because the middleware import keeps an async handle alive.
+
+npm run typecheck:web
+→ exit 0
+→ ran `npm run build:signals && tsc --noEmit --project apps/web/tsconfig.json`; `@tradeclaw/signals` built and web TypeScript printed no diagnostics.
+
+sh -n docker-entrypoint.sh && sh docker-entrypoint.sh --help
+→ final rerun exit 0; help includes `DATABASE_URL`, `Docker Compose recommended`, and `docs/self-host-smoke-checklist.md` markers.
+
+node package/help marker probe
+→ initial `/tmp/...` marker probe failed with ENOENT because Node read `/tmp` as `C:\\tmp` on this Windows/Git-Bash surface.
+→ workspace-relative rerun passed: `package_json_parse_ok`, `entrypoint_help_markers_ok`, `temp_help_removed`.
+```
+
+Post-edit verification before adding this log entry:
+
+```text
+read-back
+→ handoff, verification matrix, AI README latest-run section, STATE timestamp, and central board top row were read back successfully.
+
+git diff --check
+→ exit 0; only LF→CRLF normalization warnings for edited Markdown files, no whitespace/conflict-marker errors.
+
+git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git status --short --branch --untracked-files=all
+→ ## main...origin/main [ahead 1]
+→  M CONTRIBUTING.md
+→  M README.md
+→  M STATE.yaml
+→  M apps/web/app/api/signals/__tests__/route.test.ts
+→  M apps/web/public/readme-banner.svg
+→  M docker-entrypoint.sh
+→  M docs/QUICKSTART.md
+→  M docs/ai-improvement/README.md
+→  M docs/ai-improvement/uncommitted-source-verification-handoff.md
+→  M docs/ai-improvement/verification-command-matrix.md
+→  M package.json
+```
+
+Post-log verification rerun after this entry was added:
+
+```text
+git diff --check
+→ exit 0; only LF→CRLF normalization warnings for edited Markdown files, no whitespace/conflict-marker errors.
+
+git diff --no-index --check -- /dev/null docs/ai-improvement/implementation-log.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git diff --no-index --check -- /dev/null C:/Ai/_zaky_ai_board/KANBAN.md
+→ exit 1 expected for /dev/null comparison; only LF→CRLF normalization warning printed, no whitespace-error lines.
+
+git status --short --branch --untracked-files=all
+→ ## main...origin/main [ahead 1]
+→  M CONTRIBUTING.md
+→  M README.md
+→  M STATE.yaml
+→  M apps/web/app/api/signals/__tests__/route.test.ts
+→  M apps/web/public/readme-banner.svg
+→  M docker-entrypoint.sh
+→  M docs/QUICKSTART.md
+→  M docs/ai-improvement/README.md
+→  M docs/ai-improvement/implementation-log.md
+→  M docs/ai-improvement/uncommitted-source-verification-handoff.md
+→  M docs/ai-improvement/verification-command-matrix.md
+→  M package.json
+```
+
+Recommended next move: owner/Fatin/maintainer decide the `da2afa06` local commit posture (`keep/push`, amend, squash, cherry-pick elsewhere, or reset), then split the 8 remaining tracked modified files into keep/revert/commit lanes and rerun `docs/ai-improvement/verification-command-matrix.md`. Do not start new runtime/build-warning work until that stabilization decision is made; the middleware/proxy migration remains owner/Fatin-approved.
+
 ## 2026-06-19 06:58 MPST (+0800) — uncommitted source verification handoff (docs-only)
 
 Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.

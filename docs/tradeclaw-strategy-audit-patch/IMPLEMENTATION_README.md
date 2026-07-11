@@ -1,5 +1,12 @@
 # TradeClaw monetization implementation
 
+> **Note (2026-07-03):** the `packages/strategy-audit-agent/` bundle that used to ship
+> inside this patch directory now lives canonically at
+> [`packages/strategy-audit-agent/`](../../packages/strategy-audit-agent/) — including the
+> 2026-06-27/28 hardening fixes (host:port allowlist entries, www default host, duplicate
+> run-id rejection, trade-count parsing, deterministic browser runner, real preset
+> checkboxes). This directory retains only the decision/validation docs.
+
 ## Decision
 
 Build and sell **TradeClaw Strategy Audits** first.

@@ -158,7 +158,7 @@ function LeaderboardSkeleton({ rows = 8 }: { rows?: number }) {
 
 function SortIcon({ active, asc }: { active: boolean; asc: boolean }) {
   return (
-    <span className={`ml-1 inline-block text-[8px] ${active ? 'text-emerald-400' : 'text-[var(--text-secondary)]'}`}>
+    <span className={`ml-1 inline-block text-[10px] ${active ? 'text-emerald-400' : 'text-[var(--text-secondary)]'}`}>
       {active ? (asc ? '▲' : '▼') : '⬍'}
     </span>
   );

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useHeroPrices } from '../../lib/hooks/use-hero-prices';
+import { SYMBOLS, TIMEFRAMES } from '../../app/lib/symbol-config';
 
 interface Signal {
   symbol: string;
@@ -315,7 +316,7 @@ export function LiveDemoEmbed() {
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-bold text-white">{pair.replace('USD', '')}</span>
-                    <span className="text-[9px] text-zinc-500">Live</span>
+                    <span className="text-[9px] text-zinc-500">Live price</span>
                   </div>
                   <div className="mb-1 font-mono text-sm font-semibold tabular-nums text-zinc-200">
                     {prices[pair] !== undefined ? formatPrice(pair, prices[pair]) : '—'}
@@ -328,6 +329,9 @@ export function LiveDemoEmbed() {
                 </div>
               ))}
             </div>
+            <p className="mb-5 -mt-3 text-[10px] text-zinc-600">
+              Preview charts are illustrative; the last price is live.
+            </p>
 
             {/* Signal cards */}
             <div className="space-y-2">
@@ -372,7 +376,7 @@ export function LiveDemoEmbed() {
             {/* CTA row */}
             <div className="mt-5 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3">
               <span className="text-xs text-zinc-600">
-                {signals.length} signals • 10 pairs • 3 timeframes
+                {signals.length} signals • {SYMBOLS.length} pairs • {TIMEFRAMES.length} timeframes
               </span>
               <Link
                 href="/dashboard"

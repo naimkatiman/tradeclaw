@@ -1,4 +1,6 @@
 // apps/web/lib/onboarding-state.ts
+import { trackEvent } from './analytics';
+
 const STORAGE_KEY = 'tc-onboarding-v1';
 
 export type OnboardingStep = 'saw-signal' | 'opened-detail' | 'set-alert';
@@ -23,11 +25,20 @@ export function getOnboardingState(): OnboardingState {
 
 export function markStepDone(step: OnboardingStep): void {
   const state = getOnboardingState();
+  const wasDone = state[step];
   state[step] = true;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
     // Storage unavailable — silent
+  }
+
+  // Activation = the first time a user opens a real signal's detail (engaged
+  // with the core value). Fire once, on the false→true transition, so the hero
+  // A/B experiment can measure activation rate by variant (the hero_variant
+  // super property rides along on this event).
+  if (step === 'opened-detail' && !wasDone) {
+    trackEvent('activated', { step });
   }
 }
 
