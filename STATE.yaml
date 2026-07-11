@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-12T00:43:56+08:00
+updated: 2026-07-12T01:00:02+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -2046,6 +2046,20 @@ tasks:
       /methodology, /why-long-term, /open-data, and /api/health; the Cost Field
       signature is present and /api/research/cost-field returned 4,035 aligned
       gross-R/cost-R/class data points across crypto, metals, and FX.
+
+  - id: TC-238
+    title: "Harden Railway ws-server deployments with service-specific config as code"
+    status: in_progress
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-07-12 after the Cost Field release exposed that Railway's
+      repository-root railway.toml overrides the ws-server service settings on
+      GitHub-triggered deployments. Added railway.ws-server.toml with the dedicated
+      Dockerfile.ws-server build, /health readiness check, and bounded restart policy.
+      The exact-main web deployment 16034700-1d0e-41a1-be56-02a01a9589d0 reached
+      SUCCESS. Remaining release gate: merge this config, set the production
+      ws-server service custom config path to /railway.ws-server.toml, redeploy,
+      and verify the public websocket health endpoint.
 
 next_actions:
   - "2026-06-07: TC-235 complete. Created weekly performance recap content (X thread + LinkedIn post) highlighting 63.9% non-blacklisted WR, +0.10R expectancy, and methodology transparency. Ready for manual posting. Next: execute GitHub Stars Campaign — ProductHunt launch, HN Show HN post, or Reddit r/algotrading submission using existing prep pages (/launch, /hn, /share, /producthunt)."
