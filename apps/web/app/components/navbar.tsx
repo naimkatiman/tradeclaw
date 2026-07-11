@@ -20,6 +20,7 @@ const PRIMARY_LINKS: NavLink[] = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/screener', label: 'Screener' },
   { href: '/track-record', label: 'Track Record' },
+  { href: '/research', label: 'Research' },
 ];
 
 interface DropdownGroup {
