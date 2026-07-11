@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-12T00:08:04+08:00
+updated: 2026-07-12T00:26:16+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -2032,6 +2032,12 @@ tasks:
       A local full-Jest run exceeded the five-minute shell limit without emitting
       a failure; PR #156's full unit check was green before these focused additions,
       and the pushed head must pass the fresh GitHub unit check before merge.
+      GitHub rerun confirmed lint/typecheck, full unit tests, build, backtests, and
+      Docker all green. The non-required full E2E exposed valid empty screener
+      results plus two mobile cron calls exceeding the global 15-second action
+      limit. Tests now accept the honest empty-result UI and give the signal cron
+      its existing 60-second cold-path allowance. Focused verification of all
+      affected specs passes 27/27 on desktop and mobile (2 expected skips).
 
 next_actions:
   - "2026-06-07: TC-235 complete. Created weekly performance recap content (X thread + LinkedIn post) highlighting 63.9% non-blacklisted WR, +0.10R expectancy, and methodology transparency. Ready for manual posting. Next: execute GitHub Stars Campaign — ProductHunt launch, HN Show HN post, or Reddit r/algotrading submission using existing prep pages (/launch, /hn, /share, /producthunt)."
