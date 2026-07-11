@@ -31,9 +31,23 @@ async function screenshot() {
     colorScheme: "dark",
   });
   const page = await ctx.newPage();
-  await page.goto(URL, { waitUntil: "networkidle", timeout: 60_000 });
+  const resp = await page.goto(URL, { waitUntil: "networkidle", timeout: 60_000 });
   // let charts finish animating
   await page.waitForTimeout(2500);
+  // Refuse to post anything that isn't the track record. Cloudflare's managed
+  // challenge serves an interstitial with a 4xx status to datacenter IPs
+  // (GitHub runners included); page.goto resolves on it rather than throwing,
+  // so without this guard the challenge page would be posted to the channel.
+  const status = resp ? resp.status() : 0;
+  const title = await page.title();
+  if (status >= 400 || /just a moment|attention required/i.test(title)) {
+    await page.screenshot({ path: file, fullPage: true });
+    await browser.close();
+    throw new Error(
+      `Refusing to post: HTTP ${status}, title "${title}" — not the track record ` +
+        `(Cloudflare challenge?). Diagnostic screenshot: ${file}`,
+    );
+  }
   await page.screenshot({ path: file, fullPage: true });
   await browser.close();
   return file;
