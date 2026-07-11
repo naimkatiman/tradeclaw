@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-12T01:00:02+08:00
+updated: 2026-07-12T01:03:13+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -2055,7 +2055,8 @@ tasks:
       Started 2026-07-12 after the Cost Field release exposed that Railway's
       repository-root railway.toml overrides the ws-server service settings on
       GitHub-triggered deployments. Added railway.ws-server.toml with the dedicated
-      Dockerfile.ws-server build, /health readiness check, and bounded restart policy.
+      Dockerfile.ws-server build, scoped websocket/shared-package watch paths,
+      /health readiness check, and bounded restart policy.
       The exact-main web deployment 16034700-1d0e-41a1-be56-02a01a9589d0 reached
       SUCCESS. Remaining release gate: merge this config, set the production
       ws-server service custom config path to /railway.ws-server.toml, redeploy,
