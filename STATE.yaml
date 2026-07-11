@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-12T01:03:13+08:00
+updated: 2026-07-12T01:22:17+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -2049,7 +2049,7 @@ tasks:
 
   - id: TC-238
     title: "Harden Railway ws-server deployments with service-specific config as code"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
     notes: >
       Started 2026-07-12 after the Cost Field release exposed that Railway's
@@ -2058,9 +2058,17 @@ tasks:
       Dockerfile.ws-server build, scoped websocket/shared-package watch paths,
       /health readiness check, and bounded restart policy.
       The exact-main web deployment 16034700-1d0e-41a1-be56-02a01a9589d0 reached
-      SUCCESS. Remaining release gate: merge this config, set the production
-      ws-server service custom config path to /railway.ws-server.toml, redeploy,
-      and verify the public websocket health endpoint.
+      SUCCESS. PR #158 passed all six GitHub jobs and merged to main as 23994e1e.
+      Local gates passed: ws-server build, 32/32 ws-server tests, and the required
+      production build with 325/325 static pages. The production ws-server service
+      now reads back /railway.ws-server.toml as its custom config path. Deployment
+      b5ec151b-3d51-4273-9429-57ac9bac8623 reached SUCCESS from main@23994e1e;
+      its finalized manifest uses Dockerfile.ws-server, /health, no web start
+      command, and the scoped watch paths. The public /health endpoint returns HTTP
+      200 with Redis and the HTTP polling provider connected. Binance reports an
+      upstream HTTP 451 from the Railway region and continues its existing retry
+      loop, so application health is degraded but the deployment/config repair is
+      complete and the fallback price provider remains connected.
 
 next_actions:
   - "2026-06-07: TC-235 complete. Created weekly performance recap content (X thread + LinkedIn post) highlighting 63.9% non-blacklisted WR, +0.10R expectancy, and methodology transparency. Ready for manual posting. Next: execute GitHub Stars Campaign — ProductHunt launch, HN Show HN post, or Reddit r/algotrading submission using existing prep pages (/launch, /hn, /share, /producthunt)."
