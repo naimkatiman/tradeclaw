@@ -10,6 +10,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     { url: base, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
+    { url: `${base}/track-record`, lastModified: new Date(), changeFrequency: "daily", priority: 0.95 },
+    { url: `${base}/research`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${base}/methodology`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${base}/why-long-term`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${base}/open-data`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    { url: `${base}/calibration`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
+    { url: `${base}/today`, lastModified: new Date(), changeFrequency: "daily", priority: 0.85 },
+    { url: `${base}/performance`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/dashboard`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.9 },
     { url: `${base}/copilot`, lastModified: new Date(), changeFrequency: "daily", priority: 0.85 },
     { url: `${base}/leaderboard`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
@@ -76,7 +84,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/patterns`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/commentary`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/replit`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
-    { url: `${base}/alert`, lastModified: new Date(), changeFrequency: "always", priority: 0.7 },
     { url: `${base}/contributors`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/notion/signals`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/badges/readme`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
