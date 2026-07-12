@@ -1,12 +1,14 @@
 # TradeClaw AI Improvement Baseline
 
-Last updated: 2026-07-12 18:10 MPST (+0800)
+Last updated: 2026-07-12 23:37 MPST (+0800)
 Agent: CEO Zaky recurring Product + Engineering repository improvement agent
-Scope of latest run: recost CLI parser fail-closed source/test hardening; no web app/runtime, trading-rule, DB/schema, auth/billing, deployment, cron, secret, dependency, or lockfile changes.
+Scope of latest run: recost `--json` output-path preflight hardening; no web app/runtime, trading-rule, DB/schema, auth/billing, deployment, cron, secret, dependency, or lockfile changes.
 
 ## Executive Summary
 
-TradeClaw now has a hardened read-only `scripts/research/recost-segment.ts` CLI boundary for cost-edge research. The latest Max quota-burst source-work increment keeps the tool local/read-only but closes parser ambiguity before any Postgres connection is opened: help works without credentials, duplicate flags fail closed, numeric flags must be full-string positive safe integers, `--days` has an explicit maximum, and malformed/blank JSON paths are rejected. The paired Jest contract now covers 21 no-DB parser and credential-boundary cases.
+TradeClaw now has a safer read-only `scripts/research/recost-segment.ts` artifact-output boundary for cost-edge research. The latest Max quota-burst source-work increment started from detached `origin/main` `40a599bc` and adds a fail-fast `--json` preflight before any Postgres connection is opened: missing parent directories and existing directory targets now return concise parser errors, while valid file paths under an existing parent still reach the expected no-credentials boundary and create no artifact without DB access. The paired Jest contract now covers 23 no-DB parser/output-path/credential-boundary cases.
+
+Previous recurring increment: hardened the same recost CLI parser boundary so malformed input fails before opening Postgres: help works without DB credentials, duplicate `--days`/`--min-n`/`--json` flags fail closed, numeric flags require full-string positive safe integers, `--days` has an explicit maximum, and blank/malformed JSON paths are rejected. The paired Jest contract covered 21 no-DB parser and credential-boundary cases before this follow-up.
 
 Previous recurring increment: verification-only refresh of the existing docs-only checkpoint for the current dirty tree. The read-only research CLI `scripts/research/recost-segment.ts` remained an intentional local tool, the root README discoverability hook remained in place, and the script typechecked cleanly while failing closed when `DATABASE_PUBLIC_URL` / `DATABASE_URL` were absent. No application source, tests, package scripts, dependencies, runtime behavior, trading logic, tier definitions, DB schema, env vars, Compose services, cron behavior, or deployment targets were changed that run.
 

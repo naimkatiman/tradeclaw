@@ -1,5 +1,62 @@
 # TradeClaw AI Improvement Implementation Log
 
+## 2026-07-12 23:37 MPST (+0800) — recost `--json` output-path preflight hardening (source/test)
+
+Scope: recurring CEO Zaky Product + Engineering repository improvement run for `C:/Ai/tradeclaw` on Max quota-burst `openai-codex` `gpt-5.5`, cadence `27 5,11,17,23 * * *`.
+
+Decision: moved the checkout to detached `origin/main` `40a599bc` because the inherited detached `HEAD` was one release-state commit behind, then stayed inside the same read-only recost research CLI lane. Added a small fail-fast `--json` output-path preflight so missing parent directories and existing directory targets are rejected before any Postgres connection is opened. This prevents an expensive real-data query from reaching the end and then failing to write the selected artifact path. Code changes: read-only research CLI/test only.
+
+External source applied: `continuous-improvement` — fetched/pruned, inspected the live branch, state, AI-improvement docs, shared template, and board before editing; used TDD and verified from real command output.
+External source applied: `zaky-improvement-stack` — followed the source-work override with a branch-aware source/test increment rather than telemetry-only; no cron edits, retiering, branch push/rebase/reset, secrets, DB/schema, auth, payment, deployment, trading-rule, dependency, or lockfile changes.
+External source applied: `test-driven-development` — wrote the missing-parent/existing-directory `--json` tests first, watched them fail against the old no-DB boundary, then patched the smallest guard and reran them green.
+External source applied: `codebase-inspection` — focused `pygount` on the two touched TypeScript files after the source/test update.
+External source applied: `weekly-quota-model-throttle` — checked local Hermes 7-day usage telemetry; provider weekly quota percentage remains unavailable, so no retiering or cron edits were performed.
+
+Files inspected / context read:
+- `C:/Ai/_zaky_ai_board/agent_prompt_template.md`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+- `STATE.yaml`
+- `package.json`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `docs/ai-improvement/source-review-metrics.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `scripts/research/recost-segment.ts`
+- `scripts/research/__tests__/recost-segment-cli.test.ts`
+
+Files changed / artifacts updated this run:
+- `scripts/research/recost-segment.ts`
+- `scripts/research/__tests__/recost-segment-cli.test.ts`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/source-review-metrics.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `docs/ai-improvement/implementation-log.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Application/runtime behavior changes: none for the web app, trading engine, auth/billing/schema, Docker/Compose, deployment, cron, dependencies, lockfile, or secrets. The changed source is a local read-only research CLI and its Jest contract.
+
+Implementation details:
+- Added `validateJsonOutputPath(...)` after parser/help handling and before `connString()` / `Pool` construction.
+- `--json` now fails with a concise parser error when the selected parent directory does not exist.
+- `--json` now fails with a concise parser error when the selected path already points at a directory.
+- Valid `--json` file paths under an existing parent still proceed to the expected missing-DB guard when credentials are absent, and no artifact is created in that boundary path.
+
+Verification run and results captured before docs/board finalization:
+- `git fetch --prune` exited 0.
+- Initial posture after checkout correction: detached `HEAD` `40a599bc`, `origin/main` `40a599bc`, merge-base `40a599bce58185801f72249d7b7960c7ca820ee8`, `origin_main_paths=0`, `local_head_paths=0`, no configured upstream.
+- RED `npm test -- --runTestsByPath scripts/research/__tests__/recost-segment-cli.test.ts --runInBand --forceExit` failed as intended: 2 new `--json` path tests failed because the old script reached the missing-DB message instead of rejecting the output path.
+- GREEN same focused Jest command passed: 1 suite, 23 tests, 10.087s.
+- `npx tsc --noEmit --pretty false --module nodenext --moduleResolution nodenext --target es2022 --lib es2022 --types node,jest --esModuleInterop --skipLibCheck scripts/research/recost-segment.ts scripts/research/__tests__/recost-segment-cli.test.ts` exited 0.
+- Direct native-path spot-check exited 1 with `Invalid --json: expected a file path, got an existing directory: C:\Users\User\AppData\Local\Temp\tradeclaw-recost-native-dir-...` before any DB credential message.
+- `npm run build` exited 0; Next 16.2.6 compiled successfully and generated 325/325 static pages, with known warnings for the deprecated `middleware` convention, Big Shoulders font fallback, NFT tracing, edge-runtime static generation, and Node `url.parse()` deprecations.
+- Focused `pygount`: 2 TypeScript files / 378 code / 60 comments.
+- Local Hermes telemetry: `hermes insights --days 7` reported 850 sessions and 1,567,569,539 total local tokens, but no provider weekly quota denominator; the 90% guardrail remains unmeasured and no retiering was performed.
+
+Recommended next move: keep future recost follow-ups inside the same no-secret research lane. The next safe autonomous source/test increment is JSON payload/report-shape coverage with a mocked or pure helper seam; live Postgres execution and artifact publication still require credential handling that avoids printing connection strings or secrets.
+
 ## 2026-07-12 18:10 MPST (+0800) — recost CLI parser fail-closed hardening (source/test)
 
 Scope: recurring CEO Zaky Product + Engineering repository improvement run for `C:/Ai/tradeclaw` on Max quota-burst `openai-codex` `gpt-5.5`, cadence `27 5,11,17,23 * * *`.
