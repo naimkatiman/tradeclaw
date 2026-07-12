@@ -106,6 +106,42 @@ describe('recost-segment CLI parser - no-DB guard boundaries', () => {
     expect(output).not.toMatch(/\n\s+at\s/);
   });
 
+  it('rejects --json paths with missing parent directories before opening the database path', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tradeclaw-recost-json-parent-'));
+    const jsonPath = path.join(tmpDir, 'missing-parent', 'recost.json');
+
+    try {
+      const result = runRecost(['--json', jsonPath]);
+      const output = outputOf(result);
+
+      expect(result.error).toBeUndefined();
+      expect(result.status).toBe(1);
+      expect(output).toMatch(/Invalid --json: parent directory does not exist:/);
+      expect(output).not.toMatch(/No DATABASE_PUBLIC_URL or DATABASE_URL set/);
+      expect(output).not.toMatch(/\n\s+at\s/);
+      expect(fs.existsSync(jsonPath)).toBe(false);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects --json paths that point at an existing directory before opening the database path', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tradeclaw-recost-json-dir-'));
+
+    try {
+      const result = runRecost(['--json', tmpDir]);
+      const output = outputOf(result);
+
+      expect(result.error).toBeUndefined();
+      expect(result.status).toBe(1);
+      expect(output).toMatch(/Invalid --json: expected a file path, got an existing directory:/);
+      expect(output).not.toMatch(/No DATABASE_PUBLIC_URL or DATABASE_URL set/);
+      expect(output).not.toMatch(/\n\s+at\s/);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
   it('does not create a --json artifact when credentials are absent', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tradeclaw-recost-json-'));
     const jsonPath = path.join(tmpDir, 'recost.json');

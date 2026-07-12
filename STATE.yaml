@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-12T23:23:40+08:00
+updated: 2026-07-12T23:42:16+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -8,7 +8,7 @@ description: >
   Goal: viral GitHub repo, thousands of stars.
 
 ai_improvement_last_run:
-  at: 2026-07-12T18:10:38+08:00
+  at: 2026-07-12T23:40:21+08:00
   agent: CEO Zaky recurring Product + Engineering repository improvement agent
   scope: source/test recost CLI parser fail-closed hardening; no web runtime, trading-rule, DB/schema, auth/billing, deployment, cron, secret, dependency, or lockfile changes
   notes: >
@@ -16,8 +16,11 @@ ai_improvement_last_run:
     before opening Postgres: help now works without DB credentials, duplicate
     --days/--min-n/--json flags fail closed, numeric flags require full-string
     positive safe integers, --days has an explicit maximum, and blank/malformed
-    JSON paths are rejected. Expanded scripts/research/__tests__/recost-segment-cli.test.ts
-    to 21 no-DB parser/credential-boundary cases. Verified focused Jest,
+    JSON paths are rejected. The release follow-up also rejects JSON targets
+    whose parent directory is missing or whose target is an existing directory,
+    before any database connection is opened. Expanded
+    scripts/research/__tests__/recost-segment-cli.test.ts to 23 no-DB
+    parser/credential/filesystem-boundary cases. Verified focused Jest,
     scoped script/test tsc, npm ci, full npm run build, focused pygount, and
     docs/board static checks. The owner authorized this coherent source/test
     lane for commit to main and production deployment on 2026-07-12; release
@@ -57,6 +60,23 @@ release_last_run:
     https://tradeclaw.win/api/health returned HTTP 200 and status ok from the fresh
     process. GitHub CI and Docker Publish were still in progress when this state
     record was written and are verified separately during final release closeout.
+
+release_followup:
+  at: 2026-07-12T23:42:16+08:00
+  agent: TradeClaw PM release agent
+  status: ready_to_publish
+  base_commit: 40a599bce58185801f72249d7b7960c7ca820ee8
+  target: main and Railway production
+  scope: fail-closed JSON output filesystem validation for the recost CLI
+  notes: >
+    A concurrent local improvement completed while the first release checks were
+    running. The coherent two-file follow-up adds early validation for missing
+    JSON parent directories and existing-directory targets plus two focused tests.
+    No web runtime, trading rules, database/schema, auth/billing, dependencies,
+    lockfile, deployment configuration, or secrets changed. Fresh validation
+    passed: focused Jest 23/23, scoped TypeScript exit 0, YAML/diff checks clean,
+    and npm run build compiled successfully with 325/325 static pages. Ready to
+    fast-forward this latest local work to main and deploy it to Railway web.
 
 tasks:
   - id: TC-001

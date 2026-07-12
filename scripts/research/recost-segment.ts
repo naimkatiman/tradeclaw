@@ -302,12 +302,35 @@ function parseCliArgs(args: string[]): CliArgs {
   };
 }
 
+function validateJsonOutputPath(jsonPath: string | undefined): void {
+  if (!jsonPath) return;
+
+  const resolvedPath = path.resolve(process.cwd(), jsonPath);
+  const parentDir = path.dirname(resolvedPath);
+
+  let parentStat: fs.Stats;
+  try {
+    parentStat = fs.statSync(parentDir);
+  } catch {
+    throw new CliInputError(`Invalid --json: parent directory does not exist: ${parentDir}.`);
+  }
+
+  if (!parentStat.isDirectory()) {
+    throw new CliInputError(`Invalid --json: parent path is not a directory: ${parentDir}.`);
+  }
+
+  if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory()) {
+    throw new CliInputError(`Invalid --json: expected a file path, got an existing directory: ${resolvedPath}.`);
+  }
+}
+
 async function main() {
   const { days, minN, jsonPath, help } = parseCliArgs(process.argv.slice(2));
   if (help) {
     console.log(USAGE);
     return;
   }
+  validateJsonOutputPath(jsonPath);
 
   const cs = connString();
   const pool = new Pool({
