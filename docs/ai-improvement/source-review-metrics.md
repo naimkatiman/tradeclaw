@@ -1,13 +1,15 @@
 # TradeClaw Source Review Metrics Packet
 
-Date: 2026-06-22 05:30 MPST (+0800)
+Date: 2026-07-12 18:10 MPST (+0800)
 Agent: CEO Zaky recurring Product + Engineering repository improvement agent
 
 ## Purpose
 
-This is a refreshed docs-only source-review checkpoint for the existing `docs/ai-improvement/source-review-metrics.md` packet. The branch and dirty-lane posture did not materially change since the previous packet, but this run reran the current verification snapshot, including the app build, so Fatin/owner/maintainers can review from fresh evidence instead of relying on the 05:29 checkpoint.
+This packet is now a historical source-review baseline plus an active pointer to the latest recost CLI source/test hardening run. The current run did **not** recompute the full repository metrics packet; it only updated this header/status note so reviewers do not mistake the older 2026-06-22 branch posture below for the active checkout. Current active evidence lives in `docs/ai-improvement/implementation-log.md`, `docs/ai-improvement/uncommitted-source-verification-handoff.md`, and `docs/ai-improvement/verification-command-matrix.md`.
 
-Code changes: none this run. Metrics and green checks below are review aids for Fatin/owner/maintainer; they are not acceptance, merge, deploy, or behavior-preservation proof for the accumulated branch plus dirty tree.
+Latest source/test lane: detached `HEAD` matched `origin/main` at `6f363cd7`; the pre-tracking source diff was `2 files changed, 38 insertions(+), 4 deletions(-)` across `scripts/research/recost-segment.ts` and `scripts/research/__tests__/recost-segment-cli.test.ts`; focused `pygount` for those two files reported 2 TypeScript files / 338 code / 60 comments. Code changes stayed limited to the local read-only research CLI and its Jest contract.
+
+Historical full-packet note: the branch/dirty-lane posture and broad metrics below remain preserved as history from the previous source-review packet and should be refreshed before being used for a new branch-disposition decision.
 
 ## Current git / review posture
 

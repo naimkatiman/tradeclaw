@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-12T01:22:17+08:00
+updated: 2026-07-12T23:19:36+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -8,16 +8,39 @@ description: >
   Goal: viral GitHub repo, thousands of stars.
 
 ai_improvement_last_run:
-  at: 2026-06-25T05:31:00+08:00
+  at: 2026-07-12T18:10:38+08:00
   agent: CEO Zaky recurring Product + Engineering repository improvement agent
-  scope: docs-only monetization strategy-audit package verification and AI tracking refresh; no runtime behavior changes
+  scope: source/test recost CLI parser fail-closed hardening; no web runtime, trading-rule, DB/schema, auth/billing, deployment, cron, secret, dependency, or lockfile changes
   notes: >
-    The checkout now carries the untracked strategy-audit package/docs surfaces
-    plus the pre-existing package-lock.json workspace-link change. Verified the
-    standalone package with npm test, npm run check, and npm run validate:fixture,
-    then refreshed the repo-local AI-improvement docs, implementation log, and
-    central board. Keep the monetization audit historical-only until owner/Fatin
-    approve any payment, broker, or live-execution wiring.
+    Hardened scripts/research/recost-segment.ts so malformed CLI input fails
+    before opening Postgres: help now works without DB credentials, duplicate
+    --days/--min-n/--json flags fail closed, numeric flags require full-string
+    positive safe integers, --days has an explicit maximum, and blank/malformed
+    JSON paths are rejected. Expanded scripts/research/__tests__/recost-segment-cli.test.ts
+    to 21 no-DB parser/credential-boundary cases. Verified focused Jest,
+    scoped script/test tsc, npm ci, full npm run build, focused pygount, and
+    docs/board static checks. The owner authorized this coherent source/test
+    lane for commit to main and production deployment on 2026-07-12; release
+    verification is tracked separately below.
+
+release_last_run:
+  at: 2026-07-12T23:19:36+08:00
+  agent: TradeClaw PM release agent
+  status: ready_to_publish
+  scope: recost CLI parser hardening, focused tests, and aligned AI-improvement documentation
+  target: main and Railway production
+  notes: >
+    Owner authorized commit and deploy. The release started from detached HEAD
+    6f363cd7, exactly aligned with origin/main, with eight coherent tracked
+    modifications and no staged/untracked files, secrets, dependency changes,
+    lockfile changes, deployment-config changes, or web-runtime changes. Fresh
+    verification passed: focused recost Jest 21/21, scoped TypeScript, full Jest
+    1285 passed/26 skipped/0 failed, ESLint 0 errors with 31 pre-existing
+    warnings, npm run build with 325/325 static pages, YAML parse, and git diff
+    whitespace checks. Docker is unavailable locally; the GitHub Actions Docker
+    job and GHCR publish workflow will provide the image-build gate after push.
+    Ready to publish through the clean main worktree and deploy the exact commit
+    to Railway production web.
 
 tasks:
   - id: TC-001

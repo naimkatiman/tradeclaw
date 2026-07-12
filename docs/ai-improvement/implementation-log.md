@@ -1,5 +1,63 @@
 # TradeClaw AI Improvement Implementation Log
 
+## 2026-07-12 18:10 MPST (+0800) — recost CLI parser fail-closed hardening (source/test)
+
+Scope: recurring CEO Zaky Product + Engineering repository improvement run for `C:/Ai/tradeclaw` on Max quota-burst `openai-codex` `gpt-5.5`, cadence `27 5,11,17,23 * * *`.
+
+Decision: stayed inside the existing read-only research/recost lane and hardened `scripts/research/recost-segment.ts` so malformed CLI input fails before any Postgres connection is opened. This protects the cost-edge analysis tool from ambiguous `parseInt` coercions and accidental duplicate flag overrides while preserving the approved read-only/no-credentials boundary. Code changes: small source/test increment only.
+
+External source applied: `continuous-improvement` — fetched/pruned, inspected the live branch and AI-improvement artifacts before editing, kept one logical increment, and verified from real command output.
+External source applied: `zaky-improvement-stack` — used the source-work override for a safe branch-aware implementation step instead of telemetry-only; no cron edits, retiering, branch operations, secrets, DB/schema, auth, payment, deployment, or trading-rule changes.
+External source applied: `test-driven-development` — parser boundary tests were added/expanded for the behavior touched, then the script was changed minimally to satisfy those no-DB guard contracts.
+External source applied: `codebase-inspection` — focused `pygount` on the two touched TypeScript files after the source/test update.
+
+Files inspected / context read:
+- `C:/Ai/_zaky_ai_board/agent_prompt_template.md`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/implementation-log.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/source-review-metrics.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `STATE.yaml`
+- `scripts/research/recost-segment.ts`
+- `scripts/research/__tests__/recost-segment-cli.test.ts`
+- `apps/web/app/api/research/cost-field/route.ts`
+- `apps/web/app/api/research/cost-field/route.test.ts`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Files changed / artifacts updated this run:
+- `scripts/research/recost-segment.ts`
+- `scripts/research/__tests__/recost-segment-cli.test.ts`
+- `docs/ai-improvement/README.md`
+- `docs/ai-improvement/uncommitted-source-verification-handoff.md`
+- `docs/ai-improvement/verification-command-matrix.md`
+- `docs/ai-improvement/source-review-metrics.md` (header/status note only)
+- `docs/ai-improvement/implementation-log.md`
+- `STATE.yaml`
+- `C:/Ai/_zaky_ai_board/KANBAN.md`
+
+Application/runtime behavior changes: none for the web app, trading engine, auth/billing/schema, Docker/Compose, deployment, cron, or secrets. The changed source is a local read-only research CLI and its Jest test.
+
+Implementation details:
+- Added `--help` / `-h` usage output that returns before `connString()` so help works without database credentials.
+- Added fail-closed parser handling for unknown flags, missing values, duplicate `--days` / `--min-n` / `--json`, blank JSON paths, non-integer/unsafe numeric input, and excessive `--days` values.
+- Replaced `parseInt` coercion with full-string positive-safe-integer validation, preventing decimal, exponential, and injection-shaped values from silently becoming valid day/minimum thresholds.
+- Threaded validated `days` into a parameterized `queryParams` array only after parser validation.
+- Expanded the CLI tests to 21 no-DB boundary cases, including help, duplicate flags, malformed numbers, no-artifact behavior, and the valid-flags fail-closed missing-DB boundary.
+
+Verification run and results captured before docs/board finalization:
+- `git fetch --prune` exited 0.
+- `git status --short --branch --ahead-behind --untracked-files=all` after the source/test patch showed detached `HEAD` with only `M scripts/research/__tests__/recost-segment-cli.test.ts` and `M scripts/research/recost-segment.ts` before tracking docs were refreshed.
+- Branch/base probe: detached `HEAD` `6f363cd7`, `origin/main` `6f363cd7`, merge-base `6f363cd7fde369722b2563952ac2cb6729745bf8`, `origin_main_paths=0`, `local_head_paths=0`, no configured upstream.
+- Source/test shortstat before docs tracking: `2 files changed, 38 insertions(+), 4 deletions(-)`.
+- `npm test -- --runTestsByPath scripts/research/__tests__/recost-segment-cli.test.ts --runInBand --forceExit` passed: 1 suite, 21 tests, 7.397s.
+- `npx tsc --noEmit --pretty false --module nodenext --moduleResolution nodenext --target es2022 --lib es2022 --types node,jest --esModuleInterop --skipLibCheck scripts/research/recost-segment.ts scripts/research/__tests__/recost-segment-cli.test.ts` exited 0.
+- `npm ci` exited 0 and restored the local dependency tree (1,961 packages; 63 audit findings reported by npm). This was needed because the first full build attempt found the lockfile-listed `three` dependency absent from local `node_modules`.
+- `npm run build` exited 0 after `npm ci`; Next 16.2.6 compiled successfully and generated 325/325 static pages, with known warnings for the deprecated `middleware` convention, `Big Shoulders` font fallback, NFT tracing, edge-runtime static generation, and Node `url.parse()` deprecations.
+- Focused `pygount`: 2 files / 338 code / 60 comments.
+
+Release disposition: the owner authorized this coherent recost parser hardening lane for commit to `main` and production deployment on 2026-07-12. The release rerun passed focused Jest (21/21), scoped TypeScript, full Jest (1,285 passed / 26 skipped / 0 failed), ESLint (0 errors; 31 pre-existing warnings), and `npm run build` (325/325 static pages). Docker is unavailable in the local shell, so GitHub Actions remains the Docker image-build gate after push. After release, the next safe autonomous increment is a source-adjacent test for the recost report/output shape, still without DB writes or credential exposure.
+
 ## 2026-07-02 06:46 MPST (+0800) — verification-only refresh of the existing docs-only checkpoint (docs-only)
 
 Scope: recurring CEO Zaky repository improvement agent run for `C:/Ai/tradeclaw`.

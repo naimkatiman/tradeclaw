@@ -53,6 +53,16 @@ const PRO_PREMIUM_MIN_CONFIDENCE = 85;
 /** Keep the interval inside PostgreSQL's practical range and the probe's research horizon. */
 const MAX_DAYS = 36_500;
 
+const USAGE = `Usage: npx tsx scripts/research/recost-segment.ts [--days N] [--min-n N] [--json path]
+
+Read-only Postgres probe that re-costs resolved TradeClaw signal history using recorded/fallback round-trip costs.
+
+Options:
+  --days N       Restrict the window to the last N days (positive integer, max ${MAX_DAYS}).
+  --min-n N      Minimum sample size for a cell to be conclusive (positive integer, default 100).
+  --json path    Write the per-cell result JSON to the selected local artifact path after a successful DB query.
+  --help, -h     Print this help text without opening a database connection.`;
+
 type AssetClass = 'crypto' | 'metals' | 'fx' | 'stocks/cmdty';
 type Band = 'all' | 'standard' | 'premium';
 
@@ -242,15 +252,20 @@ interface CliArgs {
   days: number | null;
   minN: number;
   jsonPath: string | undefined;
+  help: boolean;
 }
 
 function parseCliArgs(args: string[]): CliArgs {
+  if (args.length === 1 && (args[0] === '--help' || args[0] === '-h')) {
+    return { days: null, minN: 100, jsonPath: undefined, help: true };
+  }
+
   const raw: { days?: string; minN?: string; jsonPath?: string } = {};
 
   for (let i = 0; i < args.length; i++) {
     const name = args[i];
     if (name !== '--days' && name !== '--min-n' && name !== '--json') {
-      throw new CliInputError(`Unknown argument: ${printableArg(name)}. Expected --days, --min-n, or --json.`);
+      throw new CliInputError(`Unknown argument: ${printableArg(name)}. Expected --days, --min-n, --json, or --help.`);
     }
 
     const value = args[i + 1];
@@ -283,11 +298,16 @@ function parseCliArgs(args: string[]): CliArgs {
     days,
     minN: parsePositiveIntegerArg('--min-n', raw.minN, 100) as number,
     jsonPath: raw.jsonPath,
+    help: false,
   };
 }
 
 async function main() {
-  const { days, minN, jsonPath } = parseCliArgs(process.argv.slice(2));
+  const { days, minN, jsonPath, help } = parseCliArgs(process.argv.slice(2));
+  if (help) {
+    console.log(USAGE);
+    return;
+  }
 
   const cs = connString();
   const pool = new Pool({

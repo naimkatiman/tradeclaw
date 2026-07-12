@@ -48,12 +48,26 @@ function outputOf(result: CliResult): string {
   return `${result.stdout}\n${result.stderr}`;
 }
 
-describe('recost-segment CLI parser â€” no-DB guard boundaries', () => {
+describe('recost-segment CLI parser - no-DB guard boundaries', () => {
+  it('prints usage without requiring database credentials', () => {
+    const result = runRecost(['--help']);
+    const output = outputOf(result);
+
+    expect(result.error).toBeUndefined();
+    expect(result.status).toBe(0);
+    expect(output).toContain('Usage: npx tsx scripts/research/recost-segment.ts [--days N] [--min-n N] [--json path]');
+    expect(output).toContain('--days N');
+    expect(output).toContain('--min-n N');
+    expect(output).toContain('--json path');
+    expect(output).not.toMatch(/No DATABASE_PUBLIC_URL or DATABASE_URL set/);
+    expect(output).not.toMatch(/\n\s+at\s/);
+  });
+
   it.each([
     ['missing --days value', ['--days'], /Missing value for --days\./],
     ['missing --min-n value', ['--min-n'], /Missing value for --min-n\./],
     ['missing --json value', ['--json'], /Missing value for --json\./],
-    ['unknown flag', ['--bogus', '1'], /Unknown argument: --bogus\. Expected --days, --min-n, or --json\./],
+    ['unknown flag', ['--bogus', '1'], /Unknown argument: --bogus\. Expected --days, --min-n, --json, or --help\./],
     ['duplicate --days value', ['--days', '7', '--days', '14'], /Duplicate argument: --days\./],
     ['duplicate --min-n value', ['--min-n', '100', '--min-n', '200'], /Duplicate argument: --min-n\./],
     ['duplicate --json value', ['--json', 'first.json', '--json', 'second.json'], /Duplicate argument: --json\./],

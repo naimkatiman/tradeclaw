@@ -1,14 +1,14 @@
 # TradeClaw AI Improvement Baseline
 
-Last updated: 2026-07-02 06:46 MPST (+0800)
+Last updated: 2026-07-12 18:10 MPST (+0800)
 Agent: CEO Zaky recurring Product + Engineering repository improvement agent
-Scope of latest run: verification-only refresh of the existing docs-only checkpoint; no application/source/runtime changes, and the root README discoverability hook remains in place.
+Scope of latest run: recost CLI parser fail-closed source/test hardening; no web app/runtime, trading-rule, DB/schema, auth/billing, deployment, cron, secret, dependency, or lockfile changes.
 
 ## Executive Summary
 
-TradeClaw now has a verified standalone strategy-audit monetization path: a product-facing audit note, a dedicated `packages/strategy-audit-agent` workspace package, and a fresh AI-improvement note that documents the safe boundary. The audit package turns existing Backtest Lab output into a historical-only paid deliverable; it does not change live execution, billing, or broker access. Code changes: none from this run.
+TradeClaw now has a hardened read-only `scripts/research/recost-segment.ts` CLI boundary for cost-edge research. The latest Max quota-burst source-work increment keeps the tool local/read-only but closes parser ambiguity before any Postgres connection is opened: help works without credentials, duplicate flags fail closed, numeric flags must be full-string positive safe integers, `--days` has an explicit maximum, and malformed/blank JSON paths are rejected. The paired Jest contract now covers 21 no-DB parser and credential-boundary cases.
 
-Latest recurring increment: verification-only refresh of the existing docs-only checkpoint for the current dirty tree. The read-only research CLI `scripts/research/recost-segment.ts` remains an intentional local tool, the root README discoverability hook remains in place, and the script typechecked cleanly while failing closed when `DATABASE_PUBLIC_URL` / `DATABASE_URL` were absent. No application source, tests, package scripts, dependencies, runtime behavior, trading logic, tier definitions, DB schema, env vars, Compose services, cron behavior, or deployment targets were changed this run.
+Previous recurring increment: verification-only refresh of the existing docs-only checkpoint for the current dirty tree. The read-only research CLI `scripts/research/recost-segment.ts` remained an intentional local tool, the root README discoverability hook remained in place, and the script typechecked cleanly while failing closed when `DATABASE_PUBLIC_URL` / `DATABASE_URL` were absent. No application source, tests, package scripts, dependencies, runtime behavior, trading logic, tier definitions, DB schema, env vars, Compose services, cron behavior, or deployment targets were changed that run.
 
 Previous recurring increment: verified the new strategy-audit package with `npm test`, `npm run check`, and `npm run validate:fixture`; the fixture run produced `Completed: 3/4` and wrote `packages/strategy-audit-agent/tmp/fixture-validation/report.md`. The current checkout still contains the pre-existing `package-lock.json` modification plus the untracked audit package/docs surfaces, but this run only added AI-improvement documentation and state updates.
 
