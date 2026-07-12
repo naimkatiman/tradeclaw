@@ -16,7 +16,6 @@ import {
   Wrench,
   Layers,
   Crosshair,
-  KeyRound,
   Megaphone,
   Activity,
   ShieldCheck,
@@ -97,7 +96,6 @@ const MEMBER_MORE: DropdownGroup[] = [
 
 const ADMIN_PRIMARY: PrimaryLink[] = [
   { href: '/admin', label: 'Overview' },
-  { href: '/admin/pro-grants', label: 'Pro Grants' },
   { href: '/admin/social-queue', label: 'Social Queue' },
   { href: '/admin/executions', label: 'Executions' },
   { href: '/dashboard', label: '↩ App' },
@@ -107,7 +105,6 @@ const ADMIN_MORE: DropdownGroup[] = [
   {
     label: 'Operations',
     links: [
-      { href: '/admin/pro-grants', label: 'Pro Grants', icon: KeyRound },
       { href: '/admin/social-queue', label: 'Social Queue', icon: Megaphone },
       { href: '/admin/executions', label: 'Executions', icon: Activity },
     ],
