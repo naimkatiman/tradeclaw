@@ -1,8 +1,6 @@
-import fs from 'fs';
-import path from 'path';
 import sitemap from '../sitemap';
+import { routeExists } from '../../test-utils/route-exists';
 
-const APP_DIR = path.join(__dirname, '..');
 const BASE = 'https://tradeclaw.win';
 
 /**
@@ -10,35 +8,6 @@ const BASE = 'https://tradeclaw.win';
  * Shipping a URL with no route serves search engines a 404 -- which is exactly
  * what `${base}/alert` did (app/alert contains only an [id] segment).
  */
-function routeExists(pathname: string): boolean {
-  const segments = pathname.split('/').filter(Boolean);
-
-  const resolve = (dir: string, rest: string[]): boolean => {
-    if (rest.length === 0) {
-      return ['page.tsx', 'page.ts', 'page.jsx', 'page.js'].some((f) =>
-        fs.existsSync(path.join(dir, f)),
-      );
-    }
-
-    const [head, ...tail] = rest;
-
-    const literal = path.join(dir, head);
-    if (fs.existsSync(literal) && fs.statSync(literal).isDirectory()) {
-      if (resolve(literal, tail)) return true;
-    }
-
-    // A dynamic segment ([slug], [id], [...all]) can stand in for any literal.
-    if (!fs.existsSync(dir)) return false;
-    const dynamic = fs
-      .readdirSync(dir)
-      .filter((e) => e.startsWith('[') && fs.statSync(path.join(dir, e)).isDirectory());
-
-    return dynamic.some((d) => resolve(path.join(dir, d), tail));
-  };
-
-  return resolve(APP_DIR, segments);
-}
-
 describe('sitemap', () => {
   const entries = sitemap();
 

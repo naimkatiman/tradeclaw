@@ -21,6 +21,11 @@ import {
   ShieldCheck,
   Trophy,
   GitBranch,
+  FlaskConical,
+  Ruler,
+  TrendingUp,
+  Database,
+  Target,
 } from 'lucide-react';
 import { TradeClawLogo } from './tradeclaw-logo';
 import { UserMenu } from './UserMenu';
@@ -49,6 +54,7 @@ interface DropdownGroup {
 interface PrimaryLink { href: string; label: string }
 
 const MEMBER_PRIMARY: PrimaryLink[] = [
+  { href: '/today', label: 'Today' },
   { href: '/dashboard', label: 'Signals' },
   { href: '/copilot', label: 'Copilot' },
   { href: '/screener', label: 'Screener' },
@@ -90,6 +96,16 @@ const MEMBER_MORE: DropdownGroup[] = [
       { href: '/vote', label: 'Vote', icon: BarChart2 },
       { href: '/badges/readme', label: 'Badges', icon: BadgeCheck },
       { href: '/tradingview-export', label: 'TradingView Export', icon: BarChart3 },
+    ],
+  },
+  {
+    label: 'Transparency',
+    links: [
+      { href: '/research', label: 'Research', icon: FlaskConical },
+      { href: '/methodology', label: 'Methodology', icon: Ruler },
+      { href: '/why-long-term', label: 'Why Long-Term', icon: TrendingUp },
+      { href: '/open-data', label: 'Open Data', icon: Database },
+      { href: '/calibration', label: 'Calibration', icon: Target },
     ],
   },
 ];
