@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-12T23:19:36+08:00
+updated: 2026-07-12T23:23:40+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -24,11 +24,23 @@ ai_improvement_last_run:
     verification is tracked separately below.
 
 release_last_run:
-  at: 2026-07-12T23:19:36+08:00
+  at: 2026-07-12T23:23:40+08:00
   agent: TradeClaw PM release agent
-  status: ready_to_publish
+  status: deployed
   scope: recost CLI parser hardening, focused tests, and aligned AI-improvement documentation
   target: main and Railway production
+  source_commit: bd93f60fc9a8ff9f6d67792369081fa3393e371e
+  source_branch: main
+  deployment:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment: production
+    service: web
+    deployment_id: 7cedcc41-f5df-49f6-b42c-ef163b2a9d01
+    status: SUCCESS
+    image_digest: sha256:1f0e704372e29dd3afaba373a46b978923d328ef265c6ec1846dffabb4f0fdf4
+    live_url: https://tradeclaw.win
+    health: HTTP 200 /api/health with status ok
   notes: >
     Owner authorized commit and deploy. The release started from detached HEAD
     6f363cd7, exactly aligned with origin/main, with eight coherent tracked
@@ -38,9 +50,13 @@ release_last_run:
     1285 passed/26 skipped/0 failed, ESLint 0 errors with 31 pre-existing
     warnings, npm run build with 325/325 static pages, YAML parse, and git diff
     whitespace checks. Docker is unavailable locally; the GitHub Actions Docker
-    job and GHCR publish workflow will provide the image-build gate after push.
-    Ready to publish through the clean main worktree and deploy the exact commit
-    to Railway production web.
+    job and GHCR publish workflow provide the image-build gate after push. Commit
+    bd93f60f was fast-forwarded directly to origin/main and the clean local main
+    worktree was synchronized to the same SHA. Railway deployment 7cedcc41 reached
+    terminal SUCCESS with image digest sha256:1f0e704372e29dd3afaba373a46b978923d328ef265c6ec1846dffabb4f0fdf4;
+    https://tradeclaw.win/api/health returned HTTP 200 and status ok from the fresh
+    process. GitHub CI and Docker Publish were still in progress when this state
+    record was written and are verified separately during final release closeout.
 
 tasks:
   - id: TC-001
