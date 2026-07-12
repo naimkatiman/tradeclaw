@@ -47,7 +47,7 @@ npm test -- --runTestsByPath scripts/research/__tests__/recost-segment-cli.test.
 → GREEN after implementation: PASS scripts/research/__tests__/recost-segment-cli.test.ts
 → Test Suites: 1 passed, 1 total
 → Tests: 23 passed, 23 total
-→ Time: 10.087 s
+→ Time: 9.606 s
 
 npx tsc --noEmit --pretty false --module nodenext --moduleResolution nodenext --target es2022 --lib es2022 --types node,jest --esModuleInterop --skipLibCheck scripts/research/recost-segment.ts scripts/research/__tests__/recost-segment-cli.test.ts
 → exit 0

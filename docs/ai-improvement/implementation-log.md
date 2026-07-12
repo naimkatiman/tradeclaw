@@ -48,7 +48,7 @@ Verification run and results captured before docs/board finalization:
 - `git fetch --prune` exited 0.
 - Initial posture after checkout correction: detached `HEAD` `40a599bc`, `origin/main` `40a599bc`, merge-base `40a599bce58185801f72249d7b7960c7ca820ee8`, `origin_main_paths=0`, `local_head_paths=0`, no configured upstream.
 - RED `npm test -- --runTestsByPath scripts/research/__tests__/recost-segment-cli.test.ts --runInBand --forceExit` failed as intended: 2 new `--json` path tests failed because the old script reached the missing-DB message instead of rejecting the output path.
-- GREEN same focused Jest command passed: 1 suite, 23 tests, 10.087s.
+- Final GREEN same focused Jest command passed: 1 suite, 23 tests, 9.606s.
 - `npx tsc --noEmit --pretty false --module nodenext --moduleResolution nodenext --target es2022 --lib es2022 --types node,jest --esModuleInterop --skipLibCheck scripts/research/recost-segment.ts scripts/research/__tests__/recost-segment-cli.test.ts` exited 0.
 - Direct native-path spot-check exited 1 with `Invalid --json: expected a file path, got an existing directory: C:\Users\User\AppData\Local\Temp\tradeclaw-recost-native-dir-...` before any DB credential message.
 - `npm run build` exited 0; Next 16.2.6 compiled successfully and generated 325/325 static pages, with known warnings for the deprecated `middleware` convention, Big Shoulders font fallback, NFT tracing, edge-runtime static generation, and Node `url.parse()` deprecations.
