@@ -16,12 +16,16 @@ import {
   Wrench,
   Layers,
   Crosshair,
-  KeyRound,
   Megaphone,
   Activity,
   ShieldCheck,
   Trophy,
   GitBranch,
+  FlaskConical,
+  Ruler,
+  TrendingUp,
+  Database,
+  Target,
 } from 'lucide-react';
 import { TradeClawLogo } from './tradeclaw-logo';
 import { UserMenu } from './UserMenu';
@@ -50,6 +54,7 @@ interface DropdownGroup {
 interface PrimaryLink { href: string; label: string }
 
 const MEMBER_PRIMARY: PrimaryLink[] = [
+  { href: '/today', label: 'Today' },
   { href: '/dashboard', label: 'Signals' },
   { href: '/copilot', label: 'Copilot' },
   { href: '/screener', label: 'Screener' },
@@ -93,11 +98,20 @@ const MEMBER_MORE: DropdownGroup[] = [
       { href: '/tradingview-export', label: 'TradingView Export', icon: BarChart3 },
     ],
   },
+  {
+    label: 'Transparency',
+    links: [
+      { href: '/research', label: 'Research', icon: FlaskConical },
+      { href: '/methodology', label: 'Methodology', icon: Ruler },
+      { href: '/why-long-term', label: 'Why Long-Term', icon: TrendingUp },
+      { href: '/open-data', label: 'Open Data', icon: Database },
+      { href: '/calibration', label: 'Calibration', icon: Target },
+    ],
+  },
 ];
 
 const ADMIN_PRIMARY: PrimaryLink[] = [
   { href: '/admin', label: 'Overview' },
-  { href: '/admin/pro-grants', label: 'Pro Grants' },
   { href: '/admin/social-queue', label: 'Social Queue' },
   { href: '/admin/executions', label: 'Executions' },
   { href: '/dashboard', label: '↩ App' },
@@ -107,7 +121,6 @@ const ADMIN_MORE: DropdownGroup[] = [
   {
     label: 'Operations',
     links: [
-      { href: '/admin/pro-grants', label: 'Pro Grants', icon: KeyRound },
       { href: '/admin/social-queue', label: 'Social Queue', icon: Megaphone },
       { href: '/admin/executions', label: 'Executions', icon: Activity },
     ],

@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 export default async function ProResearchPage() {
   const session = await readSessionFromCookies();
   if (!session?.userId) {
-    redirect('/login?from=/pro/research');
+    redirect('/signin?next=/pro/research');
   }
 
   return <ResearchClient />;

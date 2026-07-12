@@ -74,7 +74,7 @@ function SignedOutPreview() {
             </div>
             <div className="flex flex-wrap gap-3">
               <a
-                href="/login?from=/operator"
+                href="/signin?next=/operator"
                 className="rounded-lg border border-white/10 bg-white/[0.03] px-5 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-white/[0.06]"
               >
                 Sign in
