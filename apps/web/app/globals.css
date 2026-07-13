@@ -377,11 +377,93 @@ html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
   will-change: top, opacity;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   Scroll-driven motion system.
+   Progressive enhancement only: every rule that hides content
+   lives inside @supports (animation-timeline: view()), so
+   browsers without scroll-timeline support — and the reduced-
+   motion guard below — always render content static and visible.
+   Reveals are scrubbed by scroll position (duration is nominal).
+   See docs/superpowers/specs/2026-07-13-slc-motion-polish-design.md.
+   ───────────────────────────────────────────────────────────── */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes parallaxDrift {
+  from { transform: translateY(var(--parallax-from, 20px)); }
+  to { transform: translateY(var(--parallax-to, -20px)); }
+}
+
+@supports (animation-timeline: view()) {
+  .reveal,
+  .reveal-stagger > * {
+    animation: revealUp 1ms cubic-bezier(0.32, 0.72, 0, 1) both;
+    animation-timeline: view();
+    animation-range: entry 10% cover 32%;
+  }
+
+  /* Horizontal rows cascade: later children finish deeper into the
+     scroll range. Budget: 6 children max per stagger group. */
+  .reveal-stagger > :nth-child(2) { animation-range: entry 14% cover 38%; }
+  .reveal-stagger > :nth-child(3) { animation-range: entry 18% cover 44%; }
+  .reveal-stagger > :nth-child(4) { animation-range: entry 22% cover 50%; }
+  .reveal-stagger > :nth-child(5) { animation-range: entry 26% cover 56%; }
+  .reveal-stagger > :nth-child(n + 6) { animation-range: entry 30% cover 62%; }
+
+  /* Decor/imagery depth drift — never applied to text content. */
+  .parallax-drift-slow {
+    --parallax-from: 16px;
+    --parallax-to: -16px;
+    animation: parallaxDrift linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+    will-change: transform;
+  }
+
+  .parallax-drift-fast {
+    --parallax-from: 36px;
+    --parallax-to: -36px;
+    animation: parallaxDrift linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+    will-change: transform;
+  }
+}
+
+/* Load-entrance stagger helpers for the hero (pair with .animate-fade-up) */
+.fade-delay-1 { animation-delay: 90ms; }
+.fade-delay-2 { animation-delay: 180ms; }
+.fade-delay-3 { animation-delay: 270ms; }
+.fade-delay-4 { animation-delay: 360ms; }
+
+/* Blanket reduced-motion guard: every house animation utility.
+   Content is designed to be fully legible with all of these off. */
 @media (prefers-reduced-motion: reduce) {
   .aurora-orb-a,
   .aurora-orb-b,
-  .scanline-sweep {
+  .scanline-sweep,
+  .ticker-scroll,
+  .animate-fade-up,
+  .pulse-dot,
+  .animate-slide-left,
+  .animate-slide-right,
+  .reveal,
+  .reveal-stagger > *,
+  .parallax-drift-slow,
+  .parallax-drift-fast {
     animation: none !important;
+  }
+
+  .stagger-item {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  html {
+    scroll-behavior: auto;
   }
 }
 

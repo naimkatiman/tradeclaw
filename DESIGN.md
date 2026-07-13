@@ -45,8 +45,10 @@ Strategy: Restrained on product surfaces; Committed on brand surfaces where the 
 ## Motion
 
 - Easing: `cubic-bezier(0.32, 0.72, 0, 1)` (existing house curve) or ease-out-quart. No bounce.
-- Product: 150–250ms state transitions only. Brand: one orchestrated entrance per page max (existing `fadeUp` / stagger utilities), ambient drift (aurora orbs, scanline) already tokenized.
-- All ambient + WebGL motion gated behind `prefers-reduced-motion: reduce` with a static same-data fallback.
+- Product: 150–250ms state transitions only. Brand: one orchestrated *load-time* entrance per page max (existing `fadeUp` / stagger utilities), ambient drift (aurora orbs, scanline) already tokenized.
+- Scroll choreography (brand pages): the `.reveal` / `.reveal-stagger` system in globals.css — fade + 16px rise scrubbed by scroll via CSS `animation-timeline: view()`. One consistent treatment, applied at section level; stagger groups cap at 6 children. `.parallax-drift-slow/-fast` gives decor and imagery layers scroll depth; never applied to text. All of it is progressive enhancement inside `@supports`: browsers without scroll-timeline (and reduced motion) get static, fully visible content — no class may set `opacity: 0` outside the `@supports` block.
+- Count-up numerals (`components/motion/animated-number.tsx`) animate only real data already server-rendered as text; magnetic hover (`components/motion/magnetic.tsx`) is reserved for the single primary action, ≤6px translate, fine pointers only.
+- All ambient + WebGL motion gated behind `prefers-reduced-motion: reduce` with a static same-data fallback. The blanket guard in globals.css covers every house animation utility; new utilities must be added to it.
 
 ## 3D / WebGL language
 
