@@ -14,8 +14,9 @@ test.describe('branded 404', () => {
     const home = page.getByRole('link', { name: /back to the evidence/i });
     await expect(home).toBeVisible();
     await expect(home).toHaveAttribute('href', '/');
+    // .first() — the 404 body CTA; the global footer carries the same link text
     await expect(
-      page.getByRole('link', { name: /what we tested and killed/i }),
+      page.getByRole('link', { name: /what we tested and killed/i }).first(),
     ).toHaveAttribute('href', '/research');
   });
 });
