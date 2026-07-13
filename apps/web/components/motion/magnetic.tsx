@@ -51,8 +51,10 @@ export function Magnetic({
       if (!raf.current) raf.current = requestAnimationFrame(settle);
     };
 
+    let rect: DOMRect | null = null;
+
     const onMove = (event: PointerEvent) => {
-      const rect = el.getBoundingClientRect();
+      rect ??= el.getBoundingClientRect();
       const relX = (event.clientX - rect.left) / rect.width - 0.5;
       const relY = (event.clientY - rect.top) / rect.height - 0.5;
       target.current = {
@@ -63,6 +65,7 @@ export function Magnetic({
     };
 
     const onLeave = () => {
+      rect = null;
       target.current = { x: 0, y: 0 };
       schedule();
     };
