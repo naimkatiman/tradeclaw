@@ -20,6 +20,15 @@ export const metadata: Metadata = {
   title: 'Open Data | TradeClaw',
   description:
     'Free, machine-readable trading transparency data. Live JSON APIs for the cost-adjusted track record and per-trade cost field, plus committed research backtests you can fork and reproduce.',
+  openGraph: {
+    title: 'Open Data | TradeClaw',
+    description:
+      'Every number on the public site is an endpoint you can call. Live JSON APIs, committed research artifacts, and copy-paste recipes — MIT licensed, no keys, no rate limits.',
+    url: 'https://tradeclaw.win/open-data',
+    siteName: 'TradeClaw',
+    type: 'website',
+  },
+  alternates: { canonical: 'https://tradeclaw.win/open-data' },
 };
 
 const BASE = 'https://tradeclaw.win';
@@ -339,7 +348,7 @@ export default function OpenDataPage() {
           </header>
 
           {/* Endpoints */}
-          <section className="mt-16">
+          <section className="reveal mt-16">
             <SectionHeading id="endpoints">Live endpoints</SectionHeading>
             <p className="mt-3 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
               Read-only GET routes. Responses carry public cache headers
@@ -354,7 +363,7 @@ export default function OpenDataPage() {
           </section>
 
           {/* Committed artifacts */}
-          <section className="mt-16">
+          <section className="reveal mt-16">
             <SectionHeading id="artifacts">Committed research artifacts</SectionHeading>
             <p className="mt-3 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
               The 2026 signal archive is committed to{' '}
@@ -461,7 +470,7 @@ export default function OpenDataPage() {
           </section>
 
           {/* Use it */}
-          <section className="mt-16">
+          <section className="reveal mt-16">
             <SectionHeading id="use-it">Use it</SectionHeading>
             <p className="mt-3 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
               Three recipes against the live routes. Each references only fields
@@ -493,7 +502,7 @@ export default function OpenDataPage() {
           </section>
 
           {/* License and disclosure */}
-          <section className="mt-16">
+          <section className="reveal mt-16">
             <SectionHeading id="license">License and terms</SectionHeading>
             <p className="mt-3 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
               The code is MIT licensed. Use, modify, and redistribute it freely,
@@ -531,7 +540,7 @@ export default function OpenDataPage() {
           </section>
 
           {/* Read next */}
-          <section className="mt-16">
+          <section className="reveal mt-16">
             <SectionHeading id="read-next">Read next</SectionHeading>
             <div className="mt-5 flex flex-wrap gap-3">
               <a

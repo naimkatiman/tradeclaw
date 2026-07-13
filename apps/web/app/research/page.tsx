@@ -11,7 +11,11 @@ export const metadata: Metadata = {
     title: 'Research: What We Tested and Killed | TradeClaw',
     description:
       'Five families of short-term edge, each pre-registered against a frozen gate and each killed at real cost. The full negative record, with machine-readable artifacts.',
+    url: 'https://tradeclaw.win/research',
+    siteName: 'TradeClaw',
+    type: 'website',
   },
+  alternates: { canonical: 'https://tradeclaw.win/research' },
 };
 
 const GH = 'https://github.com/naimkatiman/tradeclaw/blob/main';
@@ -278,7 +282,7 @@ function ExternalLink({ href, children }: { href: string; children: React.ReactN
 function KillLedgerEntry({ entry }: { entry: KillEntry }) {
   const headingId = `fam-${slug(entry.family)}`;
   return (
-    <section className="py-12 first:pt-0" aria-labelledby={headingId}>
+    <section className="reveal py-12 first:pt-0" aria-labelledby={headingId}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
         <div>
           <p className="font-mono text-[11px] text-[var(--text-secondary)]">{entry.ref}</p>
@@ -384,7 +388,7 @@ export default function ResearchPage() {
           </div>
 
           {/* Close: what survived */}
-          <section className="border-t border-[var(--border)] py-14" aria-labelledby="what-survived">
+          <section className="reveal border-t border-[var(--border)] py-14" aria-labelledby="what-survived">
             <h2 id="what-survived" className="font-display text-2xl font-bold uppercase leading-none tracking-tight sm:text-3xl">
               What survived
             </h2>
