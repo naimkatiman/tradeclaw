@@ -26,8 +26,10 @@ export function useInView<T extends Element>({
     const el = ref.current;
     if (!el) return;
     if (typeof IntersectionObserver === 'undefined') {
-      setInView(true);
-      return;
+      // rAF-deferred so the setState is not synchronous within the effect
+      // (house lint rule); environments without IO degrade to "in view".
+      const raf = requestAnimationFrame(() => setInView(true));
+      return () => cancelAnimationFrame(raf);
     }
     const io = new IntersectionObserver(
       (entries) => {
