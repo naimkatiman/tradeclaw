@@ -29,7 +29,7 @@ function formatValue(
   magnitude: number,
   { value, decimals = 0, signed = false, suffix = '' }: AnimatedNumberProps,
 ): string {
-  const sign = signed ? (value >= 0 ? '+' : '−') : '';
+  const sign = signed ? (value >= 0 ? '+' : '−') : value < 0 ? '−' : '';
   const body = magnitude.toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
