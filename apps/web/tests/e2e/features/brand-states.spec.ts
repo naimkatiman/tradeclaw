@@ -28,10 +28,13 @@ test.describe('landing under reduced motion', () => {
     await expect(page.getByTestId('proof-hero')).toBeVisible();
     // Hero headline (staggered entrance must be disabled, not hidden)
     await expect(page.locator('h1')).toContainText(/we measured/i);
-    // A below-fold reveal-wrapped section must be visible once scrolled to
+    // A below-fold reveal-wrapped section must be visible once scrolled to.
+    // toBeVisible() ignores opacity — assert it explicitly, since a
+    // reduced-motion regression would fail exactly there.
     const faq = page.locator('.reveal').last();
     await faq.scrollIntoViewIfNeeded();
     await expect(faq).toBeVisible();
+    await expect(faq).toHaveCSS('opacity', '1');
     await context.close();
   });
 });

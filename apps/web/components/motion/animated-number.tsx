@@ -55,10 +55,11 @@ export function AnimatedNumber(props: AnimatedNumberProps) {
     if (!inView || reducedMotion) return;
     const magnitude = Math.abs(value);
     const opts = { value, decimals, signed, suffix };
+    const duration = Math.max(1, durationMs);
     const start = performance.now();
     let raf = 0;
     const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / durationMs);
+      const t = Math.min(1, (now - start) / duration);
       setDisplay(formatValue(magnitude * easeOutQuart(t), opts));
       if (t < 1) raf = requestAnimationFrame(tick);
     };
@@ -66,9 +67,12 @@ export function AnimatedNumber(props: AnimatedNumberProps) {
     return () => cancelAnimationFrame(raf);
   }, [inView, reducedMotion, value, decimals, signed, suffix, durationMs]);
 
+  // Under reduced motion the true value is rendered directly — including
+  // when the preference flips mid-count-up, which would otherwise leave
+  // `display` frozen at a partial eased number.
   return (
     <span ref={ref} className={className}>
-      {display}
+      {reducedMotion ? formatValue(Math.abs(value), props) : display}
     </span>
   );
 }

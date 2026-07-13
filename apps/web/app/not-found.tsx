@@ -19,7 +19,7 @@ export default function NotFound() {
         </div>
         <h1 className="font-display mt-6 text-[clamp(2.5rem,7vw,4.5rem)] font-bold uppercase leading-[0.95] tracking-tight text-[var(--foreground)]">
           <span className="animate-fade-up fade-delay-1 block">No edge found.</span>
-          <span className="animate-fade-up fade-delay-2 block text-[var(--color-down)]">
+          <span className="animate-fade-up fade-delay-2 block text-[var(--text-secondary)]">
             No page, either.
           </span>
         </h1>

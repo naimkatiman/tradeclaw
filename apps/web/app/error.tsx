@@ -28,7 +28,7 @@ export default function Error({
         <h1 className="font-display mt-6 text-[clamp(2.25rem,6vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight text-[var(--foreground)]">
           Something broke.
           <br />
-          <span className="text-[var(--color-down)]">This one is fixable.</span>
+          <span className="text-[var(--text-secondary)]">This one is fixable.</span>
         </h1>
         <p className="mt-5 max-w-md text-sm leading-relaxed text-[var(--text-secondary)]">
           An unexpected error stopped this page. Try again — and if it keeps

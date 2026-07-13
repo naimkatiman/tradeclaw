@@ -48,6 +48,9 @@ for (const { path, h1 } of PIVOT_PAGES) {
       if ((await firstSection.count()) > 0) {
         await firstSection.scrollIntoViewIfNeeded();
         await expect(firstSection).toBeVisible();
+        // toBeVisible() ignores opacity — assert it explicitly, since a
+        // reduced-motion regression would fail exactly there.
+        await expect(firstSection).toHaveCSS('opacity', '1');
       }
       await context.close();
     });
