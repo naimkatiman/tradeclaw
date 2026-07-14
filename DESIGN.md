@@ -14,7 +14,7 @@ Dark-first, light fully supported via `.dark` class + `next-themes`. Scene: a sk
 
 Strategy: Restrained on product surfaces; Committed on brand surfaces where the data itself carries the color.
 
-- Direction only: `--color-up: #10b981` (emerald), `--color-down: #f43f5e` (rose). Green/red mean up/down and gross/net-positive/negative. Nothing else may be green or red.
+- Direction only: accessible text tokens are `--color-up: #047857` / `--color-down: #be123c` in light and `#34d399` / `#fb7185` in dark. WebGL and canvas marks retain emerald `#10b981` / rose `#f43f5e`. Green/red mean up/down and gross/net-positive/negative. Nothing else may be green or red.
 - Brand emerald `#10b981` is reserved: single primary action, logo, active-nav marker.
 - Cost and drawdown surfaces may headline in rose: the finding is the brand.
 - Interactive chrome (borders, rings, scrollbar) is neutral, never emerald.
@@ -31,6 +31,7 @@ Strategy: Restrained on product surfaces; Committed on brand surfaces where the 
 ## Layering
 
 - Layer 1 (marketing surface: `/` and localized homepages): one idea, one action, zero interruptions. Minimal navbar variant, the ProofHero, one "go deeper" strip, footer. No floating widgets, no product chrome (`MarketingChromeGate` in layout.tsx gates them by pathname).
+- Layer-1 copy must name the product and finding in plain language before using research terminology. Put the primary action before the detailed proof on mobile; render gross result - modeled cost = net result as a causal equation, and define `R` inline.
 - Layer 2 (everything else): full navbar, full density, widgets welcome. Complexity lives here, one click away — never on the first screen.
 
 ## Layout

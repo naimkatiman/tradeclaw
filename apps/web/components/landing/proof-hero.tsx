@@ -4,8 +4,8 @@
  * Left: the claim in display type with the live cost-adjusted numbers pulled
  * from /api/signals/equity?summaryOnly=1 (the same source of truth as the
  * track-record page — nothing here is hardcoded or can drift). Right: the
- * Cost Field, a WebGL rendering of every resolved sized trade where applying
- * each trade's real recorded cost sinks the cloud below zero.
+ * Cost Field, a WebGL rendering of every resolved sized trade before and after
+ * modeled fees and slippage, relative to zero.
  *
  * Impeccable makeover 2026-07-11. See PRODUCT.md ("data is the imagery",
  * "the finding is the brand") and docs/plans/2026-07-11-impeccable-3d-
@@ -15,18 +15,16 @@
 import { CostFieldHero } from './cost-field/CostFieldHero';
 import { AnimatedNumber } from '../motion/animated-number';
 import { Magnetic } from '../motion/magnetic';
+import { getProofHeadline, type ProofLedgerState } from './proof-hero-copy';
 
 const GITHUB_URL = 'https://github.com/naimkatiman/tradeclaw';
 
 interface EquitySummary {
   totalReturn: number;
-  maxDrawdown: number;
-  winRate: number;
   totalSignals: number;
   sizedTrades?: number;
   expectancyR: number | null;
   netExpectancyR?: number | null;
-  breakEvenWinRate: number | null;
   roundTripCostPct?: number;
   avgCostR?: number | null;
 }
@@ -63,17 +61,17 @@ function LedgerItem({
   negative?: boolean;
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 py-3 pr-5">
-      <dt className="text-[11px] leading-tight text-[var(--text-secondary)]">{label}</dt>
+    <div className="flex min-w-0 flex-col gap-1 py-3 pr-4">
+      <dt className="text-xs leading-snug text-[var(--text-secondary)]">{label}</dt>
       <dd
-        className={`font-mono text-base font-semibold tabular-nums leading-none ${
+        className={`font-mono text-lg font-semibold tabular-nums leading-none ${
           negative ? 'text-[var(--color-down)]' : 'text-[var(--foreground)]'
         }`}
       >
         {value}
       </dd>
       {detail && (
-        <dd className="text-[11px] leading-tight text-[var(--text-secondary)]">{detail}</dd>
+        <dd className="text-xs leading-snug text-[var(--text-secondary)]">{detail}</dd>
       )}
     </div>
   );
@@ -83,7 +81,7 @@ export async function ProofHero() {
   const eq = await fetchEquitySummary();
   const trades = eq?.sizedTrades ?? eq?.totalSignals ?? 0;
   const hasMeasuredTrades = trades > 0;
-  const ledgerState = !eq
+  const ledgerState: ProofLedgerState = !eq
     ? 'unavailable'
     : !hasMeasuredTrades
       ? 'empty'
@@ -92,79 +90,148 @@ export async function ProofHero() {
         : eq.netExpectancyR < 0
           ? 'negative'
           : 'nonnegative';
+  // The API deliberately computes net expectancy from the same 2dp cost
+  // shown in its public breakdown. Keep all three equation terms at that
+  // precision so a newcomer can reconcile gross - cost = net by inspection.
+  const displayedCostR = eq?.avgCostR != null ? +eq.avgCostR.toFixed(2) : null;
+  const headline = getProofHeadline(ledgerState);
+  const outcomeColor =
+    headline.direction === 'down'
+      ? 'text-[var(--color-down)]'
+      : headline.direction === 'up'
+        ? 'text-[var(--color-up)]'
+        : 'text-[var(--foreground)]';
 
   return (
-    <section data-testid="proof-hero" className="mx-auto max-w-6xl px-4 pt-6">
+    <section data-testid="proof-hero" className="mx-auto max-w-6xl px-4 pt-2 sm:pt-6">
       <div className="grid items-stretch gap-10 lg:grid-cols-12">
         {/* The claim */}
-        <div className="flex flex-col justify-center lg:col-span-5">
-          <p className="animate-fade-up font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
-            Public reference finding · open-source transparency
+        <div className="flex flex-col justify-center lg:col-span-6">
+          <p className="animate-fade-up font-mono text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">
+            Open-source trading test
+            {hasMeasuredTrades ? ` · ${trades.toLocaleString('en-US')} recorded trades` : ''}
           </p>
           {/* The page's one orchestrated load entrance (DESIGN.md Motion):
               headline lands line by line, the finding last. */}
-          <h1 className="font-display mt-4 text-[clamp(2.75rem,6.5vw,5rem)] font-bold uppercase leading-[0.92] tracking-tight">
-            <span className="animate-fade-up fade-delay-1 block">We measured</span>
-            <span className="animate-fade-up fade-delay-2 block">the edge.</span>
-            <span className="animate-fade-up fade-delay-3 block">
-              There isn&apos;t one.
+          <h1 className="font-display mt-3 text-[2.15rem] font-bold uppercase leading-[0.95] tracking-tight sm:mt-4 sm:text-[clamp(2.4rem,4.2vw,3.6rem)] sm:leading-none">
+            <span className="animate-fade-up fade-delay-1 block">Open-source trading signals.</span>
+            <span className={`animate-fade-up fade-delay-3 block ${outcomeColor}`}>
+              {headline.outcome}
             </span>
           </h1>
-          <p className="animate-fade-up fade-delay-3 mt-5 max-w-md text-sm leading-relaxed text-[var(--text-secondary)]">
+          <p className="animate-fade-up fade-delay-3 mt-4 max-w-lg text-base leading-relaxed text-[var(--text-secondary)] sm:mt-5">
             {ledgerState === 'negative' ? (
               <>
-                TradeClaw runs a real signal engine and charges every sized trade
-                its real execution cost. After costs, this environment&apos;s net
-                expectancy is negative: short-term timing loses what it costs to
-                trade. The engine, its {trades.toLocaleString('en-US')} recorded
-                position-sized trades, and this measured finding are free for
-                anyone to check, fork, and reuse.
+                TradeClaw is an open-source BUY/SELL signal engine you can inspect
+                or self-host. Across {trades.toLocaleString('en-US')} recorded
+                trades, ours lost after modeled fees and slippage. Every trade and
+                line of code is public.
               </>
             ) : ledgerState === 'nonnegative' ? (
               <>
-                TradeClaw runs a real signal engine and charges every sized trade
-                its real execution cost. This environment&apos;s{' '}
-                {trades.toLocaleString('en-US')} recorded trades currently report
-                non-negative net expectancy after cost. The ledger shows that
-                result as-is; it does not substitute the public reference result.
-                The engine, cost model, and reported result are free for anyone to
-                check, fork, and reuse.
+                TradeClaw is an open-source engine that generates BUY and SELL
+                signals you can inspect or self-host. This environment&apos;s{' '}
+                {trades.toLocaleString('en-US')} recorded trades remain at or
+                above zero after modeled fees and slippage. Every trade, cost
+                assumption, and line of code is public.
               </>
             ) : ledgerState === 'indeterminate' ? (
               <>
-                This environment has {trades.toLocaleString('en-US')} recorded
-                trades, but not enough sized win/loss evidence to compute net
-                expectancy after cost. The ledger reports the available evidence
-                as-is; no reference or placeholder values are substituted. The
-                engine and cost model remain free for anyone to check, fork, and
-                reuse.
+                TradeClaw is an open-source signal engine. This environment has{' '}
+                {trades.toLocaleString('en-US')} recorded trades, but not enough
+                risk data to measure the result after costs. No placeholder result
+                is substituted; the code and available evidence remain public.
               </>
             ) : ledgerState === 'empty' ? (
               <>
-                The headline states TradeClaw&apos;s public reference finding. This
-                environment does not yet have the resolved, position-sized trades
-                needed to recompute it. The engine, cost model, and methodology
-                remain free for anyone to check, fork, and reuse.
+                TradeClaw is an open-source signal engine. This environment does
+                not yet have the resolved trades needed to repeat the public test.
+                No placeholder result is substituted; the code and method remain
+                public.
               </>
             ) : (
               <>
-                The headline states TradeClaw&apos;s public reference finding. This
-                environment&apos;s live ledger is temporarily unavailable, so it
-                cannot recompute the result right now. The engine, cost model, and
-                methodology remain free for anyone to check, fork, and reuse.
+                TradeClaw is an open-source signal engine. Its public test found
+                that modeled fees and slippage erased the measured result. The live
+                ledger is temporarily unavailable, so no replacement numbers are
+                shown.
               </>
             )}
           </p>
 
+          <div className="animate-fade-up fade-delay-4 mt-5 flex flex-wrap items-center gap-3 sm:mt-6">
+            <Magnetic>
+              <a
+                href="/track-record"
+                className="group flex items-center gap-2.5 rounded-[var(--radius-pill)] bg-emerald-500 px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Inspect every trade
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">
+                  <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </a>
+            </Magnetic>
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-[var(--text-secondary)] underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]"
+            >
+              View the code
+            </a>
+          </div>
+
+          {eq && hasMeasuredTrades && (
+            <p className="animate-fade-up fade-delay-4 mt-5 text-xs leading-relaxed text-[var(--text-secondary)]">
+              <span className="font-mono text-[var(--foreground)]">R</span> = the amount planned to risk on one trade.
+            </p>
+          )}
+
           {eq && hasMeasuredTrades ? (
-            <dl className="animate-fade-up fade-delay-4 mt-7 grid grid-cols-2 gap-x-2 divide-y divide-[var(--border)] border-y border-[var(--border)] sm:grid-cols-2">
+            <dl
+              aria-label="Before modeled costs minus modeled fees and slippage equals after modeled costs"
+              className="animate-fade-up fade-delay-4 mt-2 grid grid-cols-2 gap-x-2 divide-y divide-[var(--border)] border-y border-[var(--border)] sm:grid-cols-2"
+            >
               <LedgerItem
-                label="net expectancy / trade, after cost"
+                label="Before modeled costs, per trade"
+                value={
+                  eq.expectancyR != null ? (
+                    <AnimatedNumber
+                      value={eq.expectancyR}
+                      decimals={2}
+                      signed
+                      suffix="R"
+                    />
+                  ) : (
+                    '—'
+                  )
+                }
+                negative={eq.expectancyR != null && eq.expectancyR < 0}
+              />
+              <LedgerItem
+                label="− Modeled fees + slippage, per trade"
+                value={
+                  displayedCostR != null ? (
+                    <AnimatedNumber
+                      value={-displayedCostR}
+                      decimals={2}
+                      signed
+                      suffix="R"
+                    />
+                  ) : (
+                    '—'
+                  )
+                }
+                detail={eq.roundTripCostPct != null ? `≈ ${eq.roundTripCostPct}% of trade size` : undefined}
+                negative={displayedCostR != null && displayedCostR > 0}
+              />
+              <LedgerItem
+                label="= After modeled costs, per trade"
                 value={
                   eq.netExpectancyR != null ? (
                     <AnimatedNumber
                       value={eq.netExpectancyR}
-                      decimals={fractionDigits(eq.netExpectancyR)}
+                      decimals={2}
                       signed
                       suffix="R"
                     />
@@ -175,7 +242,7 @@ export async function ProofHero() {
                 negative={eq.netExpectancyR != null && eq.netExpectancyR < 0}
               />
               <LedgerItem
-                label="total return, 1% risk compounded"
+                label="Separate simulation: compounded result (1% risk per trade)"
                 value={
                   <AnimatedNumber
                     value={eq.totalReturn}
@@ -185,47 +252,6 @@ export async function ProofHero() {
                   />
                 }
                 negative={eq.totalReturn < 0}
-              />
-              <LedgerItem
-                label="avg round-trip cost / trade"
-                value={
-                  eq.avgCostR != null ? (
-                    <AnimatedNumber
-                      value={eq.avgCostR}
-                      decimals={fractionDigits(eq.avgCostR)}
-                      suffix="R"
-                    />
-                  ) : (
-                    '—'
-                  )
-                }
-                detail={eq.roundTripCostPct != null ? `≈ ${eq.roundTripCostPct}% of notional` : undefined}
-              />
-              <LedgerItem
-                label="win rate vs break-even needed"
-                value={
-                  eq.breakEvenWinRate != null ? (
-                    <>
-                      <AnimatedNumber
-                        value={eq.winRate}
-                        decimals={fractionDigits(eq.winRate)}
-                        suffix="%"
-                      />
-                      {' / '}
-                      <AnimatedNumber
-                        value={eq.breakEvenWinRate}
-                        decimals={fractionDigits(eq.breakEvenWinRate)}
-                        suffix="%"
-                      />
-                    </>
-                  ) : (
-                    <AnimatedNumber
-                      value={eq.winRate}
-                      decimals={fractionDigits(eq.winRate)}
-                      suffix="%"
-                    />
-                  )
-                }
               />
             </dl>
           ) : (
@@ -251,32 +277,11 @@ export async function ProofHero() {
             </p>
           )}
 
-          <div className="animate-fade-up fade-delay-4 mt-7 flex flex-wrap items-center gap-3">
-            <Magnetic>
-              <a
-                href="/track-record"
-                className="group flex items-center gap-2.5 rounded-[var(--radius-pill)] bg-emerald-500 px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                See the full track record
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">
-                  <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </a>
-            </Magnetic>
-            <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-medium text-[var(--text-secondary)] underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]"
-            >
-              Source on GitHub
-            </a>
-          </div>
         </div>
 
         {/* The evidence — imagery layer gets scroll depth (decor-only
             parallax per DESIGN.md; static without scroll-timeline support) */}
-        <div className="parallax-drift-slow relative min-h-[340px] lg:col-span-7 lg:min-h-[520px]">
+        <div className="parallax-drift-slow relative min-h-[340px] lg:col-span-6 lg:min-h-[520px]">
           <CostFieldHero />
         </div>
       </div>

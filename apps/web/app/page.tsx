@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <>
       <Navbar variant="minimal" />
-      <main className="pt-28">
+      <main className="pt-20 sm:pt-24 lg:pt-28">
         <div className="relative isolate overflow-hidden">
           <ProofHero />
         </div>

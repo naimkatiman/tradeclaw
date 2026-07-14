@@ -32,6 +32,8 @@ test.describe('Navbar UX — layer 1 (minimal, /)', () => {
     await expect(openApp).toHaveAttribute('href', '/dashboard');
     await expect(nav.getByRole('button', { name: /^More/ })).toHaveCount(0);
     await expect(nav.getByRole('link', { name: 'Track Record' })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: /^Star$/ })).toHaveCount(0);
+    await expect(nav.getByText(/^Sign in$/)).toHaveCount(0);
   });
 
   test('header does not throw console errors on initial load', async ({ page }) => {
