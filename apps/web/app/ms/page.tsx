@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 export default function MalayPage() {
   return (
     <>
-      <Navbar />
+      <Navbar variant="minimal" />
       <main lang="ms">
         <LocalizedLanding t={t} locale="ms" />
       </main>

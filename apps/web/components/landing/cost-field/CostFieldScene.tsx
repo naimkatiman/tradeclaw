@@ -4,8 +4,8 @@
  * CostFieldScene — every resolved sized trade as one point in a WebGL field.
  *
  * Y is the trade's R-multiple. The scene eases between two truthful states:
- * gross R (before cost) and net R (gross minus the trade's real recorded
- * round-trip cost). The visual argument IS the finding: applying cost drags
+ * gross R (before cost) and net R (gross minus the trade's modeled
+ * round-trip fees and slippage). The visual argument IS the finding: applying cost drags
  * the cloud through the zero plane. Data comes from /api/research/cost-field;
  * nothing here is invented, only clamped for display (±DISPLAY_R_CLAMP on Y).
  *
@@ -262,7 +262,7 @@ export function CostFieldScene({ data, mode, onPhaseChange }: CostFieldSceneProp
       ref={containerRef}
       className="absolute inset-0"
       role="img"
-      aria-label={`3D field of ${data.t.length} real trades: each point is one resolved trade at its R-multiple; applying each trade's real execution cost sinks the cloud below the zero plane.`}
+      aria-label={`3D field of ${data.t.length} resolved trades. Each dot shows one trade result before and after modeled fees and slippage, relative to a zero-result plane.`}
     />
   );
 }

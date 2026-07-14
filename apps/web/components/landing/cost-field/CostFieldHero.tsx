@@ -98,7 +98,7 @@ export function CostFieldHero() {
       {/* State toggle — only meaningful when the animated scene runs */}
       {data && canWebgl && !reducedMotion && (
         <div
-          className="absolute left-3 top-3 flex items-center gap-px overflow-hidden rounded-[var(--radius-pill)] border border-[var(--border)] bg-[var(--bg-card)]/80 font-mono text-[11px] backdrop-blur"
+          className="absolute left-3 top-3 flex items-center gap-px overflow-hidden rounded-[var(--radius-pill)] border border-[var(--border)] bg-[var(--bg-card)]/80 font-mono text-xs backdrop-blur"
           role="group"
           aria-label="Cost field state"
         >
@@ -112,7 +112,7 @@ export function CostFieldHero() {
                 : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
             }`}
           >
-            gross
+            before costs
           </button>
           <button
             type="button"
@@ -124,7 +124,7 @@ export function CostFieldHero() {
                 : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
             }`}
           >
-            after real cost
+            after modeled costs
           </button>
           {mode !== 'auto' && (
             <button
@@ -138,13 +138,13 @@ export function CostFieldHero() {
         </div>
       )}
 
-      <figcaption className="absolute inset-x-3 bottom-3 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-[var(--text-secondary)]">
+      <figcaption className="absolute inset-x-3 bottom-3 flex flex-wrap items-center justify-between gap-2 font-mono text-xs text-[var(--text-secondary)]">
         <span>
           {data ? (
             <>
-              {countLabel} real trades · one point each ·{' '}
-              <span className="text-[var(--color-up)]">above zero</span> /{' '}
-              <span className="text-[var(--color-down)]">below zero</span>
+              {countLabel} resolved trades · one dot each ·{' '}
+              <span className="text-[var(--color-up)]">green = gain (above zero)</span> /{' '}
+              <span className="text-[var(--color-down)]">red = loss (below zero)</span>
             </>
           ) : (
             'loading the trade field…'

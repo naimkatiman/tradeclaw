@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 export default function ChinesePage() {
   return (
     <>
-      <Navbar />
+      <Navbar variant="minimal" />
       <main lang="zh-CN">
         <LocalizedLanding t={t} locale="zh" />
       </main>

@@ -3,7 +3,7 @@
 /**
  * StaticCostField — the reduced-motion / no-WebGL rendering of the same
  * dataset the 3D scene shows. A single 2D canvas scatter of NET R per trade
- * (gross minus its real recorded cost) around a zero line. Drawn once per
+ * (gross minus modeled fees and slippage) around a zero line. Drawn once per
  * resize; no animation.
  */
 
@@ -82,7 +82,7 @@ export function StaticCostField({ data }: { data: CostFieldData }) {
       ref={canvasRef}
       className="absolute inset-0"
       role="img"
-      aria-label={`Scatter of ${data.t.length} real trades at their net R-multiple after each trade's real execution cost; most of the field sits below the zero line.`}
+      aria-label={`Scatter of ${data.t.length} resolved trades. Each dot shows one trade result after modeled fees and slippage, relative to zero.`}
     />
   );
 }

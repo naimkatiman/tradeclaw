@@ -28,7 +28,7 @@ test.describe('landing under reduced motion', () => {
     await page.goto('/');
     await expect(page.getByTestId('proof-hero')).toBeVisible();
     // Hero headline (staggered entrance must be disabled, not hidden)
-    await expect(page.locator('h1')).toContainText(/we measured/i);
+    await expect(page.locator('h1')).toContainText(/open-source trading signals/i);
     // A below-fold reveal-wrapped section must be visible once scrolled to.
     // toBeVisible() ignores opacity — assert it explicitly, since a
     // reduced-motion regression would fail exactly there.
@@ -59,7 +59,9 @@ test.describe('landing under reduced motion', () => {
       viewport: { width: 390, height: 844 },
     });
     const page = await context.newPage();
-    await page.goto('/');
+    // Layer 1 ('/') has no hamburger by design; the mobile overlay lives on
+    // layer-2 routes with the full navbar (DESIGN.md Layering).
+    await page.goto('/research');
 
     // Legacy menu links pair opacity-0 with animate-fade-up. Disabling the
     // animation must restore the final visible state instead of blanking nav.
