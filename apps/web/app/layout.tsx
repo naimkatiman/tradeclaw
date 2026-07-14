@@ -3,6 +3,7 @@ import { Big_Shoulders, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SWRegister } from "./components/sw-register";
 import { MobileNav } from "./components/mobile-nav";
+import { MarketingChromeGate } from "./components/marketing-chrome-gate";
 import { PWAInstallPrompt } from "./components/pwa-install";
 import { DemoBanner } from "./components/demo-banner";
 import { ThemeProvider } from "./components/theme-provider";
@@ -179,12 +180,16 @@ export default function RootLayout({
                 {children}
               </div>
               <SiteFooter />
-              <MobileNav />
-              <PWAInstallPrompt />
-              <MilestoneCelebrationModal />
-              <FeatureUnlockBanner />
-              <OnboardingChecklist />
-              <StarProgressBar />
+              {/* Product chrome and floating widgets stay off layer-1
+                  marketing routes (DESIGN.md Layering). */}
+              <MarketingChromeGate>
+                <MobileNav />
+                <PWAInstallPrompt />
+                <MilestoneCelebrationModal />
+                <FeatureUnlockBanner />
+                <OnboardingChecklist />
+                <StarProgressBar />
+              </MarketingChromeGate>
             </LocaleProvider>
           </ThemeProvider>
         </AnalyticsProvider>
