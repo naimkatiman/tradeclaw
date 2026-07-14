@@ -28,6 +28,11 @@ Strategy: Restrained on product surfaces; Committed on brand surfaces where the 
 - Scale: brand surfaces fluid `clamp()` with ratio ≥ 1.25; product surfaces fixed rem scale ratio 1.125–1.2.
 - Body line length ≤ 72ch. Light-on-dark body gets +0.05 line-height.
 
+## Layering
+
+- Layer 1 (marketing surface: `/` and localized homepages): one idea, one action, zero interruptions. Minimal navbar variant, the ProofHero, one "go deeper" strip, footer. No floating widgets, no product chrome (`MarketingChromeGate` in layout.tsx gates them by pathname).
+- Layer 2 (everything else): full navbar, full density, widgets welcome. Complexity lives here, one click away — never on the first screen.
+
 ## Layout
 
 - Brand pages: asymmetric, left-anchored compositions; one dominant idea per fold; generous vertical rhythm alternating with tight data clusters. No centered icon-card stacks.
