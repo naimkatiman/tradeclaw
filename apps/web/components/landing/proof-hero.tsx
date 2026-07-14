@@ -264,12 +264,6 @@ export async function ProofHero() {
               </a>
             </Magnetic>
             <a
-              href="/research"
-              className="flex items-center gap-2 rounded-[var(--radius-pill)] border border-[var(--border)] px-6 py-3 text-sm font-medium text-[var(--text-secondary)] transition-all duration-200 hover:border-[var(--glass-border-accent)] hover:text-[var(--foreground)]"
-            >
-              What we tested and killed
-            </a>
-            <a
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
