@@ -46,25 +46,27 @@ test.describe('Navbar UX — layer 1 (minimal, /)', () => {
   });
 });
 
-test.describe('Navbar UX — layer 2 (full, /track-record)', () => {
+test.describe('Navbar UX — layer 2 (full, /research)', () => {
+  // /research renders the shared Navbar (full variant). /track-record has its
+  // own page-local nav, so it is not a valid target for these assertions.
   test.beforeEach(async ({ page }) => {
-    await page.goto('/track-record');
+    await page.goto('/research');
     await page.waitForLoadState('domcontentloaded');
   });
 
   test('primary navigation links route correctly', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === 'mobile', 'Desktop link layout');
 
-    const nav = page.locator('nav').first();
-    await nav.getByRole('link', { name: 'Research' }).click();
-    await page.waitForURL(/\/research/);
-    await expect(page).toHaveURL(/\/research/);
+    const nav = page.getByRole('navigation', { name: 'Main navigation' });
+    await nav.getByRole('link', { name: 'Track Record' }).click();
+    await page.waitForURL(/\/track-record/);
+    await expect(page).toHaveURL(/\/track-record/);
   });
 
   test('Live signals CTA is present and points to dashboard', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === 'mobile', 'Live signals link is desktop-only');
 
-    const nav = page.locator('nav').first();
+    const nav = page.getByRole('navigation', { name: 'Main navigation' });
     const liveSignals = nav.getByRole('link', { name: 'Live signals' });
     await expect(liveSignals).toBeVisible();
     await expect(liveSignals).toHaveAttribute('href', '/dashboard');
@@ -73,7 +75,7 @@ test.describe('Navbar UX — layer 2 (full, /track-record)', () => {
   test('More dropdown opens and closes', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === 'mobile', 'More dropdown is desktop-only');
 
-    const nav = page.locator('nav').first();
+    const nav = page.getByRole('navigation', { name: 'Main navigation' });
     const moreBtn = nav.getByRole('button', { name: /^More/ });
     await moreBtn.click();
     await expect(page.getByText(/^Trading$|^Tools$|^Compete$|^Resources$/i).first()).toBeVisible();

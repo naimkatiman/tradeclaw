@@ -59,7 +59,9 @@ test.describe('landing under reduced motion', () => {
       viewport: { width: 390, height: 844 },
     });
     const page = await context.newPage();
-    await page.goto('/');
+    // Layer 1 ('/') has no hamburger by design; the mobile overlay lives on
+    // layer-2 routes with the full navbar (DESIGN.md Layering).
+    await page.goto('/research');
 
     // Legacy menu links pair opacity-0 with animate-fade-up. Disabling the
     // animation must restore the final visible state instead of blanking nav.
