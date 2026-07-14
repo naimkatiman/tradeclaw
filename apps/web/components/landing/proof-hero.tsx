@@ -124,8 +124,8 @@ export async function ProofHero() {
               <>
                 TradeClaw is an open-source BUY/SELL signal engine you can inspect
                 or self-host. Across {trades.toLocaleString('en-US')} recorded
-                trades, ours lost after modeled fees and slippage. Every trade and
-                line of code is public.
+                trades, the average trade lost after modeled fees and slippage.
+                Every trade and line of code is public.
               </>
             ) : ledgerState === 'nonnegative' ? (
               <>
@@ -213,9 +213,8 @@ export async function ProofHero() {
                 value={
                   displayedCostR != null ? (
                     <AnimatedNumber
-                      value={-displayedCostR}
+                      value={displayedCostR}
                       decimals={2}
-                      signed
                       suffix="R"
                     />
                   ) : (

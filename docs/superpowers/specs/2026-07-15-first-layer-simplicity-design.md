@@ -48,7 +48,7 @@ tsc, lint, root build, targeted Playwright (landing, navbar, brand-states, landi
 
 Owner follow-up after reviewing production: "still hard for new user to read. first impression fail."
 
-- Replace the research-jargon headline with a two-line category and live outcome: "Open-source trading signals. Ours lost after costs." on tradeclaw.win. The outcome line follows the current environment's evidence so self-hosted instances never inherit the public deployment's result.
+- Replace the research-jargon headline with a category and metric-specific live outcome: "Open-source trading signals. Our average trade lost after costs." on tradeclaw.win. The outcome line follows per-trade net expectancy in the current environment, so self-hosted instances never inherit the public deployment's result or confuse it with compounded return.
 - Identify TradeClaw as an open-source BUY/SELL signal engine that can be inspected or self-hosted in the first paragraph; raise that paragraph to 16px.
 - Move the primary action ahead of the detailed ledger so it remains inside a 390x844 first viewport.
 - Replace the mixed-population win-rate/break-even tile with a reconcilable equation: before modeled costs, modeled fees + slippage, after modeled costs, and simulated compounded result.

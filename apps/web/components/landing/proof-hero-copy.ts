@@ -18,9 +18,9 @@ interface ProofHeadline {
 export function getProofHeadline(state: ProofLedgerState): ProofHeadline {
   switch (state) {
     case 'negative':
-      return { outcome: 'Ours lost after costs.', direction: 'down' };
+      return { outcome: 'Our average trade lost after costs.', direction: 'down' };
     case 'nonnegative':
-      return { outcome: 'Ours held up after costs.', direction: 'up' };
+      return { outcome: 'Our average trade held up after costs.', direction: 'up' };
     case 'indeterminate':
       return { outcome: 'The result is still open.', direction: 'neutral' };
     case 'empty':
