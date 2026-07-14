@@ -1,6 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Navbar UX', () => {
+/**
+ * Two navbar contracts (DESIGN.md Layering):
+ * - '/' renders the minimal variant: no primary links, no More dropdown,
+ *   a single "Open the app" action.
+ * - Product routes (tested via /track-record) render the full variant.
+ */
+
+test.describe('Navbar UX — layer 1 (minimal, /)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
@@ -18,13 +25,40 @@ test.describe('Navbar UX', () => {
     await expect(tierMatches).toHaveCount(0);
   });
 
+  test('renders the minimal variant: one action, no link rows', async ({ page }) => {
+    const nav = page.locator('nav').first();
+    const openApp = nav.getByRole('link', { name: /open the app/i });
+    await expect(openApp).toBeVisible();
+    await expect(openApp).toHaveAttribute('href', '/dashboard');
+    await expect(nav.getByRole('button', { name: /^More/ })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: 'Track Record' })).toHaveCount(0);
+  });
+
+  test('header does not throw console errors on initial load', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') errors.push(msg.text());
+    });
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    const navErrors = errors.filter((e) => /TierBadge|UserMenu|navbar/i.test(e));
+    expect(navErrors).toEqual([]);
+  });
+});
+
+test.describe('Navbar UX — layer 2 (full, /track-record)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/track-record');
+    await page.waitForLoadState('domcontentloaded');
+  });
+
   test('primary navigation links route correctly', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === 'mobile', 'Desktop link layout');
 
     const nav = page.locator('nav').first();
-    await nav.getByRole('link', { name: 'Track Record' }).click();
-    await page.waitForURL(/\/track-record/);
-    await expect(page).toHaveURL(/\/track-record/);
+    await nav.getByRole('link', { name: 'Research' }).click();
+    await page.waitForURL(/\/research/);
+    await expect(page).toHaveURL(/\/research/);
   });
 
   test('Live signals CTA is present and points to dashboard', async ({ page }, testInfo) => {
@@ -48,16 +82,5 @@ test.describe('Navbar UX', () => {
     await moreBtn.click();
     await page.waitForTimeout(150);
     await expect(page.getByText(/^Trading$/i)).toHaveCount(0);
-  });
-
-  test('header does not throw console errors on initial load', async ({ page }) => {
-    const errors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') errors.push(msg.text());
-    });
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-    const navErrors = errors.filter((e) => /TierBadge|UserMenu|navbar/i.test(e));
-    expect(navErrors).toEqual([]);
   });
 });

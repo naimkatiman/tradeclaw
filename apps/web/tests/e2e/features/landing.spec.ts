@@ -19,14 +19,24 @@ test.describe('Landing Page', () => {
     await expect(cta).toBeVisible();
   });
 
-  test('renders key landing sections', async ({ page }) => {
-    // Scroll to bottom to trigger lazy sections
+  test('renders the go-deeper strip (layer-2 doorway)', async ({ page }) => {
+    // Scroll to bottom to complete the scroll-scrubbed reveal
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await page.waitForTimeout(1000);
 
-    // FAQ section should exist somewhere on the page (A/B variants may differ)
-    const faq = page.getByText(/faq|frequently asked/i).first();
-    await expect(faq).toBeVisible({ timeout: 10_000 });
+    const strip = page.getByRole('region', { name: /go deeper/i });
+    await expect(strip).toBeVisible({ timeout: 10_000 });
+    await expect(strip.getByRole('link', { name: /research/i })).toHaveAttribute('href', '/research');
+    await expect(strip.getByRole('link', { name: /live app/i })).toHaveAttribute('href', '/dashboard');
+  });
+
+  test('layer 1 carries no floating product chrome', async ({ page }) => {
+    // The star progress bar slides in after ~5s on product pages; give it
+    // time to prove absence on the marketing surface.
+    await page.waitForTimeout(6000);
+    await expect(page.getByText(/until 50|1,000 stars/i)).toHaveCount(0);
+    // Full-navbar chrome is gone too: no More dropdown on layer 1.
+    await expect(page.getByRole('button', { name: /^More/ })).toHaveCount(0);
   });
 
   test('navbar links are functional', async ({ page }) => {

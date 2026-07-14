@@ -11,6 +11,7 @@ const PIVOT_PAGES = [
   { path: '/methodology', h1: /numbers are made/i },
   { path: '/why-long-term', h1: /the more you trade/i },
   { path: '/open-data', h1: /open data|every number/i },
+  { path: '/faq', h1: /frequently asked/i },
 ] as const;
 
 for (const { path, h1 } of PIVOT_PAGES) {
