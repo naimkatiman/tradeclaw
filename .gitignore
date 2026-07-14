@@ -9,8 +9,9 @@ node_modules/
 # Worktrees
 .worktrees/
 
-# Local Claude Code agent state (worktrees, settings, projects) — never track
+# Local agent state (worktrees, settings, projects) — never track
 .claude/
+.codex/
 
 # Generated data
 scripts/signals.db
@@ -34,3 +35,7 @@ graphify-out/
 # strategy-audit-agent runtime output (logs, fixture runs)
 /audit-output/
 packages/strategy-audit-agent/tmp/
+
+# Playwright agent artifacts (screenshots, console logs, page snapshots)
+/output/
+.playwright-cli/
