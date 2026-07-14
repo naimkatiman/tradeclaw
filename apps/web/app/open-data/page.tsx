@@ -20,6 +20,16 @@ export const metadata: Metadata = {
   title: 'Open Data | TradeClaw',
   description:
     'Free, machine-readable trading transparency data. Live JSON APIs for the cost-adjusted track record and per-trade cost field, plus committed research backtests you can fork and reproduce.',
+  openGraph: {
+    title: 'Open Data | TradeClaw',
+    description:
+      'Every number on the public site is an endpoint you can call. Live JSON APIs, committed research artifacts, and copy-paste recipes — MIT licensed, no API key required, with public fair-use limits.',
+    url: 'https://tradeclaw.win/open-data',
+    siteName: 'TradeClaw',
+    type: 'website',
+    images: [{ url: '/api/og', width: 1200, height: 630, alt: 'TradeClaw open data' }],
+  },
+  alternates: { canonical: 'https://tradeclaw.win/open-data' },
 };
 
 const BASE = 'https://tradeclaw.win';
@@ -339,7 +349,7 @@ export default function OpenDataPage() {
           </header>
 
           {/* Endpoints */}
-          <section className="mt-16">
+          <section className="reveal mt-16">
             <SectionHeading id="endpoints">Live endpoints</SectionHeading>
             <p className="mt-3 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
               Read-only GET routes. Responses carry public cache headers
@@ -354,7 +364,7 @@ export default function OpenDataPage() {
           </section>
 
           {/* Committed artifacts */}
-          <section className="mt-16">
+          <section className="reveal mt-16">
             <SectionHeading id="artifacts">Committed research artifacts</SectionHeading>
             <p className="mt-3 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
               The 2026 signal archive is committed to{' '}
@@ -461,7 +471,7 @@ export default function OpenDataPage() {
           </section>
 
           {/* Use it */}
-          <section className="mt-16">
+          <section className="reveal mt-16">
             <SectionHeading id="use-it">Use it</SectionHeading>
             <p className="mt-3 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
               Three recipes against the live routes. Each references only fields
@@ -493,7 +503,7 @@ export default function OpenDataPage() {
           </section>
 
           {/* License and disclosure */}
-          <section className="mt-16">
+          <section className="reveal mt-16">
             <SectionHeading id="license">License and terms</SectionHeading>
             <p className="mt-3 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
               The code is MIT licensed. Use, modify, and redistribute it freely,
@@ -511,9 +521,9 @@ export default function OpenDataPage() {
               .
             </p>
             <p className="mt-4 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
-              There is no API key and no published rate limit on these read-only
-              routes. As a courtesy, cache responses on your side rather than
-              polling in a tight loop; the s-maxage headers make that cheap.
+              No API key is required. Public routes use fair-use rate limits to
+              protect shared availability. Cache responses on your side rather
+              than polling in a tight loop; the s-maxage headers make that cheap.
             </p>
 
             <div className="mt-6 rounded-[var(--radius-card)] border border-amber-500/30 bg-amber-500/[0.06] px-4 py-4">
@@ -531,7 +541,7 @@ export default function OpenDataPage() {
           </section>
 
           {/* Read next */}
-          <section className="mt-16">
+          <section className="reveal mt-16">
             <SectionHeading id="read-next">Read next</SectionHeading>
             <div className="mt-5 flex flex-wrap gap-3">
               <a

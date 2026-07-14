@@ -21,9 +21,10 @@ export default function Home() {
         </div>
 
         {/* Transparency exhibit — the live engine output, explicitly NOT a
-            profit claim. */}
-        <section className="mx-auto mt-12 max-w-6xl px-4">
-          <div className="mb-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-[12px] leading-relaxed text-amber-200/90">
+            profit claim. Sections below the fold carry the scroll-reveal
+            system (pure CSS; static-visible without scroll-timeline support). */}
+        <section className="reveal mx-auto mt-12 max-w-6xl px-4">
+          <div className="mb-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-[12px] leading-relaxed text-amber-700 dark:text-amber-200/90">
             <strong className="font-semibold">Live engine output, recorded for transparency.</strong>{" "}
             This is what the engine emits in real time — it is not advice and not a
             profit claim. After real execution costs the engine has no net edge
@@ -32,11 +33,21 @@ export default function Home() {
           <LiveHeroSignals />
         </section>
 
-        <LiveActivityStrip />
-        <LiveDemoEmbed />
-        <HowItWorks />
-        <EmailCTA />
-        <FAQAccordion />
+        <div className="reveal">
+          <LiveActivityStrip />
+        </div>
+        <div className="reveal">
+          <LiveDemoEmbed />
+        </div>
+        <div className="reveal">
+          <HowItWorks />
+        </div>
+        <div className="reveal">
+          <EmailCTA />
+        </div>
+        <div className="reveal">
+          <FAQAccordion />
+        </div>
       </main>
     </>
   );

@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-12T23:46:30+08:00
+updated: 2026-07-14T11:05:00+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -2143,6 +2143,30 @@ tasks:
       upstream HTTP 451 from the Railway region and continues its existing retry
       loop, so application health is degraded but the deployment/config repair is
       complete and the fallback price provider remains connected.
+
+  - id: TC-239
+    title: "Audit and release the SLC motion polish"
+    status: in_progress
+    owner: pm-tradeclaw
+    notes: >
+      Auditing PR #163 before merge and Railway production release. Independent review
+      found and fixed a reduced-motion regression where disabling animate-fade-up left
+      legacy opacity-0 mobile-nav and /stars content invisible; the reduced-motion guard
+      now restores the static end state and also disables Tailwind animate-pulse globally.
+      The homepage's inline live-dot keyframes now use that shared gated utility. The four
+      pivot pages retain their OG image when overriding metadata, and /open-data now states
+      the real fair-use rate-limit policy instead of claiming there are no limits. Focused
+      Playwright coverage protects mobile navigation, pulse gating, reveal visibility, and
+      OG images. The rose no-edge headline is retained because DESIGN.md explicitly permits
+      rose for measured cost/drawdown findings. The deferred AnimatedChartHero is unreachable
+      and its deletion is already owned by the isolated primary-journey cleanup branch, so
+      this release does not create a modify/delete conflict. Real-browser regression testing
+      also found the language and Star controls pushed the mobile hamburger off-screen; those
+      secondary controls are now hidden below sm so sign-in, theme, and navigation remain
+      reachable. Fresh gates pass: web typecheck; ESLint with zero errors and 31 pre-existing
+      warnings; production build with 325/325 static pages; STATE.yaml parse and diff checks;
+      focused production Playwright 15/15 across brand states and all pivot pages. No schema
+      or migration changes.
 
 next_actions:
   - "2026-06-07: TC-235 complete. Created weekly performance recap content (X thread + LinkedIn post) highlighting 63.9% non-blacklisted WR, +0.10R expectancy, and methodology transparency. Ready for manual posting. Next: execute GitHub Stars Campaign — ProductHunt launch, HN Show HN post, or Reddit r/algotrading submission using existing prep pages (/launch, /hn, /share, /producthunt)."

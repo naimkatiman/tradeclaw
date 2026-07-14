@@ -38,6 +38,7 @@ export const metadata: Metadata = {
     url: 'https://tradeclaw.win/methodology',
     siteName: 'TradeClaw',
     type: 'website',
+    images: [{ url: '/api/og', width: 1200, height: 630, alt: 'TradeClaw methodology' }],
   },
   alternates: { canonical: 'https://tradeclaw.win/methodology' },
 };
@@ -102,7 +103,7 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="mt-16 scroll-mt-28 border-t border-[var(--border)] pt-10">
+    <section id={id} className="reveal mt-16 scroll-mt-28 border-t border-[var(--border)] pt-10">
       <h2 className="font-display flex items-baseline gap-3 text-[clamp(1.5rem,3.4vw,2.15rem)] font-bold uppercase leading-[1.02] tracking-tight text-[var(--foreground)]">
         <span className="font-mono text-sm font-medium tabular-nums text-[var(--text-secondary)]">{n}</span>
         <span>{title}</span>

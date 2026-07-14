@@ -8,6 +8,16 @@ export const metadata: Metadata = {
   title: 'Why Long-Term | TradeClaw',
   description:
     'The external, peer-reviewed and regulatory record on why frequent short-term trading loses after costs, and why minimizing turnover is the rational default for a small account.',
+  openGraph: {
+    title: 'Why Long-Term | TradeClaw',
+    description:
+      'SPIVA, Barber/Odean, DALBAR, ESMA, FCA, BIS: the external record on why frequent short-term trading loses after costs. Fourteen cited findings, correctly attributed.',
+    url: 'https://tradeclaw.win/why-long-term',
+    siteName: 'TradeClaw',
+    type: 'website',
+    images: [{ url: '/api/og', width: 1200, height: 630, alt: 'TradeClaw long-term evidence ledger' }],
+  },
+  alternates: { canonical: 'https://tradeclaw.win/why-long-term' },
 };
 
 /**
@@ -283,7 +293,7 @@ export default function WhyLongTermPage() {
           {/* Evidence ledger: one entry per citation, stacked with divider borders. */}
           <div className="mt-16 space-y-14">
             {SECTIONS.map((section) => (
-              <section key={section.heading}>
+              <section key={section.heading} className="reveal">
                 <h2 className="font-display text-[clamp(1.375rem,2.6vw,1.875rem)] font-semibold uppercase leading-tight tracking-tight">
                   {section.heading}
                 </h2>
@@ -300,7 +310,7 @@ export default function WhyLongTermPage() {
           </div>
 
           {/* Close: anti-timing-not-pro-asset framing + unfavorable disclosure. */}
-          <section className="mt-20 border-t border-[var(--border)] pt-10">
+          <section className="reveal mt-20 border-t border-[var(--border)] pt-10">
             <h2 className="font-display text-[clamp(1.375rem,2.6vw,1.875rem)] font-semibold uppercase leading-tight tracking-tight">
               What this proves, and what it does not
             </h2>

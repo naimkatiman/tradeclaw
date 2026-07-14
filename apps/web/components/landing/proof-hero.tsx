@@ -13,6 +13,8 @@
  */
 
 import { CostFieldHero } from './cost-field/CostFieldHero';
+import { AnimatedNumber } from '../motion/animated-number';
+import { Magnetic } from '../motion/magnetic';
 
 const GITHUB_URL = 'https://github.com/naimkatiman/tradeclaw';
 
@@ -43,8 +45,10 @@ async function fetchEquitySummary(): Promise<EquitySummary | null> {
   }
 }
 
-function signed(value: number, unit: string): string {
-  return `${value >= 0 ? '+' : '−'}${Math.abs(value)}${unit}`;
+/** Fraction digits of an API-rounded value, so count-ups land exactly on it. */
+function fractionDigits(value: number): number {
+  const decimals = String(value).split('.')[1];
+  return Math.min(decimals?.length ?? 0, 4);
 }
 
 function LedgerItem({
@@ -54,7 +58,7 @@ function LedgerItem({
   negative = false,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   detail?: string;
   negative?: boolean;
 }) {
@@ -84,17 +88,19 @@ export async function ProofHero() {
       <div className="grid items-stretch gap-10 lg:grid-cols-12">
         {/* The claim */}
         <div className="flex flex-col justify-center lg:col-span-5">
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
+          <p className="animate-fade-up font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
             Open-source trading transparency
           </p>
+          {/* The page's one orchestrated load entrance (DESIGN.md Motion):
+              headline lands line by line, the finding last. */}
           <h1 className="font-display mt-4 text-[clamp(2.75rem,6.5vw,5rem)] font-bold uppercase leading-[0.92] tracking-tight">
-            We measured
-            <br />
-            the edge.
-            <br />
-            <span className="text-[var(--color-down)]">There isn&apos;t one.</span>
+            <span className="animate-fade-up fade-delay-1 block">We measured</span>
+            <span className="animate-fade-up fade-delay-2 block">the edge.</span>
+            <span className="animate-fade-up fade-delay-3 block text-[var(--color-down)]">
+              There isn&apos;t one.
+            </span>
           </h1>
-          <p className="mt-5 max-w-md text-sm leading-relaxed text-[var(--text-secondary)]">
+          <p className="animate-fade-up fade-delay-3 mt-5 max-w-md text-sm leading-relaxed text-[var(--text-secondary)]">
             TradeClaw runs a real signal engine and charges every sized trade its
             real execution cost. After costs, net expectancy is negative:
             short-term timing loses what it costs to trade. The engine, the
@@ -103,33 +109,79 @@ export async function ProofHero() {
           </p>
 
           {eq ? (
-            <dl className="mt-7 grid grid-cols-2 gap-x-2 divide-y divide-[var(--border)] border-y border-[var(--border)] sm:grid-cols-2">
+            <dl className="animate-fade-up fade-delay-4 mt-7 grid grid-cols-2 gap-x-2 divide-y divide-[var(--border)] border-y border-[var(--border)] sm:grid-cols-2">
               <LedgerItem
                 label="net expectancy / trade, after cost"
-                value={eq.netExpectancyR != null ? signed(eq.netExpectancyR, 'R') : '—'}
+                value={
+                  eq.netExpectancyR != null ? (
+                    <AnimatedNumber
+                      value={eq.netExpectancyR}
+                      decimals={fractionDigits(eq.netExpectancyR)}
+                      signed
+                      suffix="R"
+                    />
+                  ) : (
+                    '—'
+                  )
+                }
                 negative={eq.netExpectancyR != null && eq.netExpectancyR < 0}
               />
               <LedgerItem
                 label="total return, 1% risk compounded"
-                value={signed(eq.totalReturn, '%')}
+                value={
+                  <AnimatedNumber
+                    value={eq.totalReturn}
+                    decimals={fractionDigits(eq.totalReturn)}
+                    signed
+                    suffix="%"
+                  />
+                }
                 negative={eq.totalReturn < 0}
               />
               <LedgerItem
                 label="avg round-trip cost / trade"
-                value={eq.avgCostR != null ? `${eq.avgCostR}R` : '—'}
+                value={
+                  eq.avgCostR != null ? (
+                    <AnimatedNumber
+                      value={eq.avgCostR}
+                      decimals={fractionDigits(eq.avgCostR)}
+                      suffix="R"
+                    />
+                  ) : (
+                    '—'
+                  )
+                }
                 detail={eq.roundTripCostPct != null ? `≈ ${eq.roundTripCostPct}% of notional` : undefined}
               />
               <LedgerItem
                 label="win rate vs break-even needed"
                 value={
-                  eq.breakEvenWinRate != null
-                    ? `${eq.winRate}% / ${eq.breakEvenWinRate}%`
-                    : `${eq.winRate}%`
+                  eq.breakEvenWinRate != null ? (
+                    <>
+                      <AnimatedNumber
+                        value={eq.winRate}
+                        decimals={fractionDigits(eq.winRate)}
+                        suffix="%"
+                      />
+                      {' / '}
+                      <AnimatedNumber
+                        value={eq.breakEvenWinRate}
+                        decimals={fractionDigits(eq.breakEvenWinRate)}
+                        suffix="%"
+                      />
+                    </>
+                  ) : (
+                    <AnimatedNumber
+                      value={eq.winRate}
+                      decimals={fractionDigits(eq.winRate)}
+                      suffix="%"
+                    />
+                  )
                 }
               />
             </dl>
           ) : (
-            <p className="mt-7 border-y border-[var(--border)] py-3 text-sm text-[var(--text-secondary)]">
+            <p className="animate-fade-up fade-delay-4 mt-7 border-y border-[var(--border)] py-3 text-sm text-[var(--text-secondary)]">
               The live cost-adjusted result loads on the{' '}
               <a href="/track-record" className="underline hover:text-[var(--foreground)]">
                 track record
@@ -138,16 +190,18 @@ export async function ProofHero() {
             </p>
           )}
 
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            <a
-              href="/track-record"
-              className="group flex items-center gap-2.5 rounded-[var(--radius-pill)] bg-emerald-500 px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              See the full track record
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">
-                <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </a>
+          <div className="animate-fade-up fade-delay-4 mt-7 flex flex-wrap items-center gap-3">
+            <Magnetic>
+              <a
+                href="/track-record"
+                className="group flex items-center gap-2.5 rounded-[var(--radius-pill)] bg-emerald-500 px-6 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                See the full track record
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">
+                  <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </a>
+            </Magnetic>
             <a
               href="/research"
               className="flex items-center gap-2 rounded-[var(--radius-pill)] border border-[var(--border)] px-6 py-3 text-sm font-medium text-[var(--text-secondary)] transition-all duration-200 hover:border-[var(--glass-border-accent)] hover:text-[var(--foreground)]"
@@ -165,8 +219,9 @@ export async function ProofHero() {
           </div>
         </div>
 
-        {/* The evidence */}
-        <div className="relative min-h-[340px] lg:col-span-7 lg:min-h-[520px]">
+        {/* The evidence — imagery layer gets scroll depth (decor-only
+            parallax per DESIGN.md; static without scroll-timeline support) */}
+        <div className="parallax-drift-slow relative min-h-[340px] lg:col-span-7 lg:min-h-[520px]">
           <CostFieldHero />
         </div>
       </div>

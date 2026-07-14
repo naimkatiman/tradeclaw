@@ -119,19 +119,10 @@ export async function LiveHeroSignals() {
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/8">
             <div className="flex items-center gap-2">
               {hasRealSignals && (
-                <>
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      background: '#10b981',
-                      display: 'inline-block',
-                      animation: 'lhsPulse 2s ease infinite',
-                    }}
-                  />
-                  <style>{`@keyframes lhsPulse{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
-                </>
+                <span
+                  className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500"
+                  aria-hidden="true"
+                />
               )}
               <span className="text-white/60 text-xs font-medium">
                 {mode === 'recent'
