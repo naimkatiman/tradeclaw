@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     url: 'https://tradeclaw.win/why-long-term',
     siteName: 'TradeClaw',
     type: 'website',
+    images: [{ url: '/api/og', width: 1200, height: 630, alt: 'TradeClaw long-term evidence ledger' }],
   },
   alternates: { canonical: 'https://tradeclaw.win/why-long-term' },
 };

@@ -38,6 +38,7 @@ export const metadata: Metadata = {
     url: 'https://tradeclaw.win/methodology',
     siteName: 'TradeClaw',
     type: 'website',
+    images: [{ url: '/api/og', width: 1200, height: 630, alt: 'TradeClaw methodology' }],
   },
   alternates: { canonical: 'https://tradeclaw.win/methodology' },
 };

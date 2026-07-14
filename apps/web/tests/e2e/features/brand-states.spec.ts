@@ -36,6 +36,37 @@ test.describe('landing under reduced motion', () => {
     await faq.scrollIntoViewIfNeeded();
     await expect(faq).toBeVisible();
     await expect(faq).toHaveCSS('opacity', '1');
+
+    // Tailwind pulse is the shared primitive for skeletons and status dots.
+    // It must compute to no animation, even when no transient loader is present.
+    await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.dataset.testid = 'reduced-motion-pulse';
+      probe.className = 'animate-pulse';
+      document.body.appendChild(probe);
+    });
+    await expect(page.getByTestId('reduced-motion-pulse')).toHaveCSS(
+      'animation-name',
+      'none',
+    );
+
+    await context.close();
+  });
+
+  test('mobile navigation reveals links without animation', async ({ browser }) => {
+    const context = await browser.newContext({
+      reducedMotion: 'reduce',
+      viewport: { width: 390, height: 844 },
+    });
+    const page = await context.newPage();
+    await page.goto('/');
+
+    // Legacy menu links pair opacity-0 with animate-fade-up. Disabling the
+    // animation must restore the final visible state instead of blanking nav.
+    await page.getByRole('button', { name: 'Toggle menu' }).click();
+    const firstMobileLink = page.locator('div.fixed.inset-0 a.animate-fade-up').first();
+    await expect(firstMobileLink).toBeVisible();
+    await expect(firstMobileLink).toHaveCSS('opacity', '1');
     await context.close();
   });
 });

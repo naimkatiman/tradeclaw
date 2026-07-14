@@ -423,13 +423,15 @@ html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
 .fade-delay-3 { animation-delay: 270ms; }
 .fade-delay-4 { animation-delay: 360ms; }
 
-/* Blanket reduced-motion guard: every house animation utility.
+/* Blanket reduced-motion guard: every house animation utility plus
+   Tailwind's shared pulse utility used by skeletons and live-status dots.
    Content is designed to be fully legible with all of these off. */
 @media (prefers-reduced-motion: reduce) {
   .aurora-orb-a,
   .aurora-orb-b,
   .scanline-sweep,
   .ticker-scroll,
+  .animate-pulse,
   .animate-fade-up,
   .pulse-dot,
   .animate-slide-left,
@@ -437,6 +439,14 @@ html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
   .reveal,
   .parallax-drift-slow {
     animation: none !important;
+  }
+
+  /* Some legacy consumers pair opacity-0 with animate-fade-up and rely on
+     the animation's forwards fill to reveal their content. Once animation is
+     disabled, explicitly restore the readable end state. */
+  .animate-fade-up {
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .stagger-item {

@@ -35,6 +35,11 @@ for (const { path, h1 } of PIVOT_PAGES) {
         'content',
         `https://tradeclaw.win${path}`,
       );
+      const ogImage = page.locator('meta[property="og:image"]');
+      await expect(ogImage).toHaveAttribute(
+        'content',
+        'https://tradeclaw.win/api/og',
+      );
     });
 
     test('content is visible with reduced motion (reveal classes must not hide it)', async ({

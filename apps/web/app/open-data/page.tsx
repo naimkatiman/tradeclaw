@@ -23,10 +23,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Open Data | TradeClaw',
     description:
-      'Every number on the public site is an endpoint you can call. Live JSON APIs, committed research artifacts, and copy-paste recipes — MIT licensed, no keys, no rate limits.',
+      'Every number on the public site is an endpoint you can call. Live JSON APIs, committed research artifacts, and copy-paste recipes — MIT licensed, no API key required, with public fair-use limits.',
     url: 'https://tradeclaw.win/open-data',
     siteName: 'TradeClaw',
     type: 'website',
+    images: [{ url: '/api/og', width: 1200, height: 630, alt: 'TradeClaw open data' }],
   },
   alternates: { canonical: 'https://tradeclaw.win/open-data' },
 };
@@ -520,9 +521,9 @@ export default function OpenDataPage() {
               .
             </p>
             <p className="mt-4 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
-              There is no API key and no published rate limit on these read-only
-              routes. As a courtesy, cache responses on your side rather than
-              polling in a tight loop; the s-maxage headers make that cheap.
+              No API key is required. Public routes use fair-use rate limits to
+              protect shared availability. Cache responses on your side rather
+              than polling in a tight loop; the s-maxage headers make that cheap.
             </p>
 
             <div className="mt-6 rounded-[var(--radius-card)] border border-amber-500/30 bg-amber-500/[0.06] px-4 py-4">
