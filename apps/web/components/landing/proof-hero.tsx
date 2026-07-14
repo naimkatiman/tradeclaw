@@ -81,7 +81,17 @@ function LedgerItem({
 
 export async function ProofHero() {
   const eq = await fetchEquitySummary();
-  const trades = eq?.sizedTrades ?? eq?.totalSignals;
+  const trades = eq?.sizedTrades ?? eq?.totalSignals ?? 0;
+  const hasMeasuredTrades = trades > 0;
+  const ledgerState = !eq
+    ? 'unavailable'
+    : !hasMeasuredTrades
+      ? 'empty'
+      : eq.netExpectancyR == null
+        ? 'indeterminate'
+        : eq.netExpectancyR < 0
+          ? 'negative'
+          : 'nonnegative';
 
   return (
     <section data-testid="proof-hero" className="mx-auto max-w-6xl px-4 pt-6">
@@ -89,26 +99,64 @@ export async function ProofHero() {
         {/* The claim */}
         <div className="flex flex-col justify-center lg:col-span-5">
           <p className="animate-fade-up font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
-            Open-source trading transparency
+            Public reference finding · open-source transparency
           </p>
           {/* The page's one orchestrated load entrance (DESIGN.md Motion):
               headline lands line by line, the finding last. */}
           <h1 className="font-display mt-4 text-[clamp(2.75rem,6.5vw,5rem)] font-bold uppercase leading-[0.92] tracking-tight">
             <span className="animate-fade-up fade-delay-1 block">We measured</span>
             <span className="animate-fade-up fade-delay-2 block">the edge.</span>
-            <span className="animate-fade-up fade-delay-3 block text-[var(--color-down)]">
+            <span className="animate-fade-up fade-delay-3 block">
               There isn&apos;t one.
             </span>
           </h1>
           <p className="animate-fade-up fade-delay-3 mt-5 max-w-md text-sm leading-relaxed text-[var(--text-secondary)]">
-            TradeClaw runs a real signal engine and charges every sized trade its
-            real execution cost. After costs, net expectancy is negative:
-            short-term timing loses what it costs to trade. The engine, the
-            {' '}{trades ? trades.toLocaleString('en-US') : ''} recorded trades, and
-            this conclusion are free for anyone to check, fork, and reuse.
+            {ledgerState === 'negative' ? (
+              <>
+                TradeClaw runs a real signal engine and charges every sized trade
+                its real execution cost. After costs, this environment&apos;s net
+                expectancy is negative: short-term timing loses what it costs to
+                trade. The engine, its {trades.toLocaleString('en-US')} recorded
+                position-sized trades, and this measured finding are free for
+                anyone to check, fork, and reuse.
+              </>
+            ) : ledgerState === 'nonnegative' ? (
+              <>
+                TradeClaw runs a real signal engine and charges every sized trade
+                its real execution cost. This environment&apos;s{' '}
+                {trades.toLocaleString('en-US')} recorded trades currently report
+                non-negative net expectancy after cost. The ledger shows that
+                result as-is; it does not substitute the public reference result.
+                The engine, cost model, and reported result are free for anyone to
+                check, fork, and reuse.
+              </>
+            ) : ledgerState === 'indeterminate' ? (
+              <>
+                This environment has {trades.toLocaleString('en-US')} recorded
+                trades, but not enough sized win/loss evidence to compute net
+                expectancy after cost. The ledger reports the available evidence
+                as-is; no reference or placeholder values are substituted. The
+                engine and cost model remain free for anyone to check, fork, and
+                reuse.
+              </>
+            ) : ledgerState === 'empty' ? (
+              <>
+                The headline states TradeClaw&apos;s public reference finding. This
+                environment does not yet have the resolved, position-sized trades
+                needed to recompute it. The engine, cost model, and methodology
+                remain free for anyone to check, fork, and reuse.
+              </>
+            ) : (
+              <>
+                The headline states TradeClaw&apos;s public reference finding. This
+                environment&apos;s live ledger is temporarily unavailable, so it
+                cannot recompute the result right now. The engine, cost model, and
+                methodology remain free for anyone to check, fork, and reuse.
+              </>
+            )}
           </p>
 
-          {eq ? (
+          {eq && hasMeasuredTrades ? (
             <dl className="animate-fade-up fade-delay-4 mt-7 grid grid-cols-2 gap-x-2 divide-y divide-[var(--border)] border-y border-[var(--border)] sm:grid-cols-2">
               <LedgerItem
                 label="net expectancy / trade, after cost"
@@ -181,12 +229,25 @@ export async function ProofHero() {
               />
             </dl>
           ) : (
-            <p className="animate-fade-up fade-delay-4 mt-7 border-y border-[var(--border)] py-3 text-sm text-[var(--text-secondary)]">
-              The live cost-adjusted result loads on the{' '}
+            <p
+              className="animate-fade-up fade-delay-4 mt-7 border-y border-[var(--border)] py-3 text-sm text-[var(--text-secondary)]"
+              data-testid="proof-ledger-empty"
+            >
+              {eq
+                ? 'No resolved, position-sized trades are available in this environment yet. '
+                : 'The live cost-adjusted ledger is temporarily unavailable. '}
+              Inspect the{' '}
               <a href="/track-record" className="underline hover:text-[var(--foreground)]">
-                track record
+                full track record
               </a>
-              .
+              {' '}or the{' '}
+              <a
+                href="/api/signals/equity?summaryOnly=1&scope=pro"
+                className="underline hover:text-[var(--foreground)]"
+              >
+                raw summary
+              </a>{' '}
+              instead of placeholder results.
             </p>
           )}
 

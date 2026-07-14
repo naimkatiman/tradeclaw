@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useHeroPrices, formatPairPrice } from "../lib/hooks/use-hero-prices";
+import { useReducedMotion } from "./motion/use-reduced-motion";
 
 interface Particle {
   x: number;
@@ -41,6 +42,56 @@ interface AnimatedChartHeroProps {
   className?: string;
 }
 
+interface AnimationFrameScheduler {
+  request(callback: FrameRequestCallback): number;
+  cancel(frameId: number): void;
+}
+
+/**
+ * Keeps at most one animation frame queued and fully cancels the loop while
+ * inactive. Exported so pause/resume behavior can be verified without a DOM.
+ */
+export function createPausableAnimationLoop(
+  drawFrame: FrameRequestCallback,
+  scheduler: AnimationFrameScheduler,
+) {
+  let active = false;
+  let disposed = false;
+  let frameId: number | null = null;
+
+  const runFrame: FrameRequestCallback = (timestamp) => {
+    frameId = null;
+    if (!active) return;
+
+    drawFrame(timestamp);
+    if (active && frameId === null) {
+      frameId = scheduler.request(runFrame);
+    }
+  };
+
+  return {
+    setActive(nextActive: boolean) {
+      if (disposed) return;
+      active = nextActive;
+
+      if (active) {
+        if (frameId === null) frameId = scheduler.request(runFrame);
+      } else if (frameId !== null) {
+        scheduler.cancel(frameId);
+        frameId = null;
+      }
+    },
+    dispose() {
+      disposed = true;
+      active = false;
+      if (frameId !== null) {
+        scheduler.cancel(frameId);
+        frameId = null;
+      }
+    },
+  };
+}
+
 const ANIMATED_HERO_LABELS = [
   "BTC/USD",
   "XAU/USD",
@@ -64,6 +115,7 @@ export function AnimatedChartHero({
   className = "",
 }: AnimatedChartHeroProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const reducedMotion = useReducedMotion();
   const { prices } = useHeroPrices(ANIMATED_HERO_LABELS);
   const symbolsRef = useRef<{ symbol: string; price: string }[]>([]);
 
@@ -79,9 +131,7 @@ export function AnimatedChartHero({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Respect prefers-reduced-motion
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches) return;
+    if (reducedMotion) return;
 
     const cvs: HTMLCanvasElement = canvas;
     const ctxRaw = cvs.getContext("2d");
@@ -101,7 +151,6 @@ export function AnimatedChartHero({
       };
     }
 
-    let animFrameId: number;
     let t = 0;
     let lastSignalFrame = 0;
     let lastSparkleFrame = 0;
@@ -363,10 +412,7 @@ export function AnimatedChartHero({
     function draw() {
       const w = cvs.width;
       const h = cvs.height;
-      if (w === 0 || h === 0) {
-        animFrameId = requestAnimationFrame(draw);
-        return;
-      }
+      if (w === 0 || h === 0) return;
 
       ctx.clearRect(0, 0, w, h);
 
@@ -509,16 +555,41 @@ export function AnimatedChartHero({
       }
 
       t++;
-      animFrameId = requestAnimationFrame(draw);
     }
 
-    animFrameId = requestAnimationFrame(draw);
+    const animationLoop = createPausableAnimationLoop(draw, {
+      request: (callback) => window.requestAnimationFrame(callback),
+      cancel: (frameId) => window.cancelAnimationFrame(frameId),
+    });
+    let isDocumentVisible = document.visibilityState !== "hidden";
+    let isIntersecting = typeof IntersectionObserver === "undefined";
+
+    const syncAnimation = () => {
+      animationLoop.setActive(isDocumentVisible && isIntersecting);
+    };
+    const handleVisibilityChange = () => {
+      isDocumentVisible = document.visibilityState !== "hidden";
+      syncAnimation();
+    };
+    const intersectionObserver =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver((entries) => {
+            isIntersecting = entries[0]?.isIntersecting ?? false;
+            syncAnimation();
+          });
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    intersectionObserver?.observe(cvs);
+    syncAnimation();
 
     return () => {
-      cancelAnimationFrame(animFrameId);
+      animationLoop.dispose();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      intersectionObserver?.disconnect();
       ro.disconnect();
     };
-  }, [height]);
+  }, [height, reducedMotion]);
 
   return (
     <canvas

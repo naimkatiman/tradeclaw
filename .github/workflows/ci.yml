@@ -141,9 +141,6 @@ jobs:
     name: Playwright E2E
     runs-on: ubuntu-latest
     needs: build
-    # Non-blocking until the suite stabilizes. Flip to false once the suite is
-    # consistently green against the CI Postgres sidecar.
-    continue-on-error: true
     timeout-minutes: 30
     services:
       # Ephemeral Postgres per CI run — avoids any risk of writing test signals
@@ -171,8 +168,11 @@ jobs:
       # Sidecar Postgres URL — visible to the migration step, the dev server
       # spawned by Playwright's webServer, and the tests themselves.
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tradeclaw_test
-      USER_SESSION_SECRET: ${{ secrets.E2E_USER_SESSION_SECRET }}
-      CRON_SECRET: ${{ secrets.E2E_CRON_SECRET }}
+      # Fixed test-only values keep blocking E2E deterministic for forks and
+      # Dependabot, where repository secrets are intentionally withheld. These
+      # authenticate only the ephemeral CI server and are never used in prod.
+      USER_SESSION_SECRET: tradeclaw-ci-only-session-secret-not-for-production
+      CRON_SECRET: tradeclaw-ci-only-cron-secret-not-for-production
     defaults:
       run:
         working-directory: apps/web

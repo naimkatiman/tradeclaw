@@ -1,5 +1,9 @@
 import { test as setup, expect } from '@playwright/test';
 
+// The three warmups each permit 60s, so the enclosing setup must not retain
+// Playwright's 30s default and abort a healthy final request mid-flight.
+setup.setTimeout(180_000);
+
 // Warms the signal-generation paths so the first real assertion in the suite
 // doesn't pay the ~10-15s cold cost. The request path warms the in-process
 // OHLCV cache (lib/ohlcv.ts), shared across the suite because CI runs a single
