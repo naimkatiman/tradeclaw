@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-14T11:05:00+08:00
+updated: 2026-07-14T11:20:06+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -2146,7 +2146,7 @@ tasks:
 
   - id: TC-239
     title: "Audit and release the SLC motion polish"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
     notes: >
       Auditing PR #163 before merge and Railway production release. Independent review
@@ -2165,8 +2165,14 @@ tasks:
       secondary controls are now hidden below sm so sign-in, theme, and navigation remain
       reachable. Fresh gates pass: web typecheck; ESLint with zero errors and 31 pre-existing
       warnings; production build with 325/325 static pages; STATE.yaml parse and diff checks;
-      focused production Playwright 15/15 across brand states and all pivot pages. No schema
-      or migration changes.
+      focused production Playwright 15/15 across brand states and all pivot pages. PR #163
+      passed all six GitHub Actions jobs in run 29302532898 and was squash-merged to main as
+      614ac8197108da5f0040f5cec822f0136bb9cafb. Railway deployment
+      f8e412d8-7895-430a-8ffd-ed8b8e31c225 succeeded with image
+      sha256:d779eea3820473a7637570f78fe6526b1d84d654cc8c48d010804841a84c2a6a.
+      Startup confirmed 55/55 migrations applied with zero pending, so no separate migration
+      was required. Production health returned HTTP 200/status ok, and the focused production
+      Playwright suite passed 15/15. No schema or migration changes.
 
 next_actions:
   - "2026-06-07: TC-235 complete. Created weekly performance recap content (X thread + LinkedIn post) highlighting 63.9% non-blacklisted WR, +0.10R expectancy, and methodology transparency. Ready for manual posting. Next: execute GitHub Stars Campaign — ProductHunt launch, HN Show HN post, or Reddit r/algotrading submission using existing prep pages (/launch, /hn, /share, /producthunt)."
