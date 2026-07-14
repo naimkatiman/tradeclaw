@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-14T11:20:06+08:00
+updated: 2026-07-15T02:20:49+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -92,6 +92,43 @@ release_followup:
     terminal SUCCESS with image digest sha256:93755d89162908cc8454e4d77825c7f8d0e240f00662ec7878d0922debe8c974;
     https://tradeclaw.win/api/health returned HTTP 200 and status ok from the fresh
     process. GitHub CI and Docker Publish are verified during release closeout.
+
+release_first_layer_readability:
+  at: 2026-07-15T02:20:49+08:00
+  agent: TradeClaw PM release agent
+  status: deployed
+  scope: first-layer homepage simplicity and new-user readability
+  target: main and Railway production
+  pull_request: 166
+  source_commit: b4b043880e5821a19ff1c7c378a37dacbc52faee
+  source_branch: main
+  deployment:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment: production
+    service: web
+    deployment_id: c60ac575-9b29-406c-9938-7dc6b0c37f49
+    status: SUCCESS
+    image_digest: sha256:fbf2a507ff00a28a9cd0d9acb1257b5669cbdff7618ad8d4b244899767834cd0
+    live_url: https://tradeclaw.win
+    health: HTTP 200 /api/health with status ok
+  notes: >
+    PR #166 passed all six required GitHub jobs in run 29356310233 and
+    squash-merged to main. The homepage now names the product category first,
+    anchors the live finding to average per-trade expectancy, puts the primary
+    action before proof, explains before-cost minus modeled-cost equals
+    after-cost performance, defines R before use, and removes competing
+    account/social/floating chrome from layer 1. Theme-aware direction text
+    meets WCAG AA while chart marks retain the visual data hues. Local release
+    gates passed web TypeScript, Jest copy-state coverage, touched-file ESLint,
+    the root production build with 326/326 pages, and production-mode
+    Playwright at 1366x768, 390x664, and 320x568. Railway deployment
+    c60ac575 reached terminal SUCCESS; the new process returned HTTP 200/status
+    ok and no error-level deploy logs. Real-browser production QA confirmed the
+    exact live headline and equation, the primary CTA at y=479 on a 320x568
+    viewport, a populated 3,972-trade Cost Field, one fixed element (navbar),
+    zero console errors, and dark/light/desktop/mobile rendering. No schema,
+    migration, dependency, lockfile, Docker, or Railway configuration changes.
 
 tasks:
   - id: TC-001
@@ -2196,6 +2233,27 @@ tasks:
       dark/light visual QA confirmed neutral headline colors and honest no-data states; final
       independent review found no unresolved High or Medium issues. No schema, migration,
       dependency, lockfile, Docker, or Railway configuration changes.
+
+  - id: TC-241
+    title: "Release first-layer simplicity and new-user readability"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Responded to the owner's live-site feedback that the first impression was
+      still too hard to read. PR #166 makes the homepage a simple layer-one
+      surface with product-first language, a state-accurate average-trade
+      finding, 16px plain-language copy, a primary CTA visible at 320x568, an
+      explicit gross minus modeled cost equals net equation, an inline R
+      definition, accessible theme-specific directional text colors, plain
+      Cost Field labels, and no competing sign-in/star/floating/mobile chrome.
+      Verification passed web TypeScript, root build (326/326 pages), Jest,
+      ESLint, local production Playwright, all six GitHub CI jobs, and live
+      dark/light desktop/mobile QA. Squash-merged as b4b04388. Railway web
+      deployment c60ac575-9b29-406c-9938-7dc6b0c37f49 reached SUCCESS with
+      image sha256:fbf2a507ff00a28a9cd0d9acb1257b5669cbdff7618ad8d4b244899767834cd0;
+      /api/health returned HTTP 200/status ok and the live Cost Field rendered
+      3,972 aligned trades. No schema, dependency, lockfile, Docker, or Railway
+      configuration changes.
 
 next_actions:
   - "2026-06-07: TC-235 complete. Created weekly performance recap content (X thread + LinkedIn post) highlighting 63.9% non-blacklisted WR, +0.10R expectancy, and methodology transparency. Ready for manual posting. Next: execute GitHub Stars Campaign — ProductHunt launch, HN Show HN post, or Reddit r/algotrading submission using existing prep pages (/launch, /hn, /share, /producthunt)."
