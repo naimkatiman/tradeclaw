@@ -89,7 +89,17 @@ const ALL_NAV_LINKS: NavLink[] = [
   { href: '#how-it-works', label: 'How it works' },
 ];
 
-export function Navbar() {
+interface NavbarProps {
+  /**
+   * 'full' (default) — product navbar: primary links, More dropdown, hamburger.
+   * 'minimal' — layer-1 marketing surface (DESIGN.md Layering): logo, locale,
+   * sign-in, star, theme, and a single "Open the app" action. No link rows.
+   */
+  variant?: 'full' | 'minimal';
+}
+
+export function Navbar({ variant = 'full' }: NavbarProps = {}) {
+  const minimal = variant === 'minimal';
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -145,6 +155,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop nav */}
+          {!minimal && (
           <div className="hidden md:flex items-center gap-6 text-xs font-medium text-[var(--text-secondary)]">
             {PRIMARY_LINKS.map((link) => (
               <Link
@@ -192,6 +203,7 @@ export function Navbar() {
               )}
             </div>
           </div>
+          )}
 
           {/* CTA */}
           <div className="flex items-center gap-2 shrink-0">
@@ -208,12 +220,22 @@ export function Navbar() {
               ))}
             </select>
             <UserMenu size="compact" />
-            <Link
-              href="/dashboard"
-              className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-300"
-            >
-              Live signals
-            </Link>
+            {minimal ? (
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-300"
+              >
+                Open the app
+                <span aria-hidden="true">→</span>
+              </Link>
+            ) : (
+              <Link
+                href="/dashboard"
+                className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-300"
+              >
+                Live signals
+              </Link>
+            )}
             <a
               href="https://github.com/naimkatiman/tradeclaw"
               target="_blank"
@@ -229,6 +251,7 @@ export function Navbar() {
             <ThemeToggle className="text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]" />
 
             {/* Mobile hamburger */}
+            {!minimal && (
             <button
               className="md:hidden flex flex-col gap-1 p-1"
               onClick={() => setMenuOpen(!menuOpen)}
@@ -251,12 +274,13 @@ export function Navbar() {
                 }`}
               />
             </button>
+            )}
           </div>
         </div>
       </nav>
 
       {/* Mobile menu overlay */}
-      {menuOpen && (
+      {!minimal && menuOpen && (
         <div
           className="fixed inset-0 z-[60] backdrop-blur-2xl bg-black/85 flex flex-col items-center overflow-y-auto overscroll-contain py-24 gap-6 px-6"
           onClick={() => setMenuOpen(false)}
