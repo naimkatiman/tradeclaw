@@ -49,7 +49,9 @@ for (const { path, h1 } of PIVOT_PAGES) {
       const context = await browser.newContext({ reducedMotion: 'reduce' });
       const page = await context.newPage();
       await page.goto(path);
-      await expect(page.locator('h1')).toBeVisible();
+      // main, not h1: /faq's h1 is intentionally sr-only, which would make
+      // an h1-visibility assertion pass trivially without testing content.
+      await expect(page.getByRole('main').first()).toBeVisible();
       const firstSection = page.locator('section.reveal, .reveal section').first();
       if ((await firstSection.count()) > 0) {
         await firstSection.scrollIntoViewIfNeeded();

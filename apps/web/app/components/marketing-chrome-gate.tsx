@@ -4,8 +4,9 @@
  * MarketingChromeGate — keeps floating widgets and product chrome OFF the
  * layer-1 marketing surface (DESIGN.md Layering: one idea, one action, zero
  * interruptions). Client-side pathname gate, same pattern as
- * StarProgressBar's /embed check; no hydration mismatch because the gated
- * children render nothing on the server and gate themselves client-side too.
+ * StarProgressBar's /embed check. This wrapper is the ONLY thing keeping
+ * MobileNav off layer 1 — the widgets gate themselves further, MobileNav
+ * does not.
  */
 
 import { usePathname } from 'next/navigation';

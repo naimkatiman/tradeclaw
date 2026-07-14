@@ -85,8 +85,7 @@ const MORE_GROUPS: DropdownGroup[] = [
 const ALL_NAV_LINKS: NavLink[] = [
   ...PRIMARY_LINKS,
   ...MORE_GROUPS.flatMap((g) => g.links),
-  { href: '#features', label: 'Features' },
-  { href: '#how-it-works', label: 'How it works' },
+  { href: '/how-it-works', label: 'How it works' },
 ];
 
 interface NavbarProps {
@@ -221,9 +220,11 @@ export function Navbar({ variant = 'full' }: NavbarProps = {}) {
             </select>
             <UserMenu size="compact" />
             {minimal ? (
+              /* Neutral on purpose: layer 1 keeps a single emerald action
+                 (the hero CTA). DESIGN.md Color. */
               <Link
                 href="/dashboard"
-                className="flex items-center gap-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-300"
+                className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors duration-300"
               >
                 Open the app
                 <span aria-hidden="true">→</span>
