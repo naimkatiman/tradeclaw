@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 export default function SpanishPage() {
   return (
     <>
-      <Navbar />
+      <Navbar variant="minimal" />
       <main lang="es">
         <LocalizedLanding t={t} locale="es" />
       </main>

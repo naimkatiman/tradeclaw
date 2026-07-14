@@ -36,7 +36,6 @@ FAQ is content worth keeping → new thin route `/faq` renders the existing FAQA
 
 ## Out of scope (deferred)
 
-- The stale `#features` / `#how-it-works` anchors in the full navbar's mobile overlay (pre-existing).
 - lib/hooks/use-user-tier.ts broken `\\api\\auth\\session` fetch (pre-existing bug found in recon — separate fix).
 - The 56px mobile body padding reserved for MobileNav lingers on layer-1 mobile (harmless whitespace above footer).
 - Localized landing content itself (LocalizedLanding) — untouched; only chrome gating applies to those routes.
