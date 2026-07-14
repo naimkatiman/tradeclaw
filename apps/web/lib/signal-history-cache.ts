@@ -9,8 +9,15 @@ interface CacheEntry {
   expiresAt: number;
 }
 
+interface InflightRead {
+  generation: number;
+  token: symbol;
+  promise: Promise<SignalHistoryRecord[]>;
+}
+
 let memoryCache: CacheEntry | null = null;
-let inflight: Promise<SignalHistoryRecord[]> | null = null;
+let cacheGeneration = 0;
+let inflight: InflightRead | null = null;
 
 /**
  * Returns cached signal history. On first call (or after TTL expiry),
@@ -21,6 +28,8 @@ let inflight: Promise<SignalHistoryRecord[]> | null = null;
  * so the app works without Redis in test/local environments.
  */
 export async function getCachedHistory(): Promise<SignalHistoryRecord[]> {
+  const generation = cacheGeneration;
+
   // 1. Try in-memory first (fastest)
   if (memoryCache && Date.now() < memoryCache.expiresAt) {
     return memoryCache.rows;
@@ -34,50 +43,79 @@ export async function getCachedHistory(): Promise<SignalHistoryRecord[]> {
       if (raw) {
         const parsed = JSON.parse(raw) as CacheEntry;
         if (parsed.expiresAt > Date.now()) {
+          if (generation !== cacheGeneration) {
+            return getCachedHistory();
+          }
           memoryCache = parsed; // warm local memory
           return parsed.rows;
         }
-        // Stale — remove it
-        await redis.del(CACHE_KEY);
+        // Stale — remove it only if no invalidation superseded this read.
+        if (generation === cacheGeneration) {
+          await redis.del(CACHE_KEY);
+        }
       }
     }
   } catch {
     // Redis unavailable — fall through to DB fetch
   }
 
-  // 3. Deduplicated DB fetch
-  if (inflight) return inflight;
+  // Invalidation may have happened while Redis initialization or lookup was
+  // pending. Retry at the current generation before touching the inflight slot.
+  if (generation !== cacheGeneration) {
+    return getCachedHistory();
+  }
 
-  inflight = (async () => {
+  // 3. Deduplicated DB fetch. A generation prevents an invalidated request
+  // from being shared with, or overwriting, a newer request.
+  if (inflight?.generation === generation) return inflight.promise;
+
+  const requestToken = Symbol('signal-history-read');
+  const promise = (async () => {
     try {
       const { readHistoryAsync } = await import('./signal-history');
       const rows = await readHistoryAsync();
       const entry: CacheEntry = { rows, expiresAt: Date.now() + TTL_MS };
 
-      // Write back to Redis (best-effort)
+      // Write back to Redis (best-effort).
       try {
-        if (isRedisAvailable() && redis) {
+        if (generation === cacheGeneration && isRedisAvailable() && redis) {
           await redis.set(CACHE_KEY, JSON.stringify(entry), 'PX', TTL_MS);
+          // Invalidation may have raced the write. Delete the old generation
+          // again so this request cannot resurrect stale rows in Redis.
+          if (generation !== cacheGeneration) {
+            await redis.del(CACHE_KEY);
+          }
         }
       } catch {
         // ignore Redis write errors
       }
 
-      memoryCache = entry;
+      if (generation === cacheGeneration) {
+        memoryCache = entry;
+      }
       return rows;
-    } catch {
-      return memoryCache?.rows ?? [];
+    } catch (error) {
+      // An expired snapshot is safer than turning a transient database outage
+      // into a convincing zero-signal result. With no prior snapshot, surface
+      // the read failure so API/UI callers can render an unavailable state.
+      if (memoryCache) return memoryCache.rows;
+      throw error;
     } finally {
-      inflight = null;
+      if (inflight?.token === requestToken) {
+        inflight = null;
+      }
     }
   })();
 
-  return inflight;
+  inflight = { generation, token: requestToken, promise };
+  return promise;
 }
 
 /** Force-expire the cache (call after new signals are recorded). */
 export async function invalidateHistoryCache(): Promise<void> {
+  cacheGeneration += 1;
   memoryCache = null;
+  inflight = null;
   try {
     if (isRedisAvailable() && redis) {
       await redis.del(CACHE_KEY);

@@ -2174,6 +2174,29 @@ tasks:
       was required. Production health returned HTTP 200/status ok, and the focused production
       Playwright suite passed 15/15. No schema or migration changes.
 
+  - id: TC-240
+    title: "Close SLC motion-polish follow-up gaps"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Closed the deferred gaps from merged PR #163 on fix/slc-motion-followups. The legacy
+      AnimatedChartHero now shares the reduced-motion hook and pauses its single-frame RAF
+      scheduler when offscreen or when the document is hidden, with scheduler unit coverage.
+      The homepage finding is neutral rather than rose, labels itself as the public reference
+      result, and renders distinct unavailable, empty, negative, non-negative, and
+      indeterminate ledger copy without fabricating zeros. CostFieldHero likewise separates a
+      legitimate empty dataset from an API failure. Signal-history caching now serves stale
+      snapshots on refresh failure, surfaces cold-read errors, and generation-tags inflight
+      reads so invalidation cannot resurrect stale memory or Redis rows; deferred concurrency,
+      invalidation, and Redis-initialization races are covered. E2E is blocking with CI-only
+      credentials that work on forks, and warmup owns a 180-second timeout. Verification passed:
+      full Jest 134/134 suites and 1,297 tests (3 suites/26 tests intentionally skipped), web
+      TypeScript, focused ESLint, root production build with 325/325 static pages, YAML and diff
+      checks, and production WebKit setup plus all 18 mobile assertions (19/19 total). Manual
+      dark/light visual QA confirmed neutral headline colors and honest no-data states; final
+      independent review found no unresolved High or Medium issues. No schema, migration,
+      dependency, lockfile, Docker, or Railway configuration changes.
+
 next_actions:
   - "2026-06-07: TC-235 complete. Created weekly performance recap content (X thread + LinkedIn post) highlighting 63.9% non-blacklisted WR, +0.10R expectancy, and methodology transparency. Ready for manual posting. Next: execute GitHub Stars Campaign — ProductHunt launch, HN Show HN post, or Reddit r/algotrading submission using existing prep pages (/launch, /hn, /share, /producthunt)."
   - "2026-06-07: TC-234 complete. Added LinkedIn share button to /track-record so visitors can one-click share verified performance stats. Advances ROADMAP 4.5 content pipeline (LinkedIn organic discovery). Build passes 330 pages, tests 111 passed. Next: create weekly performance recap content for X/LinkedIn using the 63.9% non-blacklisted WR milestone, or continue GitHub Stars Campaign prep."

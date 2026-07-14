@@ -33,7 +33,7 @@ function webglAvailable(): boolean {
 
 export function CostFieldHero() {
   const [data, setData] = useState<CostFieldData | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
   const [mode, setMode] = useState<CostFieldMode>('auto');
   const [phase, setPhase] = useState<'gross' | 'net'>('gross');
   // WebGL support is a fixed client capability; probe once in a lazy
@@ -48,13 +48,14 @@ export function CostFieldHero() {
       .then((body: CostFieldData & { count: number }) => {
         if (cancelled) return;
         if (!Array.isArray(body.t) || body.t.length === 0) {
-          setFailed(true);
+          setStatus('empty');
           return;
         }
         setData(body);
+        setStatus('ready');
       })
       .catch(() => {
-        if (!cancelled) setFailed(true);
+        if (!cancelled) setStatus('error');
       });
     return () => {
       cancelled = true;
@@ -65,11 +66,14 @@ export function CostFieldHero() {
   const count = data?.t.length ?? 0;
   const countLabel = useMemo(() => count.toLocaleString('en-US'), [count]);
 
-  if (failed) {
+  if (status === 'empty' || status === 'error') {
     return (
       <div className="flex h-full min-h-72 items-center justify-center rounded-[var(--radius-card)] border border-[var(--border)] bg-[var(--glass-bg)] p-6 text-center text-sm text-[var(--text-secondary)]">
         <p>
-          The trade field could not load. The same dataset is at{' '}
+          {status === 'empty'
+            ? 'No resolved, position-sized trades are available in this environment yet. '
+            : 'The trade field could not load. '}
+          Inspect the dataset at{' '}
           <a href={DATA_URL} className="underline hover:text-[var(--foreground)]">
             {DATA_URL}
           </a>{' '}
