@@ -287,7 +287,7 @@ export default function PortfolioClient() {
   const isBear = consensus.bullishPct <= 45;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white pb-24 md:pb-8">
+    <div className="premium-product-shell min-h-screen pb-24 text-[var(--foreground)] md:pb-8">
       {/* Header */}
       <div className="bg-zinc-900/50 border-b border-zinc-800">
         <div className="max-w-5xl mx-auto px-4 py-8">

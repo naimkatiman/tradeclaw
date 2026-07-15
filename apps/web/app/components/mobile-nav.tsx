@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Trophy, BarChart3 } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import type { ReactNode } from 'react';
@@ -313,23 +313,63 @@ const ALL_MENU_ITEMS = MENU_SECTIONS.flatMap((s) => s.items);
 export function MobileNav() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
 
   const isMenuActive = ALL_MENU_ITEMS.some(
     item => pathname === item.href || pathname.startsWith(item.href + '/')
   );
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Tab') {
+        const focusable = Array.from(
+          sheetRef.current?.querySelectorAll<HTMLElement>(
+            'a[href], button:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ) ?? [],
+        );
+        const first = focusable[0];
+        const last = focusable.at(-1);
+
+        if (!first || !last) return;
+        if (event.shiftKey && (document.activeElement === first || !sheetRef.current?.contains(document.activeElement))) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && (document.activeElement === last || !sheetRef.current?.contains(document.activeElement))) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+        requestAnimationFrame(() => menuButtonRef.current?.focus());
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen]);
 
   return (
     <>
       {/* Bottom nav bar */}
       <nav
         aria-label="Primary"
-        className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-[var(--border)] backdrop-blur-xl"
+        className="premium-dark-chrome fixed inset-x-0 bottom-0 z-50 border-t border-[var(--border-strong)] bg-[#050608]/[0.95] text-white backdrop-blur-xl md:hidden"
         style={{
           paddingBottom: 'env(safe-area-inset-bottom)',
-          background: 'color-mix(in srgb, var(--background) 80%, transparent)',
         }}
       >
-        <div className="grid grid-cols-4 h-16">
+        <div className="grid h-14 grid-cols-5">
           {MAIN_NAV.map(item => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             return (
@@ -338,20 +378,20 @@ export function MobileNav() {
                 href={item.href}
                 aria-label={item.label}
                 aria-current={isActive ? 'page' : undefined}
-                className={`relative flex flex-col items-center justify-center gap-0.5 min-h-[48px] select-none transition-all duration-200 active:scale-[0.92] ${
-                  isActive ? 'text-emerald-400' : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
+                className={`relative flex min-h-[48px] select-none flex-col items-center justify-center gap-0.5 transition-colors duration-150 active:bg-white/[0.04] ${
+                  isActive ? 'text-[var(--brand)]' : 'text-white/[0.48] hover:text-white'
                 }`}
               >
                 {/* Active top indicator */}
                 <span
-                  className={`absolute top-0 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-emerald-400 transition-all duration-300 ${
-                    isActive ? 'w-8 opacity-100' : 'w-0 opacity-0'
+                  className={`absolute left-1/2 top-0 h-0.5 -translate-x-1/2 bg-[var(--brand)] transition-all duration-200 ${
+                    isActive ? 'w-7 opacity-100' : 'w-0 opacity-0'
                   }`}
                 />
                 {/* Icon with active glow pill */}
                 <span
-                  className={`flex items-center justify-center w-10 h-7 rounded-full transition-colors duration-200 ${
-                    isActive ? 'bg-emerald-500/10' : ''
+                  className={`flex h-7 w-9 items-center justify-center rounded-sm border transition-colors duration-150 ${
+                    isActive ? 'border-[var(--brand)]/20 bg-[var(--brand-soft)]' : 'border-transparent'
                   }`}
                 >
                   {item.icon}
@@ -365,23 +405,25 @@ export function MobileNav() {
 
           {/* Menu button */}
           <button
+            ref={menuButtonRef}
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
             aria-expanded={menuOpen}
             aria-haspopup="dialog"
-            className={`relative flex flex-col items-center justify-center gap-0.5 min-h-[48px] select-none transition-all duration-200 active:scale-[0.92] ${
-              isMenuActive ? 'text-emerald-400' : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
+            aria-controls="more-navigation-sheet"
+            className={`relative flex min-h-[48px] select-none flex-col items-center justify-center gap-0.5 transition-colors duration-150 active:bg-white/[0.04] ${
+              isMenuActive ? 'text-[var(--brand)]' : 'text-white/[0.48] hover:text-white'
             }`}
           >
             <span
-              className={`absolute top-0 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-emerald-400 transition-all duration-300 ${
-                isMenuActive ? 'w-8 opacity-100' : 'w-0 opacity-0'
+              className={`absolute left-1/2 top-0 h-0.5 -translate-x-1/2 bg-[var(--brand)] transition-all duration-200 ${
+                isMenuActive ? 'w-7 opacity-100' : 'w-0 opacity-0'
               }`}
             />
             <span
-              className={`flex items-center justify-center w-10 h-7 rounded-full transition-colors duration-200 ${
-                isMenuActive ? 'bg-emerald-500/10' : ''
+              className={`flex h-7 w-9 items-center justify-center rounded-sm border transition-colors duration-150 ${
+                isMenuActive ? 'border-[var(--brand)]/20 bg-[var(--brand-soft)]' : 'border-transparent'
               }`}
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -402,37 +444,54 @@ export function MobileNav() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm md:hidden animate-in fade-in duration-200"
-            onClick={() => setMenuOpen(false)}
+            className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 md:hidden"
+            onClick={() => {
+              setMenuOpen(false);
+              requestAnimationFrame(() => menuButtonRef.current?.focus());
+            }}
             aria-hidden="true"
           />
 
           {/* Sheet */}
           <div
+            ref={sheetRef}
+            id="more-navigation-sheet"
             role="dialog"
             aria-modal="true"
             aria-label="More navigation"
-            className="fixed bottom-0 left-0 right-0 z-[70] md:hidden rounded-t-3xl border-t border-[var(--border)] max-h-[88vh] overflow-y-auto shadow-2xl shadow-black/50 animate-in slide-in-from-bottom duration-300"
-            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)', background: 'var(--bg-card)' }}
+            className="premium-dark-chrome fixed inset-x-0 bottom-0 z-[70] max-h-[88vh] overflow-y-auto rounded-t-xl border-t border-[var(--border-strong)] bg-[#090b0e] text-white shadow-[0_-24px_70px_rgba(0,0,0,0.55)] animate-in slide-in-from-bottom duration-300 md:hidden"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
           >
             {/* Drag handle */}
             <button
               type="button"
-              onClick={() => setMenuOpen(false)}
+              onClick={() => {
+                setMenuOpen(false);
+                requestAnimationFrame(() => menuButtonRef.current?.focus());
+              }}
               aria-label="Close menu"
-              className="w-full flex justify-center pt-3 pb-2 active:opacity-60 transition-opacity"
+              className="flex w-full justify-center pb-2 pt-3 transition-opacity active:opacity-60"
             >
-              <div className="w-12 h-1.5 rounded-full bg-[var(--border)]" />
+              <div className="h-1 w-10 rounded-full bg-white/[0.20]" />
             </button>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)]">
-              <span className="text-sm font-semibold">More</span>
+            <div className="flex items-center justify-between border-b border-white/[0.10] px-5 py-3">
+              <div>
+                <span className="block text-sm font-semibold">More</span>
+                <span className="mt-0.5 block text-[10px] uppercase tracking-[0.14em] text-white/[0.50]">Trading workspace</span>
+              </div>
               <div className="flex items-center gap-1">
-                <ThemeToggle className="text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]" />
+                <ThemeToggle className="text-white/[0.55] hover:bg-white/[0.06] hover:text-white" />
                 <button
-                  onClick={() => setMenuOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--glass-bg)] text-[var(--text-secondary)]"
+                  type="button"
+                  autoFocus
+                  onClick={() => {
+                    setMenuOpen(false);
+                    requestAnimationFrame(() => menuButtonRef.current?.focus());
+                  }}
+                  aria-label="Close menu"
+                  className="flex h-8 w-8 items-center justify-center rounded-sm border border-white/[0.10] bg-white/[0.035] text-white/[0.60] transition-colors hover:text-white"
                 >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -443,10 +502,10 @@ export function MobileNav() {
             </div>
 
             {/* Grouped menu items */}
-            <div className="p-4 space-y-5">
+            <div className="space-y-5 p-4">
               {MENU_SECTIONS.map((section) => (
                 <div key={section.label}>
-                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-secondary)] font-semibold px-1 mb-2 block">
+                  <span className="mb-2 block px-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/[0.50]">
                     {section.label}
                   </span>
                   <div className="grid grid-cols-2 gap-2">
@@ -458,10 +517,10 @@ export function MobileNav() {
                           href={item.href}
                           onClick={() => setMenuOpen(false)}
                           aria-current={isActive ? 'page' : undefined}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-xl min-h-[52px] transition-all duration-150 active:scale-[0.97] ${
+                          className={`flex min-h-[52px] items-center gap-3 rounded-sm border px-3 py-3 transition-colors duration-150 ${
                             isActive
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-sm shadow-emerald-500/10'
-                              : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] border border-[var(--border)] hover:text-[var(--foreground)] active:bg-[var(--accent-muted)]'
+                              ? 'border-[var(--brand)]/30 bg-[var(--brand-soft)] text-[var(--brand)]'
+                              : 'border-white/[0.07] bg-white/[0.025] text-white/[0.58] hover:border-white/[0.15] hover:bg-white/[0.05] hover:text-white'
                           }`}
                         >
                           <span className="shrink-0">{item.icon}</span>

@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
-import { redirect } from 'next/navigation';
-import { readSessionFromCookies } from '../../lib/user-session';
 
-export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const session = await readSessionFromCookies();
-  if (!session?.userId) redirect('/signin?next=%2Fdashboard');
+/**
+ * The signal workspace is intentionally public and read-only by default.
+ * Mutating actions (alerts, integrations, paper trading) enforce their own
+ * session checks at the API boundary.
+ */
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }

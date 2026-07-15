@@ -573,7 +573,7 @@ export function TrackRecordClient() {
   const embeddedBand = scope === 'pro' ? equityBand : 'all';
 
   return (
-    <div className="relative isolate min-h-[100dvh] overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
+    <div className="premium-product-shell relative isolate min-h-[100dvh] overflow-hidden text-[var(--foreground)]">
       <BackgroundDecor variant="track-record" />
       <PageNavBar />
 

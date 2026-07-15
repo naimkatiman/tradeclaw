@@ -296,7 +296,7 @@ export function CopilotClient() {
   const strongest = rankedSignals[0];
 
   return (
-    <div className="relative isolate min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+    <div className="premium-product-shell relative isolate min-h-screen text-[var(--foreground)]">
       <BackgroundDecor variant="dashboard" />
       <PageNavBar />
 

@@ -451,7 +451,7 @@ export default function BacktestPage() {
   const displayMaxDrawdown = singleResult ? (singleResult.maxDrawdown * 100).toFixed(1) : '0';
 
   return (
-    <div className="relative isolate min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
+    <div className="premium-product-shell relative isolate min-h-[100dvh] text-[var(--foreground)]">
       <BackgroundDecor variant="dashboard" />
       <PageNavBar />
       <div className="relative max-w-6xl mx-auto px-4 py-6 pb-20 md:pb-6">

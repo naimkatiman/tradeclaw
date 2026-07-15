@@ -145,7 +145,7 @@ export function TodayClient() {
     : '#';
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+    <div className="premium-product-shell min-h-screen text-[var(--foreground)]">
       <PageNavBar />
       {/* Header */}
       <div className="border-b" style={{ borderColor: 'var(--border)' }}>

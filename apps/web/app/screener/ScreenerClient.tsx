@@ -477,7 +477,7 @@ export default function ScreenerClient() {
     });
 
   return (
-    <div className="relative isolate min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
+    <div className="premium-product-shell relative isolate min-h-[100dvh] text-[var(--foreground)]">
       <BackgroundDecor variant="dashboard" />
       <PageNavBar />
 

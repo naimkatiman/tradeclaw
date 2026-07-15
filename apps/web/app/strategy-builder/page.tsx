@@ -350,7 +350,7 @@ export default function StrategyBuilderPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
+    <div className="premium-product-shell min-h-[100dvh] text-[var(--foreground)]">
       <PageNavBar />
       <div className="max-w-4xl mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Header */}

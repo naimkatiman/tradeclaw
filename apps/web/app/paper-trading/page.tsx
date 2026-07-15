@@ -571,7 +571,7 @@ export default function PaperTradingPage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)] font-sans">
+    <div className="premium-product-shell min-h-[100dvh] text-[var(--foreground)] font-sans">
       <PageNavBar />
 
       {/* Page controls */}

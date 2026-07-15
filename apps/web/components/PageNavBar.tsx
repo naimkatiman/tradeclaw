@@ -152,6 +152,7 @@ export function PageNavBar() {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
 
   const navSet = selectNav(pathname ?? '/');
   const { primary: PRIMARY_LINKS, more: MORE_GROUPS, variant } = navSet;
@@ -175,6 +176,20 @@ export function PageNavBar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [moreOpen]);
 
+  useEffect(() => {
+    if (!moreOpen) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setMoreOpen(false);
+        requestAnimationFrame(() => moreButtonRef.current?.focus());
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [moreOpen]);
+
   // Close dropdown on route change
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync dropdown state with route
@@ -182,37 +197,39 @@ export function PageNavBar() {
   }, [pathname]);
 
   const linkClasses = (active: boolean) =>
-    `px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+    `flex h-16 items-center border-b-2 px-1.5 text-[10px] font-medium transition-colors duration-200 lg:px-2 lg:text-[11px] xl:px-2.5 xl:text-[12px] ${
       active
-        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-        : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
+        ? variant === 'admin'
+          ? 'border-amber-400 text-white'
+          : 'border-[var(--brand)] text-white'
+        : 'border-transparent text-white/[0.55] hover:border-white/[0.15] hover:text-white'
     }`;
 
   return (
     <nav
-      className={`sticky top-0 z-50 border-b backdrop-blur-xl ${
+      className={`premium-dark-chrome sticky top-0 z-50 border-b bg-[#050608]/[0.95] text-white backdrop-blur-xl ${
         variant === 'admin'
-          ? 'border-amber-500/20 bg-amber-950/20'
-          : 'border-[var(--border)] bg-[var(--background)]/90'
+          ? 'border-amber-500/30'
+          : 'border-[var(--border-strong)]'
       }`}
       aria-label={variant === 'admin' ? 'Admin navigation' : 'Member navigation'}
     >
-      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
+      <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-1.5 shrink-0">
-          <TradeClawLogo className="h-4 w-4 shrink-0" id="pagenav" />
-          <span className="text-sm font-semibold">
-            Trade<span className="text-emerald-400">Claw</span>
+        <Link href="/" className="flex shrink-0 items-center gap-2">
+          <TradeClawLogo className="h-6 w-6 shrink-0" id="pagenav" />
+          <span className="text-[15px] font-bold tracking-[-0.02em] text-white">
+            Trade<span className="text-[var(--brand)]">Claw</span>
           </span>
           {variant === 'admin' && (
-            <span className="ml-1 text-[9px] uppercase tracking-widest font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded">
+            <span className="ml-1 rounded-sm border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-300">
               Admin
             </span>
           )}
         </Link>
 
         {/* Desktop: Primary links + More dropdown */}
-        <div className="hidden md:flex items-center gap-1 ml-auto mr-2">
+        <div className="ml-auto mr-2 hidden h-full items-center gap-0.5 md:flex">
           {PRIMARY_LINKS.map((page) => (
             <Link
               key={page.href}
@@ -227,11 +244,17 @@ export function PageNavBar() {
           {/* More dropdown */}
           <div ref={moreRef} className="relative">
             <button
+              ref={moreButtonRef}
               onClick={() => setMoreOpen((prev) => !prev)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 inline-flex items-center gap-1 ${
+              aria-expanded={moreOpen}
+              aria-haspopup="true"
+              aria-controls="page-more-menu"
+              className={`relative inline-flex h-16 items-center gap-1 border-b-2 px-1.5 text-[10px] font-medium transition-colors duration-200 lg:px-2 lg:text-[11px] xl:px-2.5 xl:text-[12px] ${
                 moreHasActive
-                  ? 'text-emerald-400'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
+                  ? variant === 'admin'
+                    ? 'border-amber-400 text-white'
+                    : 'border-[var(--brand)] text-white'
+                  : 'border-transparent text-white/[0.55] hover:border-white/[0.15] hover:text-white'
               }`}
             >
               More
@@ -240,44 +263,45 @@ export function PageNavBar() {
               />
               {/* Active indicator dot when a "More" page is current */}
               {moreHasActive && !moreOpen && (
-                <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400" />
+                <span className="absolute bottom-2 left-1/2 h-1 w-1 -translate-x-1/2 bg-[var(--brand)]" />
               )}
             </button>
 
             {/* Dropdown panel */}
-            <div
-              className={`absolute top-full right-0 mt-2 w-[320px] rounded-xl border border-[var(--border)] backdrop-blur-2xl bg-[var(--bg-card)]/95 shadow-2xl shadow-black/40 p-4 grid grid-cols-2 gap-4 transition-all duration-200 origin-top-right ${
-                moreOpen
-                  ? 'opacity-100 scale-100 pointer-events-auto'
-                  : 'opacity-0 scale-95 pointer-events-none'
-              }`}
-            >
-              {MORE_GROUPS.map((group) => (
-                <div key={group.label}>
-                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-secondary)] font-semibold mb-1.5 block">
-                    {group.label}
-                  </span>
-                  <div className="flex flex-col gap-0.5">
-                    {group.links.map((link) => (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        onClick={() => setMoreOpen(false)}
-                        aria-current={isActive(link.href) ? 'page' : undefined}
-                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs transition-colors duration-200 ${
-                          isActive(link.href)
-                            ? 'text-emerald-400 bg-emerald-500/10'
-                            : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
-                        }`}
-                      >
-                        <link.icon className="w-3 h-3 shrink-0" />
-                        {link.label}
-                      </Link>
-                    ))}
+            {moreOpen && (
+              <div
+                id="page-more-menu"
+                className="fixed inset-x-4 top-16 mt-px grid max-h-[calc(100vh-5rem)] grid-cols-3 origin-top-right items-start gap-5 overflow-y-auto rounded-md border border-[var(--border-strong)] bg-[#090b0e]/[0.98] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.55)] xl:absolute xl:inset-x-auto xl:right-0 xl:top-full xl:w-[680px]"
+              >
+                {MORE_GROUPS.map((group) => (
+                  <div key={group.label}>
+                    <span className="mb-2 block border-b border-white/[0.10] pb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/[0.50]">
+                      {group.label}
+                    </span>
+                    <div className="flex flex-col gap-0.5">
+                      {group.links.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setMoreOpen(false)}
+                          aria-current={isActive(link.href) ? 'page' : undefined}
+                          className={`flex items-center gap-2 rounded-sm px-2 py-1.5 text-xs transition-colors duration-150 ${
+                            isActive(link.href)
+                              ? variant === 'admin'
+                                ? 'bg-amber-500/10 text-amber-300'
+                                : 'bg-[var(--brand-soft)] text-[var(--brand)]'
+                              : 'text-white/[0.60] hover:bg-white/[0.06] hover:text-white'
+                          }`}
+                        >
+                          <link.icon className="h-3.5 w-3.5 shrink-0" />
+                          {link.label}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

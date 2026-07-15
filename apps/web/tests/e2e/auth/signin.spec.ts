@@ -15,19 +15,16 @@ function makeSessionToken(userId: string, secret: string): string {
 const USER_SESSION_SECRET = process.env.USER_SESSION_SECRET ?? '';
 const sessionSecretAvailable = USER_SESSION_SECRET.length >= 16;
 
-test.describe('signin page — Google-only auth', () => {
+test.describe('public dashboard and sign-in', () => {
   // ---------------------------------------------------------------------------
-  // 1. Unauthenticated /dashboard redirects to /signin with next param
+  // 1. Public mode keeps the read-only dashboard available without auth
   // ---------------------------------------------------------------------------
-  test('unauthenticated /dashboard redirects to /signin?next=%2Fdashboard', async ({ page }) => {
+  test('unauthenticated /dashboard opens the public read-only workspace', async ({ page }) => {
     await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
-    await page.waitForURL(/\/signin/, { timeout: 15_000 });
     const url = new URL(page.url());
-    expect(url.pathname).toBe('/signin');
-    const next = url.searchParams.get('next');
-    expect(next).not.toBeNull();
-    // The layout hard-codes next=%2Fdashboard; accept either encoded or decoded form.
-    expect(decodeURIComponent(next!)).toBe('/dashboard');
+    expect(url.pathname).toBe('/dashboard');
+    await expect(page.getByRole('navigation', { name: 'Member navigation' })).toBeVisible();
+    await expect(page.getByTestId('dashboard-connect-telegram-btn')).toHaveCount(0);
   });
 
   // ---------------------------------------------------------------------------
@@ -154,9 +151,9 @@ test.describe('Google OAuth start route', () => {
 
 test.describe('authenticated dashboard access', () => {
   // ---------------------------------------------------------------------------
-  // 10. Forged tc_user_session cookie bypasses redirect gate
+  // 10. A valid session also reaches the shared dashboard workspace
   // ---------------------------------------------------------------------------
-  test('valid tc_user_session cookie reaches /dashboard without redirect', async ({ browser }) => {
+  test('valid tc_user_session cookie reaches /dashboard', async ({ browser }) => {
     if (!sessionSecretAvailable) {
       test.skip(true, 'USER_SESSION_SECRET not set or < 16 chars in test env — cannot forge session cookie');
       return;
@@ -179,7 +176,6 @@ test.describe('authenticated dashboard access', () => {
     const page = await context.newPage();
     await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
-    // The layout gate passes when cookie is valid. Should NOT end up at /signin.
     const url = new URL(page.url());
     expect(url.pathname).toBe('/dashboard');
 

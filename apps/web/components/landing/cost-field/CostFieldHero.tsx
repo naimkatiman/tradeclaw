@@ -43,7 +43,9 @@ export function CostFieldHero() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(DATA_URL)
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8_000);
+    fetch(DATA_URL, { signal: controller.signal })
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
       .then((body: CostFieldData & { count: number }) => {
         if (cancelled) return;
@@ -56,9 +58,14 @@ export function CostFieldHero() {
       })
       .catch(() => {
         if (!cancelled) setStatus('error');
+      })
+      .finally(() => {
+        window.clearTimeout(timeout);
       });
     return () => {
       cancelled = true;
+      controller.abort();
+      window.clearTimeout(timeout);
     };
   }, []);
 
@@ -91,7 +98,20 @@ export function CostFieldHero() {
         ) : data ? (
           <StaticCostField data={data} />
         ) : (
-          <div className="h-full w-full animate-pulse bg-[var(--glass-bg)]" aria-hidden="true" />
+          <div
+            className="relative flex h-full w-full items-end overflow-hidden bg-[var(--surface-inset)] p-5"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="premium-grid-bg absolute inset-0 opacity-50" aria-hidden="true" />
+            <div className="absolute inset-x-[8%] top-[38%] h-px bg-[var(--border-strong)]" aria-hidden="true" />
+            <div className="relative z-10 max-w-xs rounded-lg border border-[var(--border)] bg-[var(--bg-card)]/80 px-3 py-2 backdrop-blur">
+              <p className="text-xs font-medium text-[var(--foreground)]">Loading verified trade field</p>
+              <p className="mt-1 text-[10px] leading-4 text-[var(--text-secondary)]">
+                Fetching resolved trades and modeled execution costs. No placeholder results are shown.
+              </p>
+            </div>
+          </div>
         )}
       </div>
 

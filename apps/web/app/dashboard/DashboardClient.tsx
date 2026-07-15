@@ -981,7 +981,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
   const biasColor = bias === 'BULL' ? 'text-emerald-400' : bias === 'BEAR' ? 'text-red-400' : 'text-[var(--text-secondary)]';
 
   return (
-    <div className="relative isolate min-h-[100dvh] overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
+    <div className="premium-product-shell relative isolate min-h-[100dvh] overflow-hidden text-[var(--foreground)]">
       <BackgroundDecor variant="dashboard" />
       <GuidedTourListener />
       <PageNavBar />

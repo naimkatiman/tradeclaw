@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-15T02:20:49+08:00
+updated: 2026-07-15T09:58:45+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -3456,3 +3456,33 @@ next_actions:
       recent window) on the hero; replaced by all-time win rate vs break-even.
       Verified: npm run build 330/330 pages, jest 1098 passed / 0 failed.
       2026-06-11.
+
+  - id: TC-242
+    title: "Premium Bitget-inspired UI/UX system overhaul"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-07-15 from the owner's direction to overhaul TradeClaw with
+      a premium exchange-grade visual system inspired by Bitget without copying
+      its brand or product claims. Reference audit and repository/UX audits are
+      in progress. Scope includes the global token system, desktop/mobile
+      navigation, footer, landing page, and shared surfaces used by the live
+      dashboard, screener, and track record. Existing unrelated dirty worktree
+      changes are being preserved. Checkpoint: re-anchored the work on current
+      origin/main via feat/premium-ui-overhaul without touching the inherited
+      research lane; completed the Bitget/live-site and route UX audits; added
+      the cyan/neutral semantic token system, premium panel/button/product-shell
+      primitives, a rebuilt evidence-first hero and exploration grid, premium
+      shells across the main trading workspaces, and restored anonymous read-only
+      access to /dashboard per the public-mode product decision. Shared desktop
+      navigation, a five-item mobile nav, route-aware footer, cyan logo, keyboard
+      focus containment, contrast-safe forced-dark chrome, and desktop-only cost
+      field rendering are complete. Verification checkpoint: `npm run build`
+      compiled all packages and generated 326/326 routes; focused ESLint has zero
+      errors; landing-copy/navigation Jest suites pass 8/8; and the anonymous
+      read-only dashboard contract passes in Chromium E2E. Clean light-theme
+      browser QA also passed for the desktop Navbar, dashboard More panel, footer,
+      and the 390px five-item mobile nav/More sheet, including computed contrast,
+      focus containment, and body scroll locking. No Docker, deployment,
+      dependency, lockfile, database, trading-rule, or inherited research-lane
+      changes were made.

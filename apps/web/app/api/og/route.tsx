@@ -13,7 +13,7 @@ export async function GET() {
         style={{
           width: "1200px",
           height: "630px",
-          background: "#050505",
+          background: "#030506",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -34,7 +34,7 @@ export async function GET() {
             height: "600px",
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)",
+              "radial-gradient(circle, rgba(21,216,244,0.16) 0%, transparent 70%)",
           }}
         />
 
@@ -52,20 +52,20 @@ export async function GET() {
               width: "12px",
               height: "12px",
               borderRadius: "50%",
-              background: "#10b981",
-              boxShadow: "0 0 16px #10b981",
+              background: "#15d8f4",
+              boxShadow: "0 0 16px #15d8f4",
             }}
           />
           <span
             style={{
               fontSize: "16px",
-              color: "#10b981",
+              color: "#15d8f4",
               letterSpacing: "0.2em",
               textTransform: "uppercase",
               fontWeight: 500,
             }}
           >
-            Open source · Free forever
+            Open source · Self-hosted
           </span>
         </div>
 
@@ -87,13 +87,13 @@ export async function GET() {
         <div
           style={{
             fontSize: "32px",
-            color: "#10b981",
+            color: "#15d8f4",
             fontWeight: 500,
             marginBottom: "48px",
             letterSpacing: "-0.01em",
           }}
         >
-          Open-source trading transparency
+          Trading signals you can audit
         </div>
 
         {/* Tagline */}
@@ -101,7 +101,7 @@ export async function GET() {
           style={{
             display: "flex",
             gap: "24px",
-            color: "#6b7280",
+            color: "#8d9aa0",
             fontSize: "16px",
             letterSpacing: "0.05em",
           }}

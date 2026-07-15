@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Big_Shoulders, Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SWRegister } from "./components/sw-register";
 import { MobileNav } from "./components/mobile-nav";
@@ -27,17 +27,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Display face for brand surfaces only (hero headlines, section-opening
-// statements) — see DESIGN.md Typography. Variable weight, condensed.
-const bigShoulders = Big_Shoulders({
-  variable: "--font-big-shoulders",
-  subsets: ["latin"],
-  // Next's font metrics table has no fallback-override entry for this face;
-  // without this flag every compile logs a warning. Display-only usage does
-  // not need a metrics-matched fallback.
-  adjustFontFallback: false,
-});
-
+// Geist provides both the editorial display voice and compact product UI.
 const jsonLd = [
   {
     "@context": "https://schema.org",
@@ -144,8 +134,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#050505" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f7f8" },
+    { media: "(prefers-color-scheme: dark)", color: "#030506" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -160,7 +150,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${bigShoulders.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
