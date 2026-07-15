@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { installBacktestFixture } from '../lib/backtest-fixture';
 
 async function dismissStarMilestoneModal(page: Page): Promise<void> {
   // Pre-existing "Milestone reached: 10 Stars" dialog can intercept clicks.
@@ -23,6 +24,10 @@ async function dismissStarMilestoneModal(page: Page): Promise<void> {
 }
 
 test.describe('Backtest Comparison', () => {
+  test.beforeEach(async ({ page }) => {
+    await installBacktestFixture(page);
+  });
+
   test('shows multiple presets side-by-side in comparison table', async ({ page }) => {
     await dismissStarMilestoneModal(page);
     await page.goto('/backtest');

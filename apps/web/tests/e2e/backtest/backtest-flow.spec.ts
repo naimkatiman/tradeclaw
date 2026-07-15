@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { installBacktestFixture } from '../lib/backtest-fixture';
 
 async function dismissStarMilestoneModal(page: Page): Promise<void> {
   await page.addInitScript(() => {
@@ -20,6 +21,10 @@ async function dismissStarMilestoneModal(page: Page): Promise<void> {
 }
 
 test.describe('Backtest Single-Preset Flow', () => {
+  test.beforeEach(async ({ page }) => {
+    await installBacktestFixture(page);
+  });
+
   test('page loads with config panel and run button', async ({ page }) => {
     await dismissStarMilestoneModal(page);
     await page.goto('/backtest');

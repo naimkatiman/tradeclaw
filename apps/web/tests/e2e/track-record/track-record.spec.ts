@@ -40,7 +40,7 @@ test.describe('Track Record page', () => {
     await expect(page.locator('body')).toBeVisible();
   });
 
-  // Test 2: Per-Symbol Performance (leaderboard) section is present.
+  // Test 2: Per-Symbol Outcomes (leaderboard) section is present.
   // Heading text is the literal string in TrackRecordClient.tsx h2.
   test('leaderboard section is present and populated', async ({ page }) => {
     await dismissStarMilestoneModal(page);
@@ -48,7 +48,7 @@ test.describe('Track Record page', () => {
     await dismissStarMilestoneModal(page);
 
     // Wait for the section heading — it appears once the component mounts.
-    const sectionHeading = page.getByText('Per-Symbol Performance');
+    const sectionHeading = page.getByText('Per-Symbol Outcomes');
     await expect(sectionHeading).toBeVisible({ timeout: 15_000 });
 
     // After data loads, either: rows appear OR an explicit empty-state cell appears.
@@ -69,23 +69,21 @@ test.describe('Track Record page', () => {
     }
   });
 
-  // Test 3: Equity curve canvas renders.
-  // EquityCurve renders a native <canvas> (custom drawChart, not lightweight-charts).
-  // The canvas is hidden while loading then set to display:block via inline style.
-  test('equity curve renders', async ({ page }) => {
+  // Test 3: The sequential simulation reports either a real curve or the
+  // explicit no-evidence state. A zero-return canvas is intentionally omitted.
+  test('sequential simulation renders an evidence-backed state', async ({ page }) => {
     await dismissStarMilestoneModal(page);
     await page.goto('/track-record');
     await dismissStarMilestoneModal(page);
 
     // Section heading from EquityCurve component h2.
     await expect(
-      page.getByText(/Signal Performance.*Auto Paper-Traded/i)
+      page.getByText(/Signal Study.*Sequential Simulation/i)
     ).toBeVisible({ timeout: 15_000 });
 
-    // Canvas becomes display:block once the equity API resolves.
-    // The loading spinner uses display:none on the canvas — wait until it's block.
     const canvas = page.locator('canvas').first();
-    await expect(canvas).toBeVisible({ timeout: 20_000 });
+    const noEvidence = page.getByText(/no approved observed-OHLCV outcomes.*no zero-return placeholder/i);
+    await expect(canvas.or(noEvidence)).toBeVisible({ timeout: 20_000 });
   });
 
   // Test 4: Category breakdown buttons (All / Majors / Thematic) are present.

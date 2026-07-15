@@ -6,7 +6,7 @@ test.describe('landing proof hero', () => {
     await expect(page.getByTestId('proof-hero')).toBeVisible();
   });
 
-  test('states the product in plain language and links to every trade', async ({ page }) => {
+  test('states the product in plain language and links to the signal record', async ({ page }) => {
     await page.goto('/');
     const hero = page.getByTestId('proof-hero');
     await expect(
@@ -14,7 +14,7 @@ test.describe('landing proof hero', () => {
         name: /Open-source trading signals\./i,
       }),
     ).toBeVisible();
-    await expect(hero.getByRole('link', { name: /Inspect every trade/i })).toBeVisible();
+    await expect(hero.getByRole('link', { name: /Inspect signal rows/i })).toBeVisible();
     await expect(hero).toContainText(/TradeClaw is an open-source/i);
     await expect(hero).not.toContainText(/win rate vs break-even/i);
 
@@ -48,7 +48,7 @@ test.describe('landing proof hero', () => {
       await page.setViewportSize(viewport);
       await page.goto('/');
       const hero = page.getByTestId('proof-hero');
-      const cta = hero.getByRole('link', { name: /Inspect every trade/i });
+      const cta = hero.getByRole('link', { name: /Inspect signal rows/i });
       await expect(cta).toBeVisible();
       const box = await cta.boundingBox();
       expect(box).not.toBeNull();
