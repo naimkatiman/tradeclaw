@@ -117,32 +117,58 @@ Relevant implementation:
 - `packages/strategies/src/backtest-options.ts`: asset-class cost assumptions
 - `apps/web/migrations/051_calibration_features.sql`: definition of `cost_estimate_pct`
 
-## Post-audit repair status
+## Deployed post-repair production snapshot
 
-The repaired worktree now counts nonzero 24-hour OHLCV closes only when their resolver source is an approved observed provider (`market-data-hub`, `binance`, `stooq`, `kraken`, or `cryptocompare`). Legacy rows without source, synthetic/unknown sources, and missing/zero force-expiry placeholders remain stored but do not count. Public history GET is read-only, row IDs plus cost/outcome provenance are available through `?include=provenance`, and a fail-closed cost-adjusted evidence gate sits before entry-like execution and hosted alert fan-out.
+- Capture window: 2026-07-15 08:40:18.862 UTC through 08:40:19.930 UTC
+- Runtime source: `b070197b38b7b42560ba5d317149fb92d75dd06c` (PRs #168 and #169)
+- Railway deployment: `d2648ea6-beff-434c-8bf8-8c79c74709bf` (`SUCCESS`, image `sha256:d59af31a421908e8ac9f8e6787a1f70a82dbd4111aec520ac01152c6a9c197ab`)
 
-Production OHLCV retrieval now returns an explicit unavailable result when observed providers fail; the synthetic-candle production fallback has been removed. Resolution writers refuse unobserved sources and stamp the provider plus resolution time on accepted outcomes. These changes prevent the pre-repair snapshot from automatically qualifying as post-repair evidence because its legacy rows do not prove source provenance.
+All responses were captured with the exact-release cache buster `release=b070197b`, `Accept-Encoding: identity`, and a no-cache request. The release query identifies the deployed code path but does not freeze the continuously changing production dataset. These hashes are timestamp-specific capture fingerprints. The committed raw bodies, rather than a later response from the same URL, are the immutable evidence for the arithmetic below.
 
-Those changes do not retroactively alter the fingerprinted 3,967-row response above. The exact numbers remain valid only for that dated, pre-repair production snapshot and its then-current denominator. Deploy the repaired version and rerun the public snapshot before calling any result "current" or comparing it directly with post-repair figures.
+| Response | Exact URL | Archived body | Bytes | SHA-256 |
+|---|---|---|---:|---|
+| Cost field | `https://tradeclaw.win/api/research/cost-field?scope=pro&release=b070197b` | [cost-field.json](evidence/2026-07-15-b070197b/cost-field.json) | 72,658 | `7d568ee659892327d6b490efcfd3c0822c68cd5beaad62f5e369466547c29aa7` |
+| Equity summary | `https://tradeclaw.win/api/signals/equity?scope=pro&summaryOnly=1&release=b070197b` | [equity-summary.json](evidence/2026-07-15-b070197b/equity-summary.json) | 587 | `a44d95afb0748b7fec6da4af1f781707b6ffbd50dcf26019fed27e2800a2266a` |
+| Signal history | `https://tradeclaw.win/api/signals/history?scope=pro&period=all&limit=1&release=b070197b` | [signal-history.json](evidence/2026-07-15-b070197b/signal-history.json) | 1,011 | `2edfd1ddb818869d93633062c174482c17f5b8cf8003d517bc29d67012a5af1a` |
+| Proof | `https://tradeclaw.win/api/proof?release=b070197b` | [proof.json](evidence/2026-07-15-b070197b/proof.json) | 69,359 | `16223e9613bb170d0ba0a5dcdcde32d93c0a04ecf78982e9524c99ddc396877d` |
+| Win rates | `https://tradeclaw.win/api/v1/win-rates?release=b070197b` | [win-rates.json](evidence/2026-07-15-b070197b/win-rates.json) | 3,571 | `9fb4c30cc6f422fe078bcb46ae68182b10ef6705dd9b47da7e596f3fb7c6bdc3` |
+
+The source read loaded 10,000 records, its configured 10,000-row maximum, and reported `potentiallyTruncatedBeforeStart: true`. Eligible outcomes covered 2026-06-10 13:30 UTC through 2026-07-15 07:00 UTC.
+
+| Measure | Independently recomputed value |
+|---|---:|
+| Eligible observed-OHLCV outcomes | 1,220 |
+| Wins / losses | 448 / 772 |
+| Win rate | 36.7213% (36.7% displayed) |
+| Mean gross result | -0.0224795082 R/signal |
+| Mean modeled cost | 0.4028188525 R/signal |
+| Mean result after modeled cost | -0.4252983607 R/signal |
+| Sequential hypothetical 1% simulation | -99.51% |
+
+The five public surfaces agree on the eligible population. The result remains an OHLCV-derived, risk-normalized signal study with modeled fees and slippage. It is not broker-fill evidence, customer-account performance, or portfolio P&L. The separate unsized directional metric is positive (+0.04% mean and +45.39% summed), which is another reason an unqualified "overall loss" statement would be materially ambiguous.
+
+Live release checks also confirmed that the leaderboard's top and worst performers each have resolved evidence, all three OG endpoints return valid 1200x630 PNGs, and the EarningsEdge pricing page has no horizontal overflow at 390px or 320px. These checks address the three defects found during the first post-repair production sweep.
+
+The repaired runtime counts nonzero 24-hour OHLCV closes only when their resolver source is an approved observed provider (`market-data-hub`, `binance`, `stooq`, `kraken`, or `cryptocompare`). Legacy rows without source, synthetic or unknown sources, and missing or zero force-expiry placeholders remain stored but do not count. Public history GET is read-only, row IDs plus cost and outcome provenance are available through `?include=provenance`, and a fail-closed cost-adjusted evidence gate sits before entry-like execution and hosted alert fan-out.
+
+These changes do not retroactively alter the frozen 3,967-row response above. That historical result remains valid only for its dated, pre-repair production denominator. The 1,220-row result in this section is the current, deployed source-gated study.
 
 ## LinkedIn-safe copy
 
-> We re-ran TradeClaw's public cost-adjusted test instead of cherry-picking a win.
+> We reran TradeClaw after deploying the evidence-provenance repair. In the currently available 10,000-row source window, 1,220 outcomes had approved observed-OHLCV provenance, covering 10 June through 15 July 2026 UTC.
 >
-> In a 15 July 2026 snapshot covering 3,967 counted, position-sized signals from 12 April to 14 July, average gross expectancy was +0.015R per signal. After our published fee-and-slippage model, it was -0.418R per counted signal.
+> Average gross result was -0.0225R per signal. After our published fee-and-slippage model, average net result was -0.4253R per signal. This engine version did not demonstrate a net edge under those assumptions.
 >
-> The conclusion is narrow but important: this version of the engine did not demonstrate a net edge under the stated assumptions.
+> These are OHLCV-derived signal outcomes with modeled costs, not broker fills, customer losses, or portfolio returns. The source window is capped and may omit earlier rows.
 >
-> These figures describe the fingerprinted 15 July snapshot and the production denominator then in use. They are OHLCV-resolved signal outcomes plus a hypothetical cost/sizing model, not broker fills or customer portfolio returns. The repaired method counts nonzero 24-hour closes, so I will publish a new current figure after that version is deployed and rerun.
->
-> Data: https://tradeclaw.win/api/research/cost-field
+> Data: https://tradeclaw.win/api/research/cost-field?scope=pro
 > Method: https://tradeclaw.win/methodology
 
 Do not replace the last paragraph with "not financial advice" and remove the methodological limitations. A generic disclaimer does not repair an overbroad performance claim.
 
 If the compounded number is mentioned, use this wording:
 
-> A separate sequential simulation risking 1% of current equity per eligible signal rounded to -100%. Because it does not model concurrent exposure or account margin, I do not describe it as an actual portfolio result.
+> A separate sequential simulation risking 1% of current equity per eligible signal returned -99.51%. Because it does not model concurrent exposure or account margin, I do not describe it as an actual portfolio result.
 
 ## WEEX outreach verification
 

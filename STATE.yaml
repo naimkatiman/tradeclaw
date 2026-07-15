@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-15T14:31:11+08:00
+updated: 2026-07-15T16:40:32+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -8,45 +8,78 @@ description: >
   Goal: viral GitHub repo, thousands of stars.
 
 truth_release_2026_07_15:
-  at: 2026-07-15T14:31:11+08:00
+  at: 2026-07-15T16:40:32+08:00
   agent: TradeClaw PM agent
-  status: validated_pending_release
-  scope: Evidence-provenance repair, truthful runtime surfaces, reviewed commit, and Railway production release
+  status: deployed
+  scope: Evidence-provenance repair plus production truth and rendering follow-ups
+  pull_requests:
+    integrity: 168
+    production_followups: 169
+  integrity_merge_commit: 86a743053c4c129459b6474e55f887e65341933b
+  source_commit: b070197b38b7b42560ba5d317149fb92d75dd06c
+  source_branch: main
+  deployment:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment: production
+    service: web
+    deployment_id: d2648ea6-beff-434c-8bf8-8c79c74709bf
+    status: SUCCESS
+    image_digest: sha256:d59af31a421908e8ac9f8e6787a1f70a82dbd4111aec520ac01152c6a9c197ab
+    live_url: https://tradeclaw.win
+    health: "HTTP 200 /api/health with status ok"
+  superseded_deployment:
+    source_commit: 86a743053c4c129459b6474e55f887e65341933b
+    deployment_id: 880bb086-9a5d-45a7-8ee7-fdde1474fa8c
+  evidence:
+    captured_at_utc: 2026-07-15T08:40:18Z
+    artifact: docs/audits/2026-07-15-linkedin-claim-verification.md
+    evidence_directory: docs/audits/evidence/2026-07-15-b070197b
+    eligible_outcomes: 1220
+    wins: 448
+    losses: 772
+    mean_gross_r: -0.0224795082
+    mean_modeled_cost_r: 0.4028188525
+    mean_net_r: -0.4252983607
+    source_records_loaded: 10000
+    source_read_limit: 10000
+    potentially_truncated_before_start: true
+    cost_field_sha256: 7d568ee659892327d6b490efcfd3c0822c68cd5beaad62f5e369466547c29aa7
+    equity_summary_sha256: a44d95afb0748b7fec6da4af1f781707b6ffbd50dcf26019fed27e2800a2266a
+    history_sha256: 2edfd1ddb818869d93633062c174482c17f5b8cf8003d517bc29d67012a5af1a
+    proof_sha256: 16223e9613bb170d0ba0a5dcdcde32d93c0a04ecf78982e9524c99ddc396877d
+    win_rates_sha256: 9fb4c30cc6f422fe078bcb46ae68182b10ef6705dd9b47da7e596f3fb7c6bdc3
+    summary_og_sha256: 423a8c220763b36a5a4b6217737e121a4dc24ae67bda946f8d21403be14fae2f
   notes: >
-    Legacy outcomes without approved observed-OHLCV provenance now fail closed
-    for public statistics and the cost-adjusted execution gate. Public mutation,
-    fabricated health/proof/security states, browser-held broker credentials,
-    paper-ledger contamination, synthetic production fallbacks, and unsupported
-    paid/testimonial claims are being removed or made explicitly unavailable.
-    The complete release validation passes: 201 Jest suites / 1,556 tests
-    (1,530 passed, 26 skipped), web lint with zero errors, web typecheck, agent
-    package build, the root production build with 324 generated pages, and a
-    structural Docker Compose parse. Docker is not installed, so the Compose
-    services could not be started locally. Clean commit review, main-branch
-    merge, exact-SHA deployment, and post-deploy evidence recomputation remain
-    pending.
+    PR #168 made public evidence fail closed and deployed successfully. Production
+    QA then found a zero-evidence leaderboard ranking, a failing summary OG image,
+    and mobile pricing overflow. PR #169 corrected those issues and passed lint,
+    typecheck, unit tests, strategy backtests, the production build, Docker build,
+    and the Playwright suite with 203 passed and 6 skipped. Railway deployed the
+    exact clean main SHA above. Live verification returned HTTP 200/ok, three
+    valid 1200x630 OG
+    images, evidence-qualified leaderboard performers, and no horizontal pricing
+    overflow at 390px or 320px. The final production recomputation supports only
+    a modeled signal-study conclusion, not a user-account or portfolio-loss claim.
 
 claim_verification_last_run:
-  at: 2026-07-15T09:28:24+08:00
+  at: 2026-07-15T16:40:32+08:00
   agent: TradeClaw PM agent
   status: done
   scope: LinkedIn loss-claim evidence review and WEEX outreach verification
   artifact: docs/audits/2026-07-15-linkedin-claim-verification.md
   notes: >
-    Independently recomputed the 3,967-row production cost-field snapshot and
-    confirmed negative average expectancy after the published modeled cost,
-    while rejecting the broader claim that an actual user portfolio lost money.
-    Recorded the rolling 10,000-row cap, denominator exclusions, OHLCV outcome
-    semantics, modeled-not-real costs, overlapping-signal portfolio limitation,
-    broadcast-scope result, sensitivity checks, snapshot hashes, and safe public
-    wording. Verified that the WEEX pitch is only partly supported: fee sharing
-    is advertised up to 70% but TradeClaw's tier is unknown, TradFi contracts are
-    synthetic USDT-margined derivatives, broker API coverage for every TradFi
-    symbol is unproven, the public zero-fee promotion ended 2026-07-08, and the
-    outreach Telegram identity is unverified. Flagged that WEEX is absent from
-    the current SC Malaysia registered-DAX list and that a Malaysian LinkedIn
-    promotion or referral should not proceed without counsel or written SC
-    clarification. Documentation/state only; no runtime or trading-rule changes.
+    Recomputed the deployed post-repair source-gated study at main commit
+    b070197b: 1,220 eligible outcomes, -0.0224795082R mean gross result,
+    0.4028188525R mean modeled cost, and -0.4252983607R mean net result. All five
+    public surfaces reconciled to 448 wins and 772 losses. The source read loaded
+    its 10,000-row maximum and reports that rows before the window may be
+    truncated. The supported claim is negative modeled signal expectancy under
+    stated assumptions; actual customer, broker-fill, portfolio-loss, and
+    sequential-account-return claims remain unsupported. WEEX fee sharing is not
+    a percentage of volume, the advertised TradFi campaign ended 2026-07-08, the
+    contact identity remains unverified, and Malaysian promotion remains a legal
+    review issue because WEEX is absent from the SC registered-DAX list.
 
 product_integrity_repair:
   at: 2026-07-15T11:24:23+08:00

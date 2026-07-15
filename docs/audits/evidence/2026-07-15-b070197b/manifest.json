@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "runtimeSource": "b070197b38b7b42560ba5d317149fb92d75dd06c",
+  "railwayDeploymentId": "d2648ea6-beff-434c-8bf8-8c79c74709bf",
+  "captureWindowUtc": {
+    "start": "2026-07-15T08:40:18.862Z",
+    "end": "2026-07-15T08:40:19.930Z"
+  },
+  "requestHeaders": {
+    "accept": "application/json",
+    "acceptEncoding": "identity",
+    "cacheControl": "no-cache"
+  },
+  "responses": {
+    "costField": {
+      "file": "cost-field.json",
+      "url": "https://tradeclaw.win/api/research/cost-field?scope=pro&release=b070197b",
+      "status": 200,
+      "contentType": "application/json",
+      "bytes": 72658,
+      "sha256": "7d568ee659892327d6b490efcfd3c0822c68cd5beaad62f5e369466547c29aa7"
+    },
+    "equitySummary": {
+      "file": "equity-summary.json",
+      "url": "https://tradeclaw.win/api/signals/equity?scope=pro&summaryOnly=1&release=b070197b",
+      "status": 200,
+      "contentType": "application/json",
+      "bytes": 587,
+      "sha256": "a44d95afb0748b7fec6da4af1f781707b6ffbd50dcf26019fed27e2800a2266a"
+    },
+    "signalHistory": {
+      "file": "signal-history.json",
+      "url": "https://tradeclaw.win/api/signals/history?scope=pro&period=all&limit=1&release=b070197b",
+      "status": 200,
+      "contentType": "application/json",
+      "bytes": 1011,
+      "sha256": "2edfd1ddb818869d93633062c174482c17f5b8cf8003d517bc29d67012a5af1a"
+    },
+    "proof": {
+      "file": "proof.json",
+      "url": "https://tradeclaw.win/api/proof?release=b070197b",
+      "status": 200,
+      "contentType": "application/json",
+      "bytes": 69359,
+      "sha256": "16223e9613bb170d0ba0a5dcdcde32d93c0a04ecf78982e9524c99ddc396877d"
+    },
+    "winRates": {
+      "file": "win-rates.json",
+      "url": "https://tradeclaw.win/api/v1/win-rates?release=b070197b",
+      "status": 200,
+      "contentType": "application/json",
+      "bytes": 3571,
+      "sha256": "9fb4c30cc6f422fe078bcb46ae68182b10ef6705dd9b47da7e596f3fb7c6bdc3"
+    }
+  },
+  "reconciliation": {
+    "eligibleOutcomes": 1220,
+    "wins": 448,
+    "losses": 772,
+    "winRatePct": 36.7213114754,
+    "costFieldCount": 1220,
+    "equityTotalSignals": 1220,
+    "equitySizedTrades": 1220,
+    "historyResolved": 1220,
+    "proofResolved": 1220,
+    "winRatesTotal": 1220
+  },
+  "independentArithmetic": {
+    "grossTotalR": -27.425,
+    "modeledCostTotalR": 491.439,
+    "modeledNetTotalR": -518.864,
+    "meanGrossR": -0.0224795081967212,
+    "meanModeledCostR": 0.40281885245901694,
+    "meanModeledNetR": -0.4252983606557381,
+    "sequentialHypotheticalReturnPct": -99.51,
+    "sequentialHypotheticalMaxDrawdownPct": 99.51,
+    "unsizedMeanMovePct": 0.04,
+    "unsizedSummedMovePct": 45.39
+  },
+  "sourceWindow": {
+    "startUtc": "2026-06-10T13:30:00.000Z",
+    "endUtc": "2026-07-15T07:00:00.000Z",
+    "sourceRecordsLoaded": 10000,
+    "sourceReadLimit": 10000,
+    "potentiallyTruncatedBeforeStart": true
+  },
+  "limitation": "The release query identifies deployed code but does not freeze live production data. Reproduce the recorded arithmetic from these archived response bodies, not from later URL responses."
+}
