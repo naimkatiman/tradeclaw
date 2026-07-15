@@ -1,6 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
 import { installBacktestFixture } from '../lib/backtest-fixture';
 
+test.use({ serviceWorkers: 'block' });
+
 async function dismissStarMilestoneModal(page: Page): Promise<void> {
   await page.addInitScript(() => {
     try {

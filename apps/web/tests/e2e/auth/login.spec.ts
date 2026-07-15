@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+test.use({ serviceWorkers: 'block' });
+
 test.describe('Admin Login', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/admin/login');
