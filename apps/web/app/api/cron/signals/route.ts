@@ -12,6 +12,8 @@ import {
   markTelegramPosted,
   resolveFromCandles,
   getOutcomeResolutionTimeframe,
+  isObservedOHLCVOutcomeSource,
+  type ObservedOHLCVOutcomeSource,
   type SignalHistoryRecord,
 } from '../../../../lib/signal-history';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
@@ -39,6 +41,13 @@ const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 const MIN_LIVE_SYMBOLS_CHECKED = 8;
+
+function hasCompleteDecisionEvidence(record: SignalHistoryRecord): boolean {
+  return record.broadcastBlocked !== undefined
+    && typeof record.costEstimatePct === 'number'
+    && Number.isFinite(record.costEstimatePct)
+    && record.costEstimatePct > 0;
+}
 
 // ── Record logic ──────────────────────────────────────────────
 
@@ -160,7 +169,11 @@ export async function collectNewSignals(strategyId: string): Promise<{
     if (selectedThisRun.has(dedupKey)) continue;
 
     const existing = await getRecentRecordForSymbolAsync(sig.symbol, sig.direction, TWO_HOURS_MS);
-    if (existing) continue;
+    // Request-path tracking can create the deterministic row before this cron
+    // has computed its broadcast decision and modeled cost. Only suppress the
+    // candidate once those evidence fields are present; otherwise the Tier-0
+    // upsert below gets a chance to backfill the same row.
+    if (existing && hasCompleteDecisionEvidence(existing)) continue;
 
     const parsedCandleTs = Date.parse(sig.timestamp);
     const timestamp = Number.isFinite(parsedCandleTs) ? parsedCandleTs : Date.now();
@@ -192,7 +205,8 @@ export async function collectNewSignals(strategyId: string): Promise<{
 // and persists MAE alongside — re-resolution against a different provider is
 // detectable instead of silently rewriting history.
 
-async function resolveOldSignals(): Promise<{ resolved: number; pending: number; errors: string[] }> {
+/** @internal Exported for provenance-gate regression tests. */
+export async function resolveOldSignals(): Promise<{ resolved: number; pending: number; errors: string[] }> {
   const pending = await getPendingRecordsAsync();
   const now = Date.now();
   const updates: Array<{ id: string; patch: Partial<SignalHistoryRecord> }> = [];
@@ -206,12 +220,18 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
     if (!record.tp1 || !record.sl) continue;
 
     let candles: Array<{ timestamp: number; high: number; low: number; close: number; open: number; volume: number }> = [];
-    let candleSource = 'unknown';
+    let candleSource: ObservedOHLCVOutcomeSource | null = null;
 
     try {
       const result = await getOHLCV(record.pair, getOutcomeResolutionTimeframe(record));
-      candles = result.candles;
-      candleSource = result.source;
+      if (isObservedOHLCVOutcomeSource(result.source)) {
+        candles = result.candles;
+        candleSource = result.source;
+      } else {
+        const msg = `Refusing unobserved OHLCV source ${result.source} for ${record.pair}`;
+        console.warn(`[cron/signals] ${msg}`);
+        errors.push(msg);
+      }
     } catch (err) {
       const msg = `OHLCV fetch failed for ${record.pair}: ${err instanceof Error ? err.message : String(err)}`;
       console.error(`[cron/signals] ${msg}`);
@@ -229,8 +249,8 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
         c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
       );
       const windowComplete = age >= FOUR_HOURS_MS;
-      const result = resolveFromCandles(record, window, windowComplete);
-      if (result) {
+      const result = candleSource ? resolveFromCandles(record, window, windowComplete) : null;
+      if (result && candleSource) {
         newOutcomes['4h'] = { ...result.outcome, resolvedAt, source: candleSource };
         changed = true;
       } else if (age >= FOUR_HOURS_MS * 2) {
@@ -245,8 +265,8 @@ async function resolveOldSignals(): Promise<{ resolved: number; pending: number;
         c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
       );
       const windowComplete = age >= TWENTY_FOUR_HOURS_MS;
-      const result = resolveFromCandles(record, window, windowComplete);
-      if (result) {
+      const result = candleSource ? resolveFromCandles(record, window, windowComplete) : null;
+      if (result && candleSource) {
         newOutcomes['24h'] = { ...result.outcome, resolvedAt, source: candleSource };
         mae24h = result.maxAdverseExcursion;
         changed = true;
@@ -308,31 +328,35 @@ export async function GET(request: NextRequest): Promise<Response> {
     // fresh candidates recorded this tick.
 
     // Phase 1 re-sequence: ONE gate decision per tick, computed BEFORE
-    // persistence. The decision (winning-cells curation → risk pipeline:
-    // circuit breakers + allocator + veto + LLM advisory) is recorded on
+    // persistence. The decision (risk pipeline: circuit breakers + allocator
+    // + veto + LLM advisory) is recorded on
     // each row so the scope=broadcast subset is measurable. Pipeline
     // failure falls back to "no decision computed": those rows record
-    // NULL because the gate never actually ran.
+    // NULL because the gate never actually ran, and remain blocked this tick.
     const broadcastInputs: NewlyRecordedSignal[] = [...candidates];
     // computeBroadcastDecisions guards its internals (regime fetch + pipeline),
     // but an unexpected throw here must not skip recording/resolution — fall
-    // back to "no decision computed": rows record NULL and broadcast
-    // unfiltered, mirroring the pipeline-outage philosophy.
+    // back to "no decision computed": rows record NULL and fail closed.
     let decisions: Awaited<ReturnType<typeof computeBroadcastDecisions>>;
     try {
       decisions = await computeBroadcastDecisions(broadcastInputs);
     } catch (err) {
       console.warn(
-        '[cron/signals] Broadcast decision computation failed entirely — recording without decisions, broadcasting unfiltered:',
+        '[cron/signals] Broadcast decision computation failed entirely — recording without decisions and blocking broadcast:',
         err instanceof Error ? err.message : String(err),
       );
       decisions = new Map(
-        broadcastInputs.map((s) => [s.id, { id: s.id, blocked: false, recordable: false }]),
+        broadcastInputs.map((s) => [s.id, {
+          id: s.id,
+          blocked: true,
+          blockReason: 'broadcast_decision_unavailable',
+          recordable: false,
+        }]),
       );
     }
     const outageCount = [...decisions.values()].filter((d) => !d.recordable).length;
     if (outageCount > 0) {
-      console.warn(`[cron/signals] ${outageCount} signal(s) broadcast via outage fallback this tick — no gate decision recorded (rows stay NULL and are excluded from scope=broadcast)`);
+      console.warn(`[cron/signals] ${outageCount} signal(s) blocked by decision outage this tick — no gate decision recorded (rows stay NULL and are excluded from scope=broadcast)`);
     }
 
     // Record new candidates with their decision inline.
@@ -379,11 +403,11 @@ export async function GET(request: NextRequest): Promise<Response> {
     // channel broadcast lives in /api/cron/telegram). The gate decision is
     // still computed and recorded per row so scope=broadcast analytics stay
     // measurable.
-    const vetoedCount = [...decisions.values()].filter((d) => d.blocked && !d.blockReason?.startsWith('winning_cells')).length;
+    const vetoedCount = [...decisions.values()].filter((d) => d.blocked).length;
     if (vetoedCount > 0) {
       console.warn(`[cron/signals] Risk pipeline vetoed ${vetoedCount} signal(s) — decisions recorded on rows`);
     }
-    const curatedCount = [...decisions.values()].filter((d) => !d.blockReason?.startsWith('winning_cells')).length;
+    const evaluatedCount = decisions.size;
     const broadcastableCount = broadcastInputs
       .filter((s) => decisions.get(s.id)?.blocked === false)
       .length;
@@ -402,9 +426,9 @@ export async function GET(request: NextRequest): Promise<Response> {
       pending,
       errors: errors.length > 0 ? errors : undefined,
       // Gate-decision observability — how many of this tick's candidates
-      // survived curation and how many the risk pipeline approved.
+      // were evaluated and how many the risk pipeline approved.
       gate: {
-        curatedCount,
+        evaluatedCount,
         broadcastableCount,
       },
       strategyId: preset.id,

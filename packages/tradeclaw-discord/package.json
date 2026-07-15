@@ -1,7 +1,7 @@
 {
   "name": "@naimkatiman/tradeclaw-discord",
   "version": "1.0.0",
-  "description": "Discord bot for TradeClaw — live trading signals, slash commands, and auto-broadcast",
+  "description": "Discord bot for provider-observed TradeClaw research candidates and outcome summaries",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
@@ -9,8 +9,12 @@
   "bin": {
     "tradeclaw-discord": "bin/bot.js"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "start": "node bin/bot.js"
+    "start": "node bin/bot.js",
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "discord.js": "^14.16.0",

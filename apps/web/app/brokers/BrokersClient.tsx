@@ -25,6 +25,7 @@ import {
 interface BrokerCard {
   id: string;
   name: string;
+  status: 'native' | 'example';
   color: string;
   letter: string;
   description: string;
@@ -43,18 +44,21 @@ const BROKERS: BrokerCard[] = [
   {
     id: 'binance',
     name: 'Binance',
+    status: 'native',
     color: '#F3BA2F',
     letter: 'B',
-    description: "World's largest crypto exchange. Spot, Futures, and Options via REST + WebSocket.",
-    assets: ['Crypto Spot', 'Futures', 'Options'],
-    features: ['REST + WebSocket API', 'Cross-margin & isolated', 'Testnet available'],
+    description:
+      'TradeClaw native executor for Binance USDT perpetuals. Disabled by default and configured for testnet unless an operator deliberately changes it.',
+    assets: ['USDT Perpetuals'],
+    features: ['Native TradeClaw adapter', 'Testnet default', 'Explicit credentials required'],
     docsUrl: 'https://binance-docs.github.io/apidocs/',
     pythonCode: `from binance.client import Client
 
 client = Client(api_key, api_secret)
 
-def on_signal(signal):
-    if signal["confidence"] >= 75:
+def on_signal(signal, cost_adjusted_evidence):
+    # confidence is a legacy field name for a rule score, not a probability.
+    if cost_adjusted_evidence.get("approved") and cost_adjusted_evidence.get("net_expectancy_r", 0) > 0 and signal["confidence"] >= 75:
         side = "BUY" if signal["direction"] == "BUY" else "SELL"
         client.create_order(
             symbol=signal["pair"],
@@ -65,28 +69,31 @@ def on_signal(signal):
     nodeCode: `import Binance from 'node-binance-api';
 const binance = new Binance().options({ APIKEY, APISECRET });
 
-export async function onSignal(signal) {
-  if (signal.confidence < 75) return;
-  const side = signal.direction; // 'BUY' or 'SELL'
-  await binance.marketBuy(signal.pair, 0.001);
-  console.log(\`Order placed: \${side} \${signal.pair}\`);
+export async function onSignal(signal, costAdjustedEvidence) {
+  // confidence is a legacy field name for a rule score, not a probability.
+  if (!costAdjustedEvidence.approved || !(costAdjustedEvidence.netExpectancyR > 0) || signal.confidence < 75) return;
+  const method = signal.direction === 'BUY' ? 'marketBuy' : 'marketSell';
+  await binance[method](signal.pair, 0.001);
+  console.log(\`Evidence-gated order submitted: \${signal.direction} \${signal.pair}\`);
 }`,
   },
   {
     id: 'alpaca',
     name: 'Alpaca',
+    status: 'example',
     color: '#FFCD00',
     letter: 'A',
-    description: 'Commission-free US stocks and crypto. Excellent paper trading support for strategy testing.',
-    assets: ['US Stocks', 'ETFs', 'Crypto'],
-    features: ['Paper trading support', 'Zero commissions', 'Fractional shares'],
+    description: 'External API starter snippet. TradeClaw has no native Alpaca adapter or compatibility test.',
+    assets: ['External Example'],
+    features: ['Not a native integration', 'Not integration-tested', 'Review official API docs'],
     docsUrl: 'https://docs.alpaca.markets/',
     pythonCode: `import alpaca_trade_api as tradeapi
 
 api = tradeapi.REST(KEY_ID, SECRET_KEY, BASE_URL)
 
-def on_signal(signal):
-    if signal["confidence"] >= 75:
+def on_signal(signal, cost_adjusted_evidence):
+    # confidence is a legacy field name for a rule score, not a probability.
+    if cost_adjusted_evidence.get("approved") and cost_adjusted_evidence.get("net_expectancy_r", 0) > 0 and signal["confidence"] >= 75:
         api.submit_order(
             symbol=signal["pair"],
             qty=1,
@@ -97,8 +104,9 @@ def on_signal(signal):
     nodeCode: `import Alpaca from '@alpacahq/alpaca-trade-api';
 const alpaca = new Alpaca({ keyId: KEY_ID, secretKey: SECRET_KEY });
 
-export async function onSignal(signal) {
-  if (signal.confidence < 75) return;
+export async function onSignal(signal, costAdjustedEvidence) {
+  // confidence is a legacy field name for a rule score, not a probability.
+  if (!costAdjustedEvidence.approved || !(costAdjustedEvidence.netExpectancyR > 0) || signal.confidence < 75) return;
   await alpaca.createOrder({
     symbol: signal.pair,
     qty: 1,
@@ -111,19 +119,21 @@ export async function onSignal(signal) {
   {
     id: 'oanda',
     name: 'OANDA',
+    status: 'example',
     color: '#E8192C',
     letter: 'O',
-    description: 'Leading forex & CFD broker. MT4/MT5 compatible. Perfect for TradeClaw forex signals.',
-    assets: ['Forex', 'CFDs', 'Commodities'],
-    features: ['MT4/MT5 support', 'REST + Streaming API', 'Practice accounts'],
+    description: 'External API starter snippet. TradeClaw has no native OANDA adapter or compatibility test.',
+    assets: ['External Example'],
+    features: ['Not a native integration', 'Not integration-tested', 'Review official API docs'],
     docsUrl: 'https://developer.oanda.com/rest-live-v20/introduction/',
     pythonCode: `import oandapyV20.endpoints.orders as orders
 from oandapyV20 import API
 
 client = API(access_token=TOKEN)
 
-def on_signal(signal):
-    if signal["confidence"] >= 75:
+def on_signal(signal, cost_adjusted_evidence):
+    # confidence is a legacy field name for a rule score, not a probability.
+    if cost_adjusted_evidence.get("approved") and cost_adjusted_evidence.get("net_expectancy_r", 0) > 0 and signal["confidence"] >= 75:
         body = {
             "order": {
                 "type": "MARKET",
@@ -134,8 +144,9 @@ def on_signal(signal):
         r = orders.OrderCreate(ACCOUNT_ID, data=body)
         client.request(r)`,
     nodeCode: `// OANDA via REST
-export async function onSignal(signal) {
-  if (signal.confidence < 75) return;
+export async function onSignal(signal, costAdjustedEvidence) {
+  // confidence is a legacy field name for a rule score, not a probability.
+  if (!costAdjustedEvidence.approved || !(costAdjustedEvidence.netExpectancyR > 0) || signal.confidence < 75) return;
   const units = signal.direction === 'BUY' ? 1000 : -1000;
   await fetch(\`https://api-fxtrade.oanda.com/v3/accounts/\${ACCOUNT_ID}/orders\`, {
     method: 'POST',
@@ -147,18 +158,20 @@ export async function onSignal(signal) {
   {
     id: 'kraken',
     name: 'Kraken',
+    status: 'example',
     color: '#5741D9',
     letter: 'K',
-    description: 'High-security US crypto exchange. Spot and Futures with institutional-grade reliability.',
-    assets: ['Crypto Spot', 'Futures'],
-    features: ['Proof of reserves', 'REST + WebSocket', 'Staking support'],
+    description: 'External API starter snippet. TradeClaw has no native Kraken adapter or compatibility test.',
+    assets: ['External Example'],
+    features: ['Not a native integration', 'Not integration-tested', 'Review official API docs'],
     docsUrl: 'https://docs.kraken.com/rest/',
     pythonCode: `import krakenex
 
 k = krakenex.API(key=API_KEY, secret=API_SECRET)
 
-def on_signal(signal):
-    if signal["confidence"] >= 75:
+def on_signal(signal, cost_adjusted_evidence):
+    # confidence is a legacy field name for a rule score, not a probability.
+    if cost_adjusted_evidence.get("approved") and cost_adjusted_evidence.get("net_expectancy_r", 0) > 0 and signal["confidence"] >= 75:
         k.query_private("AddOrder", {
             "pair": signal["pair"],
             "type": signal["direction"].lower(),
@@ -168,8 +181,9 @@ def on_signal(signal):
     nodeCode: `import KrakenClient from 'kraken-api';
 const kraken = new KrakenClient(API_KEY, API_SECRET);
 
-export async function onSignal(signal) {
-  if (signal.confidence < 75) return;
+export async function onSignal(signal, costAdjustedEvidence) {
+  // confidence is a legacy field name for a rule score, not a probability.
+  if (!costAdjustedEvidence.approved || !(costAdjustedEvidence.netExpectancyR > 0) || signal.confidence < 75) return;
   await kraken.api('AddOrder', {
     pair: signal.pair,
     type: signal.direction.toLowerCase(),
@@ -181,18 +195,20 @@ export async function onSignal(signal) {
   {
     id: 'bybit',
     name: 'Bybit',
+    status: 'example',
     color: '#F7A600',
     letter: 'By',
-    description: 'Leading derivatives exchange with deep liquidity. Ideal for leveraged signal execution.',
-    assets: ['Perpetuals', 'Futures', 'Spot'],
-    features: ['Up to 100x leverage', 'Unified account', 'WebSocket feed'],
+    description: 'External API starter snippet. TradeClaw has no native Bybit adapter or compatibility test.',
+    assets: ['External Example'],
+    features: ['Not a native integration', 'Not integration-tested', 'Review official API docs'],
     docsUrl: 'https://bybit-exchange.github.io/docs/v5/intro',
     pythonCode: `from pybit.unified_trading import HTTP
 
 session = HTTP(api_key=API_KEY, api_secret=API_SECRET)
 
-def on_signal(signal):
-    if signal["confidence"] >= 75:
+def on_signal(signal, cost_adjusted_evidence):
+    # confidence is a legacy field name for a rule score, not a probability.
+    if cost_adjusted_evidence.get("approved") and cost_adjusted_evidence.get("net_expectancy_r", 0) > 0 and signal["confidence"] >= 75:
         session.place_order(
             category="linear",
             symbol=signal["pair"] + "USDT",
@@ -203,8 +219,9 @@ def on_signal(signal):
     nodeCode: `import { RestClientV5 } from 'bybit-api';
 const client = new RestClientV5({ key: API_KEY, secret: API_SECRET });
 
-export async function onSignal(signal) {
-  if (signal.confidence < 75) return;
+export async function onSignal(signal, costAdjustedEvidence) {
+  // confidence is a legacy field name for a rule score, not a probability.
+  if (!costAdjustedEvidence.approved || !(costAdjustedEvidence.netExpectancyR > 0) || signal.confidence < 75) return;
   await client.submitOrder({
     category: 'linear',
     symbol: signal.pair + 'USDT',
@@ -217,11 +234,13 @@ export async function onSignal(signal) {
   {
     id: 'ibkr',
     name: 'Interactive Brokers',
+    status: 'example',
     color: '#CC0000',
     letter: 'IB',
-    description: 'Multi-asset institutional-grade broker. Stocks, options, futures, forex — global markets.',
-    assets: ['Stocks', 'Options', 'Futures', 'Forex'],
-    features: ['Global markets', 'TWS API & IB Gateway', 'Low margin rates'],
+    description:
+      'External API starter snippet. TradeClaw has no native Interactive Brokers adapter or compatibility test.',
+    assets: ['External Example'],
+    features: ['Not a native integration', 'Not integration-tested', 'Review official API docs'],
     docsUrl: 'https://interactivebrokers.github.io/tws-api/',
     pythonCode: `from ibapi.client import EClient
 from ibapi.wrapper import EWrapper
@@ -231,8 +250,9 @@ class IBApp(EWrapper, EClient):
     def __init__(self):
         EClient.__init__(self, self)
 
-def on_signal(signal):
-    if signal["confidence"] >= 75:
+def on_signal(signal, cost_adjusted_evidence):
+    # confidence is a legacy field name for a rule score, not a probability.
+    if cost_adjusted_evidence.get("approved") and cost_adjusted_evidence.get("net_expectancy_r", 0) > 0 and signal["confidence"] >= 75:
         order = Order()
         order.action = signal["direction"]
         order.orderType = "MKT"
@@ -242,8 +262,9 @@ def on_signal(signal):
 import { IBApi, EventName, Order } from '@stoqey/ib';
 const ib = new IBApi({ port: 7497 });
 
-export function onSignal(signal) {
-  if (signal.confidence < 75) return;
+export function onSignal(signal, costAdjustedEvidence) {
+  // confidence is a legacy field name for a rule score, not a probability.
+  if (!costAdjustedEvidence.approved || !(costAdjustedEvidence.netExpectancyR > 0) || signal.confidence < 75) return;
   const order: Order = {
     action: signal.direction,
     orderType: 'MKT',
@@ -255,18 +276,20 @@ export function onSignal(signal) {
   {
     id: 'coinbase',
     name: 'Coinbase Advanced',
+    status: 'example',
     color: '#0052FF',
     letter: 'CB',
-    description: 'US-regulated crypto exchange. REST API for retail and institutional traders.',
-    assets: ['Crypto Spot', 'Perpetuals'],
-    features: ['Regulated US exchange', 'Advanced Trade API', 'High liquidity'],
+    description: 'External API starter snippet. TradeClaw has no native Coinbase adapter or compatibility test.',
+    assets: ['External Example'],
+    features: ['Not a native integration', 'Not integration-tested', 'Review official API docs'],
     docsUrl: 'https://docs.cdp.coinbase.com/advanced-trade/docs/welcome',
     pythonCode: `from coinbase.rest import RESTClient
 
 client = RESTClient(api_key=API_KEY, api_secret=API_SECRET)
 
-def on_signal(signal):
-    if signal["confidence"] >= 75:
+def on_signal(signal, cost_adjusted_evidence):
+    # confidence is a legacy field name for a rule score, not a probability.
+    if cost_adjusted_evidence.get("approved") and cost_adjusted_evidence.get("net_expectancy_r", 0) > 0 and signal["confidence"] >= 75:
         client.market_order_buy(
             client_order_id="tradeclaw-" + signal["id"],
             product_id=signal["pair"] + "-USD",
@@ -275,8 +298,9 @@ def on_signal(signal):
     nodeCode: `import { RESTClient } from '@coinbase/coinbase-sdk';
 const client = new RESTClient({ apiKey: API_KEY, apiSecret: API_SECRET });
 
-export async function onSignal(signal) {
-  if (signal.confidence < 75) return;
+export async function onSignal(signal, costAdjustedEvidence) {
+  // confidence is a legacy field name for a rule score, not a probability.
+  if (!costAdjustedEvidence.approved || !(costAdjustedEvidence.netExpectancyR > 0) || signal.confidence < 75) return;
   const method = signal.direction === 'BUY' ? 'marketOrderBuy' : 'marketOrderSell';
   await client[method]({
     clientOrderId: \`tradeclaw-\${signal.id}\`,
@@ -288,18 +312,21 @@ export async function onSignal(signal) {
   {
     id: 'td-ameritrade',
     name: 'TD Ameritrade / Schwab',
+    status: 'example',
     color: '#00A651',
     letter: 'TD',
-    description: 'US equities powerhouse. thinkorswim platform API for stocks, ETFs, and options.',
-    assets: ['US Stocks', 'ETFs', 'Options'],
-    features: ['thinkorswim API', 'Merged with Schwab', 'Institutional tools'],
+    description:
+      'Legacy external starter snippet. TradeClaw has no native Schwab adapter; verify the current vendor API and SDK before adapting it.',
+    assets: ['Legacy External Example'],
+    features: ['Not a native integration', 'Not integration-tested', 'Verify current vendor API'],
     docsUrl: 'https://developer.tdameritrade.com/apis',
     pythonCode: `import tda
 
 client = tda.auth.easy_client(API_KEY, REDIRECT_URI, TOKEN_PATH)
 
-def on_signal(signal):
-    if signal["confidence"] >= 75:
+def on_signal(signal, cost_adjusted_evidence):
+    # confidence is a legacy field name for a rule score, not a probability.
+    if cost_adjusted_evidence.get("approved") and cost_adjusted_evidence.get("net_expectancy_r", 0) > 0 and signal["confidence"] >= 75:
         r = client.place_order(
             ACCOUNT_ID,
             tda.orders.equities.equity_buy_market(
@@ -309,8 +336,9 @@ def on_signal(signal):
     nodeCode: `import { TDAmeritradeApi } from 'ameritrade';
 const api = new TDAmeritradeApi({ apiKey: API_KEY });
 
-export async function onSignal(signal) {
-  if (signal.confidence < 75) return;
+export async function onSignal(signal, costAdjustedEvidence) {
+  // confidence is a legacy field name for a rule score, not a probability.
+  if (!costAdjustedEvidence.approved || !(costAdjustedEvidence.netExpectancyR > 0) || signal.confidence < 75) return;
   await api.placeOrder(ACCOUNT_ID, {
     orderType: 'MARKET',
     session: 'NORMAL',
@@ -334,16 +362,14 @@ const GENERIC_WEBHOOK_NODE = `// Generic broker routing pattern (Express.js)
 import express from 'express';
 const app = express();
 
-app.post('/tradeclaw-webhook', async (req, res) => {
+app.post('/tradeclaw-webhook', (req, res) => {
   const { pair, direction, confidence, entry } = req.body;
 
-  // Only act on high-confidence signals
-  if (confidence >= 75 && direction === 'BUY') {
-    await broker.createOrder(pair, 'market', 'buy', qty);
-    console.log(\`[TradeClaw] BUY \${pair} @ \${entry} (conf: \${confidence}%)\`);
-  }
+  // Research-only receiver: confidence is the legacy API field name for a
+  // mechanical rule score out of 100, not a probability or evidence of edge.
+  console.log({ pair, direction, ruleScore: confidence, entry, executed: false });
 
-  res.json({ ok: true });
+  res.status(202).json({ acceptedForReview: true, executed: false });
 });
 
 app.listen(3001, () => console.log('Webhook receiver running on :3001'));`;
@@ -391,6 +417,15 @@ function BrokerCardComponent({ broker }: { broker: BrokerCard }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <h3 className="font-semibold text-white">{broker.name}</h3>
+            <span
+              className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                broker.status === 'native'
+                  ? 'border-emerald-700 bg-emerald-950 text-emerald-300'
+                  : 'border-zinc-700 bg-zinc-800 text-zinc-400'
+              }`}
+            >
+              {broker.status === 'native' ? 'Native adapter' : 'External example'}
+            </span>
             <a
               href={broker.docsUrl}
               target="_blank"
@@ -403,7 +438,10 @@ function BrokerCardComponent({ broker }: { broker: BrokerCard }) {
           <p className="text-sm text-zinc-400 mt-0.5">{broker.description}</p>
           <div className="flex flex-wrap gap-1.5 mt-2">
             {broker.assets.map((a) => (
-              <span key={a} className="px-2 py-0.5 text-xs bg-zinc-800 text-zinc-300 rounded-full border border-zinc-700">
+              <span
+                key={a}
+                className="px-2 py-0.5 text-xs bg-zinc-800 text-zinc-300 rounded-full border border-zinc-700"
+              >
                 {a}
               </span>
             ))}
@@ -429,7 +467,7 @@ function BrokerCardComponent({ broker }: { broker: BrokerCard }) {
         className="w-full flex items-center justify-between px-5 py-2.5 text-xs text-zinc-400 hover:text-white bg-zinc-800/50 hover:bg-zinc-800 transition-colors border-t border-zinc-800"
       >
         <span className="flex items-center gap-1.5">
-          <Code size={12} /> View code examples
+          <Code size={12} /> View unverified code sketch
         </span>
         {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
@@ -437,13 +475,15 @@ function BrokerCardComponent({ broker }: { broker: BrokerCard }) {
       {/* Code examples */}
       {expanded && (
         <div className="border-t border-zinc-800">
+          <p className="border-b border-zinc-800 bg-amber-950/30 px-4 py-2 text-xs text-amber-200/80">
+            A rule score is not a probability or evidence of edge. These sketches require a separate, approved
+            cost-adjusted evidence-gate result and still omit production execution controls.
+          </p>
           <div className="flex border-b border-zinc-800">
             <button
               onClick={() => setTab('python')}
               className={`px-4 py-2 text-xs font-medium transition-colors ${
-                tab === 'python'
-                  ? 'text-emerald-400 border-b-2 border-emerald-500'
-                  : 'text-zinc-400 hover:text-white'
+                tab === 'python' ? 'text-emerald-400 border-b-2 border-emerald-500' : 'text-zinc-400 hover:text-white'
               }`}
             >
               Python
@@ -451,9 +491,7 @@ function BrokerCardComponent({ broker }: { broker: BrokerCard }) {
             <button
               onClick={() => setTab('node')}
               className={`px-4 py-2 text-xs font-medium transition-colors ${
-                tab === 'node'
-                  ? 'text-emerald-400 border-b-2 border-emerald-500'
-                  : 'text-zinc-400 hover:text-white'
+                tab === 'node' ? 'text-emerald-400 border-b-2 border-emerald-500' : 'text-zinc-400 hover:text-white'
               }`}
             >
               Node.js
@@ -485,23 +523,24 @@ export function BrokersClient() {
         <div className="max-w-5xl mx-auto px-6 py-14">
           <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-4">
             <Building2 size={16} />
-            Broker Integrations
+            Broker Routing Reference
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
-            Connect Your Broker
-          </h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Understand the Execution Boundary</h1>
           <p className="text-zinc-400 text-lg max-w-2xl">
-            Route TradeClaw AI signals directly to your broker or exchange via webhook.
-            Supports 8+ brokers across crypto, forex, stocks, and derivatives.
+            TradeClaw implements one native executor: Binance USDT perpetuals, with testnet as the default endpoint. The
+            broker cards below are external API starter examples, not installed or verified native integrations.
           </p>
 
           {/* Stats */}
           <div className="flex flex-wrap gap-6 mt-8">
             {[
-              { icon: <Globe size={16} />, label: '8+ Brokers' },
-              { icon: <Zap size={16} />, label: 'Webhook routing' },
-              { icon: <Shield size={16} />, label: 'HMAC-signed payloads' },
-              { icon: <TrendingUp size={16} />, label: 'Python + Node.js examples' },
+              { icon: <Globe size={16} />, label: '1 native executor' },
+              { icon: <Zap size={16} />, label: 'Execution off by default' },
+              { icon: <Shield size={16} />, label: 'Optional HMAC signing' },
+              {
+                icon: <TrendingUp size={16} />,
+                label: 'External API examples',
+              },
             ].map((stat) => (
               <div key={stat.label} className="flex items-center gap-2 text-sm text-zinc-300">
                 <span className="text-emerald-400">{stat.icon}</span>
@@ -514,7 +553,7 @@ export function BrokersClient() {
 
       {/* Signal routing diagram */}
       <section className="max-w-5xl mx-auto px-6 py-10">
-        <h2 className="text-lg font-semibold text-white mb-4">How Signal Routing Works</h2>
+        <h2 className="text-lg font-semibold text-white mb-4">Example Webhook Routing</h2>
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
           <div className="flex flex-wrap items-center justify-center gap-2 text-sm font-mono">
             {[
@@ -526,7 +565,7 @@ export function BrokersClient() {
               { arrow: true },
               { label: 'Broker REST API', color: 'yellow' },
               { arrow: true },
-              { label: 'Order Executed ✓', color: 'emerald' },
+              { label: 'Your policy decides', color: 'emerald' },
             ].map((item, i) =>
               'arrow' in item ? (
                 <ArrowRight key={i} size={16} className="text-zinc-600" />
@@ -537,27 +576,28 @@ export function BrokersClient() {
                     item.color === 'emerald'
                       ? 'bg-emerald-950 border-emerald-800 text-emerald-300'
                       : item.color === 'purple'
-                      ? 'bg-purple-950 border-purple-800 text-purple-300'
-                      : item.color === 'blue'
-                      ? 'bg-blue-950 border-blue-800 text-blue-300'
-                      : 'bg-zinc-950 border-zinc-800 text-zinc-300'
+                        ? 'bg-purple-950 border-purple-800 text-purple-300'
+                        : item.color === 'blue'
+                          ? 'bg-blue-950 border-blue-800 text-blue-300'
+                          : 'bg-zinc-950 border-zinc-800 text-zinc-300'
                   }`}
                 >
                   {item.label}
                 </span>
-              )
+              ),
             )}
           </div>
           <p className="text-xs text-zinc-500 text-center mt-4">
-            TradeClaw dispatches a signed JSON payload to your configured webhook URL.
-            Your receiver validates the HMAC signature, then routes to your broker.
+            An operator can configure outbound webhook delivery with optional HMAC signing. Entry-like delivery is
+            halted unless the reproducible cost-adjusted evidence gate passes. A receiver that places orders is external
+            code owned and secured by the operator.
           </p>
         </div>
 
         {/* Generic code snippet */}
         <div className="mt-4 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-800 bg-zinc-800/50">
-            <span className="text-xs text-zinc-400 font-medium">Generic webhook receiver (Node.js)</span>
+            <span className="text-xs text-zinc-400 font-medium">Illustrative receiver scaffold (Node.js)</span>
             <CopyButton text={GENERIC_WEBHOOK_NODE} />
           </div>
           <pre className="p-4 text-xs text-zinc-300 font-mono overflow-x-auto bg-zinc-950 leading-relaxed">
@@ -568,7 +608,11 @@ export function BrokersClient() {
 
       {/* Broker cards */}
       <section className="max-w-5xl mx-auto px-6 pb-10">
-        <h2 className="text-lg font-semibold text-white mb-6">Supported Brokers &amp; Exchanges</h2>
+        <h2 className="text-lg font-semibold text-white mb-2">Native Adapter and External API Examples</h2>
+        <p className="text-sm text-zinc-500 mb-6">
+          These snippets are unverified starting points and omit production risk controls. They do not mean TradeClaw
+          natively supports or has tested the listed broker.
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {BROKERS.map((broker) => (
             <BrokerCardComponent key={broker.id} broker={broker} />
@@ -580,10 +624,10 @@ export function BrokersClient() {
       <section className="max-w-5xl mx-auto px-6 pb-10">
         <div className="bg-gradient-to-r from-emerald-950 to-zinc-900 border border-emerald-900 rounded-xl p-8 text-center">
           <Building2 className="mx-auto mb-3 text-emerald-400" size={32} />
-          <h2 className="text-xl font-bold text-white mb-2">Ready to connect your broker?</h2>
+          <h2 className="text-xl font-bold text-white mb-2">Configure an outbound webhook</h2>
           <p className="text-zinc-400 text-sm mb-6 max-w-md mx-auto">
-            Set up a webhook in TradeClaw settings, paste your endpoint, and start routing
-            signals in minutes.
+            Add an HTTPS destination and test it explicitly. Automatic entry-like delivery remains fail-closed until the
+            evidence gate clears; broker execution remains a separate decision.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link

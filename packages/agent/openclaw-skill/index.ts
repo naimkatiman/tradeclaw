@@ -13,13 +13,15 @@ import {
   getAvailableSymbols,
   getSymbolConfig,
   loadConfig,
+  SIGNAL_SCAN_AVAILABILITY,
 } from 'tradeclaw-agent';
 
 import type { TradingSignal, HistorySummary } from 'tradeclaw-agent';
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
-function formatPrice(value: number): string {
+function formatPrice(value: number | null): string {
+  if (value === null || !Number.isFinite(value) || value <= 0) return 'Unavailable';
   if (value >= 1000) return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (value >= 1) return value.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
   return value.toLocaleString('en-US', { minimumFractionDigits: 5, maximumFractionDigits: 5 });
@@ -28,7 +30,7 @@ function formatPrice(value: number): string {
 function formatSignal(s: TradingSignal): string {
   const dir = s.direction === 'BUY' ? '🟢 BUY' : '🔴 SELL';
   return [
-    `${dir} ${s.symbol}  [${s.confidence}%]`,
+    `${dir} ${s.symbol}  [rule score ${s.confidence}/100]`,
     `───────────────────`,
     `Entry:  ${formatPrice(s.entry)}`,
     `SL:     ${formatPrice(s.stopLoss)}`,
@@ -64,21 +66,24 @@ export async function scan(options?: { symbol?: string; minConfidence?: number }
   const signals = await runScanAsync(symbols, config.timeframes, minConf);
 
   if (signals.length === 0) {
-    return 'No signals met the confidence threshold.';
+    return `Signal candidates unavailable: ${SIGNAL_SCAN_AVAILABILITY.reason}. No synthetic candles were generated.`;
   }
 
-  const header = `📊 ${signals.length} signal(s) found\n`;
+  const header = `📊 ${signals.length} provider-observed candidate(s) found\n`;
   const body = signals.map(formatSignal).join('\n\n');
   return header + '\n' + body;
 }
 
 /**
- * Show current live prices from all API sources.
+ * Show current values actually observed from price providers.
  */
 export async function prices(): Promise<string> {
   const livePrices = await fetchLivePrices();
+  if (livePrices.size === 0) {
+    return 'Provider prices unavailable. No static fallback prices are shown.';
+  }
 
-  const lines: string[] = ['💰 Live Prices', ''];
+  const lines: string[] = ['💰 Provider-observed prices', ''];
   const categories: Record<string, string[]> = {
     '🪙 Metals': ['XAUUSD', 'XAGUSD'],
     '₿ Crypto': ['BTCUSD', 'ETHUSD', 'SOLUSD', 'XRPUSD'],
@@ -101,21 +106,21 @@ export async function prices(): Promise<string> {
 }
 
 /**
- * Show historical signal accuracy stats.
+ * Show observed candidate outcome history.
  */
 export async function history(): Promise<string> {
   const h: HistorySummary = await getHistory();
 
   if (h.totalSignals === 0) {
-    return 'No signals tracked yet. Run a scan first.';
+    return 'No explicitly real candidate history is available.';
   }
 
   const lines: string[] = [
-    '📈 Signal History',
+    '📈 Observed Candidate History',
     '',
     `Total signals:  ${h.totalSignals}`,
     `Closed signals: ${h.closedSignals}`,
-    `Win rate:       ${h.closedSignals > 0 ? h.winRate + '%' : 'N/A'}`,
+    `Positive outcome rate: ${h.closedSignals > 0 ? h.winRate + '%' : 'N/A'}`,
     `Best symbol:    ${h.bestSymbol ?? 'N/A'}`,
     `Best skill:     ${h.bestSkill ?? 'N/A'}`,
     '',

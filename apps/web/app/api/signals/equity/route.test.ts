@@ -46,6 +46,9 @@ function record(overrides: Partial<SignalHistoryRecord>): SignalHistoryRecord {
 
 function primeSlice(records: SignalHistoryRecord[]): void {
   mockedGetResolvedSlice.mockResolvedValueOnce({
+    sourceRecordsLoaded: records.length,
+    sourceReadLimit: 10_000,
+    sourceWindowPotentiallyTruncated: false,
     scopedRecords: records,
     periodFiltered: records,
     resolved: records.filter((r) => !r.isSimulated && !r.gateBlocked && r.outcomes['24h'] !== null),

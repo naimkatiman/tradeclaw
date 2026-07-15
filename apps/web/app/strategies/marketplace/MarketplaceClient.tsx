@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Star, ArrowRight } from 'lucide-react';
+import { Search, ArrowRight } from 'lucide-react';
 import { PageNavBar } from '../../../components/PageNavBar';
 
 type Category = 'Trend' | 'Momentum' | 'Reversal' | 'Volatility' | 'Volume';
@@ -26,9 +26,6 @@ interface MarketplaceStrategy {
   category: Category;
   description: string;
   indicators: string[];
-  rating: number;
-  reviews: number;
-  winRate: number;
   blocks: StrategyBlock[];
 }
 
@@ -48,9 +45,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Trend',
     description: 'Uses EMA 20/50/200 alignment to identify strong trending markets and enter in the direction of the trend.',
     indicators: ['EMA 20', 'EMA 50', 'EMA 200'],
-    rating: 4.5,
-    reviews: 127,
-    winRate: 68,
     blocks: [
       { id: 'e1', type: 'IF', condition: { indicator: 'EMA_CROSS', operator: 'crosses_above', value: 0 } },
       { id: 'e2', type: 'AND', condition: { indicator: 'RSI', operator: '>', value: 50 } },
@@ -60,11 +54,8 @@ const STRATEGIES: MarketplaceStrategy[] = [
   {
     name: 'RSI Divergence Reversal',
     category: 'Reversal',
-    description: 'Detects bullish and bearish divergence between RSI and price action for high-probability reversal entries.',
+    description: 'Defines bullish and bearish divergence conditions between RSI and price action for reversal research.',
     indicators: ['RSI', 'Price Action'],
-    rating: 4.2,
-    reviews: 89,
-    winRate: 62,
     blocks: [
       { id: 'r1', type: 'IF', condition: { indicator: 'RSI', operator: '<', value: 35 } },
       { id: 'r2', type: 'AND', condition: { indicator: 'PRICE_ACTION', operator: '>', value: 0.5 } },
@@ -76,9 +67,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Momentum',
     description: 'Enters when MACD crosses above or below the zero line, confirming momentum shift with histogram direction.',
     indicators: ['MACD', 'Signal Line'],
-    rating: 4.0,
-    reviews: 156,
-    winRate: 59,
     blocks: [
       { id: 'm1', type: 'IF', condition: { indicator: 'MACD', operator: 'crosses_above', value: 0 } },
       { id: 'm2', type: 'THEN', action: { type: 'ENTRY_LONG' } },
@@ -89,9 +77,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Volatility',
     description: 'Identifies low-volatility squeezes in Bollinger Bands and enters on the breakout with RSI confirmation.',
     indicators: ['Bollinger Bands', 'RSI'],
-    rating: 4.3,
-    reviews: 74,
-    winRate: 65,
     blocks: [
       { id: 'bb1', type: 'IF', condition: { indicator: 'BB', operator: '<', value: 20 } },
       { id: 'bb2', type: 'AND', condition: { indicator: 'RSI', operator: '>', value: 55 } },
@@ -103,9 +88,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Trend',
     description: 'Enters when price breaks above the Ichimoku cloud with EMA alignment for trend continuation trades.',
     indicators: ['Ichimoku', 'EMA'],
-    rating: 4.4,
-    reviews: 63,
-    winRate: 66,
     blocks: [
       { id: 'ic1', type: 'IF', condition: { indicator: 'PRICE_ACTION', operator: '>', value: 1.0 } },
       { id: 'ic2', type: 'AND', condition: { indicator: 'EMA_CROSS', operator: 'crosses_above', value: 0 } },
@@ -117,9 +99,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Volume',
     description: 'Trades bounces off the Volume Weighted Average Price level with RSI oversold confirmation for intraday entries.',
     indicators: ['VWAP', 'RSI'],
-    rating: 4.1,
-    reviews: 47,
-    winRate: 61,
     blocks: [
       { id: 'vw1', type: 'IF', condition: { indicator: 'PRICE_ACTION', operator: '<', value: -0.3 } },
       { id: 'vw2', type: 'AND', condition: { indicator: 'RSI', operator: '<', value: 40 } },
@@ -131,9 +110,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Trend',
     description: 'Classic EMA 50/200 crossover strategy. Enters long when the 50 EMA crosses above the 200 EMA on higher timeframes.',
     indicators: ['EMA 50', 'EMA 200'],
-    rating: 4.6,
-    reviews: 203,
-    winRate: 71,
     blocks: [
       { id: 'gc1', type: 'IF', condition: { indicator: 'EMA_CROSS', operator: 'crosses_above', value: 0 } },
       { id: 'gc2', type: 'THEN', action: { type: 'ENTRY_LONG' } },
@@ -144,9 +120,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Reversal',
     description: 'Enters long when RSI drops below 30 and starts recovering, targeting mean reversion with MACD confirmation.',
     indicators: ['RSI', 'MACD'],
-    rating: 4.3,
-    reviews: 112,
-    winRate: 64,
     blocks: [
       { id: 'ro1', type: 'IF', condition: { indicator: 'RSI', operator: '<', value: 30 } },
       { id: 'ro2', type: 'AND', condition: { indicator: 'MACD', operator: '>', value: 0 } },
@@ -158,9 +131,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Reversal',
     description: 'Shorts when Stochastic %K rises above 80 and crosses below the signal line, catching overbought reversals.',
     indicators: ['Stochastic %K', 'Signal'],
-    rating: 3.9,
-    reviews: 58,
-    winRate: 57,
     blocks: [
       { id: 'so1', type: 'IF', condition: { indicator: 'STOCH', operator: '>', value: 80 } },
       { id: 'so2', type: 'THEN', action: { type: 'ENTRY_SHORT' } },
@@ -171,9 +141,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Trend',
     description: 'Requires EMA 5/10/20 to be in perfect bullish alignment before entering, filtering out choppy markets.',
     indicators: ['EMA 5', 'EMA 10', 'EMA 20'],
-    rating: 4.1,
-    reviews: 86,
-    winRate: 63,
     blocks: [
       { id: 'te1', type: 'IF', condition: { indicator: 'EMA_CROSS', operator: 'crosses_above', value: 0 } },
       { id: 'te2', type: 'AND', condition: { indicator: 'RSI', operator: '>', value: 55 } },
@@ -185,9 +152,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Reversal',
     description: 'Enters at key Fibonacci levels (38.2%, 50%, 61.8%) with RSI confirmation for pullback reversal trades.',
     indicators: ['Fibonacci', 'RSI'],
-    rating: 4.0,
-    reviews: 71,
-    winRate: 60,
     blocks: [
       { id: 'fb1', type: 'IF', condition: { indicator: 'PRICE_ACTION', operator: '<', value: -1.5 } },
       { id: 'fb2', type: 'AND', condition: { indicator: 'RSI', operator: '<', value: 45 } },
@@ -199,9 +163,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Volatility',
     description: 'Enters when price moves beyond 2x ATR from the mean, indicating strong volatility expansion and breakout.',
     indicators: ['ATR', 'Price Action'],
-    rating: 4.2,
-    reviews: 54,
-    winRate: 64,
     blocks: [
       { id: 'at1', type: 'IF', condition: { indicator: 'PRICE_ACTION', operator: '>', value: 2.0 } },
       { id: 'at2', type: 'AND', condition: { indicator: 'RSI', operator: '>', value: 60 } },
@@ -213,9 +174,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Momentum',
     description: 'Trades based on MACD histogram direction changes, entering when histogram turns positive with rising bars.',
     indicators: ['MACD', 'Histogram'],
-    rating: 3.8,
-    reviews: 92,
-    winRate: 56,
     blocks: [
       { id: 'mh1', type: 'IF', condition: { indicator: 'MACD', operator: '>', value: 0 } },
       { id: 'mh2', type: 'AND', condition: { indicator: 'PRICE_ACTION', operator: '>', value: 0.2 } },
@@ -225,11 +183,8 @@ const STRATEGIES: MarketplaceStrategy[] = [
   {
     name: 'RSI + MACD Confluence',
     category: 'Momentum',
-    description: 'Dual confirmation strategy requiring both RSI above 50 and MACD above zero for high-conviction momentum entries.',
+    description: 'Defines a dual-confirmation condition requiring both RSI above 50 and MACD above zero.',
     indicators: ['RSI', 'MACD'],
-    rating: 4.4,
-    reviews: 134,
-    winRate: 69,
     blocks: [
       { id: 'rm1', type: 'IF', condition: { indicator: 'RSI', operator: '>', value: 50 } },
       { id: 'rm2', type: 'AND', condition: { indicator: 'MACD', operator: '>', value: 0 } },
@@ -241,9 +196,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Trend',
     description: 'Classic turtle trading system. Enters on 20-period high breakout with price action confirmation for trend entries.',
     indicators: ['Donchian', 'Price Action'],
-    rating: 4.1,
-    reviews: 67,
-    winRate: 62,
     blocks: [
       { id: 'dc1', type: 'IF', condition: { indicator: 'PRICE_ACTION', operator: '>', value: 1.5 } },
       { id: 'dc2', type: 'AND', condition: { indicator: 'EMA_CROSS', operator: 'crosses_above', value: 0 } },
@@ -255,9 +207,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Reversal',
     description: 'Enters when Williams %R reaches extreme oversold levels below -80 and starts recovering for mean reversion.',
     indicators: ['Williams %R', 'Stochastic'],
-    rating: 3.7,
-    reviews: 43,
-    winRate: 55,
     blocks: [
       { id: 'wr1', type: 'IF', condition: { indicator: 'STOCH', operator: '<', value: 20 } },
       { id: 'wr2', type: 'THEN', action: { type: 'ENTRY_LONG' } },
@@ -268,9 +217,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Trend',
     description: 'Follows the Parabolic SAR flip signal for trend direction with EMA cross confirmation to filter false signals.',
     indicators: ['Parabolic SAR', 'EMA'],
-    rating: 4.0,
-    reviews: 78,
-    winRate: 60,
     blocks: [
       { id: 'ps1', type: 'IF', condition: { indicator: 'PRICE_ACTION', operator: '>', value: 0.5 } },
       { id: 'ps2', type: 'AND', condition: { indicator: 'EMA_CROSS', operator: 'crosses_above', value: 0 } },
@@ -282,9 +228,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Reversal',
     description: 'Trades CCI extreme readings below -100 or above +100 as reversal signals with price action confirmation.',
     indicators: ['CCI', 'Price Action'],
-    rating: 3.8,
-    reviews: 51,
-    winRate: 58,
     blocks: [
       { id: 'cc1', type: 'IF', condition: { indicator: 'PRICE_ACTION', operator: '<', value: -1.0 } },
       { id: 'cc2', type: 'AND', condition: { indicator: 'RSI', operator: '<', value: 35 } },
@@ -296,9 +239,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Trend',
     description: 'Uses Elder Ray bull/bear power indicators with EMA trend filter to identify strong directional momentum.',
     indicators: ['Elder Ray', 'EMA', 'MACD'],
-    rating: 4.2,
-    reviews: 39,
-    winRate: 66,
     blocks: [
       { id: 'er1', type: 'IF', condition: { indicator: 'MACD', operator: '>', value: 0 } },
       { id: 'er2', type: 'AND', condition: { indicator: 'EMA_CROSS', operator: 'crosses_above', value: 0 } },
@@ -310,9 +250,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     category: 'Volatility',
     description: 'Enters on Keltner Channel breakout with Bollinger Band squeeze confirmation for volatility expansion trades.',
     indicators: ['Keltner', 'Bollinger Bands'],
-    rating: 4.1,
-    reviews: 46,
-    winRate: 63,
     blocks: [
       { id: 'kc1', type: 'IF', condition: { indicator: 'BB', operator: '<', value: 15 } },
       { id: 'kc2', type: 'AND', condition: { indicator: 'PRICE_ACTION', operator: '>', value: 1.0 } },
@@ -320,25 +257,6 @@ const STRATEGIES: MarketplaceStrategy[] = [
     ],
   },
 ];
-
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star
-          key={i}
-          className={`w-3 h-3 ${
-            i <= Math.floor(rating)
-              ? 'fill-yellow-400 text-yellow-400'
-              : i - 0.5 <= rating
-                ? 'fill-yellow-400/50 text-yellow-400'
-                : 'text-[var(--border)]'
-          }`}
-        />
-      ))}
-    </div>
-  );
-}
 
 export function MarketplaceClient() {
   const router = useRouter();
@@ -371,10 +289,10 @@ export function MarketplaceClient() {
         {/* Hero */}
         <div className="text-center mb-8">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
-            Strategy <span className="text-emerald-400">Marketplace</span>
+            Strategy <span className="text-emerald-400">Template Catalog</span>
           </h1>
           <p className="text-sm text-[var(--text-secondary)] max-w-lg mx-auto">
-            Browse 20+ community strategies. One-click load into the Strategy Builder.
+            Browse illustrative starter templates and load their editable blocks into the Strategy Builder. No community reviews or measured performance are attached.
           </p>
         </div>
 
@@ -427,14 +345,8 @@ export function MarketplaceClient() {
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${CATEGORY_COLORS[strategy.category]}`}>
                     {strategy.category}
                   </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    strategy.winRate >= 65
-                      ? 'bg-emerald-500/15 text-emerald-400'
-                      : strategy.winRate >= 55
-                        ? 'bg-zinc-500/15 text-zinc-400'
-                        : 'bg-red-500/15 text-red-400'
-                  }`}>
-                    {strategy.winRate}% win rate
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-zinc-500/20 bg-zinc-500/10 text-zinc-400">
+                    Illustrative template
                   </span>
                 </div>
 
@@ -460,17 +372,6 @@ export function MarketplaceClient() {
                   ))}
                 </div>
 
-                {/* Rating + reviews */}
-                <div className="flex items-center gap-2">
-                  <StarRating rating={strategy.rating} />
-                  <span className="text-[10px] text-[var(--text-secondary)]">
-                    {strategy.rating.toFixed(1)}
-                  </span>
-                  <span className="text-[10px] text-[var(--text-secondary)]">
-                    ({strategy.reviews} reviews)
-                  </span>
-                </div>
-
                 {/* Load button */}
                 <button
                   onClick={() => loadStrategy(strategy)}
@@ -481,10 +382,10 @@ export function MarketplaceClient() {
                   }`}
                 >
                   {loadedId === strategy.name ? (
-                    'Strategy loaded!'
+                    'Template loaded!'
                   ) : (
                     <>
-                      Load Strategy
+                      Load Template
                       <ArrowRight className="w-3 h-3" />
                     </>
                   )}

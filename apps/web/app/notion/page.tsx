@@ -2,7 +2,7 @@ import { NotionClient } from './NotionClient';
 
 export const metadata = {
   title: 'Notion Integration — TradeClaw',
-  description: 'Export TradeClaw trading signals to your Notion database. Auto-sync with configurable filters, scheduled exports, and full signal data.',
+  description: 'Configure a Notion export for TradeClaw signal-research fields. Preview rows are explicitly illustrative.',
 };
 
 export default function NotionPage() {

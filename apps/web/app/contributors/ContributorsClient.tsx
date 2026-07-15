@@ -2,51 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import {
-  Users,
-  GitPullRequest,
-  GitMerge,
-  Bug,
-  ExternalLink,
-  RefreshCw,
-  Star,
-  Medal,
-  Crown,
-  Heart,
-  Code,
-} from 'lucide-react';
+import { Users, ExternalLink, RefreshCw, Star, Medal, Crown, Heart, Code } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
-
-interface Contributor {
-  login: string;
-  avatar_url: string;
-  html_url: string;
-  contributions: number;
-  type: string;
-}
 
 interface ContributorStats {
   login: string;
   avatarUrl: string;
   profileUrl: string;
   contributions: number;
-  prs: number;
-  mergedPrs: number;
-  issuesClosed: number;
   rank: number;
+  isBot: boolean;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Seed data (fallback)                                               */
-/* ------------------------------------------------------------------ */
-
-const SEED_CONTRIBUTORS: ContributorStats[] = [
-  { login: 'naimkatiman', avatarUrl: 'https://github.com/naimkatiman.png', profileUrl: 'https://github.com/naimkatiman', contributions: 847, prs: 93, mergedPrs: 91, issuesClosed: 42, rank: 1 },
-  { login: 'dependabot[bot]', avatarUrl: 'https://github.com/dependabot.png', profileUrl: 'https://github.com/dependabot', contributions: 12, prs: 12, mergedPrs: 10, issuesClosed: 0, rank: 2 },
-];
+interface ContributorResponse {
+  available: boolean;
+  contributors: ContributorStats[];
+}
 
 /* ------------------------------------------------------------------ */
 /*  Rank Badge                                                         */
@@ -56,20 +30,10 @@ function RankBadge({ rank }: { rank: number }) {
   if (rank === 1) return <Crown size={18} className="text-amber-400" />;
   if (rank === 2) return <Medal size={18} className="text-gray-300" />;
   if (rank === 3) return <Medal size={18} className="text-amber-600" />;
-  return <span className="text-xs font-mono w-5 text-center" style={{ color: 'var(--text-secondary)' }}>#{rank}</span>;
-}
-
-/* ------------------------------------------------------------------ */
-/*  Stat Pill                                                          */
-/* ------------------------------------------------------------------ */
-
-function StatPill({ icon, value, label, color }: { icon: React.ReactNode; value: number; label: string; color: string }) {
   return (
-    <div className="flex items-center gap-1.5 text-xs rounded-lg px-2 py-1" style={{ background: `${color}15`, color }}>
-      {icon}
-      <span className="font-semibold">{value}</span>
-      <span className="hidden sm:inline opacity-70">{label}</span>
-    </div>
+    <span className="text-xs font-mono w-5 text-center" style={{ color: 'var(--text-secondary)' }}>
+      #{rank}
+    </span>
   );
 }
 
@@ -100,7 +64,9 @@ function ContributorCard({ contrib }: { contrib: ContributorStats }) {
           src={contrib.avatarUrl}
           alt={contrib.login}
           className="w-12 h-12 rounded-full border-2"
-          style={{ borderColor: isTop3 ? 'rgba(16,185,129,0.3)' : 'var(--border)' }}
+          style={{
+            borderColor: isTop3 ? 'rgba(16,185,129,0.3)' : 'var(--border)',
+          }}
         />
 
         {/* Info */}
@@ -120,20 +86,6 @@ function ContributorCard({ contrib }: { contrib: ContributorStats }) {
             {contrib.contributions} contributions
           </p>
         </div>
-
-        {/* Stat pills */}
-        <div className="hidden md:flex items-center gap-2">
-          <StatPill icon={<GitPullRequest size={12} />} value={contrib.prs} label="PRs" color="#a855f7" />
-          <StatPill icon={<GitMerge size={12} />} value={contrib.mergedPrs} label="merged" color="#10b981" />
-          <StatPill icon={<Bug size={12} />} value={contrib.issuesClosed} label="closed" color="#f59e0b" />
-        </div>
-      </div>
-
-      {/* Mobile stats row */}
-      <div className="flex md:hidden items-center gap-2 mt-3 pl-12">
-        <StatPill icon={<GitPullRequest size={12} />} value={contrib.prs} label="PRs" color="#a855f7" />
-        <StatPill icon={<GitMerge size={12} />} value={contrib.mergedPrs} label="merged" color="#10b981" />
-        <StatPill icon={<Bug size={12} />} value={contrib.issuesClosed} label="closed" color="#f59e0b" />
       </div>
 
       {/* Contribution bar */}
@@ -157,7 +109,7 @@ function ContributorCard({ contrib }: { contrib: ContributorStats }) {
 /* ------------------------------------------------------------------ */
 
 export function ContributorsClient() {
-  const [contributors, setContributors] = useState<ContributorStats[]>(SEED_CONTRIBUTORS);
+  const [contributors, setContributors] = useState<ContributorStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -166,30 +118,13 @@ export function ContributorsClient() {
 
     async function fetchContributors() {
       try {
-        const res = await fetch(
-          'https://api.github.com/repos/naimkatiman/tradeclaw/contributors?per_page=50',
-          { headers: { Accept: 'application/vnd.github.v3+json' }, next: { revalidate: 3600 } as RequestInit['next'] },
-        );
-        if (!res.ok) throw new Error('GitHub API error');
-        const data: Contributor[] = await res.json();
+        const res = await fetch('/api/github/contributors');
+        if (!res.ok) throw new Error('Contributor API error');
+        const data = (await res.json()) as ContributorResponse;
 
         if (cancelled) return;
-
-        const mapped: ContributorStats[] = data
-          .filter(c => c.type === 'User' || c.type === 'Bot')
-          .map((c, i) => ({
-            login: c.login,
-            avatarUrl: c.avatar_url,
-            profileUrl: c.html_url,
-            contributions: c.contributions,
-            // Estimate PR/issue stats from contribution count
-            prs: Math.max(1, Math.round(c.contributions * 0.6)),
-            mergedPrs: Math.max(1, Math.round(c.contributions * 0.55)),
-            issuesClosed: Math.max(0, Math.round(c.contributions * 0.15)),
-            rank: i + 1,
-          }));
-
-        setContributors(mapped.length > 0 ? mapped : SEED_CONTRIBUTORS);
+        if (!data.available) throw new Error('GitHub contributor data unavailable');
+        setContributors(Array.isArray(data.contributors) ? data.contributors : []);
       } catch {
         if (!cancelled) setError(true);
       } finally {
@@ -198,19 +133,23 @@ export function ContributorsClient() {
     }
 
     fetchContributors();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const totalContribs = contributors.reduce((s, c) => s + c.contributions, 0);
-  const totalPRs = contributors.reduce((s, c) => s + c.prs, 0);
-  const totalMerged = contributors.reduce((s, c) => s + c.mergedPrs, 0);
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       {/* Header */}
       <div className="border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="max-w-4xl mx-auto px-4 py-6 md:py-10">
-          <Link href="/" className="text-xs font-medium flex items-center gap-1.5 mb-4" style={{ color: 'var(--text-secondary)' }}>
+          <Link
+            href="/"
+            className="text-xs font-medium flex items-center gap-1.5 mb-4"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             ← Back to TradeClaw
           </Link>
           <div className="flex items-center gap-3 mb-2">
@@ -220,33 +159,40 @@ export function ContributorsClient() {
             <h1 className="text-2xl md:text-3xl font-bold">Contributors</h1>
           </div>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            The people building TradeClaw. Every PR, every issue, every contribution counts.
+            Contributor totals reported by GitHub. Pull-request, merge, and issue counts are not inferred from this
+            single upstream total.
           </p>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         {/* Stats bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="rounded-xl p-4 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <div className="grid grid-cols-2 gap-3">
+          <div
+            className="rounded-xl p-4 text-center"
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+            }}
+          >
             <Users size={20} className="mx-auto mb-2 text-emerald-500" />
             <p className="text-2xl font-bold">{contributors.length}</p>
-            <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Contributors</p>
+            <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+              Contributors
+            </p>
           </div>
-          <div className="rounded-xl p-4 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <div
+            className="rounded-xl p-4 text-center"
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+            }}
+          >
             <Code size={20} className="mx-auto mb-2 text-purple-400" />
             <p className="text-2xl font-bold">{totalContribs.toLocaleString()}</p>
-            <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Commits</p>
-          </div>
-          <div className="rounded-xl p-4 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <GitPullRequest size={20} className="mx-auto mb-2 text-cyan-400" />
-            <p className="text-2xl font-bold">{totalPRs}</p>
-            <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Pull Requests</p>
-          </div>
-          <div className="rounded-xl p-4 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <GitMerge size={20} className="mx-auto mb-2 text-emerald-500" />
-            <p className="text-2xl font-bold">{totalMerged}</p>
-            <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Merged</p>
+            <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+              GitHub Contributions
+            </p>
           </div>
         </div>
 
@@ -255,22 +201,34 @@ export function ContributorsClient() {
           <div className="flex items-center justify-center py-12">
             <RefreshCw size={20} className="animate-spin text-emerald-500" />
           </div>
-        ) : (
+        ) : contributors.length > 0 ? (
           <div className="space-y-3">
-            {contributors.map(c => (
+            {contributors.map((c) => (
               <ContributorCard key={c.login} contrib={c} />
             ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            GitHub returned no contributor records.
           </div>
         )}
 
         {error && (
           <div className="text-center py-4">
-            <p className="text-xs text-amber-400">GitHub API rate limit reached. Showing cached data.</p>
+            <p className="text-xs text-amber-400">
+              GitHub contributor data is unavailable. No cached or estimated counts are shown.
+            </p>
           </div>
         )}
 
         {/* contrib.rocks image */}
-        <div className="rounded-xl p-5 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <div
+          className="rounded-xl p-5 text-center"
+          style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+          }}
+        >
           <h3 className="text-sm font-semibold mb-4">Contributor Wall</h3>
           <a
             href="https://github.com/naimkatiman/tradeclaw/graphs/contributors"
@@ -286,7 +244,15 @@ export function ContributorsClient() {
             />
           </a>
           <p className="text-xs mt-3" style={{ color: 'var(--text-secondary)' }}>
-            Made with <a href="https://contrib.rocks" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">contrib.rocks</a>
+            Made with{' '}
+            <a
+              href="https://contrib.rocks"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-500 hover:underline"
+            >
+              contrib.rocks
+            </a>
           </p>
         </div>
 
@@ -301,13 +267,16 @@ export function ContributorsClient() {
           <Heart size={24} className="mx-auto mb-3 text-emerald-500" />
           <h3 className="text-lg font-bold mb-2">Join the Team</h3>
           <p className="text-sm mb-4 max-w-md mx-auto" style={{ color: 'var(--text-secondary)' }}>
-            TradeClaw is open source and community-driven. Whether it&apos;s code, docs, or ideas — every contribution is celebrated.
+            TradeClaw is open source and community-driven. Whether it&apos;s code, docs, or ideas — every contribution
+            is celebrated.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/contribute"
               className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium text-white transition-all hover:scale-105"
-              style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
+              style={{
+                background: 'linear-gradient(135deg, #10b981, #059669)',
+              }}
             >
               <Code size={16} /> Start Contributing
             </Link>
@@ -316,7 +285,11 @@ export function ContributorsClient() {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border)',
+                color: 'var(--foreground)',
+              }}
             >
               <Star size={16} className="text-amber-400" /> Star on GitHub
             </a>

@@ -24,9 +24,9 @@ export function TermsClient() {
         <div>
           <h2 className="mb-2 text-lg font-semibold text-[var(--foreground)]">2. No Guarantees</h2>
           <p>
-            Past performance displayed on leaderboards, backtests, or track-record pages does not guarantee
-            future results. Signal accuracy, win rates, and profitability metrics are based on historical data
-            and simulated or tracked outcomes. There is no assurance that future signals will perform similarly.
+            Backtests are historical simulations. Public track-record statistics are based on eligible signal
+            rows resolved against subsequent OHLCV under disclosed assumptions; they are not broker fills,
+            customer trades, or portfolio returns. Neither form of evidence predicts or guarantees future results.
           </p>
         </div>
 

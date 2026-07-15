@@ -47,6 +47,7 @@ function mkRecord(
         pnlPct: opts.pnlPct ?? (opts.hit ? 2.0 : -1.0),
         hit: opts.hit ?? false,
         target: opts.target ?? (opts.hit ? 'TP1' : 'SL'),
+        source: 'binance',
       },
     },
   };
@@ -79,7 +80,7 @@ describe('getSocialSummaryStats — public social/OG denominator parity', () => 
     expect(s.wins).toBe(1);
     expect(s.losses).toBe(1);
     expect(s.winRatePct).toBe(50);
-    expect(s.totalPnlPct).toBe(1); // +2.0 win + -1.0 loss
+    expect(s.sumPriceMovePct).toBe(1); // +2.0 win + -1.0 loss
   });
 
   it('daily window counts only the anchor day', async () => {
@@ -95,21 +96,21 @@ describe('getSocialSummaryStats — public social/OG denominator parity', () => 
     expect(s.wins).toBe(1);
   });
 
-  it('weekly window spans [date-7d, date+1d): includes 7 days back, excludes the 8th', async () => {
+  it('weekly window spans exactly seven calendar days: [date-6d, date+1d)', async () => {
     mockedHistory.mockResolvedValue([
       mkRecord('d0', { hit: true, dayOffset: 0 }),
-      mkRecord('d-7', { hit: false, dayOffset: -7 }), // included (window start)
-      mkRecord('d-8', { hit: true, dayOffset: -8 }), // excluded (before window)
+      mkRecord('d-6', { hit: false, dayOffset: -6 }), // included (window start)
+      mkRecord('d-7', { hit: true, dayOffset: -7 }), // excluded (before window)
     ]);
 
     const s = await getSocialSummaryStats('weekly', ANCHOR);
 
-    expect(s.total).toBe(2); // d0 + d-7
+    expect(s.total).toBe(2); // d0 + d-6
     expect(s.wins).toBe(1);
     expect(s.losses).toBe(1);
   });
 
-  it('reports best / worst symbol by summed resolved P&L over the window', async () => {
+  it('reports highest / lowest pair by summed resolved price moves over the window', async () => {
     mockedHistory.mockResolvedValue([
       mkRecord('btc1', { pair: 'BTCUSD', hit: true, pnlPct: 3, dayOffset: 0 }),
       mkRecord('btc2', { pair: 'BTCUSD', hit: true, pnlPct: 2, dayOffset: 0 }),
@@ -118,10 +119,10 @@ describe('getSocialSummaryStats — public social/OG denominator parity', () => 
 
     const s = await getSocialSummaryStats('daily', ANCHOR);
 
-    expect(s.bestSymbol).toBe('BTCUSD');
-    expect(s.bestPnlPct).toBe(5);
-    expect(s.worstSymbol).toBe('ETHUSD');
-    expect(s.worstPnlPct).toBe(-3);
+    expect(s.highestSumSymbol).toBe('BTCUSD');
+    expect(s.highestSumPriceMovePct).toBe(5);
+    expect(s.lowestSumSymbol).toBe('ETHUSD');
+    expect(s.lowestSumPriceMovePct).toBe(-3);
   });
 
   it('degrades to zeros / nulls on an empty window without dividing by zero', async () => {
@@ -132,9 +133,9 @@ describe('getSocialSummaryStats — public social/OG denominator parity', () => 
     expect(s.total).toBe(0);
     expect(s.wins).toBe(0);
     expect(s.winRatePct).toBe(0);
-    expect(s.totalPnlPct).toBe(0);
-    expect(s.bestSymbol).toBeNull();
-    expect(s.worstSymbol).toBeNull();
+    expect(s.sumPriceMovePct).toBe(0);
+    expect(s.highestSumSymbol).toBeNull();
+    expect(s.lowestSumSymbol).toBeNull();
   });
 
   it('falls back to today when the date string is unparseable (OG query param guard)', async () => {

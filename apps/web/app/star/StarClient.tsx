@@ -13,43 +13,43 @@ const MILESTONES: Array<{ stars: number; icon: LucideIcon; feature: string; desc
     stars: 100,
     icon: Plug,
     feature: "MT4/MT5 broker integration",
-    desc: "Connect your broker directly — auto-execute signals from TradeClaw",
+    desc: "Proposed adapter work; any execution path would require explicit safety gates and testing",
   },
   {
     stars: 250,
     icon: Smartphone,
     feature: "Mobile app (React Native)",
-    desc: "Live signals and alerts on your phone (5-minute cadence), with push notifications",
+    desc: "Proposed mobile client for reviewing records and configured notifications",
   },
   {
     stars: 500,
     icon: Cloud,
-    feature: "Hosted cloud version — free",
-    desc: "No Docker required — sign up and get signals instantly, free forever",
+    feature: "Hosted deployment option",
+    desc: "Proposal only; availability, privacy terms, and pricing would need a published service plan",
   },
   {
     stars: 1000,
     icon: BarChart2,
-    feature: "Full backtesting engine with real broker data",
-    desc: "Test any strategy against historical tick data from live brokers",
+    feature: "Expanded reproducible backtesting",
+    desc: "Proposed broker-data imports with explicit data provenance, cost assumptions, and result artifacts",
   },
 ];
 
 const SHARE_TWEETS = [
-  `🤖 Just found TradeClaw — free, self-hosted AI trading signals for forex, crypto & metals. Open source, MIT license. No paywalls ever.\n\n${GITHUB_URL}\n\n#algotrading #openSource #tradingSignals`,
-  `If you trade forex or crypto, check out TradeClaw — open-source AI signals with RSI, MACD, EMA, Bollinger Bands. Self-host it for free.\n\n⭐ ${GITHUB_URL}\n\n#trading #crypto #selfhosted`,
-  `Stop paying for signal services.\n\nTradeClaw = free AI trading signals, self-hosted, open source. Docker one-click deploy.\n\n${GITHUB_URL}\n\n#tradeclaw #algotrading`,
+  `TradeClaw publishes MIT-licensed trading-signal source and an evidence-labelled public archive for forex, crypto, and metals. Review the code and limitations:\n\n${GITHUB_URL}\n\n#algotrading #openSource`,
+  `TradeClaw is self-hostable trading-signal software with a rule-based indicator engine. Hosting, data, brokers, and notifications have separate terms and costs.\n\n${GITHUB_URL}\n\n#trading #selfhosted`,
+  `TradeClaw publishes its source, Docker Compose setup, and observed or explicitly modeled signal evidence under an MIT license.\n\n${GITHUB_URL}\n\n#tradeclaw #algotrading`,
 ];
 
 const LINKEDIN_POST = `🚀 Excited about this open-source project: TradeClaw
 
-TradeClaw is a self-hosted AI trading signal platform for forex, crypto, and commodities. It uses RSI, MACD, EMA, and Bollinger Bands to generate live BUY/SELL signals on a 5-minute cadence.
+TradeClaw is MIT-licensed, self-hostable trading-signal software for forex, crypto, and commodities. Its rule-based engine uses indicators including RSI, MACD, EMA, and Bollinger Bands.
 
 What makes it different:
-• Completely free, MIT licensed
-• Self-hosted — your data stays private
-• Docker one-click deployment
-• Backtesting, paper trading, Telegram alerts
+• MIT-licensed source
+• Documented Docker Compose self-hosting path
+• Observed and modeled evidence labelled separately
+• Automated execution disabled by default
 
 If you're into quantitative trading or self-hosted tools, check it out:
 ${GITHUB_URL}
@@ -59,13 +59,13 @@ ${GITHUB_URL}
 const REDDIT_POSTS = [
   {
     sub: "r/algotrading",
-    title: "I built an open-source self-hosted AI trading signal platform — free forever, MIT license",
-    body: `Hey r/algotrading,\n\nBuilt TradeClaw — self-hosted AI trading signals for forex, crypto & commodities. RSI, MACD, EMA, Bollinger Bands. Backtesting, paper trading, Telegram alerts.\n\nFree forever. No paywalls. Docker one-click.\n\nGitHub: ${GITHUB_URL}\n\nLive demo: https://tradeclaw.win\n\nFeedback welcome!`,
+    title: "I built MIT-licensed, self-hostable trading-signal software",
+    body: `Hey r/algotrading,\n\nBuilt TradeClaw, self-hostable trading-signal software for forex, crypto, and commodities. The rule-based engine uses RSI, MACD, EMA, and Bollinger Bands. The public archive labels observed and modeled evidence separately.\n\nThe source is MIT-licensed; hosting and providers may charge separately.\n\nGitHub: ${GITHUB_URL}\n\nPublic archive: https://tradeclaw.win\n\nFeedback welcome!`,
   },
   {
     sub: "r/selfhosted",
-    title: "TradeClaw — self-hosted AI trading signal platform, MIT license, Docker one-click",
-    body: `Hi r/selfhosted!\n\nJust open-sourced TradeClaw — a self-hosted AI trading signal platform. Runs locally with Docker, no external services required.\n\nFeatures: live signals, backtesting, paper trading, screener, Telegram bot, webhook alerts, plugin system.\n\nGitHub: ${GITHUB_URL}\n\nDocker: \`docker compose up\`\n\nFeedback appreciated!`,
+    title: "TradeClaw — MIT-licensed trading-signal software with Docker Compose",
+    body: `Hi r/selfhosted!\n\nTradeClaw is MIT-licensed, self-hostable trading-signal software with a documented Docker Compose path. Market data, brokers, notifications, and hosting remain separately configured services.\n\nThe repository includes a rule-based signal engine, evidence-labelled archive, modeled paper trading, and optional integrations.\n\nGitHub: ${GITHUB_URL}\n\nFeedback appreciated!`,
   },
 ];
 
@@ -73,16 +73,16 @@ const DISCORD_MSG = `Hey everyone! 👋
 
 Check out **TradeClaw** — an open-source, self-hosted AI trading signal platform.
 
-🔹 Free forever (MIT license)
+🔹 MIT-licensed source
 🔹 Forex, crypto, commodities
 🔹 RSI, MACD, EMA, Bollinger Bands
-🔹 Docker one-click deploy
-🔹 Backtesting + paper trading
+🔹 Documented Docker Compose setup
+🔹 Observed and modeled evidence labelled separately
 
 GitHub: <${GITHUB_URL}>
-Live demo: <https://tradeclaw.win>
+Public archive: <https://tradeclaw.win>
 
-If you find it useful, drop a ⭐ on GitHub — it helps more traders discover free tools!`;
+If you find the source useful, review it and consider starring the repository.`;
 
 const BADGE_MD = `[![TradeClaw Stars](https://img.shields.io/github/stars/naimkatiman/tradeclaw?style=social)](https://github.com/naimkatiman/tradeclaw)`;
 
@@ -114,9 +114,16 @@ export function StarClient() {
 
   useEffect(() => {
     fetch("/api/github-stars")
-      .then((r) => r.json())
-      .then((d) => setStars(d.stars ?? 1))
-      .catch(() => setStars(1));
+      .then((r) => {
+        if (!r.ok) throw new Error("GitHub metric unavailable");
+        return r.json();
+      })
+      .then((d: { stars?: unknown }) => {
+        if (typeof d.stars === "number" && Number.isFinite(d.stars) && d.stars >= 0) {
+          setStars(d.stars);
+        }
+      })
+      .catch(() => setStars(null));
   }, []);
 
   const pct = stars !== null ? Math.min((stars / GOAL) * 100, 100) : 0;
@@ -173,9 +180,9 @@ export function StarClient() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-base text-zinc-400 leading-relaxed">
-            Free, open-source AI trading signals. No paywall. Forever.
+            MIT-licensed trading-signal source with an evidence-labelled public archive.
             <br />
-            Every star unlocks new features for the community.
+            Stars indicate interest; maintainers retain scope and scheduling decisions.
           </p>
 
           {/* Star CTA */}
@@ -198,7 +205,7 @@ export function StarClient() {
               href="/"
               className="flex items-center gap-2 rounded-full border border-white/10 px-6 py-4 text-sm font-medium text-zinc-300 hover:border-white/20 hover:bg-white/5 transition-all"
             >
-              View Live Demo →
+              View Public Archive →
             </Link>
           </div>
 
@@ -224,9 +231,9 @@ export function StarClient() {
       {/* ─── MILESTONE REWARDS ─── */}
       <section className="px-6 py-16 border-t border-white/5">
         <div className="mx-auto max-w-3xl">
-          <h2 className="text-center text-2xl font-bold mb-3">Milestone Rewards</h2>
+          <h2 className="text-center text-2xl font-bold mb-3">Proposed Feature Requests</h2>
           <p className="text-center text-sm text-zinc-500 mb-10">
-            Starring = voting for features. Hit the milestone, we ship it.
+            Thresholds are campaign prompts, not delivery commitments.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -273,8 +280,8 @@ export function StarClient() {
             })}
           </div>
           <p className="text-center text-[10px] text-zinc-700 mt-6">
-            These are community-voted feature pledges, not guaranteed ETAs.
-            Stars signal demand — we prioritize accordingly.
+            These are proposed feature-request thresholds, not guaranteed scope or ETAs.
+            Stars are an interest signal; maintainers decide priority and scheduling.
           </p>
         </div>
       </section>
@@ -284,7 +291,7 @@ export function StarClient() {
         <div className="mx-auto max-w-3xl">
           <h2 className="text-center text-2xl font-bold mb-3">Share &amp; Spread</h2>
           <p className="text-center text-sm text-zinc-500 mb-10">
-            30 seconds of sharing helps thousands of traders discover free tools.
+            Review the wording and evidence before sharing TradeClaw publicly.
           </p>
 
           {/* Twitter */}
@@ -403,7 +410,7 @@ export function StarClient() {
             {[
               {
                 label: "Telegram",
-                href: `https://t.me/share/url?url=${encodeURIComponent(GITHUB_URL)}&text=${encodeURIComponent("TradeClaw — free self-hosted AI trading signals")}`,
+                href: `https://t.me/share/url?url=${encodeURIComponent(GITHUB_URL)}&text=${encodeURIComponent("TradeClaw — MIT-licensed self-hostable trading-signal software")}`,
                 color: "text-sky-400",
               },
               {
@@ -413,7 +420,7 @@ export function StarClient() {
               },
               {
                 label: "WhatsApp",
-                href: `https://wa.me/?text=${encodeURIComponent(`Check out TradeClaw — free open-source AI trading signals: ${GITHUB_URL}`)}`,
+                href: `https://wa.me/?text=${encodeURIComponent(`Review TradeClaw, MIT-licensed self-hostable trading-signal software: ${GITHUB_URL}`)}`,
                 color: "text-green-400",
               },
               {
@@ -451,7 +458,7 @@ export function StarClient() {
         <div className="mx-auto max-w-md text-center">
           <h2 className="text-2xl font-bold mb-3">Get notified on milestones</h2>
           <p className="text-sm text-zinc-500 mb-6">
-            We&apos;ll email you when we hit 100, 500, and 1,000 stars. That&apos;s it. No spam.
+            Subscribe to milestone notices for 100, 500, and 1,000 GitHub stars.
           </p>
 
           <form onSubmit={handleNotify} className="flex gap-2">
@@ -480,7 +487,7 @@ export function StarClient() {
           )}
 
           <p className="mt-4 text-[10px] text-zinc-700">
-            We only email on milestone hits. No marketing. No spam. Unsubscribe anytime.
+            This form requests milestone email notices. Use the unsubscribe mechanism in delivered messages to change that preference.
           </p>
         </div>
       </section>
@@ -526,17 +533,17 @@ export function StarClient() {
               {
                 icon: Search,
                 title: "Discoverability",
-                desc: "Every star helps more developers discover TradeClaw on GitHub search and explore",
+                desc: "The public star count records repository interest on GitHub",
               },
               {
                 icon: TrendingUp,
-                title: "GitHub Trending",
-                desc: "Stars = visibility on GitHub Trending. Trending = thousands of new users organically",
+                title: "Public Bookmark",
+                desc: "A star lets a GitHub user bookmark the repository and makes that interest visible",
               },
               {
                 icon: Wrench,
-                title: "Better for everyone",
-                desc: "More stars = more contributors = better signals, more features, faster development",
+                title: "Review Still Required",
+                desc: "Stars do not validate signal performance, guarantee contributors, or determine roadmap delivery",
               },
             ] as { icon: LucideIcon; title: string; desc: string }[]).map((card) => (
               <div
@@ -556,9 +563,9 @@ export function StarClient() {
       <section className="px-6 py-16 border-t border-white/5 text-center">
         <div className="mx-auto max-w-xl">
           <div className="text-4xl mb-4"><Star className="w-10 h-10 text-zinc-400 mx-auto" /></div>
-          <h2 className="text-2xl font-bold mb-3">2 seconds. Zero cost. Real impact.</h2>
+          <h2 className="text-2xl font-bold mb-3">Review the repository before starring</h2>
           <p className="text-sm text-zinc-500 mb-8">
-            Every star makes TradeClaw more discoverable to traders who need free tools.
+            A GitHub star is a public interest signal, not a performance endorsement.
           </p>
           <a
             href={GITHUB_URL}

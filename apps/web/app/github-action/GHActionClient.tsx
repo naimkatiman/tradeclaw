@@ -48,11 +48,11 @@ jobs:
             \\"text\\": \\"BTC SELL @ \${{ steps.signal.outputs.signal_confidence }}%\\"
           }"`;
 
-const CI_GATE_YAML = `name: Deploy Gate
-on: push
+const CI_GATE_YAML = `name: Signal Snapshot
+on: workflow_dispatch
 
 jobs:
-  deploy:
+  snapshot:
     runs-on: ubuntu-latest
     steps:
       - uses: naimkatiman/tradeclaw/packages/tradeclaw-action@main
@@ -62,11 +62,10 @@ jobs:
           direction: BUY
           min_confidence: 70
 
-      - name: Deploy if bullish
-        if: steps.signal.outputs.signal_found == 'true'
-        run: npm run deploy`;
+      - name: Record candidate
+        run: echo "Signal candidate archived for research; not a deployment gate."`;
 
-const PAPER_TRADE_YAML = `name: Paper Trade
+const PAPER_TRADE_YAML = `name: Candidate Log
 on:
   schedule:
     - cron: '0 * * * *'
@@ -82,11 +81,11 @@ jobs:
           timeframe: H4
           min_confidence: 75
 
-      - name: Execute paper trade
+      - name: Append candidate
         if: steps.signal.outputs.signal_found == 'true'
         run: |
-          echo "Paper \${{ steps.signal.outputs.signal_direction }} ETH"
-          echo "\${{ steps.signal.outputs.signal_json }}" >> trades.log`;
+          echo "Candidate \${{ steps.signal.outputs.signal_direction }} ETH"
+          echo "\${{ steps.signal.outputs.signal_json }}" >> signal-candidates.log`;
 
 const DAILY_REPORT_YAML = `name: Daily Signal Report
 on:
@@ -164,7 +163,7 @@ const HOW_IT_WORKS_STEPS = [
   },
   {
     step: '2',
-    title: 'Action fetches live signals',
+    title: 'Action fetches the latest available candidates',
     desc: 'Uses curl + python3 (pre-installed on runners) to query the TradeClaw API. Zero dependencies.',
   },
   {
@@ -177,22 +176,22 @@ const HOW_IT_WORKS_STEPS = [
 const EXAMPLE_CARDS = [
   {
     icon: AlertTriangle,
-    title: 'Alert on BTC Sell Signal',
-    desc: 'Run every 4 hours and post to Slack when a high-confidence SELL fires.',
+    title: 'Log a BTC sell candidate',
+    desc: 'Poll on a schedule and post a best-effort notification when a matching scored candidate is returned.',
     yaml: ALERT_YAML,
     filename: 'alert.yml',
   },
   {
     icon: Shield,
-    title: 'CI Gate on Direction',
-    desc: 'Only deploy when the market is bullish with 70%+ confidence.',
+    title: 'Archive a research snapshot',
+    desc: 'Record a candidate in a manually triggered workflow without tying software deployment to a market score.',
     yaml: CI_GATE_YAML,
     filename: 'deploy-gate.yml',
   },
   {
     icon: Play,
-    title: 'Paper Trade Trigger',
-    desc: 'Hourly signal check that logs paper trades to a file.',
+    title: 'Candidate log',
+    desc: 'Hourly signal check that appends returned research candidates to a file; it does not simulate fills.',
     yaml: PAPER_TRADE_YAML,
     filename: 'paper-trade.yml',
   },
@@ -209,14 +208,14 @@ const INPUTS = [
   { name: 'pair', default: 'BTCUSD', desc: 'Trading pair (BTCUSD, ETHUSD, XAUUSD, ...)' },
   { name: 'timeframe', default: 'H1', desc: 'Signal timeframe (H1, H4, D1)' },
   { name: 'direction', default: 'ALL', desc: 'Filter by direction (BUY, SELL, ALL)' },
-  { name: 'min_confidence', default: '70', desc: 'Minimum confidence threshold (0-100)' },
+  { name: 'min_confidence', default: '70', desc: 'Minimum mechanical rule score (0-100; not a probability)' },
   { name: 'base_url', default: 'https://tradeclaw.win', desc: 'TradeClaw instance URL' },
 ];
 
 const OUTPUTS = [
   { name: 'signal_found', desc: 'Whether a matching signal was found (true/false)' },
   { name: 'signal_direction', desc: 'Signal direction (BUY or SELL)' },
-  { name: 'signal_confidence', desc: 'Signal confidence percentage (0-100)' },
+  { name: 'signal_confidence', desc: 'Mechanical rule score (0-100; not a calibrated probability)' },
   { name: 'signal_json', desc: 'Full signal JSON payload' },
 ];
 
@@ -236,18 +235,17 @@ export function GHActionClient() {
             TradeClaw <span className="text-emerald-400">GitHub Action</span>
           </h1>
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl mx-auto mb-8">
-            Fetch live AI trading signals in your CI/CD pipeline. Gate deployments on market conditions,
-            run scheduled signal checks, and get rich summaries in every Actions run.
+            Fetch the latest rule-generated candidates for logging and research. Provider availability and source freshness can vary.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <a
-              href="https://github.com/marketplace/actions/tradeclaw-signal-check"
+              href="https://github.com/naimkatiman/tradeclaw/tree/main/packages/tradeclaw-action"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-500 text-black font-semibold text-sm hover:bg-emerald-400 transition-colors"
             >
               <GithubIcon className="w-4 h-4" />
-              Get on Marketplace
+              Inspect action source
             </a>
             <a
               href="https://github.com/naimkatiman/tradeclaw"
@@ -368,7 +366,7 @@ export function GHActionClient() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { icon: Zap, title: 'Zero Dependencies', desc: 'Composite action using curl + python3 — no node_modules' },
-              { icon: Shield, title: 'Deploy Gates', desc: 'Block deploys on SELL signals or low confidence' },
+              { icon: Shield, title: 'Research Filters', desc: 'Filter returned candidates by direction or mechanical score' },
               { icon: BarChart3, title: 'Rich Summaries', desc: 'Signal report in your Actions run UI via GITHUB_STEP_SUMMARY' },
               { icon: Clock, title: 'Scheduled Scans', desc: 'Cron-based multi-pair signal monitoring' },
               { icon: Terminal, title: 'Self-Hosted', desc: 'Point base_url to your own TradeClaw instance' },
@@ -390,19 +388,19 @@ export function GHActionClient() {
       {/* CTA */}
       <section className="py-20 px-4 text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold mb-4">Ready to add signals to your pipeline?</h2>
+          <h2 className="text-2xl font-bold mb-4">Inspect the action before using it</h2>
           <p className="text-[var(--text-secondary)] mb-8">
-            Install from GitHub Marketplace in seconds. No API key required.
+            The action source and inputs live in this repository. Public-instance availability is not guaranteed; self-hosted instances can be configured with base_url.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <a
-              href="https://github.com/marketplace/actions/tradeclaw-signal-check"
+              href="https://github.com/naimkatiman/tradeclaw/tree/main/packages/tradeclaw-action"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-500 text-black font-semibold hover:bg-emerald-400 transition-colors"
             >
               <GithubIcon className="w-4 h-4" />
-              Install from Marketplace
+              View action source
             </a>
             <Link
               href="/star"

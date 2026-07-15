@@ -124,7 +124,7 @@ const PROFILES: Record<ProfileKey, Profile> = {
     icon: Zap,
     color: 'text-zinc-400',
     description:
-      'You thrive on fast-paced action and quick profits. You watch charts like a hawk and capitalize on micro-movements. TradeClaw\'s 5-minute signal cadence is built for traders like you.',
+      'You prefer short observation windows and frequent chart review. Treat this result as a UI profile only, not a recommendation or evidence of expected profit.',
     pairs: ['BTC/USD', 'ETH/USD', 'SOL/USD', 'EUR/USD'],
     timeframes: ['1m', '5m', '15m'],
     confidenceThreshold: '60%+',

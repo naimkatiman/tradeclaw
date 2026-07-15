@@ -18,20 +18,6 @@ export async function GET() {
           overflow: "hidden",
         }}
       >
-        {/* Ambient glow */}
-        <div
-          style={{
-            position: "absolute",
-            top: "-100px",
-            right: "-100px",
-            width: "400px",
-            height: "400px",
-            background: "radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)",
-            borderRadius: "50%",
-            display: "flex",
-          }}
-        />
-
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
           <div
@@ -56,26 +42,26 @@ export async function GET() {
         </div>
 
         <div style={{ color: "#fff", fontSize: "42px", fontWeight: 800, lineHeight: 1.1, marginBottom: "8px", display: "flex" }}>
-          Signal Performance Leaderboard
+          Signal Outcome Table
         </div>
         <div style={{ color: "#52525b", fontSize: "18px", marginBottom: "40px", display: "flex" }}>
-          AI signal accuracy tracked across forex, crypto &amp; commodities
+          Recorded candidates and source-gated OHLCV outcomes. No broker or portfolio claims.
         </div>
 
         {/* Stats row */}
         <div style={{ display: "flex", gap: "20px", marginBottom: "32px" }}>
           {[
-            { label: "ASSETS TRACKED", value: "10+", color: "#fff" },
-            { label: "HIT RATE", value: "~65%", color: "#10b981" },
-            { label: "TIMEFRAMES", value: "4h & 24h", color: "#fff" },
-            { label: "OPEN SOURCE", value: "FREE", color: "#a1a1aa" },
+            { label: "RECORDED ROWS", value: "PUBLIC", color: "#fff" },
+            { label: "OUTCOMES", value: "SOURCE-GATED", color: "#10b981" },
+            { label: "COST MODEL", value: "DISCLOSED", color: "#fff" },
+            { label: "OPEN SOURCE", value: "MIT", color: "#a1a1aa" },
           ].map((s) => (
             <div
               key={s.label}
               style={{
                 background: "rgba(255,255,255,0.03)",
                 border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: "16px",
+                borderRadius: "8px",
                 padding: "20px 28px",
                 display: "flex",
                 flexDirection: "column",
@@ -99,7 +85,7 @@ export async function GET() {
             tradeclaw.win/leaderboard
           </span>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ color: "#3f3f46", fontSize: "14px" }}>⭐ Star on GitHub</span>
+            <span style={{ color: "#3f3f46", fontSize: "14px" }}>GitHub: naimkatiman/tradeclaw</span>
           </div>
         </div>
       </div>

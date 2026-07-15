@@ -380,12 +380,14 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
     ? `${formatDate(points[0].timestamp)} – ${formatDate(points[points.length - 1].timestamp)}`
     : null;
 
-  // Headline expectancy prefers NET (gross − real cost) so it agrees in sign with
+  // Headline expectancy prefers NET (gross − modeled cost) so it agrees in sign with
   // the equity curve — a green +0.01R gross beside a -100% curve reads as broken.
   // Falls back to gross only when cost wasn't available.
   const expectancyShown = summary ? (summary.netExpectancyR ?? summary.expectancyR) : null;
 
   const isBroadcast = scope === 'broadcast';
+  const sizedTradeCount = summary?.sizedTrades ?? points.length;
+  const hasSizedEvidence = sizedTradeCount > 0;
 
   return (
     <section
@@ -397,7 +399,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
       <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
         <div>
           <h2 className="text-sm font-semibold text-white tracking-tight flex items-center gap-2">
-            Signal Performance — Auto Paper-Traded
+            Signal Study — Sequential Simulation
             <span
               className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider ${
                 isBroadcast
@@ -405,21 +407,21 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
                   : 'bg-emerald-500/15 text-emerald-400'
               }`}
             >
-              {isBroadcast ? 'Broadcast' : 'Full'} view
+              {isBroadcast ? 'Broadcast subset' : 'Eligible stream'}
             </span>
           </h2>
           <p className="text-[11px] text-zinc-600 mt-0.5">
             {isBroadcast
               ? summary
-                ? `Gate-approved broadcast subset — decisions recorded since 2026-06-10. ${summary.riskPerTradePct}% risk per trade${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''} after real per-symbol round-trip costs (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/trade).`
+                ? `Gate-approved broadcast subset — decisions recorded since 2026-06-10. Sequential simulation at ${summary.riskPerTradePct}% modeled risk per signal${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''}, after per-asset fee/slippage assumptions (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/signal).`
                 : 'Gate-approved broadcast subset — decisions recorded since 2026-06-10.'
               : summary
-                ? `Full track record. ${summary.riskPerTradePct}% risk per trade, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per trade` : ''}, after real per-symbol round-trip costs (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/trade). Resolved against Binance/Yahoo OHLCV.`
-                : 'Full track record. Resolved against Binance/Yahoo OHLCV.'}
+                ? `Eligible signal stream. Sequential simulation at ${summary.riskPerTradePct}% modeled risk per signal, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per signal` : ''}, after per-asset fee/slippage assumptions (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/signal). Outcomes require approved observed-OHLCV provenance; no broker fills.`
+                : 'Eligible signal stream. Outcomes require approved observed-OHLCV provenance; no broker fills.'}
           </p>
           {summary && summary.sizedTrades !== undefined && summary.sizedTrades > 0 && (
             <p className="text-[10px] text-zinc-600 mt-1">
-              Engine fires across the full multi-symbol multi-timeframe stream — {summary.sizedTrades.toLocaleString()} sized trade{summary.sizedTrades === 1 ? '' : 's'} in this window. A subscriber filtering for high-confidence setups would execute a fraction of these; the equity path assumes 1% risk on every signal.
+              {summary.sizedTrades.toLocaleString()} eligible sized signal{summary.sizedTrades === 1 ? '' : 's'} in this window. The simulation processes every one sequentially; it does not model overlapping exposure, account margin, or which signals a subscriber received or executed.
             </p>
           )}
           {smooth && smoothMeta?.capR !== null && smoothMeta?.capR !== undefined && (
@@ -430,8 +432,8 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {/* Band toggle — All vs Premium-only. Lets viewers see what the
-              high-confidence filter (conf ≥ 85) actually looked like vs the
-              full firehose in the same window. Only shown when caller wired
+              high-confidence filter (conf ≥ 85) looked like vs the eligible
+              stream in the same window. Only shown when caller wired
               an onBandChange so the parent decides whether the toggle is
               meaningful for its scope. */}
           {onBandChange && (
@@ -447,7 +449,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
                       ? 'bg-emerald-500/15 text-emerald-400'
                       : 'bg-white/[0.02] text-zinc-500 hover:text-zinc-300'
                   }`}
-                  title={value === 'premium' ? 'Premium-only: confidence ≥ 85. The high-conviction subset of signals.' : 'All signals (full firehose).'}
+                  title={value === 'premium' ? 'Premium-only: confidence ≥ 85. The high-conviction subset of eligible signals.' : 'Eligible sized signals in the selected scope.'}
                 >
                   {value === 'all' ? 'All' : 'Premium'}
                 </button>
@@ -456,7 +458,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
           )}
           {/* Smooth toggle — opt-in marketing view. Off by default so the
               headline numbers match the raw paper-trade outcome. */}
-          <button
+          {hasSizedEvidence && <button
             type="button"
             onClick={() => setSmooth(s => !s)}
             aria-pressed={smooth}
@@ -468,7 +470,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
             title="Clip the top and bottom 5% of trade outcomes (P95 cap). Reveals the path without single-trade outliers in either direction."
           >
             {smooth ? 'Smoothed (P95)' : 'Smooth outliers'}
-          </button>
+          </button>}
         </div>
       </div>
 
@@ -477,7 +479,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
          easy to miss in a shared or embedded screenshot, so surface a visible
          amber banner whenever smooth mode is on, regardless of whether a cap
          was computed. */}
-      {smooth && (
+      {smooth && hasSizedEvidence && (
         <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-300">
           <span aria-hidden="true" className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-400" />
           <span>
@@ -492,13 +494,18 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
       {/* Stats overlay — Total Return and Max Drawdown are presented as a
          barbell, equal weight. Win-rate-only or return-only framing hides
          the path. A +308% return with -67% drawdown is not a flat ride. */}
-      {summary && !loading && (
+      {summary && !loading && !hasSizedEvidence && (
+        <div className="mb-4 rounded-lg border border-white/10 bg-white/[0.02] px-4 py-5 text-center text-xs text-zinc-400">
+          No approved observed-OHLCV outcomes with a recorded stop loss are available for this simulation window. No zero-return placeholder is shown.
+        </div>
+      )}
+      {summary && !loading && hasSizedEvidence && (
         <>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div className="bg-white/[0.02] rounded-lg py-3 px-4 border border-white/[0.04]">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-1 inline-flex items-center gap-1">
-                Total Return (compounded)
-                <InfoHint text={STAT_HINTS.totalReturnCompounded} label="What compounded total return means" />
+                Sequential simulation result
+                <InfoHint text={STAT_HINTS.totalReturnCompounded} label="What the sequential simulation means" />
               </div>
               <div className={`text-2xl font-mono font-bold tabular-nums ${
                 summary.totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'
@@ -511,7 +518,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
             </div>
             <div className="bg-white/[0.02] rounded-lg py-3 px-4 border border-white/[0.04]">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-1 inline-flex items-center gap-1">
-                Max Drawdown
+                Simulated Max Drawdown
                 <InfoHint text={STAT_HINTS.maxDrawdown} label="What max drawdown means" />
               </div>
               <div className="text-2xl font-mono font-bold text-red-400 tabular-nums">
@@ -632,7 +639,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
       )}
 
       {/* Chart */}
-      <div className="relative" style={{ height: 220 }}>
+      {(loading || hasSizedEvidence) && <div className="relative" style={{ height: 220 }}>
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="h-5 w-5 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin" />
@@ -674,7 +681,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
             style={{ left: tooltip.x }}
           />
         )}
-      </div>
+      </div>}
 
     </section>
   );

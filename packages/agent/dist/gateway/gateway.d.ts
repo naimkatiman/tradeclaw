@@ -1,17 +1,17 @@
+import { SIGNAL_SCAN_AVAILABILITY } from '../signals/engine.js';
 import type { GatewayConfig, TradingSignal } from '@tradeclaw/signals';
 /**
  * Core gateway daemon.
- * Orchestrates scanning, signal generation, and channel delivery.
+ * Orchestrates availability checks and future observed-candidate delivery.
  */
 export declare class Gateway {
     private config;
     private scheduler;
     private channels;
-    private skillLoader;
     private latestSignals;
     private startTime;
     private initialized;
-    constructor();
+    private channelWarned;
     start(configPath?: string): Promise<void>;
     scanOnce(configPath?: string): Promise<TradingSignal[]>;
     getLatestSignals(): TradingSignal[];
@@ -22,11 +22,13 @@ export declare class Gateway {
         config: GatewayConfig | null;
         channelCount: number;
         skillCount: number;
+        available: false;
+        dataQuality: 'unavailable';
+        reason: typeof SIGNAL_SCAN_AVAILABILITY.reason;
     };
     testChannels(): Promise<void>;
     stop(): void;
     private initChannels;
-    private initSkills;
     private performScan;
     private deliverSignals;
     private setupShutdownHandlers;

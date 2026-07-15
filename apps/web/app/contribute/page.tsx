@@ -12,11 +12,11 @@ const ContributeClient = dynamic(() => import('./ContributeClient').then(m => ({
 export const metadata: Metadata = {
   title: 'Contribute — TradeClaw',
   description:
-    'Join contributors building the first open-source AI trading signal platform. Find good first issues, setup guides, and mentorship to make your first PR.',
+    'Contribute to TradeClaw through verified GitHub issues, the setup guide, and public contribution-guidance requests.',
   openGraph: {
     title: 'Contribute to TradeClaw',
     description:
-      'Good first issues, dev setup guide, and mentorship for first-time contributors. Open-source AI trading signals.',
+      'Verified GitHub issues, a development setup guide, and public guidance requests for TradeClaw contributors.',
     type: 'website',
   },
 };

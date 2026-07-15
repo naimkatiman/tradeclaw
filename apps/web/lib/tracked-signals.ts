@@ -9,11 +9,6 @@ import { PUBLISHED_SIGNAL_MIN_CONFIDENCE, minConfidenceFor } from './signal-thre
 import { getActivePreset } from '../app/api/cron/signals/preset-dispatch';
 import { fetchGateState, getGateMode } from './full-risk-gates';
 import { logGateDecision, buildGateLogEntry, type SignalForLog } from './gate-log';
-import {
-  getWinningCellsMode,
-  isWinningCell,
-  WINNING_CELLS_GATE_REASON,
-} from './winning-cells';
 
 /**
  * Priority order for picking the "effective" strategy view. Higher index =
@@ -122,30 +117,11 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       }
     }
 
-    // Winning-cells publish gate — per-signal evaluation. See
-    // lib/winning-cells.ts for the cell list and methodology. Recording is
-    // stamped in all modes; the response is no longer stripped — the strip
-    // was a free-tier curation, and the tier system is gone (everyone sees
-    // the full symbol set the paid view used to get).
-    const winningCellsMode = getWinningCellsMode();
-    const winningCellsBlockedIds = new Set<string>();
-    if (winningCellsMode !== 'off') {
-      for (const sig of filtered) {
-        if (!isWinningCell(sig.symbol, sig.direction as 'BUY' | 'SELL')) {
-          winningCellsBlockedIds.add(sig.id);
-        }
-      }
-    }
-    const winningCellsActive = winningCellsMode === 'active';
-
     const recordPayload = filtered.map((signal) => {
       const blockedByFullRisk = gateBlockedAll;
-      const blockedByWinningCells =
-        winningCellsActive && winningCellsBlockedIds.has(signal.id);
-      const blocked = blockedByFullRisk || blockedByWinningCells;
+      const blocked = blockedByFullRisk;
       let reason: string | undefined;
       if (blockedByFullRisk) reason = gateReason;
-      else if (blockedByWinningCells) reason = WINNING_CELLS_GATE_REASON;
       return {
         id: signal.id,
         symbol: signal.symbol,
@@ -178,9 +154,7 @@ export async function getTrackedSignals(params: GetTrackedSignalsParams) {
       // Downstream fan-out is tradable-only. Blocked signals are recorded
       // for track-record accounting, but users must not be alerted about
       // trades the system refused to take, and we must not post marketing
-      // copy for blocked signals. This now respects per-signal gate state
-      // (winning-cells gate may block some rows while letting others
-      // through, unlike full-risk-gate which is all-or-nothing).
+      // copy for blocked signals.
       const tradablePayload = recordPayload.filter((s) => !s.gateBlocked);
 
       // Fan out to user alert rules — fire and forget

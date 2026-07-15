@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 
 interface PriceData {
   price: number;
-  change24h: number;
+  change24h: number | null;
   source: string;
 }
 
@@ -33,19 +33,23 @@ function formatPrice(symbol: string, price: number): string {
 export function PriceTicker() {
   const [prices, setPrices] = useState<Record<string, PriceData>>({});
   const [prevPrices, setPrevPrices] = useState<Record<string, number>>({});
+  const [status, setStatus] = useState<'loading' | 'available' | 'unavailable'>('loading');
   const prevRef = useRef<Record<string, number>>({});
 
   const fetchPrices = async () => {
     try {
       const res = await fetch('/api/prices');
+      if (!res.ok) throw new Error(`Price API returned ${res.status}`);
       const data = await res.json();
       setPrevPrices({ ...prevRef.current });
       prevRef.current = Object.fromEntries(
         Object.entries(data.prices as Record<string, PriceData>).map(([k, v]) => [k, v.price])
       );
       setPrices(data.prices);
+      setStatus(Object.keys(data.prices).length > 0 ? 'available' : 'unavailable');
     } catch {
-      // silent fail
+      setPrices({});
+      setStatus('unavailable');
     }
   };
 
@@ -60,7 +64,7 @@ export function PriceTicker() {
   if (tickerItems.length === 0) {
     return (
       <div className="bg-gray-950 border-b border-gray-800 py-2 px-4 text-xs text-gray-600 font-mono">
-        Loading market data...
+        {status === 'loading' ? 'Loading provider prices...' : 'Provider prices unavailable'}
       </div>
     );
   }
@@ -69,15 +73,17 @@ export function PriceTicker() {
     <div className="bg-gray-950 border-b border-gray-800 overflow-hidden">
       <div className="flex items-center">
         <div className="shrink-0 bg-emerald-500/10 border-r border-emerald-500/20 px-3 py-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
-          LIVE
+          PROVIDER
         </div>
         <div className="flex-1 overflow-hidden">
           <div className="ticker-scroll flex gap-8 px-4 py-2 whitespace-nowrap">
             {[...tickerItems, ...tickerItems].map((symbol, idx) => {
               const data = prices[symbol];
               const prev = prevPrices[symbol];
-              const isUp = prev ? data.price >= prev : data.change24h >= 0;
-              const priceChanged = prev && Math.abs(data.price - prev) > 0.000001;
+              const isUp = prev !== undefined
+                ? data.price >= prev
+                : data.change24h !== null && data.change24h >= 0;
+              const priceChanged = prev !== undefined && Math.abs(data.price - prev) > 0.000001;
               
               return (
                 <span key={`${symbol}-${idx}`} className="inline-flex items-center gap-1.5 text-xs font-mono">
@@ -91,9 +97,13 @@ export function PriceTicker() {
                   >
                     {formatPrice(symbol, data.price)}
                   </span>
-                  <span className={`text-[10px] ${data.change24h >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {data.change24h >= 0 ? '+' : ''}{data.change24h}%
-                  </span>
+                  {data.change24h === null ? (
+                    <span className="text-[10px] text-gray-600">change unavailable</span>
+                  ) : (
+                    <span className={`text-[10px] ${data.change24h >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                      {data.change24h >= 0 ? '+' : ''}{data.change24h}%
+                    </span>
+                  )}
                 </span>
               );
             })}

@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import { CalendarClient } from './CalendarClient';
 
 export const metadata: Metadata = {
-  title: 'Signal Calendar — Daily Accuracy Heatmap | TradeClaw',
-  description: 'GitHub-style contribution heatmap showing TradeClaw signal accuracy by day. Green = high win rate days, red = low. Visual proof of signal quality.',
+  title: 'Counted Signal Outcome Calendar | TradeClaw',
+  description: 'UTC-day heatmap of persisted 24h signal outcomes resolved from OHLCV data, with unresolved, simulated, and blocked rows excluded.',
   openGraph: {
-    title: 'Signal Calendar — Daily Accuracy Heatmap',
-    description: 'See our trading signal accuracy visualized as a GitHub-style heatmap. Real daily win rates.',
+    title: 'Counted Signal Outcome Calendar',
+    description: 'Inspect counted 24h signal outcomes and the methodology used to exclude unresolved, simulated, and blocked rows.',
     url: 'https://tradeclaw.win/calendar',
   },
 };

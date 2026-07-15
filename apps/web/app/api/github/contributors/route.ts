@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 300; // 5 min cache
+export const revalidate = 300;
 
-interface GHContributor {
+interface GitHubContributor {
   login: string;
   avatar_url: string;
   html_url: string;
@@ -11,43 +11,67 @@ interface GHContributor {
   type: string;
 }
 
-const SEED: GHContributor[] = [
-  { login: 'naimkatiman', avatar_url: 'https://github.com/naimkatiman.png', html_url: 'https://github.com/naimkatiman', contributions: 847, type: 'User' },
-  { login: 'dependabot[bot]', avatar_url: 'https://github.com/dependabot.png', html_url: 'https://github.com/dependabot', contributions: 12, type: 'Bot' },
-];
+function unavailableResponse() {
+  return NextResponse.json(
+    {
+      available: false,
+      source: 'github',
+      contributors: [],
+      updatedAt: null,
+    },
+    {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'public, s-maxage=60',
+      },
+    },
+  );
+}
 
 export async function GET() {
   try {
-    const res = await fetch(
-      'https://api.github.com/repos/naimkatiman/tradeclaw/contributors?per_page=50',
+    const response = await fetch('https://api.github.com/repos/naimkatiman/tradeclaw/contributors?per_page=50', {
+      headers: { Accept: 'application/vnd.github.v3+json' },
+      next: { revalidate: 300 },
+    });
+
+    if (!response.ok) return unavailableResponse();
+
+    const data = (await response.json()) as unknown;
+    if (!Array.isArray(data)) return unavailableResponse();
+
+    const contributors = (data as GitHubContributor[])
+      .filter(
+        (contributor) =>
+          typeof contributor.login === 'string' &&
+          typeof contributor.avatar_url === 'string' &&
+          typeof contributor.html_url === 'string' &&
+          Number.isFinite(contributor.contributions),
+      )
+      .map((contributor, index) => ({
+        login: contributor.login,
+        avatarUrl: contributor.avatar_url,
+        profileUrl: contributor.html_url,
+        contributions: contributor.contributions,
+        rank: index + 1,
+        isBot: contributor.type === 'Bot' || contributor.login.includes('[bot]'),
+      }));
+
+    return NextResponse.json(
       {
-        headers: { Accept: 'application/vnd.github.v3+json' },
-        next: { revalidate: 300 },
+        available: true,
+        source: 'github',
+        contributors,
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'public, s-maxage=300',
+        },
       },
     );
-
-    const data: GHContributor[] = res.ok ? await res.json() : SEED;
-    const contributors = (Array.isArray(data) ? data : SEED).map((c, i) => ({
-      login: c.login,
-      avatarUrl: c.avatar_url,
-      profileUrl: c.html_url,
-      contributions: c.contributions,
-      prs: Math.max(1, Math.round(c.contributions * 0.6)),
-      mergedPrs: Math.max(1, Math.round(c.contributions * 0.55)),
-      issuesClosed: Math.max(0, Math.round(c.contributions * 0.15)),
-      rank: i + 1,
-      isBot: c.type === 'Bot' || c.login.includes('[bot]'),
-    }));
-
-    return NextResponse.json({ contributors, updatedAt: new Date().toISOString() }, {
-      headers: { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, s-maxage=300' },
-    });
   } catch {
-    return NextResponse.json({ contributors: SEED.map((c, i) => ({
-      login: c.login, avatarUrl: c.avatar_url, profileUrl: c.html_url,
-      contributions: c.contributions, prs: 1, mergedPrs: 1, issuesClosed: 0, rank: i + 1, isBot: false,
-    })), updatedAt: new Date().toISOString() }, {
-      headers: { 'Access-Control-Allow-Origin': '*' },
-    });
+    return unavailableResponse();
   }
 }

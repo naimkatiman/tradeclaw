@@ -1,18 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllOpenPositionsForSweep, closePosition, type Position } from '../../../../lib/paper-trading';
-import {
-  getSignalTelegramMessageId,
-  recordTradeOutcomeToHistory,
-} from '../../../../lib/signal-history';
-import {
-  broadcastOutcomeReply,
-  formatDuration,
-  type OutcomeReplyInput,
-} from '../../../../lib/telegram-broadcast';
-import {
-  getBotToken,
-  getFreeChannelId,
-} from '../../../../lib/telegram-channels';
 import { requireCronAuth } from '../../../../lib/cron-auth';
 
 // ── Price fetching ───────────────────────────────────────────
@@ -30,8 +17,14 @@ const BINANCE_MAP: Record<string, string> = {
   BNBUSDT: 'BNBUSD',
 };
 
-async function fetchLivePrices(): Promise<Map<string, number>> {
-  const prices = new Map<string, number>();
+interface PriceObservation {
+  price: number;
+  source: 'binance-spot' | 'open-er-api' | 'stooq';
+  fetchedAt: string;
+}
+
+async function fetchLivePrices(): Promise<Map<string, PriceObservation>> {
+  const prices = new Map<string, PriceObservation>();
 
   const [binanceResult, forexResult, xauResult, xagResult] = await Promise.allSettled([
     // Crypto via Binance
@@ -50,29 +43,33 @@ async function fetchLivePrices(): Promise<Map<string, number>> {
   ]);
 
   if (binanceResult.status === 'fulfilled' && binanceResult.value) {
+    const fetchedAt = new Date().toISOString();
     for (const t of binanceResult.value) {
       const pair = BINANCE_MAP[t.symbol];
       if (pair) {
         const price = parseFloat(t.lastPrice);
-        if (!isNaN(price) && price > 0) prices.set(pair, price);
+        if (!isNaN(price) && price > 0) {
+          prices.set(pair, { price, source: 'binance-spot', fetchedAt });
+        }
       }
     }
   }
 
   if (forexResult.status === 'fulfilled' && forexResult.value) {
     const r = forexResult.value.rates || {};
-    if (r.EUR) prices.set('EURUSD', +(1 / r.EUR).toFixed(5));
-    if (r.GBP) prices.set('GBPUSD', +(1 / r.GBP).toFixed(5));
-    if (r.JPY) prices.set('USDJPY', +r.JPY.toFixed(3));
-    if (r.AUD) prices.set('AUDUSD', +(1 / r.AUD).toFixed(5));
-    if (r.CAD) prices.set('USDCAD', +r.CAD.toFixed(5));
+    const fetchedAt = new Date().toISOString();
+    if (r.EUR) prices.set('EURUSD', { price: +(1 / r.EUR).toFixed(5), source: 'open-er-api', fetchedAt });
+    if (r.GBP) prices.set('GBPUSD', { price: +(1 / r.GBP).toFixed(5), source: 'open-er-api', fetchedAt });
+    if (r.JPY) prices.set('USDJPY', { price: +r.JPY.toFixed(3), source: 'open-er-api', fetchedAt });
+    if (r.AUD) prices.set('AUDUSD', { price: +(1 / r.AUD).toFixed(5), source: 'open-er-api', fetchedAt });
+    if (r.CAD) prices.set('USDCAD', { price: +r.CAD.toFixed(5), source: 'open-er-api', fetchedAt });
   }
 
   if (xauResult.status === 'fulfilled' && xauResult.value !== null) {
-    prices.set('XAUUSD', xauResult.value);
+    prices.set('XAUUSD', { price: xauResult.value, source: 'stooq', fetchedAt: new Date().toISOString() });
   }
   if (xagResult.status === 'fulfilled' && xagResult.value !== null) {
-    prices.set('XAGUSD', xagResult.value);
+    prices.set('XAGUSD', { price: xagResult.value, source: 'stooq', fetchedAt: new Date().toISOString() });
   }
 
   return prices;
@@ -97,26 +94,26 @@ async function fetchStooq(symbol: string): Promise<number | null> {
 
 // ── SL/TP check logic ────────────────────────────────────────
 
-function shouldClose(
+export function evaluatePaperExit(
   position: Position,
   currentPrice: number,
-): { shouldClose: boolean; reason: 'stopLoss' | 'takeProfit' | 'manual'; exitPrice: number } | null {
+): { reason: 'stopLoss' | 'takeProfit'; observedPrice: number } | null {
   const { direction, stopLoss, takeProfit } = position;
 
   if (direction === 'BUY') {
     if (stopLoss != null && currentPrice <= stopLoss) {
-      return { shouldClose: true, reason: 'stopLoss', exitPrice: stopLoss };
+      return { reason: 'stopLoss', observedPrice: currentPrice };
     }
     if (takeProfit != null && currentPrice >= takeProfit) {
-      return { shouldClose: true, reason: 'takeProfit', exitPrice: takeProfit };
+      return { reason: 'takeProfit', observedPrice: currentPrice };
     }
   } else {
     // SELL position
     if (stopLoss != null && currentPrice >= stopLoss) {
-      return { shouldClose: true, reason: 'stopLoss', exitPrice: stopLoss };
+      return { reason: 'stopLoss', observedPrice: currentPrice };
     }
     if (takeProfit != null && currentPrice <= takeProfit) {
-      return { shouldClose: true, reason: 'takeProfit', exitPrice: takeProfit };
+      return { reason: 'takeProfit', observedPrice: currentPrice };
     }
   }
 
@@ -135,6 +132,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       return NextResponse.json({
         ok: true,
         message: 'No open positions',
+        mode: 'paper-simulation',
         checked: 0,
         closed: [],
         timestamp: new Date().toISOString(),
@@ -149,23 +147,26 @@ export async function GET(request: NextRequest): Promise<Response> {
       direction: string;
       reason: string;
       entryPrice: number;
+      observedPrice: number;
       exitPrice: number;
+      priceSource: PriceObservation['source'];
+      priceFetchedAt: string;
       pnl: number;
     }> = [];
     const skipped: string[] = [];
 
     for (const position of positions) {
-      const currentPrice = prices.get(position.symbol);
-      if (currentPrice == null) {
+      const observation = prices.get(position.symbol);
+      if (!observation) {
         skipped.push(position.symbol);
         continue;
       }
 
-      const check = shouldClose(position, currentPrice);
+      const check = evaluatePaperExit(position, observation.price);
       if (check) {
         const result = await closePosition(
           { userId: position.userId, positionId: position.id },
-          check.exitPrice,
+          check.observedPrice,
           check.reason,
         );
         if (result) {
@@ -176,30 +177,20 @@ export async function GET(request: NextRequest): Promise<Response> {
             direction: position.direction,
             reason: check.reason,
             entryPrice: position.entryPrice,
-            exitPrice: check.exitPrice,
+            observedPrice: check.observedPrice,
+            exitPrice: result.trade.exitPrice,
+            priceSource: observation.source,
+            priceFetchedAt: observation.fetchedAt,
             pnl: result.trade.pnl,
           });
 
-          if (position.signalId) {
-            try {
-              await recordTradeOutcomeToHistory(
-                position.signalId,
-                check.exitPrice,
-                result.trade.pnlPercent,
-                check.reason === 'takeProfit',
-              );
-            } catch {
-              // Non-critical — risk state reconstructs on next cycle
-            }
-          }
-
-          await sendTelegramOutcomeReply(position, check, result.trade.pnlPercent);
         }
       }
     }
 
     return NextResponse.json({
       ok: true,
+      mode: 'paper-simulation',
       checked: positions.length,
       closed,
       skipped: skipped.length > 0 ? skipped : undefined,
@@ -213,60 +204,4 @@ export async function GET(request: NextRequest): Promise<Response> {
 
 export async function POST(request: NextRequest): Promise<Response> {
   return GET(request);
-}
-
-// ── Telegram outcome reply ──────────────────────────────────
-
-async function sendTelegramOutcomeReply(
-  position: Position,
-  check: { reason: 'stopLoss' | 'takeProfit' | 'manual'; exitPrice: number },
-  pnlPct: number,
-): Promise<void> {
-  const botToken = getBotToken();
-  if (!botToken) return;
-  if (!position.signalId) return;
-
-  let reason: OutcomeReplyInput['reason'];
-  let tpLevel: 1 | 2 | 3 | undefined;
-
-  if (check.reason === 'stopLoss') {
-    reason = 'stopLoss';
-  } else if (check.reason === 'takeProfit') {
-    reason = 'takeProfit';
-    tpLevel = 1; // Default to TP1 — the position-monitor only tracks single TP
-  } else {
-    return; // manual close — no broadcast
-  }
-
-  const period = formatDuration(
-    new Date(position.openedAt).getTime(),
-    Date.now(),
-  );
-
-  // Public channel outcome reply — the missing-message-id branch
-  // short-circuits cleanly when the signal was never posted.
-  const baseInput = {
-    symbol: position.symbol,
-    direction: position.direction,
-    entryPrice: position.entryPrice,
-    exitPrice: check.exitPrice,
-    pnlPct,
-    reason,
-    tpLevel,
-    period,
-  };
-
-  const freeChannelId = getFreeChannelId();
-  if (!freeChannelId) return;
-
-  const originalMessageId = await getSignalTelegramMessageId(position.signalId!);
-  if (!originalMessageId) return;
-  try {
-    await broadcastOutcomeReply(freeChannelId, botToken, {
-      ...baseInput,
-      originalMessageId,
-    });
-  } catch {
-    // Non-critical — don't fail the position close
-  }
 }

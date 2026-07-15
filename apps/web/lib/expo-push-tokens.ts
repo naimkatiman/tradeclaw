@@ -23,24 +23,6 @@ export interface ExpoPushTokenRecord {
 }
 
 // ---------------------------------------------------------------------------
-// Defaults
-// ---------------------------------------------------------------------------
-
-const SEED_TOKENS: ExpoPushTokenRecord[] = [
-  {
-    id: 'seed-expo-1',
-    token: 'ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]',
-    platform: 'ios',
-    pairs: ['BTCUSD', 'ETHUSD', 'XAUUSD'],
-    minConfidence: 80,
-    directions: ['BUY', 'SELL'],
-    enabled: true,
-    createdAt: '2026-03-20T08:00:00.000Z',
-    updatedAt: '2026-03-20T08:00:00.000Z',
-  },
-];
-
-// ---------------------------------------------------------------------------
 // File helpers
 // ---------------------------------------------------------------------------
 
@@ -49,10 +31,9 @@ async function load(): Promise<ExpoPushTokenRecord[]> {
     await fs.mkdir(DATA_DIR, { recursive: true });
     const raw = await fs.readFile(FILE, 'utf8');
     const data = JSON.parse(raw) as ExpoPushTokenRecord[];
-    if (data.length === 0) return SEED_TOKENS;
     return data;
   } catch {
-    return SEED_TOKENS;
+    return [];
   }
 }
 

@@ -1,8 +1,3 @@
-jest.mock('../winning-cells', () => ({
-  isWinningCell: jest.fn(() => true),
-  getWinningCellsMode: jest.fn(() => 'shadow'),
-}));
-
 jest.mock('../risk-pipeline', () => ({
   runRiskPipeline: jest.fn(),
 }));
@@ -31,14 +26,11 @@ jest.mock('../router-decisions-log', () => ({
 }));
 
 import { computeBroadcastDecisions, type BroadcastCandidate } from '../broadcast-decision';
-import { isWinningCell, getWinningCellsMode } from '../winning-cells';
 import { runRiskPipeline } from '../risk-pipeline';
 import { fetchResolvedRegimeMap } from '../regime-resolution';
 import { getStrategyRouterMode } from '../strategy-router-shadow';
 import { recordRouterShadow } from '../router-decisions-log';
 
-const mockedIsWinningCell = isWinningCell as jest.MockedFunction<typeof isWinningCell>;
-const mockedCellsMode = getWinningCellsMode as jest.MockedFunction<typeof getWinningCellsMode>;
 const mockedPipeline = runRiskPipeline as jest.MockedFunction<typeof runRiskPipeline>;
 const mockedRegimeMap = fetchResolvedRegimeMap as jest.MockedFunction<typeof fetchResolvedRegimeMap>;
 const mockedRouterMode = getStrategyRouterMode as jest.MockedFunction<typeof getStrategyRouterMode>;
@@ -80,8 +72,6 @@ function pipelineResult(approved: Array<{ id: string; symbol: string }>, vetoed:
 beforeEach(() => {
   jest.clearAllMocks();
   mockedRegimeMap.mockResolvedValue({ regimes: new Map(), classTilts: new Map() } as never);
-  mockedCellsMode.mockReturnValue('shadow' as never);
-  mockedIsWinningCell.mockReturnValue(true as never);
   mockedRouterMode.mockReturnValue('shadow' as never);
   mockedRecordShadow.mockResolvedValue(undefined as never);
 });
@@ -116,32 +106,17 @@ describe('computeBroadcastDecisions', () => {
     expect(db.regime).toBe('range');
   });
 
-  it('blocks non-winning cells deterministically when curation is active, without sending them to the pipeline', async () => {
-    const a = candidate('a', 'BTCUSD');
-    const b = candidate('b', 'DOGEUSD');
-    mockedCellsMode.mockReturnValue('active' as never);
-    mockedIsWinningCell.mockImplementation(((symbol: string) => symbol === 'BTCUSD') as never);
-    mockedPipeline.mockResolvedValue(pipelineResult([{ id: 'a', symbol: 'BTCUSD' }], [], [{ symbol: 'BTCUSD', positionSizePct: 5 }]) as never);
-
-    const decisions = await computeBroadcastDecisions([a, b]);
-
-    expect(decisions.get('b')).toMatchObject({
-      blocked: true,
-      recordable: true,
-      blockReason: expect.stringContaining('winning_cells'),
-    });
-    expect(decisions.get('a')).toMatchObject({ blocked: false });
-    const pipelineInput = mockedPipeline.mock.calls[0][0] as Array<{ id: string }>;
-    expect(pipelineInput.map((s) => s.id)).toEqual(['a']);
-  });
-
-  it('marks pipeline-outage fallbacks blocked=false and NOT recordable', async () => {
+  it('fails closed on pipeline outage and does not persist a fabricated decision', async () => {
     const a = candidate('a', 'BTCUSD');
     mockedPipeline.mockRejectedValue(new Error('risk-state db down'));
 
     const decisions = await computeBroadcastDecisions([a]);
 
-    expect(decisions.get('a')).toMatchObject({ blocked: false, recordable: false });
+    expect(decisions.get('a')).toMatchObject({
+      blocked: true,
+      blockReason: 'risk_pipeline_unavailable',
+      recordable: false,
+    });
   });
 
   it('survives a regime-map fetch failure (decisions still computed, range regime)', async () => {
@@ -185,8 +160,6 @@ describe('computeBroadcastDecisions — D8 shadow recorder is side-effect-only',
 
     jest.clearAllMocks();
     mockedRegimeMap.mockResolvedValue({ regimes: new Map(), classTilts: new Map() } as never);
-    mockedCellsMode.mockReturnValue('shadow' as never);
-    mockedIsWinningCell.mockReturnValue(true as never);
     mockedRecordShadow.mockResolvedValue(undefined as never);
 
     const shadow = await (async () => {

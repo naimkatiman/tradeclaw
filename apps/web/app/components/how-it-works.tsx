@@ -2,22 +2,22 @@ const steps = [
   {
     step: "01",
     title: "Clone & Deploy",
-    code: "git clone https://github.com/naimkatiman/tradeclaw.git\ncd tradeclaw && cp .env.example .env\ndocker compose up -d",
-    description: "Three commands. Under 60 seconds to a running dashboard.",
+    code: "git clone https://github.com/naimkatiman/tradeclaw.git\ncd tradeclaw && cp .env.example .env\n# Set DB_PASSWORD, USER_SESSION_SECRET, and AUTH_SECRET\ndocker compose up -d",
+    description: "Set the required secrets, then start the app, database, Redis, and migrations with Docker Compose.",
   },
   {
     step: "02",
     title: "Configure",
-    code: "# .env\nSCAN_INSTRUMENTS=forex,crypto\nSCAN_INTERVAL=60\nTELEGRAM_BOT_TOKEN=your-token",
+    code: "# Documented optional values in .env\nMARKET_DATA_HUB_URL=https://your-hub.example\nTELEGRAM_BOT_TOKEN=your-token\n# Compose maps allowlisted values; NEXT_PUBLIC_* needs a rebuild",
     description:
-      "Set your instruments, scan frequency, and notification preferences.",
+      "Configure only the data providers and notification channels you operate. Entry-like broadcasts remain evidence-gated.",
   },
   {
     step: "03",
-    title: "Trade Smarter",
-    code: "# Signals appear automatically\n# XAUUSD → BUY @ 2,648.30\n# Confidence: 87% | TP1: 2,665 | SL: 2,638\n# Powered by: RSI + MACD + EMA crossover",
+    title: "Inspect Outputs",
+    code: "# Illustrative output format, not a live recommendation\n# XAUUSD → BUY @ reference entry\n# Confidence: indicator-confluence score\n# Inspect timestamp, source quality, TP/SL, and inputs",
     description:
-      "AI-powered signals with entry, TP/SL, and confidence scores. Your edge.",
+      "Rule-based research signals with inspectable inputs. They are not a verified trading edge or broker instructions.",
   },
 ];
 
@@ -27,8 +27,8 @@ export function HowItWorksSection() {
       <div className="mx-auto max-w-4xl">
         <div className="text-center">
           <h2 className="text-3xl font-bold sm:text-4xl">
-            Up and running in{" "}
-            <span className="text-emerald-400">5 minutes</span>
+            Inspectable from{" "}
+            <span className="text-emerald-400">source to signal</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-zinc-400">
             No sign-ups. No credit cards. No vendor lock-in.

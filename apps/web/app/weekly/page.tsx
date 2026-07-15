@@ -2,13 +2,14 @@ import type { Metadata } from 'next';
 import WeeklyClient from './WeeklyClient';
 
 export const metadata: Metadata = {
-  title: 'Signal of the Week | TradeClaw',
+  title: 'Weekly Signal Outcome Study | TradeClaw',
   description:
-    'Weekly digest of the top 5 AI trading signals — P&L breakdown, accuracy stats, and win-rate trends across forex, crypto, and commodities.',
-  keywords: ['weekly trading signals', 'signal digest', 'AI trading performance', 'weekly P&L', 'signal accuracy'],
+    'Weekly digest of canonical counted signal outcomes derived from OHLCV. Results are signal-level research, not broker fills, customer trades, or portfolio P/L.',
+  keywords: ['weekly trading signals', 'signal digest', 'OHLCV signal outcomes', 'signal methodology'],
   openGraph: {
-    title: 'Signal of the Week | TradeClaw',
-    description: 'Top 5 signals from the past 7 days with P&L breakdown and accuracy stats.',
+    title: 'Weekly Signal Outcome Study | TradeClaw',
+    description:
+      'Counted OHLCV-derived signal outcomes for the current UTC week; not broker fills or portfolio performance.',
     url: 'https://tradeclaw.win/weekly',
   },
 };

@@ -35,7 +35,7 @@ function mkRecord(over: Partial<SignalHistoryRecord>): SignalHistoryRecord {
     gateBlocked: false,
     outcomes: {
       '4h': null,
-      '24h': { price: 51000, pnlPct: 2.0, hit: true, target: 'TP1' },
+      '24h': { price: 51000, pnlPct: 2.0, hit: true, target: 'TP1', source: 'binance' },
     },
     ...over,
   };
@@ -54,13 +54,13 @@ describe('GET /api/calibration', () => {
       mkRecord({
         id: 'loss85',
         confidence: 85,
-        outcomes: { '4h': null, '24h': { price: 49500, pnlPct: -1.0, hit: false, target: 'SL' } },
+        outcomes: { '4h': null, '24h': { price: 49500, pnlPct: -1.0, hit: false, target: 'SL', source: 'binance' } },
       }),
-      // excluded: auto-expired close
+      // counted: observed 24h drift close (neither TP nor SL hit)
       mkRecord({
         id: 'expired',
         confidence: 75,
-        outcomes: { '4h': null, '24h': { price: 50100, pnlPct: 0.2, hit: true, target: 'expired' } },
+        outcomes: { '4h': null, '24h': { price: 50100, pnlPct: 0.2, hit: true, target: 'expired', source: 'binance' } },
       }),
       // excluded: gate-blocked
       mkRecord({ id: 'gated', confidence: 75, gateBlocked: true }),
@@ -71,18 +71,18 @@ describe('GET /api/calibration', () => {
     const res = await GET();
     const body = await res.json();
 
-    expect(body.totalSignals).toBe(2);
+    expect(body.totalSignals).toBe(3);
 
     const byLabel = new Map(body.buckets.map((b: { label: string }) => [b.label, b]));
-    expect(byLabel.get('70-79%')).toMatchObject({ count: 1, wins: 1, winRate: 1 });
+    expect(byLabel.get('70-79%')).toMatchObject({ count: 2, wins: 2, winRate: 1 });
     expect(byLabel.get('80-89%')).toMatchObject({ count: 1, wins: 0, winRate: 0 });
 
     // Empty buckets report null, NOT the fake midpoint fallback.
     expect(byLabel.get('50-59%')).toMatchObject({ count: 0, winRate: null, calibrationError: null });
     expect(byLabel.get('90-99%')).toMatchObject({ count: 0, winRate: null, calibrationError: null });
 
-    // Brier on the 0-1 scale: ((0.72-1)^2 + (0.85-0)^2) / 2
-    const expectedBrier = (Math.pow(0.72 - 1, 2) + Math.pow(0.85 - 0, 2)) / 2;
+    // Brier on the 0-1 scale, including the observed drift-close win.
+    const expectedBrier = (Math.pow(0.72 - 1, 2) + Math.pow(0.85 - 0, 2) + Math.pow(0.75 - 1, 2)) / 3;
     expect(body.brier).toBeCloseTo(expectedBrier, 6);
   });
 
@@ -129,7 +129,7 @@ describe('GET /api/calibration', () => {
         id: 'b',
         confidence: 85,
         timestamp: t0 + 3_600_000,
-        outcomes: { '4h': null, '24h': { price: 49500, pnlPct: -1.0, hit: false, target: 'SL' } },
+        outcomes: { '4h': null, '24h': { price: 49500, pnlPct: -1.0, hit: false, target: 'SL', source: 'binance' } },
       }),
     ]);
 
@@ -172,7 +172,7 @@ describe('GET /api/calibration', () => {
       mkRecord({
         id: 'b',
         confidence: 85,
-        outcomes: { '4h': null, '24h': { price: 49500, pnlPct: -1.0, hit: false, target: 'SL' } },
+        outcomes: { '4h': null, '24h': { price: 49500, pnlPct: -1.0, hit: false, target: 'SL', source: 'binance' } },
       }),
     ]);
 
@@ -201,8 +201,8 @@ describe('GET /api/calibration', () => {
         outcomes: {
           '4h': null,
           '24h': hit
-            ? { price: 51000, pnlPct: 2.0, hit: true, target: 'TP1' }
-            : { price: 49500, pnlPct: -1.0, hit: false, target: 'SL' },
+            ? { price: 51000, pnlPct: 2.0, hit: true, target: 'TP1', source: 'binance' }
+            : { price: 49500, pnlPct: -1.0, hit: false, target: 'SL', source: 'binance' },
         },
       });
     });

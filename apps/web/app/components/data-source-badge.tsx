@@ -1,7 +1,8 @@
 'use client';
 
 // ---------------------------------------------------------------------------
-// Data Source Badge — shows where price data originates
+// Provider-lane badge inferred from the symbol. Runtime signals currently carry
+// only real-versus-synthetic quality, not the exact upstream provider.
 // ---------------------------------------------------------------------------
 
 type DataSource = 'Binance' | 'Swissquote' | 'Stooq' | 'TradingView' | 'CoinGecko' | 'TA Engine';
@@ -43,7 +44,7 @@ const SOURCE_CONFIG: Record<DataSource, { color: string; border: string; bg: str
   },
 };
 
-/** Derive the data source from a trading symbol string. */
+/** Derive the expected provider lane from a trading symbol string. */
 export function getDataSource(symbol: string): DataSource {
   const s = symbol.toUpperCase();
   if (['BTC', 'ETH', 'XRP', 'SOL', 'DOGE', 'BNB', 'ADA', 'DOT', 'LINK', 'AVAX', 'ATOM', 'MATIC'].some(c => s.startsWith(c))) return 'Binance';
@@ -58,14 +59,14 @@ export function getDataSource(symbol: string): DataSource {
   return 'TA Engine';
 }
 
-/** Small non-intrusive badge showing the price data provider. */
+/** Small non-intrusive badge showing the expected provider lane. */
 export function DataSourceBadge({ source }: DataSourceBadgeProps) {
   const cfg = SOURCE_CONFIG[source];
   return (
     <span
       className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded font-mono leading-none select-none"
       style={{ color: cfg.color, background: cfg.bg, border: `1px solid ${cfg.border}` }}
-      title={`Price data sourced from ${source}. See /data-freshness for cadence.`}
+      title={`Expected provider lane: ${source}. Runtime fallbacks may differ; see the signal quality label and /data-freshness.`}
     >
       <span
         className="h-1 w-1 rounded-full shrink-0"

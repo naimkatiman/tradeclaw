@@ -31,6 +31,20 @@ function formatRelativeTime(iso: string): string {
   return `${Math.floor(diff / 86400000)}d ago`;
 }
 
+function displayAction(alert: TVAlert): string {
+  const action = alert.action.trim().toLowerCase().replace(/[\s_-]+/g, " ");
+  if (["buy", "long", "entry long"].includes(action)) return "BUY";
+  if (["sell", "short", "entry short"].includes(action)) return "SELL";
+  return action.toUpperCase();
+}
+
+function actionClass(alert: TVAlert): string {
+  const label = displayAction(alert);
+  if (label === "BUY") return "bg-emerald-500/20 text-emerald-400";
+  if (label === "SELL") return "bg-rose-500/20 text-rose-400";
+  return "bg-amber-500/20 text-amber-300";
+}
+
 export default function TVAlertsClient() {
   const [alerts, setAlerts] = useState<TVAlert[]>([]);
   const [stats, setStats] = useState<AlertStats>({ total: 0, last24h: 0, byPair: {} });
@@ -80,7 +94,11 @@ export default function TVAlertsClient() {
             <span className="text-sm text-[#FF6A00] font-medium">TradingView Integration</span>
           </div>
           <h1 className="text-4xl font-bold mb-4">Bridge TradingView &rarr; TradeClaw</h1>
-          <p className="text-zinc-400 text-lg max-w-2xl mx-auto">Route Pine Script alerts to Telegram, Discord, and more. Works with any TradingView plan &mdash; even free accounts.</p>
+          <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+            Audit authenticated Pine Script webhooks. Configured test and lifecycle events can
+            route to Telegram or Discord; BUY and SELL entries also require an exact approved
+            TradeClaw signal ID and a ready cost-adjusted evidence gate.
+          </p>
         </section>
 
         {/* Webhook URL Card */}
@@ -111,9 +129,9 @@ export default function TVAlertsClient() {
           </div>
         </section>
 
-        {/* Live Alert Log */}
+        {/* Recorded alert log */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">Live Alert Log</h2>
+          <h2 className="text-lg font-semibold mb-4">Recorded Alert Log</h2>
           {loading ? (
             <div className="text-zinc-500 text-sm">Loading alerts...</div>
           ) : alerts.length === 0 ? (
@@ -125,7 +143,7 @@ export default function TVAlertsClient() {
               {alerts.map(alert => (
                 <div key={alert.id} className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3">
                   <span className="bg-[#FF6A00]/20 text-[#FF6A00] text-xs font-bold px-2 py-1 rounded shrink-0">{alert.normalizedPair}</span>
-                  <span className={`text-xs font-bold px-2 py-1 rounded shrink-0 ${alert.normalizedAction === "BUY" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>{alert.normalizedAction}</span>
+                  <span className={`text-xs font-bold px-2 py-1 rounded shrink-0 ${actionClass(alert)}`}>{displayAction(alert)}</span>
                   <span className="text-zinc-300 text-sm flex-1 truncate">{alert.message ?? `${alert.symbol} ${alert.action}`}</span>
                   <span className="text-zinc-600 text-xs shrink-0">{formatRelativeTime(alert.receivedAt)}</span>
                 </div>
@@ -139,10 +157,11 @@ export default function TVAlertsClient() {
           <h2 className="text-lg font-semibold mb-4">Setup Guide</h2>
           <div className="space-y-2">
             {[
-              { title: "1. Copy your webhook URL", content: "Copy the webhook URL shown above. You\u2019ll paste it into TradingView." },
-              { title: "2. Create a TradingView Alert", content: "In TradingView, go to Alerts \u2192 Create Alert. In the Notifications tab, check Webhook URL and paste your webhook URL." },
-              { title: "3. Set the alert message", content: "In the Message field, paste this JSON template (edit as needed):\n\n{\"symbol\":\"{{ticker}}\",\"exchange\":\"{{exchange}}\",\"interval\":\"{{interval}}\",\"action\":\"buy\",\"close\":{{close}},\"volume\":{{volume}},\"message\":\"Your alert message\"}" },
-              { title: "4. Optional: Configure output channels", content: "Set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID in your .env file to receive alerts via Telegram. Set DISCORD_WEBHOOK_URL to post to a Discord channel." },
+              { title: "1. Configure webhook authentication", content: "Set TRADINGVIEW_WEBHOOK_SECRET to a strong random value in the TradeClaw environment. Every request must include the same value in the secret field." },
+              { title: "2. Copy your webhook URL", content: "Copy the webhook URL shown above. TradingView requires two-factor authentication for webhook alerts, and webhook availability depends on your TradingView account." },
+              { title: "3. Test authenticated ingestion", content: "Paste this JSON into the TradingView Message field and replace the secret placeholder:\n\n{\"secret\":\"REPLACE_WITH_WEBHOOK_SECRET\",\"symbol\":\"{{ticker}}\",\"exchange\":\"{{exchange}}\",\"interval\":\"{{interval}}\",\"action\":\"test\",\"close\":{{close}},\"volume\":{{volume}},\"message\":\"Connectivity test\"}" },
+              { title: "4. Understand entry forwarding", content: "BUY and SELL payloads are recorded, but forwarding halts unless signalId identifies the exact persisted TradeClaw signal and the trailing 90-day cost-adjusted evidence gate is ready and positive. A TradingView alert is not itself approval to open a trade." },
+              { title: "5. Configure output channels", content: "Set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID and/or DISCORD_WEBHOOK_URL. Missing channel credentials are skipped; they are never simulated." },
             ].map((step, i) => (
               <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
                 <button
@@ -166,7 +185,7 @@ export default function TVAlertsClient() {
           <div className="space-y-4">
             {[
               {
-                title: "RSI Oversold Alert",
+                title: "RSI webhook audit example",
                 code: `//@version=5
 indicator("TradeClaw RSI Alert", overlay=true)
 rsiLen = input.int(14, "RSI Length")
@@ -174,10 +193,10 @@ rsiOversold = input.int(30, "Oversold Level")
 rsi = ta.rsi(close, rsiLen)
 alertcondition(ta.crossover(rsi, rsiOversold), title="RSI Oversold Buy")
 // Alert Message (paste in TradingView alert):
-// {"symbol":"{{ticker}}","exchange":"{{exchange}}","interval":"{{interval}}","action":"buy","close":{{close}},"message":"RSI crossed above oversold"}`,
+// {"secret":"REPLACE_WITH_WEBHOOK_SECRET","symbol":"{{ticker}}","exchange":"{{exchange}}","interval":"{{interval}}","action":"test","close":{{close}},"message":"RSI crossed above oversold"}`,
               },
               {
-                title: "EMA Crossover Alert",
+                title: "EMA webhook audit example",
                 code: `//@version=5
 indicator("TradeClaw EMA Cross", overlay=true)
 ema9 = ta.ema(close, 9)
@@ -186,10 +205,10 @@ plot(ema9, color=color.green)
 plot(ema21, color=color.red)
 alertcondition(ta.crossover(ema9, ema21), title="EMA Bullish Cross")
 alertcondition(ta.crossunder(ema9, ema21), title="EMA Bearish Cross")
-// Alert Message: {"symbol":"{{ticker}}","action":"buy","close":{{close}},"message":"EMA 9/21 bullish crossover"}`,
+// Alert Message: {"secret":"REPLACE_WITH_WEBHOOK_SECRET","symbol":"{{ticker}}","action":"test","close":{{close}},"message":"EMA 9/21 bullish crossover"}`,
               },
               {
-                title: "MACD Signal Alert",
+                title: "MACD webhook audit example",
                 code: `//@version=5
 indicator("TradeClaw MACD Alert", overlay=false)
 [macdLine, signalLine, hist] = ta.macd(close, 12, 26, 9)
@@ -197,7 +216,7 @@ plot(macdLine, "MACD", color.blue)
 plot(signalLine, "Signal", color.orange)
 alertcondition(ta.crossover(macdLine, signalLine), title="MACD Bullish")
 alertcondition(ta.crossunder(macdLine, signalLine), title="MACD Bearish")
-// Alert Message: {"symbol":"{{ticker}}","action":"buy","close":{{close}},"message":"MACD bullish crossover"}`,
+// Alert Message: {"secret":"REPLACE_WITH_WEBHOOK_SECRET","symbol":"{{ticker}}","action":"test","close":{{close}},"message":"MACD bullish crossover"}`,
               },
             ].map((tpl, i) => (
               <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
@@ -216,8 +235,8 @@ alertcondition(ta.crossunder(macdLine, signalLine), title="MACD Bearish")
 
         {/* Star CTA */}
         <section className="text-center bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
-          <h2 className="text-xl font-bold mb-2">Open Source &amp; Free Forever</h2>
-          <p className="text-zinc-400 text-sm mb-6">TradeClaw is MIT-licensed. Self-host it, fork it, build on it.</p>
+          <h2 className="text-xl font-bold mb-2">MIT-Licensed Source</h2>
+          <p className="text-zinc-400 text-sm mb-6">TradeClaw&apos;s source is MIT-licensed. Hosting, TradingView, and configured notification services set their own terms and costs.</p>
           <a href="https://github.com/naimkatiman/tradeclaw" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-[#FF6A00] hover:bg-[#e05e00] text-white font-medium px-6 py-3 rounded-xl transition-colors">
             <ExternalLink className="w-4 h-4" />
             Star on GitHub

@@ -113,29 +113,12 @@ function getThresholds(
     ? { signalThreshold: profile.signalThresholdScalp, minConfidence: profile.minConfidenceScalp }
     : { signalThreshold: profile.signalThreshold, minConfidence: profile.minConfidence };
 }
-const MIN_DIRECTIONAL_EDGE = 5; // Require a real edge, but not so much that balanced trend setups disappear entirely
+const MIN_DIRECTIONAL_EDGE = 5; // Minimum rule-score separation; not a measured market edge.
 const MIN_TREND_STRENGTH = 0.03;  // reduced — 0.08 blocked signals in sideways markets
 const MIN_ATR_PCT = 0.0001;  // reduced threshold
 const MIN_BB_WIDTH = 0.3;
 const MIN_RISK_ATR = 0.8;
 const MAX_RISK_ATR = 4.0;
-
-// Blacklisted symbol+direction combos based on track-record audit:
-// These have <=25% win rate over 5+ signals — auto-skip.
-// Base list kept in sync with scripts/scanner-engine.py BLACKLISTED_COMBOS
-// (Binance-style names mapped to broker-style names used here).
-// Next.js-specific additions are based on the 586-signal empirical audit
-// where crypto BUY fallback signals underperform the Python scanner.
-const BLACKLISTED_COMBOS: ReadonlySet<string> = new Set([
-  'SOLUSD_SELL', 'USDJPY_BUY', 'XRPUSD_SELL', 'BTCUSD_SELL',
-  'EURUSD_SELL', 'GBPUSD_SELL', 'ETHUSD_SELL', 'BNBUSD_SELL',
-  'XAUUSD_SELL',
-  // Sub-25% BUY paths from 586-signal empirical audit (2026-06-02)
-  // NOTE: BNBUSD_BUY, BTCUSD_BUY, ETHUSD_BUY un-blacklisted on 2026-06-03
-  // after MACD H1 confirmation filters raised their post-filter win rates
-  // to 70-76% (n=40-42). SOLUSD_BUY remains blocked.
-  'SOLUSD_BUY', 'DOGEUSD_BUY',
-]);
 
 function generateSignalId(
   symbol: string,
@@ -530,8 +513,7 @@ function scoreIndicators(indicators: AllIndicators): ScoreResult {
       }
 
       // ── Bollinger Band Squeeze (volatility breakout) ─────
-      // When bands are compressed, a touch/break of either band is a high-probability
-      // breakout setup. Boost the side whose band the price is testing.
+      // When bands are compressed, boost the side whose band price is testing.
       const bandwidthPct = bollinger.current.bandwidth;
       const isSqueeze =
         !isNaN(bandwidthPct) && bandwidthPct > 0 && bandwidthPct < BB_SQUEEZE_THRESHOLD;
@@ -840,9 +822,7 @@ export function generateSignalsFromTA(
     });
   }
 
-  return signals.filter(
-    (s) => !BLACKLISTED_COMBOS.has(`${s.symbol}_${s.direction}`),
-  );
+  return signals;
 }
 
 // ─── Multi-Timeframe Analysis ─────────────────────────────────
@@ -888,7 +868,7 @@ export async function generateMultiTFSignal(
   const settled = await Promise.allSettled(
     mtfSet.map(async (tf): Promise<TFEntry | null> => {
       const { candles, source } = await getOHLCV(symbol, tf);
-      if (candles.length < 100) return null;
+      if (source === 'synthetic' || candles.length < 100) return null;
       const indicators = calculateAllIndicators(candles);
       return { tf, indicators, source };
     })
@@ -939,7 +919,7 @@ export async function generateMultiTFSignal(
   const primary = tfData[0];
   const entry = primary.indicators.closes[primary.indicators.closes.length - 1];
   const indicatorSummary = buildIndicatorSummary(primary.indicators, entry);
-  const source = tfData.every(d => d.source === 'synthetic') ? 'synthetic' : 'real';
+  const source = 'real';
 
   return {
     symbol,

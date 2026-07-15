@@ -22,13 +22,13 @@ export async function GET(req: NextRequest) {
         }}
       >
         <div style={{ fontSize: 24, color: '#71717a', marginBottom: 12 }}>
-          TRADECLAW LIVE DEMO
+          TRADECLAW SIGNAL FEED
         </div>
         <div style={{ fontSize: 64, fontWeight: 700, color: '#ffffff', marginBottom: 8 }}>
           {symbol}
         </div>
         <div style={{ fontSize: 20, color: '#a1a1aa' }}>
-          AI Trading Signals — No Login Required
+          Rule-based candidates — not portfolio returns
         </div>
         <div style={{ fontSize: 16, color: '#52525b', marginTop: 24 }}>
           tradeclaw.win/demo

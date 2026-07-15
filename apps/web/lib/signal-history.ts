@@ -8,6 +8,14 @@ import fs from 'fs';
 import path from 'path';
 import { query, queryOne, execute } from './db-pool';
 import { getOHLCV, type OHLCV } from '../app/lib/ohlcv';
+import {
+  OBSERVED_OHLCV_OUTCOME_SOURCES,
+  isObservedOHLCVOutcomeSource,
+  type ObservedOHLCVOutcomeSource,
+} from './outcome-provenance';
+
+export { OBSERVED_OHLCV_OUTCOME_SOURCES, isObservedOHLCVOutcomeSource };
+export type { ObservedOHLCVOutcomeSource };
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -22,35 +30,34 @@ export interface SignalOutcome {
   source?: string;
 }
 
-// Auto-expire writes `{ pnlPct: 0, hit: false, target: 'expired' }` when a signal window elapses
-// without TP/SL/close resolution. Those are not real trade outcomes and must
-// be excluded from hit-rate and pnl aggregations.
+// Force-expiry writes `{ pnlPct: 0, hit: false, target: 'expired' }` when a
+// signal window cannot be resolved from market data. That placeholder is not a
+// trade outcome. A nonzero `target: 'expired'` outcome is different: the
+// resolver observed the 24h close after neither TP nor SL was hit, so its
+// mark-to-market P&L is real and must remain in performance aggregations.
 export function isRealOutcome(o: SignalOutcome | null | undefined): o is SignalOutcome {
   if (!o) return false;
   if (o.pnlPct === 0 && !o.hit) return false;
   return true;
 }
 
+/** A resolved outcome backed by an approved observed-candle provider. */
+export function isCountedOutcome(o: SignalOutcome | null | undefined): o is SignalOutcome {
+  return isRealOutcome(o) && isObservedOHLCVOutcomeSource(o.source);
+}
+
 /**
  * Canonical filter for "this row counts in resolved P&L / win-rate / equity".
- * Excludes simulated rows, gate-blocked rows (engine refused to trade), and
- * auto-expire placeholders (no TP/SL within the window). Use this everywhere
- * a denominator is computed so /api/signals/history, /api/signals/equity,
- * /api/leaderboard, and /api/strategy-breakdown stay consistent.
+ * Excludes simulated rows, gate-blocked rows (engine refused to trade),
+ * outcomes without approved observed-OHLCV provenance, and force-expiry
+ * placeholders (no usable 24h market close). Legacy outcomes with no source
+ * fail closed and remain visible only as uncounted history.
  */
 export function isCountedResolved(r: SignalHistoryRecord): boolean {
   if (r.isSimulated) return false;
   if (r.gateBlocked) return false;
   const o = r.outcomes['24h'];
-  if (!isRealOutcome(o)) return false;
-  // Auto-expired closes (window elapsed with neither TP nor SL hit) are
-  // recorded for transparency only. The UI captions promise it: stat-hints
-  // `resolved` = "TP or SL hit … Excludes … auto-expired rows" and `winRate24h`
-  // = "Excludes auto-expired and gate-blocked rows". Honor that contract in the
-  // one canonical predicate so equity, win-rate, and resolved counts match the
-  // stated methodology instead of folding drift-expired rows in as wins/losses.
-  if (o.target === 'expired') return false;
-  return true;
+  return isCountedOutcome(o);
 }
 
 export interface SignalHistoryRecord {
@@ -83,7 +90,7 @@ export interface SignalHistoryRecord {
   regime?: string;
   /** Pro-broadcast gate decision at emission: false = approved for broadcast, true = blocked. Undefined = decision not recorded (pre-048 rows). Tri-state is load-bearing — do NOT default to false. */
   broadcastBlocked?: boolean;
-  /** Why the broadcast gate blocked this row (winning-cells / risk veto). Undefined unless broadcastBlocked is true. */
+  /** Why the broadcast gate blocked this row (for example, a risk veto). Undefined unless broadcastBlocked is true. */
   broadcastBlockReason?: string;
   /** Allocator position size (% of equity) computed at emission. Undefined on pre-048 rows or when the pipeline did not run. */
   allocationPct?: number;
@@ -201,7 +208,7 @@ export interface StrategyBreakdownRow {
 
 export function recomputeOverall(
   assets: AssetStats[],
-  lastUpdated: number = Date.now(),
+  lastUpdated: number = 0,
 ): LeaderboardData['overall'] {
   const totalSignals = assets.reduce((sum, a) => sum + a.totalSignals, 0);
   const resolved4h = assets.reduce((sum, a) => sum + a.resolved4h, 0);
@@ -241,7 +248,8 @@ const isDbEnabled = () => !!process.env.DATABASE_URL;
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const HISTORY_FILE = path.join(DATA_DIR, 'signal-history.json');
-const MAX_RECORDS = 10000;
+/** Maximum rows returned by the shared public-history read window. */
+export const SIGNAL_HISTORY_READ_LIMIT = 10_000;
 
 
 // ── DB row → SignalHistoryRecord ─────────────────────────────
@@ -379,7 +387,7 @@ export async function readHistoryAsync(
          AND created_at >= $1
        ORDER BY created_at DESC
        LIMIT $2`,
-      [new Date(options.sinceMs).toISOString(), MAX_RECORDS],
+      [new Date(options.sinceMs).toISOString(), SIGNAL_HISTORY_READ_LIMIT],
     );
     return rows.map(rowToRecord);
   }
@@ -390,7 +398,7 @@ export async function readHistoryAsync(
        AND ${NOT_DARK_STRATEGY_SQL}
      ORDER BY created_at DESC
      LIMIT $1`,
-    [MAX_RECORDS],
+    [SIGNAL_HISTORY_READ_LIMIT],
   );
   return rows.map(rowToRecord);
 }
@@ -565,8 +573,25 @@ async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
       const result = await query<{ id: string }>(
         `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier, gate_blocked, gate_reason, regime, broadcast_blocked, broadcast_block_reason, allocation_pct, pre_boost_confidence, mtf_agreement, confluence_bonus, cost_estimate_pct)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
-         ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
-           WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL
+         ON CONFLICT (id) DO UPDATE SET
+           strategy_id = COALESCE(signal_history.strategy_id, EXCLUDED.strategy_id),
+           regime = COALESCE(signal_history.regime, EXCLUDED.regime),
+           broadcast_blocked = COALESCE(signal_history.broadcast_blocked, EXCLUDED.broadcast_blocked),
+           broadcast_block_reason = COALESCE(signal_history.broadcast_block_reason, EXCLUDED.broadcast_block_reason),
+           allocation_pct = COALESCE(signal_history.allocation_pct, EXCLUDED.allocation_pct),
+           pre_boost_confidence = COALESCE(signal_history.pre_boost_confidence, EXCLUDED.pre_boost_confidence),
+           mtf_agreement = COALESCE(signal_history.mtf_agreement, EXCLUDED.mtf_agreement),
+           confluence_bonus = COALESCE(signal_history.confluence_bonus, EXCLUDED.confluence_bonus),
+           cost_estimate_pct = COALESCE(signal_history.cost_estimate_pct, EXCLUDED.cost_estimate_pct)
+         WHERE (signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL)
+            OR (signal_history.regime IS NULL AND EXCLUDED.regime IS NOT NULL)
+            OR (signal_history.broadcast_blocked IS NULL AND EXCLUDED.broadcast_blocked IS NOT NULL)
+            OR (signal_history.broadcast_block_reason IS NULL AND EXCLUDED.broadcast_block_reason IS NOT NULL)
+            OR (signal_history.allocation_pct IS NULL AND EXCLUDED.allocation_pct IS NOT NULL)
+            OR (signal_history.pre_boost_confidence IS NULL AND EXCLUDED.pre_boost_confidence IS NOT NULL)
+            OR (signal_history.mtf_agreement IS NULL AND EXCLUDED.mtf_agreement IS NOT NULL)
+            OR (signal_history.confluence_bonus IS NULL AND EXCLUDED.confluence_bonus IS NOT NULL)
+            OR (signal_history.cost_estimate_pct IS NULL AND EXCLUDED.cost_estimate_pct IS NOT NULL)
          RETURNING id`,
         [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null, args.gateBlocked ?? false, args.gateReason ?? null, args.regime ?? null, args.broadcastBlocked ?? null, args.broadcastBlockReason ?? null, args.allocationPct ?? null, args.preBoostConfidence ?? null, args.mtfAgreement ?? null, args.confluenceBonus ?? null, args.costEstimatePct ?? null],
       );
@@ -604,8 +629,17 @@ async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
       const result = await query<{ id: string }>(
         `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier, gate_blocked, gate_reason, regime, broadcast_blocked, broadcast_block_reason, allocation_pct)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
-         ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
-           WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL
+         ON CONFLICT (id) DO UPDATE SET
+           strategy_id = COALESCE(signal_history.strategy_id, EXCLUDED.strategy_id),
+           regime = COALESCE(signal_history.regime, EXCLUDED.regime),
+           broadcast_blocked = COALESCE(signal_history.broadcast_blocked, EXCLUDED.broadcast_blocked),
+           broadcast_block_reason = COALESCE(signal_history.broadcast_block_reason, EXCLUDED.broadcast_block_reason),
+           allocation_pct = COALESCE(signal_history.allocation_pct, EXCLUDED.allocation_pct)
+         WHERE (signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL)
+            OR (signal_history.regime IS NULL AND EXCLUDED.regime IS NOT NULL)
+            OR (signal_history.broadcast_blocked IS NULL AND EXCLUDED.broadcast_blocked IS NOT NULL)
+            OR (signal_history.broadcast_block_reason IS NULL AND EXCLUDED.broadcast_block_reason IS NOT NULL)
+            OR (signal_history.allocation_pct IS NULL AND EXCLUDED.allocation_pct IS NOT NULL)
          RETURNING id`,
         [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null, args.gateBlocked ?? false, args.gateReason ?? null, args.regime ?? null, args.broadcastBlocked, args.broadcastBlockReason ?? null, args.allocationPct ?? null],
       );
@@ -732,7 +766,7 @@ export function recordSignal(
     costEstimatePct: calibration?.costEstimatePct,
     outcomes: { '4h': null, '24h': null },
   });
-  if (records.length > MAX_RECORDS) records.splice(MAX_RECORDS);
+  if (records.length > SIGNAL_HISTORY_READ_LIMIT) records.splice(SIGNAL_HISTORY_READ_LIMIT);
   writeHistoryFile(records);
 }
 
@@ -813,11 +847,9 @@ export async function recordSignalsAsync(signals: TrackedSignalInput[]): Promise
       const parsedTs = Date.parse(s.timestamp);
       const ts = Number.isFinite(parsedTs) ? new Date(parsedTs).toISOString() : new Date().toISOString();
 
-      // ON CONFLICT: late-tag strategy_id when it's currently NULL. Bar
-      // timestamps are deterministic so the same id can be re-inserted
-      // many times — the first insert (possibly from pre-strategyId code)
-      // wins for everything else, but we want to retroactively label it
-      // so the per-strategy breakdown isn't mostly NULL.
+      // Bar timestamps produce deterministic ids. A request-path insert can
+      // therefore win the race before the cron has decision/cost evidence;
+      // Tier 0 fills only NULL evidence fields and never rewrites prior values.
       const resolvedMode = s.mode ?? modeFromTimeframe(s.timeframe);
       const result = await insertSignalHistoryRow({
         id: s.id,
@@ -874,7 +906,7 @@ export function recordSignals(signals: TrackedSignalInput[]): number {
   }
 
   if (inserted === 0) return 0;
-  if (records.length > MAX_RECORDS) records.splice(MAX_RECORDS);
+  if (records.length > SIGNAL_HISTORY_READ_LIMIT) records.splice(SIGNAL_HISTORY_READ_LIMIT);
   writeHistoryFile(records);
   return inserted;
 }
@@ -999,12 +1031,16 @@ export async function resolveRealOutcomes(): Promise<void> {
       if (!needs4h && !needs24h) continue;
 
       let candles: import('../app/lib/ohlcv').OHLCV[] = [];
-      let candleSource = 'unknown';
+      let candleSource: ObservedOHLCVOutcomeSource | null = null;
 
       try {
         const result = await getOHLCV(r.pair, getOutcomeResolutionTimeframe(r));
-        candles = result.candles;
-        candleSource = result.source;
+        if (isObservedOHLCVOutcomeSource(result.source)) {
+          candles = result.candles;
+          candleSource = result.source;
+        } else {
+          console.warn(`[signal-history] Refusing unobserved OHLCV source ${result.source} for ${r.pair}`);
+        }
       } catch (err) {
         console.error(`[signal-history] OHLCV fetch failed for ${r.pair}: ${err instanceof Error ? err.message : String(err)}`);
       }
@@ -1020,8 +1056,10 @@ export async function resolveRealOutcomes(): Promise<void> {
       if (needs4h) {
         const windowEnd = r.timestamp + FOUR_H;
         const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-        const resolved = resolveFromCandles(r, window, age >= FOUR_H);
-        outcome4h = resolved ? { ...resolved.outcome, resolvedAt, source: candleSource } : outcome4h;
+        const resolved = candleSource ? resolveFromCandles(r, window, age >= FOUR_H) : null;
+        if (resolved && candleSource) {
+          outcome4h = { ...resolved.outcome, resolvedAt, source: candleSource };
+        }
         if (!outcome4h && age >= FOUR_H * 2) {
           outcome4h = { price: r.entryPrice, pnlPct: 0, hit: false, target: 'expired', resolvedAt, source: 'force-expired' };
         }
@@ -1029,9 +1067,11 @@ export async function resolveRealOutcomes(): Promise<void> {
       if (needs24h) {
         const windowEnd = r.timestamp + TWENTY_FOUR_H;
         const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-        const resolved = resolveFromCandles(r, window, age >= TWENTY_FOUR_H);
-        outcome24h = resolved ? { ...resolved.outcome, resolvedAt, source: candleSource } : outcome24h;
-        mae24h = resolved?.maxAdverseExcursion ?? null;
+        const resolved = candleSource ? resolveFromCandles(r, window, age >= TWENTY_FOUR_H) : null;
+        if (resolved && candleSource) {
+          outcome24h = { ...resolved.outcome, resolvedAt, source: candleSource };
+          mae24h = resolved.maxAdverseExcursion;
+        }
         if (!outcome24h && age >= TWENTY_FOUR_H * 2) {
           outcome24h = { price: r.entryPrice, pnlPct: 0, hit: false, target: 'expired', resolvedAt, source: 'force-expired' };
         }
@@ -1090,10 +1130,16 @@ export async function resolveRealOutcomes(): Promise<void> {
     if (!needs4h && !needs24h) continue;
 
     let candles: import('../app/lib/ohlcv').OHLCV[] = [];
+    let candleSource: ObservedOHLCVOutcomeSource | null = null;
 
     try {
       const result = await getOHLCV(r.pair, getOutcomeResolutionTimeframe(r));
-      candles = result.candles;
+      if (isObservedOHLCVOutcomeSource(result.source)) {
+        candles = result.candles;
+        candleSource = result.source;
+      } else {
+        console.warn(`[signal-history] Refusing unobserved OHLCV source ${result.source} for ${r.pair}`);
+      }
     } catch (err) {
       console.error(`[signal-history] OHLCV fetch failed for ${r.pair}: ${err instanceof Error ? err.message : String(err)}`);
     }
@@ -1101,13 +1147,24 @@ export async function resolveRealOutcomes(): Promise<void> {
     if (needs4h) {
       const windowEnd = r.timestamp + FOUR_H;
       const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-      const resolved = resolveFromCandles(r, window, age >= FOUR_H);
-      if (resolved) {
-        r.outcomes['4h'] = resolved.outcome;
+      const resolved = candleSource ? resolveFromCandles(r, window, age >= FOUR_H) : null;
+      if (resolved && candleSource) {
+        r.outcomes['4h'] = {
+          ...resolved.outcome,
+          resolvedAt: new Date(now).toISOString(),
+          source: candleSource,
+        };
         r.lastVerified = now;
         changed = true;
       } else if (age >= FOUR_H * 2) {
-        r.outcomes['4h'] = { price: r.entryPrice, pnlPct: 0, hit: false, target: 'expired' };
+        r.outcomes['4h'] = {
+          price: r.entryPrice,
+          pnlPct: 0,
+          hit: false,
+          target: 'expired',
+          resolvedAt: new Date(now).toISOString(),
+          source: 'force-expired',
+        };
         r.lastVerified = now;
         changed = true;
       }
@@ -1115,14 +1172,25 @@ export async function resolveRealOutcomes(): Promise<void> {
     if (needs24h) {
       const windowEnd = r.timestamp + TWENTY_FOUR_H;
       const window = candles.filter(c => c.timestamp > r.timestamp && c.timestamp <= windowEnd);
-      const resolved = resolveFromCandles(r, window, age >= TWENTY_FOUR_H);
-      if (resolved) {
-        r.outcomes['24h'] = resolved.outcome;
+      const resolved = candleSource ? resolveFromCandles(r, window, age >= TWENTY_FOUR_H) : null;
+      if (resolved && candleSource) {
+        r.outcomes['24h'] = {
+          ...resolved.outcome,
+          resolvedAt: new Date(now).toISOString(),
+          source: candleSource,
+        };
         r.maxAdverseExcursion = resolved.maxAdverseExcursion;
         r.lastVerified = now;
         changed = true;
       } else if (age >= TWENTY_FOUR_H * 2) {
-        r.outcomes['24h'] = { price: r.entryPrice, pnlPct: 0, hit: false, target: 'expired' };
+        r.outcomes['24h'] = {
+          price: r.entryPrice,
+          pnlPct: 0,
+          hit: false,
+          target: 'expired',
+          resolvedAt: new Date(now).toISOString(),
+          source: 'force-expired',
+        };
         r.lastVerified = now;
         changed = true;
       }
@@ -1452,12 +1520,12 @@ export function computeLeaderboard(
     s.total++;
     s.confSum += r.confidence;
 
-    if (isRealOutcome(r.outcomes['4h'])) {
+    if (isCountedOutcome(r.outcomes['4h'])) {
       s.resolved4h++;
       if (r.outcomes['4h']!.hit) s.hits4h++;
     }
     const o24 = r.outcomes['24h'];
-    if (isRealOutcome(o24)) {
+    if (isCountedOutcome(o24)) {
       s.resolved24h++;
       s.pnlSum += o24!.pnlPct;
       s.pnlCount++;
@@ -1474,7 +1542,7 @@ export function computeLeaderboard(
 
   for (const r of [...filtered].sort((a, b) => b.timestamp - a.timestamp)) {
     const s = map.get(r.pair);
-    if (!s || !isRealOutcome(r.outcomes['24h'])) continue;
+    if (!s || !isCountedOutcome(r.outcomes['24h'])) continue;
     if (s.recentHits.length < 10) s.recentHits.push(r.outcomes['24h'].hit);
   }
 
@@ -1501,9 +1569,17 @@ export function computeLeaderboard(
     return b.hitRate24h - a.hitRate24h;
   });
 
+  const lastUpdated = filtered.reduce((latest, record) => {
+    const outcome = record.outcomes['24h'];
+    if (!isCountedOutcome(outcome)) return latest;
+    const resolvedAt = outcome.resolvedAt ? Date.parse(outcome.resolvedAt) : NaN;
+    const evidenceTimestamp = Number.isFinite(resolvedAt) ? resolvedAt : record.timestamp;
+    return Math.max(latest, evidenceTimestamp);
+  }, 0);
+
   return {
     assets,
-    overall: recomputeOverall(assets),
+    overall: recomputeOverall(assets, lastUpdated),
   };
 }
 
@@ -1541,11 +1617,11 @@ export function computeStrategyBreakdown(
     const g = groups.get(key)!;
     g.total++;
     g.confSum += r.confidence;
-    if (isRealOutcome(r.outcomes['4h'])) {
+    if (isCountedOutcome(r.outcomes['4h'])) {
       g.resolved4h++;
       if (r.outcomes['4h']!.hit) g.hits4h++;
     }
-    if (isRealOutcome(r.outcomes['24h'])) {
+    if (isCountedOutcome(r.outcomes['24h'])) {
       g.resolved24h++;
       if (r.outcomes['24h']!.hit) g.hits24h++;
       g.pnlSum += r.outcomes['24h']!.pnlPct;

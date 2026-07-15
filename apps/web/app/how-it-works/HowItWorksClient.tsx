@@ -51,7 +51,7 @@ function ScoreBar({ label, value, max = 20, color = 'emerald' }: { label: string
   );
 }
 
-const SCORING_CODE = `// Signal confidence scoring — apps/web/app/lib/signal-generator.ts
+const SCORING_CODE = `// Mechanical signal rule scoring — apps/web/app/lib/signal-generator.ts
 
 function scoreSignal(indicators: AllIndicators, direction: 'BUY' | 'SELL'): number {
   let score = 0;
@@ -115,7 +115,7 @@ function scoreSignal(indicators: AllIndicators, direction: 'BUY' | 'SELL'): numb
   const maxScore = 90;
   const rawPct = Math.max(0, Math.min(100, (score / maxScore) * 100));
 
-  // Map to 50-98% range (we never claim 100% certainty)
+  // Preserve the existing 50-98 output band. This is not a probability.
   return 50 + rawPct * 0.48;
 }`;
 
@@ -197,9 +197,9 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { id: 1, title: 'Fetch OHLCV data', desc: 'Binance API (crypto) or Yahoo Finance (forex/commodities). 200 hourly or daily candles. Synthetic fallback if both fail.', icon: TrendingUp, color: 'text-blue-400' },
+  { id: 1, title: 'Fetch OHLCV data', desc: 'Market-data hub when configured; Binance fallback for crypto and Stooq fallback for forex/metals. If observed data is unavailable, the engine returns no candles and emits no signal.', icon: TrendingUp, color: 'text-blue-400' },
   { id: 2, title: 'Calculate 5 indicators', desc: 'RSI (14), MACD (12/26/9), EMA (20/50/200), Bollinger Bands (20, 2σ), Stochastic (14/3/3). All implemented from scratch in TypeScript — no TA-Lib.', icon: BarChart2, color: 'text-purple-400' },
-  { id: 3, title: 'Score BUY and SELL', desc: 'Each indicator contributes up to its maximum points. Sum is normalised to 50–98%. Direction with higher score wins. Min 55% required to emit a signal.', icon: Target, color: 'text-emerald-400' },
+  { id: 3, title: 'Score BUY and SELL', desc: 'Each indicator contributes up to its maximum points. The sum maps to a 50–98 rule-score band. Direction with the higher score wins. Minimum rule score: 55/100.', icon: Target, color: 'text-emerald-400' },
   { id: 4, title: 'Quality gate', desc: 'Signal discarded if: ATR% < 0.3% (no volatility), Bollinger bandwidth < 1% (consolidating), EMA slope near zero (no trend), or stop-loss distance < 0.5% (too tight).', icon: AlertTriangle, color: 'text-zinc-400' },
   { id: 5, title: 'Calculate TP/SL', desc: 'Take-profit at nearest resistance above (BUY) or support below (SELL) within last 20 candles. Stop-loss at nearest support/resistance on opposite side. ATR fallback.', icon: CheckCircle, color: 'text-rose-400' },
 ];
@@ -277,8 +277,8 @@ export function HowItWorksClient() {
             <ScoreBar label="Bollinger Bands" value={15} color="yellow" />
             <ScoreBar label="Stochastic (14/3/3)" value={15} color="rose" />
             <div className="pt-2 border-t border-zinc-800 text-xs text-zinc-400">
-              Score is normalised from 0–90 raw points → 50–98% confidence range.
-              Minimum 55% required to emit a signal.
+              Score is mapped from 0–90 raw points to the existing 50–98 rule-score band.
+              Minimum rule score: 55/100. This is mechanical indicator confluence, not a predictive probability.
             </div>
           </div>
         </div>
@@ -329,11 +329,11 @@ export function HowItWorksClient() {
             <TrendingUp className="w-4 h-4 text-blue-400" />
             Data Sources
           </h2>
-          <div className="grid md:grid-cols-3 gap-3">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[
-              { name: 'Binance REST API', desc: 'Crypto pairs (BTC, ETH, etc.) — 200 hourly candles via /api/v3/klines. No API key required for public data.', tag: 'Primary', color: 'emerald' },
-              { name: 'Yahoo Finance', desc: 'Forex (EUR/USD, GBP/USD, USD/JPY) and commodities (XAU, XAG) — scraped from Yahoo chart API.', tag: 'Secondary', color: 'blue' },
-              { name: 'Synthetic fallback', desc: 'If both APIs fail: deterministic OHLCV generation using seeded Gaussian noise. Labeled [DEMO] in UI.', tag: 'Fallback', color: 'zinc' },
+              { name: 'Market-data hub', desc: 'Primary candle source only when MARKET_DATA_HUB_URL is configured. The hub aggregates its own upstream providers.', tag: 'Configured primary', color: 'emerald' },
+              { name: 'Binance REST API', desc: 'Thin public-data fallback for supported crypto pairs when the hub is unavailable or has insufficient candles.', tag: 'Crypto fallback', color: 'blue' },
+              { name: 'Stooq CSV', desc: 'Thin fallback for supported forex and metals symbols when the hub is unavailable or has insufficient candles.', tag: 'TradFi fallback', color: 'blue' },
             ].map((src) => (
               <div key={src.name} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -362,7 +362,7 @@ export function HowItWorksClient() {
             <a href="/accuracy" className="text-emerald-400 hover:underline">accuracy page</a>
             {' '}and{' '}
             <a href="/calibration" className="text-emerald-400 hover:underline">calibration page</a>
-            {' '}for actual historical performance.
+            {' '}for OHLCV-resolved signal-study results and their exclusions. These are not broker fills or portfolio performance.
           </p>
         </div>
 

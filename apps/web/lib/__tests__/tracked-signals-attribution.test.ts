@@ -34,12 +34,6 @@ jest.mock('../gate-log', () => ({
   logGateDecision: jest.fn().mockResolvedValue(undefined),
   buildGateLogEntry: jest.fn().mockReturnValue({}),
 }));
-jest.mock('../winning-cells', () => ({
-  getWinningCellsMode: jest.fn().mockReturnValue('off'),
-  isWinningCell: jest.fn().mockReturnValue(true),
-  WINNING_CELLS_GATE_REASON: 'winning_cells',
-}));
-
 import { getTrackedSignals } from '../tracked-signals';
 import { getSignals } from '../../app/lib/signals';
 import { getActivePreset } from '../../app/api/cron/signals/preset-dispatch';

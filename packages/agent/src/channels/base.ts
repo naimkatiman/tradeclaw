@@ -4,6 +4,16 @@ import { formatNumber, formatDiff, emaTrendText } from '@tradeclaw/signals';
 // Re-export for use by channel implementations
 export { formatNumber, formatDiff, emaTrendText };
 
+export function isProviderObservedSignal(signal: TradingSignal): boolean {
+  return signal.source === 'real'
+    && signal.dataQuality === 'real'
+    && Number.isFinite(signal.entry)
+    && signal.entry > 0
+    && Number.isFinite(signal.stopLoss)
+    && Number.isFinite(signal.takeProfit1)
+    && Number.isFinite(Date.parse(signal.timestamp));
+}
+
 /**
  * Base interface for all channel adapters.
  */

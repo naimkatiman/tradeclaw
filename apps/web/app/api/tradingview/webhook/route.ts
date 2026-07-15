@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { saveAlert } from "@/lib/tradingview-alerts";
+import { evaluateEntryFanoutGate } from "@/lib/entry-fanout-gate";
 
 const rateLimitMap = new Map<string, { count: number; reset: number }>();
 
@@ -25,13 +26,49 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-async function routeToTelegram(alert: { normalizedPair: string; normalizedAction: string; close?: number; message?: string }): Promise<boolean> {
+// Unknown actions currently render as SELL, so they remain entry-like. Only
+// explicit lifecycle/test actions may fan out without opening a new position.
+const NON_ENTRY_ACTIONS = new Set([
+  "cancel",
+  "cancelled",
+  "close",
+  "close_long",
+  "close_short",
+  "exit",
+  "exit_long",
+  "exit_short",
+  "flat",
+  "sl",
+  "stop_loss",
+  "stoploss",
+  "take_profit",
+  "takeprofit",
+  "test",
+  "tp",
+  "trailing_stop",
+]);
+
+function isEntryLikeAction(action: string): boolean {
+  const normalized = action.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return !NON_ENTRY_ACTIONS.has(normalized);
+}
+
+function routedActionLabel(action: string, normalizedAction: string): string {
+  if (isEntryLikeAction(action)) return normalizedAction;
+  return action.trim().toUpperCase().replace(/[\s_-]+/g, " ");
+}
+
+async function routeToTelegram(alert: { action: string; normalizedPair: string; normalizedAction: string; close?: number; message?: string }): Promise<boolean> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
   if (!token || !chatId) return false;
   try {
-    const emoji = alert.normalizedAction === "BUY" ? "\u{1F7E2}" : "\u{1F534}";
-    const text = `${emoji} *TradingView Alert*\n*${alert.normalizedPair}* ${alert.normalizedAction}${alert.close ? `\nPrice: ${alert.close}` : ""}${alert.message ? `\n${alert.message}` : ""}`;
+    const entryLike = isEntryLikeAction(alert.action);
+    const emoji = entryLike
+      ? (alert.normalizedAction === "BUY" ? "\u{1F7E2}" : "\u{1F534}")
+      : "\u{1F7E1}";
+    const actionLabel = routedActionLabel(alert.action, alert.normalizedAction);
+    const text = `${emoji} *TradingView Alert*\n*${alert.normalizedPair}* ${actionLabel}${alert.close ? `\nPrice: ${alert.close}` : ""}${alert.message ? `\n${alert.message}` : ""}`;
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -41,17 +78,21 @@ async function routeToTelegram(alert: { normalizedPair: string; normalizedAction
   } catch { return false; }
 }
 
-async function routeToDiscord(alert: { normalizedPair: string; normalizedAction: string; close?: number; message?: string }): Promise<boolean> {
+async function routeToDiscord(alert: { action: string; normalizedPair: string; normalizedAction: string; close?: number; message?: string }): Promise<boolean> {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
   if (!webhookUrl) return false;
   try {
-    const color = alert.normalizedAction === "BUY" ? 0x10b981 : 0xf43f5e;
+    const entryLike = isEntryLikeAction(alert.action);
+    const color = entryLike
+      ? (alert.normalizedAction === "BUY" ? 0x10b981 : 0xf43f5e)
+      : 0xf59e0b;
+    const actionLabel = routedActionLabel(alert.action, alert.normalizedAction);
     await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         embeds: [{
-          title: `${alert.normalizedPair} — ${alert.normalizedAction}`,
+          title: `${alert.normalizedPair} - ${actionLabel}`,
           color,
           fields: [
             ...(alert.close ? [{ name: "Price", value: String(alert.close), inline: true }] : []),
@@ -97,6 +138,30 @@ export async function POST(req: NextRequest) {
     volume: body.volume != null ? Number(body.volume) : undefined,
     message: body.message ? String(body.message) : undefined,
   });
+
+  if (isEntryLikeAction(String(action))) {
+    const rawSignalId = body.signalId ?? body.signal_id;
+    const signalId = typeof rawSignalId === "string" ? rawSignalId : undefined;
+    const gate = await evaluateEntryFanoutGate({
+      symbol: alert.normalizedPair,
+      signalId,
+    });
+    if (!gate.allowed) {
+      return NextResponse.json(
+        {
+          ok: false,
+          alertId: alert.id,
+          normalizedPair: alert.normalizedPair,
+          normalizedAction: alert.normalizedAction,
+          routed: [],
+          halted: gate.reason,
+          evidence: gate.evidence,
+        },
+        { status: 503 },
+      );
+    }
+  }
+
   const routed: string[] = [];
   const [tg, dc] = await Promise.all([routeToTelegram(alert), routeToDiscord(alert)]);
   if (tg) routed.push("telegram");

@@ -15,11 +15,11 @@ const WrappedClient = dynamic(
 export const metadata: Metadata = {
   title: "Wrapped — TradeClaw's Signal Year in Review | TradeClaw",
   description:
-    "TradeClaw's signal year in review — total signals tracked, best pair, accuracy trend, and win streaks, all from real resolved outcomes. Like Spotify Wrapped, but for trading signals.",
+    "TradeClaw's signal year in review — total signals tracked, best pair, accuracy trend, and win streaks from counted OHLCV-resolved outcomes.",
   openGraph: {
     title: "TradeClaw Wrapped — The Signal Year in Review",
     description:
-      'Total signals tracked, best pair, accuracy trend, win streaks — from real resolved signal history.',
+      'Total signals tracked, best pair, accuracy trend, and win streaks from counted OHLCV-resolved signal rows.',
     type: 'website',
   },
 };

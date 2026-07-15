@@ -2,12 +2,13 @@ import type { Metadata } from 'next';
 import { MarketplaceClient } from '../../components/marketplace-client';
 
 export const metadata: Metadata = {
-  title: 'Webhook Marketplace — TradeClaw',
+  title: 'Webhook Recipe Catalog | TradeClaw',
   description:
-    'Connect TradeClaw trading signals to Notion, Airtable, Zapier, Discord, Slack, Google Sheets, and 6,000+ more apps via webhooks.',
+    'Review manual outbound-webhook recipes for TradeClaw. These examples are not one-click or native integrations, and some services require a relay or payload transform.',
   openGraph: {
-    title: 'Webhook Marketplace — TradeClaw',
-    description: '12 one-click integrations for routing live trading signals to your favourite tools.',
+    title: 'Webhook Recipe Catalog | TradeClaw',
+    description:
+      'Manual setup examples for outbound webhook destinations; no one-click installation or automatic every-signal delivery.',
   },
 };
 

@@ -1,53 +1,49 @@
 import { loadConfig } from './config.js';
 import { Scheduler } from './scheduler.js';
-import { runScanAsync } from '../signals/engine.js';
+import { SIGNAL_SCAN_AVAILABILITY } from '../signals/engine.js';
 import { fetchLivePrices } from '../signals/prices.js';
-import { createChannel, type BaseChannel } from '../channels/base.js';
-import { SkillLoader } from '../skills/loader.js';
-import { join } from 'node:path';
+import { createChannel, isProviderObservedSignal, type BaseChannel } from '../channels/base.js';
 import type { GatewayConfig, TradingSignal } from '@tradeclaw/signals';
 
 /**
  * Core gateway daemon.
- * Orchestrates scanning, signal generation, and channel delivery.
+ * Orchestrates availability checks and future observed-candidate delivery.
  */
 export class Gateway {
   private config: GatewayConfig | null = null;
   private scheduler: Scheduler | null = null;
   private channels: BaseChannel[] = [];
-  private skillLoader: SkillLoader;
   private latestSignals: TradingSignal[] = [];
   private startTime: Date | null = null;
   private initialized = false;
   private channelWarned = false;
 
-  constructor() {
-    const skillsDir = join(process.cwd(), 'skills');
-    this.skillLoader = new SkillLoader(skillsDir);
-  }
-
   async start(configPath?: string): Promise<void> {
     console.log('');
     console.log('  \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557');
     console.log('  \u2551       tradeclaw-agent v0.2.0          \u2551');
-    console.log('  \u2551   Self-hosted trading signal agent    \u2551');
+    console.log('  \u2551  Self-hosted research candidate agent \u2551');
     console.log('  \u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D');
     console.log('');
 
     this.config = await loadConfig(configPath);
     console.log(`[gateway] Loaded config: ${this.config.symbols.length} symbols, ${this.config.timeframes.length} timeframes`);
-    console.log(`[gateway] Min confidence: ${this.config.minConfidence}%`);
+    console.log(`[gateway] Minimum rule score: ${this.config.minConfidence}/100`);
     console.log(`[gateway] Scan interval: ${this.config.scanInterval}s`);
 
     try {
       const prices = await fetchLivePrices();
-      console.log(`[gateway] Live prices loaded: ${prices.size} symbols`);
+      if (prices.size > 0) {
+        console.log(`[gateway] Provider price observations loaded: ${prices.size} symbols`);
+      } else {
+        console.warn('[gateway] No provider price observations are currently available');
+      }
     } catch {
-      console.warn('[gateway] Live prices unavailable \u2014 using fallback prices');
+      console.warn('[gateway] Provider prices unavailable; no fallback prices will be used');
     }
 
     await this.initChannels();
-    await this.initSkills();
+    console.warn(`[gateway] Signal scanning disabled: ${SIGNAL_SCAN_AVAILABILITY.reason}`);
     this.setupShutdownHandlers();
 
     this.startTime = new Date();
@@ -61,7 +57,6 @@ export class Gateway {
     if (!this.initialized) {
       this.config = await loadConfig(configPath);
       await this.initChannels();
-      await this.initSkills();
       this.initialized = true;
     }
 
@@ -80,6 +75,9 @@ export class Gateway {
     config: GatewayConfig | null;
     channelCount: number;
     skillCount: number;
+    available: false;
+    dataQuality: 'unavailable';
+    reason: typeof SIGNAL_SCAN_AVAILABILITY.reason;
   } {
     return {
       running: this.scheduler?.isRunning() ?? false,
@@ -87,7 +85,8 @@ export class Gateway {
       scanCount: this.scheduler?.getScanCount() ?? 0,
       config: this.config,
       channelCount: this.channels.length,
-      skillCount: this.skillLoader.getLoadedSkills().length,
+      skillCount: 0,
+      ...SIGNAL_SCAN_AVAILABILITY,
     };
   }
 
@@ -103,7 +102,7 @@ export class Gateway {
       `Channels: ${this.channels.length} active`,
       `Symbols: ${this.config.symbols.join(', ')}`,
       `Timeframes: ${this.config.timeframes.join(', ')}`,
-      `Min confidence: ${this.config.minConfidence}%`,
+      `Minimum rule score: ${this.config.minConfidence}/100`,
       '',
       '\u2705 If you see this, your channel is working!',
     ].join('\n');
@@ -140,80 +139,29 @@ export class Gateway {
     }
 
     if (this.channels.length === 0 && !this.channelWarned) {
-      console.warn('[gateway] No channels configured. Signals will only be logged to console.');
+      console.warn('[gateway] No channels configured. Research candidates would only be logged locally.');
       console.warn('[gateway] Set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID, DISCORD_WEBHOOK_URL, or WEBHOOK_URL env vars to enable delivery.');
       this.channelWarned = true;
     }
   }
 
-  private async initSkills(): Promise<void> {
-    if (!this.config) return;
-
-    const skills = await this.skillLoader.loadSkills(this.config.skills);
-    console.log(`[gateway] Loaded ${skills.length} skills: ${skills.map(s => s.name).join(', ') || 'none'}`);
-  }
-
   private async performScan(): Promise<TradingSignal[]> {
     if (!this.config) return [];
 
-    const timestamp = new Date().toISOString();
-    console.log(`\n[scan] Starting scan at ${timestamp}`);
-
-    const signals = await runScanAsync(
-      this.config.symbols,
-      this.config.timeframes,
-      this.config.minConfidence
-    );
-
-    const loadedSkills = this.skillLoader.getLoadedSkills();
-    for (const skill of loadedSkills) {
-      for (const symbol of this.config.symbols) {
-        try {
-          const skillSignals = skill.analyze(symbol, this.config.timeframes);
-          for (const sig of skillSignals) {
-            if (sig.confidence >= this.config.minConfidence) {
-              signals.push(sig);
-            }
-          }
-        } catch (error) {
-          console.error(`[scan] Skill "${skill.name}" failed for ${symbol}:`, error);
-        }
-      }
-    }
-
-    const bestSignals = new Map<string, TradingSignal>();
-    for (const signal of signals) {
-      const key = `${signal.symbol}-${signal.timeframe}`;
-      const existing = bestSignals.get(key);
-      if (!existing || signal.confidence > existing.confidence) {
-        bestSignals.set(key, signal);
-      }
-    }
-
-    this.latestSignals = Array.from(bestSignals.values()).sort(
-      (a, b) => b.confidence - a.confidence
-    );
-
-    console.log(`[scan] Generated ${this.latestSignals.length} signals (filtered from ${signals.length})`);
-
-    for (const signal of this.latestSignals) {
-      const dir = signal.direction === 'BUY' ? '\u{1F7E2} BUY ' : '\u{1F534} SELL';
-      console.log(`  ${dir} ${signal.symbol} [${signal.confidence}%] entry=${signal.entry} tf=${signal.timeframe}`);
-    }
-
-    if (this.latestSignals.length > 0) {
-      await this.deliverSignals(this.latestSignals);
-    }
-
-    return this.latestSignals;
+    this.latestSignals = [];
+    console.warn(`\n[scan] Unavailable: ${SIGNAL_SCAN_AVAILABILITY.reason}. No candidates were generated, delivered, or recorded.`);
+    return [];
   }
 
   private async deliverSignals(signals: TradingSignal[]): Promise<void> {
+    const observedSignals = signals.filter(isProviderObservedSignal);
+    if (observedSignals.length === 0) return;
+
     for (const channel of this.channels) {
       let sent = 0;
       let failed = 0;
 
-      for (const signal of signals) {
+      for (const signal of observedSignals) {
         const success = await channel.sendSignal(signal);
         if (success) {
           sent++;

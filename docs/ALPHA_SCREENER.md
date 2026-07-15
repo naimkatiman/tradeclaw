@@ -81,7 +81,7 @@ Content-Type: application/json
 }
 ```
 
-`source` is `"ai"` when `ANTHROPIC_API_KEY` is set, otherwise `"fallback"`.
+The response must be treated as generated commentary, not evidence of trading edge. Model availability depends on the configured provider; no generated fallback should be described as a live model response.
 
 ### Telegram Notifications
 
@@ -108,8 +108,9 @@ Set these in `.env.local` (self-hosted) or the Railway/Alpha Screener dashboard 
 
 | Variable | Required | Description |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Optional | Enables real AI explanations via Claude Haiku. Falls back to deterministic pattern matching if unset. |
-| `METAAPI_TOKEN` | Optional | Used server-side to proxy broker connections via MetaApi. If unset, tokens are submitted client-side (development only). |
+| `OPENROUTER_API_KEY` | Optional | Enables configured model-assisted features. Endpoints return unavailable when the provider is required but not configured. |
+| `METAAPI_TOKEN` | Optional | Server-only credential for the admin read-only MetaApi account viewer. Never submit or persist it in a browser. |
+| `METAAPI_ACCOUNT_ID` | Optional | Server-only account ID paired with `METAAPI_TOKEN`. Both are required for the viewer. |
 | `NEXT_PUBLIC_APP_URL` | Optional | Public URL for deep links in shared signal cards. |
 | `EXPO_PUBLIC_API_URL` | Optional | Override the mobile app API base URL. |
 
@@ -125,7 +126,7 @@ npm install
 EXPO_PUBLIC_API_URL=https://your-instance.railway.app npx expo start
 ```
 
-For Alpha Screener, set `EXPO_PUBLIC_API_URL=https://app.alphascreener.io`.
+For a managed Alpha Screener deployment, set `EXPO_PUBLIC_API_URL` to the URL supplied by that operator. This repository does not prove that a particular hosted domain is active.
 
 To build a standalone APK/IPA:
 
@@ -139,10 +140,10 @@ npx eas build --platform ios --profile preview
 ## Self-hosted Quick Start
 
 ```bash
-git clone https://github.com/your-org/tradeclaw
+git clone https://github.com/naimkatiman/tradeclaw
 cd tradeclaw
-cp apps/web/.env.example apps/web/.env.local
-# Edit .env.local — set ANTHROPIC_API_KEY for AI explanations
+cp .env.example .env
+# Set every REQUIRED value and any optional provider credentials.
 
 docker compose up --build
 # App: http://localhost:3000
@@ -150,7 +151,7 @@ docker compose up --build
 
 Or deploy to Railway in one click:
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/tradeclaw)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/naimkatiman/tradeclaw)
 
 ---
 
@@ -161,14 +162,14 @@ the corresponding Alpha Screener module:
 
 | Feature | TradeClaw activation | Alpha Screener module |
 |---|---|---|
-| AI signal explanations | Set `ANTHROPIC_API_KEY` | Included in all plans |
-| Broker bridge (MetaApi) | Set `METAAPI_TOKEN` | Pro plan |
-| Telegram alerts | Set bot token in UI | Included in all plans |
-| Strategy builder | Available by default | Included in all plans |
-| Paper trading | Available by default | Included in all plans |
-| Backtesting | Available by default | Included in all plans |
-| Multi-timeframe analysis | Available by default | Included in all plans |
-| Leaderboard | Available by default | Shared across all users (Pro) |
+| Model-assisted commentary | Set `OPENROUTER_API_KEY` | Availability depends on hosted operator configuration |
+| MetaApi account viewer | Set `METAAPI_TOKEN` and `METAAPI_ACCOUNT_ID`; admin only | Read-only viewer, not an execution bridge |
+| Telegram delivery | Server bot/channel configuration plus evidence gate | Delivery is configured, not guaranteed |
+| Strategy builder | Browser-authored research rules | No measured edge is implied |
+| Paper trading | Authenticated PostgreSQL paper simulation | Not broker execution or customer returns |
+| Backtesting | Modeled research runs with disclosed assumptions | Not live performance |
+| Multi-timeframe analysis | Provider-backed when observed data is available | Fails closed when data is unavailable |
+| Leaderboard | Public counted signal-outcome study | Not customer trading performance |
 
 ---
 
@@ -181,13 +182,13 @@ npm run build
 # Restart: docker compose restart web
 ```
 
-Migrations are not required for the current release — all state is stored in the browser
-(`localStorage`) or via optional third-party integrations.
+Run the repository migrations for the configured PostgreSQL database before serving the application.
+User sessions, signal history, paper simulation, and operational state are not browser-only features.
 
 ---
 
 ## Support
 
 - Open-source issues: GitHub Issues
-- Alpha Screener support: support@alphascreener.io
+- Managed Alpha Screener support: use the contact channel published by the relevant operator
 - Documentation: `/docs` folder in this repository

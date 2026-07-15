@@ -5,8 +5,11 @@ import {
   validatePluginCode,
   type PluginIndicator,
 } from '../../../lib/plugin-system';
+import { assertAdminApi } from '../../../lib/admin-gate';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const unauthorized = await assertAdminApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const plugins = listPlugins();
     return NextResponse.json({ plugins, total: plugins.length });
@@ -16,6 +19,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const unauthorized = await assertAdminApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const body = await request.json();
     const { name, description, version, author, category, code, params, enabled } = body;

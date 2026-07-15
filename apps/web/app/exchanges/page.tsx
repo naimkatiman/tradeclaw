@@ -1,14 +1,13 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import ExchangesClient from './ExchangesClient';
 
 export const metadata: Metadata = {
-  title: '100+ Exchange Integrations | TradeClaw',
+  title: 'Exchange Execution Status | TradeClaw',
   description:
-    'Connect TradeClaw to Binance, Coinbase, Kraken, OKX, Bybit and 100+ more exchanges via CCXT. Unified API for spot, futures, and margin trading.',
+    'Current TradeClaw exchange execution status, including the server-side Binance futures path and unavailable generic connectors.',
   openGraph: {
-    title: 'TradeClaw × CCXT — 100+ Exchange Integrations',
-    description:
-      'Connect live AI trading signals to any crypto exchange. One unified API via CCXT.',
+    title: 'TradeClaw Exchange Execution Status',
+    description: 'See which exchange execution paths exist and which connectors are not implemented.',
   },
 };
 

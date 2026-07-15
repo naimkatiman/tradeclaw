@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Paper Trading — TradeClaw',
-  description: 'Practice live signals risk-free. Paper trading with current market prices and realistic slippage.',
+  description: 'Run a local simulation against available market-price snapshots. Results are modeled and do not reproduce broker fills, liquidity, or portfolio risk.',
 };
 
 export default function PaperTradingLayout({ children }: { children: React.ReactNode }) {

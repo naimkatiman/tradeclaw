@@ -4,8 +4,8 @@ import { Navbar } from '../components/navbar';
 /**
  * /open-data — the developer front door.
  *
- * Every number on the public site is fetched from one of these endpoints, and
- * every research verdict on /research is backed by a committed JSON in
+ * The public signal-study numbers are fetched from these endpoints, and the
+ * research verdicts on /research are backed by committed JSON in
  * docs/research/experiments/. This page documents both so a developer,
  * researcher, or skeptic can call the data directly, reproduce it, or fork it.
  *
@@ -19,11 +19,11 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Open Data | TradeClaw',
   description:
-    'Free, machine-readable trading transparency data. Live JSON APIs for the cost-adjusted track record and per-trade cost field, plus committed research backtests you can fork and reproduce.',
+    'Free, machine-readable signal-study data: OHLCV-resolved outcomes, modeled per-trade costs, a sequential equity simulation, and committed research backtests.',
   openGraph: {
     title: 'Open Data | TradeClaw',
     description:
-      'Every number on the public site is an endpoint you can call. Live JSON APIs, committed research artifacts, and copy-paste recipes — MIT licensed, no API key required, with public fair-use limits.',
+      'Public signal-study JSON APIs, committed research artifacts, and copy-paste recipes — MIT licensed, no API key required, with public fair-use limits.',
     url: 'https://tradeclaw.win/open-data',
     siteName: 'TradeClaw',
     type: 'website',
@@ -62,21 +62,22 @@ const ENDPOINTS: Endpoint[] = [
     method: 'GET',
     path: '/api/research/cost-field',
     headline: true,
-    desc: 'One entry per resolved sized trade as parallel arrays: gross R before cost, real recorded round-trip cost in R, and asset class. Net R per trade is grossR[i] minus costR[i]. This is the raw dataset behind the homepage Cost Field scene, with no aggregation applied.',
+    desc: 'One entry per counted 24h outcome with a valid stop: gross R from its OHLCV-resolved outcome, the stored modeled round-trip cost in R, and asset class. Net modeled R is grossR[i] minus costR[i]. costR uses fee/slippage assumptions, not broker fills. The response reports its source-read limit and potential window truncation.',
     params: [
-      { name: 'scope', values: 'pro | broadcast', note: 'full track record (default) or gate-approved rows only' },
+      { name: 'scope', values: 'pro | broadcast', note: 'eligible engine stream (default) or gate-approved rows recorded since 2026-06-10' },
       { name: 'period', note: 'optional window filter, same grammar as the history route' },
+      { name: 'include', values: 'provenance', note: 'include per-row outcome, risk, modeled-cost source, and broadcast-decision fields' },
     ],
-    shape: '{ classes: ["crypto","metals","fx"], count, resolvedTotal, t[], grossR[], costR[], cls[] }',
+    shape: '{ classes: ["crypto","metals","fx_or_fallback"], count, resolvedTotal, ids[], t[], grossR[], costR[], cls[], methodology, window, provenance?[] }',
     curl: `curl ${BASE}/api/research/cost-field`,
   },
   {
     method: 'GET',
     path: '/api/signals/equity',
-    desc: 'Cost-adjusted equity curve plus a summary block. Each sized trade risks 1% of equity and is charged its real recorded execution cost, so the curve and the net expectancy figure are what a subscriber would actually have realized.',
+    desc: 'Hypothetical sequential equity simulation plus a summary block. It orders eligible sized signals by timestamp, risks 1% of current equity on every signal, caps extreme R outcomes, and deducts modeled per-asset fee/slippage assumptions. It does not model broker fills, overlapping exposure, margin, leverage, latency, funding, or subscriber selection; it is not an actual portfolio return.',
     params: [
       { name: 'summaryOnly', values: '1 | true', note: 'drop the point array, return summary and rolling win rates only' },
-      { name: 'scope', values: 'pro | broadcast', note: 'full record (default) or gate-approved rows' },
+      { name: 'scope', values: 'pro | broadcast', note: 'eligible engine stream (default) or gate-approved rows recorded since 2026-06-10' },
       { name: 'band', values: 'premium | standard | all', note: 'filter by confidence band' },
       { name: 'category', note: 'asset-category filter (e.g. crypto, fx)' },
       { name: 'period', note: 'optional window filter' },
@@ -88,9 +89,9 @@ const ENDPOINTS: Endpoint[] = [
   {
     method: 'GET',
     path: '/api/signals/history',
-    desc: 'Resolved signal history, paginated, with the same win-rate and resolved counts every other surface uses. Add format=csv to stream the full filtered set as a CSV file with an id, pair, direction, prices, and 4h/24h outcome columns.',
+    desc: 'Recorded signal history, paginated, with OHLCV-resolved outcome fields and the same counted-row definition used by the other signal-study surfaces. Add format=csv to stream the currently stored rows matching the filters. This is a signal ledger, not an order or broker-fill ledger.',
     params: [
-      { name: 'format', values: 'json | csv', note: 'JSON page (default) or a downloadable CSV of the filtered set' },
+      { name: 'format', values: 'json | csv', note: 'JSON page (default) or a downloadable CSV of currently stored rows matching the filters' },
       { name: 'pair', note: 'single symbol, e.g. BTCUSD' },
       { name: 'direction', values: 'BUY | SELL', note: 'filter by trade side' },
       { name: 'outcome', values: 'win | loss | pending', note: 'filter by resolved outcome' },
@@ -108,9 +109,9 @@ const ENDPOINTS: Endpoint[] = [
   {
     method: 'GET',
     path: '/api/calibration',
-    desc: 'The reliability data behind the /calibration page. Signals are bucketed into five confidence bands and each band reports its real win rate, so you can see whether a 70% call actually wins 70% of the time. Includes Brier score and expected calibration error over the resolved population. Cached 5 minutes (revalidate 300).',
+    desc: 'The reliability data behind the /calibration page. Signals are bucketed into five confidence bands and each band reports its observed OHLCV-resolved win rate. Includes Brier score and expected calibration error over the counted resolved population. Cached 5 minutes (revalidate 300).',
     params: [
-      { name: '(none)', note: 'no query params; measures the full counted-resolved population' },
+      { name: '(none)', note: 'no query params; measures counted resolved rows in the current archive' },
     ],
     shape: '{ buckets: [5 confidence bands], overallAccuracy, totalSignals, brier, ece, calibration, windowStart, windowEnd, insufficientData, minStableSignals, updatedAt }',
     curl: `curl ${BASE}/api/calibration`,
@@ -138,7 +139,7 @@ const ARTIFACTS: Artifact[] = [
   {
     file: 'BTCUSD-H1-2024-06-10-2026-06-09-live-crypto-classic_regime-aware_hmm-top3_vwap-ema-bb_full-risk-f4.json',
     size: '9.5 KB',
-    desc: 'BTCUSD H1, five entry strategies scored under real crypto costs. Best run (regime-aware) 0.6% at 50% win rate; classic loses 11.1%.',
+    desc: 'BTCUSD H1, five entry strategies scored under the stated crypto fee/slippage assumptions. Best run (regime-aware) 0.6% at 50% win rate; classic loses 11.1%.',
   },
   {
     file: 'BTCUSD-H1-2024-06-10-2026-06-09-legacy-zero-classic_regime-aware_hmm-top3_vwap-ema-bb_full-risk-f4.json',
@@ -319,7 +320,7 @@ export default function OpenDataPage() {
         <div className="mx-auto max-w-5xl px-4">
           {/* Intro */}
           <header>
-            <Kicker>Open data, free forever</Kicker>
+            <Kicker>Public evidence archive</Kicker>
             <h1 className="mt-4 font-display text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight">
               Every number here
               <br />
@@ -328,12 +329,12 @@ export default function OpenDataPage() {
               you can call.
             </h1>
             <p className="mt-6 max-w-prose text-base leading-relaxed text-[var(--text-secondary)]">
-              TradeClaw gives the data away. The cost-adjusted track record, the
-              per-trade cost field, and the full history that feed every chart on
-              this site are live JSON APIs, and the research that killed each
-              strategy is committed to the repo as raw backtest JSON. Nothing is
-              hardcoded, nothing is behind a tier. Call it, cache it, fork it,
-              reproduce it.
+              TradeClaw publishes the signal-study data: recorded signal rows,
+              OHLCV-resolved outcomes, modeled per-trade costs, and the sequential
+              equity simulation used by the public research charts. Backtest
+              artifacts are committed to the repo as JSON. These datasets are
+              public and untiered; call them, cache them, fork them, and audit the
+              assumptions.
             </p>
             <p className="mt-4 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
               The full reference lives at{' '}
@@ -375,7 +376,7 @@ export default function OpenDataPage() {
               </a>{' '}
               is backed by a deterministic backtest JSON in{' '}
               <code className="font-mono text-[var(--foreground)]">docs/research/experiments/</code>.
-              Each experiment file holds the full spec and results, so a given
+              Each experiment file holds its registered spec and results, so a given
               candle store state reproduces the same numbers byte for byte.
             </p>
 
@@ -531,11 +532,12 @@ export default function OpenDataPage() {
                 Informational only, not advice.
               </p>
               <p className="mt-1.5 max-w-prose text-[13px] leading-relaxed text-amber-700 dark:text-amber-200/90">
-                This data is the recorded output of a research engine, published
-                for transparency. It is not financial advice and not a profit
-                claim. The headline finding is that after real execution costs the
-                engine has no net edge. Treat every number as evidence to audit,
-                not a recommendation to trade.
+                This data combines recorded signal rows, OHLCV-resolved outcomes,
+                and modeled fee/slippage assumptions. It contains no broker-fill or
+                customer-account ledger. Under the published assumptions, the
+                counted signal study has negative net expectancy; that is not a
+                claim about realized subscriber losses. Treat every number as a
+                research result to audit, not a recommendation to trade.
               </p>
             </div>
           </section>
@@ -560,7 +562,7 @@ export default function OpenDataPage() {
                 href="/track-record"
                 className="rounded-[var(--radius-pill)] border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors duration-200 hover:text-[var(--foreground)]"
               >
-                Live track record
+                Signal study
               </a>
             </div>
           </section>

@@ -4,9 +4,9 @@ import type { LucideIcon } from 'lucide-react';
 const features: { Icon: LucideIcon; title: string; description: string }[] = [
   {
     Icon: Bot,
-    title: "AI Signal Engine",
+    title: "Rule-Based Signal Engine",
     description:
-      "BUY/SELL signals powered by multi-indicator analysis. RSI, MACD, EMA, Bollinger, Stochastic, S/R levels.",
+      "BUY/SELL research labels derived from inspectable RSI, MACD, EMA, Bollinger, Stochastic, and S/R rules.",
   },
   {
     Icon: BarChart2,
@@ -16,39 +16,39 @@ const features: { Icon: LucideIcon; title: string; description: string }[] = [
   },
   {
     Icon: Target,
-    title: "Fibonacci TP/SL",
+    title: "Defined TP/SL Levels",
     description:
-      "Automatic take-profit and stop-loss using Fibonacci retracement. TP1, TP2, TP3 with confidence scores.",
+      "Reference take-profit and stop-loss levels derived from volatility and market structure. They are not broker orders.",
   },
   {
     Icon: Smartphone,
     title: "Telegram Alerts",
     description:
-      "Get instant BUY/SELL notifications on Telegram. Never miss a signal, even away from your desk.",
+      "Configured Telegram channels can receive approved alerts. Entry-like broadcasts fail closed until the cost-adjusted evidence gate clears.",
   },
   {
     Icon: TrendingUp,
     title: "Backtesting",
     description:
-      "Test strategies against historical data before risking real money. Full performance metrics and reports.",
+      "Run historical OHLCV simulations with stated assumptions. Results are research outputs, not broker fills or portfolio returns.",
   },
   {
     Icon: DollarSign,
     title: "Paper Trading",
     description:
-      "Practice with virtual money. Track P&L, win rate, and drawdown live as fills occur, before going live.",
+      "Simulate virtual fills and inspect modeled P&L, win rate, and drawdown. These are not live executions.",
   },
   {
     Icon: Lock,
     title: "Self-Hosted",
     description:
-      "Your server. Your data. Your API keys. Nothing leaves your infrastructure. Full privacy.",
+      "Run the stack on infrastructure you control. Configured market-data, broker, and alert integrations still make outbound requests.",
   },
   {
     Icon: Box,
-    title: "One-Click Deploy",
+    title: "Docker Compose Stack",
     description:
-      "docker compose up -d — that's it. Full dashboard ready in under 60 seconds on any machine.",
+      "After required secrets are set, Docker Compose starts the app, PostgreSQL, Redis, and database migrations. Startup time depends on the host.",
   },
 ];
 
@@ -62,7 +62,7 @@ export function FeaturesSection() {
             <span className="text-zinc-500">Nothing you don&apos;t.</span>
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-zinc-400">
-            Professional-grade trading intelligence, completely open source.
+            Inspectable trading research tooling, completely open source.
           </p>
         </div>
 

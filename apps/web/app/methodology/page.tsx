@@ -2,8 +2,8 @@
  * /methodology — how the public numbers are made.
  *
  * A lay-readable recipe for every performance figure TradeClaw publishes:
- * what an R-multiple is, which trades count, the real execution cost charged
- * to every sized trade, how the cost-adjusted equity curve compounds, and
+ * what an R-multiple is, which signals count, the modeled execution cost applied
+ * to every sized signal, how the sequential equity simulation compounds, and
  * where the raw data lives. No live results render here — this page explains
  * the machine; /track-record shows what it produced.
  *
@@ -30,11 +30,11 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Methodology | TradeClaw',
   description:
-    'Exactly how TradeClaw builds its public numbers: what an R-multiple is, which trades count, the real execution cost charged to every trade, and how the cost-adjusted equity curve is computed. Every figure is reproducible from open data.',
+    'How TradeClaw builds its public signal study: counted OHLCV outcomes, modeled per-asset costs, R-multiples, and the hypothetical sequential equity simulation.',
   openGraph: {
     title: 'Methodology | TradeClaw',
     description:
-      'The full recipe behind the public track record: R-multiples, counted trades, per-asset execution cost, and net expectancy. No hidden steps.',
+      'The recipe behind the public signal study: R-multiples, counted OHLCV-resolved signals, per-asset cost assumptions, and modeled net expectancy.',
     url: 'https://tradeclaw.win/methodology',
     siteName: 'TradeClaw',
     type: 'website',
@@ -59,7 +59,7 @@ interface CostRow {
 }
 
 // Rows mirror costModelFor's classification order (crypto, then metals, then
-// FX as the fallback). Every displayed number is derived from `model` below —
+  // FX/fallback last). Every displayed number is derived from `model` below —
 // nothing in this table is hardcoded.
 const COST_ROWS: CostRow[] = [
   {
@@ -73,8 +73,8 @@ const COST_ROWS: CostRow[] = [
     model: METALS_COSTS,
   },
   {
-    label: 'FX',
-    symbols: 'Every other pair, the major and minor currencies',
+    label: 'FX / fallback',
+    symbols: 'Every other pair, including unsupported or unclassified symbols',
     model: FX_COSTS,
   },
 ];
@@ -87,6 +87,7 @@ interface SourceFile {
 const SOURCE_FILES: SourceFile[] = [
   { label: 'Equity route: sizing, cost deduction, expectancy', path: 'apps/web/app/api/signals/equity/route.ts' },
   { label: 'Signal history: which trades count', path: 'apps/web/lib/signal-history.ts' },
+  { label: 'Modeled cost helper: stored estimate and fallback', path: 'apps/web/lib/modeled-trade-cost.ts' },
   { label: 'Cost model: the per-asset constants', path: 'packages/strategies/src/backtest-options.ts' },
   { label: 'Cost-field route: the per-trade dataset', path: 'apps/web/app/api/research/cost-field/route.ts' },
 ];
@@ -157,25 +158,25 @@ export default function MethodologyPage() {
             </h1>
             <div className="mt-6 max-w-prose space-y-4 text-[15px] leading-relaxed">
               <p className="text-[var(--foreground)]">
-                This page is the recipe. Every performance figure on TradeClaw comes out of the
-                steps below, in order, from the same code that runs in production. Read it and you
-                can rebuild the public track record from the raw trade data yourself.
+                This page documents the public signal study. Read the steps below and you can
+                rebuild its OHLCV-resolved outcomes, modeled costs, and sequential equity simulation
+                from the published signal data.
               </p>
               <p className="text-[var(--text-secondary)]">
-                Nothing here is rounded in our favor. Where a number has an unfavorable direction,
-                that direction is shown too. No live results appear on this page: it explains the
-                machine, and the{' '}
+                No live broker or customer-account results appear here. This page explains the
+                research calculation, and the{' '}
                 <a href="/track-record" className="text-[var(--foreground)] underline decoration-[var(--border)] underline-offset-4 hover:decoration-[var(--foreground)]">
                   track record
                 </a>{' '}
-                shows what the machine produced.
+                shows the recorded-signal study it produced.
               </p>
             </div>
 
             <div className="mt-8 rounded-[var(--radius-card)] border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-[12px] leading-relaxed text-amber-700 dark:text-amber-200/90">
-              <strong className="font-semibold">Informational only.</strong> This is a record of
-              what a signal engine did after costs, published as evidence. It is not financial
-              advice and not a profit claim. Recorded past outcomes do not predict future results.
+              <strong className="font-semibold">Informational only.</strong> This study combines
+              recorded signals, outcomes resolved from provider OHLCV, and modeled cost/sizing
+              assumptions. It is not a broker-fill record, customer portfolio, financial advice, or
+              profit claim. Historical signal outcomes do not predict future results.
             </div>
           </header>
 
@@ -209,13 +210,12 @@ export default function MethodologyPage() {
             </p>
             <p>
               <span className="font-medium text-[var(--foreground)]">Counted resolved</span> is the
-              win-rate population. A trade counts only if it has a real 24-hour outcome, meaning
-              price actually reached the take-profit or the stop-loss. Excluded from this set are
-              simulated rows, gate-blocked rows (the engine emitted a signal but its full-risk gate
-              refused entry, for example because the spread was too wide or a news lockout was
-              active), and auto-expired rows (the 24-hour window elapsed without hitting either
-              target). A single predicate, isCountedResolved, enforces this everywhere, so the win
-              rate, the equity curve, and the counts all use one definition.
+              win-rate population. A signal counts when the resolver has a usable 24-hour OHLCV
+              outcome: a take-profit hit, stop-loss hit, or nonzero 24-hour close after neither was
+              hit. That last case remains a counted miss rather than disappearing. Excluded rows are
+              simulated, gate-blocked (the engine emitted a signal but its full-risk gate refused
+              entry), still pending, or zero/missing force-expiry placeholders with no usable market
+              outcome. A single predicate, isCountedResolved, enforces this definition.
             </p>
             <p>
               <span className="font-medium text-[var(--foreground)]">Sized</span> is the stricter
@@ -227,36 +227,41 @@ export default function MethodologyPage() {
             </p>
             <p>
               One caveat the counts do not flatter away: the engine fires across many symbols and
-              timeframes at once, and the counted set is the full stream. A real person filtering
-              for only the strongest setups would execute a small fraction of these trades. The raw
-              count describes the firehose, not a tradable account.
+              timeframes at once, and the default population is the eligible engine stream. It does
+              not establish which signals any subscriber received or executed. The raw count
+              describes recorded signal rows, not a tradable account.
+            </p>
+            <p>
+              Public history reads are capped at 10,000 source rows. The cost-field endpoint reports
+              the loaded count, read limit, and a potential-truncation flag. Unless completeness is
+              independently established, this documentation calls the result the current archive,
+              not all historical signals.
             </p>
           </Section>
 
           {/* 3. What every trade is charged */}
-          <Section id="cost" n="03" title="What every trade is charged">
+          <Section id="cost" n="03" title="The modeled cost deduction">
             <p>
-              Every sized trade is charged its real execution cost before it touches the curve. The
-              charge is not a flat blended guess. It is set per asset class from the same cost model
-              the engine records at signal time. Round-trip means one full trade: you pay the cost
-              entering and pay it again exiting, so the charge is 2 times the sum of fee and
-              slippage per side.
+              Every eligible sized signal receives a modeled cost deduction before it enters the
+              simulation. The value is selected per asset class from static fee and slippage
+              assumptions and stored on the signal row; it is not measured from a broker fill.
+              Round-trip cost is modeled as 2 times the assumed fee plus slippage per side.
             </p>
 
             <div className="mt-6 overflow-x-auto rounded-[var(--radius-card)] border border-[var(--border)]">
               <table className="w-full min-w-[680px] border-collapse text-left text-sm">
                 <caption className="sr-only">
-                  Round-trip execution cost charged to each sized trade, by asset class, computed
-                  from the cost model constants.
+                  Modeled round-trip cost deducted from each eligible sized signal, by asset class,
+                  computed from the cost model constants.
                 </caption>
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[13px] text-[var(--text-secondary)]">
                     <th scope="col" className="px-4 py-3 font-medium">Asset class</th>
                     <th scope="col" className="px-4 py-3 font-medium">Matched symbols</th>
-                    <th scope="col" className="px-4 py-3 text-right font-medium">Fee / side</th>
-                    <th scope="col" className="px-4 py-3 text-right font-medium">Slippage / side</th>
-                    <th scope="col" className="px-4 py-3 text-right font-medium">Round-trip charged</th>
-                    <th scope="col" className="px-4 py-3 text-right font-medium">Funding / 8h (not charged)</th>
+                    <th scope="col" className="px-4 py-3 text-right font-medium">Fee assumption / side</th>
+                    <th scope="col" className="px-4 py-3 text-right font-medium">Slippage assumption / side</th>
+                    <th scope="col" className="px-4 py-3 text-right font-medium">Modeled round trip</th>
+                    <th scope="col" className="px-4 py-3 text-right font-medium">Funding assumption / 8h (excluded)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -286,51 +291,51 @@ export default function MethodologyPage() {
             </div>
 
             <p className="mt-6">
-              Crypto costs the most to trade, roughly ten times the FX charge, because taker fees
-              and slippage on perps are wider. That gap is a large part of the finding: the assets
-              that move the most also cost the most to churn.
+              The model assigns crypto the largest deduction, roughly ten times its FX assumption,
+              based on the stated taker-fee and slippage constants. This assumption materially
+              affects the result and should be replaced when venue-specific fill evidence exists.
             </p>
             <p>
               The model also defines perp funding, {cryptoFunding} of notional per 8 hours held,
               shown in the last column. It is not added to the per-trade charge, because when a
-              signal fires the engine does not yet know how long the position will be held. Leaving
-              funding out makes the recorded cost conservative: holding a crypto position through
-              funding windows costs more than the curve deducts, not less. Each trade carries its
-              own recorded cost. Only rows written before that field existed fall back to the model
-              cost for their asset class.
+              signal fires the engine does not yet know how long the position will be held. Funding
+              is therefore excluded, which makes the cost model incomplete and can move a real
+              result in either direction. Each newer row stores the selected cost estimate; rows
+              written before that field existed fall back to the same asset-class model.
             </p>
           </Section>
 
           {/* 4. How the equity curve compounds */}
-          <Section id="compounding" n="04" title="How the equity curve compounds">
+          <Section id="compounding" n="04" title="How the sequential simulation compounds">
             <p>
-              The curve starts from a fixed 10,000 and risks a fixed 1% of current equity on every
-              trade. This is textbook fixed-fractional sizing. It replaced an earlier method that
-              staked the whole bankroll per signal and produced unrunnable spikes followed by
-              drawdowns no real account would survive.
+              The hypothetical curve starts from 10,000, orders eligible sized signals by timestamp,
+              and risks 1% of current modeled equity on every signal. This is a fixed-fractional
+              research rule, not evidence that an account placed those trades.
             </p>
             <p>
-              At 1% risk, one trade moves equity by about its R-multiple times 1%, minus that
-              trade cost in R. A +2R winner adds roughly 2%; a −1R loser removes roughly 1%, with
-              cost on top of both.
+              At 1% modeled risk, one signal moves simulated equity by about its R-multiple times
+              1%, minus the modeled cost in R. A +2R outcome adds roughly 2%; a −1R outcome removes
+              roughly 1%, with the modeled deduction applied to both.
             </p>
             <Formula>
               equity change per trade ≈ ( capped R − cost R ) × 1%     cost R = cost% ÷ risk%
             </Formula>
             <p>
-              For the money path only, each trade R is capped at 8R, the parameter named
-              HARD_R_CAP. That cap sits just above the 99th percentile of the live absolute-R
-              distribution, so it clips only the most extreme roughly 1% of trades: single-trade
-              outliers that no one scales out of cleanly. It is deliberately not tighter. A 3R cap
-              would remove the thin right tail the engine edge depends on and would report the
-              result as more negative than it really was. The cap touches only the equity path. The
-              R-statistics, average winning R and expectancy, always use the raw uncapped R, so the
-              cap never flatters the engine quality.
+              The simulation processes every eligible signal sequentially. It does not model
+              overlapping positions, correlated exposure, account margin, leverage limits, order
+              rejection, latency, broker fills, or subscriber selection. Its return and drawdown
+              are hypothetical model outputs, not observed portfolio performance.
             </p>
             <p>
-              The curve also reports its worst peak-to-trough drop, the maximum drawdown, because a
-              positive endpoint can hide a deep hole in the middle of the run. The path is reported,
-              not just the destination.
+              For the money path only, each trade R is capped at 8R, the parameter named
+              HARD_R_CAP. That cap sits just above the 99th percentile of the recorded
+              OHLCV-resolved absolute-R distribution and clips roughly 1% of modeled outcomes. A
+              different cap changes the simulated path. The cap applies only to that path; average
+              winning R and expectancy use the uncapped OHLCV-resolved R values.
+            </p>
+            <p>
+              The curve also reports the simulation&apos;s worst peak-to-trough drop. This maximum
+              drawdown describes the hypothetical sequential path, not a broker or customer account.
             </p>
           </Section>
 
@@ -346,11 +351,10 @@ export default function MethodologyPage() {
               {'\n'}net R   = gross R − avgCostR
             </Formula>
             <p>
-              Net expectancy subtracts the real average cost in R. Net is the number that actually
-              compounds the curve, and it can be negative even when gross is positive. That gap is
-              the entire finding: the engine clears a small gross edge, the cost of trading is
-              larger than that edge, and the curve falls even though the gross figure still looks
-              fine.
+              Net expectancy subtracts the average modeled cost in R. It is the value used by the
+              sequential simulation and can be negative when observed gross expectancy is positive.
+              In the current counted sample, the stated cost assumptions exceed the observed gross
+              expectancy. This conclusion is conditional on the published population and model.
             </p>
             <p>
               The break-even win rate is the win rate that would make expectancy exactly zero, given
@@ -360,27 +364,29 @@ export default function MethodologyPage() {
               break-even win rate = −avgRLoss ÷ ( avgRWin − avgRLoss )
             </Formula>
             <p>
-              If the actual win rate sits above this line, the system has positive expectancy, even
-              if that win rate is below 50%. If it sits below the line, it does not, even if it wins
-              more often than it loses. The track record always shows the actual win rate next to
-              this break-even line, so above or below is explicit rather than implied.
+              If the observed OHLCV-resolved win rate sits above this line, the study has positive
+              modeled expectancy, even below 50%. If it sits below the line, it does not under the
+              same assumptions. The signal record shows the observed rate next to this modeled
+              break-even line.
             </p>
           </Section>
 
           {/* 6. Where the data lives */}
           <Section id="data" n="06" title="Where the data lives">
             <p>
-              A finding is only as good as the data under it, so all of it is public and
-              machine-readable. Every figure above can be recomputed from these endpoints and files.
+              A finding is only as good as its inputs, so the study data and assumptions are public
+              and machine-readable. The figures above can be recomputed from these endpoints and files.
             </p>
             <ul className="mt-5 space-y-4">
               <DataLink href="/api/research/cost-field" code="/api/research/cost-field">
-                The raw per-trade dataset. One entry per sized trade: timestamp, gross R, cost R, and
-                asset class. Net R per trade is gross R minus cost R, with nothing aggregated away.
+                The unaggregated sized-signal dataset: identifiers, timestamp, OHLCV-resolved gross
+                R, modeled cost R, and asset class. Add include=provenance for outcome inputs,
+                modeled-cost source, and broadcast decision. The response flags potential truncation.
               </DataLink>
               <DataLink href="/api/signals/equity" code="/api/signals/equity">
-                The compounded equity curve and every summary figure described on this page: win
-                rate, gross and net expectancy, break-even win rate, average cost, drawdown.
+                The hypothetical sequential equity simulation and its summary: observed win rate,
+                gross and modeled net expectancy, break-even win rate, modeled average cost, and
+                simulated drawdown.
               </DataLink>
               <DataLink href="/track-record" code="/track-record">
                 The rendered results, shown with sample size and date range next to every number.

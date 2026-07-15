@@ -142,7 +142,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A volatility indicator that measures the average range between high and low prices over a specified period, accounting for gaps. Higher ATR values indicate greater volatility. Traders use ATR to set dynamic stop-loss levels and determine position sizes proportional to market volatility.",
     tcRelevance:
-      "TradeClaw uses ATR to calculate intelligent stop-loss and take-profit levels, automatically adjusting position sizing recommendations based on current market volatility.",
+      "TradeClaw calculates ATR from provider-backed candles for mechanical level studies. It does not recommend lot size without broker contract specifications.",
     relatedTerms: ["stop-loss", "position-sizing", "bollinger-bands"],
     relatedPage: "/signals",
     tags: ["volatility", "range", "stops"],
@@ -284,7 +284,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "An order that automatically closes a position when it reaches a specified profit target. Take-profit orders lock in gains and prevent the emotional temptation of holding too long. They are typically used in conjunction with stop-loss orders to define a complete trade plan.",
     tcRelevance:
-      "Every TradeClaw signal includes multiple take-profit targets (TP1, TP2, TP3) calculated from key technical levels, letting you scale out of positions at optimal reward zones.",
+      "Some TradeClaw signal candidates expose rule-derived target fields. They are research outputs, not broker orders or evidence that a target is optimal.",
     relatedTerms: ["stop-loss", "risk-reward", "fibonacci"],
     relatedPage: "/signals",
     tags: ["risk", "order", "profit"],
@@ -298,7 +298,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "The process of determining how many units of a security to buy or sell based on account size, risk tolerance, and the distance to the stop-loss. Proper position sizing ensures that no single trade can significantly damage the overall portfolio. It is widely considered the most important aspect of risk management.",
     tcRelevance:
-      "TradeClaw provides built-in position size calculators on each signal, using your risk percentage and account size to recommend exact lot sizes before you place a trade.",
+      "TradeClaw's optional execution layer can derive an order quantity from configured risk limits. Public signal records are unsized analytical observations and do not recommend an account allocation or lot size.",
     relatedTerms: ["kelly-criterion", "stop-loss", "risk-reward"],
     relatedPage: "/signals",
     tags: ["risk", "sizing", "capital"],
@@ -312,7 +312,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A mathematical formula used to determine the optimal percentage of capital to risk on each trade based on win rate and average win/loss ratio. The formula is f* = (bp - q) / b, where b is the odds, p is the probability of winning, and q is the probability of losing. It maximizes long-term growth rate while minimizing the risk of ruin.",
     tcRelevance:
-      "TradeClaw calculates your Kelly fraction from your backtest results and live performance metrics, suggesting optimal bet sizes that maximize geometric growth without excessive drawdown.",
+      "TradeClaw includes this definition for education but does not currently calculate or recommend Kelly position sizes.",
     relatedTerms: ["position-sizing", "win-rate", "drawdown"],
     relatedPage: "/backtest",
     tags: ["risk", "math", "optimal", "sizing"],
@@ -326,7 +326,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A ratio comparing the potential loss (risk) to the potential gain (reward) of a trade. A ratio of 1:3 means the potential profit is three times the potential loss. Traders typically look for setups with a minimum 1:2 risk-reward ratio to ensure profitability even with a lower win rate.",
     tcRelevance:
-      "TradeClaw displays the risk-reward ratio for every signal alongside its stop-loss and take-profit levels, filtering out setups that don't meet your minimum R:R threshold.",
+      "TradeClaw can display the geometric ratio between disclosed stop and target levels. The public signal path does not treat that ratio as measured profitability.",
     relatedTerms: ["stop-loss", "take-profit", "r-multiple"],
     relatedPage: "/signals",
     tags: ["risk", "reward", "ratio"],
@@ -368,7 +368,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "The peak-to-trough decline in portfolio or account value, expressed as a percentage from the highest point. Drawdown measures the downside risk of a strategy and is a key metric for evaluating trading performance. Understanding drawdown tolerance is essential for maintaining psychological discipline during losing streaks.",
     tcRelevance:
-      "TradeClaw's public equity curve on /track-record displays drawdown alongside returns — the live record deliberately shows peak-to-trough declines instead of smoothing them away, so you can judge whether the strategy's worst stretches fit your tolerance.",
+      "TradeClaw's /track-record page displays drawdown for a hypothetical sequential path built from eligible OHLCV-resolved signals. It is not portfolio or broker-account drawdown.",
     relatedTerms: ["max-drawdown", "sharpe-ratio", "risk-reward"],
     relatedPage: "/track-record",
     tags: ["risk", "performance", "decline"],
@@ -423,7 +423,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A three-part order that simultaneously places an entry order, a stop-loss order, and a take-profit order. When the entry fills, both exit orders become active. When one exit order fills, the other is automatically canceled (One-Cancels-Other). Bracket orders automate complete trade management.",
     tcRelevance:
-      "TradeClaw provides ready-to-use bracket order parameters with every signal, including entry, stop-loss, and take-profit levels that you can copy directly into your broker.",
+      "Automated execution is disabled by default. The implemented Binance executor can place a protected bracket only after its independent evidence, risk, symbol, and account checks pass.",
     relatedTerms: ["stop-loss", "take-profit", "entry"],
     tags: ["order", "automation", "oco"],
   },
@@ -450,7 +450,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "The difference between the expected price of a trade and the actual price at which the trade is executed. Slippage commonly occurs during periods of high volatility or low liquidity and can be either positive (better price) or negative (worse price). It is a hidden cost that directly affects trading profitability.",
     tcRelevance:
-      "TradeClaw factors estimated slippage into backtest results and signal performance tracking, ensuring historical performance metrics reflect real-world execution conditions.",
+      "TradeClaw applies stated slippage assumptions to modeled-cost studies. These estimates do not measure broker fills, spread, latency, or market impact, so actual execution can differ.",
     relatedTerms: ["market-order", "spread", "limit-order"],
     relatedPage: "/backtest",
     tags: ["cost", "execution", "liquidity"],
@@ -493,7 +493,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A price level where selling pressure is strong enough to prevent the price from rising further. Resistance forms when sellers consistently enter at a particular level, creating a ceiling. When resistance breaks, it often becomes support, and the breakout can trigger accelerated buying.",
     tcRelevance:
-      "TradeClaw maps dynamic resistance zones across timeframes and uses them as take-profit targets and breakout trigger levels in its signal generation engine.",
+      "TradeClaw does not currently publish measured dynamic support or resistance zones. Its exposed targets are mechanical rule outputs and should not be presented as detected market barriers.",
     relatedTerms: ["support", "breakout", "fibonacci"],
     relatedPage: "/signals",
     tags: ["price-level", "selling", "ceiling"],
@@ -507,7 +507,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "The general direction of market price movement over a period of time. An uptrend consists of higher highs and higher lows, a downtrend shows lower highs and lower lows, and a sideways trend (range) shows no clear direction. Identifying the trend is the foundation of most trading strategies.",
     tcRelevance:
-      "TradeClaw classifies the current trend on every timeframe using EMA alignment and ADX strength, ensuring signals align with the prevailing market direction for higher win rates.",
+      "TradeClaw derives trend labels from indicator conditions such as EMA alignment and ADX. A label does not establish that a setup will win or outperform.",
     relatedTerms: ["ema", "adx", "consolidation", "reversal"],
     relatedPage: "/signals",
     tags: ["direction", "uptrend", "downtrend"],
@@ -593,7 +593,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A measure of risk-adjusted return calculated as the portfolio return minus the risk-free rate, divided by the standard deviation of returns. A higher Sharpe ratio indicates better return per unit of risk. Values above 1 are generally considered acceptable, above 2 very good, and above 3 excellent.",
     tcRelevance:
-      "TradeClaw computes a daily-bucketed, annualized Sharpe ratio from the live tracked-signal equity curve on /track-record, and the interactive /backtest page reports Sharpe per strategy preset run.",
+      "TradeClaw computes a daily-bucketed annualized Sharpe estimate from an unsized, hypothetical path of eligible OHLCV-resolved signals. The /backtest page reports a separate Sharpe estimate for each historical simulation.",
     relatedTerms: ["sortino-ratio", "max-drawdown", "calmar-ratio"],
     relatedPage: "/track-record",
     tags: ["risk-adjusted", "return", "volatility"],
@@ -607,7 +607,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A variation of the Sharpe ratio that only penalizes downside volatility rather than total volatility. It is calculated using the downside deviation instead of standard deviation. The Sortino ratio is more appropriate for evaluating strategies where upside volatility is desirable and should not be penalized.",
     tcRelevance:
-      "TradeClaw currently reports Sharpe rather than Sortino on its track record. The distinction matters for strategies with asymmetric returns — upside volatility should not be penalized — and a Sortino view of the public equity curve is on the roadmap.",
+      "TradeClaw currently reports a modeled Sharpe estimate rather than Sortino. No production Sortino statistic is currently exposed.",
     relatedTerms: ["sharpe-ratio", "max-drawdown", "drawdown"],
     relatedPage: "/track-record",
     tags: ["risk-adjusted", "downside", "return"],
@@ -621,7 +621,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "The largest peak-to-trough decline in a portfolio or strategy over a given time period. It represents the worst-case scenario an investor would have experienced. Max drawdown is critical for evaluating the risk of a strategy and determining if you can psychologically and financially handle its worst periods.",
     tcRelevance:
-      "Max drawdown is shown on TradeClaw's live equity curve at /track-record and in every /backtest preset comparison — the public record displays it prominently so you can stress-test whether a strategy fits your risk tolerance before committing real capital.",
+      "Max drawdown is shown on TradeClaw's hypothetical sequential equity simulation at /track-record and in backtest comparisons. It describes the modeled path, not drawdown observed in a broker or customer account.",
     relatedTerms: ["drawdown", "calmar-ratio", "sharpe-ratio"],
     relatedPage: "/track-record",
     tags: ["risk", "worst-case", "decline"],
@@ -635,7 +635,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "The percentage of trades that are profitable out of the total number of trades taken. While a high win rate is desirable, it must be considered alongside the average win size versus average loss size. A strategy with a 40% win rate can be highly profitable if winning trades are significantly larger than losing ones.",
     tcRelevance:
-      "TradeClaw tracks win rate for every signal type, strategy, and timeframe, and pairs it with risk-reward data so you can evaluate signal quality beyond surface-level accuracy.",
+      "TradeClaw reports hit rates for eligible resolved signal cohorts when the sample is large enough. These are signal-study outcomes, not customer trade win rates.",
     relatedTerms: ["profit-factor", "risk-reward", "r-multiple"],
     relatedPage: "/results",
     tags: ["accuracy", "percentage", "success"],
@@ -649,7 +649,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "The ratio of gross profits to gross losses over a given period. A profit factor greater than 1.0 means the strategy is profitable overall. Values above 1.5 are generally considered good, and above 2.0 are excellent. It is a simple but powerful metric for assessing overall strategy profitability.",
     tcRelevance:
-      "TradeClaw computes profit factor from live tracked signal outcomes — it appears on the landing proof panel once enough signals have resolved — so the comparison rests on real recorded data rather than simulated runs.",
+      "TradeClaw computes profit factor from recorded signals whose outcomes were resolved against provider OHLCV. This is observed signal-study data, not broker fills or customer-account performance.",
     relatedTerms: ["win-rate", "sharpe-ratio", "r-multiple"],
     relatedPage: "/track-record",
     tags: ["profitability", "ratio", "gross"],
@@ -663,7 +663,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A risk-adjusted performance metric calculated as the annualized rate of return divided by the maximum drawdown. It measures how much return is generated per unit of drawdown risk. A higher Calmar ratio indicates that returns are being achieved with relatively small drawdowns, suggesting a smoother equity curve.",
     tcRelevance:
-      "TradeClaw includes Calmar ratio in its strategy leaderboard rankings, helping you identify strategies that deliver strong returns without stomach-churning equity swings.",
+      "TradeClaw includes this definition for education but does not currently publish a production Calmar ranking.",
     relatedTerms: ["max-drawdown", "sharpe-ratio", "sortino-ratio"],
     relatedPage: "/results",
     tags: ["risk-adjusted", "drawdown", "return"],
@@ -677,7 +677,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A measure of trade profit or loss expressed as a multiple of the initial risk (R). If you risk $100 and make $300, the trade is a 3R winner. If you lose $100, it is a -1R loser. Thinking in R-multiples normalizes returns regardless of position size and simplifies expectancy calculations.",
     tcRelevance:
-      "TradeClaw tracks R-multiples for every closed signal, allowing you to evaluate trade quality in risk units and calculate your system expectancy over time.",
+      "For eligible resolved signals, TradeClaw can map the disclosed TP/SL outcome model into R units for aggregate studies. Those values are not broker or portfolio returns.",
     relatedTerms: ["risk-reward", "win-rate", "profit-factor"],
     relatedPage: "/results",
     tags: ["risk-unit", "expectancy", "normalized"],
@@ -693,7 +693,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "The process of testing a trading strategy on historical data to evaluate how it would have performed in the past. Backtesting helps validate a strategy before risking real capital by simulating entries, exits, and portfolio metrics. Accurate backtesting requires accounting for slippage, commissions, and survivorship bias.",
     tcRelevance:
-      "TradeClaw offers a full backtesting engine that tests any indicator combination against historical OHLCV data, producing detailed performance reports with Sharpe ratio, drawdown, and trade-by-trade analysis.",
+      "TradeClaw runs configured strategy simulations against historical OHLCV data and reports modeled metrics such as Sharpe, drawdown, and trade-level outcomes. Results depend on the disclosed assumptions and are not realized performance.",
     relatedTerms: ["overfitting", "sharpe-ratio", "paper-trading"],
     relatedPage: "/backtest",
     tags: ["historical", "simulation", "validation"],
@@ -707,7 +707,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "The practice of simulating trades without risking real money, using live market data to test strategies as the market moves. Paper trading bridges the gap between backtesting and live trading by letting traders build confidence and refine execution without financial risk. It is essential for validating strategies in current market conditions.",
     tcRelevance:
-      "TradeClaw includes a built-in paper trading module that executes simulated trades based on live signals, tracking virtual P&L and performance metrics live as fills occur.",
+      "TradeClaw includes a database-backed paper simulator. It requires explicit observed entry and exit prices, applies modeled slippage, and never places or observes broker orders.",
     relatedTerms: ["backtesting", "overfitting", "win-rate"],
     relatedPage: "/paper-trading",
     tags: ["simulation", "practice", "risk-free"],
@@ -721,7 +721,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       "A condition where a trading strategy is excessively optimized to historical data, performing perfectly on past data but poorly on new, unseen data. Overfitting occurs when a model captures noise rather than genuine market patterns. It is the most common pitfall in strategy development and the primary reason backtests fail to translate to live performance.",
     tcRelevance:
-      "TradeClaw's primary defense against overfitting is its public forward track record: every published signal's outcome is recorded and scored after the fact, so performance evidence comes from live data rather than optimized backtests. The backtest page compares strategy presets on recent data using a disclosed fixed TP/SL model.",
+      "Eligible published signals are persisted and later resolved against observed OHLCV under a disclosed outcome model. This forward evidence is separate from backtests, but it is not broker execution and does not eliminate overfitting risk.",
     relatedTerms: ["backtesting", "sharpe-ratio", "win-rate"],
     relatedPage: "/backtest",
     tags: ["bias", "optimization", "robustness"],

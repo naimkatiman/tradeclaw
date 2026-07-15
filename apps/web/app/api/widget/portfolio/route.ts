@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import {
   getPortfolio,
   getDemoUserId,
-  STARTING_BALANCE,
-  BASE_PRICES,
 } from '../../../../lib/paper-trading';
 
 export const dynamic = 'force-dynamic';
@@ -20,42 +18,54 @@ export async function GET() {
   try {
     const portfolio = await getPortfolio(userId);
     const balance = portfolio.balance;
+    const startingBalance = portfolio.startingBalance;
+    if (
+      !Number.isFinite(balance)
+      || !Number.isFinite(startingBalance)
+      || startingBalance <= 0
+    ) {
+      return NextResponse.json(
+        { available: false, mode: 'paper-simulation', error: 'Paper simulation unavailable' },
+        {
+          status: 503,
+          headers: {
+            'Cache-Control': 'no-store',
+            'Access-Control-Allow-Origin': '*',
+          },
+        },
+      );
+    }
 
-    const positionsWithPnl = portfolio.positions.map((pos) => {
-      const currentPrice = BASE_PRICES[pos.symbol] ?? pos.entryPrice;
+    const positionsWithNotional = portfolio.positions.map((pos) => {
       const dirMult = pos.direction === 'BUY' ? 1 : -1;
-      const movePct = ((currentPrice - pos.entryPrice) / pos.entryPrice) * dirMult;
-      const unrealisedPnl = +(pos.quantity * movePct).toFixed(2);
-      const notional = Math.abs(currentPrice * pos.quantity);
+      const notional = Math.abs(pos.quantity);
       const directionalNotional = notional * dirMult;
       return {
         symbol: pos.symbol,
         direction: pos.direction,
-        unrealisedPnl,
         notional,
         directionalNotional,
       };
     });
 
-    const openPnl = positionsWithPnl.reduce((sum, p) => sum + p.unrealisedPnl, 0);
-    const equity = +(balance + openPnl).toFixed(2);
-    const totalReturn = ((equity - STARTING_BALANCE) / STARTING_BALANCE) * 100;
-    const grossExposure = positionsWithPnl.reduce((sum, p) => sum + p.notional, 0);
-    const netExposure = positionsWithPnl.reduce((sum, p) => sum + p.directionalNotional, 0);
-
-    const top3 = [...positionsWithPnl]
-      .sort((a, b) => Math.abs(b.unrealisedPnl) - Math.abs(a.unrealisedPnl))
-      .slice(0, 3);
-
-    const pnl = +(equity - STARTING_BALANCE).toFixed(2);
-    const grossExposurePct = equity > 0 ? +(grossExposure / equity * 100).toFixed(2) : 0;
-    const netExposurePct = equity > 0 ? +(netExposure / equity * 100).toFixed(2) : 0;
+    const totalReturn = ((balance - startingBalance) / startingBalance) * 100;
+    const grossExposure = positionsWithNotional.reduce((sum, p) => sum + p.notional, 0);
+    const netExposure = positionsWithNotional.reduce((sum, p) => sum + p.directionalNotional, 0);
+    const pnl = +(balance - startingBalance).toFixed(2);
+    const grossExposurePct = balance > 0 ? +(grossExposure / balance * 100).toFixed(2) : 0;
+    const netExposurePct = balance > 0 ? +(netExposure / balance * 100).toFixed(2) : 0;
+    const recordedAt = portfolio.equityCurve.at(-1)?.timestamp ?? portfolio.history[0]?.closedAt ?? null;
 
     return NextResponse.json(
       {
+        available: true,
+        mode: 'paper-simulation',
         balance: +balance.toFixed(2),
-        equity,
-        openPnl: +openPnl.toFixed(2),
+        realizedBalance: +balance.toFixed(2),
+        equity: null,
+        equityAvailable: false,
+        openPnl: null,
+        openPnlAvailable: false,
         pnl,
         totalReturn: +totalReturn.toFixed(2),
         totalReturnPct: +totalReturn.toFixed(2),
@@ -64,8 +74,12 @@ export async function GET() {
         openPositions: portfolio.positions.length,
         grossExposurePct,
         netExposurePct,
-        top3Positions: top3,
-        updatedAt: new Date().toISOString(),
+        notionalBasis: 'stored-dollar-notional',
+        valuationBasis: 'realized-paper-balance-only',
+        equityIncludesOpenPositions: false,
+        recordedAt,
+        fetchedAt: new Date().toISOString(),
+        note: 'Paper simulation only. Open positions are not marked without observed prices; no broker or customer portfolio return is claimed.',
       },
       {
         headers: {

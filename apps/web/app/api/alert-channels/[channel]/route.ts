@@ -59,8 +59,9 @@ export async function POST(
     return NextResponse.json({ error: 'Channel not configured' }, { status: 404 });
   }
 
+  // Deliberately conspicuous fixture: this tests delivery only and is not a market observation.
   const testSignal: AlertSignal = {
-    symbol: 'XAUUSD',
+    symbol: 'DEMO',
     timeframe: 'H1',
     direction: 'BUY',
     confidence: 78,
@@ -72,5 +73,5 @@ export async function POST(
   };
 
   const delivered = await sendToChannel(channel, sendConfig, testSignal);
-  return NextResponse.json({ delivered });
+  return NextResponse.json({ delivered, fixture: true, executed: false });
 }

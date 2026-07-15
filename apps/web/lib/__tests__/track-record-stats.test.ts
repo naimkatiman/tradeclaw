@@ -40,6 +40,7 @@ function mkRecord(
         pnlPct: opts.pnlPct ?? (opts.hit ? 2.0 : -1.0),
         hit: opts.hit ?? false,
         target: opts.target ?? (opts.hit ? 'TP1' : 'SL'),
+        source: 'binance',
       },
     },
   };

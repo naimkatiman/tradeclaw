@@ -35,6 +35,12 @@ interface TestResult {
   details?: Record<string, number | string>;
 }
 
+interface PluginTestResponse {
+  result: TestResult;
+  candleCount: number;
+  source: string;
+}
+
 const CATEGORIES = ['trend', 'momentum', 'volatility', 'volume', 'custom'] as const;
 
 const TEMPLATE_CODE = `// Your indicator function receives:
@@ -67,7 +73,7 @@ export function PluginsClient() {
   const [loading, setLoading] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [testResult, setTestResult] = useState<TestResult | null>(null);
+  const [testResult, setTestResult] = useState<PluginTestResponse | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -126,7 +132,11 @@ export function PluginsClient() {
       });
       const data = await res.json();
       if (data.valid) {
-        setTestResult(data.result);
+        setTestResult({
+          result: data.result,
+          candleCount: data.candleCount,
+          source: data.source,
+        });
       } else {
         setTestError(data.error || 'Validation failed');
       }
@@ -294,7 +304,7 @@ export function PluginsClient() {
           <p>Write JavaScript that receives OHLCV candle data and returns a signal result.</p>
           <p>Your function gets: <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">candles[]</code> (OHLCV array), <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">params</code> (your config), and <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">Math</code>.</p>
           <p>Must return: <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">{'{ value, signal, strength, label }'}</code></p>
-          <p>Plugins run sandboxed — no network access, no file system, no imports.</p>
+          <p>Admin-only plugin code runs in a time-limited Node VM context. Treat plugin authors as trusted operators; this is not a hardened tenant-isolation boundary.</p>
         </div>
       </div>
 
@@ -360,25 +370,31 @@ export function PluginsClient() {
               {/* Test Result */}
               {testResult && (
                 <div className="bg-zinc-950 rounded-lg p-3 border border-emerald-500/20">
-                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Test Result</div>
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-[10px] uppercase tracking-wider text-zinc-500">
+                    <span>Test Result</span>
+                    <span>
+                      {testResult.candleCount} candles &middot; source: {testResult.source}
+                      {' (observed provider data)'}
+                    </span>
+                  </div>
                   <div className="grid grid-cols-4 gap-2 text-center">
                     <div>
-                      <div className="text-sm font-mono tabular-nums text-zinc-200">{testResult.value}</div>
+                      <div className="text-sm font-mono tabular-nums text-zinc-200">{testResult.result.value}</div>
                       <div className="text-[9px] text-zinc-600">VALUE</div>
                     </div>
                     <div>
                       <div className={`text-sm font-bold ${
-                        testResult.signal === 'bullish' ? 'text-emerald-400' :
-                        testResult.signal === 'bearish' ? 'text-rose-400' : 'text-zinc-400'
-                      }`}>{testResult.signal.toUpperCase()}</div>
+                        testResult.result.signal === 'bullish' ? 'text-emerald-400' :
+                        testResult.result.signal === 'bearish' ? 'text-rose-400' : 'text-zinc-400'
+                      }`}>{testResult.result.signal.toUpperCase()}</div>
                       <div className="text-[9px] text-zinc-600">SIGNAL</div>
                     </div>
                     <div>
-                      <div className="text-sm font-mono tabular-nums text-zinc-200">{testResult.strength}%</div>
+                      <div className="text-sm font-mono tabular-nums text-zinc-200">{testResult.result.strength}%</div>
                       <div className="text-[9px] text-zinc-600">STRENGTH</div>
                     </div>
                     <div>
-                      <div className="text-xs text-zinc-400 truncate">{testResult.label}</div>
+                      <div className="text-xs text-zinc-400 truncate">{testResult.result.label}</div>
                       <div className="text-[9px] text-zinc-600">LABEL</div>
                     </div>
                   </div>

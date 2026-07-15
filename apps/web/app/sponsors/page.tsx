@@ -2,27 +2,25 @@ import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 
 const SponsorsClient = dynamic(
-  () => import('./SponsorsClient').then((m) => ({ default: m.SponsorsClient })),
+  () => import('./SponsorsClient').then((module) => ({ default: module.SponsorsClient })),
   {
     loading: () => (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
-        <div className="w-8 h-8 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-rose-500 border-t-transparent" />
       </div>
     ),
   },
 );
 
 export const metadata: Metadata = {
-  title: 'Sponsors — TradeClaw',
-  description:
-    'Support TradeClaw\'s open-source mission. Sponsor to keep the AI trading signal platform free forever and unlock roadmap milestones.',
+  title: 'Sponsors | TradeClaw',
+  description: 'Open the TradeClaw GitHub Sponsors page and review the availability of published sponsor records.',
   openGraph: {
-    title: 'Sponsor TradeClaw — Open Source AI Trading Signals',
-    description:
-      'TradeClaw is MIT-licensed and free forever. Your sponsorship funds new features, a hosted demo, and full-time maintenance.',
+    title: 'Support TradeClaw',
+    description: 'Support maintenance and development of the TradeClaw open-source repository.',
     type: 'website',
   },
-  keywords: ['github sponsors', 'open source trading', 'tradeclaw sponsor', 'support oss', 'trading signals'],
+  keywords: ['github sponsors', 'open source trading', 'tradeclaw sponsor', 'support oss'],
 };
 
 export default function SponsorsPage() {

@@ -46,24 +46,13 @@ export function normalizeAction(action: string): "BUY" | "SELL" {
   return "SELL";
 }
 
-function getSeedAlerts(): TVAlert[] {
-  const now = Date.now();
-  return [
-    { id: "seed-1", symbol: "BTCUSDT", exchange: "BINANCE", interval: "1h", action: "buy", close: 64500, volume: 1234, message: "RSI crossed above 30", receivedAt: new Date(now - 3600000).toISOString(), normalizedPair: "BTCUSD", normalizedAction: "BUY" },
-    { id: "seed-2", symbol: "XAUUSD", exchange: "OANDA", interval: "4h", action: "sell", close: 2320, message: "EMA crossover bearish", receivedAt: new Date(now - 7200000).toISOString(), normalizedPair: "XAUUSD", normalizedAction: "SELL" },
-    { id: "seed-3", symbol: "ETHUSDT", exchange: "BINANCE", interval: "1h", action: "buy", close: 3100, volume: 4500, message: "MACD bullish signal", receivedAt: new Date(now - 10800000).toISOString(), normalizedPair: "ETHUSD", normalizedAction: "BUY" },
-    { id: "seed-4", symbol: "EURUSD", exchange: "FXCM", interval: "4h", action: "sell", close: 1.085, message: "Bollinger upper band rejection", receivedAt: new Date(now - 86400000).toISOString(), normalizedPair: "EURUSD", normalizedAction: "SELL" },
-    { id: "seed-5", symbol: "BTCUSDT", exchange: "BINANCE", interval: "1d", action: "buy", close: 62000, message: "Golden cross formed", receivedAt: new Date(now - 172800000).toISOString(), normalizedPair: "BTCUSD", normalizedAction: "BUY" },
-  ];
-}
-
 function readAlerts(): TVAlert[] {
   try {
-    if (!fs.existsSync(ALERTS_FILE)) return getSeedAlerts();
+    if (!fs.existsSync(ALERTS_FILE)) return [];
     const data = JSON.parse(fs.readFileSync(ALERTS_FILE, "utf8"));
-    return Array.isArray(data) ? data : getSeedAlerts();
+    return Array.isArray(data) ? data : [];
   } catch {
-    return getSeedAlerts();
+    return [];
   }
 }
 

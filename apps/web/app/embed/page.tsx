@@ -84,8 +84,7 @@ export default function EmbedDocsPage() {
             Embeddable Signal Widget
           </h1>
           <p className="text-zinc-400 text-sm max-w-xl">
-            Add live AI trading signals to any website, blog, or forum. Free, no API key required.
-            Auto-refreshes every 60 seconds.
+            Add the latest available read-only rule output to a website or blog. The widget polls the public endpoint; source freshness can vary.
           </p>
         </div>
 

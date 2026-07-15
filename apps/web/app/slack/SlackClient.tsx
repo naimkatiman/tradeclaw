@@ -40,7 +40,7 @@ const EXAMPLE_PAYLOAD = `{
       "type": "header",
       "text": {
         "type": "plain_text",
-        "text": "▲ XAUUSD BUY — 82% confidence"
+        "text": "TEST FIXTURE - XAUUSD BUY - rule score 82/100"
       }
     },
     {
@@ -56,7 +56,7 @@ const EXAMPLE_PAYLOAD = `{
     {
       "type": "context",
       "elements": [
-        { "type": "mrkdwn", "text": "TradeClaw Signal Alert" }
+        { "type": "mrkdwn", "text": "Delivery fixture only; rule score is not a probability or proof of edge" }
       ]
     }
   ]
@@ -109,7 +109,7 @@ export function SlackClient() {
       });
       const data = await res.json();
       if (data.success) {
-        setAddSuccess('Webhook connected successfully!');
+        setAddSuccess('Webhook configuration accepted. Send a test to verify delivery and persistence.');
         setWebhookUrl('');
         setName('');
         setChannel('');
@@ -126,7 +126,10 @@ export function SlackClient() {
 
   const handleTest = async (id: string) => {
     setTestingId(id);
-    setTestResult((prev) => ({ ...prev, [id]: { success: false, message: '' } }));
+    setTestResult((prev) => ({
+      ...prev,
+      [id]: { success: false, message: '' },
+    }));
     try {
       const res = await fetch('/api/slack/webhook', {
         method: 'POST',
@@ -142,7 +145,10 @@ export function SlackClient() {
         },
       }));
     } catch {
-      setTestResult((prev) => ({ ...prev, [id]: { success: false, message: 'Network error' } }));
+      setTestResult((prev) => ({
+        ...prev,
+        [id]: { success: false, message: 'Network error' },
+      }));
     } finally {
       setTestingId(null);
     }
@@ -206,10 +212,11 @@ export function SlackClient() {
             <Hash className="w-8 h-8 text-zinc-400" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">
-            Slack <span className="text-zinc-400">Integration</span>
+            Slack <span className="text-zinc-400">Webhook Manager</span>
           </h1>
           <p className="text-zinc-400 text-sm sm:text-base max-w-lg mx-auto">
-            Get AI trading signal alerts delivered to your Slack channels via incoming webhooks — fired on the 5-minute signal cron.
+            Configure an operator-owned Slack incoming webhook and send explicit test or manual payloads. This
+            standalone, file-backed manager is not wired to the automatic signal cron.
           </p>
         </div>
 
@@ -218,16 +225,20 @@ export function SlackClient() {
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z" fill="#E9A820"/>
+                <path
+                  d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"
+                  fill="#E9A820"
+                />
               </svg>
             </div>
             <div>
               <h2 className="text-lg font-semibold">Add to Slack</h2>
-              <p className="text-xs text-zinc-500">One-click workspace install</p>
+              <p className="text-xs text-zinc-500">OAuth install is not implemented</p>
             </div>
           </div>
           <p className="text-sm text-zinc-400 mb-4">
-            OAuth-based &ldquo;Add to Slack&rdquo; allows one-click installation to any Slack workspace. Coming soon — use manual webhook setup below for now.
+            The OAuth-based Add to Slack path is a disabled placeholder. Use the manual, admin-only webhook manager
+            below for explicit test and send actions.
           </p>
           <a
             href="https://slack.com/oauth/v2/authorize?client_id=tradeclaw&scope=incoming-webhook"
@@ -236,10 +247,15 @@ export function SlackClient() {
             aria-disabled="true"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z" fill="#000"/>
+              <path
+                d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"
+                fill="#000"
+              />
             </svg>
             Add to Slack
-            <span className="text-[10px] bg-zinc-200 text-zinc-600 px-1.5 py-0.5 rounded-full font-medium ml-1">Coming Soon</span>
+            <span className="text-[10px] bg-zinc-200 text-zinc-600 px-1.5 py-0.5 rounded-full font-medium ml-1">
+              Coming Soon
+            </span>
           </a>
         </div>
 
@@ -248,7 +264,12 @@ export function SlackClient() {
           <h2 className="text-lg font-semibold mb-1">Manual Webhook Setup</h2>
           <p className="text-xs text-zinc-500 mb-5">
             Create an{' '}
-            <a href="https://api.slack.com/messaging/webhooks" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:underline">
+            <a
+              href="https://api.slack.com/messaging/webhooks"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-400 hover:underline"
+            >
               Incoming Webhook
             </a>{' '}
             in your Slack workspace, then paste the URL below.
@@ -294,7 +315,7 @@ export function SlackClient() {
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-zinc-500 hover:bg-zinc-400 text-black text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              Connect Webhook
+              Save Webhook
             </button>
 
             {addError && (
@@ -312,7 +333,7 @@ export function SlackClient() {
 
         {/* Connected integrations */}
         <div className="border border-zinc-700/50 rounded-2xl bg-zinc-900/50 p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">Connected Integrations</h2>
+          <h2 className="text-lg font-semibold mb-4">Saved Webhook Configurations</h2>
 
           {loading ? (
             <div className="flex items-center justify-center py-10">
@@ -321,7 +342,7 @@ export function SlackClient() {
           ) : integrations.length === 0 ? (
             <div className="text-center py-10">
               <Hash className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
-              <p className="text-sm text-zinc-500">No integrations yet. Add a webhook above to get started.</p>
+              <p className="text-sm text-zinc-500">No saved webhook configurations.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -329,9 +350,7 @@ export function SlackClient() {
                 <div
                   key={si.id}
                   className={`border rounded-xl p-4 transition-colors ${
-                    si.enabled
-                      ? 'border-zinc-700/50 bg-zinc-800/30'
-                      : 'border-zinc-800/50 bg-zinc-900/30 opacity-60'
+                    si.enabled ? 'border-zinc-700/50 bg-zinc-800/30' : 'border-zinc-800/50 bg-zinc-900/30 opacity-60'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -342,9 +361,7 @@ export function SlackClient() {
                         </span>
                         <span
                           className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                            si.enabled
-                              ? 'bg-emerald-500/10 text-emerald-400'
-                              : 'bg-zinc-700/50 text-zinc-500'
+                            si.enabled ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-700/50 text-zinc-500'
                           }`}
                         >
                           {si.enabled ? 'Active' : 'Paused'}
@@ -352,13 +369,9 @@ export function SlackClient() {
                       </div>
                       <p className="text-xs text-zinc-600 font-mono truncate">{si.webhookUrl}</p>
                       <div className="flex items-center gap-4 mt-2 text-[11px] text-zinc-500">
-                        <span>{si.deliveryCount} delivered</span>
-                        {si.failCount > 0 && (
-                          <span className="text-rose-400">{si.failCount} consecutive failures</span>
-                        )}
-                        {si.lastDelivery && (
-                          <span>Last: {new Date(si.lastDelivery).toLocaleDateString()}</span>
-                        )}
+                        <span>{si.deliveryCount} delivery attempts</span>
+                        {si.failCount > 0 && <span className="text-rose-400">{si.failCount} consecutive failures</span>}
+                        {si.lastDelivery && <span>Last: {new Date(si.lastDelivery).toLocaleDateString()}</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
@@ -439,7 +452,8 @@ export function SlackClient() {
             </button>
           </div>
           <p className="text-xs text-zinc-500 mb-3">
-            This is the Block Kit JSON payload TradeClaw sends to your Slack webhook for each signal:
+            This illustrative fixture shows the payload shape used for an explicit operator test. It is not a live
+            market observation and does not submit an order:
           </p>
           <pre className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 overflow-x-auto text-xs text-zinc-300 leading-relaxed">
             <code>{EXAMPLE_PAYLOAD}</code>
@@ -447,7 +461,7 @@ export function SlackClient() {
           <div className="mt-4 text-xs text-zinc-500">
             <span className="text-zinc-400 font-medium">curl example:</span>
             <pre className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 mt-2 overflow-x-auto text-zinc-400">
-{`curl -X POST https://hooks.slack.com/services/YOUR/WEBHOOK/URL \\
+              {`curl -X POST https://hooks.slack.com/services/YOUR/WEBHOOK/URL \\
   -H "Content-Type: application/json" \\
   -d '${EXAMPLE_PAYLOAD.replace(/\n/g, '').replace(/  +/g, ' ')}'`}
             </pre>

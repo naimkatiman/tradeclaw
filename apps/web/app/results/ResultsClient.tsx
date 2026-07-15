@@ -249,7 +249,7 @@ export function ResultsClient() {
             Illustrative profiles of 5 strategy archetypes across 3 major assets.
             These figures are hand-authored examples of how each strategy behaves —
             they are not output of the TradeClaw engine and include no slippage or fee model.
-            For real performance, see the live <a href="/track-record" className="text-emerald-400 hover:text-emerald-300 underline">track record</a>.
+            For recorded signal outcomes and the separately labeled sequential simulation, see the <a href="/track-record" className="text-emerald-400 hover:text-emerald-300 underline">signal record</a>.
           </p>
           <div className="mx-auto mt-5 grid max-w-4xl grid-cols-1 gap-2 sm:grid-cols-3">
             <div className="rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 text-left">

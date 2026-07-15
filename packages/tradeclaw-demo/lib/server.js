@@ -5,6 +5,8 @@ const net = require('net');
 const pc = require('picocolors');
 const { getDemoPage } = require('./demo-page');
 
+const FIXTURE_LIMITATIONS = 'Deterministic synthetic UI fixture. Not market data, a production signal, broker execution, or portfolio performance.';
+
 const PAIRS = [
   { symbol: 'BTC/USD', price: 67450, vol: 0.02 },
   { symbol: 'ETH/USD', price: 3280, vol: 0.025 },
@@ -18,8 +20,8 @@ const PAIRS = [
 
 const TIMEFRAMES = ['H1', 'H4', 'D1'];
 
-// Mutable price state for live simulation
-const liveState = PAIRS.map((p) => ({ ...p, currentPrice: p.price }));
+// Mutable deterministic state used only to exercise the demo UI.
+const fixtureState = PAIRS.map((p) => ({ ...p, currentPrice: p.price }));
 
 let seed = 42;
 function pseudoRand() {
@@ -28,13 +30,13 @@ function pseudoRand() {
 }
 
 function generateSignalsFromState() {
-  // Evolve prices
-  liveState.forEach((s) => {
+  // Evolve illustrative values deterministically.
+  fixtureState.forEach((s) => {
     const drift = (pseudoRand() - 0.5) * s.vol;
     s.currentPrice = s.currentPrice * (1 + drift);
   });
 
-  return liveState.map((pair) => {
+  return fixtureState.map((pair) => {
     const dir = pseudoRand() > 0.45 ? 'BUY' : 'SELL';
     const tf = TIMEFRAMES[Math.floor(pseudoRand() * TIMEFRAMES.length)];
     const conf = Math.floor(65 + pseudoRand() * 30);
@@ -62,6 +64,10 @@ function generateSignalsFromState() {
       rsi: rsi.toFixed(1),
       macd: macd.toFixed(6),
       timestamp: new Date().toISOString(),
+      source: 'deterministic-ui-fixture',
+      dataQuality: 'synthetic',
+      isIllustrative: true,
+      limitations: FIXTURE_LIMITATIONS,
     };
   });
 }
@@ -86,13 +92,13 @@ async function findPort(preferred, candidates = [3000, 3001, 3002, 3100]) {
   return 3333;
 }
 
-// Track SSE clients for live feed
+// Track SSE clients for the local fixture stream.
 const sseClients = new Set();
 
 // Push signal update to all SSE clients
 function broadcastSignals(signals) {
   if (sseClients.size === 0) return;
-  const data = `data: ${JSON.stringify({ signals, count: signals.length, timestamp: new Date().toISOString() })}\n\n`;
+  const data = `data: ${JSON.stringify({ signals, count: signals.length, source: 'deterministic-ui-fixture', dataQuality: 'synthetic', isIllustrative: true, limitations: FIXTURE_LIMITATIONS, timestamp: new Date().toISOString() })}\n\n`;
   for (const res of sseClients) {
     try { res.write(data); } catch { sseClients.delete(res); }
   }
@@ -112,13 +118,12 @@ async function startServer(opts = {}) {
 
     // REST signals endpoint
     if (url.pathname === '/api/signals') {
-      seed = Date.now() & 0xffffffff;
       const signals = generateSignalsFromState();
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ signals, count: signals.length, source: 'tradeclaw-demo', timestamp: new Date().toISOString() }));
+      return res.end(JSON.stringify({ signals, count: signals.length, source: 'deterministic-ui-fixture', dataQuality: 'synthetic', isIllustrative: true, limitations: FIXTURE_LIMITATIONS, timestamp: new Date().toISOString() }));
     }
 
-    // SSE live feed endpoint
+    // SSE fixture endpoint.
     if (url.pathname === '/api/signals/stream') {
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
@@ -127,7 +132,7 @@ async function startServer(opts = {}) {
         'X-Accel-Buffering': 'no',
       });
       res.write('retry: 3000\n\n');
-      res.write(`data: ${JSON.stringify({ type: 'connected', message: 'TradeClaw live signal stream', timestamp: new Date().toISOString() })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'connected', message: 'TradeClaw illustrative fixture stream', source: 'deterministic-ui-fixture', dataQuality: 'synthetic', isIllustrative: true, limitations: FIXTURE_LIMITATIONS, timestamp: new Date().toISOString() })}\n\n`);
       sseClients.add(res);
 
       req.on('close', () => sseClients.delete(res));
@@ -146,18 +151,17 @@ async function startServer(opts = {}) {
     res.end(html);
   });
 
-  // Emit live signals every 5 seconds to SSE clients
-  const liveInterval = setInterval(() => {
-    seed = Date.now() & 0xffffffff;
+  // Emit deterministic fixture updates every 5 seconds to SSE clients.
+  const fixtureInterval = setInterval(() => {
     const signals = generateSignalsFromState();
     broadcastSignals(signals);
 
     // Print new signal to terminal
-    const s = signals[Math.floor(Math.random() * signals.length)];
+    const s = signals[Math.floor(pseudoRand() * signals.length)];
     const color = s.direction === 'BUY' ? pc.green : pc.red;
     const arrow = s.direction === 'BUY' ? '▲' : '▼';
     process.stdout.write(
-      `  ${color(arrow + ' ' + s.symbol.padEnd(10))} ${pc.bold(color(s.direction.padEnd(5)))} ${pc.dim(s.timeframe.padEnd(4))} ${pc.yellow(s.confidence + '%')} ${pc.dim('entry: ' + s.entry)}\n`
+      `  ${color(arrow + ' ' + s.symbol.padEnd(10))} ${pc.bold(color(s.direction.padEnd(5)))} ${pc.dim(s.timeframe.padEnd(4))} ${pc.yellow('score ' + s.confidence + '/100')} ${pc.dim('fixture: ' + s.entry)}\n`
     );
   }, 5000);
 
@@ -165,15 +169,15 @@ async function startServer(opts = {}) {
     const url = `http://localhost:${port}`;
     console.log(pc.green('  ✓ Server started') + pc.dim(` → ${url}`));
     console.log('');
-    console.log(pc.bold('  📊 Live Dashboard: ') + pc.cyan(url));
+    console.log(pc.bold('  Fixture Dashboard: ') + pc.cyan(url));
     console.log(pc.bold('  🔌 REST API:       ') + pc.cyan(`${url}/api/signals`));
-    console.log(pc.bold('  📡 Live Stream:    ') + pc.cyan(`${url}/api/signals/stream`) + pc.dim(' (SSE)'));
+    console.log(pc.bold('  Fixture Stream:    ') + pc.cyan(`${url}/api/signals/stream`) + pc.dim(' (synthetic SSE)'));
     console.log(pc.bold('  💚 Health:         ') + pc.cyan(`${url}/api/health`));
     console.log('');
     console.log(pc.bold('  🐙 GitHub:         ') + pc.cyan('https://github.com/naimkatiman/tradeclaw'));
     console.log(pc.bold('  🌐 Full platform:  ') + pc.cyan('https://tradeclaw.win'));
     console.log('');
-    console.log(pc.dim('  Signals updating every 5s below. Press Ctrl+C to stop.'));
+    console.log(pc.dim('  Synthetic fixture values update every 5s. They are not market data or trade results.'));
     console.log(pc.dim('  ─────────────────────────────────────────────────────'));
     console.log('');
 
@@ -193,7 +197,7 @@ async function startServer(opts = {}) {
     console.log(pc.yellow('  👋 Shutting down TradeClaw demo...'));
     console.log(pc.green('  ⭐ Liked it? Star us: https://github.com/naimkatiman/tradeclaw'));
     console.log('');
-    clearInterval(liveInterval);
+    clearInterval(fixtureInterval);
     server.close();
     process.exit(0);
   });

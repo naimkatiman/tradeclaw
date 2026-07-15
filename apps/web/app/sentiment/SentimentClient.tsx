@@ -51,8 +51,7 @@ interface SentimentData {
   globalMarket: GlobalMarketData;
   trendingCoins: TrendingCoin[];
   topCoins: TopCoin[];
-  sources?: Record<string, 'live' | 'mock'>;
-  mock?: boolean;
+  sources: Record<string, string>;
 }
 
 /* ─── Helpers ─── */
@@ -132,6 +131,7 @@ export function SentimentClient() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [error, setError] = useState(false);
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -140,7 +140,11 @@ export function SentimentClient() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json() as SentimentData;
       setData(json);
+      setError(false);
       setLastUpdated(new Date());
+    } catch {
+      setData(null);
+      setError(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -153,7 +157,7 @@ export function SentimentClient() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  if (loading || !data) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
@@ -161,7 +165,23 @@ export function SentimentClient() {
     );
   }
 
-  const { fearGreed, fearGreedHistory, globalMarket, trendingCoins, topCoins, mock: isMock, sources } = data;
+  if (error || !data) {
+    return (
+      <main className="min-h-screen bg-[#0a0a0f] px-4 pt-28 text-white">
+        <div className="mx-auto max-w-xl rounded-lg border border-white/10 bg-white/[0.03] p-6">
+          <h1 className="text-xl font-semibold">Market sentiment unavailable</h1>
+          <p className="mt-2 text-sm text-zinc-400">
+            One or more upstream providers did not return a complete response. TradeClaw does not substitute generated market values.
+          </p>
+          <button type="button" onClick={() => fetchData(true)} className="mt-5 rounded-lg border border-white/10 px-4 py-2 text-sm hover:bg-white/5">
+            Retry
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  const { fearGreed, fearGreedHistory, globalMarket, trendingCoins, topCoins } = data;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white">
@@ -174,21 +194,15 @@ export function SentimentClient() {
             <h1 className="text-3xl sm:text-4xl font-bold">Market Sentiment</h1>
           </div>
           <p className="text-zinc-400 text-sm max-w-lg mx-auto">
-            Live crypto market mood &amp; data — Fear &amp; Greed index, dominance, trending coins, and volume heatmap.
+            Latest provider-reported crypto market data: Fear &amp; Greed index, dominance, trending coins, and volume.
           </p>
-          {isMock && (
-            <p className="text-xs text-zinc-400/70 mt-2 flex items-center justify-center gap-1.5">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-zinc-400/70" />
-              Some data is using cached fallback values — live APIs temporarily unavailable
-            </p>
-          )}
           <div className="flex items-center justify-center gap-3 mt-4">
             <span className="inline-flex items-center gap-1.5 text-xs text-zinc-500">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
               </span>
-              Auto-refreshes every 5 min
+              Provider refresh interval: 5 min
             </span>
             {lastUpdated && (
               <span className="text-xs text-zinc-600">
@@ -211,9 +225,6 @@ export function SentimentClient() {
           <div className="flex items-center gap-2 mb-4">
             <Flame className="w-5 h-5 text-orange-400" />
             <h2 className="text-lg font-semibold">Fear &amp; Greed Index</h2>
-            {sources?.fearGreed === 'mock' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">CACHED</span>
-            )}
           </div>
           <FearGreedGauge value={fearGreed.value} classification={fearGreed.classification} />
 
@@ -263,9 +274,6 @@ export function SentimentClient() {
           <div className="flex items-center gap-2 mb-3">
             <Globe className="w-4 h-4 text-zinc-400" />
             <h2 className="text-sm font-semibold">Market Dominance</h2>
-            {sources?.globalMarket === 'mock' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">CACHED</span>
-            )}
           </div>
           <div className="flex rounded-lg overflow-hidden h-8 text-xs font-medium">
             <div
@@ -294,9 +302,6 @@ export function SentimentClient() {
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-emerald-400" />
             <h2 className="text-lg font-semibold">Trending Coins</h2>
-            {sources?.trendingCoins === 'mock' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">CACHED</span>
-            )}
           </div>
           <div className="flex flex-wrap gap-3">
             {trendingCoins.map((coin, i) => (
@@ -326,9 +331,6 @@ export function SentimentClient() {
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="w-5 h-5 text-emerald-400" />
             <h2 className="text-lg font-semibold">24h Volume Heatmap</h2>
-            {sources?.topCoins === 'mock' && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">CACHED</span>
-            )}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {topCoins.map((coin) => (

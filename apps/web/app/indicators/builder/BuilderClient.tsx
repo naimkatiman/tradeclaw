@@ -24,7 +24,7 @@ import {
 /* ──────────────────────────────────────────
    Types
 ─────────────────────────────────────────── */
-interface OHLCV {
+export interface OHLCV {
   open: number;
   high: number;
   low: number;
@@ -86,7 +86,7 @@ const PRESETS: Preset[] = [
   {
     name: 'RSI Divergence Score',
     description: 'Combines RSI with Stoch for momentum confluence (0-100)',
-    expectedOutput: 'High values = strong momentum, low = oversold/reversal zone',
+    expectedOutput: 'Fixture output combines normalized momentum inputs; it does not predict reversals',
     steps: [
       { id: 'a', indicator: 'RSI', period: 14 },
       { id: 'b', indicator: 'STOCH_K', period: 14, operation: '+', operand: 'prev' },
@@ -96,7 +96,7 @@ const PRESETS: Preset[] = [
   {
     name: 'MACD + EMA Strength',
     description: 'Multiplies MACD histogram by EMA slope for trend strength',
-    expectedOutput: 'Positive = bullish trend in force, negative = bearish',
+    expectedOutput: 'Fixture output shows the formula sign; it is not measured trend performance',
     steps: [
       { id: 'a', indicator: 'MACD_HIST', period: 12 },
       { id: 'b', indicator: 'EMA', period: 20, operation: '-', operand: 'prev' },
@@ -105,8 +105,8 @@ const PRESETS: Preset[] = [
   },
   {
     name: 'Volatility Squeeze',
-    description: 'BB Width below ATR threshold signals a squeeze (breakout imminent)',
-    expectedOutput: 'Values near 0 = tight squeeze, high = expansion',
+    description: 'Compares BB Width with ATR to illustrate relative compression',
+    expectedOutput: 'Fixture values illustrate compression and expansion, not breakout probability',
     steps: [
       { id: 'a', indicator: 'BB_WIDTH', period: 20 },
       { id: 'b', indicator: 'ATR', period: 14, operation: '/', operand: 'prev' },
@@ -118,16 +118,28 @@ const PRESETS: Preset[] = [
 /* ──────────────────────────────────────────
    TA math helpers (client-side)
 ─────────────────────────────────────────── */
-function genCandles(n = 60): OHLCV[] {
-  let price = 50000 + Math.random() * 1000;
+const FIXTURE_END_TIMESTAMP = Date.UTC(2024, 0, 3, 12, 0, 0);
+
+export function generateIllustrativeCandles(n = 60): OHLCV[] {
+  let price = 50000;
   const candles: OHLCV[] = [];
   for (let i = 0; i < n; i++) {
-    const change = (Math.random() - 0.49) * price * 0.02;
     const open = price;
-    price = Math.max(1, price + change);
-    const high = Math.max(open, price) * (1 + Math.random() * 0.005);
-    const low = Math.min(open, price) * (1 - Math.random() * 0.005);
-    candles.push({ open, high, low, close: price, volume: 100 + Math.random() * 900, timestamp: Date.now() - (n - i) * 3600000 });
+    const changeRate = Math.sin(i * 0.47) * 0.004 + Math.cos(i * 0.19) * 0.002 + ((i % 7) - 3) * 0.00025;
+    const close = Math.max(1, open * (1 + changeRate));
+    const wickRate = 0.0015 + (i % 5) * 0.00035;
+    const high = Math.max(open, close) * (1 + wickRate);
+    const low = Math.min(open, close) * (1 - wickRate * 0.85);
+    const volume = 400 + (i % 9) * 37 + Math.round((Math.sin(i * 0.31) + 1) * 65);
+    candles.push({
+      open,
+      high,
+      low,
+      close,
+      volume,
+      timestamp: FIXTURE_END_TIMESTAMP - (n - 1 - i) * 3600000,
+    });
+    price = close;
   }
   return candles;
 }
@@ -379,8 +391,7 @@ export default function BuilderClient() {
     }
     return [{ id: 'step-1', indicator: 'RSI', period: 14 }];
   });
-  const [candles] = useState<OHLCV[]>(() => genCandles(60));
-  const [manualRun, setManualRun] = useState(0);
+  const [candles, setCandles] = useState<OHLCV[]>(() => generateIllustrativeCandles(60));
   const [shareMsg, setShareMsg] = useState('');
   const [pluginExported, setPluginExported] = useState(false);
   const [activePreset, setActivePreset] = useState<number | null>(null);
@@ -392,11 +403,10 @@ export default function BuilderClient() {
     const values = runFormula(steps, candles);
     const derived = deriveSignal(values);
     return { values, ...derived };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [steps, candles, manualRun]);
+  }, [steps, candles]);
 
   const runTest = useCallback(() => {
-    setManualRun(n => n + 1);
+    setCandles(generateIllustrativeCandles(60));
   }, []);
 
   function addStep() {
@@ -419,7 +429,7 @@ export default function BuilderClient() {
 
   function loadPreset(idx: number) {
     const preset = PRESETS[idx];
-    setSteps(preset.steps.map(s => ({ ...s, id: `p-${Math.random().toString(36).slice(2)}` })));
+    setSteps(preset.steps.map((s, stepIndex) => ({ ...s, id: `p-${idx}-${stepIndex}` })));
     setActivePreset(idx);
   }
 
@@ -435,12 +445,14 @@ export default function BuilderClient() {
   function copyPluginJSON() {
     const plugin = {
       name: 'Custom Indicator',
-      description: 'Built with TradeClaw Indicator Builder',
+      description: 'Unimplemented starter scaffold from the TradeClaw Indicator Builder',
       version: '1.0.0',
       author: 'anonymous',
       category: 'custom',
+      status: 'scaffold',
+      limitations: 'The visual formula must be implemented and validated before this scaffold can run in a signal pipeline.',
       params: steps.flatMap(s => s.period !== undefined ? [{ name: `${s.indicator.toLowerCase()}_period`, type: 'number', default: s.period, min: 2, max: 200, description: `Period for ${s.indicator}` }] : []),
-      code: `// Auto-generated by TradeClaw Indicator Builder\n// Steps: ${steps.map(s => `${s.indicator}(${s.period ?? ''})${s.operation ? ' ' + s.operation : ''}`).join(' → ')}\n// Paste this into /plugins to use\nconst closes = candles.map(c => c.close);\nconst latest = closes[closes.length - 1];\nreturn { value: latest, signal: 'neutral', strength: 50, label: 'Custom' };`,
+      code: `// Starter scaffold generated by TradeClaw Indicator Builder\n// Steps: ${steps.map(s => `${s.indicator}(${s.period ?? ''})${s.operation ? ' ' + s.operation : ''}`).join(' -> ')}\n// Implement and validate this formula before enabling it.\nthrow new Error('Indicator scaffold is not implemented');`,
     };
     navigator.clipboard.writeText(JSON.stringify(plugin, null, 2)).then(() => {
       setPluginExported(true);
@@ -465,7 +477,7 @@ export default function BuilderClient() {
             <div>
               <h1 className="text-2xl font-bold text-zinc-100">Custom Indicator Builder</h1>
               <p className="text-sm text-zinc-400 mt-0.5">
-                Combine RSI, MACD, EMA and more — test live, save as plugin, share with a URL
+                Combine indicators and inspect them against a fixed illustrative fixture
               </p>
             </div>
           </div>
@@ -475,14 +487,14 @@ export default function BuilderClient() {
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors"
             >
               <Play className="w-4 h-4" />
-              Run Test
+              Run Fixture
             </button>
             <button
               onClick={copyPluginJSON}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-sm font-medium transition-colors"
             >
               {pluginExported ? <Check className="w-4 h-4 text-emerald-400" /> : <Save className="w-4 h-4" />}
-              {pluginExported ? 'Copied!' : 'Save as Plugin'}
+              {pluginExported ? 'Copied!' : 'Copy Scaffold'}
             </button>
             <button
               onClick={shareURL}
@@ -642,9 +654,12 @@ export default function BuilderClient() {
             )}
           </div>
 
-          {/* Live Result Panel */}
+          {/* Illustrative fixture result panel */}
           <div className="lg:col-span-2 space-y-4">
-            <h2 className="font-semibold text-zinc-200">Live Test Result</h2>
+            <div>
+              <h2 className="font-semibold text-zinc-200">Illustrative Fixture Result</h2>
+              <p className="text-xs text-amber-300 mt-1">Deterministic synthetic values. Not live market data, a backtest, or measured performance.</p>
+            </div>
 
             {result ? (
               <>
@@ -660,7 +675,7 @@ export default function BuilderClient() {
                   {/* Strength bar */}
                   <div className="mt-3">
                     <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                      <span>Strength</span>
+                      <span>Normalized fixture position</span>
                       <span>{result.strength}/100</span>
                     </div>
                     <div className="h-2 rounded-full bg-zinc-700 overflow-hidden">
@@ -675,7 +690,7 @@ export default function BuilderClient() {
                 {/* Mini chart */}
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-zinc-400">Output series (60 candles)</span>
+                    <span className="text-xs text-zinc-400">Output series (60 fixed fixture candles)</span>
                     <button onClick={runTest} className="text-zinc-500 hover:text-zinc-300 transition-colors">
                       <RefreshCw className="w-3.5 h-3.5" />
                     </button>
@@ -691,7 +706,7 @@ export default function BuilderClient() {
 
                 {/* Sample values */}
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
-                  <div className="text-xs text-zinc-400 mb-2 font-medium">Last 5 values</div>
+                  <div className="text-xs text-zinc-400 mb-2 font-medium">Last 5 fixture values</div>
                   <div className="space-y-1">
                     {result.values.filter(v => !isNaN(v)).slice(-5).map((v, i, arr) => {
                       const prev = arr[i - 1];
@@ -711,26 +726,26 @@ export default function BuilderClient() {
               </>
             ) : (
               <div className="rounded-xl border border-dashed border-zinc-700 p-8 text-center text-zinc-500 text-sm">
-                Add steps and run test
+                Add steps and run the illustrative fixture
               </div>
             )}
 
-            {/* Save as Plugin CTA */}
+            {/* Scaffold export */}
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-4 space-y-3">
-              <div className="text-xs font-medium text-zinc-300">Use in TradeClaw</div>
+              <div className="text-xs font-medium text-zinc-300">Export starter scaffold</div>
               <p className="text-xs text-zinc-400">
-                Copy the plugin JSON, then paste it in the code editor on the{' '}
+                The copied JSON is an intentionally non-running scaffold. Implement and validate the formula in the{' '}
                 <Link href="/plugins" className="text-emerald-400 hover:underline">
                   Plugins page
                 </Link>{' '}
-                to use this indicator in live signal generation.
+                before enabling it in any signal pipeline.
               </p>
               <button
                 onClick={copyPluginJSON}
                 className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-sm transition-colors"
               >
                 {pluginExported ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                {pluginExported ? 'Plugin JSON copied!' : 'Copy Plugin JSON'}
+                {pluginExported ? 'Scaffold JSON copied!' : 'Copy Scaffold JSON'}
               </button>
               <button
                 onClick={shareURL}
@@ -752,12 +767,12 @@ export default function BuilderClient() {
               <div className="text-zinc-400">Each step picks an indicator and optional math operation. Steps chain together sequentially.</div>
             </div>
             <div>
-              <div className="text-emerald-400 font-medium mb-1">2. Live Test</div>
-              <div className="text-zinc-400">Your formula runs against 60 synthetic OHLCV candles instantly. The output chart and signal update automatically.</div>
+              <div className="text-emerald-400 font-medium mb-1">2. Fixture Test</div>
+              <div className="text-zinc-400">Your formula runs against the same 60 deterministic illustrative candles. Results are UI fixtures, not live data or a backtest.</div>
             </div>
             <div>
               <div className="text-emerald-400 font-medium mb-1">3. Share & Save</div>
-              <div className="text-zinc-400">Copy the plugin JSON to use it in TradeClaw&apos;s plugin system, or share the URL with your formula pre-loaded.</div>
+              <div className="text-zinc-400">Copy a non-running starter scaffold for implementation, or share the URL with your visual formula pre-loaded.</div>
             </div>
           </div>
         </div>

@@ -5,45 +5,6 @@ import {
   isHubEnabled,
 } from '../../lib/data-providers';
 
-/**
- * /api/prices — hub-first price aggregator.
- *
- * Architecture (per 2026-05-07 directive: market-data-hub is the single source
- * of truth, aggregating Twelve Data + Binance + RoboForex internally):
- *
- *   1. market-data-hub (primary)        — when MARKET_DATA_HUB_URL is set
- *   2. Binance public ticker (crypto)   — survival fallback if hub is down
- *   3. Stooq CSV (forex/metals)         — survival fallback if hub is down
- *   4. Static last-known-good           — ultimate safety net (clearly marked stale)
- *
- * Removed in this refactor (all now live inside the hub):
- *   - CoinGecko direct fetch
- *   - CoinCap fetch
- *   - Kraken fetch
- *   - Frankfurter fetch
- *   - Free Gold/Silver API fetch
- *
- * The two surviving local fallbacks (Binance, Stooq) only run for symbols the
- * hub didn't return — under normal operation the hub covers everything and
- * these never fire.
- */
-
-const FALLBACK_DATE = '2026-03-15';
-const FALLBACK_PRICES: Record<string, number> = {
-  BTCUSD: 70798,
-  ETHUSD: 2147.53,
-  XRPUSD: 1.40,
-  XAUUSD: 4505,
-  XAGUSD: 71.36,
-  EURUSD: 1.1559,
-  GBPUSD: 1.3352,
-  USDJPY: 159.53,
-  AUDUSD: 0.6939,
-  USDCAD: 1.3826,
-  NZDUSD: 0.5799,
-  USDCHF: 0.7922,
-};
-
 const STOOQ_SYMBOLS: Record<string, string> = {
   XAUUSD: 'xauusd',
   XAGUSD: 'xagusd',
@@ -55,127 +16,108 @@ const STOOQ_SYMBOLS: Record<string, string> = {
   NZDUSD: 'nzdusd',
   USDCHF: 'usdchf',
 };
+const EXPECTED_SYMBOLS = ['BTCUSD', 'ETHUSD', ...Object.keys(STOOQ_SYMBOLS)];
 
 interface PriceEntry {
   price: number;
-  change24h: number;
+  change24h: number | null;
   source: string;
 }
 
-async function fetchStooqFallback(
-  prices: Record<string, PriceEntry>,
-): Promise<void> {
+function validPrice(value: number): boolean {
+  return Number.isFinite(value) && value > 0;
+}
+
+async function fetchStooqPrices(prices: Record<string, PriceEntry>): Promise<void> {
   await Promise.allSettled(
-    Object.entries(STOOQ_SYMBOLS).map(async ([symbol, stooqSym]) => {
+    Object.entries(STOOQ_SYMBOLS).map(async ([symbol, stooqSymbol]) => {
       if (prices[symbol]) return;
       try {
-        const res = await fetch(`https://stooq.com/q/l/?s=${stooqSym}&f=c&h&e=csv`, {
+        const response = await fetch(`https://stooq.com/q/l/?s=${stooqSymbol}&f=c&h&e=csv`, {
           signal: AbortSignal.timeout(5000),
+          cache: 'no-store',
         });
-        if (!res.ok) return;
-        const text = await res.text();
-        const lines = text.trim().split('\n');
+        if (!response.ok) return;
+        const lines = (await response.text()).trim().split('\n');
         if (lines.length < 2) return;
-        const val = parseFloat(lines[1].trim());
-        if (!isNaN(val) && val > 0) {
-          prices[symbol] = { price: val, change24h: 0, source: 'stooq' };
+        const price = Number.parseFloat(lines[1].trim());
+        if (validPrice(price)) {
+          prices[symbol] = { price, change24h: null, source: 'stooq' };
         }
       } catch {
-        /* swallow — caller falls through to static last-known-good */
+        // Missing provider data remains absent from the response.
       }
     }),
   );
 }
 
 export async function GET() {
-  try {
-    const prices: Record<string, PriceEntry> = {};
+  const prices: Record<string, PriceEntry> = {};
+  const providerErrors: string[] = [];
 
-    // ── 1. Hub (primary) ──────────────────────────────────────────────────
-    if (isHubEnabled()) {
-      const hubQuotes = await fetchHubQuotes();
-      for (const q of hubQuotes) {
-        prices[q.symbol] = {
-          price: q.price,
-          change24h: q.change24h ?? 0,
-          source: q.source,
+  if (isHubEnabled()) {
+    try {
+      const quotes = await fetchHubQuotes();
+      for (const quote of quotes) {
+        if (!validPrice(quote.price)) continue;
+        prices[quote.symbol] = {
+          price: quote.price,
+          change24h: Number.isFinite(quote.change24h) ? quote.change24h! : null,
+          source: quote.source,
         };
       }
+    } catch {
+      providerErrors.push('hub');
     }
-
-    // ── 2. Binance crypto fallback (only if hub didn't cover the pair) ────
-    if (Object.keys(prices).length === 0 || hasMissingCrypto(prices)) {
-      const binanceQuotes = await fetchBinancePrices();
-      for (const q of binanceQuotes) {
-        if (!prices[q.symbol]) {
-          prices[q.symbol] = {
-            price: q.price,
-            change24h: q.change24h ?? 0,
-            source: q.source,
-          };
-        }
-      }
-    }
-
-    // ── 3. Stooq forex/metals fallback ────────────────────────────────────
-    if (hasMissingForexOrMetals(prices)) {
-      await fetchStooqFallback(prices);
-    }
-
-    // ── 4. Static last-known-good (clearly marked stale) ──────────────────
-    for (const [symbol, base] of Object.entries(FALLBACK_PRICES)) {
-      if (!prices[symbol]) {
-        prices[symbol] = { price: base, change24h: 0, source: 'fallback' };
-      }
-    }
-
-    const hasFallback = Object.values(prices).some((p) => p.source === 'fallback');
-
-    // Observability: per-request source distribution. Lets us see hub-vs-
-    // fallback share in Railway logs without per-symbol inspection.
-    const sourceCounts: Record<string, number> = {};
-    for (const p of Object.values(prices)) {
-      sourceCounts[p.source] = (sourceCounts[p.source] ?? 0) + 1;
-    }
-    console.info(
-      JSON.stringify({
-        evt: 'api/prices',
-        count: Object.keys(prices).length,
-        sources: sourceCounts,
-        stale: hasFallback,
-        hubEnabled: isHubEnabled(),
-      }),
-    );
-
-    return NextResponse.json({
-      timestamp: new Date().toISOString(),
-      count: Object.keys(prices).length,
-      prices,
-      hubEnabled: isHubEnabled(),
-      ...(hasFallback && { stale: true, fallbackDate: FALLBACK_DATE }),
-    });
-  } catch {
-    const fallback: Record<string, PriceEntry> = {};
-    for (const [sym, price] of Object.entries(FALLBACK_PRICES)) {
-      fallback[sym] = { price, change24h: 0, source: 'fallback' };
-    }
-    return NextResponse.json({
-      timestamp: new Date().toISOString(),
-      count: Object.keys(fallback).length,
-      prices: fallback,
-      stale: true,
-      fallbackDate: FALLBACK_DATE,
-    });
   }
-}
 
-const CRYPTO_CORE = ['BTCUSD', 'ETHUSD'];
-const FOREX_METAL_CORE = ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD'];
+  try {
+    const quotes = await fetchBinancePrices();
+    for (const quote of quotes) {
+      if (prices[quote.symbol] || !validPrice(quote.price)) continue;
+      prices[quote.symbol] = {
+        price: quote.price,
+        change24h: Number.isFinite(quote.change24h) ? quote.change24h! : null,
+        source: quote.source,
+      };
+    }
+  } catch {
+    providerErrors.push('binance');
+  }
 
-function hasMissingCrypto(prices: Record<string, PriceEntry>): boolean {
-  return CRYPTO_CORE.some((s) => !prices[s]);
-}
+  await fetchStooqPrices(prices);
 
-function hasMissingForexOrMetals(prices: Record<string, PriceEntry>): boolean {
-  return FOREX_METAL_CORE.some((s) => !prices[s]);
+  const sourceCounts: Record<string, number> = {};
+  for (const entry of Object.values(prices)) {
+    sourceCounts[entry.source] = (sourceCounts[entry.source] ?? 0) + 1;
+  }
+
+  const count = Object.keys(prices).length;
+  console.info(JSON.stringify({
+    evt: 'api/prices',
+    count,
+    sources: sourceCounts,
+    providerErrors,
+    hubEnabled: isHubEnabled(),
+  }));
+
+  const body = {
+    timestamp: new Date().toISOString(),
+    count,
+    prices,
+    hubEnabled: isHubEnabled(),
+    partial: providerErrors.length > 0 || EXPECTED_SYMBOLS.some((symbol) => !prices[symbol]),
+    unavailableSymbolsOmitted: true,
+  };
+
+  if (count === 0) {
+    return NextResponse.json(
+      { ...body, unavailable: true, error: 'No provider-backed prices are currently available.' },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
+
+  return NextResponse.json(body, {
+    headers: { 'Cache-Control': 'no-store' },
+  });
 }

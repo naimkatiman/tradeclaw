@@ -3,6 +3,7 @@ import 'server-only';
 import { query, queryOne, execute } from './db-pool';
 import { NOT_DARK_STRATEGY_SQL } from './signal-history';
 import { sendDiscordWebhook, type AlertSignal } from './alert-channels';
+import { evaluateCostAdjustedEdge, type EdgeGateVerdict } from './cost-adjusted-edge-gate';
 
 // Inlined from the deleted tier canon (Phase 2 pass A). Mirrors the public
 // Telegram channel's curated symbol list; pass B owns the broadcast rework
@@ -50,9 +51,24 @@ export function rowToAlertSignal(row: PendingRow): AlertSignal {
 export interface DiscordBroadcastResult {
   posted: number;
   attempted: number;
+  halted?: string;
 }
 
-export async function broadcastSignalsToDiscord(webhookUrl: string): Promise<DiscordBroadcastResult> {
+export async function broadcastSignalsToDiscord(
+  webhookUrl: string,
+  options: { edgeVerdict?: EdgeGateVerdict } = {},
+): Promise<DiscordBroadcastResult> {
+  const edge = options.edgeVerdict ?? await evaluateCostAdjustedEdge({
+    symbols: [...PUBLIC_CHANNEL_SYMBOLS],
+  });
+  if (!edge.allowed) {
+    return {
+      posted: 0,
+      attempted: 0,
+      halted: `cost_adjusted_edge:${edge.reason}`,
+    };
+  }
+
   // One row per (pair, direction): same free-symbol / confidence / age filters as
   // the Telegram public push, but gated on discord_posted_at so the two channels
   // keep independent ledgers. The NOT EXISTS guard suppresses a sibling timeframe
@@ -64,6 +80,8 @@ export async function broadcastSignalsToDiscord(webhookUrl: string): Promise<Dis
     FROM signal_history sh
     WHERE discord_posted_at IS NULL
       AND is_simulated = false
+      AND COALESCE(gate_blocked, FALSE) = FALSE
+      AND broadcast_blocked = FALSE
       -- Dark partner strategies (tv-*) are never publicly broadcast.
       AND ${NOT_DARK_STRATEGY_SQL}
       AND pair = ANY($1)

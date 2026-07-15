@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { autoFollowSignal, BASE_PRICES } from '../../../../lib/paper-trading';
+import { autoFollowSignal, PAPER_SYMBOLS } from '../../../../lib/paper-trading';
 import { readSessionFromRequest } from '../../../../lib/user-session';
 
 export async function POST(request: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   const { id, symbol, direction, entry, stopLoss, takeProfit, positionSizePct } =
     body as Record<string, unknown>;
 
-  if (typeof symbol !== 'string' || !BASE_PRICES[symbol]) {
+  if (typeof symbol !== 'string' || !(PAPER_SYMBOLS as readonly string[]).includes(symbol)) {
     return NextResponse.json({ error: 'Invalid or unknown symbol' }, { status: 400 });
   }
   if (direction !== 'BUY' && direction !== 'SELL') {

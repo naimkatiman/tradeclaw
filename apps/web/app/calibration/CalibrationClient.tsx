@@ -9,8 +9,8 @@ interface CalibrationBucket {
   confMax: number;
   count: number;
   wins: number;
-  winRate: number | null;         // actual win rate; null when the bucket is empty
-  midpoint: number;               // expected win rate (midpoint of bucket)
+  winRate: number | null;         // observed OHLCV-resolved win rate; null when empty
+  midpoint: number;               // normalized score-band midpoint reference
   calibrationError: number | null; // abs(winRate - midpoint); null when empty
 }
 
@@ -18,9 +18,7 @@ interface CalibrationData {
   buckets: CalibrationBucket[];
   overallAccuracy: number;
   totalSignals: number;
-  /** True ONLY for the synthetic catch-block fallback (live fetch failed). */
-  isSimulated: boolean;
-  /** Real but below the stability floor (1–19 counted, or 0). NOT simulated. */
+  /** Below the stability floor (1–19 counted, or 0). */
   insufficientData?: boolean;
   /** Signal count needed before calibration is treated as stable. */
   minStableSignals?: number;
@@ -42,24 +40,8 @@ function formatWindow(start?: number | null, end?: number | null): string | null
   return s === e ? s : `${s} – ${e}`;
 }
 
-/** Prominent per-card "DEMO" badge for the synthetic-fallback case. */
-function DemoBadge({ show }: { show: boolean }) {
-  if (!show) return null;
-  return (
-    <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
-      Demo
-    </span>
-  );
-}
-
-/** Window footer under each stat card: the date range the metric covers, or
- * a "simulated" marker when the values are the demo fallback (no real range). */
-function CardWindow({ label, simulated }: { label: string | null; simulated: boolean }) {
-  if (simulated) {
-    return <div className="text-[10px] text-amber-400/70 mt-1">simulated — no real window</div>;
-  }
-  if (!label) return null;
-  return <div className="text-[10px] text-zinc-600 mt-1">{label}</div>;
+function CardWindow({ label }: { label: string | null }) {
+  return <div className="text-[10px] text-zinc-600 mt-1">{label ?? 'no resolved window'}</div>;
 }
 
 function CalibrationChart({ buckets }: { buckets: CalibrationBucket[] }) {
@@ -179,11 +161,11 @@ function CalibrationChart({ buckets }: { buckets: CalibrationBucket[] }) {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.font = '11px system-ui';
     ctx.textAlign = 'center';
-    ctx.fillText('Confidence Bucket', pad.left + chartW / 2, H - 6);
+    ctx.fillText('Score Bucket', pad.left + chartW / 2, H - 6);
     ctx.save();
     ctx.translate(14, pad.top + chartH / 2);
     ctx.rotate(-Math.PI / 2);
-    ctx.fillText('Actual Win Rate', 0, 0);
+    ctx.fillText('Observed Win Rate', 0, 0);
     ctx.restore();
   }, [buckets]);
 
@@ -199,36 +181,22 @@ function CalibrationChart({ buckets }: { buckets: CalibrationBucket[] }) {
 export function CalibrationClient() {
   const [data, setData] = useState<CalibrationData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch('/api/calibration');
-      const json = await res.json();
+      const json = await res.json() as CalibrationData & { error?: string };
+      if (!res.ok) throw new Error(json.error ?? 'Calibration data is unavailable');
       setData(json);
-    } catch {
-      // fallback demo data
-      const buckets: CalibrationBucket[] = [
-        { label: '50-59%', confMin: 0.50, confMax: 0.60, count: 18, wins: 10, winRate: 0.556, midpoint: 0.545, calibrationError: 0.011 },
-        { label: '60-69%', confMin: 0.60, confMax: 0.70, count: 24, wins: 16, winRate: 0.667, midpoint: 0.645, calibrationError: 0.022 },
-        { label: '70-79%', confMin: 0.70, confMax: 0.80, count: 31, wins: 22, winRate: 0.710, midpoint: 0.745, calibrationError: 0.035 },
-        { label: '80-89%', confMin: 0.80, confMax: 0.90, count: 19, wins: 15, winRate: 0.789, midpoint: 0.845, calibrationError: 0.056 },
-        { label: '90-99%', confMin: 0.90, confMax: 1.00, count: 8, wins: 7, winRate: 0.875, midpoint: 0.945, calibrationError: 0.070 },
-      ];
-      setData({
-        buckets,
-        overallAccuracy: 0.700,
-        totalSignals: 100,
-        // Genuine synthetic fallback: the live fetch failed, these are
-        // hand-authored demo values — NOT thin real data.
-        isSimulated: true,
-        insufficientData: false,
-        brier: 0.21,
-        ece: 0.038,
-        updatedAt: new Date().toISOString(),
-      });
+    } catch (cause) {
+      setData(null);
+      setError(cause instanceof Error ? cause.message : 'Calibration data is unavailable');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   useEffect(() => { setTimeout(() => load(), 0); }, []);
@@ -241,15 +209,30 @@ export function CalibrationClient() {
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center px-4">
+        <div className="max-w-md rounded-xl border border-amber-500/30 bg-amber-500/10 p-6 text-center">
+          <AlertCircle className="mx-auto h-8 w-8 text-amber-400" />
+          <h1 className="mt-3 text-lg font-semibold text-amber-300">Calibration data unavailable</h1>
+          <p className="mt-2 text-sm text-amber-200/80">
+            {error ?? 'The calibration endpoint returned no data.'} No demo buckets or substitute metrics are shown.
+          </p>
+          <button
+            onClick={load}
+            className="mt-5 inline-flex items-center gap-2 rounded-lg border border-amber-400/30 px-4 py-2 text-sm text-amber-200 hover:bg-amber-500/10"
+          >
+            <RefreshCw className="h-4 w-4" /> Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const wellCalibrated = data.ece !== null && data.ece < 0.05;
-  const briferScore = data.brier === null ? '—' : data.brier < 0.20 ? 'Excellent' : data.brier < 0.25 ? 'Good' : 'Fair';
-  // Two distinct provenance states, never conflated:
-  //  - isSimulated: hand-authored demo values (live fetch failed)
-  //  - insufficientData: REAL data, but below the stability floor (1–19 or 0)
-  const isSimulated = data.isSimulated;
-  const insufficientData = !isSimulated && (data.insufficientData ?? false);
+  const brierAssessment = data.brier === null ? 'unavailable' : data.brier < 0.20 ? 'Excellent' : data.brier < 0.25 ? 'Good' : 'Fair';
+  const eceAssessment = data.ece === null ? 'unavailable' : wellCalibrated ? 'well calibrated in sample' : 'needs review';
+  const insufficientData = data.insufficientData ?? false;
   const minStableSignals = data.minStableSignals ?? 20;
   const windowLabel = formatWindow(data.windowStart, data.windowEnd);
 
@@ -261,9 +244,9 @@ export function CalibrationClient() {
           <div>
             <h1 className="text-lg font-semibold flex items-center gap-2">
               <Target className="w-5 h-5 text-emerald-400" />
-              Confidence Calibration
+              Score Calibration Research
             </h1>
-            <p className="text-xs text-zinc-400 mt-0.5">Does 80% confidence → 80% win rate?</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Observed outcome rates by indicator-agreement score band</p>
           </div>
           <button
             onClick={load}
@@ -282,76 +265,59 @@ export function CalibrationClient() {
           <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
           <div className="text-sm text-zinc-300 space-y-1">
             <p className="font-medium text-white">What is calibration?</p>
-            <p>A well-calibrated model means: signals labeled <strong>80% confidence</strong> should win roughly <strong>80% of the time</strong>, signals labeled <strong>60%</strong> should win ~<strong>60%</strong> of the time, etc.</p>
-            <p className="text-zinc-400">The chart below compares expected win rates (horizontal lines) vs actual outcomes (bars). Perfect calibration = all bars touching the lines.</p>
+            <p>TradeClaw&apos;s raw score describes indicator agreement, not a probability of profit. This diagnostic tests whether historical score bands align with OHLCV-resolved outcome rates.</p>
+            <p className="text-zinc-400">Bars use counted recorded outcomes only. Horizontal references show each score band&apos;s midpoint; they are not promised win rates or broker-fill results.</p>
           </div>
         </div>
 
-        {/* Genuine simulated fallback — live data unavailable, values are demo. */}
-        {isSimulated && (
-          <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-4 flex gap-3 text-sm">
-            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-amber-300 font-semibold">Simulated / demo data — not measured</p>
-              <p className="text-amber-200/80 mt-0.5">Live calibration data is unavailable, so these are hand-authored demo values. They do not reflect real signal outcomes.</p>
-            </div>
-          </div>
-        )}
-
-        {/* Real-but-thin data — NOT simulated, just below the stability floor. */}
+        {/* Recorded but below the stability floor. */}
         {insufficientData && (
           <div className="bg-zinc-500/10 border border-zinc-500/30 rounded-xl p-4 flex gap-3 text-sm">
             <AlertCircle className="w-5 h-5 text-zinc-400 shrink-0 mt-0.5" />
             <div>
               <p className="text-zinc-300 font-medium">
-                Insufficient live data (N={data.totalSignals}) — needs ≥{minStableSignals} for stable calibration
+                Insufficient recorded data (N={data.totalSignals}) — needs ≥{minStableSignals} for stable calibration
               </p>
               <p className="text-zinc-400/80 mt-0.5">
-                These are real tracked-signal outcomes, but the sample is still too small for the per-bucket win-rates to be stable. The numbers will firm up as more signals resolve.
+                These are recorded, OHLCV-resolved signal outcomes, but the sample is too small for stable per-bucket win rates. They are not broker fills or account results.
               </p>
             </div>
           </div>
         )}
 
-        {/* Stats row. Each card carries a prominent DEMO badge when the values
-            are the synthetic fallback (so a card seen out of context is never
-            mistaken for measured data), plus the window the metrics cover. */}
+        {/* Stats row. Missing metrics remain unavailable. */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
             <div className="flex items-center justify-between mb-1">
               <div className="text-xs text-zinc-400">Total Signals</div>
-              <DemoBadge show={isSimulated} />
             </div>
             <div className="text-2xl font-bold text-white">{data.totalSignals}</div>
-            <CardWindow label={windowLabel} simulated={isSimulated} />
+            <CardWindow label={windowLabel} />
           </div>
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
             <div className="flex items-center justify-between mb-1">
               <div className="text-xs text-zinc-400">Overall Win Rate</div>
-              <DemoBadge show={isSimulated} />
             </div>
-            <div className="text-2xl font-bold text-emerald-400">{(data.overallAccuracy * 100).toFixed(1)}%</div>
-            <CardWindow label={windowLabel} simulated={isSimulated} />
+            <div className="text-2xl font-bold text-emerald-400">{data.totalSignals === 0 ? '—' : `${(data.overallAccuracy * 100).toFixed(1)}%`}</div>
+            <CardWindow label={windowLabel} />
           </div>
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
             <div className="flex items-center justify-between mb-1">
               <div className="text-xs text-zinc-400">Brier Score</div>
-              <DemoBadge show={isSimulated} />
             </div>
             <div className="text-2xl font-bold text-white">{data.brier !== null ? data.brier.toFixed(3) : '—'}</div>
-            <div className="text-xs text-zinc-500 mt-0.5">{briferScore} · lower is better</div>
-            <CardWindow label={windowLabel} simulated={isSimulated} />
+            <div className="text-xs text-zinc-500 mt-0.5">{brierAssessment} · lower is better</div>
+            <CardWindow label={windowLabel} />
           </div>
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
             <div className="flex items-center justify-between mb-1">
               <div className="text-xs text-zinc-400">Calibration Error</div>
-              <DemoBadge show={isSimulated} />
             </div>
             <div className={`text-2xl font-bold ${wellCalibrated ? 'text-emerald-400' : 'text-zinc-400'}`}>
               {data.ece !== null ? `${(data.ece * 100).toFixed(1)}%` : '—'}
             </div>
-            <div className="text-xs text-zinc-500 mt-0.5">ECE · {wellCalibrated ? 'well calibrated' : 'needs tuning'}</div>
-            <CardWindow label={windowLabel} simulated={isSimulated} />
+            <div className="text-xs text-zinc-500 mt-0.5">ECE · {eceAssessment}</div>
+            <CardWindow label={windowLabel} />
           </div>
         </div>
 
@@ -377,10 +343,18 @@ export function CalibrationClient() {
               </span>
             </div>
           </div>
-          <CalibrationChart buckets={data.buckets} />
-          <p className="text-xs text-zinc-500 mt-3 text-center">
-            Bars = actual win rate · Horizontal lines = expected win rate · Count shown above each bar
-          </p>
+          {data.totalSignals > 0 ? (
+            <>
+              <CalibrationChart buckets={data.buckets} />
+              <p className="text-xs text-zinc-500 mt-3 text-center">
+                Bars = observed OHLCV-resolved win rate · Horizontal lines = score-band midpoint reference · Count shown above each bar
+              </p>
+            </>
+          ) : (
+            <div className="rounded-lg border border-zinc-800 bg-zinc-950/50 px-4 py-12 text-center text-sm text-zinc-500">
+              No counted resolved outcomes are available, so no calibration curve is drawn.
+            </div>
+          )}
         </div>
 
         {/* Bucket breakdown table */}
@@ -391,27 +365,27 @@ export function CalibrationClient() {
               Bucket Breakdown
             </h2>
             <span className="text-[11px] text-zinc-500">
-              {isSimulated ? 'simulated — no real window' : windowLabel ?? 'no resolved signals yet'}
+              {windowLabel ?? 'no resolved signals yet'}
             </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs text-zinc-400 border-b border-zinc-800">
-                  <th className="px-5 py-3 text-left font-normal">Confidence</th>
+                  <th className="px-5 py-3 text-left font-normal">Score band</th>
                   <th className="px-4 py-3 text-right font-normal">Count</th>
                   <th className="px-4 py-3 text-right font-normal">Wins</th>
-                  <th className="px-4 py-3 text-right font-normal">Expected</th>
-                  <th className="px-4 py-3 text-right font-normal">Actual</th>
+                  <th className="px-4 py-3 text-right font-normal">Band midpoint</th>
+                  <th className="px-4 py-3 text-right font-normal">Observed</th>
                   <th className="px-4 py-3 text-right font-normal">Error</th>
                   <th className="px-4 py-3 text-right font-normal">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {data.buckets.map((b) => {
-                  const diff = (b.winRate ?? b.midpoint) - b.midpoint;
-                  const isGood = Math.abs(diff) < 0.05;
-                  const isOver = diff < -0.05;
+                  const diff = b.winRate === null ? null : b.winRate - b.midpoint;
+                  const isGood = diff !== null && Math.abs(diff) < 0.05;
+                  const isOver = diff !== null && diff < -0.05;
                   return (
                     <tr key={b.label} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
                       <td className="px-5 py-3 font-mono text-zinc-300">{b.label}</td>
@@ -422,7 +396,7 @@ export function CalibrationClient() {
                         {b.winRate !== null ? `${(b.winRate * 100).toFixed(1)}%` : '—'}
                       </td>
                       <td className="px-4 py-3 text-right text-zinc-400 font-mono text-xs">
-                        {b.count > 0 ? `${diff >= 0 ? '+' : ''}${(diff * 100).toFixed(1)}%` : '—'}
+                        {diff !== null ? `${diff >= 0 ? '+' : ''}${(diff * 100).toFixed(1)}%` : '—'}
                       </td>
                       <td className="px-4 py-3 text-right">
                         {b.count === 0 ? (
@@ -457,15 +431,9 @@ export function CalibrationClient() {
           </h2>
           <div className="space-y-2 text-zinc-400">
             <p><strong className="text-zinc-300">Outcome definition:</strong> A signal is a &quot;win&quot; if price hits Take Profit 1 before Stop Loss within 24 hours of signal generation.</p>
-            <p><strong className="text-zinc-300">Brier Score:</strong> Mean squared error between confidence (0-1) and outcome (0 or 1). Score of 0 = perfect, 0.25 = random, 1.0 = perfectly wrong.</p>
-            <p><strong className="text-zinc-300">ECE (Expected Calibration Error):</strong> Weighted average of the difference between predicted confidence and actual win rate across buckets. Below 5% is considered well-calibrated.</p>
-            <p><strong className="text-zinc-300">Data source:</strong> {
-              isSimulated
-                ? 'Simulated demo values — live calibration data is currently unavailable.'
-                : insufficientData
-                  ? `Live tracked signals from the TradeClaw signal engine (N=${data.totalSignals} — below the ${minStableSignals}-signal floor for stable calibration).`
-                  : 'Live tracked signals from the TradeClaw signal engine.'
-            }</p>
+            <p><strong className="text-zinc-300">Brier Score:</strong> Diagnostic mean squared error when treating the normalized score as a probability candidate. TradeClaw&apos;s published raw score itself remains indicator agreement.</p>
+            <p><strong className="text-zinc-300">ECE (Expected Calibration Error):</strong> Sample-weighted difference between normalized score bands and observed OHLCV-resolved outcome rates.</p>
+            <p><strong className="text-zinc-300">Data source:</strong> Counted resolved records from TradeClaw signal history; simulated, gate-blocked, and placeholder rows are excluded. {insufficientData ? `N=${data.totalSignals} is below the ${minStableSignals}-record stability floor.` : 'No broker fills or account results are represented.'}</p>
           </div>
         </div>
 

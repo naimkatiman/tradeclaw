@@ -21,18 +21,22 @@ import {
 } from 'lucide-react';
 
 const PAYLOAD_EXAMPLE = `{
-  "pair": "BTCUSD",
-  "direction": "BUY",
-  "confidence": 87,
-  "price": 67234.50,
-  "tp": 68500.00,
-  "sl": 66100.00,
-  "timeframe": "H1",
+  "event": "signal.new",
   "timestamp": "2026-03-29T10:00:00Z",
-  "indicators": {
-    "rsi": 42.3,
-    "macd": 0.0012,
-    "ema20": 67100
+  "signal": {
+    "id": "SIG-BTCUSD-H1-BUY-EXAMPLE",
+    "symbol": "BTCUSD",
+    "direction": "BUY",
+    "confidence": 87,
+    "entry": 67234.50,
+    "stopLoss": 66100.00,
+    "takeProfit": [68500.00],
+    "timeframe": "H1",
+    "indicators": {
+      "rsi": 42.3,
+      "macd": "bullish",
+      "ema": "up"
+    }
   }
 }`;
 
@@ -41,7 +45,7 @@ const ZAP_TEMPLATES = [
     id: 'email',
     icon: Mail,
     title: 'Signal → Email',
-    subtitle: 'Get an email every time TradeClaw fires a BUY or SELL signal',
+    subtitle: 'Map an eligible webhook delivery into an email action',
     color: 'from-blue-500/20 to-cyan-500/10 border-blue-500/30',
     badge: 'Most Popular',
     badgeColor: 'bg-blue-500/20 text-blue-400',
@@ -65,7 +69,7 @@ const ZAP_TEMPLATES = [
       {
         num: '04',
         title: 'Configure the Email action',
-        desc: 'Choose Gmail (or Email by Zapier) as the action. Map fields: Subject = "{{pair}} {{direction}} Signal", Body = "Confidence: {{confidence}}% | Entry: {{price}} | TP: {{tp}} | SL: {{sl}}".',
+        desc: 'Choose Gmail (or Email by Zapier) as the action. Map nested fields such as signal.symbol, signal.direction, signal.confidence, signal.entry, signal.takeProfit, and signal.stopLoss.',
       },
       {
         num: '05',
@@ -78,7 +82,7 @@ const ZAP_TEMPLATES = [
     id: 'sheets',
     icon: Sheet,
     title: 'Signal → Google Sheets',
-    subtitle: 'Log every signal to a spreadsheet for analysis and backtesting',
+    subtitle: 'Map delivered signal payloads into spreadsheet rows',
     color: 'from-emerald-500/20 to-green-500/10 border-emerald-500/30',
     badge: 'Best for Analysis',
     badgeColor: 'bg-emerald-500/20 text-emerald-400',
@@ -102,12 +106,12 @@ const ZAP_TEMPLATES = [
       {
         num: '04',
         title: 'Map JSON fields to columns',
-        desc: 'In the Google Sheets action, map: timestamp → Timestamp, pair → Pair, direction → Direction, confidence → Confidence, price → Price, tp → TP, sl → SL, timeframe → Timeframe, indicators.rsi → RSI, indicators.macd → MACD, indicators.ema20 → EMA20.',
+        desc: 'In the Google Sheets action, map timestamp plus signal.symbol, signal.direction, signal.confidence, signal.entry, signal.takeProfit, signal.stopLoss, signal.timeframe, and the nested signal.indicators fields.',
       },
       {
         num: '05',
         title: 'Publish and monitor',
-        desc: 'Turn on your Zap. Every new signal from TradeClaw will append a row to your sheet automatically.',
+        desc: 'Turn on your Zap. A row is appended when an authenticated TradeClaw dispatcher sends an eligible signal.new payload to the configured webhook.',
       },
     ],
   },
@@ -129,12 +133,12 @@ const ZAP_TEMPLATES = [
       {
         num: '02',
         title: 'Register in TradeClaw',
-        desc: 'Settings → Webhooks → Add Webhook → paste URL → set "Slack" as the name → enable. TradeClaw auto-formats Slack Block Kit messages when it detects a Slack webhook.',
+        desc: 'Settings → Webhooks → Add Webhook → paste the Zapier Catch Hook URL → enable. Because the destination is Zapier, TradeClaw sends its standard JSON payload; format the Slack action inside Zapier.',
       },
       {
         num: '03',
         title: 'Add Formatter (optional)',
-        desc: 'Use Zapier Formatter to build a richer message: "{{direction}} {{pair}} at ${{price}} — {{confidence}}% confidence. TP: ${{tp}} | SL: ${{sl}}".',
+        desc: 'Use Zapier Formatter to build a message from the nested signal fields. Treat confidence as a strategy score, not a probability or execution authorization.',
       },
       {
         num: '04',
@@ -168,7 +172,7 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
   );
 }
 
-function ZapCard({ template }: { template: typeof ZAP_TEMPLATES[0] }) {
+function ZapCard({ template }: { template: (typeof ZAP_TEMPLATES)[0] }) {
   const [open, setOpen] = useState(false);
   const Icon = template.icon;
 
@@ -199,7 +203,7 @@ function ZapCard({ template }: { template: typeof ZAP_TEMPLATES[0] }) {
             style={{ background: 'linear-gradient(135deg, #FF4A00, #ff6b3d)' }}
           >
             <Zap className="w-4 h-4" />
-            Connect on Zapier
+            Open Zapier Guide
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
           <button
@@ -252,18 +256,21 @@ export default function ZapierClient() {
           <div className="flex items-center gap-3 mb-4">
             <div
               className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #FF4A00, #ff6b3d)' }}
+              style={{
+                background: 'linear-gradient(135deg, #FF4A00, #ff6b3d)',
+              }}
             >
               <Zap className="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white">TradeClaw × Zapier</h1>
-              <p className="text-zinc-400 text-sm mt-0.5">Connect to 6,000+ apps. No code required.</p>
+              <p className="text-zinc-400 text-sm mt-0.5">Manual outbound-webhook setup recipes.</p>
             </div>
           </div>
           <p className="text-zinc-300 text-base leading-relaxed max-w-2xl">
-            TradeClaw fires a webhook every time a signal is generated. Use Zapier to route those signals
-            to any tool you already use — email, spreadsheets, Slack, Notion, Airtable, and thousands more.
+            Configure a Zapier Catch Hook as an outbound destination. Delivery occurs only when an authenticated
+            dispatcher submits a payload; entry-like signal.new events also require the reproducible cost-adjusted
+            evidence gate. This is not a native Zapier app or an automatic every-generated-signal trigger.
           </p>
 
           <div className="flex flex-wrap gap-3 mt-6">
@@ -272,7 +279,9 @@ export default function ZapierClient() {
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm px-5 py-2.5 rounded-xl font-semibold text-white transition-all hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg, #FF4A00, #ff6b3d)' }}
+              style={{
+                background: 'linear-gradient(135deg, #FF4A00, #ff6b3d)',
+              }}
             >
               <ExternalLink className="w-4 h-4" />
               Create Free Zapier Account
@@ -295,10 +304,26 @@ export default function ZapierClient() {
           </h2>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             {[
-              { icon: Zap, label: 'TradeClaw fires signal', sub: 'RSI + MACD confluence detected' },
-              { icon: Webhook, label: 'Webhook is sent', sub: 'JSON payload to your Zapier URL' },
-              { icon: Code, label: 'Zapier receives it', sub: 'Trigger activates your Zap' },
-              { icon: Globe, label: 'Action runs', sub: 'Email, Sheet, Slack, and more' },
+              {
+                icon: Zap,
+                label: 'Dispatcher submits event',
+                sub: 'Authenticated signal.new or signal.test',
+              },
+              {
+                icon: Webhook,
+                label: 'TradeClaw evaluates delivery',
+                sub: 'Entry events fail closed on evidence',
+              },
+              {
+                icon: Code,
+                label: 'Zapier receives it',
+                sub: 'Trigger activates your Zap',
+              },
+              {
+                icon: Globe,
+                label: 'Action runs',
+                sub: 'Email, Sheet, Slack, and more',
+              },
             ].map((item, i) => {
               const ItemIcon = item.icon;
               return (
@@ -321,7 +346,11 @@ export default function ZapierClient() {
 
         {/* Zap Templates */}
         <div className="mb-12">
-          <h2 className="text-xl font-bold text-white mb-6">Ready-to-use Zap Templates</h2>
+          <h2 className="text-xl font-bold text-white mb-2">Manual Setup Recipes</h2>
+          <p className="text-sm text-zinc-400 mb-6">
+            These links and steps do not install a TradeClaw Zapier app. Verify field mappings and delivery behavior in
+            your own Zap before relying on it.
+          </p>
           <div className="space-y-4">
             {ZAP_TEMPLATES.map((template) => (
               <ZapCard key={template.id} template={template} />
@@ -337,14 +366,26 @@ export default function ZapierClient() {
           </h2>
           <ol className="space-y-4">
             {[
-              { step: '1', text: 'In Zapier, create a new Zap and select Webhooks by Zapier → Catch Hook as the trigger.' },
-              { step: '2', text: 'Copy the generated Zapier webhook URL (looks like https://hooks.zapier.com/hooks/catch/...).' },
+              {
+                step: '1',
+                text: 'In Zapier, create a new Zap and select Webhooks by Zapier → Catch Hook as the trigger.',
+              },
+              {
+                step: '2',
+                text: 'Copy the generated Zapier webhook URL (looks like https://hooks.zapier.com/hooks/catch/...).',
+              },
               {
                 step: '3',
                 text: 'In TradeClaw, go to Settings → Webhooks → Add Webhook. Paste the Zapier URL, give it a name, and click Save.',
               },
-              { step: '4', text: 'Click the "Test" button on your new webhook in TradeClaw. A sample signal payload will be sent to Zapier.' },
-              { step: '5', text: 'Back in Zapier, click "Test trigger" to confirm the data arrived. Then build your action.' },
+              {
+                step: '4',
+                text: 'Click the "Test" button on your new webhook in TradeClaw. A sample signal payload will be sent to Zapier.',
+              },
+              {
+                step: '5',
+                text: 'Back in Zapier, click "Test trigger" to confirm the data arrived. Then build your action.',
+              },
             ].map(({ step, text }) => (
               <li key={step} className="flex gap-4">
                 <span className="flex-shrink-0 w-7 h-7 rounded-full bg-zinc-800 border border-zinc-700 text-xs font-bold text-zinc-300 flex items-center justify-center">
@@ -376,20 +417,20 @@ export default function ZapierClient() {
             <CopyButton text={PAYLOAD_EXAMPLE} label="Copy JSON" />
           </div>
           <p className="text-sm text-zinc-400 mb-4">
-            This is the JSON body TradeClaw sends to your Zapier webhook on every signal. Use these field names
-            when mapping data in Zapier.
+            This is the standard JSON shape for a generic outbound webhook. Use nested signal fields when mapping data
+            in Zapier. A signal.test payload can verify setup without asserting an entry.
           </p>
           <pre className="text-xs text-zinc-300 bg-zinc-950 rounded-xl p-4 overflow-x-auto border border-zinc-800 leading-relaxed">
             {PAYLOAD_EXAMPLE}
           </pre>
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
-              { field: 'pair', desc: 'Asset symbol (e.g. BTCUSD)' },
-              { field: 'direction', desc: 'BUY or SELL' },
-              { field: 'confidence', desc: 'Score 0–100' },
-              { field: 'price', desc: 'Entry price' },
-              { field: 'tp', desc: 'Take profit level' },
-              { field: 'sl', desc: 'Stop loss level' },
+              { field: 'signal.symbol', desc: 'Asset symbol (e.g. BTCUSD)' },
+              { field: 'signal.direction', desc: 'BUY or SELL' },
+              { field: 'signal.confidence', desc: 'Strategy score 0-100' },
+              { field: 'signal.entry', desc: 'Reference entry price' },
+              { field: 'signal.takeProfit', desc: 'Reference target array' },
+              { field: 'signal.stopLoss', desc: 'Reference stop level' },
             ].map(({ field, desc }) => (
               <div key={field} className="bg-zinc-800/60 rounded-lg p-3 border border-zinc-700/50">
                 <code className="text-xs text-emerald-400 font-mono">{field}</code>
@@ -407,11 +448,15 @@ export default function ZapierClient() {
           <div>
             <h3 className="text-sm font-semibold text-white mb-1">Prefer Make.com (formerly Integromat)?</h3>
             <p className="text-sm text-zinc-400">
-              TradeClaw webhooks work with any platform that can receive an HTTP POST. Check out our{' '}
-              <Link href="/marketplace" className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2">
-                Webhook Marketplace
+              TradeClaw can post standard JSON to an allowed HTTPS endpoint. Services that require a different payload
+              shape or authentication may need a relay. Review the{' '}
+              <Link
+                href="/marketplace"
+                className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
+              >
+                webhook recipe catalog
               </Link>{' '}
-              for Make.com, n8n, IFTTT, Pipedream, and Airtable templates.
+              for illustrative setup paths.
             </p>
           </div>
         </div>
@@ -427,7 +472,8 @@ export default function ZapierClient() {
           <Zap className="w-8 h-8 mx-auto mb-3" style={{ color: '#FF4A00' }} />
           <h3 className="text-xl font-bold text-white mb-2">Ready to automate?</h3>
           <p className="text-zinc-400 text-sm mb-6 max-w-sm mx-auto">
-            Zapier is free for up to 100 tasks/month. That&apos;s plenty to get started routing signals to your tools.
+            Zapier controls its own plans and limits. Review its current terms, then test the full path with a
+            signal.test payload before enabling a workflow.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
@@ -435,7 +481,9 @@ export default function ZapierClient() {
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 text-sm px-6 py-3 rounded-xl font-semibold text-white transition-all hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg, #FF4A00, #ff6b3d)' }}
+              style={{
+                background: 'linear-gradient(135deg, #FF4A00, #ff6b3d)',
+              }}
             >
               <ExternalLink className="w-4 h-4" />
               Start Free on Zapier

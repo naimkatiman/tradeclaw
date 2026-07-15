@@ -41,8 +41,8 @@ jobs:
             const weekNum = getISOWeek(now);
 
             // Real repo metrics from the GitHub API. We deliberately do NOT
-            // republish signal performance numbers here: the only honest source
-            // is the live, resolved-signal report at tradeclaw.win/report. This
+            // republish signal outcome numbers here: the evidence source is the
+            // observed-provenance study at tradeclaw.win/report. This
             // workflow used to fabricate win rate / signal count / top asset with
             // a seeded PRNG — removed so nothing on a public surface is invented.
             const repoData = await github.rest.repos.get({
@@ -53,7 +53,7 @@ jobs:
             const forks = repoData.data.forks_count;
 
             // Active contributors in the last 7 days (real commit authors).
-            let activeContributors = 0;
+            let activeContributors = null;
             try {
               const since = new Date(now.getTime() - 7 * 86400000).toISOString();
               const commits = await github.rest.repos.listCommits({
@@ -67,7 +67,7 @@ jobs:
               );
               activeContributors = uniqueAuthors.size;
             } catch {
-              activeContributors = 0;
+              activeContributors = null;
             }
 
             // Week date label
@@ -83,7 +83,7 @@ jobs:
             const body = [
               `## 📊 TradeClaw Weekly Pulse — Week of ${weekLabel}`,
               '',
-              `> Auto-generated every Monday. Live signal performance (win rate, signals resolved, top asset) → [tradeclaw.win/report](https://tradeclaw.win/report)`,
+              `> This workflow is scheduled for Mondays. A successful run posts repository metrics from GitHub; signal-outcome evidence remains on [tradeclaw.win/report](https://tradeclaw.win/report).`,
               '',
               '---',
               '',
@@ -93,17 +93,17 @@ jobs:
               '|--------|-------|',
               `| ⭐ Total Stars | **${stars}** |`,
               `| 🍴 Forks | **${forks}** |`,
-              `| 🔄 Active Contributors (7d) | **${activeContributors}** |`,
+              `| 🔄 Active Contributors (7d) | **${activeContributors ?? 'unavailable'}** |`,
               '',
               '---',
               '',
-              '### 📈 Signal Performance',
+              '### 📈 Signal Outcome Evidence',
               '',
-              'We keep all signal numbers on the live, real-data surfaces so they can never drift from what actually resolved:',
+              'Outcome numbers are kept on provenance-aware product surfaces. They may show unavailable until enough approved observed-OHLCV records exist:',
               '',
-              '- [📊 Weekly Report](https://tradeclaw.win/report) — this week’s resolved win rate, signal count, and top asset',
-              '- [📈 Live Signals](https://tradeclaw.win/dashboard) — real-time signal feed',
-              '- [🏆 Leaderboard](https://tradeclaw.win/leaderboard) — accuracy by asset',
+              '- [📊 Weekly Report](https://tradeclaw.win/report) — counted directional outcomes and methodology, when available',
+              '- [📈 Current Candidates](https://tradeclaw.win/dashboard) — rule-generated candidates; not broker orders',
+              '- [🏆 Outcome Study](https://tradeclaw.win/leaderboard) — observed-provenance directional outcomes by asset',
               '',
               '---',
               '',
@@ -185,7 +185,7 @@ jobs:
                 [{ data: 'Metric', header: true }, { data: 'Value', header: true }],
                 ['Stars', String(stars)],
                 ['Forks', String(forks)],
-                ['Active Contributors (7d)', String(activeContributors)],
+                ['Active Contributors (7d)', activeContributors == null ? 'unavailable' : String(activeContributors)],
                 ['Discussion', url],
               ])
               .write();

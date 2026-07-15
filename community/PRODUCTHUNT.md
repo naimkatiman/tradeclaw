@@ -1,199 +1,107 @@
-# TradeClaw — Product Hunt Launch Kit
+# TradeClaw Product Hunt Launch Kit
 
-## Launch Target
+This file contains publishable copy. Re-check every linked surface immediately before launch.
 
-**Date:** Tuesday or Wednesday (optimal: Tuesday)
-**Time:** 12:01 AM PST (Product Hunt resets at midnight PST — earliest submission gets most time)
-**URL:** https://www.producthunt.com/posts/tradeclaw
+## Approved Claim Boundary
 
----
+- TradeClaw source code is MIT licensed.
+- Self-hosting requires infrastructure and may require paid market-data, messaging, model, or broker providers.
+- The engine publishes rule-scored signal candidates. A score is not a probability of profit.
+- Historical statistics cover counted 24-hour outcomes resolved from OHLCV data. They are not broker fills or portfolio returns.
+- Simulated, gate-blocked, unresolved, and force-expired placeholder rows are excluded from counted results.
+- Broker execution is not a universal product capability. Do not imply that a candidate was executed unless a broker fill proves it.
+- Do not promise setup times, uptime, profitability, user counts, or provider availability.
 
-## Core Assets
+## Listing Copy
 
-### Tagline (60 chars max)
+### Tagline
 
-```
-Self-hosted AI trading signals. Free. Open-source.
-```
-
-**Alternatives:**
-```
-Open-source trading signals you actually own
-AI trading signals, self-hosted in 60 seconds
-The open-source TradingView you can self-host
+```text
+Audit and self-host rule-scored trading research
 ```
 
-### Short Description (260 chars max)
+### Short Description
 
-```
-TradeClaw is an open-source, self-hosted trading signal platform. Generates BUY/SELL/HOLD signals for forex, crypto & metals using RSI, MACD, Bollinger Bands. Docker Compose deploy. Free forever. MIT license.
+```text
+TradeClaw is an MIT-licensed, self-hostable platform for generating and auditing rule-scored trading candidates across configured data providers. It publishes methodology and counted OHLCV-resolved outcomes; it does not claim broker execution or portfolio profit.
 ```
 
-### Full Description (for PH listing body)
+### Full Description
 
 ```markdown
-**TradeClaw** is an open-source trading signal platform you can self-host on any VPS in under 60 seconds.
+**TradeClaw** is an open-source platform for inspecting how trading candidates are generated and evaluated.
 
-**Why we built it:**
-Most trading signal services are expensive, cloud-locked, and opaque. TradeClaw is different — the signal logic is fully visible, you own your data, and it's free forever.
+What the repository includes:
 
-**What it does:**
-- 🎯 AI-generated BUY/SELL/HOLD signals for forex, crypto & metals
-- 📊 Technical analysis: RSI, MACD, Bollinger Bands, EMA, ATR, VWAP
-- 🔁 Backtesting engine with win rate, Sharpe ratio, max drawdown
-- 🔔 Push notifications via Telegram & Discord
-- 🔌 REST API with OpenAPI 3.0 spec
-- 🐳 One-command Docker deploy: `docker compose up`
-- 🔓 MIT license — use it, fork it, modify it
+- rule-based indicator and multi-timeframe analysis
+- a signal-candidate API and dashboard
+- persisted signal history with explicit data provenance
+- counted 24-hour OHLCV outcome studies with exclusions disclosed
+- alert adapters and self-hosting configuration
+- Docker Compose configuration for operators who meet the documented prerequisites
 
-**Tech stack:**
-Next.js 15 · TypeScript · TimescaleDB · Redis · Docker
+The source is MIT licensed. Running it is not necessarily cost-free: hosting, market data, messaging, model APIs, and broker services may charge separately.
 
-**Demo:** https://tradeclaw.win
-**Repo:** https://github.com/naimkatiman/tradeclaw
+TradeClaw does not promise profitability. A rule score is not a calibrated probability, OHLCV studies are not broker fills, and the repository does not provide universal live trade execution.
+
+Project site: https://tradeclaw.win
+Source: https://github.com/naimkatiman/tradeclaw
 ```
 
----
+## Gallery Checklist
 
-## Gallery Assets (prepare these before launch)
+Only capture a feature after verifying the displayed state and provenance.
 
-| # | Asset | Description | Dimensions |
-|---|-------|-------------|------------|
-| 1 | Hero screenshot | Dashboard with live signals grid | 1270×952 |
-| 2 | Signal card closeup | Single BUY signal card showing RSI/MACD/BB | 1270×952 |
-| 3 | Backtest results | Backtest table with win rate, Sharpe ratio | 1270×952 |
-| 4 | Docker deploy | Terminal screenshot of `docker compose up` | 1270×952 |
-| 5 | Mobile view | Dashboard on phone (PWA) | 1270×952 |
-| 6 | Architecture diagram | Simple flow: data → signals → dashboard → alerts | 1270×952 |
+1. Signal-candidate dashboard with its source/status labels visible.
+2. Signal detail showing rule score and methodology, not a profit probability.
+3. Counted outcome page showing sample size, window, exclusions, and data source.
+4. Docker Compose documentation, including prerequisites and provider costs.
+5. Alert configuration with secrets removed and delivery status stated accurately.
+6. Architecture diagram separating data, analysis, outcome resolution, alerts, and optional execution adapters.
 
-**Thumbnail/icon:** 240×240 logo (tradeclaw claw mark on dark background)
+Never use synthetic fixtures in a gallery without a prominent `ILLUSTRATIVE` label. Never title an OHLCV study "portfolio performance."
 
-**Maker video (optional but +30% upvotes):**
-- 2–3 min screen recording
-- Show: docker deploy → dashboard loading → first signal → Telegram notification
-- No fancy editing needed — Loom is fine
-
----
-
-## First Comment (post immediately after launch)
+## First Comment
 
 ```markdown
-Hey PH! 👋 Maker here.
+Hi Product Hunt, I am Naim, the maker of TradeClaw.
 
-I built TradeClaw after getting burned by a paid signal service that went dark during a volatile week —
-of course that's when you need signals the most.
+I built TradeClaw so the rules behind a trading candidate can be inspected instead of hidden behind a score. The source is MIT licensed and can be self-hosted, subject to your own infrastructure and provider requirements.
 
-The core idea: **you should be able to see exactly how your trading signals are generated**, run it on your own
-infra, and not pay a monthly fee for it.
+The system records candidates and evaluates eligible rows against later OHLCV data. Those counted outcomes are research measurements, not broker fills, and they omit simulated, blocked, unresolved, and force-expired placeholder rows. TradeClaw does not claim that following a candidate produces portfolio profit.
 
-A few things that might interest the technical folks here:
-
-- The signal engine is in `packages/core/src/signals/engine.ts` — readable TypeScript, no magic
-- TimescaleDB handles OHLCV storage (PostgreSQL extension for time-series)
-- Signals update every 5 minutes via cron; push to dashboard via SSE
-- The backtester is simple but real — I've included slippage modeling in v0.2
-
-**What I'd love feedback on:**
-1. What assets/markets are you missing? (Planning to add equities via Yahoo Finance)
-2. Is the mobile PWA experience good enough or do we need a native app?
-3. Any signal indicators you'd want to see added?
-
-Happy to answer anything. And if you find TradeClaw useful, a ⭐ on GitHub means a lot:
+I would value feedback on the methodology, provenance labels, and self-hosting documentation. The repository is here:
 https://github.com/naimkatiman/tradeclaw
 ```
 
----
+## Questions And Answers
 
-## Hunter Outreach
+**Is it free?**
 
-Reach out to hunters 1–2 weeks before launch date. DM on Twitter/X or via PH messages.
+The repository source is MIT licensed. Infrastructure, data providers, messaging providers, model APIs, and brokers can have separate costs and terms.
 
-### Tier 1 (best fit — tech/open-source/fintech hunters)
+**How quickly can I deploy it?**
 
-| Hunter | Profile | Why |
-|--------|---------|-----|
-| @benln | PH top hunter, open-source friendly | Regularly hunts dev tools |
-| @rrhoover | PH founder | Long shot but dream hunt |
-| @chrismessina | Hashtag inventor, tech advocate | Hunts interesting OSS |
-| @bramk | PH veteran, fintech interest | Has hunted trading tools before |
+Setup time varies with the host, credentials, provider availability, and operator experience. Follow the prerequisites and verify the deployment before relying on it.
 
-### Tier 2 (developer tools & fintech)
+**Are the signals profitable?**
 
-| Hunter | Profile |
-|--------|---------|
-| @kevin | PH staff/hunter |
-| @nivo | Developer tools focus |
-| Any PH hunter with 5+ hunts in dev tools/fintech |
+TradeClaw does not make that claim. Published statistics describe eligible OHLCV-resolved signal outcomes for a stated window and sample. They do not include broker fills, all trading costs, position sizing, or portfolio equity.
 
-### Outreach DM Template
+**Does it execute trades?**
 
-```
-Hi [Name] — I'm launching TradeClaw on Product Hunt next [Tuesday].
+Do not describe execution as universal. Confirm the exact adapter and its fill records. Candidate generation and alert delivery are not execution.
 
-It's an open-source, self-hosted AI trading signal platform — think self-hosted TradingView
-but with AI-generated BUY/SELL signals and a full REST API. MIT license, Docker deploy.
+**Is the local npm demo live market data?**
 
-Live demo: https://tradeclaw.win
-Repo: https://github.com/naimkatiman/tradeclaw
+No. `tradeclaw-demo` is an explicitly synthetic UI and transport fixture.
 
-Would you be willing to hunt it? Happy to provide any assets you need.
-```
+## Launch Verification
 
----
-
-## Pre-Launch Checklist
-
-### 2 Weeks Before
-
-- [ ] Prepare all 6 gallery screenshots
-- [ ] Record 2-min maker video (Loom)
-- [ ] Finalize tagline and description (A/B test in Discord)
-- [ ] Set up PH maker profile (link to GitHub, add bio)
-- [ ] Reach out to 3–5 hunters for hunting
-- [ ] Confirm hunter 1 week before
-
-### 1 Week Before
-
-- [ ] Share upcoming launch in:
-  - [ ] Discord (TradeClaw community)
-  - [ ] Telegram (Alpha Screener channel)
-  - [ ] Twitter/X (@naimkatiman)
-  - [ ] r/selfhosted, r/algotrading (teaser, not spam)
-- [ ] Prepare "notify me" list — ask community to set PH reminders
-- [ ] Test demo URL (tradeclaw.win/demo) is live and fast
-- [ ] Verify docker compose deploys clean on a fresh VPS
-
-### Day of Launch (12:00 AM PST)
-
-- [ ] Hunter publishes the listing at 12:01 AM PST
-- [ ] Maker immediately posts First Comment (template above)
-- [ ] Post to all social channels with PH link
-- [ ] Message Discord + Telegram community
-- [ ] Reply to every comment within 30 min for the first 3 hours
-- [ ] DM supporters who engaged with pre-launch teaser
-
-### Post-Launch
-
-- [ ] Thank top commenters on PH
-- [ ] Write a post-mortem in 24 hours (share in community)
-- [ ] Follow up with anyone who asked questions but didn't upvote
-
----
-
-## Vote Goal
-
-| Milestone | Target |
-|-----------|--------|
-| #5 of day | 150+ upvotes |
-| #3 of day | 250+ upvotes |
-| #1 of day | 500+ upvotes |
-| "Product of the Week" | 1000+ upvotes |
-
----
-
-## Notes
-
-- DO NOT ask friends/family to upvote from the same IP or within 5 min of each other — PH detects this and sandboxes the listing
-- Upvotes from accounts with < 7 days old are often discounted by PH algorithm
-- Best organic growth: get 10–15 genuine technical users to upvote and comment in first 2 hours
-- Comments drive algorithm more than upvotes alone — encourage discussion
+- [ ] Re-run build, tests, and Docker health checks.
+- [ ] Confirm the project site and repository URLs resolve.
+- [ ] Confirm every screenshot shows current data status and methodology.
+- [ ] Confirm no sample card is labeled live or real.
+- [ ] Confirm no static performance number is copied into launch text.
+- [ ] Confirm provider prerequisites, terms, and possible costs are disclosed.
+- [ ] Confirm optional execution adapters are described by their implemented state.

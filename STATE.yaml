@@ -1,11 +1,96 @@
 project: tradeclaw
-updated: 2026-07-15T02:20:49+08:00
+updated: 2026-07-15T14:31:11+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
   Public mode = limited. Admin = full.
   Alpha Screener = confirmed SaaS brand for users who don't want to self-host. Tradesmart name is dropped.
   Goal: viral GitHub repo, thousands of stars.
+
+truth_release_2026_07_15:
+  at: 2026-07-15T14:31:11+08:00
+  agent: TradeClaw PM agent
+  status: validated_pending_release
+  scope: Evidence-provenance repair, truthful runtime surfaces, reviewed commit, and Railway production release
+  notes: >
+    Legacy outcomes without approved observed-OHLCV provenance now fail closed
+    for public statistics and the cost-adjusted execution gate. Public mutation,
+    fabricated health/proof/security states, browser-held broker credentials,
+    paper-ledger contamination, synthetic production fallbacks, and unsupported
+    paid/testimonial claims are being removed or made explicitly unavailable.
+    The complete release validation passes: 201 Jest suites / 1,556 tests
+    (1,530 passed, 26 skipped), web lint with zero errors, web typecheck, agent
+    package build, the root production build with 324 generated pages, and a
+    structural Docker Compose parse. Docker is not installed, so the Compose
+    services could not be started locally. Clean commit review, main-branch
+    merge, exact-SHA deployment, and post-deploy evidence recomputation remain
+    pending.
+
+claim_verification_last_run:
+  at: 2026-07-15T09:28:24+08:00
+  agent: TradeClaw PM agent
+  status: done
+  scope: LinkedIn loss-claim evidence review and WEEX outreach verification
+  artifact: docs/audits/2026-07-15-linkedin-claim-verification.md
+  notes: >
+    Independently recomputed the 3,967-row production cost-field snapshot and
+    confirmed negative average expectancy after the published modeled cost,
+    while rejecting the broader claim that an actual user portfolio lost money.
+    Recorded the rolling 10,000-row cap, denominator exclusions, OHLCV outcome
+    semantics, modeled-not-real costs, overlapping-signal portfolio limitation,
+    broadcast-scope result, sensitivity checks, snapshot hashes, and safe public
+    wording. Verified that the WEEX pitch is only partly supported: fee sharing
+    is advertised up to 70% but TradeClaw's tier is unknown, TradFi contracts are
+    synthetic USDT-margined derivatives, broker API coverage for every TradFi
+    symbol is unproven, the public zero-fee promotion ended 2026-07-08, and the
+    outreach Telegram identity is unverified. Flagged that WEEX is absent from
+    the current SC Malaysia registered-DAX list and that a Malaysian LinkedIn
+    promotion or referral should not proceed without counsel or written SC
+    clarification. Documentation/state only; no runtime or trading-rule changes.
+
+product_integrity_repair:
+  at: 2026-07-15T11:24:23+08:00
+  agent: TradeClaw PM agent
+  status: done
+  scope: Outcome denominator, reproducible modeled ledger, truthful claims, and fail-closed edge readiness
+  artifacts:
+    audit: docs/audits/2026-07-15-linkedin-claim-verification.md
+  notes: >
+    Unified performance surfaces on one counted population: TP, SL, and nonzero
+    24-hour OHLCV closes count; simulated, gate-blocked, pending, and zero/missing
+    force-expiry placeholders do not. Public history reads are now side-effect
+    free. Published row-level outcome and modeled fee/slippage provenance, source
+    read caps, and potential truncation while explicitly excluding broker fills,
+    funding, overlapping exposure, margin, and customer-account performance.
+    Added a non-configurable fail-closed 90-day evidence gate before entry-like
+    execution and hosted Telegram, Discord, SMS, push, email, alert-rule, and
+    workflow fan-out. Readiness requires at least 100 usable rows over 30 UTC
+    days, 90% modeled-cost coverage, data no older than 7 days, positive per-row
+    and equal-day modeled net expectancy, a positive day-clustered lower bound,
+    and explicit persisted broadcast approval for each candidate. Replaced
+    realized-return and immediate-alert claims across public pages, metadata,
+    docs, exports, and share copy. An unavailable GitHub count is no longer
+    displayed as a measured zero. The audited snapshot remains negative after
+    modeled costs, so this repair does not establish profitability and correctly
+    suppresses new entry-like execution and fan-out until evidence clears the
+    gate. The audit distinguishes its fingerprinted pre-repair denominator from
+    the repaired method and requires a fresh deployed snapshot before any figure
+    is described as current. Existing unrelated UI and AI-improvement worktree
+    changes were retained.
+  verification: >
+    Final validation covered 201 Jest suites / 1,556 tests: 1,530 passed, 26
+    skipped, and zero failed. App routes/components passed 63 suites / 351 tests;
+    web libraries passed 89 suites / 649 tests with 3 suites / 26 tests skipped;
+    non-web packages passed 46 suites / 530 tests and one snapshot. The non-web
+    slices required Jest --forceExit because the suite reports leaked handles.
+    npm run lint exited 0 with zero errors and 23 warnings; npm run typecheck:web
+    and the agent package build passed. The final npm run build passed
+    packages/signals, packages/trading-agents, Next.js 16.2.6, and 324/324 static
+    pages. Playwright verified desktop and mobile truth surfaces with no hydration
+    or runtime faults; the only console failure was the unavailable GitHub-star
+    request, whose value is hidden. Docker Compose parsed with all seven services,
+    health checks, and migration ordering intact. Docker is not installed, so the
+    services could not be started locally.
 
 ai_improvement_last_run:
   at: 2026-07-12T23:40:21+08:00
@@ -129,6 +214,39 @@ release_first_layer_readability:
     viewport, a populated 3,972-trade Cost Field, one fixed element (navbar),
     zero console errors, and dark/light/desktop/mobile rendering. No schema,
     migration, dependency, lockfile, Docker, or Railway configuration changes.
+
+release_premium_ui:
+  at: 2026-07-15T10:36:59+08:00
+  agent: TradeClaw PM agent
+  status: deployed
+  scope: Premium Bitget-inspired UI/UX system overhaul
+  target: Railway production
+  source_commit: 80371e9782ccb66eb1dde25293bc4f7cf8b93ddb
+  source_branch: feat/premium-ui-overhaul
+  deployment:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment: production
+    service: web
+    deployment_id: b259c91b-fa5c-40d8-b3f5-c8a42cca907e
+    status: SUCCESS
+    image_digest: sha256:a2660f300b1dacd0bb51625729b6b4179cbf3083be4429b12396b419c03722b9
+    live_url: https://tradeclaw.win
+    health: HTTP 200 /api/health with status ok
+    homepage: HTTP 200 with the new headline and primary CTA
+  notes: >
+    Owner authorized commit and deploy. Waited for the concurrent product-
+    integrity lane to reach a stable checkpoint, then committed only the 26-file
+    TC-242 UI scope; all unrelated signal-history, research, audit, and standup
+    changes remained outside the commit. The exact commit was exported through a
+    clean detached Git worktree so dirty shared-worktree files could not enter the
+    Railway upload. Pre-release verification passed the root production build
+    with 326/326 routes, focused ESLint with zero errors, 8/8 focused Jest tests,
+    Chromium E2E, and desktop/mobile cross-theme browser QA. Railway deployment
+    b259c91b reached terminal SUCCESS; the fresh process returned HTTP 200/status
+    ok and the production homepage returned HTTP 200 with "Open-source trading
+    signals" and "Inspect every trade" present. No dependency, lockfile, Docker,
+    Railway configuration, database, schema, or trading-rule changes were included.
 
 tasks:
   - id: TC-001
@@ -3456,3 +3574,33 @@ next_actions:
       recent window) on the hero; replaced by all-time win rate vs break-even.
       Verified: npm run build 330/330 pages, jest 1098 passed / 0 failed.
       2026-06-11.
+
+  - id: TC-242
+    title: "Premium Bitget-inspired UI/UX system overhaul"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-07-15 from the owner's direction to overhaul TradeClaw with
+      a premium exchange-grade visual system inspired by Bitget without copying
+      its brand or product claims. Reference audit and repository/UX audits are
+      in progress. Scope includes the global token system, desktop/mobile
+      navigation, footer, landing page, and shared surfaces used by the live
+      dashboard, screener, and track record. Existing unrelated dirty worktree
+      changes are being preserved. Checkpoint: re-anchored the work on current
+      origin/main via feat/premium-ui-overhaul without touching the inherited
+      research lane; completed the Bitget/live-site and route UX audits; added
+      the cyan/neutral semantic token system, premium panel/button/product-shell
+      primitives, a rebuilt evidence-first hero and exploration grid, premium
+      shells across the main trading workspaces, and restored anonymous read-only
+      access to /dashboard per the public-mode product decision. Shared desktop
+      navigation, a five-item mobile nav, route-aware footer, cyan logo, keyboard
+      focus containment, contrast-safe forced-dark chrome, and desktop-only cost
+      field rendering are complete. Verification checkpoint: `npm run build`
+      compiled all packages and generated 326/326 routes; focused ESLint has zero
+      errors; landing-copy/navigation Jest suites pass 8/8; and the anonymous
+      read-only dashboard contract passes in Chromium E2E. Clean light-theme
+      browser QA also passed for the desktop Navbar, dashboard More panel, footer,
+      and the 390px five-item mobile nav/More sheet, including computed contrast,
+      focus containment, and body scroll locking. No Docker, deployment,
+      dependency, lockfile, database, trading-rule, or inherited research-lane
+      changes were made.

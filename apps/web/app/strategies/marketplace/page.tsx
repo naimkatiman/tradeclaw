@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import { MarketplaceClient } from './MarketplaceClient';
 
 export const metadata: Metadata = {
-  title: 'Strategy Marketplace — TradeClaw',
+  title: 'Strategy Template Catalog — TradeClaw',
   description:
-    'Browse 20+ community trading strategies and one-click load them into the Strategy Builder. Trend, momentum, reversal, volatility, and volume strategies.',
+    'Browse illustrative strategy templates and load their editable blocks into the Strategy Builder. No community reviews or measured performance are attached.',
   openGraph: {
-    title: 'Strategy Marketplace — TradeClaw',
+    title: 'Strategy Template Catalog — TradeClaw',
     description:
-      'Browse 20+ community trading strategies and load them into the Strategy Builder with one click.',
+      'Illustrative starter templates for the TradeClaw Strategy Builder, without invented reviews or performance claims.',
     type: 'website',
   },
 };

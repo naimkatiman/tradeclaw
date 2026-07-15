@@ -1,4 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
+import { installBacktestFixture } from '../lib/backtest-fixture';
+
+test.use({ serviceWorkers: 'block' });
 
 async function dismissStarMilestoneModal(page: Page): Promise<void> {
   // Pre-existing "Milestone reached: 10 Stars" dialog can intercept clicks.
@@ -23,14 +26,17 @@ async function dismissStarMilestoneModal(page: Page): Promise<void> {
 }
 
 test.describe('Backtest Comparison', () => {
+  test.beforeEach(async ({ page }) => {
+    await installBacktestFixture(page);
+  });
+
   test('shows multiple presets side-by-side in comparison table', async ({ page }) => {
     await dismissStarMilestoneModal(page);
     await page.goto('/backtest');
     await dismissStarMilestoneModal(page);
-    await page.waitForLoadState('networkidle');
 
     // Verify the preset multi-select section is present
-    await expect(page.getByText(/preset strategies/i)).toBeVisible();
+    await expect(page.getByText(/preset strategies/i)).toBeVisible({ timeout: 30_000 });
 
     // The page auto-runs on mount with hmm-top3 default.
     // Wait for any initial run to settle before interacting.

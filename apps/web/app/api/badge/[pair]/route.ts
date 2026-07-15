@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../../lib/signals';
-import { generateBadgeSvg, BADGE_SHORT_NAMES, type BadgeDirection } from '../../../lib/badge';
-import { getBadgeCache, setBadgeCache } from '../../../../lib/badge-cache';
-import { getTrackedSignalsForRequest } from '../../../../lib/tracked-signals';
-import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
+import { generateBadgeSvg, BADGE_SHORT_NAMES } from '../../../lib/badge';
+import {
+  BADGE_RESPONSE_HEADERS,
+  generateUnavailableBadgeSvg,
+  loadBadgeState,
+  unavailableBadgeState,
+} from '../badge-state';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,41 +22,24 @@ export async function GET(
   const symbolConfig = SYMBOLS.find(s => s.symbol === pair);
   const shortName = BADGE_SHORT_NAMES[pair] ?? pair.replace('USD', '');
 
-  const cacheKey = `${pair}:${tf}`;
-  let cached = getBadgeCache(cacheKey);
-
-  if (!cached && symbolConfig) {
-    try {
-      const { signals } = await getTrackedSignalsForRequest(request, {
-        symbol: pair,
+  const state = symbolConfig
+    ? await loadBadgeState(request, pair, tf)
+    : unavailableBadgeState('unsupported-symbol');
+  const svg = state.available
+    ? generateBadgeSvg({
+        symbol: shortName,
+        direction: state.direction,
+        confidence: state.confidence,
+        rsi: state.rsi,
         timeframe: tf,
-        minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE,
-      });
-      const signal = signals[0];
-      if (signal) {
-        cached = {
-          direction: signal.direction as BadgeDirection,
-          confidence: signal.confidence,
-          rsi: signal.indicators.rsi.value,
-        };
-        setBadgeCache(cacheKey, cached);
-      }
-    } catch {
-      // Fall through — show NEUTRAL badge on error
-    }
-  }
-
-  const direction: BadgeDirection = cached?.direction ?? 'NEUTRAL';
-  const confidence = cached?.confidence ?? 0;
-  const rsi = cached?.rsi ?? 50;
-
-  const svg = generateBadgeSvg({ symbol: shortName, direction, confidence, rsi, timeframe: tf });
+      })
+    : generateUnavailableBadgeSvg(shortName, state.reason);
 
   return new NextResponse(svg, {
     headers: {
-      'Content-Type': 'image/svg+xml',
-      'Cache-Control': 'no-cache, max-age=300',
-      'X-Content-Type-Options': 'nosniff',
+      ...BADGE_RESPONSE_HEADERS,
+      'X-TradeClaw-Data-State': state.available ? 'recorded-real-signal' : 'unavailable',
+      ...(state.recordedAt ? { 'X-TradeClaw-Recorded-At': state.recordedAt } : {}),
     },
   });
 }

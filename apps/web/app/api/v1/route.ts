@@ -7,7 +7,7 @@ export async function GET() {
     const data = {
       version: "1.0.0",
       name: "TradeClaw Public API",
-      description: "Open-source AI trading signal platform API — free, no auth required for public endpoints",
+      description: "Public API for TradeClaw rule-generated research candidates and observed-provenance outcome studies",
       docs: "https://tradeclaw.win/api-docs",
       openapi: "https://tradeclaw.win/api/openapi",
       repository: "https://github.com/naimkatiman/tradeclaw",
@@ -16,7 +16,7 @@ export async function GET() {
       endpoints: {
         signals: {
           url: "/api/v1/signals",
-          description: "Live trading signals for all asset pairs",
+          description: "Current rule-generated market candidates. The confidence field is a mechanical rule score, not a probability of profit.",
           params: {
             pair: "Filter by asset pair (e.g. BTCUSD, XAUUSD)",
             direction: "Filter by BUY or SELL",
@@ -26,15 +26,15 @@ export async function GET() {
         },
         leaderboard: {
           url: "/api/v1/leaderboard",
-          description: "Signal accuracy leaderboard with win rates and performance stats",
+          description: "OHLCV-resolved directional outcome study by asset. These are not broker fills or portfolio returns.",
           params: {
             period: "7d, 30d, or all (default: 30d)",
-            sort: "hitRate, totalSignals, or avgConfidence",
+            sort: "hitRate, totalSignals, or avgConfidence (mechanical rule score)",
           },
         },
-        accuracy: {
-          url: "/api/v1/accuracy",
-          description: "Historical signal accuracy stats and win/loss breakdown",
+        winRates: {
+          url: "/api/v1/win-rates",
+          description: "Equal-weight 24h directional outcomes with approved observed-OHLCV provenance; unavailable data fails closed.",
         },
         badge: {
           url: "/api/v1/badge/:pair",
@@ -43,19 +43,20 @@ export async function GET() {
         },
         regime: {
           url: "/api/v1/regime",
-          description: "HMM-based structural market regime classification (trend/volatile/range)",
+          description: "Latest persisted market-regime observation, or an explicit unavailable response when no observation exists.",
           params: {
             symbol: "Filter by symbol (e.g. BTCUSD). Omit for all symbols.",
           },
         },
         health: {
           url: "/api/v1/health",
-          description: "API health check — uptime, version, signal count",
+          description: "Current process health, version, and process uptime",
         },
       },
       rateLimit: {
-        public: "60 requests/minute",
-        authenticated: "600 requests/minute (use API keys from /api-keys)",
+        default: "60 requests/minute per IP per application instance",
+        publicFeeds: "300 requests/minute per IP per application instance for configured feed paths",
+        limitation: "The built-in limiter is in-memory and is not a distributed quota across replicas.",
       },
       examples: {
         curl: "curl https://tradeclaw.win/api/v1/signals?pair=BTCUSD&limit=5",

@@ -158,7 +158,7 @@ function buildPrompt(
     .join(', ');
 
   const signalsStr = pendingSignals
-    .map((s) => `${s.symbol} ${s.direction} ${s.confidence}%`)
+    .map((s) => `${s.symbol} ${s.direction} rule score ${s.confidence}/100`)
     .join(', ');
 
   return `Review this trading system state and respond with JSON:
@@ -183,6 +183,9 @@ ${recentStr || 'No recent trades'}
 
 PENDING SIGNALS TO BROADCAST:
 ${signalsStr || 'None'}
+
+The legacy confidence value shown above is a mechanical rule/confluence score,
+not a calibrated probability, expected return, or proof of trading edge.
 
 KEY QUESTIONS:
 1. Does the regime classification match the recent outcome pattern?

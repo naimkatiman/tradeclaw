@@ -118,11 +118,11 @@ export default function ReportClient() {
   const handleShare = () => {
     if (!data || !data.hasEnoughData) return;
     const tweet = encodeURIComponent(
-      `📊 TradeClaw Weekly Pulse — Week ${data.isoWeek}\n\n` +
-        `⚡ ${data.totalSignals} signals resolved\n` +
-        `🎯 ${data.winRate}% win rate\n` +
-        `🏆 Top asset: ${data.topAsset} (${data.topAccuracy}% accuracy)\n\n` +
-        `Open-source AI trading signals → https://github.com/naimkatiman/tradeclaw\n\n` +
+      `TradeClaw Weekly OHLCV-Resolved Signal Study — Week ${data.isoWeek}\n\n` +
+        `${data.totalSignals} counted signals resolved\n` +
+        `${data.winRate}% observed hit rate\n` +
+        `Highest asset hit rate: ${data.topAsset} (${data.topAccuracy}%)\n\n` +
+        `Not broker fills, customer trades, or portfolio returns. https://github.com/naimkatiman/tradeclaw\n\n` +
         `#algotrading #opensource #tradeclaw`,
     );
     window.open(`https://twitter.com/intent/tweet?text=${tweet}`, '_blank');
@@ -155,7 +155,7 @@ export default function ReportClient() {
     },
     {
       icon: TrendingUp,
-      label: 'Win Rate',
+      label: 'Observed Hit Rate',
       value: `${data.winRate}%`,
       sub: 'Resolved signals',
       color: 'text-blue-400',
@@ -163,7 +163,7 @@ export default function ReportClient() {
     },
     {
       icon: Target,
-      label: 'Top Accuracy',
+      label: 'Highest Asset Hit Rate',
       value: `${data.topAccuracy}%`,
       sub: data.topAsset === '—' ? 'No data yet' : data.topAsset,
       color: 'text-purple-400',
@@ -171,7 +171,7 @@ export default function ReportClient() {
     },
     {
       icon: Gauge,
-      label: 'Avg Confidence',
+      label: 'Avg Rule Score',
       value: `${data.avgConfidence}`,
       sub: 'Resolved signals',
       color: 'text-zinc-400',
@@ -193,8 +193,8 @@ export default function ReportClient() {
           <div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Weekly Pulse</h1>
             <p className="text-[var(--text-secondary)] text-sm max-w-xl">
-              Signals resolved, win rates, top performers — every week, auto-generated from
-              TradeClaw&apos;s real resolved signal history.
+              Counted signal outcomes resolved against subsequent OHLCV. These are not broker
+              fills, customer trades, or portfolio returns.
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">

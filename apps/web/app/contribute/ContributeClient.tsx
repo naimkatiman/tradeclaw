@@ -17,16 +17,16 @@ interface GitHubIssue {
 }
 
 interface RepoStats {
-  stars: number;
-  openIssues: number;
-  contributors: number;
+  stars: number | null;
+  openIssues: number | null;
+  contributors: number | null;
 }
 
 type Difficulty = 'Easy' | 'Medium' | 'Hard';
 
 interface GoodFirstIssue {
   title: string;
-  difficulty: Difficulty;
+  difficulty: Difficulty | null;
   estimate: string;
   url: string;
   labels: string[];
@@ -39,89 +39,6 @@ interface MentorshipForm {
   skills: string;
 }
 
-const FALLBACK_ISSUES: GoodFirstIssue[] = [
-  {
-    id: 1,
-    title: 'Build signal indicator plugin system (pluggable architecture)',
-    difficulty: 'Easy',
-    estimate: '4h',
-    url: `${REPO_URL}/issues`,
-    labels: ['good first issue', 'enhancement', 'plugin'],
-  },
-  {
-    id: 2,
-    title: 'Add mobile touch gestures to chart (pinch-zoom, swipe)',
-    difficulty: 'Easy',
-    estimate: '3h',
-    url: `${REPO_URL}/issues`,
-    labels: ['good first issue', 'mobile', 'ui'],
-  },
-  {
-    id: 3,
-    title: 'Fix dark mode flash on initial page load',
-    difficulty: 'Easy',
-    estimate: '2h',
-    url: `${REPO_URL}/issues`,
-    labels: ['good first issue', 'bug', 'dark-mode'],
-  },
-  {
-    id: 4,
-    title: 'Translate docs to Bahasa Malaysia / Indonesian',
-    difficulty: 'Easy',
-    estimate: '5h',
-    url: `${REPO_URL}/issues`,
-    labels: ['good first issue', 'docs', 'translation'],
-  },
-  {
-    id: 5,
-    title: 'Add unit tests for ta-engine.ts (RSI, MACD, Bollinger)',
-    difficulty: 'Medium',
-    estimate: '6h',
-    url: `${REPO_URL}/issues`,
-    labels: ['good first issue', 'testing', 'ta-engine'],
-  },
-  {
-    id: 6,
-    title: 'Add webhook retry UI with exponential backoff status',
-    difficulty: 'Medium',
-    estimate: '4h',
-    url: `${REPO_URL}/issues`,
-    labels: ['good first issue', 'ui', 'webhooks'],
-  },
-  {
-    id: 7,
-    title: 'Export screener results to CSV',
-    difficulty: 'Easy',
-    estimate: '3h',
-    url: `${REPO_URL}/issues`,
-    labels: ['good first issue', 'enhancement', 'screener'],
-  },
-  {
-    id: 8,
-    title: 'Add embed theme presets (dark/light/custom color)',
-    difficulty: 'Easy',
-    estimate: '3h',
-    url: `${REPO_URL}/issues`,
-    labels: ['good first issue', 'embed', 'theming'],
-  },
-  {
-    id: 9,
-    title: 'Backtest comparison mode (side-by-side strategy results)',
-    difficulty: 'Medium',
-    estimate: '8h',
-    url: `${REPO_URL}/issues`,
-    labels: ['good first issue', 'backtest', 'feature'],
-  },
-  {
-    id: 10,
-    title: 'Full multi-language i18n support (EN/MY/ZH/AR)',
-    difficulty: 'Hard',
-    estimate: '20h',
-    url: `${REPO_URL}/issues`,
-    labels: ['good first issue', 'i18n', 'enhancement'],
-  },
-];
-
 const CONTRIBUTION_PATHS = [
   {
     icon: (
@@ -130,7 +47,7 @@ const CONTRIBUTION_PATHS = [
       </svg>
     ),
     title: 'Code',
-    description: 'Pick a good first issue, fork the repo, and open a PR. We review within 48 hours and pair with you if needed.',
+    description: 'Pick a verified GitHub issue, fork the repo, and open a PR. Review timing depends on maintainer availability.',
     cta: 'Browse issues',
     href: `${REPO_URL}/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22`,
     color: 'emerald',
@@ -171,22 +88,20 @@ const HOW_TO_STEPS = [
   { step: 2, label: 'Clone', description: 'Clone your fork locally and set up the dev environment' },
   { step: 3, label: 'Branch', description: 'Create a feature branch: git checkout -b feat/my-change' },
   { step: 4, label: 'Code', description: 'Make your changes, run lint and build to verify' },
-  { step: 5, label: 'PR', description: 'Open a pull request — we review within 48 hours' },
+  { step: 5, label: 'PR', description: 'Open a pull request for maintainer review' },
 ];
 
 const STATS_BADGE = `[![GitHub Stars](https://img.shields.io/github/stars/naimkatiman/tradeclaw?style=social)](https://github.com/naimkatiman/tradeclaw)
 [![Contributors](https://img.shields.io/github/contributors/naimkatiman/tradeclaw)](https://github.com/naimkatiman/tradeclaw/graphs/contributors)
 [![Good First Issues](https://img.shields.io/github/issues/naimkatiman/tradeclaw/good%20first%20issue)](https://github.com/naimkatiman/tradeclaw/issues?q=label%3A%22good+first+issue%22)`;
 
-function StatCard({ label, value, loading }: { label: string; value: string | number; loading: boolean }) {
+function StatCard({ label, value, loading }: { label: string; value: string | number | null; loading: boolean }) {
   return (
     <div className="flex flex-col items-center gap-1">
       <span className="text-2xl font-bold text-[var(--foreground)]">
         {loading ? (
           <span className="inline-block w-12 h-6 bg-[var(--border)] rounded animate-pulse" />
-        ) : (
-          value
-        )}
+        ) : value == null ? 'Unavailable' : value}
       </span>
       <span className="text-xs text-[var(--text-secondary)]">{label}</span>
     </div>
@@ -207,21 +122,16 @@ function DifficultyBadge({ difficulty }: { difficulty: Difficulty }) {
 }
 
 export function ContributeClient() {
-  const [stats, setStats] = useState<RepoStats>({ stars: 0, openIssues: 0, contributors: 0 });
+  const [stats, setStats] = useState<RepoStats>({ stars: null, openIssues: null, contributors: null });
   const [statsLoading, setStatsLoading] = useState(true);
-  const [issues, setIssues] = useState<GoodFirstIssue[]>(FALLBACK_ISSUES);
-  const [issuesFromGitHub, setIssuesFromGitHub] = useState(false);
+  const [issues, setIssues] = useState<GoodFirstIssue[]>([]);
+  const [issuesLoading, setIssuesLoading] = useState(true);
   const [badgeCopied, setBadgeCopied] = useState(false);
 
   // Mentorship form state
   const [form, setForm] = useState<MentorshipForm>({ name: '', github: '', skills: '' });
-  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    // Check localStorage for submitted mentorship
-    const saved = localStorage.getItem('tradeclaw_mentorship_submitted');
-    if (saved) setSubmitted(true);
-
     async function fetchStats() {
       try {
         const [repoRes, contributorsRes] = await Promise.all([
@@ -231,12 +141,13 @@ export function ContributeClient() {
 
         if (repoRes.ok) {
           const repo = await repoRes.json() as { stargazers_count: number; open_issues_count: number };
-          let contributorCount = 1;
+          let contributorCount: number | null = null;
 
           if (contributorsRes.ok) {
             const linkHeader = contributorsRes.headers.get('link') ?? '';
             const match = linkHeader.match(/page=(\d+)>; rel="last"/);
-            contributorCount = match ? parseInt(match[1], 10) : 1;
+            const contributors = await contributorsRes.json() as unknown[];
+            contributorCount = match ? parseInt(match[1], 10) : contributors.length;
           }
 
           setStats({
@@ -246,7 +157,7 @@ export function ContributeClient() {
           });
         }
       } catch {
-        // silently fall back to 0
+        // Keep unavailable values when GitHub cannot be reached.
       } finally {
         setStatsLoading(false);
       }
@@ -257,29 +168,29 @@ export function ContributeClient() {
         const res = await fetch(
           `https://api.github.com/repos/${REPO}/issues?labels=good%20first%20issue&state=open&per_page=10`,
         );
-        if (res.ok) {
-          const data = await res.json() as GitHubIssue[];
-          if (data.length > 0) {
-            setIssues(
-              data.map((issue) => {
-                let difficulty: Difficulty = 'Easy';
-                if (issue.labels.some((l) => l.name === 'hard')) difficulty = 'Hard';
-                else if (issue.labels.some((l) => l.name === 'medium')) difficulty = 'Medium';
-                return {
-                  id: issue.id,
-                  title: issue.title,
-                  difficulty,
-                  estimate: '',
-                  url: issue.html_url,
-                  labels: issue.labels.map((l) => l.name),
-                };
-              }),
-            );
-            setIssuesFromGitHub(true);
-          }
-        }
+        if (!res.ok) return;
+
+        const data = await res.json() as GitHubIssue[];
+        setIssues(
+          data.map((issue) => {
+            let difficulty: Difficulty | null = null;
+            if (issue.labels.some((l) => l.name === 'hard')) difficulty = 'Hard';
+            else if (issue.labels.some((l) => l.name === 'medium')) difficulty = 'Medium';
+            else if (issue.labels.some((l) => l.name === 'easy')) difficulty = 'Easy';
+            return {
+              id: issue.id,
+              title: issue.title,
+              difficulty,
+              estimate: '',
+              url: issue.html_url,
+              labels: issue.labels.map((l) => l.name),
+            };
+          }),
+        );
       } catch {
-        // keep fallback
+        // Keep the list empty when GitHub cannot be reached.
+      } finally {
+        setIssuesLoading(false);
       }
     }
 
@@ -289,8 +200,21 @@ export function ContributeClient() {
 
   function handleMentorshipSubmit(e: React.FormEvent) {
     e.preventDefault();
-    localStorage.setItem('tradeclaw_mentorship_submitted', JSON.stringify(form));
-    setSubmitted(true);
+    const github = form.github.trim().replace(/^@/, '');
+    const params = new URLSearchParams({
+      title: `Contribution guidance request from @${github}`,
+      body: [
+        '## Contribution guidance request',
+        '',
+        `Name: ${form.name.trim()}`,
+        `GitHub: @${github}`,
+        `Skills / interests: ${form.skills.trim()}`,
+        '',
+        'I would like public guidance choosing and completing a first TradeClaw contribution.',
+      ].join('\n'),
+    });
+
+    window.location.assign(`${REPO_URL}/issues/new?${params.toString()}`);
   }
 
   function copyBadge() {
@@ -322,7 +246,7 @@ export function ContributeClient() {
             <span className="text-emerald-400">open-source trading</span>
           </h1>
           <p className="text-lg text-[var(--text-secondary)] mb-10 max-w-xl mx-auto">
-            Join contributors building the first open-source AI trading signal platform
+            Join contributors building an inspectable, self-hostable trading signal platform
           </p>
 
           <div className="flex items-center justify-center gap-12 mb-10">
@@ -404,7 +328,11 @@ export function ContributeClient() {
             <div>
               <h2 className="text-2xl font-bold">Good first issues</h2>
               <p className="text-sm text-[var(--text-secondary)] mt-1">
-                {issuesFromGitHub ? 'Live from GitHub' : 'Curated starter tasks — pick one and dive in'}
+                {issuesLoading
+                  ? 'Checking GitHub...'
+                  : issues.length > 0
+                    ? 'Live from GitHub'
+                    : 'No verified good first issues were returned'}
               </p>
             </div>
             <a
@@ -439,13 +367,28 @@ export function ContributeClient() {
                   {issue.estimate && (
                     <span className="text-xs text-[var(--text-secondary)]">{issue.estimate}</span>
                   )}
-                  <DifficultyBadge difficulty={issue.difficulty} />
+                  {issue.difficulty && <DifficultyBadge difficulty={issue.difficulty} />}
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--text-secondary)] group-hover:text-[var(--foreground)] transition-colors">
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </div>
               </a>
             ))}
+            {!issuesLoading && issues.length === 0 && (
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] px-5 py-6 text-center">
+                <p className="text-sm text-[var(--text-secondary)]">
+                  No issue records are substituted when GitHub data is unavailable or empty.
+                </p>
+                <a
+                  href={`${REPO_URL}/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex text-sm font-medium text-emerald-400 hover:text-emerald-300"
+                >
+                  Check GitHub directly
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -504,26 +447,14 @@ export function ContributeClient() {
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-bold mb-2">Get paired with a maintainer</h2>
+                <h2 className="text-xl font-bold mb-2">Ask for contribution guidance</h2>
                 <p className="text-sm text-[var(--text-secondary)] max-w-lg mx-auto">
-                  New to open source? Fill in the form below and a maintainer will reach out within 48 hours to guide your first PR step by step.
+                  Fill in the details below to open a prefilled public GitHub issue. Nothing is submitted or stored by this page;
+                  the request exists only after you review and create the issue on GitHub. Maintainer availability and response times vary.
                 </p>
               </div>
 
-              {submitted ? (
-                <div className="flex flex-col items-center gap-3 py-6 text-center">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </div>
-                  <p className="font-semibold text-[var(--foreground)]">Application received!</p>
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    We will reach out via GitHub within 48 hours. Keep an eye on your notifications.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleMentorshipSubmit} className="grid sm:grid-cols-3 gap-4">
+              <form onSubmit={handleMentorshipSubmit} className="grid sm:grid-cols-3 gap-4">
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-medium text-[var(--text-secondary)]">Your name</label>
                     <input
@@ -562,11 +493,10 @@ export function ContributeClient() {
                       type="submit"
                       className="inline-flex items-center gap-2 rounded-full bg-violet-500 px-8 py-2.5 text-sm font-semibold text-white hover:bg-violet-400 transition-colors duration-200"
                     >
-                      Apply for mentorship
+                      Open request on GitHub
                     </button>
                   </div>
-                </form>
-              )}
+              </form>
             </div>
           </div>
         </div>

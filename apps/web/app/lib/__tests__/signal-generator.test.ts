@@ -6,6 +6,8 @@ import {
 import { calculateAllIndicators } from '../ta-engine';
 import type { AllIndicators } from '../ta-engine';
 import type { OHLCV } from '../ohlcv';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // Build a deterministic synthetic OHLCV series. BTCUSD is crypto (24/7 market
 // hours), so the isMarketOpen gate inside generateSignalsFromTA is satisfied
@@ -195,70 +197,9 @@ describe('generateSignalsFromTA — classic profile produces byte-identical outp
     });
   });
 
-  it('drops blacklisted symbol+direction combos (e.g. XAUUSD_SELL)', () => {
-    const candles = buildFixture(120, 2718);
-    const indicators = buildBullishIndicators(candles);
-    const ts = candles[candles.length - 1].timestamp;
-
-    // Force a SELL signal by inverting bullish indicators to bearish
-    indicators.rsi.current = 75;
-    indicators.stochastic.current = { k: 80, d: 85 };
-    if (indicators.macd.histogram.length >= 2) {
-      indicators.macd.histogram[indicators.macd.histogram.length - 2] = 1;
-      indicators.macd.histogram[indicators.macd.histogram.length - 1] = -1;
-    }
-    indicators.macd.current.histogram = -1;
-
-    // XAUUSD_SELL is blacklisted → should return empty
-    const blacklisted = generateSignalsFromTA('XAUUSD', indicators, 'H1', 'real', ts);
-    expect(blacklisted.filter((s) => s.direction === 'SELL')).toHaveLength(0);
-
-    // XAUUSD_BUY is NOT blacklisted → should still emit if conditions pass
-    indicators.rsi.current = 45;
-    indicators.stochastic.current = { k: 35, d: 30 };
-    if (indicators.macd.histogram.length >= 2) {
-      indicators.macd.histogram[indicators.macd.histogram.length - 2] = -1;
-      indicators.macd.histogram[indicators.macd.histogram.length - 1] = 1;
-    }
-    indicators.macd.current.histogram = 1;
-
-    const allowed = generateSignalsFromTA('XAUUSD', indicators, 'H1', 'real', ts);
-    expect(allowed.filter((s) => s.direction === 'BUY').length).toBeGreaterThanOrEqual(0);
-  });
-
-  it('drops blacklisted BUY combos (SOLUSD_BUY, DOGEUSD_BUY)', () => {
-    const candles = buildFixture(120, 2718);
-    const indicators = buildBullishIndicators(candles);
-    const ts = candles[candles.length - 1].timestamp;
-
-    // Ensure bullish MACD histogram so BUY can pass the direction gate
-    indicators.rsi.current = 45;
-    indicators.stochastic.current = { k: 35, d: 30 };
-    if (indicators.macd.histogram.length >= 2) {
-      indicators.macd.histogram[indicators.macd.histogram.length - 2] = -1;
-      indicators.macd.histogram[indicators.macd.histogram.length - 1] = 1;
-    }
-    indicators.macd.current.histogram = 1;
-
-    for (const pair of ['SOLUSD', 'DOGEUSD']) {
-      const result = generateSignalsFromTA(pair, indicators, 'H1', 'real', ts);
-      expect(result.filter((s) => s.direction === 'BUY')).toHaveLength(0);
-    }
-
-    // SELL on same pairs is NOT blacklisted → should still be possible if bearish
-    indicators.rsi.current = 75;
-    indicators.stochastic.current = { k: 80, d: 85 };
-    if (indicators.macd.histogram.length >= 2) {
-      indicators.macd.histogram[indicators.macd.histogram.length - 2] = 1;
-      indicators.macd.histogram[indicators.macd.histogram.length - 1] = -1;
-    }
-    indicators.macd.current.histogram = -1;
-
-    for (const pair of ['SOLUSD', 'DOGEUSD']) {
-      const result = generateSignalsFromTA(pair, indicators, 'H1', 'real', ts);
-      // SELL is not guaranteed to emit (other gates may block), but it should
-      // not be blocked by the blacklist filter itself.
-      expect(result.some((s) => s.direction === 'SELL') || result.length === 0).toBe(true);
-    }
+  it('does not suppress candidates with post-hoc symbol/direction blacklists', () => {
+    const source = readFileSync(resolve(__dirname, '../signal-generator.ts'), 'utf8');
+    expect(source).not.toMatch(/BLACKLISTED_COMBOS|Sub-25% BUY paths|586-signal empirical audit/);
+    expect(source).toContain('return signals;');
   });
 });

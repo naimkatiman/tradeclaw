@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+test.use({ serviceWorkers: 'block' });
+
 test.describe('Admin Login', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/admin/login');
@@ -51,9 +53,15 @@ test.describe('Admin Login', () => {
   });
 
   test('shows loading state during submission', async ({ page }) => {
-    // Slow down the API response
+    let releaseResponse!: () => void;
+    const responseGate = new Promise<void>((resolve) => {
+      releaseResponse = resolve;
+    });
+
+    // Hold the response until the pending UI has been observed. This avoids
+    // depending on click() returning before a delayed fetch on every device.
     await page.route('/api/auth/login', async (route) => {
-      await new Promise((r) => setTimeout(r, 1000));
+      await responseGate;
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -62,9 +70,11 @@ test.describe('Admin Login', () => {
     });
 
     await page.locator('input#secret').fill('secret');
-    await page.locator('button[type="submit"]').click();
+    const click = page.locator('button[type="submit"]').click();
 
     // Button should show loading text
     await expect(page.locator('button[type="submit"]')).toContainText('Authenticating');
+    releaseResponse();
+    await click;
   });
 });

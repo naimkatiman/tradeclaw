@@ -30,6 +30,12 @@ interface Strategy {
   performance?: StrategyPerformance;
 }
 
+interface PerformanceStatus {
+  available: boolean;
+  basis: string;
+  detail: string;
+}
+
 function formatPnl(value: number) {
   return `${value >= 0 ? '+' : '-'}$${Math.abs(value).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 }
@@ -52,6 +58,7 @@ function rankStrategies(strategies: Strategy[]) {
 
 export function LeaderboardClient() {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [performanceStatus, setPerformanceStatus] = useState<PerformanceStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -63,12 +70,21 @@ export function LeaderboardClient() {
         }
         return response.json();
       })
-      .then((data) => setStrategies(data?.strategies ?? []))
-      .catch(() => setStrategies([]))
+      .then((data) => {
+        setStrategies(data?.strategies ?? []);
+        setPerformanceStatus(data?.performanceStatus ?? null);
+      })
+      .catch(() => {
+        setStrategies([]);
+        setPerformanceStatus(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  const ranked = useMemo(() => rankStrategies(strategies), [strategies]);
+  const ranked = useMemo(
+    () => performanceStatus?.available === true ? rankStrategies(strategies) : [],
+    [performanceStatus, strategies],
+  );
   const unrankedCount = Math.max(0, strategies.length - ranked.length);
 
   const copyText = async (text: string, id: string) => {
@@ -82,10 +98,9 @@ export function LeaderboardClient() {
   };
 
   const shareLeaderboard = async () => {
-    const top = ranked[0];
-    const text = top && top.performance
-      ? `TradeClaw Strategy Leaderboard: #1 ${top.name} with a ${top.performance.sharpeRatio.toFixed(2)} Sharpe, ${top.performance.profitFactor.toFixed(1)} PF, and ${top.performance.winRate}% win rate. ${window.location.origin}/strategies/leaderboard`
-      : `TradeClaw Strategy Leaderboard: public backtest rankings and community proof. ${window.location.origin}/strategies/leaderboard`;
+    const text = performanceStatus?.available
+      ? `TradeClaw Strategy Leaderboard: measured results are connected with evidence basis "${performanceStatus.basis}". Inspect the result source and assumptions before comparing entries. ${window.location.origin}/strategies/leaderboard`
+      : `TradeClaw publishes strategy definitions, but no measured backtest or live-execution results are connected, so no performance ranking is available. ${window.location.origin}/strategies/leaderboard`;
 
     try {
       if (navigator.share) {
@@ -104,10 +119,9 @@ export function LeaderboardClient() {
   };
 
   const shareStrategy = async (strategy: Strategy, rank: number) => {
-    const perf = strategy.performance;
-    if (!perf) return;
-
-    const text = `#${rank} ${strategy.name} on TradeClaw — Sharpe ${perf.sharpeRatio.toFixed(2)}, PF ${perf.profitFactor.toFixed(1)}, Win Rate ${perf.winRate}%, P&L ${formatPnl(perf.totalPnl)}. ${window.location.origin}/strategies/leaderboard`;
+    const text = performanceStatus?.available
+      ? `Measured-results entry #${rank}: ${strategy.name}. Inspect the connected evidence source and assumptions on TradeClaw before comparing it. ${window.location.origin}/strategies/leaderboard`
+      : `Illustrative strategy definition only: TradeClaw has not attached measured backtest or live-execution results to ${strategy.name}. ${window.location.origin}/strategies/leaderboard`;
 
     try {
       if (navigator.share) {
@@ -136,21 +150,21 @@ export function LeaderboardClient() {
             <div className="max-w-2xl space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-400">
                 <Trophy className="h-3.5 w-3.5" />
-                Public proof board
+                Evidence status
               </div>
               <div>
                 <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
                   Strategy <span className="text-emerald-400">Leaderboard</span>
                 </h1>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
-                  Community-facing backtest rankings for the strongest TradeClaw strategies. We sort by Sharpe ratio first, then profit factor, win rate, and total P&L so the board stays risk-aware and easy to share.
+                  TradeClaw currently publishes strategy definitions without measured backtest or live-execution results. Definitions remain unranked until reproducible evidence and its source are connected.
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <Link
-                href="/strategies"
+                href="/strategy-builder"
                 className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/25"
               >
                 Open Builder
@@ -160,13 +174,7 @@ export function LeaderboardClient() {
                 href="/strategies/marketplace"
                 className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--background)]/40 px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition-colors hover:border-emerald-500/30 hover:text-emerald-400"
               >
-                Browse Marketplace
-              </Link>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/20"
-              >
-                See Pro pricing
+                Browse Templates
               </Link>
               <button
                 onClick={shareLeaderboard}
@@ -180,16 +188,16 @@ export function LeaderboardClient() {
 
           <div className="mt-5 grid gap-3 md:grid-cols-3">
             <div className="rounded-xl border border-[var(--border)] bg-black/20 p-4">
-              <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Ranking rule</div>
-              <div className="mt-2 text-sm font-medium">Sharpe → PF → Win rate → P&L</div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Ranking status</div>
+              <div className="mt-2 text-sm font-medium">Unavailable while results are unmeasured.</div>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-black/20 p-4">
-              <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Shareability</div>
-              <div className="mt-2 text-sm font-medium">One-click copy or native share for any strategy.</div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Required evidence</div>
+              <div className="mt-2 text-sm font-medium">Reproducible backtest or live-execution source.</div>
             </div>
             <div className="rounded-xl border border-[var(--border)] bg-black/20 p-4">
-              <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Conversion</div>
-              <div className="mt-2 text-sm font-medium">Send winners straight into Builder or Marketplace.</div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">Current API</div>
+              <div className="mt-2 text-sm font-medium">Definitions only; no generated metrics.</div>
             </div>
           </div>
         </section>
@@ -201,7 +209,7 @@ export function LeaderboardClient() {
           </div>
         ) : ranked.length === 0 ? (
           <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--glass-bg)] p-8 text-center text-sm text-[var(--text-secondary)]">
-            No backtest results are available yet.
+            {performanceStatus?.detail ?? 'No measured backtest or live-execution results are connected.'}
           </div>
         ) : (
           <div className="mt-6 space-y-4">
@@ -215,7 +223,7 @@ export function LeaderboardClient() {
               <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
                 <div>
                   <div className="text-xs uppercase tracking-[0.2em] text-[var(--text-secondary)]">Ranked strategies</div>
-                  <div className="text-sm font-semibold">Best risk-adjusted backtests on TradeClaw</div>
+                  <div className="text-sm font-semibold">Measured strategy results</div>
                 </div>
                 <div className="text-xs text-[var(--text-secondary)]">Sharpe-first sorting</div>
               </div>

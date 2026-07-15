@@ -1,22 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { EarningsAnalysis } from '@/lib/earningsedge/analyze';
 
 const FREE_LIMIT = 3;
-const STORAGE_KEY = 'ee_usage_count';
 const HISTORY_KEY = 'ee_analysis_history';
-
-function getUsageCount(): number {
-  if (typeof window === 'undefined') return 0;
-  return parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
-}
-
-function incrementUsage(): number {
-  const count = getUsageCount() + 1;
-  localStorage.setItem(STORAGE_KEY, String(count));
-  return count;
-}
 
 function saveToHistory(analysis: EarningsAnalysis) {
   if (typeof window === 'undefined') return;
@@ -45,14 +33,8 @@ export default function AnalyzePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [analysis, setAnalysis] = useState<EarningsAnalysis | null>(null);
-  const [usageCount, setUsageCount] = useState(0);
+  const [remaining, setRemaining] = useState<number | null>(null);
   const [limitReached, setLimitReached] = useState(false);
-
-  useEffect(() => {
-    const count = getUsageCount();
-    setUsageCount(count);
-    setLimitReached(count >= FREE_LIMIT);
-  }, []);
 
   async function handleAnalyze() {
     if (!transcript.trim()) {
@@ -61,7 +43,7 @@ export default function AnalyzePage() {
     }
 
     if (limitReached) {
-      setError('You have used all 3 free analyses. Upgrade for unlimited access.');
+      setError('The server quota has been reached. Try again after the rolling 24-hour window resets.');
       return;
     }
 
@@ -72,10 +54,7 @@ export default function AnalyzePage() {
     try {
       const res = await fetch('/api/earningsedge/analyze', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-ee-usage-count': String(usageCount),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transcript }),
       });
 
@@ -84,16 +63,16 @@ export default function AnalyzePage() {
       if (!res.ok) {
         if (data.code === 'FREE_LIMIT_REACHED') {
           setLimitReached(true);
-          setError('Free limit reached. Upgrade for unlimited access.');
+          setError('Free limit reached for this network address. Try again after the rolling 24-hour window resets.');
         } else {
           setError(data.error || 'Analysis failed. Please try again.');
         }
         return;
       }
 
-      const newCount = incrementUsage();
-      setUsageCount(newCount);
-      setLimitReached(newCount >= FREE_LIMIT);
+      const nextRemaining = typeof data.quota?.remaining === 'number' ? data.quota.remaining : null;
+      setRemaining(nextRemaining);
+      setLimitReached(nextRemaining === 0);
       setAnalysis(data.analysis);
       saveToHistory(data.analysis);
     } catch {
@@ -108,20 +87,17 @@ export default function AnalyzePage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Analyze Earnings Call</h1>
         <p className="text-gray-400">
-          Paste a full earnings call transcript to get AI-powered trading insights.
+          Generate a structured research draft, then verify it against the source transcript.
         </p>
         <div className="mt-3 flex items-center gap-2 text-sm">
           {limitReached ? (
             <span className="text-red-400">
-              Free limit reached ({FREE_LIMIT}/{FREE_LIMIT}) —{' '}
-              <a href="/earningsedge/pricing" className="underline hover:text-red-300">
-                upgrade for unlimited
-              </a>
+              Server quota reached for the current rolling 24-hour window.
             </span>
           ) : (
             <span className="text-gray-500">
-              {FREE_LIMIT - usageCount} free{' '}
-              {FREE_LIMIT - usageCount === 1 ? 'analysis' : 'analyses'} remaining
+              Up to {FREE_LIMIT} requests per rolling 24 hours per network address
+              {remaining !== null ? `; ${remaining} remaining after the last successful request` : ''}
             </span>
           )}
         </div>
@@ -154,7 +130,7 @@ export default function AnalyzePage() {
               href="/earningsedge/pricing"
               className="ml-2 underline hover:text-red-300 font-semibold"
             >
-              Upgrade →
+              Availability details
             </a>
           )}
         </div>
@@ -165,7 +141,7 @@ export default function AnalyzePage() {
         disabled={loading || limitReached || !transcript.trim()}
         className="w-full bg-green-500 hover:bg-green-400 disabled:bg-gray-700 disabled:text-gray-500 text-black font-bold py-4 rounded-xl transition-colors text-lg mb-12"
       >
-        {loading ? 'Analyzing...' : limitReached ? 'Upgrade to Analyze' : 'Analyze Transcript'}
+        {loading ? 'Analyzing...' : limitReached ? 'Quota reached' : 'Analyze Transcript'}
       </button>
 
       {/* Results */}
@@ -174,15 +150,15 @@ export default function AnalyzePage() {
       {limitReached && !analysis && (
         <div className="text-center bg-gradient-to-r from-green-400/10 to-emerald-400/5 border border-green-400/20 rounded-2xl p-10">
           <div className="text-4xl mb-4">📊</div>
-          <h2 className="text-xl font-bold mb-2">You&apos;ve used your 3 free analyses</h2>
+          <h2 className="text-xl font-bold mb-2">The current request quota is exhausted</h2>
           <p className="text-gray-400 mb-6">
-            Upgrade for unlimited analyses, history, and more.
+            The free endpoint permits up to three successful requests per rolling 24-hour window per network address.
           </p>
           <a
             href="/earningsedge/pricing"
             className="bg-green-500 hover:bg-green-400 text-black font-bold px-8 py-3 rounded-xl transition-colors inline-block"
           >
-            See pricing — from $29/month →
+            View availability
           </a>
         </div>
       )}
@@ -216,7 +192,7 @@ function AnalysisResult({ analysis }: { analysis: EarningsAnalysis }) {
                     : 'bg-gray-400/10 text-gray-400 border-gray-400/20'
               }`}
             >
-              {analysis.confidence} confidence
+              {analysis.confidence} model self-rating
             </span>
           </div>
           <div className="text-gray-400 text-sm mt-1">{analysis.companyName}</div>
@@ -322,7 +298,7 @@ function AnalysisResult({ analysis }: { analysis: EarningsAnalysis }) {
         <div className="flex items-center gap-4 mb-3">
           <ToneChip tone={analysis.managementTone.overall} />
           <span className="text-sm text-gray-400">
-            Confidence: {analysis.managementTone.confidence}
+            Model self-rating: {analysis.managementTone.confidence}
           </span>
         </div>
         <p className="text-sm text-gray-300 mb-3 italic">

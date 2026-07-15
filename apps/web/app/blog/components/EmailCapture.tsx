@@ -56,13 +56,13 @@ export function EmailCapture({ source }: EmailCaptureProps) {
       <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-5 mt-8">
         <div className="flex items-center gap-2 text-emerald-400 text-sm font-semibold mb-1">
           <CheckCircle className="w-4 h-4" />
-          You&apos;re subscribed
+          Digest preferences saved
         </div>
         <p className="text-zinc-300 text-xs">
-          Top BUY/SELL signals across BTC, ETH, and XAU land in your inbox every Monday.
-          You can{' '}
+          Delivery depends on the deployment operator&apos;s email-provider and scheduler configuration.
+          You can review{' '}
           <Link href="/subscribe" className="text-emerald-400 hover:underline">
-            customise pairs and confidence
+            customise pairs and minimum rule score
           </Link>
           {' '}any time.
         </p>
@@ -74,10 +74,10 @@ export function EmailCapture({ source }: EmailCaptureProps) {
     <div className="rounded-xl border border-zinc-700 bg-zinc-900/60 p-5 mt-8">
       <div className="flex items-center gap-2 text-zinc-100 text-sm font-semibold mb-1">
         <Mail className="w-4 h-4 text-emerald-400" />
-        Get the weekly signal digest
+        Save digest preferences
       </div>
       <p className="text-zinc-400 text-xs mb-4 leading-relaxed">
-        Top BUY/SELL signals, accuracy stats, and leaderboard highlights — every Monday. Free.
+        Choose preferences for rule-generated candidates and recorded outcome summaries. The rule score is not a probability or edge estimate; delivery timing is not guaranteed.
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
         <label htmlFor={`blog-email-${source}`} className="sr-only">
@@ -98,7 +98,7 @@ export function EmailCapture({ source }: EmailCaptureProps) {
           disabled={loading}
           className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? 'Subscribing…' : 'Subscribe'}
+          {loading ? 'Saving...' : 'Save preferences'}
         </button>
       </form>
       {error && (

@@ -17,7 +17,6 @@ import {
   Star,
   ExternalLink,
   Terminal,
-  Clock,
   Rocket,
 } from 'lucide-react';
 
@@ -96,19 +95,17 @@ function Step1() {
   return (
     <div className="space-y-4">
       <p className="text-zinc-300">
-        Clone the TradeClaw repository from GitHub to get started. No npm install needed yet — just clone and enter the directory.
+        Clone the TradeClaw repository from GitHub to get started. No npm install needed yet — just clone and enter the
+        directory.
       </p>
-      <CodeBlock
-        code={`git clone https://github.com/naimkatiman/tradeclaw\ncd tradeclaw`}
-      />
+      <CodeBlock code={`git clone https://github.com/naimkatiman/tradeclaw\ncd tradeclaw`} />
       <div className="flex items-start gap-3 mt-4 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
         <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-medium text-emerald-300">You should see:</p>
           <p className="text-sm text-zinc-400 mt-1">
             A <code className="text-emerald-300">tradeclaw/</code> folder with{' '}
-            <code className="text-emerald-300">apps/</code>,{' '}
-            <code className="text-emerald-300">packages/</code>, and{' '}
+            <code className="text-emerald-300">apps/</code>, <code className="text-emerald-300">packages/</code>, and{' '}
             <code className="text-emerald-300">docker-compose.yml</code>
           </p>
         </div>
@@ -130,13 +127,25 @@ function Step2() {
   return (
     <div className="space-y-4">
       <p className="text-zinc-300">
-        Copy the environment template and configure your optional settings. Most defaults work out of the box — only Telegram token is needed for notifications.
+        Docker Compose reads the root environment file. Copy the template, then set the required database and signing
+        secrets before starting the stack.
       </p>
-      <CodeBlock code={`cp apps/web/.env.example apps/web/.env`} />
+      <CodeBlock
+        code={`cp .env.example .env
+
+# Required in .env:
+# DB_PASSWORD
+# USER_SESSION_SECRET
+# AUTH_SECRET`}
+      />
       <div className="mt-4 p-4 rounded-lg bg-zinc-800/50 border border-zinc-700">
         <p className="text-sm font-medium text-zinc-300 mb-3">Optional: Add Telegram notifications</p>
         <CodeBlock
-          code={`# In apps/web/.env\nTELEGRAM_BOT_TOKEN=your_bot_token_here\nTELEGRAM_WEBHOOK_URL=https://your-domain.com/api/telegram/webhook`}
+          code={`# In .env
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+TELEGRAM_FREE_CHANNEL_ID=your_channel_id
+TELEGRAM_WEBHOOK_SECRET=your_random_secret
+CRON_SECRET=your_cron_secret`}
         />
         <p className="text-xs text-zinc-500 mt-2">
           Get a bot token from{' '}
@@ -148,13 +157,17 @@ function Step2() {
           >
             @BotFather
           </a>{' '}
-          on Telegram. Skip this step to run without notifications.
+          on Telegram. The Node server starts an internal sync timer, but cron routes fail closed unless CRON_SECRET is
+          configured. Telegram fan-out runs only in its configured UTC slots and still depends on valid bot and channel
+          values. Skip these values to run without Telegram delivery.
         </p>
       </div>
       <div className="flex items-start gap-3 p-4 rounded-lg bg-zinc-800/30 border border-zinc-700">
         <Settings className="w-5 h-5 text-zinc-400 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-zinc-400">
-          No API keys required for core functionality. Live prices use Binance and Yahoo Finance public endpoints with a synthetic fallback.
+          No API keys are required for the default public-data paths. The market-data hub is used when configured, with
+          Binance for crypto and Stooq for forex/metals as fallbacks. Synthetic candles are labeled and excluded from
+          the public signal list.
         </p>
       </div>
     </div>
@@ -165,35 +178,48 @@ function Step3() {
   return (
     <div className="space-y-4">
       <p className="text-zinc-300">
-        Choose your preferred way to run TradeClaw locally. Docker Compose is the recommended one-command approach.
+        Choose how to run TradeClaw locally. Docker Compose is the repository&apos;s documented self-host path and
+        builds the application plus its PostgreSQL, Redis, migration, and WebSocket services.
       </p>
       <TabCodeBlock
         tabs={[
           {
-            label: '🐳 Docker (recommended)',
-            code: `docker compose up -d\n\n# Verify it's running\ncurl http://localhost:3000/api/health`,
+            label: 'Docker Compose (recommended)',
+            code: `docker compose up -d --build
+
+# Inspect container state
+docker compose ps
+
+# Verify the web process responds
+curl http://localhost:3000/api/health`,
           },
           {
-            label: '⚡ npm dev',
-            code: `npm install\nnpm run dev --workspace=apps/web\n\n# App runs at http://localhost:3000`,
-          },
-          {
-            label: '🚀 npx demo',
-            code: `npx @naimkatiman/tradeclaw-demo\n\n# Spins up a live demo in ~10 seconds\n# No install required`,
+            label: 'Developer mode',
+            code: `npm install
+
+# Export an accessible PostgreSQL DATABASE_URL in your shell and set
+# USER_SESSION_SECRET in apps/web/.env.local before starting the app.
+npm run migrate --workspace=apps/web
+npm run dev --workspace=apps/web
+
+# App runs at http://localhost:3000`,
           },
         ]}
       />
       <div className="flex items-start gap-3 mt-4 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
         <Terminal className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-medium text-emerald-300">Health check response:</p>
-          <pre className="text-xs font-mono text-zinc-400 mt-1 whitespace-pre-wrap">
-            {`{"status":"ok","version":"0.4.0","uptime":42}`}
-          </pre>
+          <p className="text-sm font-medium text-emerald-300">Health check:</p>
+          <p className="text-xs text-zinc-400 mt-1">
+            Confirm that the JSON response contains{' '}
+            <code className="text-emerald-300">&quot;status&quot;: &quot;ok&quot;</code>. Version, uptime, timestamp,
+            Node version, and build values are runtime-specific.
+          </p>
         </div>
       </div>
       <p className="text-xs text-zinc-500">
-        Requires: Node.js v18+ or Docker Desktop. Port 3000 must be free.
+        Docker mode requires Docker Engine with the Compose plugin. Developer mode requires Node.js 20+, npm, and
+        PostgreSQL. The default app port is 3000 and can be changed with APP_PORT in Docker mode.
       </p>
     </div>
   );
@@ -203,32 +229,32 @@ function Step4() {
   return (
     <div className="space-y-4">
       <p className="text-zinc-300">
-        Your TradeClaw instance is live! Here&apos;s what to explore first:
+        Once the health check passes, inspect what data is actually available before relying on any analytical output.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
         {[
           {
             href: '/dashboard',
-            label: 'Live Dashboard',
-            desc: 'Live BUY/SELL signals across 10+ assets (5-min cadence)',
+            label: 'Signal Dashboard',
+            desc: 'Observed-data analytical signals when upstream OHLCV is available',
             color: 'emerald',
           },
           {
             href: '/api/signals',
             label: 'REST API',
-            desc: 'JSON endpoint: /api/signals — copy into any script',
+            desc: 'Inspect signals together with their source and data-quality fields',
             color: 'blue',
           },
           {
             href: '/backtest',
             label: 'Backtest',
-            desc: 'Run strategies on historical data with charts',
+            desc: 'Modeled historical simulations with configurable cost and exit assumptions',
             color: 'purple',
           },
           {
             href: '/screener',
             label: 'Screener',
-            desc: 'Scan all assets for RSI/MACD/EMA setups',
+            desc: 'Review indicator states for assets with available market data',
             color: 'amber',
           },
         ].map((item) => (
@@ -245,31 +271,35 @@ function Step4() {
         ))}
       </div>
       <CodeBlock
-        code={`# Fetch live signals via API\ncurl http://localhost:3000/api/signals?pair=BTCUSD&timeframe=H1`}
+        code={`# Fetch currently available analytical signals
+curl "http://localhost:3000/api/signals?symbol=BTCUSD&timeframe=H1"`}
       />
       <div className="flex items-start gap-3 p-4 rounded-lg bg-zinc-800/30 border border-zinc-700 mt-2">
         <BarChart2 className="w-5 h-5 text-zinc-400 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-zinc-400">
-          Signals update every 5 minutes. First run generates signals for all 10 asset pairs simultaneously using RSI, MACD, EMA, Bollinger Bands, and Stochastic indicators.
+          The Node runtime attempts its sync route on a nominal five-minute interval. Signal freshness is not
+          guaranteed: cron authentication, process uptime, upstream data, and route failures can delay or empty the
+          result. Modeled backtest results are not live trading performance.
         </p>
       </div>
     </div>
   );
 }
 
-function Step5({ stars }: { stars: number }) {
+function Step5({ stars }: { stars: number | null }) {
   const [copiedTweet, setCopiedTweet] = useState(false);
 
-  const tweet = `I just self-hosted @TradeClaw_win — live AI trading signals for BTC, ETH, XAU and more in 60 seconds 🚀\n\nFree & open-source ⭐ https://github.com/naimkatiman/tradeclaw`;
+  const tweet = `I set up TradeClaw, an MIT-licensed self-hostable market-analysis app. It derives analytical signals from observed OHLCV when available and includes modeled historical backtests with explicit assumptions.\n\nhttps://github.com/naimkatiman/tradeclaw`;
   const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
 
-  const redditPost = `I just set up TradeClaw — a free open-source AI trading signal platform. Live RSI/MACD/EMA signals for BTC, ETH, Gold, Forex. Self-hosted in 60 seconds with Docker. https://github.com/naimkatiman/tradeclaw`;
-  const redditUrl = `https://www.reddit.com/r/algotrading/submit?title=TradeClaw%20-%20Free%20Open-Source%20AI%20Trading%20Signals&text=${encodeURIComponent(redditPost)}`;
+  const redditPost = `I set up TradeClaw, an MIT-licensed self-hostable market-analysis application. It computes technical analytical signals from observed OHLCV when available. Its historical backtests are modeled simulations whose costs and exits depend on configuration, not live portfolio results. https://github.com/naimkatiman/tradeclaw`;
+  const redditUrl = `https://www.reddit.com/r/algotrading/submit?title=TradeClaw%20-%20Self-Hostable%20Market%20Analysis&text=${encodeURIComponent(redditPost)}`;
 
   return (
     <div className="space-y-4">
       <p className="text-zinc-300">
-        You&apos;re all set! Help TradeClaw reach 1000 ⭐ by sharing it with the community.
+        If your health check and data-source fields look correct, you can share the repository using the factual draft
+        below.
       </p>
 
       {/* GitHub Star CTA */}
@@ -278,14 +308,8 @@ function Step5({ stars }: { stars: number }) {
           <div>
             <p className="text-sm font-medium text-emerald-300">Star on GitHub</p>
             <p className="text-xs text-zinc-400 mt-0.5">
-              {stars} / 1000 ⭐ — {Math.round((stars / 1000) * 100)}% to goal
+              {stars === null ? 'Current star count unavailable' : `${stars} stars reported by the GitHub API`}
             </p>
-            <div className="w-48 h-1.5 bg-zinc-700 rounded-full mt-2 overflow-hidden">
-              <div
-                className="h-full bg-emerald-500 rounded-full transition-all"
-                style={{ width: `${Math.min((stars / 1000) * 100, 100)}%` }}
-              />
-            </div>
           </div>
           <a
             href="https://github.com/naimkatiman/tradeclaw"
@@ -342,11 +366,26 @@ function Step5({ stars }: { stars: number }) {
         <Rocket className="w-5 h-5 text-zinc-400 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-zinc-400">
           Explore the full feature set:{' '}
-          <Link href="/dashboard" className="text-emerald-400 hover:underline">dashboard</Link>,{' '}
-          <Link href="/plugins" className="text-emerald-400 hover:underline">plugins</Link>,{' '}
-          <Link href="/backtest" className="text-emerald-400 hover:underline">backtest</Link>,{' '}
-          <Link href="/api-docs" className="text-emerald-400 hover:underline">API docs</Link>, and{' '}
-          <Link href="/docs" className="text-emerald-400 hover:underline">full documentation</Link>.
+          <Link href="/dashboard" className="text-emerald-400 hover:underline">
+            dashboard
+          </Link>
+          ,{' '}
+          <Link href="/plugins" className="text-emerald-400 hover:underline">
+            plugins
+          </Link>
+          ,{' '}
+          <Link href="/backtest" className="text-emerald-400 hover:underline">
+            backtest
+          </Link>
+          ,{' '}
+          <Link href="/api-docs" className="text-emerald-400 hover:underline">
+            API docs
+          </Link>
+          , and{' '}
+          <Link href="/docs" className="text-emerald-400 hover:underline">
+            full documentation
+          </Link>
+          .
         </p>
       </div>
     </div>
@@ -354,17 +393,17 @@ function Step5({ stars }: { stars: number }) {
 }
 
 const STEPS_META = [
-  { icon: GitBranch, title: 'Clone Repository', subtitle: 'Get the code from GitHub', estimatedTime: '~30s' },
-  { icon: Settings, title: 'Configure', subtitle: 'Set up your .env file', estimatedTime: '~1 min' },
-  { icon: Play, title: 'Run', subtitle: 'Start TradeClaw locally', estimatedTime: '~1–2 min' },
-  { icon: BarChart2, title: 'See Signals', subtitle: 'Explore live trading signals', estimatedTime: '~2 min' },
-  { icon: Share2, title: 'Share', subtitle: 'Help grow the community', estimatedTime: '~30s' },
+  { icon: GitBranch, title: 'Clone Repository', subtitle: 'Get the code from GitHub' },
+  { icon: Settings, title: 'Configure', subtitle: 'Set required environment values' },
+  { icon: Play, title: 'Run', subtitle: 'Build and start TradeClaw locally' },
+  { icon: BarChart2, title: 'Inspect Data', subtitle: 'Check source quality and modeled outputs' },
+  { icon: Share2, title: 'Share', subtitle: 'Use factual public copy' },
 ];
 
 export default function StartClient() {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [stars, setStars] = useState(4);
+  const [stars, setStars] = useState<number | null>(null);
   const [isResuming, setIsResuming] = useState(false);
 
   // Load progress from localStorage
@@ -378,7 +417,9 @@ export default function StartClient() {
           timer = setTimeout(() => setIsResuming(true), 0);
         }
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     return () => clearTimeout(timer);
   }, []);
 
@@ -386,14 +427,18 @@ export default function StartClient() {
     // Fetch stars
     fetch('/api/github-stars')
       .then((r) => r.json())
-      .then((d) => { if (d.stars) setStars(d.stars); })
+      .then((d: { stars?: unknown }) => {
+        if (typeof d.stars === 'number' && Number.isSafeInteger(d.stars) && d.stars >= 0) setStars(d.stars);
+      })
       .catch(() => {});
   }, []);
 
   const saveProgress = useCallback((step: number, completed: number[]) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ currentStep: step, completedSteps: completed }));
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const handleResume = () => {
@@ -404,7 +449,9 @@ export default function StartClient() {
         setCurrentStep(progress.currentStep);
         setCompletedSteps(progress.completedSteps);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setIsResuming(false);
   };
 
@@ -452,11 +499,9 @@ export default function StartClient() {
             <Rocket className="w-3.5 h-3.5" />
             Setup Guide
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-            Get Started with TradeClaw
-          </h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Get Started with TradeClaw</h1>
           <p className="text-zinc-400 text-lg">
-            Self-host your AI trading signal platform in under 5 minutes
+            Build a self-hosted market-analysis instance and verify its data sources
           </p>
         </div>
 
@@ -498,9 +543,7 @@ export default function StartClient() {
                       key={i}
                       onClick={() => setCurrentStep(i)}
                       className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors ${
-                        isCurrent
-                          ? 'bg-emerald-500/15 border border-emerald-500/30'
-                          : 'hover:bg-zinc-800/50'
+                        isCurrent ? 'bg-emerald-500/15 border border-emerald-500/30' : 'hover:bg-zinc-800/50'
                       }`}
                     >
                       <div className="flex-shrink-0">
@@ -511,13 +554,12 @@ export default function StartClient() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className={`text-xs font-medium truncate ${isCurrent ? 'text-emerald-300' : isCompleted ? 'text-zinc-300' : 'text-zinc-500'}`}>
+                        <p
+                          className={`text-xs font-medium truncate ${isCurrent ? 'text-emerald-300' : isCompleted ? 'text-zinc-300' : 'text-zinc-500'}`}
+                        >
                           {step.title}
                         </p>
-                        <p className="text-[10px] text-zinc-600 flex items-center gap-1 mt-0.5">
-                          <Clock className="w-2.5 h-2.5" />
-                          {step.estimatedTime}
-                        </p>
+                        <p className="text-[10px] text-zinc-600 mt-0.5">Step {i + 1}</p>
                       </div>
                     </button>
                   );
@@ -531,7 +573,9 @@ export default function StartClient() {
                     style={{ width: `${progressPct}%` }}
                   />
                 </div>
-                <p className="text-xs text-zinc-500 mt-1">{currentStep + 1} of {STEPS_META.length}</p>
+                <p className="text-xs text-zinc-500 mt-1">
+                  {currentStep + 1} of {STEPS_META.length}
+                </p>
               </div>
             </div>
           </div>
@@ -541,8 +585,10 @@ export default function StartClient() {
             {/* Mobile step indicator */}
             <div className="md:hidden mb-4 p-3 rounded-lg bg-zinc-900/60 border border-zinc-800">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-zinc-400">Step {currentStep + 1} of {STEPS_META.length}</p>
-                <p className="text-xs text-zinc-500">{current.estimatedTime}</p>
+                <p className="text-xs text-zinc-400">
+                  Step {currentStep + 1} of {STEPS_META.length}
+                </p>
+                <p className="text-xs text-zinc-500">Verify before continuing</p>
               </div>
               <div className="flex gap-1">
                 {STEPS_META.map((_, i) => (
@@ -566,22 +612,14 @@ export default function StartClient() {
                     <StepIcon className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-semibold text-white">{current.title}</h2>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700 hidden sm:inline-flex items-center gap-1">
-                        <Clock className="w-2.5 h-2.5" />
-                        {current.estimatedTime}
-                      </span>
-                    </div>
+                    <h2 className="text-lg font-semibold text-white">{current.title}</h2>
                     <p className="text-sm text-zinc-400">{current.subtitle}</p>
                   </div>
                 </div>
               </div>
 
               {/* Step content */}
-              <div className="px-6 py-6">
-                {stepComponents[currentStep]}
-              </div>
+              <div className="px-6 py-6">{stepComponents[currentStep]}</div>
 
               {/* Navigation */}
               <div className="px-6 py-4 border-t border-zinc-800 flex items-center justify-between gap-4">
@@ -598,7 +636,11 @@ export default function StartClient() {
                     <div
                       key={i}
                       className={`w-2 h-2 rounded-full transition-colors ${
-                        i === currentStep ? 'bg-emerald-400' : completedSteps.includes(i) ? 'bg-emerald-600' : 'bg-zinc-700'
+                        i === currentStep
+                          ? 'bg-emerald-400'
+                          : completedSteps.includes(i)
+                            ? 'bg-emerald-600'
+                            : 'bg-zinc-700'
                       }`}
                     />
                   ))}

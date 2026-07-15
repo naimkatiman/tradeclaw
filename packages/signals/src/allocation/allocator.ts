@@ -170,11 +170,12 @@ export function computeAllocation(
     };
   }
 
-  // Calculate position size based on confidence and tier
+  // Calculate position size based on the mechanical rule score and symbol tier.
+  // The score is an indicator-agreement input, not a success probability.
   const tier = getSymbolTier(signal.symbol);
   const tierWeight = getTierWeight(tier);
 
-  // Confidence drives size: scale linearly from 0% to maxSinglePositionPct
+  // Scale the 0-100 rule score linearly to the configured maximum size.
   const confidenceRatio = Math.min(Math.max(signal.confidence, 0), 100) / 100;
   const volScaler = currentVol != null ? computeVolatilityScaler(currentVol, regime) : 1.0;
   const rawSizePct = rules.maxSinglePositionPct * confidenceRatio * tierWeight * volScaler;

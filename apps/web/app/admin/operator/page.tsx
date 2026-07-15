@@ -139,7 +139,7 @@ export default async function OperatorIndexPage() {
           <StatCard label="Signals (7d)" value={String(totalSignals7d)} />
           <StatCard label="Win Rate 4h" value={`${avgWin4h}%`} sub="7-day avg" />
           <StatCard label="Win Rate 24h" value={`${avgWin24h}%`} sub="7-day avg" />
-          <StatCard label="Avg Confidence" value={`${avgConfidence}%`} sub="7-day avg" />
+          <StatCard label="Avg Rule Score" value={`${avgConfidence}/100`} sub="7-day mechanical score" />
         </div>
 
         {/* Navigation grid */}

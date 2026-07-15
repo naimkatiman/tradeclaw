@@ -1,75 +1,54 @@
 # TradeClaw Discord Bot
 
-Discord bot that posts live trading signals to your server with slash commands and auto-broadcast.
+Discord client for provider-observed TradeClaw research candidates and resolved
+directional-outcome summaries.
+
+The bot fails closed. API errors, incomplete rows, fallback rows, and synthetic
+rows produce an explicit unavailable response. They are never replaced with
+generated prices, candidates, win rates, or P&L, and unavailable rows are never
+auto-broadcast.
 
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
 cd packages/tradeclaw-discord
 npm install
-
-# 2. Set your bot token
 export DISCORD_BOT_TOKEN=your_bot_token_here
-
-# 3. Run
 npm start
 ```
 
-## Invite the Bot
+Create the application and token in the
+[Discord Developer Portal](https://discord.com/developers/applications). A bot
+invite uses this pattern, replacing `YOUR_CLIENT_ID`:
 
-1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. Create a New Application → Bot → copy the token
-3. Use this invite URL (replace `YOUR_CLIENT_ID`):
-
-```
+```text
 https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&scope=bot+applications.commands&permissions=2048
 ```
 
-## Slash Commands
+## Commands
 
 | Command | Description |
-|---------|-------------|
-| `/signal [pair]` | Get latest signal for a pair (random if omitted) |
-| `/leaderboard [period]` | Top 5 pairs by win rate (24h, 7d, 30d, all) |
-| `/health` | API health + uptime |
-| `/subscribe [pair] [min_confidence]` | Auto-receive signals in this channel |
-| `/unsubscribe` | Stop signal broadcasts |
-| `/help` | List all commands |
+| --- | --- |
+| `/signal [pair]` | Latest complete provider-observed research candidate |
+| `/leaderboard [period]` | Resolved 24h directional outcomes; not trades or portfolio P&L |
+| `/health` | API process and data-availability status |
+| `/subscribe [pair] [min_confidence]` | Broadcast qualifying observed candidates |
+| `/unsubscribe` | Stop candidate broadcasts |
+| `/help` | List commands |
 
-## Environment Variables
+The API's legacy `confidence` field is shown as a mechanical rule score out of
+100. It is not represented as a calibrated forecast probability.
+
+## Environment
 
 | Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DISCORD_BOT_TOKEN` | Yes | — | Bot token from Discord Developer Portal |
-| `DISCORD_CLIENT_ID` | No | — | Application client ID (for invite URL generation) |
+| --- | --- | --- | --- |
+| `DISCORD_BOT_TOKEN` | Yes | None | Discord bot token |
+| `DISCORD_CLIENT_ID` | No | None | Application client ID |
 | `TRADECLAW_BASE_URL` | No | `https://tradeclaw.win` | TradeClaw API base URL |
-| `BROADCAST_INTERVAL` | No | `5` | Minutes between auto-broadcasts |
-
-## Docker
-
-```yaml
-# Add to your docker-compose.yml
-tradeclaw-discord:
-  build: ./packages/tradeclaw-discord
-  environment:
-    - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
-    - TRADECLAW_BASE_URL=http://web:3000
-  restart: unless-stopped
-```
-
-## Signal Embed Preview
-
-```
-🟢 BUY Signal — BTCUSD H1
-━━━━━━━━━━━━━━━━━━
-💰 Price: $43,250.00
-🎯 TP: $44,100 | 🛡️ SL: $42,800
-📊 Confidence: 87%
-📈 RSI: 42.3 | MACD: ▲
-⏰ Just now
-```
+| `BROADCAST_INTERVAL` | No | `5` | Polling interval in minutes |
 
 ## License
 
-MIT — part of the [TradeClaw](https://github.com/naimkatiman/tradeclaw) project.
+MIT. Research software only; no broker order, fill, portfolio return, or
+investment advice is represented by this package.

@@ -28,10 +28,11 @@ interface Signal {
   ema?: number;
   tp?: number;
   sl?: number;
+  dataQuality?: string;
+  timestamp?: number | string;
 }
 
 type Theme = 'dark' | 'purple' | 'gold';
-type DirectionOverride = 'auto' | 'BUY' | 'SELL';
 
 const PAIRS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'BNBUSD'];
 const TIMEFRAMES = ['H1', 'H4', 'D1'];
@@ -143,7 +144,7 @@ function drawCard(
 
   ctx.font = '600 20px monospace';
   ctx.fillStyle = C.subText;
-  ctx.fillText(`${signal.timeframe} · AI Signal`, 58, 240);
+  ctx.fillText(`${signal.timeframe} | API signal candidate`, 58, 240);
 
   // ── Direction badge ──
   const badgeX = 56, badgeY = 270;
@@ -162,15 +163,15 @@ function drawCard(
   const dw = ctx.measureText(dir).width;
   ctx.fillText(dir, badgeX + (badgeW - dw) / 2, badgeY + 34);
 
-  // ── Confidence ──
+  // ── Rule score ──
   const confY = 358;
   ctx.font = '500 14px sans-serif';
   ctx.fillStyle = C.subText;
-  ctx.fillText('Confidence', 56, confY);
+  ctx.fillText('Rule score', 56, confY);
 
   ctx.font = 'bold 42px monospace';
   ctx.fillStyle = C.accent;
-  ctx.fillText(`${signal.confidence}%`, 56, confY + 48);
+  ctx.fillText(`${signal.confidence}/100`, 56, confY + 48);
 
   // confidence bar
   const barX = 56, barY = confY + 60, barW = 340, barH = 8;
@@ -204,25 +205,11 @@ function drawCard(
     ctx.fillText(m.value, metaX + 16, my + 44);
   });
 
-  // ── Decorative chart line (right) ──
-  const lineX = 900, lineY0 = 160, lineH2 = 330;
-  const pts: [number, number][] = [];
-  let seed = signal.symbol.charCodeAt(0) + signal.confidence;
-  const rand = () => { seed = (seed * 16807 + 0) % 2147483647; return (seed % 1000) / 1000; };
-  for (let i = 0; i < 20; i++) pts.push([lineX + i * 15, lineY0 + lineH2 - rand() * lineH2]);
-
-  ctx.beginPath();
-  ctx.moveTo(pts[0][0], pts[0][1]);
-  for (let i = 1; i < pts.length - 2; i++) {
-    const cx1 = (pts[i][0] + pts[i + 1][0]) / 2;
-    const cy1 = (pts[i][1] + pts[i + 1][1]) / 2;
-    ctx.quadraticCurveTo(pts[i][0], pts[i][1], cx1, cy1);
-  }
-  ctx.strokeStyle = C.accent;
-  ctx.lineWidth = 2;
-  ctx.globalAlpha = 0.6;
-  ctx.stroke();
-  ctx.globalAlpha = 1;
+  ctx.font = '600 13px monospace';
+  ctx.fillStyle = C.subText;
+  ctx.fillText('NO PRICE SERIES DISPLAYED', 900, 250);
+  ctx.font = '12px monospace';
+  ctx.fillText('Candidate fields only', 900, 274);
 
   // ── Custom tagline ──
   if (tagline.trim()) {
@@ -239,10 +226,17 @@ function drawCard(
 
   ctx.font = '500 13px monospace';
   ctx.fillStyle = C.subText;
-  ctx.fillText('tradeclaw.win  ·  Open-source AI trading signals  ·  Star us on GitHub', 56, H - 30);
+  ctx.fillText('tradeclaw.win  |  Rule-scored candidate, not a broker fill or portfolio return', 56, H - 30);
 
-  // timestamp
-  const ts = new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+  // Candidate timestamp from the API, never the card-generation clock.
+  const timestampMs = typeof signal.timestamp === 'number'
+    ? signal.timestamp
+    : typeof signal.timestamp === 'string'
+      ? Date.parse(signal.timestamp)
+      : Number.NaN;
+  const ts = Number.isFinite(timestampMs)
+    ? `Signal: ${new Date(timestampMs).toISOString().slice(0, 16).replace('T', ' ')} UTC`
+    : 'Signal timestamp unavailable';
   ctx.font = '13px monospace';
   ctx.fillStyle = C.subText;
   ctx.globalAlpha = 0.6;
@@ -276,10 +270,10 @@ export function OGPreviewClient() {
   const [pair, setPair] = useState('BTCUSD');
   const [timeframe, setTimeframe] = useState('H1');
   const [theme, setTheme] = useState<Theme>('dark');
-  const [dirOverride, setDirOverride] = useState<DirectionOverride>('auto');
   const [tagline, setTagline] = useState('');
   const [signal, setSignal] = useState<Signal | null>(null);
   const [loading, setLoading] = useState(false);
+  const [signalStatus, setSignalStatus] = useState<'loading' | 'available' | 'unavailable'>('loading');
   const [copied, setCopied] = useState(false);
   const [copiedImg, setCopiedImg] = useState(false);
   const { toast, show } = useToast();
@@ -287,34 +281,25 @@ export function OGPreviewClient() {
   // ── Fetch signal ──
   const fetchSignal = useCallback(async (p: string, tf: string) => {
     setLoading(true);
+    setSignalStatus('loading');
+    setSignal(null);
     try {
-      const res = await fetch(`/api/signals?pair=${p}&timeframe=${tf}&limit=1`);
+      const res = await fetch(`/api/signals?symbol=${p}&timeframe=${tf}&limit=1`, { cache: 'no-store' });
       if (!res.ok) throw new Error('fetch error');
-      const data: { signals?: Signal[] } = await res.json();
-      let sig = (data.signals ?? [])[0];
-      if (!sig) throw new Error('empty');
-
-      if (dirOverride !== 'auto') sig = { ...sig, direction: dirOverride };
+      const data: { signals?: Signal[]; syntheticSymbols?: string[] } = await res.json();
+      const sig = (data.signals ?? []).find((candidate) => candidate.dataQuality === 'real');
+      if (!sig || data.syntheticSymbols?.includes(sig.symbol)) throw new Error('no real candidate');
       setSignal(sig);
+      setSignalStatus('available');
     } catch {
-      // synthetic fallback
-      const fallback: Signal = {
-        symbol: p,
-        direction: dirOverride === 'auto' ? 'BUY' : dirOverride,
-        confidence: 78,
-        timeframe: tf,
-        price: p.startsWith('BTC') ? 67420 : p.startsWith('ETH') ? 3540 : 2340,
-        rsi: 54.2,
-        macd: 0.0023,
-        ema: p.startsWith('BTC') ? 66850 : p.startsWith('ETH') ? 3510 : 2310,
-      };
-      setSignal(fallback);
+      setSignal(null);
+      setSignalStatus('unavailable');
     } finally {
       setLoading(false);
     }
-  }, [dirOverride]);
+  }, []);
 
-  useEffect(() => { fetchSignal(pair, timeframe); }, [pair, timeframe, dirOverride, fetchSignal]);
+  useEffect(() => { fetchSignal(pair, timeframe); }, [pair, timeframe, fetchSignal]);
 
   // ── Re-draw when inputs change ──
   useEffect(() => {
@@ -325,6 +310,7 @@ export function OGPreviewClient() {
 
   // ── Download PNG ──
   const handleDownload = useCallback(() => {
+    if (!signal) { show('No API signal is available to export'); return; }
     const canvas = canvasRef.current;
     if (!canvas) return;
     canvas.toBlob((blob) => {
@@ -337,10 +323,11 @@ export function OGPreviewClient() {
       URL.revokeObjectURL(url);
     }, 'image/png');
     show('Image downloaded!');
-  }, [pair, timeframe, show]);
+  }, [signal, pair, timeframe, show]);
 
   // ── Copy image to clipboard ──
   const handleCopyImage = useCallback(async () => {
+    if (!signal) { show('No API signal is available to copy'); return; }
     const canvas = canvasRef.current;
     if (!canvas) return;
     try {
@@ -353,37 +340,41 @@ export function OGPreviewClient() {
     } catch {
       show('Copy failed — try downloading instead');
     }
-  }, [show]);
+  }, [signal, show]);
 
   // ── Copy page link ──
   const handleCopyLink = useCallback(() => {
+    if (!signal) { show('No API signal is available to share'); return; }
     const url = `${window.location.origin}/og-preview?pair=${pair}&tf=${timeframe}`;
     navigator.clipboard.writeText(url).catch(() => null);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     show('Link copied!');
-  }, [pair, timeframe, show]);
+  }, [signal, pair, timeframe, show]);
 
   // ── Share on X ──
   const handleShareX = useCallback(() => {
+    if (!signal) { show('No API signal is available to share'); return; }
     const text = encodeURIComponent(
-      `📊 ${signal?.direction ?? 'BUY'} signal on ${pair} (${timeframe}) — ${signal?.confidence ?? 78}% confidence\n\nGenerated by @TradeClaw — open-source AI trading signals 🤖\n\ntradeclaw.win`,
+      `${signal.direction} rule-scored signal candidate on ${pair} (${timeframe}) - ${signal.confidence}/100. Not a broker fill or portfolio return.\n\nhttps://tradeclaw.win/og-preview`,
     );
     window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener');
-  }, [signal, pair, timeframe]);
+  }, [signal, pair, timeframe, show]);
 
   // ── Share on LinkedIn ──
   const handleShareLinkedIn = useCallback(() => {
+    if (!signal) { show('No API signal is available to share'); return; }
     const url = encodeURIComponent(`https://tradeclaw.win/og-preview?pair=${pair}&tf=${timeframe}`);
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'noopener');
-  }, [pair, timeframe]);
+  }, [signal, pair, timeframe, show]);
 
   // ── Share on Reddit ──
   const handleShareReddit = useCallback(() => {
-    const title = encodeURIComponent(`TradeClaw AI Signal: ${signal?.direction ?? 'BUY'} ${pair} ${timeframe} — ${signal?.confidence ?? 78}% confidence`);
-    const url = encodeURIComponent('https://tradeclaw.win');
+    if (!signal) { show('No API signal is available to share'); return; }
+    const title = encodeURIComponent(`TradeClaw rule-scored candidate: ${signal.direction} ${pair} ${timeframe} - ${signal.confidence}/100 (not a broker fill)`);
+    const url = encodeURIComponent('https://tradeclaw.win/og-preview');
     window.open(`https://reddit.com/submit?url=${url}&title=${title}`, '_blank', 'noopener');
-  }, [signal, pair, timeframe]);
+  }, [signal, pair, timeframe, show]);
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-24 pb-20 px-4">
@@ -405,8 +396,8 @@ export function OGPreviewClient() {
             Create Your Signal Card
           </h1>
           <p className="text-[var(--text-secondary)] text-lg max-w-xl mx-auto">
-            Personalise a 1200×630 social preview card with live AI signal data.
-            Download or share — your card includes the TradeClaw branding to drive organic reach.
+            Personalise a 1200x630 card only when the signal API returns a candidate.
+            Unavailable data is never replaced with a synthetic signal.
           </p>
         </div>
 
@@ -417,6 +408,13 @@ export function OGPreviewClient() {
               {loading && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 rounded-2xl">
                   <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin" />
+                </div>
+              )}
+              {!loading && signalStatus === 'unavailable' && (
+                <div className="absolute inset-3 z-10 flex flex-col items-center justify-center gap-2 bg-[var(--bg-card)] rounded-xl text-center px-6">
+                  <ImageIcon className="w-8 h-8 text-[var(--text-secondary)]" />
+                  <p className="font-semibold">Signal unavailable</p>
+                  <p className="text-sm text-[var(--text-secondary)]">The API returned no candidate for this pair and timeframe. No illustrative values have been substituted.</p>
                 </div>
               )}
               <canvas
@@ -430,7 +428,8 @@ export function OGPreviewClient() {
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={handleDownload}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-sm transition-colors duration-200"
+                disabled={!signal}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-semibold text-sm transition-colors duration-200"
               >
                 <Download className="w-4 h-4" />
                 Download PNG
@@ -438,7 +437,8 @@ export function OGPreviewClient() {
 
               <button
                 onClick={handleCopyImage}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border)] hover:bg-[var(--glass-bg)] text-sm font-medium transition-colors duration-200"
+                disabled={!signal}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border)] hover:bg-[var(--glass-bg)] disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200"
               >
                 {copiedImg ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 Copy Image
@@ -446,7 +446,8 @@ export function OGPreviewClient() {
 
               <button
                 onClick={handleCopyLink}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border)] hover:bg-[var(--glass-bg)] text-sm font-medium transition-colors duration-200"
+                disabled={!signal}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border)] hover:bg-[var(--glass-bg)] disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200"
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 Copy Link
@@ -465,7 +466,8 @@ export function OGPreviewClient() {
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={handleShareX}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-black border border-white/10 hover:bg-zinc-900 text-white text-sm font-medium transition-colors duration-200"
+                disabled={!signal}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-black border border-white/10 hover:bg-zinc-900 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors duration-200"
               >
                 <ExternalLink className="w-4 h-4" />
                 Share on X
@@ -473,7 +475,8 @@ export function OGPreviewClient() {
 
               <button
                 onClick={handleShareLinkedIn}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0077b5] hover:bg-[#006097] text-white text-sm font-medium transition-colors duration-200"
+                disabled={!signal}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0077b5] hover:bg-[#006097] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors duration-200"
               >
                 <Share2 className="w-4 h-4" />
                 LinkedIn
@@ -481,7 +484,8 @@ export function OGPreviewClient() {
 
               <button
                 onClick={handleShareReddit}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#ff4500] hover:bg-[#e03d00] text-white text-sm font-medium transition-colors duration-200"
+                disabled={!signal}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#ff4500] hover:bg-[#e03d00] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors duration-200"
               >
                 <Share2 className="w-4 h-4" />
                 Reddit
@@ -570,29 +574,6 @@ export function OGPreviewClient() {
                 </div>
               </div>
 
-              {/* Direction override */}
-              <div>
-                <label className="text-xs text-[var(--text-secondary)] mb-1.5 block">Direction</label>
-                <div className="flex gap-2">
-                  {(['auto', 'BUY', 'SELL'] as DirectionOverride[]).map((d) => (
-                    <button
-                      key={d}
-                      onClick={() => setDirOverride(d)}
-                      className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors duration-200 ${
-                        dirOverride === d
-                          ? d === 'BUY'
-                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
-                            : d === 'SELL'
-                            ? 'bg-rose-500/20 border-rose-500/40 text-rose-400'
-                            : 'bg-zinc-500/20 border-zinc-500/40 text-zinc-300'
-                          : 'border-[var(--border)] hover:bg-[var(--glass-bg)] text-[var(--text-secondary)]'
-                      }`}
-                    >
-                      {d === 'auto' ? 'Auto' : d}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Theme */}
@@ -617,18 +598,18 @@ export function OGPreviewClient() {
               </div>
             </div>
 
-            {/* Live signal data card */}
+            {/* API signal data card */}
             {signal && (
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5 space-y-3">
                 <h2 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-widest flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                  Live Data
+                  API Candidate
                 </h2>
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     { label: 'Pair', value: signal.symbol },
                     { label: 'Direction', value: signal.direction },
-                    { label: 'Confidence', value: `${signal.confidence}%` },
+                    { label: 'Rule score', value: `${signal.confidence}/100` },
                     { label: 'RSI', value: signal.rsi !== undefined ? signal.rsi.toFixed(1) : '—' },
                     { label: 'MACD', value: signal.macd !== undefined ? signal.macd.toFixed(4) : '—' },
                     { label: 'EMA', value: signal.ema !== undefined ? signal.ema.toFixed(2) : '—' },
@@ -641,6 +622,12 @@ export function OGPreviewClient() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+            {signalStatus === 'unavailable' && (
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5">
+                <p className="text-sm font-semibold text-amber-300">Data unavailable</p>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">No shareable card is generated until the signal API returns a candidate.</p>
               </div>
             )}
 
@@ -673,14 +660,14 @@ export function OGPreviewClient() {
 
         {/* ── Gallery: 6 example cards ── */}
         <div className="mt-20">
-          <h2 className="text-2xl font-bold text-center mb-2">Example Signal Cards</h2>
+          <h2 className="text-2xl font-bold text-center mb-2">Illustrative Card Layouts</h2>
           <p className="text-center text-[var(--text-secondary)] text-sm mb-8">
-            See what the community is sharing
+            Fictional values shown only to demonstrate layout. These are not API signals, outcomes, or performance claims.
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {GALLERY_CARDS.map((card) => (
               <div key={card.pair} className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] overflow-hidden">
-                <svg viewBox="0 0 1200 630" className="w-full" role="img" aria-label={`${card.pair} ${card.direction} signal card`}>
+                <svg viewBox="0 0 1200 630" className="w-full" role="img" aria-label={`${card.pair} ${card.direction} illustrative card layout`}>
                   <defs>
                     <linearGradient id={`bg-${card.pair}`} x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
                       <stop offset="0%" stopColor={card.bg0} />
@@ -700,14 +687,14 @@ export function OGPreviewClient() {
                   <text x="56" y="86" fill={card.subText} fontFamily="monospace" fontSize="13">AI Trading Signal Platform</text>
                   {/* Pair */}
                   <text x="56" y="210" fill={card.text} fontFamily="monospace" fontWeight="bold" fontSize="80">{card.pair}</text>
-                  <text x="58" y="240" fill={card.subText} fontFamily="monospace" fontWeight="600" fontSize="20">{card.tf} · AI Signal</text>
+                  <text x="58" y="240" fill={card.subText} fontFamily="monospace" fontWeight="600" fontSize="20">{card.tf} | ILLUSTRATIVE EXAMPLE</text>
                   {/* Direction badge */}
                   <rect x="56" y="270" width="160" height="52" rx="12" fill={card.accent + '22'} stroke={card.accent} strokeWidth="1.5" />
                   <text x="136" y="304" fill={card.accent} fontFamily="monospace" fontWeight="bold" fontSize="28" textAnchor="middle">{card.direction}</text>
-                  {/* Confidence */}
-                  <text x="56" y="358" fill={card.subText} fontFamily="sans-serif" fontWeight="500" fontSize="14">Confidence</text>
-                  <text x="56" y="406" fill={card.accent} fontFamily="monospace" fontWeight="bold" fontSize="42">{card.confidence}%</text>
-                  {/* Confidence bar */}
+                  {/* Illustrative score */}
+                  <text x="56" y="358" fill={card.subText} fontFamily="sans-serif" fontWeight="500" fontSize="14">Illustrative score</text>
+                  <text x="56" y="406" fill={card.accent} fontFamily="monospace" fontWeight="bold" fontSize="42">{card.confidence}/100</text>
+                  {/* Illustrative score bar */}
                   <rect x="56" y="418" width="340" height="8" rx="4" fill={card.border} />
                   <rect x="56" y="418" width={340 * card.confidence / 100} height="8" rx="4" fill={card.accent} />
                   {/* Metrics */}
@@ -720,7 +707,7 @@ export function OGPreviewClient() {
                   ))}
                   {/* Footer */}
                   <rect x="0" y="562" width="1200" height="68" fill={card.border} />
-                  <text x="56" y="600" fill={card.subText} fontFamily="monospace" fontWeight="500" fontSize="13">tradeclaw.win · Open-source AI trading signals · Star us on GitHub</text>
+                  <text x="56" y="600" fill={card.subText} fontFamily="monospace" fontWeight="500" fontSize="13">ILLUSTRATIVE LAYOUT | Not a market signal or performance result</text>
                 </svg>
               </div>
             ))}

@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { readHistoryAsync } from '../../../lib/signal-history';
+import {
+  isCountedResolved,
+  isObservedOHLCVOutcomeSource,
+  isRealOutcome,
+  readHistoryAsync,
+} from '../../../lib/signal-history';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 60;
@@ -53,11 +58,14 @@ export async function GET() {
   try {
     const history = await readHistoryAsync();
 
-    const realSignals = history.filter((r) => r.isSimulated === false);
+    const realSignals = history.filter((r) => !r.isSimulated);
+    const counted24h = history.filter(isCountedResolved);
 
     const mapped: ProofSignal[] = realSignals.map((r) => {
       const o4h = r.outcomes['4h'];
       const o24h = r.outcomes['24h'];
+      const publishable4h = !r.gateBlocked && isRealOutcome(o4h) && isObservedOHLCVOutcomeSource(o4h.source);
+      const publishable24h = isCountedResolved(r);
 
       return {
         id: r.id,
@@ -72,40 +80,29 @@ export async function GET() {
         isSimulated: r.isSimulated ?? false,
         telegramPostedAt: r.telegramPostedAt,
         outcome4h: {
-          resolved: o4h !== null,
-          hit: o4h ? o4h.hit : null,
-          price: o4h ? o4h.price : null,
-          pnlPct: o4h ? o4h.pnlPct : null,
+          resolved: publishable4h,
+          hit: publishable4h ? o4h.hit : null,
+          price: publishable4h ? o4h.price : null,
+          pnlPct: publishable4h ? o4h.pnlPct : null,
         },
         outcome24h: {
-          resolved: o24h !== null,
-          hit: o24h ? o24h.hit : null,
-          price: o24h ? o24h.price : null,
-          pnlPct: o24h ? o24h.pnlPct : null,
+          resolved: publishable24h,
+          hit: publishable24h ? o24h!.hit : null,
+          price: publishable24h ? o24h!.price : null,
+          pnlPct: publishable24h ? o24h!.pnlPct : null,
         },
       };
     });
 
-    const resolved4h = mapped.filter((s) => s.outcome4h.resolved);
-    const resolved24h = mapped.filter((s) => s.outcome24h.resolved);
-    const wins4h = resolved4h.filter((s) => s.outcome4h.hit === true);
-    const wins24h = resolved24h.filter((s) => s.outcome24h.hit === true);
+    const resolved4h = realSignals.filter((r) => {
+      const outcome = r.outcomes['4h'];
+      return !r.gateBlocked && isRealOutcome(outcome) && isObservedOHLCVOutcomeSource(outcome.source);
+    });
+    const wins4h = resolved4h.filter((r) => r.outcomes['4h']!.hit);
+    const wins24h = counted24h.filter((r) => r.outcomes['24h']!.hit);
+    const losses24h = counted24h.length - wins24h.length;
 
-    const allResolved = mapped.filter(
-      (s) => s.outcome4h.resolved || s.outcome24h.resolved,
-    );
-    const allWins = mapped.filter(
-      (s) => s.outcome4h.hit === true || s.outcome24h.hit === true,
-    );
-    const allLosses = mapped.filter(
-      (s) =>
-        (s.outcome4h.resolved && s.outcome4h.hit === false) ||
-        (s.outcome24h.resolved && s.outcome24h.hit === false),
-    );
-
-    const pnlValues = resolved24h
-      .map((s) => s.outcome24h.pnlPct ?? 0)
-      .filter((v) => v !== 0);
+    const pnlValues = counted24h.map((r) => r.outcomes['24h']!.pnlPct);
     const runningPnlPct =
       pnlValues.length > 0
         ? pnlValues.reduce((a, b) => a + b, 0) / pnlValues.length
@@ -119,26 +116,34 @@ export async function GET() {
     const stats: ProofStats = {
       totalSignals: history.length,
       realSignals: realSignals.length,
-      resolvedSignals: allResolved.length,
+      resolvedSignals: counted24h.length,
       winRate4h:
         resolved4h.length > 0
           ? Math.round((wins4h.length / resolved4h.length) * 100)
           : 0,
       winRate24h:
-        resolved24h.length > 0
-          ? Math.round((wins24h.length / resolved24h.length) * 100)
+        counted24h.length > 0
+          ? Math.round((wins24h.length / counted24h.length) * 100)
           : 0,
       avgConfidence: Math.round(avgConfidence),
       runningPnlPct: Math.round(runningPnlPct * 100) / 100,
-      totalWins: allWins.length,
-      totalLosses: allLosses.length,
+      totalWins: wins24h.length,
+      totalLosses: losses24h,
       openSignals: mapped.filter(
         (s) => !s.outcome4h.resolved && !s.outcome24h.resolved,
       ).length,
-      lastUpdated: Date.now(),
+      lastUpdated: mapped.reduce((latest, signal) => Math.max(latest, signal.timestamp), 0),
     };
 
-    return NextResponse.json({ stats, signals: mapped.slice(0, 200) });
+    return NextResponse.json({
+      stats,
+      signals: mapped.slice(0, 200),
+      methodology: {
+        population: 'non-simulated, non-gate-blocked records with approved observed-OHLCV outcome provenance',
+        score: 'mechanical rule/confluence score; not a probability or edge estimate',
+        runningPnlPct: 'legacy field name for mean unsized 24h directional price move; not account or portfolio P&L',
+      },
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to load proof data';
     return NextResponse.json({ error: message }, { status: 500 });

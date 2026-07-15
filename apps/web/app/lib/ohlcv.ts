@@ -5,7 +5,7 @@
  *   1. market-data-hub      — primary, when MARKET_DATA_HUB_URL is set
  *   2. Binance public OHLCV — crypto-only thin survival fallback
  *   3. Stooq CSV            — forex/metals-only thin survival fallback
- *   4. Synthetic generator  — last resort, clearly tagged in the source field
+ *   4. Unavailable          — empty candles; production never fabricates bars
  *
  * Removed from the hot path (Kraken / CryptoCompare): both still exported
  * from data-providers/ for backtest + signal-history consumers, but no
@@ -16,7 +16,14 @@
 import { fetchStooqOHLCV, isStooqSymbol } from './data-providers';
 import { fetchHubCandles, isHubEnabled } from './data-providers/market-data-hub';
 
-export type OHLCVSource = 'market-data-hub' | 'binance' | 'stooq' | 'kraken' | 'cryptocompare' | 'synthetic';
+export type OHLCVSource =
+  | 'market-data-hub'
+  | 'binance'
+  | 'stooq'
+  | 'kraken'
+  | 'cryptocompare'
+  | 'synthetic'
+  | 'unavailable';
 
 export interface OHLCV {
   timestamp: number;
@@ -198,62 +205,9 @@ function aggregateCandles(candles: OHLCV[], factor: number, alignToMs?: number):
 }
 
 /**
- * Generate synthetic OHLCV from a spot price when APIs fail
- * Creates realistic-looking candles based on the symbol's volatility
- */
-function generateSyntheticOHLCV(basePrice: number, volatility: number, count: number): OHLCV[] {
-  const candles: OHLCV[] = [];
-  let price = basePrice * (1 - volatility * 0.1 / basePrice * count * 0.01); // Start lower
-  const now = Date.now();
-  const interval = 60 * 60 * 1000; // 1h
-
-  for (let i = 0; i < count; i++) {
-    const change = (Math.random() - 0.48) * volatility * 0.5; // Slight upward bias
-    const open = price;
-    price = price + change;
-    const high = Math.max(open, price) + Math.random() * volatility * 0.3;
-    const low = Math.min(open, price) - Math.random() * volatility * 0.3;
-
-    candles.push({
-      timestamp: now - (count - i) * interval,
-      open: +open.toFixed(5),
-      high: +high.toFixed(5),
-      low: +low.toFixed(5),
-      close: +price.toFixed(5),
-      volume: Math.floor(Math.random() * 10000 + 1000),
-    });
-  }
-  return candles;
-}
-
-// Fallback base prices and volatilities for synthetic data
-const FALLBACK_CONFIG: Record<string, { basePrice: number; volatility: number }> = {
-  BTCUSD: { basePrice: 70798, volatility: 2000 },
-  ETHUSD: { basePrice: 2147, volatility: 100 },
-  XRPUSD: { basePrice: 1.40, volatility: 0.03 },
-  SOLUSD: { basePrice: 142.80, volatility: 8 },
-  DOGEUSD: { basePrice: 0.178, volatility: 0.008 },
-  BNBUSD: { basePrice: 608.50, volatility: 25 },
-  ADAUSD: { basePrice: 0.45, volatility: 0.02 },
-  DOTUSD: { basePrice: 7.50, volatility: 0.4 },
-  LINKUSD: { basePrice: 15.20, volatility: 0.8 },
-  AVAXUSD: { basePrice: 35.00, volatility: 2 },
-  ATOMUSD: { basePrice: 9.50, volatility: 0.5 },
-  MATICUSD: { basePrice: 0.70, volatility: 0.03 },
-  XAUUSD: { basePrice: 4505, volatility: 20 },
-  XAGUSD: { basePrice: 71, volatility: 0.8 },
-  EURUSD: { basePrice: 1.1559, volatility: 0.005 },
-  GBPUSD: { basePrice: 1.3352, volatility: 0.006 },
-  USDJPY: { basePrice: 159.53, volatility: 0.8 },
-  AUDUSD: { basePrice: 0.6939, volatility: 0.004 },
-  USDCAD: { basePrice: 1.3826, volatility: 0.005 },
-  NZDUSD: { basePrice: 0.5799, volatility: 0.004 },
-  USDCHF: { basePrice: 0.7922, volatility: 0.004 },
-};
-
-/**
  * Main entry point — fetch OHLCV for a symbol and timeframe.
- * Hub-first; thin Binance + Stooq fallbacks; synthetic last resort.
+ * Hub-first with thin Binance + Stooq fallbacks. If every observed provider
+ * is unavailable, return an empty result instead of inventing candles.
  */
 export async function getOHLCV(
   symbol: string,
@@ -266,7 +220,7 @@ export async function getOHLCV(
   }
 
   let candles: OHLCV[] = [];
-  let source: OHLCVSource = 'synthetic';
+  let source: OHLCVSource = 'unavailable';
 
   // ── 1. market-data-hub (primary) ─────────────────────────
   if (isHubEnabled()) {
@@ -325,27 +279,11 @@ export async function getOHLCV(
   }
 
   // ── 4. Synthetic (last resort, clearly tagged) ────────────
-  // Only generate synthetic when we got NOTHING from real sources. If hub
-  // returned 40 D1 candles for EUR/USD, return those with source='market-
-  // data-hub' — the consumer (signals.ts) already skips symbols with < 50
-  // candles. Generating synthetic to "pad" real data lies about the source.
-  if (candles.length === 0) {
-    const config = FALLBACK_CONFIG[symbol];
-    if (config) {
-      candles = generateSyntheticOHLCV(config.basePrice, config.volatility, 250);
-      source = 'synthetic';
-    }
-  }
-
   candles = trimClosedCandles(candles, timeframe);
 
-  // Cache only real-source data. Caching synthetic locks in stale state for
-  // 5 min after a transient hub failure — even when hub recovers, subsequent
-  // requests serve the cached synthetic until TTL expires. By skipping the
-  // cache for synthetic, every request retries the hub, so recovery is
-  // instant. Synthetic is computed cheaply enough (Math.random + arithmetic)
-  // that recomputing per-request is fine.
-  if (candles.length > 0 && source !== 'synthetic') {
+  // Empty results are not cached so a recovered provider is retried on the
+  // next request instead of remaining unavailable for the cache TTL.
+  if (candles.length > 0) {
     setCache(cacheKey, candles, source);
   }
 

@@ -11,12 +11,13 @@ export async function GET(request: Request) {
   // Same resolved denominator as /track-record (getSocialSummaryStats →
   // getResolvedSlice + isCountedResolved): excludes simulated, gate-blocked,
   // and auto-expired rows. The prior raw SQL counted `outcome_24h IS NOT NULL`,
-  // inflating the win-rate / P&L this shared card advertises against the page
-  // it links to.
+  // inflating the public signal-study statistics against the page they link to.
   const s = await getSocialSummaryStats(period, dateStr);
-  const pnl = s.totalPnlPct;
-  const pnlColor = pnl >= 0 ? '#10b981' : '#f43f5e';
-  const title = period === 'weekly' ? 'WEEKLY SUMMARY' : 'DAILY P/L';
+  const available = s.total > 0;
+  const unavailable = '\u2014';
+  const sumPriceMovePct = s.sumPriceMovePct;
+  const sumPriceMoveColor = !available ? '#71717a' : sumPriceMovePct >= 0 ? '#10b981' : '#f43f5e';
+  const title = period === 'weekly' ? 'SOURCE-GATED WEEKLY OUTCOMES' : 'SOURCE-GATED DAILY OUTCOMES';
 
   return new ImageResponse(
     (
@@ -34,20 +35,6 @@ export async function GET(request: Request) {
           overflow: 'hidden',
         }}
       >
-        {/* Ambient glow */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '40px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '500px',
-            height: '500px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)',
-          }}
-        />
-
         {/* Branding */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
           <div
@@ -69,20 +56,28 @@ export async function GET(request: Request) {
         {/* Stats */}
         <div style={{ display: 'flex', gap: '56px', marginBottom: '40px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: '64px', fontWeight: 800, color: pnlColor }}>
-              {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}%
+            <div style={{ fontSize: '64px', fontWeight: 800, color: sumPriceMoveColor }}>
+              {available ? `${sumPriceMovePct >= 0 ? '+' : ''}${sumPriceMovePct.toFixed(2)}%` : unavailable}
             </div>
-            <div style={{ fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>TOTAL P/L</div>
+            <div style={{ fontSize: '14px', color: '#6b7280', letterSpacing: '0.08em' }}>
+              UNSIZED SUM OF PRICE MOVES
+            </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: '64px', fontWeight: 800, color: '#ffffff' }}>{s.winRatePct.toFixed(1)}%</div>
+            <div style={{ fontSize: '64px', fontWeight: 800, color: available ? '#ffffff' : '#71717a' }}>
+              {available ? `${s.winRatePct.toFixed(1)}%` : unavailable}
+            </div>
             <div style={{ fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>WIN RATE</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: '16px', alignItems: 'baseline' }}>
-              <div style={{ fontSize: '48px', fontWeight: 800, color: '#10b981' }}>{s.wins}</div>
+              <div style={{ fontSize: '48px', fontWeight: 800, color: available ? '#10b981' : '#71717a' }}>
+                {available ? s.wins : unavailable}
+              </div>
               <div style={{ fontSize: '48px', fontWeight: 800, color: '#3f3f46' }}>/</div>
-              <div style={{ fontSize: '48px', fontWeight: 800, color: '#f43f5e' }}>{s.losses}</div>
+              <div style={{ fontSize: '48px', fontWeight: 800, color: available ? '#f43f5e' : '#71717a' }}>
+                {available ? s.losses : unavailable}
+              </div>
             </div>
             <div style={{ fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>WINS / LOSSES</div>
           </div>
@@ -90,7 +85,7 @@ export async function GET(request: Request) {
 
         {/* Footer */}
         <div style={{ color: '#3f3f46', fontSize: '14px', letterSpacing: '0.05em' }}>
-          tradeclaw.win/track-record — open-source, transparent, verifiable
+          Source-approved OHLCV outcomes only; unavailable when none are counted. Not portfolio P/L or broker fills.
         </div>
       </div>
     ),

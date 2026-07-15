@@ -3,7 +3,6 @@ import {
   getPortfolio,
   getDemoUserId,
   STARTING_BALANCE,
-  BASE_PRICES,
 } from '../../../../lib/paper-trading';
 
 export const dynamic = 'force-dynamic';
@@ -20,18 +19,9 @@ export async function GET() {
   try {
     const portfolio = await getPortfolio(userId);
     const balance = portfolio.balance;
-
-    const openPnl = portfolio.positions.reduce((sum, pos) => {
-      const currentPrice = BASE_PRICES[pos.symbol] ?? pos.entryPrice;
-      const dirMult = pos.direction === 'BUY' ? 1 : -1;
-      const movePct = ((currentPrice - pos.entryPrice) / pos.entryPrice) * dirMult;
-      return sum + pos.quantity * movePct;
-    }, 0);
-
-    const equity = balance + openPnl;
-    const totalReturn = ((equity - STARTING_BALANCE) / STARTING_BALANCE) * 100;
+    const totalReturn = ((balance - STARTING_BALANCE) / STARTING_BALANCE) * 100;
     const sign = totalReturn >= 0 ? '+' : '';
-    const label = 'TradeClaw Portfolio';
+    const label = 'TradeClaw Paper Sim';
     const value = `${sign}${totalReturn.toFixed(1)}%`;
     const isPositive = totalReturn >= 0;
 
@@ -42,8 +32,8 @@ export async function GET() {
     const totalWidth = labelWidth + valueWidth;
     const height = 20;
 
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}" role="img" aria-label="${label}: ${value}">
-  <title>${label}: ${value}</title>
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}" role="img" aria-label="${label}: ${value} realized simulated return">
+  <title>${label}: ${value} realized simulated return; not broker or customer portfolio performance</title>
   <linearGradient id="s" x2="0" y2="100%">
     <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
     <stop offset="1" stop-opacity=".1"/>
@@ -67,7 +57,7 @@ export async function GET() {
     return new NextResponse(svg, {
       headers: {
         'Content-Type': 'image/svg+xml',
-        'Cache-Control': 'no-cache, max-age=60',
+        'Cache-Control': 'private, no-store',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',

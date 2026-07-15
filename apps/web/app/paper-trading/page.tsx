@@ -32,6 +32,8 @@ interface TooltipState {
   visible: boolean;
 }
 
+type PortfolioStatus = 'loading' | 'ready' | 'unauthenticated' | 'unavailable';
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -39,10 +41,6 @@ interface TooltipState {
 const SYMBOLS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'XAGUSD', 'AUDUSD', 'XRPUSD', 'USDCAD'];
 const SIZE_PCTS = [0.01, 0.02, 0.05, 0.10];
 const SIZE_LABELS = ['1%', '2%', '5%', '10%'];
-
-// Prices are fetched live from /api/prices — no hardcoded fallbacks
-const INITIAL_PRICES: Record<string, number> = {};
-
 
 const HIST_PAGE_SIZE = 8;
 
@@ -72,6 +70,16 @@ function fmtTradeDuration(openedAt: string, closedAt: string): string {
   const h = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+async function responseError(response: Response): Promise<string> {
+  try {
+    const body = await response.json() as { error?: unknown };
+    if (typeof body.error === 'string' && body.error.trim()) return body.error;
+  } catch {
+    // The HTTP status remains authoritative when a body is not JSON.
+  }
+  return `Request failed (${response.status})`;
 }
 
 // Prices fetched from /api/prices at regular intervals — no synthetic noise
@@ -202,7 +210,10 @@ function StatCard({ label, value, sub, color = 'text-[var(--foreground)]' }: Sta
 
 export default function PaperTradingPage() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [prices, setPrices] = useState<Record<string, number>>(INITIAL_PRICES);
+  const [portfolioStatus, setPortfolioStatus] = useState<PortfolioStatus>('loading');
+  const [portfolioMessage, setPortfolioMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [prices, setPrices] = useState<Record<string, number>>({});
   const [priceSource, setPriceSource] = useState<string>('loading');
   const [signals, setSignals] = useState<Signal[]>([]);
 
@@ -216,7 +227,6 @@ export default function PaperTradingPage() {
   const [streakCard, setStreakCard] = useState<{ streak: number; pnl: number } | null>(null);
 
   // UI state
-  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [histPage, setHistPage] = useState(0);
   const [showReset, setShowReset] = useState(false);
@@ -232,12 +242,26 @@ export default function PaperTradingPage() {
   const fetchPortfolio = useCallback(async () => {
     try {
       const res = await fetch('/api/paper-trading');
-      if (res.ok) {
-        const data = await res.json() as Portfolio;
-        setPortfolio(data);
+      if (!res.ok) {
+        const message = await responseError(res);
+        setPortfolio(null);
+        setPortfolioStatus(res.status === 401 ? 'unauthenticated' : 'unavailable');
+        setPortfolioMessage(message);
+        return false;
       }
-    } catch {
-      // ignore
+      const data = await res.json() as Portfolio;
+      if (!Number.isFinite(data.balance) || !Number.isFinite(data.startingBalance) || !Array.isArray(data.positions)) {
+        throw new Error('Paper portfolio response is incomplete');
+      }
+      setPortfolio(data);
+      setPortfolioStatus('ready');
+      setPortfolioMessage(null);
+      return true;
+    } catch (error) {
+      setPortfolio(null);
+      setPortfolioStatus('unavailable');
+      setPortfolioMessage(error instanceof Error ? error.message : 'Paper portfolio unavailable');
+      return false;
     }
   }, []);
 
@@ -254,7 +278,7 @@ export default function PaperTradingPage() {
   }, []);
 
   useEffect(() => {
-    Promise.all([fetchPortfolio(), fetchSignals()]).then(() => setLoading(false));
+    void Promise.all([fetchPortfolio(), fetchSignals()]);
   }, [fetchPortfolio, fetchSignals]);
 
   // ---------------------------------------------------------------------------
@@ -264,15 +288,22 @@ export default function PaperTradingPage() {
   const fetchPrices = useCallback(async () => {
     try {
       const res = await fetch('/api/prices');
-      if (!res.ok) return;
+      if (!res.ok) {
+        setPrices({});
+        setPriceSource('unavailable');
+        return;
+      }
       const data = await res.json() as { prices: Record<string, { price: number; source: string }>, stale?: boolean };
       const next: Record<string, number> = {};
       for (const [sym, info] of Object.entries(data.prices)) {
-        next[sym] = info.price;
+        if (Number.isFinite(info.price) && info.price > 0) {
+          next[sym] = info.price;
+        }
       }
       setPrices(next);
-      setPriceSource(data.stale ? 'fallback' : 'live');
+      setPriceSource(Object.keys(next).length > 0 ? 'provider' : 'unavailable');
     } catch {
+      setPrices({});
       setPriceSource('unavailable');
     }
   }, []);
@@ -288,7 +319,7 @@ export default function PaperTradingPage() {
   // ---------------------------------------------------------------------------
 
   useEffect(() => {
-    if (!portfolio) return;
+    if (!portfolio || portfolioStatus !== 'ready') return;
     for (const pos of portfolio.positions) {
       const price = prices[pos.symbol];
       if (!price) continue;
@@ -304,19 +335,20 @@ export default function PaperTradingPage() {
       if (reason !== null) {
         (async () => {
           try {
-            await fetch('/api/paper-trading/close', {
+            const response = await fetch('/api/paper-trading/close', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ positionId: pos.id, exitPrice: price }),
             });
-            fetchPortfolio();
-          } catch {
-            // ignore
+            if (!response.ok) throw new Error(await responseError(response));
+            await fetchPortfolio();
+          } catch (error) {
+            setActionError(error instanceof Error ? error.message : 'Unable to close paper position');
           }
         })();
       }
     }
-  }, [prices, portfolio, fetchPortfolio]);
+  }, [prices, portfolio, portfolioStatus, fetchPortfolio]);
 
   // ---------------------------------------------------------------------------
   // Auto-follow signals
@@ -325,13 +357,13 @@ export default function PaperTradingPage() {
   const followedSignalIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!autoFollow) return;
+    if (!autoFollow || !portfolio || portfolioStatus !== 'ready') return;
     for (const sig of signals) {
       if (followedSignalIds.current.has(sig.id)) continue;
       followedSignalIds.current.add(sig.id);
       (async () => {
         try {
-          await fetch('/api/paper-trading/follow-signal', {
+          const response = await fetch('/api/paper-trading/follow-signal', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -344,13 +376,14 @@ export default function PaperTradingPage() {
               positionSizePct: sizePct,
             }),
           });
-          fetchPortfolio();
-        } catch {
-          // ignore
+          if (!response.ok) throw new Error(await responseError(response));
+          await fetchPortfolio();
+        } catch (error) {
+          setActionError(error instanceof Error ? error.message : 'Unable to follow paper signal');
         }
       })();
     }
-  }, [autoFollow, signals, sizePct, fetchPortfolio]);
+  }, [autoFollow, signals, sizePct, portfolio, portfolioStatus, fetchPortfolio]);
 
   // ---------------------------------------------------------------------------
   // Canvas draw
@@ -436,17 +469,20 @@ export default function PaperTradingPage() {
   // ---------------------------------------------------------------------------
 
   const handleOpenPosition = async () => {
+    const entryPrice = prices[symbol];
+    if (!portfolio || portfolioStatus !== 'ready' || !entryPrice) return;
     setActionLoading(true);
+    setActionError(null);
     try {
-      const bal = portfolio?.balance ?? 10000;
-      await fetch('/api/paper-trading/open', {
+      const response = await fetch('/api/paper-trading/open', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol, direction, quantity: Math.round(bal * sizePct) }),
+        body: JSON.stringify({ symbol, direction, quantity: Math.round(portfolio.balance * sizePct), entryPrice }),
       });
+      if (!response.ok) throw new Error(await responseError(response));
       await fetchPortfolio();
-    } catch {
-      // ignore
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Unable to open paper position');
     } finally {
       setActionLoading(false);
     }
@@ -455,48 +491,70 @@ export default function PaperTradingPage() {
   const handleClose = async (positionId: string) => {
     const pos = portfolio?.positions.find((p) => p.id === positionId);
     const exitPrice = pos ? prices[pos.symbol] : undefined;
+    if (portfolioStatus !== 'ready' || !pos || !exitPrice) return;
+    setActionLoading(true);
+    setActionError(null);
     try {
-      await fetch('/api/paper-trading/close', {
+      const response = await fetch('/api/paper-trading/close', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ positionId, exitPrice }),
       });
+      if (!response.ok) throw new Error(await responseError(response));
       await fetchPortfolio();
-    } catch {
-      // ignore
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Unable to close paper position');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleCloseAll = async () => {
+    if (
+      !portfolio
+      || portfolioStatus !== 'ready'
+      || portfolio.positions.some((position) => !prices[position.symbol])
+    ) return;
     setActionLoading(true);
+    setActionError(null);
     try {
-      await fetch('/api/paper-trading/close-all', { method: 'POST' });
+      const response = await fetch('/api/paper-trading/close-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prices }),
+      });
+      if (!response.ok) throw new Error(await responseError(response));
       await fetchPortfolio();
-    } catch {
-      // ignore
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Unable to close paper positions');
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleReset = async () => {
+    if (!portfolio || portfolioStatus !== 'ready') return;
     setShowReset(false);
     setActionLoading(true);
+    setActionError(null);
     try {
-      await fetch('/api/paper-trading/reset', { method: 'POST' });
+      const response = await fetch('/api/paper-trading/reset', { method: 'POST' });
+      if (!response.ok) throw new Error(await responseError(response));
       followedSignalIds.current.clear();
       await fetchPortfolio();
-    } catch {
-      // ignore
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Unable to reset paper portfolio');
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleFollowSignal = async (sig: Signal) => {
+    if (!portfolio || portfolioStatus !== 'ready') return;
     setActionLoading(true);
+    setActionError(null);
     try {
-      await fetch('/api/paper-trading/follow-signal', {
+      const response = await fetch('/api/paper-trading/follow-signal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -509,9 +567,10 @@ export default function PaperTradingPage() {
           positionSizePct: sizePct,
         }),
       });
+      if (!response.ok) throw new Error(await responseError(response));
       await fetchPortfolio();
-    } catch {
-      // ignore
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Unable to follow paper signal');
     } finally {
       setActionLoading(false);
     }
@@ -521,16 +580,22 @@ export default function PaperTradingPage() {
   // Derived values
   // ---------------------------------------------------------------------------
 
-  const bal = portfolio?.balance ?? 10000;
-  const startBal = portfolio?.startingBalance ?? 10000;
-  const openPnl = (portfolio?.positions ?? []).reduce((s, pos) => {
-    const price = prices[pos.symbol] ?? pos.entryPrice;
+  const bal = portfolio?.balance ?? null;
+  const startBal = portfolio?.startingBalance ?? null;
+  const openPositions = portfolio?.positions ?? [];
+  const hasMissingPositionPrice = openPositions.some((pos) => !prices[pos.symbol]);
+  const calculatedOpenPnl = openPositions.reduce((s, pos) => {
+    const price = prices[pos.symbol];
+    if (!price) return s;
     const dirMult = pos.direction === 'BUY' ? 1 : -1;
     const movePct = ((price - pos.entryPrice) / pos.entryPrice) * dirMult;
     return s + pos.quantity * movePct;
   }, 0);
-  const equity = bal + openPnl;
-  const totalReturn = ((equity - startBal) / startBal) * 100;
+  const openPnl = !portfolio || hasMissingPositionPrice ? null : calculatedOpenPnl;
+  const equity = bal === null || openPnl === null ? null : bal + openPnl;
+  const totalReturn = equity === null || startBal === null || startBal <= 0
+    ? null
+    : ((equity - startBal) / startBal) * 100;
   const stats = portfolio?.stats;
 
   const histTrades = portfolio?.history ?? [];
@@ -571,24 +636,49 @@ export default function PaperTradingPage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)] font-sans">
+    <div className="premium-product-shell min-h-[100dvh] text-[var(--foreground)] font-sans">
       <PageNavBar />
 
       {/* Page controls */}
       <div className="max-w-7xl mx-auto px-4 h-12 flex items-center justify-end border-b border-[var(--border)] bg-[var(--background)]/50">
         <button
           onClick={() => setShowReset(true)}
-          className="text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+          disabled={portfolioStatus !== 'ready' || actionLoading}
+          className="text-xs text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Reset account
         </button>
       </div>
 
-      {priceSource === 'fallback' && (
+      <div className="border-b border-sky-500/20 bg-sky-500/5 px-4 py-2">
+        <p className="max-w-7xl mx-auto text-xs text-sky-200/80 font-mono">
+          Paper simulation only. Provider price snapshots and modeled slippage do not reproduce broker fills, liquidity, or customer returns.
+        </p>
+      </div>
+
+      {priceSource === 'unavailable' && (
         <div className="border-b border-zinc-500/20 bg-zinc-500/5 px-4 py-2">
           <p className="max-w-7xl mx-auto text-xs text-zinc-400/80 font-mono">
-            &#x26A0;&#xFE0F; Using cached prices — live price feed unavailable
+            Provider prices are unavailable. Missing symbols and dependent P&amp;L are not estimated.
           </p>
+        </div>
+      )}
+
+      {portfolioStatus !== 'ready' && (
+        <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-2">
+          <p className="max-w-7xl mx-auto text-xs text-amber-300/80 font-mono">
+            {portfolioStatus === 'loading'
+              ? 'Loading authenticated paper portfolio...'
+              : portfolioStatus === 'unauthenticated'
+                ? 'Sign in is required before paper balances, sizing, or actions are available.'
+                : `Paper portfolio unavailable${portfolioMessage ? `: ${portfolioMessage}` : '.'}`}
+          </p>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="border-b border-red-500/20 bg-red-500/5 px-4 py-2">
+          <p className="max-w-7xl mx-auto text-xs text-red-300/80 font-mono">{actionError}</p>
         </div>
       )}
 
@@ -597,21 +687,21 @@ export default function PaperTradingPage() {
         {/* Account summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: 'Balance', value: fmtMoney(bal), color: 'text-[var(--foreground)]' },
+            { label: 'Realized Balance', value: bal === null ? '—' : fmtMoney(bal), color: 'text-[var(--foreground)]' },
             {
-              label: 'Equity',
-              value: fmtMoney(equity),
-              color: equity >= startBal ? 'text-emerald-400' : 'text-red-400',
+              label: 'Modeled Equity',
+              value: equity === null ? '—' : fmtMoney(equity),
+              color: equity === null || startBal === null ? 'text-[var(--text-secondary)]' : equity >= startBal ? 'text-emerald-400' : 'text-red-400',
             },
             {
-              label: 'Open P&L',
-              value: fmtSignedMoney(openPnl),
-              color: openPnl >= 0 ? 'text-emerald-400' : 'text-red-400',
+              label: 'Modeled Open P&L',
+              value: openPnl === null ? '—' : fmtSignedMoney(openPnl),
+              color: openPnl === null ? 'text-[var(--text-secondary)]' : openPnl >= 0 ? 'text-emerald-400' : 'text-red-400',
             },
             {
-              label: 'Total Return',
-              value: `${totalReturn >= 0 ? '+' : ''}${(totalReturn ?? 0).toFixed(2)}%`,
-              color: totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400',
+              label: 'Modeled Sim Return',
+              value: totalReturn === null ? '—' : `${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`,
+              color: totalReturn === null ? 'text-[var(--text-secondary)]' : totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400',
             },
           ].map(({ label, value, color }) => (
             <div key={label} className="bg-white/[0.03] border border-[var(--border)] rounded-2xl p-4 text-center">
@@ -636,7 +726,7 @@ export default function PaperTradingPage() {
               >
                 {SYMBOLS.map((s) => (
                   <option key={s} value={s} className="bg-zinc-900">
-                    {s} — {fmtPrice(prices[s] ?? INITIAL_PRICES[s] ?? 0)}
+                    {s} — {fmtPrice(prices[s])}
                   </option>
                 ))}
               </select>
@@ -670,6 +760,7 @@ export default function PaperTradingPage() {
                   <button
                     key={s}
                     onClick={() => setSizePct(s)}
+                    disabled={portfolioStatus !== 'ready'}
                     className={`flex-1 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 ${
                       sizePct === s
                         ? 'bg-[var(--glass-bg)] text-[var(--foreground)] border border-[var(--border)]'
@@ -681,17 +772,17 @@ export default function PaperTradingPage() {
                 ))}
               </div>
               <div className="text-[10px] text-[var(--text-secondary)] font-mono mt-1.5">
-                ~{fmtMoney(Math.round(bal * sizePct))} committed
+                {bal === null ? 'Portfolio required for sizing' : `~${fmtMoney(Math.round(bal * sizePct))} committed`}
               </div>
             </div>
 
             <div className="pt-1">
               <div className="text-[10px] text-[var(--text-secondary)] font-mono mb-2">
-                Current: {fmtPrice(prices[symbol] ?? INITIAL_PRICES[symbol] ?? 0)}
+                Current: {fmtPrice(prices[symbol])}
               </div>
               <button
                 onClick={handleOpenPosition}
-                disabled={actionLoading || loading}
+                disabled={actionLoading || portfolioStatus !== 'ready' || !prices[symbol]}
                 className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.98] disabled:opacity-50 ${
                   direction === 'BUY'
                     ? 'bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/20'
@@ -707,13 +798,14 @@ export default function PaperTradingPage() {
           <div className="bg-white/[0.02] border border-[var(--border)] rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="text-xs font-semibold text-[var(--foreground)]">
-                Open positions{' '}
+                Open paper positions{' '}
                 <span className="text-[var(--text-secondary)] ml-1">({portfolio?.positions.length ?? 0})</span>
               </div>
               {(portfolio?.positions.length ?? 0) > 0 && (
                 <button
                   onClick={handleCloseAll}
-                  disabled={actionLoading}
+                  disabled={actionLoading || portfolioStatus !== 'ready' || hasMissingPositionPrice}
+                  title={hasMissingPositionPrice ? 'Provider price unavailable for one or more positions' : undefined}
                   className="text-[10px] text-[var(--text-secondary)] hover:text-red-400 transition-colors border border-[var(--border)] hover:border-red-500/20 px-2 py-1 rounded-lg disabled:opacity-50"
                 >
                   Close all
@@ -721,17 +813,19 @@ export default function PaperTradingPage() {
               )}
             </div>
 
-            {loading ? (
+            {portfolioStatus === 'loading' ? (
               <div className="text-center py-12 text-xs text-[var(--text-secondary)]">Loading…</div>
+            ) : portfolioStatus !== 'ready' ? (
+              <div className="text-center py-12 text-xs text-[var(--text-secondary)]">Paper portfolio unavailable</div>
             ) : (portfolio?.positions.length ?? 0) === 0 ? (
               <div className="text-center py-12 text-xs text-[var(--text-secondary)]">No open positions</div>
             ) : (
               <div className="space-y-2">
                 {portfolio!.positions.map((pos) => {
-                  const price = prices[pos.symbol] ?? pos.entryPrice;
+                  const price = prices[pos.symbol];
                   const dirMult = pos.direction === 'BUY' ? 1 : -1;
-                  const movePct = ((price - pos.entryPrice) / pos.entryPrice) * dirMult;
-                  const pnl = pos.quantity * movePct;
+                  const movePct = price === undefined ? null : ((price - pos.entryPrice) / pos.entryPrice) * dirMult;
+                  const pnl = movePct === null ? null : pos.quantity * movePct;
                   return (
                     <div key={pos.id} className="bg-white/[0.02] rounded-xl p-3 border border-[var(--border)]">
                       <div className="flex items-center justify-between mb-1.5">
@@ -750,7 +844,8 @@ export default function PaperTradingPage() {
                         </div>
                         <button
                           onClick={() => handleClose(pos.id)}
-                          className="text-[10px] text-[var(--text-secondary)] hover:text-red-400 transition-colors border border-[var(--border)] hover:border-red-500/20 px-2 py-1 rounded-lg"
+                          disabled={actionLoading || portfolioStatus !== 'ready' || price === undefined}
+                          className="text-[10px] text-[var(--text-secondary)] hover:text-red-400 transition-colors border border-[var(--border)] hover:border-red-500/20 px-2 py-1 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           Close
                         </button>
@@ -759,8 +854,8 @@ export default function PaperTradingPage() {
                         <span className="text-[var(--text-secondary)]">
                           {fmtPrice(pos.entryPrice)} → {fmtPrice(price)}
                         </span>
-                        <span className={pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}>
-                          {fmtSignedMoney(pnl)}
+                        <span className={pnl === null ? 'text-[var(--text-secondary)]' : pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                          {pnl === null ? 'Price unavailable' : fmtSignedMoney(pnl)}
                         </span>
                       </div>
                       {(pos.stopLoss ?? pos.takeProfit) && (
@@ -783,10 +878,13 @@ export default function PaperTradingPage() {
               <label className="flex items-center gap-2 cursor-pointer">
                 <span className="text-[10px] text-[var(--text-secondary)]">Auto-follow</span>
                 <div
-                  onClick={() => setAutoFollow((v) => !v)}
+                  onClick={() => {
+                    if (portfolioStatus === 'ready') setAutoFollow((v) => !v);
+                  }}
+                  aria-disabled={portfolioStatus !== 'ready'}
                   className={`w-8 h-4 rounded-full transition-colors relative ${
                     autoFollow ? 'bg-emerald-500/50' : 'bg-[var(--glass-bg)]'
-                  }`}
+                  } ${portfolioStatus !== 'ready' ? 'opacity-40 cursor-not-allowed' : ''}`}
                 >
                   <div
                     className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${
@@ -797,14 +895,14 @@ export default function PaperTradingPage() {
               </label>
             </div>
 
-            {priceSource === 'fallback' && (
+            {priceSource === 'unavailable' && (
               <div className="rounded-lg border border-zinc-500/20 bg-zinc-500/5 px-3 py-2 mb-3">
-                <p className="text-[10px] text-zinc-400/80 font-mono">&#x26A0;&#xFE0F; Using cached prices — live feed unavailable</p>
+                <p className="text-[10px] text-zinc-400/80 font-mono">Provider prices unavailable; no defaults are substituted.</p>
               </div>
             )}
 
             {signals.length === 0 ? (
-              <div className="text-center py-8 text-xs text-[var(--text-secondary)]">Waiting for first live signal to start paper trading</div>
+              <div className="text-center py-8 text-xs text-[var(--text-secondary)]">Waiting for a recorded signal candidate to start paper simulation</div>
             ) : (
               <div className="space-y-2">
                 {signals.map((sig) => (
@@ -825,7 +923,7 @@ export default function PaperTradingPage() {
                       </div>
                       <button
                         onClick={() => handleFollowSignal(sig)}
-                        disabled={actionLoading}
+                        disabled={actionLoading || portfolioStatus !== 'ready'}
                         className="text-[10px] text-emerald-600 hover:text-emerald-400 transition-colors border border-emerald-500/10 hover:border-emerald-500/25 px-2 py-1 rounded-lg disabled:opacity-50"
                       >
                         Follow
@@ -856,7 +954,7 @@ export default function PaperTradingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 bg-white/[0.02] border border-[var(--border)] rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-xs font-semibold text-[var(--foreground)]">Equity curve</div>
+              <div className="text-xs font-semibold text-[var(--foreground)]">Realized paper balance curve</div>
               {tooltip.visible && (
                 <div className="text-[10px] font-mono text-[var(--text-secondary)]">
                   {tooltip.date} — {fmtMoney(tooltip.equity)}
@@ -874,7 +972,7 @@ export default function PaperTradingPage() {
           </div>
 
           <div className="bg-white/[0.02] border border-[var(--border)] rounded-2xl p-5">
-            <div className="text-xs font-semibold text-[var(--foreground)] mb-4">Performance stats</div>
+            <div className="text-xs font-semibold text-[var(--foreground)] mb-4">Paper-simulation stats</div>
             {!stats || stats.totalTrades === 0 ? (
               <div className="text-center py-8 text-xs text-[var(--text-secondary)]">No trades yet</div>
             ) : (
@@ -896,7 +994,7 @@ export default function PaperTradingPage() {
         <div className="bg-white/[0.02] border border-[var(--border)] rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="text-xs font-semibold text-[var(--foreground)]">
-              Trade history{' '}
+              Paper trade history{' '}
               <span className="text-[var(--text-secondary)] ml-1">({histTotal})</span>
             </div>
             {histPages > 1 && (

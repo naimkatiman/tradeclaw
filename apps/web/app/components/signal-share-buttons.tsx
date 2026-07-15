@@ -24,11 +24,11 @@ export function SignalShareButtons({ signal, signalPath }: Props) {
       : `https://tradeclaw.win${signalPath}`;
 
   const tweetText = [
-    `${signal.symbol} ${signal.direction} — ${signal.confidence}% confidence`,
+    `${signal.symbol} ${signal.direction} — rule score ${signal.confidence}/100`,
     `Entry: ${formatPrice(signal.entry)}`,
     `SL: ${formatPrice(signal.stopLoss)} | TP1: ${formatPrice(signal.takeProfit1)}`,
     ``,
-    `Free AI trading signal via TradeClaw`,
+    `Rule-generated research candidate via TradeClaw; not a predictive probability or broker order.`,
   ].join('\n');
 
   const getTwitterUrl = () =>
@@ -36,7 +36,7 @@ export function SignalShareButtons({ signal, signalPath }: Props) {
 
   const getTelegramUrl = () =>
     `https://t.me/share/url?url=${encodeURIComponent(getFullUrl())}&text=${encodeURIComponent(
-      `${signal.symbol} ${signal.direction} ${signal.confidence}% confidence — TradeClaw AI Signal`
+      `${signal.symbol} ${signal.direction} — rule score ${signal.confidence}/100 via TradeClaw. Not a predictive probability.`
     )}`;
 
   const handleCopyLink = async () => {

@@ -5,6 +5,7 @@ export const TWENTY_FOUR_HOURS_MS = 24 * HOUR_MS;
 export interface HistoricalOutcomeLike {
   hit: boolean;
   pnlPct: number;
+  target?: 'TP1' | 'TP2' | 'TP3' | 'SL' | 'expired';
 }
 
 export interface HistoricalSignalLike {

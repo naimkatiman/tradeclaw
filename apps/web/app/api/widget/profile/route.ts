@@ -23,6 +23,38 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
+function responseHeaders(state: 'recorded-real-signal' | 'unavailable', recordedAt?: string) {
+  return {
+    'Content-Type': 'image/svg+xml',
+    'Cache-Control': 'no-store',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'X-Content-Type-Options': 'nosniff',
+    'X-TradeClaw-Data-State': state,
+    ...(recordedAt ? { 'X-TradeClaw-Recorded-At': recordedAt } : {}),
+  };
+}
+
+function buildUnavailableSvg(pair: string, theme: 'dark' | 'light', reason: string): string {
+  const isDark = theme === 'dark';
+  const bg = isDark ? '#0d1117' : '#ffffff';
+  const border = isDark ? '#30363d' : '#d0d7de';
+  const textPrimary = isDark ? '#e6edf3' : '#1f2328';
+  const textMuted = isDark ? '#8b949e' : '#656d76';
+  const shortName = SHORT_NAMES[pair] ?? pair;
+
+  return `<svg width="495" height="195" viewBox="0 0 495 195" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TradeClaw ${esc(shortName)} signal unavailable">
+  <title>No eligible recorded signal is available (${esc(reason)}). No placeholder values were substituted.</title>
+  <rect x="0.5" y="0.5" rx="4.5" height="194" width="494" stroke="${border}" fill="${bg}"/>
+  <text x="25" y="42" font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="700" fill="${textPrimary}">TradeClaw</text>
+  <text x="25" y="86" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="${textPrimary}">${esc(shortName)}</text>
+  <text x="25" y="122" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="600" fill="${textMuted}">SIGNAL UNAVAILABLE</text>
+  <text x="25" y="148" font-family="Segoe UI,Arial,sans-serif" font-size="11" fill="${textMuted}">No confidence, entry price, or RSI placeholder is shown.</text>
+  <text x="25" y="180" font-family="Segoe UI,Arial,sans-serif" font-size="10" fill="${textMuted}">Latest eligible recorded real-quality signals only</text>
+</svg>`;
+}
+
 function buildSvg({
   pair,
   direction,
@@ -77,7 +109,7 @@ function buildSvg({
     <!-- Lightning bolt icon -->
     <text x="25" y="38" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" fill="${esc(logoColor)}">⚡</text>
     <text x="44" y="36" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="700" fill="${esc(textPrimary)}">TradeClaw</text>
-    <text x="44" y="52" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="${esc(textMuted)}">Live Signal Feed</text>
+    <text x="44" y="52" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="11" fill="${esc(textMuted)}">Latest eligible recorded signal</text>
   </g>
 
   <!-- Pair name -->
@@ -104,7 +136,7 @@ function buildSvg({
   <rect x="25" y="157" width="${barWidth}" height="6" rx="3" fill="${esc(barFill)}"/>
 
   <!-- Footer -->
-  <text x="25" y="183" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="${esc(textMuted)}">tradeclaw.win · Open Source AI Trading Signals</text>
+  <text x="25" y="183" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="${esc(textMuted)}">tradeclaw.win · OHLCV-based signal research</text>
   <text x="470" y="183" text-anchor="end" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="10" fill="${esc(accentColor)}">⭐ Star</text>
 </svg>`;
 }
@@ -112,13 +144,14 @@ function buildSvg({
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const rawPair = searchParams.get('pair')?.toUpperCase() ?? 'BTCUSD';
-  const pair = VALID_PAIRS.includes(rawPair) ? rawPair : 'BTCUSD';
+  const pair = rawPair;
   const theme = searchParams.get('theme') === 'light' ? 'light' : 'dark';
 
-  let direction = 'NEUTRAL';
-  let confidence = 0;
-  let entryPrice = 0;
-  let rsi = 50;
+  if (!VALID_PAIRS.includes(pair)) {
+    return new NextResponse(buildUnavailableSvg(pair, theme, 'unsupported-symbol'), {
+      headers: responseHeaders('unavailable'),
+    });
+  }
 
   try {
     const { signals } = await getTrackedSignalsForRequest(request, {
@@ -126,29 +159,38 @@ export async function GET(request: NextRequest) {
       timeframe: 'H1',
       minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE,
     });
-    const signal = signals[0];
-    if (signal) {
-      direction = signal.direction;
-      confidence = signal.confidence;
-      entryPrice = signal.entry;
-      rsi = signal.indicators.rsi.value;
+    const signal = signals.find((candidate) =>
+      candidate.dataQuality === 'real' &&
+      (candidate.direction === 'BUY' || candidate.direction === 'SELL') &&
+      Number.isFinite(candidate.confidence) &&
+      candidate.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE &&
+      candidate.confidence <= 100 &&
+      Number.isFinite(candidate.entry) &&
+      Number.isFinite(candidate.indicators?.rsi?.value) &&
+      !Number.isNaN(Date.parse(candidate.timestamp)),
+    );
+    if (!signal) {
+      return new NextResponse(buildUnavailableSvg(pair, theme, 'no-eligible-recorded-signal'), {
+        headers: responseHeaders('unavailable'),
+      });
     }
+
+    const svg = buildSvg({
+      pair,
+      direction: signal.direction,
+      confidence: signal.confidence,
+      entryPrice: signal.entry,
+      rsi: signal.indicators.rsi.value,
+      theme,
+    });
+    return new NextResponse(svg, {
+      headers: responseHeaders('recorded-real-signal', signal.timestamp),
+    });
   } catch {
-    // Fallback values already set
+    return new NextResponse(buildUnavailableSvg(pair, theme, 'signal-source-unavailable'), {
+      headers: responseHeaders('unavailable'),
+    });
   }
-
-  const svg = buildSvg({ pair, direction, confidence, entryPrice, rsi, theme });
-
-  return new NextResponse(svg, {
-    headers: {
-      'Content-Type': 'image/svg+xml',
-      'Cache-Control': 'no-cache, max-age=300',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'X-Content-Type-Options': 'nosniff',
-    },
-  });
 }
 
 export async function OPTIONS() {

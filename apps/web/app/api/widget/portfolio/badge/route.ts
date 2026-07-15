@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPortfolio, getDemoUserId, STARTING_BALANCE } from '../../../../../lib/paper-trading';
+import { getPortfolio, getDemoUserId } from '../../../../../lib/paper-trading';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +13,13 @@ export async function GET() {
   }
   try {
     const portfolio = await getPortfolio(userId);
-    const totalReturn = ((portfolio.balance - STARTING_BALANCE) / STARTING_BALANCE) * 100;
+    if (!Number.isFinite(portfolio.startingBalance) || portfolio.startingBalance <= 0) {
+      return NextResponse.json(
+        { schemaVersion: 1, label: 'TradeClaw Paper Sim', message: 'unavailable', color: 'lightgrey', available: false },
+        { status: 503, headers: { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' } },
+      );
+    }
+    const totalReturn = ((portfolio.balance - portfolio.startingBalance) / portfolio.startingBalance) * 100;
     const sign = totalReturn >= 0 ? '+' : '';
 
     let color: string;
@@ -28,13 +34,16 @@ export async function GET() {
     return NextResponse.json(
       {
         schemaVersion: 1,
-        label: 'TradeClaw Portfolio',
-        message: `${sign}${totalReturn.toFixed(1)}% P&L`,
+        label: 'TradeClaw Paper Sim',
+        message: `${sign}${totalReturn.toFixed(1)}% realized sim return`,
         color,
+        available: true,
+        mode: 'paper-simulation',
+        note: 'Realized paper-simulation return; not broker or customer portfolio performance.',
       },
       {
         headers: {
-          'Cache-Control': 'no-cache, max-age=300',
+          'Cache-Control': 'private, no-store',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type',

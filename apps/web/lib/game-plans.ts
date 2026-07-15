@@ -117,7 +117,7 @@ export async function generateBriefing(userId: string): Promise<GamePlan> {
   const watchlist: WatchlistItem[] = rows.map((r) => ({
     symbol: r.symbol,
     bias: r.direction === 'BUY' ? 'Bullish' : r.direction === 'SELL' ? 'Bearish' : 'Neutral',
-    keyLevels: `${Number(r.cnt)} signals · top ${r.maxConfidence}% confidence`,
+    keyLevels: `${Number(r.cnt)} signals - top rule score ${r.maxConfidence}/100`,
   }));
 
   const today = new Date().toISOString().slice(0, 10);
@@ -132,6 +132,6 @@ export async function generateBriefing(userId: string): Promise<GamePlan> {
         focusPairs ? `Focus pairs: ${focusPairs}.` : null,
         'Review key levels before the session opens.',
       ].filter(Boolean).join('\n')
-      : 'Auto-generated pre-market briefing from the last 24h signal tape. No high-conviction signals found yet.',
+      : 'Auto-generated pre-market briefing from the last 24h signal tape. No scored research candidates found yet.',
   });
 }

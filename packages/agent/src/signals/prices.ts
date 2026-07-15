@@ -1,6 +1,6 @@
 /**
- * Live price fetcher with 30-second cache and graceful fallback.
- * Fetches real-time prices from free APIs:
+ * Provider-observed price fetcher with a 30-second cache.
+ * Fetches current observations from public APIs:
  * - Crypto: CoinGecko
  * - Metals: metals.live
  * - Forex: ExchangeRate API (open.er-api.com)
@@ -20,20 +20,6 @@ const COINGECKO_MAP: Record<string, string> = {
   ETHUSD: 'ethereum',
   XRPUSD: 'ripple',
   SOLUSD: 'solana',
-};
-
-/** Fallback prices — used when all APIs are unreachable. Never crash. */
-const FALLBACK_PRICES: Record<string, number> = {
-  XAUUSD: 4505.0,
-  XAGUSD: 71.36,
-  BTCUSD: 70798.0,
-  ETHUSD: 2147.53,
-  XRPUSD: 1.40,
-  SOLUSD: 91.37,
-  EURUSD: 1.1559,
-  GBPUSD: 1.3352,
-  USDJPY: 159.53,
-  AUDUSD: 0.6939,
 };
 
 /**
@@ -88,7 +74,7 @@ async function fetchGoldPrice(prices: Map<string, number>): Promise<void> {
     if (Array.isArray(data) && data.length > 0 && typeof data[0].price === 'number') {
       prices.set('XAUUSD', data[0].price);
     }
-  } catch { /* use fallback */ }
+  } catch { /* provider unavailable */ }
 }
 
 async function fetchSilverPrice(prices: Map<string, number>): Promise<void> {
@@ -101,7 +87,7 @@ async function fetchSilverPrice(prices: Map<string, number>): Promise<void> {
     if (Array.isArray(data) && data.length > 0 && typeof data[0].price === 'number') {
       prices.set('XAGUSD', data[0].price);
     }
-  } catch { /* use fallback */ }
+  } catch { /* provider unavailable */ }
 }
 
 async function fetchForexPrices(prices: Map<string, number>): Promise<void> {
@@ -119,9 +105,10 @@ async function fetchForexPrices(prices: Map<string, number>): Promise<void> {
 }
 
 /**
- * Fetch live prices from all sources.
+ * Fetch current provider price observations.
  * Returns a Map of symbol -> current USD price.
- * Falls back to seeded prices if any API fails (never crashes).
+ * Returns only values actually observed from a provider. Missing providers
+ * produce missing symbols; no static quote is substituted.
  * Caches results for 30 seconds to avoid rate limits.
  */
 export async function fetchLivePrices(): Promise<Map<string, number>> {
@@ -130,10 +117,6 @@ export async function fetchLivePrices(): Promise<Map<string, number>> {
   }
 
   const prices = new Map<string, number>();
-
-  for (const [symbol, price] of Object.entries(FALLBACK_PRICES)) {
-    prices.set(symbol, price);
-  }
 
   await Promise.allSettled([
     fetchCryptoPrices(prices),
@@ -148,7 +131,7 @@ export async function fetchLivePrices(): Promise<Map<string, number>> {
 }
 
 /**
- * Get a single live price for a symbol (uses cached batch).
+ * Get one current provider observation for a symbol (uses cached batch).
  */
 export async function getLivePrice(symbol: string): Promise<number | undefined> {
   const prices = await fetchLivePrices();

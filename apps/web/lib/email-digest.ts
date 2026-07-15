@@ -1,4 +1,4 @@
-import { readHistoryAsync, computeLeaderboard } from './signal-history';
+import { readHistoryAsync, computeLeaderboard, isCountedResolved } from './signal-history';
 import { TRADECLAW_LOGO_SVG } from '../components/tradeclaw-logo';
 
 export interface EmailDigestSignal {
@@ -58,7 +58,7 @@ export async function getEmailDigestData(options: EmailDigestOptions = {}): Prom
 
   // Top N resolved signals sorted by confidence
   const resolved = history
-    .filter(r => r.timestamp >= cutoff && r.outcomes['24h'] !== null)
+    .filter(r => r.timestamp >= cutoff && isCountedResolved(r))
     .sort((a, b) => b.confidence - a.confidence)
     .slice(0, topN);
 

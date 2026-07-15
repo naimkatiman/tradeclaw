@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 /**
  * /why-long-term — the external evidence ledger.
  *
- * Our own engine measures anti-timing: after real costs, single-asset
+ * Our own engine measures anti-timing: after modeled costs, single-asset
  * short-term timing is net-negative. This page carries the wider record.
  * Every claim, number, attribution and URL comes from the single source of
  * truth: docs/research/2026-07-07-external-citations-short-term-vs-long-term.md.
@@ -272,11 +272,12 @@ export default function WhyLongTermPage() {
             <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight">
               The more you trade,
               <br />
-              <span className="text-[var(--color-down)]">the more you lose.</span>
+              <span className="text-[var(--color-down)]">the higher the cost hurdle.</span>
             </h1>
             <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-[var(--text-secondary)]">
-              We built a real signal engine, charged every sized trade its real execution cost,
-              and published what came out: after costs, net expectancy is negative. That is{' '}
+              We recorded signal outcomes against provider OHLCV, applied published per-asset
+              fee/slippage assumptions, and found negative modeled net expectancy in the counted
+              sample. This is a signal study, not evidence of realized customer losses. That is{' '}
               <Link href="/" className="text-[var(--foreground)] underline decoration-[var(--border)] underline-offset-4 hover:decoration-[var(--foreground)]">
                 our own finding
               </Link>{' '}
@@ -315,10 +316,10 @@ export default function WhyLongTermPage() {
               What this proves, and what it does not
             </h2>
             <p className="mt-5 max-w-prose text-[15px] leading-relaxed text-[var(--foreground)]">
-              Read together, these studies measure one thing from many angles: frequent short-term
-              trading, after real costs, is net-negative for the people who do it. Our own engine
-              reaches the same result on a single problem. Turnover is a cost you pay with certainty,
-              and holding is how you minimize the one cost you can actually control.
+              Read together, these studies associate frequent short-term trading and higher turnover
+              costs with underperformance across the populations they examine; they do not prove that
+              every person loses. Our counted signal sample is also negative after its published modeled
+              costs. Lower turnover reduces one controllable cost, but does not guarantee a positive return.
             </p>
             <p className="mt-4 max-w-prose text-[15px] leading-relaxed text-[var(--text-secondary)]">
               This is not a case for buying and holding any particular asset. Long horizons do not

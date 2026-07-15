@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getTrackedSignalsForRequest } from '../../../../lib/tracked-signals';
+import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,26 +28,39 @@ function buildSignalUrl(baseUrl: string, signal: { id?: string; symbol?: string 
 }
 
 async function pickBestSignal(request: NextRequest, pair: string) {
-  const url = new URL('/api/signals', request.url);
-  url.searchParams.set('symbol', pair);
-  url.searchParams.set('minConfidence', '0');
-
-  const response = await fetch(url.toString(), {
-    headers: { accept: 'application/json' },
-    cache: 'no-store',
+  const { signals } = await getTrackedSignalsForRequest(request, {
+    symbol: pair,
+    minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE,
   });
 
-  if (!response.ok) {
-    return null;
-  }
+  return signals
+    .filter((signal) =>
+      signal.dataQuality === 'real' &&
+      (signal.direction === 'BUY' || signal.direction === 'SELL') &&
+      Number.isFinite(signal.confidence) &&
+      signal.confidence >= PUBLISHED_SIGNAL_MIN_CONFIDENCE &&
+      signal.confidence <= 100 &&
+      Number.isFinite(signal.entry) &&
+      !Number.isNaN(Date.parse(signal.timestamp)),
+    )
+    .sort((left, right) => right.confidence - left.confidence)[0] ?? null;
+}
 
-  const data = await response.json();
-  const signals = Array.isArray(data?.signals) ? data.signals : [];
-  if (signals.length === 0) {
-    return null;
-  }
-
-  return [...signals].sort((left, right) => (right.confidence ?? 0) - (left.confidence ?? 0))[0];
+function unavailableSignal(baseUrl: string, pair: string, reason: string) {
+  return {
+    available: false,
+    symbol: pair,
+    direction: null,
+    confidence: null,
+    entry: null,
+    timeframe: null,
+    recordedAt: null,
+    dataQuality: null,
+    source: null,
+    reason,
+    signalUrl: null,
+    dashboardUrl: `${baseUrl}/dashboard`,
+  };
 }
 
 export async function GET(request: NextRequest) {
@@ -55,52 +70,50 @@ export async function GET(request: NextRequest) {
 
   const signals = await Promise.all(
     pairs.map(async (pair) => {
-      const best = await pickBestSignal(request, pair);
+      let best: Awaited<ReturnType<typeof pickBestSignal>>;
+      try {
+        best = await pickBestSignal(request, pair);
+      } catch {
+        return unavailableSignal(baseUrl, pair, 'signal-source-unavailable');
+      }
 
       if (!best) {
-        return {
-          symbol: pair,
-          direction: 'NEUTRAL',
-          confidence: 0,
-          entry: null,
-          timeframe: 'H1',
-          updatedAt: new Date().toISOString(),
-          source: 'fallback',
-          signalUrl: `${baseUrl}/dashboard`,
-        };
+        return unavailableSignal(baseUrl, pair, 'no-eligible-recorded-signal');
       }
 
       return {
+        available: true,
         symbol: pair,
-        direction: best.direction ?? best.signal ?? 'NEUTRAL',
-        confidence: Math.round(best.confidence ?? 0),
-        entry: best.entry ?? null,
-        timeframe: best.timeframe ?? 'H1',
-        updatedAt: best.timestamp ?? dataFallbackTimestamp(best),
-        source: best.source ?? 'live',
+        direction: best.direction,
+        confidence: Math.round(best.confidence),
+        entry: best.entry,
+        timeframe: best.timeframe,
+        recordedAt: Number.isNaN(Date.parse(best.timestamp)) ? null : best.timestamp,
+        dataQuality: 'real' as const,
+        source: 'recorded-real-signal',
+        reason: null,
         signalUrl: buildSignalUrl(baseUrl, best),
+        dashboardUrl: `${baseUrl}/dashboard`,
       };
     })
   );
 
   return NextResponse.json(
     {
-      generatedAt: new Date().toISOString(),
+      available: signals.some((signal) => signal.available),
+      fetchedAt: new Date().toISOString(),
       baseUrl,
       pairs,
       signals,
       dashboardUrl: `${baseUrl}/dashboard`,
       trackRecordUrl: `${baseUrl}/track-record`,
       pricingUrl: `${baseUrl}/pricing`,
+      note: 'Recorded real-quality signals only; unavailable entries contain no synthetic direction, confidence, or timestamp.',
     },
     {
       headers: {
-        'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=60',
+        'Cache-Control': 'private, no-store',
       },
     }
   );
-}
-
-function dataFallbackTimestamp(signal: { timestamp?: string }) {
-  return signal.timestamp || new Date().toISOString();
 }

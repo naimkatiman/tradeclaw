@@ -6,8 +6,9 @@ export interface PineExportStats {
 
 export function generateTradeClawPineScript(stats?: PineExportStats): string {
   const header = stats
-    ? `// TradeClaw Verified Track Record
+    ? `// TradeClaw OHLCV-Resolved Signal Summary
 // Win Rate (24h): ${stats.winRate24h}% | Total Signals: ${stats.totalSignals} | Resolved: ${stats.resolvedSignals}
+// Recorded signal statistics, not broker fills or portfolio returns
 // Downloaded from tradeclaw.win/tradingview-export`
     : `// TradeClaw Signal Engine
 // Downloaded from tradeclaw.win/tradingview-export`;

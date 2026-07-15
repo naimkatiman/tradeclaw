@@ -59,7 +59,7 @@ const STEPS: TourStep[] = [
     targetId: 'accuracy-stats',
     title: 'Track signal accuracy',
     description:
-      'Check historical accuracy rates. No cherry-picking — every signal outcome is logged with full transparency.',
+      'Inspect recorded signal rows and outcomes resolved against provider OHLCV, with excluded populations labeled.',
     phase: 2,
   },
   {

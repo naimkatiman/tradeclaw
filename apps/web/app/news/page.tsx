@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import NewsClient from './NewsClient';
 
 export const metadata: Metadata = {
-  title: 'Trending Coins x Live Signals | TradeClaw News',
+  title: 'Trending Coins x Signal Study | TradeClaw News',
   description:
-    'CoinGecko trending coins matched with TradeClaw signals (refreshed every 5 minutes). See which hot coins have BUY or SELL confluences.',
+    'The latest successful CoinGecko trending snapshot matched with TradeClaw analytical signal labels. No generated market fallback.',
   openGraph: {
-    title: 'Trending Coins x Live Signals | TradeClaw',
+    title: 'Trending Coins x Signal Study | TradeClaw',
     description:
-      'CoinGecko trending coins matched with TradeClaw signals, refreshed every 5 minutes.',
+      'CoinGecko trending data matched with TradeClaw analytical signal labels when the upstream source is available.',
     url: 'https://tradeclaw.win/news',
   },
 };

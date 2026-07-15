@@ -32,21 +32,21 @@ export function AlertDetailClient({ signal, id }: Props) {
       : `https://tradeclaw.win/alert/${id}`;
 
   const signalText = [
-    `📊 ${signal.symbol} ${signal.direction} — ${signal.confidence}% confidence`,
+    `📊 ${signal.symbol} ${signal.direction} — rule score ${signal.confidence}/100`,
     `Entry: ${formatPrice(signal.entry)}`,
     `SL: ${formatPrice(signal.stopLoss)} | TP1: ${formatPrice(signal.takeProfit1)}`,
     `RSI: ${signal.indicators.rsi.value.toFixed(1)}`,
     ``,
-    `Free AI signal via TradeClaw 🤖`,
+    `Rule-generated research candidate via TradeClaw. The score is not a predictive probability.`,
     pageUrl,
   ].join('\n');
 
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(signalText)}`;
   const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(
-    `${signal.symbol} ${signal.direction} ${signal.confidence}% confidence — TradeClaw AI Signal`
+    `${signal.symbol} ${signal.direction} — rule score ${signal.confidence}/100 via TradeClaw`
   )}`;
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-    `${signal.symbol} ${signal.direction} — ${signal.confidence}% confidence\n\nFree AI trading signal via TradeClaw 🤖`
+    `${signal.symbol} ${signal.direction} — rule score ${signal.confidence}/100\n\nRule-generated research candidate; not a predictive probability or broker order.`
   )}&url=${encodeURIComponent(pageUrl)}`;
 
   const handleCopy = async () => {
@@ -88,13 +88,13 @@ export function AlertDetailClient({ signal, id }: Props) {
                   : signal.confidence >= 65 ? 'text-zinc-400'
                   : 'text-red-400'
               }`}>
-                {signal.confidence}%
+                {signal.confidence}/100
               </div>
-              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5">confidence</div>
+              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5">rule score</div>
             </div>
           </div>
 
-          {/* Confidence bar */}
+          {/* Rule-score bar */}
           <div className="h-1 w-full rounded-full bg-white/5 mb-5">
             <div
               className="h-1 rounded-full transition-all duration-700"
@@ -105,6 +105,10 @@ export function AlertDetailClient({ signal, id }: Props) {
               }}
             />
           </div>
+
+          <p className="mb-5 text-[10px] leading-relaxed text-zinc-600">
+            Mechanical indicator-confluence score, not a predictive probability.
+          </p>
 
           {/* Price levels */}
           <div className="grid grid-cols-2 gap-2 mb-4">

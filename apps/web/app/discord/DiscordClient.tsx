@@ -3,8 +3,8 @@
 import { useState } from 'react';
 
 const COMMANDS = [
-  { cmd: '/signal [pair]', desc: 'Get the latest trading signal for any pair' },
-  { cmd: '/leaderboard [period]', desc: 'Top 5 pairs by win rate' },
+  { cmd: '/signal [pair]', desc: 'Request the latest available signal record for a pair' },
+  { cmd: '/leaderboard [period]', desc: 'Rank recorded outcomes for the selected period' },
   { cmd: '/health', desc: 'Check API health and uptime' },
   { cmd: '/subscribe [pair] [min_confidence]', desc: 'Auto-receive signals in a channel' },
   { cmd: '/unsubscribe', desc: 'Stop signal broadcasts' },
@@ -14,8 +14,8 @@ const COMMANDS = [
 const STEPS = [
   {
     num: '1',
-    title: 'Invite the Bot',
-    desc: 'Click the button above to add TradeClaw to your Discord server with the right permissions.',
+    title: 'Create a Discord Application',
+    desc: 'Create your own bot in the Discord Developer Portal and review the requested permissions before authorizing it.',
   },
   {
     num: '2',
@@ -26,7 +26,7 @@ const STEPS = [
   {
     num: '3',
     title: 'Run the Bot',
-    desc: 'Start the bot with a single command. It registers slash commands automatically.',
+    desc: 'Install dependencies and start your self-hosted bot. Check its logs to confirm command registration.',
     code: 'cd packages/tradeclaw-discord && npm install && npm start',
   },
 ];
@@ -66,11 +66,11 @@ export function DiscordClient() {
             <span className="text-[#5865F2]">Discord</span> Server
           </h1>
           <p className="text-lg text-[var(--text-secondary)] max-w-xl mx-auto mb-8">
-            Get live trading signals (5-minute cadence), leaderboards, and health checks — all from Discord slash commands. Free and open source.
+            Self-host the MIT-licensed bot to query available signal records, recorded outcomes, and API health from Discord slash commands.
           </p>
 
           <a
-            href="https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&scope=bot+applications.commands&permissions=2048"
+            href="https://github.com/naimkatiman/tradeclaw/tree/main/packages/tradeclaw-discord"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white font-semibold text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#5865F2]/25"
@@ -78,7 +78,7 @@ export function DiscordClient() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" />
             </svg>
-            Add to Discord
+            Review Bot Setup
           </a>
         </div>
       </section>
@@ -94,8 +94,8 @@ export function DiscordClient() {
                   <polyline points="16 7 22 7 22 13" />
                 </svg>
               ),
-              title: 'Live Signals (5-min)',
-              desc: 'BUY/SELL signals with confidence scores, TP/SL levels, and indicator data — delivered to your Discord channel.',
+              title: 'Available Signal Records',
+              desc: 'Query BUY/SELL records with indicator-agreement scores and configured TP/SL fields. Availability depends on the TradeClaw API.',
             },
             {
               icon: (
@@ -115,8 +115,8 @@ export function DiscordClient() {
                   <path d="M2 12l10 5 10-5" />
                 </svg>
               ),
-              title: 'Free & Open Source',
-              desc: 'Self-host it, customize it, extend it. MIT licensed — no subscriptions, no API limits.',
+              title: 'MIT-Licensed Source',
+              desc: 'Self-host, inspect, and modify the bot. Discord, hosting, data providers, and APIs set their own terms and limits.',
             },
           ].map((f) => (
             <div
@@ -153,7 +153,7 @@ export function DiscordClient() {
 
       {/* Signal Embed Preview */}
       <section className="max-w-3xl mx-auto px-4 pb-20">
-        <h2 className="text-2xl font-bold text-center mb-8">Signal Preview</h2>
+        <h2 className="text-2xl font-bold text-center mb-8">Illustrative Signal Format</h2>
         <div className="max-w-md mx-auto rounded-xl border-l-4 border-l-emerald-500 bg-[#2b2d31] p-5 shadow-xl">
           <div className="font-semibold text-white mb-1">
             <span className="text-emerald-400">BUY</span> Signal — BTCUSD H1
@@ -168,7 +168,7 @@ export function DiscordClient() {
             <div><span className="text-zinc-400">MACD</span><br /><span className="text-emerald-400">{'\u25B2'}</span></div>
           </div>
           <div className="mt-3 pt-3 border-t border-white/10 text-xs text-zinc-500">
-            TradeClaw · Live signal · Just now
+            Example only · values are not current market data
           </div>
         </div>
       </section>

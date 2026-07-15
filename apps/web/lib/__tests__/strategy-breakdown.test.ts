@@ -21,8 +21,8 @@ describe('computeStrategyBreakdown', () => {
 
   it('computes basic metrics for a single strategy', () => {
     const records: SignalHistoryRecord[] = [
-      baseRecord({ strategyId: 'classic', outcomes: { '4h': { hit: true, pnlPct: 1.5, price: 100 }, '24h': { hit: true, pnlPct: 2.0, price: 100 } } }),
-      baseRecord({ strategyId: 'classic', outcomes: { '4h': { hit: false, pnlPct: -1.0, price: 100 }, '24h': { hit: false, pnlPct: -1.5, price: 100 } } }),
+      baseRecord({ strategyId: 'classic', outcomes: { '4h': { hit: true, pnlPct: 1.5, price: 100, source: 'binance' }, '24h': { hit: true, pnlPct: 2.0, price: 100, source: 'binance' } } }),
+      baseRecord({ strategyId: 'classic', outcomes: { '4h': { hit: false, pnlPct: -1.0, price: 100, source: 'binance' }, '24h': { hit: false, pnlPct: -1.5, price: 100, source: 'binance' } } }),
     ];
     const result = computeStrategyBreakdown(records, 'all');
     expect(result).toHaveLength(1);
@@ -47,9 +47,9 @@ describe('computeStrategyBreakdown', () => {
 
   it('computes sharpeRatio from resolved PnL values', () => {
     const records: SignalHistoryRecord[] = [
-      baseRecord({ strategyId: 'classic', outcomes: { '4h': null, '24h': { hit: true, pnlPct: 2.0, price: 100 } } }),
-      baseRecord({ strategyId: 'classic', outcomes: { '4h': null, '24h': { hit: true, pnlPct: 4.0, price: 100 } } }),
-      baseRecord({ strategyId: 'classic', outcomes: { '4h': null, '24h': { hit: false, pnlPct: -1.0, price: 100 } } }),
+      baseRecord({ strategyId: 'classic', outcomes: { '4h': null, '24h': { hit: true, pnlPct: 2.0, price: 100, source: 'binance' } } }),
+      baseRecord({ strategyId: 'classic', outcomes: { '4h': null, '24h': { hit: true, pnlPct: 4.0, price: 100, source: 'binance' } } }),
+      baseRecord({ strategyId: 'classic', outcomes: { '4h': null, '24h': { hit: false, pnlPct: -1.0, price: 100, source: 'binance' } } }),
     ];
     const result = computeStrategyBreakdown(records, 'all');
     const row = result[0];
@@ -63,7 +63,7 @@ describe('computeStrategyBreakdown', () => {
 
   it('returns sharpeRatio 0 when fewer than 2 PnL samples', () => {
     const records: SignalHistoryRecord[] = [
-      baseRecord({ strategyId: 'classic', outcomes: { '4h': null, '24h': { hit: true, pnlPct: 2.0, price: 100 } } }),
+      baseRecord({ strategyId: 'classic', outcomes: { '4h': null, '24h': { hit: true, pnlPct: 2.0, price: 100, source: 'binance' } } }),
     ];
     const result = computeStrategyBreakdown(records, 'all');
     expect(result[0].sharpeRatio).toBe(0);
@@ -137,25 +137,25 @@ describe('computeStrategyBreakdown multi-strategy winners', () => {
         id: '1', pair: 'X', timeframe: 'H1', direction: 'BUY' as const, confidence: 70, entryPrice: 100,
         timestamp: Date.now(), tp1: 110, sl: 95,
         strategyId: 'classic',
-        outcomes: { '4h': null, '24h': { hit: true, pnlPct: 5.0, price: 100 } },
+        outcomes: { '4h': null, '24h': { hit: true, pnlPct: 5.0, price: 100, source: 'binance' } },
       },
       {
         id: '2', pair: 'X', timeframe: 'H1', direction: 'BUY' as const, confidence: 70, entryPrice: 100,
         timestamp: Date.now(), tp1: 110, sl: 95,
         strategyId: 'classic',
-        outcomes: { '4h': null, '24h': { hit: false, pnlPct: -4.0, price: 100 } },
+        outcomes: { '4h': null, '24h': { hit: false, pnlPct: -4.0, price: 100, source: 'binance' } },
       },
       {
         id: '3', pair: 'X', timeframe: 'H1', direction: 'BUY' as const, confidence: 70, entryPrice: 100,
         timestamp: Date.now(), tp1: 110, sl: 95,
         strategyId: 'hmm-top3',
-        outcomes: { '4h': null, '24h': { hit: true, pnlPct: 2.0, price: 100 } },
+        outcomes: { '4h': null, '24h': { hit: true, pnlPct: 2.0, price: 100, source: 'binance' } },
       },
       {
         id: '4', pair: 'X', timeframe: 'H1', direction: 'BUY' as const, confidence: 70, entryPrice: 100,
         timestamp: Date.now(), tp1: 110, sl: 95,
         strategyId: 'hmm-top3',
-        outcomes: { '4h': null, '24h': { hit: true, pnlPct: 2.1, price: 100 } },
+        outcomes: { '4h': null, '24h': { hit: true, pnlPct: 2.1, price: 100, source: 'binance' } },
       },
     ];
     const result = computeStrategyBreakdown(records as unknown as SignalHistoryRecord[], 'all');

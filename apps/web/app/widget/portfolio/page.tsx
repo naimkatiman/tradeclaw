@@ -4,21 +4,18 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 
-interface PositionSummary {
-  symbol: string;
-  direction: 'BUY' | 'SELL';
-  unrealisedPnl: number;
-}
-
 interface PortfolioData {
-  balance: number;
-  equity: number;
-  openPnl: number;
-  totalReturn: number;
+  available: true;
+  mode: 'paper-simulation';
+  realizedBalance: number;
+  equity: null;
+  openPnl: null;
+  totalReturn: number | null;
   winRate: number;
   openPositions: number;
-  top3Positions: PositionSummary[];
-  lastUpdated: string;
+  recordedAt: string | null;
+  fetchedAt: string;
+  note: string;
 }
 
 export default function PortfolioWidgetPage() {
@@ -33,7 +30,11 @@ export default function PortfolioWidgetPage() {
     try {
       const res = await fetch('/api/widget/portfolio');
       if (!res.ok) throw new Error('fetch failed');
-      setData(await res.json());
+      const payload = await res.json() as PortfolioData;
+      if (payload.available !== true || payload.mode !== 'paper-simulation') {
+        throw new Error('paper simulation unavailable');
+      }
+      setData(payload);
       setError(false);
     } catch {
       setError(true);
@@ -67,7 +68,7 @@ export default function PortfolioWidgetPage() {
           fontSize: 13,
         }}
       >
-        Unable to load portfolio data
+        Paper simulation unavailable
       </div>
     );
   }
@@ -92,10 +93,10 @@ export default function PortfolioWidgetPage() {
     );
   }
 
-  const isPositive = data.totalReturn >= 0;
-  const pnlColor = isPositive ? '#3fb950' : '#f85149';
+  const isPositive = data.totalReturn !== null && data.totalReturn >= 0;
+  const pnlColor = data.totalReturn === null ? textSecondary : isPositive ? '#3fb950' : '#f85149';
   const arrow = isPositive ? '\u25B2' : '\u25BC';
-  const sign = isPositive ? '+' : '';
+  const sign = data.totalReturn !== null && data.totalReturn >= 0 ? '+' : '';
 
   return (
     <div
@@ -136,20 +137,20 @@ export default function PortfolioWidgetPage() {
               letterSpacing: 0.5,
             }}
           >
-            Portfolio
+            Paper simulation
           </span>
           <span style={{ fontSize: 14, fontWeight: 600, color: pnlColor }}>
-            {arrow} {sign}{data.totalReturn.toFixed(1)}%
+            {data.totalReturn === null ? 'Realized return unavailable' : `${arrow} ${sign}${data.totalReturn.toFixed(1)}% realized`}
           </span>
         </div>
 
-        {/* Balance & Equity */}
+        {/* Realized paper balance */}
         <div>
           <div style={{ fontSize: compact ? 20 : 24, fontWeight: 700, letterSpacing: -0.5 }}>
-            ${data.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${data.realizedBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div style={{ fontSize: 11, color: textSecondary, marginTop: 2 }}>
-            Equity: ${data.equity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            Realized simulation balance. Open positions are not marked.
           </div>
         </div>
 
@@ -157,70 +158,17 @@ export default function PortfolioWidgetPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <div style={{ background: bg, borderRadius: 8, padding: '8px 10px' }}>
             <div style={{ fontSize: 9, color: textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              Win Rate
+              Sim. Win Rate
             </div>
             <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{data.winRate.toFixed(0)}%</div>
           </div>
           <div style={{ background: bg, borderRadius: 8, padding: '8px 10px' }}>
             <div style={{ fontSize: 9, color: textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              Open Positions
+              Open Paper Positions
             </div>
             <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{data.openPositions}</div>
           </div>
         </div>
-
-        {/* Top 3 open positions */}
-        {!compact && data.top3Positions.length > 0 && (
-          <div>
-            <div
-              style={{
-                fontSize: 9,
-                color: textSecondary,
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-                marginBottom: 6,
-              }}
-            >
-              Top Positions
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {data.top3Positions.map((pos) => {
-                const posPositive = pos.unrealisedPnl >= 0;
-                return (
-                  <div
-                    key={pos.symbol}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      background: bg,
-                      borderRadius: 6,
-                      padding: '6px 10px',
-                      fontSize: 12,
-                    }}
-                  >
-                    <span style={{ fontWeight: 600 }}>
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          width: 6,
-                          height: 6,
-                          borderRadius: '50%',
-                          background: pos.direction === 'BUY' ? '#3fb950' : '#f85149',
-                          marginRight: 6,
-                        }}
-                      />
-                      {pos.symbol}
-                    </span>
-                    <span style={{ fontWeight: 600, color: posPositive ? '#3fb950' : '#f85149' }}>
-                      {posPositive ? '+' : ''}{pos.unrealisedPnl.toFixed(2)}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Footer */}
         <div
@@ -245,10 +193,10 @@ export default function PortfolioWidgetPage() {
             }}
           >
             <TradeClawLogo className="h-3 w-3 shrink-0" id="portfolio" />
-            TradeClaw
+            TradeClaw paper simulation
           </a>
           <span style={{ fontSize: 9, color: textSecondary }}>
-            Auto-refreshes 30s
+            Realized only · not broker/customer return
           </span>
         </div>
       </div>

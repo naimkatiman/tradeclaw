@@ -40,30 +40,6 @@ const DEFAULT_PREFS: PushSubscriptionPrefs = {
   masterEnabled: true,
 };
 
-const SEED_SUBSCRIPTIONS: PushSubscriptionRecord[] = [
-  {
-    id: 'seed-push-1',
-    endpoint: 'https://fcm.googleapis.com/fcm/send/seed-alice-001',
-    keys: { p256dh: 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8p8REqnSs', auth: 'tBHItJI5svbpC7htLOoLuw' },
-    prefs: { pairs: ['BTCUSD', 'ETHUSD', 'XAUUSD'], thresholds: { BTCUSD: 75, ETHUSD: 70 }, directions: { BTCUSD: 'both', ETHUSD: 'BUY' }, masterEnabled: true },
-    createdAt: '2026-03-20T08:00:00.000Z',
-  },
-  {
-    id: 'seed-push-2',
-    endpoint: 'https://fcm.googleapis.com/fcm/send/seed-bob-002',
-    keys: { p256dh: 'BMnfk1JuR7tGNbCkOMKACPJR3KqP4hYDkZz2e_2BLqKFz3SXHGPyjAG0X8tGNLAaRjrk4J6E-lKF_3VHWZJrY3c', auth: 'aX1z9KlRbHqD3xMvN2oTwA' },
-    prefs: { pairs: ['EURUSD', 'GBPUSD', 'USDJPY'], thresholds: { EURUSD: 80 }, directions: { EURUSD: 'SELL' }, masterEnabled: true },
-    createdAt: '2026-03-22T14:30:00.000Z',
-  },
-  {
-    id: 'seed-push-3',
-    endpoint: 'https://fcm.googleapis.com/fcm/send/seed-carol-003',
-    keys: { p256dh: 'BGkL7IYhdy0GwJnEY4QFGt6NJ1jWRs3RKgCbMYpehxDR7wyp3FQXwQ3OIh7iGV6Cn3Ls4VFuRbYcMHJ3nLsB8Js', auth: 'kR4oF2hPxQz7bWvLnM5eSA' },
-    prefs: { pairs: ['XAUUSD', 'XAGUSD', 'BTCUSD'], thresholds: { XAUUSD: 65, BTCUSD: 70 }, directions: { XAUUSD: 'BUY', BTCUSD: 'both' }, masterEnabled: false },
-    createdAt: '2026-03-25T10:15:00.000Z',
-  },
-];
-
 // ---------------------------------------------------------------------------
 // File helpers
 // ---------------------------------------------------------------------------
@@ -73,10 +49,9 @@ async function load(): Promise<PushSubscriptionRecord[]> {
     await fs.mkdir(DATA_DIR, { recursive: true });
     const raw = await fs.readFile(FILE, 'utf8');
     const data = JSON.parse(raw) as PushSubscriptionRecord[];
-    if (data.length === 0) return SEED_SUBSCRIPTIONS;
     return data;
   } catch {
-    return SEED_SUBSCRIPTIONS;
+    return [];
   }
 }
 
@@ -144,9 +119,4 @@ export async function updateSubscriptionPrefs(
   sub.prefs = { ...sub.prefs, ...prefs };
   await save(subs);
   return sub;
-}
-
-export async function seedSubscriptions(): Promise<PushSubscriptionRecord[]> {
-  await save(SEED_SUBSCRIPTIONS);
-  return SEED_SUBSCRIPTIONS;
 }

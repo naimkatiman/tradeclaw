@@ -4,10 +4,10 @@ import { ProfileWidgetLoader } from './ProfileWidgetLoader';
 export const metadata: Metadata = {
   title: 'GitHub Profile Widget — TradeClaw',
   description:
-    'Add live AI trading signals to your GitHub profile README. Dynamic SVG badge showing BUY/SELL direction, confidence, and entry price — refreshed every 5 minutes.',
+    'Add a read-only TradeClaw signal badge to a GitHub profile README. The badge shows the latest available rule output and source timestamp.',
   openGraph: {
     title: 'GitHub Profile Widget — TradeClaw',
-    description: 'Embed live trading signals in your GitHub profile README with one line of Markdown.',
+    description: 'Embed the latest available TradeClaw rule output in a GitHub profile README.',
     images: [{ url: '/api/og', width: 1200, height: 630 }],
   },
 };

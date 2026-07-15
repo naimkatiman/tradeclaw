@@ -99,11 +99,11 @@ function CreateAlertModal({ onClose, onCreated, prefillSymbol, prefillPrice }: C
       if (!cp || cp <= 0) {
         try {
           const r = await fetch('/api/prices');
+          if (!r.ok) throw new Error(`Price API returned ${r.status}`);
           const j = await r.json();
-          const arr = Array.isArray(j) ? j : j.prices ?? j.data ?? [];
-          const hit = arr.find((p: { pair?: string; symbol?: string; price?: number }) =>
-            (p.pair ?? p.symbol) === symbol
-          );
+          const hit = Array.isArray(j)
+            ? j.find((p: { pair?: string; symbol?: string; price?: number }) => (p.pair ?? p.symbol) === symbol)
+            : j.prices?.[symbol];
           if (hit?.price && hit.price > 0) cp = hit.price;
         } catch {
           // ignore — fall through to validation below

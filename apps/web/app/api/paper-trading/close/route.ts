@@ -19,10 +19,13 @@ export async function POST(request: NextRequest) {
   if (typeof positionId !== 'string') {
     return NextResponse.json({ error: 'positionId required' }, { status: 400 });
   }
+  if (typeof exitPrice !== 'number' || !Number.isFinite(exitPrice) || exitPrice <= 0) {
+    return NextResponse.json({ error: 'positive observed exitPrice required' }, { status: 400 });
+  }
 
   const result = await closePosition(
     { userId: session.userId, positionId },
-    typeof exitPrice === 'number' ? exitPrice : undefined,
+    exitPrice,
     'manual',
   );
 

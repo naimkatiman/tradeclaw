@@ -53,11 +53,11 @@ function OnboardingBanner() {
     <div className="border-b border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
       <div className="max-w-7xl mx-auto flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-emerald-400 mb-1.5">3 steps to start trading:</p>
+          <p className="text-sm font-semibold text-emerald-400 mb-1.5">3 steps to inspect the research output:</p>
           <ol className="text-xs text-[var(--text-secondary)] space-y-1 font-mono list-decimal list-inside">
-            <li><span className="text-emerald-400">See live signals</span> — <span className="text-emerald-400">BUY</span>/<span className="text-red-400">SELL</span> with confidence score. 70%+ signals are shown first, 50–69% appear as potential setups.</li>
-            <li><span className="text-emerald-400">Click any signal</span> — see entry, TP, SL, and full indicator breakdown (RSI, MACD, EMA, S/R).</li>
-            <li><span className="text-emerald-400">Self-host in 2 min</span> — <code className="bg-white/5 px-1.5 py-0.5 rounded text-emerald-400">docker compose up -d</code> and run your own signal engine.</li>
+            <li><span className="text-emerald-400">Review signal candidates</span> — <span className="text-emerald-400">BUY</span>/<span className="text-red-400">SELL</span> research labels with indicator-confluence scores.</li>
+            <li><span className="text-emerald-400">Inspect any row</span> — check its timestamp, data-quality label, entry reference, TP/SL levels, and indicator breakdown.</li>
+            <li><span className="text-emerald-400">Self-host the stack</span> — set the required secrets, run <code className="bg-white/5 px-1.5 py-0.5 rounded text-emerald-400">docker compose up -d</code>, and audit the engine yourself.</li>
           </ol>
         </div>
         <button onClick={dismiss} className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors shrink-0 mt-0.5">
@@ -178,10 +178,10 @@ function DirectionBadge({ direction }: { direction: 'BUY' | 'SELL' }) {
 function ConfidenceBar({ value, showExplainer = false }: { value: number; showExplainer?: boolean }) {
   const color = value >= 80 ? '#10B981' : value >= 65 ? '#a1a1aa' : '#EF4444';
   const explainer = value >= 80
-    ? 'Strong signal — high indicator confluence'
+    ? 'High rule score — broad indicator agreement'
     : value >= 65
-      ? 'Moderate signal — partial indicator agreement'
-      : 'Weak signal — limited confluence';
+      ? 'Mid rule score — partial indicator agreement'
+      : 'Low rule score — limited indicator agreement';
   return (
     <div>
       <div className="relative h-1 w-full rounded-full bg-[var(--glass-bg)]">
@@ -301,20 +301,20 @@ function SignalExplanation({ signal }: { signal: TradingSignal }) {
 
   // Build 1-2 concise reasons from indicators
   if (signal.direction === 'BUY') {
-    if (rsi.signal === 'oversold' || rsi.value < 35) reasons.push(`RSI at ${rsi.value.toFixed(0)} (oversold) — bounce likely`);
-    else if (rsi.value < 50) reasons.push(`RSI at ${rsi.value.toFixed(0)} — momentum building`);
+    if (rsi.signal === 'oversold' || rsi.value < 35) reasons.push(`RSI at ${rsi.value.toFixed(0)} (oversold condition)`);
+    else if (rsi.value < 50) reasons.push(`RSI at ${rsi.value.toFixed(0)} (below neutral)`);
     if (macd.signal === 'bullish') reasons.push('MACD crossover bullish');
     if (ema.trend === 'up') reasons.push('Price above EMA20 — uptrend intact');
-    if (stochastic.signal === 'oversold') reasons.push('Stochastic oversold — reversal setup');
+    if (stochastic.signal === 'oversold') reasons.push('Stochastic in oversold range');
   } else {
-    if (rsi.signal === 'overbought' || rsi.value > 65) reasons.push(`RSI at ${rsi.value.toFixed(0)} (overbought) — pullback likely`);
-    else if (rsi.value > 50) reasons.push(`RSI at ${rsi.value.toFixed(0)} — momentum fading`);
+    if (rsi.signal === 'overbought' || rsi.value > 65) reasons.push(`RSI at ${rsi.value.toFixed(0)} (overbought condition)`);
+    else if (rsi.value > 50) reasons.push(`RSI at ${rsi.value.toFixed(0)} (above neutral)`);
     if (macd.signal === 'bearish') reasons.push('MACD crossover bearish');
     if (ema.trend === 'down') reasons.push('Price below EMA20 — downtrend intact');
-    if (stochastic.signal === 'overbought') reasons.push('Stochastic overbought — reversal setup');
+    if (stochastic.signal === 'overbought') reasons.push('Stochastic in overbought range');
   }
 
-  if (signal.confidence >= 80) reasons.push(`${signal.confidence}% confidence — multi-indicator alignment`);
+  if (signal.confidence >= 80) reasons.push(`Rule score ${signal.confidence}/100 — multi-indicator alignment`);
 
   const display = reasons.slice(0, 2);
   if (display.length === 0) return null;
@@ -378,12 +378,12 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
     e.stopPropagation();
     const emoji = signal.direction === 'BUY' ? '🟢' : '🔴';
     const text = [
-      `${emoji} ${signal.direction} ${signal.symbol} — ${signal.confidence}% confidence`,
+      `${emoji} ${signal.direction} ${signal.symbol} — rule score ${signal.confidence}/100`,
       `Entry: $${formatPrice(signal.entry)}`,
       `TP1: $${formatPrice(signal.takeProfit1)} | SL: $${formatPrice(signal.stopLoss)}`,
       '',
-      `Live signals at ${signalUrl}`,
-      '#TradeClaw #Trading #Signals',
+      `Rule-generated research candidate; not a broker order or success probability. ${signalUrl}`,
+      '#TradeClaw #TradingResearch',
     ].join('\n');
     window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank', 'width=550,height=420');
     setShareMenuOpen(false);
@@ -498,10 +498,10 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
           <div className="text-right">
             <div className={`text-sm font-bold font-mono tabular-nums ${
               signal.confidence >= 80 ? 'text-emerald-400' : signal.confidence >= 65 ? 'text-zinc-400' : 'text-red-400'
-            }`}>{signal.confidence}%</div>
+            }`}>{signal.confidence}/100</div>
             <div className="flex items-center justify-end gap-1 mt-0.5">
-              <div className="text-[10px] text-[var(--text-secondary)]">confidence</div>
-              <HintBadge label="Signal confidence (0–100%). ≥80% = high conviction. Combines RSI, MACD, EMA, Stochastic, and BB signals." />
+              <div className="text-[10px] text-[var(--text-secondary)]">rule score</div>
+              <HintBadge label="Mechanical indicator-agreement score (0–100), not a probability or measured edge. It combines RSI, MACD, EMA, Stochastic, and Bollinger Band rules." />
             </div>
           </div>
         </div>
@@ -730,8 +730,8 @@ function SignalHistory() {
             <span className={historyStats.totalPnlPct >= 0 ? 'text-emerald-400' : 'text-red-400'}>
               {historyStats.totalPnlPct >= 0 ? '+' : ''}{historyStats.totalPnlPct}%
             </span>{' '}
-            total P&L
-            <InfoHint text={STAT_HINTS.totalReturnLinear} label="What total P&L means" />
+            price-move sum
+            <InfoHint text={STAT_HINTS.totalReturnLinear} label="What the price-move sum means" />
           </span>
         </div>
       )}
@@ -743,11 +743,11 @@ function SignalHistory() {
               <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
                 <th className="px-4 py-2.5 text-left font-medium">Pair</th>
                 <th className="px-3 py-2.5 text-center font-medium">Dir</th>
-                <th className="px-3 py-2.5 text-center font-medium">Conf</th>
+                <th className="px-3 py-2.5 text-center font-medium">Rule score</th>
                 <th className="px-3 py-2.5 text-right font-medium hidden sm:table-cell">Entry</th>
                 <th className="px-3 py-2.5 text-center font-medium">4h</th>
                 <th className="px-3 py-2.5 text-center font-medium">24h</th>
-                <th className="px-4 py-2.5 text-right font-medium">P&L</th>
+                <th className="px-4 py-2.5 text-right font-medium">Directional move</th>
               </tr>
             </thead>
             <tbody>
@@ -761,7 +761,7 @@ function SignalHistory() {
                     <td className="px-3 py-2.5 text-center">
                       <span className={r.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}>{r.direction}</span>
                     </td>
-                    <td className="px-3 py-2.5 text-center tabular-nums">{r.confidence}%</td>
+                    <td className="px-3 py-2.5 text-center tabular-nums">{r.confidence}/100</td>
                     <td className="px-3 py-2.5 text-right tabular-nums text-[var(--text-secondary)] hidden sm:table-cell">{formatPrice(r.entryPrice)}</td>
                     <td className="px-3 py-2.5 text-center">
                       {outcome4h == null ? (
@@ -794,7 +794,7 @@ function SignalHistory() {
         </div>
         <div className="px-4 py-2.5 border-t border-[var(--border)]">
           <Link href="/track-record" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors font-mono">
-            View Full Track Record →
+            View Signal Record →
           </Link>
         </div>
       </div>
@@ -981,7 +981,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
   const biasColor = bias === 'BULL' ? 'text-emerald-400' : bias === 'BEAR' ? 'text-red-400' : 'text-[var(--text-secondary)]';
 
   return (
-    <div className="relative isolate min-h-[100dvh] overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
+    <div className="premium-product-shell relative isolate min-h-[100dvh] overflow-hidden text-[var(--foreground)]">
       <BackgroundDecor variant="dashboard" />
       <GuidedTourListener />
       <PageNavBar />
@@ -1027,7 +1027,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
             LIVE
           </span>
           <span>
-            Prices streamed via{' '}
+            Runtime quotes prefer{' '}
             <a
               href="https://twelvedata.com"
               target="_blank"
@@ -1036,11 +1036,11 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
             >
               Twelve Data API
             </a>
-            {' '}→ Redis cache (market-data-hub). Falls back to Binance / CoinGecko / synthetic bars if upstream is unreachable.
+            {' '}through the market-data hub. Signal candles use the hub when configured, then Binance for crypto or Stooq for forex/metals; synthetic fallback rows are suppressed from this signal list.
           </span>
           <span className="hidden md:inline text-white/20">·</span>
           <span className="italic text-[var(--text-secondary)]/80">
-            Transparency is our motto — every signal is tagged with its real data source.
+            Card badges identify the expected provider lane; the real-versus-synthetic quality flag is the runtime provenance currently carried on each signal.
           </span>
         </div>
       </div>
@@ -1075,7 +1075,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               <span className="text-xs font-mono text-[var(--text-secondary)]">{topSignal.timeframe}</span>
               <DirectionBadge direction={topSignal.direction} />
               <span className={`text-xs font-mono font-bold ${topSignal.confidence >= 80 ? 'text-emerald-400' : topSignal.confidence >= 65 ? 'text-zinc-400' : 'text-red-400'}`}>
-                {topSignal.confidence}%
+                {topSignal.confidence}/100 rule score
               </span>
             </div>
             <SignalChart
@@ -1110,7 +1110,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
             label="Buy / Sell"
             color="text-[var(--foreground)]"
           />
-          <StatCard value={`${avgConfidence}%`} label="Avg confidence" />
+          <StatCard value={`${avgConfidence}/100`} label="Avg rule score" />
           <StatCard value={bias} label="Market bias" color={biasColor} />
         </div>
 
@@ -1181,7 +1181,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                 : 'text-[var(--text-secondary)] border-white/[0.06] hover:text-[var(--foreground)]'
             }`}
           >
-            High Confidence (&gt;80%)
+            High Rule Score (&gt;80/100)
           </button>
           <button
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
@@ -1293,7 +1293,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               )}
               {mainSignals.length === 0 && (
                 <div className="text-center py-8 px-4">
-                  <p className="text-sm text-[var(--text-secondary)] mb-2 font-mono">No high-confidence (70%+) signals right now</p>
+                  <p className="text-sm text-[var(--text-secondary)] mb-2 font-mono">No candidates with a rule score of 70/100 or higher right now</p>
                   {potentialSignals.length > 0 && (
                     <p className="text-xs text-[var(--text-secondary)]">
                       {potentialSignals.length} potential setup{potentialSignals.length !== 1 ? 's' : ''} (50-69%) below — these have partial indicator agreement and may strengthen.
@@ -1321,7 +1321,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                 <section className="mt-6">
                   <div className="flex items-center gap-3 mb-3">
                     <h2 className="text-xs uppercase tracking-wider text-zinc-400/80 font-mono font-semibold">Potential Signals</h2>
-                    <span className="text-[10px] text-[var(--text-secondary)] font-mono px-2 py-0.5 rounded-full bg-zinc-500/8 border border-zinc-500/15">50–69% confidence</span>
+                    <span className="text-[10px] text-[var(--text-secondary)] font-mono px-2 py-0.5 rounded-full bg-zinc-500/8 border border-zinc-500/15">rule score 50–69/100</span>
                     <span className="text-[10px] text-[var(--text-secondary)] font-mono">{potentialSignals.length} setup{potentialSignals.length !== 1 ? 's' : ''}</span>
                   </div>
                   <p className="text-xs text-[var(--text-secondary)] mb-3">Early-stage setups that haven&apos;t reached full confluence yet. Watch for confirmation before acting.</p>

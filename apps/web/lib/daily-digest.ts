@@ -32,8 +32,8 @@ function fmtPrice(p: number): string {
 }
 
 /**
- * Build a visual confidence bar using block characters.
- * 10 segments — filled (█) for confidence proportion, empty (░) for the rest.
+ * Build a visual rule-score bar using block characters.
+ * 10 segments — filled (█) for score proportion, empty (░) for the rest.
  */
 function confidenceBar(confidence: number): string {
   const filled = Math.round((confidence / 100) * 10);
@@ -51,7 +51,7 @@ function formatSignalBlock(signal: TradingSignal, idx: number): string {
 
   const lines: string[] = [
     `${idx > 0 ? '\n' : ''}${dirEmoji} *${esc(`#${idx + 1} ${dirLabel} ${signal.symbol}`)}*`,
-    `${esc(confidenceBar(signal.confidence))} ${esc(String(signal.confidence))}%`,
+    `${esc(confidenceBar(signal.confidence))} rule score ${esc(String(signal.confidence))}/100`,
     `💰 Entry: \\$${esc(fmtPrice(signal.entry))}`,
     `🎯 TP: \\$${esc(fmtPrice(signal.takeProfit1))}`,
     `🛑 SL: \\$${esc(fmtPrice(signal.stopLoss))}`,
@@ -77,7 +77,7 @@ function buildDigestMessage(signals: TradingSignal[], dateStr: string): string {
   const header = [
     `📅 *${esc(`Daily Signal Digest — ${dateStr}`)}*`,
     esc('━'.repeat(24)),
-    `_Top ${signals.length} signals by confidence_`,
+    `_Top ${signals.length} candidates by mechanical rule score \\(not predictive probability\\)_`,
   ].join('\n');
 
   const blocks = signals.map((sig, i) => formatSignalBlock(sig, i));
@@ -114,7 +114,7 @@ export async function getDailyDigest(): Promise<DailyDigest> {
 
   const message = top.length > 0
     ? buildDigestMessage(top, dateStr)
-    : `📅 *${esc(`Daily Signal Digest — ${dateStr}`)}*\n\n_No high\\-confidence signals today\\. Markets quiet\\._`;
+    : `📅 *${esc(`Daily Signal Digest — ${dateStr}`)}*\n\n_No candidates met the minimum rule score today\\._`;
 
   return {
     signals: top,
@@ -129,20 +129,20 @@ export async function getDailyDigest(): Promise<DailyDigest> {
  */
 export function digestToPlainText(digest: DailyDigest): string {
   if (digest.count === 0) {
-    return `📅 Daily Signal Digest — ${digest.date}\n\nNo high-confidence signals today. Markets quiet.`;
+    return `📅 Daily Signal Digest — ${digest.date}\n\nNo candidates met the minimum rule score today.`;
   }
 
   const lines = [
     `📅 Daily Signal Digest — ${digest.date}`,
     '━'.repeat(24),
-    `Top ${digest.count} signals by confidence`,
+    `Top ${digest.count} candidates by mechanical rule score (not predictive probability)`,
     '',
   ];
 
   digest.signals.forEach((sig, i) => {
     const dir = sig.direction === 'BUY' ? '📈' : '📉';
     lines.push(`${dir} #${i + 1} ${sig.direction} ${sig.symbol}`);
-    lines.push(`${confidenceBar(sig.confidence)} ${sig.confidence}%`);
+    lines.push(`${confidenceBar(sig.confidence)} rule score ${sig.confidence}/100`);
     lines.push(`💰 Entry: $${fmtPrice(sig.entry)}`);
     lines.push(`🎯 TP: $${fmtPrice(sig.takeProfit1)}`);
     lines.push(`🛑 SL: $${fmtPrice(sig.stopLoss)}`);
@@ -173,7 +173,7 @@ function htmlEsc(text: string): string {
 
 /**
  * Return a mobile-friendly HTML version of the digest for email delivery.
- * Content mirrors the Telegram digest (today's top signals by confidence).
+ * Content mirrors the Telegram digest (today's top candidates by rule score).
  */
 export function digestToHtml(digest: DailyDigest): string {
   const wrap = (inner: string): string =>
@@ -184,7 +184,7 @@ export function digestToHtml(digest: DailyDigest): string {
     `</div>`;
 
   if (digest.count === 0) {
-    return wrap(`<p style="color:#a3a3a3;">No high-confidence signals today. Markets quiet.</p>`);
+    return wrap(`<p style="color:#a3a3a3;">No candidates met the minimum rule score today.</p>`);
   }
 
   const cards = digest.signals
@@ -195,7 +195,7 @@ export function digestToHtml(digest: DailyDigest): string {
       const meta = [rsi, macd].filter(Boolean).join(' · ');
       return (
         `<div style="border:1px solid #1f1f1f;border-radius:12px;padding:16px;margin-bottom:12px;">` +
-        `<div style="font-weight:600;color:${color};font-size:15px;">#${i + 1} ${htmlEsc(sig.direction)} ${htmlEsc(sig.symbol)} · ${sig.confidence}%</div>` +
+        `<div style="font-weight:600;color:${color};font-size:15px;">#${i + 1} ${htmlEsc(sig.direction)} ${htmlEsc(sig.symbol)} · rule score ${sig.confidence}/100</div>` +
         `<div style="font-size:13px;color:#a3a3a3;margin-top:6px;">Entry $${htmlEsc(fmtPrice(sig.entry))} · TP $${htmlEsc(fmtPrice(sig.takeProfit1))} · SL $${htmlEsc(fmtPrice(sig.stopLoss))}</div>` +
         (meta ? `<div style="font-size:12px;color:#737373;margin-top:4px;">${htmlEsc(meta)}</div>` : '') +
         `</div>`
@@ -203,5 +203,5 @@ export function digestToHtml(digest: DailyDigest): string {
     })
     .join('');
 
-  return wrap(`<p style="color:#a3a3a3;font-size:13px;margin:0 0 16px;">Top ${digest.count} signals by confidence</p>${cards}`);
+  return wrap(`<p style="color:#a3a3a3;font-size:13px;margin:0 0 16px;">Top ${digest.count} candidates by mechanical rule score (not predictive probability)</p>${cards}`);
 }

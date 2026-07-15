@@ -46,17 +46,6 @@ interface TrendingCoin {
   signal: { direction: string; confidence: number; timeframe: string } | null;
 }
 
-// Demo fallback for when CoinGecko is degraded. Coin names/ranks/prices keep the
-// page usable, but signal is ALWAYS null — never surface fabricated BUY/SELL
-// conviction on a trading product. Real signals only attach on the live path.
-export const MOCK_TRENDING: TrendingCoin[] = [
-  { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', marketCapRank: 1, thumb: '', large: '', priceBtc: 1, score: 0, priceUsd: '$67,000', priceChange24h: 2.4, pair: 'BTCUSD', signal: null },
-  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', marketCapRank: 2, thumb: '', large: '', priceBtc: 0.05, score: 1, priceUsd: '$3,400', priceChange24h: 1.2, pair: 'ETHUSD', signal: null },
-  { id: 'solana', name: 'Solana', symbol: 'SOL', marketCapRank: 5, thumb: '', large: '', priceBtc: 0.002, score: 2, priceUsd: '$145', priceChange24h: -0.8, pair: 'SOLUSD', signal: null },
-  { id: 'ripple', name: 'XRP', symbol: 'XRP', marketCapRank: 6, thumb: '', large: '', priceBtc: 0.000009, score: 3, priceUsd: '$0.62', priceChange24h: 0.5, pair: 'XRPUSD', signal: null },
-  { id: 'binancecoin', name: 'BNB', symbol: 'BNB', marketCapRank: 4, thumb: '', large: '', priceBtc: 0.009, score: 4, priceUsd: '$580', priceChange24h: 1.8, pair: 'BNBUSD', signal: null },
-];
-
 export async function GET(req: NextRequest) {
   try {
     const res = await fetch('https://api.coingecko.com/api/v3/search/trending', {
@@ -65,8 +54,13 @@ export async function GET(req: NextRequest) {
 
     if (!res.ok) {
       return NextResponse.json(
-        { trending: MOCK_TRENDING, updatedAt: new Date().toISOString(), mock: true },
-        { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' } },
+        {
+          available: false,
+          trending: [],
+          updatedAt: new Date().toISOString(),
+          error: 'CoinGecko trending data is unavailable',
+        },
+        { status: 503, headers: { 'Cache-Control': 'no-store' } },
       );
     }
 
@@ -118,8 +112,13 @@ export async function GET(req: NextRequest) {
     );
   } catch {
     return NextResponse.json(
-      { trending: MOCK_TRENDING, updatedAt: new Date().toISOString(), mock: true },
-      { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' } },
+      {
+        available: false,
+        trending: [],
+        updatedAt: new Date().toISOString(),
+        error: 'CoinGecko trending data is unavailable',
+      },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } },
     );
   }
 }

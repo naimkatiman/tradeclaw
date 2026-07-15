@@ -2,12 +2,13 @@ import type { Metadata } from 'next';
 import { SlackClient } from './SlackClient';
 
 export const metadata: Metadata = {
-  title: 'Slack Integration — TradeClaw',
+  title: 'Slack Webhook Manager | TradeClaw',
   description:
-    'Receive AI trading signal alerts in your Slack channels via incoming webhooks. Alerts fire on the 5-minute signal cron.',
+    'Configure and manually test an operator-managed Slack incoming webhook. This standalone manager is not connected to the automatic signal cron.',
   openGraph: {
-    title: 'Slack Integration — TradeClaw',
-    description: 'Get TradeClaw trading signals delivered to Slack on the 5-minute cadence.',
+    title: 'Slack Webhook Manager | TradeClaw',
+    description:
+      'Manual Slack incoming-webhook configuration and test delivery; automatic cron fan-out is not implemented for this manager.',
     type: 'website',
   },
 };

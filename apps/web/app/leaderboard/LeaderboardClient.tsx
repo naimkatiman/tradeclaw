@@ -73,7 +73,7 @@ function ConfBar({ value }: { value: number }) {
           style={{ width: `${value}%` }}
         />
       </div>
-      <span className="text-[11px] font-mono text-[var(--text-secondary)] tabular-nums w-8 text-right">{value}%</span>
+      <span className="text-[11px] font-mono text-[var(--text-secondary)] tabular-nums w-12 text-right">{value}/100</span>
     </div>
   );
 }
@@ -134,11 +134,11 @@ function LeaderboardSkeleton({ rows = 8 }: { rows?: number }) {
               <div className="h-3 w-8 rounded bg-white/[0.06] animate-pulse" />
             </div>
           </td>
-          {/* Avg P&L */}
+          {/* Average directional move */}
           <td className="px-4 py-3 text-right">
             <div className="h-3 w-12 rounded bg-white/[0.06] animate-pulse ml-auto" />
           </td>
-          {/* Total P&L */}
+          {/* Sum of unsized directional moves */}
           <td className="px-4 py-3 text-right">
             <div className="h-3 w-14 rounded bg-white/[0.06] animate-pulse ml-auto" />
           </td>
@@ -184,19 +184,16 @@ function fmtAge(ms: number): string {
   return `${Math.floor(sec / 86400)}d ago`;
 }
 
-const LEADERBOARD_STALE_MS = 15 * 60 * 1000;
-
 function getLeaderboardHeartbeat(lastUpdated: number | null | undefined, now: number) {
   if (!lastUpdated) return null;
 
   const ageMs = Math.max(0, now - lastUpdated);
   return {
     ageLabel: fmtAge(ageMs),
-    isStale: ageMs > LEADERBOARD_STALE_MS,
   };
 }
 
-function fmtPnl(n: number): string {
+function fmtMove(n: number): string {
   const sign = n >= 0 ? '+' : '';
   return `${sign}${n.toFixed(2)}%`;
 }
@@ -271,13 +268,13 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
               <StatCard label="Signals" value={data.asset.totalSignals.toString()} tooltip="Total signals emitted for this pair in the selected window. Includes pending and gate-blocked rows." />
               <StatCard label="4h Hit Rate" value={`${data.asset.hitRate4h}%`} color={data.asset.hitRate4h >= 55 ? 'text-emerald-400' : 'text-red-400'} tooltip={STAT_HINTS.hitRate} />
               <StatCard label="24h Hit Rate" value={`${data.asset.hitRate24h}%`} color={data.asset.hitRate24h >= 55 ? 'text-emerald-400' : 'text-red-400'} tooltip={STAT_HINTS.hitRate} />
-              <StatCard label="Avg Confidence" value={`${data.asset.avgConfidence}%`} tooltip={STAT_HINTS.avgConfidence} />
+              <StatCard label="Avg Rule Score" value={`${data.asset.avgConfidence}/100`} tooltip={STAT_HINTS.avgConfidence} />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-4 pb-4">
               <StatCard label="Best Streak" value={`+${data.asset.bestStreak}`} color="text-emerald-400" tooltip={STAT_HINTS.bestStreak} />
               <StatCard label="Worst Streak" value={data.asset.worstStreak.toString()} color="text-red-400" tooltip={STAT_HINTS.worstStreak} />
-              <StatCard label="Avg P&L" value={`${data.asset.avgPnl >= 0 ? '+' : ''}${data.asset.avgPnl}%`} color={data.asset.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'} tooltip={STAT_HINTS.avgPnl} />
-              <StatCard label="Total P&L" value={fmtPnl(data.asset.totalPnl)} color={data.asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'} tooltip={STAT_HINTS.totalReturnLinear} />
+              <StatCard label="Avg price move" value={`${data.asset.avgPnl >= 0 ? '+' : ''}${data.asset.avgPnl}%`} color={data.asset.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'} tooltip={STAT_HINTS.avgPnl} />
+              <StatCard label="Price-move sum" value={fmtMove(data.asset.totalPnl)} color={data.asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'} tooltip={STAT_HINTS.totalReturnLinear} />
             </div>
 
             {/* recent signals */}
@@ -290,7 +287,7 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
                       <th className="px-3 py-2 text-left text-[10px] text-[var(--text-secondary)] font-medium">Dir</th>
                       <th className="px-3 py-2 text-left text-[10px] text-[var(--text-secondary)] font-medium">TF</th>
                       <th className="px-3 py-2 text-right text-[10px] text-[var(--text-secondary)] font-medium">Entry</th>
-                      <th className="px-3 py-2 text-right text-[10px] text-[var(--text-secondary)] font-medium">Conf</th>
+                      <th className="px-3 py-2 text-right text-[10px] text-[var(--text-secondary)] font-medium">Rule score</th>
                       <th className="px-3 py-2 text-right text-[10px] text-[var(--text-secondary)] font-medium">4h</th>
                       <th className="px-3 py-2 text-right text-[10px] text-[var(--text-secondary)] font-medium">24h</th>
                       <th className="px-3 py-2 text-right text-[10px] text-[var(--text-secondary)] font-medium">Age</th>
@@ -306,7 +303,7 @@ function PairDetailPanel({ pair, onClose }: { pair: string; onClose: () => void 
                         </td>
                         <td className="px-3 py-2 text-[10px] text-[var(--text-secondary)] font-mono">{r.timeframe}</td>
                         <td className="px-3 py-2 text-right text-[10px] font-mono text-[var(--text-secondary)]">{fmtPrice(r.entryPrice)}</td>
-                        <td className="px-3 py-2 text-right text-[10px] font-mono text-[var(--text-secondary)]">{r.confidence}%</td>
+                        <td className="px-3 py-2 text-right text-[10px] font-mono text-[var(--text-secondary)]">{r.confidence}/100</td>
                         <td className="px-3 py-2 text-right text-[10px] font-mono">
                           {r.outcomes['4h'] === null
                             ? <span className="text-[var(--text-secondary)]">OPEN</span>
@@ -410,6 +407,7 @@ export default function LeaderboardClient() {
 
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/leaderboard` : '/leaderboard';
   const leaderboardHeartbeat = data ? getLeaderboardHeartbeat(data.overall.lastUpdated, now) : null;
+  const hasResolvedEvidence = (data?.overall.resolvedSignals ?? 0) > 0;
 
   return (
     <div className="min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
@@ -434,29 +432,24 @@ export default function LeaderboardClient() {
               <rect x="6.5" y="6" width="2.5" height="8" rx="0.5" fill="#10B981" opacity="0.7"/>
               <rect x="11" y="2" width="2.5" height="12" rx="0.5" fill="#10B981" opacity="0.4"/>
             </svg>
-            <h1 className="text-xl font-bold tracking-tight">Signal Performance Leaderboard</h1>
+            <h1 className="text-xl font-bold tracking-tight">Signal Outcome Table</h1>
           </div>
           <p className="text-xs text-[var(--text-secondary)]">
-            Track AI signal accuracy across {assets.length} pairs · 4h &amp; 24h resolution · Ranked by hit rate
+            {hasResolvedEvidence
+              ? `Source-gated OHLCV outcomes across ${assets.length} pairs · unsized observations · ranked by hit rate`
+              : `Recorded candidate coverage across ${assets.length} pairs · no performance ranking without approved outcomes`}
           </p>
           {leaderboardHeartbeat && (
-            <div
-              className={`mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-mono ${
-                leaderboardHeartbeat.isStale
-                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
-                  : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-              }`}
-            >
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  leaderboardHeartbeat.isStale ? 'bg-amber-400' : 'bg-emerald-400'
-                }`}
-              />
-              <span>
-                {leaderboardHeartbeat.isStale ? 'Leaderboard feed stale' : 'Leaderboard live'}
-              </span>
-              <span className="text-[var(--text-secondary)]">updated {leaderboardHeartbeat.ageLabel}</span>
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-mono text-zinc-300">
+              <span className="h-2 w-2 rounded-full bg-zinc-500" />
+              <span>Latest counted outcome</span>
+              <span className="text-[var(--text-secondary)]">{leaderboardHeartbeat.ageLabel}</span>
             </div>
+          )}
+          {data && !hasResolvedEvidence && (
+            <p className="mt-3 text-[11px] text-amber-300/80">
+              No approved observed-OHLCV outcomes are available in this window, so pairs are not ranked by performance.
+            </p>
           )}
         </div>
 
@@ -464,24 +457,24 @@ export default function LeaderboardClient() {
         {data && (
           <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
             <StatCard
-              label={`Cumulative P&L · ${PERIOD_LABEL[period]}`}
-              value={fmtPnl(data.overall.totalPnl)}
+              label={`Price-move sum · ${PERIOD_LABEL[period]}`}
+              value={hasResolvedEvidence ? fmtMove(data.overall.totalPnl) : '—'}
               sub={`${data.overall.resolvedSignals} resolved`}
-              color={data.overall.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}
+              color={hasResolvedEvidence ? (data.overall.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-500'}
               tooltip={STAT_HINTS.totalReturnLinear}
             />
-            <StatCard label="Total Signals" value={data.overall.totalSignals.toString()} tooltip="Every signal emitted in this window — pending, resolved, gate-blocked, expired all counted." />
+            <StatCard label="Recorded Rows" value={data.overall.totalSignals.toString()} tooltip="Recorded candidate rows in this window; not all have a counted outcome." />
             <StatCard label="Resolved" value={data.overall.resolvedSignals.toString()} tooltip={STAT_HINTS.resolved} />
             <StatCard
               label="Overall 4h Hit Rate"
-              value={`${data.overall.overallHitRate4h}%`}
-              color={data.overall.overallHitRate4h >= 55 ? 'text-emerald-400' : 'text-red-400'}
+              value={hasResolvedEvidence ? `${data.overall.overallHitRate4h}%` : '—'}
+              color={hasResolvedEvidence ? (data.overall.overallHitRate4h >= 55 ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-500'}
               tooltip={STAT_HINTS.hitRate}
             />
             <StatCard
               label="Overall 24h Hit Rate"
-              value={`${data.overall.overallHitRate24h}%`}
-              color={data.overall.overallHitRate24h >= 55 ? 'text-emerald-400' : 'text-red-400'}
+              value={hasResolvedEvidence ? `${data.overall.overallHitRate24h}%` : '—'}
+              color={hasResolvedEvidence ? (data.overall.overallHitRate24h >= 55 ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-500'}
               tooltip={STAT_HINTS.hitRate}
             />
             <div className="glass-card rounded-xl p-3 flex flex-col gap-1">
@@ -489,8 +482,8 @@ export default function LeaderboardClient() {
                 Top Performer
                 <InfoHint text="Pair with the highest 24h hit rate this window. Worst is the lowest." label="What top performer means" />
               </div>
-              <div className="text-base font-bold font-mono text-zinc-400">{data.overall.topPerformer}</div>
-              <div className="text-[10px] text-[var(--text-secondary)]">worst: {data.overall.worstPerformer}</div>
+              <div className="text-base font-bold font-mono text-zinc-400">{hasResolvedEvidence ? data.overall.topPerformer : '—'}</div>
+              <div className="text-[10px] text-[var(--text-secondary)]">{hasResolvedEvidence ? `worst: ${data.overall.worstPerformer}` : 'not ranked'}</div>
             </div>
           </div>
         )}
@@ -547,7 +540,7 @@ export default function LeaderboardClient() {
                   className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none"
                   onClick={() => handleSort('totalSignals')}
                 >
-                  Signals<SortIcon active={sortBy === 'totalSignals'} asc={sortAsc} />
+                  Recorded Rows<SortIcon active={sortBy === 'totalSignals'} asc={sortAsc} />
                 </th>
                 <th className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium w-36">
                   <span className="inline-flex items-center gap-1">4h Hit Rate <InfoHint text={STAT_HINTS.hitRate} label="What 4h hit rate means" /></span>
@@ -559,17 +552,17 @@ export default function LeaderboardClient() {
                   className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium w-32 cursor-pointer hover:text-[var(--text-secondary)] select-none"
                   onClick={() => handleSort('avgConfidence')}
                 >
-                  <span className="inline-flex items-center gap-1">Avg Conf <InfoHint text={STAT_HINTS.avgConfidence} label="What avg confidence means" /></span>
+                  <span className="inline-flex items-center gap-1">Avg Rule Score <InfoHint text={STAT_HINTS.avgConfidence} label="What the average rule score means" /></span>
                   <SortIcon active={sortBy === 'avgConfidence'} asc={sortAsc} />
                 </th>
                 <th className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">
-                  <span className="inline-flex items-center gap-1 justify-end">Avg P&L <InfoHint text={STAT_HINTS.avgPnl} label="What avg P&L means" /></span>
+                  <span className="inline-flex items-center gap-1 justify-end">Avg move <InfoHint text={STAT_HINTS.avgPnl} label="What the average price move means" /></span>
                 </th>
                 <th
                   className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none"
                   onClick={() => handleSort('totalPnl')}
                 >
-                  <span className="inline-flex items-center gap-1 justify-end">Total P&L <InfoHint text={STAT_HINTS.totalReturnLinear} label="What total P&L means" /></span>
+                  <span className="inline-flex items-center gap-1 justify-end">Move sum <InfoHint text={STAT_HINTS.totalReturnLinear} label="What the price-move sum means" /></span>
                   <SortIcon active={sortBy === 'totalPnl'} asc={sortAsc} />
                 </th>
                 <th className="px-4 py-3 text-center text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium">Trend</th>
@@ -584,7 +577,9 @@ export default function LeaderboardClient() {
                   onClick={() => setSelectedPair(asset.pair)}
                 >
                   <td className="px-4 py-3 w-10">
-                    <RankBadge rank={idx + 1} />
+                    {asset.resolved24h > 0
+                      ? <RankBadge rank={idx + 1} />
+                      : <span className="text-zinc-600">—</span>}
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-sm font-mono font-bold text-[var(--foreground)]">{asset.pair}</span>
@@ -601,11 +596,11 @@ export default function LeaderboardClient() {
                   <td className="px-4 py-3 w-32">
                     <ConfBar value={asset.avgConfidence} />
                   </td>
-                  <td className={`px-4 py-3 text-right font-mono text-xs font-semibold tabular-nums ${asset.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {asset.avgPnl >= 0 ? '+' : ''}{asset.avgPnl}%
+                  <td className={`px-4 py-3 text-right font-mono text-xs font-semibold tabular-nums ${asset.resolved24h === 0 ? 'text-zinc-500' : asset.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {asset.resolved24h > 0 ? `${asset.avgPnl >= 0 ? '+' : ''}${asset.avgPnl}%` : '—'}
                   </td>
-                  <td className={`px-4 py-3 text-right font-mono text-xs font-bold tabular-nums ${asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {fmtPnl(asset.totalPnl)}
+                  <td className={`px-4 py-3 text-right font-mono text-xs font-bold tabular-nums ${asset.resolved24h === 0 ? 'text-zinc-500' : asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {asset.resolved24h > 0 ? fmtMove(asset.totalPnl) : '—'}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-center">
@@ -624,7 +619,7 @@ export default function LeaderboardClient() {
         </div>
 
         <p className="mt-4 text-[10px] text-zinc-800 text-center">
-          Click any row to see full signal breakdown · Hit rate = price moved ≥ 0.5% in signal direction within timeframe
+          Click a row for its signal breakdown · unsized OHLCV observations, not broker fills or portfolio returns
         </p>
       </div>
 

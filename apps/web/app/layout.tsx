@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Big_Shoulders, Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SWRegister } from "./components/sw-register";
 import { MobileNav } from "./components/mobile-nav";
@@ -27,17 +27,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Display face for brand surfaces only (hero headlines, section-opening
-// statements) — see DESIGN.md Typography. Variable weight, condensed.
-const bigShoulders = Big_Shoulders({
-  variable: "--font-big-shoulders",
-  subsets: ["latin"],
-  // Next's font metrics table has no fallback-override entry for this face;
-  // without this flag every compile logs a warning. Display-only usage does
-  // not need a metrics-matched fallback.
-  adjustFontFallback: false,
-});
-
+// Geist provides both the editorial display voice and compact product UI.
 const jsonLd = [
   {
     "@context": "https://schema.org",
@@ -45,13 +35,8 @@ const jsonLd = [
     name: "TradeClaw",
     applicationCategory: "FinanceApplication",
     operatingSystem: "All",
-    offers: {
-      "@type": "Offer",
-      price: 0,
-      priceCurrency: "USD",
-    },
     description:
-      "Self-hosted AI trading signals for forex, crypto, and metals. Free forever. Deploy in 5 minutes with Docker.",
+      "MIT-licensed trading-signal software for forex, crypto, and metals. Self-host with Docker and review the supporting evidence before use.",
     url: "https://tradeclaw.win",
   },
   {
@@ -66,7 +51,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://tradeclaw.win"),
   title: "TradeClaw — Open-Source AI Trading Signals",
   description:
-    "Self-hosted AI trading signals for forex, crypto, and metals. Free forever. Deploy in 5 minutes with Docker.",
+    "MIT-licensed trading-signal software for forex, crypto, and metals. Self-host with Docker and review the supporting evidence before use.",
   keywords: [
     "trading signals",
     "open source",
@@ -80,13 +65,13 @@ export const metadata: Metadata = {
     "AI trading signals github",
     "self-hosted trading platform",
     "forex bot open source",
-    "crypto trading signals free",
+    "crypto trading signals open source",
     "algorithmic trading open source",
   ],
   openGraph: {
     title: "TradeClaw — Open-Source Trading Transparency",
     description:
-      "Live AI trading signals for forex, crypto & metals on a 5-minute cadence. Open-source framework.",
+      "Inspect TradeClaw signal records and the evidence behind them. MIT-licensed software with a documented self-hosting path.",
     url: "https://tradeclaw.win",
     siteName: "TradeClaw",
     type: "website",
@@ -103,7 +88,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "TradeClaw — Open-Source AI Trading Signals",
     description:
-      "Self-hosted AI trading signals for forex, crypto & metals. Free forever. Star on GitHub.",
+      "MIT-licensed trading-signal software for forex, crypto, and metals, with source and self-hosting instructions on GitHub.",
     images: ["/api/og"],
   },
   icons: {
@@ -135,17 +120,17 @@ export const metadata: Metadata = {
       "x-default": "https://tradeclaw.win",
     },
     types: {
-      'application/rss+xml': [{ url: '/feed.xml', title: 'TradeClaw — Live AI Trading Signals (RSS)' }],
-      'application/atom+xml': [{ url: '/atom.xml', title: 'TradeClaw — Live AI Trading Signals (Atom)' }],
-      'application/feed+json': [{ url: '/feed.json', title: 'TradeClaw — Live AI Trading Signals (JSON Feed)' }],
+      'application/rss+xml': [{ url: '/feed.xml', title: 'TradeClaw Signal Archive (RSS)' }],
+      'application/atom+xml': [{ url: '/atom.xml', title: 'TradeClaw Signal Archive (Atom)' }],
+      'application/feed+json': [{ url: '/feed.json', title: 'TradeClaw Signal Archive (JSON Feed)' }],
     },
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#050505" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f7f8" },
+    { media: "(prefers-color-scheme: dark)", color: "#030506" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -160,7 +145,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${bigShoulders.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>

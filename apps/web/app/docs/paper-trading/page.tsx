@@ -5,7 +5,7 @@ import { getPrevNext } from '../nav-config';
 
 export const metadata: Metadata = {
   title: 'Paper Trading',
-  description: 'Risk-free trading simulation with TradeClaw — virtual portfolio, auto-follow signals, and performance stats.',
+  description: 'A virtual TradeClaw ledger that requires explicit observed entry and exit prices. Paper results are not broker fills or customer returns.',
 };
 
 export default function PaperTradingPage() {
@@ -17,9 +17,9 @@ export default function PaperTradingPage() {
         <p className="text-sm text-emerald-400 font-medium mb-2">Core Features</p>
         <h1 className="text-4xl font-bold text-white tracking-tight mb-4">Paper Trading</h1>
         <p className="text-lg text-zinc-400 leading-relaxed">
-          Practice trading with a $10,000 virtual portfolio. Follow signals automatically,
-          track equity over time, and measure performance with professional metrics — all
-          without risking real capital.
+          Use a $10,000 virtual ledger to record simulated positions. Opens and closes require
+          positive observed prices; missing prices stay unavailable instead of being estimated.
+          Paper results are not broker fills, live execution, or customer portfolio returns.
         </p>
       </div>
 
@@ -28,9 +28,9 @@ export default function PaperTradingPage() {
         <h2 className="text-2xl font-semibold text-white mb-4">How It Works</h2>
         <div className="space-y-3">
           {[
-            { step: '1', title: 'Open positions', desc: 'Manually enter trades or enable auto-follow to mirror every signal.' },
-            { step: '2', title: 'Track live', desc: 'Open P&L updates as simulated price ticks arrive (~2s crypto, ≤60s FX). SL/TP triggers automatically.' },
-            { step: '3', title: 'Measure performance', desc: 'Win rate, Sharpe ratio, max drawdown, profit factor — all calculated live.' },
+            { step: '1', title: 'Open simulated positions', desc: 'The signed-in UI supplies the latest available provider price; the API requires an explicit observed entryPrice.' },
+            { step: '2', title: 'Mark from provider prices', desc: 'Open P&L and SL/TP checks run only for symbols with an available provider price. Missing symbols are not estimated.' },
+            { step: '3', title: 'Review the paper ledger', desc: 'Metrics are calculated from closed simulated trades and their supplied entry/exit observations.' },
           ].map(item => (
             <div key={item.step} className="flex items-start gap-4 p-4 rounded-xl border border-white/6 bg-white/[0.02]">
               <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center shrink-0">
@@ -57,41 +57,49 @@ export default function PaperTradingPage() {
   -d '{
     "symbol": "XAUUSD",
     "direction": "BUY",
-    "size": 0.1,
+    "quantity": 500,
+    "entryPrice": 2315.40,
     "stopLoss": 2280.00,
     "takeProfit": 2350.00
   }'`} />
         <CodeBlock language="json" filename="Response" code={`{
-  "id": "pt_abc123",
-  "symbol": "XAUUSD",
-  "direction": "BUY",
-  "size": 0.1,
-  "entryPrice": 2315.40,
-  "stopLoss": 2280.00,
-  "takeProfit": 2350.00,
-  "openedAt": "2026-03-27T10:00:00.000Z",
-  "status": "open",
-  "unrealizedPnl": 0
+  "position": {
+    "id": "pos_abc123",
+    "symbol": "XAUUSD",
+    "direction": "BUY",
+    "quantity": 500,
+    "entryPrice": 2315.40,
+    "stopLoss": 2280.00,
+    "takeProfit": 2350.00,
+    "openedAt": "2026-07-15T10:00:00.000Z"
+  },
+  "balance": 10000
 }`} />
       </section>
 
       {/* Auto-Follow */}
       <section className="mb-12">
-        <h2 className="text-2xl font-semibold text-white mb-4">Auto-Follow Signals</h2>
+        <h2 className="text-2xl font-semibold text-white mb-4">Follow One Signal Candidate</h2>
         <p className="text-zinc-400 leading-relaxed mb-4">
-          Enable auto-follow to automatically open a paper position for every new signal.
-          The system uses the signal&apos;s recommended TP/SL levels.
+          The follow endpoint records one explicitly supplied signal candidate in the virtual ledger.
+          It requires the candidate&apos;s observed entry and rule-derived TP/SL fields; it does not
+          subscribe the server to every future signal.
         </p>
         <CodeBlock language="bash" code={`curl -X POST http://localhost:3000/api/paper-trading/follow-signal \\
   -H "Content-Type: application/json" \\
   -d '{
-    "signalId": "XAUUSD-H1-BUY",
-    "size": 0.1
+    "id": "XAUUSD-H1-BUY",
+    "symbol": "XAUUSD",
+    "direction": "BUY",
+    "entry": 2315.40,
+    "stopLoss": 2280.00,
+    "takeProfit": 2350.00,
+    "positionSizePct": 0.05
   }'`} />
         <div className="mt-4 p-4 rounded-xl border border-blue-500/20 bg-blue-500/5">
           <p className="text-sm text-blue-200">
-            <strong>Tip:</strong> Use the toggle on the Paper Trading page&apos;s signal feed panel
-            to enable auto-follow without writing code.
+            <strong>Note:</strong> The page can follow candidates currently loaded in its signal panel.
+            That browser action is not a durable server-side subscription.
           </p>
         </div>
       </section>
@@ -104,11 +112,13 @@ export default function PaperTradingPage() {
             <h3 className="text-lg font-semibold text-zinc-200 mb-2">Close a single position</h3>
             <CodeBlock language="bash" code={`curl -X POST http://localhost:3000/api/paper-trading/close \\
   -H "Content-Type: application/json" \\
-  -d '{ "id": "pt_abc123" }'`} />
+  -d '{ "positionId": "pt_abc123", "exitPrice": 2328.10 }'`} />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-zinc-200 mb-2">Close all positions</h3>
-            <CodeBlock language="bash" code={`curl -X POST http://localhost:3000/api/paper-trading/close-all`} />
+            <CodeBlock language="bash" code={`curl -X POST http://localhost:3000/api/paper-trading/close-all \
+  -H "Content-Type: application/json" \
+  -d '{ "prices": { "XAUUSD": 2328.10, "BTCUSD": 70000 } }'`} />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-zinc-200 mb-2">Reset portfolio</h3>
@@ -122,7 +132,7 @@ curl -X POST http://localhost:3000/api/paper-trading/reset`} />
       <section className="mb-12">
         <h2 className="text-2xl font-semibold text-white mb-4">Performance Metrics</h2>
         <p className="text-zinc-400 leading-relaxed mb-4">
-          The stats endpoint returns professional performance metrics:
+          The stats endpoint returns metrics calculated from the signed-in user&apos;s closed paper trades:
         </p>
         <CodeBlock language="bash" code={`curl http://localhost:3000/api/paper-trading/stats`} />
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -148,10 +158,9 @@ curl -X POST http://localhost:3000/api/paper-trading/reset`} />
       <section className="mb-12">
         <h2 className="text-2xl font-semibold text-white mb-4">Data Storage</h2>
         <p className="text-zinc-400 leading-relaxed">
-          Paper trading data is stored in{' '}
-          <code className="text-emerald-400 text-sm">data/paper-trading.json</code>. This includes
-          account balance, open positions, and closed trade history. The file persists across
-          restarts when using Docker volumes or running on disk.
+          Paper trading data is stored in PostgreSQL tables scoped to the signed-in user. The ledger
+          includes the virtual balance, open simulated positions, observed entry/exit prices, and closed
+          trade history. API requests require a valid TradeClaw session.
         </p>
       </section>
 
@@ -165,7 +174,7 @@ curl -X POST http://localhost:3000/api/paper-trading/reset`} />
             { method: 'POST', path: '/api/paper-trading/close', desc: 'Close a specific position' },
             { method: 'POST', path: '/api/paper-trading/close-all', desc: 'Close all open positions' },
             { method: 'POST', path: '/api/paper-trading/reset', desc: 'Reset portfolio to $10,000' },
-            { method: 'POST', path: '/api/paper-trading/follow-signal', desc: 'Auto-follow a signal' },
+            { method: 'POST', path: '/api/paper-trading/follow-signal', desc: 'Record one supplied signal candidate' },
             { method: 'GET', path: '/api/paper-trading/stats', desc: 'Get performance statistics' },
           ].map(ep => (
             <div key={ep.path} className="flex items-center gap-3 p-3 rounded-lg border border-white/6 bg-white/[0.02]">

@@ -4,8 +4,8 @@ import { generateMockSignals, generateMockOHLCV, DEMO_SYMBOL_LIST } from '@trade
 export const dynamic = 'force-dynamic';
 
 /**
- * Demo data endpoint — returns deterministic mock signals + per-symbol
- * OHLCV bars suitable for a public live demo with no API keys
+ * Demo data endpoint — returns deterministic illustrative signals + per-symbol
+ * OHLCV fixtures suitable for UI testing with no API keys
  * configured. Refreshes daily (seeded from the current UTC date) so
  * the demo looks alive without leaking real cached state across
  * unrelated visitors.
@@ -30,14 +30,20 @@ export async function GET(request: Request) {
       symbol,
       ohlcv,
       isDemo: true,
+      provenance: { kind: 'synthetic-fixture', marketData: false, measuredPerformance: false },
       resetsAt: nextUtcMidnightIso(),
     });
   }
 
   return NextResponse.json({
-    signals: generateMockSignals(),
+    signals: generateMockSignals().map((signal) => ({
+      ...signal,
+      source: 'illustrative-fixture',
+      dataQuality: 'synthetic',
+    })),
     symbols: DEMO_SYMBOL_LIST,
     isDemo: true,
+    provenance: { kind: 'synthetic-fixture', marketData: false, measuredPerformance: false },
     resetsAt: nextUtcMidnightIso(),
     note: 'This is deterministic demo data, regenerated daily. Set DEMO_MODE=false and provide real data providers to switch off.',
   });

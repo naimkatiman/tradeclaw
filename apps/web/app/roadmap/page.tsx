@@ -2,13 +2,10 @@ import type { Metadata } from 'next';
 import RoadmapClient from './RoadmapClient';
 
 export const metadata: Metadata = {
-  title: 'Roadmap — TradeClaw',
-  description: 'Vote on upcoming TradeClaw features. See what the community wants built next — PostgreSQL storage, Python SDK, mobile app, and more.',
-  openGraph: {
-    title: 'TradeClaw Roadmap — Vote on Features',
-    description: 'Public roadmap with community upvotes. Shape the future of TradeClaw.',
-    url: 'https://tradeclaw.win/roadmap',
-  },
+  title: 'Proposed Feature Ideas | TradeClaw',
+  description:
+    'A browser-local idea-ranking board. Items are proposals, votes are not global community totals, and the board is not a delivery commitment.',
+  robots: { index: false, follow: false },
 };
 
 export default function RoadmapPage() {

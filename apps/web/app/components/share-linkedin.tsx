@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react';
 
+const PUBLIC_ORIGIN = 'https://tradeclaw.win';
+
 interface ShareLinkedInProps {
   /** Win rate %, e.g. 62. Omit to use a generic message. */
   winRate?: number;
@@ -15,8 +17,7 @@ interface ShareLinkedInProps {
 
 /**
  * Pre-filled LinkedIn share button for the public track-record. Opens the
- * LinkedIn feed composer with pre-filled text so visitors can share verified
- * performance stats with one click.
+ * LinkedIn feed composer with pre-filled, scope-labeled signal-study text.
  */
 export function ShareLinkedIn({
   winRate,
@@ -25,13 +26,11 @@ export function ShareLinkedIn({
   label = 'Share on LinkedIn',
 }: ShareLinkedInProps) {
   const href = useMemo(() => {
-    const origin =
-      typeof window !== 'undefined' ? window.location.origin : 'https://tradeclaw.win';
-    const url = `${origin}/track-record?utm_source=linkedin&utm_medium=share&utm_campaign=track_record&period=${encodeURIComponent(period)}`;
+    const url = `${PUBLIC_ORIGIN}/track-record?utm_source=linkedin&utm_medium=share&utm_campaign=track_record&period=${encodeURIComponent(period)}`;
     const text =
       typeof winRate === 'number' && typeof resolved === 'number' && resolved > 0
-        ? `TradeClaw posted a ${winRate}% win rate across ${resolved} resolved signals — every trade is timestamped and verifiable.\n\nTransparent AI trading signals, open-source and self-hosted:\n${url}`
-        : `I track every TradeClaw signal in public — wins, losses, and gate-refused setups. Verify it yourself:\n${url}`;
+        ? `TradeClaw observed a ${winRate}% win rate across ${resolved} counted signals whose outcomes were resolved against provider OHLCV. This is signal-study data, not broker fills or customer portfolio returns.\n\nInspect the population and methodology:\n${url}`
+        : `TradeClaw publishes recorded signal rows, OHLCV-resolved outcomes, and the excluded populations. It is not an execution or customer-account ledger:\n${url}`;
     return `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`;
   }, [winRate, resolved, period]);
 

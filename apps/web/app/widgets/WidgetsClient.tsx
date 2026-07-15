@@ -95,8 +95,12 @@ fetch('${jsonUrl}')
   .then(r => r.json())
   .then(d => {
     const el = document.getElementById('tc-portfolio');
+    if (!d.available || !Number.isFinite(d.totalReturn)) {
+      el.textContent = 'Paper simulation unavailable';
+      return;
+    }
     const sign = d.totalReturn >= 0 ? '+' : '';
-    el.textContent = sign + d.totalReturn.toFixed(1) + '% P&L';
+    el.textContent = sign + d.totalReturn.toFixed(1) + '% paper-sim return';
     el.style.color = d.totalReturn >= 0 ? '#3fb950' : '#e5534b';
   });
 </script>
@@ -112,19 +116,19 @@ fetch('${jsonUrl}')
             Embeddable Widgets
           </div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Embed Your Live Portfolio{' '}
+            Embed Paper Simulation Records{' '}
             <span className="text-emerald-400">Anywhere</span>
           </h1>
           <p className="text-[var(--text-secondary)] max-w-2xl mx-auto text-base leading-relaxed">
-            Showcase your paper trading performance on GitHub READMEs, personal blogs,
-            Discord profiles, and more. Live P&amp;L, auto-refreshing, no API key required.
+            Publish the realized ledger of a configured demo paper account on GitHub READMEs or documentation.
+            Open positions are not marked without observed prices, and these records are not broker returns.
           </p>
         </div>
 
-        {/* Live Preview with Theme Toggle */}
+        {/* Preview with Theme Toggle */}
         <section className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Live Preview</h2>
+            <h2 className="text-xl font-semibold">Paper-Simulation Preview</h2>
             <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5 border border-white/10">
               <button
                 onClick={() => setTheme('dark')}
@@ -162,8 +166,7 @@ fetch('${jsonUrl}')
               />
             </div>
             <p className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Live data from paper trading engine — auto-refreshes every 30s
+              Data from the configured demo paper account, when available
             </p>
           </div>
         </section>
@@ -249,7 +252,7 @@ fetch('${jsonUrl}')
                   JavaScript Snippet
                 </h3>
                 <p className="text-xs text-[var(--text-secondary)] mt-1">
-                  Fetch portfolio data and render inline with a script tag.
+                  Fetch the configured paper-simulation ledger and render it inline.
                 </p>
               </div>
               <CodeSnippet label="HTML + JS" code={jsSnippet} />
@@ -264,12 +267,12 @@ fetch('${jsonUrl}')
             <div className="space-y-1">
               <p className="font-medium text-white text-xs">JSON Data</p>
               <code className="text-xs font-mono text-emerald-400">/api/widget/portfolio</code>
-              <p className="text-[10px] text-[var(--text-secondary)]">Balance, equity, P&amp;L, win rate, positions</p>
+              <p className="text-[10px] text-[var(--text-secondary)]">Realized paper balance, simulated return, and open-position count</p>
             </div>
             <div className="space-y-1">
               <p className="font-medium text-white text-xs">SVG Badge</p>
               <code className="text-xs font-mono text-emerald-400">/api/widget/badge</code>
-              <p className="text-[10px] text-[var(--text-secondary)]">Inline SVG, green/red, 60s cache</p>
+              <p className="text-[10px] text-[var(--text-secondary)]">Inline SVG with explicit unavailable state</p>
             </div>
             <div className="space-y-1">
               <p className="font-medium text-white text-xs">Shields.io Endpoint</p>
@@ -291,27 +294,27 @@ fetch('${jsonUrl}')
             <UseCase
               icon={<Code className="w-4 h-4" />}
               title="GitHub README"
-              description="Add a live P&L badge to your profile or project README."
+              description="Add a realized paper-simulation badge to a project README."
             />
             <UseCase
               icon={<Globe className="w-4 h-4" />}
               title="Personal Blog"
-              description="Embed the portfolio card on your blog or portfolio site."
+              description="Embed the configured paper-simulation card on a blog."
             />
             <UseCase
               icon={<MessageSquare className="w-4 h-4" />}
               title="Discord Profile"
-              description="Share your trading performance in your Discord bio or server."
+              description="Share explicitly labeled paper-simulation records."
             />
             <UseCase
               icon={<ExternalLink className="w-4 h-4" />}
               title="Notion Pages"
-              description="Use the iframe embed block in Notion to display live stats."
+              description="Use an iframe block to display the paper-simulation snapshot."
             />
             <UseCase
               icon={<FileCode className="w-4 h-4" />}
               title="Documentation"
-              description="Add live portfolio metrics to your project docs."
+              description="Add labeled paper-simulation metrics to project docs."
             />
             <UseCase
               icon={<Layout className="w-4 h-4" />}
@@ -339,7 +342,7 @@ fetch('${jsonUrl}')
 
         {/* Footer */}
         <p className="text-center text-xs text-[var(--text-secondary)]">
-          Widget auto-refreshes every 30s &middot; Data from paper trading engine &middot;{' '}
+          Paper simulation only &middot; Not broker or customer portfolio returns &middot;{' '}
           <Link
             href="/paper-trading"
             className="text-emerald-400 hover:text-emerald-300 transition-colors"

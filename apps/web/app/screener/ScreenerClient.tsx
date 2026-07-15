@@ -84,10 +84,10 @@ function MACDBar({ value }: { value: number }) {
 
 function ConfidenceBar({ value, showExplainer = false }: { value: number; showExplainer?: boolean }) {
   const explainer = value >= 75
-    ? 'Strong signal — high confluence'
+    ? 'High rule score — broad indicator agreement'
     : value >= 60
-      ? 'Moderate signal — partial agreement'
-      : 'Weak signal — limited confluence';
+      ? 'Mid rule score — partial indicator agreement'
+      : 'Low rule score — limited indicator agreement';
   return (
     <div>
       <div className="flex items-center gap-2 min-w-[90px]">
@@ -97,8 +97,8 @@ function ConfidenceBar({ value, showExplainer = false }: { value: number; showEx
             style={{ width: `${value}%` }}
           />
         </div>
-        <span className={`text-[11px] font-mono font-semibold tabular-nums w-8 text-right ${confTextColor(value)}`}>
-          {value}%
+        <span className={`text-[11px] font-mono font-semibold tabular-nums w-12 text-right ${confTextColor(value)}`}>
+          {value}/100
         </span>
       </div>
       {showExplainer && (
@@ -417,7 +417,7 @@ export default function ScreenerClient() {
       'Symbol',
       'Name',
       'Direction',
-      'Confidence',
+      'Rule score (0-100)',
       'Price',
       'RSI',
       'MACD Histogram',
@@ -477,13 +477,13 @@ export default function ScreenerClient() {
     });
 
   return (
-    <div className="relative isolate min-h-[100dvh] bg-[var(--background)] text-[var(--foreground)]">
+    <div className="premium-product-shell relative isolate min-h-[100dvh] text-[var(--foreground)]">
       <BackgroundDecor variant="dashboard" />
       <PageNavBar />
 
       <div className="relative max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-8">
         <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-950/50 px-4 py-3 text-sm text-emerald-300">
-          <strong>Live Data</strong> — market data from Binance (~2s) and the hub (≤60s for FX/metals/stocks).
+          <strong>Observed-data scan</strong> - generated fallback candles are excluded from public signals. The scan time appears below; upstream availability and freshness can vary.
         </div>
 
         {/* Header */}
@@ -496,7 +496,7 @@ export default function ScreenerClient() {
             <h1 className="text-xl font-bold tracking-tight">Asset Screener</h1>
           </div>
           <p className="text-xs text-[var(--text-secondary)]">
-            Scan all {SYMBOLS.length} assets for setups matching your custom criteria · Powered by real TA engine
+            Scan {SYMBOLS.length} configured assets for indicator conditions. These are analytical outputs, not trade recommendations.
           </p>
         </div>
 
@@ -516,8 +516,8 @@ export default function ScreenerClient() {
             {/* Confidence Threshold */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Min Confidence</span>
-                <span className="text-[10px] font-mono text-[var(--text-secondary)]">{filters.minConfidence}%</span>
+                <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider">Min Rule Score</span>
+                <span className="text-[10px] font-mono text-[var(--text-secondary)]">{filters.minConfidence}/100</span>
               </div>
               <input
                 type="range" min={0} max={100} value={filters.minConfidence}
@@ -655,7 +655,7 @@ export default function ScreenerClient() {
             <StatCard
               label="Strongest Signal"
               value={meta.strongest ? `${meta.strongest.symbol}` : '—'}
-              sub={meta.strongest ? `${meta.strongest.direction} · ${meta.strongest.confidence}% conf` : 'no signals'}
+              sub={meta.strongest ? `${meta.strongest.direction} · rule score ${meta.strongest.confidence}/100` : 'no signals'}
               color={meta.strongest?.direction === 'BUY' ? 'text-emerald-400' : meta.strongest?.direction === 'SELL' ? 'text-rose-400' : 'text-[var(--text-secondary)]'}
             />
             <div className="glass-card rounded-xl p-3 flex flex-col gap-1">
@@ -695,7 +695,7 @@ export default function ScreenerClient() {
                 onChange={e => { setSortKey(e.target.value as SortKey); setSortDir('desc'); }}
                 className="bg-[var(--glass-bg)] border border-[var(--border)] rounded-lg px-2 py-1.5 text-xs font-mono text-[var(--foreground)] appearance-none"
               >
-                <option value="confidence">Confidence</option>
+                <option value="confidence">Rule score</option>
                 <option value="symbol">Symbol</option>
                 <option value="price">Price</option>
                 <option value="rsi">RSI</option>
@@ -758,7 +758,7 @@ export default function ScreenerClient() {
                           onClick={() => patchFilter('minConfidence', 50)}
                           className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
                         >
-                          Lower confidence to 50%
+                          Lower rule score to 50/100
                         </button>
                         <button
                           onClick={() => { patchFilter('rsiMin', 10); patchFilter('rsiMax', 90); }}
@@ -809,7 +809,7 @@ export default function ScreenerClient() {
                     className="px-4 py-3 text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none min-w-[120px]"
                     onClick={() => handleSort('confidence')}
                   >
-                    Confidence<SortIcon active={sortKey === 'confidence'} dir={sortDir} />
+                    Rule score<SortIcon active={sortKey === 'confidence'} dir={sortDir} />
                   </th>
                   <th
                     className="px-4 py-3 text-right text-[10px] text-[var(--text-secondary)] uppercase tracking-wider font-medium cursor-pointer hover:text-[var(--text-secondary)] select-none"
@@ -965,13 +965,13 @@ export default function ScreenerClient() {
                       ) : (
                         <>
                           <p className="text-sm font-medium text-[var(--foreground)] mb-1">No assets match your filters</p>
-                          <p className="text-xs text-[var(--text-secondary)] mb-3">Try lowering confidence, widening RSI, or resetting filters.</p>
+                          <p className="text-xs text-[var(--text-secondary)] mb-3">Try lowering the rule score threshold, widening RSI, or resetting filters.</p>
                           <div className="flex justify-center gap-2">
                             <button
                               onClick={() => patchFilter('minConfidence', 50)}
                               className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
                             >
-                              Lower confidence to 50%
+                              Lower rule score to 50/100
                             </button>
                             <button
                               onClick={() => { patchFilter('rsiMin', 10); patchFilter('rsiMax', 90); }}

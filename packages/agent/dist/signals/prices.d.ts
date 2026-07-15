@@ -1,19 +1,20 @@
 /**
- * Live price fetcher with 30-second cache and graceful fallback.
- * Fetches real-time prices from free APIs:
+ * Provider-observed price fetcher with a 30-second cache.
+ * Fetches current observations from public APIs:
  * - Crypto: CoinGecko
  * - Metals: metals.live
  * - Forex: ExchangeRate API (open.er-api.com)
  */
 /**
- * Fetch live prices from all sources.
+ * Fetch current provider price observations.
  * Returns a Map of symbol -> current USD price.
- * Falls back to seeded prices if any API fails (never crashes).
+ * Returns only values actually observed from a provider. Missing providers
+ * produce missing symbols; no static quote is substituted.
  * Caches results for 30 seconds to avoid rate limits.
  */
 export declare function fetchLivePrices(): Promise<Map<string, number>>;
 /**
- * Get a single live price for a symbol (uses cached batch).
+ * Get one current provider observation for a symbol (uses cached batch).
  */
 export declare function getLivePrice(symbol: string): Promise<number | undefined>;
 /**

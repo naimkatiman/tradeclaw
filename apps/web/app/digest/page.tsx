@@ -15,11 +15,11 @@ const DigestClient = dynamic(
 export const metadata: Metadata = {
   title: 'Weekly Digest — TradeClaw',
   description:
-    'Preview the weekly email digest with top trading signals, accuracy stats, and leaderboard highlights.',
+    'Preview a digest built from counted, observed-provenance signal outcomes.',
   openGraph: {
     title: 'Weekly Signal Digest — TradeClaw',
     description:
-      'Preview the weekly email our subscribers receive every Monday with top BUY/SELL signals.',
+      'Preview a digest built from counted, observed-provenance signal outcomes. Delivery depends on deployment configuration.',
     type: 'website',
   },
 };

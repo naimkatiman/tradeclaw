@@ -1,5 +1,6 @@
 import type { TradingSignal, ChannelConfig } from '@tradeclaw/signals';
 import type { BaseChannel } from './base.js';
+import { isProviderObservedSignal } from './base.js';
 
 /**
  * Generic HTTP webhook channel adapter.
@@ -25,10 +26,14 @@ export class WebhookChannel implements BaseChannel {
   }
 
   async sendSignal(signal: TradingSignal): Promise<boolean> {
+    if (!isProviderObservedSignal(signal)) {
+      console.warn('[webhook] Refused non-observed candidate');
+      return false;
+    }
     return this.post({
-      event: 'signal',
+      event: 'research-candidate',
       signal,
-      timestamp: new Date().toISOString(),
+      deliveredAt: new Date().toISOString(),
     });
   }
 
@@ -36,7 +41,7 @@ export class WebhookChannel implements BaseChannel {
     return this.post({
       event: 'message',
       text,
-      timestamp: new Date().toISOString(),
+      deliveredAt: new Date().toISOString(),
     });
   }
 

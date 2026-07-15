@@ -15,11 +15,11 @@ const SentimentClient = dynamic(
 export const metadata: Metadata = {
   title: 'Market Sentiment — Crypto Fear & Greed Index | TradeClaw',
   description:
-    'Live crypto market sentiment dashboard with Fear & Greed Index, BTC dominance, global market cap, trending coins, and 24h volume heatmap.',
+    'Latest available provider-reported crypto sentiment data, with no synthetic fallback when upstream data is unavailable.',
   openGraph: {
     title: 'Market Sentiment — Crypto Fear & Greed Index',
     description:
-      'Live crypto sentiment (5-minute auto-refresh): Fear & Greed gauge, BTC dominance, trending coins, and volume heatmap — all in one view.',
+      'Provider-reported Fear & Greed, market dominance, trending coins, and volume data.',
   },
 };
 

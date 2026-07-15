@@ -8,14 +8,23 @@ jest.mock('../alert-channels', () => ({
   sendDiscordWebhook: jest.fn(),
 }));
 
+jest.mock('../cost-adjusted-edge-gate', () => ({
+  evaluateCostAdjustedEdge: jest.fn(() => Promise.resolve({
+    allowed: true,
+    reason: 'ready',
+  })),
+}));
+
 import { broadcastSignalsToDiscord } from '../discord-broadcast';
 import { query, queryOne, execute } from '../db-pool';
 import { sendDiscordWebhook } from '../alert-channels';
+import { evaluateCostAdjustedEdge } from '../cost-adjusted-edge-gate';
 
 const mockedQuery = query as jest.MockedFunction<typeof query>;
 const mockedQueryOne = queryOne as jest.MockedFunction<typeof queryOne>;
 const mockedExecute = execute as jest.MockedFunction<typeof execute>;
 const mockedSend = sendDiscordWebhook as jest.MockedFunction<typeof sendDiscordWebhook>;
+const mockedEvaluateEdge = evaluateCostAdjustedEdge as jest.MockedFunction<typeof evaluateCostAdjustedEdge>;
 
 const ROW = {
   id: 'SIG-BTCUSD-H1-BUY-1',
@@ -45,6 +54,7 @@ describe('broadcastSignalsToDiscord — atomic claim loop', () => {
     expect(mockedSend).toHaveBeenCalledTimes(1);
     // success path must NOT release the claim
     expect(mockedExecute).not.toHaveBeenCalled();
+    expect(mockedQuery.mock.calls[0][0]).toContain('broadcast_blocked = FALSE');
   });
 
   it('skips a row whose claim was lost to a concurrent invocation (no duplicate send)', async () => {
@@ -71,5 +81,22 @@ describe('broadcastSignalsToDiscord — atomic claim loop', () => {
     expect(mockedExecute).toHaveBeenCalledTimes(1);
     expect(mockedExecute.mock.calls[0][0]).toContain('discord_posted_at = NULL');
     expect(mockedExecute.mock.calls[0][1]).toEqual([ROW.id]);
+  });
+
+  it('blocks before selecting or sending when cost-adjusted evidence is unavailable', async () => {
+    mockedEvaluateEdge.mockResolvedValueOnce({
+      allowed: false,
+      reason: 'unavailable',
+    } as never);
+
+    const res = await broadcastSignalsToDiscord('https://discord.test/webhook');
+
+    expect(res).toEqual({
+      posted: 0,
+      attempted: 0,
+      halted: 'cost_adjusted_edge:unavailable',
+    });
+    expect(mockedQuery).not.toHaveBeenCalled();
+    expect(mockedSend).not.toHaveBeenCalled();
   });
 });

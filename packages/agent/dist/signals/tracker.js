@@ -1,7 +1,7 @@
 /**
- * Signal accuracy tracker.
- * Persists every generated signal to ~/.tradeclaw/signal-history.jsonl
- * and provides historical accuracy analytics.
+ * Observed candidate outcome tracker.
+ * Persists only candidates explicitly marked as real to
+ * ~/.tradeclaw/signal-history.jsonl and summarizes resolved outcomes.
  */
 import { appendFile, readFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -14,7 +14,32 @@ async function ensureDir() {
         await mkdir(HISTORY_DIR, { recursive: true });
     }
 }
+export function isObservedSignal(signal) {
+    return signal.source === 'real'
+        && signal.dataQuality === 'real'
+        && Number.isFinite(signal.entry)
+        && signal.entry > 0
+        && Number.isFinite(signal.stopLoss)
+        && Number.isFinite(signal.takeProfit1)
+        && Number.isFinite(Date.parse(signal.timestamp));
+}
+function isObservedHistoryRow(value) {
+    if (!value || typeof value !== 'object')
+        return false;
+    const row = value;
+    return row.dataQuality === 'real'
+        && typeof row.id === 'string'
+        && typeof row.symbol === 'string'
+        && (row.direction === 'BUY' || row.direction === 'SELL')
+        && typeof row.entry === 'number'
+        && Number.isFinite(row.entry)
+        && row.entry > 0
+        && typeof row.timestamp === 'string'
+        && Number.isFinite(Date.parse(row.timestamp));
+}
 export async function trackSignal(signal) {
+    if (!isObservedSignal(signal))
+        return;
     await ensureDir();
     const entry = {
         id: signal.id,
@@ -28,14 +53,16 @@ export async function trackSignal(signal) {
         sl: signal.stopLoss,
         timestamp: signal.timestamp,
         skill: signal.skill ?? 'engine',
+        dataQuality: 'real',
     };
     await appendFile(HISTORY_FILE, JSON.stringify(entry) + '\n', 'utf-8');
 }
 export async function trackSignals(signals) {
-    if (signals.length === 0)
+    const observedSignals = signals.filter(isObservedSignal);
+    if (observedSignals.length === 0)
         return;
     await ensureDir();
-    const lines = signals.map(signal => {
+    const lines = observedSignals.map(signal => {
         const entry = {
             id: signal.id,
             symbol: signal.symbol,
@@ -48,6 +75,7 @@ export async function trackSignals(signals) {
             sl: signal.stopLoss,
             timestamp: signal.timestamp,
             skill: signal.skill ?? 'engine',
+            dataQuality: 'real',
         };
         return JSON.stringify(entry);
     });
@@ -61,7 +89,9 @@ export async function loadHistory() {
     const signals = [];
     for (const line of lines) {
         try {
-            signals.push(JSON.parse(line));
+            const parsed = JSON.parse(line);
+            if (isObservedHistoryRow(parsed))
+                signals.push(parsed);
         }
         catch {
             // skip malformed lines

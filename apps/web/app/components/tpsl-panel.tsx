@@ -15,9 +15,11 @@ interface TpSlData {
     accountSize: number;
     riskPercent: number;
     riskAmount: number;
-    recommendedLots: number;
+    recommendedLots: null;
     pipsAtRisk: number;
+    reason: string;
   };
+  dataSource: { provider: string; candleCount: number };
 }
 
 const SYMBOLS = ['XAUUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'XAGUSD', 'AUDUSD'];
@@ -31,19 +33,25 @@ function fmt(n: number): string {
 export function TpSlPanel() {
   const [symbol, setSymbol] = useState('XAUUSD');
   const [direction, setDirection] = useState<'BUY' | 'SELL'>('BUY');
+  const [entry, setEntry] = useState('');
   const [accountSize, setAccountSize] = useState(10000);
   const [riskPercent, setRiskPercent] = useState(1);
   const [data, setData] = useState<TpSlData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const calculate = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await fetch(`/api/tpsl?symbol=${symbol}&direction=${direction}&accountSize=${accountSize}&riskPercent=${riskPercent}`);
-      const result = await res.json();
-      setData(result);
+      const params = new URLSearchParams({ symbol, direction, entry, accountSize: String(accountSize), riskPercent: String(riskPercent) });
+      const res = await fetch(`/api/tpsl?${params}`);
+      const result = await res.json() as TpSlData | { error?: string };
+      if (!res.ok) throw new Error('error' in result ? result.error : `Request failed (${res.status})`);
+      setData(result as TpSlData);
     } catch {
-      // silent
+      setData(null);
+      setError('Provider-backed candles are required; no estimated levels were substituted.');
     } finally {
       setLoading(false);
     }
@@ -53,7 +61,7 @@ export function TpSlPanel() {
     <div className="glass-card rounded-2xl p-5">
       <div className="mb-4">
         <div className="text-xs font-semibold text-white tracking-tight">TP / SL Engine</div>
-        <div className="text-[11px] text-zinc-600 mt-0.5">ATR stop loss + Fibonacci targets</div>
+        <div className="text-[11px] text-zinc-600 mt-0.5">Mechanical ATR levels, not an order recommendation</div>
       </div>
 
       {/* Inputs */}
@@ -67,6 +75,17 @@ export function TpSlPanel() {
           >
             {SYMBOLS.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
+        </div>
+        <div>
+          <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Observed entry</label>
+          <input
+            type="number"
+            value={entry}
+            min="0"
+            step="any"
+            onChange={e => setEntry(e.target.value)}
+            className="w-full bg-white/5 border border-white/8 rounded-lg px-2 py-1.5 text-xs text-zinc-300 outline-none focus:border-emerald-500/30 font-mono"
+          />
         </div>
         <div>
           <label className="text-[10px] text-zinc-600 uppercase tracking-wider block mb-1">Direction</label>
@@ -113,11 +132,13 @@ export function TpSlPanel() {
 
       <button
         onClick={calculate}
-        disabled={loading}
+        disabled={loading || !entry || Number(entry) <= 0}
         className="w-full py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 text-xs font-semibold hover:bg-emerald-500/20 transition-all duration-200 active:scale-[0.98] disabled:opacity-50"
       >
         {loading ? 'Calculating...' : 'Calculate Levels'}
       </button>
+
+      {error && <p className="mt-3 text-xs text-red-300">{error}</p>}
 
       {data && (
         <div className="mt-4 space-y-3">
@@ -160,10 +181,8 @@ export function TpSlPanel() {
               <span className="text-zinc-600">ATR</span>
               <span className="text-white">{fmt(data.atr)}</span>
             </div>
-            <div className="flex justify-between text-xs font-mono border-t border-white/5 pt-1.5 mt-1.5">
-              <span className="text-zinc-400">Recommended lots</span>
-              <span className="text-emerald-400 font-semibold">{data.positionSizing.recommendedLots}</span>
-            </div>
+            <p className="border-t border-white/5 pt-2 text-[10px] text-zinc-500">{data.positionSizing.reason}</p>
+            <p className="text-[10px] text-zinc-500">ATR source: {data.dataSource.provider}, {data.dataSource.candleCount} candles</p>
           </div>
         </div>
       )}

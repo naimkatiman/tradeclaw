@@ -43,25 +43,25 @@ const THREADS: Thread[] = [
     tags: ['#OpenSource', '#NextJS', '#TypeScript', '#SelfHosted'],
     tweets: [
       {
-        text: `I built an open-source AI trading signal platform in TypeScript. Here\u2019s the full architecture breakdown \ud83e\uddf5\n\n\u2192 5-indicator confluence scoring\n\u2192 Live prices from Binance + Yahoo Finance\n\u2192 40+ REST API endpoints\n\u2192 Zero database (file-based JSON)\n\nGitHub: ${REPO_URL}`,
+        text: `I built a self-hostable, open-source trading research platform. Here\u2019s the architecture breakdown \ud83e\uddf5\n\n\u2192 Next.js monorepo\n\u2192 Deterministic signal rules plus an optional AI research bridge\n\u2192 PostgreSQL-backed histories and jobs\n\u2192 Docker Compose deployment\n\nGitHub: ${REPO_URL}`,
       },
       {
-        text: `1/ The signal engine is the core.\n\nEvery 5 minutes, we fetch OHLCV data for 10 assets and run 5 indicators:\n\u2022 RSI (Wilder\u2019s smoothing)\n\u2022 MACD (12/26/9)\n\u2022 EMA (20/50 crossover)\n\u2022 Bollinger Bands\n\u2022 Stochastic (14/3)\n\nEach indicator votes BUY/SELL with a weight.`,
+        text: `1/ The signal engine is deterministic.\n\nIt computes RSI, MACD, EMA, Bollinger Bands and Stochastic readings over provider-supplied OHLCV.\n\nThe deployment controls its provider configuration and schedule. The output is a rule-scored candidate, not an executed trade.`,
       },
       {
-        text: `2/ The scoring formula:\n\nRSI score:   0-20 pts  (oversold/overbought)\nMACD score:  0-20 pts  (crossover strength)\nEMA score:   0-20 pts  (price vs MA)\nBB score:    0-15 pts  (band position)\nStoch score: 0-15 pts  (K/D crossover)\n\nTotal \u2192 0-100 confidence\n\nSignals below 55 are dropped.`,
+        text: `2/ The engine combines weighted momentum, trend and volatility readings.\n\nThe resulting 0-100 value is an internal rule score. It is not a calibrated probability. Publication and multi-timeframe gates are defined in source and may change with the implementation.`,
       },
       {
-        text: `3/ Architecture: no database.\n\nAll data lives in JSON files:\n\u2022 /data/signals.json \u2014 signal history\n\u2022 /data/alerts.json \u2014 price alerts\n\u2022 /data/api-keys.json \u2014 rate limits\n\u2022 /data/webhooks.json \u2014 webhook config\n\nFor self-hosters, this is ideal. One git clone and it just works.`,
+        text: `3/ PostgreSQL is part of the default stack.\n\nIt stores tracked signal history, resolved outcomes, user state and research jobs. Docker Compose provisions the database alongside the web application so the evidence ledger persists across restarts.`,
       },
       {
-        text: `4/ Developer-first from day one:\n\n\u2022 REST API with API keys + rate limiting\n\u2022 npx @naimkatiman/tradeclaw signals CLI\n\u2022 JS SDK: npm install @naimkatiman/tradeclaw-js\n\u2022 MCP server (Claude Desktop compatible)\n\u2022 Plugin system (custom indicators as JS)\n\u2022 Webhook marketplace (Discord/Slack/Zapier)`,
+        text: `4/ Developer surfaces live in the same repository:\n\n\u2022 REST routes and API docs\n\u2022 CLI and JavaScript SDK packages\n\u2022 MCP package\n\u2022 Custom-indicator plugin support\n\u2022 Webhook and alert integrations\n\nInspect each package before depending on it in production.`,
       },
       {
-        text: `5/ Deploy in 2 minutes:\n\ngit clone ${REPO_URL}\ncd tradeclaw\ndocker compose up\n\nOr one click:\n\u2192 Railway\n\u2192 Vercel\n\nNo API keys needed. Live prices via public Binance endpoints.`,
+        text: `5/ The documented local deployment starts with:\n\ngit clone ${REPO_URL}\ncd tradeclaw\ndocker compose up\n\nProduction deployments still need environment configuration, provider credentials where required, database persistence, secrets and operational monitoring.`,
       },
       {
-        text: `6/ What\u2019s included in 120+ pages:\n\n\ud83d\udcca Dashboard + Screener\n\ud83d\udcc8 Backtest engine\n\ud83c\udfae Paper trading simulator\n\ud83e\udd16 Telegram bot alerts\n\ud83d\udce1 RSS/Atom signal feeds\n\ud83d\udd0c Plugin system\n\ud83c\udf10 REST API + Swagger docs\n\ud83d\udcf1 PWA (installable)\n\nAll free. All open source.\n\n\u2b50 Star if this was useful: ${REPO_URL}`,
+        text: `6/ The repository includes a dashboard, screener, backtest tools, persistent paper trading, alert integrations, feeds, plugins and API documentation.\n\nThe source is MIT licensed. Hosting, data-provider and messaging costs remain the operator\u2019s responsibility.\n\n\u2b50 Star if this was useful: ${REPO_URL}`,
       },
     ],
   },
@@ -74,25 +74,25 @@ const THREADS: Thread[] = [
     tags: ['#SelfHosted', '#Homelab', '#OpenSource', '#Privacy'],
     tweets: [
       {
-        text: `TradingView is $15/month. 3Commas is $29/month.\n\nI self-host my own AI trading signal dashboard for $0.\n\nHere\u2019s how \ud83e\uddf5\n\n${REPO_URL}`,
+        text: `I wanted a trading research stack I could inspect and operate myself.\n\nTradeClaw is self-hostable and MIT licensed. Here\u2019s what that does and does not mean \ud83e\uddf5\n\n${REPO_URL}`,
       },
       {
-        text: `1/ TradeClaw runs on:\n\u2022 A $5 VPS\n\u2022 A Raspberry Pi 4\n\u2022 Railway free tier\n\u2022 Your laptop\n\nOne command:\ndocker compose up\n\nThat\u2019s it. Dashboard live at localhost:3000.`,
+        text: `1/ The default stack uses Docker Compose for the web app and PostgreSQL.\n\ndocker compose up\n\nActual CPU, memory, storage and network requirements depend on the markets, schedules and integrations you enable. Check the health endpoint before relying on an instance.`,
       },
       {
-        text: `2/ What you get that paid tools don\u2019t offer:\n\n\u2705 Full data ownership\n\u2705 No subscription fees\n\u2705 Audit the signal logic (it\u2019s open source)\n\u2705 Custom indicators via JS plugins\n\u2705 API access without paying extra\n\u2705 Telegram alerts without per-message fees`,
+        text: `2/ Self-hosting gives you control over the application and its database, plus source access for auditing the rule logic.\n\nIt does not remove infrastructure, market-data, messaging or maintenance costs, and configured external providers still receive the requests needed to deliver their service.`,
       },
       {
-        text: `3/ The Raspberry Pi setup:\n\n1. git clone on your Pi\n2. docker compose up -d\n3. Open port 3000 or use Tailscale\n4. Set TELEGRAM_BOT_TOKEN in .env\n5. Subscribe to signals via /start\n\nRuns 24/7 on ~$0 electricity.`,
+        text: `3/ A responsible setup is more than starting a container:\n\n1. Review .env.example\n2. Configure strong secrets and provider access\n3. Start Docker Compose\n4. Verify migrations and /api/health\n5. Put the instance behind TLS and access controls\n6. Back up PostgreSQL`,
       },
       {
-        text: `4/ Privacy first:\n\nNo analytics. No telemetry. No tracking.\n\nYour signal data never leaves your machine. The only external calls are:\n\u2022 Binance public price API\n\u2022 Yahoo Finance (fallback)\n\nBoth are read-only. Nothing sent to any third party.`,
+        text: `4/ Data flow is configuration-dependent.\n\nMarket-data providers, notification channels, optional analytics and AI services can receive requests when enabled. Review the environment variables and integration code, then enable only the services that fit your privacy requirements.`,
       },
       {
         text: `5/ You can even subscribe via RSS:\n\nhttps://your-instance.com/feed.xml\n\nEvery signal becomes an RSS item. Works in Feedly, Inoreader, any RSS reader.\n\nOr subscribe via Telegram bot for push notifications.`,
       },
       {
-        text: `6/ TradeClaw vs the alternatives:\n\nTradeClaw: FREE, self-host \u2705, open source \u2705\nTradingView: $15/mo, no self-host, closed source\n3Commas: $29/mo, no self-host, closed source\n\n\u2b50 ${REPO_URL}`,
+        text: `6/ The tradeoff:\n\nSelf-hosting provides source access and operational control. It also makes you responsible for security updates, backups, provider terms, availability and costs.\n\nRead the code and deployment docs before exposing an instance.\n\n\u2b50 ${REPO_URL}`,
       },
     ],
   },
@@ -105,25 +105,25 @@ const THREADS: Thread[] = [
     tags: ['#AlgoTrading', '#TechnicalAnalysis', '#RSI', '#MACD', '#Quant'],
     tweets: [
       {
-        text: `How do you actually generate a reliable trading signal?\n\nNot \u201cRSI below 30 = buy.\u201d That\u2019s too simple.\n\nHere\u2019s the confluence approach we use in TradeClaw (open source) \ud83e\uddf5\n\n${REPO_URL}`,
+        text: `How does TradeClaw turn indicator readings into a candidate signal?\n\nNot \u201cRSI below 30 = buy.\u201d The engine combines several deterministic rules.\n\nHere\u2019s the scoring approach (open source) \ud83e\uddf5\n\n${REPO_URL}`,
       },
       {
-        text: `1/ The problem with single-indicator signals:\n\nRSI alone: 52% accuracy (barely better than a coin flip)\nMACD alone: 54% accuracy\nEMA crossover alone: 51% accuracy\n\nNone are reliable. The edge comes from confluence \u2014 multiple indicators agreeing.`,
+        text: `1/ Why not use one indicator?\n\nRSI can stay extreme during strong trends.\nMACD can lag at turning points.\nEMA crossovers can repeatedly reverse in ranges.\n\nTradeClaw combines several readings into one rule score. Agreement is a scoring rule, not proof of predictive edge.`,
       },
       {
-        text: `2/ Confluence scoring:\n\nInstead of binary signals, each indicator returns a score:\n\n\u2022 RSI < 30 (oversold) \u2192 +20 pts for BUY\n\u2022 RSI > 70 (overbought) \u2192 +20 pts for SELL\n\u2022 MACD bullish crossover \u2192 +20 pts for BUY\n\u2022 Price above EMA20 AND EMA50 \u2192 +20 pts for BUY\n\nSum \u2192 confidence score 0-100.`,
+        text: `2/ Confluence scoring:\n\nMomentum, trend and volatility readings contribute weighted points to BUY and SELL candidates.\n\nThe implementation includes partial scores and quality gates, so the source is the authoritative formula. The final 0-100 value is a rule score, not a probability.`,
       },
       {
-        text: `3/ Quality gates (signals we DROP):\n\n\u274c ATR < 0.3% \u2014 market too quiet\n\u274c Bollinger bandwidth < 1% \u2014 not enough volatility\n\u274c EMA slope near-flat \u2014 no trend\n\u274c MACD histogram near-zero \u2014 no momentum\n\u274c Confidence < 55 \u2014 not enough conviction\n\nThis filters ~70% of potential signals.`,
+        text: `3/ Quality gates can reject candidates for weak range, flat trend, insufficient momentum, poor indicator diversity or a rule score below the publication threshold.\n\nThe exact thresholds live in source. Rejection rates vary with the market and evaluation window.`,
       },
       {
-        text: `4/ Multi-timeframe confluence:\n\nA H1 BUY signal is stronger when H4 and D1 also show bullish bias.\n\nWhen all 3 timeframes agree \u2192 confidence +15%\nWhen 2/3 agree \u2192 confidence +5%\nWhen conflicted \u2192 confidence -20%\n\nThis is /multi-timeframe in the dashboard.`,
+        text: `4/ Multi-timeframe logic surveys several horizons. Agreement can add rule-score points and a conflicted survey can subtract them.\n\nThose adjustments are deterministic implementation rules, not evidence that an aligned candidate will be profitable.`,
       },
       {
-        text: `5/ Stop-loss and take-profit:\n\nWe use swing highs/lows (last 20 bars) + ATR:\n\n\u2022 SL = nearest swing below entry (BUY) or above (SELL)\n\u2022 TP = 2:1 reward ratio from SL distance\n\u2022 ATR buffer to avoid tight stops getting hit by noise\n\nRisk-distance guard: if SL < 0.3% away \u2192 skip signal.`,
+        text: `5/ Entry, stop and target levels are derived by transparent functions in the signal engine. They are proposed levels from OHLCV calculations, not broker orders or fills.\n\nInspect the current source and test the assumptions for the market you intend to study.`,
       },
       {
-        text: `6/ The result:\n\nAll of this runs in ~50ms per asset per timeframe.\nNo ML, no GPU, no paid data.\nJust clean TypeScript math on public price data.\n\nFull source: ${REPO_URL}/blob/main/apps/web/app/lib/signal-generator.ts\n\n\u2b50 Star TradeClaw if this was useful: ${REPO_URL}`,
+        text: `6/ The implementation is deterministic TypeScript over market OHLCV.\n\nThat makes each rule inspectable and reproducible. It does not establish profitability: outcomes still need dated evaluation with costs and explicit sizing assumptions.\n\nFull source: ${REPO_URL}/blob/main/apps/web/app/lib/signal-generator.ts\n\n\u2b50 Star TradeClaw if this was useful: ${REPO_URL}`,
       },
     ],
   },
@@ -136,22 +136,22 @@ const THREADS: Thread[] = [
     tags: ['#BuildInPublic', '#OpenSource', '#Startup', '#IndieHacker'],
     tweets: [
       {
-        text: `After months of building, I\u2019m launching TradeClaw today. \ud83d\ude80\n\nOpen-source AI trading signal platform.\nSelf-hosted. Free forever. 120+ features.\n\nHere\u2019s what\u2019s inside \ud83e\uddf5\n\n${REPO_URL}`,
+        text: `TradeClaw is a self-hostable, MIT-licensed trading research platform. \ud83d\ude80\n\nIt combines deterministic signal rules, recorded outcome studies, optional AI research and operator-controlled integrations.\n\nHere\u2019s what\u2019s inside \ud83e\uddf5\n\n${REPO_URL}`,
       },
       {
-        text: `1/ What problem does it solve?\n\nTraders pay $15-50/month for signal tools.\nThey don\u2019t own their data.\nThey can\u2019t audit the algorithm.\n\nTradeClaw is:\n\u2705 Self-hosted\n\u2705 Fully open source\n\u2705 Free forever\n\u2705 Auditable signal logic`,
+        text: `1/ The goal is inspectability.\n\nTradeClaw can be self-hosted, its rule logic is visible, and its PostgreSQL evidence ledger can be queried.\n\nOpen source does not make the signals profitable or remove hosting and provider costs.`,
       },
       {
-        text: `2/ The features that matter most:\n\n\ud83d\udcca 5-indicator confluence signals\n\ud83e\udd16 Telegram bot alerts\n\ud83c\udfae Paper trading simulator\n\ud83d\udcc8 Backtest engine with charts\n\ud83d\udce1 RSS/Atom signal feed\n\ud83d\udd0c Custom indicator plugins\n\nAll in one self-hosted dashboard.`,
+        text: `2/ The repository includes:\n\n\ud83d\udcca Rule-scored signal candidates\n\ud83e\udd16 Alert integrations\n\ud83c\udfae Persistent paper trading\n\ud83d\udcc8 Backtest tools\n\ud83d\udce1 RSS/Atom feeds\n\ud83d\udd0c Custom indicator plugins\n\nAvailability still depends on deployment configuration.`,
       },
       {
         text: `3/ For developers:\n\nnpx @naimkatiman/tradeclaw signals --pair BTCUSD\n\nnpm install @naimkatiman/tradeclaw-js\n\nMCP config for Claude Desktop:\n{ "command": "npx", "args": ["@naimkatiman/tradeclaw-mcp"] }\n\nFull REST API + Swagger docs at /api-docs.`,
       },
       {
-        text: `4/ Deploy in literally 2 minutes:\n\ngit clone ${REPO_URL}\ndocker compose up\n\nOr click these buttons:\n\u2192 Railway (free tier)\n\u2192 Vercel\n\nNo API keys required to get started.`,
+        text: `4/ Start the documented local stack with:\n\ngit clone ${REPO_URL}\ncd tradeclaw\ndocker compose up\n\nThen verify migrations and health, configure providers and integrations, and add production-grade secrets, persistence, TLS, backups and monitoring.`,
       },
       {
-        text: `5/ What\u2019s next:\n\n\u2022 MT4/MT5 broker integration\n\u2022 Live forward-tested accuracy tracking\n\u2022 Mobile companion app\n\u2022 Managed cloud (tradeclaw.win)\n\nAll roadmap items unlock at star milestones.\n\n\ud83c\udf1f 100 stars \u2192 Mobile app\n\ud83c\udf1f 500 stars \u2192 Managed cloud`,
+        text: `5/ Current boundaries matter:\n\n\u2022 Automated execution is disabled by default\n\u2022 The Binance perpetual executor is the implemented crypto path\n\u2022 The RoboForex TradFi execution bridge remains a scaffold\n\u2022 Public outcome studies use OHLCV resolution, not broker fills or customer-account returns`,
       },
       {
         text: `6/ If you found this useful:\n\n\u2b50 Star on GitHub: ${REPO_URL}\n\ud83d\udce3 Share this thread\n\ud83d\udcac Leave feedback on our Discussions tab\n\nEvery star helps more traders discover TradeClaw.\n\nThanks for reading \ud83d\ude4f`,

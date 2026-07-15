@@ -4,6 +4,7 @@ import { getAllExpoTokens } from '../../../../lib/expo-push-tokens';
 import { dispatchSignalPushes } from '../../../../lib/expo-push-sender';
 import { requireCronAuth } from '../../../../lib/cron-auth';
 import { HIGH_CONFIDENCE_THRESHOLD } from '../../../../lib/signal-thresholds';
+import { evaluateCostAdjustedEdge } from '../../../../lib/cost-adjusted-edge-gate';
 
 // ---------------------------------------------------------------------------
 // GET /api/cron/push-signals — Vercel/GitHub Actions cron handler
@@ -15,6 +16,29 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   if (authError) return authError;
 
   try {
+    const edge = await evaluateCostAdjustedEdge();
+    if (!edge.allowed) {
+      return NextResponse.json(
+        {
+          pushed: false,
+          signalsProcessed: 0,
+          totalMessages: 0,
+          sent: 0,
+          failed: 0,
+          halted: `cost_adjusted_edge:${edge.reason}`,
+          evidence: {
+            usableCount: edge.usableCount,
+            activeDays: edge.activeDays,
+            coverage: edge.coverage,
+            perSignalMeanNetR: edge.perSignalMeanNetR,
+            equalDayLowerBoundNetR: edge.equalDayLowerBoundNetR,
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 503 },
+      );
+    }
+
     const { signals } = await getSignals({ minConfidence: HIGH_CONFIDENCE_THRESHOLD });
 
     if (signals.length === 0) {

@@ -1,10 +1,8 @@
-import { computeTrackRecordStats, parseBand, type TrackRecordBand } from '../../../lib/track-record-stats';
+import { computeTrackRecordStats, parseBand } from '../../../lib/track-record-stats';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 60;
-
-type Band = TrackRecordBand;
 
 export default async function TrackRecordEmbedPage({ searchParams }: { searchParams: Promise<{ theme?: string; band?: string }> }) {
   const { theme, band: rawBand } = await searchParams;
@@ -16,7 +14,7 @@ export default async function TrackRecordEmbedPage({ searchParams }: { searchPar
   const s = await computeTrackRecordStats(band);
   const pnlColor = s.totalPnl >= 0 ? '#10b981' : '#f43f5e';
   const borderColor = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-  const bandLabel = band === 'premium' ? 'premium band' : band === 'standard' ? 'standard band' : 'all signals';
+  const bandLabel = band === 'premium' ? 'premium band' : band === 'standard' ? 'standard band' : 'eligible signals';
 
   return (
     <main
@@ -34,7 +32,7 @@ export default async function TrackRecordEmbedPage({ searchParams }: { searchPar
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <div style={{ fontSize: '12px', letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.7 }}>
-          {`TradeClaw — recorded track record (30d, ${bandLabel})`}
+          {`TradeClaw — OHLCV-resolved signal study (30d, ${bandLabel})`}
         </div>
         <a href="https://tradeclaw.win/track-record" target="_blank" rel="noopener" style={{ fontSize: '11px', color: '#10b981', textDecoration: 'none' }}>
           tradeclaw.win →
@@ -44,7 +42,10 @@ export default async function TrackRecordEmbedPage({ searchParams }: { searchPar
         <Stat label="Signals resolved" value={s.total.toString()} borderColor={borderColor} />
         <Stat label="Wins" value={s.wins.toString()} borderColor={borderColor} />
         <Stat label="Win rate" value={`${s.winRate}%`} borderColor={borderColor} />
-        <Stat label="Σ PnL" value={`${s.totalPnl >= 0 ? '+' : ''}${s.totalPnl}%`} valueColor={pnlColor} borderColor={borderColor} />
+        <Stat label="Σ price moves" value={`${s.totalPnl >= 0 ? '+' : ''}${s.totalPnl}%`} valueColor={pnlColor} borderColor={borderColor} />
+      </div>
+      <div style={{ fontSize: '10px', opacity: 0.55 }}>
+        Arithmetic OHLCV outcomes, unsized and before costs. Not a portfolio return or broker-fill record.
       </div>
     </main>
   );

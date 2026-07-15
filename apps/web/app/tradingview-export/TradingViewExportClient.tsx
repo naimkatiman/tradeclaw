@@ -8,11 +8,11 @@ import { generateTradeClawPineScript } from '../../lib/tv-pine-export';
 
 function formatTvPost(stats: ProofStats): string {
   const lines: string[] = [];
-  lines.push('📊 TradeClaw Verified Signal Track Record');
+  lines.push('📊 TradeClaw OHLCV-Resolved Signal Record');
   lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   lines.push('');
   lines.push(`Total Signals Emitted: ${stats.totalSignals}`);
-  lines.push(`Real (Non-Simulated):  ${stats.realSignals}`);
+  lines.push(`Recorded (Non-Synthetic): ${stats.realSignals}`);
   lines.push(`Resolved:              ${stats.resolvedSignals}`);
   lines.push(`Open:                  ${stats.openSignals}`);
   lines.push('');
@@ -22,12 +22,12 @@ function formatTvPost(stats: ProofStats): string {
   lines.push(`  Avg P&L:     ${stats.runningPnlPct >= 0 ? '+' : ''}${stats.runningPnlPct}%`);
   lines.push(`  Avg Confidence: ${stats.avgConfidence}%`);
   lines.push('');
-  lines.push('All outcomes verified by live candle resolution.');
-  lines.push('No cherry-picking. No hidden losses.');
+  lines.push('Outcomes are resolved against provider OHLCV, not broker fills.');
+  lines.push('Statistics describe stored signal rows, not customer trades or portfolio returns.');
   lines.push('');
   lines.push('🔗 tradeclaw.win/track-record');
   lines.push('');
-  lines.push('#TradeClaw #TradingSignals #AITrading #VerifiedTrackRecord');
+  lines.push('#TradeClaw #TradingSignals #AITrading #OpenData');
   return lines.join('\n');
 }
 
@@ -98,8 +98,8 @@ export function TradingViewExportClient() {
             Export Track Record for TradingView
           </h1>
           <p className="text-zinc-400 max-w-xl mx-auto">
-            Copy TradeClaw&apos;s verified signal performance formatted for TradingView ideas
-            and profile posts. Publish transparent proof with one click.
+            Format TradeClaw&apos;s recorded-signal statistics for TradingView ideas and profile
+            posts. The export labels OHLCV resolution and avoids claims about broker fills.
           </p>
         </div>
 
@@ -229,7 +229,7 @@ export function TradingViewExportClient() {
             className="inline-flex items-center gap-1 hover:text-emerald-400 transition"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            Full Track Record
+            Signal Record
           </Link>
           <span className="hidden md:inline">·</span>
           <Link

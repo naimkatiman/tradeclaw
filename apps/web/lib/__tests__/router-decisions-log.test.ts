@@ -22,6 +22,7 @@ const mockedReadHistory = getCachedHistory as jest.MockedFunction<typeof getCach
 
 // Build a resolved history row at the shape isCountedResolved accepts.
 function resolvedRow(id: string, confidence: number, hit: boolean) {
+  const timestamp = 1_700_000_000_000 + Number(id.replace(/\D/g, '') || 0);
   return {
     id,
     pair: 'BTCUSD',
@@ -29,12 +30,19 @@ function resolvedRow(id: string, confidence: number, hit: boolean) {
     direction: 'BUY' as const,
     confidence,
     entryPrice: 100,
-    timestamp: 1_700_000_000_000 + Number(id),
+    timestamp,
     tp1: 104,
     sl: 98,
     outcomes: {
       '4h': null,
-      '24h': { price: 104, pnlPct: hit ? 4 : -2, hit, target: hit ? 'tp1' : 'sl' },
+      '24h': {
+        price: 104,
+        pnlPct: hit ? 4 : -2,
+        hit,
+        target: hit ? 'TP1' : 'SL',
+        resolvedAt: new Date(timestamp + 86_400_000).toISOString(),
+        source: 'binance',
+      },
     },
   };
 }

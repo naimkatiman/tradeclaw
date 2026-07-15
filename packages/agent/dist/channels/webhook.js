@@ -1,3 +1,4 @@
+import { isProviderObservedSignal } from './base.js';
 /**
  * Generic HTTP webhook channel adapter.
  */
@@ -21,17 +22,21 @@ export class WebhookChannel {
         return null;
     }
     async sendSignal(signal) {
+        if (!isProviderObservedSignal(signal)) {
+            console.warn('[webhook] Refused non-observed candidate');
+            return false;
+        }
         return this.post({
-            event: 'signal',
+            event: 'research-candidate',
             signal,
-            timestamp: new Date().toISOString(),
+            deliveredAt: new Date().toISOString(),
         });
     }
     async sendMessage(text) {
         return this.post({
             event: 'message',
             text,
-            timestamp: new Date().toISOString(),
+            deliveredAt: new Date().toISOString(),
         });
     }
     async post(payload) {

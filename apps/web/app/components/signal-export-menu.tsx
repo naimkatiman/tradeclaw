@@ -15,7 +15,7 @@ type ExportFormat = 'telegram' | 'discord' | 'tradingview' | 'mt5' | 'webhook';
 function generateTelegramMessage(s: TradingSignal): string {
   const emoji = s.direction === 'BUY' ? '\u{1F7E2}' : '\u{1F534}';
   return [
-    `${emoji} *${s.direction} ${s.symbol}*  \\[${s.confidence}%\\]`,
+    `${emoji} *${s.direction} ${s.symbol}*  \\[rule score ${s.confidence}/100\\]`,
     `\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550`,
     `\u25B8 Entry    ${formatPrice(s.entry)}`,
     `\u25B8 SL       ${formatPrice(s.stopLoss)}`,
@@ -24,7 +24,7 @@ function generateTelegramMessage(s: TradingSignal): string {
     `\u25B8 TP3      ${formatPrice(s.takeProfit3)}`,
     ``,
     `RSI: ${s.indicators.rsi.value.toFixed(0)} | MACD: ${s.indicators.macd.signal} | Trend: ${s.indicators.ema.trend}`,
-    `TF: ${s.timeframe} | Confidence: ${s.confidence}%`,
+    `TF: ${s.timeframe} | Rule score: ${s.confidence}/100 (not a predictive probability)`,
     ``,
     `_via TradeClaw \u2014 tradeclaw.win_`,
   ].join('\n');
@@ -33,7 +33,7 @@ function generateTelegramMessage(s: TradingSignal): string {
 function generateDiscordEmbed(s: TradingSignal): string {
   return JSON.stringify({
     embeds: [{
-      title: `${s.direction} ${s.symbol} — ${s.confidence}% confidence`,
+      title: `${s.direction} ${s.symbol} — rule score ${s.confidence}/100`,
       color: s.direction === 'BUY' ? 0x10b981 : 0xef4444,
       fields: [
         { name: 'Entry', value: formatPrice(s.entry), inline: true },
@@ -61,7 +61,7 @@ function generateTradingViewAlert(s: TradingSignal): string {
     takeProfit: s.takeProfit1,
     confidence: s.confidence,
     timeframe: s.timeframe,
-    message: `${s.direction} ${s.symbol} @ ${formatPrice(s.entry)} | SL ${formatPrice(s.stopLoss)} | TP ${formatPrice(s.takeProfit1)} | ${s.confidence}% conf`,
+    message: `${s.direction} ${s.symbol} @ ${formatPrice(s.entry)} | SL ${formatPrice(s.stopLoss)} | TP ${formatPrice(s.takeProfit1)} | rule score ${s.confidence}/100`,
   }, null, 2);
 }
 
@@ -75,7 +75,7 @@ function generateMT5Json(s: TradingSignal): string {
     volume: 0.01,
     deviation: 10,
     magic: 202604,
-    comment: `TC|${s.confidence}%|${s.timeframe}`,
+    comment: `TC|score=${s.confidence}/100|${s.timeframe}`,
     type_filling: 'ORDER_FILLING_IOC',
   }, null, 2);
 }

@@ -10,6 +10,7 @@ import { getBotToken, getFreeChannelId } from '../../../../lib/telegram-channels
 const PUBLIC_CHANNEL_SYMBOLS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'SPYUSD', 'QQQUSD'] as const;
 import { requireCronAuth } from '../../../../lib/cron-auth';
 import { broadcastSignalsToDiscord } from '../../../../lib/discord-broadcast';
+import { evaluateCostAdjustedEdge } from '../../../../lib/cost-adjusted-edge-gate';
 
 // ---------------------------------------------------------------------------
 // GET /api/cron/telegram — Vercel Cron handler (every 4 hours)
@@ -35,11 +36,34 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // One fail-closed verdict covers every entry-like fan-out in this route.
+    // Outcome replies use a separate path and remain available for risk exits.
+    const edge = await evaluateCostAdjustedEdge({ symbols: [...PUBLIC_CHANNEL_SYMBOLS] });
+    if (!edge.allowed) {
+      return NextResponse.json(
+        {
+          ok: false,
+          halted: `cost_adjusted_edge:${edge.reason}`,
+          evidence: {
+            usableCount: edge.usableCount,
+            activeDays: edge.activeDays,
+            coverage: edge.coverage,
+            perSignalMeanNetR: edge.perSignalMeanNetR,
+            equalDayLowerBoundNetR: edge.equalDayLowerBoundNetR,
+          },
+        },
+        { status: 503 },
+      );
+    }
+
     let telegramOk = false;
     let telegramMessageId: number | null = null;
     let telegramError: string | null = null;
     if (telegramConfigured) {
-      const result = await broadcastTopSignals(channelId!, botToken!, { freeOnly: true });
+      const result = await broadcastTopSignals(channelId!, botToken!, {
+        freeOnly: true,
+        edgeVerdict: edge,
+      });
       telegramOk = result.success;
       telegramMessageId = result.messageId ?? null;
       telegramError = result.error ?? null;
@@ -64,6 +88,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         FROM signal_history sh
         WHERE telegram_posted_at IS NULL
           AND is_simulated = false
+          AND COALESCE(gate_blocked, FALSE) = FALSE
+          AND broadcast_blocked = FALSE
           -- Dark partner strategies (tv-*) are never publicly broadcast.
           AND ${NOT_DARK_STRATEGY_SQL}
           AND pair = ANY($1)
@@ -119,7 +145,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Independent of Telegram and deduped via discord_posted_at.
     let discordPosted = 0;
     if (discordWebhook) {
-      const discord = await broadcastSignalsToDiscord(discordWebhook);
+      const discord = await broadcastSignalsToDiscord(discordWebhook, { edgeVerdict: edge });
       discordPosted = discord.posted;
     }
 

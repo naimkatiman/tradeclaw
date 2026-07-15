@@ -22,14 +22,14 @@ export async function GET() {
   <tr><td><strong>Pair</strong></td><td>${signal.pair}</td></tr>
   <tr><td><strong>Timeframe</strong></td><td>${signal.timeframe}</td></tr>
   <tr><td><strong>Direction</strong></td><td>${signal.direction}</td></tr>
-  <tr><td><strong>Confidence</strong></td><td>${signal.confidence}%</td></tr>
+  <tr><td><strong>Rule score</strong></td><td>${signal.confidence}/100 (mechanical, not a predictive probability)</td></tr>
   <tr><td><strong>Entry Price</strong></td><td>${fmtPrice(signal.entryPrice)}</td></tr>
   ${signal.tp1 ? `<tr><td><strong>Take Profit 1</strong></td><td>${fmtPrice(signal.tp1)}</td></tr>` : ''}
   ${signal.sl ? `<tr><td><strong>Stop Loss</strong></td><td>${fmtPrice(signal.sl)}</td></tr>` : ''}
 </table>
 <h3>Signal Outcomes</h3>
 <table cellpadding="4" cellspacing="0" border="1" style="border-collapse:collapse;font-family:monospace">
-  <tr><th>Window</th><th>Result</th><th>P&L %</th><th>Exit Price</th></tr>
+  <tr><th>Window</th><th>Rule outcome</th><th>Directional move %</th><th>Observed price</th></tr>
   <tr>
     <td>4h</td>
     <td>${outcome4h ? (outcome4h.hit ? '✅ Hit TP' : '❌ Hit SL') : '⏳ Pending'}</td>
@@ -48,7 +48,7 @@ export async function GET() {
 
     const summary = [
       `${signal.direction} ${signal.pair} at ${fmtPrice(signal.entryPrice)}`,
-      `Confidence: ${signal.confidence}%`,
+      `Rule score: ${signal.confidence}/100 (not a predictive probability)`,
       signal.tp1 ? `TP1: ${fmtPrice(signal.tp1)}` : null,
       signal.sl ? `SL: ${fmtPrice(signal.sl)}` : null,
     ]
@@ -58,7 +58,7 @@ export async function GET() {
     return {
       id: `${BASE_URL}/signal/${signal.id}`,
       url: `${BASE_URL}/signal/${signal.id}`,
-      title: `${signal.direction} ${signal.pair} ${signal.timeframe} — ${signal.confidence}% confidence`,
+      title: `${signal.direction} ${signal.pair} ${signal.timeframe} — rule score ${signal.confidence}/100`,
       content_html: contentHtml,
       summary,
       date_published: new Date(signal.timestamp).toISOString(),
@@ -68,11 +68,11 @@ export async function GET() {
 
   const feed = {
     version: 'https://jsonfeed.org/version/1.1',
-    title: 'TradeClaw — Live AI Trading Signals',
+    title: 'TradeClaw Signal Observations',
     home_page_url: BASE_URL,
     feed_url: `${BASE_URL}/feed.json`,
     description:
-      'Live AI-generated trading signals for forex, crypto, and metals on a 5-minute cadence. Confidence-rated with TP/SL levels. Subscribe to get live signals in any JSON Feed reader.',
+      'Latest available rule-generated signal observations. Directional moves are unsized price observations, not broker or portfolio returns.',
     favicon: `${BASE_URL}/favicon.ico`,
     authors: [{ name: 'TradeClaw', url: BASE_URL }],
     language: 'en-US',

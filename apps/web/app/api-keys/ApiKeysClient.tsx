@@ -118,15 +118,15 @@ function Hero() {
         </span>
       </h1>
       <p className="text-[var(--text-secondary)] text-base max-w-xl mx-auto mb-6">
-        Access live trading signals (5-minute cadence), leaderboard data, and screener results
-        programmatically. 1,000 requests/hour free.{' '}
+        Access the current signal response, observed signal outcomes, and screener results
+        programmatically. 100 requests/hour.{' '}
         <Link href="/docs/self-hosting" className="text-emerald-400 hover:underline">
           Self-host for unlimited.
         </Link>
       </p>
       <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-[var(--text-secondary)]">
         {([
-          { icon: Zap, text: '1,000 req/hour free' },
+          { icon: Zap, text: '100 req/hour' },
           { icon: KeyRound, text: 'Scoped permissions' },
           { icon: BarChart2, text: 'Usage dashboard' },
           { icon: Container, text: 'Self-host for unlimited' },
@@ -342,13 +342,16 @@ function UsageTable({ email }: { email: string }) {
   return (
     <div className="glass-card rounded-xl overflow-hidden">
       <div className="px-6 py-4 border-b border-white/6">
-        <h2 className="text-base font-semibold mb-3">Lookup your keys</h2>
+        <h2 className="text-base font-semibold mb-3">Load your keys</h2>
+        <p className="mb-3 text-xs text-[var(--text-secondary)]">
+          Only keys owned by the signed-in email can be loaded.
+        </p>
         <form onSubmit={lookup} className="flex gap-2">
           <input
             type="email"
             value={lookupEmail}
             onChange={(e) => setLookupEmail(e.target.value)}
-            placeholder="Enter your email to see your keys"
+            placeholder="Enter your signed-in email"
             className="flex-1 min-w-0 rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50"
           />
           <button
@@ -356,7 +359,7 @@ function UsageTable({ email }: { email: string }) {
             disabled={loading || !lookupEmail.trim()}
             className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 disabled:opacity-40 text-sm font-medium transition-colors shrink-0"
           >
-            {loading ? 'Searching…' : 'Lookup'}
+            {loading ? 'Loading...' : 'Load'}
           </button>
         </form>
         {error && (
@@ -459,7 +462,7 @@ function RateLimitCard() {
       <h2 className="text-base font-semibold mb-4">Rate limits</h2>
       <div className="space-y-3">
         {[
-          { label: 'Requests / hour', value: '1,000', highlight: true },
+          { label: 'Requests / hour', value: '100', highlight: true },
           { label: 'Keys per email', value: 'Unlimited' },
           { label: 'Auth header', value: 'X-API-Key' },
           { label: 'Self-hosted', value: 'Unlimited' },
@@ -521,9 +524,9 @@ export default function ApiKeysClient() {
             <h2 className="text-base font-semibold mb-4">Available endpoints</h2>
             <div className="space-y-2">
               {[
-                { method: 'GET', path: '/api/signals', scope: 'signals', desc: 'Live trading signals — BUY/SELL, 5-minute cadence' },
+                { method: 'GET', path: '/api/signals', scope: 'signals', desc: 'Current signal response with source and timestamp fields' },
                 { method: 'GET', path: '/api/signals/multi-tf', scope: 'signals', desc: 'Multi-timeframe signal analysis' },
-                { method: 'GET', path: '/api/leaderboard', scope: 'leaderboard', desc: 'Strategy performance leaderboard' },
+                { method: 'GET', path: '/api/leaderboard', scope: 'leaderboard', desc: 'Observed signal-outcome leaderboard' },
                 { method: 'GET', path: '/api/screener', scope: 'screener', desc: 'Instrument screener results' },
                 { method: 'GET', path: '/api/feed.json', scope: 'signals', desc: 'JSON signal feed' },
                 { method: 'GET', path: '/api/feed.rss', scope: 'signals', desc: 'RSS signal feed' },

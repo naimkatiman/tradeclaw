@@ -11,8 +11,10 @@ export async function GET() {
   // contract: surfaces sharing a metric for the same window must compute it
   // the same way.
   const stats = await computeTrackRecordStats('all');
+  const available = stats.total > 0;
+  const unavailable = '\u2014';
   const pnl = stats.totalPnl;
-  const pnlColor = pnl >= 0 ? '#10b981' : '#f43f5e';
+  const pnlColor = !available ? '#71717a' : pnl >= 0 ? '#10b981' : '#f43f5e';
   const s = {
     total: stats.total.toString(),
     win_rate: stats.winRate.toString(),
@@ -35,20 +37,6 @@ export async function GET() {
           overflow: 'hidden',
         }}
       >
-        {/* Ambient glow */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '40px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '600px',
-            height: '600px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)',
-          }}
-        />
-
         {/* Branding */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
           <div
@@ -66,30 +54,32 @@ export async function GET() {
         </div>
 
         <div style={{ fontSize: '22px', color: '#10b981', letterSpacing: '0.12em', marginBottom: '40px' }}>
-          RECORDED TRACK RECORD — 30 DAYS
+          SOURCE-GATED SIGNAL OUTCOMES - CURRENT ARCHIVE
         </div>
 
         {/* Stats row */}
         <div style={{ display: 'flex', gap: '64px', marginBottom: '40px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ fontSize: '72px', fontWeight: 800, color: '#ffffff' }}>{s.total}</div>
-            <div style={{ fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>SIGNALS</div>
+            <div style={{ fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>COUNTED OUTCOMES</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: '72px', fontWeight: 800, color: '#10b981' }}>{s.win_rate}%</div>
+            <div style={{ fontSize: '72px', fontWeight: 800, color: available ? '#10b981' : '#71717a' }}>
+              {available ? `${s.win_rate}%` : unavailable}
+            </div>
             <div style={{ fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>WIN RATE</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ fontSize: '72px', fontWeight: 800, color: pnlColor }}>
-              {pnl >= 0 ? '+' : ''}{s.total_pnl}%
+              {available ? `${pnl >= 0 ? '+' : ''}${s.total_pnl}%` : unavailable}
             </div>
-            <div style={{ fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>TOTAL P/L</div>
+            <div style={{ fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>UNSIZED PRICE-MOVE SUM</div>
           </div>
         </div>
 
         {/* Footer */}
         <div style={{ color: '#3f3f46', fontSize: '14px', letterSpacing: '0.05em' }}>
-          tradeclaw.win/track-record — open-source, transparent, resolved against Binance/Yahoo OHLCV
+          Source-approved OHLCV outcomes only; unavailable when none are counted. Not broker fills or portfolio returns.
         </div>
       </div>
     ),

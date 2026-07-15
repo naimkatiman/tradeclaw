@@ -1,53 +1,22 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity,
-  StyleSheet, RefreshControl, ActivityIndicator,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { router } from 'expo-router';
+import {
+  parseSignalResponse,
+  type ObservedSignal,
+} from '../../lib/signal-contract';
 
-interface Signal {
-  id: string;
-  symbol: string;
-  direction: 'BUY' | 'SELL';
-  confidence: number;
-  entry: number;
-  timeframe: string;
-  timestamp: number;
-}
-
-// Use the deployed TradeClaw API — replace with your host
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
-function seededRandom(seed: number) {
-  const x = Math.sin(seed + 1) * 10000;
-  return x - Math.floor(x);
-}
-
-function generateSignals(): Signal[] {
-  const symbols = ['XAUUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'XAGUSD', 'AUDUSD'];
-  const timeframes = ['M15', 'H1', 'H4', 'D1'];
-  const prices: Record<string, number> = {
-    XAUUSD: 2180, BTCUSD: 87500, ETHUSD: 3400, EURUSD: 1.083,
-    GBPUSD: 1.264, USDJPY: 151.2, XAGUSD: 24.8, AUDUSD: 0.654,
-  };
-  const seed = Math.floor(Date.now() / 300000);
-  return symbols.map((symbol, i) => {
-    const r1 = seededRandom(seed + i * 7);
-    const r2 = seededRandom(seed + i * 7 + 1);
-    const r3 = seededRandom(seed + i * 7 + 2);
-    return {
-      id: `${symbol}-${seed}`,
-      symbol,
-      direction: r1 > 0.5 ? 'BUY' : 'SELL',
-      confidence: Math.round(55 + r2 * 40),
-      entry: prices[symbol] * (0.999 + r3 * 0.002),
-      timeframe: timeframes[Math.floor(r1 * timeframes.length)],
-      timestamp: Date.now() - Math.floor(r3 * 3600000),
-    };
-  });
-}
-
-function SignalCard({ signal, onPress }: { signal: Signal; onPress: () => void }) {
+function SignalCard({ signal, onPress }: { signal: ObservedSignal; onPress: () => void }) {
   const isBuy = signal.direction === 'BUY';
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
@@ -64,13 +33,13 @@ function SignalCard({ signal, onPress }: { signal: Signal; onPress: () => void }
       </View>
       <View style={styles.cardFooter}>
         <Text style={styles.entry}>
-          Entry {signal.entry >= 1000 ? signal.entry.toFixed(2) : signal.entry.toFixed(4)}
+          Candidate {signal.entry >= 1000 ? signal.entry.toFixed(2) : signal.entry.toFixed(4)}
         </Text>
         <View style={styles.confRow}>
           <View style={styles.confBar}>
             <View style={[styles.confFill, { width: `${signal.confidence}%` as `${number}%` }]} />
           </View>
-          <Text style={styles.confValue}>{signal.confidence}%</Text>
+          <Text style={styles.confValue}>{signal.confidence}/100</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -78,29 +47,39 @@ function SignalCard({ signal, onPress }: { signal: Signal; onPress: () => void }
 }
 
 export default function DashboardScreen() {
-  const [signals, setSignals] = useState<Signal[]>([]);
+  const [signals, setSignals] = useState<ObservedSignal[]>([]);
+  const [reason, setReason] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/signals`);
-      const data = await res.json();
-      setSignals(data.signals || generateSignals());
+      const response = await fetch(`${API_BASE}/api/signals`, {
+        headers: { Accept: 'application/json' },
+      });
+      const body: unknown = await response.json();
+      const parsed = parseSignalResponse(body);
+
+      setSignals(parsed.signals);
+      setReason(parsed.reason ?? (response.ok ? null : `api-http-${response.status}`));
     } catch {
-      setSignals(generateSignals());
+      setSignals([]);
+      setReason('signal-api-unreachable');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   if (loading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator color="#10B981" />
+        <Text style={styles.loadingText}>Checking observed signal data</Text>
       </View>
     );
   }
@@ -108,26 +87,45 @@ export default function DashboardScreen() {
   return (
     <FlatList
       style={styles.list}
-      contentContainerStyle={styles.listContent}
+      contentContainerStyle={[styles.listContent, signals.length === 0 && styles.emptyContent]}
       data={signals}
       keyExtractor={item => item.id}
       renderItem={({ item }) => (
         <SignalCard
           signal={item}
-          onPress={() => router.push({ pathname: '/signal/[id]', params: { id: item.id, data: JSON.stringify(item) } })}
+          onPress={() => router.push({
+            pathname: '/signal/[id]',
+            params: { id: item.id, data: JSON.stringify(item) },
+          })}
         />
       )}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={() => { setRefreshing(true); load(); }}
+          onRefresh={() => {
+            setRefreshing(true);
+            void load();
+          }}
           tintColor="#10B981"
         />
       }
       ListHeaderComponent={
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Live Signals</Text>
-          <Text style={styles.headerSub}>{signals.length} pairs · updates every 5min</Text>
+          <Text style={styles.headerTitle}>Observed candidates</Text>
+          <Text style={styles.headerSub}>
+            {signals.length > 0
+              ? `${signals.length} provider-backed candidate${signals.length === 1 ? '' : 's'}`
+              : 'No provider-backed candidates available'}
+          </Text>
+        </View>
+      }
+      ListEmptyComponent={
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyTitle}>Signal data unavailable</Text>
+          <Text style={styles.emptyBody}>
+            TradeClaw did not receive a complete provider-observed candidate. No fallback prices or generated signals are shown.
+          </Text>
+          {reason ? <Text style={styles.reason}>{reason}</Text> : null}
         </View>
       }
       ItemSeparatorComponent={() => <View style={styles.sep} />}
@@ -138,31 +136,43 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   list: { flex: 1, backgroundColor: '#050505' },
   listContent: { padding: 16 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#050505' },
+  emptyContent: { flexGrow: 1 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, backgroundColor: '#050505' },
+  loadingText: { color: '#71717A', fontSize: 12 },
   header: { marginBottom: 16 },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#fff', letterSpacing: -0.3 },
-  headerSub: { fontSize: 11, color: '#52525B', marginTop: 2 },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
+  headerSub: { fontSize: 11, color: '#71717A', marginTop: 2 },
   card: {
     backgroundColor: 'rgba(255,255,255,0.025)',
-    borderRadius: 16,
+    borderRadius: 8,
     padding: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.06)',
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  symbol: { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
-  timeframe: { fontSize: 10, color: '#52525B', fontFamily: 'monospace', marginTop: 2 },
-  dirBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1 },
+  symbol: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  timeframe: { fontSize: 10, color: '#71717A', fontFamily: 'monospace', marginTop: 2 },
+  dirBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 1 },
   buyBadge: { backgroundColor: 'rgba(16,185,129,0.1)', borderColor: 'rgba(16,185,129,0.2)' },
   sellBadge: { backgroundColor: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.2)' },
-  dirText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  dirText: { fontSize: 11, fontWeight: '700' },
   buyText: { color: '#10B981' },
   sellText: { color: '#EF4444' },
   cardFooter: { gap: 8 },
-  entry: { fontSize: 11, color: '#71717A', fontFamily: 'monospace' },
+  entry: { fontSize: 11, color: '#A1A1AA', fontFamily: 'monospace' },
   confRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   confBar: { flex: 1, height: 3, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 2 },
   confFill: { height: 3, backgroundColor: '#10B981', borderRadius: 2 },
-  confValue: { fontSize: 10, color: '#10B981', fontFamily: 'monospace', fontWeight: '600', width: 32, textAlign: 'right' },
+  confValue: { fontSize: 10, color: '#10B981', fontFamily: 'monospace', fontWeight: '600', width: 48, textAlign: 'right' },
+  emptyState: {
+    flex: 1,
+    minHeight: 260,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  emptyTitle: { color: '#E4E4E7', fontSize: 15, fontWeight: '600' },
+  emptyBody: { color: '#71717A', fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 8 },
+  reason: { color: '#52525B', fontSize: 10, fontFamily: 'monospace', marginTop: 12 },
   sep: { height: 8 },
 });

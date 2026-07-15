@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { PortfolioWidgetClient } from './PortfolioWidgetClient';
 
 export const metadata: Metadata = {
-  title: 'Portfolio Widget — Embed Your P&L Anywhere | TradeClaw',
+  title: 'Paper Simulation Widget | TradeClaw',
   description:
-    'Embeddable portfolio tracker showing live P&L from paper trading. Iframe embed, shields.io badge, dark/light theme, compact mode.',
+    'Embeddable realized paper-simulation results. Open P&L, broker fills, and customer portfolio performance are not represented.',
 };
 
 export default function PortfolioWidgetPage() {

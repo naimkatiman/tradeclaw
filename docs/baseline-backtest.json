@@ -1,8 +1,12 @@
 {
-  "winRate": 58.0,
-  "totalReturn": 12.0,
-  "sharpe": 1.2,
-  "maxDrawdown": 8.5,
-  "totalTrades": 120,
-  "_comment": "Baseline metrics for the strategy backtest suite. The PR backtest workflow (see .github/workflows/backtest-pr-comment.yml) compares each PR's backtest output against these numbers and posts the delta as a PR comment. Update this file when intentional engine changes shift the baseline, with a commit message explaining why."
+  "available": true,
+  "fixture": "packages/strategies/src/__tests__/fixtures/candles-100.json",
+  "aggregation": "unweighted mean across preset snapshots; totalTrades is summed",
+  "winRate": 29.334,
+  "totalReturn": -0.19200000000000003,
+  "profitFactor": 1.1577,
+  "maxDrawdown": 0.334,
+  "totalTrades": 24,
+  "strategies": 5,
+  "limitation": "Deterministic modeled fixture diagnostics only; not live, out-of-sample, broker, account, or portfolio performance."
 }

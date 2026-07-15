@@ -2,9 +2,9 @@ import { readHistoryAsync, type SignalHistoryRecord } from '../../lib/signal-his
 import { RSSClient } from './RSSClient';
 
 export const metadata = {
-  title: 'RSS & Live Feed — TradeClaw',
+  title: 'RSS Signal Archive — TradeClaw',
   description:
-    'Subscribe to TradeClaw live trading signals via RSS, Atom, or JSON Feed. Get AI-generated forex, crypto, and metals signals in your favorite RSS reader.',
+    'Subscribe to available TradeClaw signal records via RSS, Atom, or JSON Feed. Confidence is indicator agreement, not a probability of profit.',
 };
 
 export default async function RSSPage() {

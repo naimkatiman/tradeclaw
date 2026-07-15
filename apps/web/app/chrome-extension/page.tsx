@@ -17,7 +17,7 @@ const installSteps = [
 const highlights = [
   {
     title: 'Live signal badges',
-    text: 'BTCUSD, ETHUSD, and XAUUSD appear in the popup with direction, confidence, and a quick link back to TradeClaw.',
+    text: 'BTCUSD, ETHUSD, and XAUUSD appear in the popup with direction, a mechanical rule score, and a quick link back to TradeClaw.',
   },
   {
     title: 'Self-host ready',
@@ -105,7 +105,7 @@ export default function ChromeExtensionPage() {
           <div className="panel-title">What the popup shows</div>
           <ul className="checklist">
             <li>Direction-first badges for fast scanning.</li>
-            <li>Confidence percentages to set context quickly.</li>
+            <li>Mechanical rule scores out of 100; they are not predictive probabilities.</li>
             <li>Signal timestamps and one-click links back to TradeClaw.</li>
             <li>Base URL settings for self-hosted installs.</li>
           </ul>
@@ -144,6 +144,10 @@ export default function ChromeExtensionPage() {
     { "symbol": "XAUUSD", "direction": "NEUTRAL", "confidence": 0, "signalUrl": "https://tradeclaw.win/dashboard" }
   ]
 }`}</pre>
+        <p className="small" style={{ marginTop: 12 }}>
+          The legacy <code>confidence</code> field contains the mechanical rule score out of 100, not a
+          calibrated probability.
+        </p>
       </section>
     </main>
   );

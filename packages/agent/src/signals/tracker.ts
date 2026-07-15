@@ -1,7 +1,7 @@
 /**
- * Signal accuracy tracker.
- * Persists every generated signal to ~/.tradeclaw/signal-history.jsonl
- * and provides historical accuracy analytics.
+ * Observed candidate outcome tracker.
+ * Persists only candidates explicitly marked as real to
+ * ~/.tradeclaw/signal-history.jsonl and summarizes resolved outcomes.
  */
 
 import { appendFile, readFile, mkdir } from 'node:fs/promises';
@@ -23,12 +23,13 @@ export interface TrackedSignal {
   sl: number;
   timestamp: string;
   skill: string;
+  dataQuality: 'real';
   closed_at?: string;
   result?: 'tp1' | 'tp2' | 'tp3' | 'stopped' | 'expired';
   pnl_pips?: number;
 }
 
-/** Accuracy summary returned by getHistory() */
+/** Observed outcome summary returned by getHistory(). */
 export interface HistorySummary {
   totalSignals: number;
   closedSignals: number;
@@ -49,7 +50,32 @@ async function ensureDir(): Promise<void> {
   }
 }
 
+export function isObservedSignal(signal: TradingSignal): boolean {
+  return signal.source === 'real'
+    && signal.dataQuality === 'real'
+    && Number.isFinite(signal.entry)
+    && signal.entry > 0
+    && Number.isFinite(signal.stopLoss)
+    && Number.isFinite(signal.takeProfit1)
+    && Number.isFinite(Date.parse(signal.timestamp));
+}
+
+function isObservedHistoryRow(value: unknown): value is TrackedSignal {
+  if (!value || typeof value !== 'object') return false;
+  const row = value as Partial<TrackedSignal>;
+  return row.dataQuality === 'real'
+    && typeof row.id === 'string'
+    && typeof row.symbol === 'string'
+    && (row.direction === 'BUY' || row.direction === 'SELL')
+    && typeof row.entry === 'number'
+    && Number.isFinite(row.entry)
+    && row.entry > 0
+    && typeof row.timestamp === 'string'
+    && Number.isFinite(Date.parse(row.timestamp));
+}
+
 export async function trackSignal(signal: TradingSignal): Promise<void> {
+  if (!isObservedSignal(signal)) return;
   await ensureDir();
 
   const entry: TrackedSignal = {
@@ -64,16 +90,18 @@ export async function trackSignal(signal: TradingSignal): Promise<void> {
     sl: signal.stopLoss,
     timestamp: signal.timestamp,
     skill: signal.skill ?? 'engine',
+    dataQuality: 'real',
   };
 
   await appendFile(HISTORY_FILE, JSON.stringify(entry) + '\n', 'utf-8');
 }
 
 export async function trackSignals(signals: TradingSignal[]): Promise<void> {
-  if (signals.length === 0) return;
+  const observedSignals = signals.filter(isObservedSignal);
+  if (observedSignals.length === 0) return;
   await ensureDir();
 
-  const lines = signals.map(signal => {
+  const lines = observedSignals.map(signal => {
     const entry: TrackedSignal = {
       id: signal.id,
       symbol: signal.symbol,
@@ -86,6 +114,7 @@ export async function trackSignals(signals: TradingSignal[]): Promise<void> {
       sl: signal.stopLoss,
       timestamp: signal.timestamp,
       skill: signal.skill ?? 'engine',
+      dataQuality: 'real',
     };
     return JSON.stringify(entry);
   });
@@ -102,7 +131,8 @@ export async function loadHistory(): Promise<TrackedSignal[]> {
 
   for (const line of lines) {
     try {
-      signals.push(JSON.parse(line) as TrackedSignal);
+      const parsed: unknown = JSON.parse(line);
+      if (isObservedHistoryRow(parsed)) signals.push(parsed);
     } catch {
       // skip malformed lines
     }

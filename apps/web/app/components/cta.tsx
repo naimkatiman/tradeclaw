@@ -18,8 +18,8 @@ export function CTASection() {
         </h2>
 
         <p className="mx-auto mt-6 max-w-xl text-lg text-zinc-400">
-          Deploy TradeClaw in 5 minutes and stop paying for signals that
-          should be free.
+          Inspect the signal rules, run the stack on your own infrastructure,
+          and evaluate the evidence before using any output.
         </p>
 
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">

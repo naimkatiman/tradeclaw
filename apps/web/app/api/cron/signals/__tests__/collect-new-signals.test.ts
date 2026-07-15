@@ -22,6 +22,7 @@ jest.mock('../../../../lib/signal-generator', () => {
   );
   return actual;
 });
+
 jest.mock('../../../../lib/market-hours', () => ({
   isMarketOpen: jest.fn().mockReturnValue(true),
 }));
@@ -37,6 +38,9 @@ jest.mock('../../../../../lib/signal-history', () => ({
   markTelegramPosted: jest.fn().mockResolvedValue(undefined),
   resolveFromCandles: jest.fn().mockReturnValue(null),
   getOutcomeResolutionTimeframe: jest.fn().mockReturnValue('H1'),
+  isObservedOHLCVOutcomeSource: jest.fn((source: unknown) => (
+    ['market-data-hub', 'binance', 'stooq', 'kraken', 'cryptocompare'].includes(String(source))
+  )),
   getUnpostedProSignalsAsync: jest.fn().mockResolvedValue([]),
 }));
 jest.mock('../../../../../lib/signal-thresholds', () => ({
@@ -65,12 +69,27 @@ jest.mock('../preset-dispatch', () => ({
 
 // ── Import after mocks ────────────────────────────────────────────────────────
 
-import { collectNewSignals } from '../route';
+import { collectNewSignals, resolveOldSignals } from '../route';
+import { getOHLCV } from '../../../../lib/ohlcv';
 import { getSignals } from '../../../../lib/signals';
 import { readLiveSignals } from '../../../../../lib/signals-live';
+import {
+  getPendingRecordsAsync,
+  getRecentRecordForSymbolAsync,
+  resolveFromCandles,
+  updateRecordsAsync,
+  type SignalHistoryRecord,
+} from '../../../../../lib/signal-history';
 
 const mockGetSignals = getSignals as jest.MockedFunction<typeof getSignals>;
 const mockReadLiveSignals = readLiveSignals as jest.MockedFunction<typeof readLiveSignals>;
+const mockGetRecentRecord = getRecentRecordForSymbolAsync as jest.MockedFunction<
+  typeof getRecentRecordForSymbolAsync
+>;
+const mockGetOHLCV = getOHLCV as jest.MockedFunction<typeof getOHLCV>;
+const mockGetPendingRecords = getPendingRecordsAsync as jest.MockedFunction<typeof getPendingRecordsAsync>;
+const mockResolveFromCandles = resolveFromCandles as jest.MockedFunction<typeof resolveFromCandles>;
+const mockUpdateRecords = updateRecordsAsync as jest.MockedFunction<typeof updateRecordsAsync>;
 
 // ── Minimal signal fixture ────────────────────────────────────────────────────
 
@@ -156,6 +175,38 @@ describe('collectNewSignals — strategy attribution', () => {
     jest.clearAllMocks();
     // Default: live scanner unavailable → force fallback path
     mockReadLiveSignals.mockResolvedValue(null);
+    mockGetRecentRecord.mockResolvedValue(undefined);
+  });
+
+  describe('evidence-complete deduplication', () => {
+    it('keeps a recent request-path row eligible when decision and cost evidence are missing', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockGetSignals.mockResolvedValue({ signals: [makeRawSignal() as any], syntheticSymbols: [] });
+      mockGetRecentRecord.mockResolvedValue({
+        id: 'sig-1',
+        broadcastBlocked: undefined,
+        costEstimatePct: undefined,
+      } as Awaited<ReturnType<typeof getRecentRecordForSymbolAsync>>);
+
+      const { candidates } = await collectNewSignals('classic');
+
+      expect(candidates).toHaveLength(1);
+      expect(candidates[0].id).toBe('sig-1');
+    });
+
+    it('suppresses a recent row only after decision and positive cost evidence are present', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockGetSignals.mockResolvedValue({ signals: [makeRawSignal() as any], syntheticSymbols: [] });
+      mockGetRecentRecord.mockResolvedValue({
+        id: 'sig-1',
+        broadcastBlocked: false,
+        costEstimatePct: 0.4,
+      } as Awaited<ReturnType<typeof getRecentRecordForSymbolAsync>>);
+
+      const { candidates } = await collectNewSignals('classic');
+
+      expect(candidates).toHaveLength(0);
+    });
   });
 
   describe('FALLBACK path (live scanner unavailable)', () => {
@@ -248,4 +299,80 @@ describe('collectNewSignals — strategy attribution', () => {
       expect(candidates[0].confluenceBonus).toBeUndefined();
     });
   });
+});
+
+describe('resolveOldSignals outcome provenance', () => {
+  function pendingRecord(): SignalHistoryRecord {
+    const timestamp = Date.now() - 25 * 60 * 60 * 1000;
+    return {
+      id: 'pending-1',
+      pair: 'BTCUSD',
+      timeframe: 'H1',
+      direction: 'BUY',
+      confidence: 80,
+      entryPrice: 100,
+      timestamp,
+      tp1: 105,
+      sl: 95,
+      outcomes: { '4h': null, '24h': null },
+    };
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetPendingRecords.mockResolvedValue([pendingRecord()]);
+    mockUpdateRecords.mockResolvedValue(1);
+    mockResolveFromCandles.mockReturnValue({
+      outcome: { price: 105, pnlPct: 5, hit: true, target: 'TP1' },
+      maxAdverseExcursion: 1,
+    });
+  });
+
+  it('stamps an approved observed provider on every resolved outcome', async () => {
+    mockGetOHLCV.mockResolvedValue({
+      source: 'binance',
+      candles: [{
+        timestamp: Date.now() - 24 * 60 * 60 * 1000,
+        open: 100,
+        high: 106,
+        low: 99,
+        close: 105,
+        volume: 10,
+      }],
+    });
+
+    await resolveOldSignals();
+
+    const updates = mockUpdateRecords.mock.calls[0][0];
+    expect(updates[0].patch.outcomes?.['4h']).toEqual(expect.objectContaining({ source: 'binance' }));
+    expect(updates[0].patch.outcomes?.['24h']).toEqual(expect.objectContaining({ source: 'binance' }));
+  });
+
+  it.each(['synthetic', 'unavailable', 'unknown'] as const)(
+    'refuses %s candles instead of resolving a counted outcome',
+    async (source) => {
+      mockGetOHLCV.mockResolvedValue({
+        source: source as 'synthetic',
+        candles: [{
+          timestamp: Date.now() - 24 * 60 * 60 * 1000,
+          open: 100,
+          high: 106,
+          low: 99,
+          close: 105,
+          volume: 10,
+        }],
+      });
+
+      const result = await resolveOldSignals();
+
+      expect(mockResolveFromCandles).not.toHaveBeenCalled();
+      const updates = mockUpdateRecords.mock.calls[0][0];
+      expect(updates[0].patch.outcomes?.['4h']).toEqual(expect.objectContaining({
+        source: 'force-expired',
+        pnlPct: 0,
+      }));
+      expect(updates[0].patch.outcomes?.['24h']).toBeNull();
+      expect(result.errors.join(' ')).toContain(`Refusing unobserved OHLCV source ${source}`);
+    },
+  );
 });

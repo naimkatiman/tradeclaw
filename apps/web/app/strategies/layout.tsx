@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Strategies — TradeClaw',
-  description: 'Live trading strategies with per-strategy performance — win rate, profit factor, Sharpe, and drawdown.',
+  description: 'Inspectable strategy definitions and recorded-signal studies. OHLCV-resolved outcomes are not broker fills or portfolio performance.',
 };
 
 export default function StrategiesLayout({ children }: { children: React.ReactNode }) {

@@ -59,54 +59,6 @@ function generateKeyString(): string {
   return `tc_live_${rand}`;
 }
 
-function seedKeys(): ApiKey[] {
-  const now = Date.now();
-  return [
-    {
-      id: 'demo-key-1',
-      key: generateKeyString(),
-      name: 'Demo Key — Signals only',
-      email: 'demo@tradeclaw.win',
-      description: 'Read-only access to trading signals endpoint.',
-      scopes: ['signals'],
-      createdAt: now - 14 * DAY_MS,
-      lastUsedAt: now - 2 * DAY_MS,
-      requestCount: 340,
-      rateLimit: API_RATE_LIMIT_PER_HOUR,
-      status: 'revoked',
-      active: false,
-    },
-    {
-      id: 'demo-key-2',
-      key: generateKeyString(),
-      name: 'Demo Key — Signals + Leaderboard',
-      email: 'demo@tradeclaw.win',
-      description: 'Signals and leaderboard access for a bot.',
-      scopes: ['signals', 'leaderboard'],
-      createdAt: now - 7 * DAY_MS,
-      lastUsedAt: now - DAY_MS,
-      requestCount: 892,
-      rateLimit: API_RATE_LIMIT_PER_HOUR,
-      status: 'revoked',
-      active: false,
-    },
-    {
-      id: 'demo-key-3',
-      key: generateKeyString(),
-      name: 'Demo Key — Full access',
-      email: 'demo@tradeclaw.win',
-      description: 'Full scope access: signals, leaderboard, screener.',
-      scopes: ['signals', 'leaderboard', 'screener'],
-      createdAt: now - 3 * DAY_MS,
-      lastUsedAt: now - 3600000,
-      requestCount: 1247,
-      rateLimit: API_RATE_LIMIT_PER_HOUR,
-      status: 'revoked',
-      active: false,
-    },
-  ];
-}
-
 export function readKeys(): ApiKey[] {
   ensureDir();
   if (fs.existsSync(KEYS_FILE)) {
@@ -114,9 +66,7 @@ export function readKeys(): ApiKey[] {
       return JSON.parse(fs.readFileSync(KEYS_FILE, 'utf-8')) as ApiKey[];
     } catch { /* corrupt */ }
   }
-  const seed = seedKeys();
-  try { fs.writeFileSync(KEYS_FILE, JSON.stringify(seed, null, 2)); } catch { /* read-only */ }
-  return seed;
+  return [];
 }
 
 function writeKeys(keys: ApiKey[]) {

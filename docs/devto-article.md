@@ -1,209 +1,111 @@
-# I built an open-source AI trading signal platform — here's what I learned
+# Building an auditable, self-hosted trading research platform
 
-*Cross-post this to Dev.to, Hashnode, and Medium for maximum reach.*
-
----
+*Draft for Dev.to, Hashnode, or Medium. Verify code paths and links against the release commit before publishing.*
 
 **Tags:** `opensource` `trading` `nextjs` `typescript` `selfhosted`
 
-**Cover image:** Use `apps/web/public/readme-banner.svg` or a screenshot of the dashboard
+## Why I built TradeClaw
 
----
+Technical indicators are easy to calculate. The harder engineering problem is provenance: which market-data source produced a candidate, which rules contributed to its score, which later observation resolved it, and which rows belong in a historical denominator.
 
-## The problem
+[TradeClaw](https://github.com/naimkatiman/tradeclaw) is an MIT-licensed, self-hostable platform built around those questions. It generates rule-scored signal candidates and persists enough context to audit later OHLCV-based outcome studies.
 
-Every time I wanted to trade forex or crypto, I had the same friction: open TradingView, look at RSI, look at MACD, look at EMA, try to decide if they agree, second-guess myself.
+It is not a promise of profitable trading. A rule score is not a calibrated probability, and a candidate is not a broker order or fill.
 
-The tools exist. The data exists. The math is solved. But nobody had packaged it as "here's the decision, not just the numbers."
+## Architecture
 
-So I built [TradeClaw](https://github.com/naimkatiman/tradeclaw).
+The repository is a TypeScript/Next.js monorepo with PostgreSQL-backed history and Docker Compose configuration. Operators configure the data and delivery providers they intend to use.
 
-## What it does
+The source license does not make the whole operation cost-free. Hosting, market-data providers, messaging providers, model APIs, and brokers may impose their own charges and terms.
 
-TradeClaw is a self-hosted AI trading signal platform. Point it at a symbol, and it returns:
+The main flow is:
 
-```json
-{
-  "direction": "BUY",
-  "confidence": 82,
-  "entry": 94210.50,
-  "stopLoss": 93580.00,
-  "takeProfit1": 95420.00,
-  "takeProfit2": 96800.00
-}
+```text
+configured OHLCV provider
+  -> indicator and regime rules
+  -> rule-scored candidate
+  -> persisted candidate and provenance
+  -> later OHLCV outcome resolution
+  -> counted research statistics
 ```
 
-Not RSI=68. Not "MACD is crossing above signal line." A decision.
+Alert delivery and optional execution adapters are separate from this flow. A delivered message does not prove a trade was placed, and a requested order does not prove a fill.
 
-It covers 10 assets across forex, crypto, and commodities. It runs entirely in Docker. It has a REST API, a Telegram bot, a paper trading simulator, and a backtest visualizer.
+## Scores are not probabilities
 
-It's MIT-licensed. Free forever. You own your data.
-
-## The tech stack
-
-- **Next.js 14** — app router, server components
-- **TypeScript** — strict mode throughout  
-- **No database** — file-based JSON (intentional, keeps deployment dead simple)
-- **TA calculations** — pure TypeScript: RSI, MACD, EMA, Bollinger Bands, Stochastic, ATR, ADX
-- **Data** — Binance API (crypto), Yahoo Finance (forex/commodities)
-- **Docker** — single `docker compose up -d` and it works
-
-## The signal engine
-
-This was the interesting part. Most indicator libraries just return numbers. I needed decisions.
-
-The approach: **weighted scoring**.
+The engine combines technical conditions into a score. Conceptually:
 
 ```typescript
-// Simplified version
-function scoreIndicators(indicators: AllIndicators, candles: OHLCV[]): SignalScore {
-  let buyScore = 0;
-  let sellScore = 0;
-  
-  // RSI
-  if (indicators.rsi < 35) buyScore += 2;
-  else if (indicators.rsi > 65) sellScore += 2;
-  
-  // MACD histogram direction
-  if (indicators.macd.histogram > 0) buyScore += 1.5;
-  else sellScore += 1.5;
-  
-  // EMA crossover
-  if (indicators.ema.ema20 > indicators.ema.ema50) buyScore += 1;
-  else sellScore += 1;
-  
-  // Bollinger Band position
-  if (price < indicators.bb.lower * 1.01) buyScore += 1.5;
-  else if (price > indicators.bb.upper * 0.99) sellScore += 1.5;
-  
-  // ... more indicators
-  
-  const totalScore = buyScore + sellScore;
-  const confidence = Math.round((Math.max(buyScore, sellScore) / totalScore) * 100);
-  
-  return {
-    direction: buyScore > sellScore ? 'BUY' : 'SELL',
-    confidence,
-    buyScore,
-    sellScore,
-  };
+type Candidate = {
+  direction: 'BUY' | 'SELL';
+  ruleScore: number;
+  dataQuality: 'real' | 'synthetic' | 'unknown';
+  source: string;
+};
+
+function publishable(candidate: Candidate) {
+  return candidate.dataQuality === 'real' && candidate.ruleScore >= configuredThreshold;
 }
 ```
 
-The full version (`apps/web/app/lib/signal-generator.ts`) adds:
-- Market quality gating (ATR%, Bollinger bandwidth, EMA trend strength)
-- Stochastic confirmation
-- Multi-timeframe confluence (+15% confidence if H1/H4/D1 all agree)
-- Support/resistance proximity for stop placement
+The exact implementation is in the repository and evolves with the code. The important wording is `ruleScore`: without a calibration study, `80/100` must not be presented as an 80% chance of profit.
 
-## What I learned building this
+## Failing closed on missing data
 
-### 1. Synthetic fallback is essential
+An earlier design used synthetic candles when providers failed. That made interfaces look available while changing the meaning of the output. Public and broadcast paths now need to reject synthetic data or label a fixture explicitly.
 
-Real trading APIs (Binance, Yahoo Finance) fail. Rate limits, network issues, outages. I built a synthetic fallback that generates realistic OHLCV data deterministically, so the platform always works even without internet.
+For example:
 
 ```typescript
-// When live APIs fail, use seeded pseudo-random price simulation
-function generateSyntheticCandles(symbol: string, count: number): OHLCV[] {
-  let price = BASE_PRICES[symbol] || 100;
-  let seed = hashSymbol(symbol);
-  
-  return Array.from({ length: count }, () => {
-    seed = (seed * 1664525 + 1013904223) & 0xffffffff;
-    const change = ((seed >>> 0) / 0xffffffff - 0.5) * 0.004;
-    // ... generate realistic OHLCV
-  });
+if (candidate.dataQuality !== 'real') {
+  return { status: 'unavailable', candidate: null };
 }
 ```
 
-### 2. No-database architecture is underrated
+The standalone `tradeclaw-demo` package is intentionally different: it is a deterministic synthetic UI/transport fixture. Its API and interface label that provenance and make no market or performance claim.
 
-My first instinct was PostgreSQL. Instead, I used JSON files for everything — signal history, webhook configs, API keys, paper trading positions, price alerts.
+## Counting historical outcomes
 
-Result:
-- Zero setup for self-hosting
-- Instant backup (just copy the data/ folder)
-- No connection pooling issues
-- Works in Vercel Edge functions
+TradeClaw can compare a persisted candidate with later OHLCV observations. The canonical counted population excludes:
 
-The downside: concurrent writes need locking. I used a simple in-memory queue. Good enough for a single-user self-hosted tool.
+- simulated rows
+- gate-blocked rows
+- unresolved rows
+- force-expired zero-PnL placeholders
 
-### 3. The plugin system was worth building
+That produces a signal-outcome research measure for a stated window and sample. It still does not reproduce broker execution. It omits or may differ from fills, spread, fees, slippage, funding, latency, rejected orders, position sizing, and portfolio equity.
 
-I added a plugin system where users can write custom JavaScript indicators:
+Any published result should therefore identify:
 
-```javascript
-// Custom VWAP indicator
-function compute(candles) {
-  let cumPV = 0, cumVol = 0;
-  candles.forEach(c => {
-    const typical = (c.high + c.low + c.close) / 3;
-    cumPV += typical * c.volume;
-    cumVol += c.volume;
-  });
-  return { value: cumPV / cumVol };
-}
-```
+- the as-of time and evaluation window
+- the counted sample size
+- the OHLCV source and resolution method
+- the exclusion rules
+- whether modeled costs are included
 
-Each plugin runs in a sandboxed `Function()` with mock candles for validation. Community plugins can be shared as JSON.
+## What self-hosting means
 
-### 4. MCP is the new RSS
+Docker Compose provides a reproducible configuration, not a universal one-click guarantee. Setup depends on the host, credentials, provider availability, network, and operator experience. The correct workflow is to review prerequisites, start the stack, inspect health checks, and verify data provenance before relying on output.
 
-Just shipped a Model Context Protocol server:
+## What I learned
 
-```json
-{
-  "mcpServers": {
-    "tradeclaw": {
-      "command": "npx",
-      "args": ["tradeclaw-mcp"]
-    }
-  }
-}
-```
+1. **Unavailable is a valid product state.** An empty, sourced answer is better than an invented fallback.
+2. **Names shape claims.** `ruleScore`, `candidate`, and `OHLCV outcome` are more accurate than `confidence`, `trade`, and `portfolio return` when that is what the system actually has.
+3. **Denominators need one owner.** Every public metric should use the same canonical counted-outcome predicate.
+4. **Execution needs receipts.** Broker order IDs and fills, not UI state, are the evidence for execution.
+5. **Licensing and operating cost are different.** MIT source can still depend on paid infrastructure and providers.
 
-Add this to Claude Desktop, and you can ask "What's the current BTC signal?" and get a full indicator breakdown. This is genuinely useful.
-
-### 5. Viral signals from `npx`
-
-The fastest way to get developers to try something is `npx <package>`. No install, no config:
+## Try the source
 
 ```bash
-npx tradeclaw signals --pair BTCUSD
-npx tradeclaw-demo
-```
-
-The demo command spins up a local Express server with Bloomberg-style UI and a live SSE signal stream. All in under 3 seconds.
-
-## The honest part
-
-Does following these signals make money? I don't know yet.
-
-The signal accuracy pages currently use seed data for demonstration. I've built the infrastructure to track real emitted signals and compute audited outcomes — but that needs months of live data to be meaningful.
-
-I'm not claiming this prints money. I'm claiming it's a well-built, transparent, self-hostable tool for exploring algorithmic signal generation. The math is open source. You can audit every line.
-
-## What's next
-
-- MT4/MT5 broker connectivity (actually send signals to your broker)
-- Machine learning confidence model (trained on tracked signal outcomes)
-- More assets (stocks, indices, energy)
-
-## Try it
-
-```bash
-# Docker (recommended)
 git clone https://github.com/naimkatiman/tradeclaw
-cd tradeclaw && docker compose up -d
-
-# Or just demo it
-npx tradeclaw-demo
+cd tradeclaw
 ```
 
-Live demo: [tradeclaw.win](https://tradeclaw.win)
+Then read the current prerequisites and Docker documentation in the repository before configuring providers or starting services.
 
-GitHub: [naimkatiman/tradeclaw](https://github.com/naimkatiman/tradeclaw) — stars help a lot 🌟
+Project site: [tradeclaw.win](https://tradeclaw.win)
 
----
+Source: [github.com/naimkatiman/tradeclaw](https://github.com/naimkatiman/tradeclaw)
 
-*Built with Next.js, TypeScript, and a lot of caffeine. Feedback welcome in the GitHub Discussions.*
+TradeClaw is research software, not investment advice. Past OHLCV-resolved outcomes do not guarantee future results.

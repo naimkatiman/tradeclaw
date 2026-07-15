@@ -45,7 +45,7 @@ if (opts.help) {
   console.log('');
   console.log(pc.bold('  npx tradeclaw-demo') + pc.dim(' [options]'));
   console.log('');
-  console.log('  Spins up a local TradeClaw AI trading signals demo in seconds.');
+  console.log('  Starts a local UI fixture with synthetic, non-market signal values.');
   console.log('');
   console.log(pc.bold('  Options:'));
   console.log('    --port, -p <n>    Port to listen on (default: auto-detect 3000-3002)');
@@ -58,7 +58,7 @@ if (opts.help) {
   console.log('    npx tradeclaw-demo --no-open');
   console.log('');
   console.log(pc.dim('  GitHub: https://github.com/naimkatiman/tradeclaw'));
-  console.log(pc.dim('  Live:   https://tradeclaw.win'));
+  console.log(pc.dim('  Site:   https://tradeclaw.win'));
   console.log('');
   process.exit(0);
 }
@@ -72,8 +72,8 @@ console.log(pc.green('     ██║   ██╔══██╗██╔══�
 console.log(pc.green('     ██║   ██║  ██║██║  ██║██████╔╝███████╗'));
 console.log(pc.green('     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝'));
 console.log('');
-console.log(pc.bold(pc.white('  ⚡ TradeClaw — AI Trading Signal Platform')));
-console.log(pc.dim('  Open-source • Self-hostable • Real-time'));
+console.log(pc.bold(pc.white('  TradeClaw — Illustrative UI Fixture')));
+console.log(pc.dim('  Synthetic values • No market feed • No execution or performance data'));
 console.log('');
 
 startServer(opts);

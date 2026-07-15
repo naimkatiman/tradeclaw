@@ -30,41 +30,41 @@ const GITHUB_URL = 'https://github.com/naimkatiman/tradeclaw';
 const TAGLINES = [
   'Open-source AI trading signals you can self-host',
   'Self-hosted trading intelligence for developers',
-  'Free AI trading signals — no vendor lock-in',
+  'MIT-licensed trading-signal software with explicit evidence labels',
 ];
 
 const SHORT_DESCRIPTION =
-  'TradeClaw is an open-source, self-hosted AI trading signal platform. Get live BUY/SELL signals (5-minute cadence) for crypto, forex, and commodities. Docker Compose deploy in 60 seconds. No API keys, no paywall.';
+  'TradeClaw is MIT-licensed, self-hostable trading-signal software. It publishes BUY/SELL records for configured markets and labels observed and modeled evidence separately. Review Docker Compose requirements and provider costs before deployment.';
 
 const TOPICS = ['Developer Tools', 'Finance', 'Open Source', 'Bots', 'Productivity'];
 
 const FIRST_COMMENT = `Hey Product Hunt! 👋
 
-I built TradeClaw because I was tired of paying $50+/mo for trading signal services that I couldn't customize or self-host.
+I built TradeClaw to make trading-signal rules, source code, and evidence labels inspectable and self-hostable.
 
-TradeClaw is 100% open-source and runs on your own infra with a single \`docker compose up\`. It analyzes BTC, ETH, XAU, EUR, GBP and more using EMA, RSI, MACD, Bollinger Bands, and Stochastic oscillators.
+TradeClaw's source is MIT-licensed. Its documented Docker Compose path requires environment configuration, and its rule-based engine uses indicators including EMA, RSI, MACD, Bollinger Bands, and Stochastic.
 
 What makes it different:
-- Self-hosted — your data stays yours
-- Live signals every 5 minutes with confidence scores
-- Paper trading mode to test before risking real money
+- Self-hostable, with data handling determined by the providers you configure
+- Confidence describes indicator agreement, not probability of profit
+- Paper-trading and backtest outcomes are modeled simulations
 - Embeddable widgets for blogs and dashboards
 - REST API + Telegram bot integration
 
 Would love your feedback. Star us on GitHub if you find it useful!`;
 
 const GALLERY_CAPTIONS = [
-  'Live dashboard with BUY/SELL signals and confidence scores, refreshed every 5 minutes',
-  'Multi-timeframe analysis across BTC, ETH, XAU, EUR, GBP',
-  'One-click Docker Compose deployment — self-host in 60 seconds',
-  'Paper trading mode: test strategies with zero risk',
+  'Signal archive with BUY/SELL labels and indicator-agreement scores',
+  'Multi-timeframe rule analysis for assets supported by the configured data source',
+  'Documented Docker Compose setup with required environment configuration',
+  'Modeled paper-trading workflow with explicit simulation limitations',
   'Embeddable signal widgets for your blog or newsletter',
   'REST API with full documentation — build your own integrations',
 ];
 
 const TWEET_TEXT = `🚀 TradeClaw just launched on Product Hunt!
 
-Open-source AI trading signals you can self-host. Free forever, no vendor lock-in.
+MIT-licensed trading-signal software you can self-host. External services set their own terms and costs.
 
 Upvote & check it out 👇
 ${PH_URL}
@@ -73,14 +73,14 @@ ${PH_URL}
 
 const LINKEDIN_TEXT = `Excited to share that TradeClaw just launched on Product Hunt!
 
-TradeClaw is an open-source, self-hosted AI trading signal platform. It provides live BUY/SELL signals (5-minute cadence) for crypto, forex, and commodities — all running on your own infrastructure.
+TradeClaw is MIT-licensed, self-hostable trading-signal software. It publishes BUY/SELL records for configured markets and labels observed and modeled evidence separately.
 
 Key features:
-- Docker Compose deploy in 60 seconds
+- Documented Docker Compose setup
 - Multi-timeframe technical analysis
 - Paper trading mode
 - REST API + embeddable widgets
-- 100% free, no vendor lock-in
+- MIT-licensed source; external providers may charge
 
 Would love your support — check it out and upvote if you find it interesting:
 ${PH_URL}`;
@@ -190,7 +190,7 @@ export default function PHClient() {
             TradeClaw on <span style={{ color: '#DA552F' }}>Product Hunt</span>
           </h1>
           <p className="text-[var(--text-secondary)] text-sm max-w-xl mb-6">
-            Support TradeClaw on Product Hunt. Upvote, share with your network, and help the open-source trading community grow.
+            Review this draft kit and verify the external Product Hunt listing before upvoting or sharing it.
           </p>
 
           {/* Upvote button + PH badge */}
@@ -229,7 +229,7 @@ export default function PHClient() {
             Hunter Kit
           </h2>
           <p className="text-xs text-[var(--text-secondary)] mb-4">
-            Everything you need to support the launch. Copy any section with one click.
+            Draft copy for review. Verify product behavior, evidence, costs, and external links before publishing.
           </p>
 
           {/* Taglines */}
@@ -407,7 +407,7 @@ export default function PHClient() {
             <span className="text-sm font-semibold">Star TradeClaw on GitHub</span>
           </div>
           <p className="text-xs text-[var(--text-secondary)] mb-4">
-            Open-source, no paywall. A GitHub star helps others discover this project and boosts the Product Hunt launch.
+            The source is MIT-licensed. GitHub stars indicate interest; they do not validate performance or guarantee delivery.
           </p>
           <div className="flex items-center gap-3 flex-wrap">
             <a

@@ -10,32 +10,6 @@ import { ShareButton } from '../components/share-button';
 // Types
 // ---------------------------------------------------------------------------
 
-interface ApiSignal {
-  id: string;
-  symbol: string;
-  direction: 'BUY' | 'SELL';
-  confidence: number;
-  entry: number;
-  stopLoss: number;
-  takeProfit1: number;
-  takeProfit2: number;
-  takeProfit3: number;
-  indicators: {
-    rsi: { value: number; signal: string };
-    macd: { histogram: number; signal: string };
-    ema: { trend: string; ema20: number; ema50: number; ema200: number };
-    bollingerBands: { position: string; bandwidth: number };
-    stochastic: { k: number; d: number; signal: string };
-    support: number[];
-    resistance: number[];
-  };
-  timeframe: string;
-  timestamp: string;
-  status: string;
-  source?: string;
-  dataQuality?: string;
-}
-
 interface Signal {
   id: string;
   symbol: string;
@@ -44,23 +18,19 @@ interface Signal {
   confidence: number;
   entry: number;
   tp1: number;
-  tp2: number;
   sl: number;
-  rsi: number;
+  rsi?: number;
+  macd?: number;
   trend: string;
   timeframe: string;
   timestamp: string;
   source: string;
-  macdSignal: string;
-  emaTrend: string;
-  stochasticSignal: string;
 }
 
 interface LeaderboardAsset {
   pair: string;
-  hitRate: number;
-  totalSignals: number;
-  avgConfidence: number;
+  hitRate24h: number;
+  resolved24h: number;
 }
 
 interface HeatmapEntry {
@@ -102,116 +72,9 @@ const SYMBOL_NAMES: Record<string, string> = {
   AUDUSD: 'AUD/USD', USDCAD: 'USD/CAD', NZDUSD: 'NZD/USD', USDCHF: 'USD/CHF',
 };
 
-const FALLBACK_SIGNALS: ApiSignal[] = [
-  {
-    id: 'fb-btcusd-001', symbol: 'BTCUSD', direction: 'BUY', confidence: 78,
-    entry: 84250, stopLoss: 82100, takeProfit1: 86500, takeProfit2: 88000, takeProfit3: 91000,
-    indicators: {
-      rsi: { value: 58, signal: 'neutral' }, macd: { histogram: 120, signal: 'bullish' },
-      ema: { trend: 'up', ema20: 83800, ema50: 82500, ema200: 78000 },
-      bollingerBands: { position: 'middle', bandwidth: 0.04 }, stochastic: { k: 65, d: 60, signal: 'neutral' },
-      support: [82000, 80500], resistance: [86000, 88000],
-    },
-    timeframe: 'H4', timestamp: new Date().toISOString(), status: 'active', source: 'fallback', dataQuality: 'synthetic',
-  },
-  {
-    id: 'fb-ethusd-001', symbol: 'ETHUSD', direction: 'BUY', confidence: 72,
-    entry: 1920, stopLoss: 1850, takeProfit1: 1980, takeProfit2: 2050, takeProfit3: 2150,
-    indicators: {
-      rsi: { value: 52, signal: 'neutral' }, macd: { histogram: 8.5, signal: 'bullish' },
-      ema: { trend: 'up', ema20: 1900, ema50: 1870, ema200: 1750 },
-      bollingerBands: { position: 'middle', bandwidth: 0.05 }, stochastic: { k: 55, d: 50, signal: 'neutral' },
-      support: [1850, 1800], resistance: [2000, 2100],
-    },
-    timeframe: 'H1', timestamp: new Date().toISOString(), status: 'active', source: 'fallback', dataQuality: 'synthetic',
-  },
-  {
-    id: 'fb-xauusd-001', symbol: 'XAUUSD', direction: 'BUY', confidence: 82,
-    entry: 3075.50, stopLoss: 3045.00, takeProfit1: 3110.00, takeProfit2: 3140.00, takeProfit3: 3180.00,
-    indicators: {
-      rsi: { value: 62, signal: 'neutral' }, macd: { histogram: 2.3, signal: 'bullish' },
-      ema: { trend: 'up', ema20: 3060, ema50: 3020, ema200: 2850 },
-      bollingerBands: { position: 'upper', bandwidth: 0.03 }, stochastic: { k: 72, d: 68, signal: 'neutral' },
-      support: [3045, 3020], resistance: [3100, 3150],
-    },
-    timeframe: 'H4', timestamp: new Date().toISOString(), status: 'active', source: 'fallback', dataQuality: 'synthetic',
-  },
-  {
-    id: 'fb-eurusd-001', symbol: 'EURUSD', direction: 'SELL', confidence: 68,
-    entry: 1.0835, stopLoss: 1.0890, takeProfit1: 1.0780, takeProfit2: 1.0730, takeProfit3: 1.0680,
-    indicators: {
-      rsi: { value: 42, signal: 'neutral' }, macd: { histogram: -0.0008, signal: 'bearish' },
-      ema: { trend: 'down', ema20: 1.0850, ema50: 1.0880, ema200: 1.0920 },
-      bollingerBands: { position: 'lower', bandwidth: 0.008 }, stochastic: { k: 35, d: 40, signal: 'neutral' },
-      support: [1.0780, 1.0720], resistance: [1.0880, 1.0920],
-    },
-    timeframe: 'H1', timestamp: new Date().toISOString(), status: 'active', source: 'fallback', dataQuality: 'synthetic',
-  },
-  {
-    id: 'fb-gbpusd-001', symbol: 'GBPUSD', direction: 'BUY', confidence: 65,
-    entry: 1.2935, stopLoss: 1.2870, takeProfit1: 1.2990, takeProfit2: 1.3040, takeProfit3: 1.3100,
-    indicators: {
-      rsi: { value: 55, signal: 'neutral' }, macd: { histogram: 0.0005, signal: 'bullish' },
-      ema: { trend: 'up', ema20: 1.2920, ema50: 1.2890, ema200: 1.2750 },
-      bollingerBands: { position: 'middle', bandwidth: 0.007 }, stochastic: { k: 58, d: 54, signal: 'neutral' },
-      support: [1.2870, 1.2820], resistance: [1.2990, 1.3050],
-    },
-    timeframe: 'H4', timestamp: new Date().toISOString(), status: 'active', source: 'fallback', dataQuality: 'synthetic',
-  },
-  {
-    id: 'fb-usdjpy-001', symbol: 'USDJPY', direction: 'SELL', confidence: 74,
-    entry: 150.850, stopLoss: 151.500, takeProfit1: 150.200, takeProfit2: 149.600, takeProfit3: 148.800,
-    indicators: {
-      rsi: { value: 68, signal: 'overbought' }, macd: { histogram: -0.15, signal: 'bearish' },
-      ema: { trend: 'down', ema20: 151.00, ema50: 151.50, ema200: 149.80 },
-      bollingerBands: { position: 'upper', bandwidth: 0.01 }, stochastic: { k: 78, d: 75, signal: 'overbought' },
-      support: [150.00, 149.50], resistance: [151.50, 152.00],
-    },
-    timeframe: 'H1', timestamp: new Date().toISOString(), status: 'active', source: 'fallback', dataQuality: 'synthetic',
-  },
-];
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function trendFromIndicators(sig: ApiSignal): string {
-  const parts: string[] = [];
-  const ema = sig.indicators.ema;
-  if (ema.trend === 'up') parts.push('EMA trending up');
-  else if (ema.trend === 'down') parts.push('EMA trending down');
-  else parts.push('EMA sideways');
-
-  if (sig.indicators.rsi.signal === 'oversold') parts.push('RSI oversold');
-  else if (sig.indicators.rsi.signal === 'overbought') parts.push('RSI overbought');
-
-  if (sig.indicators.macd.signal === 'bullish') parts.push('MACD bullish');
-  else if (sig.indicators.macd.signal === 'bearish') parts.push('MACD bearish');
-
-  return parts.join(' \u00b7 ');
-}
-
-function mapApiSignal(api: ApiSignal): Signal {
-  return {
-    id: api.id,
-    symbol: api.symbol,
-    asset: SYMBOL_NAMES[api.symbol] || api.symbol,
-    direction: api.direction,
-    confidence: api.confidence,
-    entry: api.entry,
-    tp1: api.takeProfit1,
-    tp2: api.takeProfit2,
-    sl: api.stopLoss,
-    rsi: api.indicators.rsi.value,
-    trend: trendFromIndicators(api),
-    timeframe: api.timeframe,
-    timestamp: api.timestamp,
-    source: api.dataQuality === 'real' ? 'Live market data' : api.source === 'real' ? 'TA engine' : 'Fallback',
-    macdSignal: api.indicators.macd.signal,
-    emaTrend: api.indicators.ema.trend,
-    stochasticSignal: api.indicators.stochastic.signal,
-  };
-}
 
 function formatPrice(symbol: string, price: number): string {
   if (['EUR', 'GBP', 'AUD', 'NZD', 'CHF', 'CAD'].some(c => symbol.includes(c))) return price.toFixed(4);
@@ -234,43 +97,12 @@ function timeAgo(iso: string): string {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function getSessionFromTimestamp(iso: string): string {
-  const hour = new Date(iso).getUTCHours();
-  if (hour >= 0 && hour < 8) return 'Asian session';
-  if (hour >= 7 && hour < 16) return 'London session';
-  return 'New York session';
-}
-
-function WhyThisTrade({ sig }: { sig: Signal }) {
-  const isBuy = sig.direction === 'BUY';
-
-  // Build confirming factors from indicator data
-  const factors: string[] = [];
-
-  if (isBuy) {
-    if (sig.emaTrend === 'up') factors.push('EMA uptrend confirmed');
-    if (sig.macdSignal === 'bullish') factors.push('MACD bullish crossover');
-    if (sig.rsi < 35) factors.push(`RSI oversold at ${sig.rsi.toFixed(0)}`);
-    else if (sig.rsi < 50) factors.push(`RSI ${sig.rsi.toFixed(0)} with room to run`);
-    if (sig.stochasticSignal === 'oversold') factors.push('Stochastic oversold reversal');
-    if (sig.confidence >= 80) factors.push('Strong multi-indicator alignment');
-  } else {
-    if (sig.emaTrend === 'down') factors.push('EMA downtrend confirmed');
-    if (sig.macdSignal === 'bearish') factors.push('MACD bearish crossover');
-    if (sig.rsi > 65) factors.push(`RSI overbought at ${sig.rsi.toFixed(0)}`);
-    else if (sig.rsi > 50) factors.push(`RSI ${sig.rsi.toFixed(0)} losing momentum`);
-    if (sig.stochasticSignal === 'overbought') factors.push('Stochastic overbought reversal');
-    if (sig.confidence >= 80) factors.push('Strong multi-indicator alignment');
-  }
-
-  // Ensure we have at least one factor
-  if (factors.length === 0) {
-    factors.push(`${sig.confidence}% confidence from technical analysis`);
-  }
-
-  const topFactors = factors.slice(0, 3).join(', ');
-  const invalidation = `Setup invalidates ${isBuy ? 'below' : 'above'} ${formatPrice(sig.symbol, sig.sl)}`;
-  const session = `Best during ${getSessionFromTimestamp(sig.timestamp)}`;
+function SignalInputs({ sig }: { sig: Signal }) {
+  const inputs = [
+    Number.isFinite(sig.rsi) ? `RSI ${sig.rsi?.toFixed(1)}` : null,
+    Number.isFinite(sig.macd) ? `MACD histogram ${sig.macd}` : null,
+    `${sig.timeframe} rule score ${sig.confidence}/100`,
+  ].filter((value): value is string => value !== null);
 
   return (
     <div
@@ -282,10 +114,10 @@ function WhyThisTrade({ sig }: { sig: Signal }) {
       }}
     >
       <div className="font-semibold text-[9px] uppercase tracking-wider mb-1" style={{ color: 'var(--text-secondary)' }}>
-        Why this trade
+        Recorded inputs
       </div>
-      <div>{topFactors}.</div>
-      <div>{invalidation}. {session}.</div>
+      <div>{inputs.join(' \u00b7 ')}.</div>
+      <div>Recorded stop level: {formatPrice(sig.symbol, sig.sl)}. The rule score is not a probability.</div>
     </div>
   );
 }
@@ -295,8 +127,8 @@ function ConfidenceBar({ value }: { value: number }) {
   return (
     <div className="mt-2">
       <div className="flex justify-between text-[10px] mb-1" style={{ color: 'var(--text-secondary)' }}>
-        <span>Confidence</span>
-        <span style={{ color }}>{value}%</span>
+        <span>Rule score</span>
+        <span style={{ color }}>{value}/100</span>
       </div>
       <div className="h-1 rounded-full" style={{ background: 'var(--border)' }}>
         <div
@@ -353,7 +185,7 @@ function SignalCard({ sig, prev }: { sig: Signal; prev?: Signal }) {
           >
             {sig.confidence}%
           </div>
-          <div className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>AI score</div>
+          <div className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Rule score</div>
         </div>
       </div>
       <div
@@ -363,11 +195,10 @@ function SignalCard({ sig, prev }: { sig: Signal; prev?: Signal }) {
         {sig.trend}
       </div>
       <AccuracyMeta symbol={sig.symbol} timeframe={sig.timeframe} />
-      <div className="grid grid-cols-4 gap-2 text-center">
+      <div className="grid grid-cols-3 gap-2 text-center">
         {[
           { label: 'Entry', value: formatPrice(sig.symbol, sig.entry), color: 'var(--foreground)' },
-          { label: 'TP1', value: formatPrice(sig.symbol, sig.tp1), color: '#10b981' },
-          { label: 'TP2', value: formatPrice(sig.symbol, sig.tp2), color: '#34d399' },
+          { label: 'TP', value: formatPrice(sig.symbol, sig.tp1), color: '#10b981' },
           { label: 'SL', value: formatPrice(sig.symbol, sig.sl), color: '#f43f5e' },
         ].map(({ label, value, color }) => (
           <div key={label} className="rounded-lg p-2" style={{ background: 'var(--glass-bg)', border: '1px solid var(--border)' }}>
@@ -378,7 +209,7 @@ function SignalCard({ sig, prev }: { sig: Signal; prev?: Signal }) {
       </div>
       <div className="flex items-center justify-between mt-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
         <span className="flex items-center gap-2">
-          <span>RSI {sig.rsi.toFixed(1)}</span>
+          {Number.isFinite(sig.rsi) && <span>RSI {sig.rsi?.toFixed(1)}</span>}
           <span className="text-[9px] font-mono" style={{ color: 'var(--text-secondary)' }} title={sig.id}>{shortSignalId(sig.id)}</span>
         </span>
         <span
@@ -388,7 +219,7 @@ function SignalCard({ sig, prev }: { sig: Signal; prev?: Signal }) {
           {sig.source}
         </span>
       </div>
-      <WhyThisTrade sig={sig} />
+      <SignalInputs sig={sig} />
       <ConfidenceBar value={sig.confidence} />
     </div>
   );
@@ -449,9 +280,13 @@ function SignalsTab({ signals, prev, loading, error, fetchSignals }: {
   if (error || signals.length === 0) {
     return (
       <div className="rounded-2xl p-10 text-center border" style={{ background: 'var(--bg-card)', borderColor: 'rgba(244,63,94,0.2)' }}>
-        <div className="text-xl mb-2" style={{ color: '#f43f5e' }}>Signals unavailable</div>
+        <div className="text-xl mb-2" style={{ color: '#f43f5e' }}>
+          {error ? 'Signals unavailable' : 'No qualifying signals'}
+        </div>
         <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-          Market data APIs may be temporarily unreachable.
+          {error
+            ? 'The signal feed could not be reached. No sample signals are substituted.'
+            : 'The feed returned no candidates for the selected filters.'}
         </p>
         <button
           onClick={fetchSignals}
@@ -475,41 +310,55 @@ function SignalsTab({ signals, prev, loading, error, fetchSignals }: {
 function LeaderboardTab() {
   const [data, setData] = useState<LeaderboardAsset[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch('/api/demo/leaderboard')
-      .then(r => (r.ok ? r.json() : fetch('/api/leaderboard').then(r2 => r2.json())))
-      .then(d => { setData((d.assets || []).slice(0, 5)); setLoading(false); })
-      .catch(() => setLoading(false));
+    fetch('/api/leaderboard?period=30d&scope=all')
+      .then(r => {
+        if (!r.ok) throw new Error('Leaderboard unavailable');
+        return r.json();
+      })
+      .then(d => {
+        setData((d.assets || []).filter((asset: LeaderboardAsset) => asset.resolved24h > 0).slice(0, 5));
+        setError(false);
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <SkeletonRows count={5} />;
+  if (error) return <p className="text-center text-[var(--text-secondary)] py-10">Recorded outcome data is unavailable.</p>;
   if (data.length === 0) return <p className="text-center text-[var(--text-secondary)] py-10">No leaderboard data yet.</p>;
 
   return (
-    <div className="rounded-2xl overflow-hidden border" style={{ borderColor: '#1a1a1a' }}>
-      <table className="w-full text-sm">
-        <thead>
-          <tr style={{ background: 'var(--glass-bg)' }}>
-            <th className="text-left px-5 py-3 text-xs font-semibold text-[var(--text-secondary)]">#</th>
-            <th className="text-left px-5 py-3 text-xs font-semibold text-[var(--text-secondary)]">Pair</th>
-            <th className="text-right px-5 py-3 text-xs font-semibold text-[var(--text-secondary)]">Hit Rate</th>
-            <th className="text-right px-5 py-3 text-xs font-semibold text-[var(--text-secondary)]">Total Signals</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((a, i) => (
-            <tr key={a.pair} className="border-t" style={{ borderColor: '#1a1a1a' }}>
-              <td className="px-5 py-3 text-[var(--text-secondary)]">{i + 1}</td>
-              <td className="px-5 py-3 font-bold text-[var(--foreground)]">{a.pair}</td>
-              <td className="px-5 py-3 text-right font-mono" style={{ color: a.hitRate >= 60 ? '#10b981' : '#a1a1aa' }}>
-                {a.hitRate.toFixed(1)}%
-              </td>
-              <td className="px-5 py-3 text-right text-[var(--text-secondary)]">{a.totalSignals}</td>
+    <div className="space-y-3">
+      <div className="rounded-2xl overflow-hidden border" style={{ borderColor: '#1a1a1a' }}>
+        <table className="w-full text-sm">
+          <thead>
+            <tr style={{ background: 'var(--glass-bg)' }}>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-[var(--text-secondary)]">#</th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-[var(--text-secondary)]">Pair</th>
+              <th className="text-right px-5 py-3 text-xs font-semibold text-[var(--text-secondary)]">24h Hit Rate</th>
+              <th className="text-right px-5 py-3 text-xs font-semibold text-[var(--text-secondary)]">Counted Outcomes</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.map((a, i) => (
+              <tr key={a.pair} className="border-t" style={{ borderColor: '#1a1a1a' }}>
+                <td className="px-5 py-3 text-[var(--text-secondary)]">{i + 1}</td>
+                <td className="px-5 py-3 font-bold text-[var(--foreground)]">{a.pair}</td>
+                <td className="px-5 py-3 text-right font-mono" style={{ color: a.hitRate24h >= 60 ? '#10b981' : '#a1a1aa' }}>
+                  {a.hitRate24h.toFixed(1)}%
+                </td>
+                <td className="px-5 py-3 text-right text-[var(--text-secondary)]">{a.resolved24h}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-[var(--text-secondary)]">
+        OHLCV-resolved signal outcomes from the selected 30-day window. Not broker fills or portfolio returns.
+      </p>
     </div>
   );
 }
@@ -521,7 +370,10 @@ function HeatmapTab() {
   useEffect(() => {
     fetch('/api/heatmap')
       .then(r => r.json())
-      .then(d => { setEntries(d.entries || []); setLoading(false); })
+      .then(d => {
+        setEntries((d.entries || []).filter((entry: HeatmapEntry) => entry.confidence > 0));
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
 
@@ -557,7 +409,7 @@ function HeatmapTab() {
             <div className="text-xs text-[var(--text-secondary)]">{e.name}</div>
             <div className="flex justify-between mt-2 text-[11px]">
               <span className="text-[var(--text-secondary)]">RSI {e.rsi.toFixed(1)}</span>
-              <span style={{ color: e.confidence >= 70 ? '#10b981' : '#6b7280' }}>{e.confidence}%</span>
+              <span style={{ color: e.confidence >= 70 ? '#10b981' : '#6b7280' }}>{e.confidence}/100</span>
             </div>
           </div>
         );
@@ -649,48 +501,13 @@ function PaperTradingTab() {
 }
 
 function BacktestTab() {
-  const sample = {
-    pair: 'BTCUSD',
-    period: '2025-09 \u2014 2026-03',
-    totalTrades: 847,
-    winRate: 68.2,
-    avgPnl: 1.4,
-    totalPnl: 12340,
-    maxDrawdown: -8.3,
-    sharpeRatio: 1.72,
-  };
-
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl p-6 border" style={{ background: 'var(--bg-card)', borderColor: 'rgba(16,185,129,0.15)' }}>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="text-lg font-bold text-[var(--foreground)]">{sample.pair} Backtest</div>
-            <div className="text-xs text-[var(--text-secondary)]">{sample.period}</div>
-          </div>
-          <span
-            className="text-xs font-bold px-3 py-1 rounded-full"
-            style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' }}
-          >
-            Sample Result
-          </span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: 'Win Rate', value: `${sample.winRate}%`, color: '#10b981' },
-            { label: 'Total Trades', value: sample.totalTrades.toString(), color: 'var(--foreground)' },
-            { label: 'Avg P&L', value: `+${sample.avgPnl}%`, color: '#10b981' },
-            { label: 'Total P&L', value: `+$${sample.totalPnl.toLocaleString()}`, color: '#10b981' },
-            { label: 'Max Drawdown', value: `${sample.maxDrawdown}%`, color: '#f43f5e' },
-            { label: 'Sharpe Ratio', value: sample.sharpeRatio.toFixed(2), color: '#a1a1aa' },
-          ].map(({ label, value, color }) => (
-            <div key={label} className="rounded-xl p-3 border" style={{ background: '#080808', borderColor: '#1a1a1a' }}>
-              <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1">{label}</div>
-              <div className="text-sm font-bold font-mono" style={{ color }}>{value}</div>
-            </div>
-          ))}
-        </div>
+      <div className="rounded-2xl p-8 text-center border" style={{ background: 'var(--bg-card)', borderColor: '#1a1a1a' }}>
+        <div className="text-lg font-bold text-[var(--foreground)]">No precomputed backtest is available</div>
+        <p className="mt-2 text-sm text-[var(--text-secondary)]">
+          Choose a strategy, market, period, and cost assumptions to produce a result you can reproduce.
+        </p>
       </div>
 
       <div className="text-center">
@@ -721,8 +538,7 @@ export default function DemoClient({ initialSymbol }: { initialSymbol?: string }
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('Signals');
-  const [isLive, setIsLive] = useState(false);
-  const [dataSource, setDataSource] = useState<'live' | 'demo' | 'fallback'>('fallback');
+  const [dataSource, setDataSource] = useState<'live-file' | 'realtime' | 'unavailable'>('unavailable');
   const countdownRef = useRef(REFRESH_INTERVAL);
 
   const shareUrl = typeof window !== 'undefined'
@@ -731,93 +547,71 @@ export default function DemoClient({ initialSymbol }: { initialSymbol?: string }
 
   const fetchSignals = useCallback(async () => {
     try {
-      // Try demo endpoint first (deterministic daily-reset signals)
-      // then fall back to v1 API, then to hardcoded fallback
-      let mapped: Signal[] | null = null;
-      let live = false;
-      let resolvedSource: 'live' | 'demo' | 'fallback' = 'fallback';
+      const query = new URLSearchParams({ limit: '20' });
+      if (initialSymbol) query.set('pair', initialSymbol);
+      const res = await fetch(`/api/v1/signals?${query.toString()}`);
+      if (!res.ok) throw new Error('Signal feed unavailable');
 
-      try {
-        const demoRes = await fetch('/api/demo/signals');
-        if (demoRes.ok) {
-          const demoData = await demoRes.json();
-          if (demoData.signals?.length > 0) {
-            mapped = demoData.signals.map((s: ApiSignal) => mapApiSignal(s));
-            resolvedSource = 'demo';
-          }
-        }
-      } catch {
-        // demo endpoint unavailable, try v1
+      const data = await res.json();
+      if (data.source !== 'live-file' && data.source !== 'realtime') {
+        throw new Error('Signal feed did not declare a supported source');
       }
 
-      if (!mapped) {
-        const res = await fetch('/api/v1/signals?limit=20');
-        if (res.ok) {
-          const data = await res.json();
-          live = data.source === 'live-file' && data.signals?.length > 0;
-          resolvedSource = live ? 'live' : 'demo';
-          if (data.signals?.length > 0) {
-            mapped = data.signals.map((s: {
-              id: string;
-              pair: string;
-              direction: string;
-              confidence: number;
-              price: number;
-              tp: number;
-              sl: number;
-              rsi?: number;
-              timeframe: string;
-              generatedAt: string;
-            }) => ({
-              id: s.id,
-              symbol: s.pair,
-              asset: SYMBOL_NAMES[s.pair] || s.pair,
-              direction: s.direction as 'BUY' | 'SELL',
-              confidence: s.confidence,
-              entry: s.price,
-              tp1: s.tp,
-              tp2: s.tp * (s.direction === 'BUY' ? 1.02 : 0.98),
-              sl: s.sl,
-              rsi: s.rsi ?? 50,
-              trend: `${s.timeframe} confluence signal`,
-              timeframe: s.timeframe,
-              timestamp: s.generatedAt,
-              source: live ? 'Live signals' : 'TA engine',
-            }));
-          }
-        }
-      }
+      let mapped: Signal[] = (data.signals || []).map((s: {
+        id: string;
+        pair: string;
+        direction: string;
+        confidence: number;
+        price: number;
+        tp: number;
+        sl: number;
+        rsi?: number;
+        macd?: number;
+        timeframe: string;
+        generatedAt: string;
+      }) => ({
+        id: s.id,
+        symbol: s.pair,
+        asset: SYMBOL_NAMES[s.pair] || s.pair,
+        direction: s.direction as 'BUY' | 'SELL',
+        confidence: s.confidence,
+        entry: s.price,
+        tp1: s.tp,
+        sl: s.sl,
+        rsi: s.rsi,
+        macd: s.macd,
+        trend: `${s.timeframe} technical-rule candidate`,
+        timeframe: s.timeframe,
+        timestamp: s.generatedAt,
+        source: data.source === 'live-file' ? 'Recorded signal feed' : 'Realtime signal engine',
+      }));
 
-      if (!mapped) {
-        mapped = FALLBACK_SIGNALS.map(mapApiSignal);
-      }
-
-      if (initialSymbol && mapped) {
+      if (initialSymbol) {
         mapped = mapped.filter(s => s.symbol.toUpperCase() === initialSymbol.toUpperCase());
       }
 
-      setIsLive(live);
-      setDataSource(resolvedSource);
-      setPrev(signals);
-      setSignals(mapped);
+      setDataSource(data.source);
+      setSignals(current => {
+        setPrev(current);
+        return mapped;
+      });
       setError(false);
       setTick(t => t + 1);
       countdownRef.current = REFRESH_INTERVAL;
       setCountdown(REFRESH_INTERVAL);
     } catch {
-      setIsLive(false);
-      setDataSource('fallback');
-      const mapped = FALLBACK_SIGNALS.map(mapApiSignal);
-      setPrev(signals);
-      setSignals(mapped);
-      setError(false);
-      setTick(t => t + 1);
+      setDataSource('unavailable');
+      setSignals(current => {
+        setPrev(current);
+        return [];
+      });
+      setError(true);
       countdownRef.current = REFRESH_INTERVAL;
       setCountdown(REFRESH_INTERVAL);
     } finally {
       setLoading(false);
     }
-  }, [signals]);
+  }, [initialSymbol]);
 
   useEffect(() => { fetchSignals(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -841,6 +635,13 @@ export default function DemoClient({ initialSymbol }: { initialSymbol?: string }
       setTimeout(() => setCopied(false), 2000);
     });
   };
+
+  const feedAvailable = dataSource !== 'unavailable';
+  const sourceSummary = dataSource === 'live-file'
+    ? 'Recorded signal feed generated from market OHLCV.'
+    : dataSource === 'realtime'
+      ? 'Signal candidates generated from a current market-data request.'
+      : 'No verified signal feed is currently available.';
 
   return (
     <div
@@ -880,28 +681,24 @@ export default function DemoClient({ initialSymbol }: { initialSymbol?: string }
         <div
           className="mb-4 rounded-lg border px-4 py-3 text-sm flex items-center justify-between"
           style={{
-            borderColor: dataSource === 'live' ? 'rgba(16,185,129,0.4)' : 'rgba(251,191,36,0.4)',
-            background: dataSource === 'live' ? 'rgba(6,78,59,0.5)' : 'rgba(69,52,10,0.5)',
-            color: dataSource === 'live' ? '#6ee7b7' : '#e4e4e7',
+            borderColor: feedAvailable ? 'rgba(16,185,129,0.4)' : 'rgba(113,113,122,0.4)',
+            background: feedAvailable ? 'rgba(6,78,59,0.5)' : 'rgba(39,39,42,0.5)',
+            color: feedAvailable ? '#6ee7b7' : '#d4d4d8',
           }}
         >
           <span>
-            {dataSource === 'live' ? (
-              <><strong>Live Data</strong> — Signals from real market feeds.</>
-            ) : (
-              <><strong>Sample Data</strong> — Synthetic signals for demo purposes. Self-host for live data.</>
-            )}
+            <strong>{feedAvailable ? 'Declared Source' : 'Unavailable'}</strong> — {sourceSummary}
           </span>
           <span
             className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ml-3"
             style={{
-              background: dataSource === 'live' ? 'rgba(16,185,129,0.2)' : 'rgba(251,191,36,0.2)',
-              color: dataSource === 'live' ? '#10b981' : '#d4d4d8',
-              border: `1px solid ${dataSource === 'live' ? 'rgba(16,185,129,0.4)' : 'rgba(251,191,36,0.4)'}`,
-              animation: dataSource === 'live' ? 'pulse 2s infinite' : 'none',
+              background: feedAvailable ? 'rgba(16,185,129,0.2)' : 'rgba(113,113,122,0.2)',
+              color: feedAvailable ? '#10b981' : '#d4d4d8',
+              border: `1px solid ${feedAvailable ? 'rgba(16,185,129,0.4)' : 'rgba(113,113,122,0.4)'}`,
+              animation: feedAvailable ? 'pulse 2s infinite' : 'none',
             }}
           >
-            {dataSource === 'live' ? '● LIVE DATA' : dataSource === 'demo' ? '● SAMPLE DATA' : '● SAMPLE DATA'}
+            {feedAvailable ? '● MARKET-DERIVED' : '● NO DATA'}
           </span>
         </div>
 
@@ -910,23 +707,23 @@ export default function DemoClient({ initialSymbol }: { initialSymbol?: string }
           <div
             className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs mb-4"
             style={{
-              background: dataSource === 'live' ? 'rgba(16,185,129,0.1)' : 'rgba(251,191,36,0.1)',
-              border: `1px solid ${dataSource === 'live' ? 'rgba(16,185,129,0.2)' : 'rgba(251,191,36,0.2)'}`,
-              color: dataSource === 'live' ? '#10b981' : '#d4d4d8',
+              background: feedAvailable ? 'rgba(16,185,129,0.1)' : 'rgba(113,113,122,0.1)',
+              border: `1px solid ${feedAvailable ? 'rgba(16,185,129,0.2)' : 'rgba(113,113,122,0.2)'}`,
+              color: feedAvailable ? '#10b981' : '#d4d4d8',
             }}
           >
             <div
               className="w-1.5 h-1.5 rounded-full"
-              style={{ background: dataSource === 'live' ? '#34d399' : '#d4d4d8', animation: dataSource === 'live' ? 'pulse 2s infinite' : 'none' }}
+              style={{ background: feedAvailable ? '#34d399' : '#71717a', animation: feedAvailable ? 'pulse 2s infinite' : 'none' }}
             />
-            {dataSource === 'live' ? 'Real signals \u00b7 No login required' : 'Sample signals \u00b7 Signals reset daily'}
+            {feedAvailable ? 'Market-derived candidates · No login required' : 'Signal feed unavailable'}
           </div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3" style={{ color: '#fff' }}>
-            AI Signals, <span style={{ color: '#10b981' }}>Live</span>
+            Trading Signal <span style={{ color: '#10b981' }}>Feed</span>
           </h1>
           <p className="text-base max-w-xl mx-auto" style={{ color: 'var(--text-secondary)' }}>
-            TradeClaw generates AI-powered BUY/SELL signals from real market data via CoinGecko, Stooq, and exchange rate APIs.
-            Refreshes every 30 seconds.
+            Rule-generated candidates from market OHLCV when the feed is available. Scores are not probabilities,
+            and displayed levels are not broker fills or portfolio returns.
           </p>
           <div
             className="inline-flex items-center gap-2 mt-4 rounded-full px-3 py-1 text-xs"
@@ -940,7 +737,7 @@ export default function DemoClient({ initialSymbol }: { initialSymbol?: string }
             &nbsp;\u00b7 Tick #{tick}
           </div>
           <div className="mt-4">
-            <ShareButton url={shareUrl} title="TradeClaw Live Demo" />
+            <ShareButton url={shareUrl} title="TradeClaw signal feed" />
           </div>
         </div>
 
@@ -987,10 +784,10 @@ export default function DemoClient({ initialSymbol }: { initialSymbol?: string }
               className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs mb-3"
               style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)', color: '#10b981' }}
             >
-              Deploy your own in 60 seconds
+              Deploy with Docker Compose
             </div>
             <h2 className="text-2xl font-bold mb-2" style={{ color: '#fff' }}>
-              Own your signals. Self-host in 60 seconds.
+              Run your own TradeClaw instance.
             </h2>
             <p className="text-sm max-w-lg mx-auto" style={{ color: 'var(--text-secondary)' }}>
               No subscriptions. No vendor lock-in. Run the exact same platform you&apos;re seeing right now.
@@ -1018,9 +815,9 @@ export default function DemoClient({ initialSymbol }: { initialSymbol?: string }
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center text-sm" style={{ color: 'var(--text-secondary)' }}>
             {[
-              { icon: 'Docker', label: 'Docker Compose', sub: 'One command' },
-              { icon: 'Free', label: 'Free forever', sub: 'MIT license' },
-              { icon: 'Lock', label: 'Your data', sub: 'No telemetry' },
+              { icon: 'Docker', label: 'Docker Compose', sub: 'Local stack' },
+              { icon: 'MIT', label: 'Open source', sub: 'MIT license' },
+              { icon: 'Data', label: 'Operator controlled', sub: 'Review integrations' },
             ].map(({ icon, label, sub }) => (
               <div key={label} className="rounded-xl p-3" style={{ background: 'var(--glass-bg)', border: '1px solid var(--border)' }}>
                 <div className="text-sm font-mono mb-1" style={{ color: 'var(--text-secondary)' }}>{icon}</div>
@@ -1056,8 +853,8 @@ export default function DemoClient({ initialSymbol }: { initialSymbol?: string }
         {/* Feature strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: 'AI Signals', sub: '12 assets' },
-            { label: 'Backtesting', sub: 'Historical data' },
+            { label: 'Rule signals', sub: 'Supported markets' },
+            { label: 'Backtesting', sub: 'Run your data' },
             { label: 'Telegram bot', sub: 'Push alerts' },
             { label: 'Open source', sub: 'MIT licensed' },
           ].map(({ label, sub }) => (
@@ -1070,8 +867,8 @@ export default function DemoClient({ initialSymbol }: { initialSymbol?: string }
 
         {/* Signup CTA */}
         <div className="mt-10 text-center py-6 px-4 rounded-2xl border" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.02) 100%)', borderColor: 'rgba(16,185,129,0.2)' }}>
-          <p className="text-sm font-semibold text-white mb-1">Want real signals?</p>
-          <p className="text-xs text-zinc-400 mb-3">Sign up free and get live signals from your own self-hosted instance.</p>
+          <p className="text-sm font-semibold text-white mb-1">Want your own instance?</p>
+          <p className="text-xs text-zinc-400 mb-3">Self-host TradeClaw and configure the market-data providers you intend to use.</p>
           <Link
             href="/signin"
             className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-mono font-semibold transition-colors"

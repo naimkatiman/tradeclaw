@@ -84,6 +84,7 @@ export function TrailingWeekBandCallout() {
 
   const a = data.sevenDay.all;
   const p = data.sevenDay.premium;
+  if (a.totalSignals === 0 && p.totalSignals === 0) return null;
   const cmp = classifyBandComparison(a, p);
   const badgeTone =
     cmp.tone === 'positive'
@@ -105,14 +106,14 @@ export function TrailingWeekBandCallout() {
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <h3 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-white">
-            Last 7 Days — Premium Filter vs Full Firehose
+            Last 7 Days — Premium vs Eligible Stream
             <InfoHint
-              text="Side-by-side return of the premium band (confidence ≥ 85) versus all signals over the last 7 days. Premium only beats all when it picks better trades (higher win rate AND expectancy) — not when it merely trades less during a losing week."
+              text="Side-by-side sequential simulation results for the premium band (confidence ≥ 85) versus the eligible sized-signal stream over the last 7 days. Both use the same modeled sizing and cost assumptions."
               label="What this comparison shows"
             />
           </h3>
           <p className="mt-0.5 text-[11px] text-zinc-600">
-            Same window, same sizing. A smaller loss from fewer trades is not the same as higher accuracy.
+            Same window and modeled sizing/cost assumptions. These are simulations, not account returns.
           </p>
         </div>
         <span
@@ -123,15 +124,16 @@ export function TrailingWeekBandCallout() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <BandCard label="All signals" data={a} accent="zinc" />
+        <BandCard label="Eligible sized signals" data={a} accent="zinc" />
         <BandCard label="Premium only (conf ≥ 85)" data={p} accent="emerald" />
       </div>
 
       {/* All-time context — the 7-day gap is regime-dependent; show the full
          record so a single chop week can't stand in for the long run. */}
-      {allTime?.all && allTime.premium && allTimeCmp && (
+      {allTime?.all && allTime.premium && allTimeCmp
+        && (allTime.all.totalSignals > 0 || allTime.premium.totalSignals > 0) && (
         <p className="mt-3 text-[11px] font-mono text-zinc-500">
-          <span className="uppercase tracking-wider text-zinc-600">All-time</span>{' '}
+          <span className="uppercase tracking-wider text-zinc-600">Current archive simulation</span>{' '}
           All {allTime.all.totalReturn >= 0 ? '+' : ''}{allTime.all.totalReturn.toFixed(2)}%{' '}
           ({allTime.all.totalSignals.toLocaleString()} trades)
           {' · '}
@@ -143,9 +145,9 @@ export function TrailingWeekBandCallout() {
             : allTimeCmp.tone === 'negative' ? 'text-red-400'
             : 'text-amber-300'
           }>
-            {allTimeCmp.verdict === 'premium_better' ? 'filter ahead over the full record'
+            {allTimeCmp.verdict === 'premium_better' ? 'filter ahead in the current archive model'
               : allTimeCmp.verdict === 'premium_fewer_trades' ? 'filter only ahead by trading less'
-              : 'filter behind over the full record'}
+              : 'filter behind in the current archive model'}
           </span>
         </p>
       )}
@@ -172,6 +174,7 @@ function BandCard({ label, data, accent }: BandCardProps) {
         {data.totalReturn >= 0 ? '+' : ''}
         {data.totalReturn.toFixed(2)}%
       </div>
+      <div className="text-[9px] font-mono text-zinc-600">sequential simulation</div>
       <div className="mt-1.5 grid grid-cols-3 gap-2 text-[10px] font-mono text-zinc-500">
         <div>
           <div className="text-[10px] uppercase tracking-wider text-zinc-600">Win</div>

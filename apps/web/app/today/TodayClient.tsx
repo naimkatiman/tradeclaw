@@ -51,10 +51,10 @@ interface TodayData {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Confidence Ring                                                    */
+/*  Rule Score Ring                                                    */
 /* ------------------------------------------------------------------ */
 
-function ConfidenceRing({ value, size = 120 }: { value: number; size?: number }) {
+function RuleScoreRing({ value, size = 120 }: { value: number; size?: number }) {
   const r = (size - 12) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ - (value / 100) * circ;
@@ -76,10 +76,10 @@ function ConfidenceRing({ value, size = 120 }: { value: number; size?: number })
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-2xl font-bold" style={{ color: isBuy ? '#10b981' : '#ef4444' }}>
-          {value}%
+          {value}/100
         </span>
         <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
-          confidence
+          rule score
         </span>
       </div>
     </div>
@@ -127,7 +127,7 @@ export function TodayClient() {
   }, [generatedAt]);
 
   const shareText = signal
-    ? `🎯 Signal of the Day from TradeClaw\n\n${signal.symbol} ${signal.direction} @ ${signal.entry}\nConfidence: ${signal.confidence}%\nTP1: ${signal.takeProfit1} | SL: ${signal.stopLoss}\n\nhttps://tradeclaw.win/today`
+    ? `🎯 Signal of the Day from TradeClaw\n\n${signal.symbol} ${signal.direction} @ ${signal.entry}\nRule score: ${signal.confidence}/100\nTP1: ${signal.takeProfit1} | SL: ${signal.stopLoss}\n\nMechanical score, not a predictive probability or broker order.\nhttps://tradeclaw.win/today`
     : '';
 
   const handleShare = () => {
@@ -141,11 +141,11 @@ export function TodayClient() {
   };
 
   const tweetUrl = signal
-    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(`🎯 Signal of the Day: ${signal.symbol} ${signal.direction} (${signal.confidence}% confidence)\n\nTP1: ${signal.takeProfit1} | SL: ${signal.stopLoss}\n\n`)}&url=${encodeURIComponent('https://tradeclaw.win/today')}`
+    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(`🎯 Signal of the Day: ${signal.symbol} ${signal.direction} (rule score ${signal.confidence}/100)\n\nTP1: ${signal.takeProfit1} | SL: ${signal.stopLoss}\nMechanical score, not a predictive probability.\n\n`)}&url=${encodeURIComponent('https://tradeclaw.win/today')}`
     : '#';
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+    <div className="premium-product-shell min-h-screen text-[var(--foreground)]">
       <PageNavBar />
       {/* Header */}
       <div className="border-b" style={{ borderColor: 'var(--border)' }}>
@@ -157,7 +157,7 @@ export function TodayClient() {
             <h1 className="text-2xl md:text-3xl font-bold">Signal of the Day</h1>
           </div>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            The single highest-confidence signal right now, updated every 5 minutes.
+            The highest rule score among the latest available provider-backed candidates.
           </p>
         </div>
       </div>
@@ -272,7 +272,7 @@ export function TodayClient() {
                       {signal.timeframe} timeframe • Entry @ {signal.entry}
                     </p>
                   </div>
-                  <ConfidenceRing value={signal.confidence} />
+                  <RuleScoreRing value={signal.confidence} />
                 </div>
 
                 {/* Price levels */}
@@ -368,7 +368,7 @@ export function TodayClient() {
                 <code className="flex-1">/api/signal-of-the-day</code>
               </div>
               <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>
-                Returns the single highest-confidence signal. 5-minute cache. CORS enabled. No auth.
+                Returns the latest available candidate with the highest rule score. Cache timing is an implementation detail, not a freshness guarantee.
               </p>
             </div>
 

@@ -37,7 +37,7 @@ const FEATURES = [
   },
   {
     title: 'Configurable Filters',
-    desc: 'Filter by pair, direction (BUY/SELL), and minimum confidence level. Export only what matters to you.',
+    desc: 'Filter by pair, direction (BUY/SELL), and minimum mechanical rule score.',
   },
   {
     title: 'Scheduled Exports',
@@ -45,7 +45,7 @@ const FEATURES = [
   },
   {
     title: 'Full Signal Data',
-    desc: 'Every signal includes pair, direction, confidence, timeframe, entry price, MACD signal, outcome, date, and PnL %.',
+    desc: 'Exports can include pair, direction, rule score, timeframe, observed entry, indicator fields, and OHLCV-resolved directional move.',
   },
 ];
 
@@ -293,7 +293,7 @@ export function NotionClient() {
       <section className="max-w-5xl mx-auto px-4 pb-20">
         <h2 className="text-2xl font-bold text-center mb-2">What Your Notion Database Looks Like</h2>
         <p className="text-center text-sm text-[var(--text-secondary)] mb-8">
-          Each synced signal becomes a row with full trading data.
+          Illustrative schema preview only. These fixed rows are not market data, synced records, or measured performance.
         </p>
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] overflow-x-auto">
           <table className="w-full text-sm">
@@ -302,13 +302,13 @@ export function NotionClient() {
                 <th className="px-4 py-3 text-left font-medium">Name</th>
                 <th className="px-4 py-3 text-left font-medium">Pair</th>
                 <th className="px-4 py-3 text-left font-medium">Direction</th>
-                <th className="px-4 py-3 text-left font-medium">Confidence</th>
+                <th className="px-4 py-3 text-left font-medium">Rule score</th>
                 <th className="px-4 py-3 text-left font-medium">Timeframe</th>
                 <th className="px-4 py-3 text-left font-medium">Entry Price</th>
                 <th className="px-4 py-3 text-left font-medium">MACD</th>
                 <th className="px-4 py-3 text-left font-medium">Outcome</th>
                 <th className="px-4 py-3 text-left font-medium">Date</th>
-                <th className="px-4 py-3 text-right font-medium">PnL %</th>
+                <th className="px-4 py-3 text-right font-medium">Directional move %</th>
               </tr>
             </thead>
             <tbody>
@@ -317,7 +317,7 @@ export function NotionClient() {
                   <td className="px-4 py-3 font-medium whitespace-nowrap">{r.pair} {r.dir} {r.tf}</td>
                   <td className="px-4 py-3"><Pill label={r.pair} color="blue" /></td>
                   <td className="px-4 py-3"><Pill label={r.dir} color={r.dir === 'BUY' ? 'green' : 'red'} /></td>
-                  <td className="px-4 py-3">{r.conf}%</td>
+                  <td className="px-4 py-3">{r.conf}/100</td>
                   <td className="px-4 py-3"><Pill label={r.tf} color="purple" /></td>
                   <td className="px-4 py-3 font-mono">{r.price.toLocaleString()}</td>
                   <td className="px-4 py-3"><Pill label={r.macd} color={r.macd === 'bullish' ? 'green' : 'red'} /></td>

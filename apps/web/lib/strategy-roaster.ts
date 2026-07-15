@@ -1,7 +1,7 @@
 export interface RoastResult {
-  riskScore: number; // 0-100
+  riskScore: number; // Deterministic text-heuristic score, not measured market risk.
   grade: 'A' | 'B' | 'C' | 'D' | 'F';
-  edgeAssessment: 'Positive Edge' | 'Neutral' | 'Negative Edge';
+  edgeAssessment: 'Not measured';
   roastText: string;
   strengths: string[];
   weaknesses: string[];
@@ -95,7 +95,7 @@ function parseStrategy(input: string): ParsedStrategy {
   return { ifBlocks, thenBlocks, raw: input };
 }
 
-function computeRiskScore(parsed: ParsedStrategy, rng: () => number): number {
+function computeRiskScore(parsed: ParsedStrategy): number {
   let score = 30; // baseline
 
   const { ifBlocks, thenBlocks, raw } = parsed;
@@ -142,9 +142,6 @@ function computeRiskScore(parsed: ParsedStrategy, rng: () => number): number {
   if (lower.includes('multi') && lower.includes('timeframe')) score -= 10;
   if (uniqueIndicators.size >= 3) score -= 5;
 
-  // Small random variance ±5
-  score += Math.floor((rng() - 0.5) * 10);
-
   return Math.max(5, Math.min(95, score));
 }
 
@@ -156,47 +153,25 @@ function gradeFromRisk(risk: number): RoastResult['grade'] {
   return 'F';
 }
 
-function edgeFromRisk(risk: number, rng: () => number): RoastResult['edgeAssessment'] {
-  const roll = rng();
-  if (risk < 30) return roll < 0.7 ? 'Positive Edge' : 'Neutral';
-  if (risk < 55) return roll < 0.4 ? 'Positive Edge' : roll < 0.7 ? 'Neutral' : 'Negative Edge';
-  return roll < 0.2 ? 'Neutral' : 'Negative Edge';
-}
-
 const ROAST_OPENERS = [
-  "Okay, I've seen worse. But not by much.",
-  "Bold strategy. Let's see if the market agrees.",
-  "This strategy has the confidence of a beginner and the complexity of a professional. Unfortunately, those don't mix.",
-  "Ah yes, the classic 'I watched 3 YouTube videos and now I trade' setup.",
-  "I admire the ambition. The execution, less so.",
-  "Your strategy is like a diet — sounds good in theory, brutal in practice.",
-  "Let's be honest: the market has eaten strategies like this for breakfast.",
-  "This is either genius or a lesson in progress. Probably the latter.",
-  "You asked for brutal honesty. Buckle up.",
-  "I've reviewed 1000 strategies. This one is... memorable.",
+  'Here is the deterministic parser\'s blunt reading.',
+  'This is a text-structure review, not a backtest.',
+  'The parser can flag missing rules; it cannot judge profitability.',
 ];
 
 const ROAST_MIDDLES_HIGH_RISK = [
-  "The lack of a stop loss here is basically handing the market your wallet and walking away.",
-  "Trading without a stop loss is like skydiving without a parachute — you feel free until you don't.",
-  "Without defined risk management, this is less of a strategy and more of a prayer.",
-  "Single-indicator strategies are like judging a book by its cover — occasionally right, usually wrong.",
-  "Chasing RSI extremes is a great way to learn expensive lessons.",
+  'The heuristic found several structural risk flags that need explicit rules and independent testing.',
+  'Important assumptions appear absent from the submitted text.',
 ];
 
 const ROAST_MIDDLES_LOW_RISK = [
-  "There's actually some solid structure here. The risk framework shows real thought.",
-  "Multi-indicator confluence is the right move — you're thinking about this correctly.",
-  "The risk management setup here is notably better than 80% of what I see.",
-  "You've clearly done your homework on indicator confluence. That matters.",
+  'The heuristic found fewer structural flags, but no market behavior was tested.',
+  'Several rule categories were present in the text; their effectiveness remains unmeasured.',
 ];
 
 const ROAST_CLOSERS = [
-  "The market is a ruthless teacher. Let's make sure you graduate.",
-  "Every legend started with a bad strategy. Keep iterating.",
-  "Paper trade this first. Seriously.",
-  "The fact that you're seeking feedback puts you ahead of most traders.",
-  "Risk management is the only edge that survives long term. Build that first.",
+  'Document the assumptions and test them on reproducible data.',
+  'Treat every suggestion as a hypothesis to test, not an improvement claim.',
 ];
 
 function buildRoastText(riskScore: number, parsed: ParsedStrategy, rng: () => number): string {
@@ -209,11 +184,11 @@ function buildRoastText(riskScore: number, parsed: ParsedStrategy, rng: () => nu
   const lower = parsed.raw.toLowerCase();
   let specific = '';
   if (lower.includes('martingale')) {
-    specific = 'Martingale-style doubling is statistically guaranteed to blow up eventually — the math is not on your side. ';
+    specific = 'Martingale-style doubling can compound losses and requires explicit capital and stopping constraints. ';
   } else if (lower.includes('scalp')) {
-    specific = 'Scalping sounds fast and exciting, but transaction costs and slippage will eat your edge before the market does. ';
+    specific = 'Short-horizon rules can be sensitive to fees, spread, slippage, latency, and fill assumptions. ';
   } else if (parsed.ifBlocks.length === 0) {
-    specific = 'No defined entry conditions means you\'re essentially trading on feel. Markets don\'t care about feelings. ';
+    specific = 'The parser did not find a defined entry condition in the submitted text. ';
   }
 
   return `${opener} ${specific}${middle} ${closer}`;
@@ -224,17 +199,17 @@ function buildStrengths(parsed: ParsedStrategy, riskScore: number): string[] {
   const lower = parsed.raw.toLowerCase();
   const uniqueIndicators = new Set(parsed.ifBlocks.map((b) => b.indicator).filter(Boolean));
 
-  if (uniqueIndicators.size >= 3) strengths.push('Uses multiple indicators for confluence — reduces false signals');
-  if (lower.includes('stop') || lower.includes('sl')) strengths.push('Includes stop loss — critical for capital preservation');
-  if (lower.includes('take profit') || lower.includes('tp')) strengths.push('Has a take profit target — defines your exit before entering');
-  if (lower.includes('multi') && lower.includes('timeframe')) strengths.push('Multi-timeframe analysis reduces noise and improves signal quality');
-  if (lower.includes('trend') || lower.includes('ema') || lower.includes('sma')) strengths.push('Trend-following component — aligns with the market direction');
-  if (lower.includes('volume')) strengths.push('Volume confirmation helps validate signal strength');
-  if (riskScore < 40) strengths.push('Overall risk structure is sound — this can be backtested meaningfully');
-  if (parsed.ifBlocks.length >= 2 && parsed.ifBlocks.length <= 4) strengths.push('Condition count in the optimal range — not over-fitted');
+  if (uniqueIndicators.size >= 3) strengths.push('The text names multiple indicator conditions');
+  if (lower.includes('stop') || lower.includes('sl')) strengths.push('The text mentions a stop or loss rule');
+  if (lower.includes('take profit') || lower.includes('tp')) strengths.push('The text mentions a target or take-profit rule');
+  if (lower.includes('multi') && lower.includes('timeframe')) strengths.push('The text mentions multiple timeframes');
+  if (lower.includes('trend') || lower.includes('ema') || lower.includes('sma')) strengths.push('The text includes a trend or moving-average condition');
+  if (lower.includes('volume')) strengths.push('The text includes a volume condition');
+  if (riskScore < 40) strengths.push('The text heuristic found fewer missing-rule flags');
+  if (parsed.ifBlocks.length >= 2 && parsed.ifBlocks.length <= 4) strengths.push(`The parser found ${parsed.ifBlocks.length} condition blocks`);
 
   if (strengths.length === 0) {
-    strengths.push('You wrote down a strategy — that alone puts you ahead of most traders');
+    strengths.push('The strategy was supplied in a form the parser could inspect');
   }
 
   return strengths.slice(0, 4);
@@ -245,36 +220,36 @@ function buildWeaknesses(parsed: ParsedStrategy, riskScore: number): string[] {
   const lower = parsed.raw.toLowerCase();
 
   if (!lower.includes('stop') && !lower.includes('sl')) {
-    weaknesses.push('No stop loss defined — a single bad trade can wipe out weeks of gains');
+    weaknesses.push('No stop or loss rule was detected in the submitted text');
   }
   if (!lower.includes('take profit') && !lower.includes('tp')) {
-    weaknesses.push('No take profit — you\'ll never know when to exit a winning trade');
+    weaknesses.push('No target or take-profit rule was detected in the submitted text');
   }
   if (parsed.ifBlocks.length === 0) {
-    weaknesses.push('No entry conditions — without clear signals, this is discretionary guessing');
+    weaknesses.push('No structured entry condition was detected');
   }
   if (parsed.ifBlocks.length === 1) {
-    weaknesses.push('Single indicator strategy — easily fooled by noise and false signals');
+    weaknesses.push('Only one indicator condition was detected; its standalone behavior is unmeasured');
   }
   if (parsed.ifBlocks.length >= 6) {
-    weaknesses.push('Too many conditions — this will rarely trigger, and when it does, may be curve-fitted to past data');
+    weaknesses.push('Six or more conditions were detected; measure trigger frequency and overfitting risk out of sample');
   }
   const rsiValues = [...lower.matchAll(/rsi\D+(\d+)/g)].map((m) => parseInt(m[1], 10));
   if (rsiValues.some((v) => v <= 20 || v >= 80)) {
-    weaknesses.push('Extreme RSI thresholds (≤20 or ≥80) rarely trigger and often signal continued momentum, not reversal');
+    weaknesses.push('An extreme RSI threshold was detected; its frequency and outcome behavior must be measured');
   }
   if (lower.includes('martingale')) {
-    weaknesses.push('Martingale position sizing has a theoretical 100% ruin probability given unlimited time');
+    weaknesses.push('Martingale sizing can compound losses rapidly and requires explicit capital and stopping constraints');
   }
   if (lower.includes('scalp') || lower.includes('1m')) {
-    weaknesses.push('Short-timeframe scalping has high transaction costs and is difficult to execute consistently');
+    weaknesses.push('Short-timeframe execution is sensitive to transaction-cost and fill assumptions');
   }
   if (riskScore >= 60) {
-    weaknesses.push('High overall risk score — this strategy needs significant refinement before live trading');
+    weaknesses.push('The illustrative rule-based risk score is high; validate assumptions independently before any use');
   }
 
   if (weaknesses.length === 0) {
-    weaknesses.push('Minor: document your position sizing rules to make this fully systematic');
+    weaknesses.push('Document position sizing, cost, data, and fill assumptions before evaluation');
   }
 
   return weaknesses.slice(0, 4);
@@ -284,25 +259,25 @@ function buildSuggestions(parsed: ParsedStrategy): string[] {
   const suggestions: string[] = [];
   const lower = parsed.raw.toLowerCase();
 
-  suggestions.push('Backtest this strategy on at least 6 months of data before trading live');
+  suggestions.push('Test this strategy across multiple market regimes and document data, cost, and fill assumptions');
 
   if (!lower.includes('stop')) {
-    suggestions.push('Add a stop loss at ATR×1.5 below entry — this single change improves Sharpe dramatically');
+    suggestions.push('Define and test a stop rule; an ATR-based threshold is one hypothesis, not a guaranteed improvement');
   }
   if (!lower.includes('volume')) {
-    suggestions.push('Add volume confirmation: require above-average volume to validate breakout entries');
+    suggestions.push('Test whether a documented volume filter changes out-of-sample results after costs');
   }
   if (parsed.ifBlocks.length <= 1) {
-    suggestions.push('Add a trend filter: only take signals when price is above/below the 200 EMA');
+    suggestions.push('Test a documented trend filter, such as price relative to EMA 200, out of sample');
   }
   if (!lower.includes('multi') && !lower.includes('timeframe')) {
-    suggestions.push('Confirm signals on a higher timeframe (H4 or D1) before executing on H1');
+    suggestions.push('Test whether an H4 or D1 confirmation rule changes out-of-sample results');
   }
   if (lower.includes('rsi') && !lower.includes('macd')) {
-    suggestions.push('Combine RSI with MACD for better momentum confirmation — reduces whipsaws by ~30%');
+    suggestions.push('Test an additional momentum condition such as MACD; no reduction in whipsaws is assumed');
   }
-  suggestions.push('Paper trade for 2-4 weeks to validate signal frequency and win rate before risking capital');
-  suggestions.push('Track every signal in a journal: entry, exit, reason, outcome — patterns emerge fast');
+  suggestions.push('Use an adequately sized forward paper study before considering real capital');
+  suggestions.push('Track signal rules, timestamps, outcomes, and costs so claims can be reproduced');
 
   return suggestions.slice(0, 4);
 }
@@ -312,20 +287,20 @@ export function roastStrategy(input: string): RoastResult {
   const rng = seededRandom(seed);
 
   const parsed = parseStrategy(input);
-  const riskScore = computeRiskScore(parsed, rng);
+  const riskScore = computeRiskScore(parsed);
   const grade = gradeFromRisk(riskScore);
-  const edgeAssessment = edgeFromRisk(riskScore, rng);
+  const edgeAssessment = 'Not measured' as const;
   const roastText = buildRoastText(riskScore, parsed, rng);
   const strengths = buildStrengths(parsed, riskScore);
   const weaknesses = buildWeaknesses(parsed, riskScore);
   const suggestions = buildSuggestions(parsed);
 
   const summaryMap: Record<RoastResult['grade'], string> = {
-    A: 'Solid strategy with good risk management. Backtest and refine.',
-    B: 'Above average with some gaps. Address weaknesses before going live.',
-    C: 'Average risk profile. Significant improvements needed.',
-    D: 'High risk. Major structural issues need fixing first.',
-    F: 'Do not trade this live. Rebuild from scratch with risk management as the foundation.',
+    A: 'Few text-heuristic flags. Market edge and actual risk remain unmeasured.',
+    B: 'Some text-heuristic flags. Market edge and actual risk remain unmeasured.',
+    C: 'Several text-heuristic flags. Market edge and actual risk remain unmeasured.',
+    D: 'Many text-heuristic flags. Market edge and actual risk remain unmeasured.',
+    F: 'Severe text-heuristic flags. Market edge and actual risk remain unmeasured.',
   };
 
   return {

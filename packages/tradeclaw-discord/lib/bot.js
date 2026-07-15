@@ -122,6 +122,7 @@ class TradeclawBot {
           }
 
           const signal = await this.fetcher.fetchSignal(opts.pair);
+          if (signal.available !== true) continue;
           if (signal.confidence < opts.minConfidence) continue;
 
           await channel.send({ embeds: [signalEmbed(signal)] });

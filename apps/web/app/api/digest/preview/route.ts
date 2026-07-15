@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   };
 
   if (format === 'json' || accept.includes('application/json')) {
-    const data = getEmailDigestData({ period, topN: 5 });
+    const data = await getEmailDigestData({ period, topN: 5 });
     return NextResponse.json(data, { headers });
   }
 

@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isCountedResolved, type SignalHistoryRecord } from '../../../../lib/signal-history';
 import { HIGH_CONFIDENCE_BAND_MIN } from '../../../../lib/signal-thresholds';
 import { getResolvedSlice, parseScope, type SignalScope } from '../../../../lib/signal-slice';
+import { modeledTradeR } from '../../../../lib/modeled-trade-cost';
 import { parseCategoryFilter, symbolsForCategory } from '../../../lib/symbol-config';
-import { costModelFor } from '@tradeclaw/strategies';
 
 export type EquityScope = SignalScope;
 
@@ -19,25 +19,6 @@ const STARTING_EQUITY = 10_000;
  * survive. Sized this way, equity change per trade ≈ R-multiple × 1%.
  */
 const RISK_PER_TRADE_PCT = 1.0;
-
-/**
- * Per-trade round-trip cost is the REAL recorded cost for each signal
- * (cost_estimate_pct, migration 051 = 2×(fee+slippage) of notional per
- * @tradeclaw/strategies costModelFor, funding excluded). This replaces the
- * prior flat 0.02% blended guess, which undercharged crypto ~20x (real crypto
- * RT ≈ 0.40% vs metals ≈ 0.10%, FX ≈ 0.04%) and made the public equity curve
- * materially more optimistic than a subscriber's true result. Pre-051 rows
- * with no recorded cost fall back to the model cost for their asset class.
- */
-function roundTripCostNotionalPct(
-  record: Pick<SignalHistoryRecord, 'pair' | 'costEstimatePct'>,
-): number {
-  if (record.costEstimatePct != null && record.costEstimatePct > 0) {
-    return record.costEstimatePct;
-  }
-  const c = costModelFor(record.pair);
-  return 2 * (c.feePctPerSide + c.slippagePctPerSide);
-}
 
 /**
  * Hard cap on per-trade R-multiple for equity sizing. Bounds single-trade
@@ -84,10 +65,10 @@ export interface EquitySummary {
   breakEvenWinRate: number | null;
   /** Sizing assumption surfaced to the UI so the chart caption can quote the methodology. */
   riskPerTradePct: number;
-  /** Realized average per-trade round-trip cost as % of notional, computed from
-   *  each row's real recorded cost (cost_estimate_pct) — NOT a flat guess. */
+  /** Average modeled per-trade round-trip fee + slippage as % of notional.
+   *  Funding and actual broker fills are not included. */
   roundTripCostPct: number;
-  /** Realized average per-trade cost in R (cost%_notional ÷ riskPct). This is
+  /** Average modeled per-trade cost in R (cost%_notional ÷ riskPct). This is
    *  what the equity path actually deducts; the notional % above understates the
    *  impact because tight stops magnify the R cost. Null when no sized trades. */
   avgCostR: number | null;
@@ -129,10 +110,9 @@ function inBand(record: SignalHistoryRecord, band: EquityBand): boolean {
 function computeRCap(resolved: SignalHistoryRecord[], multiplier: number): number | null {
   const absR: number[] = [];
   for (const r of resolved) {
-    if (r.sl == null || r.entryPrice <= 0) continue;
-    const riskPct = (Math.abs(r.entryPrice - r.sl) / r.entryPrice) * 100;
-    if (riskPct <= 0) continue;
-    absR.push(Math.abs(r.outcomes['24h']!.pnlPct / riskPct));
+    const tradeR = modeledTradeR(r);
+    if (!tradeR) continue;
+    absR.push(Math.abs(tradeR.grossR));
   }
   if (absR.length < 20) return null;
   absR.sort((a, b) => a - b);
@@ -171,12 +151,11 @@ function computeEquityCurve(
   let winRCount = 0;
   let lossRSum = 0;
   let lossRCount = 0;
-  // Realized cost accumulators — averaged over sized trades for the summary.
+  // Modeled cost accumulators — averaged over sized trades for the summary.
   let costRSum = 0;
   let costNotionalSum = 0;
 
   for (const r of sorted) {
-    const rawPnl = r.outcomes['24h']!.pnlPct;
     const isWin = r.outcomes['24h']!.hit;
     if (isWin) wins++;
 
@@ -185,13 +164,12 @@ function computeEquityCurve(
     // when TP is set at a 1:1.5 R:R, a loser bottoms at -1R. Rows without
     // SL (pre-migration) count toward win-rate but not equity — no defined
     // position size without a stop.
-    if (r.sl == null || r.entryPrice <= 0) continue;
-    const riskPct = (Math.abs(r.entryPrice - r.sl) / r.entryPrice) * 100;
-    if (riskPct <= 0) continue;
+    const tradeR = modeledTradeR(r);
+    if (!tradeR) continue;
 
     // R-stats use the RAW R-multiple — chart smoothing must not distort
     // per-trade risk math.
-    const rMultiple = rawPnl / riskPct;
+    const rMultiple = tradeR.grossR;
     if (isWin) {
       winRSum += rMultiple;
       winRCount++;
@@ -207,11 +185,11 @@ function computeEquityCurve(
     const rMultipleSized = Math.max(-effectiveRCap, Math.min(effectiveRCap, rMultiple));
 
     // Fixed-fractional equity change: RISK_PER_TRADE_PCT × R, minus this row's
-    // REAL round-trip cost. 1R == riskPct of price == RISK_PER_TRADE_PCT% of
+    // modeled round-trip fee + slippage. 1R == riskPct of price == RISK_PER_TRADE_PCT% of
     // equity, so the notional cost converts to R as cost%_notional ÷ riskPct.
     // Loss tail ≈ -(RISK_PER_TRADE_PCT + costR×RISK); wins compound at R×RISK.
-    const costNotionalPct = roundTripCostNotionalPct(r);
-    const tradeCostR = costNotionalPct / riskPct;
+    const costNotionalPct = tradeR.costNotionalPct;
+    const tradeCostR = tradeR.costR;
     costRSum += tradeCostR;
     costNotionalSum += costNotionalPct;
     const tradeReturnPct = (rMultipleSized - tradeCostR) * RISK_PER_TRADE_PCT;

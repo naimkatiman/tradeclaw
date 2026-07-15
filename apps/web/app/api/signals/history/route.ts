@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveRealOutcomes, isCountedResolved, isRealOutcome, type SignalHistoryRecord } from '../../../../lib/signal-history';
+import { isCountedResolved, isRealOutcome, type SignalHistoryRecord } from '../../../../lib/signal-history';
 import { getResolvedSlice, parseScope } from '../../../../lib/signal-slice';
 import { parseCategoryFilter, symbolsForCategory } from '../../../lib/symbol-config';
 
@@ -18,8 +18,12 @@ const CSV_HEADERS = [
   'gateReason',
   'outcome4hHit',
   'outcome4hPnlPct',
+  'outcome4hSource',
+  'outcome4hResolvedAt',
   'outcome24hHit',
   'outcome24hPnlPct',
+  'outcome24hSource',
+  'outcome24hResolvedAt',
 ] as const;
 
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
@@ -52,8 +56,12 @@ export function signalHistoryToCsv(records: SignalHistoryRecord[]): string {
     record.gateReason,
     record.outcomes['4h']?.hit,
     record.outcomes['4h']?.pnlPct,
+    record.outcomes['4h']?.source,
+    record.outcomes['4h']?.resolvedAt,
     record.outcomes['24h']?.hit,
     record.outcomes['24h']?.pnlPct,
+    record.outcomes['24h']?.source,
+    record.outcomes['24h']?.resolvedAt,
   ]);
 
   return [
@@ -66,8 +74,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const format = searchParams.get('format')?.toLowerCase();
-
-    await resolveRealOutcomes();
 
     // `scope=pro` (default, name kept for URL compatibility) is the full
     // all-symbol, full-history row set. Everything is free — the CSV export
@@ -94,8 +100,8 @@ export async function GET(request: NextRequest) {
     if (pair) records = records.filter(r => r.pair === pair);
     if (categorySymbols) records = records.filter(r => categorySymbols.has(r.pair));
     if (direction === 'BUY' || direction === 'SELL') records = records.filter(r => r.direction === direction);
-    if (outcome === 'win') records = records.filter(r => r.outcomes['24h']?.hit === true);
-    if (outcome === 'loss') records = records.filter(r => r.outcomes['24h']?.hit === false);
+    if (outcome === 'win') records = records.filter(r => isCountedResolved(r) && r.outcomes['24h']!.hit);
+    if (outcome === 'loss') records = records.filter(r => isCountedResolved(r) && !r.outcomes['24h']!.hit);
     if (outcome === 'pending') records = records.filter(isPendingOutcome);
 
     const sort = searchParams.get('sort');
@@ -157,7 +163,7 @@ export async function GET(request: NextRequest) {
       ? records.reduce((max, r) => (r.timestamp > max ? r.timestamp : max), records[0].timestamp)
       : null;
 
-    // Excluded buckets — surfaced for transparency, not folded into win-rate.
+    // Non-performance buckets, surfaced for denominator transparency.
     // Pending is intentionally age-aware: once a trade has crossed the 24h
     // outcome window without a 24h result, it is no longer "pending" even if
     // the background resolver has not yet written the final placeholder row.
@@ -167,12 +173,11 @@ export async function GET(request: NextRequest) {
     const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
     const expired = records.filter(r => {
       if (r.isSimulated || r.gateBlocked) return false;
-      // Two kinds of expired: auto-expire placeholders (fail isRealOutcome) and
-      // drift-expired closes (real pnl but target='expired'). Both are excluded
-      // from resolved/win-rate by isCountedResolved, so both belong in this
-      // transparency bucket — otherwise drift-expired rows vanish from every count.
+      // Only missing/zero force-expiry placeholders belong here. A nonzero
+      // drift-expired close is a real observed 24h outcome and is counted by
+      // isCountedResolved, even though its exit reason remains `expired`.
       const o = r.outcomes['24h'];
-      if (o && (!isRealOutcome(o) || o.target === 'expired')) return true;
+      if (o && !isRealOutcome(o)) return true;
       return !o && (now - r.timestamp) >= TWENTY_FOUR_HOURS_MS;
     }).length;
     const gateBlocked = records.filter(r => r.gateBlocked).length;
@@ -192,8 +197,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Streak walks only counted-resolved trades (most recent first). Skipping
-    // expired/gate-blocked rows is the whole point of using the canonical
-    // predicate — otherwise streak counts placeholders as losses.
+    // force-expiry placeholders and gate-blocked rows keeps missing outcomes
+    // from becoming losses; nonzero drift closes remain in chronological order.
     const sortedResolved = [...resolved].sort((a, b) => b.timestamp - a.timestamp);
     let streak = 0;
     if (sortedResolved.length > 0) {
@@ -218,6 +223,7 @@ export async function GET(request: NextRequest) {
       earliestTimestamp: slice.earliestTimestamp,
       latestTimestamp,
       stats: {
+        available: resolved.length > 0,
         totalSignals: records.length,
         resolved: resolved.length,
         simulated: simulatedCount,

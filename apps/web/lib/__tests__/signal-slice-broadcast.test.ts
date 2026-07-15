@@ -9,6 +9,7 @@ import type { SignalHistoryRecord } from '../signal-history';
 const mockedHistory = getCachedHistory as jest.MockedFunction<typeof getCachedHistory>;
 
 function mkRecord(id: string, broadcastBlocked: boolean | undefined): SignalHistoryRecord {
+  const timestamp = Date.now() - 60_000;
   return {
     id,
     pair: 'BTCUSD',
@@ -16,7 +17,7 @@ function mkRecord(id: string, broadcastBlocked: boolean | undefined): SignalHist
     direction: 'BUY',
     confidence: 80,
     entryPrice: 50000,
-    timestamp: Date.now() - 60_000,
+    timestamp,
     tp1: 51000,
     sl: 49500,
     isSimulated: false,
@@ -24,7 +25,14 @@ function mkRecord(id: string, broadcastBlocked: boolean | undefined): SignalHist
     broadcastBlocked,
     outcomes: {
       '4h': null,
-      '24h': { price: 51000, pnlPct: 2.0, hit: true, target: 'TP1' },
+      '24h': {
+        price: 51000,
+        pnlPct: 2.0,
+        hit: true,
+        target: 'TP1',
+        resolvedAt: new Date(timestamp + 30_000).toISOString(),
+        source: 'binance',
+      },
     },
   };
 }

@@ -10,13 +10,13 @@ const ProofClient = dynamic(() => import('./ProofClient'), {
 });
 
 export const metadata: Metadata = {
-  title: 'Signal Proof — Real Performance, No Simulation | TradeClaw',
+  title: 'Recorded Signal Evidence — OHLCV Outcomes | TradeClaw',
   description:
-    'Transparent, auditable record of every real TradeClaw signal. See live win rates, P&L outcomes, and candle-verified resolutions — no seeded or fake data.',
+    'Non-synthetic recorded TradeClaw signals with outcomes resolved against provider OHLCV. This is not a broker-fill or customer-account record.',
   openGraph: {
-    title: 'Real Signal Performance Proof — TradeClaw',
+    title: 'Recorded Signal Evidence — TradeClaw',
     description:
-      'Every live signal TradeClaw generated, with candle-verified outcomes. Real data only — seeded demos excluded.',
+      'Recorded non-synthetic signals with OHLCV-resolved outcomes. Seeded demos are excluded; broker fills are not claimed.',
     type: 'website',
   },
 };

@@ -29,7 +29,7 @@ const READERS: RSSReaderGuide[] = [
     name: 'Feedly',
     url: 'https://feedly.com',
     type: 'cloud',
-    description: 'Most popular web-based RSS reader. Supports RSS & Atom.',
+    description: 'Web-based RSS reader with RSS and Atom support.',
     supports: ['RSS', 'Atom'],
   },
   {
@@ -50,7 +50,7 @@ const READERS: RSSReaderGuide[] = [
     name: 'FreshRSS',
     url: 'https://freshrss.org',
     type: 'self-hosted',
-    description: 'Self-hosted RSS aggregator. Docker-ready. Full control.',
+    description: 'Self-hosted RSS aggregator with a documented Docker option.',
     supports: ['RSS', 'Atom', 'JSON Feed'],
   },
 ];
@@ -118,7 +118,7 @@ function SignalPreviewItem({ signal }: { signal: SignalHistoryRecord }) {
           >
             {signal.direction}
           </span>
-          <span className="text-xs text-[var(--text-secondary)]">{signal.confidence}% confidence</span>
+          <span className="text-xs text-[var(--text-secondary)]">{signal.confidence}% indicator agreement</span>
         </div>
 
         <div className="mt-1 flex items-center gap-3 text-xs text-[var(--text-secondary)] flex-wrap">
@@ -162,7 +162,7 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
       label: 'RSS 2.0',
       url: `${BASE_URL}/feed.xml`,
       type: 'application/rss+xml',
-      description: 'Standard RSS feed. Works with every reader.',
+      description: 'Standard RSS feed supported by many readers.',
       icon: <Rss size={16} className="text-orange-400" />,
       badge: 'Universal',
       badgeColor: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
@@ -224,21 +224,21 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
               <Rss size={20} className="text-orange-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Live Signal Feed</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Signal Archive Feeds</h1>
               <p className="text-sm text-[var(--text-secondary)]">Subscribe via RSS, Atom, or JSON Feed</p>
             </div>
           </div>
           <p className="text-[var(--text-secondary)] text-sm leading-relaxed max-w-xl">
-            Get TradeClaw AI trading signals delivered directly to your RSS reader, monitoring
-            setup, or automation workflow. No account required. Free forever.
+            Read available TradeClaw signal records in an RSS reader or monitoring workflow.
+            Feed availability depends on this deployment; external readers set their own terms.
           </p>
 
           {/* RSS badge */}
           <div className="mt-4 flex items-center gap-3 flex-wrap">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://img.shields.io/badge/RSS-Live%20Signals-orange?logo=rss&logoColor=white"
-              alt="RSS Live Signals"
+              src="https://img.shields.io/badge/RSS-Signal%20Archive-orange?logo=rss&logoColor=white"
+              alt="RSS Signal Archive"
               height="20"
             />
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -307,11 +307,11 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
           </div>
         </section>
 
-        {/* Live preview */}
+        {/* Recent-record preview */}
         <section>
           <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
             <TrendingUp size={15} className="text-emerald-400" />
-            Latest Signals Preview
+            Recent Signal Records
           </h2>
           {recentSignals.length === 0 ? (
             <p className="text-sm text-[var(--text-secondary)] text-center py-8">No signals yet.</p>
@@ -389,7 +389,7 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
               },
               {
                 title: 'Alert fatigue reduction',
-                desc: 'Use Inoreader rules to filter only BUY signals above 80% confidence — skip the noise.',
+                desc: 'Use reader rules to filter BUY records above a chosen indicator-agreement threshold.',
               },
               {
                 title: 'Monitoring pipeline',
@@ -422,7 +422,7 @@ export function RSSClient({ recentSignals }: RSSClientProps) {
             <code className="text-[var(--foreground)] bg-[var(--glass-bg)] px-1 rounded">
               {'<link rel="alternate">'}
             </code>{' '}
-            tags in every page. Most RSS readers and browsers will detect the feeds automatically
+            tags in every page. Compatible RSS readers and browsers can detect the feeds automatically
             when you paste any TradeClaw URL.
           </p>
         </section>

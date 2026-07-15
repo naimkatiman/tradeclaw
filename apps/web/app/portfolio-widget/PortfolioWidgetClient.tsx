@@ -71,16 +71,15 @@ export function PortfolioWidgetClient() {
         {/* Hero */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Portfolio Widget
+            Paper Simulation Widget
           </div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Embeddable Portfolio{' '}
-            <span className="text-emerald-400">Tracker</span>
+            Embeddable Paper{' '}
+            <span className="text-emerald-400">Results</span>
           </h1>
           <p className="text-[var(--text-secondary)] max-w-xl mx-auto text-sm leading-relaxed">
-            Show your live paper trading P&amp;L on any website, blog, or GitHub README.
-            Auto-refreshes every 30 seconds. No API key required.
+            Publish realized results from the configured paper account. Open positions are not marked,
+            and the widget does not represent broker fills or customer portfolio performance.
           </p>
         </div>
 
@@ -148,7 +147,7 @@ export function PortfolioWidgetClient() {
           </button>
         </div>
 
-        {/* Live preview */}
+        {/* Configured feed preview */}
         <div className="flex flex-col items-center gap-4">
           <div className="rounded-2xl bg-[#0d1117] border border-[#30363d] p-6 inline-block">
             <iframe
@@ -156,12 +155,11 @@ export function PortfolioWidgetClient() {
               width={w}
               height={compactMode ? SIZES.compact.h : h}
               style={{ border: 'none', borderRadius: 12, overflow: 'hidden' }}
-              title="TradeClaw Portfolio Widget"
+              title="TradeClaw paper simulation widget"
             />
           </div>
           <p className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Live preview — auto-refreshes every 30s
+            Configured paper-account feed. An unavailable state is shown when no demo account is configured.
           </p>
         </div>
 
@@ -218,7 +216,7 @@ export function PortfolioWidgetClient() {
             <div className="space-y-1">
               <p className="font-medium text-white text-xs">JSON Data</p>
               <code className="text-xs font-mono text-emerald-400">/api/widget/portfolio</code>
-              <p className="text-[10px] text-[var(--text-secondary)]">Balance, equity, P&amp;L, win rate, top 3 positions</p>
+              <p className="text-[10px] text-[var(--text-secondary)]">Realized paper balance and return; open P&amp;L is null</p>
             </div>
             <div className="space-y-1">
               <p className="font-medium text-white text-xs">Embeddable Page</p>
@@ -252,7 +250,7 @@ export function PortfolioWidgetClient() {
                   <tr>
                     <td className="py-2 pr-4 font-mono text-emerald-400">compact</td>
                     <td className="py-2 pr-4">true</td>
-                    <td className="py-2 text-[var(--text-secondary)]">Hide top positions, smaller layout</td>
+                    <td className="py-2 text-[var(--text-secondary)]">Use the smaller layout</td>
                   </tr>
                 </tbody>
               </table>
@@ -260,27 +258,15 @@ export function PortfolioWidgetClient() {
           </div>
         </div>
 
-        {/* Example JSON */}
+        {/* API request */}
         <div className="space-y-2 p-6 rounded-xl border border-white/10 bg-white/[0.02]">
-          <h3 className="text-sm font-semibold">Example JSON Response</h3>
+          <h3 className="text-sm font-semibold">Inspect the Current Response</h3>
+          <p className="text-xs text-[var(--text-secondary)]">
+            The endpoint returns the configured paper account or an explicit unavailable response. It never substitutes preview values.
+          </p>
           <CodeSnippet
             label="GET /api/widget/portfolio"
-            code={`curl ${jsonUrl}
-
-{
-  "balance": 10000.00,
-  "equity": 10025.50,
-  "openPnl": 25.50,
-  "totalReturn": 0.3,
-  "winRate": 65.0,
-  "openPositions": 3,
-  "top3Positions": [
-    { "symbol": "BTCUSD", "direction": "BUY", "unrealisedPnl": 15.20 },
-    { "symbol": "XAUUSD", "direction": "SELL", "unrealisedPnl": -8.30 },
-    { "symbol": "EURUSD", "direction": "BUY", "unrealisedPnl": 5.10 }
-  ],
-  "lastUpdated": "2026-03-29T12:00:00.000Z"
-}`}
+            code={`curl --fail-with-body ${jsonUrl}`}
           />
         </div>
 
@@ -302,7 +288,7 @@ export function PortfolioWidgetClient() {
 
         {/* Footer */}
         <p className="text-center text-xs text-[var(--text-secondary)]">
-          Widget auto-refreshes every 30s · Data from paper trading engine ·{' '}
+          Realized paper simulation only · Not broker or customer returns ·{' '}
           <a
             href="/paper-trading"
             className="text-emerald-400 hover:text-emerald-300 transition-colors"

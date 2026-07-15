@@ -1,14 +1,18 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSignals } from '../../../lib/signals';
 import {
   recordSignalAsync,
   getRecentRecordForSymbolAsync,
 } from '../../../../lib/signal-history';
 import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../lib/signal-thresholds';
+import { requireCronAuth } from '../../../../lib/cron-auth';
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 
-export async function POST(): Promise<Response> {
+export async function POST(request: NextRequest): Promise<Response> {
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
+
   try {
     const { signals } = await getSignals({ minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE });
 
@@ -45,5 +49,8 @@ export async function POST(): Promise<Response> {
 }
 
 export async function GET(): Promise<Response> {
-  return POST();
+  return NextResponse.json({ error: 'Method not allowed' }, {
+    status: 405,
+    headers: { Allow: 'POST' },
+  });
 }

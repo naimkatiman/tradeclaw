@@ -4,13 +4,13 @@
  * `packages/strategies/src/__tests__/__snapshots__/integration-snapshot.test.ts.snap`
  * and emit a compact summary JSON for the backtest PR comment.
  *
- * The snapshot is a deterministic record of per-strategy backtest
- * results — much more reliable to read than the Jest console output.
+ * The snapshot is a deterministic record of per-strategy modeled results on
+ * a fixed test fixture. It is suitable for code-regression diagnostics only;
+ * it is not live, out-of-sample, broker, account, or portfolio performance.
  *
  *   { winRate, totalReturn, profitFactor, maxDrawdown, totalTrades, strategies }
  *
- * Falls back to a "no-data" summary if the snapshot is missing so the
- * PR comment never blocks a doc-only change.
+ * Emits an explicit unavailable summary if the snapshot is missing.
  */
 
 const fs = require('fs');
@@ -64,6 +64,9 @@ function parseSnapshot(text) {
   while ((m = tradesRe.exec(text))) trades.push(parseInt(m[1], 10));
 
   return {
+    available: winRates.length > 0,
+    fixture: 'packages/strategies/src/__tests__/fixtures/candles-100.json',
+    aggregation: 'unweighted mean across preset snapshots; totalTrades is summed',
     winRate: nullOr(avg(winRates), v => v * 100),
     totalReturn: nullOr(avg(returns), v => v * 100),
     profitFactor: avg(profitFactors),
@@ -80,5 +83,15 @@ function nullOr(v, transform) {
 const text = readSnapshot();
 const summary = text
   ? parseSnapshot(text)
-  : { winRate: null, totalReturn: null, profitFactor: null, maxDrawdown: null, totalTrades: null, strategies: 0 };
+  : {
+      available: false,
+      fixture: 'packages/strategies/src/__tests__/fixtures/candles-100.json',
+      aggregation: 'unweighted mean across preset snapshots; totalTrades is summed',
+      winRate: null,
+      totalReturn: null,
+      profitFactor: null,
+      maxDrawdown: null,
+      totalTrades: null,
+      strategies: 0,
+    };
 process.stdout.write(JSON.stringify(summary, null, 2));

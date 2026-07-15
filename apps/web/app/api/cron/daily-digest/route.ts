@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDailyDigest, digestToPlainText, digestToHtml, type DailyDigest } from '../../../../lib/daily-digest';
 import { sendEmail } from '../../../../lib/email-sender';
 import { requireCronAuth } from '../../../../lib/cron-auth';
+import { evaluateCostAdjustedEdge } from '../../../../lib/cost-adjusted-edge-gate';
 
 const TELEGRAM_API = 'https://api.telegram.org';
 
@@ -65,6 +66,26 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     if (!telegramConfigured && !emailConfigured) {
       return NextResponse.json(
         { sent: false, error: 'No delivery channel configured (set TELEGRAM_BOT_TOKEN + TELEGRAM_CHANNEL_ID and/or EMAIL_TO)' },
+        { status: 503 },
+      );
+    }
+
+    const edge = await evaluateCostAdjustedEdge();
+    if (!edge.allowed) {
+      return NextResponse.json(
+        {
+          sent: false,
+          count: 0,
+          halted: `cost_adjusted_edge:${edge.reason}`,
+          evidence: {
+            usableCount: edge.usableCount,
+            activeDays: edge.activeDays,
+            coverage: edge.coverage,
+            perSignalMeanNetR: edge.perSignalMeanNetR,
+            equalDayLowerBoundNetR: edge.equalDayLowerBoundNetR,
+          },
+          timestamp: new Date().toISOString(),
+        },
         { status: 503 },
       );
     }

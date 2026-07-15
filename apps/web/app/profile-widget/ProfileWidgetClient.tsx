@@ -78,8 +78,8 @@ export default function ProfileWidgetClient() {
             <span className="text-emerald-400">GitHub Profile README</span>
           </h1>
           <p className="text-lg text-white/60 max-w-2xl mx-auto mb-8">
-            One line of Markdown. Live BUY/SELL signals refreshed every 5 minutes. Updates automatically.
-            100M+ GitHub profiles — be the one with live trading signals.
+            One line of Markdown showing the latest available BUY/SELL/HOLD rule output and its source timestamp.
+            Add an inspectable signal-research badge to your GitHub profile.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <a
@@ -163,7 +163,7 @@ export default function ProfileWidgetClient() {
                   key={widgetUrl}
                 />
               </div>
-              <p className="text-xs text-white/40 mt-2">Updates every 5 minutes with live signal data</p>
+              <p className="text-xs text-white/40 mt-2">Shows the latest data returned by the public signal endpoint</p>
             </div>
           </div>
         </section>
@@ -222,7 +222,7 @@ export default function ProfileWidgetClient() {
               {
                 step: '4',
                 title: 'Visit your GitHub profile',
-                desc: 'Go to github.com/yourusername — the live signal widget will appear and auto-update every 5 minutes.',
+                desc: 'Open your GitHub profile and verify that the badge displays the latest available signal timestamp.',
               },
             ].map((item) => (
               <div key={item.step} className="flex gap-4">
@@ -241,7 +241,7 @@ export default function ProfileWidgetClient() {
         {/* Showcase — 5 pair widgets */}
         <section>
           <h2 className="text-2xl font-bold text-white mb-2">All Available Pairs</h2>
-          <p className="text-white/50 text-sm mb-6">Each pair has its own live signal widget. Showing dark theme.</p>
+          <p className="text-white/50 text-sm mb-6">Each supported pair has a read-only signal widget. Showing dark theme.</p>
           <div className="grid gap-4">
             {SHOWCASE_PAIRS.map((pair) => {
               const url = `${BASE_URL}/api/widget/profile?pair=${pair}&theme=dark`;

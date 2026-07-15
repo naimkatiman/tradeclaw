@@ -20,7 +20,7 @@ const INDICATORS: IndicatorConfig[] = [
   {
     key: 'rsi',
     label: 'RSI Score',
-    weight: 0.20,
+    weight: 0.2,
     description: 'Relative Strength Index — measures momentum overbought/oversold conditions',
     lowHint: 'RSI in neutral zone (40–60) — weak directional signal',
     highHint: 'RSI < 30 (oversold BUY) or > 70 (overbought SELL) — max score',
@@ -29,7 +29,7 @@ const INDICATORS: IndicatorConfig[] = [
   {
     key: 'macd',
     label: 'MACD Score',
-    weight: 0.20,
+    weight: 0.2,
     description: 'Moving Average Convergence Divergence — trend momentum crossover signal',
     lowHint: 'MACD histogram near zero — no clear momentum',
     highHint: 'Strong bullish/bearish crossover with expanding histogram',
@@ -38,7 +38,7 @@ const INDICATORS: IndicatorConfig[] = [
   {
     key: 'ema',
     label: 'EMA Score',
-    weight: 0.20,
+    weight: 0.2,
     description: 'Exponential Moving Average alignment — price relative to EMA20/EMA50',
     lowHint: 'Price tangled with EMAs — no clear trend direction',
     highHint: 'Price cleanly above EMA20+EMA50 (BUY) or below both (SELL)',
@@ -65,10 +65,10 @@ const INDICATORS: IndicatorConfig[] = [
   {
     key: 'volume',
     label: 'Volume Score',
-    weight: 0.10,
+    weight: 0.1,
     description: 'Volume confirmation — current vs 20-bar average volume ratio',
     lowHint: 'Below-average volume — signal not confirmed by participation',
-    highHint: 'Volume 2× or more vs 20-bar average — strong conviction',
+    highHint: 'Volume 2× or more vs 20-bar average — larger illustrative input',
     color: 'cyan',
   },
 ];
@@ -76,35 +76,77 @@ const INDICATORS: IndicatorConfig[] = [
 /* ── presets ──────────────────────────────────────────────────────────── */
 const PRESETS = [
   {
-    label: 'Strong BUY',
+    label: 'High Inputs',
     emoji: '🟢',
     values: { rsi: 92, macd: 88, ema: 85, bb: 78, stoch: 90, volume: 80 },
   },
   {
-    label: 'Conflicted Signal',
+    label: 'Mixed Inputs',
     emoji: '🟡',
     values: { rsi: 45, macd: 30, ema: 62, bb: 40, stoch: 55, volume: 35 },
   },
   {
-    label: 'Perfect Setup',
+    label: 'Near-Max Inputs',
     emoji: '⭐',
     values: { rsi: 95, macd: 95, ema: 95, bb: 90, stoch: 92, volume: 88 },
   },
 ];
 
-/* ── confidence tiers (granular, matching signal-generator thresholds) ── */
+/* ── illustrative score bands for this calculator only ── */
 const CONFIDENCE_TIERS = [
-  { min: 90, label: 'Exceptional',  color: 'text-fuchsia-400',  bg: 'bg-fuchsia-500/20 border-fuchsia-500/30',  tag: 'Top-tier setup' },
-  { min: 80, label: 'Very Strong',  color: 'text-purple-400',   bg: 'bg-purple-500/20 border-purple-500/30',    tag: 'High conviction' },
-  { min: 73, label: 'Strong',       color: 'text-emerald-400',  bg: 'bg-emerald-500/20 border-emerald-500/30',  tag: 'Auto-broadcast' },
-  { min: 65, label: 'Moderate',     color: 'text-sky-400',      bg: 'bg-sky-500/20 border-sky-500/30',          tag: 'Published' },
-  { min: 58, label: 'Low',          color: 'text-zinc-400',    bg: 'bg-zinc-500/20 border-zinc-500/30',      tag: 'Published (marginal)' },
-  { min: 55, label: 'Weak',         color: 'text-orange-400',   bg: 'bg-orange-500/20 border-orange-500/30',    tag: 'Watchlist only' },
-  { min: 0,  label: 'Very Weak',    color: 'text-rose-400',     bg: 'bg-rose-500/20 border-rose-500/30',        tag: 'Filtered out' },
+  {
+    min: 90,
+    label: 'Exceptional',
+    color: 'text-fuchsia-400',
+    bg: 'bg-fuchsia-500/20 border-fuchsia-500/30',
+    tag: 'Illustrative band',
+  },
+  {
+    min: 80,
+    label: 'Very Strong',
+    color: 'text-purple-400',
+    bg: 'bg-purple-500/20 border-purple-500/30',
+    tag: 'Illustrative band',
+  },
+  {
+    min: 73,
+    label: 'Strong',
+    color: 'text-emerald-400',
+    bg: 'bg-emerald-500/20 border-emerald-500/30',
+    tag: 'Illustrative band',
+  },
+  {
+    min: 65,
+    label: 'Moderate',
+    color: 'text-sky-400',
+    bg: 'bg-sky-500/20 border-sky-500/30',
+    tag: 'Illustrative band',
+  },
+  {
+    min: 58,
+    label: 'Low',
+    color: 'text-zinc-400',
+    bg: 'bg-zinc-500/20 border-zinc-500/30',
+    tag: 'Illustrative band',
+  },
+  {
+    min: 55,
+    label: 'Weak',
+    color: 'text-orange-400',
+    bg: 'bg-orange-500/20 border-orange-500/30',
+    tag: 'Illustrative band',
+  },
+  {
+    min: 0,
+    label: 'Very Weak',
+    color: 'text-rose-400',
+    bg: 'bg-rose-500/20 border-rose-500/30',
+    tag: 'Illustrative band',
+  },
 ] as const;
 
 function getTier(score: number) {
-  return CONFIDENCE_TIERS.find(t => score >= t.min) ?? CONFIDENCE_TIERS[CONFIDENCE_TIERS.length - 1];
+  return CONFIDENCE_TIERS.find((t) => score >= t.min) ?? CONFIDENCE_TIERS[CONFIDENCE_TIERS.length - 1];
 }
 
 function getScoreColor(score: number): string {
@@ -144,8 +186,9 @@ function getSliderAccentClass(color: string): string {
 }
 
 /* ── code snippet ─────────────────────────────────────────────────────── */
-const CODE_SNIPPET = `// TradeClaw confidence scoring — weights match this calculator's INDICATORS.
-// 6 indicators, each scored 0–100, weighted to a 0–100 confidence.
+const CODE_SNIPPET = `// Standalone educational formula used by this page.
+// It is not the canonical formula for every TradeClaw strategy.
+// 6 user-supplied indicator scores, weighted to a 0-100 result.
 const WEIGHTS = {
   RSI: 0.20, MACD: 0.20, EMA: 0.20,
   BB:  0.15, STOCH: 0.15, VOLUME: 0.10, // total = 1.00
@@ -156,17 +199,11 @@ function confidence(scores: Record<string, number>): number {
   const raw =
     scores.rsi   * 0.20 + scores.macd  * 0.20 + scores.ema    * 0.20 +
     scores.bb    * 0.15 + scores.stoch * 0.15 + scores.volume * 0.10;
-  return Math.round(raw); // 0–100
+  return Math.round(raw); // 0-100
 }
 
-// Thresholds (granular tiers):
-//  < 55  → filtered entirely
-//  55–57 → watchlist only
-//  58–64 → published (marginal)
-//  65–72 → published (moderate)
-//  73+   → auto-broadcast to Telegram & webhooks
-//  75+   → capped at 70 unless multi-TF confluence (H1+H4+D1) confirms;
-//          with confluence, +confluence bonus, capped at 95`;
+// Runtime publication, alerting, and execution use separate strategy and
+// cost-adjusted evidence gates. This value alone authorizes none of them.`;
 
 /* ── main component ───────────────────────────────────────────────────── */
 export default function ConfidenceClient() {
@@ -204,7 +241,6 @@ export default function ConfidenceClient() {
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-24 pb-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 gap-12 flex flex-col">
-
         {/* ── Hero ── */}
         <section className="text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-4">
@@ -216,8 +252,8 @@ export default function ConfidenceClient() {
             <span className="text-emerald-400 ml-2">Calculator</span>
           </h1>
           <p className="text-[var(--text-secondary)] text-lg max-w-xl mx-auto">
-            Drag the sliders to see exactly how TradeClaw scores a signal.
-            Every weight, every formula — fully transparent.
+            Explore a simplified weighted-score model. Individual strategies use their own source code and thresholds,
+            so this page is educational rather than a runtime source of truth.
           </p>
         </section>
 
@@ -238,21 +274,13 @@ export default function ConfidenceClient() {
               {confidence}
             </span>
             <div className="flex items-center gap-3">
-              <span className={`text-xl font-semibold ${getScoreColor(confidence)}`}>
-                {getScoreLabel(confidence)}
-              </span>
+              <span className={`text-xl font-semibold ${getScoreColor(confidence)}`}>{getScoreLabel(confidence)}</span>
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getScoreBg(confidence)}`}>
                 {tier.tag}
               </span>
             </div>
             <p className="text-[var(--text-secondary)] text-sm mt-1">
-              {confidence >= 73
-                ? 'Auto-broadcast to Telegram & webhooks'
-                : confidence >= 58
-                  ? 'Published but not auto-broadcast'
-                  : confidence >= 55
-                    ? 'Watchlist only — not published'
-                    : 'Below 55 — filtered out entirely'}
+              This score does not trigger publication, alert delivery, or broker execution.
             </p>
           </div>
         </div>
@@ -294,9 +322,7 @@ export default function ConfidenceClient() {
                 {/* Header row */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div
-                      className={`w-2.5 h-2.5 rounded-full ${getIndicatorColorClass(ind.color)}`}
-                    />
+                    <div className={`w-2.5 h-2.5 rounded-full ${getIndicatorColorClass(ind.color)}`} />
                     <div>
                       <span className="text-sm font-semibold">{ind.label}</span>
                       <span className="text-xs text-[var(--text-secondary)] ml-2">
@@ -337,7 +363,9 @@ export default function ConfidenceClient() {
                   <div className="flex-1 h-1 rounded-full bg-[var(--border)]">
                     <div
                       className={`h-full rounded-full ${getIndicatorColorClass(ind.color)} transition-all duration-300`}
-                      style={{ width: `${(contribution / Math.round(ind.weight * 100)) * 100}%` }}
+                      style={{
+                        width: `${(contribution / Math.round(ind.weight * 100)) * 100}%`,
+                      }}
                     />
                   </div>
                   <span className="text-xs text-[var(--text-secondary)] tabular-nums w-24 text-right">
@@ -379,17 +407,13 @@ export default function ConfidenceClient() {
                 <span key={ind.key}>
                   <span className={getScoreColor(scores[ind.key])}>{scores[ind.key]}</span>
                   <span className="text-[var(--text-secondary)]"> × {ind.weight.toFixed(2)}</span>
-                  {i < INDICATORS.length - 1 && (
-                    <span className="text-[var(--text-secondary)]"> + </span>
-                  )}
+                  {i < INDICATORS.length - 1 && <span className="text-[var(--text-secondary)]"> + </span>}
                 </span>
               ))}
               {') = '}
             </span>
             <span className={`font-bold text-lg ${getScoreColor(confidence)}`}>{confidence}</span>
-            <span className="text-[var(--text-secondary)] ml-2">
-              {confidence >= 73 ? '✓ auto-broadcast' : confidence >= 58 ? '✓ published' : confidence >= 55 ? '◐ watchlist' : '✗ filtered'}
-            </span>
+            <span className="text-[var(--text-secondary)] ml-2">illustrative only</span>
           </div>
 
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -397,9 +421,7 @@ export default function ConfidenceClient() {
               <div key={ind.key} className="flex items-center gap-2 text-xs">
                 <div className={`w-2 h-2 rounded-full ${getIndicatorColorClass(ind.color)}`} />
                 <span className="text-[var(--text-secondary)]">{ind.label.replace(' Score', '')}</span>
-                <span className="ml-auto font-semibold tabular-nums">
-                  +{Math.round(scores[ind.key] * ind.weight)}
-                </span>
+                <span className="ml-auto font-semibold tabular-nums">+{Math.round(scores[ind.key] * ind.weight)}</span>
               </div>
             ))}
             <div className="col-span-2 sm:col-span-3 border-t border-[var(--border)] pt-2 flex justify-between text-xs font-bold">
@@ -413,7 +435,7 @@ export default function ConfidenceClient() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--glass-bg)] p-5">
           <div className="flex items-center gap-2 mb-4">
             <Zap className="w-4 h-4 text-zinc-400" />
-            <h2 className="text-sm font-semibold">Confidence Tiers</h2>
+            <h2 className="text-sm font-semibold">Illustrative Score Bands</h2>
           </div>
           <div className="grid gap-2">
             {CONFIDENCE_TIERS.map((t) => (
@@ -426,8 +448,8 @@ export default function ConfidenceClient() {
             ))}
           </div>
           <p className="text-xs text-[var(--text-secondary)] mt-4 border-t border-[var(--border)] pt-3">
-            Signals ≥ 75% are capped at 70% unless multi-timeframe confluence (H1 + H4 + D1 agreement) confirms the setup.
-            With confluence, confidence gets a +15% boost.
+            Strategy engines can calculate confidence differently. Confidence alone never clears the reproducible
+            cost-adjusted evidence gate required for entry-like delivery or execution.
           </p>
         </div>
 
@@ -439,7 +461,7 @@ export default function ConfidenceClient() {
               <div className="w-3 h-3 rounded-full bg-zinc-500/60" />
               <div className="w-3 h-3 rounded-full bg-emerald-500/60" />
               <span className="ml-2 text-xs text-[var(--text-secondary)] font-mono">
-                confidence formula (simplified)
+                educational confidence formula
               </span>
             </div>
             <button
@@ -471,7 +493,7 @@ export default function ConfidenceClient() {
             className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-500 text-black text-sm font-semibold hover:bg-emerald-400 transition-all duration-200"
           >
             <TrendingUp className="w-4 h-4" />
-            See Live Signals
+            Open Signal Dashboard
           </Link>
           <Link
             href="/explain"
@@ -490,7 +512,6 @@ export default function ConfidenceClient() {
             Star on GitHub
           </a>
         </div>
-
       </div>
     </main>
   );

@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
 import type { BaseChannel } from '../channels/base.js';
-import type { TradingSignal, Direction } from '@tradeclaw/signals';
+import type { TradingSignal, Direction, IndicatorSummary, Timeframe } from '@tradeclaw/signals';
 
 const MAX_BODY_BYTES = 64 * 1024;
 
@@ -20,7 +20,7 @@ function isAuthorized(authHeader: string, secret: string): boolean {
   return timingSafeEqual(a, b);
 }
 
-interface TradingViewAlert {
+export interface TradingViewAlert {
   symbol?: string;
   action?: string;
   price?: number;
@@ -28,6 +28,20 @@ interface TradingViewAlert {
   message?: string;
   timeframe?: string;
   exchange?: string;
+  id?: string;
+  stopLoss?: number;
+  sl?: number;
+  takeProfit1?: number;
+  tp1?: number;
+  takeProfit2?: number | null;
+  tp2?: number | null;
+  takeProfit3?: number | null;
+  tp3?: number | null;
+  confidence?: number;
+  timestamp?: string;
+  source?: string;
+  dataQuality?: string;
+  indicators?: unknown;
   [key: string]: unknown;
 }
 
@@ -48,45 +62,80 @@ function parseTradingViewAlert(body: string): TradingViewAlert | null {
   }
 }
 
-function alertToSignal(alert: TradingViewAlert): TradingSignal | null {
-  if (!alert.symbol && !alert.action) return null;
+function isPositiveNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
 
-  const rawDirection = (alert.action || '').toLowerCase();
-  const direction: Direction = rawDirection.includes('buy') ? 'BUY' : 'SELL';
-  // A missing/unparseable price would build a signal with entry=0 and SL/TP off
-  // 0, causing divide-by-zero downstream. Drop the alert instead.
-  const price = Number(alert.price);
-  if (!Number.isFinite(price) || price <= 0) return null;
+function isIndicatorSummary(value: unknown): value is IndicatorSummary {
+  if (!value || typeof value !== 'object') return false;
+  const indicators = value as Partial<IndicatorSummary>;
+  return typeof indicators.rsi?.value === 'number'
+    && ['oversold', 'neutral', 'overbought'].includes(indicators.rsi.signal)
+    && typeof indicators.macd?.histogram === 'number'
+    && ['bullish', 'bearish', 'neutral'].includes(indicators.macd.signal)
+    && typeof indicators.ema?.ema20 === 'number'
+    && typeof indicators.ema?.ema50 === 'number'
+    && typeof indicators.ema?.ema200 === 'number'
+    && ['up', 'down', 'sideways'].includes(indicators.ema.trend)
+    && typeof indicators.bollingerBands?.bandwidth === 'number'
+    && ['upper', 'middle', 'lower'].includes(indicators.bollingerBands.position)
+    && typeof indicators.stochastic?.k === 'number'
+    && typeof indicators.stochastic?.d === 'number'
+    && ['oversold', 'neutral', 'overbought'].includes(indicators.stochastic.signal)
+    && Array.isArray(indicators.support)
+    && indicators.support.every(Number.isFinite)
+    && Array.isArray(indicators.resistance)
+    && indicators.resistance.every(Number.isFinite);
+}
 
-  const volatilityPct = 0.005;
-  const slDist = price * volatilityPct;
-  const tp1Dist = slDist * 1.5;
-  const tp2Dist = slDist * 2.618;
-  const tp3Dist = slDist * 4.236;
+function nullablePositiveNumber(value: unknown): number | null | undefined {
+  if (value === null || value === undefined) return null;
+  return isPositiveNumber(value) ? value : undefined;
+}
+
+export function alertToSignal(alert: TradingViewAlert): TradingSignal | null {
+  if (alert.source !== 'real' || alert.dataQuality !== 'real') return null;
+  if (typeof alert.id !== 'string' || alert.id.length === 0) return null;
+  if (typeof alert.symbol !== 'string' || !/^[A-Za-z0-9]+$/.test(alert.symbol)) return null;
+
+  const rawDirection = (alert.action || '').toUpperCase();
+  if (rawDirection !== 'BUY' && rawDirection !== 'SELL') return null;
+  const direction: Direction = rawDirection;
+
+  if (!isPositiveNumber(alert.price)) return null;
+  const stopLoss = alert.stopLoss ?? alert.sl;
+  const takeProfit1 = alert.takeProfit1 ?? alert.tp1;
+  if (!isPositiveNumber(stopLoss) || !isPositiveNumber(takeProfit1)) return null;
+
+  const takeProfit2 = nullablePositiveNumber(alert.takeProfit2 ?? alert.tp2);
+  const takeProfit3 = nullablePositiveNumber(alert.takeProfit3 ?? alert.tp3);
+  if (takeProfit2 === undefined || takeProfit3 === undefined) return null;
+
+  if (typeof alert.confidence !== 'number' || !Number.isFinite(alert.confidence)) return null;
+  if (alert.confidence < 0 || alert.confidence > 100) return null;
+
+  const validTimeframes: Timeframe[] = ['M5', 'M15', 'H1', 'H4', 'D1'];
+  if (!validTimeframes.includes(alert.timeframe as Timeframe)) return null;
+  if (typeof alert.timestamp !== 'string' || !Number.isFinite(Date.parse(alert.timestamp))) return null;
+  if (!isIndicatorSummary(alert.indicators)) return null;
 
   return {
-    id: `TV-${Date.now().toString(36).toUpperCase()}`,
-    symbol: (alert.symbol || 'UNKNOWN').toUpperCase().replace(/[^A-Z0-9]/g, ''),
+    id: alert.id,
+    symbol: alert.symbol.toUpperCase(),
     direction,
-    confidence: 85,
-    entry: price,
-    stopLoss: direction === 'BUY' ? price - slDist : price + slDist,
-    takeProfit1: direction === 'BUY' ? price + tp1Dist : price - tp1Dist,
-    takeProfit2: direction === 'BUY' ? price + tp2Dist : price - tp2Dist,
-    takeProfit3: direction === 'BUY' ? price + tp3Dist : price - tp3Dist,
-    indicators: {
-      rsi: { value: 50, signal: 'neutral' },
-      macd: { histogram: direction === 'BUY' ? 0.1 : -0.1, signal: direction === 'BUY' ? 'bullish' : 'bearish' },
-      ema: { trend: direction === 'BUY' ? 'up' : 'down', ema20: price, ema50: price, ema200: price },
-      bollingerBands: { position: 'middle', bandwidth: 2.0 },
-      stochastic: { k: 50, d: 50, signal: 'neutral' },
-      support: [price - slDist * 2],
-      resistance: [price + tp1Dist * 2],
-    },
-    timeframe: (alert.timeframe || 'H1') as TradingSignal['timeframe'],
-    timestamp: new Date().toISOString(),
+    confidence: alert.confidence,
+    entry: alert.price,
+    stopLoss,
+    takeProfit1,
+    takeProfit2,
+    takeProfit3,
+    indicators: alert.indicators,
+    timeframe: alert.timeframe as Timeframe,
+    timestamp: alert.timestamp,
     status: 'active',
-    skill: 'tradingview-webhook',
+    source: 'real',
+    dataQuality: 'real',
+    skill: 'external-tradingview-webhook',
   };
 }
 
@@ -157,8 +206,12 @@ export class WebhookServer {
 
         const signal = alertToSignal(alert);
         if (!signal) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Invalid alert format \u2014 missing symbol or action' }));
+          res.writeHead(422, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            available: false,
+            dataQuality: 'unavailable',
+            reason: 'complete-provider-observed-candidate-required',
+          }));
           return;
         }
 
@@ -174,7 +227,7 @@ export class WebhookServer {
         );
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ ok: true, signal_id: signal.id }));
+        res.end(JSON.stringify({ ok: true, candidate_id: signal.id, dataQuality: 'real' }));
         return;
       }
 

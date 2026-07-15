@@ -37,6 +37,9 @@ describe('landing-stats — getLandingStats', () => {
     const stats = await getLandingStats();
 
     expect(mockedQueryOne).toHaveBeenCalledTimes(3);
+    const aggregateSql = mockedQueryOne.mock.calls[0][0] as string;
+    expect(aggregateSql).not.toContain("target' IS DISTINCT FROM 'expired'");
+    expect(aggregateSql).toContain("outcome_24h->>'pnlPct')::numeric = 0");
     expect(stats).toEqual({
       cumulativePnlPct: 12.5,
       profitFactor: 3,
