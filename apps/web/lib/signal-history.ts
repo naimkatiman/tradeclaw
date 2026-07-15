@@ -217,13 +217,14 @@ export function recomputeOverall(
   const hits24h = assets.reduce((sum, a) => sum + a.hits24h, 0);
   const totalPnl = +assets.reduce((sum, a) => sum + a.totalPnl, 0).toFixed(2);
 
-  const byHitRate = [...assets].sort((a, b) =>
+  const rankedAssets = assets.filter(a => a.resolved24h > 0);
+  const byHitRate = [...rankedAssets].sort((a, b) =>
     b.hitRate24h - a.hitRate24h
     || b.totalPnl - a.totalPnl
     || b.totalSignals - a.totalSignals
     || a.pair.localeCompare(b.pair),
   );
-  const byWorstHitRate = [...assets].sort((a, b) =>
+  const byWorstHitRate = [...rankedAssets].sort((a, b) =>
     a.hitRate24h - b.hitRate24h
     || a.totalPnl - b.totalPnl
     || b.totalSignals - a.totalSignals
