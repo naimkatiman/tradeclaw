@@ -11,27 +11,27 @@ const FAQS: FAQItem[] = [
   {
     question: "Is there a free tier?",
     answer:
-      "Everything is free — there are no tiers. tradeclaw.win serves every symbol in real time with the full signal history, hosted or self-hosted, with no delays and no paywalls. The codebase is MIT-licensed, so you can also run the entire stack yourself. See /data-freshness for exact cadences.",
+      "TradeClaw's public hosted archive currently has no TradeClaw paywall, and the self-hosted code is MIT-licensed. Third-party hosting, market-data, broker, and notification services may charge their own fees. See /data-freshness for source-specific refresh cadences.",
   },
   {
-    question: "How do AI signals work?",
+    question: "How do the signals work?",
     answer:
-      "TradeClaw's signal engine combines multiple technical indicators (RSI, MACD, Bollinger Bands, EMA, ATR) with multi-timeframe confluence analysis. Signals are classified as BUY/SELL with a confidence score (0–100%) derived from the weighted agreement across timeframes (M5 to D1). No external AI API is required.",
+      "TradeClaw's open rule-based engine combines technical indicators such as RSI, MACD, Bollinger Bands, EMA, and ATR with multi-timeframe confluence. BUY/SELL labels and confidence values describe weighted indicator agreement, not a probability of profit. No external AI API is required.",
   },
   {
     question: "Can I use it for live trading?",
     answer:
-      "TradeClaw generates signals and provides TP/SL levels, but does not execute trades automatically. You connect your broker via MetaApi to receive price data, and you decide whether to act on signals. Paper trading mode is available so you can test performance before going live.",
+      "Automated execution is disabled by default. When an operator explicitly enables it, only gate-approved crypto signals can reach the implemented Binance USDT-perpetual executor, which uses testnet by default. The RoboForex R StocksTrader execution bridge is still an interface scaffold, so forex, metals, and equities remain signal-only. MetaApi is used by a separate account/position viewer; it is not the signal data source or an implemented execution route. Paper-trading results are simulated, not broker fills.",
   },
   {
     question: "How do I deploy it?",
     answer:
-      "Clone the repo, copy .env.example to .env, set your MetaApi credentials (optional for paper trading), then run `docker compose up -d`. Your dashboard is ready at localhost:3000. For cloud deploy, use the one-click Railway or Vercel buttons in the repo README.",
+      "Clone the repo, copy .env.example to .env, set DB_PASSWORD, USER_SESSION_SECRET, and AUTH_SECRET, then run `docker compose up -d`. The default stack maps documented .env variables through an explicit allowlist and starts the app, PostgreSQL, Redis, and migrations; startup time depends on image pulls and the host. MetaApi is not required. NEXT_PUBLIC_* values are compiled into the client bundle, so changing them requires matching image build arguments and a rebuild.",
   },
   {
     question: "Is anything paywalled?",
     answer:
-      "Nothing is for sale. Every feature is free and the entire codebase is MIT-licensed — self-host it, fork it, audit it. We publish the full track record, wins and losses, charged at modeled real-world execution costs.",
+      "The public hosted archive is currently available without a TradeClaw paywall, and the codebase is MIT-licensed. Third-party hosting, data providers, brokers, and notification services may charge their own fees. The repository still contains optional or legacy integration code; its presence is not a promise that a paid hosted feature is available. Published outcomes are OHLCV-resolved signal studies, not broker fills or customer portfolio returns.",
   },
 ];
 
@@ -96,7 +96,7 @@ export function FAQAccordion() {
                 <div
                   className="faq-content overflow-hidden transition-all duration-300 ease-in-out"
                   style={{
-                    maxHeight: isOpen ? "300px" : "0px",
+                    maxHeight: isOpen ? "600px" : "0px",
                     opacity: isOpen ? 1 : 0,
                   }}
                 >

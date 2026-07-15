@@ -1,25 +1,22 @@
 # tradeclaw-agent
 
-Self-hosted AI trading signal agent. Scans forex, crypto, and metals markets using real technical indicators, delivers signals to Telegram, Discord, or any webhook.
+Self-hosted wrapper for TradeClaw research candidates, provider-observed spot
+prices, and observed outcome history.
 
-## Install
-
-```bash
-clawhub install tradeclaw-agent
-```
+Signal scanning currently fails closed because the standalone agent has no
+observed OHLCV provider. It does not expand spot quotes into synthetic candles,
+deliver generated candidates, or record them as history. Price commands return
+only values received from providers and show unavailable when none respond.
 
 ## Usage
 
-- "scan signals" → run a full market scan and show results
-- "show XAUUSD signals" → signals for a specific symbol
-- "show prices" → display current live prices from all sources
-- "start signal agent" → start the background daemon
-- "set min confidence 80" → configure minimum confidence threshold
-- "signal history" → show historical accuracy and stats
-- "show signal stats" → breakdown by symbol and skill
+- "scan signals" -> report signal-data availability
+- "show prices" -> display current provider observations
+- "signal history" -> show explicitly real, persisted candidate outcomes
+- "start signal agent" -> start the status daemon
 
 ## Requirements
 
-- Node.js >= 18.0.0
-- Internet connection (for live price feeds)
-- Optional: Telegram bot token / Discord webhook for delivery
+- Node.js 18 or newer
+- Internet access for provider price observations
+- Optional Telegram, Discord, or webhook credentials for future observed data

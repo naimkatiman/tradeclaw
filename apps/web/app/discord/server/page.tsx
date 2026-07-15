@@ -4,11 +4,11 @@ import { DiscordServerClient } from './DiscordServerClient';
 export const metadata: Metadata = {
   title: 'Join TradeClaw Discord Community',
   description:
-    'Join the TradeClaw Discord community. Get live trading signals, discuss strategies, get support, and be first to know about new features.',
+    'Review the external TradeClaw Discord invite and the documented webhook setup. Invite and channel availability are not guaranteed.',
   openGraph: {
     title: 'TradeClaw Discord Community',
     description:
-      'Live signals, strategy discussions, and early access — join the TradeClaw Discord community.',
+      'External Discord invite and webhook setup reference for TradeClaw.',
     url: 'https://tradeclaw.win/discord/server',
   },
 };

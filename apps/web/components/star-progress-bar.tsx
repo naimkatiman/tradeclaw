@@ -41,10 +41,15 @@ export function StarProgressBar() {
     let showTimer: ReturnType<typeof setTimeout> | null = null;
 
     fetch('/api/github-stars')
-      .then((r) => r.json())
-      .then((data: { stars: number }) => {
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`GitHub star count unavailable: ${r.status}`);
+        return (await r.json()) as { stars?: unknown };
+      })
+      .then((data) => {
         if (cancelled) return;
-        setStars(data.stars ?? 4);
+        const count = data.stars;
+        if (typeof count !== 'number' || !Number.isInteger(count) || count < 0) return;
+        setStars(count);
         showTimer = setTimeout(() => {
           setVisible(true);
           requestAnimationFrame(() => {
@@ -53,12 +58,7 @@ export function StarProgressBar() {
         }, SHOW_DELAY_MS);
       })
       .catch(() => {
-        if (cancelled) return;
-        setStars(4);
-        showTimer = setTimeout(() => {
-          setVisible(true);
-          requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
-        }, SHOW_DELAY_MS);
+        // An unavailable count is not zero; keep the metric hidden.
       });
 
     return () => {

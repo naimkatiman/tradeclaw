@@ -361,7 +361,7 @@ export function WrappedClient() {
     );
   }
 
-  // ── Honest empty state — not enough real resolved history ─────────
+  // ── Honest empty state — not enough OHLCV-resolved history ────────
   if (!stats || !stats.hasEnoughData) {
     return (
       <div className="min-h-screen flex flex-col" style={{ background: 'var(--background)' }}>
@@ -376,10 +376,10 @@ export function WrappedClient() {
             </div>
             <h1 className="text-2xl md:text-3xl font-bold">Not enough signal history yet</h1>
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              TradeClaw Wrapped is built only from real resolved signal outcomes — no estimates, no
+              TradeClaw Wrapped is built from counted OHLCV-resolved signal outcomes — no broker fills or
               filler.{' '}
               <span style={{ color: 'var(--foreground)' }}>{stats?.totalSignals ?? 0}</span> signals
-              have resolved for {year} so far. Check back as more outcomes settle, or explore the live{' '}
+              have resolved for {year} so far. Check back as more outcomes settle, or explore the recorded{' '}
               <Link href="/accuracy" className="text-emerald-500 hover:text-emerald-400">
                 accuracy data
               </Link>
@@ -424,8 +424,8 @@ export function WrappedClient() {
                 </span>
               </h1>
               <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-                TradeClaw&apos;s signal year in review. Every tracked signal, win rate, streak, and
-                pattern — from real resolved outcomes.
+                TradeClaw&apos;s signal year in review. Counted signals, observed win rate, streak, and
+                pattern — from counted OHLCV-resolved outcomes.
               </p>
               <button
                 onClick={next}
@@ -435,7 +435,7 @@ export function WrappedClient() {
                 Reveal the Stats <ArrowRight size={16} />
               </button>
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                Based on TradeClaw&apos;s real resolved signal history
+                Based on TradeClaw&apos;s counted OHLCV-resolved signal rows
               </p>
             </div>
           )}

@@ -1,19 +1,19 @@
 'use client';
 
 // ---------------------------------------------------------------------------
-// Data Provenance Badge — indicates that displayed stats are verified
-// against live market data, not simulated or cherry-picked.
+// Data Provenance Badge — distinguishes recorded signal rows from synthetic
+// demo rows. OHLCV resolution is not execution verification.
 // ---------------------------------------------------------------------------
 
 export type DataProvenance = 'live' | 'mixed' | 'simulated' | 'empty';
 
 const PROVENANCE_CONFIG: Record<DataProvenance, { label: string; color: string; bg: string; border: string; tooltip: string }> = {
   live: {
-    label: 'Live verified',
+    label: 'Recorded / OHLCV',
     color: '#34d399',
     bg: 'rgba(16,185,129,0.08)',
     border: 'rgba(16,185,129,0.25)',
-    tooltip: 'All stats derived from live signals verified against real market candles. No simulated data included.',
+    tooltip: 'Stats use non-synthetic recorded signals and provider OHLCV outcomes. They are not broker fills or account returns.',
   },
   mixed: {
     label: 'Mixed data',
@@ -46,9 +46,9 @@ interface DataProvenanceBadgeProps {
 }
 
 /**
- * Small badge that signals data provenance for accuracy/performance stats.
+ * Small badge that signals data provenance for signal-study stats.
  * Attach to any component that displays win rate, P&L, or signal outcomes
- * so users know the numbers come from live-tracked, auditable data.
+ * so users know whether the rows are recorded or synthetic.
  */
 export function DataProvenanceBadge({
   provenance = 'live',
@@ -96,10 +96,10 @@ export function getDataProvenance(data: {
 }
 
 /**
- * Derive provenance from FULL-HISTORY counts (live vs simulated), not a
- * paginated page slice. A page can be all-live while the full track record is
+ * Derive provenance from current-archive counts (live vs simulated), not a
+ * paginated page slice. A page can be all-live while the current archive is
  * mixed — `getDataProvenance` over the visible page would mislabel that as
- * "Live verified". Callers with whole-history totals must use this instead.
+ * mixed. Callers with archive-level totals must use this instead.
  */
 export function getDataProvenanceFromCounts(counts: {
   live?: number;

@@ -14,8 +14,10 @@ function mk(
     target?: 'TP1' | 'SL' | 'expired';
     gateBlocked?: boolean;
     isSimulated?: boolean;
+    source?: string;
   },
 ): SignalHistoryRecord {
+  const timestamp = opts.tsMs ?? Date.UTC(2026, 0, 1, 12);
   return {
     id,
     pair: opts.pair ?? 'BTCUSD',
@@ -23,7 +25,7 @@ function mk(
     direction: opts.direction ?? 'BUY',
     confidence: opts.confidence ?? 70,
     entryPrice: 100,
-    timestamp: opts.tsMs ?? Date.UTC(2026, 0, 1, 12),
+    timestamp,
     isSimulated: opts.isSimulated ?? false,
     gateBlocked: opts.gateBlocked ?? false,
     outcomes: {
@@ -33,6 +35,8 @@ function mk(
         pnlPct: opts.pnlPct ?? (opts.hit ? 1 : -1),
         hit: opts.hit ?? false,
         target: opts.target ?? (opts.hit ? 'TP1' : 'SL'),
+        resolvedAt: new Date(timestamp + 86_400_000).toISOString(),
+        source: opts.source ?? 'binance',
       },
     },
   };
@@ -104,7 +108,7 @@ describe('computeWrappedStats — real platform year-in-review (replaces seeded 
     const recs = [
       mk('w', { hit: true }),
       mk('l', { hit: false }),
-      mk('exp', { hit: false, pnlPct: 0, target: 'expired' }),
+      mk('exp', { hit: false, pnlPct: 0, target: 'expired', source: 'force-expired' }),
       mk('blk', { hit: true, gateBlocked: true }),
       mk('sim', { hit: true, isSimulated: true }),
     ];

@@ -15,11 +15,11 @@ const TodayClient = dynamic(
 export const metadata: Metadata = {
   title: "Today's Signal — TradeClaw",
   description:
-    "The single highest-confidence trading signal right now. Updated every 5 minutes with AI-analyzed entry, stop loss, and take profit levels.",
+    "The highest rule score among the latest available provider-backed signal candidates. It is not a calibrated probability or trade recommendation.",
   openGraph: {
     title: "Signal of the Day — TradeClaw",
     description:
-      "The #1 highest-confidence AI trading signal today. Entry, SL, TP, and full indicator analysis.",
+      "The latest candidate with the highest mechanical rule score, with its indicator inputs and evidence boundary.",
     type: 'website',
   },
 };

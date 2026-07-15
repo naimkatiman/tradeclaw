@@ -1,4 +1,4 @@
-import { formatNumber, formatDiff, emaTrendText } from './base.js';
+import { formatNumber, formatDiff, emaTrendText, isProviderObservedSignal } from './base.js';
 /**
  * Telegram Bot API channel adapter.
  */
@@ -22,6 +22,10 @@ export class TelegramChannel {
         return null;
     }
     async sendSignal(signal) {
+        if (!isProviderObservedSignal(signal)) {
+            console.warn('[telegram] Refused non-observed candidate');
+            return false;
+        }
         const message = this.formatSignal(signal);
         return this.send(message);
     }
@@ -35,20 +39,20 @@ export class TelegramChannel {
         const fmt = (n) => esc(formatNumber(n));
         const diff = (a, b) => esc(formatDiff(a, b));
         const lines = [
-            `*${diamond} ${signal.direction} ${signal.symbol}*  \\[${signal.confidence}%\\]`,
+            `*${diamond} ${signal.direction} ${signal.symbol}*  \\[rule score ${signal.confidence}/100\\]`,
             `\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501`,
-            `\u25B8 Entry    ${fmt(signal.entry)}`,
-            `\u25B8 SL       ${fmt(signal.stopLoss)}   ${diff(signal.entry, signal.stopLoss)}`,
-            `\u25B8 TP1      ${fmt(signal.takeProfit1)}   ${diff(signal.entry, signal.takeProfit1)}`,
-            `\u25B8 TP2      ${fmt(signal.takeProfit2)}   ${diff(signal.entry, signal.takeProfit2)}`,
-            `\u25B8 TP3      ${fmt(signal.takeProfit3)}   ${diff(signal.entry, signal.takeProfit3)}`,
+            `\u25B8 Candidate entry    ${fmt(signal.entry)}`,
+            `\u25B8 Candidate stop     ${fmt(signal.stopLoss)}   ${diff(signal.entry, signal.stopLoss)}`,
+            `\u25B8 Candidate target 1 ${fmt(signal.takeProfit1)}   ${diff(signal.entry, signal.takeProfit1)}`,
+            ...(signal.takeProfit2 !== null ? [`\u25B8 TP2      ${fmt(signal.takeProfit2)}   ${diff(signal.entry, signal.takeProfit2)}`] : []),
+            ...(signal.takeProfit3 !== null ? [`\u25B8 TP3      ${fmt(signal.takeProfit3)}   ${diff(signal.entry, signal.takeProfit3)}`] : []),
             ``,
             `\u25C8 RSI: ${signal.indicators.rsi.value}  ${capitalize(signal.indicators.rsi.signal)}`,
             `\u25C8 MACD: ${capitalize(signal.indicators.macd.signal)}`,
             `\u25C8 EMA: ${emaTrendText(signal.indicators.ema.trend)}`,
             `\u25C9 ${signal.timeframe}  \\|  ${esc(skillName)}`,
             `\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500`,
-            `\u2295 tradeclaw\\.win`,
+            esc('Provider-observed research candidate; not an order or portfolio result'),
         ];
         return lines.join('\n');
     }

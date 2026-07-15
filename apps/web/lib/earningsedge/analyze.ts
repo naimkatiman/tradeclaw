@@ -1,6 +1,5 @@
 /**
- * EarningsEdge — AI analysis via Google Gemini (OpenRouter)
- * Replaced Anthropic/Claude with google/gemini-2.5-flash-lite-preview
+ * EarningsEdge analysis via Google Gemini through OpenRouter.
  */
 
 export interface EarningsAnalysis {

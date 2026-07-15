@@ -67,10 +67,9 @@ export async function getLandingStats(): Promise<LandingStats> {
           -- Dark partner strategies (tv-*) never enter public stats.
           AND ${NOT_DARK_STRATEGY_SQL}
           AND COALESCE(gate_blocked, FALSE) = FALSE
-          -- Auto-expired (no TP/SL hit) rows are transparency-only, not
-          -- resolved trades — exclude from cumulative P&L / profit factor to
-          -- match isCountedResolved and the stat-hints "resolved" contract.
-          AND outcome_24h->>'target' IS DISTINCT FROM 'expired'
+          -- Exclude only the zero-value force-expiry placeholder. A nonzero
+          -- 24h close remains observed P&L even when its exit reason is
+          -- expired because neither TP nor SL was touched in the window.
           AND NOT ((outcome_24h->>'pnlPct')::numeric = 0
                    AND (outcome_24h->>'hit')::boolean = FALSE)
      )

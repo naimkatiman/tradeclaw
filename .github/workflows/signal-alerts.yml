@@ -1,20 +1,11 @@
 name: Signal Alerts
 
 on:
-  # Schedule disabled 2026-07-11: Cloudflare's managed challenge on
-  # tradeclaw.win 403s GitHub-hosted runner traffic before it reaches the app
-  # (0 successes in ~1,900 runs since 2026-05-02; GitHub throttles the 5-min
-  # schedule to roughly 27 runs/day). Re-enable once a Cloudflare WAF skip
-  # rule covers /api/cron/* — the endpoint already enforces bearer
-  # CRON_SECRET app-side.
-  # schedule:
-  #   - cron: "*/5 * * * *"
+  # Schedule remains disabled while Cloudflare blocks GitHub-hosted runners.
+  # Manual runs record/resolve signals, then invoke the authenticated app
+  # broadcaster. GitHub never posts directly to a broker or messaging service.
   workflow_dispatch:
 
-# Prevent overlapping runs. If a run takes >5 minutes the next scheduled
-# trigger would start while signals are still being marked as posted — causing
-# duplicate Telegram alerts. cancel-in-progress: false lets the active run
-# finish; the queued run is skipped rather than cancelled.
 concurrency:
   group: signal-alerts
   cancel-in-progress: false
@@ -27,107 +18,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Detect new signals and post immediate Telegram alerts
+      - name: Record and resolve signal candidates
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TRADECLAW_TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHANNEL_ID: ${{ secrets.TRADECLAW_TELEGRAM_CHANNEL_ID }}
         run: |
           set -euo pipefail
-
-          curl -fsSL -X POST https://tradeclaw.win/api/cron/signals \
+          curl --fail-with-body --silent --show-error -X POST \
+            https://tradeclaw.win/api/cron/signals \
             -H "Authorization: Bearer ${CRON_SECRET}" \
             -H "Content-Type: application/json" \
             -o /tmp/tradeclaw-cron-signals.json
+          python3 -m json.tool /tmp/tradeclaw-cron-signals.json
 
-          python3 - <<'PY'
-          import json
-          import os
-          import urllib.request
-          from datetime import datetime, timezone
-
-          with open('/tmp/tradeclaw-cron-signals.json', 'r', encoding='utf-8') as f:
-              payload = json.load(f)
-
-          new_signals = payload.get('newSignals', [])
-          if not new_signals:
-              print('No new signals recorded.')
-              raise SystemExit(0)
-
-          # Filter out forex/metals on weekends (markets closed Sat-Sun)
-          weekend_skip = {'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF'}
-          is_weekend = datetime.now(timezone.utc).weekday() >= 5
-          if is_weekend:
-              new_signals = [s for s in new_signals if s.get('symbol') not in weekend_skip]
-          if not new_signals:
-              print('No signals to post (market closed).')
-              raise SystemExit(0)
-
-          bot_token = os.environ['TELEGRAM_BOT_TOKEN']
-          channel_id = os.environ['TELEGRAM_CHANNEL_ID']
-          cron_secret = os.environ['CRON_SECRET']
-
-          def send_message(text: str) -> int:
-              """Send Telegram message, return message_id."""
-              body = json.dumps({
-                  'chat_id': channel_id,
-                  'text': text,
-                  'disable_web_page_preview': True,
-              }).encode('utf-8')
-              req = urllib.request.Request(
-                  f'https://api.telegram.org/bot{bot_token}/sendMessage',
-                  data=body,
-                  headers={'Content-Type': 'application/json'},
-                  method='POST',
-              )
-              with urllib.request.urlopen(req, timeout=20) as resp:
-                  result = json.load(resp)
-              if not result.get('ok'):
-                  raise SystemExit(f'Telegram send failed: {result}')
-              msg_id = result['result']['message_id']
-              print(f'Sent immediate alert: {msg_id}')
-              return msg_id
-
-          def mark_telegram_posted(signal_id: str, message_id: int):
-              """Callback to mark signal as posted in DB."""
-              try:
-                  body = json.dumps({
-                      'signalId': signal_id,
-                      'messageId': message_id,
-                  }).encode('utf-8')
-                  req = urllib.request.Request(
-                      'https://tradeclaw.win/api/cron/signals',
-                      data=body,
-                      headers={
-                          'Content-Type': 'application/json',
-                          'Authorization': f'Bearer {cron_secret}',
-                      },
-                      method='POST',
-                  )
-                  with urllib.request.urlopen(req, timeout=10) as resp:
-                      result = json.load(resp)
-                  print(f'  Marked {signal_id} as posted: {result}')
-              except Exception as e:
-                  print(f'  Warning: failed to mark {signal_id} as posted: {e}')
-
-          for signal in new_signals:
-              emoji = '📈' if signal.get('direction') == 'BUY' else '📉'
-              text = '\n'.join([
-                  '⚡️ New TradeClaw Signal',
-                  '',
-                  f"{emoji} {signal.get('direction')} {signal.get('symbol')} · {signal.get('timeframe')}",
-                  f"Confidence: {signal.get('confidence')}%",
-                  f"Entry: ${signal.get('entry')}",
-                  f"TP1: ${signal.get('takeProfit1')}",
-                  f"SL: ${signal.get('stopLoss')}",
-                  '',
-                  'tradeclaw.win',
-                  '⚠️ Not financial advice. DYOR.',
-              ])
-              msg_id = send_message(text)
-
-              # Write back to DB so track record knows this was posted
-              signal_id = signal.get('id', '')
-              if signal_id:
-                  mark_telegram_posted(signal_id, msg_id)
-          PY
+      - name: Run fail-closed broadcast endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            https://tradeclaw.win/api/cron/telegram \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -o /tmp/tradeclaw-broadcast.json
+          python3 -m json.tool /tmp/tradeclaw-broadcast.json

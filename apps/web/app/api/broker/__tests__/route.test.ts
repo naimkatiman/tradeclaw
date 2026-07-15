@@ -1,99 +1,60 @@
-import { NextRequest } from 'next/server';
-import { POST } from '../route';
+jest.mock('../../../../lib/admin-gate', () => ({
+  assertAdminApi: jest.fn().mockResolvedValue(null),
+}));
 
-describe('POST /api/broker', () => {
-  const ORIGINAL_FETCH = global.fetch;
+import { NextRequest } from 'next/server';
+import { GET, POST } from '../route';
+
+describe('/api/broker', () => {
+  const originalFetch = global.fetch;
+  const originalToken = process.env.METAAPI_TOKEN;
+  const originalAccount = process.env.METAAPI_ACCOUNT_ID;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env.METAAPI_TOKEN = 'server-token';
+    process.env.METAAPI_ACCOUNT_ID = 'account-123';
   });
 
   afterAll(() => {
-    global.fetch = ORIGINAL_FETCH;
+    global.fetch = originalFetch;
+    process.env.METAAPI_TOKEN = originalToken;
+    process.env.METAAPI_ACCOUNT_ID = originalAccount;
   });
 
-  function makeReq(body: unknown) {
-    return new NextRequest('http://localhost/api/broker', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-  }
+  const request = () => new NextRequest('http://localhost/api/broker');
 
-  it('returns 400 when token or accountId is missing', async () => {
-    const res = await POST(makeReq({ token: 'abc' }));
-    expect(res.status).toBe(400);
-    const json = await res.json();
-    expect(json.error).toContain('Missing required fields');
+  it('fails closed when server credentials are not configured', async () => {
+    delete process.env.METAAPI_TOKEN;
+    const response = await GET(request());
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({ available: false });
   });
 
-  it('returns 200 with account info and positions on success', async () => {
-    const mockFetch = jest.fn().mockImplementation((url: string) => {
-      if (url.includes('account-information')) {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ balance: 10000, equity: 10200 }),
-        } as Response);
-      }
-      if (url.includes('positions')) {
-        return Promise.resolve({
-          ok: true,
-          json: async () => [{ id: 'pos-1', symbol: 'XAUUSD', type: 'BUY' }],
-        } as Response);
-      }
-      return Promise.resolve({ ok: false, status: 404 } as Response);
-    });
-    global.fetch = mockFetch as unknown as typeof global.fetch;
+  it('uses server credentials and returns observed MetaApi data', async () => {
+    global.fetch = jest.fn().mockImplementation((url: string, init: RequestInit) => Promise.resolve({
+      ok: true,
+      json: async () => url.includes('account-information')
+        ? { balance: 10_000, currency: 'USD' }
+        : [{ id: 'position-1', symbol: 'XAUUSD' }],
+      status: 200,
+      requestHeaders: init.headers,
+    } as unknown as Response));
 
-    const res = await POST(makeReq({ token: 'test-token', accountId: 'acc-123' }));
-    expect(res.status).toBe(200);
-    const json = await res.json();
-    expect(json.accountInfo).toEqual({ balance: 10000, equity: 10200 });
-    expect(json.positions).toEqual([{ id: 'pos-1', symbol: 'XAUUSD', type: 'BUY' }]);
-    expect(json.timestamp).toBeDefined();
+    const response = await GET(request());
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({ available: true, source: 'MetaApi' });
+    expect(body.positions).toHaveLength(1);
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('account-123/account-information'),
+      expect.objectContaining({ headers: expect.objectContaining({ 'auth-token': 'server-token' }) }),
+    );
   });
 
-  it('returns 502 when MetaApi account endpoint fails', async () => {
-    const mockFetch = jest.fn().mockImplementation((url: string) => {
-      if (url.includes('account-information')) {
-        return Promise.resolve({
-          ok: false,
-          status: 401,
-          json: async () => ({ id: 1, error: 'Unauthorized', message: 'Invalid token' }),
-        } as Response);
-      }
-      return Promise.resolve({ ok: false, status: 404 } as Response);
-    });
-    global.fetch = mockFetch as unknown as typeof global.fetch;
-
-    const res = await POST(makeReq({ token: 'bad-token', accountId: 'acc-123' }));
-    expect(res.status).toBe(401);
-    const json = await res.json();
-    expect(json.error).toBe('Invalid token');
-  });
-
-  it('returns 504 on timeout', async () => {
-    const mockFetch = jest.fn().mockImplementation(() => {
-      const err = new DOMException('The operation timed out.', 'TimeoutError');
-      return Promise.reject(err);
-    });
-    global.fetch = mockFetch as unknown as typeof global.fetch;
-
-    const res = await POST(makeReq({ token: 'test-token', accountId: 'acc-123' }));
-    expect(res.status).toBe(504);
-    const json = await res.json();
-    expect(json.error).toContain('timed out');
-  });
-
-  it('returns 502 on network fetch failure', async () => {
-    const mockFetch = jest.fn().mockImplementation(() => {
-      return Promise.reject(new TypeError('fetch failed'));
-    });
-    global.fetch = mockFetch as unknown as typeof global.fetch;
-
-    const res = await POST(makeReq({ token: 'test-token', accountId: 'acc-123' }));
-    expect(res.status).toBe(502);
-    const json = await res.json();
-    expect(json.error).toContain('Unable to reach MetaApi');
+  it('does not accept browser-submitted credentials', async () => {
+    const response = await POST();
+    expect(response.status).toBe(405);
   });
 });

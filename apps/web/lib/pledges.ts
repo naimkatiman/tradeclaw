@@ -26,32 +26,17 @@ function generateId(): string {
   return `p_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function createSeedData(): PledgesData {
-  const now = Date.now();
-  return {
-    pledges: [
-      { id: 'p_seed_01', name: 'Alex Chen', email: 'alex.c***@gmail.com', milestoneStars: 100, createdAt: new Date(now - 6 * 86400000).toISOString() },
-      { id: 'p_seed_02', name: 'Sarah Kim', email: 's.ki***@outlook.com', milestoneStars: 250, createdAt: new Date(now - 5 * 86400000).toISOString() },
-      { id: 'p_seed_03', name: 'Marcus Rivera', email: 'marc***@proton.me', milestoneStars: 100, createdAt: new Date(now - 4 * 86400000).toISOString() },
-      { id: 'p_seed_04', name: 'Yuki Tanaka', email: 'yuki***@yahoo.co.jp', milestoneStars: 500, createdAt: new Date(now - 3.5 * 86400000).toISOString() },
-      { id: 'p_seed_05', name: 'Priya Sharma', email: 'priy***@gmail.com', milestoneStars: 1000, createdAt: new Date(now - 3 * 86400000).toISOString() },
-      { id: 'p_seed_06', name: 'David Müller', email: 'd.mu***@web.de', milestoneStars: 250, createdAt: new Date(now - 2 * 86400000).toISOString() },
-      { id: 'p_seed_07', name: 'Fatima Al-Rashid', email: 'fati***@gmail.com', milestoneStars: 500, createdAt: new Date(now - 1.5 * 86400000).toISOString() },
-      { id: 'p_seed_08', name: 'João Santos', email: 'joao***@hotmail.com', milestoneStars: 100, createdAt: new Date(now - 86400000).toISOString() },
-    ],
-  };
-}
-
 function loadPledges(): PledgesData {
   if (!existsSync(PLEDGES_FILE)) {
-    const seed = createSeedData();
-    const dir = dirname(PLEDGES_FILE);
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    writeFileSync(PLEDGES_FILE, JSON.stringify(seed, null, 2));
-    return seed;
+    return { pledges: [] };
   }
-  const raw = readFileSync(PLEDGES_FILE, 'utf-8');
-  return JSON.parse(raw) as PledgesData;
+  try {
+    const raw = readFileSync(PLEDGES_FILE, 'utf-8');
+    const parsed = JSON.parse(raw) as Partial<PledgesData>;
+    return { pledges: Array.isArray(parsed.pledges) ? parsed.pledges : [] };
+  } catch {
+    return { pledges: [] };
+  }
 }
 
 function savePledges(data: PledgesData): void {
@@ -101,10 +86,10 @@ export function addPledge(name: string, email: string, milestoneStars: number): 
 }
 
 export const MILESTONES: { stars: number; feature: string; description: string }[] = [
-  { stars: 100, feature: 'PostgreSQL Support', description: 'Persistent database storage for production deployments — replace file-based JSON with battle-tested PostgreSQL.' },
-  { stars: 250, feature: 'Multi-Exchange Execution', description: 'One-click live order execution via CCXT across Binance, Bybit, Kraken, and 20+ exchanges.' },
-  { stars: 500, feature: 'Mobile App (iOS + Android)', description: 'Native mobile app with push notifications, signal cards, and portfolio tracking on the go.' },
-  { stars: 1000, feature: 'AI Strategy Copilot', description: 'Natural language strategy builder — describe your trading logic and TradeClaw generates the strategy JSON automatically.' },
+  { stars: 100, feature: 'PostgreSQL improvements', description: 'Community request for broader production persistence and multi-instance support.' },
+  { stars: 250, feature: 'Additional exchange adapters', description: 'Community request for more explicitly configured execution adapters.' },
+  { stars: 500, feature: 'Mobile client', description: 'Community request for a mobile client and configured push notifications.' },
+  { stars: 1000, feature: 'Strategy authoring assistant', description: 'Community request for assisted, reviewable strategy configuration.' },
 ];
 
 export function getStats(): MilestoneStats[] {

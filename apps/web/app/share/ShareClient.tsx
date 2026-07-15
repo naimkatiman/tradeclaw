@@ -10,7 +10,6 @@ import type { LucideIcon } from 'lucide-react';
 const REPO_URL = 'https://github.com/naimkatiman/tradeclaw';
 const SITE_URL = 'https://tradeclaw.win';
 const STARS_GOAL = 1000;
-const STARS_FALLBACK = 1;
 
 // Platform IDs for share tracking
 const PLATFORM_IDS = [
@@ -27,9 +26,9 @@ const PLATFORM_IDS = [
 type PlatformId = typeof PLATFORM_IDS[number];
 
 const SHARE_CONTENT = {
-  twitterFallback: `🚀 Just open-sourced TradeClaw — self-hosted AI trading signals, MIT licensed, free forever.\n\nRSI/MACD/EMA confluence scoring, backtesting, paper trading, Telegram alerts. Docker deploy in 5 min.\n\n${REPO_URL}`,
-  redditSelfhostedTitle: 'TradeClaw — open-source self-hosted AI trading signal platform (RSI/MACD/EMA, Docker, MIT)',
-  hnTitle: 'Show HN: TradeClaw – Self-hosted AI trading signals (RSI/MACD/EMA, backtesting, Docker)',
+  twitterFallback: `TradeClaw is open-source trading research software with inspectable indicator rules and Docker Compose. Public evidence is OHLCV-resolved, not broker or portfolio performance.\n\n${REPO_URL}`,
+  redditSelfhostedTitle: 'TradeClaw — open-source self-hosted trading research platform (Docker, MIT)',
+  hnTitle: 'Show HN: TradeClaw - inspectable trading-signal research (Next.js, PostgreSQL, Docker)',
 };
 
 const QUICK_SHARE_LINKS = [
@@ -108,21 +107,20 @@ const PRE_WRITTEN_POSTS: {
         <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z" />
       </svg>
     ),
-    title: 'TradeClaw — open-source self-hosted AI trading signal platform (RSI/MACD/EMA, Docker, MIT)',
-    submitHref: `https://www.reddit.com/r/selfhosted/submit?url=${encodeURIComponent(REPO_URL)}&title=${encodeURIComponent('TradeClaw — open-source self-hosted AI trading signal platform (RSI/MACD/EMA, Docker, MIT)')}`,
-    text: `Hey r/selfhosted! I built TradeClaw — a fully self-hosted, open-source AI trading signal platform. No subscriptions, no black boxes.
+    title: 'TradeClaw — open-source self-hosted trading research platform (Docker, MIT)',
+    submitHref: `https://www.reddit.com/r/selfhosted/submit?url=${encodeURIComponent(REPO_URL)}&title=${encodeURIComponent('TradeClaw — open-source self-hosted trading research platform (Docker, MIT)')}`,
+    text: `Hey r/selfhosted! I built TradeClaw, an open-source trading research platform with a Docker Compose setup.
 
 What it does:
-• Live buy/sell signals for 12 forex, crypto & metal pairs (5-minute cadence)
-• Multi-indicator confluence scoring (RSI, MACD, EMA-20/50/200, Bollinger Bands)
-• Full backtesting engine with Sharpe ratio, win rate & max drawdown
-• Paper trading simulator with live P&L tracking
-• Telegram bot for instant buy/sell notifications
-• Visual strategy builder + custom indicator plugin system
+• Computes inspectable RSI/MACD/EMA/Bollinger rule labels from observed OHLCV
+• Excludes generated fallback candles from the public signal list
+• Runs historical simulations with disclosed assumptions
+• Provides a file-backed paper-trading simulator with virtual fills
+• Supports configured alert channels; entry-like fanout fails closed unless the evidence gate passes
 
-Deploy: one command — \`docker compose up\`. Runs on a $5/month VPS or a Raspberry Pi.
+The repository includes Docker Compose and PostgreSQL configuration for self-hosting.
 
-MIT licensed. No accounts required. The code is yours to audit, fork, and extend.
+The source is MIT licensed. Public performance pages describe OHLCV-resolved signal studies, not broker fills or customer portfolio returns.
 
 GitHub: ${REPO_URL}
 Live demo: ${SITE_URL}
@@ -140,15 +138,16 @@ Would love feedback from the self-hosting community!`,
     ),
     title: 'I open-sourced my multi-indicator confluence signal engine — TradeClaw [self-hosted, Docker, MIT]',
     submitHref: `https://www.reddit.com/r/algotrading/submit?url=${encodeURIComponent(REPO_URL)}&title=${encodeURIComponent('I open-sourced my multi-indicator confluence signal engine — TradeClaw [self-hosted, Docker, MIT]')}`,
-    text: `I got tired of paying $150+/month for signal platforms I couldn't audit, so I built TradeClaw.
+    text: `I built TradeClaw to make trading-signal rules and their evidence inspectable.
 
 Signal logic:
 • Confluence scoring across RSI (14), MACD (12/26/9), EMA-20/50/200, Bollinger Bands
-• Each indicator votes BUY/SELL/NEUTRAL — final signal requires majority + minimum confidence threshold (default 55%)
-• 12 pairs: EURUSD, GBPUSD, USDJPY, XAUUSD, BTCUSD, ETHUSD + more
-• Backtesting engine with proper metrics: Sharpe ratio, profit factor, max drawdown, win rate
+• Rule-scored BUY/SELL candidates from closed OHLCV candles
+• Generated fallback candles are excluded from the public signal list
+• Historical simulations and forward OHLCV-resolved outcomes are kept distinct
+• Modeled fees/slippage are disclosed; neither study represents broker fills or a portfolio
 
-Tech stack: Next.js, Redis, Node workers. Self-hosted. MIT.
+Tech stack: Next.js, PostgreSQL, and Node.js. Docker Compose is included. MIT licensed.
 
 Not financial advice — this is a research/learning tool.
 
@@ -165,22 +164,22 @@ Thoughts on the signal methodology? Happy to discuss the confluence scoring appr
         <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z" />
       </svg>
     ),
-    title: 'TradeClaw — free open-source crypto signal platform with live BTC/ETH signals, paper trading & backtesting',
-    submitHref: `https://www.reddit.com/r/CryptoCurrency/submit?url=${encodeURIComponent(REPO_URL)}&title=${encodeURIComponent('TradeClaw — free open-source crypto signal platform with live BTC/ETH signals, paper trading & backtesting')}`,
-    text: `Built an open-source crypto trading signal tool that generates live BUY/SELL signals for BTC, ETH, and 10 other pairs. Self-hosted, MIT license, completely free.
+    title: 'TradeClaw — open-source crypto signal research with inspectable rules and evidence',
+    submitHref: `https://www.reddit.com/r/CryptoCurrency/submit?url=${encodeURIComponent(REPO_URL)}&title=${encodeURIComponent('TradeClaw — open-source crypto signal research with inspectable rules and evidence')}`,
+    text: `Built an open-source trading research tool that computes rule-scored BTC, ETH, and other configured-asset signal candidates.
 
-What makes it different:
-• Live signals for BTCUSD, ETHUSD, XRPUSD, and 9 more pairs
-• No black boxes — you can see exactly how each signal is generated (RSI + MACD + EMA confluence)
-• Paper trading simulator so you can test strategies with zero risk
-• Full backtesting engine: Sharpe ratio, win rate, max drawdown, profit factor
-• Telegram bot sends alerts the moment a signal fires
+Integrity boundaries:
+• Signal rules are visible in the repository
+• Generated market-data fallbacks do not enter the public signal list
+• Historical simulations are labeled and separate from forward signal outcomes
+• Paper trading uses virtual fills; it is not broker execution
+• Entry-like alerts fail closed unless the configured cost-adjusted evidence gate passes
 
-Deploy it yourself in 5 minutes: \`docker compose up\`
+The repository includes Docker Compose for self-hosting.
 
 Or check the live demo: ${SITE_URL}
 
-MIT licensed. No subscription. You own your data.
+MIT licensed. Hosted-service terms, provider availability, and operating costs can change; verify them directly.
 
 Not financial advice — this is an open-source research and learning tool.
 
@@ -195,21 +194,21 @@ GitHub: ${REPO_URL}`,
         <path d="M0 0v24h24V0H0zm13.448 12.28l3.507-7.28h1.494l-4.259 8.648V20h-1.39v-6.352L8.551 5h1.494l3.403 7.28z" />
       </svg>
     ),
-    title: 'Show HN: TradeClaw – Self-hosted AI trading signals (RSI/MACD/EMA, backtesting, Docker)',
-    submitHref: `https://news.ycombinator.com/submitlink?u=${encodeURIComponent(REPO_URL)}&t=${encodeURIComponent('Show HN: TradeClaw – Self-hosted AI trading signals (RSI/MACD/EMA, backtesting, Docker)')}`,
-    text: `TradeClaw is an open-source, self-hosted trading signal platform built with Next.js and TypeScript.
+    title: 'Show HN: TradeClaw - inspectable trading-signal research (Next.js, PostgreSQL, Docker)',
+    submitHref: `https://news.ycombinator.com/submitlink?u=${encodeURIComponent(REPO_URL)}&t=${encodeURIComponent('Show HN: TradeClaw - inspectable trading-signal research (Next.js, PostgreSQL, Docker)')}`,
+    text: `TradeClaw is an open-source, self-hostable trading research platform built with Next.js, TypeScript, and PostgreSQL.
 
-It runs multi-indicator confluence scoring — RSI(14), MACD(12/26/9), EMA-20/50/200, and Bollinger Bands each cast a BUY/SELL/NEUTRAL vote across 12 forex, crypto, and metal pairs. A signal fires when a majority agrees and confidence clears a configurable threshold (default 55%).
+It computes deterministic multi-indicator rule scores from OHLCV. Generated fallback candles are excluded from the public signal list.
 
-The signal engine is written from scratch (no TA library black boxes). Every calculation is auditable.
+The repository exposes the calculation and outcome-resolution code for inspection.
 
 Ships with:
-- Backtesting engine (Sharpe ratio, max drawdown, win rate, profit factor)
-- Paper trading simulator with live P&L
-- Telegram alerts bot
-- Visual strategy builder + custom indicator plugin system
+- Historical simulations with stated assumptions
+- File-backed paper trading with virtual fills
+- Configurable alert channels with a fail-closed entry evidence gate
+- Public OHLCV-resolved signal evidence that is explicitly not broker or portfolio performance
 
-Deploy: \`docker compose up\` on any VPS. MIT licensed.
+Docker Compose is included. The source is MIT licensed.
 
 GitHub: ${REPO_URL}
 
@@ -225,11 +224,11 @@ Built this because I couldn't find a signal platform where I could actually see 
       </svg>
     ),
     title: null,
-    submitHref: `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Just open-sourced TradeClaw — self-hosted AI trading signals, MIT licensed, free forever.\n\nRSI + MACD + EMA confluence scoring. Docker deploy in 5 min.\n\n${REPO_URL}`)}`,
+    submitHref: `https://twitter.com/intent/tweet?text=${encodeURIComponent(`TradeClaw is open-source trading research software with inspectable RSI/MACD/EMA rules and Docker Compose. Signal evidence is OHLCV-resolved, not broker or portfolio performance.\n\n${REPO_URL}`)}`,
     text: `Tweet 1 — "Just open-sourced" angle:
-Just open-sourced TradeClaw — self-hosted AI trading signals, MIT licensed, free forever.
+TradeClaw is open-source trading research software with inspectable RSI/MACD/EMA rules and Docker Compose.
 
-RSI + MACD + EMA confluence scoring. Docker deploy in 5 min.
+Signal evidence is OHLCV-resolved, not broker fills or portfolio performance.
 
 ${REPO_URL}
 
@@ -237,21 +236,21 @@ ${REPO_URL}
 
 Tweet 2 — Feature showcase:
 TradeClaw feature breakdown:
-→ 7 indicators (RSI, MACD, EMA×3, BB, Stoch)
-→ 10+ assets: BTCUSD, ETHUSD, XAUUSD, EURUSD + more
-→ Live signals + paper trading simulator
-→ Backtesting with Sharpe ratio & drawdown
-→ Telegram alerts bot
-→ Docker deploy in 5 min
+→ Deterministic indicator-rule scoring
+→ Observed-data public signal list; generated fallbacks excluded
+→ Historical simulations with stated assumptions
+→ Virtual-fill paper trading
+→ Entry-like alert fanout gated by cost-adjusted evidence
+→ Docker Compose + PostgreSQL
 
-Free. MIT. Self-hosted. ${REPO_URL}
+MIT-licensed source. ${REPO_URL}
 
 ---
 
 Tweet 3 — Star CTA:
 We're trying to reach 1,000 GitHub stars for TradeClaw 🌟
 
-It's a free, open-source, self-hosted trading signal platform — RSI/MACD/EMA confluence, backtesting, paper trading, Telegram alerts.
+It is an open-source, self-hostable trading research platform with inspectable rules and evidence boundaries.
 
 If you trade or build trading tools, a star helps a lot:
 ${REPO_URL}`,
@@ -267,20 +266,20 @@ ${REPO_URL}`,
     ),
     title: null,
     submitHref: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(REPO_URL)}`,
-    text: `Excited to share TradeClaw — an open-source, self-hosted AI trading signal platform I've been building.
+    text: `I am sharing TradeClaw, an open-source, self-hostable trading research platform.
 
-The problem: most trading signal tools are expensive black boxes ($50–$300/month) with no transparency into how signals are generated.
+The design goal is inspectability: the signal rules, data fallbacks, outcome resolver, modeled cost assumptions, and release gates are visible in the repository.
 
-TradeClaw solves this by being fully open-source and self-hosted. You deploy it on your own server and can inspect, modify, and extend every line of signal logic.
+Current boundaries matter:
+• Public signals use observed OHLCV; generated fallback candles are excluded
+• Recorded outcomes are resolved against subsequent OHLCV, not broker fills
+• Return and drawdown views are labeled simulations, not customer portfolios
+• Entry-like alert and execution paths fail closed unless a 90-day cost-adjusted evidence gate passes
+• The RoboForex TradFi execution bridge remains an interface scaffold
 
-Core features:
-• Multi-indicator confluence scoring (RSI, MACD, EMA, Bollinger Bands)
-• Backtesting engine with institutional-grade metrics
-• Paper trading simulator for risk-free strategy testing
-• Telegram bot for live trade alerts on the 5-minute cron
-• MIT licensed — no subscriptions, no lock-in
+The repository includes Docker Compose and PostgreSQL configuration. The source is MIT licensed.
 
-If you're in fintech, algo trading, or just believe traders deserve transparent tools, I'd appreciate a look and a GitHub star.
+This is research software, not financial advice or proof of profitability. The public evidence and methodology can be inspected before making any claim.
 
 ${REPO_URL}`,
   },
@@ -296,9 +295,11 @@ ${REPO_URL}`,
     title: null,
     text: `Hey! Just wanted to share an open-source project I've been working on — TradeClaw.
 
-It's a self-hosted AI trading signal platform — RSI/MACD/EMA confluence scoring, backtesting, paper trading, Telegram alerts. MIT licensed, free forever.
+It is a self-hostable trading research platform with deterministic RSI/MACD/EMA rule scoring, historical simulations, virtual-fill paper trading, and configurable alerts.
 
-Deploy it yourself in 5 min: \`docker compose up\`
+The repository includes Docker Compose. The source is MIT licensed.
+
+Public evidence is an OHLCV-resolved signal study, not broker fills or portfolio returns.
 
 GitHub: ${REPO_URL}
 Demo: ${SITE_URL}
@@ -350,26 +351,26 @@ const TIMING_TIPS: { platform: string; icon: LucideIcon; bestTime: string; tip: 
   {
     platform: 'Reddit',
     icon: ClipboardList,
-    bestTime: 'Mon–Fri, 9am–12pm EST',
-    tip: 'Post on weekday mornings. r/selfhosted and r/algotrading peak mid-morning US time. Avoid weekends.',
+    bestTime: 'Choose for your audience',
+    tip: 'Check each community’s current rules and recent activity before posting.',
   },
   {
     platform: 'Hacker News',
     icon: Circle,
-    bestTime: 'Mon–Fri, 8am–10am EST',
-    tip: 'Show HN posts perform best early weekday mornings (US East Coast). Avoid Fridays and weekends.',
+    bestTime: 'Choose for your audience',
+    tip: 'Check the current Show HN guidelines and describe the implemented product precisely.',
   },
   {
     platform: 'Twitter / X',
     icon: Bird,
-    bestTime: 'Tue–Thu, 9am or 5pm EST',
-    tip: 'Engagement peaks at commute hours. Use the thread format — split content across 3 tweets for higher reach.',
+    bestTime: 'Choose for your audience',
+    tip: 'Verify every number and make synthetic or modeled results explicit in the post itself.',
   },
   {
     platform: 'LinkedIn',
     icon: Briefcase,
-    bestTime: 'Tue–Thu, 8am–10am EST',
-    tip: 'Professional network is most active Tuesday–Thursday mornings. Lead with the problem you solved, not the solution.',
+    bestTime: 'Choose for your audience',
+    tip: 'Link to the reproducible evidence and avoid describing signal studies as portfolio results.',
   },
 ];
 
@@ -393,7 +394,7 @@ const CAMPAIGN_STEPS = [
   {
     id: 'reddit-algotrading',
     name: 'Reddit r/algotrading',
-    description: 'Post track-record proof with 63.9% verified win rate',
+    description: 'Share the current OHLCV-resolved signal study with its sample and limitations',
     href: '#reddit-algotrading',
     status: 'ready' as const,
   },
@@ -488,7 +489,7 @@ function CopyLinkButton() {
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 export function ShareClient() {
-  const [stars, setStars] = useState(STARS_FALLBACK);
+  const [stars, setStars] = useState<number | null>(null);
   const [shared, setShared] = useState<Partial<Record<PlatformId, boolean>>>({});
   const [campaignDone, setCampaignDone] = useState<Partial<Record<string, boolean>>>({});
 
@@ -516,7 +517,7 @@ export function ShareClient() {
         }
       })
       .catch(() => {
-        // fall back to static value
+        // Keep the count unavailable rather than inventing a fallback.
       });
   }, []);
 
@@ -545,7 +546,7 @@ export function ShareClient() {
   }
 
   const sharedCount = PLATFORM_IDS.filter(id => shared[id]).length;
-  const starsPercent = (stars / STARS_GOAL) * 100;
+  const starsPercent = stars === null ? 0 : (stars / STARS_GOAL) * 100;
   const sharePercent = (sharedCount / PLATFORM_IDS.length) * 100;
   const campaignCount = CAMPAIGN_STEPS.filter(s => campaignDone[s.id]).length;
 
@@ -575,24 +576,27 @@ export function ShareClient() {
           </h1>
 
           <p className="text-[var(--text-secondary)] text-lg max-w-xl mx-auto mb-10">
-            Every star, share, and post helps independent traders discover a free alternative
-            to expensive signal platforms. Takes 10 seconds. Makes a real difference.
+            Share the repository using claims that can be reproduced from the code and public evidence.
           </p>
 
           {/* GitHub stars progress bar */}
           <div className="mb-6 px-4">
             <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] mb-2">
-              <span className="text-emerald-400 font-medium">{stars.toLocaleString()} stars</span>
+              <span className="text-emerald-400 font-medium">
+                {stars === null ? 'Star count unavailable' : `${stars.toLocaleString()} stars`}
+              </span>
               <span>Goal: {STARS_GOAL.toLocaleString()}</span>
             </div>
             <div className="w-full bg-[var(--bg-card)] rounded-full h-3 overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-700"
-                style={{ width: `${Math.max(starsPercent, 0.3)}%` }}
+                style={{ width: `${stars === null ? 0 : Math.max(starsPercent, 0.3)}%` }}
               />
             </div>
             <p className="text-xs text-[var(--text-secondary)] mt-2 text-center">
-              {(STARS_GOAL - stars).toLocaleString()} more stars to reach our goal
+              {stars === null
+                ? 'GitHub did not return a verified count.'
+                : `${Math.max(0, STARS_GOAL - stars).toLocaleString()} more stars to reach our goal`}
             </p>
           </div>
 

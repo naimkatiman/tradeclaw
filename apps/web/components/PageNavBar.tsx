@@ -77,7 +77,6 @@ const MEMBER_MORE: DropdownGroup[] = [
   {
     label: 'Insights',
     links: [
-      { href: '/commentary', label: 'Commentary', icon: BookOpen },
       { href: '/journal', label: 'Journal', icon: NotebookPen },
       { href: '/glossary', label: 'Glossary', icon: BookOpen },
     ],

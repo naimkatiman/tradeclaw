@@ -97,7 +97,7 @@ export function SignalLedger() {
           <h2 className="text-sm font-semibold text-white tracking-tight">
             Signal Ledger{' '}
             <span className="text-zinc-600 font-normal">
-              — Verified Against Real Market Data
+              — Outcomes Resolved Against OHLCV
             </span>
           </h2>
         </div>
@@ -121,7 +121,7 @@ export function SignalLedger() {
           ) : records.length === 0 ? (
             <div className="px-5 pb-8 pt-4 text-center">
               <p className="text-sm text-zinc-600 font-mono">
-                No verified signals yet — signals are recorded and verified against real market data every hour.
+                No OHLCV-resolved signals yet. Recorded rows are evaluated against provider candle data; they are not broker fills.
               </p>
             </div>
           ) : (
@@ -198,7 +198,7 @@ export function SignalLedger() {
                   Showing {records.length} of {total} signals
                 </span>
                 <span>
-                  Verified via OHLCV candle data
+                  Not broker fills
                 </span>
               </div>
             </>

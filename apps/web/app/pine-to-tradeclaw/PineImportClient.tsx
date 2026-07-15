@@ -92,15 +92,14 @@ export default function PineImportClient() {
         <div className="text-center mb-10 sm:mb-14">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs text-emerald-400 mb-5">
             <FileCode className="w-3.5 h-3.5" />
-            Pine Script v4/v5 Compatible
+            Heuristic Import · Selected v4/v5 Patterns
           </div>
           <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4">
-            Convert <span className="text-emerald-400">Pine Script</span> to TradeClaw
-            <br className="hidden sm:block" /> in seconds
+            Draft <span className="text-emerald-400">Pine Script</span> Imports for TradeClaw
           </h1>
           <p className="text-[var(--text-secondary)] max-w-2xl mx-auto text-sm sm:text-base">
-            Paste your TradingView strategy code and get an equivalent TradeClaw strategy JSON.
-            Supports RSI, EMA, MACD, Bollinger Bands, Stochastic, and more.
+            Translate selected indicator and condition patterns into draft TradeClaw JSON.
+            Review unsupported constructs, warnings, and behavior; semantic equivalence is not guaranteed.
           </p>
         </div>
 
@@ -310,7 +309,7 @@ export default function PineImportClient() {
         {/* Bottom CTA */}
         <div className="text-center mt-12 sm:mt-16">
           <p className="text-[var(--text-secondary)] text-xs mb-4">
-            Built for 50M+ TradingView users. Open-source and free forever.
+            MIT-licensed source. TradingView terms, hosting, and configured providers may have separate costs.
           </p>
           <div className="flex justify-center gap-3">
             <Link

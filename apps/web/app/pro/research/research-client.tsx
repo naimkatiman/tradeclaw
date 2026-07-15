@@ -9,10 +9,8 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
-  Clock,
   ChevronDown,
   ChevronUp,
-  ArrowRight,
 } from 'lucide-react';
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -20,15 +18,15 @@ import {
 interface AgentAnalysis {
   role: 'analyst' | 'risk_manager' | 'portfolio_manager';
   summary: string;
-  confidence: number;
+  confidence?: number;
   signals: { indicator: string; value: string; interpretation: string }[];
   timestamp: string;
 }
 
 interface FinalVerdict {
   action: 'BUY' | 'SELL' | 'HOLD';
-  confidence: number;
-  sizing: string;
+  confidence?: number;
+  sizing?: string;
   reasoning: string;
 }
 
@@ -179,8 +177,8 @@ export function ResearchClient() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white">AI Research Pipeline</h1>
           <p className="mt-1 text-sm text-zinc-400">
-            Multi-agent analysis: Analyst, Risk Manager, and Portfolio Manager
-            collaborate on your trading decisions.
+            Staged output from the configured TradingAgents bridge. Source links and model scores are
+            bridge-supplied; reports are not broker orders, fills, or verified investment advice.
           </p>
         </div>
 
@@ -374,9 +372,9 @@ function CompletedJobCard({
             </span>
           )}
 
-          {!failed && job.finalVerdict && (
+          {!failed && job.finalVerdict?.confidence !== undefined && (
             <span className="text-xs text-zinc-500">
-              {job.finalVerdict.confidence}% confidence
+              {job.finalVerdict.confidence}/100 stored score
             </span>
           )}
         </div>
@@ -414,9 +412,11 @@ function CompletedJobCard({
                   >
                     {job.finalVerdict.action}
                   </span>
-                  <span className="text-xs text-zinc-400">
-                    Size: {job.finalVerdict.sizing}
-                  </span>
+                  {job.finalVerdict.sizing && (
+                    <span className="text-xs text-zinc-400">
+                      Size: {job.finalVerdict.sizing}
+                    </span>
+                  )}
                 </div>
                 <p className="mt-2 text-sm text-zinc-300">
                   {job.finalVerdict.reasoning}
@@ -442,9 +442,11 @@ function CompletedJobCard({
                           <span className="text-xs font-medium text-zinc-300">
                             {ROLE_LABELS[analysis.role] ?? analysis.role}
                           </span>
-                          <span className="text-xs text-zinc-600">
-                            {analysis.confidence}% confidence
-                          </span>
+                          {analysis.confidence !== undefined && (
+                            <span className="text-xs text-zinc-600">
+                              {analysis.confidence}/100 bridge score
+                            </span>
+                          )}
                         </div>
                         <p className="mt-1 text-xs text-zinc-400">
                           {analysis.summary}

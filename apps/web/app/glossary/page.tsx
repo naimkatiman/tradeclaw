@@ -4,7 +4,7 @@ import GlossaryClient from "./GlossaryClient";
 export const metadata: Metadata = {
   title: "Trading Glossary | 50+ Terms Explained | TradeClaw",
   description:
-    "Master 50+ essential trading terms from RSI and MACD to Sharpe ratio and backtesting. Each definition includes how TradeClaw puts it to work in our 5-minute signal pipeline.",
+    "Trading terms from RSI and MACD to Sharpe ratio and backtesting, with precise notes on what TradeClaw currently implements.",
   openGraph: {
     title: "Trading Glossary | 50+ Terms Explained | TradeClaw",
     description:

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
 import pkg from '../../../package.json';
+import { queryOne } from '../../../lib/db-pool';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +29,7 @@ export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
 
   const services = await Promise.all([
-    checkService('Signal Engine', async () => {
+    checkService('Signal API', async () => {
       const res = await fetch(`${baseUrl}/api/v1/signals?limit=1`, { cache: 'no-store', signal: AbortSignal.timeout(3000) });
       if (!res.ok) throw new Error('Signal engine unavailable');
     }),
@@ -39,10 +38,8 @@ export async function GET() {
       if (!res.ok) throw new Error('API unavailable');
     }),
     checkService('Database', async () => {
-      const { existsSync } = await import('fs');
-      const { join } = await import('path');
-      const dbPath = join(process.cwd(), 'data');
-      if (!existsSync(dbPath)) throw new Error('Data directory missing');
+      const row = await queryOne<{ ok: number }>('SELECT 1 AS ok');
+      if (row?.ok !== 1) throw new Error('Database probe failed');
     }),
     checkService('SSE Feed', async () => {
       const res = await fetch(`${baseUrl}/api/prices/stream`, {
@@ -51,15 +48,6 @@ export async function GET() {
       });
       if (!res.ok && res.status !== 200) throw new Error('SSE unavailable');
     }),
-    checkService('Scanner', async () => {
-      const healthPath = join(process.cwd(), 'data', 'scanner-health.json');
-      if (!existsSync(healthPath)) throw new Error('Scanner health file missing');
-      const raw = readFileSync(healthPath, 'utf-8');
-      const health = JSON.parse(raw) as { status?: string; timestamp?: string };
-      if (health.status !== 'operational') throw new Error(`Scanner status: ${health.status ?? 'unknown'}`);
-      const lastTs = health.timestamp ? new Date(health.timestamp).getTime() : 0;
-      if (Date.now() - lastTs > 15 * 60 * 1000) throw new Error('Scanner health stale (>15min)');
-    }),
   ]);
 
   const hasOutage = services.some((s) => s.status === 'outage');
@@ -67,7 +55,6 @@ export async function GET() {
   const overallStatus = hasOutage ? 'outage' : hasDegraded ? 'degraded' : 'operational';
 
   const uptimeSeconds = Math.floor(process.uptime());
-  const uptimePct = 99.97;
 
   let lastSignal: { pair: string; timestamp: string } | null = null;
   try {
@@ -86,7 +73,8 @@ export async function GET() {
   return NextResponse.json({
     status: overallStatus,
     uptimeSeconds,
-    uptimePct,
+    uptimePct: null,
+    scope: 'point-in-time-process-probes',
     version: pkg.version,
     services,
     lastSignal,

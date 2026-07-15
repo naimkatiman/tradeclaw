@@ -6,11 +6,11 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Research: What We Tested and Killed | TradeClaw',
   description:
-    'The public autopsy record. Every hypothesis TradeClaw pre-registered, ran on the costed engine, and killed at the gate, with the spec, the measured result, and the committed artifact for each.',
+    'TradeClaw registered research failures: frozen hypotheses, modeled cost assumptions, backtest results, pass/fail gates, and committed artifacts.',
   openGraph: {
     title: 'Research: What We Tested and Killed | TradeClaw',
     description:
-      'Five families of short-term edge, each pre-registered against a frozen gate and each killed at real cost. The full negative record, with machine-readable artifacts.',
+      'Five tested strategy families, each registered against a frozen gate and evaluated under published modeled costs, with machine-readable artifacts.',
     url: 'https://tradeclaw.win/research',
     siteName: 'TradeClaw',
     type: 'website',
@@ -96,7 +96,7 @@ const ENTRIES: KillEntry[] = [
       },
     ],
     reading:
-      'At the live risk geometry with crypto perp costs charged, every entry is net-negative on a trustworthy sample. Strip the cost and three of the five turn gross-positive, so the signals are not random. The roughly 0.4% round trip is simply larger than the edge. The single positive costed cell in the full 108-cell edge-map, classic momentum with wide 4R targets on H1, came to 0.03 to 0.05% per trade: real, and too thin to build on. Final verdict: single-asset OHLCV timing has no deployable edge after costs.',
+      'Under the tested risk geometry and crypto-perp cost assumptions, the five headline entries are net-negative. With zero modeled cost, three turn gross-positive in this sample. The assumed roughly 0.4% round trip is larger than the observed edge. One positive modeled-cost cell in the 108-cell edge map, classic momentum with wide 4R targets on H1, reached 0.03 to 0.05% per trade but was too thin to support deployment. Final verdict: this registered test found no deployable single-asset OHLCV timing edge.',
     artifacts: [
       {
         label: 'Costed run JSON (crypto perp)',
@@ -159,7 +159,7 @@ const ENTRIES: KillEntry[] = [
     family: 'Daily time-series momentum',
     stamp: 'Marginal-rejected',
     hypothesis:
-      'The one timing edge the literature says survives real cost is slow: hold the daily trend on a 28-day lookback and ride it to the opposite cross. Test it faithfully across ten majors.',
+      'Test whether a slow 28-day daily-trend rule survives the published cost assumptions across ten majors.',
     spec: [
       { label: 'Universe', value: '10 majors (BTC ETH SOL BNB XRP ADA DOGE DOT LINK AVAX), D1' },
       { label: 'History', value: '~2,090 to 2,190 daily bars each (2020 to 2026)' },
@@ -213,7 +213,7 @@ const ENTRIES: KillEntry[] = [
       },
     ],
     reading:
-      'The edge is real and low-variance: always-on BTC returns +39.50% over 6.75 unlevered years, with a 0.73% max drawdown and all four folds positive. It fails on magnitude, not existence. Full-window yield is 5.84% per year against an 8% gate, and the recent 24 months pay 2.35% per year, below what a stablecoin returns. The premium has compressed year over year in our own registered data. Adding a timing overlay (A2) or a rotation (A3) makes it strictly worse, because turnover cost eats the harvest.',
+      'In this backtest, always-on BTC returns +39.50% over 6.75 unlevered years, with 0.73% modeled max drawdown and all four folds positive. It fails the registered magnitude gate: full-window yield is 5.84% per year versus an 8% threshold, and the recent 24 months produce 2.35% per year. The observed premium compresses over the registered window. Under the same assumptions, adding a timing overlay (A2) or rotation (A3) worsens the result.',
     artifacts: [
       { label: 'Carry validation JSON', href: experiment('carry-validation-10majors-f4.json') },
       { label: 'Verdict: carry and cross-section', href: VERDICT_CARRY },
@@ -248,7 +248,7 @@ const ENTRIES: KillEntry[] = [
       },
     ],
     reading:
-      'The full-window +1325% looks like a win over the basket at +759%, but the whole excess lives in one fold, the 2020 to 2021 launch run measured over today’s surviving 30. Fold stability fails, two of four. In the bias-mitigated subwindow the long-only book returns −46.99% against a basket at −50.29%, only one of four folds positive. The long-short book’s subwindow PASS is reported exactly as the frozen gate computed it, then set aside: a market-neutral book that loses 12% of capital is not deployable, and its real benchmark is cash, not a crashing basket.',
+      'The full-window +1325% modeled result exceeds the basket at +759%, but the excess is concentrated in one fold, the 2020 to 2021 launch run measured over today’s surviving 30. Fold stability fails, two of four. In the bias-mitigated subwindow the long-only simulation returns −46.99% against a basket at −50.29%, with one of four folds positive. The long-short subwindow PASS is reported as the frozen gate computed it, then set aside because its modeled result loses 12.15%; cash is the more relevant benchmark for a market-neutral book.',
     artifacts: [
       { label: 'Cross-section validation JSON', href: experiment('xsection-validation-30majors-D1-lb14-rb7-top5-f4.json') },
       { label: 'Verdict: carry and cross-section', href: VERDICT_CARRY },
@@ -360,16 +360,16 @@ export default function ResearchPage() {
             <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-[var(--text-secondary)]">
               Every hypothesis below was written down as a spec before it ran: a fixed universe, a fixed
               cost model, and a fixed pass or fail gate, frozen in a design doc before any result was seen.
-              We then ran it on the same costed engine that produces the live track record, and recorded
+              We then ran it on the same research pipeline used by the public signal study, and recorded
               what the gate said. None passed. Across two final verdicts the standing conclusion is narrow
-              and blunt: single-asset short-term timing is foreclosed once real execution cost is charged,
-              and no candidate that fits a retail crypto cost structure has cleared its gate.
+              and blunt: no tested single-asset short-term timing candidate survived the published modeled
+              cost assumptions, and no candidate using the stated retail crypto cost structure cleared its gate.
             </p>
             <p className="mt-4 max-w-prose text-[13px] leading-relaxed text-[var(--text-secondary)]">
               Each entry links its committed machine-readable artifact and the final verdict memo. The
-              running ledger of every backtest is the{' '}
+              registered experiment ledger is the{' '}
               <ExternalLink href={REGISTRY_URL}>append-only experiment registry</ExternalLink>. The live
-              cost-adjusted result is on the{' '}
+              modeled-cost signal result is on the{' '}
               <a href="/track-record" className="underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]">
                 track record
               </a>
@@ -394,15 +394,15 @@ export default function ResearchPage() {
               What survived
             </h2>
             <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-[var(--foreground)]">
-              Nothing did. Five families of short-term edge, each pre-registered and each killed at real
-              cost. The common killer is the cost denominator: roughly 0.4% per round trip against edges
+              Nothing did. Five families of short-term edge, each pre-registered and each rejected under
+              the stated cost model. The common killer is the assumed cost denominator: roughly 0.4% per round trip against edges
               that have compressed hard into 2024 to 2026. Funding carry is the one candidate whose raw
               structural edge genuinely exists, and its blocker is decay rather than cost. The rest are
               simply too small to survive the fee.
             </p>
             <p className="mt-4 max-w-prose text-[15px] leading-relaxed text-[var(--text-secondary)]">
               What would change our mind is exact and public: a pre-registered spec that passes its frozen
-              gate on this same costed engine, at real execution cost, with folds that hold out of sample.
+              gate on this same pipeline under the published cost assumptions, with folds that hold out of sample.
               Until one does, the honest default is to hold, and the durable asset is the bench that keeps
               killing bad strategies before anyone trades them.
             </p>

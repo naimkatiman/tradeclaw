@@ -250,7 +250,7 @@ describe('POST /api/alert-channels/[channel]/test', () => {
     expect(mockedSend).toHaveBeenCalledWith(
       'telegram',
       { chatId: '555111222' },
-      expect.objectContaining({ symbol: 'XAUUSD' }),
+      expect.objectContaining({ symbol: 'DEMO' }),
     );
   });
 
@@ -269,7 +269,7 @@ describe('POST /api/alert-channels/[channel]/test', () => {
     expect(mockedSend).toHaveBeenCalledWith(
       'telegram',
       { botToken: 'custom-bot', chatId: '999' },
-      expect.objectContaining({ symbol: 'XAUUSD' }),
+      expect.objectContaining({ symbol: 'DEMO' }),
     );
   });
 
@@ -287,7 +287,7 @@ describe('POST /api/alert-channels/[channel]/test', () => {
     expect(mockedGetUser).not.toHaveBeenCalled();
   });
 
-  it('dispatches a fake signal through the configured channel', async () => {
+  it('dispatches the explicit demo payload through the configured channel', async () => {
     mockedRead.mockReturnValueOnce({ userId: 'u1', issuedAt: Date.now() });
     mockedGetCfg.mockResolvedValueOnce([
       { id: 'c1', user_id: 'u1', channel: 'discord', config: { webhookUrl: 'https://x' }, enabled: true },
@@ -303,7 +303,7 @@ describe('POST /api/alert-channels/[channel]/test', () => {
     expect(mockedSend).toHaveBeenCalledWith(
       'discord',
       { webhookUrl: 'https://x' },
-      expect.objectContaining({ symbol: 'XAUUSD', direction: 'BUY' }),
+      expect.objectContaining({ symbol: 'DEMO', direction: 'BUY' }),
     );
   });
 

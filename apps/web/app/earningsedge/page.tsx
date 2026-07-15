@@ -28,23 +28,8 @@ const FEATURES = [
   },
   {
     icon: '🤖',
-    title: 'Powered by Claude AI',
-    desc: 'State-of-the-art analysis in seconds, not hours',
-  },
-];
-
-const TESTIMONIALS = [
-  {
-    text: "I used to spend 2 hours reading earnings transcripts. Now I get the key insights in 30 seconds.",
-    author: "Retail trader, r/investing",
-  },
-  {
-    text: "The bull/bear breakdown is exactly what I need to decide whether to hold into earnings or take profit.",
-    author: "Options trader",
-  },
-  {
-    text: "Finally, something that reads earnings calls so I don't have to. The management tone analysis is spot on.",
-    author: "Swing trader",
+    title: 'Model-assisted review',
+    desc: 'Gemini is called through OpenRouter; outputs require human verification',
   },
 ];
 
@@ -59,14 +44,14 @@ export default function EarningsEdgeLanding() {
         </div>
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
-          Understand earnings calls
+          Structure earnings-call research
           <br />
-          <span className="text-green-400">in 30 seconds</span>
+          <span className="text-green-400">with model-assisted review</span>
         </h1>
 
         <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-10">
-          Paste any earnings call transcript and instantly get a bull case, bear case, key metrics
-          vs. analyst expectations, management tone, and a one-line trade thesis.
+          Paste an earnings call transcript to draft a bull case, bear case, extracted metrics,
+          management-tone summary, and research thesis. Verify every output against the source.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -76,25 +61,19 @@ export default function EarningsEdgeLanding() {
           >
             Analyze a transcript — free
           </Link>
-          <Link
-            href="/earningsedge/pricing"
-            className="border border-white/20 hover:border-white/40 text-white font-semibold text-lg px-8 py-4 rounded-xl transition-colors"
-          >
-            See pricing →
-          </Link>
         </div>
 
-        <p className="text-gray-500 text-sm mt-4">3 free analyses. No credit card required.</p>
+        <p className="text-gray-500 text-sm mt-4">Up to 3 requests per rolling 24 hours per network address. No checkout required.</p>
       </section>
 
       {/* Demo result preview */}
       <section className="max-w-4xl mx-auto px-6 mb-24">
         <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className="text-2xl font-bold">NVDA</div>
-            <div className="text-gray-400">NVIDIA Corporation — Q4 2025 Earnings</div>
+            <div className="text-2xl font-bold">EXAMPLE</div>
+            <div className="text-gray-400">Fictional Company - illustrative output</div>
             <div className="ml-auto text-xs bg-green-400/10 text-green-400 border border-green-400/20 px-2 py-1 rounded">
-              high confidence
+              illustrative self-rating
             </div>
           </div>
 
@@ -104,9 +83,9 @@ export default function EarningsEdgeLanding() {
                 <span>📈</span> Bull Case
               </div>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li>• Data center revenue grew 93% YoY, beating estimates by $2.1B</li>
-                <li>• Blackwell architecture demand exceeding supply — strong pricing power</li>
-                <li>• Management raised Q1 guidance above Wall Street consensus</li>
+                <li>• Reported revenue growth accelerated in the supplied transcript</li>
+                <li>• Management described demand as exceeding current capacity</li>
+                <li>• Guidance was raised relative to the transcript&apos;s prior range</li>
               </ul>
             </div>
 
@@ -115,9 +94,9 @@ export default function EarningsEdgeLanding() {
                 <span>📉</span> Bear Case
               </div>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li>• Gaming segment down 12% — consumer weakness persists</li>
-                <li>• China export restrictions creating $4B+ annual headwind</li>
-                <li>• Gross margins guided slightly below consensus for next quarter</li>
+                <li>• One segment declined year over year</li>
+                <li>• Export restrictions were described as a material risk</li>
+                <li>• Margin guidance was below the estimate quoted in the transcript</li>
               </ul>
             </div>
           </div>
@@ -125,14 +104,13 @@ export default function EarningsEdgeLanding() {
           <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-4">
             <div className="text-zinc-400 font-semibold mb-2">⚡ Trade Thesis</div>
             <p className="text-white text-sm">
-              NVDA remains the clear AI infrastructure winner with accelerating data center demand,
-              but near-term upside may be limited given already-elevated valuation and China headwinds —
-              buy on dips below $580.
+              Illustrative synthesis: demand commentary was constructive, while margin and regulatory
+              risks warrant verification before any investment decision.
             </p>
           </div>
 
           <div className="text-xs text-gray-500 text-center">
-            Sample output — paste your own transcript to analyze
+            Fictional sample output - not a factual company analysis or recommendation
           </div>
         </div>
       </section>
@@ -162,8 +140,8 @@ export default function EarningsEdgeLanding() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             { step: '1', title: 'Paste transcript', desc: 'Copy the earnings call transcript from Seeking Alpha, the IR website, or anywhere else.' },
-            { step: '2', title: 'AI analyzes', desc: 'Claude AI reads the full transcript in seconds and extracts the key trading insights.' },
-            { step: '3', title: 'Trade with edge', desc: 'Get bull/bear cases, metrics vs. estimates, tone analysis, and your trade thesis.' },
+            { step: '2', title: 'Model drafts', desc: 'Gemini, called through OpenRouter, extracts candidate points from the supplied text.' },
+            { step: '3', title: 'Verify the draft', desc: 'Check each extracted metric and interpretation against the source transcript before relying on it.' },
           ].map((item) => (
             <div key={item.step} className="text-center">
               <div className="w-12 h-12 bg-green-400/10 border border-green-400/30 rounded-full flex items-center justify-center text-green-400 font-bold text-lg mx-auto mb-4">
@@ -176,28 +154,16 @@ export default function EarningsEdgeLanding() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="max-w-6xl mx-auto px-6 mb-24">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {TESTIMONIALS.map((t, i) => (
-            <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-6">
-              <p className="text-gray-300 text-sm mb-4 italic">&quot;{t.text}&quot;</p>
-              <p className="text-gray-500 text-xs">— {t.author}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="max-w-3xl mx-auto px-6 mb-24 text-center">
         <div className="bg-gradient-to-r from-green-400/10 to-emerald-400/5 border border-green-400/20 rounded-2xl p-12">
           <h2 className="text-3xl font-bold mb-4">
-            Stop reading 60-page transcripts.
+            Turn long transcripts into a review checklist.
             <br />
-            Start trading with edge.
+            Keep the source in the loop.
           </h2>
           <p className="text-gray-400 mb-8">
-            3 free analyses to start. Upgrade for unlimited access at $29/month.
+            Model output can be incomplete or wrong. Treat it as a draft, not investment advice.
           </p>
           <Link
             href="/earningsedge/analyze"

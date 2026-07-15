@@ -132,7 +132,7 @@ export default function PledgeClient() {
     }
   };
 
-  const tweetText = `I just pledged my support for @TradeClaw to hit their star milestones! 🌟\n\nFeatures like PostgreSQL, mobile app, and AI copilot unlock as stars grow.\n\nPledge yours → https://tradeclaw.win/pledge\n\n#TradeClaw #OpenSource #Trading`;
+  const tweetText = `I submitted a feature-request pledge for TradeClaw. Star thresholds show interest; they are not delivery commitments.\n\nhttps://tradeclaw.win/pledge`;
 
   if (loading) {
     return (
@@ -150,15 +150,16 @@ export default function PledgeClient() {
         <div className="max-w-4xl mx-auto text-center relative">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-6">
             <Star className="w-3.5 h-3.5" />
-            Stars-for-Features Pledge
+            Feature Request Pledges
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-            Pledge Your Support,{' '}
-            <span className="text-emerald-400">Unlock Features</span>
+            Record Your Interest in{' '}
+            <span className="text-emerald-400">Proposed Features</span>
           </h1>
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl mx-auto mb-8">
-            Every GitHub star brings TradeClaw closer to the next milestone. Pledge your support for the features you want most — and help us get there faster.
+            Pledges and GitHub-star thresholds are interest signals only. They do not guarantee scope,
+            priority, or a delivery date.
           </p>
 
           {/* Star counter */}
@@ -183,19 +184,19 @@ export default function PledgeClient() {
 
       {/* Milestone cards */}
       <section className="max-w-5xl mx-auto px-4 mb-16">
-        <h2 className="text-2xl font-bold text-center mb-8">Feature Milestones</h2>
+        <h2 className="text-2xl font-bold text-center mb-8">Feature Request Thresholds</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {stats.map((milestone) => {
             const Icon = MILESTONE_ICONS[milestone.stars] || Star;
             const colors = MILESTONE_COLORS[milestone.stars] || MILESTONE_COLORS[100];
             const progress = Math.min(100, (currentStars / milestone.stars) * 100);
-            const unlocked = currentStars >= milestone.stars;
+            const thresholdReached = currentStars >= milestone.stars;
 
             return (
               <div
                 key={milestone.stars}
                 className={`relative rounded-2xl border p-6 transition-all duration-300 ${
-                  unlocked
+                  thresholdReached
                     ? `${colors.bg} ${colors.border} ring-1 ring-emerald-500/20`
                     : 'bg-[var(--bg-card)] border-[var(--border)] hover:border-white/10'
                 }`}
@@ -209,8 +210,8 @@ export default function PledgeClient() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className={`text-sm font-bold ${colors.text}`}>{milestone.stars} ⭐</span>
-                        {unlocked && (
-                          <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full">Unlocked</span>
+                        {thresholdReached && (
+                          <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full">Threshold reached</span>
                         )}
                       </div>
                       <h3 className="text-lg font-bold mt-0.5">{milestone.feature}</h3>
@@ -307,7 +308,7 @@ export default function PledgeClient() {
       <section className="max-w-2xl mx-auto px-4 mb-16 text-center">
         <h2 className="text-2xl font-bold mb-4">Help Us Reach 1,000 Stars</h2>
         <p className="text-[var(--text-secondary)] mb-6 text-sm">
-          Share the pledge page and star the repo — every star brings these features closer to reality.
+          Share the request page or star the repo to express interest. Maintainers still decide scope and scheduling.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -360,7 +361,7 @@ export default function PledgeClient() {
                 </div>
                 <h3 className="text-xl font-bold mb-2">Pledge Received!</h3>
                 <p className="text-sm text-[var(--text-secondary)] mb-4">
-                  Thanks for pledging your support for the {selectedMilestone}-star milestone. Now help us get there — star the repo!
+                  Your interest was recorded for the {selectedMilestone}-star request threshold. This is not a delivery commitment.
                 </p>
                 <div className="flex gap-3 justify-center">
                   <a

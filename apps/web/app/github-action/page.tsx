@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import { GHActionClient } from './GHActionClient';
 
 export const metadata: Metadata = {
-  title: 'TradeClaw GitHub Action — Live Trading Signals in CI/CD',
+  title: 'TradeClaw GitHub Action — Signal Snapshots in CI/CD',
   description:
-    'Fetch live AI trading signals in your GitHub Actions workflows. Gate deployments on market conditions, run scheduled signal checks, and get rich summaries.',
+    'Fetch the latest available rule-generated signal candidates in a GitHub Actions workflow for logging or research.',
   openGraph: {
-    title: 'TradeClaw GitHub Action — Live Trading Signals in CI/CD',
+    title: 'TradeClaw GitHub Action — Signal Snapshots in CI/CD',
     description:
-      'Fetch live AI trading signals in your GitHub Actions workflows. Gate deployments, scheduled checks, rich summaries.',
+      'Archive the latest available TradeClaw signal candidates in a scheduled workflow.',
     type: 'website',
   },
 };

@@ -1,0 +1,39 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { STAT_HINTS } from '../stat-hints';
+
+function read(relativePath: string): string {
+  return readFileSync(resolve(__dirname, relativePath), 'utf8');
+}
+
+describe('raw signal score truth labels', () => {
+  it('defines the engine score as mechanical indicator agreement, not probability', () => {
+    expect(STAT_HINTS.avgConfidence).toMatch(/mechanical rule\/confluence score/i);
+    expect(STAT_HINTS.avgConfidence).toMatch(/not a probability/i);
+    expect(STAT_HINTS.avgConfidence).toMatch(/not .*demonstrated trading edge/i);
+  });
+
+  it('does not fill incomplete live records with plausible-looking values', () => {
+    const live = read('../../app/live/LiveClient.tsx');
+
+    expect(live).toContain("fetch('/api/live-feed', { cache: 'no-store' })");
+    expect(live).toContain("raw.dataQuality !== 'real'");
+    expect(live).toContain('return null');
+    expect(live).not.toContain("?? 'BTCUSD'");
+    expect(live).not.toContain("?? 'HOLD'");
+    expect(live).not.toContain(': 75;');
+    expect(live).not.toContain("?? 'H1'");
+  });
+
+  it('presents the raw score without a probability percent sign on core research views', () => {
+    const dashboard = read('../../app/dashboard/DashboardClient.tsx');
+    const screener = read('../../app/screener/ScreenerClient.tsx');
+    const accuracy = read('../../app/accuracy/AccuracyClient.tsx');
+    const leaderboard = read('../../app/leaderboard/LeaderboardClient.tsx');
+
+    for (const source of [dashboard, screener, accuracy, leaderboard]) {
+      expect(source).toMatch(/rule score/i);
+      expect(source).not.toMatch(/\{(?:signal|r|topSignal)\.confidence\}%/);
+    }
+  });
+});

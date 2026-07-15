@@ -34,7 +34,7 @@ const PERIODS: { key: '7d' | '30d' | 'all'; label: string }[] = [
   { key: 'all', label: 'All Time' },
 ];
 
-function formatPnl(value: number) {
+function formatMove(value: number) {
   const sign = value >= 0 ? '+' : '';
   return `${sign}${value.toFixed(2)}%`;
 }
@@ -67,7 +67,7 @@ export function ComparisonClient() {
   }, [data]);
 
   const share = async () => {
-    const text = `TradeClaw Strategy Comparison — see which algorithm has the best win rate, risk:reward, and Sharpe ratio. ${window.location.origin}/strategies/comparison`;
+    const text = `TradeClaw Strategy Comparison: an OHLCV-resolved recorded-signal study with period and sample counts, not broker fills or account returns. ${window.location.origin}/strategies/comparison`;
     try {
       if (navigator.share) {
         await navigator.share({ title: 'TradeClaw Strategy Comparison', text, url: window.location.href });
@@ -100,14 +100,14 @@ export function ComparisonClient() {
             <div className="max-w-2xl space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-400">
                 <BarChart3 className="h-3.5 w-3.5" />
-                Live performance comparison
+                Recorded signal study
               </div>
               <div>
                 <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
                   Strategy <span className="text-emerald-400">Comparison</span>
                 </h1>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
-                  Which TradeClaw strategy wins? Real tracked signals ranked by win rate, risk:reward ratio, and Sharpe ratio. Only resolved outcomes count.
+                  Compare strategies using recorded signals with OHLCV-resolved outcomes. These statistics are not broker fills or customer-account returns.
                 </p>
               </div>
             </div>
@@ -117,7 +117,7 @@ export function ComparisonClient() {
                 href="/strategies/leaderboard"
                 className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/25"
               >
-                Community Leaderboard
+                Evidence Status
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <button
@@ -181,17 +181,17 @@ export function ComparisonClient() {
                     {/* Winner badges */}
                     <div className="absolute right-3 top-3 flex gap-1">
                       {isWinner(row.strategyId, 'winRate') && (
-                        <span title="Best Win Rate" className="rounded-full bg-emerald-500/15 p-1 text-emerald-400">
+                        <span title="Highest counted 24h hit rate in this cohort" className="rounded-full bg-emerald-500/15 p-1 text-emerald-400">
                           <Crown className="h-3.5 w-3.5" />
                         </span>
                       )}
                       {isWinner(row.strategyId, 'sharpe') && (
-                        <span title="Best Sharpe" className="rounded-full bg-purple-500/15 p-1 text-purple-400">
+                        <span title="Highest OHLCV-move Sharpe in this cohort" className="rounded-full bg-purple-500/15 p-1 text-purple-400">
                           <Medal className="h-3.5 w-3.5" />
                         </span>
                       )}
                       {isWinner(row.strategyId, 'riskReward') && (
-                        <span title="Best R:R" className="rounded-full bg-amber-500/15 p-1 text-amber-400">
+                        <span title="Highest average target-to-stop ratio in this cohort" className="rounded-full bg-amber-500/15 p-1 text-amber-400">
                           <TrendingUp className="h-3.5 w-3.5" />
                         </span>
                       )}
@@ -217,7 +217,7 @@ export function ComparisonClient() {
 
                       <div className="rounded-lg bg-[var(--glass-bg)] p-3">
                         <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-secondary)]">
-                          Win Rate
+                          24h Hit Rate
                         </p>
                         <p className={`mt-1 text-xl font-bold ${winRateColor}`}>{row.hitRate24h}%</p>
                         <p className="text-[10px] text-[var(--text-secondary)]">24h window</p>
@@ -237,22 +237,22 @@ export function ComparisonClient() {
 
                       <div className="rounded-lg bg-[var(--glass-bg)] p-3">
                         <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-secondary)]">
-                          Sharpe
+                          Move Sharpe
                         </p>
                         <p className="mt-1 text-xl font-bold text-[var(--foreground)]">
                           {row.sharpeRatio !== 0 ? row.sharpeRatio : '—'}
                         </p>
                         <p className="text-[10px] text-[var(--text-secondary)]">
-                          mean / std dev
+                          OHLCV moves
                         </p>
                       </div>
 
                       <div className="rounded-lg bg-[var(--glass-bg)] p-3">
                         <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-secondary)]">
-                          Avg P&L
+                          Avg Move
                         </p>
                         <p className={`mt-1 text-xl font-bold ${pnlColor}`}>
-                          {row.avgPnl !== 0 ? formatPnl(row.avgPnl) : '—'}
+                          {row.avgPnl !== 0 ? formatMove(row.avgPnl) : '—'}
                         </p>
                         <p className="text-[10px] text-[var(--text-secondary)]">
                           per resolved signal

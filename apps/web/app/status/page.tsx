@@ -2,14 +2,10 @@ import type { Metadata } from 'next';
 import { StatusClient } from './StatusClient';
 
 export const metadata: Metadata = {
-  title: 'System Status — TradeClaw',
+  title: 'Point-in-Time Status | TradeClaw',
   description:
-    'Live operational status for all TradeClaw services including Signal Engine, API, Database, and SSE Feed.',
-  openGraph: {
-    title: 'System Status — TradeClaw',
-    description: 'Live operational status and uptime for TradeClaw trading platform.',
-    type: 'website',
-  },
+    'Point-in-time process and dependency probes. No durable uptime percentage, incident history, or SLA is claimed.',
+  robots: { index: false, follow: false },
 };
 
 export default function StatusPage() {

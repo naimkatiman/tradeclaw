@@ -11,7 +11,6 @@ import {
   ChevronUp,
   Share2,
   Star,
-  CheckCircle,
   BarChart2,
   Activity,
   Layers,
@@ -302,22 +301,6 @@ function CategoryBadge({ cat }: { cat: PatternCategory }) {
   );
 }
 
-// ── Reliability Bar ────────────────────────────────────────────────────────────
-
-function ReliabilityBar({ score }: { score: number }) {
-  const color =
-    score >= 72 ? 'bg-emerald-500' : score >= 67 ? 'bg-zinc-500' : 'bg-zinc-500';
-  return (
-    <div className="flex items-center gap-2 text-xs text-zinc-400">
-      <span className="w-16 shrink-0">Reliability</span>
-      <div className="flex-1 bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${score}%` }} />
-      </div>
-      <span className="w-8 text-right font-mono">{score}%</span>
-    </div>
-  );
-}
-
 // ── Pattern Card ───────────────────────────────────────────────────────────────
 
 function PatternCard({ pattern }: { pattern: TradingPattern }) {
@@ -325,7 +308,7 @@ function PatternCard({ pattern }: { pattern: TradingPattern }) {
   const [copied, setCopied] = useState(false);
 
   const tweet = encodeURIComponent(
-    `📊 ${pattern.name} — ${pattern.reliability}% reliable ${pattern.direction === 'BUY' ? '🟢' : pattern.direction === 'SELL' ? '🔴' : '🟡'} signal pattern\n\n${pattern.shortDesc}\n\nLearn more: https://tradeclaw.win/patterns\n\n#TradeClaw #Trading #TechnicalAnalysis`
+    `${pattern.name} - educational technical-analysis reference (${pattern.direction} textbook bias). No measured reliability or live detector.\n\n${pattern.shortDesc}\n\nhttps://tradeclaw.win/patterns`
   );
 
   function handleCopy() {
@@ -353,22 +336,15 @@ function PatternCard({ pattern }: { pattern: TradingPattern }) {
             <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
               <CategoryBadge cat={pattern.category} />
               <DirectionBadge dir={pattern.direction} />
-              {pattern.tradeClawDetects && (
-                <span className="flex items-center gap-1 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded px-1.5 py-0.5">
-                  <CheckCircle size={9} />
-                  <span>Auto-detected</span>
-                </span>
-              )}
+              <span className="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded px-1.5 py-0.5">
+                Reference only
+              </span>
             </div>
             <h3 className="font-semibold text-white text-sm leading-tight mb-1">{pattern.name}</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">{pattern.shortDesc}</p>
           </div>
         </div>
 
-        {/* Reliability bar */}
-        <div className="mt-3">
-          <ReliabilityBar score={pattern.reliability} />
-        </div>
       </div>
 
       {/* Expanded details */}
@@ -379,8 +355,8 @@ function PatternCard({ pattern }: { pattern: TradingPattern }) {
             <p className="text-xs text-zinc-400 leading-relaxed">{pattern.fullDesc}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold text-zinc-300 mb-1">How to trade it</p>
-            <p className="text-xs text-zinc-400 leading-relaxed">{pattern.howToTrade}</p>
+            <p className="text-xs font-semibold text-zinc-300 mb-1">Textbook interpretation (not validated)</p>
+            <p className="text-xs text-zinc-400 leading-relaxed">{pattern.textbookInterpretation}</p>
           </div>
         </div>
       )}
@@ -439,8 +415,6 @@ export default function PatternsClient() {
     return true;
   });
 
-  const detectedCount = PATTERNS.filter((p) => p.tradeClawDetects).length;
-
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -454,21 +428,19 @@ export default function PatternsClient() {
             Trading Pattern Library
           </h1>
           <p className="text-zinc-400 max-w-xl mx-auto text-sm leading-relaxed">
-            {PATTERNS.length} classic technical patterns with animated diagrams, reliability scores,
-            and trade setup guides.{' '}
-            <span className="text-emerald-400 font-medium">{detectedCount} auto-detected</span> by
-            TradeClaw.
+            {PATTERNS.length} classic technical-analysis references with illustrative diagrams and
+            textbook interpretations. Reliability is unmeasured and no live pattern detector is implemented.
           </p>
 
           {/* Quick stats */}
-          <div className="flex justify-center gap-6 mt-5 text-sm">
+          <div className="grid grid-cols-3 gap-3 max-w-md mx-auto mt-5 text-sm">
             {[
               { label: 'Total Patterns', value: PATTERNS.length },
-              { label: 'Auto-Detected', value: detectedCount },
-              { label: 'Avg Reliability', value: `${Math.round(PATTERNS.reduce((a, p) => a + p.reliability, 0) / PATTERNS.length)}%` },
+              { label: 'Evidence', value: 'Unmeasured' },
+              { label: 'Detector', value: 'Not implemented' },
             ].map((s) => (
-              <div key={s.label} className="text-center">
-                <div className="text-xl font-bold text-white">{s.value}</div>
+              <div key={s.label} className="text-center min-w-0">
+                <div className="text-sm sm:text-lg font-bold text-white break-words">{s.value}</div>
                 <div className="text-xs text-zinc-500">{s.label}</div>
               </div>
             ))}
@@ -541,8 +513,8 @@ export default function PatternsClient() {
             <span className="text-sm font-semibold text-white">Like what you see?</span>
           </div>
           <p className="text-xs text-zinc-400 mb-4">
-            TradeClaw detects {detectedCount} of these patterns automatically in live markets.
-            Self-host it free — no subscription needed.
+            This catalog is educational reference material. It does not report measured reliability,
+            and these entries are not backed by a live detection engine.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <a
@@ -559,14 +531,14 @@ export default function PatternsClient() {
               className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm px-4 py-2 rounded-lg transition-colors border border-zinc-700"
             >
               <Activity size={14} />
-              Live Signals
+              Signal Candidates
             </Link>
             <Link
               href="/explain"
               className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm px-4 py-2 rounded-lg transition-colors border border-zinc-700"
             >
               <BookOpen size={14} />
-              AI Explanation
+              Signal Methodology
             </Link>
           </div>
         </div>

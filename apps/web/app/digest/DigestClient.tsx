@@ -47,7 +47,7 @@ export function DigestClient() {
             This week&apos;s signal digest
           </h1>
           <p className="text-[var(--text-secondary)] text-sm max-w-md mx-auto">
-            Preview the weekly email our subscribers receive every Monday with top signals, accuracy stats, and leaderboard highlights.
+            Preview a digest generated from the counted, observed-provenance outcomes currently available to this deployment.
           </p>
         </div>
 
@@ -58,7 +58,7 @@ export function DigestClient() {
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors"
           >
             <Mail className="w-4 h-4" />
-            Subscribe to get this weekly
+            Save digest preferences
           </Link>
         </div>
 
@@ -95,14 +95,14 @@ export function DigestClient() {
         {/* Bottom CTA */}
         <div className="mt-12 text-center">
           <p className="text-sm text-[var(--text-secondary)] mb-4">
-            Want this in your inbox every Monday?
+            Delivery requires a configured email provider and an authenticated scheduler. Saving preferences does not guarantee a delivery time.
           </p>
           <Link
             href="/subscribe"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-emerald-500/30 text-emerald-400 text-sm font-semibold hover:bg-emerald-500/10 transition-colors"
           >
             <Mail className="w-4 h-4" />
-            Subscribe now
+            Review preferences
           </Link>
         </div>
       </div>

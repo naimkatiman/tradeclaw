@@ -6,6 +6,7 @@ export declare class Scheduler {
     private intervalMs;
     private timer;
     private running;
+    private inFlight;
     private scanCount;
     private onScan;
     constructor(intervalSeconds: number, onScan: () => Promise<void>);

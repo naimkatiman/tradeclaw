@@ -1,5 +1,9 @@
 import { getCachedHistory } from './signal-history-cache';
-import { isCountedResolved, type SignalHistoryRecord } from './signal-history';
+import {
+  isCountedResolved,
+  SIGNAL_HISTORY_READ_LIMIT,
+  type SignalHistoryRecord,
+} from './signal-history';
 
 /**
  * 'pro' is the full row set (name kept for URL/query-param compatibility —
@@ -19,6 +23,10 @@ const PERIOD_DAYS: Record<string, number> = {
 };
 
 export interface ResolvedSlice {
+  /** Rows loaded before scope filtering. Reads at the limit may omit older history. */
+  sourceRecordsLoaded: number;
+  sourceReadLimit: number;
+  sourceWindowPotentiallyTruncated: boolean;
   /** Records after scope filter ('broadcast' narrows to gate-approved rows). */
   scopedRecords: SignalHistoryRecord[];
   /** Records after scope + period filter. The shared row set both endpoints stat from. */
@@ -59,8 +67,8 @@ export async function getResolvedSlice(opts: {
   // (history, equity, leaderboard, track-record stats) in one place.
   let scopedRecords = all.filter(r => !(r.strategyId ?? '').startsWith('tv-'));
   if (opts.scope === 'broadcast') {
-    // Pro-broadcast subset: rows whose gate decision (regime + winning-cells
-    // + risk pipeline) ran at emission AND approved. Strict === false — NULL
+    // Pro-broadcast subset: rows whose risk-pipeline decision ran at emission
+    // AND approved. Strict === false — NULL
     // (pre-048 rows, or pipeline-outage fallbacks where the gate never ran)
     // is "decision not recorded" and must not be counted either way.
     scopedRecords = scopedRecords.filter(r => r.broadcastBlocked === false);
@@ -82,5 +90,14 @@ export async function getResolvedSlice(opts: {
 
   const resolved = periodFiltered.filter(isCountedResolved);
 
-  return { scopedRecords, periodFiltered, resolved, cutoffTs, earliestTimestamp };
+  return {
+    sourceRecordsLoaded: all.length,
+    sourceReadLimit: SIGNAL_HISTORY_READ_LIMIT,
+    sourceWindowPotentiallyTruncated: all.length >= SIGNAL_HISTORY_READ_LIMIT,
+    scopedRecords,
+    periodFiltered,
+    resolved,
+    cutoffTs,
+    earliestTimestamp,
+  };
 }

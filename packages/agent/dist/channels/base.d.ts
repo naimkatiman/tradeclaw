@@ -1,6 +1,7 @@
 import type { TradingSignal, ChannelConfig } from '@tradeclaw/signals';
 import { formatNumber, formatDiff, emaTrendText } from '@tradeclaw/signals';
 export { formatNumber, formatDiff, emaTrendText };
+export declare function isProviderObservedSignal(signal: TradingSignal): boolean;
 /**
  * Base interface for all channel adapters.
  */

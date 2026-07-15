@@ -3,10 +3,10 @@ import { CorrelationClient } from './CorrelationClient';
 
 export const metadata: Metadata = {
   title: 'Cross-Asset Correlation | TradeClaw',
-  description: 'Live Pearson correlation heatmap across forex, crypto, and commodities. Identify diversification opportunities and correlated pairs.',
+  description: 'Pearson correlation of aligned provider-backed hourly log returns. No synthetic or zero-filled fallback matrix.',
   openGraph: {
     title: 'Cross-Asset Correlation | TradeClaw',
-    description: 'Live correlation matrix: BTC, ETH, gold, silver, EUR/USD, GBP/USD, and more — refreshed every 5 minutes.',
+    description: 'Observed-source correlation matrix with aligned timestamps, sample size, and provider provenance.',
   },
 };
 

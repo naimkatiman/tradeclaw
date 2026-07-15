@@ -1,6 +1,6 @@
 # tradeclaw-demo
 
-> Spin up a TradeClaw AI trading signals demo in ~10 seconds.
+> Run a local TradeClaw interface fixture using explicitly synthetic, non-market values.
 
 ## Usage
 
@@ -8,14 +8,16 @@
 npx tradeclaw-demo
 ```
 
-No installation required. Opens a live signal dashboard in your browser instantly.
+`npx` downloads the package when needed and starts a local server. Startup time and any package-download or network costs depend on your environment.
+
+This package does **not** connect to a market-data provider, run the production signal engine, execute trades, or demonstrate portfolio performance. Its changing values are deterministic UI fixtures.
 
 ## What you get
 
-- 🔴 Live signal cards for BTC, ETH, XAU, EUR/USD, GBP/USD and more
-- 📊 RSI, MACD, EMA indicator values per signal
-- 🏆 Comparison table: TradeClaw vs TradingView vs 3Commas
-- ⭐ Direct link to star on GitHub
+- Illustrative BUY/SELL candidate-card layouts
+- Synthetic RSI, MACD, and price-level fields for UI inspection
+- A local REST/SSE fixture API marked `dataQuality: "synthetic"`
+- Links to the MIT-licensed source and project documentation
 
 ## Deploy your own
 
@@ -25,16 +27,15 @@ After trying the demo:
 # Docker
 docker run -p 3000:3000 ghcr.io/naimkatiman/tradeclaw
 
-# Or one-click Railway deploy
-# https://railway.app/template/tradeclaw
+# Review the repository deployment documentation for hosted options.
 ```
 
 ## Links
 
-- 🌐 **Live app**: https://tradeclaw.win
+- 🌐 **Project site**: https://tradeclaw.win
 - 🐙 **GitHub**: https://github.com/naimkatiman/tradeclaw
 - 📖 **Docs**: https://tradeclaw.win/docs
 
 ---
 
-Built with ❤️ by [@naimkatiman](https://github.com/naimkatiman) • MIT License
+The source code is MIT licensed. Hosting, market-data providers, messaging providers, model APIs, and broker services can have separate terms and costs.

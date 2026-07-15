@@ -4,11 +4,11 @@ import { CardClient } from './CardClient';
 export const metadata: Metadata = {
   title: 'Signal Card Generator — TradeClaw',
   description:
-    'Create a personalized AI trading signal card to share on Twitter, Discord, or Telegram. Show your friends you use open-source AI-powered signals.',
+    'Create a share card for the latest available TradeClaw rule output, including its score and research-only boundary.',
   openGraph: {
     title: 'Generate Your TradeClaw Signal Card',
     description:
-      'Free AI trading signal cards. Pick your asset, get a live signal with confidence score, and share it on social media.',
+      'Share the latest available rule-generated signal candidate with its source and evidence boundary.',
     type: 'website',
   },
 };

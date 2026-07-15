@@ -4,17 +4,17 @@ import LeaderboardClient from './LeaderboardClient';
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://tradeclaw.win';
 
 export const metadata: Metadata = {
-  title: 'Signal Performance Leaderboard — TradeClaw',
-  description: 'Live accuracy tracking for AI trading signals across forex, crypto, and commodities. 4h and 24h hit rates, streaks, and P&L stats.',
+  title: 'Signal Outcome Table — TradeClaw',
+  description: 'OHLCV-resolved rule-output study across forex, crypto, and commodities. Unsized price moves are not broker fills or portfolio returns.',
   openGraph: {
-    title: 'Signal Performance Leaderboard — TradeClaw',
-    description: 'AI signal accuracy ranked by hit rate across 10+ pairs. Free & open-source.',
+    title: 'Signal Outcome Table — TradeClaw',
+    description: 'Recorded candidates and source-gated OHLCV outcomes, with unavailable evidence left unavailable.',
     images: [{ url: `${baseUrl}/api/og/leaderboard`, width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Signal Performance Leaderboard — TradeClaw',
-    description: 'AI signal accuracy ranked by hit rate across 10+ pairs.',
+    title: 'Signal Outcome Table — TradeClaw',
+    description: 'Recorded candidates and source-gated OHLCV outcomes; not broker fills or portfolio returns.',
     images: [`${baseUrl}/api/og/leaderboard`],
   },
 };

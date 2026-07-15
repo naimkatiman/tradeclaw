@@ -17,15 +17,15 @@ export function WinShareToast({ symbol, pnlPct, onDismiss }: WinShareToastProps)
   }, [onDismiss]);
 
   const url = typeof window !== 'undefined'
-    ? `${window.location.origin}/track-record?utm_source=win-share`
-    : 'https://tradeclaw.win/track-record';
-  const tweet = `Just closed ${symbol} for +${pnlPct.toFixed(2)}% on TradeClaw\n\n${url}`;
+    ? `${window.location.origin}/paper-trading?utm_source=paper-win-share`
+    : 'https://tradeclaw.win/paper-trading';
+  const tweet = `TradeClaw paper simulation: closed ${symbol} with a modeled ${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}% position return. No broker fill or portfolio return.\n\n${url}`;
   const xHref = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
 
   return (
     <div className="fixed bottom-6 right-6 z-50 max-w-sm bg-emerald-500/10 border border-emerald-500/40 rounded-xl p-4 shadow-2xl backdrop-blur">
-      <div className="text-sm font-semibold text-emerald-300 mb-1">Win — {symbol} +{pnlPct.toFixed(2)}%</div>
-      <div className="text-xs text-zinc-300 mb-3">Brag about it. Free distribution.</div>
+      <div className="text-sm font-semibold text-emerald-300 mb-1">Paper simulation - {symbol} {pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%</div>
+      <div className="text-xs text-zinc-300 mb-3">Modeled closed-position return, not a broker fill or portfolio return.</div>
       <div className="flex gap-2">
         <a
           href={xHref}

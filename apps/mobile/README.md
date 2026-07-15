@@ -1,6 +1,11 @@
 # TradeClaw Mobile
 
-Expo React Native app for TradeClaw signal push notifications and mobile dashboard.
+Expo React Native client for provider-observed TradeClaw research candidates.
+
+The client does not generate fallback candidates, prices, targets, balances, or
+portfolio results. When the configured API cannot provide a complete record
+marked `source: "real"` and `dataQuality: "real"`, the app shows an unavailable
+state.
 
 ## Prerequisites
 

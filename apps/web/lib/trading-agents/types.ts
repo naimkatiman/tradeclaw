@@ -9,7 +9,7 @@ export interface ResearchRequest {
 export interface AgentAnalysis {
   role: AgentRole;
   summary: string;
-  confidence: number; // 0-100
+  confidence?: number; // Present only when supplied by the upstream stage.
   signals: { indicator: string; value: string; interpretation: string }[];
   timestamp: Date;
 }
@@ -24,8 +24,8 @@ export type ResearchJobStatus =
 
 export interface FinalVerdict {
   action: 'BUY' | 'SELL' | 'HOLD';
-  confidence: number;
-  sizing: string; // e.g. "1% of portfolio"
+  confidence?: number;
+  sizing?: string; // e.g. "1% of portfolio"
   reasoning: string;
 }
 

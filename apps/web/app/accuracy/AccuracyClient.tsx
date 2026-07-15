@@ -182,7 +182,7 @@ export function AccuracyClient() {
       {/* Disclaimer banner */}
       <div className="rounded-xl border border-zinc-500/30 bg-zinc-500/5 px-4 py-3">
         <p className="text-xs text-zinc-400/90 leading-relaxed">
-          <span className="font-semibold">Disclaimer:</span> Rows marked <span className="font-mono text-zinc-400 bg-zinc-800 px-1 rounded">Example</span> are simulated seed data used to demonstrate the interface and are <strong>excluded from all accuracy statistics</strong>. Only <span className="font-mono text-emerald-400 bg-emerald-500/10 px-1 rounded">Live tracked</span> signals represent real outcomes verified against market prices. Past performance is not indicative of future results. This is not financial advice.
+          <span className="font-semibold">Disclaimer:</span> Rows marked <span className="font-mono text-zinc-400 bg-zinc-800 px-1 rounded">Example</span> are simulated seed data used to demonstrate the interface and are <strong>excluded from accuracy statistics</strong>. <span className="font-mono text-emerald-400 bg-emerald-500/10 px-1 rounded">Recorded / OHLCV</span> signals have outcomes resolved against provider candles; they are not broker fills or customer trades. Past outcomes do not predict future results. This is not financial advice.
         </p>
       </div>
 
@@ -199,7 +199,7 @@ export function AccuracyClient() {
           <DataProvenanceBadge provenance={provenance} source="signal-history" />
         </div>
         <p className="text-zinc-500 text-sm mt-1">
-          Every signal recorded with timestamps, entry prices, and verified outcomes. Full transparency.
+          Recorded signal rows with timestamps and entry prices; outcomes are resolved against provider OHLCV.
         </p>
         {stats && stats.totalSignals > 0 && (
           <MetricMeta
@@ -226,7 +226,7 @@ export function AccuracyClient() {
             const win = formatWindow(earliestTs, latestTs);
             return win ? (
               <p className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">
-                Win rate, Avg P&amp;L and Total P&amp;L cover {win} · n={stats.resolved} resolved
+                Win rate, Avg price move and Price-move sum cover {win} · n={stats.resolved} OHLCV-resolved
               </p>
             ) : null;
           })()}
@@ -238,18 +238,18 @@ export function AccuracyClient() {
               color={stats.winRate >= 60 ? 'text-emerald-400' : stats.winRate >= 50 ? 'text-zinc-400' : 'text-rose-400'}
             />
             <StatCard
-              label="Avg P&L"
+              label="Avg price move"
               value={`${stats.avgPnlPct >= 0 ? '+' : ''}${stats.avgPnlPct}%`}
               color={stats.avgPnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}
             />
             <StatCard
-              label="Avg Confidence (resolved)"
-              value={`${stats.avgConfidenceResolved}%`}
+              label="Avg Rule Score (resolved)"
+              value={`${stats.avgConfidenceResolved}/100`}
             />
             <StatCard label="Wins" value={stats.wins.toString()} color="text-emerald-400" />
             <StatCard label="Losses" value={stats.losses.toString()} color="text-rose-400" />
             <StatCard
-              label="Total P&L"
+              label="Price-move sum"
               value={`${stats.totalPnlPct >= 0 ? '+' : ''}${stats.totalPnlPct}%`}
               color={stats.totalPnlPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}
             />
@@ -436,12 +436,12 @@ export function AccuracyClient() {
                 <th className="text-left px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Pair</th>
                 <th className="text-left px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Signal</th>
                 <th className="text-right px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Entry</th>
-                <th className="text-right px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Conf</th>
+                <th className="text-right px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Rule score</th>
                 <th className="text-center px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">4h Result</th>
                 <th className="text-center px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">24h Result</th>
-                <th className="text-right px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">P&L</th>
+                <th className="text-right px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Directional move</th>
                 <th className="text-center px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Data source</th>
-                <th className="text-right px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Last verified</th>
+                <th className="text-right px-4 py-3 text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Last resolved</th>
               </tr>
             </thead>
             <tbody>
@@ -544,14 +544,14 @@ export function AccuracyClient() {
 
       {/* Transparency note */}
       <div className="glass-card rounded-xl p-4 border-l-2 border-emerald-500/50">
-        <h3 className="text-sm font-medium text-zinc-300 mb-1 flex items-center gap-1.5"><Search className="h-4 w-4 text-emerald-400" /> Full Transparency</h3>
+        <h3 className="text-sm font-medium text-zinc-300 mb-1 flex items-center gap-1.5"><Search className="h-4 w-4 text-emerald-400" /> Population and Limitations</h3>
         <p className="text-xs text-zinc-500 leading-relaxed">
-          Every signal is recorded at generation time with its entry price and confidence score.
-          Outcomes are evaluated at 4-hour and 24-hour windows against actual price movement.
-          No cherry-picking, no hindsight edits. The hosted deployment stores this history in{' '}
+          Stored signal rows include their generation time, entry price, and mechanical rule score. The score measures indicator agreement, not success probability.
+          Outcomes are evaluated at 4-hour and 24-hour windows against provider OHLCV, not broker fills.
+          The hosted deployment stores the current archive in{' '}
           <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">Postgres</code> (the{' '}
           <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">signal_history</code> table);
-          self-hosted users without <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">DATABASE_URL</code> can verify all data in{' '}
+          self-hosted users without <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">DATABASE_URL</code> can inspect their locally stored rows in{' '}
           <code className="text-emerald-500/80 bg-emerald-500/5 px-1 rounded">data/signal-history.json</code>.
         </p>
       </div>
@@ -573,7 +573,7 @@ function ConfidenceBadge({ value }: { value: number }) {
   const color = value >= 80 ? 'text-emerald-400' : value >= 65 ? 'text-zinc-400' : 'text-zinc-500';
   return (
     <span className={`font-mono tabular-nums text-xs ${color}`}>
-      {value.toFixed(0)}%
+      {value.toFixed(0)}/100
     </span>
   );
 }

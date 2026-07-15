@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { SYMBOLS } from '../../lib/signals';
 import { getTrackedSignals } from '../../../lib/tracked-signals';
 
@@ -12,22 +12,29 @@ export interface ConsensusEntry {
   totalCount: number;
   buyRatio: number; // 0-1
   dominantDirection: 'BUY' | 'SELL' | 'NEUTRAL';
-  avgBuyConfidence: number;
-  avgSellConfidence: number;
-  trend24h: 'UP' | 'DOWN' | 'FLAT'; // ESTIMATED — derived from pair + current hour + buyRatio, NOT a measured 24h price change. Rendered with an "est." marker on the client.
-  source: 'live' | 'synthetic'; // whether data comes from real signals or is algorithmically generated
+  avgBuyConfidence: number | null;
+  avgSellConfidence: number | null;
+  timeframes: string[];
+  source: 'observed-ohlcv-derived';
 }
 
 export interface ConsensusResponse {
   entries: ConsensusEntry[];
-  overallBullish: number; // 0-100 percent
-  mostBullish: string;
-  mostBearish: string;
-  mostConflicted: string;
+  overallBullish: number | null; // 0-100 percent; null without records
+  mostBullish: string | null;
+  mostBearish: string | null;
+  mostConflicted: string | null;
   totalBuySignals: number;
   totalSellSignals: number;
   updatedAt: string;
-  hasSynthetic: boolean; // true if any entries use synthetic fallback data
+  status: 'available' | 'partial' | 'empty' | 'unavailable';
+  provenance: {
+    source: 'observed-ohlcv-derived-signals';
+    requestedTimeframes: string[];
+    availableTimeframes: string[];
+    unavailableTimeframes: string[];
+    syntheticExcluded: true;
+  };
 }
 
 const CONSENSUS_PAIRS = [
@@ -35,16 +42,7 @@ const CONSENSUS_PAIRS = [
   'GBPUSD', 'USDJPY', 'GBPJPY', 'AUDUSD', 'USDCAD',
 ];
 
-// ESTIMATED indicator — NOT a measured 24h price change. Deterministically
-// derived from the pair's char codes, the current hour, and the live buyRatio.
-// The client renders this with a visible "est." marker (honesty contract rule 7).
-function getTrend24h(pair: string, buyRatio: number): 'UP' | 'DOWN' | 'FLAT' {
-  const hourSeed = new Date().getHours();
-  const hash = (pair.charCodeAt(0) * 7 + pair.charCodeAt(1) * 13 + hourSeed) % 3;
-  if (buyRatio > 0.6) return hash === 0 ? 'FLAT' : 'UP';
-  if (buyRatio < 0.4) return hash === 0 ? 'FLAT' : 'DOWN';
-  return 'FLAT';
-}
+const REQUESTED_TIMEFRAMES = ['H1', 'H4'] as const;
 
 export async function GET() {
   try {
@@ -54,36 +52,49 @@ export async function GET() {
       getTrackedSignals({ timeframe: 'H4', minConfidence: 0 }),
     ]);
 
+    const availableTimeframes = REQUESTED_TIMEFRAMES.filter((_, index) =>
+      [h1Result, h4Result][index].status === 'fulfilled',
+    );
+    const unavailableTimeframes = REQUESTED_TIMEFRAMES.filter(
+      (timeframe) => !availableTimeframes.includes(timeframe),
+    );
+
+    const provenance: ConsensusResponse['provenance'] = {
+      source: 'observed-ohlcv-derived-signals',
+      requestedTimeframes: [...REQUESTED_TIMEFRAMES],
+      availableTimeframes: [...availableTimeframes],
+      unavailableTimeframes: [...unavailableTimeframes],
+      syntheticExcluded: true,
+    };
+
+    if (availableTimeframes.length === 0) {
+      const unavailable: ConsensusResponse & { error: string } = {
+        entries: [],
+        overallBullish: null,
+        mostBullish: null,
+        mostBearish: null,
+        mostConflicted: null,
+        totalBuySignals: 0,
+        totalSellSignals: 0,
+        updatedAt: new Date().toISOString(),
+        status: 'unavailable',
+        provenance,
+        error: 'H1 and H4 signal sources are unavailable',
+      };
+      return NextResponse.json(unavailable, { status: 503 });
+    }
+
     const allSignals = [
       ...(h1Result.status === 'fulfilled' ? h1Result.value.signals : []),
       ...(h4Result.status === 'fulfilled' ? h4Result.value.signals : []),
-    ];
+    ].filter((signal) => signal.dataQuality === 'real');
 
-    const entries: ConsensusEntry[] = CONSENSUS_PAIRS.map(pair => {
+    const entries: ConsensusEntry[] = CONSENSUS_PAIRS.flatMap(pair => {
       const symbolConfig = SYMBOLS.find(s => s.symbol === pair);
       const pairSignals = allSignals.filter(s => s.symbol === pair);
 
       if (pairSignals.length === 0) {
-        // Deterministic fallback using pair + current hour
-        const hour = new Date().getHours();
-        const seed = pair.charCodeAt(0) + pair.charCodeAt(2) + hour;
-        const buyCount = Math.max(1, (seed % 5) + 1);
-        const sellCount = Math.max(1, ((seed * 3) % 4) + 1);
-        const totalCount = buyCount + sellCount;
-        const buyRatio = buyCount / totalCount;
-        return {
-          pair,
-          name: symbolConfig?.name ?? pair,
-          buyCount,
-          sellCount,
-          totalCount,
-          buyRatio,
-          dominantDirection: buyRatio > 0.55 ? 'BUY' : buyRatio < 0.45 ? 'SELL' : 'NEUTRAL',
-          avgBuyConfidence: 65 + (seed % 20),
-          avgSellConfidence: 60 + ((seed * 2) % 20),
-          trend24h: getTrend24h(pair, buyRatio),
-          source: 'synthetic' as const,
-        };
+        return [];
       }
 
       const buySignals = pairSignals.filter(s => s.direction === 'BUY');
@@ -91,16 +102,16 @@ export async function GET() {
       const buyCount = buySignals.length;
       const sellCount = sellSignals.length;
       const totalCount = pairSignals.length;
-      const buyRatio = totalCount > 0 ? buyCount / totalCount : 0.5;
+      const buyRatio = buyCount / totalCount;
 
       const avgBuyConfidence = buyCount > 0
         ? buySignals.reduce((acc, s) => acc + s.confidence, 0) / buyCount
-        : 0;
+        : null;
       const avgSellConfidence = sellCount > 0
         ? sellSignals.reduce((acc, s) => acc + s.confidence, 0) / sellCount
-        : 0;
+        : null;
 
-      return {
+      return [{
         pair,
         name: symbolConfig?.name ?? pair,
         buyCount,
@@ -108,11 +119,11 @@ export async function GET() {
         totalCount,
         buyRatio,
         dominantDirection: buyRatio > 0.55 ? 'BUY' : buyRatio < 0.45 ? 'SELL' : 'NEUTRAL',
-        avgBuyConfidence: Math.round(avgBuyConfidence),
-        avgSellConfidence: Math.round(avgSellConfidence),
-        trend24h: getTrend24h(pair, buyRatio),
-        source: 'live' as const,
-      };
+        avgBuyConfidence: avgBuyConfidence === null ? null : Math.round(avgBuyConfidence),
+        avgSellConfidence: avgSellConfidence === null ? null : Math.round(avgSellConfidence),
+        timeframes: [...new Set(pairSignals.map((signal) => signal.timeframe))].sort(),
+        source: 'observed-ohlcv-derived' as const,
+      }];
     });
 
     const totalBuySignals = entries.reduce((acc, e) => acc + e.buyCount, 0);
@@ -120,15 +131,13 @@ export async function GET() {
     const totalSignals = totalBuySignals + totalSellSignals;
     const overallBullish = totalSignals > 0
       ? Math.round((totalBuySignals / totalSignals) * 100)
-      : 50;
+      : null;
 
-    const mostBullish = [...entries].sort((a, b) => b.buyRatio - a.buyRatio)[0]?.pair ?? 'BTCUSD';
-    const mostBearish = [...entries].sort((a, b) => a.buyRatio - b.buyRatio)[0]?.pair ?? 'XAGUSD';
+    const mostBullish = [...entries].sort((a, b) => b.buyRatio - a.buyRatio)[0]?.pair ?? null;
+    const mostBearish = [...entries].sort((a, b) => a.buyRatio - b.buyRatio)[0]?.pair ?? null;
     const mostConflicted = [...entries].sort((a, b) =>
       Math.abs(a.buyRatio - 0.5) - Math.abs(b.buyRatio - 0.5)
-    )[0]?.pair ?? 'EURUSD';
-
-    const hasSynthetic = entries.some(e => e.source === 'synthetic');
+    )[0]?.pair ?? null;
 
     const response: ConsensusResponse = {
       entries,
@@ -139,7 +148,8 @@ export async function GET() {
       totalBuySignals,
       totalSellSignals,
       updatedAt: new Date().toISOString(),
-      hasSynthetic,
+      status: entries.length === 0 ? 'empty' : unavailableTimeframes.length > 0 ? 'partial' : 'available',
+      provenance,
     };
 
     return NextResponse.json(response, {

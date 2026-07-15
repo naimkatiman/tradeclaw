@@ -44,7 +44,7 @@ Public/API read path
 Request-side side effects
   getTrackedSignalsForRequest() -> getTrackedSignals()
     -> getActivePreset() + safeProfileId() -> TA getSignals()
-    -> full-risk / winning-cells gates
+    -> full-risk gate
     -> recordSignalsAsync() -> signal_history
     -> invalidate signal-history cache
     -> fire-and-forget alert-rules dispatch
@@ -57,7 +57,7 @@ Cron writer / resolver / Pro broadcast
     -> collectNewSignals(): scanner if fresh+covered, else TA fallback
     -> best per symbol+direction, market-hours filter, 2h dedupe
     -> catch up recent unposted tradable signal_history rows
-    -> computeBroadcastDecisions(): winning-cells + risk pipeline
+    -> computeBroadcastDecisions(): risk pipeline
     -> record new signal_history rows with strategy/provenance/gate/cost metadata
     -> late-stamp broadcast decisions on catch-up rows
     -> resolve old 4h/24h outcomes from OHLCV candles

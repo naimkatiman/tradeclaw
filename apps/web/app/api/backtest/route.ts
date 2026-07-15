@@ -28,15 +28,26 @@ export async function GET(request: NextRequest) {
   try {
     const { candles, source } = await getOHLCV(symbol, timeframe);
 
-    if (candles.length === 0) {
+    if (source === 'synthetic' || candles.length === 0) {
       return NextResponse.json(
-        { error: `No OHLCV data available for ${symbol} ${timeframe}` },
-        { status: 502 },
+        {
+          available: false,
+          error: `No observed OHLCV data available for ${symbol} ${timeframe}`,
+          reason: source === 'synthetic' ? 'synthetic-source-rejected' : 'source-empty',
+        },
+        { status: 503, headers: { 'Cache-Control': 'no-store' } },
       );
     }
 
     return NextResponse.json(
-      { candles, source, symbol, timeframe },
+      {
+        available: true,
+        candles,
+        source,
+        symbol,
+        timeframe,
+        note: 'Provider-backed candles. Backtest outputs remain hypothetical model results, not broker or portfolio returns.',
+      },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',

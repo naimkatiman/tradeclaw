@@ -101,14 +101,14 @@ export function AccuracyStatsBar({ inline = false }: AccuracyStatsBarProps) {
 
   const content = (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-px bg-white/[0.03]">
-      {/* Total Verified */}
+      {/* OHLCV-resolved count */}
       <div className="bg-[#0a0a0a] px-4 py-3 text-center">
         <div className="text-lg font-bold font-mono tabular-nums text-white tracking-tight">
           {stats.resolved}
         </div>
         <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-0.5 inline-flex items-center justify-center gap-1">
-          Signals Verified
-          <InfoHint text={STAT_HINTS.resolved} label="What signals verified means" />
+          OHLCV Resolved
+          <InfoHint text={STAT_HINTS.resolved} label="What OHLCV resolved means" />
         </div>
       </div>
 

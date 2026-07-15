@@ -115,8 +115,8 @@ export default function SmsClient() {
             SMS Signal Alerts
           </h1>
           <p className="text-[var(--text-secondary)] text-sm max-w-lg mx-auto">
-            Get TradeClaw&apos;s top trading signals delivered directly to your phone via SMS.
-            Choose your pairs and confidence threshold — never miss a high-conviction signal.
+            Configure scheduled Twilio delivery for eligible TradeClaw signal records.
+            Confidence represents indicator agreement, not conviction or a probability of profit.
           </p>
         </div>
 
@@ -140,8 +140,8 @@ export default function SmsClient() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
           {[
             { icon: Zap, label: 'Every 6 hours', desc: 'Automatic alert cron' },
-            { icon: Shield, label: 'No spam', desc: 'Only high-confidence' },
-            { icon: Bell, label: 'Instant delivery', desc: 'Via Twilio SMS' },
+            { icon: Shield, label: 'Configurable filter', desc: 'Indicator-agreement threshold' },
+            { icon: Bell, label: 'External delivery', desc: 'Timing depends on Twilio and carriers' },
           ].map((f) => (
             <div key={f.label} className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4 text-center">
               <f.icon className="w-5 h-5 text-emerald-400 mx-auto mb-2" />
@@ -157,14 +157,14 @@ export default function SmsClient() {
             <CheckCircle className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
             <h2 className="text-lg font-bold text-[var(--foreground)] mb-1">Subscribed!</h2>
             <p className="text-sm text-[var(--text-secondary)] mb-4">
-              You&apos;ll receive SMS alerts for your chosen pairs every 6 hours when signals match your threshold.
+              Eligible records will be submitted on the configured schedule when they match your selected pairs and threshold. Delivery is not guaranteed by TradeClaw.
             </p>
             <div className="flex flex-col items-center gap-2">
               <Link
                 href="/screener"
                 className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
               >
-                View Live Signals →
+                View Signal Archive →
               </Link>
               <a
                 href="https://github.com/naimkatiman/tradeclaw"
@@ -223,7 +223,7 @@ export default function SmsClient() {
             {/* Confidence */}
             <div>
               <label className="text-xs font-medium text-[var(--text-secondary)] mb-2 flex items-center justify-between">
-                <span>Minimum Confidence</span>
+                <span>Minimum Indicator Agreement</span>
                 <span className="text-emerald-400 font-bold">{confidence}%</span>
               </label>
               <input
@@ -236,8 +236,8 @@ export default function SmsClient() {
                 className="w-full accent-emerald-500"
               />
               <div className="flex justify-between text-[10px] text-[var(--text-secondary)] mt-1">
-                <span>50% (more alerts)</span>
-                <span>100% (only top)</span>
+                <span>50% (broader filter)</span>
+                <span>100% (strict agreement)</span>
               </div>
             </div>
 
@@ -258,14 +258,14 @@ export default function SmsClient() {
             </button>
 
             <p className="text-[10px] text-center text-[var(--text-secondary)]">
-              Standard SMS rates apply. Alerts sent every 6 hours via Twilio. Unsubscribe anytime.
+              Standard SMS rates may apply. Eligible messages are submitted to Twilio on the configured schedule; carrier delivery can be delayed or fail.
             </p>
           </form>
         )}
 
         {/* Sample SMS */}
         <div className="mt-8 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-6">
-          <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3">Sample SMS Alert</h3>
+          <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3">Illustrative SMS Format</h3>
           <div className="rounded-xl bg-[var(--background)] border border-[var(--border)] p-4 font-mono text-xs text-[var(--text-secondary)] leading-relaxed">
             <div>TradeClaw Alerts</div>
             <div className="mt-1">📈 BTCUSD BUY 87% | Entry: $67,420</div>
@@ -313,7 +313,7 @@ export default function SmsClient() {
             Star on GitHub
           </a>
           <p className="text-[10px] text-[var(--text-secondary)] mt-2">
-            Open source · Self-hostable · Free forever
+            MIT-licensed source · Twilio, carrier, data, and hosting costs may apply
           </p>
         </div>
       </div>

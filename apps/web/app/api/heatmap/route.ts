@@ -33,32 +33,20 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const entries: HeatmapEntry[] = HEATMAP_PAIRS.map(pair => {
+    const entries: HeatmapEntry[] = HEATMAP_PAIRS.flatMap(pair => {
       const sig = signalMap.get(pair);
       const symbolConfig = SYMBOLS.find(s => s.symbol === pair);
 
-      if (sig) {
-        return {
-          pair,
-          name: symbolConfig?.name ?? pair,
-          direction: sig.direction,
-          confidence: sig.confidence,
-          price: sig.entry,
-          rsi: sig.indicators.rsi.value,
-          macd: sig.indicators.macd.histogram,
-        };
-      }
-
-      // No signal found — return NEUTRAL with base price
-      return {
+      if (!sig) return [];
+      return [{
         pair,
         name: symbolConfig?.name ?? pair,
-        direction: 'NEUTRAL' as const,
-        confidence: 0,
-        price: symbolConfig?.basePrice ?? 0,
-        rsi: 50,
-        macd: 0,
-      };
+        direction: sig.direction,
+        confidence: sig.confidence,
+        price: sig.entry,
+        rsi: sig.indicators.rsi.value,
+        macd: sig.indicators.macd.histogram,
+      }];
     });
 
     return NextResponse.json({

@@ -23,33 +23,10 @@ interface Strategy {
   };
   isActive: boolean;
   createdAt: string;
-  performance?: {
-    totalTrades: number;
-    winRate: number;
-    profitFactor: number;
-    maxDrawdown: number;
-    sharpeRatio: number;
-    totalPnl: number;
-    avgWin: number;
-    avgLoss: number;
-    bestTrade: number;
-    worstTrade: number;
-    period: string;
-  };
-}
-
-function StatBox({ label, value, color = 'text-white' }: { label: string; value: string; color?: string }) {
-  return (
-    <div className="text-center">
-      <div className={`text-lg font-bold font-mono ${color}`}>{value}</div>
-      <div className="text-[10px] text-gray-500 uppercase">{label}</div>
-    </div>
-  );
 }
 
 function StrategyCard({ strategy }: { strategy: Strategy }) {
   const [expanded, setExpanded] = useState(false);
-  const perf = strategy.performance;
 
   return (
     <div className={`bg-gray-900/80 border rounded-xl p-5 transition-all ${
@@ -65,7 +42,7 @@ function StrategyCard({ strategy }: { strategy: Strategy }) {
                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                 : 'bg-gray-700/50 text-gray-500 border border-gray-700'
             }`}>
-              {strategy.isActive ? '● ACTIVE' : '○ PAUSED'}
+              {strategy.isActive ? '● EXAMPLE ON' : '○ EXAMPLE OFF'}
             </span>
           </div>
           <p className="text-sm text-gray-400">{strategy.description}</p>
@@ -103,20 +80,6 @@ function StrategyCard({ strategy }: { strategy: Strategy }) {
         </div>
       </div>
 
-      {/* Performance */}
-      {perf && (
-        <div className="bg-black/30 rounded-lg p-3 mb-3">
-          <div className="text-xs text-gray-500 mb-2">Performance ({perf.period})</div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            <StatBox label="Win Rate" value={`${perf.winRate}%`} color={perf.winRate >= 60 ? 'text-emerald-400' : perf.winRate >= 50 ? 'text-zinc-400' : 'text-red-400'} />
-            <StatBox label="PF" value={perf.profitFactor.toFixed(1)} color={perf.profitFactor >= 2 ? 'text-emerald-400' : 'text-zinc-400'} />
-            <StatBox label="Sharpe" value={perf.sharpeRatio.toFixed(2)} color={perf.sharpeRatio >= 2 ? 'text-emerald-400' : 'text-zinc-400'} />
-            <StatBox label="Max DD" value={`${perf.maxDrawdown}%`} color={perf.maxDrawdown <= 10 ? 'text-emerald-400' : 'text-red-400'} />
-            <StatBox label="P&L" value={`$${perf.totalPnl.toLocaleString()}`} color={perf.totalPnl > 0 ? 'text-emerald-400' : 'text-red-400'} />
-          </div>
-        </div>
-      )}
-
       {/* Risk Config (expandable) */}
       <button
         onClick={() => setExpanded(!expanded)}
@@ -151,22 +114,6 @@ function StrategyCard({ strategy }: { strategy: Strategy }) {
             <div className="text-gray-500">Fib Levels</div>
             <div className="font-mono text-zinc-400">{strategy.riskManagement.fibLevels.join(', ')}</div>
           </div>
-          {perf && (
-            <>
-              <div>
-                <div className="text-gray-500">Avg Win</div>
-                <div className="font-mono text-emerald-400">${perf.avgWin.toFixed(2)}</div>
-              </div>
-              <div>
-                <div className="text-gray-500">Avg Loss</div>
-                <div className="font-mono text-red-400">${perf.avgLoss.toFixed(2)}</div>
-              </div>
-              <div>
-                <div className="text-gray-500">Total Trades</div>
-                <div className="font-mono text-white">{perf.totalTrades}</div>
-              </div>
-            </>
-          )}
         </div>
       )}
     </div>
@@ -188,7 +135,6 @@ export default function StrategiesPage() {
   }, []);
 
   const active = strategies.filter(s => s.isActive).length;
-  const totalPnl = strategies.reduce((sum, s) => sum + (s.performance?.totalPnl || 0), 0);
 
   return (
     <div className="relative isolate min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -199,14 +145,18 @@ export default function StrategiesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Strategy Builder</h1>
+            <h1 className="text-2xl font-bold">Strategy Definitions</h1>
             <p className="text-sm text-gray-500 mt-1">
-              {active} active strategies • ${totalPnl.toLocaleString()} total P&L
+              {strategies.length} preset definitions; {active} marked active in their example configuration
             </p>
           </div>
-          <button className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-sm hover:bg-emerald-500/30 transition-colors">
-            + New Strategy
-          </button>
+          <Link
+            href="/strategy-builder"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-sm hover:bg-emerald-500/30 transition-colors"
+          >
+            Open Builder
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
         <div className="mb-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
@@ -218,7 +168,7 @@ export default function StrategiesPage() {
               <div>
                 <div className="text-sm font-semibold text-white">See the public leaderboard</div>
                 <p className="text-xs text-gray-400">
-                  Ranked backtests, shareable proof cards, and the fastest path to the top performers.
+                  No measured backtest or live-execution results are connected yet, so no performance ranking is published.
                 </p>
               </div>
             </div>

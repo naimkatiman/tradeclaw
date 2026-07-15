@@ -209,7 +209,7 @@ export function ExplainClient() {
             </div>
             <div>
               <h1 className="text-2xl font-bold">AI Signal Analysis</h1>
-              <p className="text-xs text-zinc-600 mt-0.5">Select any asset and timeframe for instant AI-powered analysis</p>
+              <p className="text-xs text-zinc-600 mt-0.5">Select an asset and timeframe to inspect its rule-generated indicator rationale</p>
             </div>
           </div>
         </div>

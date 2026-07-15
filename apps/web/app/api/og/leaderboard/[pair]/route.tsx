@@ -25,20 +25,6 @@ export async function GET(
           overflow: "hidden",
         }}
       >
-        {/* Ambient glow */}
-        <div
-          style={{
-            position: "absolute",
-            top: "-100px",
-            right: "-100px",
-            width: "400px",
-            height: "400px",
-            background: "radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)",
-            borderRadius: "50%",
-            display: "flex",
-          }}
-        />
-
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
           <div
@@ -60,7 +46,7 @@ export async function GET(
           <span style={{ color: "#fff", fontSize: "22px", fontWeight: 700 }}>
             Trade<span style={{ color: "#10b981" }}>Claw</span>
           </span>
-          <span style={{ color: "#52525b", fontSize: "14px", marginLeft: "8px" }}>Signal Leaderboard</span>
+          <span style={{ color: "#52525b", fontSize: "14px", marginLeft: "8px" }}>Signal Outcome Table</span>
         </div>
 
         {/* Pair name */}
@@ -68,7 +54,7 @@ export async function GET(
           <span style={{ color: "#fff", fontSize: "64px", fontWeight: 800, fontFamily: "monospace", letterSpacing: "-2px" }}>
             {symbol}
           </span>
-          <span style={{ color: "#52525b", fontSize: "20px" }}>Performance Report</span>
+          <span style={{ color: "#52525b", fontSize: "20px" }}>Recorded Outcome Summary</span>
         </div>
 
         {/* Stats grid */}
@@ -76,15 +62,15 @@ export async function GET(
           {[
             { label: "4h HIT RATE", value: "—", color: "#10b981" },
             { label: "24h HIT RATE", value: "—", color: "#10b981" },
-            { label: "AVG CONFIDENCE", value: "—", color: "#fff" },
-            { label: "TOTAL SIGNALS", value: "—", color: "#fff" },
+            { label: "AVG RULE SCORE", value: "—", color: "#fff" },
+            { label: "RECORDED ROWS", value: "—", color: "#fff" },
           ].map((s) => (
             <div
               key={s.label}
               style={{
                 background: "rgba(255,255,255,0.03)",
                 border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: "16px",
+                borderRadius: "8px",
                 padding: "24px",
                 display: "flex",
                 flexDirection: "column",

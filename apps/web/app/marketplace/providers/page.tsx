@@ -5,12 +5,13 @@ import { Users, BadgeCheck, Globe } from 'lucide-react';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Signal Providers — TradeClaw Marketplace',
+  title: 'Published Signal Providers | TradeClaw',
   description:
-    'Discover verified and community signal providers publishing live trading signals on the TradeClaw marketplace.',
+    'Directory of provider records published by this TradeClaw instance. An empty directory stays empty; TradeClaw does not insert demo or fabricated verified providers.',
   openGraph: {
-    title: 'Signal Providers — TradeClaw Marketplace',
-    description: 'Browse verified traders and community signal providers.',
+    title: 'Published Signal Providers | TradeClaw',
+    description:
+      'Provider records published by this instance, with verification badges only when stored in the database.',
   },
 };
 
@@ -26,13 +27,14 @@ export default async function ProvidersPage() {
             Signal Providers
           </h1>
           <p className="mt-2 text-zinc-400">
-            Verified traders and community contributors publishing signals on TradeClaw.
+            Provider records published by this instance. A verification badge reflects the stored provider record; it is
+            not a performance or profitability endorsement.
           </p>
         </div>
 
         {providers.length === 0 ? (
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-8 text-center">
-            <p className="text-zinc-400">No providers yet. The marketplace scaffold is live — providers coming soon.</p>
+            <p className="text-zinc-400">No provider records have been published by this instance.</p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -43,13 +45,9 @@ export default async function ProvidersPage() {
               >
                 <div className="flex items-start justify-between">
                   <h2 className="text-lg font-semibold">{p.name}</h2>
-                  {p.verified && (
-                    <BadgeCheck className="h-5 w-5 shrink-0 text-emerald-400" />
-                  )}
+                  {p.verified && <BadgeCheck className="h-5 w-5 shrink-0 text-emerald-400" />}
                 </div>
-                {p.bio && (
-                  <p className="mt-2 line-clamp-3 text-sm text-zinc-400">{p.bio}</p>
-                )}
+                {p.bio && <p className="mt-2 line-clamp-3 text-sm text-zinc-400">{p.bio}</p>}
                 {p.website && (
                   <a
                     href={p.website}

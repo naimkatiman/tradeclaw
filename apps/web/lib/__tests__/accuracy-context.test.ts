@@ -1,58 +1,76 @@
-import { computeAccuracyContext, type AccuracyContext } from '../accuracy-context';
+import { computeAccuracyContext } from '../accuracy-context';
+import type { SignalHistoryRecord } from '../signal-history';
 
-// Minimal signal_history row shape for testing
-function row(pair: string, tf: string, hit: boolean, ts: number) {
+function row(
+  pair: string,
+  timeframe: string,
+  hit: boolean,
+  timestamp: number,
+  overrides: Partial<SignalHistoryRecord> = {},
+): SignalHistoryRecord {
   return {
+    id: `${pair}-${timestamp}`,
     pair,
-    timeframe: tf,
-    created_at: new Date(ts).toISOString(),
-    outcomes: { '24h': { hit, pnlPct: hit ? 1.2 : -0.8 } },
+    timeframe,
+    direction: 'BUY',
+    confidence: 75,
+    entryPrice: 100,
+    timestamp,
+    isSimulated: false,
+    gateBlocked: false,
+    outcomes: {
+      '4h': null,
+      '24h': { price: hit ? 101 : 99, hit, pnlPct: hit ? 1.2 : -0.8, source: 'binance' },
+    },
+    ...overrides,
   };
 }
 
 describe('computeAccuracyContext', () => {
-  it('returns correct stats for a symbol with history', () => {
+  it('returns correct stats and ISO bounds for a symbol with history', () => {
     const now = Date.now();
     const rows = [
-      row('BTCUSD', 'H1', true, now - 3600_000),
-      row('BTCUSD', 'H1', true, now - 7200_000),
-      row('BTCUSD', 'H1', false, now - 10800_000),
+      row('BTCUSD', 'H1', true, now - 3_600_000),
+      row('BTCUSD', 'H1', true, now - 7_200_000),
+      row('BTCUSD', 'H1', false, now - 10_800_000),
     ];
     const ctx = computeAccuracyContext(rows, 'BTCUSD', 'H1');
     expect(ctx).not.toBeNull();
     expect(ctx!.winRate).toBeCloseTo(66.67, 0);
     expect(ctx!.sampleSize).toBe(3);
     expect(ctx!.windowLabel).toBe('24h');
-    expect(ctx!.oldestSampleTs).toBe(rows[2].created_at);
-    expect(ctx!.newestSampleTs).toBe(rows[0].created_at);
+    expect(ctx!.oldestSampleTs).toBe(new Date(rows[2].timestamp).toISOString());
+    expect(ctx!.newestSampleTs).toBe(new Date(rows[0].timestamp).toISOString());
   });
 
   it('returns null when no matching rows exist', () => {
-    const ctx = computeAccuracyContext([], 'XAUUSD', 'H4');
-    expect(ctx).toBeNull();
+    expect(computeAccuracyContext([], 'XAUUSD', 'H4')).toBeNull();
   });
 
-  it('excludes auto-expire sentinel outcomes', () => {
+  it('uses the canonical denominator, including drift closes and excluding non-counted rows', () => {
     const now = Date.now();
     const rows = [
-      row('BTCUSD', 'H1', true, now - 1000),
-      { pair: 'BTCUSD', timeframe: 'H1', created_at: new Date(now - 2000).toISOString(), outcomes: { '24h': { hit: false, pnlPct: 0 } } },
+      row('BTCUSD', 'H1', true, now - 1_000),
+      row('BTCUSD', 'H1', false, now - 2_000, {
+        outcomes: {
+          '4h': null,
+          '24h': { price: 99.5, hit: false, pnlPct: -0.5, target: 'expired', source: 'binance' },
+        },
+      }),
+      row('BTCUSD', 'H1', false, now - 3_000, {
+        outcomes: {
+          '4h': null,
+          '24h': { price: 100, hit: false, pnlPct: 0, target: 'expired', source: 'force-expired' },
+        },
+      }),
+      row('BTCUSD', 'H1', true, now - 4_000, { isSimulated: true }),
+      row('BTCUSD', 'H1', true, now - 5_000, { gateBlocked: true }),
+      row('BTCUSD', 'H1', true, now - 6_000, {
+        outcomes: { '4h': null, '24h': null },
+      }),
     ];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ctx = computeAccuracyContext(rows as any, 'BTCUSD', 'H1');
-    expect(ctx!.sampleSize).toBe(1);
-    expect(ctx!.winRate).toBe(100);
-  });
 
-  it('ignores rows with null 24h outcome', () => {
-    const now = Date.now();
-    const rows = [
-      row('ETHUSD', 'M15', true, now - 1000),
-      { pair: 'ETHUSD', timeframe: 'M15', created_at: new Date(now).toISOString(), outcomes: { '24h': null } },
-    ];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ctx = computeAccuracyContext(rows as any, 'ETHUSD', 'M15');
-    expect(ctx!.sampleSize).toBe(1);
-    expect(ctx!.winRate).toBe(100);
+    const ctx = computeAccuracyContext(rows, 'BTCUSD', 'H1');
+    expect(ctx).toMatchObject({ sampleSize: 2, winRate: 50 });
   });
 });

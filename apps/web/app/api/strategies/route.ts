@@ -62,7 +62,6 @@ export interface Strategy {
   riskManagement: RiskConfig;
   isActive: boolean;
   createdAt: string;
-  performance?: StrategyPerformance;
 }
 
 interface StrategyIndicator {
@@ -81,20 +80,6 @@ interface RiskConfig {
   fibLevels: number[];
 }
 
-interface StrategyPerformance {
-  totalTrades: number;
-  winRate: number;
-  profitFactor: number;
-  maxDrawdown: number;
-  sharpeRatio: number;
-  totalPnl: number;
-  avgWin: number;
-  avgLoss: number;
-  bestTrade: number;
-  worstTrade: number;
-  period: string;
-}
-
 const DEFAULT_RISK: RiskConfig = {
   maxRiskPercent: 1.5,
   leverage: 50,
@@ -104,11 +89,17 @@ const DEFAULT_RISK: RiskConfig = {
   fibLevels: [1, 1.618, 2.618],
 };
 
+const PERFORMANCE_STATUS = {
+  available: false,
+  basis: 'unavailable',
+  detail: 'No measured backtest or live-execution results are connected to these strategy definitions.',
+} as const;
+
 const PRESET_STRATEGIES: Strategy[] = [
   {
     id: 'strat-momentum-scalper',
     name: 'Momentum Scalper',
-    description: 'Fast RSI + MACD confluence for quick scalps on M5/M15. High win rate, small targets.',
+    description: 'Fast RSI + MACD confluence designed for frequent small-target setups on M5/M15.',
     indicators: [
       { name: 'RSI', params: { period: 14, overbought: 70, oversold: 30 }, condition: 'RSI crosses below 30 (BUY) or above 70 (SELL)', weight: 0.4 },
       { name: 'MACD', params: { fast: 12, slow: 26, signal: 9 }, condition: 'MACD histogram crosses zero line', weight: 0.35 },
@@ -126,19 +117,6 @@ const PRESET_STRATEGIES: Strategy[] = [
     },
     isActive: true,
     createdAt: '2026-03-20T08:00:00Z',
-    performance: {
-      totalTrades: 342,
-      winRate: 68.4,
-      profitFactor: 2.1,
-      maxDrawdown: 8.3,
-      sharpeRatio: 1.85,
-      totalPnl: 4230.5,
-      avgWin: 28.4,
-      avgLoss: -18.6,
-      bestTrade: 187.2,
-      worstTrade: -52.3,
-      period: '30d',
-    },
   },
   {
     id: 'strat-trend-rider',
@@ -161,19 +139,6 @@ const PRESET_STRATEGIES: Strategy[] = [
     },
     isActive: true,
     createdAt: '2026-03-18T10:00:00Z',
-    performance: {
-      totalTrades: 87,
-      winRate: 54,
-      profitFactor: 2.8,
-      maxDrawdown: 12.1,
-      sharpeRatio: 2.15,
-      totalPnl: 8640.2,
-      avgWin: 245.3,
-      avgLoss: -94.5,
-      bestTrade: 1205,
-      worstTrade: -310.4,
-      period: '30d',
-    },
   },
   {
     id: 'strat-mean-revert',
@@ -196,19 +161,6 @@ const PRESET_STRATEGIES: Strategy[] = [
     },
     isActive: false,
     createdAt: '2026-03-15T14:00:00Z',
-    performance: {
-      totalTrades: 156,
-      winRate: 62.8,
-      profitFactor: 1.95,
-      maxDrawdown: 10.5,
-      sharpeRatio: 1.55,
-      totalPnl: 3120.8,
-      avgWin: 42.5,
-      avgLoss: -33.2,
-      bestTrade: 320,
-      worstTrade: -89.5,
-      period: '30d',
-    },
   },
   {
     id: 'strat-breakout',
@@ -231,19 +183,6 @@ const PRESET_STRATEGIES: Strategy[] = [
     },
     isActive: true,
     createdAt: '2026-03-10T09:00:00Z',
-    performance: {
-      totalTrades: 34,
-      winRate: 47.1,
-      profitFactor: 3.2,
-      maxDrawdown: 15.2,
-      sharpeRatio: 2.45,
-      totalPnl: 12450,
-      avgWin: 780.3,
-      avgLoss: -245.8,
-      bestTrade: 3200,
-      worstTrade: -620,
-      period: '30d',
-    },
   },
   {
     id: 'strat-sr-bounce',
@@ -267,19 +206,6 @@ const PRESET_STRATEGIES: Strategy[] = [
     },
     isActive: true,
     createdAt: '2026-04-05T08:00:00Z',
-    performance: {
-      totalTrades: 198,
-      winRate: 58.6,
-      profitFactor: 2.35,
-      maxDrawdown: 9.7,
-      sharpeRatio: 1.98,
-      totalPnl: 5795.4,
-      avgWin: 51.2,
-      avgLoss: -29.7,
-      bestTrade: 412.4,
-      worstTrade: -96.8,
-      period: '30d',
-    },
   },
   {
     id: 'strat-vol-breakout',
@@ -303,19 +229,6 @@ const PRESET_STRATEGIES: Strategy[] = [
     },
     isActive: true,
     createdAt: '2026-04-05T08:00:00Z',
-    performance: {
-      totalTrades: 74,
-      winRate: 61.3,
-      profitFactor: 2.6,
-      maxDrawdown: 11.2,
-      sharpeRatio: 2.32,
-      totalPnl: 9315.75,
-      avgWin: 214.9,
-      avgLoss: -88.1,
-      bestTrade: 1580.6,
-      worstTrade: -274.3,
-      period: '30d',
-    },
   },
 ];
 
@@ -338,31 +251,6 @@ function normalizeRiskManagement(body: CreateStrategyInput): RiskConfig {
   return DEFAULT_RISK;
 }
 
-function buildSimulatedPerformance(strategy: Pick<Strategy, 'indicators' | 'symbols' | 'timeframes' | 'isActive'>): StrategyPerformance {
-  const symbolFactor = strategy.symbols.length;
-  const timeframeFactor = strategy.timeframes.length;
-  const indicatorFactor = strategy.indicators.length;
-  const activeBoost = strategy.isActive ? 1.08 : 0.94;
-  const totalTrades = 40 + symbolFactor * 18 + timeframeFactor * 12 + indicatorFactor * 15;
-  const sharpeRatio = Number((1.25 + indicatorFactor * 0.18 + timeframeFactor * 0.08).toFixed(2));
-  const profitFactor = Number((1.6 + symbolFactor * 0.16 + timeframeFactor * 0.04).toFixed(2));
-  const winRate = Number((49 + indicatorFactor * 2.6 + timeframeFactor * 1.4).toFixed(1));
-  const totalPnl = Number(((totalTrades * sharpeRatio * 16.5) * activeBoost).toFixed(2));
-  return {
-    totalTrades,
-    winRate,
-    profitFactor,
-    maxDrawdown: Number((7.5 + (6 - indicatorFactor) * 0.7).toFixed(1)),
-    sharpeRatio,
-    totalPnl,
-    avgWin: Number((22 + indicatorFactor * 6.5).toFixed(2)),
-    avgLoss: Number((-14 - timeframeFactor * 4.2).toFixed(2)),
-    bestTrade: Number((180 + symbolFactor * 65 + indicatorFactor * 32).toFixed(2)),
-    worstTrade: Number((-36 - timeframeFactor * 18 - indicatorFactor * 8).toFixed(2)),
-    period: '30d',
-  };
-}
-
 function normalizeStrategy(body: CreateStrategyInput): Strategy {
   const riskManagement = normalizeRiskManagement(body);
   const createdAt = new Date().toISOString();
@@ -378,10 +266,7 @@ function normalizeStrategy(body: CreateStrategyInput): Strategy {
     createdAt,
   };
 
-  return {
-    ...strategy,
-    performance: buildSimulatedPerformance(strategy),
-  };
+  return strategy;
 }
 
 export async function GET() {
@@ -389,6 +274,7 @@ export async function GET() {
     return NextResponse.json({
       count: PRESET_STRATEGIES.length,
       strategies: PRESET_STRATEGIES,
+      performanceStatus: PERFORMANCE_STATUS,
     });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -404,7 +290,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    return NextResponse.json({ strategy: normalizeStrategy(parsed.data as CreateStrategyInput) }, { status: 201 });
+    return NextResponse.json({
+      strategy: normalizeStrategy(parsed.data as CreateStrategyInput),
+      performanceStatus: PERFORMANCE_STATUS,
+    }, { status: 201 });
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }

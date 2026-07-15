@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { BrokersClient } from './BrokersClient';
 
 export const metadata: Metadata = {
-  title: 'Broker Integrations | TradeClaw',
+  title: 'Broker Routing Reference | TradeClaw',
   description:
-    'Connect TradeClaw signals to Binance, Alpaca, OANDA, Kraken, Bybit, Interactive Brokers, and more. Route AI trading signals directly to your broker via webhooks.',
+    'Review TradeClaw broker execution status and external API starter examples. Binance USDT-perpetual testnet execution is implemented; the other broker snippets are not native integrations.',
   keywords: [
     'broker integration',
     'trading API',
@@ -16,8 +16,9 @@ export const metadata: Metadata = {
     'TradeClaw',
   ],
   openGraph: {
-    title: 'Connect Your Broker | TradeClaw',
-    description: 'Route TradeClaw AI signals directly to your broker or exchange via API.',
+    title: 'Broker Routing Reference | TradeClaw',
+    description:
+      'One native Binance USDT-perpetual adapter plus external broker API examples. Execution is disabled by default and examples are not production-ready integrations.',
     type: 'website',
   },
 };

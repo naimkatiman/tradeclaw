@@ -17,19 +17,19 @@ export function DocsClient() {
           TradeClaw Documentation
         </h1>
         <p className="text-lg text-zinc-400 leading-relaxed">
-          TradeClaw is an open-source, self-hostable trading signal platform with real technical
-          analysis, paper trading, Telegram alerts, and a plugin system for custom indicators.
-          Deploy in 5 minutes with Docker.
+          TradeClaw is MIT-licensed, self-hostable trading-signal software with a rule-based
+          analysis engine, modeled paper trading, optional Telegram delivery, and a plugin system.
+          Follow the documented Docker Compose and environment setup for your infrastructure.
         </p>
       </div>
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-12">
         {[
-          { label: 'Supported Pairs', value: '13' },
-          { label: 'TA Indicators', value: '7+' },
-          { label: 'API Endpoints', value: '42' },
-          { label: 'Deploy Time', value: '5 min' },
+          { label: 'Source License', value: 'MIT' },
+          { label: 'Self-Hosting', value: 'Docker' },
+          { label: 'Auto Execution', value: 'Off' },
+          { label: 'Outcome Labels', value: 'Explicit' },
         ].map(stat => (
           <div key={stat.label} className="rounded-xl border border-white/6 bg-white/[0.02] p-4">
             <div className="text-2xl font-bold text-white tabular-nums">{stat.value}</div>
@@ -42,10 +42,9 @@ export function DocsClient() {
       <section className="mb-12">
         <h2 className="text-xl font-semibold text-white mb-4">What is TradeClaw?</h2>
         <p className="text-zinc-400 leading-relaxed mb-4">
-          TradeClaw generates trading signals by running multi-indicator technical analysis across
-          13 instruments — Gold, Silver, Oil, BTC, ETH, EUR/USD, GBP/USD, USD/JPY, and more — on
-          5 timeframes (M5, M15, H1, H4, D1). Every signal includes a confluence score (0–100)
-          calculated from RSI, MACD, EMA cross, Bollinger Bands, and Stochastic position.
+          TradeClaw generates candidate signal records with a multi-indicator rule engine for
+          assets and timeframes supported by the configured data source. Its confluence score
+          describes weighted indicator agreement; it is not a calibrated probability of profit.
         </p>
         <p className="text-zinc-400 leading-relaxed">
           The entire TA engine is pure TypeScript — no external indicator libraries, no black boxes.

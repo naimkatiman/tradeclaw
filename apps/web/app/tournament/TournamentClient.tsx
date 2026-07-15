@@ -159,7 +159,7 @@ export default function TournamentClient() {
     if (!data) return;
     const w = data.winner;
     const text = encodeURIComponent(
-      `${w.name} won the TradeClaw 90-day tournament with ${w.totalReturn}% return! https://github.com/naimkatiman/tradeclaw ⭐`
+      `${w.name} ranked first in TradeClaw's deterministic synthetic tournament fixture. The displayed ${w.totalReturn}% is generated, not measured performance. https://github.com/naimkatiman/tradeclaw ⭐`
     );
     window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener');
   }
@@ -190,21 +190,21 @@ export default function TournamentClient() {
       <section className="pt-28 pb-12 px-4 text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 text-xs font-medium text-emerald-400">
-            90-Day Backtest
+            90-Day Synthetic Fixture
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-rose-400">
             <span className="relative flex h-1.5 w-1.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-400" />
             </span>
-            Live Results
+            Generated Results
           </span>
         </div>
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3">
           Strategy <span className="text-emerald-400">Tournament</span>
         </h1>
         <p className="text-zinc-400 max-w-lg mx-auto text-sm">
-          5 built-in strategies compete head-to-head in a 90-day simulated backtest. Deterministic results, seeded PRNG&nbsp;&mdash; no cherry-picking.
+          Five illustrative profiles are run through a deterministic seeded generator. These values are UI fixtures, not a historical backtest or measured performance.
         </p>
       </section>
 

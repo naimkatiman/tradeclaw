@@ -204,7 +204,7 @@ export default function APIUsageClient() {
             API Usage Dashboard
           </h1>
           <p className="text-[var(--text-secondary)] text-sm max-w-lg mx-auto">
-            Monitor your API usage, view rate limits, and track quota consumption per key.
+            Look up recorded usage, configured rate limits, and scope access for a specific key.
           </p>
         </div>
 
@@ -237,7 +237,7 @@ export default function APIUsageClient() {
           </div>
           <p className="text-[10px] text-[var(--text-secondary)] mt-1.5">
             Don&apos;t have a key?{' '}
-            <Link href="/api-keys" className="text-purple-400 hover:text-purple-300">Generate one free →</Link>
+            <Link href="/api-keys" className="text-purple-400 hover:text-purple-300">Generate a key →</Link>
           </p>
         </form>
 
@@ -335,7 +335,7 @@ export default function APIUsageClient() {
           </div>
         )}
 
-        {/* Rate limit explainer — one plan: free */}
+        {/* Rate-limit explainer */}
         <div className="mt-10">
           <h2 className="text-lg font-bold text-[var(--foreground)] mb-4 text-center">Rate Limits</h2>
           <div className="max-w-md mx-auto rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-6">
@@ -344,15 +344,15 @@ export default function APIUsageClient() {
                 <Zap className="w-4 h-4 text-emerald-400" />
               </div>
               <div>
-                <div className="text-sm font-semibold text-[var(--foreground)]">Free — the only plan</div>
-                <div className="text-[10px] text-[var(--text-secondary)]">Same limit for every key</div>
+                <div className="text-sm font-semibold text-[var(--foreground)]">Configured key limit</div>
+                <div className="text-[10px] text-[var(--text-secondary)]">Authoritative after a successful key lookup</div>
               </div>
             </div>
             <div className="space-y-2 text-xs text-[var(--text-secondary)]">
               <div className="flex justify-between">
                 <span>Rate limit</span>
                 <span className="text-[var(--foreground)] font-medium">
-                  {usage ? `${usage.rateLimit.toLocaleString()} / hr` : '100 / hr'}
+                  {usage ? `${usage.rateLimit.toLocaleString()} / hr` : 'Look up a key'}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -360,13 +360,13 @@ export default function APIUsageClient() {
                 <span className="text-[var(--foreground)] font-medium">All v1 API</span>
               </div>
               <div className="flex justify-between">
-                <span>Price</span>
-                <span className="text-emerald-400 font-medium">Free forever</span>
+                <span>Source license</span>
+                <span className="text-emerald-400 font-medium">MIT</span>
               </div>
               <div className="flex justify-between">
                 <span>Need more?</span>
                 <Link href="/docs/self-hosting" className="text-emerald-400 font-medium hover:text-emerald-300">
-                  Self-host — unlimited →
+                  Review self-hosting →
                 </Link>
               </div>
             </div>
@@ -393,7 +393,7 @@ export default function APIUsageClient() {
             Star on GitHub
           </a>
           <p className="text-[10px] text-[var(--text-secondary)]">
-            Open source · Self-hostable · Free forever
+            MIT-licensed source · Hosting and providers may charge separately
           </p>
         </div>
       </div>

@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react';
 
+const PUBLIC_ORIGIN = 'https://tradeclaw.win';
+
 interface ShareOnXProps {
   /** Win rate %, e.g. 62. Omit to use a generic message. */
   winRate?: number;
@@ -14,18 +16,15 @@ interface ShareOnXProps {
 }
 
 /**
- * Pre-filled X (Twitter) share button for the public track-record. Turns every
- * winning week into free acquisition by linking to the verifiable embed view.
+ * Pre-filled X share button for the public signal study.
  */
 export function ShareOnX({ winRate, resolved, period = 'recent', label = 'Share on X' }: ShareOnXProps) {
   const href = useMemo(() => {
-    const origin =
-      typeof window !== 'undefined' ? window.location.origin : 'https://tradeclaw.win';
-    const url = `${origin}/track-record?utm_source=x&utm_medium=share&utm_campaign=track_record&period=${encodeURIComponent(period)}`;
+    const url = `${PUBLIC_ORIGIN}/track-record?utm_source=x&utm_medium=share&utm_campaign=track_record&period=${encodeURIComponent(period)}`;
     const text =
       typeof winRate === 'number' && typeof resolved === 'number' && resolved > 0
-        ? `TradeClaw posted ${winRate}% win rate across ${resolved} resolved signals — every trade is timestamped and verifiable. Check the live record:`
-        : 'I track every TradeClaw signal in public — wins, losses, and gate-refused setups. Verify it yourself:';
+        ? `TradeClaw observed ${winRate}% wins across ${resolved} counted, OHLCV-resolved signals. Signal study only; not broker fills or portfolio returns:`
+        : 'Recorded signal rows, OHLCV-resolved outcomes, and exclusions are public. Not an execution ledger:';
     const params = new URLSearchParams({ text, url });
     return `https://x.com/intent/post?${params.toString()}`;
   }, [winRate, resolved, period]);

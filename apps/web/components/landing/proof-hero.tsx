@@ -82,8 +82,9 @@ function HeroDescription({
     return (
       <>
         TradeClaw is an open-source BUY/SELL signal engine you can inspect or self-host.
-        Across {trades.toLocaleString('en-US')} recorded trades, the average trade lost
-        after modeled fees and slippage. Every trade and line of code is public.
+        Across {trades.toLocaleString('en-US')} eligible sized signals, average modeled
+        net expectancy was negative after stated fee and slippage assumptions. This is an
+        OHLCV-resolved signal study, not a customer portfolio.
       </>
     );
   }
@@ -92,8 +93,9 @@ function HeroDescription({
       <>
         TradeClaw is an open-source engine that generates BUY and SELL signals you can
         inspect or self-host. This environment&apos;s {trades.toLocaleString('en-US')}{' '}
-        recorded trades remain at or above zero after modeled fees and slippage. Every
-        trade, cost assumption, and line of code is public.
+        eligible sized signals remain at or above zero after modeled fees and slippage.
+        The underlying signal rows, cost assumptions, and code are public; no broker fills
+        or customer returns are claimed.
       </>
     );
   }
@@ -101,7 +103,7 @@ function HeroDescription({
     return (
       <>
         TradeClaw is an open-source signal engine. This environment has{' '}
-        {trades.toLocaleString('en-US')} recorded trades, but not enough risk data to
+        {trades.toLocaleString('en-US')} eligible signals, but not enough risk data to
         measure the result after costs. No placeholder result is substituted.
       </>
     );
@@ -110,15 +112,15 @@ function HeroDescription({
     return (
       <>
         TradeClaw is an open-source signal engine. This environment does not yet have
-        the resolved trades needed to repeat the public test. No placeholder result is
+        the OHLCV-resolved sized signals needed to repeat the public test. No placeholder result is
         substituted; the code and method remain public.
       </>
     );
   }
   return (
     <>
-      TradeClaw is an open-source signal engine. Its public test found that modeled fees
-      and slippage erased the measured result. The live ledger is temporarily unavailable,
+      TradeClaw is an open-source signal engine. Its public study found that modeled fees
+      and slippage erased the observed gross expectancy. The dataset is temporarily unavailable,
       so no replacement numbers are shown.
     </>
   );
@@ -159,7 +161,7 @@ export async function ProofHero() {
           <p className="animate-fade-up flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)]">
             <span className="h-2 w-2 rounded-full bg-[var(--brand)] shadow-[0_0_18px_var(--brand)]" />
             Open-source trading test
-            {hasMeasuredTrades ? ` · ${trades.toLocaleString('en-US')} recorded trades` : ''}
+            {hasMeasuredTrades ? ` · ${trades.toLocaleString('en-US')} eligible sized signals` : ''}
           </p>
 
           <h1 className="font-display mt-4 max-w-[720px] text-[2.05rem] font-[720] leading-[1.01] tracking-[-0.05em] sm:mt-5 sm:text-[clamp(3rem,4.6vw,4.35rem)] sm:leading-[0.98] sm:tracking-[-0.055em]">
@@ -176,7 +178,7 @@ export async function ProofHero() {
           <div className="animate-fade-up fade-delay-4 mt-6 flex flex-wrap items-center gap-3">
             <Magnetic>
               <a href="/track-record" className="premium-button-primary group">
-                Inspect every trade
+                Inspect signal rows
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
               </a>
             </Magnetic>
@@ -215,7 +217,7 @@ export async function ProofHero() {
               </span>
               <div>
                 <p className="text-xs font-semibold">Cost-aware signal field</p>
-                <p className="text-[10px] text-[var(--text-secondary)]">One dot per resolved trade</p>
+                <p className="text-[10px] text-[var(--text-secondary)]">One dot per OHLCV-resolved sized signal</p>
               </div>
             </div>
             <a
@@ -275,8 +277,8 @@ export async function ProofHero() {
         >
           {eq
             ? 'No resolved, position-sized trades are available in this environment yet. '
-            : 'The live cost-adjusted ledger is temporarily unavailable. '}
-          Inspect the <a href="/track-record" className="underline hover:text-[var(--foreground)]">full track record</a>{' '}
+            : 'The public modeled-cost dataset is temporarily unavailable. '}
+          Inspect the <a href="/track-record" className="underline hover:text-[var(--foreground)]">eligible signal record</a>{' '}
           or the <a href="/api/signals/equity?summaryOnly=1&scope=pro" className="underline hover:text-[var(--foreground)]">raw summary</a>{' '}
           instead of placeholder results.
         </p>

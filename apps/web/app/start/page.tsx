@@ -3,10 +3,10 @@ import StartLoader from './StartLoader';
 
 export const metadata: Metadata = {
   title: 'Get Started — TradeClaw',
-  description: 'Interactive 5-step setup guide. Clone, configure, run, see signals, and share TradeClaw in under 5 minutes.',
+  description: 'Interactive setup guide for cloning, configuring, and running TradeClaw on your own infrastructure.',
   openGraph: {
     title: 'Get Started with TradeClaw in 5 Steps',
-    description: 'Clone → Configure → Run → See Signals → Share. Self-host your AI trading signal platform in minutes.',
+    description: 'Clone, configure, and run the open-source TradeClaw signal research stack.',
     images: [{ url: '/api/og', width: 1200, height: 630 }],
   },
 };

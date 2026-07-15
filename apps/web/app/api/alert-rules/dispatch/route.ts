@@ -3,6 +3,7 @@ import { getAllEnabledRules, getChannelConfigsForUser, signalMatchesRule } from 
 import { sendToChannel, type ChannelName, type AlertSignal } from '@/lib/alert-channels';
 import { recordBroadcastResult } from '@/lib/observability';
 import { requireCronAuth } from '@/lib/cron-auth';
+import { evaluateCostAdjustedEdge } from '@/lib/cost-adjusted-edge-gate';
 
 export async function POST(req: NextRequest) {
   const denied = requireCronAuth(req);
@@ -13,6 +14,25 @@ export async function POST(req: NextRequest) {
 
   if (!signal?.symbol) {
     return NextResponse.json({ error: 'signal is required' }, { status: 400 });
+  }
+
+  const edge = await evaluateCostAdjustedEdge({ symbols: [signal.symbol] });
+  if (!edge.allowed) {
+    return NextResponse.json(
+      {
+        dispatched: 0,
+        results: [],
+        halted: `cost_adjusted_edge:${edge.reason}`,
+        evidence: {
+          usableCount: edge.usableCount,
+          activeDays: edge.activeDays,
+          coverage: edge.coverage,
+          perSignalMeanNetR: edge.perSignalMeanNetR,
+          equalDayLowerBoundNetR: edge.equalDayLowerBoundNetR,
+        },
+      },
+      { status: 503 },
+    );
   }
 
   const rules = await getAllEnabledRules();

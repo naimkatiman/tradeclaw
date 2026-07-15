@@ -147,7 +147,7 @@ const OSS_STATS: OssStat[] = [
   { label: 'Lines of Code', value: '45k+', icon: Code },
   { label: 'Commits', value: '200+', icon: Clock },
   { label: 'Contributors', value: 'Growing', icon: Users },
-  { label: 'Uptime', value: '99.9%', icon: Shield },
+  { label: 'Hosted uptime', value: 'Not measured', icon: Shield },
 ];
 
 /* ─── Why Sponsor ─── */
@@ -388,6 +388,11 @@ export function SponsorClient() {
               </div>
             ))}
           </div>
+          <p className="mt-4 text-center text-xs text-zinc-600">
+            No durable uptime or SLA monitor is connected. The{' '}
+            <Link href="/status" className="underline hover:text-zinc-400">status page</Link>{' '}
+            reports point-in-time process and dependency probes only.
+          </p>
         </section>
 
         {/* ─── Why Sponsor ─── */}

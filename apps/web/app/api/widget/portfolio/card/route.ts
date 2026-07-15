@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPortfolio, getDemoUserId, STARTING_BALANCE } from '../../../../../lib/paper-trading';
+import { getPortfolio, getDemoUserId } from '../../../../../lib/paper-trading';
 import type { EquityPoint } from '../../../../../lib/paper-trading';
 
 export const dynamic = 'force-dynamic';
@@ -35,14 +35,17 @@ export async function GET() {
   }
   try {
     const portfolio = await getPortfolio(userId);
+    if (!Number.isFinite(portfolio.startingBalance) || portfolio.startingBalance <= 0) {
+      return NextResponse.json({ error: 'Paper simulation unavailable' }, { status: 503 });
+    }
     const balance = portfolio.balance;
-    const totalReturn = ((balance - STARTING_BALANCE) / STARTING_BALANCE) * 100;
+    const totalReturn = ((balance - portfolio.startingBalance) / portfolio.startingBalance) * 100;
     const winRate = portfolio.stats.winRate;
     const totalTrades = portfolio.stats.totalTrades;
     const equityCurve = portfolio.equityCurve;
 
     const sparkData = equityCurve.slice(-30);
-    const sparkW = 140;
+    const sparkW = 104;
     const sparkH = 40;
     const sparkPoints = buildSparkline(sparkData, sparkW, sparkH);
 
@@ -54,7 +57,7 @@ export async function GET() {
     const returnStr = `${returnSign}${totalReturn.toFixed(1)}%`;
     const winRateStr = `${winRate.toFixed(0)}%`;
 
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120" role="img" aria-label="${esc(`TradeClaw Portfolio: ${balanceStr}, Return ${returnStr}, Win Rate ${winRateStr}`)}">
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120" role="img" aria-label="${esc(`TradeClaw paper simulation: ${balanceStr}, realized return ${returnStr}, simulated win rate ${winRateStr}; not broker returns`)}">
   <defs>
     <linearGradient id="${sparkGradId}" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="${accentColor}" stop-opacity="0.3"/>
@@ -74,25 +77,25 @@ export async function GET() {
     </g>
     <text x="16" y="56" font-family="system-ui,-apple-system,sans-serif" font-size="22" font-weight="700" fill="#fff">${esc(balanceStr)}</text>
     <g font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#71717a">
-      <text x="16" y="78">Return</text>
+      <text x="16" y="78">Realized sim return</text>
       <text x="16" y="93" font-weight="600" fill="${accentColor}" font-size="13">${esc(returnStr)}</text>
-      <text x="96" y="78">Win Rate</text>
-      <text x="96" y="93" font-weight="600" fill="#fff" font-size="13">${esc(winRateStr)}</text>
-      <text x="176" y="78">Trades</text>
-      <text x="176" y="93" font-weight="600" fill="#fff" font-size="13">${totalTrades}</text>
+      <text x="115" y="78">Sim. win rate</text>
+      <text x="115" y="93" font-weight="600" fill="#fff" font-size="13">${esc(winRateStr)}</text>
+      <text x="195" y="78">Paper trades</text>
+      <text x="195" y="93" font-weight="600" fill="#fff" font-size="13">${totalTrades}</text>
     </g>
-    <g transform="translate(244, 36)">
+    <g transform="translate(280, 36)">
       ${sparkPoints ? `<polyline points="${sparkPoints}" fill="none" stroke="${accentColor}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
       <polygon points="0,${sparkH} ${sparkPoints} ${sparkW},${sparkH}" fill="url(#${sparkGradId})" opacity="0.6"/>` : `<text x="${sparkW / 2}" y="${sparkH / 2 + 4}" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="10" fill="#71717a">No data yet</text>`}
     </g>
-    <text x="384" y="110" text-anchor="end" font-family="system-ui,-apple-system,sans-serif" font-size="9" fill="#3f3f50">tradeclaw.win</text>
+    <text x="384" y="110" text-anchor="end" font-family="system-ui,-apple-system,sans-serif" font-size="9" fill="#71717a">paper simulation - not broker returns</text>
   </g>
 </svg>`;
 
     return new NextResponse(svg, {
       headers: {
         'Content-Type': 'image/svg+xml',
-        'Cache-Control': 'no-cache, max-age=300',
+        'Cache-Control': 'private, no-store',
         'X-Content-Type-Options': 'nosniff',
         'Access-Control-Allow-Origin': '*',
       },

@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  // Fetch star count
-  let stars = 4;
-  const recentGrowth = 0;
+  let stars: number | null = null;
   try {
     const res = await fetch('https://api.github.com/repos/naimkatiman/tradeclaw', {
       headers: { 'User-Agent': 'TradeClaw/1.0' },
@@ -11,14 +9,13 @@ export async function GET() {
     });
     if (res.ok) {
       const data = await res.json();
-      stars = data.stargazers_count ?? 4;
+      stars = typeof data.stargazers_count === 'number' ? data.stargazers_count : null;
     }
   } catch {
-    // use default
+    // The widget renders an explicit unavailable state below.
   }
 
-  const pct = Math.min((stars / 1000) * 100, 100).toFixed(1);
-  const nextMilestone = [10, 25, 50, 100, 250, 500, 1000].find((m) => m > stars) ?? 1000;
+  const metric = stars === null ? 'Unavailable' : stars.toLocaleString('en-US');
 
   const html = `<!DOCTYPE html>
 <html>
@@ -35,28 +32,23 @@ export async function GET() {
   }
   .logo { font-size: 11px; color: #71717a; letter-spacing: 0.08em; text-transform: uppercase; }
   .logo span { color: #10b981; }
-  .stars { font-size: 36px; font-weight: 700; color: #f4f4f5; line-height: 1; }
-  .stars span { color: #d4d4d8; }
+  .stars { font-size: ${stars === null ? '22px' : '36px'}; font-weight: 700; color: #f4f4f5; line-height: 1; }
   .label { font-size: 11px; color: #71717a; }
-  .bar-bg { width: 220px; height: 6px; background: #1c1c1e; border-radius: 99px; overflow: hidden; }
-  .bar-fill { height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 99px;
-    width: ${pct}%; transition: width 0.5s ease; }
-  .milestone { font-size: 10px; color: #52525b; }
+  .source { font-size: 10px; color: #52525b; }
 </style>
 </head>
 <body>
   <div class="logo">Trade<span>Claw</span></div>
-  <div class="stars"><span>⭐</span> ${stars}</div>
+  <div class="stars">${metric}</div>
   <div class="label">GitHub Stars</div>
-  <div class="bar-bg"><div class="bar-fill"></div></div>
-  <div class="milestone">${stars} / ${nextMilestone} until next milestone · ${recentGrowth} this month</div>
+  <div class="source">${stars === null ? 'GitHub API request failed; no fallback used' : 'Reported by the GitHub API'}</div>
 </body>
 </html>`;
 
   return new NextResponse(html, {
     headers: {
       'Content-Type': 'text/html',
-      'Cache-Control': 'public, s-maxage=300',
+      'Cache-Control': stars === null ? 'no-store' : 'public, s-maxage=300',
       'Access-Control-Allow-Origin': '*',
       'X-Frame-Options': 'ALLOWALL',
     },

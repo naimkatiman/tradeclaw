@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { SignalHistoryRecord } from '../../../../lib/signal-history';
 import { getResolvedSlice, parseScope } from '../../../../lib/signal-slice';
+import { modeledTradeR, type ModeledCostSource } from '../../../../lib/modeled-trade-cost';
 import {
   CRYPTO_PERP_COSTS,
   METALS_COSTS,
@@ -10,22 +11,37 @@ import {
 export const revalidate = 60;
 
 /**
- * Per-trade cost field — the dataset behind the homepage Cost Field scene
- * and free for anyone to consume. One entry per resolved SIZED trade (rows
- * with an SL, same population as /api/signals/equity's sizedTrades):
- *
- *   t[i]      trade timestamp (ms epoch)
- *   grossR[i] raw R-multiple before cost (pnl% ÷ risk%), uncapped
- *   costR[i]  the trade's real recorded round-trip cost in R
- *             (cost_estimate_pct ÷ risk%; model fallback for pre-051 rows)
- *   cls[i]    index into `classes` (crypto / metals / fx)
- *
- * Net R per trade is grossR[i] − costR[i]. No new math: gross R and cost R
- * are the exact primitives /api/signals/equity compounds — this endpoint
- * just refuses to aggregate them away.
+ * Per-trade cost field: one entry per counted 24h outcome with a valid stop.
+ * `grossR` is OHLCV-derived P&L divided by entry-to-stop risk. `costR` is a
+ * fee + slippage model divided by the same risk, not an observed broker charge.
+ * Request `?include=provenance` to receive the inputs and source fields needed
+ * to reconstruct every displayed point.
  */
+const CLASSES = ['crypto', 'metals', 'fx_or_fallback'] as const;
 
-const CLASSES = ['crypto', 'metals', 'fx'] as const;
+interface CostFieldProvenanceRow {
+  id: string;
+  pair: string;
+  timeframe: string;
+  direction: SignalHistoryRecord['direction'];
+  strategyId: string | null;
+  signalTimestamp: number;
+  entryPrice: number;
+  stopLoss: number;
+  outcomePrice: number;
+  outcomePnlPct: number;
+  outcomeHit: boolean;
+  outcomeTarget: string | null;
+  outcomeResolvedAt: string | null;
+  outcomeSource: string | null;
+  riskPct: number;
+  grossR: number;
+  modeledCostNotionalPct: number;
+  modeledCostR: number;
+  modeledNetR: number;
+  modeledCostSource: ModeledCostSource;
+  broadcastDecision: 'approved' | 'blocked' | 'not-recorded';
+}
 
 function classIndexFor(pair: string): number {
   const model = costModelFor(pair);
@@ -34,41 +50,65 @@ function classIndexFor(pair: string): number {
   return 2;
 }
 
-function roundTripCostNotionalPct(
-  record: Pick<SignalHistoryRecord, 'pair' | 'costEstimatePct'>,
-): number {
-  if (record.costEstimatePct != null && record.costEstimatePct > 0) {
-    return record.costEstimatePct;
-  }
-  const c = costModelFor(record.pair);
-  return 2 * (c.feePctPerSide + c.slippagePctPerSide);
-}
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const scope = parseScope(searchParams.get('scope'));
     const period = searchParams.get('period');
+    const includeProvenance = searchParams.get('include') === 'provenance'
+      || searchParams.get('provenance') === '1'
+      || searchParams.get('provenance') === 'true';
 
     const slice = await getResolvedSlice({ scope, period });
     const sorted = [...slice.resolved].sort((a, b) => a.timestamp - b.timestamp);
 
+    const ids: string[] = [];
     const t: number[] = [];
     const grossR: number[] = [];
     const costR: number[] = [];
     const cls: number[] = [];
+    const provenance: CostFieldProvenanceRow[] = [];
 
-    for (const r of sorted) {
-      if (r.sl == null || r.entryPrice <= 0) continue;
-      const outcome = r.outcomes?.['24h'];
-      if (!outcome) continue;
-      const riskPct = (Math.abs(r.entryPrice - r.sl) / r.entryPrice) * 100;
-      if (riskPct <= 0) continue;
+    for (const record of sorted) {
+      const outcome = record.outcomes?.['24h'];
+      const tradeR = modeledTradeR(record);
+      if (!outcome || !tradeR || record.sl == null) continue;
 
-      t.push(r.timestamp);
-      grossR.push(+(outcome.pnlPct / riskPct).toFixed(3));
-      costR.push(+(roundTripCostNotionalPct(r) / riskPct).toFixed(3));
-      cls.push(classIndexFor(r.pair));
+      ids.push(record.id);
+      t.push(record.timestamp);
+      grossR.push(+tradeR.grossR.toFixed(3));
+      costR.push(+tradeR.costR.toFixed(3));
+      cls.push(classIndexFor(record.pair));
+
+      if (includeProvenance) {
+        provenance.push({
+          id: record.id,
+          pair: record.pair,
+          timeframe: record.timeframe,
+          direction: record.direction,
+          strategyId: record.strategyId ?? null,
+          signalTimestamp: record.timestamp,
+          entryPrice: record.entryPrice,
+          stopLoss: record.sl,
+          outcomePrice: outcome.price,
+          outcomePnlPct: outcome.pnlPct,
+          outcomeHit: outcome.hit,
+          outcomeTarget: outcome.target ?? null,
+          outcomeResolvedAt: outcome.resolvedAt ?? null,
+          outcomeSource: outcome.source ?? null,
+          riskPct: +tradeR.riskPct.toFixed(8),
+          grossR: +tradeR.grossR.toFixed(8),
+          modeledCostNotionalPct: +tradeR.costNotionalPct.toFixed(8),
+          modeledCostR: +tradeR.costR.toFixed(8),
+          modeledNetR: +tradeR.netR.toFixed(8),
+          modeledCostSource: tradeR.costSource,
+          broadcastDecision: record.broadcastBlocked === false
+            ? 'approved'
+            : record.broadcastBlocked === true
+              ? 'blocked'
+              : 'not-recorded',
+        });
+      }
     }
 
     return NextResponse.json(
@@ -76,10 +116,29 @@ export async function GET(request: NextRequest) {
         classes: CLASSES,
         count: t.length,
         resolvedTotal: slice.resolved.length,
+        ids,
         t,
         grossR,
         costR,
         cls,
+        methodology: {
+          population: 'non-simulated, non-gate-blocked rows with a non-placeholder 24h outcome and a valid stop loss',
+          outcomeBasis: 'OHLCV-derived TP/SL or 24h close; not broker fills',
+          costBasis: 'modeled round-trip fees and slippage; funding and actual broker charges excluded',
+          sizingBasis: 'risk-normalized per signal by entry-to-stop distance; not a concurrent portfolio simulation',
+          netFormula: 'grossR - costR',
+        },
+        window: {
+          requestedScope: scope,
+          requestedPeriod: period,
+          effectivePeriod: slice.cutoffTs === null ? 'available-window' : period,
+          startTimestamp: t.length > 0 ? t[0] : null,
+          endTimestamp: t.length > 0 ? t[t.length - 1] : null,
+          sourceRecordsLoaded: slice.sourceRecordsLoaded,
+          sourceReadLimit: slice.sourceReadLimit,
+          potentiallyTruncatedBeforeStart: slice.sourceWindowPotentiallyTruncated,
+        },
+        ...(includeProvenance ? { provenance } : {}),
       },
       {
         headers: {

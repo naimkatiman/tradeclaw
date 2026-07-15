@@ -39,9 +39,9 @@ export function buildOpenApiSpec(): OpenApiSpec {
       title: "TradeClaw REST API",
       version: "1.0.0",
       summary:
-        "Programmatic access to TradeClaw trading signals, performance proof, widgets, and digests.",
+        "Programmatic access to TradeClaw rule-generated research records, outcome-study summaries, widgets, and digests.",
       description:
-        "TradeClaw is an open-source, self-hostable AI trading signal platform. " +
+        "TradeClaw is an open-source, self-hostable rule-based market research platform. " +
         "This document describes the stable v1 REST surface plus selected public " +
         "endpoints used by widgets, badges, and the daily digest. " +
         "Most read endpoints are public. Write endpoints and higher rate limits " +
@@ -55,10 +55,10 @@ export function buildOpenApiSpec(): OpenApiSpec {
     },
     servers: SERVERS,
     tags: [
-      { name: "Signals", description: "Trading signals (v1 stable surface)" },
+      { name: "Signals", description: "Rule-generated research candidates (v1 stable surface)" },
       { name: "Widgets", description: "Embeddable widgets and SVG cards" },
-      { name: "Proof", description: "Historical performance proof data" },
-      { name: "Digest", description: "Daily / weekly performance digests" },
+      { name: "Proof", description: "OHLCV-resolved signal-outcome study data; not broker or portfolio results" },
+      { name: "Digest", description: "Daily / weekly recorded-signal digests" },
       { name: "Meta", description: "Health, metrics, and discovery" },
     ],
     components: {
@@ -112,6 +112,8 @@ export function buildOpenApiSpec(): OpenApiSpec {
               minimum: 0,
               maximum: 100,
               example: 82.5,
+              description:
+                "Legacy field name for the engine's mechanical rule/confluence score, expressed from 0 to 100. It is not a calibrated probability, expected return, or evidence of edge.",
             },
             timeframe: { $ref: "#/components/schemas/Timeframe" },
             price: { type: "number", example: 67523.41 },
@@ -160,8 +162,16 @@ export function buildOpenApiSpec(): OpenApiSpec {
             resolvedSignals: { type: "integer" },
             winRate4h: { type: "number" },
             winRate24h: { type: "number" },
-            avgConfidence: { type: "number" },
-            runningPnlPct: { type: "number" },
+            avgConfidence: {
+              type: "number",
+              description:
+                "Mean mechanical rule/confluence score for the included records. This is not a calibrated probability or edge estimate.",
+            },
+            runningPnlPct: {
+              type: "number",
+              description:
+                "Legacy field name for the mean unsized 24h directional price move across counted outcomes. It is not broker, account, or portfolio P&L.",
+            },
             totalWins: { type: "integer" },
             totalLosses: { type: "integer" },
             openSignals: { type: "integer" },
@@ -206,7 +216,8 @@ export function buildOpenApiSpec(): OpenApiSpec {
           operationId: "listSignalsV1",
           summary: "List recent signals",
           description:
-            "Returns the most recent high-confidence signals, optionally filtered by symbol, direction, and timeframe. " +
+            "Returns recent rule-generated research candidates, optionally filtered by symbol, direction, and timeframe. " +
+            "The legacy `confidence` field is a mechanical rule/confluence score from 0 to 100, not a predictive probability or evidence of edge. " +
             "Prefers the Python-generated live signal file (engine v4); falls back to the realtime TA engine when stale.",
           parameters: [
             {
@@ -384,10 +395,10 @@ export function buildOpenApiSpec(): OpenApiSpec {
         get: {
           tags: ["Proof"],
           operationId: "getProof",
-          summary: "Historical performance proof",
+          summary: "OHLCV-resolved signal-outcome study",
           description:
-            "Returns aggregated win-rate and PnL statistics plus the most recent real (non-simulated) signals with their 4h and 24h outcomes. " +
-            "This is the public audit trail behind TradeClaw's win-rate claims.",
+            "Returns descriptive statistics for non-simulated signal records whose outcomes have approved observed-OHLCV provenance. " +
+            "Directional price moves are unsized research observations, not broker fills, customer trades, account returns, or portfolio P&L. The confidence field is a mechanical rule score, not a probability.",
           responses: {
             "200": {
               description: "Proof payload",

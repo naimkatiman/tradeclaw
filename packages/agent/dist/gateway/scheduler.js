@@ -6,6 +6,7 @@ export class Scheduler {
     intervalMs;
     timer = null;
     running = false;
+    inFlight = false;
     scanCount = 0;
     onScan;
     constructor(intervalSeconds, onScan) {
@@ -21,7 +22,7 @@ export class Scheduler {
         console.log(`[scheduler] Starting scan loop (every ${this.intervalMs / 1000}s)`);
         await this.executeScan();
         this.timer = setInterval(async () => {
-            if (this.running) {
+            if (this.running && !this.inFlight) {
                 await this.executeScan();
             }
         }, this.intervalMs);
@@ -35,6 +36,7 @@ export class Scheduler {
         console.log(`[scheduler] Stopped after ${this.scanCount} scans`);
     }
     async executeScan() {
+        this.inFlight = true;
         this.scanCount++;
         const startTime = Date.now();
         try {
@@ -44,6 +46,9 @@ export class Scheduler {
         }
         catch (error) {
             console.error(`[scheduler] Scan #${this.scanCount} failed:`, error);
+        }
+        finally {
+            this.inFlight = false;
         }
     }
     getScanCount() {
@@ -57,7 +62,7 @@ export class Scheduler {
         if (this.running && this.timer) {
             clearInterval(this.timer);
             this.timer = setInterval(async () => {
-                if (this.running) {
+                if (this.running && !this.inFlight) {
                     await this.executeScan();
                 }
             }, this.intervalMs);

@@ -259,7 +259,7 @@ function DataSourceBadge({ source }: { source: string }) {
     tradingview: { text: 'TradingView', color: 'text-blue-400 border-blue-500/20 bg-blue-500/10' },
     synthetic: { text: 'Synthetic', color: 'text-[var(--text-secondary)] border-zinc-500/20 bg-zinc-500/10' },
   };
-  const config = labels[source] || labels.synthetic;
+  const config = labels[source] || { text: 'Unknown source', color: 'text-zinc-400 border-zinc-500/20 bg-zinc-500/10' };
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold border ${config.color}`}>
       <span className="w-1.5 h-1.5 rounded-full bg-current" />
@@ -456,7 +456,7 @@ export default function BacktestPage() {
       <PageNavBar />
       <div className="relative max-w-6xl mx-auto px-4 py-6 pb-20 md:pb-6">
         <div className="mb-4 rounded-lg border border-emerald-500/20 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-300">
-          <strong>Live Backtest</strong> — Uses real market data from Binance and Stooq. Strategies use fixed 2%/1% TP/SL (via <code className="text-xs">@tradeclaw/strategies</code>).
+          <strong>Modeled backtest</strong> — Runs only when provider-backed candles are available and applies the selected strategy&apos;s disclosed exit and cost assumptions. Results are not broker fills or portfolio returns.
         </div>
 
         {/* Header */}
@@ -469,7 +469,7 @@ export default function BacktestPage() {
             <h1 className="text-sm font-semibold text-[var(--foreground)] tracking-tight">Backtesting Engine</h1>
             {drilldown && <DataSourceBadge source={drilldown.dataSource} />}
           </div>
-          <p className="text-[11px] text-[var(--text-secondary)]">Replay strategies against real historical data — equity curve, price chart, indicators, trade log</p>
+          <p className="text-[11px] text-[var(--text-secondary)]">Replay strategy rules against available provider-backed candles with a modeled equity path and trade log.</p>
         </div>
 
         {loadedStrategyName && (

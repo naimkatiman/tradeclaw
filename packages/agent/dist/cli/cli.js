@@ -6,12 +6,13 @@ import { runOnboarding } from './onboard.js';
 import { formatNumber, createChannel } from '../channels/base.js';
 import { WebhookServer } from '../gateway/webhook-server.js';
 import { fetchLivePrices } from '../signals/prices.js';
+import { SIGNAL_SCAN_AVAILABILITY } from '../signals/engine.js';
 import { trackSignals } from '../signals/tracker.js';
 import { getHistory } from '../signals/tracker.js';
 const program = new Command();
 program
     .name('tradeclaw-agent')
-    .description('Self-hosted AI trading signal agent')
+    .description('Self-hosted trading research-candidate agent')
     .version('0.2.0');
 program
     .command('start')
@@ -26,14 +27,11 @@ program
     .description('Run a single scan and exit')
     .option('-c, --config <path>', 'Path to config file')
     .action(async (options) => {
-    console.log('\n\u23F3 Fetching live prices...');
-    const prices = await fetchLivePrices();
-    console.log(`\u2705 Live prices loaded for ${prices.size} symbols`);
-    printLivePrices(prices);
     const gateway = new Gateway();
     const signals = await gateway.scanOnce(options.config);
     if (signals.length === 0) {
-        console.log('\nNo signals met the confidence threshold.');
+        console.log(`\nSignal candidates unavailable: ${SIGNAL_SCAN_AVAILABILITY.reason}.`);
+        console.log('No synthetic candles were generated and nothing was saved to history.');
     }
     else {
         console.log(`\n\u{1F4CA} ${signals.length} signal(s) generated:\n`);
@@ -53,7 +51,7 @@ program
     console.log('  tradeclaw-agent status');
     console.log('  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
     console.log(`  Scan interval:    ${config.scanInterval}s`);
-    console.log(`  Min confidence:   ${config.minConfidence}%`);
+    console.log(`  Minimum rule score: ${config.minConfidence}/100`);
     console.log(`  Symbols:          ${config.symbols.join(', ')}`);
     console.log(`  Timeframes:       ${config.timeframes.join(', ')}`);
     console.log(`  Channels:         ${config.channels.filter((c) => c.enabled).map((c) => c.type).join(', ') || 'none'}`);
@@ -66,9 +64,6 @@ program
     .option('-c, --config <path>', 'Path to config file')
     .option('-a, --all', 'Show all signals regardless of confidence')
     .action(async (options) => {
-    console.log('\n\u23F3 Fetching live prices...');
-    const prices = await fetchLivePrices();
-    console.log(`\u2705 Live prices loaded for ${prices.size} symbols`);
     const gateway = new Gateway();
     const config = await loadConfig(options.config);
     if (options.all) {
@@ -76,7 +71,7 @@ program
     }
     const signals = await gateway.scanOnce(options.config);
     if (signals.length === 0) {
-        console.log('\nNo signals available.');
+        console.log(`\nSignal candidates unavailable: ${SIGNAL_SCAN_AVAILABILITY.reason}.`);
     }
     else {
         console.log('');
@@ -85,10 +80,10 @@ program
     }
     const history = await getHistory();
     if (history.totalSignals > 0) {
-        console.log('  \u{1F4C8} Historical accuracy');
+        console.log('  \u{1F4C8} Observed outcome history');
         console.log(`     Total tracked: ${history.totalSignals} signals`);
         if (history.closedSignals > 0) {
-            console.log(`     Win rate:      ${history.winRate}% (${history.closedSignals} closed)`);
+            console.log(`     Positive outcome rate: ${history.winRate}% (${history.closedSignals} resolved)`);
         }
         if (history.bestSymbol) {
             console.log(`     Most active:   ${history.bestSymbol} (${history.symbolBreakdown[history.bestSymbol].total} signals)`);
@@ -99,19 +94,18 @@ program
 });
 program
     .command('history')
-    .description('Show signal history and accuracy stats')
+    .description('Show observed signal-candidate outcome history')
     .option('-n, --limit <number>', 'Number of recent signals to show', '10')
     .action(async (options) => {
     const history = await getHistory();
     const limit = parseInt(options.limit, 10) || 10;
     console.log('');
     console.log('  \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557');
-    console.log('  \u2551       Signal History & Accuracy       \u2551');
+    console.log('  \u2551       Observed Candidate History      \u2551');
     console.log('  \u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D');
     console.log('');
     if (history.totalSignals === 0) {
-        console.log('  No signals tracked yet. Run a scan first:');
-        console.log('    tradeclaw-agent scan');
+        console.log('  No provider-observed candidates have been tracked.');
         console.log('');
         process.exit(0);
     }
@@ -119,7 +113,7 @@ program
     console.log('  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
     console.log(`  Total signals:    ${history.totalSignals}`);
     console.log(`  Closed signals:   ${history.closedSignals}`);
-    console.log(`  Win rate:         ${history.closedSignals > 0 ? history.winRate + '%' : 'N/A (no closed signals yet)'}`);
+    console.log(`  Positive outcome rate: ${history.closedSignals > 0 ? history.winRate + '%' : 'N/A (no resolved candidates)'}`);
     console.log(`  Best symbol:      ${history.bestSymbol ?? 'N/A'}`);
     console.log(`  Best skill:       ${history.bestSkill ?? 'N/A'}`);
     console.log('');
@@ -144,7 +138,7 @@ program
             const dir = sig.direction === 'BUY' ? '\u{1F7E2} BUY ' : '\u{1F534} SELL';
             const time = new Date(sig.timestamp).toLocaleString();
             const resultTag = sig.result ? ` [${sig.result}]` : '';
-            console.log(`  ${dir} ${pad(sig.symbol, 8)} ${sig.confidence}%  entry=${formatNumber(sig.entry)}  ${time}${resultTag}`);
+            console.log(`  ${dir} ${pad(sig.symbol, 8)} score ${sig.confidence}/100  candidate=${formatNumber(sig.entry)}  ${time}${resultTag}`);
         }
         console.log('');
     }
@@ -152,11 +146,15 @@ program
 });
 program
     .command('prices')
-    .description('Show current live prices from all sources')
+    .description('Show current provider-observed prices')
     .action(async () => {
     console.log('\n\u23F3 Fetching live prices...');
     const prices = await fetchLivePrices();
-    console.log(`\u2705 Loaded ${prices.size} symbols\n`);
+    if (prices.size === 0) {
+        console.log('No provider price observations are currently available. No fallback prices are shown.');
+        process.exit(0);
+    }
+    console.log(`\u2705 Loaded provider observations for ${prices.size} symbols\n`);
     printLivePrices(prices);
     process.exit(0);
 });
@@ -228,7 +226,7 @@ function printSignalsTable(signals) {
     const header = [
         pad('Symbol', 10),
         pad('Dir', 5),
-        pad('Conf', 6),
+        pad('Score', 8),
         pad('Entry', 14),
         pad('SL', 14),
         pad('TP1', 14),
@@ -245,7 +243,7 @@ function printSignalsTable(signals) {
         const row = [
             pad(signal.symbol, 10),
             pad(`${dirEmoji}${signal.direction}`, 5),
-            pad(`${signal.confidence}%`, 6),
+            pad(`${signal.confidence}/100`, 8),
             pad(formatNumber(signal.entry), 14),
             pad(formatNumber(signal.stopLoss), 14),
             pad(formatNumber(signal.takeProfit1), 14),

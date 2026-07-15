@@ -16,6 +16,7 @@ function mk(
     gateBlocked?: boolean;
     isSimulated?: boolean;
     confidence?: number;
+    source?: string;
     /** Whole-day offset from Monday 00:00 UTC of the test week. */
     dayOffset?: number;
   },
@@ -39,6 +40,8 @@ function mk(
         pnlPct: opts.pnlPct ?? (opts.hit ? 2 : -1),
         hit: opts.hit ?? false,
         target: opts.target ?? (opts.hit ? 'TP1' : 'SL'),
+        resolvedAt: new Date(timestamp + DAY).toISOString(),
+        source: opts.source ?? 'binance',
       },
     },
   };
@@ -65,7 +68,7 @@ describe('computeWeeklyPulse — real-data weekly pulse (replaces mulberry32 PRN
     const recs = [
       mk('w', { hit: true, dayOffset: 0 }),
       mk('l', { hit: false, dayOffset: 0 }),
-      mk('exp', { hit: false, pnlPct: 0, target: 'expired', dayOffset: 0 }),
+      mk('exp', { hit: false, pnlPct: 0, target: 'expired', source: 'force-expired', dayOffset: 0 }),
       mk('blk', { hit: true, gateBlocked: true, dayOffset: 0 }),
       mk('sim', { hit: true, isSimulated: true, dayOffset: 0 }),
     ];

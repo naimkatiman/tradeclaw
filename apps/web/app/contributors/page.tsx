@@ -2,7 +2,10 @@ import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 
 const ContributorsClient = dynamic(
-  () => import('./ContributorsClient').then(m => ({ default: m.ContributorsClient })),
+  () =>
+    import('./ContributorsClient').then((m) => ({
+      default: m.ContributorsClient,
+    })),
   {
     loading: () => (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
@@ -15,11 +18,10 @@ const ContributorsClient = dynamic(
 export const metadata: Metadata = {
   title: 'Contributors — TradeClaw',
   description:
-    'Meet the people building TradeClaw. Contributor leaderboard with GitHub stats, PR count, merged PRs, and issues closed.',
+    'GitHub contributor totals reported by the repository contributors API. TradeClaw does not estimate pull requests, merges, or issue counts from contribution totals.',
   openGraph: {
     title: 'TradeClaw Contributors',
-    description:
-      'The open-source community building the best AI trading signal platform. See who contributes, how much, and join them.',
+    description: 'Repository contributor totals from GitHub, shown only when the upstream API is available.',
     type: 'website',
   },
 };

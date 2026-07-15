@@ -8,8 +8,8 @@ interface Props {
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const params = await searchParams;
   const symbol = params.symbol ?? 'BTCUSD';
-  const title = `${symbol} Live Demo — TradeClaw`;
-  const description = `See TradeClaw AI trading signals for ${symbol} in action. Live confidence updates. No login required.`;
+  const title = `${symbol} Signal Feed — TradeClaw`;
+  const description = `Inspect available TradeClaw rule-based signal candidates for ${symbol}. Scores are not probabilities or portfolio returns.`;
 
   return {
     title,

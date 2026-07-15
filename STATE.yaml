@@ -1,11 +1,96 @@
 project: tradeclaw
-updated: 2026-07-15T10:36:59+08:00
+updated: 2026-07-15T14:31:11+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
   Public mode = limited. Admin = full.
   Alpha Screener = confirmed SaaS brand for users who don't want to self-host. Tradesmart name is dropped.
   Goal: viral GitHub repo, thousands of stars.
+
+truth_release_2026_07_15:
+  at: 2026-07-15T14:31:11+08:00
+  agent: TradeClaw PM agent
+  status: validated_pending_release
+  scope: Evidence-provenance repair, truthful runtime surfaces, reviewed commit, and Railway production release
+  notes: >
+    Legacy outcomes without approved observed-OHLCV provenance now fail closed
+    for public statistics and the cost-adjusted execution gate. Public mutation,
+    fabricated health/proof/security states, browser-held broker credentials,
+    paper-ledger contamination, synthetic production fallbacks, and unsupported
+    paid/testimonial claims are being removed or made explicitly unavailable.
+    The complete release validation passes: 201 Jest suites / 1,556 tests
+    (1,530 passed, 26 skipped), web lint with zero errors, web typecheck, agent
+    package build, the root production build with 324 generated pages, and a
+    structural Docker Compose parse. Docker is not installed, so the Compose
+    services could not be started locally. Clean commit review, main-branch
+    merge, exact-SHA deployment, and post-deploy evidence recomputation remain
+    pending.
+
+claim_verification_last_run:
+  at: 2026-07-15T09:28:24+08:00
+  agent: TradeClaw PM agent
+  status: done
+  scope: LinkedIn loss-claim evidence review and WEEX outreach verification
+  artifact: docs/audits/2026-07-15-linkedin-claim-verification.md
+  notes: >
+    Independently recomputed the 3,967-row production cost-field snapshot and
+    confirmed negative average expectancy after the published modeled cost,
+    while rejecting the broader claim that an actual user portfolio lost money.
+    Recorded the rolling 10,000-row cap, denominator exclusions, OHLCV outcome
+    semantics, modeled-not-real costs, overlapping-signal portfolio limitation,
+    broadcast-scope result, sensitivity checks, snapshot hashes, and safe public
+    wording. Verified that the WEEX pitch is only partly supported: fee sharing
+    is advertised up to 70% but TradeClaw's tier is unknown, TradFi contracts are
+    synthetic USDT-margined derivatives, broker API coverage for every TradFi
+    symbol is unproven, the public zero-fee promotion ended 2026-07-08, and the
+    outreach Telegram identity is unverified. Flagged that WEEX is absent from
+    the current SC Malaysia registered-DAX list and that a Malaysian LinkedIn
+    promotion or referral should not proceed without counsel or written SC
+    clarification. Documentation/state only; no runtime or trading-rule changes.
+
+product_integrity_repair:
+  at: 2026-07-15T11:24:23+08:00
+  agent: TradeClaw PM agent
+  status: done
+  scope: Outcome denominator, reproducible modeled ledger, truthful claims, and fail-closed edge readiness
+  artifacts:
+    audit: docs/audits/2026-07-15-linkedin-claim-verification.md
+  notes: >
+    Unified performance surfaces on one counted population: TP, SL, and nonzero
+    24-hour OHLCV closes count; simulated, gate-blocked, pending, and zero/missing
+    force-expiry placeholders do not. Public history reads are now side-effect
+    free. Published row-level outcome and modeled fee/slippage provenance, source
+    read caps, and potential truncation while explicitly excluding broker fills,
+    funding, overlapping exposure, margin, and customer-account performance.
+    Added a non-configurable fail-closed 90-day evidence gate before entry-like
+    execution and hosted Telegram, Discord, SMS, push, email, alert-rule, and
+    workflow fan-out. Readiness requires at least 100 usable rows over 30 UTC
+    days, 90% modeled-cost coverage, data no older than 7 days, positive per-row
+    and equal-day modeled net expectancy, a positive day-clustered lower bound,
+    and explicit persisted broadcast approval for each candidate. Replaced
+    realized-return and immediate-alert claims across public pages, metadata,
+    docs, exports, and share copy. An unavailable GitHub count is no longer
+    displayed as a measured zero. The audited snapshot remains negative after
+    modeled costs, so this repair does not establish profitability and correctly
+    suppresses new entry-like execution and fan-out until evidence clears the
+    gate. The audit distinguishes its fingerprinted pre-repair denominator from
+    the repaired method and requires a fresh deployed snapshot before any figure
+    is described as current. Existing unrelated UI and AI-improvement worktree
+    changes were retained.
+  verification: >
+    Final validation covered 201 Jest suites / 1,556 tests: 1,530 passed, 26
+    skipped, and zero failed. App routes/components passed 63 suites / 351 tests;
+    web libraries passed 89 suites / 649 tests with 3 suites / 26 tests skipped;
+    non-web packages passed 46 suites / 530 tests and one snapshot. The non-web
+    slices required Jest --forceExit because the suite reports leaked handles.
+    npm run lint exited 0 with zero errors and 23 warnings; npm run typecheck:web
+    and the agent package build passed. The final npm run build passed
+    packages/signals, packages/trading-agents, Next.js 16.2.6, and 324/324 static
+    pages. Playwright verified desktop and mobile truth surfaces with no hydration
+    or runtime faults; the only console failure was the unavailable GitHub-star
+    request, whose value is hidden. Docker Compose parsed with all seven services,
+    health checks, and migration ordering intact. Docker is not installed, so the
+    services could not be started locally.
 
 ai_improvement_last_run:
   at: 2026-07-12T23:40:21+08:00

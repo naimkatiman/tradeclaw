@@ -12,7 +12,8 @@ export async function runOnboarding() {
     console.log('  \u2551     tradeclaw-agent setup wizard      \u2551');
     console.log('  \u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D');
     console.log('');
-    console.log('  Let\'s configure your trading signal agent.');
+    console.log('  Configure the standalone research-candidate agent.');
+    console.log('  Signal scanning stays unavailable until observed OHLCV is configured.');
     console.log('  Press Enter to accept defaults shown in [brackets].');
     console.log('');
     const intervalStr = await ask('  \u23F1  Scan interval in seconds [60]: ');
@@ -28,7 +29,7 @@ export async function runOnboarding() {
     const timeframes = (timeframesStr.trim() || defaultTimeframes)
         .split(',')
         .map(t => t.trim());
-    const confidenceStr = await ask('  \u{1F3AF} Minimum confidence threshold (0-100) [70]: ');
+    const confidenceStr = await ask('  \u{1F3AF} Minimum rule score (0-100) [70]: ');
     const minConfidence = parseInt(confidenceStr) || 70;
     const channels = [];
     console.log('');
@@ -98,11 +99,11 @@ export async function runOnboarding() {
     console.log(`  Symbols:     ${symbols.join(', ')}`);
     console.log(`  Timeframes:  ${timeframes.join(', ')}`);
     console.log(`  Interval:    ${scanInterval}s`);
-    console.log(`  Confidence:  ${minConfidence}%`);
+    console.log(`  Rule score:  ${minConfidence}/100`);
     console.log(`  Channels:    ${channels.length > 0 ? channels.map(c => c.type).join(', ') : 'none (console only)'}`);
     console.log('');
     console.log('  Next steps:');
-    console.log('    1. Run a test scan:     tradeclaw-agent scan');
+    console.log('    1. Check scan status:   tradeclaw-agent scan');
     console.log('    2. Test your channels:  tradeclaw-agent test-channel');
     console.log('    3. Start the daemon:    tradeclaw-agent start');
     console.log('');

@@ -146,16 +146,16 @@ export function CardClient() {
     ctx.fillText(isBuy ? '▲ BUY' : '▼ SELL', badgeX + 24, badgeY + 52);
     ctx.shadowBlur = 0;
 
-    // Confidence
+    // Rule score
     ctx.font = 'bold 22px monospace';
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.fillText('CONFIDENCE', 72, 410);
+    ctx.fillText('RULE SCORE', 72, 410);
 
     ctx.font = 'bold 52px monospace';
     ctx.fillStyle = signal.confidence >= 80 ? '#10b981' : signal.confidence >= 70 ? '#a1a1aa' : '#6b7280';
-    ctx.fillText(`${signal.confidence}%`, 72, 468);
+    ctx.fillText(`${signal.confidence}/100`, 72, 468);
 
-    // Confidence bar
+    // Rule-score bar
     const barY = 482, barX = 72, barW = 340, barH = 12;
     ctx.fillStyle = 'rgba(255,255,255,0.06)';
     roundRect(ctx, barX, barY, barW, barH, 6, true, false);
@@ -239,7 +239,7 @@ export function CardClient() {
     ctx.fillText('⭐ Star on GitHub', 72, H - 28);
     ctx.font = '16px monospace';
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.fillText('Free · Open Source · No Login Required', 300, H - 28);
+    ctx.fillText('Rule-generated research · Score is not a probability', 300, H - 28);
     ctx.font = 'bold 16px monospace';
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.fillText('tradeclaw.win', W - 180, H - 28);
@@ -290,7 +290,7 @@ export function CardClient() {
   };
 
   const shareOnTwitter = () => {
-    const text = `Just got a ${signal?.direction} signal on ${pair} with ${signal?.confidence}% confidence from @TradeClaw AI!\n\nFree & open-source trading signals: `;
+    const text = `${pair} ${signal?.direction} research candidate with rule score ${signal?.confidence}/100 from @TradeClaw.\n\nMechanical score, not a predictive probability or portfolio result: `;
     const url = `https://tradeclaw.win`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
   };
@@ -309,7 +309,7 @@ export function CardClient() {
           </h1>
           <p className="text-zinc-400 max-w-lg mx-auto text-sm">
             Generate a personalized trading signal card to share on Twitter, Discord, or Telegram.
-            Show your friends you use AI-powered signals.
+            Link readers to the rule-generated candidate and its source context.
           </p>
         </div>
 
@@ -452,7 +452,7 @@ export function CardClient() {
                       border: `1px solid ${signal.direction === 'BUY' ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.3)'}`,
                     }}
                   >
-                    {signal.direction === 'BUY' ? '▲' : '▼'} {signal.direction} · {signal.confidence}%
+                    {signal.direction === 'BUY' ? '▲' : '▼'} {signal.direction} · score {signal.confidence}/100
                   </span>
                 )}
               </div>
@@ -483,14 +483,14 @@ export function CardClient() {
         <div className="mt-12 text-center">
           <h2 className="text-xl font-bold mb-2">Why share a signal card?</h2>
           <p className="text-zinc-500 text-sm max-w-2xl mx-auto mb-6">
-            Every share brings TradeClaw closer to 1,000 GitHub stars — which unlocks the{' '}
-            <span className="text-emerald-400">managed cloud version</span>, mobile app, and enterprise features.
+            Share the candidate with its inspectable rule score and source link. A card does not establish
+            predictive edge or portfolio performance.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
             {[
-              { icon: '🎯', title: 'Show your edge', desc: 'AI-scored signals with exact confidence %' },
-              { icon: '⚡', title: 'Drive awareness', desc: 'Every share = more stars = better product' },
-              { icon: '🤝', title: 'Build community', desc: 'Join traders using open-source AI signals' },
+              { icon: '🎯', title: 'Show the score', desc: 'Mechanical rule score shown out of 100' },
+              { icon: '⚡', title: 'Share context', desc: 'Link readers to the inspectable rules and public evidence' },
+              { icon: '🤝', title: 'Discuss the rules', desc: 'Review open-source signal logic with others' },
             ].map((item) => (
               <div key={item.title} className="rounded-xl p-4 border border-white/5 bg-zinc-900/30 text-left">
                 <div className="text-2xl mb-2">{item.icon}</div>

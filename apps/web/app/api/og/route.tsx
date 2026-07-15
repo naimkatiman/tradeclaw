@@ -106,7 +106,7 @@ export async function GET() {
             letterSpacing: "0.05em",
           }}
         >
-          <span>Every signal logged, graded, and published — wins and losses.</span>
+          <span>Recorded signal rows, OHLCV outcomes, and modeled assumptions published.</span>
         </div>
       </div>
     ),

@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { dirname, join } from 'path';
 
 const VOTES_FILE = join(process.cwd(), 'data', 'votes.json');
 
@@ -39,24 +39,6 @@ function isWeekExpired(weekStart: string): boolean {
   return diffMs > 7 * 24 * 60 * 60 * 1000;
 }
 
-function createSeedData(): VotesData {
-  return {
-    pairs: {
-      BTCUSD: { BUY: 142, SELL: 67, HOLD: 38 },
-      ETHUSD: { BUY: 98, SELL: 85, HOLD: 44 },
-      XAUUSD: { BUY: 156, SELL: 41, HOLD: 29 },
-      XAGUSD: { BUY: 73, SELL: 52, HOLD: 31 },
-      EURUSD: { BUY: 61, SELL: 88, HOLD: 53 },
-      GBPUSD: { BUY: 79, SELL: 64, HOLD: 41 },
-      USDJPY: { BUY: 55, SELL: 102, HOLD: 48 },
-      AAPL: { BUY: 121, SELL: 45, HOLD: 37 },
-      TSLA: { BUY: 89, SELL: 94, HOLD: 52 },
-      SPX500: { BUY: 108, SELL: 56, HOLD: 41 },
-    },
-    weekStart: getISOWeekStart(),
-  };
-}
-
 function createEmptyPairs(): Record<string, PairVotes> {
   const pairs: Record<string, PairVotes> = {};
   for (const p of PAIRS) {
@@ -67,13 +49,16 @@ function createEmptyPairs(): Record<string, PairVotes> {
 
 function loadVotes(): VotesData {
   if (!existsSync(VOTES_FILE)) {
-    const seed = createSeedData();
-    writeFileSync(VOTES_FILE, JSON.stringify(seed, null, 2));
-    return seed;
+    return { pairs: createEmptyPairs(), weekStart: getISOWeekStart() };
   }
 
-  const raw = readFileSync(VOTES_FILE, 'utf-8');
-  const data: VotesData = JSON.parse(raw);
+  let data: VotesData;
+  try {
+    const raw = readFileSync(VOTES_FILE, 'utf-8');
+    data = JSON.parse(raw) as VotesData;
+  } catch {
+    return { pairs: createEmptyPairs(), weekStart: getISOWeekStart() };
+  }
 
   // Auto-reset if week expired
   if (isWeekExpired(data.weekStart)) {
@@ -89,6 +74,8 @@ function loadVotes(): VotesData {
 }
 
 function saveVotes(data: VotesData): void {
+  const dir = dirname(VOTES_FILE);
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   writeFileSync(VOTES_FILE, JSON.stringify(data, null, 2));
 }
 
@@ -112,9 +99,9 @@ export function submitVote(pair: string, direction: Direction): PairVotes | null
 
 export function getVoteStats(): {
   totalVotes: number;
-  mostBullishPair: string;
-  mostBearishPair: string;
-  communityBullishPct: number;
+  mostBullishPair: string | null;
+  mostBearishPair: string | null;
+  bullishSubmissionPct: number | null;
 } {
   const data = loadVotes();
   let totalVotes = 0;
@@ -122,8 +109,8 @@ export function getVoteStats(): {
   let totalSell = 0;
   let maxBuyRatio = -1;
   let maxSellRatio = -1;
-  let mostBullishPair: string = PAIRS[0];
-  let mostBearishPair: string = PAIRS[0];
+  let mostBullishPair: string | null = null;
+  let mostBearishPair: string | null = null;
 
   for (const pair of PAIRS) {
     const v = data.pairs[pair] ?? { BUY: 0, SELL: 0, HOLD: 0 };
@@ -146,9 +133,9 @@ export function getVoteStats(): {
     }
   }
 
-  const communityBullishPct = totalBuy + totalSell > 0
+  const bullishSubmissionPct = totalBuy + totalSell > 0
     ? Math.round((totalBuy / (totalBuy + totalSell)) * 100)
-    : 50;
+    : null;
 
-  return { totalVotes, mostBullishPair, mostBearishPair, communityBullishPct };
+  return { totalVotes, mostBullishPair, mostBearishPair, bullishSubmissionPct };
 }

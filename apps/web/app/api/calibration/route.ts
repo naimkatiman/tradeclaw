@@ -45,7 +45,7 @@ export async function GET() {
   try {
     const history = await readHistoryAsync();
     // Canonical resolved filter: excludes simulated rows, gate-blocked rows,
-    // and auto-expired closes — same population as win-rate/equity, so the
+    // and zero force-expiry placeholders — same population as win-rate/equity, so the
     // calibration chart measures the engine, not placeholder artifacts.
     const resolved = history
       .filter(isCountedResolved)

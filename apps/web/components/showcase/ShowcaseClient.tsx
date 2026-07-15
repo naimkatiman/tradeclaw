@@ -45,7 +45,7 @@ const USE_CASES: UseCase[] = [
     role: 'Example persona',
     location: 'Intraday workflow',
     description:
-      'Monitors BTC and ETH intraday signals on H1 timeframe. Gets instant Telegram alerts when confidence crosses 75%. Uses paper trading to validate setups before going live.',
+      'Example: monitor BTC and ETH H1 signals and compare them with paper-trading output. Configured Telegram entry alerts are sent only when the reproducible evidence gate permits delivery.',
     features: [
       'Telegram bot alerts',
       'BTC/ETH H1 signals',
@@ -53,7 +53,7 @@ const USE_CASES: UseCase[] = [
       'Mobile-responsive UI',
       'Price alert triggers',
     ],
-    setup: 'Deployed on Railway — $0/mo on free tier',
+    setup: 'Illustrative hosted deployment; provider costs and limits vary',
     gradient: 'from-emerald-500/20 to-teal-500/10',
     accentColor: 'emerald',
   },
@@ -63,15 +63,15 @@ const USE_CASES: UseCase[] = [
     role: 'Example persona',
     location: 'API workflow',
     description:
-      'Uses the REST API and CLI to pull signals into a custom Python bot. Sends webhooks to Discord for team alerts. Built a custom VWAP plugin using the plugin system.',
+      'Example: use the REST API or CLI for signal review, then configure an outbound Discord webhook. The webhook path is operator-triggered and entry delivery remains evidence-gated.',
     features: [
       'REST API + API keys',
       'npx @naimkatiman/tradeclaw CLI',
-      'Webhook marketplace',
+      'Webhook setup recipes',
       'Custom JS plugins',
       'Discord integration',
     ],
-    setup: 'Self-hosted on VPS — full control over data',
+    setup: 'Illustrative VPS deployment; outbound providers still receive configured requests',
     gradient: 'from-purple-500/20 to-indigo-500/10',
     accentColor: 'purple',
   },
@@ -81,43 +81,36 @@ const USE_CASES: UseCase[] = [
     role: 'Example persona',
     location: 'Self-hosted workflow',
     description:
-      'Runs TradeClaw on a Raspberry Pi 4 at home. Subscribes to the RSS feed for daily signal digest. Shares signal cards on X when high-confidence setups appear.',
+      'Example: evaluate Docker Compose on compatible hardware, review the RSS feed, and share clearly labeled signal-study cards. Hardware performance is not benchmarked here.',
     features: [
-      'Docker one-command deploy',
+      'Docker Compose deployment',
       'RSS/Atom signal feed',
       'Social signal cards',
       'Signal screener',
       'Multi-timeframe view',
     ],
-    setup: 'Raspberry Pi 4 — runs 24/7 on $0 electricity',
+    setup: 'Illustrative home-server deployment; hardware and operating costs vary',
     gradient: 'from-rose-500/20 to-orange-500/10',
     accentColor: 'rose',
   },
 ];
 
 const TECH_STACK = [
-  { name: 'Next.js 15', icon: '▲', desc: 'App Router' },
+  { name: 'Next.js 16', icon: '▲', desc: 'App Router' },
   { name: 'TypeScript', icon: 'TS', desc: 'Fully typed' },
   { name: 'Binance API', icon: '⬡', desc: 'Live prices' },
   { name: 'TA Engine', icon: '📈', desc: 'RSI/MACD/EMA' },
   { name: 'Docker', icon: '🐳', desc: 'One-command' },
-  { name: 'MCP Server', icon: '🤖', desc: 'AI native' },
+  { name: 'MCP Server', icon: '🤖', desc: 'Workspace package' },
 ];
 
 function MockDashboard({ accentColor }: { accentColor: string }) {
   const isEmerald = accentColor === 'emerald';
   const isPurple = accentColor === 'purple';
-  const barColor = isEmerald
-    ? '#10b981'
-    : isPurple
-      ? '#a855f7'
-      : '#f43f5e';
+  const barColor = isEmerald ? '#10b981' : isPurple ? '#a855f7' : '#f43f5e';
 
   return (
-    <div
-      className="rounded-lg overflow-hidden border border-white/10 bg-black/40"
-      style={{ fontFamily: 'monospace' }}
-    >
+    <div className="rounded-lg overflow-hidden border border-white/10 bg-black/40" style={{ fontFamily: 'monospace' }}>
       {/* Window chrome */}
       <div className="flex items-center gap-1.5 px-3 py-2 bg-white/5 border-b border-white/10">
         <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
@@ -152,10 +145,7 @@ function MockDashboard({ accentColor }: { accentColor: string }) {
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full"
-                  style={{ width: `${sig.conf}%`, backgroundColor: barColor }}
-                />
+                <div className="h-full rounded-full" style={{ width: `${sig.conf}%`, backgroundColor: barColor }} />
               </div>
               <span className="text-white/50 text-[10px]">{sig.conf}%</span>
             </div>
@@ -169,10 +159,9 @@ function MockDashboard({ accentColor }: { accentColor: string }) {
 export function ShowcaseClient() {
   const [stars, setStars] = useState<number | null>(null);
   const [signals, setSignals] = useState<Signal[]>([]);
+  const [signalsLoaded, setSignalsLoaded] = useState(false);
   const [winRates, setWinRates] = useState<Record<string, number>>({});
   const [copied, setCopied] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_tick, setTick] = useState(0);
 
   useEffect(() => {
     fetch('/api/github-stars')
@@ -196,21 +185,23 @@ export function ShowcaseClient() {
       fetch('/api/signals?limit=6')
         .then((r) => r.json())
         .then((d) => {
-          const arr = Array.isArray(d) ? d : d.signals ?? [];
+          const arr = Array.isArray(d) ? d : (d.signals ?? []);
           setSignals(arr.slice(0, 6));
         })
-        .catch(() => {});
+        .catch(() => setSignals([]))
+        .finally(() => setSignalsLoaded(true));
     };
     fetchSignals();
     const iv = setInterval(() => {
       fetchSignals();
-      setTick((t) => t + 1);
     }, 60000);
     return () => clearInterval(iv);
   }, []);
 
   const copyDeployCmd = () => {
-    navigator.clipboard.writeText('git clone https://github.com/naimkatiman/tradeclaw && cd tradeclaw && docker compose up').catch(() => {});
+    navigator.clipboard
+      .writeText('git clone https://github.com/naimkatiman/tradeclaw && cd tradeclaw && cp .env.example .env')
+      .catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -245,27 +236,31 @@ export function ShowcaseClient() {
         <div className="relative max-w-4xl mx-auto">
           <div className="anim-fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-emerald-400 mb-6">
             <span className="live-dot" />
-            <span>Live traders using TradeClaw right now</span>
+            <span>Illustrative workflows, not testimonials</span>
           </div>
           <h1 className="anim-fade-up-1 text-4xl md:text-6xl font-black tracking-tight mb-4">
-            Traders{' '}
+            Ways to{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
-              Actually Using
+              Evaluate
             </span>
             <br />
             TradeClaw
           </h1>
           <p className="anim-fade-up-2 text-lg text-white/60 max-w-2xl mx-auto mb-8">
-            From day traders in Singapore to quant devs in Berlin — see real setups, real workflows,
-            and why they chose to self-host their trading intelligence.
+            Three example personas show possible review and self-hosting paths. They are not named customers, usage
+            evidence, or claims that alerts and execution occur automatically.
           </p>
           {/* Stats bar */}
           <div className="anim-fade-up-3 flex flex-wrap justify-center gap-6 mb-10">
             {[
-              { icon: Star, label: 'GitHub Stars', value: stars !== null ? `${stars}` : '…' },
-              { icon: BarChart2, label: 'Signal Pairs', value: '10' },
-              { icon: Globe, label: 'App Pages', value: '120+' },
-              { icon: Code2, label: 'API Endpoints', value: '40+' },
+              {
+                icon: Star,
+                label: 'GitHub Stars',
+                value: stars !== null ? `${stars}` : 'N/A',
+              },
+              { icon: BarChart2, label: 'Signal Scope', value: 'Multi-asset' },
+              { icon: Globe, label: 'Execution Default', value: 'Disabled' },
+              { icon: Code2, label: 'Native Executor', value: '1' },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="text-center">
                 <div className="flex items-center gap-1.5 justify-center mb-0.5">
@@ -304,7 +299,9 @@ export function ShowcaseClient() {
                   </div>
                   <div>
                     <div className="font-bold text-white">{uc.name}</div>
-                    <div className="text-white/60 text-xs">{uc.role} · {uc.location}</div>
+                    <div className="text-white/60 text-xs">
+                      {uc.role} · {uc.location}
+                    </div>
                   </div>
                 </div>
                 {/* Mock dashboard */}
@@ -353,9 +350,11 @@ export function ShowcaseClient() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="live-dot" />
-                <h2 className="text-xl font-bold">Live Signal Feed</h2>
+                <h2 className="text-xl font-bold">Current Signal Snapshot</h2>
               </div>
-              <p className="text-white/50 text-sm">The same signals all three traders above are watching right now</p>
+              <p className="text-white/50 text-sm">
+                Read from this instance; not broker positions or proof that the example personas use them
+              </p>
             </div>
             <Link
               href="/dashboard"
@@ -364,26 +363,21 @@ export function ShowcaseClient() {
               Full dashboard <ExternalLink className="w-3.5 h-3.5" />
             </Link>
           </div>
-          {signals.length === 0 ? (
+          {!signalsLoaded ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="h-16 bg-white/5 rounded-lg animate-pulse" />
               ))}
             </div>
-          ) : (
+          ) : signals.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {signals.map((sig, i) => (
-                <div
-                  key={`${sig.pair}-${i}`}
-                  className="bg-white/5 rounded-xl p-3 hover:bg-white/8 transition-colors"
-                >
+                <div key={`${sig.pair}-${i}`} className="bg-white/5 rounded-xl p-3 hover:bg-white/8 transition-colors">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-sm text-white">{sig.pair}</span>
                     <span
                       className={`text-[11px] font-black px-2 py-0.5 rounded-full ${
-                        sig.direction === 'BUY'
-                          ? 'bg-emerald-500/20 text-emerald-400'
-                          : 'bg-rose-500/20 text-rose-400'
+                        sig.direction === 'BUY' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
                       }`}
                     >
                       {sig.direction}
@@ -422,6 +416,10 @@ export function ShowcaseClient() {
                 </div>
               ))}
             </div>
+          ) : (
+            <p className="py-8 text-center text-sm text-white/50">
+              No current signals are available from this instance.
+            </p>
           )}
         </div>
       </section>
@@ -429,8 +427,8 @@ export function ShowcaseClient() {
       {/* Tech stack */}
       <section className="px-4 pb-20 max-w-6xl mx-auto">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold mb-2">Built With Best-in-Class Stack</h2>
-          <p className="text-white/50 text-sm">Open source, auditable, no vendor lock-in</p>
+          <h2 className="text-2xl font-bold mb-2">Repository Components</h2>
+          <p className="text-white/50 text-sm">Inspect the source and verify each component for your deployment</p>
         </div>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
           {TECH_STACK.map((t) => (
@@ -450,29 +448,24 @@ export function ShowcaseClient() {
           <div className="relative">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs mb-5">
               <Zap className="w-3.5 h-3.5" />
-              Deploy in under 2 minutes
+              Docker Compose self-hosting
             </div>
-            <h2 className="text-3xl md:text-4xl font-black mb-3">
-              Start Your Own TradeClaw
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-black mb-3">Prepare a Self-Hosted Instance</h2>
             <p className="text-white/60 mb-8 max-w-lg mx-auto">
-              Free forever. Self-hosted. No API keys needed to get started. One Docker command.
+              The code is MIT-licensed. Copy the environment template, set the required database and signing secrets,
+              then build the stack. External providers may require credentials or fees.
             </p>
 
             {/* Command copy */}
             <div className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 mb-6 flex items-center justify-between gap-3 max-w-xl mx-auto">
               <code className="text-emerald-400 text-xs md:text-sm truncate">
-                git clone github.com/naimkatiman/tradeclaw && docker compose up
+                git clone github.com/naimkatiman/tradeclaw &amp;&amp; cd tradeclaw &amp;&amp; cp .env.example .env
               </code>
               <button
                 onClick={copyDeployCmd}
                 className="flex-shrink-0 p-1.5 hover:bg-white/10 rounded transition-colors"
               >
-                {copied ? (
-                  <Check className="w-4 h-4 text-emerald-400" />
-                ) : (
-                  <Copy className="w-4 h-4 text-white/50" />
-                )}
+                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-white/50" />}
               </button>
             </div>
 
@@ -484,7 +477,7 @@ export function ShowcaseClient() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2.5 bg-[#7B2FBE] hover:bg-[#8B3FBE] text-white text-sm font-semibold rounded-lg transition-colors"
               >
-                <Server className="w-4 h-4" /> Deploy on Railway
+                <Server className="w-4 h-4" /> Review Railway Template
               </a>
               <a
                 href="https://vercel.com/new/clone?repository-url=https://github.com/naimkatiman/tradeclaw/tree/main/apps/web"
@@ -492,7 +485,7 @@ export function ShowcaseClient() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/15 text-white text-sm font-semibold rounded-lg transition-colors border border-white/10"
               >
-                <Box className="w-4 h-4" /> Deploy on Vercel
+                <Box className="w-4 h-4" /> Review Vercel Setup
               </a>
               <a
                 href="https://github.com/naimkatiman/tradeclaw"
@@ -507,7 +500,7 @@ export function ShowcaseClient() {
             {/* Share */}
             <div className="flex flex-wrap justify-center gap-3">
               <a
-                href={`https://twitter.com/intent/tweet?text=Check%20out%20TradeClaw%20%E2%80%94%20open-source%20AI%20trading%20signal%20platform%20with%20RSI%2FMACD%2FEMA%2C%20Telegram%20alerts%2C%20paper%20trading%2C%20and%20100%2B%20features.%20Free%20%26%20self-hosted.%20https%3A%2F%2Fgithub.com%2Fnaimkatiman%2Ftradeclaw`}
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('TradeClaw is an MIT-licensed, self-hostable signal research platform. Review its methodology and deployment requirements: https://github.com/naimkatiman/tradeclaw')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-white/50 hover:text-white/80 text-xs transition-colors"

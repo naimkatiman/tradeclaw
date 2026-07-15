@@ -111,11 +111,12 @@ async function generateRealSignals(
 
     if (data.source === 'synthetic') {
       syntheticSymbols.push(sym.symbol);
+      continue;
     }
 
-    // Calculate indicators and generate signals with source transparency
+    // Only provider-backed candles may become public signal candidates.
     const indicators = calculateAllIndicators(data.candles);
-    const signalSource = data.source === 'synthetic' ? 'synthetic' : 'real';
+    const signalSource = 'real';
     const signalTimestamp = data.candles[data.candles.length - 1]?.timestamp ?? Date.now();
     const realSignals = generateSignalsFromTA(
       sym.symbol,
@@ -127,8 +128,7 @@ async function generateRealSignals(
     );
 
     for (const sig of realSignals) {
-      sig.source = signalSource === 'synthetic' ? 'fallback' : 'real';
-      // dataQuality is already set by generateSignalsFromTA based on actual data source
+      sig.source = 'real';
     }
 
     signals.push(...realSignals);

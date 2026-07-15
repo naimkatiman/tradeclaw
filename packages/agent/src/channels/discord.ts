@@ -1,6 +1,6 @@
 import type { TradingSignal, ChannelConfig } from '@tradeclaw/signals';
 import type { BaseChannel } from './base.js';
-import { formatNumber, formatDiff, emaTrendText } from './base.js';
+import { formatNumber, formatDiff, emaTrendText, isProviderObservedSignal } from './base.js';
 
 /**
  * Discord Webhook channel adapter.
@@ -24,6 +24,10 @@ export class DiscordChannel implements BaseChannel {
   }
 
   async sendSignal(signal: TradingSignal): Promise<boolean> {
+    if (!isProviderObservedSignal(signal)) {
+      console.warn('[discord] Refused non-observed candidate');
+      return false;
+    }
     const embed = this.buildEmbed(signal);
     return this.send({ embeds: [embed] });
   }
@@ -39,13 +43,13 @@ export class DiscordChannel implements BaseChannel {
     const skillName = signal.skill || 'Multi-Indicator';
 
     return {
-      title: `${dirEmoji} ${signal.direction} ${signal.symbol} [${signal.confidence}%]`,
+      title: `${dirEmoji} ${signal.direction} ${signal.symbol} [rule score ${signal.confidence}/100]`,
       color,
       fields: [
-        { name: '\u{1F4CD} Entry', value: formatNumber(signal.entry), inline: true },
-        { name: '\u{1F6D1} Stop Loss', value: `${formatNumber(signal.stopLoss)} (${formatDiff(signal.entry, signal.stopLoss)})`, inline: true },
+        { name: '\u{1F4CD} Candidate entry', value: formatNumber(signal.entry), inline: true },
+        { name: '\u{1F6D1} Candidate stop', value: `${formatNumber(signal.stopLoss)} (${formatDiff(signal.entry, signal.stopLoss)})`, inline: true },
         { name: '\u200b', value: '\u200b', inline: true },
-        { name: '\u{1F3AF} TP1', value: `${formatNumber(signal.takeProfit1)} (${formatDiff(signal.entry, signal.takeProfit1)})`, inline: true },
+        { name: '\u{1F3AF} Candidate target 1', value: `${formatNumber(signal.takeProfit1)} (${formatDiff(signal.entry, signal.takeProfit1)})`, inline: true },
         ...(signal.takeProfit2 !== null ? [{ name: '\u{1F3AF} TP2', value: `${formatNumber(signal.takeProfit2)} (${formatDiff(signal.entry, signal.takeProfit2)})`, inline: true }] : []),
         ...(signal.takeProfit3 !== null ? [{ name: '\u{1F3AF} TP3', value: `${formatNumber(signal.takeProfit3)} (${formatDiff(signal.entry, signal.takeProfit3)})`, inline: true }] : []),
         {
@@ -61,7 +65,7 @@ export class DiscordChannel implements BaseChannel {
         { name: '\u23F1 Timeframe', value: signal.timeframe, inline: true },
         { name: '\u{1F3AF} Strategy', value: skillName, inline: true },
       ],
-      footer: { text: `tradeclaw-agent \u2022 ${new Date(signal.timestamp).toLocaleString()}` },
+      footer: { text: `Provider-observed research candidate; not an order or portfolio result \u2022 ${new Date(signal.timestamp).toLocaleString()}` },
       timestamp: signal.timestamp,
     };
   }

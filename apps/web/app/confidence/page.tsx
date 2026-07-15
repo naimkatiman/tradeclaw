@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import ConfidenceClient from './ConfidenceClient';
 
 export const metadata: Metadata = {
-  title: 'Confidence Score Calculator | How TradeClaw Scores Signals',
+  title: 'Illustrative Confidence Calculator | TradeClaw',
   description:
-    'Interactive slider tool showing exactly how TradeClaw computes signal confidence scores. Drag the indicators and watch the algorithm score your setup live.',
+    'Explore a simplified weighted confidence formula. This educational calculator is not the canonical formula for every strategy and does not authorize alerts or execution.',
   keywords: [
     'trading signal confidence',
     'RSI MACD EMA scoring',
@@ -13,9 +13,9 @@ export const metadata: Metadata = {
     'confidence calculator',
   ],
   openGraph: {
-    title: 'Confidence Score Calculator — TradeClaw',
+    title: 'Illustrative Confidence Calculator - TradeClaw',
     description:
-      'Interactive tool: drag RSI/MACD/EMA sliders and see exactly how TradeClaw scores a trading signal.',
+      'A simplified educational score model. Confidence alone never authorizes TradeClaw alert delivery or broker execution.',
     type: 'website',
   },
 };

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 export interface HeroPrice {
   price: number | null;
-  change24h: number;
+  change24h: number | null;
   source: string;
 }
 
@@ -16,7 +16,7 @@ export interface HeroPricesData {
 
 interface ApiPriceTick {
   price: number;
-  change24h: number;
+  change24h: number | null;
   source: string;
 }
 
@@ -162,7 +162,7 @@ export function formatPairPrice(label: string, price: number | null): string {
 
 function emptyPrices(labels: readonly string[]): Record<string, HeroPrice> {
   const init: Record<string, HeroPrice> = {};
-  for (const l of labels) init[l] = { price: null, change24h: 0, source: 'pending' };
+  for (const l of labels) init[l] = { price: null, change24h: null, source: 'pending' };
   return init;
 }
 
@@ -179,7 +179,13 @@ export function useHeroPrices(labels: readonly string[]): HeroPricesData {
     async function fetchPrices() {
       try {
         const res = await fetch('/api/prices', { cache: 'no-store' });
-        if (!res.ok) return;
+        if (!res.ok) {
+          const unavailable = emptyPrices(labelList);
+          for (const value of Object.values(unavailable)) value.source = 'unavailable';
+          setPrices(unavailable);
+          setLoading(false);
+          return;
+        }
         const data = (await res.json()) as ApiPricesResponse;
         if (cancelled) return;
 
@@ -187,7 +193,7 @@ export function useHeroPrices(labels: readonly string[]): HeroPricesData {
         for (const label of labelList) {
           const mapping = HERO_SYMBOL_MAP[label];
           if (!mapping) {
-            next[label] = { price: null, change24h: 0, source: 'unmapped' };
+            next[label] = { price: null, change24h: null, source: 'unmapped' };
             continue;
           }
           if ('derived' in mapping) {
@@ -196,11 +202,13 @@ export function useHeroPrices(labels: readonly string[]): HeroPricesData {
             if (gbpUsd && usdJpy) {
               next[label] = {
                 price: gbpUsd.price * usdJpy.price,
-                change24h: 0,
+                change24h: gbpUsd.change24h !== null && usdJpy.change24h !== null
+                  ? gbpUsd.change24h + usdJpy.change24h
+                  : null,
                 source: `derived:${gbpUsd.source}+${usdJpy.source}`,
               };
             } else {
-              next[label] = { price: null, change24h: 0, source: 'derived-missing' };
+              next[label] = { price: null, change24h: null, source: 'derived-missing' };
             }
             continue;
           }
@@ -208,14 +216,18 @@ export function useHeroPrices(labels: readonly string[]): HeroPricesData {
           if (tick) {
             next[label] = { price: tick.price, change24h: tick.change24h, source: tick.source };
           } else {
-            next[label] = { price: null, change24h: 0, source: 'missing' };
+            next[label] = { price: null, change24h: null, source: 'missing' };
           }
         }
         setPrices(next);
         setStale(Boolean(data.stale));
         setLoading(false);
       } catch {
-        // network error — keep previous prices
+        if (cancelled) return;
+        const unavailable = emptyPrices(labelList);
+        for (const value of Object.values(unavailable)) value.source = 'unavailable';
+        setPrices(unavailable);
+        setLoading(false);
       }
     }
 

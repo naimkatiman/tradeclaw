@@ -10,32 +10,31 @@ function makePostRequest(body: unknown) {
 }
 
 describe('GET /api/strategies', () => {
-  it('returns public strategy presets with the leaderboard fields the pages need', async () => {
+  it('returns public strategy definitions without invented performance results', async () => {
     const res = await GET();
     const body = await res.json();
 
     expect(res.status).toBe(200);
     expect(body.count).toBe(body.strategies.length);
     expect(body.strategies.length).toBeGreaterThanOrEqual(5);
+    expect(body.performanceStatus).toEqual({
+      available: false,
+      basis: 'unavailable',
+      detail: expect.stringMatching(/no measured backtest or live-execution results/i),
+    });
 
     for (const strategy of body.strategies) {
       expect(typeof strategy.id).toBe('string');
       expect(typeof strategy.name).toBe('string');
       expect(typeof strategy.description).toBe('string');
+      expect(strategy.description).not.toMatch(/high win rate/i);
       expect(Array.isArray(strategy.indicators)).toBe(true);
       expect(Array.isArray(strategy.symbols)).toBe(true);
       expect(Array.isArray(strategy.timeframes)).toBe(true);
       expect(strategy.riskManagement).toEqual(expect.any(Object));
       expect(typeof strategy.isActive).toBe('boolean');
       expect(typeof strategy.createdAt).toBe('string');
-      expect(strategy.performance).toEqual(expect.objectContaining({
-        totalTrades: expect.any(Number),
-        winRate: expect.any(Number),
-        profitFactor: expect.any(Number),
-        maxDrawdown: expect.any(Number),
-        sharpeRatio: expect.any(Number),
-        totalPnl: expect.any(Number),
-      }));
+      expect(strategy).not.toHaveProperty('performance');
     }
   });
 });
@@ -65,10 +64,11 @@ describe('POST /api/strategies', () => {
       timeframes: ['H1', 'H4'],
       isActive: false,
       createdAt: expect.any(String),
-      performance: expect.objectContaining({
-        totalTrades: expect.any(Number),
-        sharpeRatio: expect.any(Number),
-      }),
+    }));
+    expect(body.strategy).not.toHaveProperty('performance');
+    expect(body.performanceStatus).toEqual(expect.objectContaining({
+      available: false,
+      basis: 'unavailable',
     }));
     expect(new Date(body.strategy.createdAt).toString()).not.toBe('Invalid Date');
     expect(body.strategy.riskManagement).toEqual(expect.objectContaining({

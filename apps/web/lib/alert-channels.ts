@@ -58,7 +58,7 @@ export function formatTelegramText(signal: AlertSignal): string {
   const dirEmoji = signal.direction === 'BUY' ? '\u{1F4C8}' : '\u{1F4C9}';
   const lines: string[] = [
     `${dirEmoji} *${md(signal.direction)} ${md(signal.symbol)} \\- ${md(signal.timeframe)}*`,
-    `Confidence: ${md(String(signal.confidence))}%`,
+    `Rule score: ${md(String(signal.confidence))}/100 \\(not a predictive probability\\)`,
     `Entry: \\$${md(fmtPrice(signal.entry))}`,
   ];
   if (signal.takeProfit1 != null) lines.push(`TP1: \\$${md(fmtPrice(signal.takeProfit1))}`);
@@ -73,7 +73,7 @@ export function formatDiscordEmbed(signal: AlertSignal): {
 } {
   const fields: Array<{ name: string; value: string; inline?: boolean }> = [
     { name: 'Direction', value: signal.direction, inline: true },
-    { name: 'Confidence', value: `${signal.confidence}%`, inline: true },
+    { name: 'Rule score', value: `${signal.confidence}/100 (not a predictive probability)`, inline: true },
     { name: 'Timeframe', value: signal.timeframe, inline: true },
     { name: 'Entry', value: fmtPrice(signal.entry), inline: true },
   ];

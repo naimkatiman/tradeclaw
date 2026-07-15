@@ -20,6 +20,11 @@ import { filterSignalsByRegime } from './regime-filter';
 import { markTelegramPosted } from './signal-history';
 import { runRiskPipeline, type RiskReport } from './risk-pipeline';
 import { HIGH_CONFIDENCE_THRESHOLD } from './signal-thresholds';
+import {
+  evaluateCostAdjustedEdge,
+  getStrictlyApprovedSignalIds,
+  type EdgeGateVerdict,
+} from './cost-adjusted-edge-gate';
 
 // Inlined from the deleted tier canon (Phase 2 pass A). Which symbols the
 // public channel curates is a Telegram broadcast decision, not a tier gate;
@@ -286,8 +291,19 @@ function mapLiveToTradingSignal(s: LiveSignal): TradingSignal {
 export async function broadcastTopSignals(
   channelId: string,
   botToken: string,
-  opts: { freeOnly?: boolean } = {},
+  opts: { freeOnly?: boolean; edgeVerdict?: EdgeGateVerdict } = {},
 ): Promise<BroadcastResult> {
+  const edge = opts.edgeVerdict ?? await evaluateCostAdjustedEdge({
+    symbols: opts.freeOnly ? [...PUBLIC_CHANNEL_SYMBOLS] : undefined,
+  });
+  if (!edge.allowed) {
+    const error = `Cost-adjusted edge gate blocked broadcast: ${edge.reason}`;
+    const state = readBroadcastState();
+    state.lastError = error;
+    writeBroadcastState(state);
+    return { success: false, error, signalCount: 0 };
+  }
+
   // Use the same Python engine source as the dashboard (DB → signals-live.json)
   // No try/catch: fetchResolvedRegimeMap documents a never-rejects invariant.
   const resolved = await fetchResolvedRegimeMap();
@@ -310,10 +326,19 @@ export async function broadcastTopSignals(
   if (opts.freeOnly) {
     filtered = filtered.filter((s) => isPublicChannelSymbol(s.symbol));
   }
-  const top = filtered.slice(0, 3);
+  const candidates = filtered.slice(0, 3);
+  const persistedApprovedIds = await getStrictlyApprovedSignalIds(
+    candidates.map((signal) => signal.id),
+  );
+  const top = candidates.filter((signal) => persistedApprovedIds.has(signal.id));
 
   if (top.length === 0) {
-    const result: BroadcastResult = { success: false, error: 'No signals above threshold to broadcast' };
+    const result: BroadcastResult = {
+      success: false,
+      error: candidates.length === 0
+        ? 'No signals above threshold to broadcast'
+        : 'No candidates have an explicit persisted broadcast approval',
+    };
     const state = readBroadcastState();
     state.lastError = result.error ?? null;
     writeBroadcastState(state);

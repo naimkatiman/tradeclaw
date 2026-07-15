@@ -10,13 +10,13 @@ const ShareClient = dynamic(() => import('./ShareClient').then(m => ({ default: 
 });
 
 export const metadata: Metadata = {
-  title: 'Share TradeClaw — Help Us Reach 1,000 GitHub Stars',
+  title: 'Share TradeClaw Source and Research',
   description:
-    'Spread the word about TradeClaw — self-hosted AI trading signals, MIT licensed, free forever. Pre-written posts for Reddit, HN, Twitter, LinkedIn, Discord and more.',
+    'Review and share TradeClaw as MIT-licensed, self-hostable trading-signal software. Verify pre-written claims before publishing them.',
   openGraph: {
-    title: 'Help TradeClaw reach 1,000 GitHub Stars',
+    title: 'Share TradeClaw Source and Research',
     description:
-      'Pre-written posts for Reddit, Hacker News, Twitter, LinkedIn, Discord and Telegram. One click to share — helps indie traders discover a free alternative to expensive signal platforms.',
+      'Draft posts for Reddit, Hacker News, X, LinkedIn, Discord, and Telegram. Review the evidence and external-service terms before publishing.',
     type: 'website',
   },
 };

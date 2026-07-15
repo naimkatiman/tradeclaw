@@ -1,6 +1,6 @@
 /**
- * Live price fetcher with 30-second cache and graceful fallback.
- * Fetches real-time prices from free APIs:
+ * Provider-observed price fetcher with a 30-second cache.
+ * Fetches current observations from public APIs:
  * - Crypto: CoinGecko
  * - Metals: metals.live
  * - Forex: ExchangeRate API (open.er-api.com)
@@ -13,19 +13,6 @@ const COINGECKO_MAP = {
     ETHUSD: 'ethereum',
     XRPUSD: 'ripple',
     SOLUSD: 'solana',
-};
-/** Fallback prices — used when all APIs are unreachable. Never crash. */
-const FALLBACK_PRICES = {
-    XAUUSD: 4505.0,
-    XAGUSD: 71.36,
-    BTCUSD: 70798.0,
-    ETHUSD: 2147.53,
-    XRPUSD: 1.40,
-    SOLUSD: 91.37,
-    EURUSD: 1.1559,
-    GBPUSD: 1.3352,
-    USDJPY: 159.53,
-    AUDUSD: 0.6939,
 };
 /**
  * Fetch a URL with a timeout. Uses the global `fetch` (Node 18+).
@@ -85,7 +72,7 @@ async function fetchGoldPrice(prices) {
             prices.set('XAUUSD', data[0].price);
         }
     }
-    catch { /* use fallback */ }
+    catch { /* provider unavailable */ }
 }
 async function fetchSilverPrice(prices) {
     const stooqPrice = await fetchStooqPrice('XAGUSD');
@@ -102,7 +89,7 @@ async function fetchSilverPrice(prices) {
             prices.set('XAGUSD', data[0].price);
         }
     }
-    catch { /* use fallback */ }
+    catch { /* provider unavailable */ }
 }
 async function fetchForexPrices(prices) {
     const res = await fetchWithTimeout('https://open.er-api.com/v6/latest/USD');
@@ -122,9 +109,10 @@ async function fetchForexPrices(prices) {
         prices.set('AUDUSD', Number((1 / rates.AUD).toFixed(5)));
 }
 /**
- * Fetch live prices from all sources.
+ * Fetch current provider price observations.
  * Returns a Map of symbol -> current USD price.
- * Falls back to seeded prices if any API fails (never crashes).
+ * Returns only values actually observed from a provider. Missing providers
+ * produce missing symbols; no static quote is substituted.
  * Caches results for 30 seconds to avoid rate limits.
  */
 export async function fetchLivePrices() {
@@ -132,9 +120,6 @@ export async function fetchLivePrices() {
         return new Map(cache.prices);
     }
     const prices = new Map();
-    for (const [symbol, price] of Object.entries(FALLBACK_PRICES)) {
-        prices.set(symbol, price);
-    }
     await Promise.allSettled([
         fetchCryptoPrices(prices),
         fetchGoldPrice(prices),
@@ -145,7 +130,7 @@ export async function fetchLivePrices() {
     return prices;
 }
 /**
- * Get a single live price for a symbol (uses cached batch).
+ * Get one current provider observation for a symbol (uses cached batch).
  */
 export async function getLivePrice(symbol) {
     const prices = await fetchLivePrices();

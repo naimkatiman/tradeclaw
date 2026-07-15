@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { openPosition, BASE_PRICES } from '../../../../lib/paper-trading';
+import { openPosition, PAPER_SYMBOLS } from '../../../../lib/paper-trading';
 import { readSessionFromRequest } from '../../../../lib/user-session';
 
 export async function POST(request: NextRequest) {
@@ -14,20 +14,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { symbol, direction, quantity, signalId, stopLoss, takeProfit } =
+  const { symbol, direction, quantity, signalId, stopLoss, takeProfit, entryPrice } =
     body as Record<string, unknown>;
 
-  if (typeof symbol !== 'string' || !BASE_PRICES[symbol]) {
+  if (typeof symbol !== 'string' || !(PAPER_SYMBOLS as readonly string[]).includes(symbol)) {
     return NextResponse.json({ error: 'Invalid or unknown symbol' }, { status: 400 });
   }
   if (direction !== 'BUY' && direction !== 'SELL') {
     return NextResponse.json({ error: 'direction must be BUY or SELL' }, { status: 400 });
+  }
+  if (typeof entryPrice !== 'number' || !Number.isFinite(entryPrice) || entryPrice <= 0) {
+    return NextResponse.json({ error: 'positive observed entryPrice required' }, { status: 400 });
   }
 
   const result = await openPosition({
     userId: session.userId,
     symbol,
     direction,
+    entryPrice,
     quantity: typeof quantity === 'number' ? quantity : undefined,
     signalId: typeof signalId === 'string' ? signalId : undefined,
     stopLoss: typeof stopLoss === 'number' ? stopLoss : undefined,

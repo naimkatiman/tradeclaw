@@ -12,31 +12,31 @@
 export const STAT_HINTS = {
   // ── Returns ──────────────────────────────────────────────────
   totalReturnLinear:
-    'Sum of per-signal % outcomes (raw market price-to-price). Reads "if every signal printed at exact entry/exit, this is what the trades summed to." Not a sized return — see the equity card below for the position-sized version.',
+    'Arithmetic sum of each counted signal\'s OHLCV-resolved price move. It assumes the displayed entry and resolved exit for every signal, with no position sizing or execution costs. This is not a portfolio return; see the equity card for the separate sequential simulation.',
   totalReturnCompounded:
-    "Compounded equity from $10,000 with 1% risk per trade (fixed-fractional sizing), per-trade R-multiple capped at 8R (above P99 of the live distribution — clips only unrealistic single-trade outliers), and each trade's REAL recorded round-trip cost deducted (per-symbol: ~0.40% crypto, ~0.10% metals, ~0.04% FX of notional — not a flat blended guess). Differs from the raw price-to-price sum at the top of the page.",
-  avgPnl: 'Total return ÷ resolved signals. The average outcome of one trade in this window.',
+    "Hypothetical sequential equity simulation starting at $10,000. It orders eligible sized signals by timestamp, risks 1% of current equity on every signal, caps each R-multiple at 8R, and deducts static per-asset fee/slippage assumptions (~0.40% crypto, ~0.10% metals, ~0.04% FX of notional). It does not use broker fills or model overlapping exposure, margin, leverage, latency, funding, or subscriber selection, so it is not an actual portfolio return.",
+  avgPnl: 'Arithmetic sum of OHLCV-resolved per-signal price moves ÷ counted resolved signals. No position sizing or execution costs are applied.',
 
   // ── Win-rate flavours ────────────────────────────────────────
   winRate24h:
-    'Resolved signals where the 24h outcome hit TP, divided by total resolved signals in this window. Excludes auto-expired and gate-blocked rows.',
+    'Counted signals whose 24h OHLCV outcome hit TP, divided by counted signals with a usable 24h OHLCV outcome. A nonzero 24h close after neither TP nor SL hit counts as a miss. Excludes zero/missing force-expiry placeholders, simulated rows, and gate-blocked rows.',
   winRate4h:
     'Resolved signals where the 4h outcome hit TP, divided by total resolved signals. Shorter horizon — an early read on signal quality.',
   hitRate:
-    'Trades that hit TP within the window, divided by trades that resolved either way (TP or SL). Pending and gate-blocked rows excluded.',
+    'Counted signals that hit TP within the window, divided by counted signals with a usable OHLCV outcome. Nonzero horizon-close misses remain counted; pending, simulated, gate-blocked, and force-expiry placeholder rows are excluded.',
 
   // ── Counts ───────────────────────────────────────────────────
   resolved:
-    'Signals with a real 24h outcome (TP or SL hit). Excludes still-open trades, auto-expired rows, and gate-blocked signals. The engine fires across the full multi-symbol multi-timeframe stream — a real subscriber filtering for high-confidence setups would execute a small fraction of these.',
+    'Signals with a usable 24h outcome resolved from provider OHLCV: TP, SL, or a nonzero 24h close after neither was hit. Excludes still-open rows, zero/missing force-expiry placeholders, simulated rows, and gate-blocked signals. This is an engine signal study, not a subscriber execution ledger.',
   expired:
-    'Signal left the tracking window without a TP or SL hit, or it was auto-expired by the resolver. Recorded for transparency, not counted in win-rate.',
+    'The resolver could not produce a usable 24h market outcome and wrote a zero force-expiry placeholder, or the row remains missing after the horizon. Excluded from win rate. A nonzero 24h close is counted instead.',
   gateBlocked:
     'Engine emitted the signal but the full-risk gate refused entry (e.g. spread too wide, news lockout). Not counted toward equity.',
   pending: 'Signal is still inside the 24h tracking window. Outcome not yet known.',
 
   // ── Path & risk ──────────────────────────────────────────────
   maxDrawdown:
-    'Worst peak-to-trough drop in the equity curve over this window. Even a positive endpoint can hide a deep mid-run drawdown — this surfaces the path, not just the destination.',
+    'Worst peak-to-trough drop in the hypothetical sequential equity simulation over this window. It is model drawdown, not drawdown observed in a broker or subscriber account.',
   sharpe:
     'Daily-bucketed annualized Sharpe: trades grouped by UTC date, then mean(daily %) ÷ stddev(daily %) × √365. Calendar days (not trading days) because the engine fires across crypto/FX/indices with no shared session. Daily bucketing is required because per-signal returns are not IID — same symbol re-fires and multi-timeframe stacks share macro factors.',
   streak: 'Consecutive resolved trades, signed: positive when on a win streak, negative on a losing streak.',
@@ -45,23 +45,23 @@ export const STAT_HINTS = {
 
   // ── Confidence / model ───────────────────────────────────────
   avgConfidence:
-    'Mean model confidence across signals in this window. Confidence is the engine\'s own self-assessed probability, not a calibrated forecast — see the calibration page for how it tracks reality.',
+    'Mean mechanical rule/confluence score across signals in this window, on a 0–100 scale. It measures indicator agreement and is not a probability, calibrated forecast, or demonstrated trading edge.',
   premiumThreshold:
-    'Premium tier: signals at or above the high-confidence threshold (currently 80%). Standard tier: everything below. The split is set in tier.ts.',
+    'High-score band: signals with a mechanical rule/confluence score of at least 80/100. This threshold is a routing rule, not an estimated probability of success.',
 
   // ── R-multiples & expectancy (live) ──────────────────────────
   avgRWin:
-    'Average R-multiple of winning trades. R = entry-to-stop distance in pct; a +2.0R win realizes 2× the risked amount. Higher is better — a 40% win rate at 2R wins is more profitable than 60% at 1R.',
+    'Average R-multiple of winning OHLCV-resolved signals. R = entry-to-stop distance in percent; +2.0R means the modeled price outcome was twice the planned risk distance. This is not a broker fill or realized account gain.',
   avgRLoss:
-    'Average R-multiple of losing trades. Should sit near -1.0R when stops fill cleanly. Values closer to 0 indicate slippage in your favor; further from 0 indicates gap losses worse than -1R.',
+    'Average R-multiple of losing OHLCV-resolved signals. Values near -1R mean the resolved price outcome was near the planned stop distance; they do not measure broker fill quality or realized slippage.',
   expectancyR:
-    'Expected R per trade AFTER real round-trip cost: (winRate × avgRWin + lossRate × avgRLoss) − average cost in R. The tile shows the NET figure; the sub-line breaks out gross expectancy minus cost. Net is what actually compounds the equity curve — gross alone ignores fees/slippage and overstates the edge. A positive gross with a negative net means costs eat the edge, which is exactly why the curve can fall while gross looks fine. Positive NET expectancy is the only thing that matters long-run.',
+    'Average modeled R per eligible sized signal after stated cost assumptions: gross expectancy − average modeled fee/slippage cost in R. A positive gross value with a negative net value means the assumed costs exceed the observed gross edge. This is study expectancy, not realized subscriber expectancy.',
   breakEvenWinRate:
-    'Win-rate the system needs to break even given its observed avgRWin and avgRLoss. If actual win-rate exceeds this, the system has positive expectancy — even if the win-rate is below 50%.',
+    'Win rate the study needs to break even given its observed average win/loss R and stated cost assumptions. If the observed OHLCV-resolved win rate exceeds it, the study has positive modeled expectancy, even below 50%.',
 
   // ── Backtest-specific ────────────────────────────────────────
   backtestTotalReturn:
-    'Total return over the simulated period, computed exactly the same way as the live equity curve so backtest vs live numbers are directly comparable.',
+    'Modeled return over the backtest period. It can be compared with the public sequential simulation only when both use the same sizing, cost, and outcome assumptions; neither is an actual portfolio return.',
   backtestProfitFactor:
     'Sum of winning trades ÷ absolute sum of losing trades. >1 means net profitable; >1.5 is decent; >2 is rare and usually a sign of overfitting.',
   backtestSharpe:

@@ -1,7 +1,17 @@
 import { NextResponse } from 'next/server';
 import {
-  FileText, BarChart2, Zap, Sparkles, ClipboardList, Gamepad2,
-  MessageSquare, AlertTriangle, Send, Wrench, Link2, Waves,
+  FileText,
+  BarChart2,
+  Zap,
+  Sparkles,
+  ClipboardList,
+  Gamepad2,
+  MessageSquare,
+  AlertTriangle,
+  Send,
+  Wrench,
+  Link2,
+  Waves,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -27,7 +37,8 @@ export const INTEGRATIONS = [
     id: 'notion',
     name: 'Notion',
     emoji: '📝',
-    description: 'Log every trading signal as a row in your Notion database. Build rich dashboards with filters, views, and formulas.',
+    description:
+      'Relay-required recipe for mapping an eligible TradeClaw webhook payload into the Notion API. This is not a native integration.',
     category: 'Productivity',
     categoryColor: 'blue',
     tags: ['database', 'notes', 'kanban'],
@@ -36,7 +47,8 @@ export const INTEGRATIONS = [
       'Name it "TradeClaw" and grant read/write database permissions.',
       'Copy the Internal Integration Token from Notion.',
       'Share your target database with the integration.',
-      'Paste the Notion token as a query param: ?notion_token=secret_xxx&database_id=xxx',
+      'Build an HTTPS relay that validates TradeClaw, stores the Notion token server-side, and calls the Notion API.',
+      'Configure the relay URL in TradeClaw Webhook Settings and verify it with signal.test.',
     ],
     payload: {
       symbol: 'BTCUSD',
@@ -53,7 +65,8 @@ export const INTEGRATIONS = [
     id: 'airtable',
     name: 'Airtable',
     emoji: '📊',
-    description: 'Sync signals to an Airtable base. Build custom views, pivot tables, and share reports with your team.',
+    description:
+      'Relay-required recipe for transforming an eligible TradeClaw webhook payload into an authenticated Airtable API request.',
     category: 'Productivity',
     categoryColor: 'blue',
     tags: ['spreadsheet', 'database', 'reports'],
@@ -61,8 +74,8 @@ export const INTEGRATIONS = [
       'Log into Airtable → go to account → API → Generate API Key.',
       'Create a new base called "TradeClaw Signals" with columns: Symbol, Direction, Confidence, Price, Timestamp.',
       'Copy your Base ID from the Airtable API docs URL.',
-      'Use the webhook URL format: https://api.airtable.com/v0/{baseId}/{tableName}',
-      'Add the webhook in TradeClaw Settings → Webhooks with your Airtable URL and API key header.',
+      'Build an HTTPS relay that stores Airtable credentials server-side and maps the TradeClaw payload to Airtable records.',
+      'Add the relay URL in TradeClaw Webhook Settings and verify it with signal.test.',
     ],
     payload: {
       symbol: 'XAUUSD',
@@ -78,10 +91,10 @@ export const INTEGRATIONS = [
     id: 'zapier',
     name: 'Zapier',
     emoji: '⚡',
-    description: 'Connect TradeClaw signals to 6,000+ apps. Trigger emails, CRM updates, spreadsheets, and more — no code needed.',
+    description: 'Manual recipe for using Webhooks by Zapier as a destination for authenticated TradeClaw dispatches.',
     category: 'Dev Tools',
     categoryColor: 'orange',
-    tags: ['automation', 'no-code', '6000+ apps'],
+    tags: ['automation', 'webhook recipe', 'manual setup'],
     setupSteps: [
       'Go to zapier.com and click "Create Zap".',
       'Choose "Webhooks by Zapier" as the trigger app and select "Catch Hook".',
@@ -103,7 +116,7 @@ export const INTEGRATIONS = [
     id: 'make',
     name: 'Make (Integromat)',
     emoji: '🔮',
-    description: 'Build visual automation flows with TradeClaw signals. Route signals conditionally, transform data, and chain multiple actions.',
+    description: 'Manual recipe for receiving an eligible TradeClaw webhook in a Make custom-webhook scenario.',
     category: 'Dev Tools',
     categoryColor: 'orange',
     tags: ['visual automation', 'flows', 'conditional'],
@@ -127,7 +140,7 @@ export const INTEGRATIONS = [
     id: 'google-sheets',
     name: 'Google Sheets',
     emoji: '📋',
-    description: 'Append each signal as a new row in Google Sheets. Build live dashboards, charts, and share with investors.',
+    description: 'Manual Apps Script receiver recipe for mapping delivered TradeClaw payloads into a Google Sheet.',
     category: 'Productivity',
     categoryColor: 'blue',
     tags: ['spreadsheet', 'logging', 'charts'],
@@ -152,7 +165,8 @@ export const INTEGRATIONS = [
     id: 'discord',
     name: 'Discord',
     emoji: '🎮',
-    description: 'Post rich signal alerts to your Discord server channels. TradeClaw auto-formats embeds with color-coded BUY/SELL signals.',
+    description:
+      'Direct-webhook recipe. TradeClaw formats Discord embeds when an eligible dispatch targets a Discord webhook URL.',
     category: 'Communication',
     categoryColor: 'purple',
     tags: ['chat', 'alerts', 'community'],
@@ -161,26 +175,29 @@ export const INTEGRATIONS = [
       'Click "New Webhook", name it "TradeClaw Signals", and choose the target channel.',
       'Copy the webhook URL.',
       'Paste it into TradeClaw Settings → Webhooks.',
-      'TradeClaw automatically sends Discord-formatted embeds with green/red colors.',
+      'Use signal.test to verify formatting. Entry-like signal.new delivery remains evidence-gated.',
     ],
     payload: {
-      embeds: [{
-        title: '🟢 BUY Signal — BTCUSD H4',
-        color: 3066993,
-        fields: [
-          { name: 'Confidence', value: '82%', inline: true },
-          { name: 'Price', value: '$67,420', inline: true },
-          { name: 'RSI', value: '38.2', inline: true },
-        ],
-        timestamp: '2026-03-28T09:00:00Z',
-      }],
+      embeds: [
+        {
+          title: '🟢 BUY Signal — BTCUSD H4',
+          color: 3066993,
+          fields: [
+            { name: 'Confidence', value: '82%', inline: true },
+            { name: 'Price', value: '$67,420', inline: true },
+            { name: 'RSI', value: '38.2', inline: true },
+          ],
+          timestamp: '2026-03-28T09:00:00Z',
+        },
+      ],
     },
   },
   {
     id: 'slack',
     name: 'Slack',
     emoji: '💬',
-    description: 'Deliver signal alerts to your Slack workspace. TradeClaw sends Block Kit messages with structured, readable signal data.',
+    description:
+      'Direct-webhook recipe. TradeClaw formats Block Kit when an eligible dispatch targets a Slack incoming-webhook URL.',
     category: 'Communication',
     categoryColor: 'purple',
     tags: ['team', 'notifications', 'blocks'],
@@ -189,20 +206,26 @@ export const INTEGRATIONS = [
       'Enable "Incoming Webhooks" and activate it for your workspace.',
       'Click "Add New Webhook to Workspace" and pick your channel.',
       'Copy the webhook URL.',
-      'Paste it into TradeClaw Settings → Webhooks. Slack Block Kit format is auto-applied.',
+      'Paste it into TradeClaw Webhook Settings, then verify with signal.test. Entry-like signal.new delivery remains evidence-gated.',
     ],
     payload: {
-      blocks: [{
-        type: 'section',
-        text: { type: 'mrkdwn', text: '*🟢 BUY — BTCUSD H4*\nConfidence: 82% | Price: $67,420' },
-      }],
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '*🟢 BUY — BTCUSD H4*\nConfidence: 82% | Price: $67,420',
+          },
+        },
+      ],
     },
   },
   {
     id: 'pagerduty',
     name: 'PagerDuty',
     emoji: '🚨',
-    description: 'Escalate critical high-confidence signals to PagerDuty. Wake up on-call traders for extreme RSI or confluence signals.',
+    description:
+      'Relay-required example for mapping a TradeClaw event into PagerDuty Events API v2. Confidence is not a severity guarantee.',
     category: 'Dev Tools',
     categoryColor: 'orange',
     tags: ['alerting', 'on-call', 'incident management'],
@@ -211,7 +234,8 @@ export const INTEGRATIONS = [
       'Choose "Events API v2" as the integration type and save.',
       'Copy the Integration Key (routing key).',
       'Use the PagerDuty Events API URL: https://events.pagerduty.com/v2/enqueue',
-      'Add the webhook in TradeClaw with the routing_key in the payload header.',
+      'Build a relay that stores the routing key, applies your severity policy, and calls PagerDuty Events API v2.',
+      'Configure the relay URL in TradeClaw Webhook Settings and verify it explicitly.',
     ],
     payload: {
       routing_key: 'your_integration_key',
@@ -228,7 +252,7 @@ export const INTEGRATIONS = [
     id: 'telegram',
     name: 'Telegram',
     emoji: '✈️',
-    description: 'Send signals directly to your Telegram chat or group. Works alongside TradeClaw\'s built-in Telegram bot.',
+    description: 'Relay-required example for mapping a TradeClaw webhook payload into Telegram Bot API sendMessage.',
     category: 'Communication',
     categoryColor: 'purple',
     tags: ['messaging', 'mobile', 'alerts'],
@@ -237,7 +261,8 @@ export const INTEGRATIONS = [
       'Send /newbot and follow the prompts to create your bot.',
       'Copy the bot token from BotFather.',
       'Get your chat ID by messaging @userinfobot.',
-      'Use URL: https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={CHAT_ID}',
+      'Build a relay that stores the bot token, formats the message, and calls Telegram Bot API sendMessage.',
+      'Configure the relay URL in TradeClaw Webhook Settings and verify it explicitly.',
     ],
     payload: {
       chat_id: 'your_chat_id',
@@ -249,7 +274,7 @@ export const INTEGRATIONS = [
     id: 'n8n',
     name: 'n8n',
     emoji: '🔧',
-    description: 'Self-hosted workflow automation that pairs perfectly with TradeClaw. Run n8n on your own server for full data privacy.',
+    description: 'Manual recipe for receiving eligible TradeClaw webhook deliveries in a self-hosted n8n workflow.',
     category: 'Dev Tools',
     categoryColor: 'orange',
     tags: ['self-hosted', 'automation', 'open-source'],
@@ -273,7 +298,8 @@ export const INTEGRATIONS = [
     id: 'ifttt',
     name: 'IFTTT',
     emoji: '🔗',
-    description: 'Trigger simple automations on 700+ services. Send emails, turn on smart home devices, or log to iOS shortcuts.',
+    description:
+      "Manual IFTTT webhook recipe. Verify that your applet accepts and maps TradeClaw's standard JSON payload.",
     category: 'Dev Tools',
     categoryColor: 'orange',
     tags: ['simple', 'smart home', 'mobile'],
@@ -294,7 +320,7 @@ export const INTEGRATIONS = [
     id: 'pipedream',
     name: 'Pipedream',
     emoji: '🌊',
-    description: 'Developer-focused workflow platform. Write Node.js code steps, connect APIs, and build advanced signal processing pipelines.',
+    description: 'Manual recipe for receiving eligible TradeClaw webhook deliveries in a Pipedream HTTP workflow.',
     category: 'Dev Tools',
     categoryColor: 'orange',
     tags: ['developer', 'code', 'APIs'],
@@ -331,7 +357,8 @@ export async function GET() {
         tags,
       })),
       total: INTEGRATIONS.length,
-      webhookDispatchUrl: '/api/webhooks/dispatch',
+      catalogType: 'manual-setup-recipes',
+      configurationPath: '/settings/webhooks',
     });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

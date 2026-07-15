@@ -12,8 +12,6 @@ import {
   ArrowRight,
   ChevronDown,
   AlertTriangle,
-  TrendingUp,
-  TrendingDown,
   Minus,
 } from 'lucide-react';
 import type { RoastResult } from '@/lib/strategy-roaster';
@@ -31,11 +29,11 @@ const GRADE_COLORS: Record<string, string> = {
 };
 
 const GRADE_LABELS: Record<string, string> = {
-  A: 'Excellent',
-  B: 'Good',
-  C: 'Average',
-  D: 'Risky',
-  F: 'Dangerous',
+  A: 'Few flags',
+  B: 'Some flags',
+  C: 'More flags',
+  D: 'Many flags',
+  F: 'Severe flags',
 };
 
 function RiskMeter({ score }: { score: number }) {
@@ -82,32 +80,16 @@ function RiskMeter({ score }: { score: number }) {
       <div className="text-3xl font-bold" style={{ color }}>
         {score}
       </div>
-      <div className="text-xs text-[var(--text-secondary)]">Risk Score / 100</div>
+      <div className="text-center text-xs text-[var(--text-secondary)]">Text heuristic / 100</div>
     </div>
   );
 }
 
 function EdgeBadge({ edge }: { edge: RoastResult['edgeAssessment'] }) {
-  if (edge === 'Positive Edge') {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20">
-        <TrendingUp className="w-3 h-3" />
-        Positive Edge
-      </span>
-    );
-  }
-  if (edge === 'Negative Edge') {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-rose-400 bg-rose-400/10 border border-rose-400/20">
-        <TrendingDown className="w-3 h-3" />
-        Negative Edge
-      </span>
-    );
-  }
   return (
     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-zinc-400 bg-zinc-400/10 border border-zinc-400/20">
       <Minus className="w-3 h-3" />
-      Neutral
+      Edge: {edge}
     </span>
   );
 }
@@ -160,14 +142,14 @@ export default function RoastClient() {
 
   function handleShare() {
     if (!result) return;
-    const text = `My trading strategy got roasted on TradeClaw!\n\nRisk Score: ${result.riskScore}/100 | Grade: ${result.grade} | Edge: ${result.edgeAssessment}\n\nGet yours roasted: https://tradeclaw.win/roast`;
+    const text = `My strategy text got a TradeClaw heuristic review.\n\nStructural flag score: ${result.riskScore}/100 | Grade: ${result.grade} | Market edge: ${result.edgeAssessment}\n\nThis is not a backtest or performance measurement. https://tradeclaw.win/roast`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank', 'noopener');
   }
 
   async function handleCopyResult() {
     if (!result) return;
-    const text = `TradeClaw Strategy Roast\nRisk: ${result.riskScore}/100 | Grade: ${result.grade} | ${result.edgeAssessment}\n\n${result.roastText}\n\nStrengths:\n${result.strengths.map((s) => `• ${s}`).join('\n')}\n\nWeaknesses:\n${result.weaknesses.map((w) => `• ${w}`).join('\n')}\n\nSuggestions:\n${result.suggestions.map((s) => `• ${s}`).join('\n')}`;
+    const text = `TradeClaw Strategy Text Review\nStructural flag score: ${result.riskScore}/100 | Grade: ${result.grade} | Market edge: ${result.edgeAssessment}\nNot a backtest, risk model, or performance measurement.\n\n${result.roastText}\n\nDetected structure:\n${result.strengths.map((s) => `• ${s}`).join('\n')}\n\nMissing or test-required structure:\n${result.weaknesses.map((w) => `• ${w}`).join('\n')}\n\nTest hypotheses:\n${result.suggestions.map((s) => `• ${s}`).join('\n')}`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -179,14 +161,14 @@ export default function RoastClient() {
       <div className="text-center mb-12">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium text-orange-400 bg-orange-400/10 border border-orange-400/20 mb-6">
           <Flame className="w-3.5 h-3.5" />
-          AI Strategy Critic
+          Deterministic Strategy Text Critic
         </div>
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
           Roast My Strategy
         </h1>
         <p className="text-lg text-[var(--text-secondary)] max-w-xl mx-auto">
-          We roast your strategy so the market doesn&apos;t have to.
-          Get a risk score, edge assessment, and actionable feedback — instantly.
+          A deterministic parser flags rule structure in the text you submit. It does not run a
+          backtest, measure market edge, or estimate real portfolio risk.
         </p>
       </div>
 
@@ -268,6 +250,9 @@ export default function RoastClient() {
       {/* Results */}
       {result && (
         <div className="space-y-4 animate-fade-up">
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            Generated text heuristic only. No candles, costs, fills, outcomes, or portfolio data were evaluated.
+          </div>
           {/* Score row */}
           <div className="glass rounded-2xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             <div className="flex justify-center">
@@ -307,7 +292,7 @@ export default function RoastClient() {
             <div className="glass rounded-2xl p-6">
               <h3 className="text-sm font-semibold text-emerald-400 mb-4 flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                Strengths
+                Detected Structure
               </h3>
               <ul className="space-y-2">
                 {result.strengths.map((s, i) => (
@@ -322,7 +307,7 @@ export default function RoastClient() {
             <div className="glass rounded-2xl p-6">
               <h3 className="text-sm font-semibold text-rose-400 mb-4 flex items-center gap-2">
                 <XCircle className="w-4 h-4" />
-                Weaknesses
+                Missing or Test-Required Structure
               </h3>
               <ul className="space-y-2">
                 {result.weaknesses.map((w, i) => (
@@ -339,7 +324,7 @@ export default function RoastClient() {
           <div className="glass rounded-2xl p-6">
             <h3 className="text-sm font-semibold text-zinc-400 mb-4 flex items-center gap-2">
               <Lightbulb className="w-4 h-4" />
-              Improvement Suggestions
+              Test Hypotheses
             </h3>
             <ul className="space-y-2">
               {result.suggestions.map((s, i) => (

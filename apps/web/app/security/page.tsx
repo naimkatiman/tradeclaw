@@ -4,11 +4,11 @@ import SecurityDashboardClient from "./SecurityDashboardClient";
 export const metadata: Metadata = {
   title: "Security | TradeClaw",
   description:
-    "TradeClaw security posture: OWASP Top 10 compliance, security headers, vulnerability disclosure policy, and live audit dashboard.",
+    "TradeClaw declared security controls, assessment status, and vulnerability disclosure policy.",
   openGraph: {
     title: "Security | TradeClaw",
     description:
-      "TradeClaw security posture: OWASP Top 10 compliance, security headers, vulnerability disclosure policy, and live audit dashboard.",
+      "TradeClaw declared security controls, assessment status, and vulnerability disclosure policy.",
     images: ["/api/og?title=Security+%26+Trust+Dashboard"],
   },
 };

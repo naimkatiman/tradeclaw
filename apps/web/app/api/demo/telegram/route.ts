@@ -78,10 +78,10 @@ export async function POST(req: NextRequest) {
     const lines: string[] = [
       `${emoji} *${escapeV2(`${dirLabel} — ${preview.pair}`)}*`,
       escapeV2('━━━━━━━━━━━━━━━━━'),
-      `📊 *Confidence:* ${escapeV2(String(preview.confidence))}% ${escapeV2(confBar)}`,
+      `📊 *Rule score:* ${escapeV2(String(preview.confidence))}/100 ${escapeV2(confBar)}`,
       `⏱ *Timeframe:* ${escapeV2(preview.timeframe)}`,
       '',
-      escapeV2('This is a delivery demo. Full signals — entry, TP, and SL — are free on the dashboard.'),
+      escapeV2('This is a delivery demo for a rule-generated research candidate. The score is not a probability, expected return, or proof of edge.'),
       '',
       escapeV2('📈 Powered by TradeClaw — tradeclaw.win'),
       escapeV2('⚠️ For educational purposes only. Not financial advice.'),

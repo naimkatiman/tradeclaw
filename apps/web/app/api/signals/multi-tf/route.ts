@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateMultiTFSignal, type SignalMode } from '../../../lib/signal-generator';
 import { SYMBOLS } from '../../../lib/signals';
-import { notifyMultiTFConfluence } from '../../../../lib/execution/multi-tf-alert';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,15 +32,6 @@ export async function GET(request: NextRequest) {
           r.status === 'fulfilled' && r.value !== null
       )
       .map(r => r.value!);
-
-    try {
-      await notifyMultiTFConfluence(results, mode);
-    } catch (err: unknown) {
-      console.warn(
-        '[multi-tf] Telegram confluence alert failed:',
-        err instanceof Error ? err.message : String(err),
-      );
-    }
 
     // Build summary stats
     const bullish = results.filter(r => r.dominantDirection === 'BUY').length;

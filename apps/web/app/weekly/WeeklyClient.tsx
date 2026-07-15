@@ -3,16 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { PageNavBar } from '@/components/PageNavBar';
-import {
-  TrendingUp,
-  TrendingDown,
-  Trophy,
-  Calendar,
-  BarChart3,
-  Target,
-  ArrowRight,
-  Share2,
-} from 'lucide-react';
+import { TrendingUp, TrendingDown, Trophy, Calendar, BarChart3, Target, ArrowRight, Share2 } from 'lucide-react';
 import type { WeeklyDigest, RankedSignal, WeeklyStats } from '@/lib/weekly-digest';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -62,11 +53,7 @@ function RankMedal({ rank }: { rank: number }) {
         3
       </span>
     );
-  return (
-    <span className="text-xs text-[var(--text-secondary)] font-mono w-7 text-center inline-block">
-      {rank}
-    </span>
-  );
+  return <span className="text-xs text-[var(--text-secondary)] font-mono w-7 text-center inline-block">{rank}</span>;
 }
 
 function DailyWinChart({ rates }: { rates: WeeklyStats['dailyWinRates'] }) {
@@ -75,7 +62,8 @@ function DailyWinChart({ rates }: { rates: WeeklyStats['dailyWinRates'] }) {
     <div className="flex items-end gap-1.5 h-20">
       {rates.map((rate, i) => {
         const height = max > 0 ? (rate / 100) * 100 : 0;
-        const color = rate >= 60 ? 'bg-emerald-500' : rate >= 50 ? 'bg-zinc-500' : rate > 0 ? 'bg-red-500' : 'bg-zinc-700';
+        const color =
+          rate >= 60 ? 'bg-emerald-500' : rate >= 50 ? 'bg-zinc-500' : rate > 0 ? 'bg-red-500' : 'bg-zinc-700';
         return (
           <div key={i} className="flex flex-col items-center gap-1 flex-1">
             <span className="text-[9px] font-mono text-[var(--text-secondary)] tabular-nums">
@@ -144,17 +132,11 @@ function SignalRow({ signal }: { signal: RankedSignal }) {
 
       <div className="flex items-center gap-4 shrink-0">
         <div className="text-right">
+          <div className="text-[9px] uppercase text-[var(--text-secondary)]">24h signal move</div>
           <PnlBadge value={signal.pnlPercent} />
-          <div className="text-[10px] text-[var(--text-secondary)] mt-0.5 font-mono tabular-nums">
-            {signal.pnlPips > 0 ? '+' : ''}{signal.pnlPips} pips
-          </div>
         </div>
         {outcomeHit !== undefined && (
-          <div
-            className={`w-2 h-2 rounded-full ${
-              outcomeHit ? 'bg-emerald-400' : 'bg-red-400'
-            }`}
-          />
+          <div className={`w-2 h-2 rounded-full ${outcomeHit ? 'bg-emerald-400' : 'bg-red-400'}`} />
         )}
       </div>
     </div>
@@ -184,20 +166,20 @@ export default function WeeklyClient() {
 
   useEffect(() => {
     fetch('/api/weekly')
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
       .then((data: WeeklyDigest) => setDigest(data))
-      .catch(err => setError(err instanceof Error ? err.message : 'Failed to load digest'))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load digest'))
       .finally(() => setLoading(false));
   }, []);
 
   const handleShare = async () => {
     if (!digest) return;
-    const text = `Signal of the Week on TradeClaw\n\nWin Rate: ${digest.stats.winRate}%\nBest Pair: ${digest.stats.bestPair}\nTop Signal: ${digest.topSignals[0]?.pair} (${digest.topSignals[0]?.pnlPercent > 0 ? '+' : ''}${digest.topSignals[0]?.pnlPercent}%)\n\nhttps://tradeclaw.win/weekly`;
+    const text = `Weekly Signal Outcome Study on TradeClaw\n\nCounted signal win rate: ${digest.stats.winRate}%\nBest pair by counted hit rate: ${digest.stats.bestPair}\nTop signal move: ${digest.topSignals[0]?.pair} (${digest.topSignals[0]?.pnlPercent > 0 ? '+' : ''}${digest.topSignals[0]?.pnlPercent}%)\n\nOHLCV-derived signal study; not broker fills or portfolio P/L.\nhttps://tradeclaw.win/weekly`;
     if (navigator.share) {
-      await navigator.share({ title: 'Signal of the Week', text });
+      await navigator.share({ title: 'Weekly Signal Outcome Study', text });
     } else {
       await navigator.clipboard.writeText(text);
     }
@@ -213,7 +195,7 @@ export default function WeeklyClient() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Trophy className="w-6 h-6 text-zinc-400" />
-              Signal of the Week
+              Weekly Signal Outcome Study
             </h1>
             {digest && (
               <p className="text-sm text-[var(--text-secondary)] mt-1 flex items-center gap-1.5">
@@ -231,6 +213,10 @@ export default function WeeklyClient() {
           </button>
         </div>
 
+        <p className="mb-6 text-xs text-[var(--text-secondary)]">
+          Counted OHLCV-derived signal outcomes only. This is not a broker-fill ledger or customer portfolio P/L.
+        </p>
+
         {loading && <Skeleton />}
 
         {error && (
@@ -243,34 +229,22 @@ export default function WeeklyClient() {
           <div className="space-y-6">
             {/* Stats grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <StatCard
-                icon={BarChart3}
-                label="Total Signals"
-                value={String(digest.stats.totalSignals)}
-              />
+              <StatCard icon={BarChart3} label="Counted Signals" value={String(digest.stats.totalSignals)} />
               <StatCard
                 icon={Target}
-                label="Win Rate"
+                label="Counted Win Rate"
                 value={`${digest.stats.winRate}%`}
                 sub={digest.stats.winRate >= 55 ? 'Above average' : 'Below average'}
               />
-              <StatCard
-                icon={TrendingUp}
-                label="Best Pair"
-                value={digest.stats.bestPair}
-              />
-              <StatCard
-                icon={TrendingDown}
-                label="Worst Pair"
-                value={digest.stats.worstPair}
-              />
+              <StatCard icon={TrendingUp} label="Best Pair" value={digest.stats.bestPair} />
+              <StatCard icon={TrendingDown} label="Worst Pair" value={digest.stats.worstPair} />
             </div>
 
             {/* Daily win rate chart */}
             <div className="rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] p-4">
               <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-[var(--text-secondary)]" />
-                Daily Win Rates
+                Daily Counted Win Rates
               </h2>
               <DailyWinChart rates={digest.stats.dailyWinRates} />
             </div>
@@ -283,10 +257,10 @@ export default function WeeklyClient() {
                   Top 5 Signals
                 </h2>
                 <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
-                  Ranked by hit rate, then confidence
+                  Ranked by pair hit rate, then strategy confidence score
                 </p>
               </div>
-              {digest.topSignals.map(signal => (
+              {digest.topSignals.map((signal) => (
                 <SignalRow key={signal.id} signal={signal} />
               ))}
             </div>
@@ -294,7 +268,7 @@ export default function WeeklyClient() {
             {/* CTA */}
             <div className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--glass-bg)] p-4">
               <div>
-                <p className="text-sm font-semibold">Want live signals every 5 minutes?</p>
+                <p className="text-sm font-semibold">Review the current signal snapshot</p>
                 <p className="text-[11px] text-[var(--text-secondary)]">
                   Avg confidence this week: {digest.stats.avgConfidence}%
                 </p>
@@ -303,7 +277,7 @@ export default function WeeklyClient() {
                 href="/dashboard"
                 className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
               >
-                Live Dashboard
+                Signal Dashboard
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

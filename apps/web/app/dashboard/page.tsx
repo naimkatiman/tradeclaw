@@ -5,7 +5,7 @@ import { WATCHLIST_MIN_CONFIDENCE } from '../../lib/signal-thresholds';
 
 export const metadata: Metadata = {
   title: 'Dashboard — TradeClaw',
-  description: 'Live AI trading signals for forex, crypto, and commodities (5-min cadence). Technical analysis with RSI, MACD, EMA confluence scoring.',
+  description: 'Latest provider-backed, rule-generated signal candidates for supported markets, with source and evidence boundaries.',
 };
 
 export default async function DashboardPage() {

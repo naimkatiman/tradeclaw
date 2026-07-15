@@ -1,57 +1,20 @@
-# HackerNews Show HN
+# Show HN: TradeClaw - auditable, self-hosted trading research
 
-**Submit at:** https://news.ycombinator.com/submit
+I built TradeClaw to make signal-candidate rules and historical denominators inspectable.
 
----
+Repository: https://github.com/naimkatiman/tradeclaw
 
-## Title
+The TypeScript/Next.js monorepo includes:
 
-```
-Show HN: TradeClaw – Self-hosted trading signal daemon with TradingView bridge (TypeScript)
-```
+- rule-scored multi-asset candidates from configured OHLCV providers
+- PostgreSQL-backed candidate history and provenance
+- canonical counted 24-hour OHLCV outcome studies
+- alert adapters and Docker Compose configuration
 
-## Body (paste in the "text" field)
+The wording is intentional: a candidate is not an order, a rule score is not a profit probability, and an OHLCV-resolved outcome is not a broker fill or portfolio return. Simulated, blocked, unresolved, and force-expired placeholder rows are excluded from counted results.
 
-```
-I built tradeclaw-agent because I was paying $60/month for a trading signal service that:
+The source is MIT licensed. Hosting and data, messaging, model, or broker providers may have separate costs. Setup time depends on the environment and credentials.
 
-1. Went dark during a volatile week (when I needed it most)
-2. Wouldn't tell me how signals were generated
-3. Locked my historical data behind their paywall
+`tradeclaw-demo` is a synthetic local UI/SSE fixture, not a market-data demo.
 
-So I wrote an open-source alternative. TradeClaw is a self-hosted trading signal platform that generates BUY/SELL/HOLD signals for forex, crypto, and metals using 5-indicator confluence scoring (RSI, MACD, EMA, Bollinger Bands, Stochastic).
-
-What makes it different from other open-source trading tools:
-
-- The signal engine is plain TypeScript — no ML black box, just readable indicator logic in `packages/core/src/signals/engine.ts`
-- Confluence scoring: each indicator votes BUY/SELL/HOLD, and the final signal is a weighted vote. You can see and tune every weight.
-- One-command deploy: `docker compose up` gives you TimescaleDB + Redis + the full dashboard
-- REST API with OpenAPI 3.0 spec — build your own frontend or plug into existing tools
-- Backtesting with slippage modeling, win rate, Sharpe ratio, max drawdown
-- Paper trading: virtual $10k portfolio that auto-follows signals
-- Push alerts via Telegram bot, Discord webhooks, or Slack
-- MCP server so Claude/AI assistants can query your signals programmatically
-
-Tech stack: Next.js 15, TypeScript 5, TimescaleDB, Redis, Docker.
-
-Covers 12+ symbols across forex (EURUSD, GBPUSD, USDJPY), crypto (BTCUSD, ETHUSD), and metals (XAUUSD, XAGUSD). Multiple timeframes: M5 to D1.
-
-Live demo: https://tradeclaw.win/dashboard
-GitHub: https://github.com/naimkatiman/tradeclaw
-
-MIT licensed. No telemetry, no accounts, no subscriptions.
-
-I'd love feedback on:
-- What indicators or assets would you add?
-- Is the REST API surface useful, or would you prefer WebSocket streaming?
-- Anyone interested in contributing a TradingView webhook bridge?
-```
-
----
-
-## Tips
-
-- Best time: weekday 8-10 AM EST (Tuesday-Thursday optimal)
-- Sunday posts can still do well if the content is strong
-- Reply to every comment quickly — HN rewards engagement
-- Don't ask for upvotes anywhere
+I would value feedback on the data-provenance model, canonical denominator, and self-hosting documentation.

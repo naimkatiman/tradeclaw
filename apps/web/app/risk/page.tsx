@@ -2,14 +2,10 @@ import type { Metadata } from 'next';
 import { RiskClient } from './RiskClient';
 
 export const metadata: Metadata = {
-  title: 'Risk Dashboard — Circuit Breakers & Drawdown Monitor | TradeClaw',
+  title: 'Observed Signal Risk Gate | TradeClaw',
   description:
-    'Live risk management dashboard with circuit breaker status, drawdown tracking, equity curve visualization, and vetoed signal log. Updates on every signal tick.',
-  openGraph: {
-    title: 'Risk Dashboard — Circuit Breakers & Drawdown Monitor',
-    description:
-      'Monitor circuit breakers, drawdown, equity curves, and vetoed signals — updated every 5 minutes alongside the signal cron.',
-  },
+    'Current gate state derived from recorded OHLCV-resolved signal outcomes, not broker equity or portfolio results.',
+  robots: { index: false, follow: false },
 };
 
 export default function RiskPage() {

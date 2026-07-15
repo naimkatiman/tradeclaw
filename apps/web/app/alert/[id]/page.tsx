@@ -21,7 +21,7 @@ export async function generateMetadata(
   const pageUrl = `${baseUrl}/alert/${id}`;
 
   const title = `🚨 ${symbol} ${direction} Alert — ${timeframe} | TradeClaw`;
-  const description = `AI-generated ${direction} signal for ${symbol} on ${timeframe} timeframe. Tap to view entry, stop loss & take profit levels. Free open-source trading signals.`;
+  const description = `Rule-generated ${direction} candidate for ${symbol} on ${timeframe}. Inspect its timestamp, inputs, and mechanical levels; it is not a broker order.`;
 
   return {
     title,

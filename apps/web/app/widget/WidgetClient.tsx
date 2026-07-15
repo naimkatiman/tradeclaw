@@ -77,12 +77,17 @@ export function WidgetClient() {
     fetch('${BASE_URL}/api/widget/portfolio')
       .then(function(r) { return r.json(); })
       .then(function(d) {
+        if (!d.available || d.mode !== 'paper-simulation') {
+          el.textContent = 'Paper simulation unavailable';
+          return;
+        }
         var color = d.totalReturnPct >= 0 ? '#10b981' : '#f43f5e';
         var sign = d.totalReturnPct >= 0 ? '+' : '';
         el.innerHTML = '<div style="font-family:system-ui;padding:16px;border-radius:12px;background:#161b22;border:1px solid #30363d;width:320px">'
-          + '<div style="color:#8b949e;font-size:11px;text-transform:uppercase">TradeClaw Portfolio</div>'
-          + '<div style="color:#e6edf3;font-size:22px;font-weight:700;margin:8px 0">$' + d.equity.toLocaleString() + '</div>'
-          + '<div style="color:' + color + ';font-size:14px;font-weight:600">' + sign + d.totalReturnPct + '% (' + d.currency + ')</div>'
+          + '<div style="color:#8b949e;font-size:11px;text-transform:uppercase">TradeClaw paper simulation</div>'
+          + '<div style="color:#e6edf3;font-size:22px;font-weight:700;margin:8px 0">$' + d.realizedBalance.toLocaleString() + '</div>'
+          + '<div style="color:' + color + ';font-size:14px;font-weight:600">' + sign + d.totalReturnPct + '% realized simulation return</div>'
+          + '<div style="color:#8b949e;font-size:10px;margin-top:8px">Not broker or customer returns</div>'
           + '</div>';
       });
   }
@@ -97,17 +102,20 @@ const data = await res.json();
 
 // Response shape:
 // {
-//   balance: 10000.00,
-//   equity: 10250.00,
-//   openPnl: 250.00,
-//   pnl: 250.00,
-//   totalReturn: 2.50,
-//   totalReturnPct: 2.50,
+//   available: true,
+//   mode: "paper-simulation",
+//   realizedBalance: 9875.00,
+//   equity: null,
+//   equityAvailable: false,
+//   openPnl: null,
+//   openPnlAvailable: false,
+//   pnl: -125.00,
+//   totalReturnPct: -1.25,
 //   currency: "USD",
-//   winRate: 65,
-//   openPositions: 3,
-//   top3Positions: [...],
-//   updatedAt: "2026-03-29T..."
+//   winRate: 0,
+//   openPositions: 0,
+//   valuationBasis: "realized-paper-balance-only",
+//   note: "Paper simulation only..."
 // }`;
 
   return (
@@ -120,12 +128,12 @@ const data = await res.json();
             Embeddable Widget
           </div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Embed Your Portfolio{' '}
+            Embed a Paper Simulation{' '}
             <span className="text-emerald-400">Anywhere</span>
           </h1>
           <p className="text-[var(--text-secondary)] max-w-xl mx-auto text-sm leading-relaxed">
-            Show live P&amp;L from your paper trading on any website, blog, or README.
-            Auto-refreshing every 60 seconds. No API key required.
+            Show a configured demo account&apos;s realized paper balance and closed-trade statistics.
+            Open positions are not marked, and no broker or customer portfolio return is represented.
           </p>
         </div>
 
@@ -188,12 +196,12 @@ const data = await res.json();
               width={w}
               height={h}
               style={{ border: 'none', borderRadius: 12, overflow: 'hidden' }}
-              title="TradeClaw Portfolio Widget"
+              title="TradeClaw paper-simulation widget"
             />
           </div>
           <p className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Live preview — auto-refreshes every 60s
+            Paper-simulation preview - refreshed by the embed when configured
           </p>
         </div>
 
@@ -240,7 +248,7 @@ const data = await res.json();
                     JavaScript Embed
                   </h3>
                   <p className="text-xs text-[var(--text-secondary)] mt-1">
-                    Drop-in script that fetches live data and renders a card. Auto-refreshes every 60s.
+                    Drop-in script that fetches the realized-only paper-simulation response every 60 seconds.
                   </p>
                 </div>
                 <CodeSnippet label="HTML + JS" code={jsCode} />
@@ -255,7 +263,7 @@ const data = await res.json();
                     JSON API
                   </h3>
                   <p className="text-xs text-[var(--text-secondary)] mt-1">
-                    Fetch raw portfolio data to build your own UI. CORS enabled for all origins.
+                    Fetch the public demo paper-simulation response. Treat unavailable and null valuation fields explicitly.
                   </p>
                 </div>
                 <CodeSnippet label="JavaScript" code={jsonCode} />
@@ -271,7 +279,7 @@ const data = await res.json();
             <div className="space-y-1">
               <p className="font-medium text-white text-xs">JSON Data</p>
               <code className="text-xs font-mono text-emerald-400">/api/widget/portfolio</code>
-              <p className="text-[10px] text-[var(--text-secondary)]">Balance, equity, P&amp;L, win rate</p>
+              <p className="text-[10px] text-[var(--text-secondary)]">Realized paper balance and closed-trade stats</p>
             </div>
             <div className="space-y-1">
               <p className="font-medium text-white text-xs">HTML Embed</p>
@@ -304,7 +312,7 @@ const data = await res.json();
 
         {/* Footer */}
         <p className="text-center text-xs text-[var(--text-secondary)]">
-          Widget auto-refreshes every 60s · Data from paper trading engine ·{' '}
+          Public demo paper simulation - not broker or customer returns -{' '}
           <Link
             href="/paper-trading"
             className="text-emerald-400 hover:text-emerald-300 transition-colors"

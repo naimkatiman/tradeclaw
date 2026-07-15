@@ -92,7 +92,7 @@ export default function SubscribeClient() {
   }
 
   const tweetText = encodeURIComponent(
-    'I just subscribed to @TradeClaw weekly signal digest — free AI trading signals in my inbox every Monday. Check it out: https://tradeclaw.win/subscribe',
+    'I saved my TradeClaw digest preferences for rule-generated market research: https://tradeclaw.win/subscribe',
   );
 
   return (
@@ -110,7 +110,7 @@ export default function SubscribeClient() {
             Get Weekly Signal Digest
           </h1>
           <p className="text-[var(--text-secondary)] text-sm max-w-md mx-auto">
-            Top BUY/SELL signals delivered to your inbox every week — accuracy stats, leaderboard highlights, and more.
+            Save pair, frequency, and minimum rule-score preferences for an operator-configured digest. Delivery timing is not guaranteed.
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export default function SubscribeClient() {
           <div className="flex items-center justify-center gap-6 mb-10 text-xs text-[var(--text-secondary)]">
             <span className="flex items-center gap-1.5">
               <Users className="w-3.5 h-3.5 text-emerald-400" />
-              Join {stats.count} traders
+              {stats.count} active preference records
             </span>
           </div>
         )}
@@ -128,9 +128,9 @@ export default function SubscribeClient() {
           /* Success state */
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-8 text-center">
             <CheckCircle className="w-10 h-10 text-emerald-400 mx-auto mb-4" />
-            <h2 className="text-lg font-semibold mb-2">Subscribed! Check your email.</h2>
+            <h2 className="text-lg font-semibold mb-2">Digest preferences saved</h2>
             <p className="text-sm text-[var(--text-secondary)] mb-6">
-              Your first digest arrives next Monday. Preview what you&apos;ll receive:
+              This records your preferences. Delivery requires this deployment&apos;s operator to configure an email provider and scheduler.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <a
@@ -232,7 +232,7 @@ export default function SubscribeClient() {
             {/* Confidence slider */}
             <div>
               <label htmlFor="confidence" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
-                Minimum confidence: <span className="text-emerald-400 font-semibold">{confidence}%</span>
+                Minimum rule score: <span className="text-emerald-400 font-semibold">{confidence}/100</span>
               </label>
               <input
                 id="confidence"
@@ -245,9 +245,9 @@ export default function SubscribeClient() {
                 className="w-full accent-emerald-500"
               />
               <div className="flex justify-between text-[10px] text-[var(--text-secondary)] mt-1">
-                <span>50%</span>
-                <span>70%</span>
-                <span>95%</span>
+                <span>50</span>
+                <span>70</span>
+                <span>95</span>
               </div>
             </div>
 
@@ -266,7 +266,7 @@ export default function SubscribeClient() {
               ) : (
                 <Mail className="w-4 h-4" />
               )}
-              {loading ? 'Subscribing...' : 'Subscribe'}
+              {loading ? 'Saving...' : 'Save digest preferences'}
             </button>
 
             {/* Preview link */}

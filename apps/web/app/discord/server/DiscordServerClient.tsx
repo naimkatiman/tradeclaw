@@ -24,9 +24,9 @@ const CHANNELS = [
   {
     icon: Hash,
     name: 'live-signals',
-    description: 'Live BUY/SELL signal alerts for BTC, ETH, XAU and 7+ pairs — auto-posted every 5-minute cycle.',
+    description: 'A proposed channel for eligible signal records when a maintainer configures Discord broadcast delivery.',
     color: 'text-emerald-400',
-    badge: 'Live',
+    badge: 'Proposed',
     badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
   },
   {
@@ -40,7 +40,7 @@ const CHANNELS = [
   {
     icon: Hash,
     name: 'support',
-    description: 'Self-hosting help, Docker questions, API issues — the community and maintainers respond fast.',
+    description: 'A proposed channel for self-hosting, Docker, and API questions; response times are not guaranteed.',
     color: 'text-blue-400',
     badge: 'Help',
     badgeColor: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -48,7 +48,7 @@ const CHANNELS = [
   {
     icon: Volume2,
     name: 'announcements',
-    description: 'New releases, breaking changes, and roadmap updates — never miss a TradeClaw milestone.',
+    description: 'A proposed channel for release and roadmap notices.',
     color: 'text-zinc-400',
     badge: 'Official',
     badgeColor: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
@@ -72,11 +72,11 @@ const CHANNELS = [
 ];
 
 const MILESTONES = [
-  { stars: 10, reward: 'Discord #early-access channel unlocked for first 10 members' },
-  { stars: 50, reward: 'Community vote on next major feature — members decide' },
-  { stars: 100, reward: 'Exclusive #alpha-signals channel with highest-confidence-only alerts' },
-  { stars: 500, reward: 'TradeClaw members get custom strategy review from maintainers' },
-  { stars: 1000, reward: 'Full open roadmap + community RFC process for v2.0' },
+  { stars: 10, reward: 'Proposed discussion: early-access channel' },
+  { stars: 50, reward: 'Proposed discussion: community feature survey' },
+  { stars: 100, reward: 'Proposed discussion: evidence-filtered alert channel' },
+  { stars: 500, reward: 'Proposed discussion: strategy-review format' },
+  { stars: 1000, reward: 'Proposed discussion: public roadmap RFC process' },
 ];
 
 const WEBHOOK_STEPS = [
@@ -103,7 +103,7 @@ const WEBHOOK_STEPS = [
   {
     step: 5,
     title: 'Save and test',
-    body: 'Click "Test" to receive a sample signal embed in your Discord channel immediately.',
+    body: 'Use the test action and verify its response. Delivery depends on Discord and the configured webhook.',
   },
 ];
 
@@ -197,8 +197,8 @@ export function DiscordServerClient() {
             <span className="text-[#5865F2]">Discord</span> Community
           </h1>
           <p className="mt-4 text-lg text-zinc-400 max-w-xl mx-auto">
-            Live signals in your server, strategy discussions with fellow traders,
-            and direct access to the maintainers.
+            Review the external community invite and webhook setup. Discord availability,
+            channel activity, and maintainer response times are not guaranteed.
           </p>
 
           {/* Invite card */}
@@ -213,7 +213,7 @@ export function DiscordServerClient() {
               </div>
               <div className="ml-auto flex items-center gap-1.5 text-xs text-emerald-400">
                 <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                Online
+                External service
               </div>
             </div>
 
@@ -242,15 +242,15 @@ export function DiscordServerClient() {
           <div className="mt-6 flex items-center justify-center gap-6 text-sm text-zinc-500">
             <div className="flex items-center gap-1.5">
               <Users className="w-4 h-4" />
-              <span>Community growing</span>
+              <span>External invite</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Zap className="w-4 h-4 text-zinc-400" />
-              <span>Live signal alerts</span>
+              <span>Optional webhook alerts</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Shield className="w-4 h-4 text-[#5865F2]" />
-              <span>Free forever</span>
+              <span>MIT-licensed source</span>
             </div>
           </div>
         </div>
@@ -261,8 +261,8 @@ export function DiscordServerClient() {
         {/* Signal preview */}
         <section>
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white">Signals land in Discord like this</h2>
-            <p className="mt-2 text-zinc-400 text-sm">Rich embeds with color-coded direction, TP/SL levels, and one-click analysis link.</p>
+            <h2 className="text-2xl font-bold text-white">Illustrative Discord embed</h2>
+            <p className="mt-2 text-zinc-400 text-sm">Example formatting only; values shown are not current market data.</p>
           </div>
           <div className="max-w-md mx-auto">
             <SignalEmbed />
@@ -300,7 +300,7 @@ export function DiscordServerClient() {
         <section>
           <h2 className="text-2xl font-bold text-white mb-2">Connect Your Discord Server</h2>
           <p className="text-zinc-400 text-sm mb-8">
-            Already have a trading server? Route TradeClaw signals directly into your own Discord channel in under 5 minutes.
+            Configure a Discord webhook, then test and verify delivery before relying on the channel.
           </p>
           <div className="space-y-4">
             {WEBHOOK_STEPS.map((s) => (
@@ -344,8 +344,7 @@ export function DiscordServerClient() {
               <h2 className="text-lg font-bold text-white">Star Milestone Rewards</h2>
             </div>
             <p className="text-sm text-zinc-400 mb-5">
-              Early Discord members get first access to exclusive channels as the repo hits star milestones. 
-              Star the repo to help us get there faster.
+              These are discussion prompts tied to campaign thresholds, not promised rewards, scope, or delivery dates.
             </p>
             <div className="space-y-3">
               {MILESTONES.map((m) => (
@@ -368,22 +367,22 @@ export function DiscordServerClient() {
               icon: Zap,
               color: 'text-emerald-400',
               bg: 'bg-emerald-500/10',
-              title: 'Live Signals',
-              body: 'Auto-broadcast top signals from every cycle directly into #live-signals.',
+              title: 'Configured Delivery',
+              body: 'Eligible records can be submitted to a configured Discord webhook; delivery may fail or be delayed.',
             },
             {
               icon: Users,
               color: 'text-[#5865F2]',
               bg: 'bg-[#5865F2]/10',
               title: 'Community Input',
-              body: 'Upvote features, report false signals, and shape the roadmap.',
+              body: 'Discuss features and report evidence problems; maintainers retain roadmap decisions.',
             },
             {
               icon: Shield,
               color: 'text-purple-400',
               bg: 'bg-purple-500/10',
-              title: 'Early Access',
-              body: 'Members see beta features before GitHub release — exclusive preview builds.',
+              title: 'Source Review',
+              body: 'Review released source and published artifacts; no preview access is guaranteed.',
             },
           ].map((b) => (
             <div
@@ -404,8 +403,7 @@ export function DiscordServerClient() {
           <Star className="mx-auto mb-3 w-8 h-8 text-zinc-400 fill-zinc-400" />
           <h2 className="text-xl font-bold text-white mb-2">Help us reach 1000 stars</h2>
           <p className="text-zinc-400 text-sm mb-6 max-w-md mx-auto">
-            Every star unlocks more community features and keeps TradeClaw free and open-source. 
-            Takes 2 seconds — means a lot.
+            Stars are a public interest signal. They do not unlock guaranteed features or determine delivery dates.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <a

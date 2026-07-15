@@ -180,7 +180,7 @@ export function HeatmapClient() {
                 Signal <span className="text-emerald-400">Heatmap</span>
               </h1>
               <p className="text-sm text-[var(--text-secondary)]">
-                Live BUY/SELL signals across 10 major pairs &middot; H1 timeframe &middot; refreshed every 5 minutes
+                Latest available rule outputs across supported pairs &middot; H1 timeframe &middot; check each source timestamp
               </p>
             </div>
           </div>

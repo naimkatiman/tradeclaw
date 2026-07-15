@@ -11,6 +11,7 @@ import { InfoHint } from '@/components/InfoHint';
 import { STAT_HINTS } from '@/lib/stat-hints';
 import { isExpiredHistoricalOutcome, isPendingHistoricalOutcome } from '@/lib/signal-history-status';
 import { deriveHistoricalOutcomeStatus } from '@/lib/signal-outcome';
+import { isObservedOHLCVOutcomeSource } from '@/lib/outcome-provenance';
 import { symbolsForCategory, type CategoryFilter } from '@/app/lib/symbol-config';
 import { EmbedButton } from '../components/embed-button';
 import { ShareOnX } from '../components/share-on-x';
@@ -34,10 +35,8 @@ const CATEGORY_OPTIONS: { value: CategoryFilter; label: string }[] = [
   { value: 'thematic', label: 'Thematic' },
 ];
 
-const RESOLUTION_HEARTBEAT_STALE_MS = 15 * 60 * 1000;
-
-function formatHeartbeatAge(lastUpdated: number): string {
-  const ageMs = Math.max(0, Date.now() - lastUpdated);
+function formatHeartbeatAge(lastUpdated: number, now: number): string {
+  const ageMs = Math.max(0, now - lastUpdated);
   const totalMinutes = Math.max(1, Math.round(ageMs / 60_000));
 
   if (totalMinutes < 60) {
@@ -55,10 +54,8 @@ function formatHeartbeatAge(lastUpdated: number): string {
 function getResolutionHeartbeat(lastUpdated: number | null | undefined, now: number) {
   if (!lastUpdated) return null;
 
-  const ageMs = Math.max(0, now - lastUpdated);
   return {
-    ageLabel: formatHeartbeatAge(lastUpdated),
-    isStale: ageMs > RESOLUTION_HEARTBEAT_STALE_MS,
+    ageLabel: formatHeartbeatAge(lastUpdated, now),
   };
 }
 
@@ -82,15 +79,24 @@ interface HistoryRecord {
   tp1?: number;
   sl?: number;
   outcomes: {
-    '4h': { hit: boolean; pnlPct: number; target?: 'TP1' | 'TP2' | 'TP3' | 'SL' | 'expired' } | null;
-    '24h': { hit: boolean; pnlPct: number; target?: 'TP1' | 'TP2' | 'TP3' | 'SL' | 'expired' } | null;
+    '4h': HistoryOutcome | null;
+    '24h': HistoryOutcome | null;
   };
 }
 
+interface HistoryOutcome {
+  hit: boolean;
+  pnlPct: number;
+  target?: 'TP1' | 'TP2' | 'TP3' | 'SL' | 'expired';
+  source?: string;
+  resolvedAt?: string;
+}
+
 interface HistoryStats {
+  available: boolean;
   totalSignals: number;
   resolved: number;
-  /** Auto-expired (no TP/SL within 48h) — excluded from win-rate. */
+  /** Missing/zero force-expiry placeholders — excluded from win-rate. */
   expired: number;
   /** Refused by the full-risk gate at emission — excluded from equity. */
   gateBlocked: number;
@@ -109,6 +115,8 @@ interface HistoryStats {
 interface AssetStats {
   pair: string;
   totalSignals: number;
+  resolved4h: number;
+  resolved24h: number;
   hitRate4h: number;
   hitRate24h: number;
   avgConfidence: number;
@@ -169,7 +177,7 @@ function periodWindowLabel(period: Period, earliestTs: number | null): string {
   const opt = PERIOD_OPTIONS.find(o => o.value === period);
   if (!opt) return '';
   if (opt.days === null) {
-    return earliestTs ? `since ${formatDateStamp(earliestTs)}` : 'full archive';
+    return earliestTs ? `currently stored since ${formatDateStamp(earliestTs)}` : 'current archive';
   }
   const start = Date.now() - opt.days * 86_400_000;
   const effectiveStart = earliestTs ? Math.max(start, earliestTs) : start;
@@ -229,7 +237,7 @@ function pageNumbers(current: number, total: number): (number | null)[] {
 }
 
 function formatOutcomeCell(
-  outcome: { hit: boolean; pnlPct: number; target?: 'TP1' | 'TP2' | 'TP3' | 'SL' | 'expired' } | null,
+  outcome: HistoryOutcome | null,
   status: ReturnType<typeof deriveHistoricalOutcomeStatus> | null,
   isPendingWindow: boolean,
   isExpiredWindow: boolean,
@@ -241,7 +249,26 @@ function formatOutcomeCell(
     };
   }
 
+  if (status === 'expired' && outcome.pnlPct === 0) {
+    return { text: 'expired', className: 'text-zinc-600' };
+  }
+
+  if (!isObservedOHLCVOutcomeSource(outcome.source)) {
+    return {
+      text: 'unverified',
+      className: 'text-amber-400/80',
+    };
+  }
+
   if (status === 'expired') {
+    if (outcome.pnlPct !== 0) {
+      return {
+        text: 'Close',
+        className: outcome.pnlPct > 0
+          ? 'text-emerald-400 font-semibold'
+          : 'text-red-400 font-semibold',
+      };
+    }
     return { text: 'expired', className: 'text-zinc-600' };
   }
 
@@ -258,12 +285,6 @@ type EquityBand = 'premium' | 'standard' | 'all';
 function parseEquityBand(raw: string | null): EquityBand {
   if (raw === 'premium' || raw === 'standard') return raw;
   return 'all';
-}
-
-function buildTrackRecordUrl(pathname: string, params: URLSearchParams, band: EquityBand): string {
-  params.set('band', band);
-  const qs = params.toString();
-  return qs ? `${pathname}?${qs}` : pathname;
 }
 
 interface CategorySnapshot {
@@ -352,9 +373,10 @@ function CategoryBreakdownRow({
       {cells.map(({ value, label }) => {
         const snap = data[value];
         const isActive = active === value;
-        const winRateBeatsBE = snap && snap.breakEvenWinRate !== null
+        const hasEvidence = Boolean(snap && snap.totalSignals > 0);
+        const winRateBeatsBE = hasEvidence && snap && snap.breakEvenWinRate !== null
           ? snap.winRate >= snap.breakEvenWinRate
-          : snap ? snap.winRate >= 50 : false;
+          : hasEvidence && snap ? snap.winRate >= 50 : false;
         return (
           <button
             key={value}
@@ -379,9 +401,9 @@ function CategoryBreakdownRow({
             ) : (
               <>
                 <div className={`mt-0.5 text-base font-mono font-semibold tabular-nums ${
-                  winRateBeatsBE ? 'text-emerald-400' : 'text-red-400'
+                  !hasEvidence ? 'text-zinc-500' : winRateBeatsBE ? 'text-emerald-400' : 'text-red-400'
                 }`}>
-                  {snap.winRate}%
+                  {hasEvidence ? `${snap.winRate}%` : '—'}
                 </div>
                 <div className="mt-0.5 flex items-center gap-2 text-[10px] font-mono text-zinc-500">
                   <span className={
@@ -395,7 +417,7 @@ function CategoryBreakdownRow({
                       ? `${snap.expectancyR >= 0 ? '+' : ''}${snap.expectancyR.toFixed(2)}R`
                       : '—'}
                   </span>
-                  {snap.breakEvenWinRate !== null && (
+                  {hasEvidence && snap.breakEvenWinRate !== null && (
                     <span className="text-zinc-600">be {snap.breakEvenWinRate}%</span>
                   )}
                 </div>
@@ -412,7 +434,7 @@ export function TrackRecordClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  // Default tab: full track record. Broadcast is the gate-approved subset.
+  // Default tab: eligible signal stream. Broadcast is the gate-approved subset.
   const [scope, setScope] = useState<Scope>('pro');
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [period, setPeriod] = useState<Period>('all');
@@ -430,9 +452,9 @@ export function TrackRecordClient() {
   // Surfaced at the headline so the headline win-rate reads against the bar the
   // system needs, not a meaningless flat 50%.
   const [headlineBreakEven, setHeadlineBreakEven] = useState<number | null>(null);
-  // Realized (position-sized) compounded return + max drawdown from the equity
-  // summary. Surfaced at the headline so the number a subscriber could actually
-  // earn sits next to the raw unsized total, not buried in the equity card.
+  // Modeled (position-sized) compounded result + max drawdown from the equity
+  // summary. Surfaced at the headline so the sequential model result sits next
+  // to the raw unsized total, not buried in the equity card.
   const [headlineCompoundedReturn, setHeadlineCompoundedReturn] = useState<number | null>(null);
   const [headlineMaxDrawdown, setHeadlineMaxDrawdown] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -465,7 +487,7 @@ export function TrackRecordClient() {
       const equityParams = new URLSearchParams({ period: p, scope: s, band });
       if (c !== 'all') equityParams.set('category', c);
       // Headline reads summary fields only (rolling win-rates, break-even,
-      // realized return, drawdown) — the curve itself is fetched by EquityCurve.
+      // modeled result, drawdown) — the curve itself is fetched by EquityCurve.
       equityParams.set('summaryOnly', '1');
 
       const [historyRes, leaderboardRes, equityRes] = await Promise.allSettled([
@@ -492,15 +514,24 @@ export function TrackRecordClient() {
       if (equityRes.status === 'fulfilled' && equityRes.value.ok) {
         const data = await equityRes.value.json();
         if (isCancelled()) return;
+        const sizedTrades = typeof data.summary?.sizedTrades === 'number'
+          ? data.summary.sizedTrades
+          : 0;
         setRollingWinRates(data.rollingWinRates ?? null);
         setHeadlineBreakEven(
-          typeof data.summary?.breakEvenWinRate === 'number' ? data.summary.breakEvenWinRate : null,
+          sizedTrades > 0 && typeof data.summary?.breakEvenWinRate === 'number'
+            ? data.summary.breakEvenWinRate
+            : null,
         );
         setHeadlineCompoundedReturn(
-          typeof data.summary?.totalReturn === 'number' ? data.summary.totalReturn : null,
+          sizedTrades > 0 && typeof data.summary?.totalReturn === 'number'
+            ? data.summary.totalReturn
+            : null,
         );
         setHeadlineMaxDrawdown(
-          typeof data.summary?.maxDrawdown === 'number' ? data.summary.maxDrawdown : null,
+          sizedTrades > 0 && typeof data.summary?.maxDrawdown === 'number'
+            ? data.summary.maxDrawdown
+            : null,
         );
       } else {
         if (isCancelled()) return;
@@ -551,8 +582,9 @@ export function TrackRecordClient() {
       return `${symbolsForCategory('thematic').length} narrative-driven symbols. Wider coverage, more noise — useful for breadth, not for headline win rate.`;
     }
     if (scope === 'broadcast') return 'Gate-approved signals only — decisions recorded since 2026-06-10.';
-    return 'Every tracked symbol, full archive.';
+    return 'Eligible rows for every tracked symbol in the current archive.';
   }, [category, scope]);
+  const hasResolvedEvidence = (stats?.resolved ?? 0) > 0;
 
   const handleCategoryChange = (nextCategory: CategoryFilter) => {
     setCategory(nextCategory);
@@ -584,7 +616,7 @@ export function TrackRecordClient() {
            70% WR with giant losers. We show both so the reader can judge. */}
         <div className="mb-6">
           <div className="text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-2">
-            Recorded Track Record
+            OHLCV-Resolved Signal Record
           </div>
           <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 mb-2">
             <div className="flex items-baseline gap-2">
@@ -593,11 +625,13 @@ export function TrackRecordClient() {
                 : stats && stats.totalPnlPct < 0 ? 'text-red-400'
                 : 'text-[var(--foreground)]'
               }`}>
-                {stats ? `${stats.totalPnlPct > 0 ? '+' : ''}${stats.totalPnlPct}%` : '—'}
+                {hasResolvedEvidence && stats
+                  ? `${stats.totalPnlPct > 0 ? '+' : ''}${stats.totalPnlPct}%`
+                  : '—'}
               </span>
               <span className="text-sm text-[var(--text-secondary)] inline-flex items-center gap-1">
-                total return · unsized
-                <InfoHint text={STAT_HINTS.totalReturnLinear} label="What total return means" />
+                sum of price moves · unsized
+                <InfoHint text={STAT_HINTS.totalReturnLinear} label="What the unsized price-move sum means" />
               </span>
               {/* Provenance stamp — the window this headline actually covers,
                   so a number from 26 days of data doesn't read as "all time". */}
@@ -607,13 +641,14 @@ export function TrackRecordClient() {
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className={`text-xl font-semibold tabular-nums ${
-                headlineBreakEven !== null && stats
+                !hasResolvedEvidence ? 'text-[var(--foreground)]'
+                  : headlineBreakEven !== null && stats
                   ? stats.winRate >= headlineBreakEven ? 'text-emerald-400' : 'text-red-400'
                   : stats && stats.winRate >= 55 ? 'text-emerald-400'
                   : stats && stats.winRate >= 45 ? 'text-zinc-400'
                   : stats ? 'text-red-400' : 'text-[var(--foreground)]'
               }`}>
-                {stats ? `${stats.winRate}%` : '—'}
+                {hasResolvedEvidence && stats ? `${stats.winRate}%` : '—'}
               </span>
               <span className="text-xs text-[var(--text-secondary)] inline-flex items-center gap-1">
                 win rate
@@ -637,7 +672,7 @@ export function TrackRecordClient() {
                 <InfoHint text={STAT_HINTS.resolved} label="What resolved signals means" />
               </span>
             </div>
-            {/* Realized (position-sized) return at headline weight — a standardized 1%-risk
+            {/* Modeled (position-sized) return at headline weight — a standardized 1%-risk
                research model shown next to the raw unsized total so the modeled figure isn't
                buried. Paired with max drawdown so the path's cost is never hidden behind the
                return. Analytics view, not a promise of subscriber returns. */}
@@ -651,8 +686,8 @@ export function TrackRecordClient() {
                   {headlineCompoundedReturn > 0 ? '+' : ''}{headlineCompoundedReturn}%
                 </span>
                 <span className="text-xs text-[var(--text-secondary)] inline-flex items-center gap-1">
-                  realized · 1% risk
-                  <InfoHint text={STAT_HINTS.totalReturnCompounded} label="What realized compounded return means" />
+                  sequential simulation · 1% risk
+                  <InfoHint text={STAT_HINTS.totalReturnCompounded} label="What the sequential simulation means" />
                 </span>
                 {headlineMaxDrawdown !== null && (
                   <span className="text-[11px] font-mono text-red-400/80 inline-flex items-center gap-1">
@@ -664,22 +699,12 @@ export function TrackRecordClient() {
             )}
             {resolutionHeartbeat && (
               <div
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-mono ${
-                  resolutionHeartbeat.isStale
-                    ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
-                    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-                }`}
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-mono text-zinc-300"
               >
-                <span
-                  className={`h-2 w-2 rounded-full ${
-                    resolutionHeartbeat.isStale ? 'bg-amber-400' : 'bg-emerald-400'
-                  }`}
-                />
-                <span>
-                  {resolutionHeartbeat.isStale ? 'Resolution feed stale' : 'Outcome tracker live'}
-                </span>
+                <span className="h-2 w-2 rounded-full bg-zinc-500" />
+                <span>Latest counted outcome</span>
                 <span className="text-[var(--text-secondary)]">
-                  updated {resolutionHeartbeat.ageLabel}
+                  {resolutionHeartbeat.ageLabel}
                 </span>
               </div>
             )}
@@ -698,13 +723,12 @@ export function TrackRecordClient() {
             />
           </div>
           <p className="text-sm text-[var(--text-secondary)]">
-            Headline total return is the raw sum of per-signal market % before position sizing. The equity
-            card shows a standardized research model using 1% notional risk per trade after blended
-            round-trip cost assumptions, so you can compare signals on a consistent basis. It is a
-            historical analytics view, not a promise of subscriber returns. Real outcomes can differ because
-            of timing, spreads, slippage, fees, order execution, sizing, and whether a user follows any
-            signal. Resolved trades only — pending, expired, and gate-blocked rows are surfaced separately
-            instead of being folded into win-rate statistics.
+            The headline is an arithmetic sum of per-signal OHLCV price outcomes before sizing or costs;
+            it is not a portfolio return. The equity card is a separate sequential simulation that risks 1%
+            of modeled current equity on every eligible sized signal and deducts per-asset fee/slippage
+            assumptions. It does not model broker fills, overlapping exposure, margin, leverage, latency,
+            funding, or subscriber selection. Pending, zero-value expiry placeholders, and
+            gate-blocked rows are surfaced separately instead of being folded into win-rate statistics.
           </p>
           <p className="mt-3 rounded-md border border-zinc-600/30 bg-zinc-800/20 px-3 py-2 text-[11px] leading-relaxed text-[var(--text-secondary)]">
             <strong className="font-semibold text-[var(--foreground)]">Risk notice:</strong> TradeClaw provides
@@ -788,15 +812,15 @@ export function TrackRecordClient() {
           })}
         </div>
 
-        {/* Scope tabs — default full firehose; Broadcast is the subset the
+        {/* Scope tabs — default eligible stream; Broadcast is the subset the
             risk gate APPROVED for the Telegram broadcast (decision recorded
             per row since migration 048; approval is not delivery — outage
             fallbacks and failed sends differ). */}
         <div className="mb-3 flex items-center gap-1 p-1 rounded-lg bg-white/[0.04] w-fit">
           {(
             [
-              { value: 'pro', label: 'Full track record' },
-              { value: 'broadcast', label: 'Broadcast (gated)' },
+              { value: 'pro', label: 'Eligible signal stream' },
+              { value: 'broadcast', label: 'Broadcast-approved subset' },
             ] as const
           ).map(({ value, label }) => (
             <button
@@ -858,7 +882,7 @@ export function TrackRecordClient() {
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm">
             <div className="flex items-center gap-2 text-emerald-300">
               <span>
-                Full track record — every signal across every symbol, full archive. Free for everyone.
+                Eligible recorded signal stream across tracked symbols and timeframes. This is not a subscriber execution or portfolio ledger.
               </span>
             </div>
           </div>
@@ -873,7 +897,7 @@ export function TrackRecordClient() {
               onClick={() => setScope('pro')}
               className="shrink-0 rounded-md border border-[var(--border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-white/[0.06]"
             >
-              Switch to full record
+                Show eligible stream
             </button>
           </div>
         )}
@@ -888,27 +912,27 @@ export function TrackRecordClient() {
               <StatCard
                 label="Resolved"
                 value={String(stats.resolved)}
-                hint="Trades with TP/SL within 48h"
+                hint="Usable 24h OHLCV outcome"
                 tooltip={STAT_HINTS.resolved}
               />
               <StatCard
                 label="Avg P&L"
-                value={`${stats.avgPnlPct >= 0 ? '+' : ''}${stats.avgPnlPct}%`}
-                accent={stats.avgPnlPct >= 0 ? 'emerald' : 'red'}
+                value={hasResolvedEvidence ? `${stats.avgPnlPct >= 0 ? '+' : ''}${stats.avgPnlPct}%` : '—'}
+                accent={hasResolvedEvidence ? (stats.avgPnlPct >= 0 ? 'emerald' : 'red') : 'default'}
                 hint="Per resolved signal"
                 tooltip={STAT_HINTS.avgPnl}
               />
               <StatCard
-                label="Total P&L"
-                value={`${stats.totalPnlPct >= 0 ? '+' : ''}${stats.totalPnlPct}%`}
-                accent={stats.totalPnlPct >= 0 ? 'emerald' : 'red'}
+                label="Sum of price moves"
+                value={hasResolvedEvidence ? `${stats.totalPnlPct >= 0 ? '+' : ''}${stats.totalPnlPct}%` : '—'}
+                accent={hasResolvedEvidence ? (stats.totalPnlPct >= 0 ? 'emerald' : 'red') : 'default'}
                 hint="Raw sum of per-signal market %"
                 tooltip={STAT_HINTS.totalReturnLinear}
               />
               <StatCard
                 label="Streak"
-                value={`${stats.streak > 0 ? '+' : ''}${stats.streak}`}
-                accent={stats.streak > 0 ? 'emerald' : stats.streak < 0 ? 'red' : 'default'}
+                value={hasResolvedEvidence ? `${stats.streak > 0 ? '+' : ''}${stats.streak}` : '—'}
+                accent={hasResolvedEvidence && stats.streak > 0 ? 'emerald' : hasResolvedEvidence && stats.streak < 0 ? 'red' : 'default'}
                 hint="Consecutive resolved"
                 tooltip={STAT_HINTS.streak}
               />
@@ -916,9 +940,9 @@ export function TrackRecordClient() {
             {(stats.expired > 0 || stats.gateBlocked > 0 || stats.pending > 0) && (
               <div className="grid grid-cols-3 gap-3 mb-8">
                 <StatCard
-                  label="Expired (no resolution)"
+                  label="No usable 24h outcome"
                   value={String(stats.expired)}
-                  hint="No TP/SL hit within 48h"
+                  hint="Missing/zero force-expiry placeholder"
                   tooltip={STAT_HINTS.expired}
                 />
                 <StatCard
@@ -953,9 +977,10 @@ export function TrackRecordClient() {
         <div className="glass-card rounded-2xl p-5 mb-8 border-l-2 border-emerald-500/50">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold mb-0.5">Get These Signals Without Delay</h3>
+              <h3 className="text-base font-bold mb-0.5">Research Alerts</h3>
               <p className="text-xs text-[var(--text-secondary)]">
-                Instant Telegram alerts with entry, SL, and 3 TP levels.
+                Entry-like alerts remain paused whenever the published cost-adjusted evidence gate
+                is not ready.
               </p>
             </div>
             <div className="flex gap-2">
@@ -965,13 +990,13 @@ export function TrackRecordClient() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 text-emerald-400 text-sm font-medium hover:bg-emerald-500/25 transition-colors"
               >
-                Join Telegram
+                Open Telegram
               </a>
               <Link
                 href="/dashboard"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.06] text-[var(--foreground)] text-sm font-medium hover:bg-white/[0.1] transition-colors"
               >
-                Live Signals
+                Signal Dashboard
               </Link>
             </div>
           </div>
@@ -981,9 +1006,9 @@ export function TrackRecordClient() {
         <div className="glass-card rounded-2xl p-5 mb-8 border-l-2 border-emerald-500/50">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold mb-0.5">Compare Strategies by Sharpe</h3>
+              <h3 className="text-base font-bold mb-0.5">Inspect Strategy Research</h3>
               <p className="text-xs text-[var(--text-secondary)]">
-                Public leaderboard ranks every strategy by risk-adjusted return. Backtests, equity curves, and trade logs — open for inspection.
+                Review the available modeled backtests and trade logs. Fixture metrics are research diagnostics, not live or broker performance.
               </p>
             </div>
             <div className="flex gap-2">
@@ -1003,15 +1028,15 @@ export function TrackRecordClient() {
           </div>
         </div>
 
-        {/* Trailing-7d callout — Premium-band vs full-firehose side-by-side
+        {/* Trailing-7d callout — Premium-band vs eligible-stream side-by-side
            over the last week. Renders ABOVE the equity curve so the regime
-           context lands before the long-form chart. Full scope only — the
+           context lands before the long-form chart. Eligible scope only — the
            broadcast subset is too narrow for a band split. */}
         {scope === 'pro' && <TrailingWeekBandCallout />}
 
         {/* Equity Curve — component accepts a narrower period set; map unsupported periods to 'all'.
-           Scope mirrors the tab above (full record vs gate-approved broadcast).
-           Band toggle is exposed only on the full scope; the broadcast subset
+           Scope mirrors the tab above (eligible stream vs gate-approved broadcast).
+           Band toggle is exposed only on the eligible scope; the broadcast subset
            is too narrow for a premium-band split to be meaningful. */}
           <EquityCurve
           period={period === '7d' || period === '30d' ? period : 'all'}
@@ -1025,7 +1050,7 @@ export function TrackRecordClient() {
         <section className="mb-8">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold">
-              Per-Symbol Performance
+              Per-Symbol Outcomes
             </h2>
             {/* Date range the hit-rates below cover, for the selected period. */}
             <span className="text-[10px] font-mono text-[var(--text-secondary)]">
@@ -1038,7 +1063,7 @@ export function TrackRecordClient() {
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
                     <th className="px-4 py-2.5 text-left font-medium">Pair</th>
-                    <th className="px-3 py-2.5 text-center font-medium">Signals</th>
+                    <th className="px-3 py-2.5 text-center font-medium">Recorded rows</th>
                     <th className="px-3 py-2.5 text-left font-medium w-28">
                       <span className="inline-flex items-center gap-1">4h Hit <InfoHint text={STAT_HINTS.winRate4h} label="What 4h hit means" /></span>
                     </th>
@@ -1049,7 +1074,7 @@ export function TrackRecordClient() {
                       <span className="inline-flex items-center gap-1 justify-end">Avg P&L <InfoHint text={STAT_HINTS.avgPnl} label="What avg P&L means" /></span>
                     </th>
                     <th className="px-3 py-2.5 text-right font-medium hidden sm:table-cell">
-                      <span className="inline-flex items-center gap-1 justify-end">Total P&L <InfoHint text={STAT_HINTS.totalReturnLinear} label="What total P&L means" /></span>
+                      <span className="inline-flex items-center gap-1 justify-end">Price-move sum <InfoHint text={STAT_HINTS.totalReturnLinear} label="What the price-move sum means" /></span>
                     </th>
                     <th className="px-3 py-2.5 text-center font-medium hidden sm:table-cell">Trend</th>
                   </tr>
@@ -1066,14 +1091,18 @@ export function TrackRecordClient() {
                       <td className="px-3 py-2.5"><HitRateBar value={asset.hitRate4h} /></td>
                       <td className="px-3 py-2.5"><HitRateBar value={asset.hitRate24h} /></td>
                       <td className={`px-3 py-2.5 text-right tabular-nums font-semibold ${
-                        asset.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'
+                        asset.resolved24h === 0 ? 'text-zinc-500' : asset.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'
                       }`}>
-                        {asset.avgPnl >= 0 ? '+' : ''}{asset.avgPnl.toFixed(2)}%
+                        {asset.resolved24h > 0
+                          ? `${asset.avgPnl >= 0 ? '+' : ''}${asset.avgPnl.toFixed(2)}%`
+                          : '—'}
                       </td>
                       <td className={`px-3 py-2.5 text-right tabular-nums font-semibold hidden sm:table-cell ${
-                        asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'
+                        asset.resolved24h === 0 ? 'text-zinc-500' : asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'
                       }`}>
-                        {asset.totalPnl >= 0 ? '+' : ''}{asset.totalPnl.toFixed(2)}%
+                        {asset.resolved24h > 0
+                          ? `${asset.totalPnl >= 0 ? '+' : ''}${asset.totalPnl.toFixed(2)}%`
+                          : '—'}
                       </td>
                       <td className="px-3 py-2.5 hidden sm:table-cell"><div className="flex justify-center"><Sparkline hits={asset.recentHits} /></div></td>
                     </tr>
@@ -1102,11 +1131,11 @@ export function TrackRecordClient() {
           </div>
         </section>
 
-        {/* All Signals */}
+        {/* Recorded signal rows in the selected scope */}
         <section className="mb-8">
           <div className="flex items-baseline justify-between mb-3">
             <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold">
-              All Signals
+              Recorded Signal Rows
             </h2>
             <span className="text-[10px] font-mono text-[var(--text-secondary)]">
               {total > 0 ? `${offset + 1}–${Math.min(offset + PAGE_SIZE, total)} of ${total}` : ''}
@@ -1183,9 +1212,15 @@ export function TrackRecordClient() {
                   {records.map(r => {
                     const outcome24h = r.outcomes['24h'];
                     const outcome4h = r.outcomes['4h'];
+                    const verified4h = isObservedOHLCVOutcomeSource(outcome4h?.source);
+                    const verified24h = isObservedOHLCVOutcomeSource(outcome24h?.source);
                     const outcome4hStatus = outcome4h != null ? deriveHistoricalOutcomeStatus(outcome4h) : null;
                     const outcome24hStatus = outcome24h != null ? deriveHistoricalOutcomeStatus(outcome24h) : null;
-                    const pnl = outcome24h?.pnlPct ?? outcome4h?.pnlPct ?? null;
+                    const pnl = verified24h
+                      ? outcome24h?.pnlPct ?? null
+                      : verified4h
+                        ? outcome4h?.pnlPct ?? null
+                        : null;
                     const now = Date.now();
                     const isPending24h = isPendingHistoricalOutcome(outcome24h, r.timestamp, 24 * 60 * 60 * 1000, now);
                     const isExpired24h = isExpiredHistoricalOutcome(outcome24h, r.timestamp, 24 * 60 * 60 * 1000, now);
@@ -1231,8 +1266,10 @@ export function TrackRecordClient() {
                         <td className={`px-4 py-2.5 text-right tabular-nums font-semibold ${
                           pnl == null ? 'text-zinc-600' : pnl >= 0 ? 'text-emerald-400' : 'text-red-400'
                         }`}>
-                          {outcome24hStatus === 'expired'
+                          {outcome24hStatus === 'expired' && outcome24h?.pnlPct === 0
                             ? 'expired'
+                            : !verified24h && !verified4h && (outcome24h || outcome4h)
+                            ? 'unverified'
                             : pnl == null
                             ? (isPending ? 'pending' : isExpired24h ? 'expired' : '—')
                             : `${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}%`}
@@ -1318,13 +1355,16 @@ export function TrackRecordClient() {
 
         {/* Transparency Note */}
         <div className="glass-card rounded-2xl p-5 border-l-2 border-emerald-500/50 mb-8">
-          <h3 className="text-sm font-semibold mb-1">Full Transparency</h3>
+          <h3 className="text-sm font-semibold mb-1">Population and Limitations</h3>
           <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-            Every signal is recorded the moment it&apos;s generated. Outcomes are resolved against Binance and
-            Yahoo Finance OHLCV candles.
-            Win rate, total P&amp;L, and the equity curve count only resolved trades — signals refused by the
-            full-risk gate or that expired without hitting TP/SL within 48h are surfaced as separate counters,
-            not folded into the headline numbers. No cherry-picking, no hidden losses.
+            Stored signals carry their generation timestamp. New counted outcomes require an approved observed-OHLCV
+            source and are not broker fills. Legacy outcome values without approved source provenance remain visible
+            as unverified audit rows and do not count. Counted outcomes include source-backed TP, SL, and nonzero
+            24-hour closes; they exclude simulated, gate-blocked, pending, and zero/missing force-expiry placeholders.
+            The unsized price-move sum uses counted rows, while the sequential simulation
+            further requires a recorded stop-loss. The broadcast view
+            includes only gate approvals recorded since 2026-06-10. These populations are signal studies,
+            not customer trades or actual portfolio returns.
           </p>
         </div>
       </main>

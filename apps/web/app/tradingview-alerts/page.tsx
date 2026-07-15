@@ -1,12 +1,17 @@
-import { Metadata } from "next";
-import TVAlertsClient from "./TVAlertsClient";
+import type { Metadata } from 'next';
+import { requireAdmin } from '../../lib/admin-gate';
+import TVAlertsClient from './TVAlertsClient';
 
 export const metadata: Metadata = {
-  title: "TradingView Alerts | TradeClaw",
-  description: "Bridge TradingView Pine Script alerts to TradeClaw — route signals to Telegram, Discord, and more. Free webhook endpoint for any TradingView plan.",
-  keywords: ["tradingview webhook", "pine script alerts", "trading signals", "telegram alerts"],
+  title: 'TradingView Alerts | TradeClaw',
+  description:
+    'Admin-only TradingView webhook audit. Entry forwarding requires an exact approved TradeClaw signal and a ready cost-adjusted evidence gate.',
+  robots: { index: false, follow: false },
 };
 
-export default function TradingViewAlertsPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function TradingViewAlertsPage() {
+  await requireAdmin();
   return <TVAlertsClient />;
 }

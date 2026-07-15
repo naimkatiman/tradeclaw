@@ -97,8 +97,8 @@ export function PrivacyClient() {
         <div>
           <h2 className="mb-2 text-lg font-semibold text-[var(--foreground)]">8. Changes to This Policy</h2>
           <p>
-            We may update this Privacy Policy as the platform evolves. Material changes will be announced
-            in the weekly digest and on Discord.
+            We may update this Privacy Policy as the platform evolves. Material changes may be announced
+            on the website, in the repository, or through configured community channels.
           </p>
         </div>
 

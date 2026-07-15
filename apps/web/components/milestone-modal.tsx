@@ -20,43 +20,43 @@ const MILESTONES: MilestoneInfo[] = [
     threshold: 10,
     label: '10 Stars',
     icon: Sprout,
-    tweet: 'TradeClaw just hit 10 GitHub stars! 🌱 The open-source AI trading signals platform is gaining traction. Check it out: https://github.com/naimkatiman/tradeclaw #opensource #trading',
+    tweet: 'GitHub reports at least 10 stars for TradeClaw, MIT-licensed trading-signal software. Review the source and limitations: https://github.com/naimkatiman/tradeclaw #opensource',
   },
   {
     threshold: 25,
     label: '25 Stars',
     icon: Zap,
-    tweet: 'TradeClaw just hit 25 GitHub stars! ⚡ Momentum building for this open-source AI trading signals platform. Star it now: https://github.com/naimkatiman/tradeclaw #algotrading',
+    tweet: 'GitHub reports at least 25 stars for TradeClaw. Review the MIT-licensed source and evidence labels: https://github.com/naimkatiman/tradeclaw #algotrading',
   },
   {
     threshold: 50,
     label: '50 Stars',
     icon: Flame,
-    tweet: 'TradeClaw is on fire — 50 GitHub stars! 🔥 Self-hosted AI trading signals for forex, crypto & metals. Free forever: https://github.com/naimkatiman/tradeclaw #trading #opensource',
+    tweet: 'GitHub reports at least 50 stars for TradeClaw, self-hostable trading-signal software under the MIT license: https://github.com/naimkatiman/tradeclaw #opensource',
   },
   {
     threshold: 100,
     label: '100 Stars',
     icon: Gem,
-    tweet: 'TradeClaw hit 100 GitHub stars! 💎 Triple digits for this open-source AI trading signals platform. Join the community: https://github.com/naimkatiman/tradeclaw #tradingbot',
+    tweet: 'GitHub reports at least 100 stars for TradeClaw. Inspect the source, evidence, and limitations: https://github.com/naimkatiman/tradeclaw #tradingbot',
   },
   {
     threshold: 250,
     label: '250 Stars',
     icon: Rocket,
-    tweet: 'TradeClaw is going viral — 250 GitHub stars! 🚀 The open-source AI trading signals platform everyone is talking about. Star it: https://github.com/naimkatiman/tradeclaw',
+    tweet: 'GitHub reports at least 250 stars for TradeClaw. Stars indicate repository interest, not trading performance: https://github.com/naimkatiman/tradeclaw',
   },
   {
     threshold: 500,
     label: '500 Stars',
     icon: Trophy,
-    tweet: 'TradeClaw reached 500 GitHub stars! 🏆 Half-way to 1,000 stars on this incredible open-source AI trading signals platform. Check it out: https://github.com/naimkatiman/tradeclaw',
+    tweet: 'GitHub reports at least 500 stars for TradeClaw, MIT-licensed self-hostable trading-signal software: https://github.com/naimkatiman/tradeclaw',
   },
   {
     threshold: 1000,
     label: '1,000 Stars',
     icon: Sparkles,
-    tweet: 'TradeClaw is LEGENDARY — 1,000 GitHub stars! 🌟 The open-source AI trading signals platform has made it. Join thousands of traders: https://github.com/naimkatiman/tradeclaw',
+    tweet: 'GitHub reports at least 1,000 stars for TradeClaw. Review the source and evidence; stars are not performance validation: https://github.com/naimkatiman/tradeclaw',
   },
 ];
 
@@ -64,17 +64,21 @@ const LS_KEY = 'tc-last-milestone-seen';
 
 export function MilestoneCelebrationModal() {
   const [milestone, setMilestone] = useState<MilestoneInfo | null>(null);
-  const [stars, setStars] = useState(0);
+  const [stars, setStars] = useState<number | null>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
     fetch('/api/github-stars')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error('GitHub metric unavailable');
+        return r.json();
+      })
       .then((data: GitHubStats) => {
         if (!mounted) return;
         const currentStars = data.stars;
+        if (!Number.isFinite(currentStars) || currentStars < 0) return;
         if (mounted) setStars(currentStars);
 
         let lastSeenRaw: string | null = null;
@@ -186,7 +190,7 @@ export function MilestoneCelebrationModal() {
               <p className="text-lg font-bold text-white mt-1">{milestone.label}</p>
             </div>
             <p className="text-sm text-[var(--text-secondary)]">
-              TradeClaw just crossed <strong className="text-white">{stars.toLocaleString()} stars</strong> on GitHub!
+              The GitHub metric endpoint reports <strong className="text-white">{stars?.toLocaleString()} stars</strong> for TradeClaw.
             </p>
 
             <div className="flex flex-col gap-2 pt-2">

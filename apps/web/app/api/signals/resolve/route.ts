@@ -1,12 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getOHLCV } from '../../../lib/ohlcv';
 import {
   getPendingRecordsAsync,
   updateRecordsAsync,
   resolveFromCandles,
   getOutcomeResolutionTimeframe,
+  isObservedOHLCVOutcomeSource,
+  type ObservedOHLCVOutcomeSource,
   type SignalHistoryRecord,
 } from '../../../../lib/signal-history';
+import { requireCronAuth } from '../../../../lib/cron-auth';
 
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
@@ -25,7 +28,10 @@ const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
  * force-expire after 2x the window duration to prevent signals from being
  * stuck in "pending" forever.
  */
-export async function POST(): Promise<Response> {
+export async function POST(request: NextRequest): Promise<Response> {
+  const denied = requireCronAuth(request);
+  if (denied) return denied;
+
   try {
     const pending = await getPendingRecordsAsync();
     const now = Date.now();
@@ -33,8 +39,12 @@ export async function POST(): Promise<Response> {
     const updates: Array<{ id: string; patch: Partial<SignalHistoryRecord> }> = [];
     const errors: string[] = [];
 
-    // Deduplicate OHLCV fetches by symbol
-    const ohlcvCache = new Map<string, { candles: Array<{ timestamp: number; high: number; low: number; close: number; open: number; volume: number }>; failed: boolean }>();
+    // Deduplicate OHLCV fetches by symbol and resolution timeframe.
+    const ohlcvCache = new Map<string, {
+      candles: Array<{ timestamp: number; high: number; low: number; close: number; open: number; volume: number }>;
+      source: ObservedOHLCVOutcomeSource | null;
+      failed: boolean;
+    }>();
 
     for (const record of pending) {
       const age = now - record.timestamp;
@@ -46,40 +56,60 @@ export async function POST(): Promise<Response> {
       if (!needs4h && !needs24h) continue;
       if (!record.tp1 || !record.sl) continue;
 
-      // Fetch OHLCV once per symbol
-      if (!ohlcvCache.has(record.pair)) {
+      const resolutionTimeframe = getOutcomeResolutionTimeframe(record);
+      const cacheKey = `${record.pair}:${resolutionTimeframe}`;
+
+      // Fetch OHLCV once per symbol/timeframe pair.
+      if (!ohlcvCache.has(cacheKey)) {
         let candles: Array<{ timestamp: number; high: number; low: number; close: number; open: number; volume: number }> = [];
+        let source: ObservedOHLCVOutcomeSource | null = null;
         let failed = false;
         try {
-          const result = await getOHLCV(record.pair, getOutcomeResolutionTimeframe(record));
-          candles = result.candles;
+          const result = await getOHLCV(record.pair, resolutionTimeframe);
+          if (isObservedOHLCVOutcomeSource(result.source)) {
+            candles = result.candles;
+            source = result.source;
+          } else {
+            const msg = `Refusing unobserved OHLCV source ${result.source} for ${record.pair}`;
+            console.warn(`[signals/resolve] ${msg}`);
+            errors.push(msg);
+            failed = true;
+          }
         } catch (err) {
           const msg = `OHLCV fetch failed for ${record.pair}: ${err instanceof Error ? err.message : String(err)}`;
           console.error(`[signals/resolve] ${msg}`);
           errors.push(msg);
           failed = true;
         }
-        ohlcvCache.set(record.pair, { candles, failed });
+        ohlcvCache.set(cacheKey, { candles, source, failed });
       }
 
-      const { candles, failed: ohlcvFailed } = ohlcvCache.get(record.pair)!;
+      const { candles, source: candleSource, failed: ohlcvFailed } = ohlcvCache.get(cacheKey)!;
 
       const newOutcomes = { ...record.outcomes };
       let changed = false;
+      const resolvedAt = new Date(now).toISOString();
 
       if (needs4h) {
         const windowEnd = record.timestamp + FOUR_HOURS_MS;
         const window = candles.filter(
           c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
         );
-        const result = resolveFromCandles(record, window, true);
-        if (result) {
-          newOutcomes['4h'] = result.outcome;
+        const result = candleSource ? resolveFromCandles(record, window, true) : null;
+        if (result && candleSource) {
+          newOutcomes['4h'] = { ...result.outcome, resolvedAt, source: candleSource };
           changed = true;
         } else if (age >= FOUR_HOURS_MS * 2) {
           // Force-expire: either OHLCV failed or candle window is empty
           // (data doesn't cover signal time range). Mark as expired at entry.
-          newOutcomes['4h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
+          newOutcomes['4h'] = {
+            price: record.entryPrice,
+            pnlPct: 0,
+            hit: false,
+            target: 'expired',
+            resolvedAt,
+            source: 'force-expired',
+          };
           changed = true;
           if (!ohlcvFailed && window.length === 0) {
             console.warn(`[signals/resolve] Empty 4h candle window for ${record.id} (${candles.length} total candles, none in range)`);
@@ -92,13 +122,20 @@ export async function POST(): Promise<Response> {
         const window = candles.filter(
           c => c.timestamp > record.timestamp && c.timestamp <= windowEnd,
         );
-        const result = resolveFromCandles(record, window, true);
-        if (result) {
-          newOutcomes['24h'] = result.outcome;
+        const result = candleSource ? resolveFromCandles(record, window, true) : null;
+        if (result && candleSource) {
+          newOutcomes['24h'] = { ...result.outcome, resolvedAt, source: candleSource };
           changed = true;
         } else if (age >= TWENTY_FOUR_HOURS_MS * 2) {
           // Force-expire: candle data unavailable or doesn't cover the window.
-          newOutcomes['24h'] = { price: record.entryPrice, pnlPct: 0, hit: false };
+          newOutcomes['24h'] = {
+            price: record.entryPrice,
+            pnlPct: 0,
+            hit: false,
+            target: 'expired',
+            resolvedAt,
+            source: 'force-expired',
+          };
           changed = true;
           if (!ohlcvFailed && window.length === 0) {
             console.warn(`[signals/resolve] Empty 24h candle window for ${record.id} (${candles.length} total candles, none in range)`);
@@ -128,5 +165,8 @@ export async function POST(): Promise<Response> {
 }
 
 export async function GET(): Promise<Response> {
-  return POST();
+  return NextResponse.json(
+    { error: 'Method not allowed' },
+    { status: 405, headers: { Allow: 'POST' } },
+  );
 }

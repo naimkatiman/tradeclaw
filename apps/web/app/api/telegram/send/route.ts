@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireCronAuth } from '../../../../lib/cron-auth';
 import { readSubscribers } from '../../../../lib/telegram-subscribers';
+import { evaluateCostAdjustedEdge } from '../../../../lib/cost-adjusted-edge-gate';
 
 const TELEGRAM_API = 'https://api.telegram.org';
 const RATE_LIMIT_MS = 34; // ~30 messages/second
@@ -178,6 +179,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   // Broadcast to all subscribers
   if (body.broadcast) {
+    const edge = await evaluateCostAdjustedEdge({ symbols: [body.signal.symbol] });
+    if (!edge.allowed) {
+      return NextResponse.json(
+        {
+          ok: false,
+          sent: 0,
+          failed: 0,
+          total: 0,
+          halted: `cost_adjusted_edge:${edge.reason}`,
+          evidence: {
+            usableCount: edge.usableCount,
+            activeDays: edge.activeDays,
+            coverage: edge.coverage,
+            perSignalMeanNetR: edge.perSignalMeanNetR,
+            equalDayLowerBoundNetR: edge.equalDayLowerBoundNetR,
+          },
+        },
+        { status: 503 },
+      );
+    }
+
     const subscribers = await readSubscribers();
 
     const eligible = subscribers.filter((sub) => {

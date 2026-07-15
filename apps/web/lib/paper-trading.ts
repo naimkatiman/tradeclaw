@@ -67,18 +67,10 @@ export interface Portfolio {
 
 export const STARTING_BALANCE = 10000;
 
-export const BASE_PRICES: Record<string, number> = {
-  BTCUSD: 87500,
-  ETHUSD: 3400,
-  XAUUSD: 2180,
-  EURUSD: 1.083,
-  GBPUSD: 1.264,
-  USDJPY: 151.2,
-  XAGUSD: 24.8,
-  AUDUSD: 0.654,
-  XRPUSD: 0.615,
-  USDCAD: 1.365,
-};
+export const PAPER_SYMBOLS = [
+  'BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD',
+  'USDJPY', 'XAGUSD', 'AUDUSD', 'XRPUSD', 'USDCAD',
+] as const;
 
 function fmt(v: number, price: number): number {
   return +v.toFixed(price >= 100 ? 2 : 5);
@@ -315,7 +307,7 @@ export interface OpenPositionInput {
   signalId?: string;
   stopLoss?: number;
   takeProfit?: number;
-  entryPrice?: number;
+  entryPrice: number;
   slippageEnabled?: boolean;
 }
 
@@ -325,8 +317,11 @@ export async function openPosition(
   const header = await getOrCreatePortfolioRow(opts.userId);
   const balance = Number(header.balance);
 
-  const basePrice = BASE_PRICES[opts.symbol] ?? 100;
-  const rawEntry = opts.entryPrice ?? fmt(basePrice, basePrice);
+  if (!Number.isFinite(opts.entryPrice) || opts.entryPrice <= 0) {
+    throw new Error('openPosition requires a positive observed entryPrice');
+  }
+  const basePrice = opts.entryPrice;
+  const rawEntry = opts.entryPrice;
   const slippageConfig = getSlippageConfig(opts.symbol);
   const useSlippage = opts.slippageEnabled !== false;
   const entryPrice = useSlippage
@@ -362,9 +357,12 @@ export async function openPosition(
 
 export async function closePosition(
   opts: { userId: string; positionId: string },
-  exitPrice?: number,
+  exitPrice: number,
   exitReason: Trade['exitReason'] = 'manual',
 ): Promise<{ portfolio: Portfolio; trade: Trade } | null> {
+  if (!Number.isFinite(exitPrice) || exitPrice <= 0) {
+    throw new Error('closePosition requires a positive observed exitPrice');
+  }
   const posRow = await queryOne<PositionRow>(
     `DELETE FROM paper_positions WHERE id = $1 AND user_id = $2
      RETURNING id, user_id, symbol, direction, entry_price, quantity, opened_at,
@@ -374,8 +372,8 @@ export async function closePosition(
   if (!posRow) return null;
 
   const position = toPosition(posRow);
-  const basePrice = BASE_PRICES[position.symbol] ?? 100;
-  const rawExit = exitPrice ?? fmt(position.entryPrice * (1 + (Math.random() - 0.5) * 0.003), basePrice);
+  const basePrice = position.entryPrice;
+  const rawExit = exitPrice;
   const slippageConfig = getSlippageConfig(position.symbol);
   const currentPrice = fmt(applySlippage(rawExit, position.direction, 'exit', slippageConfig), basePrice);
 
@@ -431,12 +429,15 @@ export async function closePosition(
 
 export async function closeAllPositions(
   userId: string,
+  exitPrices: Readonly<Record<string, number>>,
   exitReason: Trade['exitReason'] = 'manual',
 ): Promise<Portfolio> {
-  // Close one at a time so equity curve + stats update after each
+  // Missing prices leave positions open instead of manufacturing a fill.
   let portfolio = await getPortfolio(userId);
-  while (portfolio.positions.length > 0) {
-    await closePosition({ userId, positionId: portfolio.positions[0].id }, undefined, exitReason);
+  for (const position of [...portfolio.positions]) {
+    const exitPrice = exitPrices[position.symbol];
+    if (!Number.isFinite(exitPrice) || exitPrice <= 0) continue;
+    await closePosition({ userId, positionId: position.id }, exitPrice, exitReason);
     portfolio = await getPortfolio(userId);
   }
   return portfolio;

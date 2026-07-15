@@ -60,6 +60,6 @@ jobs:
           cache-to: type=gha,mode=max
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.description=TradeClaw — self-hosted AI trading signals
+            org.opencontainers.image.description=TradeClaw - self-hostable trading research platform
             org.opencontainers.image.licenses=MIT
             org.opencontainers.image.revision=${{ github.sha }}

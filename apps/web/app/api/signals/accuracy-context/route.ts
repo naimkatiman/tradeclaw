@@ -14,8 +14,7 @@ export async function GET(req: NextRequest) {
   // Read from signal_history — same source as track-record
   const { readHistoryAsync } = await import('@/lib/signal-history');
   const rows = await readHistoryAsync();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const ctx = computeAccuracyContext(rows as any, symbol, timeframe ?? 'H1');
+  const ctx = computeAccuracyContext(rows, symbol, timeframe ?? 'H1');
 
   if (!ctx) {
     return NextResponse.json({ accuracy: null });

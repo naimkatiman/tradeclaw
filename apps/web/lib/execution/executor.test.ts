@@ -20,6 +20,16 @@ jest.mock('./filters', () => ({
   runEntryFilters: jest.fn(() => ({ passed: true })),
 }));
 
+jest.mock('../cost-adjusted-edge-gate', () => ({
+  evaluateCostAdjustedEdge: jest.fn(() => Promise.resolve({
+    allowed: true,
+    reason: 'ready',
+    usableCount: 120,
+    activeDays: 35,
+    coverage: 0.95,
+  })),
+}));
+
 jest.mock('./risk-rails', () => ({
   checkLossKillSwitch: jest.fn(() => Promise.resolve({ halted: false })),
 }));
@@ -47,6 +57,7 @@ import { cancelOrder, getAccount, getExchangeInfo, placeOrder } from './binance-
 import { execute, query, withClient } from '../db-pool';
 import { computeSize } from './sizing';
 import { notifyEntryFilled, notifyError } from './telegram';
+import { evaluateCostAdjustedEdge } from '../cost-adjusted-edge-gate';
 import { runExecutorTick } from './executor';
 
 const mockedCancelOrder = cancelOrder as jest.MockedFunction<typeof cancelOrder>;
@@ -59,6 +70,7 @@ const mockedWithClient = withClient as jest.MockedFunction<typeof withClient>;
 const mockedComputeSize = computeSize as jest.MockedFunction<typeof computeSize>;
 const mockedNotify = notifyEntryFilled as jest.MockedFunction<typeof notifyEntryFilled>;
 const mockedNotifyError = notifyError as jest.MockedFunction<typeof notifyError>;
+const mockedEvaluateEdge = evaluateCostAdjustedEdge as jest.MockedFunction<typeof evaluateCostAdjustedEdge>;
 
 const SIGNAL_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 
@@ -141,6 +153,38 @@ beforeEach(() => {
     notionalUsd: 25000,
     riskUsd: 10,
   } as never);
+});
+
+describe('runExecutorTick — cost-adjusted edge readiness', () => {
+  it('blocks before broker reads or writes when evidence is unavailable', async () => {
+    mockedEvaluateEdge.mockResolvedValueOnce({
+      allowed: false,
+      reason: 'unavailable',
+      usableCount: 0,
+      activeDays: 0,
+      coverage: 0,
+    } as never);
+
+    const result = await runExecutorTick();
+
+    expect(result.halted).toBe('cost_adjusted_edge:unavailable');
+    expect(mockedGetAccount).not.toHaveBeenCalled();
+    expect(mockedGetExchangeInfo).not.toHaveBeenCalled();
+    expect(mockedPlaceOrder).not.toHaveBeenCalled();
+    expect(mockedExecute).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO execution_errors'),
+      expect.any(Array),
+    );
+  });
+
+  it('requires the persisted per-signal broadcast decision in pending SQL', async () => {
+    mockedQuery.mockResolvedValueOnce([]);
+
+    await runExecutorTick();
+
+    expect(mockedQuery.mock.calls[0][0]).toContain('sh.broadcast_blocked = FALSE');
+    expect(mockedEvaluateEdge).not.toHaveBeenCalled();
+  });
 });
 
 describe('runExecutorTick — SL placement failure after a filled entry', () => {

@@ -2,13 +2,13 @@ import { Metadata } from 'next';
 import PineImportClient from './PineImportClient';
 
 export const metadata: Metadata = {
-  title: 'Pine Script to TradeClaw Converter | Free TradingView Strategy Importer',
+  title: 'Pine Script to TradeClaw Draft Importer',
   description:
-    'Convert TradingView Pine Script strategies to TradeClaw JSON format instantly. Supports RSI, EMA, MACD, Bollinger Bands, Stochastic and more. Free, open-source, no sign-up required.',
+    'Heuristically translate selected Pine Script patterns into draft TradeClaw JSON. Review warnings and validate behavior before using the result.',
   openGraph: {
-    title: 'Pine Script to TradeClaw Converter | Free TradingView Strategy Importer',
+    title: 'Pine Script to TradeClaw Draft Importer',
     description:
-      'Paste your Pine Script code and get an equivalent TradeClaw strategy JSON in seconds. Supports v4/v5 syntax.',
+      'Translate selected Pine Script patterns into draft TradeClaw JSON. The output is not guaranteed to be semantically equivalent.',
   },
 };
 

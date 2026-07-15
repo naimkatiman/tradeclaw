@@ -204,6 +204,23 @@ export function BrokerSimClient() {
   const [showConnectionStr, setShowConnectionStr] = useState(false);
 
   const broker = BROKERS.find(b => b.id === selectedBroker)!;
+  const integrationExample = `// Research-only review example; no broker connection or order submission.
+const response = await fetch('http://localhost:3000/api/signals');
+if (!response.ok) throw new Error('Signal research feed unavailable');
+
+const { signals = [] } = await response.json();
+for (const signal of signals) {
+  console.log({
+    brokerReference: '${selectedBroker}',
+    symbol: signal.symbol,
+    direction: signal.direction,
+    ruleScore: String(signal.confidence) + '/100', // legacy API field; not a probability or edge estimate
+    executed: false,
+  });
+}
+
+// Any real adapter must separately require the reproducible cost-adjusted
+// evidence gate, operator risk policy, authenticated idempotency, and sizing.`;
 
   // Initialize field values when broker changes
   useEffect(() => {
@@ -441,13 +458,13 @@ export function BrokerSimClient() {
 
             {/* What this would look like in production */}
             <div className="rounded-xl p-5" style={{ background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.15)' }}>
-              <h3 className="text-sm font-semibold mb-2 text-purple-400">In Production, This Would...</h3>
+              <h3 className="text-sm font-semibold mb-2 text-purple-400">What a Real Adapter Would Still Need</h3>
               <ul className="text-xs space-y-1.5" style={{ color: 'var(--text-secondary)' }}>
-                <li>• Connect to your real {broker.name} account</li>
-                <li>• Auto-execute TradeClaw signals as market orders</li>
-                <li>• Apply position sizing from your risk settings</li>
-                <li>• Set SL/TP from signal levels automatically</li>
-                <li>• Stream live P&L back to the dashboard</li>
+                <li>Authenticate to a separately implemented {broker.name} adapter</li>
+                <li>Require the reproducible cost-adjusted evidence gate to pass</li>
+                <li>Apply operator-owned sizing, symbol mapping, and risk controls</li>
+                <li>Use authenticated idempotency and reconcile broker fills</li>
+                <li>Keep the mechanical rule score separate from probability and edge</li>
               </ul>
               <a
                 href="https://github.com/naimkatiman/tradeclaw/discussions"
@@ -463,31 +480,15 @@ export function BrokerSimClient() {
 
         {/* Code examples */}
         <div className="rounded-xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <h3 className="text-sm font-semibold mb-4">Integration Code Example</h3>
+          <h3 className="text-sm font-semibold mb-1">Research Feed Example</h3>
+          <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
+            This example only logs candidates. It does not connect to a broker or place an order.
+          </p>
           <div className="rounded-lg p-4 font-mono text-xs overflow-x-auto" style={{ background: '#0a0a0a', color: '#a1a1aa' }}>
-            <pre>{`import { TradeclawClient } from 'tradeclaw-js';
-import { connectBroker } from './broker-adapter';
-
-const tc = new TradeclawClient({ baseUrl: 'http://localhost:3000' });
-const broker = await connectBroker({
-  type: '${selectedBroker}',
-  connectionString: '${broker.connectionString}',
-});
-
-// Auto-follow signals
-const signals = await tc.signals({ minConfidence: 75 });
-for (const signal of signals) {
-  await broker.placeOrder({
-    symbol: signal.symbol,
-    direction: signal.direction,
-    stopLoss: signal.stopLoss,
-    takeProfit: signal.takeProfit1,
-    size: calculatePositionSize(broker.account, signal),
-  });
-}`}</pre>
+            <pre>{integrationExample}</pre>
           </div>
           <div className="flex justify-end mt-2">
-            <CopyButton text={`import { TradeclawClient } from 'tradeclaw-js';\nimport { connectBroker } from './broker-adapter';\n\nconst tc = new TradeclawClient({ baseUrl: 'http://localhost:3000' });\nconst broker = await connectBroker({\n  type: '${selectedBroker}',\n  connectionString: '${broker.connectionString}',\n});\n\nconst signals = await tc.signals({ minConfidence: 75 });\nfor (const signal of signals) {\n  await broker.placeOrder({\n    symbol: signal.symbol,\n    direction: signal.direction,\n    stopLoss: signal.stopLoss,\n    takeProfit: signal.takeProfit1,\n    size: calculatePositionSize(broker.account, signal),\n  });\n}`} />
+            <CopyButton text={integrationExample} />
           </div>
         </div>
 

@@ -4,11 +4,11 @@ import SmsClient from './SmsClient';
 export const metadata: Metadata = {
   title: 'SMS Signal Alerts — TradeClaw',
   description:
-    'Get AI-generated trading signals delivered to your phone via SMS. Choose pairs, set confidence thresholds, and receive alerts every 6 hours via Twilio.',
+    'Configure scheduled Twilio SMS delivery for eligible TradeClaw signal records. Confidence is indicator agreement, not a probability of profit.',
   openGraph: {
     title: 'SMS Signal Alerts — TradeClaw',
     description:
-      'Free SMS trading signal alerts. BTC, ETH, XAU, EUR, and more — delivered to your phone every 6 hours.',
+      'Configure scheduled Twilio SMS delivery for eligible TradeClaw signal records. Twilio and carrier charges may apply.',
     images: [{ url: '/api/og', width: 1200, height: 630 }],
   },
 };

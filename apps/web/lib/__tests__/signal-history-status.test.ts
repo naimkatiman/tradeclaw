@@ -56,5 +56,7 @@ describe('signal-history-status', () => {
     expect(getHistoricalOutcomeDisplayStatus({ timestamp: ts, outcomes: { '4h': null, '24h': { hit: true, pnlPct: 2.1 } } }, ts + TWENTY_FOUR_HOURS_MS)).toBe('win');
     expect(getHistoricalOutcomeDisplayStatus({ timestamp: ts, outcomes: { '4h': null, '24h': { hit: false, pnlPct: -1.4 } } }, ts + TWENTY_FOUR_HOURS_MS)).toBe('loss');
     expect(getHistoricalOutcomeDisplayStatus({ timestamp: ts, outcomes: { '4h': null, '24h': { hit: false, pnlPct: 0 } } }, ts + TWENTY_FOUR_HOURS_MS)).toBe('expired');
+    expect(getHistoricalOutcomeDisplayStatus({ timestamp: ts, outcomes: { '4h': null, '24h': { hit: true, pnlPct: 0.4, target: 'expired' } } }, ts + TWENTY_FOUR_HOURS_MS)).toBe('win');
+    expect(getHistoricalOutcomeDisplayStatus({ timestamp: ts, outcomes: { '4h': null, '24h': { hit: false, pnlPct: -0.4, target: 'expired' } } }, ts + TWENTY_FOUR_HOURS_MS)).toBe('loss');
   });
 });

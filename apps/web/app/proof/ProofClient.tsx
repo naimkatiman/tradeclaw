@@ -184,9 +184,9 @@ function EmptyState() {
         <Clock className="w-8 h-8 text-zinc-500" />
       </div>
       <div>
-        <p className="text-zinc-300 font-medium">No real signals tracked yet</p>
+        <p className="text-zinc-300 font-medium">No non-synthetic signals tracked yet</p>
         <p className="text-sm text-zinc-500 mt-1 max-w-xs">
-          Real signals are recorded as users visit the dashboard. Seeded demo data is
+          Non-synthetic signals are recorded as users visit the dashboard. Seeded demo data is
           excluded. Check back after the live instance runs for a few hours.
         </p>
       </div>
@@ -261,14 +261,14 @@ export default function ProofClient() {
             </span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold leading-tight tracking-tight">
-            Real Signal Performance
+            Recorded Signal Outcomes
             <br />
-            <span className="text-emerald-400">No Simulation.</span>
+            <span className="text-emerald-400">Resolved Against OHLCV.</span>
           </h1>
           <p className="mt-4 text-zinc-400 max-w-xl leading-relaxed">
-            This page shows only live-tracked signals — recorded the moment they were
-            generated from real market data. Seeded demo data is excluded. Outcome
-            verification is candle-based: price hit TP1 or SL.
+            This page excludes seeded demo rows. Stored signals carry their generation
+            timestamp, and outcome labels are resolved against provider OHLCV as TP1 or SL
+            hits. They are not broker fills, customer trades, or portfolio returns.
           </p>
           <div className="mt-6 flex items-center gap-3">
             <button
@@ -297,10 +297,10 @@ export default function ProofClient() {
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             <StatCard
-              label="Real Signals Tracked"
+              label="Non-Synthetic Signals"
               value={String(stats.realSignals)}
               sub={`of ${stats.totalSignals} total (excl. seeded)`}
-              tooltip="Signals emitted from real market data, excluding seeded/simulated rows used for UI demo. The denominator for the win-rate on this page."
+              tooltip="Recorded signal rows excluding seeded/synthetic UI demos. This does not mean the signals were executed at a broker."
             />
             <StatCard
               label="Win Rate (24h)"
@@ -310,11 +310,11 @@ export default function ProofClient() {
               tooltip='Resolved signals where price reached TP1 before SL within 24h, divided by total resolved signals. "Win" = TP1 hit first; "loss" = SL hit first. Pending signals excluded.'
             />
             <StatCard
-              label="Avg P&L (24h)"
+              label="Avg price move (24h)"
               value={hasRealData ? `${stats.runningPnlPct > 0 ? '+' : ''}${stats.runningPnlPct}%` : '—'}
               sub={`${stats.totalWins}W / ${stats.totalLosses}L`}
               positive={hasRealData ? stats.runningPnlPct > 0 : undefined}
-              tooltip="Average per-signal % return at fixed 1R risk over the 24h horizon. W/L is the underlying win and loss count."
+              tooltip="Average non-zero 24h OHLCV-resolved price move for the rows counted by this API. No account sizing or broker execution is represented. W/L is the underlying outcome count."
             />
             <StatCard
               label="Avg Confidence"
@@ -330,10 +330,10 @@ export default function ProofClient() {
           <AlertCircle className="w-4 h-4 text-zinc-400 mt-0.5 shrink-0" />
           <div className="text-sm text-zinc-400 leading-relaxed">
             <span className="text-zinc-400 font-medium">Transparency note:</span> Signals
-            are generated from real market data (Binance/Yahoo Finance) but outcomes
-            are resolved against simulated candle replay when live price history is
-            unavailable. &quot;Win&quot; = price reached TP1 before SL. Past accuracy does
-            not guarantee future results.
+            are recorded from the signal engine and outcomes are resolved from available
+            candle data. &quot;Win&quot; = the OHLCV resolver labeled TP1 before SL. Candle
+            resolution does not establish an executable fill or customer result. Past
+            outcomes do not predict future results.
           </div>
         </div>
 

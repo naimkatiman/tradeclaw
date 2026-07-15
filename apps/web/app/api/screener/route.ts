@@ -82,8 +82,11 @@ export async function GET(request: NextRequest) {
       else if (entry < ema20) emaStatus = 'Below EMA20';
 
       // Get last 20 closes for sparkline
-      const ohlcvEntry = (ohlcvData as Map<string, { candles: { close: number }[] }>).get(signal.symbol);
-      const sparkline = ohlcvEntry
+      const ohlcvEntry = (ohlcvData as Map<string, {
+        candles: { close: number }[];
+        source: string;
+      }>).get(signal.symbol);
+      const sparkline = ohlcvEntry && ohlcvEntry.source !== 'synthetic'
         ? ohlcvEntry.candles.slice(-20).map(c => c.close)
         : [];
 

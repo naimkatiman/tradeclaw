@@ -22,12 +22,13 @@ interface ComparisonRow {
 
 const COMPARISON_ROWS: ComparisonRow[] = [
   {
-    feature: 'Pricing',
-    tradeclaw: 'Free / MIT',
-    tradingview: '$14.95–$59.95/mo',
-    talib: 'Free (C library)',
-    pandasta: 'Free (Python lib)',
-    threecommas: '$29–$49.99/mo',
+    feature: 'Terms / pricing',
+    note: 'Third-party terms can change; verify them with each vendor or project.',
+    tradeclaw: 'MIT-licensed code',
+    tradingview: 'See vendor',
+    talib: 'See project terms',
+    pandasta: 'See project terms',
+    threecommas: 'See vendor',
   },
   {
     feature: 'Open Source',
@@ -137,77 +138,28 @@ const COMPARISON_ROWS: ComparisonRow[] = [
 
 // ── Benchmark Data ──────────────────────────────────────────────────────────
 
-interface BenchmarkRow {
-  task: string;
-  tradeclaw: string;
-  talib: string;
-  pandasta: string;
-  tcMs: number;
-  talibMs: number;
-  pandaMs: number;
-}
-
-const BENCHMARKS: BenchmarkRow[] = [
-  {
-    task: 'RSI(14) on 1,000 candles',
-    tradeclaw: '42 ms',
-    talib: '28 ms',
-    pandasta: '180 ms',
-    tcMs: 42,
-    talibMs: 28,
-    pandaMs: 180,
-  },
-  {
-    task: 'MACD on 1,000 candles',
-    tradeclaw: '48 ms',
-    talib: '31 ms',
-    pandasta: '210 ms',
-    tcMs: 48,
-    talibMs: 31,
-    pandaMs: 210,
-  },
-  {
-    task: 'Bollinger Bands on 1,000 candles',
-    tradeclaw: '51 ms',
-    talib: '24 ms',
-    pandasta: '195 ms',
-    tcMs: 51,
-    talibMs: 24,
-    pandaMs: 195,
-  },
-  {
-    task: 'Full signal suite on 10 assets',
-    tradeclaw: '310 ms',
-    talib: 'N/A (no suite)',
-    pandasta: '1,800 ms',
-    tcMs: 310,
-    talibMs: 0,
-    pandaMs: 1800,
-  },
-];
-
 // ── FAQ Data ────────────────────────────────────────────────────────────────
 
 const FAQS = [
   {
     q: 'Why not just use TradingView?',
-    a: 'TradingView is an excellent charting tool, but it is a locked-in SaaS platform. Free accounts have limited indicators and no API access to signal data. At $15–$60/month you still cannot self-host, export signals programmatically, or integrate with your own infrastructure. TradeClaw gives you the same signal quality with full ownership, a REST API, Telegram alerts, and $0 cost.',
+    a: 'TradeClaw is designed for source inspection and self-hosting. TradingView is a separately operated product with plans and capabilities that can change, so verify its current documentation before comparing it. TradeClaw does not claim equivalent signal quality.',
   },
   {
     q: 'Why not just use TA-Lib?',
-    a: 'TA-Lib is a powerful low-level C library, but it is just that — a library. There is no web dashboard, no live feeds, no alerts, no REST API, and no deployment story. Installation is notoriously tricky on modern systems. TradeClaw wraps all the indicator math in a full-stack platform with a UI, API, and Docker deploy — so you get TA-Lib-level performance without any of the plumbing.',
+    a: 'TA-Lib is an indicator library, while TradeClaw combines a smaller indicator set with application surfaces such as a web dashboard, API routes, and Docker configuration. No performance parity is claimed because this repository does not include a reproducible cross-library benchmark.',
   },
   {
     q: 'Why not just use pandas-ta?',
-    a: 'pandas-ta is great for Jupyter notebooks and Python batch analysis, but it has no web UI, no live streaming feed, no alert system, and no built-in deployment story. Every new project requires wiring up your own server, database, and frontend. TradeClaw ships all of that out of the box and supports the same 130+ indicators.',
+    a: 'pandas-ta is a Python analysis library, while TradeClaw is a self-hostable application. The current TradeClaw signal path uses RSI, MACD, EMA, Bollinger Bands, Stochastic, ADX, and Volume; plugins can extend that set. TradeClaw does not claim catalog parity with pandas-ta.',
   },
   {
     q: 'Why not just use 3Commas?',
-    a: '3Commas costs $29–$50/month, only supports crypto exchanges, does not publish its algorithms, and stores your API keys on their servers. There is no self-hosting option. TradeClaw is open-source MIT, self-hostable, covers Forex and Commodities too, and you keep full control of your API keys and data.',
+    a: '3Commas is a separately operated product whose pricing, integrations, and custody model can change. Verify its current documentation directly. TradeClaw offers MIT-licensed source and a self-hosting path; it does not claim feature or execution-quality parity.',
   },
   {
     q: 'Can I migrate from these tools to TradeClaw?',
-    a: 'Yes. TradeClaw uses industry-standard OHLCV data formats and outputs signals as JSON over REST, Webhooks, Telegram, and RSS/Atom feeds. If you have existing Pine Script strategies or pandas workflows, the indicator names and parameters are the same — RSI, MACD, Bollinger Bands, etc. Migration is mostly a matter of wiring up the Docker container and pointing your data source at the API.',
+    a: 'There is no automated migration tool. TradeClaw accepts OHLCV-shaped inputs and exposes JSON APIs, but Pine Script and pandas strategies require manual translation and validation against TradeClaw\'s implemented indicators and signal rules.',
   },
 ];
 
@@ -366,8 +318,6 @@ export function CompareClient() {
   const [activeTab, setActiveTab] = useState<CodeTab>('tradeclaw');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const maxMs = 1800;
-
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       <Navbar />
@@ -389,9 +339,9 @@ export function CompareClient() {
           </h1>
 
           <p className="text-lg text-[var(--text-secondary)] max-w-2xl mx-auto mb-10 leading-relaxed">
-            TradeClaw is the only open-source, self-hosted trading signal platform that ships with
-            a full web dashboard, REST API, Docker deploy, Telegram alerts, and 130+ indicators
-            — completely free.
+            TradeClaw is an MIT-licensed, self-hostable signal platform with a web dashboard,
+            REST endpoints, Docker configuration, and optional Telegram delivery. This page compares
+            repository-visible capabilities; it does not claim market-wide uniqueness or performance parity.
           </p>
 
           <div className="flex flex-wrap justify-center gap-4">
@@ -425,7 +375,7 @@ export function CompareClient() {
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3">Feature Comparison</h2>
             <p className="text-[var(--text-secondary)] text-sm">
-              How TradeClaw stacks up against the most popular alternatives
+              Repository-oriented capability snapshot; verify all third-party entries with their current documentation
             </p>
           </div>
 
@@ -463,6 +413,9 @@ export function CompareClient() {
                   >
                     <td className="px-5 py-3.5 text-xs font-medium text-[var(--foreground)]">
                       {row.feature}
+                      {row.note && (
+                        <p className="mt-1 text-[10px] font-normal leading-4 text-[var(--text-secondary)]">{row.note}</p>
+                      )}
                     </td>
                     <td className="px-4 py-3.5 bg-emerald-500/[0.02]">
                       <Cell value={row.tradeclaw} />
@@ -509,82 +462,18 @@ export function CompareClient() {
         </div>
       </section>
 
-      {/* ── Performance Benchmarks ─────────────────────────────────────────── */}
+      {/* ── Benchmark availability ─────────────────────────────────────────── */}
       <section className="px-6 py-20">
         <div className="mx-auto max-w-4xl">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3">Performance Benchmarks</h2>
-            <p className="text-[var(--text-secondary)] text-sm">
-              Signal calculation latency (lower is better) · Approximate benchmarks, March 2026
+          <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[0.04] px-6 py-8 text-center">
+            <p className="text-xs font-semibold uppercase tracking-widest text-amber-300">Measurement unavailable</p>
+            <h2 className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight">No published latency benchmark</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
+              This repository does not currently include a reproducible cross-library benchmark harness or a
+              captured result artifact. TradeClaw therefore publishes no latency numbers and claims no performance
+              parity with TA-Lib or pandas-ta. A future comparison must include the benchmark code, environment,
+              inputs, and raw output.
             </p>
-          </div>
-
-          <div className="overflow-x-auto">
-          <div className="rounded-2xl border border-[var(--border)] overflow-hidden min-w-[480px] bg-[var(--bg-card)]">
-            <div className="grid grid-cols-4 border-b border-[var(--border)] bg-[var(--glass-bg)] px-6 py-3 text-xs font-semibold text-[var(--text-secondary)]">
-              <span>Task</span>
-              <span className="text-emerald-400">TradeClaw</span>
-              <span>TA-Lib</span>
-              <span>pandas-ta</span>
-            </div>
-
-            {BENCHMARKS.map((row, i) => (
-              <div
-                key={row.task}
-                className={`px-6 py-4 ${i < BENCHMARKS.length - 1 ? 'border-b border-[var(--border)]' : ''}`}
-              >
-                <p className="text-xs font-medium text-[var(--foreground)] mb-3">{row.task}</p>
-                <div className="grid grid-cols-3 gap-3">
-                  {/* TradeClaw */}
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-emerald-400 font-semibold">{row.tradeclaw}</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-emerald-400 transition-all duration-700"
-                        style={{ width: `${Math.round((row.tcMs / maxMs) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                  {/* TA-Lib */}
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-[var(--text-secondary)]">{row.talib}</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
-                      {row.talibMs > 0 ? (
-                        <div
-                          className="h-full rounded-full bg-blue-400 transition-all duration-700"
-                          style={{ width: `${Math.round((row.talibMs / maxMs) * 100)}%` }}
-                        />
-                      ) : null}
-                    </div>
-                  </div>
-                  {/* pandas-ta */}
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-[var(--text-secondary)]">{row.pandasta}</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-orange-400 transition-all duration-700"
-                        style={{ width: `${Math.round((row.pandaMs / maxMs) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            <div className="px-6 py-3 border-t border-[var(--border)] bg-[var(--glass-bg)]">
-              <p className="text-xs text-[var(--text-secondary)]">
-                * TradeClaw includes HTTP overhead (REST API call). TA-Lib measured as raw C call via Python bindings.
-                pandas-ta measured via DataFrame.ta extension. TradingView and 3Commas are cloud-only and excluded.
-                All measurements on Apple M2 Pro with 1,000 OHLCV candles unless noted.
-              </p>
-            </div>
-          </div>
           </div>
         </div>
       </section>
@@ -691,10 +580,10 @@ export function CompareClient() {
 
         <div className="relative mx-auto max-w-2xl">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
-            Start using TradeClaw in 30 seconds
+            Review the TradeClaw self-hosting path
           </h2>
           <p className="text-[var(--text-secondary)] text-sm mb-8">
-            One command. No signup. No credit card. Full source code included.
+            MIT-licensed source with documented Docker Compose setup and required environment configuration.
           </p>
 
           {/* Docker one-liner */}

@@ -1,17 +1,16 @@
 import type { Metadata } from 'next';
-import { ExecutionClient } from './ExecutionClient';
+import { redirect } from 'next/navigation';
+import { requireAdmin } from '../../lib/admin-gate';
 
 export const metadata: Metadata = {
-  title: 'Execution Log — Order History & Pipeline Status | TradeClaw',
-  description:
-    'Complete order execution history with pipeline visualization, broker connection status, and execution performance metrics.',
-  openGraph: {
-    title: 'Execution Log — Order History & Pipeline Status',
-    description:
-      'Track order fills, rejections, execution pipeline stages, and broker connection status.',
-  },
+  title: 'Execution Ledger | TradeClaw Admin',
+  description: 'Admin-only execution rows persisted by the configured execution adapter.',
+  robots: { index: false, follow: false },
 };
 
-export default function ExecutionPage() {
-  return <ExecutionClient />;
+export const dynamic = 'force-dynamic';
+
+export default async function ExecutionPage() {
+  await requireAdmin();
+  redirect('/admin/executions');
 }

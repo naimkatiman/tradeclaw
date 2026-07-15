@@ -95,7 +95,7 @@ function drawSignalCard(canvas: HTMLCanvasElement, signal: ShareSignal) {
   ctx.textBaseline = 'middle';
   ctx.fillText(signal.timeframe, 33, 128);
 
-  // Confidence bar section
+  // Rule-score bar section
   const barX = 24;
   const barY = 160;
   const barW = W - 48;
@@ -118,7 +118,7 @@ function drawSignalCard(canvas: HTMLCanvasElement, signal: ShareSignal) {
   ctx.fillStyle = accentColor;
   ctx.font = 'bold 14px monospace';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText(`${signal.confidence}% confidence`, barX, barY - 8);
+  ctx.fillText(`Rule score ${signal.confidence}/100`, barX, barY - 8);
 
   // Price levels
   const fmtPrice = (n: number) => n >= 1000 ? n.toFixed(2) : n.toFixed(5);
@@ -167,7 +167,7 @@ function drawSignalCard(canvas: HTMLCanvasElement, signal: ShareSignal) {
 
   ctx.fillStyle = '#3F3F46';
   ctx.font = '11px monospace';
-  ctx.fillText('AI Trading Signals', 120, H - 22);
+  ctx.fillText('Rule-generated research · Not a predictive probability', 120, H - 22);
 
   if (signal.timestamp) {
     const ts = new Date(signal.timestamp).toLocaleString([], {
@@ -205,8 +205,8 @@ export function ShareSignalModal({ signal, onClose }: ShareSignalProps) {
     if (navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({
-          title: `${signal.symbol} ${signal.direction} — ${signal.confidence}% confidence`,
-          text: `TradeClaw signal: ${signal.symbol} ${signal.direction} entry ${signal.entry}`,
+          title: `${signal.symbol} ${signal.direction} — rule score ${signal.confidence}/100`,
+          text: `TradeClaw research candidate: ${signal.symbol} ${signal.direction} entry ${signal.entry}. Mechanical score, not a predictive probability.`,
           files: [file],
         });
         setStatus('shared');
@@ -240,7 +240,7 @@ export function ShareSignalModal({ signal, onClose }: ShareSignalProps) {
     const url = canvasRef.current.toDataURL('image/png');
     const a = document.createElement('a');
     a.href = url;
-    a.download = `tradeclaw-${signal.symbol}-${signal.direction}-${signal.confidence}pct.png`;
+    a.download = `tradeclaw-${signal.symbol}-${signal.direction}-score-${signal.confidence}.png`;
     a.click();
     setTimeout(() => setStatus('idle'), 1000);
   };
@@ -258,12 +258,12 @@ export function ShareSignalModal({ signal, onClose }: ShareSignalProps) {
     const signalPath = `/signal/${signal.symbol}-${signal.timeframe}-${signal.direction}`;
     const url = `${window.location.origin}${signalPath}`;
     const text = [
-      `${signal.symbol} ${signal.direction} — ${signal.confidence}% confidence`,
+      `${signal.symbol} ${signal.direction} — rule score ${signal.confidence}/100`,
       signal.entry ? `Entry: ${fmtP(signal.entry)}` : '',
       signal.sl ? `SL: ${fmtP(signal.sl)}` : '',
       signal.tp1 ? `TP1: ${fmtP(signal.tp1)}` : '',
       ``,
-      `Free AI trading signal via TradeClaw`,
+      `Rule-generated research candidate via TradeClaw; not a predictive probability or broker order.`,
     ].filter(Boolean).join('\n');
     return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
   };
@@ -271,7 +271,7 @@ export function ShareSignalModal({ signal, onClose }: ShareSignalProps) {
   const getTelegramUrl = () => {
     const signalPath = `/signal/${signal.symbol}-${signal.timeframe}-${signal.direction}`;
     const url = `${window.location.origin}${signalPath}`;
-    const text = `${signal.symbol} ${signal.direction} ${signal.confidence}% confidence — TradeClaw AI Signal`;
+    const text = `${signal.symbol} ${signal.direction} — rule score ${signal.confidence}/100 via TradeClaw. Not a predictive probability.`;
     return `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
   };
 
@@ -371,7 +371,7 @@ export function ShareSignalModal({ signal, onClose }: ShareSignalProps) {
           <span className={signal.direction === 'BUY' ? 'text-emerald-500' : 'text-red-500'}>{signal.direction}</span>
           <span>{signal.symbol}</span>
           <span>{signal.timeframe}</span>
-          <span>{signal.confidence}%</span>
+          <span>score {signal.confidence}/100</span>
         </div>
       </div>
     </div>

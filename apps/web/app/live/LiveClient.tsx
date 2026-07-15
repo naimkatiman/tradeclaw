@@ -23,7 +23,7 @@ import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 interface LiveSignal {
   id: string;
   pair: string;
-  direction: 'BUY' | 'SELL' | 'HOLD';
+  direction: 'BUY' | 'SELL';
   confidence: number;
   entry: number;
   tp: number;
@@ -52,23 +52,38 @@ function formatPrice(price: number): string {
   return price.toFixed(6);
 }
 
-function normalizeSignal(raw: Record<string, unknown>): LiveSignal {
-  const pair = (raw.symbol as string) ?? (raw.pair as string) ?? 'BTCUSD';
-  const direction = ((raw.direction as string) ?? 'HOLD').toUpperCase() as LiveSignal['direction'];
-  const confidence = typeof raw.confidence === 'number' ? raw.confidence : 75;
-  const entry = typeof raw.entry === 'number' ? raw.entry : 0;
-  const tp = typeof raw.tp === 'number' ? raw.tp : typeof raw.takeProfit1 === 'number' ? raw.takeProfit1 : entry;
-  const sl = typeof raw.sl === 'number' ? raw.sl : typeof raw.stopLoss === 'number' ? raw.stopLoss : entry;
-  const timeframe = (raw.timeframe as string) ?? 'H1';
-  const timestamp =
-    typeof raw.timestamp === 'number'
-      ? raw.timestamp
-      : typeof raw.timestamp === 'string'
-        ? new Date(raw.timestamp).getTime()
-        : Date.now();
+function normalizeSignal(raw: Record<string, unknown>): LiveSignal | null {
+  const pairValue = typeof raw.symbol === 'string' ? raw.symbol : raw.pair;
+  const pair = typeof pairValue === 'string' ? pairValue.trim().toUpperCase() : '';
+  const directionValue = typeof raw.direction === 'string' ? raw.direction.toUpperCase() : '';
+  const direction = directionValue === 'BUY' || directionValue === 'SELL' ? directionValue : null;
+  const confidence = typeof raw.confidence === 'number' ? raw.confidence : Number.NaN;
+  const entry = typeof raw.entry === 'number' ? raw.entry : Number.NaN;
+  const tp = typeof raw.tp === 'number' ? raw.tp : typeof raw.takeProfit1 === 'number' ? raw.takeProfit1 : Number.NaN;
+  const sl = typeof raw.sl === 'number' ? raw.sl : typeof raw.stopLoss === 'number' ? raw.stopLoss : Number.NaN;
+  const timeframe = typeof raw.timeframe === 'string' ? raw.timeframe.trim().toUpperCase() : '';
+  const timestamp = typeof raw.timestamp === 'number'
+    ? raw.timestamp
+    : typeof raw.timestamp === 'string'
+      ? Date.parse(raw.timestamp)
+      : Number.NaN;
+
+  if (
+    !pair ||
+    !direction ||
+    !timeframe ||
+    raw.dataQuality !== 'real' ||
+    !Number.isFinite(confidence) || confidence < 0 || confidence > 100 ||
+    !Number.isFinite(entry) || entry <= 0 ||
+    !Number.isFinite(tp) || tp <= 0 ||
+    !Number.isFinite(sl) || sl <= 0 ||
+    !Number.isFinite(timestamp) || timestamp <= 0
+  ) {
+    return null;
+  }
 
   return {
-    id: `${pair}-${timeframe}-${timestamp}`,
+    id: typeof raw.id === 'string' && raw.id.trim() ? raw.id : `${pair}-${timeframe}-${timestamp}`,
     pair,
     direction,
     confidence: Math.round(confidence),
@@ -132,6 +147,7 @@ function CopyButton({ text, label }: { text: string; label?: string }) {
 
 export default function LiveClient() {
   const [signals, setSignals] = useState<LiveSignal[]>([]);
+  const [feedState, setFeedState] = useState<'loading' | 'available' | 'unavailable'>('loading');
   const [hourCount, setHourCount] = useState(0);
   const nowRef = useRef(0);
   const [now, setNow] = useState(0);
@@ -145,11 +161,17 @@ export default function LiveClient() {
   /* Fetch signals from /api/signals */
   const fetchSignals = useCallback(async () => {
     try {
-      const res = await fetch('/api/signals');
-      if (!res.ok) return;
+      const res = await fetch('/api/live-feed', { cache: 'no-store' });
+      if (!res.ok) {
+        setSignals([]);
+        setFeedState('unavailable');
+        return;
+      }
       const json = await res.json();
-      const raw: Record<string, unknown>[] = json.signals ?? [];
-      const normalized = raw.map(normalizeSignal);
+      const raw: Record<string, unknown>[] = Array.isArray(json.signals) ? json.signals : [];
+      const normalized = raw
+        .map(normalizeSignal)
+        .filter((signal): signal is LiveSignal => signal !== null);
 
       normalized.sort((a, b) => b.timestamp - a.timestamp);
 
@@ -157,26 +179,33 @@ export default function LiveClient() {
       setFadeIn(false);
       setTimeout(() => {
         setSignals(normalized.slice(0, 20));
+        setFeedState(normalized.length > 0 ? 'available' : 'unavailable');
         setFadeIn(true);
         setLastFetchedAt(Date.now());
       }, 150);
     } catch {
-      /* network error — keep existing signals */
+      setSignals([]);
+      setFeedState('unavailable');
     }
   }, []);
 
   /* Fetch hour count separately at 30s interval */
   const fetchHourCount = useCallback(async () => {
     try {
-      const res = await fetch('/api/signals');
-      if (!res.ok) return;
+      const res = await fetch('/api/live-feed', { cache: 'no-store' });
+      if (!res.ok) {
+        setHourCount(0);
+        return;
+      }
       const json = await res.json();
-      const raw: Record<string, unknown>[] = json.signals ?? [];
-      const normalized = raw.map(normalizeSignal);
+      const raw: Record<string, unknown>[] = Array.isArray(json.signals) ? json.signals : [];
+      const normalized = raw
+        .map(normalizeSignal)
+        .filter((signal): signal is LiveSignal => signal !== null);
       const oneHourAgo = Date.now() - 3600000;
       setHourCount(normalized.filter((s) => s.timestamp > oneHourAgo).length);
     } catch {
-      /* noop */
+      setHourCount(0);
     }
   }, []);
 
@@ -187,8 +216,7 @@ export default function LiveClient() {
     void fetchSignals();
     void fetchHourCount();
 
-    // Table refreshes every 60s — the engine itself only produces new
-    // signals on a 5-min cadence, so faster polling is pure server load.
+    // Refresh the read-only feed without implying an engine publication cadence.
     pollRef.current = setInterval(() => void fetchSignals(), 60_000);
     // Hour counter refreshes every 30s
     counterPollRef.current = setInterval(() => void fetchHourCount(), 30_000);
@@ -226,7 +254,7 @@ export default function LiveClient() {
   const scriptSnippet = `<script src="${baseUrl}/api/widget/live"></script>`;
   const jsonSnippet = `// Fetch live signals via REST API\nconst resp = await fetch('${baseUrl}/api/live-feed');\nconst data = await resp.json();\n// data.signals — array of last 20 signals`;
 
-  const tweetText = `Check out TradeClaw — free, self-hosted AI trading signals firing every 5 minutes\n\n${baseUrl}/live`;
+  const tweetText = `Inspect TradeClaw's latest rule-generated signal candidates and evidence boundaries\n\n${baseUrl}/live`;
   const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
 
   return (
@@ -243,18 +271,22 @@ export default function LiveClient() {
           <div className="flex items-center gap-2 mb-3 flex-wrap">
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Live
+              Recorded feed
             </div>
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full border bg-emerald-500/10 border-emerald-500/20 text-emerald-400 text-xs font-medium">
+            <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs font-medium ${
+              feedState === 'available'
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                : 'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
+            }`}>
               <Radio className="w-3 h-3" />
-              Connected
+              {feedState === 'loading' ? 'Checking source' : feedState === 'available' ? 'Records available' : 'Source unavailable'}
             </div>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
             Live Signal Activity Feed
           </h1>
           <p className="text-[var(--text-secondary)] text-sm max-w-xl">
-            Watch TradeClaw analyze markets live (5-minute cadence). Embed this feed in your blog, newsletter, or site with one line of code.
+            Inspect the latest available rule-generated candidates and their timestamps. Rule score measures indicator agreement, not success probability. Embed this read-only feed in a blog or site.
           </p>
         </div>
 
@@ -263,7 +295,7 @@ export default function LiveClient() {
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-zinc-400" />
             <span className="text-2xl font-bold">{hourCount}</span>
-            <span className="text-xs text-[var(--text-secondary)]">signals fired in last hour</span>
+            <span className="text-xs text-[var(--text-secondary)]">latest feed rows from last hour</span>
           </div>
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-emerald-400" />
@@ -304,9 +336,9 @@ export default function LiveClient() {
           <div className="glass rounded-2xl p-4 border border-[var(--border)]">
             <div className="text-xs text-[var(--text-secondary)] mb-2 flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5" />
-              Avg Confidence
+              Avg Rule Score
             </div>
-            <span className="text-lg font-bold">{avgConfidence}%</span>
+            <span className="text-lg font-bold">{avgConfidence}/100</span>
           </div>
         </div>
 
@@ -332,19 +364,25 @@ export default function LiveClient() {
               Signal Activity
             </h2>
 
-            {signals.length === 0 && (
+            {feedState === 'loading' && (
               <div className="text-center py-12 text-[var(--text-secondary)] text-sm">
                 Loading signals&hellip;
               </div>
             )}
 
-            {signals.length > 0 && (
+            {feedState === 'unavailable' && (
+              <div className="text-center py-12 text-[var(--text-secondary)] text-sm">
+                No eligible provider-backed signal records are available.
+              </div>
+            )}
+
+            {feedState === 'available' && signals.length > 0 && (
               <>
                 <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-white/[0.02]">
                   <table className="w-full min-w-[640px]">
                     <thead>
                       <tr className="border-b border-[var(--border)]">
-                        {['Time', 'Pair', 'Direction', 'Timeframe', 'Confidence', 'Entry', 'TP', 'SL'].map((h) => (
+                        {['Time', 'Pair', 'Direction', 'Timeframe', 'Rule score', 'Entry', 'TP', 'SL'].map((h) => (
                           <th
                             key={h}
                             className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-widest text-[var(--text-secondary)]"
@@ -371,7 +409,7 @@ export default function LiveClient() {
                             <DirectionBadge direction={sig.direction} />
                           </td>
                           <td className="px-3 py-2 text-xs text-[var(--text-secondary)]">{sig.timeframe}</td>
-                          <td className="px-3 py-2 text-xs tabular-nums">{sig.confidence}%</td>
+                          <td className="px-3 py-2 text-xs tabular-nums">{sig.confidence}/100</td>
                           <td className="px-3 py-2 text-xs tabular-nums text-[var(--text-secondary)]">
                             {formatPrice(sig.entry)}
                           </td>

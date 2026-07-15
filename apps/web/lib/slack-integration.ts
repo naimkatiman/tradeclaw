@@ -181,7 +181,7 @@ export function formatSlackBlocks(payload: WebhookPayload): object[] {
       type: 'header',
       text: {
         type: 'plain_text',
-        text: `${isBuy ? '▲' : '▼'} ${signal.symbol} ${signal.direction} — ${signal.confidence}% confidence`,
+        text: `${isBuy ? '▲' : '▼'} ${signal.symbol} ${signal.direction} — rule score ${signal.confidence}/100`,
         emoji: true,
       },
     },
@@ -189,7 +189,7 @@ export function formatSlackBlocks(payload: WebhookPayload): object[] {
       type: 'section',
       fields: [
         { type: 'mrkdwn', text: `*Direction:* ${badge}` },
-        { type: 'mrkdwn', text: `*Confidence:* ${signal.confidence}%` },
+        { type: 'mrkdwn', text: `*Rule score:* ${signal.confidence}/100 _(mechanical, not a predictive probability)_` },
         { type: 'mrkdwn', text: `*Entry:* $${signal.entry}` },
         { type: 'mrkdwn', text: `*Stop Loss:* $${signal.stopLoss}` },
         { type: 'mrkdwn', text: `*Take Profit:* ${signal.takeProfit.map((t) => `$${t}`).join(' / ')}` },

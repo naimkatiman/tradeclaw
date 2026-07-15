@@ -1,52 +1,75 @@
 /**
- * Fetches signals from TradeClaw API with local fallback
+ * Fetches provider-observed research candidates and resolved outcome summaries.
+ * Every failure is explicit; no local market or performance data is generated.
  */
 
-const PAIRS = ['BTCUSD', 'ETHUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'XAGUSD', 'BNBUSD', 'SOLUSD', 'ADAUSD', 'DOTUSD', 'AVAXUSD'];
-const TIMEFRAMES = ['M5', 'M15', 'H1', 'H4', 'D1'];
-const DIRECTIONS = ['BUY', 'SELL'];
-const INDICATORS = ['RSI', 'MACD', 'EMA', 'Bollinger', 'Stochastic'];
+function isRecord(value) {
+  return typeof value === 'object' && value !== null;
+}
 
-function generateFallbackSignal(pair) {
-  const symbol = pair || PAIRS[Math.floor(Math.random() * PAIRS.length)];
-  const direction = DIRECTIONS[Math.floor(Math.random() * 2)];
-  const timeframe = TIMEFRAMES[Math.floor(Math.random() * TIMEFRAMES.length)];
-  const confidence = 60 + Math.floor(Math.random() * 35);
-  const price = symbol.startsWith('BTC') ? 40000 + Math.random() * 10000
-    : symbol.startsWith('ETH') ? 2000 + Math.random() * 1500
-    : symbol.startsWith('XAU') ? 1900 + Math.random() * 300
-    : symbol.startsWith('XAG') ? 22 + Math.random() * 8
-    : 0.8 + Math.random() * 1.5;
+function positiveNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
 
-  const priceFormatted = price > 100 ? price.toFixed(2) : price.toFixed(4);
-  const tpMultiplier = direction === 'BUY' ? 1.02 : 0.98;
-  const slMultiplier = direction === 'BUY' ? 0.99 : 1.01;
+function normalizeSignal(value) {
+  if (!isRecord(value)) return null;
+  if (value.source !== 'real' || value.dataQuality !== 'real') return null;
+  if (typeof value.id !== 'string' || value.id.length === 0) return null;
+  if (typeof value.symbol !== 'string' || value.symbol.length === 0) return null;
+  if (value.direction !== 'BUY' && value.direction !== 'SELL') return null;
+  if (typeof value.timeframe !== 'string' || value.timeframe.length === 0) return null;
+  if (typeof value.confidence !== 'number' || !Number.isFinite(value.confidence)) return null;
+  if (value.confidence < 0 || value.confidence > 100) return null;
+  if (!positiveNumber(value.entry)) return null;
+  if (!positiveNumber(value.stopLoss)) return null;
+  if (!positiveNumber(value.takeProfit1)) return null;
+  if (typeof value.timestamp !== 'string' || !Number.isFinite(Date.parse(value.timestamp))) return null;
+
+  const rsi = value.indicators && value.indicators.rsi;
+  const macd = value.indicators && value.indicators.macd;
 
   return {
-    symbol,
-    direction,
-    timeframe,
-    confidence,
-    price: parseFloat(priceFormatted),
-    tp: parseFloat((price * tpMultiplier).toFixed(price > 100 ? 2 : 4)),
-    sl: parseFloat((price * slMultiplier).toFixed(price > 100 ? 2 : 4)),
-    rsi: (30 + Math.random() * 40).toFixed(1),
-    macd: direction === 'BUY' ? 'bullish' : 'bearish',
-    indicators: INDICATORS.slice(0, 3 + Math.floor(Math.random() * 3)),
-    timestamp: new Date().toISOString(),
-    source: 'fallback',
+    available: true,
+    id: value.id,
+    symbol: value.symbol,
+    direction: value.direction,
+    timeframe: value.timeframe,
+    confidence: value.confidence,
+    price: value.entry,
+    tp: value.takeProfit1,
+    sl: value.stopLoss,
+    rsi: rsi && typeof rsi.value === 'number' && Number.isFinite(rsi.value) ? rsi.value : null,
+    macd: macd && (macd.signal === 'bullish' || macd.signal === 'bearish' || macd.signal === 'neutral')
+      ? macd.signal
+      : null,
+    timestamp: value.timestamp,
+    source: 'api-observed',
+    dataQuality: 'real',
   };
 }
 
-function generateLeaderboard(period) {
-  return PAIRS.slice(0, 5).map((pair, i) => ({
-    rank: i + 1,
-    pair,
-    winRate: (85 - i * 5 + Math.random() * 5).toFixed(1),
-    trades: 20 + Math.floor(Math.random() * 30),
-    pnl: ((5 - i) * 2.5 + Math.random() * 3).toFixed(1),
-    period: period || '7d',
-  }));
+function normalizeLeaderboardEntry(value, index) {
+  if (!isRecord(value)) return null;
+  if (typeof value.pair !== 'string' || value.pair.length === 0) return null;
+  if (!Number.isInteger(value.resolved24h) || value.resolved24h <= 0) return null;
+  if (!Number.isInteger(value.hits24h) || value.hits24h < 0 || value.hits24h > value.resolved24h) return null;
+  if (typeof value.hitRate24h !== 'number' || !Number.isFinite(value.hitRate24h)) return null;
+
+  return {
+    rank: index + 1,
+    pair: value.pair,
+    resolved: value.resolved24h,
+    positiveMoves: value.hits24h,
+    directionalHitRate: value.hitRate24h,
+  };
+}
+
+function unavailable(reason) {
+  return {
+    available: false,
+    dataQuality: 'unavailable',
+    reason,
+  };
 }
 
 class SignalFetcher {
@@ -56,23 +79,30 @@ class SignalFetcher {
 
   async fetchSignal(pair) {
     try {
-      const url = new URL('/api/v1/signals', this.baseUrl);
-      if (pair) url.searchParams.set('pair', pair);
-      url.searchParams.set('limit', '1');
+      const url = new URL('/api/signals', this.baseUrl);
+      if (pair) url.searchParams.set('symbol', pair);
 
       const res = await fetch(url.toString(), {
-        headers: { 'Accept': 'application/json' },
+        headers: { Accept: 'application/json' },
         signal: AbortSignal.timeout(5000),
       });
-
-      if (!res.ok) throw new Error(`API returned ${res.status}`);
       const data = await res.json();
-      if (data.ok && data.signals && data.signals.length > 0) {
-        return { ...data.signals[0], source: 'api' };
+
+      if (isRecord(data) && data.available === false) {
+        return unavailable(typeof data.reason === 'string' ? data.reason : 'signal-data-unavailable');
       }
-      return generateFallbackSignal(pair);
+      if (!res.ok) return unavailable(`signal-api-http-${res.status}`);
+
+      const rows = isRecord(data) && Array.isArray(data.signals) ? data.signals : [];
+      const requestedPair = pair ? pair.toUpperCase() : null;
+      const signal = rows
+        .map(normalizeSignal)
+        .find(candidate => candidate && (!requestedPair || candidate.symbol.toUpperCase() === requestedPair));
+      return signal || unavailable(rows.length > 0
+        ? 'no-provider-observed-candidate'
+        : 'no-observed-candidate');
     } catch {
-      return generateFallbackSignal(pair);
+      return unavailable('signal-api-unreachable');
     }
   }
 
@@ -82,18 +112,36 @@ class SignalFetcher {
       if (period) url.searchParams.set('period', period);
 
       const res = await fetch(url.toString(), {
-        headers: { 'Accept': 'application/json' },
+        headers: { Accept: 'application/json' },
         signal: AbortSignal.timeout(5000),
       });
-
-      if (!res.ok) throw new Error(`API returned ${res.status}`);
       const data = await res.json();
-      if (data.leaderboard && data.leaderboard.length > 0) {
-        return data.leaderboard.slice(0, 5);
+
+      if (!res.ok) return { ...unavailable(`leaderboard-api-http-${res.status}`), entries: [] };
+      const rows = isRecord(data) && Array.isArray(data.assets) ? data.assets : [];
+      const entries = rows
+        .map(normalizeLeaderboardEntry)
+        .filter(Boolean)
+        .slice(0, 5)
+        .map((entry, index) => ({ ...entry, rank: index + 1 }));
+
+      if (entries.length === 0) {
+        return { ...unavailable('no-resolved-observed-outcomes'), entries: [] };
       }
-      return generateLeaderboard(period);
+
+      const lastUpdated = isRecord(data.overall) && typeof data.overall.lastUpdated === 'number'
+        && Number.isFinite(data.overall.lastUpdated)
+        ? new Date(data.overall.lastUpdated).toISOString()
+        : null;
+
+      return {
+        available: true,
+        dataQuality: 'observed-ohlcv-outcomes',
+        entries,
+        computedAt: lastUpdated,
+      };
     } catch {
-      return generateLeaderboard(period);
+      return { ...unavailable('leaderboard-api-unreachable'), entries: [] };
     }
   }
 
@@ -101,20 +149,17 @@ class SignalFetcher {
     try {
       const url = new URL('/api/health', this.baseUrl);
       const res = await fetch(url.toString(), {
-        headers: { 'Accept': 'application/json' },
+        headers: { Accept: 'application/json' },
         signal: AbortSignal.timeout(5000),
       });
 
-      if (!res.ok) throw new Error(`API returned ${res.status}`);
-      return await res.json();
+      if (!res.ok) return unavailable(`health-api-http-${res.status}`);
+      const data = await res.json();
+      return isRecord(data) ? data : unavailable('invalid-health-response');
     } catch {
-      return {
-        status: 'unknown',
-        message: 'Could not reach TradeClaw API',
-        url: this.baseUrl,
-      };
+      return unavailable('health-api-unreachable');
     }
   }
 }
 
-module.exports = { SignalFetcher, generateFallbackSignal, generateLeaderboard };
+module.exports = { SignalFetcher, normalizeSignal, normalizeLeaderboardEntry };

@@ -121,7 +121,7 @@ import type { ProviderStatus } from './types';
 import { isHubEnabled } from './market-data-hub';
 
 export function getProviderRegistry(): ProviderStatus[] {
-  return [
+  const declaredProviders: ProviderStatus[] = [
     // Market Data Hub — Redis cache (hosted TradeClaw only)
     { name: 'Market Data Hub', category: 'crypto', status: isHubEnabled() ? 'ok' : 'down', lastCheck: Date.now(), requiresKey: false, rateLimit: 'internal (cached)', docs: '' },
 
@@ -164,4 +164,18 @@ export function getProviderRegistry(): ProviderStatus[] {
     // On-chain — no key
     { name: 'Mempool.space', category: 'onchain', status: 'ok', lastCheck: Date.now(), requiresKey: false, rateLimit: 'generous', docs: 'https://mempool.space/docs/api' },
   ];
+
+  // This registry describes integrations and local configuration; it does not
+  // perform network probes. Never turn a declared provider or present API key
+  // into a fabricated health check.
+  return declaredProviders.map((provider) => {
+    const configured = provider.status !== 'down';
+    return {
+      ...provider,
+      configured,
+      status: configured ? 'unverified' : 'unconfigured',
+      lastCheck: null,
+      latencyMs: undefined,
+    };
+  });
 }

@@ -1,116 +1,161 @@
-/**
- * Formats signals and data into Discord embeds
- */
+/** Formats provider-observed data and explicit unavailable states for Discord. */
 
 const { EmbedBuilder } = require('discord.js');
 
 const COLORS = {
-  BUY: 0x00ff88,   // neon green
-  SELL: 0xff4444,   // bright red
-  INFO: 0x6366f1,   // indigo-500
-  WARN: 0xf59e0b,   // amber-500
+  BUY: 0x00ff88,
+  SELL: 0xff4444,
+  INFO: 0x6366f1,
+  WARN: 0xf59e0b,
 };
 
+function humanReason(reason) {
+  return String(reason || 'upstream-data-unavailable').replace(/-/g, ' ');
+}
+
+function unavailableEmbed(title, reason) {
+  return new EmbedBuilder()
+    .setColor(COLORS.WARN)
+    .setTitle(title)
+    .setDescription(
+      `TradeClaw did not receive complete provider-observed data. No local fallback was generated.\n\n` +
+      `Reason: \`${humanReason(reason)}\``
+    )
+    .setFooter({ text: 'TradeClaw research data unavailable' });
+}
+
 function formatPrice(price) {
+  if (typeof price !== 'number' || !Number.isFinite(price) || price <= 0) return 'Unavailable';
   if (price >= 1000) return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   if (price >= 1) return `$${price.toFixed(4)}`;
   return `$${price.toFixed(6)}`;
 }
 
 function signalEmbed(signal) {
+  if (!signal || signal.available !== true) {
+    return unavailableEmbed('Research candidate unavailable', signal && signal.reason);
+  }
+
   const isBuy = signal.direction === 'BUY';
   const emoji = isBuy ? '\u{1F7E2}' : '\u{1F534}';
-  const macdArrow = signal.macd === 'bullish' ? '\u25B2' : '\u25BC';
+  const fields = [
+    { name: 'Candidate entry', value: formatPrice(signal.price), inline: true },
+    { name: 'Candidate target', value: formatPrice(signal.tp), inline: true },
+    { name: 'Candidate stop', value: formatPrice(signal.sl), inline: true },
+    { name: 'Rule score', value: `${signal.confidence}/100`, inline: true },
+  ];
+
+  if (signal.rsi !== null) {
+    fields.push({ name: 'Observed RSI', value: String(signal.rsi), inline: true });
+  }
+  if (signal.macd !== null) {
+    fields.push({ name: 'Observed MACD state', value: signal.macd, inline: true });
+  }
 
   return new EmbedBuilder()
     .setColor(isBuy ? COLORS.BUY : COLORS.SELL)
-    .setTitle(`${emoji} ${signal.direction} Signal \u2014 ${signal.symbol} ${signal.timeframe}`)
-    .setDescription('\u2501'.repeat(18))
-    .addFields(
-      { name: '\u{1F4B0} Price', value: formatPrice(signal.price), inline: true },
-      { name: '\u{1F3AF} TP', value: formatPrice(signal.tp), inline: true },
-      { name: '\u{1F6E1}\uFE0F SL', value: formatPrice(signal.sl), inline: true },
-      { name: '\u{1F4CA} Confidence', value: `${signal.confidence}%`, inline: true },
-      { name: '\u{1F4C8} RSI', value: String(signal.rsi), inline: true },
-      { name: '\u{1F4C9} MACD', value: macdArrow, inline: true },
-    )
-    .setFooter({ text: `TradeClaw \u00B7 ${signal.source === 'api' ? 'Live' : 'Demo'} signal` })
-    .setTimestamp()
-    .setURL(`https://tradeclaw.win/signal/${signal.symbol}-${signal.timeframe}-${signal.direction}`);
+    .setTitle(`${emoji} ${signal.direction} research candidate - ${signal.symbol} ${signal.timeframe}`)
+    .setDescription('Mechanical indicator output; the rule score is not a calibrated probability.')
+    .addFields(...fields)
+    .setFooter({ text: 'Provider-observed research candidate; not an order, fill, or portfolio result' })
+    .setTimestamp(new Date(signal.timestamp));
 }
 
-function leaderboardEmbed(entries, period) {
-  const rows = entries.map(
-    (e) => `**${e.rank}.** ${e.pair} \u2014 ${e.winRate}% win \u00B7 ${e.trades} trades \u00B7 +${e.pnl}%`
+function leaderboardEmbed(result, period) {
+  if (!result || result.available !== true || !Array.isArray(result.entries) || result.entries.length === 0) {
+    return unavailableEmbed('Observed outcome summary unavailable', result && result.reason);
+  }
+
+  const rows = result.entries.map(
+    entry => `**${entry.rank}.** ${entry.pair} - ${entry.positiveMoves}/${entry.resolved} positive 24h directional moves (${entry.directionalHitRate}%)`
   );
 
-  return new EmbedBuilder()
+  const embed = new EmbedBuilder()
     .setColor(COLORS.INFO)
-    .setTitle(`\u{1F3C6} Leaderboard \u2014 Top 5 (${period || '7d'})`)
+    .setTitle(`Observed directional outcomes - ${period || '30d'}`)
     .setDescription(rows.join('\n'))
-    .setFooter({ text: 'TradeClaw' })
-    .setTimestamp();
+    .setFooter({ text: 'Resolved OHLCV observations; not trades, win claims, or portfolio P&L' });
+
+  if (result.computedAt) embed.setTimestamp(new Date(result.computedAt));
+  return embed;
 }
 
 function healthEmbed(health) {
+  if (!health || health.available === false) {
+    return unavailableEmbed('TradeClaw API status', health && health.reason);
+  }
+
   const isUp = health.status === 'ok' || health.status === 'healthy';
+  const fields = [
+    { name: 'Status', value: health.status || 'unknown', inline: true },
+  ];
+  if (typeof health.version === 'string') {
+    fields.push({ name: 'Version', value: health.version, inline: true });
+  }
+  if (typeof health.uptime === 'number' && Number.isFinite(health.uptime)) {
+    fields.push({
+      name: 'Process uptime',
+      value: `${Math.floor(health.uptime / 3600)}h ${Math.floor((health.uptime % 3600) / 60)}m`,
+      inline: true,
+    });
+  }
 
   return new EmbedBuilder()
     .setColor(isUp ? COLORS.BUY : COLORS.WARN)
-    .setTitle(`${isUp ? '\u2705' : '\u26A0\uFE0F'} TradeClaw API Status`)
-    .addFields(
-      { name: 'Status', value: health.status || 'unknown', inline: true },
-      { name: 'Version', value: health.version || 'n/a', inline: true },
-      { name: 'Uptime', value: health.uptime ? `${Math.floor(health.uptime / 3600)}h ${Math.floor((health.uptime % 3600) / 60)}m` : 'n/a', inline: true },
-    )
-    .setFooter({ text: 'TradeClaw Health Check' })
-    .setTimestamp();
+    .setTitle('TradeClaw API status')
+    .addFields(...fields)
+    .setFooter({ text: 'Process health is separate from market-data availability' });
 }
 
 function helpEmbed() {
   return new EmbedBuilder()
     .setColor(COLORS.INFO)
-    .setTitle('\u{1F916} TradeClaw Bot \u2014 Commands')
+    .setTitle('TradeClaw Bot - Commands')
     .setDescription(
       [
-        '`/signal [pair]` \u2014 Get latest trading signal',
-        '`/leaderboard [period]` \u2014 Top 5 pairs by win rate',
-        '`/health` \u2014 Check API status',
-        '`/subscribe [pair] [min_confidence]` \u2014 Auto-receive signals',
-        '`/unsubscribe` \u2014 Stop signal broadcasts',
-        '`/help` \u2014 Show this message',
+        '`/signal [pair]` - Latest provider-observed research candidate',
+        '`/leaderboard [period]` - Observed 24h directional outcome summary',
+        '`/health` - Check API process and data availability',
+        '`/subscribe [pair] [min_confidence]` - Receive qualifying observed candidates',
+        '`/unsubscribe` - Stop candidate broadcasts',
+        '`/help` - Show this message',
       ].join('\n')
     )
-    .addFields(
-      { name: 'Pairs', value: 'BTCUSD, ETHUSD, XAUUSD, EURUSD, GBPUSD, USDJPY + more', inline: false },
-      { name: 'Periods', value: '24h, 7d, 30d, all', inline: false },
-      { name: 'Links', value: '[Website](https://tradeclaw.win) \u00B7 [GitHub](https://github.com/naimkatiman/tradeclaw) \u00B7 [API Docs](https://tradeclaw.win/api-docs)', inline: false },
-    )
-    .setFooter({ text: 'TradeClaw \u00B7 Open-source trading signals' })
-    .setTimestamp();
+    .addFields({
+      name: 'Links',
+      value: '[Website](https://tradeclaw.win) | [GitHub](https://github.com/naimkatiman/tradeclaw)',
+      inline: false,
+    })
+    .setFooter({ text: 'Research software; no broker orders or investment advice' });
 }
 
 function subscribeEmbed(pair, minConfidence) {
   return new EmbedBuilder()
     .setColor(COLORS.BUY)
-    .setTitle('\u{1F514} Subscribed to Signal Broadcasts')
+    .setTitle('Subscribed to observed candidate broadcasts')
     .setDescription(
-      `This channel will receive trading signals every 5 minutes.\n\n` +
+      `This channel will be checked at the bot's configured polling interval.\n\n` +
       `**Pair filter:** ${pair || 'All pairs'}\n` +
-      `**Min confidence:** ${minConfidence || 60}%\n\n` +
-      `Use \`/unsubscribe\` to stop.`
+      `**Minimum rule score:** ${minConfidence || 60}/100\n\n` +
+      'No message is sent when provider-observed data is unavailable.'
     )
-    .setFooter({ text: 'TradeClaw' })
-    .setTimestamp();
+    .setFooter({ text: 'Use /unsubscribe to stop' });
 }
 
 function unsubscribeEmbed() {
   return new EmbedBuilder()
     .setColor(COLORS.WARN)
-    .setTitle('\u{1F515} Unsubscribed from Signals')
-    .setDescription('This channel will no longer receive automatic signal broadcasts.\nUse `/subscribe` to re-enable.')
-    .setFooter({ text: 'TradeClaw' })
-    .setTimestamp();
+    .setTitle('Unsubscribed from candidate broadcasts')
+    .setDescription('This channel will no longer receive automatic candidate broadcasts.');
 }
 
-module.exports = { signalEmbed, leaderboardEmbed, healthEmbed, helpEmbed, subscribeEmbed, unsubscribeEmbed, COLORS };
+module.exports = {
+  signalEmbed,
+  leaderboardEmbed,
+  healthEmbed,
+  helpEmbed,
+  subscribeEmbed,
+  unsubscribeEmbed,
+  unavailableEmbed,
+  COLORS,
+};

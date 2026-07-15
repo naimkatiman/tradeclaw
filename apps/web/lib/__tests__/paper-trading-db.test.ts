@@ -127,12 +127,12 @@ describeDb('paper-trading — DB scoping', () => {
     await openPosition({ userId: userA, symbol: 'ETHUSD', direction: 'SELL', quantity: 100, entryPrice: 3400 });
     const bPos = await openPosition({ userId: userB, symbol: 'XAUUSD', direction: 'BUY', quantity: 100, entryPrice: 2180 });
 
-    const afterA = await closeAllPositions(userA, 'manual');
+    const afterA = await closeAllPositions(userA, { BTCUSD: 87500, ETHUSD: 3400 }, 'manual');
     expect(afterA.positions).toHaveLength(0);
 
     const pB = await getPortfolio(userB);
     expect(pB.positions.some((p) => p.id === bPos.position.id)).toBe(true);
-    await closePosition({ userId: userB, positionId: bPos.position.id });
+    await closePosition({ userId: userB, positionId: bPos.position.id }, 2180);
   });
 
   it('getAllOpenPositionsForSweep returns rows across users with user_id', async () => {

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SYMBOLS } from '../../../../lib/signals';
-import { BADGE_SHORT_NAMES, type BadgeDirection } from '../../../../lib/badge';
-import { getBadgeCache, setBadgeCache } from '../../../../../lib/badge-cache';
-import { getTrackedSignalsForRequest } from '../../../../../lib/tracked-signals';
-import { PUBLISHED_SIGNAL_MIN_CONFIDENCE } from '../../../../../lib/signal-thresholds';
+import { BADGE_SHORT_NAMES } from '../../../../lib/badge';
+import { loadBadgeState, unavailableBadgeState } from '../../badge-state';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,45 +21,16 @@ export async function GET(
   const symbolConfig = SYMBOLS.find(s => s.symbol === pair);
   const shortName = BADGE_SHORT_NAMES[pair] ?? pair.replace('USD', '');
 
-  const cacheKey = `${pair}:${tf}`;
-  let cached = getBadgeCache(cacheKey);
-
-  if (!cached && symbolConfig) {
-    try {
-      const { signals } = await getTrackedSignalsForRequest(request, {
-        symbol: pair,
-        timeframe: tf,
-        minConfidence: PUBLISHED_SIGNAL_MIN_CONFIDENCE,
-      });
-      const signal = signals[0];
-      if (signal) {
-        cached = {
-          direction: signal.direction as BadgeDirection,
-          confidence: signal.confidence,
-          rsi: signal.indicators.rsi.value,
-        };
-        setBadgeCache(cacheKey, cached);
-      }
-    } catch {
-      // Fall through
-    }
-  }
-
-  const direction: BadgeDirection = cached?.direction ?? 'NEUTRAL';
-  const confidence = cached?.confidence ?? 0;
-
-  const dirIcon = direction === 'BUY' ? '▲' : direction === 'SELL' ? '▼' : '—';
-  const message =
-    direction === 'NEUTRAL'
-      ? `${shortName} —`
-      : `${dirIcon} ${direction} ${confidence}%`;
-
-  const color =
-    direction === 'BUY'
-      ? 'brightgreen'
-      : direction === 'SELL'
-        ? 'red'
-        : 'lightgrey';
+  const state = symbolConfig
+    ? await loadBadgeState(request, pair, tf)
+    : unavailableBadgeState('unsupported-symbol');
+  const dirIcon = state.available && state.direction === 'BUY' ? '▲' : '▼';
+  const message = state.available
+    ? `${dirIcon} ${state.direction} ${state.confidence}%`
+    : 'unavailable';
+  const color = state.available
+    ? state.direction === 'BUY' ? 'brightgreen' : 'red'
+    : 'inactive';
 
   return NextResponse.json(
     {
@@ -69,10 +38,17 @@ export async function GET(
       label: `TradeClaw ${shortName}`,
       message,
       color,
+      available: state.available,
+      recordedAt: state.recordedAt,
+      dataQuality: state.dataQuality,
+      reason: state.available ? null : state.reason,
+      note: state.available
+        ? 'Latest eligible recorded real-quality signal; not a broker fill or publication-cadence guarantee.'
+        : 'No eligible recorded signal is available; no placeholder direction or confidence was substituted.',
     },
     {
       headers: {
-        'Cache-Control': 'no-cache, max-age=300',
+        'Cache-Control': 'no-store',
       },
     },
   );

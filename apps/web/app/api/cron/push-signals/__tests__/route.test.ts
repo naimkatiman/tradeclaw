@@ -13,13 +13,19 @@ jest.mock('../../../../../lib/expo-push-sender', () => ({
   dispatchSignalPushes: jest.fn(),
 }));
 
+jest.mock('../../../../../lib/cost-adjusted-edge-gate', () => ({
+  evaluateCostAdjustedEdge: jest.fn(),
+}));
+
 import { getSignals } from '../../../../lib/signals';
 import { getAllExpoTokens } from '../../../../../lib/expo-push-tokens';
 import { dispatchSignalPushes } from '../../../../../lib/expo-push-sender';
+import { evaluateCostAdjustedEdge } from '../../../../../lib/cost-adjusted-edge-gate';
 
 const mockGetSignals = getSignals as jest.MockedFunction<typeof getSignals>;
 const mockGetAllExpoTokens = getAllExpoTokens as jest.MockedFunction<typeof getAllExpoTokens>;
 const mockDispatch = dispatchSignalPushes as jest.MockedFunction<typeof dispatchSignalPushes>;
+const mockEvaluateEdge = evaluateCostAdjustedEdge as jest.MockedFunction<typeof evaluateCostAdjustedEdge>;
 
 function req(authorization?: string): NextRequest {
   return new NextRequest('http://localhost/api/cron/push-signals', {
@@ -33,6 +39,7 @@ describe('/api/cron/push-signals', () => {
   beforeEach(() => {
     process.env.CRON_SECRET = 'test-cron-secret';
     jest.clearAllMocks();
+    mockEvaluateEdge.mockResolvedValue({ allowed: true, reason: 'ready' } as never);
   });
 
   afterEach(() => {
@@ -49,6 +56,30 @@ describe('/api/cron/push-signals', () => {
   it('returns 401 with wrong auth', async () => {
     const res = await GET(req('Bearer wrong-secret'));
     expect(res.status).toBe(401);
+  });
+
+  it('halts before reading or dispatching signals when cost-adjusted edge is denied', async () => {
+    mockEvaluateEdge.mockResolvedValueOnce({
+      allowed: false,
+      reason: 'negative',
+      usableCount: 120,
+      activeDays: 40,
+      coverage: 0.95,
+      perSignalMeanNetR: -0.2,
+      equalDayLowerBoundNetR: -0.3,
+    } as never);
+
+    const res = await GET(req('Bearer test-cron-secret'));
+    const body = await res.json();
+
+    expect(res.status).toBe(503);
+    expect(body).toEqual(expect.objectContaining({
+      pushed: false,
+      halted: 'cost_adjusted_edge:negative',
+    }));
+    expect(mockGetSignals).not.toHaveBeenCalled();
+    expect(mockGetAllExpoTokens).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('returns no-push when no high-confidence signals exist', async () => {

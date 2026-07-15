@@ -200,7 +200,7 @@ export default function NewsClient({ initial }: { initial: NewsData }) {
       : 0;
 
   const tweetText = encodeURIComponent(
-    `Trending coins x live signals on TradeClaw:\n${buyCount} BUY / ${sellCount} SELL signals across ${data.trending.length} trending coins\n\nhttps://tradeclaw.win/news`,
+    `CoinGecko trending snapshot x TradeClaw analytical signals:\n${buyCount} BUY / ${sellCount} SELL labels across ${data.trending.length} trending coins\n\nNot broker trades or investment advice. https://tradeclaw.win/news`,
   );
 
   return (
@@ -210,15 +210,15 @@ export default function NewsClient({ initial }: { initial: NewsData }) {
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-400 mb-4">
             <Zap className="h-3.5 w-3.5" />
-            Live from CoinGecko + TradeClaw Engine
+            Latest successful CoinGecko fetch + TradeClaw analysis
           </div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
             Trending Coins{' '}
-            <span className="text-emerald-400">&times;</span> Live Signals
+            <span className="text-emerald-400">&times;</span> Signal Study
           </h1>
           <p className="text-sm text-zinc-400 max-w-lg mx-auto">
-            CoinGecko&apos;s hottest coins matched with TradeClaw trading signals.
-            Auto-refreshes every 5 minutes.
+            CoinGecko&apos;s trending snapshot matched with TradeClaw analytical signal labels.
+            Refresh is attempted every 5 minutes; no generated market fallback is shown.
           </p>
         </div>
 

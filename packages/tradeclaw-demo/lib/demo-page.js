@@ -6,8 +6,8 @@ function getDemoPage(port) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TradeClaw — AI Trading Signals Demo</title>
-  <meta name="description" content="AI-powered trading signals for Forex, Crypto & Commodities. Open-source & self-hostable." />
+  <title>TradeClaw — Illustrative UI Fixture</title>
+  <meta name="description" content="Local TradeClaw interface fixture using deterministic synthetic values. No market feed, execution, or performance data." />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -384,7 +384,7 @@ function getDemoPage(port) {
     <span class="nav-badge">Demo</span>
   </a>
   <div class="nav-actions">
-    <a class="btn btn-ghost" href="https://tradeclaw.win" target="_blank">Live App ↗</a>
+    <a class="btn btn-ghost" href="https://tradeclaw.win" target="_blank">Project Site ↗</a>
     <a class="btn btn-star" href="https://github.com/naimkatiman/tradeclaw" target="_blank">
       ⭐ Star on GitHub
     </a>
@@ -394,37 +394,37 @@ function getDemoPage(port) {
 <div class="hero">
   <div class="hero-tag">
     <span class="live-dot"></span>
-    Local Demo — Signals refreshing live
+    Local illustrative fixture — synthetic values update over SSE
   </div>
-  <h1>AI-Powered <span>Trading Signals</span><br/>for Serious Traders</h1>
-  <p>RSI, MACD, EMA, Bollinger Bands + multi-timeframe confluence. Open-source, self-hostable, no subscriptions.</p>
+  <h1>TradeClaw <span>Interface Fixture</span><br/>for Local Evaluation</h1>
+  <p>Deterministic synthetic cards for inspecting the UI and REST/SSE shape. No market data, production engine, broker execution, or portfolio results are included.</p>
   <div class="hero-ctas">
     <a class="btn btn-star btn-big" href="https://github.com/naimkatiman/tradeclaw" target="_blank">⭐ Star on GitHub</a>
-    <a class="btn btn-primary btn-big" href="https://tradeclaw.win" target="_blank">🌐 Live Demo</a>
+    <a class="btn btn-primary btn-big" href="https://tradeclaw.win" target="_blank">Project Site</a>
     <a class="btn btn-ghost btn-big" href="https://github.com/naimkatiman/tradeclaw#readme" target="_blank">📖 Docs</a>
   </div>
 </div>
 
 <div class="stats-bar">
   <div class="stat">
-    <div class="stat-value" id="signal-count">47</div>
-    <div class="stat-label">Signals Today</div>
+    <div class="stat-value" id="signal-count">—</div>
+    <div class="stat-label">Fixture Cards</div>
   </div>
   <div class="stat">
-    <div class="stat-value">73%</div>
-    <div class="stat-label">Historical Win Rate</div>
+    <div class="stat-value">Unmeasured</div>
+    <div class="stat-label">Outcome Rate</div>
   </div>
   <div class="stat">
-    <div class="stat-value">12</div>
-    <div class="stat-label">Asset Pairs</div>
+    <div class="stat-value">8</div>
+    <div class="stat-label">Fixture Symbols</div>
   </div>
   <div class="stat">
-    <div class="stat-value">5</div>
-    <div class="stat-label">Indicators Used</div>
+    <div class="stat-value">Synthetic</div>
+    <div class="stat-label">Data Quality</div>
   </div>
   <div class="stat">
-    <div class="stat-value" id="gh-stars">⭐ 0</div>
-    <div class="stat-label">GitHub Stars</div>
+    <div class="stat-value" id="gh-stars">—</div>
+    <div class="stat-label">GitHub Stars (API)</div>
   </div>
 </div>
 
@@ -433,86 +433,27 @@ function getDemoPage(port) {
   <div class="section-header">
     <div class="section-title">
       <span class="live-dot"></span>
-      Live Signals
+      Illustrative Candidate Cards
     </div>
-    <div class="refresh-info" id="refresh-info">Auto-refreshing every 10s</div>
+    <div class="refresh-info" id="refresh-info">Synthetic fixture stream</div>
   </div>
   <div class="signals-grid" id="signals-grid">
-    <div style="color:var(--muted);padding:2rem">Loading signals...</div>
+    <div style="color:var(--muted);padding:2rem">Loading illustrative fixtures...</div>
   </div>
 </div>
 
-<!-- COMPARISON TABLE -->
+<!-- FIXTURE SCOPE -->
 <div class="compare-section">
-  <h2 class="compare-title">Why TradeClaw?</h2>
-  <p class="compare-sub">See how we stack up against the alternatives</p>
+  <h2 class="compare-title">What this package demonstrates</h2>
+  <p class="compare-sub">A local interface and transport fixture, with explicit boundaries</p>
   <table class="compare-table">
-    <thead>
-      <tr>
-        <th>Feature</th>
-        <th class="highlight-col" style="color:var(--emerald)">⚡ TradeClaw</th>
-        <th>TradingView</th>
-        <th>3Commas</th>
-        <th>Manual TA</th>
-      </tr>
-    </thead>
+    <thead><tr><th>Surface</th><th class="highlight-col" style="color:var(--emerald)">Included here</th><th>Not demonstrated</th></tr></thead>
     <tbody>
-      <tr>
-        <td>Open Source</td>
-        <td class="check highlight-col">✓ MIT</td>
-        <td class="cross">✗</td>
-        <td class="cross">✗</td>
-        <td class="cross">N/A</td>
-      </tr>
-      <tr>
-        <td>Self-Hostable</td>
-        <td class="check highlight-col">✓ Docker</td>
-        <td class="cross">✗</td>
-        <td class="cross">✗</td>
-        <td class="check">✓</td>
-      </tr>
-      <tr>
-        <td>AI Signal Engine</td>
-        <td class="check highlight-col">✓ 5 indicators</td>
-        <td class="partial">~ Pine Script</td>
-        <td class="check">✓</td>
-        <td class="cross">✗</td>
-      </tr>
-      <tr>
-        <td>Multi-Timeframe</td>
-        <td class="check highlight-col">✓ H1/H4/D1</td>
-        <td class="check">✓</td>
-        <td class="partial">~</td>
-        <td class="partial">~ Manual</td>
-      </tr>
-      <tr>
-        <td>Telegram Bot</td>
-        <td class="check highlight-col">✓ Built-in</td>
-        <td class="cross">✗</td>
-        <td class="check">✓</td>
-        <td class="cross">✗</td>
-      </tr>
-      <tr>
-        <td>Paper Trading</td>
-        <td class="check highlight-col">✓ Included</td>
-        <td class="partial">~ Paper</td>
-        <td class="check">✓</td>
-        <td class="cross">✗</td>
-      </tr>
-      <tr>
-        <td>Monthly Cost</td>
-        <td class="check highlight-col" style="font-weight:700">$0 forever</td>
-        <td style="color:var(--rose)">$15–60</td>
-        <td style="color:var(--rose)">$29–99</td>
-        <td class="check">$0</td>
-      </tr>
-      <tr>
-        <td>API Access</td>
-        <td class="check highlight-col">✓ OpenAPI 3.0</td>
-        <td class="partial">~ Limited</td>
-        <td class="check">✓</td>
-        <td class="cross">✗</td>
-      </tr>
+      <tr><td>Source license</td><td class="check highlight-col">MIT-licensed package code</td><td>Third-party service terms or costs</td></tr>
+      <tr><td>Data</td><td class="check highlight-col">Deterministic synthetic fixture values</td><td>Market-provider OHLCV or quotes</td></tr>
+      <tr><td>Signal cards</td><td class="check highlight-col">Illustrative layout and JSON fields</td><td>Production signal-engine decisions</td></tr>
+      <tr><td>Streaming</td><td class="check highlight-col">Local REST and SSE updates</td><td>Real-time market availability</td></tr>
+      <tr><td>Results</td><td class="check highlight-col">No performance metric supplied</td><td>Broker fills, costs, P&amp;L, or portfolio returns</td></tr>
     </tbody>
   </table>
 </div>
@@ -520,13 +461,13 @@ function getDemoPage(port) {
 <!-- CTA -->
 <div class="cta-section">
   <h2>Ready to deploy your own?</h2>
-  <p>One-click deploy on Railway, Vercel, or Docker. Takes 2 minutes.</p>
+  <p>Review the repository deployment documentation and provider requirements. Setup time and infrastructure costs vary by environment.</p>
   <div class="cta-actions">
     <a class="btn btn-star btn-big" href="https://github.com/naimkatiman/tradeclaw" target="_blank">
       ⭐ Star on GitHub — Help us reach 1000 stars!
     </a>
-    <a class="btn btn-primary btn-big" href="https://railway.app/template/tradeclaw" target="_blank">
-      🚀 Deploy on Railway
+    <a class="btn btn-primary btn-big" href="https://github.com/naimkatiman/tradeclaw#quick-start" target="_blank">
+      Review deployment docs
     </a>
   </div>
 </div>
@@ -538,18 +479,18 @@ function getDemoPage(port) {
     <a href="https://tradeclaw.win" target="_blank">tradeclaw.win</a> •
     MIT License
   </p>
-  <p style="margin-top:0.5rem;font-size:0.72rem">This is a local demo. Running on port ${port}.</p>
+  <p style="margin-top:0.5rem;font-size:0.72rem">Local synthetic fixture on port ${port}. MIT covers source code; hosting and external providers can cost money.</p>
 </footer>
 
 <script>
-  // Fetch and render signals
+  // Fetch and render synthetic fixture cards.
   async function loadSignals() {
     try {
       const r = await fetch('/api/signals');
       const data = await r.json();
       renderSignals(data.signals);
-      document.getElementById('signal-count').textContent = data.count + '+';
-      document.getElementById('refresh-info').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+      document.getElementById('signal-count').textContent = String(data.count);
+      document.getElementById('refresh-info').textContent = 'Fixture updated: ' + new Date().toLocaleTimeString();
     } catch (e) {
       document.getElementById('signals-grid').innerHTML = '<div style="color:var(--muted)">Could not load signals.</div>';
     }
@@ -571,8 +512,8 @@ function getDemoPage(port) {
         </div>
         <div class="conf-row">
           <div class="conf-label">
-            Confidence
-            <span>\${s.confidence}%</span>
+            Illustrative score
+            <span>\${s.confidence}/100</span>
           </div>
           <div class="conf-bar">
             <div class="conf-fill \${dir}" style="width:\${s.confidence}%"></div>
@@ -580,22 +521,22 @@ function getDemoPage(port) {
         </div>
         <div class="price-grid">
           <div class="price-item">
-            <div class="price-lbl">Entry</div>
+            <div class="price-lbl">Fixture entry</div>
             <div class="price-val">\${s.entry}</div>
           </div>
           <div class="price-item">
-            <div class="price-lbl">Take Profit</div>
+            <div class="price-lbl">Fixture target</div>
             <div class="price-val tp">\${s.tp}</div>
           </div>
           <div class="price-item">
-            <div class="price-lbl">Stop Loss</div>
+            <div class="price-lbl">Fixture stop</div>
             <div class="price-val sl">\${s.sl}</div>
           </div>
         </div>
         <div class="indicators">
           <span class="ind-pill">RSI \${s.rsi}</span>
           <span class="ind-pill">MACD \${s.macd}</span>
-          <span class="ind-pill">LIVE</span>
+          <span class="ind-pill">SYNTHETIC</span>
         </div>
       </div>\`;
     }).join('');
@@ -606,11 +547,11 @@ function getDemoPage(port) {
     try {
       const r = await fetch('https://api.github.com/repos/naimkatiman/tradeclaw');
       const d = await r.json();
-      document.getElementById('gh-stars').textContent = '⭐ ' + (d.stargazers_count || 0);
-    } catch {}
+      document.getElementById('gh-stars').textContent = Number.isFinite(d.stargazers_count) ? '⭐ ' + d.stargazers_count : 'Unavailable';
+    } catch { document.getElementById('gh-stars').textContent = 'Unavailable'; }
   }
 
-  // Live SSE stream — auto-updates signals as server pushes them
+  // Local SSE transport for deterministic fixture updates.
   function connectStream() {
     const es = new EventSource('/api/signals/stream');
     let reconnectTimer = null;
@@ -620,7 +561,7 @@ function getDemoPage(port) {
         const data = JSON.parse(e.data);
         if (data.signals) {
           renderSignals(data.signals);
-          // Flash the live indicator
+          // Flash the fixture activity indicator.
           const dot = document.querySelector('.live-dot');
           if (dot) {
             dot.style.background = '#10b981';
@@ -652,7 +593,7 @@ function getDemoPage(port) {
   // Init
   loadSignals();
   loadStars();
-  // Start live SSE stream (falls back to polling on error)
+  // Start the local fixture stream and retain polling as a transport fallback.
   const sse = connectStream();
   // Polling fallback in case SSE drops
   setInterval(loadSignals, 30000);

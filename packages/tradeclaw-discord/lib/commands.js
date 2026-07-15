@@ -7,7 +7,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const commands = [
   new SlashCommandBuilder()
     .setName('signal')
-    .setDescription('Get the latest trading signal for a pair')
+    .setDescription('Get the latest provider-observed research candidate')
     .addStringOption(opt =>
       opt.setName('pair')
         .setDescription('Trading pair (e.g. BTCUSD, ETHUSD)')
@@ -28,15 +28,15 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('leaderboard')
-    .setDescription('Show top 5 trading pairs by win rate')
+    .setDescription('Show observed 24h directional outcomes by pair')
     .addStringOption(opt =>
       opt.setName('period')
         .setDescription('Time period')
         .setRequired(false)
         .addChoices(
-          { name: 'Last 24h', value: '24h' },
           { name: 'Last 7 days', value: '7d' },
           { name: 'Last 30 days', value: '30d' },
+          { name: 'Last 90 days', value: '90d' },
           { name: 'All time', value: 'all' },
         )
     ),
@@ -47,7 +47,7 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('subscribe')
-    .setDescription('Subscribe this channel to auto-receive trading signals')
+    .setDescription('Subscribe this channel to observed research candidates')
     .addStringOption(opt =>
       opt.setName('pair')
         .setDescription('Filter by pair (leave empty for all)')
@@ -55,7 +55,7 @@ const commands = [
     )
     .addIntegerOption(opt =>
       opt.setName('min_confidence')
-        .setDescription('Minimum confidence % (default: 60)')
+        .setDescription('Minimum mechanical rule score (default: 60/100)')
         .setRequired(false)
         .setMinValue(50)
         .setMaxValue(100)
@@ -63,7 +63,7 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('unsubscribe')
-    .setDescription('Stop signal broadcasts in this channel'),
+    .setDescription('Stop candidate broadcasts in this channel'),
 
   new SlashCommandBuilder()
     .setName('help')

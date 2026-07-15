@@ -29,6 +29,7 @@ import {
   type OrderSide,
 } from './binance-futures';
 import { buildClientIds } from './client-ids';
+import { evaluateCostAdjustedEdge } from '../cost-adjusted-edge-gate';
 import { runEntryFilters } from './filters';
 import { checkLossKillSwitch } from './risk-rails';
 import { computeATR, computeSize, extractFilters, type SymbolFilters } from './sizing';
@@ -112,6 +113,22 @@ async function runExecutorTickLocked(
   const signals = await fetchPendingSignals();
   result.processed = signals.length;
   if (signals.length === 0) return result;
+
+  // New entries require independently measurable, cost-adjusted evidence.
+  // This is intentionally fail-closed: unavailable, stale, incomplete, or
+  // statistically inconclusive history stops entry before any broker call.
+  const edge = await evaluateCostAdjustedEdge({
+    strategyId: STRATEGY_ID,
+    symbols: Object.keys(BINANCE_SYMBOLS),
+  });
+  if (!edge.allowed) {
+    result.halted = `cost_adjusted_edge:${edge.reason}`;
+    await logError({
+      stage: 'edge-readiness',
+      errorMsg: `${result.halted}; usable=${edge.usableCount}; days=${edge.activeDays}; coverage=${edge.coverage.toFixed(3)}`,
+    });
+    return result;
+  }
 
   // 2. Prefetch shared state once per tick
   let account: BinanceAccount;
@@ -489,6 +506,7 @@ async function fetchPendingSignals(): Promise<PendingSignal[]> {
         WHERE sh.strategy_id = $1
           AND sh.created_at > NOW() - ($2 || ' minutes')::INTERVAL
           AND (sh.gate_blocked IS NULL OR sh.gate_blocked = FALSE)
+          AND sh.broadcast_blocked = FALSE
           AND e.id IS NULL
         ORDER BY sh.created_at ASC
         LIMIT 50`,
@@ -605,7 +623,7 @@ async function markEmergencyClosed(clientOrderId: string, exitPrice: number | nu
 interface ErrorLogArgs {
   signalId?: string;
   executionId?: string;
-  stage: 'size' | 'filter' | 'place_entry' | 'place_sl' | 'place_tp' | 'manage' | 'cancel' | 'handshake';
+  stage: 'size' | 'filter' | 'place_entry' | 'place_sl' | 'place_tp' | 'manage' | 'cancel' | 'handshake' | 'edge-readiness';
   errorCode?: string;
   errorMsg: string;
   payload?: Record<string, unknown>;

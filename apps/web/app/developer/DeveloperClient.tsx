@@ -115,7 +115,9 @@ export default function DeveloperClient() {
             TradeClaw <span className="text-emerald-400">Developer API</span>
           </h1>
           <p className="text-[var(--text-secondary)] text-sm max-w-xl">
-            Access live trading signals (5-minute cadence) programmatically. One plan: free — 100 requests/hour per key.
+            Inspect current rule-generated research candidates programmatically. The legacy confidence field is a
+            mechanical score out of 100, not a probability or evidence of edge. Availability depends on configured
+            market-data sources.
           </p>
         </div>
 
@@ -236,8 +238,8 @@ export default function DeveloperClient() {
               <h2 className="text-sm font-semibold mb-3">Endpoints</h2>
               <ul className="space-y-2 text-xs text-[var(--text-secondary)]">
                 {[
-                  { method: 'GET', path: '/api/signals', desc: 'Latest signals' },
-                  { method: 'GET', path: '/api/signals/:symbol', desc: 'Symbol signals' },
+                  { method: 'GET', path: '/api/signals', desc: 'Current research candidates' },
+                  { method: 'GET', path: '/api/signals/:symbol', desc: 'Candidates by symbol' },
                   { method: 'GET', path: '/api/feed.json', desc: 'JSON feed' },
                   { method: 'GET', path: '/api/feed.rss', desc: 'RSS feed' },
                 ].map((ep) => (
@@ -254,7 +256,7 @@ export default function DeveloperClient() {
               <h2 className="text-sm font-semibold mb-3">Limits — one plan: free</h2>
               <ul className="space-y-1.5 text-xs text-[var(--text-secondary)]">
                 <li className="flex justify-between"><span>Rate limit</span><span className="text-white">100 req/hr per key</span></li>
-                <li className="flex justify-between"><span>History</span><span className="text-white">Full archive</span></li>
+                <li className="flex justify-between"><span>History</span><span className="text-white">Current public archive</span></li>
                 <li className="flex justify-between"><span>Self-hosted</span><span className="text-white">Unlimited</span></li>
               </ul>
             </div>

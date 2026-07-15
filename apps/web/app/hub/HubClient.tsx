@@ -203,7 +203,7 @@ export function HubClient() {
             <a href="http://localhost:3000" className="text-emerald-400 hover:underline">
               localhost:3000
             </a>{' '}
-            — live signals are available immediately, no account needed.
+            — public read-only signal data is available without an account when the configured data sources respond.
           </p>
         </section>
 

@@ -78,6 +78,24 @@ describe('recordSignalAsync with a broadcast decision (Tier 0)', () => {
     expect(params).toEqual(expect.arrayContaining(['trend', true, 'circuit_breaker: streak', 7.5]));
   });
 
+  it('backfills only NULL decision and cost evidence on a deterministic-id conflict', async () => {
+    const { mod, query } = freshModule();
+    query.mockResolvedValue([{ id: 'sig-1' }]);
+
+    await mod.recordSignalAsync(
+      'BTCUSD', 'H1', 'BUY', 80, 50000, 'sig-1', 51000, 49500, Date.now(), 'hmm-top3',
+      undefined, undefined, undefined, undefined, undefined,
+      { regime: 'trend', blocked: false, allocationPct: 7.5 },
+      { preBoostConfidence: 70, mtfAgreement: 4, confluenceBonus: 15, costEstimatePct: 0.4 },
+    );
+
+    const sql = query.mock.calls[0][0] as string;
+    expect(sql).toContain('broadcast_blocked = COALESCE(signal_history.broadcast_blocked, EXCLUDED.broadcast_blocked)');
+    expect(sql).toContain('cost_estimate_pct = COALESCE(signal_history.cost_estimate_pct, EXCLUDED.cost_estimate_pct)');
+    expect(sql).toContain('signal_history.broadcast_blocked IS NULL');
+    expect(sql).toContain('signal_history.cost_estimate_pct IS NULL');
+  });
+
   it('falls back to the pre-048 INSERT when the broadcast columns are missing, and skips Tier 0 afterwards', async () => {
     const { mod, query } = freshModule();
     const missingErr = Object.assign(new Error('column "broadcast_blocked" of relation "signal_history" does not exist'), { code: '42703' });
@@ -197,6 +215,7 @@ describe('recordSignalAsync with calibration features (migration 051, Tier 0)', 
     expect(tier0bSql).toContain('broadcast_block_reason');
     expect(tier0bSql).toContain('allocation_pct');
     expect(tier0bSql).toContain('regime');
+    expect(tier0bSql).toContain('broadcast_blocked = COALESCE(signal_history.broadcast_blocked, EXCLUDED.broadcast_blocked)');
 
     // … and must NOT include the 051 calibration columns.
     expect(tier0bSql).not.toContain('pre_boost_confidence');

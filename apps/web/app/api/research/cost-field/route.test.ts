@@ -34,6 +34,9 @@ function record(overrides: Partial<SignalHistoryRecord>): SignalHistoryRecord {
 
 function primeSlice(records: SignalHistoryRecord[]): void {
   mockedGetResolvedSlice.mockResolvedValueOnce({
+    sourceRecordsLoaded: records.length,
+    sourceReadLimit: 10_000,
+    sourceWindowPotentiallyTruncated: false,
     scopedRecords: records,
     periodFiltered: records,
     resolved: records,
@@ -70,12 +73,23 @@ describe('GET /api/research/cost-field', () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.classes).toEqual(['crypto', 'metals', 'fx']);
+    expect(body.classes).toEqual(['crypto', 'metals', 'fx_or_fallback']);
     expect(body.count).toBe(3);
+    expect(body.ids).toEqual(['crypto-row', 'metals-row', 'fx-row']);
     expect(body.t).toEqual([1_000, 2_000, 3_000]);
     expect(body.grossR).toEqual([1, -2, 1]);
     expect(body.costR).toEqual([0.25, 0.05, 0.02]);
     expect(body.cls).toEqual([0, 1, 2]);
+    expect(body.methodology.costBasis).toContain('modeled');
+    expect(body.methodology.outcomeBasis).toContain('not broker fills');
+    expect(body.window).toEqual(expect.objectContaining({
+      startTimestamp: 1_000,
+      endTimestamp: 3_000,
+      sourceRecordsLoaded: 3,
+      sourceReadLimit: 10_000,
+      potentiallyTruncatedBeforeStart: false,
+    }));
+    expect(body.provenance).toBeUndefined();
   });
 
   it('falls back to the modeled cost when a row has no recorded cost', async () => {
@@ -136,5 +150,50 @@ describe('GET /api/research/cost-field', () => {
     const body = await res.json();
 
     expect(body.t).toEqual([1_000, 5_000]);
+    expect(body.ids).toEqual(['earlier', 'later']);
+  });
+
+  it('returns reconstructable row provenance only when requested', async () => {
+    primeSlice([
+      record({
+        id: 'close-row',
+        pair: 'SPYUSD',
+        strategyId: 'hmm-top3',
+        costEstimatePct: 0.04,
+        broadcastBlocked: false,
+        outcomes: {
+          '4h': null,
+          '24h': {
+            price: 101,
+            pnlPct: 1,
+            hit: true,
+            target: 'expired',
+            resolvedAt: '2026-07-15T00:00:00.000Z',
+            source: 'stooq',
+          },
+        },
+      }),
+    ]);
+
+    const res = await GET(makeReq('/api/research/cost-field?include=provenance'));
+    const body = await res.json();
+
+    expect(body.provenance).toEqual([
+      expect.objectContaining({
+        id: 'close-row',
+        pair: 'SPYUSD',
+        strategyId: 'hmm-top3',
+        outcomePnlPct: 1,
+        outcomeTarget: 'expired',
+        outcomeSource: 'stooq',
+        riskPct: 2,
+        grossR: 0.5,
+        modeledCostNotionalPct: 0.04,
+        modeledCostR: 0.02,
+        modeledNetR: 0.48,
+        modeledCostSource: 'emission-time-model',
+        broadcastDecision: 'approved',
+      }),
+    ]);
   });
 });

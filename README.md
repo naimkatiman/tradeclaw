@@ -4,7 +4,7 @@
 
 # TradeClaw
 
-**Open-source AI trading signals. Every trade verified.**
+**Open-source AI trading research with an inspectable signal ledger.**
 
 [![Stars](https://img.shields.io/github/stars/naimkatiman/tradeclaw?style=flat-square&color=10b981)](https://github.com/naimkatiman/tradeclaw/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
@@ -22,43 +22,23 @@ Read this in other languages: [日本語](README.ja.md) · [한국어](README.ko
 
 ---
 
-TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (RSI, MACD, EMA, Bollinger Bands, Stochastic, ADX, Volume). Every signal is recorded in a Postgres database and published on the [track record](https://tradeclaw.win/track-record) — wins **and** losses, no cherry-picking.
+TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (RSI, MACD, EMA, Bollinger Bands, Stochastic, ADX, Volume). Eligible signals and their OHLCV-derived outcomes are recorded in PostgreSQL. The [track record](https://tradeclaw.win/track-record) exposes counted wins and losses plus exclusion counters and methodology; it is not a broker-fill or customer-portfolio ledger.
 
 > Status: pre-1.0 (`0.1.0`). The signal engine, dashboard, backtester, and self-host path are usable today; APIs and schema may still change between releases.
 
-## Free vs Pro
+## Current access model
 
-|  | Free | Pro ($29/mo) |
-|--|:----:|:------------:|
-| Symbols | 6 (BTC, ETH, XAU, EUR/USD, SPY, QQQ) | All pairs (forex, crypto, metals, commodities, US equities incl. NVDA/TSLA/AAPL/MSFT/GOOGL/AMZN/META) |
-| Signal delay | 30 min | Real-time |
-| Take-profit levels | TP1 only | TP1 + TP2 + TP3 |
-| Indicators | RSI + EMA trend | RSI, MACD, BB, Stochastic, ADX |
-| Signal history | 7 days | Full archive |
-| Confidence band | Standard (70–84) | Standard + Premium (85+) |
-| Telegram alerts | Public channel (delayed) | Private channel (instant), bot-gated Pro group with auto-kick on tier expiry |
-| Broker execution | — | Binance USDT-perp (testnet); RoboForex R StocksTrader bridge scaffolded (interface only, not implemented) |
-| Track record | Full access | Full access |
-| Self-host | Yes | Yes |
+| Surface | Current behavior |
+|---|---|
+| Public dashboard and track record | Read-only research access without authentication |
+| Signal history | Current rolling archive, capped at 10,000 source rows; CSV and provenance endpoints are public |
+| Costs | Static fee + slippage models; funding and actual broker charges are excluded |
+| Portfolio curve | Hypothetical sequential 1%-risk simulation, not concurrent account performance |
+| Admin operations | Authentication required |
+| Signal broadcasting | Fail-closed unless the broadcast-approved 90-day cohort clears the cost-adjusted evidence gate |
+| Automated execution | Disabled by default; Binance USDT-perp testnet is implemented, while the RoboForex R StocksTrader bridge is an unimplemented interface scaffold |
 
-Start free at [tradeclaw.win/dashboard](https://tradeclaw.win/dashboard). Upgrade anytime at [tradeclaw.win/pricing](https://tradeclaw.win/pricing).
-
-## Self-hosting vs. TradeClaw Pro (hosted)
-
-TradeClaw is MIT-licensed. You can fork, self-host, and run the entire signal framework for free — the free-tier signal engine (classic TA, RSI + EMA + MACD confluence), backtester, dashboard, paper trading, and public Telegram broadcaster are all in this repo.
-
-The hosted version at **tradeclaw.win** adds features that activate only when the deploy holds the matching credentials:
-
-| Feature | Unlocked by env var | Who has it |
-|---|---|---|
-| Real-time premium signals (MTF confluence, curated) | `PREMIUM_SIGNAL_SOURCE_URL` + `PREMIUM_SIGNAL_SOURCE_KEY` | tradeclaw.win only |
-| Stripe checkout + tier upgrade on webhook | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Per-deploy |
-| Private Pro Telegram group + invite on subscribe | `TELEGRAM_PRO_GROUP_ID` + Pro bot token | tradeclaw.win only |
-| Telegram auto-broadcast of free symbols | `TELEGRAM_CHANNEL_ID` + bot token | Per-deploy |
-
-Without these, self-hosters get the free-tier experience — which is the same signal engine the founders trade against real capital. **No code is withheld.** What is withheld is the curated premium signal feed and the payment plumbing. Those are operational, not algorithmic.
-
-If you want to run your own paid tier on top of this code: set your own Stripe keys, run your own premium signal generator, and point `PREMIUM_SIGNAL_SOURCE_URL` at it. The HTTP contract is minimal — `GET <url>` returning `{ signals: TradingSignal[] }` with a Bearer `Authorization` header using `PREMIUM_SIGNAL_SOURCE_KEY`. Returns `[]` (and the hosted deploy keeps working with the DB-backed `premium_signals` table) if the remote is down.
+TradeClaw is MIT-licensed, so the signal framework, backtester, dashboard, paper-trading tools, and integration code can be self-hosted. Optional Stripe, premium-source, and legacy group-bot integrations remain in the repository, but their presence is not a promise that a paid hosted tier or private feed is currently available. Alpha Screener is the separate hosted SaaS path for users who do not want to self-host; see [the integration notes](docs/ALPHA_SCREENER.md).
 
 ## Quick start (Docker)
 
@@ -137,7 +117,7 @@ Common workspace scripts (all defined in the root `package.json`):
 | `npm run ws:dev` / `ws:build` / `ws:start` / `ws:test` | Develop, build, run, or test the websocket server (`apps/ws-server`) |
 | `npm run agent` | Run the trading-agent CLI (`packages/agent`) |
 | `npm run agent:start` / `agent:scan` / `agent:server` | Start the agent loop, run a one-off scan, or run the agent HTTP server |
-| `npm run resolve:outcomes` | Resolve real outcomes for recorded signals |
+| `npm run resolve:outcomes` | Resolve recorded signals against configured OHLCV sources |
 
 For the long-form TypeScript command and why `next build` is not a typecheck, see [`docs/ai-improvement/build-typecheck-parity.md`](docs/ai-improvement/build-typecheck-parity.md).
 
@@ -196,11 +176,12 @@ Signals are generated as a side effect of API requests — no external scheduler
 
 The hub is the source of truth. The two fallbacks are thin survival paths — they kick in only if the hub returns empty or errors, and OHLCV results from fallbacks are not cached so a hub blip can't lock the dashboard into stale synthetic data.
 
-**Execution (Pro):**
+**Optional automated execution (disabled by default):**
 
 ```
-Pro signal → apps/web/lib/execution/executor.ts
+Strictly gate-approved signal → apps/web/lib/execution/executor.ts
   → Binance USDT-perp (testnet by default); RoboForex R StocksTrader bridge scaffolded (interface only, not implemented)
+  → 90-day cost-adjusted evidence gate (fails closed on negative, stale, incomplete, or unavailable evidence)
   → pg advisory lock (single client across full execution path)
   → kill-switch fail-closed if any precondition missing
 ```
@@ -224,21 +205,21 @@ Compare presets in the [backtest UI](https://tradeclaw.win/backtest) with side-b
 ## API
 
 ```bash
-# Get current signals (free tier — 6 symbols, 30-min delay, 7-day history)
+# Get the current public signal response
 curl https://tradeclaw.win/api/signals
 
 # Get track record stats
 curl https://tradeclaw.win/api/strategy-breakdown
 ```
 
-Pro subscribers get real-time access to all endpoints with full depth.
+Public history and research responses describe their own scope and rolling-window limits. They do not establish live execution profitability.
 
 ## Notifications
 
-TradeClaw can push signals over multiple channels, each enabled by env vars:
+TradeClaw can push signals over multiple channels, each enabled by env vars. Hosted entry-like fan-out is suppressed unless the cost-adjusted evidence gate is ready; outcome and risk-exit notifications remain available:
 
-- **Telegram** — instant per-signal alerts (`TELEGRAM_BOT_TOKEN` + channel IDs).
-- **Email** — instant per-signal alerts and a daily digest. Pick a provider with `EMAIL_PROVIDER`:
+- **Telegram** — configured cron/channel delivery for gate-approved entry-like signals and eligible outcome/risk-exit updates (`TELEGRAM_BOT_TOKEN` + channel IDs). Delivery is not guaranteed to be instantaneous.
+- **Email** — configured alert delivery plus an independently scheduled daily digest. Entry-like signal sends remain evidence-gated; provider and recipient settings are required. Pick a provider with `EMAIL_PROVIDER`:
   - `resend` (default) — `RESEND_API_KEY` + `RESEND_FROM_EMAIL`
   - `sendgrid` — `SENDGRID_API_KEY`
   - `smtp` — `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` (requires `npm install nodemailer`)
@@ -246,6 +227,7 @@ TradeClaw can push signals over multiple channels, each enabled by env vars:
 - **Webhooks** — see the [webhook integration guide](docs/webhooks.md) for the signal payload schema and polling/cron patterns, plus ready-to-run forwarders in [`examples/webhooks/`](examples/webhooks/) (Slack, Discord, n8n, Zapier, Google Sheets).
 
 See `.env.example` for the full list of notification env vars.
+Docker Compose maps the documented `.env` variables into the relevant services through an explicit allowlist. Variables prefixed with `NEXT_PUBLIC_` are compiled into the client bundle, so changing those values requires matching image build arguments and a rebuild rather than only restarting the container.
 
 ## Environment variables
 

@@ -129,14 +129,15 @@ function formatResponse(best: BestSignal, total: number, stale: boolean) {
           ema: { trend: best.emaTrend },
         },
         reason:
-          `${best.symbol} shows the strongest setup today with ${best.confidence}% confidence. ` +
+          `${best.symbol} has the highest available mechanical rule score today at ${best.confidence}/100. ` +
           `RSI at ${best.rsi.toFixed(1)} (${best.rsiSignal}), ` +
           `MACD ${best.macdSignal}, EMA trend ${best.emaTrend}. ` +
-          `${best.direction === 'BUY' ? 'Bullish' : 'Bearish'} bias across indicators.`,
+          `${best.direction === 'BUY' ? 'Bullish' : 'Bearish'} bias across indicators. ` +
+          `The rule score is not a predictive probability.`,
       },
       shareUrl: `https://tradeclaw.win/signal/${best.symbol}-${best.timeframe}-${best.direction}`,
       metadata: {
-        source: 'TradeClaw AI Signal Engine',
+        source: 'TradeClaw rule-based signal engine',
         docs: 'https://tradeclaw.win/today',
       },
     },

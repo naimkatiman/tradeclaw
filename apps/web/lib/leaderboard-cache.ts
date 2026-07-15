@@ -13,7 +13,6 @@ import {
   readHistoryAsync,
   computeLeaderboard,
   computeStrategyBreakdown,
-  resolveRealOutcomes,
   type LeaderboardData,
   type StrategyBreakdownRow,
 } from './signal-history';
@@ -104,15 +103,15 @@ export async function getLeaderboard(
 }
 
 /**
- * Resolve outcomes + recompute all period variants + cache them.
- * Called from outcome checker cron or on cache miss.
+ * Recompute all period variants from persisted history and cache them.
+ * Outcome mutation belongs to the authenticated resolver cron, never a public
+ * leaderboard cache miss.
  */
 export async function refreshLeaderboardCache(): Promise<void> {
   if (refreshInFlight) return;
   refreshInFlight = true;
 
   try {
-    await resolveRealOutcomes();
     const history = await readHistoryAsync();
     const now = Date.now();
 

@@ -300,7 +300,7 @@ export default function PortfolioClient() {
                 <h1 className="text-2xl font-bold">Portfolio Signal Scanner</h1>
               </div>
               <p className="text-zinc-400 text-sm max-w-xl">
-                Add your holdings to see live TradeClaw signal alignment — BUY (bullish), SELL (caution), or HOLD (neutral) — for each asset, refreshed every 5 minutes.
+                Add holdings to map them to the latest available TradeClaw rule direction. This view does not read a broker account or calculate portfolio returns.
               </p>
             </div>
             <div className="flex gap-2 shrink-0">

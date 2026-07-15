@@ -5,8 +5,14 @@ import { useState, useEffect, useCallback } from 'react';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface CorrelationData {
+  available: true;
   assets: string[];
   matrix: number[][];
+  sampleSize: number;
+  method: 'pearson-log-returns-common-hourly-timestamps';
+  sources: Record<string, string>;
+  latestCandleAt: Record<string, string>;
+  computedAt: string;
   updatedAt: string;
 }
 
@@ -180,7 +186,7 @@ export function CorrelationClient() {
           <div>
             <h1 className="text-base font-semibold">Correlation Heatmap</h1>
             <p className="text-xs text-zinc-500 mt-0.5">
-              Pearson r — 100 hourly bars ·{' '}
+              Pearson r of aligned hourly log returns · n={data.sampleSize} · computed{' '}
               <span className="tabular-nums">
                 {new Date(data.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
@@ -223,6 +229,11 @@ export function CorrelationClient() {
             color="#f59e0b"
           />
         </div>
+
+        <p className="text-[11px] text-zinc-500">
+          Provider sources: {Object.entries(data.sources).map(([asset, source]) => `${asset}=${source}`).join(' · ')}.
+          Correlation is descriptive for this aligned sample, not a diversification or performance forecast.
+        </p>
 
         {/* ── Heatmap ── */}
         <div className="rounded-xl border border-white/5 bg-white/[0.02] overflow-hidden">

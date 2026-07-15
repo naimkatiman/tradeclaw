@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'TradeClaw vs TradingView vs TA-Lib vs pandas-ta — Open Source Signal Platform Comparison',
     description:
-      'The definitive comparison: open-source self-hosted trading signals vs locked-in SaaS and low-level libraries. TradeClaw is free, MIT-licensed, Docker-deployable.',
+      'A repository-oriented comparison of TradeClaw with hosted products and indicator libraries. TradeClaw is MIT-licensed and Docker-deployable.',
     type: 'website',
     images: ['/api/og'],
   },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'TradeClaw vs TradingView vs TA-Lib vs pandas-ta',
     description:
-      'Open-source self-hosted trading signal platform. Free forever. Docker in 30 seconds.',
+      'MIT-licensed, self-hostable trading signal platform with documented Docker configuration.',
     images: ['/api/og'],
   },
 };

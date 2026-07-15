@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import PatternsLoader from './PatternsLoader';
 
 export const metadata: Metadata = {
-  title: 'Trading Pattern Library | TradeClaw',
+  title: 'Educational Pattern Reference | TradeClaw',
   description:
-    'Explore 12 classic trading patterns — RSI Divergence, MACD crossovers, Head & Shoulders, Double Top/Bottom, Bollinger Squeeze and more. See which patterns TradeClaw detects automatically.',
+    'Educational reference for 12 classic technical-analysis patterns. Reliability is unmeasured and no live pattern detector backs the catalog.',
   keywords: [
     'trading patterns',
     'RSI divergence',
@@ -16,8 +16,8 @@ export const metadata: Metadata = {
     'candlestick patterns',
   ],
   openGraph: {
-    title: 'Trading Pattern Library | TradeClaw',
-    description: '12 classic technical patterns with animated diagrams, reliability scores, and TradeClaw signal detection status.',
+    title: 'Educational Pattern Reference | TradeClaw',
+    description: 'Illustrative technical-analysis diagrams and textbook interpretations, with no measured reliability or live detector claims.',
     images: [{ url: '/api/og', width: 1200, height: 630 }],
   },
 };

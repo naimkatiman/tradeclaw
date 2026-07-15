@@ -3,7 +3,7 @@ import { ExplainClient } from './explain-client';
 
 export const metadata: Metadata = {
   title: 'AI Signal Analysis — TradeClaw',
-  description: 'Get instant AI-powered analysis for any trading signal. Detailed indicator breakdown, confluence scoring, key levels, and trade setup recommendations.',
+  description: 'Inspect the deterministic indicator inputs and mechanical rationale behind a TradeClaw signal candidate.',
 };
 
 export default function ExplainPage() {

@@ -106,7 +106,7 @@ export function CostFieldHero() {
             <div className="premium-grid-bg absolute inset-0 opacity-50" aria-hidden="true" />
             <div className="absolute inset-x-[8%] top-[38%] h-px bg-[var(--border-strong)]" aria-hidden="true" />
             <div className="relative z-10 max-w-xs rounded-lg border border-[var(--border)] bg-[var(--bg-card)]/80 px-3 py-2 backdrop-blur">
-              <p className="text-xs font-medium text-[var(--foreground)]">Loading verified trade field</p>
+              <p className="text-xs font-medium text-[var(--foreground)]">Loading modeled signal field</p>
               <p className="mt-1 text-[10px] leading-4 text-[var(--text-secondary)]">
                 Fetching resolved trades and modeled execution costs. No placeholder results are shown.
               </p>

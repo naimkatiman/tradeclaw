@@ -1,4 +1,14 @@
-import { trimClosedCandles, type OHLCV } from '../ohlcv';
+jest.mock('../data-providers', () => ({
+  fetchStooqOHLCV: jest.fn().mockResolvedValue([]),
+  isStooqSymbol: jest.fn().mockReturnValue(false),
+}));
+
+jest.mock('../data-providers/market-data-hub', () => ({
+  fetchHubCandles: jest.fn().mockResolvedValue([]),
+  isHubEnabled: jest.fn().mockReturnValue(false),
+}));
+
+import { getOHLCV, trimClosedCandles, type OHLCV } from '../ohlcv';
 
 const makeCandle = (timestamp: number): OHLCV => ({
   timestamp,
@@ -82,5 +92,14 @@ describe('trimClosedCandles', () => {
     ];
     const result = trimClosedCandles(candles, 'H1', now);
     expect(result).toHaveLength(1);
+  });
+});
+
+describe('getOHLCV provider failure', () => {
+  it('returns an explicit empty unavailable result instead of synthetic candles', async () => {
+    await expect(getOHLCV('NO_PROVIDER', 'H1')).resolves.toEqual({
+      candles: [],
+      source: 'unavailable',
+    });
   });
 });

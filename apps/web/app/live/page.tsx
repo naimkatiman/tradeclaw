@@ -2,12 +2,12 @@ import { Metadata } from 'next';
 import LiveLoader from './LiveLoader';
 
 export const metadata: Metadata = {
-  title: 'Live Signal Feed | TradeClaw',
-  description: 'Live trading signal feed across BTC, ETH, XAU, EUR, GBP and more. Refreshed every 5 minutes. Embeddable widget for your blog or site.',
-  keywords: ['live trading signals', '5-minute trading signals', 'bitcoin signals', 'forex signals', 'embeddable widget'],
+  title: 'Latest Signal Feed | TradeClaw',
+  description: 'Latest available rule-generated signal candidates across supported assets, with an embeddable read-only widget.',
+  keywords: ['trading signal research', 'bitcoin indicators', 'forex indicators', 'embeddable widget'],
   openGraph: {
-    title: 'TradeClaw — Live Signal Feed',
-    description: 'Live AI trading signals (5-minute cadence). Embed in your blog or site with one script tag.',
+    title: 'TradeClaw — Latest Signal Feed',
+    description: 'Latest available rule-generated signal candidates in a read-only embeddable feed.',
     type: 'website',
   },
 };

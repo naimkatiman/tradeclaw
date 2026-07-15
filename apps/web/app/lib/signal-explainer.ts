@@ -1,6 +1,6 @@
 /**
  * Signal Explanation Engine — deterministic natural language reasoning
- * Generates Bloomberg-grade markdown analysis from technical indicator data
+ * Generates deterministic markdown descriptions from technical indicator data.
  * No external AI API required — template-based with seeded phrase variation
  */
 
@@ -52,140 +52,106 @@ function applyPhrase(p: PhraseOrFn, v: number): string {
 }
 
 const RSI_BUY: PhraseOrFn[] = [
-  (v) => `RSI has collapsed into oversold territory at **${v.toFixed(1)}**, historically a reliable mean-reversion trigger where institutional buyers re-enter`,
-  (v) => `RSI reading of **${v.toFixed(1)}** signals extreme selling pressure — statistically, sub-30 readings precede bounces in the majority of historically sampled cases`,
-  (v) => `At **${v.toFixed(1)}**, the RSI has registered a level that has repeatedly attracted demand in this instrument`,
-  (v) => `RSI printing **${v.toFixed(1)}** — momentum exhaustion on the sell side is evident, and the oscillator is primed for a bullish reset`,
+  (v) => `RSI is **${v.toFixed(1)}**, which the configured rule classifies as oversold`,
+  (v) => `The configured RSI threshold labels **${v.toFixed(1)}** as oversold; it does not predict a rebound`,
 ];
 
 const RSI_SELL: PhraseOrFn[] = [
-  (v) => `RSI has surged to **${v.toFixed(1)}**, flagging overbought conditions and a statistically elevated probability of mean reversion`,
-  (v) => `RSI at **${v.toFixed(1)}** indicates the rally is overextended — buyers are running out of fuel at this level`,
-  (v) => `An RSI of **${v.toFixed(1)}** represents a multi-standard-deviation departure from fair value, conditions that historically resolve lower`,
-  (v) => `RSI printing **${v.toFixed(1)}** — exhaustion candles are forming as buyers struggle to push the price any further`,
+  (v) => `RSI is **${v.toFixed(1)}**, which the configured rule classifies as overbought`,
+  (v) => `The configured RSI threshold labels **${v.toFixed(1)}** as overbought; it does not predict a decline`,
 ];
 
 const RSI_NEUTRAL: PhraseOrFn[] = [
-  (v) => `RSI at **${v.toFixed(1)}** is in neutral territory, neither confirming nor denying the directional thesis — trend indicators carry more weight here`,
-  (v) => `RSI reads **${v.toFixed(1)}** — mid-range with no independent extreme signal, but not contradicting the overall setup`,
+  (v) => `RSI is **${v.toFixed(1)}**, inside the configured neutral range`,
+  (v) => `The configured RSI thresholds do not label **${v.toFixed(1)}** as overbought or oversold`,
 ];
 
 const MACD_BULL = [
-  'MACD histogram has printed **positive** — the 12-period EMA has crossed above the 26-period in a classic bullish momentum crossover',
-  'The MACD has completed a bullish crossover with expanding histogram bars, confirming accelerating upside momentum',
-  'MACD histogram turned positive and widening — short-term momentum is decisively outpacing the medium-term baseline',
+  'The current MACD rule is **bullish**; this describes the computed EMA relationship and does not establish future direction',
 ];
 
 const MACD_BEAR = [
-  'MACD histogram is **negative and widening** — the 12-period EMA has fallen below the 26-period in a textbook bearish crossover',
-  'A bearish MACD crossover is in play, with the histogram printing consecutive red bars that confirm deteriorating momentum',
-  'MACD diverging to the downside — the fast average is losing ground against the slow average at an accelerating pace',
+  'The current MACD rule is **bearish**; this describes the computed EMA relationship and does not establish future direction',
 ];
 
 const MACD_NEUTRAL = [
-  'MACD histogram is hovering near zero — no clear directional bias from this indicator; momentum is in a transitional state',
-  'MACD is consolidating around the zero line, indicating indecision between bulls and bears on the medium-term momentum axis',
+  'The current MACD rule is neutral under the configured thresholds',
 ];
 
 const EMA_BULL = [
-  'Price is holding **above EMA 20 > EMA 50**, confirming the short-to-medium term trend structure is intact and bullish',
-  'The EMA stack is perfectly ordered bullish: EMA 20 > EMA 50 > EMA 200 — institutional trend-following algorithms use this as a primary long filter',
-  'All three EMAs are aligned upward with price trading above the 20-period average — trend-following participants will be adding long exposure here',
+  'The configured EMA ordering rule labels the current values as an uptrend',
 ];
 
 const EMA_BEAR = [
-  'Price has broken **below EMA 20 < EMA 50** — the trend structure is decisively inverted, confirming a bearish regime',
-  'The EMA stack is fully inverted: EMA 20 < EMA 50 < EMA 200 — a high-conviction downtrend signature favored by systematic short-sellers',
-  'EMAs are aligned bearish with price below the short-term average — mean-reversion longs face significant structural headwinds',
+  'The configured EMA ordering rule labels the current values as a downtrend',
 ];
 
 const EMA_NEUTRAL = [
-  'EMAs are compressed and intertwined — the market is in a sideways consolidation phase with no dominant trend established',
-  'Mixed EMA alignment signals a transitional market — direction will be resolved by a convincing break away from the current range',
+  'The EMA values do not meet the configured uptrend or downtrend ordering rule',
 ];
 
 const STOCH_BUY = [
-  'Stochastic Oscillator has dipped below **20** and %K is crossing above %D — a high-probability oversold reversal pattern',
-  'Stochastic printing below 20 with a %K/%D bullish cross — short-term momentum is shifting decisively from negative to positive territory',
+  'The configured Stochastic threshold labels the current reading as oversold; this is not a reversal forecast',
 ];
 
 const STOCH_SELL = [
-  'Stochastic above **80** with %K crossing below %D — overbought with early confirmation of bearish momentum transfer',
-  'Stochastic is topping out above 80 and the fast line is rolling below the slow line, warning of impending downside pressure',
+  'The configured Stochastic threshold labels the current reading as overbought; this is not a reversal forecast',
 ];
 
 const STOCH_NEUTRAL = [
-  'Stochastic is mid-range — no extremes to anchor the bias, deferring signal weight to trend-based indicators',
-  'Stochastic oscillator at neutral levels; meaningful directional signal will emerge only at the extremes',
+  'The Stochastic reading is inside the configured neutral range',
 ];
 
 const BB_LOWER = [
-  'Price is touching the **lower Bollinger Band** — statistically, price closes above the band ~95% of the time, indicating a snap-back is likely',
-  'Lower Bollinger Band touch signals a 2-standard-deviation extension below the mean — statistical reversion pressure is at maximum',
+  'The current price is in the configured lower-band region; band position alone does not imply a rebound',
 ];
 
 const BB_UPPER = [
-  'Price is pressing the **upper Bollinger Band** — the 2σ boundary acts as a rubber band, historically pulling price back toward the 20-period mean',
-  'Upper band contact signals overbought conditions in a statistical sense — the path of least resistance becomes mean reversion',
+  'The current price is in the configured upper-band region; band position alone does not imply a decline',
 ];
 
 const BB_MID = [
-  'Price is trading within the Bollinger Bands with no extreme statistical reading — volatility is contained within normal parameters',
-  'Bollinger Band position shows price mid-range; the bands themselves confirm normal volatility conditions',
+  'The current price is inside the configured middle-band region',
 ];
 
 const RISK_BUY = [
-  'The higher timeframe trend may remain bearish — validate the D1/W1 direction before scaling into a full position',
-  'Key economic releases in the next 48 hours could override technical setups — check the economic calendar before entry',
-  'RSI can remain depressed in a persistent bear trend — oversold conditions can extend further before a genuine reversal',
-  'A daily close below the identified support zone would structurally invalidate this setup',
-  'Low-liquidity sessions (pre-market, Asian session) may cause slippage beyond the calculated stop loss',
-  'Correlation risk: if the USD strengthens sharply, commodity and risk-linked pairs may not recover as anticipated',
+  'The input contains candles and indicators, not news, order-book depth, spread, liquidity, or account constraints',
+  'The displayed levels are outputs of a fixed model and are not observed broker fills or guaranteed executable prices',
+  'Indicator thresholds can remain in the same state while price continues against the label',
 ];
 
 const RISK_SELL = [
-  'Central bank intervention risk is elevated near multi-year lows — watch for policy statements that could trigger a short squeeze',
-  'Short squeezes are common after prolonged sell-offs — a sudden flush could stop-hunt positions above resistance',
-  'Overbought conditions on H1 do not guarantee reversal if the D1 trend remains strongly bullish',
-  'Unexpected positive macro data (NFP, CPI beats, earnings surprises) could invalidate the bearish thesis',
-  'Stop loss must account for overnight gaps in thinner-liquidity instruments',
-  'Seasonality and quarter-end flows can temporarily override technical signals — timing entry near high-volume sessions reduces gap risk',
+  'The input contains candles and indicators, not news, order-book depth, spread, liquidity, or account constraints',
+  'The displayed levels are outputs of a fixed model and are not observed broker fills or guaranteed executable prices',
+  'Indicator thresholds can remain in the same state while price continues against the label',
 ];
 
 const CONTEXT_BULL = [
-  'The broader market regime is **risk-on**, providing a constructive tailwind for long setups in growth-linked assets',
-  'Macro sentiment leans constructive — the current dip represents a high-quality opportunity to enter the prevailing uptrend at a discount',
-  'Volatility is compressing following recent consolidation — a breakout higher is the higher-probability resolution of the current pattern',
+  'The engine assigned a BUY label from the displayed technical rules. It did not evaluate macro sentiment, portfolio exposure, or execution conditions.',
 ];
 
 const CONTEXT_BEAR = [
-  'Risk appetite is deteriorating — the technical setup aligns with a broader **risk-off** macro narrative gaining traction in global markets',
-  'The current rally represents distribution rather than accumulation — sell-the-rip dynamics are dominating price action',
-  'Elevated volatility and declining market breadth suggest the instrument is in a corrective phase with further downside potential',
+  'The engine assigned a SELL label from the displayed technical rules. It did not evaluate macro sentiment, portfolio exposure, or execution conditions.',
 ];
 
 const EDU_RSI = [
-  'RSI (Relative Strength Index) measures the speed and change of price movements on a 0–100 scale. Readings below 30 indicate that selling has been excessive relative to recent history — a condition that often precedes a bounce as sellers exhaust their positions.',
-  'Developed by J. Welles Wilder in 1978, RSI uses a 14-period smoothed average of gains vs. losses. A sub-30 reading is a statistical anomaly; while it doesn\'t guarantee a reversal, it signals the asset is trading at a significant discount to its recent price range.',
+  'RSI maps smoothed recent gains and losses to a 0-100 oscillator. Threshold labels describe the lookback window; they do not measure fair value or reversal probability.',
 ];
 
 const EDU_MACD = [
-  'MACD (Moving Average Convergence/Divergence) measures the relationship between a 12-period and 26-period EMA. When the faster EMA crosses above the slower, the histogram turns positive — the earliest sign of a momentum regime change.',
-  'The MACD histogram represents the gap between the MACD line and its 9-period signal line. Expanding positive bars indicate accelerating bullish momentum; the first green bar after a negative run is frequently the earliest quantifiable warning of a trend change.',
+  'MACD derives values from exponential moving averages and a signal line. Its sign is a description of those lagging calculations, not a forecast.',
 ];
 
 const EDU_EMA = [
-  'Exponential Moving Averages weight recent prices more heavily, making them more responsive to current market conditions. A perfectly ordered bullish stack (EMA 20 > 50 > 200) means all three time horizons — short, medium, and long-term — are pointing in the same direction.',
-  'The 200 EMA is the primary institutional reference level. Assets trading above it are considered in a long-term bull market; below it, the bears hold structural control. The 20/50 relationship identifies the short-to-medium term trend within that broader framework.',
+  'Exponential moving averages weight recent closes more heavily. Ordering several EMA windows summarizes past price relationships; it does not prove a persistent trend.',
 ];
 
 const EDU_STOCH = [
-  'The Stochastic Oscillator compares the closing price to the high-low range over 14 periods. A reading below 20 means price closed near the bottom of its recent range — suggesting selling is statistically overextended. The %K/%D crossover provides the timing trigger.',
-  'Stochastics perform best in ranging markets. In strong trending environments, they can remain overbought or oversold for extended periods. Always confirm stochastic extremes with trend-following indicators before committing.',
+  'The Stochastic Oscillator locates a close within its recent high-low range. Overbought and oversold are threshold names, not probabilities.',
 ];
 
 const EDU_BB = [
-  'Bollinger Bands plot a 20-period SMA with ±2 standard deviation envelopes. Roughly 95% of price action falls within the bands under normal conditions. A touch of the lower band doesn\'t guarantee a reversal — but it places price in a statistically rare and historically attractive buying zone.',
+  'Bollinger Bands place volatility-scaled envelopes around a moving average. Market returns are not normally distributed, so a band touch is not a calibrated probability or trade instruction.',
 ];
 
 // ─── Confluence Builder ──────────────────────────────────────
@@ -218,21 +184,12 @@ function buildConfluence(ind: IndicatorSummary, direction: 'BUY' | 'SELL'): Conf
   else if (ind.bollingerBands.position === 'upper') bearish.push('BB Upper Band');
 
   const aligning = direction === 'BUY' ? bullish.length : bearish.length;
-  const labels: Record<number, string> = {
-    5: 'Very Strong',
-    4: 'Strong',
-    3: 'Moderate',
-    2: 'Weak',
-    1: 'Very Weak',
-    0: 'No',
-  };
-
   return {
     bullish,
     bearish,
     aligning,
     total: 5,
-    label: labels[aligning] ?? 'Weak',
+    label: `${aligning}-rule`,
   };
 }
 
@@ -260,8 +217,7 @@ export function generateSignalExplanation(signal: TradingSignal): SignalExplanat
 
   const confluence = buildConfluence(ind, direction);
 
-  const confLevel = confidence >= 80 ? 'Strong' : confidence >= 65 ? 'Moderate' : 'Weak';
-  const summaryLine = `${symbol} ${timeframe} — ${confLevel} ${direction} signal (${confidence}% confidence)`;
+  const summaryLine = `${symbol} ${timeframe} — ${direction} analytical label (${confidence}/100 rule score)`;
 
   // Risk calculations
   const riskDist = Math.abs(entry - stopLoss);
@@ -271,8 +227,8 @@ export function generateSignalExplanation(signal: TradingSignal): SignalExplanat
   const rr3 = rrRatio(entry, stopLoss, takeProfit3);
 
   // Nearest levels
-  const nearS = ind.support[0] ?? entry * 0.99;
-  const nearR = ind.resistance[0] ?? entry * 1.01;
+  const nearS = ind.support[0] ?? null;
+  const nearR = ind.resistance[0] ?? null;
 
   // Pick phrases
   const rsiPool = ind.rsi.signal === 'oversold' ? RSI_BUY : ind.rsi.signal === 'overbought' ? RSI_SELL : RSI_NEUTRAL;
@@ -346,22 +302,22 @@ ${aligningSignals.length > 0 ? `✅ Aligned: ${aligningSignals.join(' · ')}` : 
 ${conflictingSignals.length > 0 ? `\n⚠️ Conflicting: ${conflictingSignals.join(' · ')}` : '\n✅ No conflicting signals detected'}
 
 ${confluence.aligning >= 4
-  ? `> **High-conviction setup.** Four or more indicators corroborate the ${direction} direction — this is the type of alignment that institutional systems are programmed to react to.`
+  ? `> **High rule agreement.** Four or more configured indicators point in the ${direction} direction. Agreement is descriptive and does not establish predictive edge.`
   : confluence.aligning >= 3
-  ? `> **Solid confluence.** Three indicators in agreement represents a statistically meaningful edge. Manage position size conservatively and respect the stop level.`
-  : `> **Low confluence.** Fewer than 3 indicators align. Treat this as a speculative setup — reduce position size and apply tighter risk management.`}
+  ? `> **Moderate rule agreement.** Three configured indicators point in the same direction. This is not evidence that the signal will be profitable.`
+  : `> **Low rule agreement.** Fewer than three configured indicators align. The output remains an analytical label, not a trade instruction.`}
 
 ---
 
-### 🗺️ Key Levels
+### 🗺️ Model Levels
 
 | Level | Price | Distance from Entry |
 |-------|-------|---------------------|
-| **Entry** | ${fmt(entry)} | — |
-| Stop Loss | ${fmt(stopLoss)} | ${distLabel(entry, stopLoss)} |
-| TP1 | ${fmt(takeProfit1)} | ${distLabel(entry, takeProfit1)} |
-| TP2 | ${fmt(takeProfit2)} | ${distLabel(entry, takeProfit2)} |
-| TP3 | ${fmt(takeProfit3)} | ${distLabel(entry, takeProfit3)} |
+| **Reference price** | ${fmt(entry)} | — |
+| Model invalidation | ${fmt(stopLoss)} | ${distLabel(entry, stopLoss)} |
+| Model target 1 | ${fmt(takeProfit1)} | ${distLabel(entry, takeProfit1)} |
+| Model target 2 | ${fmt(takeProfit2)} | ${distLabel(entry, takeProfit2)} |
+| Model target 3 | ${fmt(takeProfit3)} | ${distLabel(entry, takeProfit3)} |
 | Nearest Support | ${fmt(nearS)} | ${distLabel(entry, nearS)} |
 | Nearest Resistance | ${fmt(nearR)} | ${distLabel(entry, nearR)} |
 
@@ -370,19 +326,19 @@ ${ind.resistance.length > 1 ? `Additional resistance levels: ${ind.resistance.sl
 
 ---
 
-### 💡 Trade Setup
+### 💡 Outcome Model
 
-**Entry:** ${fmt(entry)} — ${isBuy ? 'Buy at market or place a limit order on the next candle open' : 'Sell at market or place a limit order on the next candle open'}
+**Reference price:** ${fmt(entry)} — captured from the signal input, not a broker fill or order instruction
 
-**Stop Loss:** ${fmt(stopLoss)} — ${pctRisk}% risk from entry · ${fmt(riskDist)} distance
+**Invalidation level:** ${fmt(stopLoss)} — ${pctRisk}% price distance · ${fmt(riskDist)} absolute distance
 
 | Target | Price | Risk : Reward |
 |--------|-------|---------------|
-| TP1 (conservative) | ${fmt(takeProfit1)} | **${rr1} : 1** |
-| TP2 (standard) | ${fmt(takeProfit2)} | **${rr2} : 1** |
-| TP3 (extended) | ${fmt(takeProfit3)} | **${rr3} : 1** |
+| Model target 1 | ${fmt(takeProfit1)} | **${rr1} : 1** |
+| Model target 2 | ${fmt(takeProfit2)} | **${rr2} : 1** |
+| Model target 3 | ${fmt(takeProfit3)} | **${rr3} : 1** |
 
-> **Execution strategy:** Consider banking 50% of the position at TP1 and moving the stop to breakeven. Let the remainder run toward TP2/TP3 for asymmetric upside capture.
+> These unsized levels support a disclosed outcome study. They do not specify whether an order was executable or what a portfolio should hold.
 
 ---
 
@@ -390,15 +346,15 @@ ${ind.resistance.length > 1 ? `Additional resistance levels: ${ind.resistance.sl
 
 1. ${risk1}
 2. ${risk2}
-3. Never risk more than 1–2% of total account equity on a single trade — size your position accordingly based on the stop distance.
+3. No account, position size, fee, spread, slippage, or market-impact information is present in this explanation.
 
 ---
 
-### 🌐 Market Context
+### 🌐 Scope Limits
 
 ${contextText}
 
-The **${timeframe}** timeframe is showing a ${isBuy ? 'bullish' : 'bearish'} setup with price action suggesting a ${isBuy ? 'continuation or recovery' : 'continuation or reversal'} move. ${isBuy ? 'Entering long here offers asymmetric risk-reward with limited defined downside.' : 'Short entries here carry a favorable risk-reward profile with clearly defined risk above the stop.'}
+The **${timeframe}** label reports the candle interval used by the rule engine. It does not establish continuation, reversal, favorable execution, or expected return.
 
 ---
 
@@ -410,7 +366,7 @@ ${eduText}
 
 ---
 
-*Analysis generated by TradeClaw Signal Engine v2.0 · ${new Date().toISOString().split('T')[0]} · For educational purposes only — not financial advice.*`;
+*Deterministic rule explanation generated ${new Date().toISOString().split('T')[0]}. It is not broker execution, portfolio performance, a calibrated probability, or financial advice.*`;
 
   return {
     markdown: markdown.trim(),

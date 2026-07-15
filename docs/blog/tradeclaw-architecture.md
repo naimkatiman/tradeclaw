@@ -1,132 +1,77 @@
-# TradeClaw Architecture: Signals, Backtesting, and Self‑Hosting (Under the Hood)
+# TradeClaw Architecture: Runtime Boundaries and Self-Hosting
 
-TradeClaw looks like "a dashboard that spits out BUY/SELL ideas", but under the hood it's a few small systems that snap together:
+TradeClaw is a monorepo with several signal, research, delivery, and execution paths. They share types and some indicator primitives, but they are not one interchangeable pipeline. This document describes the current boundaries rather than a future target architecture.
 
-- **Signal engine**: candles → indicators → confluence score → `TradingSignal`
-- **Backtesting**: reuse the same indicators, replay over historical candles
-- **Self-hosting**: Docker Compose (Postgres/Timescale + Redis + app + scanner)
-- **Next.js**: UI + API routes in one TypeScript codebase
+## Repository shape
 
-This post is codebase-grounded—paths and behavior match what's in this repo today.
+- `apps/web` contains the Next.js UI, API routes, scheduled-job handlers, signal history, research views, alert configuration, and execution orchestration.
+- `packages/signals` contains shared indicator and market-regime primitives.
+- `packages/strategies` contains historical entry modules and backtest runners with selectable geometry and cost assumptions.
+- `packages/agent` contains a separately runnable agent daemon, channel adapters, and its own signal engine.
+- `packages/ws-server` provides the Redis-backed websocket service used by the Compose stack.
 
----
+The presence of a package or adapter does not mean it runs in the default deployment. Operators must inspect the relevant entry point, configuration, and scheduler.
 
-## How the TA engine generates signals (RSI + MACD + EMA confluence)
+## Signal generation is not one universal formula
 
-TradeClaw's TA engine is intentionally "boring": it computes well-known indicators and only publishes a signal when multiple indicators agree (confluence).
+The agent engine in `packages/agent/src/signals/engine.ts` calculates RSI, MACD, EMA, Bollinger Bands, Stochastic, and ADX through `@tradeclaw/signals`. Its input path is important: it creates a deterministic synthetic OHLC series and anchors the final value to a live price when one is available. That series is useful for deterministic development behavior, but it is not an observed historical candle feed.
 
-The indicator math lives in the shared `@tradeclaw/signals` package (`packages/signals/src/indicators.ts`):
+The web app also has strategy-specific signal and research paths. Confidence formulas, minimum scores, regime rules, and backtest entry modules can differ. A simplified UI calculator or a shared indicator implementation is therefore not proof that two paths use identical decision rules.
 
-- **RSI**: Wilder's smoothing (standard RSI)
-- **MACD**: 12/26 EMA with 9‑period signal line, using the histogram for bullish/bearish bias
-- **EMA**: standard exponential moving average (used for trend/structure)
+Entry-like delivery and execution have an additional fail-closed boundary. A confidence score alone is insufficient: the reproducible cost-adjusted evidence gate must have enough recent, cost-covered, positive out-of-sample evidence. When that evidence is missing or fails, the relevant entry fan-out and execution paths halt.
 
-### From prices → indicators
+## Historical research boundaries
 
-The agent-side engine (`packages/agent/src/signals/engine.ts`) produces OHLC arrays and computes an `IndicatorSummary`. For demo/development stability, it can generate a **deterministic** candle series (seeded per symbol/timeframe/hour) that's **anchored to a live base price** when available—so signals are stable without drifting away from real market levels.
+TradeClaw records signal outcomes derived from OHLCV and exposes counted wins, losses, exclusions, and methodology. Those records are signal-level research outputs. They are not broker fills or a customer portfolio ledger.
 
-The important part is the contract: one compact `IndicatorSummary` travels everywhere (API responses, UI charts, explainers, and backtesting overlays).
+Backtests in `packages/strategies` reuse some shared indicator primitives, but use strategy-specific entry modules and explicit simulation geometry. A backtest result is meaningful only with its symbol, window, entry module, sizing, cost model, and exit assumptions. It should not be described as live performance or as guaranteed parity with another signal path unless a parity test demonstrates that claim.
 
-### Confluence as a scoring model
+## Current Docker Compose topology
 
-Instead of a single brittle rule, TradeClaw uses a weighted score in `evaluateSignal()`:
+The default `docker-compose.yml` defines:
 
-- RSI contributes more when it's far from neutral (e.g. deeply oversold/overbought).
-- MACD histogram contributes a bullish/bearish momentum vote.
-- EMA structure contributes trend/structure confirmation.
+| Service     | Current role                   |
+| ----------- | ------------------------------ |
+| `db`        | TimescaleDB/PostgreSQL storage |
+| `redis`     | Cache and pub/sub transport    |
+| `migrate`   | One-shot SQL migration runner  |
+| `app`       | Next.js web and API process    |
+| `ws-server` | Redis-backed websocket service |
 
-If neither side has enough evidence, the engine returns **no signal**. If one side wins, the score is mapped into a bounded **confidence** value (capped below 100 to avoid fake certainty).
+Prometheus and Grafana are optional under the `monitoring` profile.
 
----
+There is no scanner service in the current Compose file. A previous scanner definition pointed at a non-runnable library package and was removed. The runnable interval scanner is the separate `packages/agent` daemon; an operator who needs it must build and run it explicitly. Scheduled web routes likewise need an external scheduler and the required authentication secret.
 
-## The backtesting approach
+Self-hosting is not credential-free. Copy `.env.example`, set the required database and signing secrets, review optional provider credentials, and then build the stack. Market-data, alert, OAuth, payment, and broker providers can still receive outbound requests when configured.
 
-TradeClaw's backtesting is built for iteration and understanding, not for "perfect execution simulation".
+## Runtime data and delivery flow
 
-Two principles keep it honest:
+A typical web-app path is:
 
-1. **Same indicators, same math**: backtests call the exact same `@tradeclaw/signals` functions as live signal generation.
-2. **Visual first**: the result should be easy to verify on charts (EMA overlays, RSI/MACD panels, BUY/SELL markers).
+1. A configured market-data adapter or authenticated job obtains input data.
+2. A strategy path calculates a candidate signal and records its provenance and state.
+3. Canonical outcome jobs later derive TP, SL, or 24-hour outcomes from OHLCV.
+4. The app reads PostgreSQL for history and research views; websocket features use the separately running websocket and Redis services where configured.
+5. Authenticated alert dispatchers can send eligible payloads to configured destinations.
 
-At a high level a backtest run:
+Outbound webhooks are not a promise that every generated signal is delivered. The generic dispatch endpoints require authentication, apply destination filters, and fail closed for entry-like events when the evidence gate does not clear. `signal.test` exists for explicit setup verification. Slack, Zapier, marketplace, and broker example pages include manual setup recipes; those recipes are not proof of native third-party integrations.
 
-- builds a candle series (fixed window),
-- recomputes indicators on that series,
-- applies the same confluence logic to "would a signal fire here?",
-- and summarizes outcomes with a simple trade model.
+## Execution boundary
 
-That simplicity is a feature: contributors can change one thing (a threshold, a weight, a filter) and immediately see how it changes signal quality across the window.
+Execution is disabled by default. The implemented native adapter targets Binance USDT perpetuals and defaults to Binance testnet. Other broker cards and snippets are external starter examples, while the RoboForex bridge remains an interface-only scaffold. User-supplied webhook receivers that call broker APIs are outside the native execution boundary and need their own authentication, idempotency, sizing, symbol mapping, risk controls, and audit trail.
 
-### What TradeClaw does NOT do in backtesting
+## Why Next.js
 
-- No slippage model, no order-book simulation.
-- No look-ahead bias—indicators are computed causally (each bar only sees past data).
-- No optimization loops (no curve-fitting). The backtest is a visualization and sanity-check tool, not an auto-optimizer.
+Next.js keeps UI and HTTP handlers in one TypeScript workspace and lets routes share repository types. That reduces deployment pieces for the web surface, but it does not remove the operational boundaries above: background jobs, the agent daemon, websocket service, database, Redis, and third-party providers still have separate lifecycles.
 
-These are intentional scope limits. TradeClaw is a signal-exploration tool, not a hedge-fund backtester.
+## Where to verify behavior
 
----
+- `docker-compose.yml` for the processes that actually start by default.
+- `packages/agent/src/signals/engine.ts` for the agent's synthetic-series signal path.
+- `packages/strategies/src/run-backtest.ts` and `backtest-options.ts` for historical simulation behavior.
+- `apps/web/lib/signal-history.ts` for recorded outcome semantics.
+- `apps/web/lib/cost-adjusted-edge-gate.ts` for the evidence requirement.
+- `apps/web/lib/execution/executor.ts` for the native execution boundary.
+- `apps/web/lib/webhooks.ts` and the authenticated webhook routes for delivery behavior.
 
-## Self-hosting architecture
-
-TradeClaw is designed to run on a single machine (or a small VPS) via Docker Compose. The stack:
-
-| Service | Role |
-|---------|------|
-| **Postgres (TimescaleDB)** | Candle storage, signal history, user data |
-| **Redis** | Pub/sub for real-time signal updates, caching |
-| **App (Next.js)** | Web UI + API routes |
-| **Scanner (Agent)** | Background process that fetches prices, computes signals, writes to DB and Redis |
-
-### Why Docker Compose?
-
-Most TradeClaw users are individual traders or small teams. Docker Compose gives them:
-
-- A single `docker-compose up` to start everything.
-- Easy backups (dump Postgres, done).
-- No vendor lock-in—runs on any Linux box, a Raspberry Pi, or a cloud VM.
-
-Kubernetes would be overkill. If someone needs horizontal scaling, they can split the scanner into multiple instances partitioned by symbol—but that's a future concern, not a day-one requirement.
-
-### Data flow
-
-1. The **scanner** wakes on a schedule (or on websocket tick), fetches candles from the configured exchange API.
-2. It computes indicators and evaluates confluence.
-3. If a signal fires, it writes to **Postgres** and publishes to **Redis**.
-4. The **Next.js app** subscribes to Redis for real-time updates and queries Postgres for history.
-5. The **UI** renders charts, signal cards, and backtest overlays.
-
-This architecture means the frontend never talks directly to an exchange—everything is mediated through the scanner and database. That separation makes it easy to swap data sources or add new exchanges without touching the UI.
-
----
-
-## Why Next.js?
-
-TradeClaw chose Next.js for a pragmatic reason: **one TypeScript codebase for UI and API**.
-
-### Specific benefits
-
-- **API routes**: signal endpoints, backtest triggers, and webhook handlers live next to the pages that consume them. No separate Express server to maintain.
-- **Server-side rendering**: the dashboard can pre-render with fresh signal data, so the initial page load shows real content (not a loading spinner).
-- **TypeScript end-to-end**: the same `TradingSignal` and `IndicatorSummary` types are shared between the signal engine, the API layer, and the React components. No serialization mismatches.
-- **Ecosystem**: charting libraries (lightweight-charts, recharts), auth (NextAuth), and deployment tooling all have first-class Next.js support.
-
-### Trade-offs acknowledged
-
-- Next.js adds complexity compared to a pure SPA. For TradeClaw's use case (server-rendered dashboard with real-time updates), the trade-off is worth it.
-- The App Router and Server Components model is still evolving. TradeClaw uses a mix of server and client components, favoring simplicity over bleeding-edge patterns.
-
----
-
-## Wrapping up
-
-TradeClaw's architecture is deliberately simple:
-
-- A small set of well-known indicators, combined through confluence scoring.
-- Backtesting that reuses the same math and prioritizes visual verification.
-- A self-hosted Docker Compose stack that any developer can run locally.
-- A Next.js frontend that keeps everything in one TypeScript codebase.
-
-The goal is not to build the most sophisticated trading system—it's to build one that's transparent, easy to modify, and honest about what it does and doesn't do. Every architectural choice optimizes for contributor understanding over theoretical performance.
-
-If you want to dig deeper, start with `packages/signals/src/indicators.ts` for the math, `packages/agent/src/signals/engine.ts` for the signal pipeline, and `docker-compose.yml` for the deployment topology.
+Claims about latency, profitability, broker support, or automatic delivery should be backed by those runtime paths and by reproducible production evidence, not by the existence of UI copy or an example snippet.

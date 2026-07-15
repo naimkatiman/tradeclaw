@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getActiveSmsSubscribers } from '@/lib/sms-subscribers';
 import { requireCronAuth } from '@/lib/cron-auth';
+import { evaluateCostAdjustedEdge } from '@/lib/cost-adjusted-edge-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +15,27 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   try {
+    const edge = await evaluateCostAdjustedEdge();
+    if (!edge.allowed) {
+      return NextResponse.json(
+        {
+          sent: 0,
+          total: 0,
+          signalsFound: 0,
+          halted: `cost_adjusted_edge:${edge.reason}`,
+          evidence: {
+            usableCount: edge.usableCount,
+            activeDays: edge.activeDays,
+            coverage: edge.coverage,
+            perSignalMeanNetR: edge.perSignalMeanNetR,
+            equalDayLowerBoundNetR: edge.equalDayLowerBoundNetR,
+          },
+          timestamp: new Date().toISOString(),
+        },
+        { status: 503 },
+      );
+    }
+
     const subscribers = await getActiveSmsSubscribers();
 
     if (subscribers.length === 0) {

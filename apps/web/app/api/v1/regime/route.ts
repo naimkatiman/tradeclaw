@@ -7,34 +7,39 @@ interface MarketRegimeRow {
   id: number;
   symbol: string;
   regime: string;
-  confidence: number;
-  features: Record<string, number>;
+  confidence: number | string | null;
+  features: Record<string, unknown> | null;
   detected_at: string;
 }
 
 interface RegimeResponse {
   symbol: string;
   regime: string;
-  confidence: number;
+  confidence: number | null;
   features: {
-    rollingVol20d: number;
-    returns5d: number;
-    returns20d: number;
-    volumeZScore: number;
+    rollingVol20d: number | null;
+    returns5d: number | null;
+    returns20d: number | null;
+    volumeZScore: number | null;
   };
   detectedAt: string;
+}
+
+function numberOrNull(value: unknown): number | null {
+  const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function rowToResponse(row: MarketRegimeRow): RegimeResponse {
   return {
     symbol: row.symbol,
     regime: row.regime,
-    confidence: Number(row.confidence),
+    confidence: numberOrNull(row.confidence),
     features: {
-      rollingVol20d: row.features?.rollingVol20d ?? 0,
-      returns5d: row.features?.returns5d ?? 0,
-      returns20d: row.features?.returns20d ?? 0,
-      volumeZScore: row.features?.volumeZScore ?? 0,
+      rollingVol20d: numberOrNull(row.features?.rollingVol20d),
+      returns5d: numberOrNull(row.features?.returns5d),
+      returns20d: numberOrNull(row.features?.returns20d),
+      volumeZScore: numberOrNull(row.features?.volumeZScore),
     },
     detectedAt: row.detected_at,
   };
@@ -64,15 +69,15 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(
           {
             success: true,
+            available: false,
             data: {
               symbol,
-              // No row yet for this symbol — range is the unified fallback
-              // (plan D1, docs/plans/2026-06-11-phase3-regime-engine.md).
-              regime: 'range',
-              confidence: 0,
-              features: { rollingVol20d: 0, returns5d: 0, returns20d: 0, volumeZScore: 0 },
+              regime: null,
+              confidence: null,
+              features: { rollingVol20d: null, returns5d: null, returns20d: null, volumeZScore: null },
               detectedAt: null,
             },
+            note: 'No observed regime row is available for this symbol.',
           },
           {
             headers: {
@@ -84,7 +89,7 @@ export async function GET(request: NextRequest) {
       }
 
       return NextResponse.json(
-        { success: true, data: rowToResponse(rows[0]) },
+        { success: true, available: true, data: rowToResponse(rows[0]) },
         {
           headers: {
             'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
@@ -105,6 +110,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
+        available: rows.length > 0,
         count: rows.length,
         data: rows.map(rowToResponse),
       },
@@ -122,6 +128,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           success: true,
+          available: false,
           count: 0,
           data: [],
           note: 'market_regimes table not yet created — run migration 004_hmm_regime.sql',

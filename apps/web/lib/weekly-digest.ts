@@ -1,4 +1,4 @@
-import { readHistoryAsync, type SignalHistoryRecord } from './signal-history';
+import { isCountedResolved, readHistoryAsync, type SignalHistoryRecord } from './signal-history';
 
 export interface RankedSignal extends SignalHistoryRecord {
   rank: number;
@@ -40,9 +40,9 @@ export async function getWeeklyDigest(): Promise<WeeklyDigest> {
   const { weekStart, weekEnd } = getWeekBounds();
   const records = await readHistoryAsync();
 
-  // Filter to this week's records with resolved 24h outcomes
+  // Filter to this week's canonical counted 24h outcomes.
   const weekRecords = records.filter(
-    r => r.timestamp >= weekStart && r.timestamp <= weekEnd && r.outcomes['24h'] !== null,
+    r => r.timestamp >= weekStart && r.timestamp <= weekEnd && isCountedResolved(r),
   );
 
   if (weekRecords.length < 5) {

@@ -4,11 +4,11 @@ import { HeatmapClient } from './HeatmapClient';
 export const metadata: Metadata = {
   title: 'Signal Heatmap — Live BUY/SELL Visualization | TradeClaw',
   description:
-    'Live global signal heatmap across 10 major trading pairs (5-minute cadence). See BUY/SELL signals, confidence levels, RSI and MACD at a glance.',
+    'Latest available signal heatmap across major trading pairs. Compare rule directions, indicator scores, and source timestamps.',
   openGraph: {
     title: 'Signal Heatmap — Live BUY/SELL Visualization',
     description:
-      'Live BUY/SELL signal heatmap across crypto, forex, and commodities, refreshed every 5 minutes. Confidence bars, RSI, MACD — all in one view.',
+      'Latest available BUY/SELL/HOLD rule outputs across crypto, forex, and commodities, with source timestamps.',
   },
 };
 

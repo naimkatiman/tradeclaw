@@ -4,11 +4,11 @@ import { ComparisonClient } from './ComparisonClient';
 export const metadata: Metadata = {
   title: 'Strategy Comparison — TradeClaw',
   description:
-    'Compare TradeClaw strategies by real win rate, risk:reward ratio, and Sharpe ratio. See which algorithm performs best on live tracked signals.',
+    'Compare TradeClaw strategy labels within the recorded, OHLCV-resolved signal cohort. Results are not broker fills or customer-account returns.',
   openGraph: {
     title: 'Strategy Comparison — TradeClaw',
     description:
-      'Live strategy performance comparison: win rate, R:R, and Sharpe ratio for every TradeClaw algorithm.',
+      'Recorded-signal study by strategy label, with period and sample counts. Not live execution or portfolio performance.',
     type: 'website',
   },
 };

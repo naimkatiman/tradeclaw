@@ -24,13 +24,8 @@ import {
 } from '@tradeclaw/signals';
 import { getRiskState, type ReconstructedRiskState } from './risk-state';
 import { getDominantRegime } from './regime-filter';
-import { getPortfolio, getDemoUserId, type Portfolio } from './paper-trading';
+import { getPortfolio, type Portfolio } from './paper-trading';
 import { verifyRiskWithLlm, type LlmRiskVerification } from './llm-risk-verify';
-
-// Notional equity used when no demo-user portfolio is available so the
-// allocator has a non-zero base. Pro broadcasts must not silently mute on a
-// missing PUBLIC_WIDGET_DEMO_USER_ID — see Step 3 in runRiskPipeline.
-const NOTIONAL_EQUITY_FALLBACK = 10_000;
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -83,6 +78,19 @@ export async function runRiskPipeline(
   // Step 1: Reconstruct risk state from DB
   const reconstructed = await getRiskState();
 
+  if (reconstructed.summary.source !== 'portfolio') {
+    const reason = 'Risk paper account unavailable; configure RISK_PAPER_USER_ID';
+    return {
+      approved: [],
+      vetoed: signals.map((signal) => ({
+        signal,
+        reason,
+        vetoedBy: 'risk_account',
+      })),
+      report: buildReport(regime, reconstructed, ['risk_account_unavailable'], false, null, []),
+    };
+  }
+
   // Log risk metrics for debugging
   console.info(
     `[risk-pipeline] source=${reconstructed.summary.source} regime=${regime} ` +
@@ -116,25 +124,28 @@ export async function runRiskPipeline(
     };
   }
 
-  // Step 3: For each signal — allocate + veto.
-  // Portfolio state comes from the operator's demo-user paper account. When
-  // PUBLIC_WIDGET_DEMO_USER_ID is unset (or fetch fails), fall back to
-  // NOTIONAL_EQUITY_FALLBACK so the allocator can still size positions.
-  // The earlier zeroed-shell fallback caused totalEquity=0 → allocator
-  // rejected every signal as "Portfolio equity is zero or negative" → veto
-  // chain muted Pro broadcasts entirely. Circuit breakers and per-signal
-  // vetoes still run on the notional path; only the no-portfolio trap is
-  // removed.
-  const operatorId = getDemoUserId();
+  // Step 3: allocate only against the explicitly configured paper-risk account.
+  const operatorId = process.env.RISK_PAPER_USER_ID?.trim() || null;
   const portfolio: Portfolio | null = operatorId
     ? await getPortfolio(operatorId).catch(() => null)
     : null;
-  const balance = portfolio?.balance ?? NOTIONAL_EQUITY_FALLBACK;
-  const positions = portfolio?.positions ?? [];
+  if (!portfolio) {
+    const reason = 'Risk paper account became unavailable during evaluation';
+    return {
+      approved: [],
+      vetoed: signals.map((signal) => ({ signal, reason, vetoedBy: 'risk_account' })),
+      report: buildReport(regime, reconstructed, ['risk_account_unavailable'], false, null, []),
+    };
+  }
+  const balance = portfolio.balance;
+  const positions = portfolio.positions;
   const positionsValue = positions.reduce((sum, p) => sum + p.quantity, 0);
   const portfolioState = {
-    totalEquity: balance + positionsValue,
-    cash: balance,
+    // Paper positions do not debit the realized balance. Their quantity is
+    // tracked as notional exposure, so adding it to balance would double-count
+    // capital and understate the exposure ratio used by the allocator.
+    totalEquity: balance,
+    cash: Math.max(0, balance - positionsValue),
     positionsValue,
     openPositions: positions.map((p) => ({
       symbol: p.symbol,

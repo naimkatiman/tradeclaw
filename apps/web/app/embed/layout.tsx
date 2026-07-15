@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Embed Signals — TradeClaw',
-  description: 'Embed live AI trading signals into your blog, Substack, or site with a single script tag.',
+  description: 'Embed the latest available read-only TradeClaw rule output in a site with a script tag.',
 };
 
 export default function EmbedLayout({ children }: { children: React.ReactNode }) {

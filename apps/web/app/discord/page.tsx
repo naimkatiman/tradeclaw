@@ -2,7 +2,7 @@ import { DiscordClient } from './DiscordClient';
 
 export const metadata = {
   title: 'Discord Bot — TradeClaw',
-  description: 'Add the TradeClaw Discord bot to your server for live trading signals, slash commands, and auto-broadcast.',
+  description: 'Review the MIT-licensed TradeClaw Discord bot source, slash commands, and self-hosting configuration.',
 };
 
 export default function DiscordPage() {

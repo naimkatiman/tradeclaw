@@ -7,15 +7,12 @@
  * console-warned.
  *
  * Decision semantics:
- * - winning-cells curation (when active) blocks deterministically.
  * - risk pipeline (circuit breakers → allocator → veto) blocks with a reason.
- * - pipeline OUTAGE falls back to unfiltered broadcast (Pro must not silently
- *   mute) — those rows are marked `recordable: false` and their decision is
- *   NOT persisted: the gate never actually ran, so NULL ("decision not
- *   recorded") is the truthful state even though the row was broadcast.
+ * - pipeline OUTAGE fails closed. Those rows are marked `recordable: false`
+ *   because the per-signal gate never actually ran, and they are not eligible
+ *   for broadcast or execution.
  */
 
-import { isWinningCell, getWinningCellsMode } from './winning-cells';
 import { runRiskPipeline } from './risk-pipeline';
 import { fetchResolvedRegimeMap } from './regime-resolution';
 import { getDominantRegime } from './regime-filter';
@@ -37,7 +34,7 @@ export interface BroadcastCandidate {
 
 export interface BroadcastDecision extends BroadcastDecisionFields {
   id: string;
-  /** True when a real gate decision ran (winning-cells or risk pipeline). False = pipeline outage fallback: row broadcasts unfiltered and the decision must NOT be persisted. */
+  /** True when a real gate decision ran. False means the decision must not be persisted and the candidate remains blocked for this run. */
   recordable: boolean;
 }
 
@@ -58,27 +55,9 @@ export async function computeBroadcastDecisions(
   const regimeOf = (symbol: string): string =>
     regimeMap.get(symbol.toUpperCase()) ?? dominant;
 
-  const winningCellsActive = getWinningCellsMode() === 'active';
-  const curated: BroadcastCandidate[] = [];
-  for (const c of candidates) {
-    if (winningCellsActive && !isWinningCell(c.symbol, c.direction)) {
-      decisions.set(c.id, {
-        id: c.id,
-        regime: regimeOf(c.symbol),
-        blocked: true,
-        blockReason: 'winning_cells: not in current winning set',
-        recordable: true,
-      });
-    } else {
-      curated.push(c);
-    }
-  }
-
-  if (curated.length === 0) return decisions;
-
   try {
     const result = await runRiskPipeline(
-      curated.map((s) => ({
+      candidates.map((s) => ({
         id: s.id,
         symbol: s.symbol,
         direction: s.direction,
@@ -98,7 +77,7 @@ export async function computeBroadcastDecisions(
     // and persist the wrong positionSizePct. Zip by index instead.
     const allocByIndex = result.report.allocations;
     const allocOf = (id: string): number | undefined => {
-      const idx = curated.findIndex((c) => c.id === id);
+      const idx = candidates.findIndex((c) => c.id === id);
       return idx >= 0 ? allocByIndex[idx]?.positionSizePct : undefined;
     };
     for (const s of result.approved) {
@@ -121,18 +100,18 @@ export async function computeBroadcastDecisions(
       });
     }
   } catch (err) {
-    // Mirror the long-standing broadcast fallback: a transient risk-state
-    // outage must not mute the Pro channel. These rows broadcast unfiltered;
-    // their gate decision never ran, so they are not recordable.
+    // A missing risk decision is not an approval. Keep the persisted decision
+    // NULL (not recordable) and block the candidate for this run.
     console.warn(
-      '[broadcast-decision] Risk pipeline failed, falling back to unfiltered broadcast:',
+      '[broadcast-decision] Risk pipeline failed; blocking broadcast candidates:',
       err instanceof Error ? err.message : String(err),
     );
-    for (const c of curated) {
+    for (const c of candidates) {
       decisions.set(c.id, {
         id: c.id,
         regime: regimeOf(c.symbol),
-        blocked: false,
+        blocked: true,
+        blockReason: 'risk_pipeline_unavailable',
         recordable: false,
       });
     }
@@ -145,11 +124,8 @@ export async function computeBroadcastDecisions(
   // broadcast set, the recorded signal_history rows, or the published
   // confidence. The calibrated value lives only in the NDJSON shadow log.
   //
-  // Population = `curated` (post winning-cells), NOT the full `candidates`:
-  // winning-cells-blocked rows never reach the router/risk pipeline and can
-  // never be broadcast, so recording them would pollute the forward gate
-  // analysis with signals the live system never acts on. `curated` is exactly
-  // the set the router would act on (the risk pipeline only narrows it further).
+  // Population is every candidate presented to the risk pipeline. No
+  // post-hoc symbol/direction winner list narrows this forward record.
   //
   // off  → skip entirely. shadow/active → record. `active` is forward-compat
   // ONLY: the walk-forward gate failed on paper, so it records identically to
@@ -161,7 +137,7 @@ export async function computeBroadcastDecisions(
   if (routerMode !== 'off') {
     void recordRouterShadow(
       routerMode,
-      curated.map((c) => ({
+      candidates.map((c) => ({
         id: c.id,
         symbol: c.symbol,
         direction: c.direction,

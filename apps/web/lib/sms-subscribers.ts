@@ -19,42 +19,14 @@ export interface SmsSubscriberStats {
   topPairs: Array<{ pair: string; count: number }>;
 }
 
-const SEED_SUBSCRIBERS: SmsSubscriber[] = [
-  {
-    id: 'sms-seed-1',
-    phone: '+14155550101',
-    pairs: ['BTCUSD', 'ETHUSD', 'XAUUSD'],
-    minConfidence: 75,
-    createdAt: '2026-03-28T10:00:00.000Z',
-    active: true,
-  },
-  {
-    id: 'sms-seed-2',
-    phone: '+442071234567',
-    pairs: ['EURUSD', 'GBPUSD', 'USDJPY'],
-    minConfidence: 80,
-    createdAt: '2026-03-29T14:30:00.000Z',
-    active: true,
-  },
-  {
-    id: 'sms-seed-3',
-    phone: '+61412345678',
-    pairs: ['XAUUSD', 'BTCUSD'],
-    minConfidence: 70,
-    createdAt: '2026-03-30T08:15:00.000Z',
-    active: true,
-  },
-];
-
 async function load(): Promise<SmsSubscriber[]> {
   try {
     await fs.mkdir(DATA_DIR, { recursive: true });
     const raw = await fs.readFile(FILE, 'utf8');
     const data = JSON.parse(raw) as SmsSubscriber[];
-    if (data.length === 0) return SEED_SUBSCRIBERS;
     return data;
   } catch {
-    return SEED_SUBSCRIBERS;
+    return [];
   }
 }
 

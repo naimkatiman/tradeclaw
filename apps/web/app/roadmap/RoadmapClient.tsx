@@ -11,9 +11,7 @@ import {
   Code2,
   Users,
   Server,
-  CheckCircle2,
   Clock,
-  Loader2,
   Share2,
   ArrowRight,
   Sparkles,
@@ -33,20 +31,8 @@ const CATEGORY_ICONS: Record<RoadmapCategory, React.ReactNode> = {
 };
 
 const STATUS_CONFIG: Record<RoadmapStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-  done: {
-    label: 'Done',
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/10 border-emerald-500/30',
-    icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-  },
-  'in-progress': {
-    label: 'In Progress',
-    color: 'text-amber-400',
-    bg: 'bg-amber-500/10 border-amber-500/30',
-    icon: <Loader2 className="w-3.5 h-3.5 animate-spin" />,
-  },
-  planned: {
-    label: 'Planned',
+  proposed: {
+    label: 'Proposed',
     color: 'text-blue-400',
     bg: 'bg-blue-500/10 border-blue-500/30',
     icon: <Clock className="w-3.5 h-3.5" />,
@@ -129,7 +115,7 @@ export default function RoadmapClient() {
     [votes, voted, persist]
   );
 
-  const getTotal = (item: RoadmapItem) => item.seedVotes + (votes[item.id] ?? 0);
+  const getTotal = (item: RoadmapItem) => votes[item.id] ?? 0;
 
   const filteredItems = ROADMAP_ITEMS.filter((item) => {
     if (categoryFilter !== 'All' && item.category !== categoryFilter) return false;
@@ -140,11 +126,11 @@ export default function RoadmapClient() {
   const topVoted = getTopVoted(ROADMAP_ITEMS, votes, 3);
 
   const tweetText = encodeURIComponent(
-    `I just voted on the @TradeClaw_win public roadmap 🗺️\n\nCommunity-driven open-source trading signals — vote on what gets built next!\n\nhttps://tradeclaw.win/roadmap`
+    `I ranked a proposed TradeClaw feature in my browser. The public idea board is not a delivery commitment.\n\nhttps://tradeclaw.win/roadmap`
   );
 
   const categories: FilterCategory[] = ['All', 'Trading', 'Developer', 'Community', 'Infrastructure'];
-  const statuses: FilterStatus[] = ['All', 'planned', 'in-progress', 'done'];
+  const statuses: FilterStatus[] = ['All', 'proposed'];
 
   const totalVotesCast = Object.values(votes).reduce((s, v) => s + v, 0);
 
@@ -182,8 +168,8 @@ export default function RoadmapClient() {
               <span className="text-emerald-400">TradeClaw</span>
             </h1>
             <p className="text-zinc-400 text-lg max-w-xl mx-auto">
-              Vote on features you want to see built. The most-voted items ship next.
-              No account needed — your vote is saved in this browser.
+              Rank proposed feature ideas for yourself. This board is not a delivery commitment,
+              and votes stay in this browser rather than representing global community totals.
             </p>
             <div className="flex items-center justify-center gap-6 pt-2">
               <div className="text-center">
@@ -193,9 +179,9 @@ export default function RoadmapClient() {
               <div className="h-8 w-px bg-zinc-800" />
               <div className="text-center">
                 <div className="text-2xl font-bold text-emerald-400">
-                  {ROADMAP_ITEMS.reduce((s, i) => s + i.seedVotes + (votes[i.id] ?? 0), 0).toLocaleString()}
+                  {totalVotesCast.toLocaleString()}
                 </div>
-                <div className="text-xs text-zinc-500 uppercase tracking-wider">Total Votes</div>
+                <div className="text-xs text-zinc-500 uppercase tracking-wider">Browser Votes</div>
               </div>
               <div className="h-8 w-px bg-zinc-800" />
               <div className="text-center">
@@ -205,12 +191,12 @@ export default function RoadmapClient() {
             </div>
           </div>
 
-          {/* Coming Next */}
+          {/* Browser-ranked ideas */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-amber-400" />
-              <h2 className="text-lg font-semibold text-zinc-200">Coming Next</h2>
-              <span className="text-xs text-zinc-500 ml-1">— top voted by the community</span>
+              <h2 className="text-lg font-semibold text-zinc-200">Your Top Ideas</h2>
+              <span className="text-xs text-zinc-500 ml-1">ranked only by votes in this browser</span>
             </div>
             <div className="grid sm:grid-cols-3 gap-4">
               {topVoted.map((item, rank) => {
@@ -271,7 +257,7 @@ export default function RoadmapClient() {
                       : 'bg-zinc-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700'
                   }`}
                 >
-                  {s === 'in-progress' ? 'In Progress' : s === 'All' ? 'All Status' : s.charAt(0).toUpperCase() + s.slice(1)}
+                  {s === 'All' ? 'All Status' : s.charAt(0).toUpperCase() + s.slice(1)}
                 </button>
               ))}
             </div>
@@ -300,15 +286,13 @@ export default function RoadmapClient() {
                   {/* Vote button */}
                   <button
                     onClick={(e) => handleVote(e, item)}
-                    disabled={hasVoted || item.status === 'done'}
+                    disabled={hasVoted}
                     aria-label={hasVoted ? 'Already voted' : `Upvote ${item.title}`}
                     className={`flex-shrink-0 flex flex-col items-center gap-0.5 rounded-lg px-3 py-2 transition-all ${
                       isJustVoted ? 'animate-vote-bounce' : ''
                     } ${
-                      hasVoted || item.status === 'done'
-                        ? hasVoted
-                          ? 'bg-emerald-500/20 text-emerald-400 cursor-default'
-                          : 'bg-zinc-800/50 text-zinc-600 cursor-default'
+                      hasVoted
+                        ? 'bg-emerald-500/20 text-emerald-400 cursor-default'
                         : 'bg-zinc-800 text-zinc-400 hover:bg-emerald-500/20 hover:text-emerald-400 cursor-pointer'
                     }`}
                   >
@@ -354,7 +338,7 @@ export default function RoadmapClient() {
                 Share the roadmap
               </div>
               <p className="text-sm text-zinc-400">
-                The more votes we get, the better we understand what the community needs.
+                Browser votes help you rank ideas locally. Use GitHub Discussions to send feedback to maintainers.
               </p>
               <a
                 href={`https://twitter.com/intent/tweet?text=${tweetText}`}

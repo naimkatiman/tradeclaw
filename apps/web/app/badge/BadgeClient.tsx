@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 const PAIRS = [
   { symbol: 'BTCUSD', name: 'Bitcoin', short: 'BTC' },
@@ -80,7 +80,7 @@ function BadgeCard({
           <h3 className="text-sm font-semibold">{name}</h3>
           <span className="text-xs text-[var(--text-secondary)] font-mono">{symbol}</span>
         </div>
-        {/* Live preview */}
+        {/* Recorded preview */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={badgeUrlWithCacheBust}
@@ -118,12 +118,6 @@ export function BadgeClient() {
   const [timeframe, setTimeframe] = useState('H1');
   const [cacheBust, setCacheBust] = useState(() => Date.now());
 
-  // Set initial cache-bust on mount + auto-refresh every 5 minutes
-  useEffect(() => {
-    const timer = setInterval(() => setCacheBust(prev => prev + 1), 5 * 60 * 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   const handleRefresh = useCallback(() => setCacheBust(Date.now()), []);
 
   return (
@@ -133,19 +127,19 @@ export function BadgeClient() {
         {/* Hero */}
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Live Signal Badges
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            Recorded Signal Badges
           </div>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
             Embed TradeClaw badges in{' '}
             <span className="text-emerald-400">your README</span>
           </h1>
           <p className="text-[var(--text-secondary)] max-w-xl mx-auto text-sm leading-relaxed">
-            Dynamic SVG badges that show live trading signals — updated every 5 minutes.
-            Drop them into any GitHub README, documentation, or website. No API key required.
+            SVG badges show the latest eligible recorded signal when one is available.
+            Otherwise they display unavailable. Requests do not generate a signal, and no publication cadence is guaranteed.
           </p>
 
-          {/* Live example */}
+          {/* Recorded examples */}
           <div className="flex flex-col items-center gap-3 pt-2">
             <div className="flex flex-wrap justify-center gap-2">
               {['BTCUSD', 'ETHUSD', 'XAUUSD'].map(sym => (
@@ -160,7 +154,7 @@ export function BadgeClient() {
               ))}
             </div>
             <p className="text-[10px] text-[var(--text-secondary)]">
-              Live — refreshes every 5 minutes
+              Recorded data. Availability and age vary.
             </p>
           </div>
         </div>
@@ -250,7 +244,7 @@ export function BadgeClient() {
 
         {/* Footer note */}
         <p className="text-center text-xs text-[var(--text-secondary)]">
-          Badges update every 5 minutes · Powered by real TA (RSI, MACD, EMA, Bollinger Bands) ·{' '}
+          No publication cadence or freshness guarantee. OHLCV-based signal research.{' '}
           <a href="/api-docs" className="text-emerald-400 hover:text-emerald-300 transition-colors">
             Full API docs →
           </a>

@@ -9,23 +9,23 @@ export function FeatureHighlights() {
               Multi-Indicator Confluence
             </div>
             <h3 className="text-3xl font-bold tracking-tight sm:text-4xl text-[var(--foreground)] mb-6">
-              Neural network precision for every tick
+              Rule-based confluence from closed candles
             </h3>
             <p className="text-[var(--text-secondary)] leading-relaxed mb-6">
-              TradeClaw doesn&apos;t just rely on a single indicator. It aggregates RSI, MACD, EMA crosses, Bollinger Bands, and volume anomalies into a unified decision matrix. Our engine processes hundreds of data points per second to output a single, high-confidence signal.
+              TradeClaw combines RSI, MACD, EMA, Bollinger Bands, stochastic, and market-structure rules over provider OHLCV. Confidence describes weighted indicator agreement; it is not a neural-network forecast or a probability of profit.
             </p>
             <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
               <li className="flex items-center gap-3">
                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Aggregated sentiment scoring
+                Inspectable weighted-indicator scoring
               </li>
               <li className="flex items-center gap-3">
                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Divergence detection across 5+ timeframes
+                Multi-timeframe agreement when sufficient candles are available
               </li>
               <li className="flex items-center gap-3">
                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Dynamic weight adjustment based on volatility
+                Volatility filters and ATR-based reference levels
               </li>
             </ul>
           </div>
@@ -98,10 +98,10 @@ export function FeatureHighlights() {
             {/* Decorative Overlay UI elements */}
             <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md border border-white/10 rounded-lg px-3 py-2 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-mono text-emerald-400">RSI_DIVERGENCE: DETECTED</span>
+              <span className="text-[10px] font-mono text-emerald-400">ILLUSTRATIVE RULE INPUT: RSI</span>
             </div>
             <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md border border-white/10 rounded-lg px-3 py-2 flex flex-col gap-1">
-              <span className="text-[10px] font-mono text-zinc-400">CONFIDENCE_SCORE</span>
+              <span className="text-[10px] font-mono text-zinc-400">WEIGHTED AGREEMENT EXAMPLE</span>
               <div className="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div className="w-[87%] h-full bg-emerald-500" />
               </div>
@@ -195,43 +195,43 @@ export function FeatureHighlights() {
             <div className="absolute bottom-4 left-4 bg-black/40 backdrop-blur-md border border-white/10 rounded-lg px-3 py-2 flex items-center gap-3">
               <div className="flex flex-col">
                 <span className="text-[10px] font-mono text-zinc-400">ENTRY</span>
-                <span className="text-xs font-mono font-bold text-white">64,210.50</span>
+                <span className="text-xs font-mono font-bold text-white">REFERENCE</span>
               </div>
               <div className="w-px h-6 bg-white/10" />
               <div className="flex flex-col">
                 <span className="text-[10px] font-mono text-zinc-400">TP</span>
-                <span className="text-xs font-mono font-bold text-emerald-400">65,800.00</span>
+                <span className="text-xs font-mono font-bold text-emerald-400">MODEL LEVEL</span>
               </div>
               <div className="w-px h-6 bg-white/10" />
               <div className="flex flex-col">
                 <span className="text-[10px] font-mono text-zinc-400">SL</span>
-                <span className="text-xs font-mono font-bold text-rose-400">63,900.00</span>
+                <span className="text-xs font-mono font-bold text-rose-400">MODEL LEVEL</span>
               </div>
             </div>
           </div>
           
           <div className="order-1 lg:order-2">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-purple-500/20 bg-purple-500/10 px-3.5 py-1.5 text-xs uppercase tracking-widest text-purple-400">
-              Instant Execution
+              Evidence-Gated Delivery
             </div>
             <h3 className="text-3xl font-bold tracking-tight sm:text-4xl text-[var(--foreground)] mb-6">
-              Instant signal delivery. Zero lag.
+              Observable delivery without a latency promise
             </h3>
             <p className="text-[var(--text-secondary)] leading-relaxed mb-6">
-              The moment our backend consensus algorithm flags a high-probability setup, it&apos;s pushed to your dashboard via WebSocket. No refreshing, no delayed webhooks. By running TradeClaw on your own server, you eliminate middleman latency entirely.
+              The dashboard polls the signal API every 15 seconds while empty and every 30 seconds when populated; its live price stream is separate. Alert channels require explicit credentials and scheduled routes, and entry-like broadcasts fail closed until the cost-adjusted evidence gate passes.
             </p>
             <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
               <li className="flex items-center gap-3">
                 <div className="h-1.5 w-1.5 rounded-full bg-purple-400" />
-                Sub-50ms WebSocket broadcasting
+                15-30 second dashboard signal polling
               </li>
               <li className="flex items-center gap-3">
                 <div className="h-1.5 w-1.5 rounded-full bg-purple-400" />
-                Automated Stop Loss & Take Profit targets
+                Reference stop-loss and take-profit levels, not broker orders
               </li>
               <li className="flex items-center gap-3">
                 <div className="h-1.5 w-1.5 rounded-full bg-purple-400" />
-                Direct Telegram and Discord integrations
+                Configured Telegram, Discord, and email delivery paths
               </li>
             </ul>
           </div>

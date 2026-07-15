@@ -1,112 +1,159 @@
 import { NextResponse } from 'next/server';
 
-// Mulberry32 seeded PRNG for deterministic fallback data
-function mulberry32(seed: number) {
-  return function () {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+const REPOSITORY = 'naimkatiman/tradeclaw';
+const GITHUB_API = `https://api.github.com/repos/${REPOSITORY}`;
+const PAGE_SIZE = 100;
+const MAX_HISTORY_PAGES = 10;
+
+interface WeekData {
+  week: string;
+  count: number;
+  cumulative: number;
 }
 
-function getStartOfWeek(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay();
-  d.setDate(d.getDate() - day);
-  d.setHours(0, 0, 0, 0);
-  return d;
+function startOfUtcWeek(date: Date): Date {
+  const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  start.setUTCDate(start.getUTCDate() - start.getUTCDay());
+  return start;
+}
+
+function isoDay(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function githubHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github.star+json',
+    'User-Agent': 'TradeClaw-StarHistory/1.0',
+  };
+
+  if (process.env.GITHUB_TOKEN) {
+    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+  }
+
+  return headers;
+}
+
+function unavailable(reason: string) {
+  return NextResponse.json(
+    {
+      available: false,
+      source: 'github',
+      repository: REPOSITORY,
+      reason,
+      weeks: [],
+      total: null,
+      peakWeek: null,
+      recentGrowth: null,
+      fetchedAt: null,
+    },
+    {
+      status: 503,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+      },
+    },
+  );
+}
+
+function buildWeeks(starDates: Date[], now: Date): WeekData[] {
+  const currentWeek = startOfUtcWeek(now);
+  const windowStart = new Date(currentWeek);
+  windowStart.setUTCDate(windowStart.getUTCDate() - 51 * 7);
+
+  const counts = new Map<string, number>();
+  let cumulative = 0;
+
+  for (const date of starDates) {
+    if (date < windowStart) {
+      cumulative += 1;
+      continue;
+    }
+
+    const key = isoDay(startOfUtcWeek(date));
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  return Array.from({ length: 52 }, (_, index) => {
+    const weekStart = new Date(windowStart);
+    weekStart.setUTCDate(weekStart.getUTCDate() + index * 7);
+    const week = isoDay(weekStart);
+    const count = counts.get(week) ?? 0;
+    cumulative += count;
+    return { week, count, cumulative };
+  });
 }
 
 export async function GET() {
-  // Try to fetch real stargazer data from GitHub API
-  let realStarDates: string[] = [];
+  const requestOptions = {
+    headers: githubHeaders(),
+    next: { revalidate: 300 },
+  };
+
   try {
-    // Fetch first page of stargazers with timestamps
-    const res = await fetch(
-      'https://api.github.com/repos/naimkatiman/tradeclaw/stargazers?per_page=100',
+    const repositoryResponse = await fetch(GITHUB_API, requestOptions);
+    if (!repositoryResponse.ok) return unavailable('github-unavailable');
+
+    const repositoryData = (await repositoryResponse.json()) as { stargazers_count?: unknown };
+    const total = repositoryData.stargazers_count;
+    if (!Number.isSafeInteger(total) || (total as number) < 0) {
+      return unavailable('invalid-github-response');
+    }
+
+    const pageCount = Math.ceil((total as number) / PAGE_SIZE);
+    if (pageCount > MAX_HISTORY_PAGES) {
+      return unavailable('history-exceeds-fetch-limit');
+    }
+
+    const starDates: Date[] = [];
+    for (let page = 1; page <= pageCount; page += 1) {
+      const stargazersResponse = await fetch(
+        `${GITHUB_API}/stargazers?per_page=${PAGE_SIZE}&page=${page}`,
+        requestOptions,
+      );
+      if (!stargazersResponse.ok) return unavailable('github-unavailable');
+
+      const stargazers = (await stargazersResponse.json()) as Array<{ starred_at?: unknown }>;
+      if (!Array.isArray(stargazers)) return unavailable('invalid-github-response');
+
+      for (const stargazer of stargazers) {
+        if (typeof stargazer.starred_at !== 'string') return unavailable('invalid-github-response');
+        const starredAt = new Date(stargazer.starred_at);
+        if (Number.isNaN(starredAt.getTime())) return unavailable('invalid-github-response');
+        starDates.push(starredAt);
+      }
+    }
+
+    if (starDates.length !== total) return unavailable('github-count-changed');
+
+    starDates.sort((a, b) => a.getTime() - b.getTime());
+    const weeks = buildWeeks(starDates, new Date());
+    const peakWeek = weeks.reduce<{ week: string; count: number } | null>((peak, week) => {
+      if (week.count === 0 || (peak && peak.count >= week.count)) return peak;
+      return { week: week.week, count: week.count };
+    }, null);
+    const recentGrowth = weeks.slice(-4).reduce((sum, week) => sum + week.count, 0);
+
+    return NextResponse.json(
+      {
+        available: true,
+        source: 'github-stargazers-api',
+        repository: REPOSITORY,
+        weeks,
+        total,
+        peakWeek,
+        recentGrowth,
+        fetchedAt: new Date().toISOString(),
+      },
       {
         headers: {
-          Accept: 'application/vnd.github.v3.star+json',
-          'User-Agent': 'TradeClaw-StarHistory/1.0',
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
         },
-        next: { revalidate: 300 },
-      }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        realStarDates = data
-          .map((s: { starred_at?: string }) => s.starred_at ?? '')
-          .filter(Boolean);
-      }
-    }
-  } catch {
-    // fall through to seeded data
-  }
-
-  // Build 52-week calendar
-  const now = new Date();
-  const weeks: { week: string; count: number; cumulative: number }[] = [];
-  const weekStart = getStartOfWeek(now);
-  weekStart.setDate(weekStart.getDate() - 51 * 7); // go back 51 weeks
-
-  // If we have real data, map it to weeks
-  const weekMap: Record<string, number> = {};
-  if (realStarDates.length > 0) {
-    for (const d of realStarDates) {
-      const date = new Date(d);
-      const ws = getStartOfWeek(date);
-      const key = ws.toISOString().split('T')[0];
-      weekMap[key] = (weekMap[key] ?? 0) + 1;
-    }
-  } else {
-    // Seeded PRNG fallback - simulate small growth pattern
-    const rand = mulberry32(20260325);
-    // Repo created ~2026-03-25, so most weeks have 0 stars
-    // Generate a realistic early-stage star pattern
-    const repoStart = new Date('2026-03-25');
-    for (let i = 0; i < 52; i++) {
-      const ws = new Date(weekStart);
-      ws.setDate(ws.getDate() + i * 7);
-      const key = ws.toISOString().split('T')[0];
-      if (ws < repoStart) {
-        weekMap[key] = 0;
-      } else {
-        // Small random star counts (repo is new)
-        const r = rand();
-        weekMap[key] = r < 0.3 ? 0 : r < 0.7 ? 1 : r < 0.9 ? 2 : 3;
-      }
-    }
-  }
-
-  let cumulative = 0;
-  let peakWeek = { week: '', count: 0 };
-  let recentGrowth = 0;
-
-  for (let i = 0; i < 52; i++) {
-    const ws = new Date(weekStart);
-    ws.setDate(ws.getDate() + i * 7);
-    const key = ws.toISOString().split('T')[0];
-    const count = weekMap[key] ?? 0;
-    cumulative += count;
-    weeks.push({ week: key, count, cumulative });
-    if (count > peakWeek.count) {
-      peakWeek = { week: key, count };
-    }
-    if (i >= 48) recentGrowth += count; // last 4 weeks
-  }
-
-  const total = cumulative;
-
-  return NextResponse.json(
-    { weeks, total, peakWeek, recentGrowth },
-    {
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
-        'Access-Control-Allow-Origin': '*',
       },
-    }
-  );
+    );
+  } catch {
+    return unavailable('github-unavailable');
+  }
 }

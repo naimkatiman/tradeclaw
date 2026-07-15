@@ -84,9 +84,11 @@ export interface GoldHistorical {
 export interface ProviderStatus {
   name: string;
   category: string;
-  status: 'ok' | 'degraded' | 'down';
-  lastCheck: number;
+  /** Runtime health is only asserted after a real probe. Registry rows are unverified. */
+  status: 'ok' | 'degraded' | 'down' | 'unverified' | 'unconfigured';
+  lastCheck: number | null;
   latencyMs?: number;
+  configured?: boolean;
   requiresKey: boolean;
   rateLimit: string;
   docs: string;

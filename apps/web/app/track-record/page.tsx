@@ -15,19 +15,19 @@ const TrackRecordClient = dynamic(
 const ogImage = '/api/og/track-record';
 
 export const metadata: Metadata = {
-  title: 'Recorded Signal Track Record — TradeClaw',
+  title: 'OHLCV-Resolved Signal Record — TradeClaw',
   description:
-    'Transparent trading signal performance, resolved against Binance/Yahoo OHLCV. Win rates, P&L, equity curves, and per-symbol breakdown across crypto, forex, and commodities.',
+    'Recorded TradeClaw signals with outcomes resolved against Binance/Yahoo OHLCV, plus modeled costs and a hypothetical sequential equity simulation.',
   openGraph: {
-    title: 'Recorded Signal Track Record — TradeClaw',
+    title: 'OHLCV-Resolved Signal Record — TradeClaw',
     description:
-      'Real performance data for TradeClaw AI trading signals, resolved against Binance/Yahoo OHLCV. No cherry-picking, no hiding losses.',
+      'Observed OHLCV-resolved signal outcomes, modeled fee/slippage assumptions, and a sequential simulation — not broker fills or customer portfolio returns.',
     images: [{ url: ogImage, width: 1200, height: 630, alt: 'TradeClaw Track Record' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Recorded Signal Track Record — TradeClaw',
-    description: 'Real performance data for TradeClaw AI trading signals, resolved against Binance/Yahoo OHLCV.',
+    title: 'OHLCV-Resolved Signal Record — TradeClaw',
+    description: 'Recorded signals resolved against Binance/Yahoo OHLCV. Modeled costs and simulations are labeled; no broker fills are claimed.',
     images: [ogImage],
   },
 };
