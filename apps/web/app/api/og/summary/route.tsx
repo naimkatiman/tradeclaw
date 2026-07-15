@@ -51,40 +51,40 @@ export async function GET(request: Request) {
           </span>
         </div>
 
-        <div style={{ fontSize: '18px', color: '#6b7280', marginBottom: '36px' }}>{dateStr}</div>
+        <div style={{ display: 'flex', fontSize: '18px', color: '#6b7280', marginBottom: '36px' }}>{dateStr}</div>
 
         {/* Stats */}
         <div style={{ display: 'flex', gap: '56px', marginBottom: '40px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: '64px', fontWeight: 800, color: sumPriceMoveColor }}>
+            <div style={{ display: 'flex', fontSize: '64px', fontWeight: 800, color: sumPriceMoveColor }}>
               {available ? `${sumPriceMovePct >= 0 ? '+' : ''}${sumPriceMovePct.toFixed(2)}%` : unavailable}
             </div>
-            <div style={{ fontSize: '14px', color: '#6b7280', letterSpacing: '0.08em' }}>
+            <div style={{ display: 'flex', fontSize: '14px', color: '#6b7280', letterSpacing: '0.08em' }}>
               UNSIZED SUM OF PRICE MOVES
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: '64px', fontWeight: 800, color: available ? '#ffffff' : '#71717a' }}>
+            <div style={{ display: 'flex', fontSize: '64px', fontWeight: 800, color: available ? '#ffffff' : '#71717a' }}>
               {available ? `${s.winRatePct.toFixed(1)}%` : unavailable}
             </div>
-            <div style={{ fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>WIN RATE</div>
+            <div style={{ display: 'flex', fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>WIN RATE</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: '16px', alignItems: 'baseline' }}>
-              <div style={{ fontSize: '48px', fontWeight: 800, color: available ? '#10b981' : '#71717a' }}>
+              <div style={{ display: 'flex', fontSize: '48px', fontWeight: 800, color: available ? '#10b981' : '#71717a' }}>
                 {available ? s.wins : unavailable}
               </div>
-              <div style={{ fontSize: '48px', fontWeight: 800, color: '#3f3f46' }}>/</div>
-              <div style={{ fontSize: '48px', fontWeight: 800, color: available ? '#f43f5e' : '#71717a' }}>
+              <div style={{ display: 'flex', fontSize: '48px', fontWeight: 800, color: '#3f3f46' }}>/</div>
+              <div style={{ display: 'flex', fontSize: '48px', fontWeight: 800, color: available ? '#f43f5e' : '#71717a' }}>
                 {available ? s.losses : unavailable}
               </div>
             </div>
-            <div style={{ fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>WINS / LOSSES</div>
+            <div style={{ display: 'flex', fontSize: '16px', color: '#6b7280', letterSpacing: '0.08em' }}>WINS / LOSSES</div>
           </div>
         </div>
 
         {/* Footer */}
-        <div style={{ color: '#3f3f46', fontSize: '14px', letterSpacing: '0.05em' }}>
+        <div style={{ display: 'flex', color: '#3f3f46', fontSize: '14px', letterSpacing: '0.05em' }}>
           Source-approved OHLCV outcomes only; unavailable when none are counted. Not portfolio P/L or broker fills.
         </div>
       </div>
