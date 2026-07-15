@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-15T09:58:45+08:00
+updated: 2026-07-15T10:36:59+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -129,6 +129,39 @@ release_first_layer_readability:
     viewport, a populated 3,972-trade Cost Field, one fixed element (navbar),
     zero console errors, and dark/light/desktop/mobile rendering. No schema,
     migration, dependency, lockfile, Docker, or Railway configuration changes.
+
+release_premium_ui:
+  at: 2026-07-15T10:36:59+08:00
+  agent: TradeClaw PM agent
+  status: deployed
+  scope: Premium Bitget-inspired UI/UX system overhaul
+  target: Railway production
+  source_commit: 80371e9782ccb66eb1dde25293bc4f7cf8b93ddb
+  source_branch: feat/premium-ui-overhaul
+  deployment:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment: production
+    service: web
+    deployment_id: b259c91b-fa5c-40d8-b3f5-c8a42cca907e
+    status: SUCCESS
+    image_digest: sha256:a2660f300b1dacd0bb51625729b6b4179cbf3083be4429b12396b419c03722b9
+    live_url: https://tradeclaw.win
+    health: HTTP 200 /api/health with status ok
+    homepage: HTTP 200 with the new headline and primary CTA
+  notes: >
+    Owner authorized commit and deploy. Waited for the concurrent product-
+    integrity lane to reach a stable checkpoint, then committed only the 26-file
+    TC-242 UI scope; all unrelated signal-history, research, audit, and standup
+    changes remained outside the commit. The exact commit was exported through a
+    clean detached Git worktree so dirty shared-worktree files could not enter the
+    Railway upload. Pre-release verification passed the root production build
+    with 326/326 routes, focused ESLint with zero errors, 8/8 focused Jest tests,
+    Chromium E2E, and desktop/mobile cross-theme browser QA. Railway deployment
+    b259c91b reached terminal SUCCESS; the fresh process returned HTTP 200/status
+    ok and the production homepage returned HTTP 200 with "Open-source trading
+    signals" and "Inspect every trade" present. No dependency, lockfile, Docker,
+    Railway configuration, database, schema, or trading-rule changes were included.
 
 tasks:
   - id: TC-001
