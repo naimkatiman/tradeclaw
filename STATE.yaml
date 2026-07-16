@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-15T16:40:32+08:00
+updated: 2026-07-16T23:00:41+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -54,13 +54,37 @@ truth_release_2026_07_15:
     PR #168 made public evidence fail closed and deployed successfully. Production
     QA then found a zero-evidence leaderboard ranking, a failing summary OG image,
     and mobile pricing overflow. PR #169 corrected those issues and passed lint,
-    typecheck, unit tests, strategy backtests, the production build, Docker build,
-    and the Playwright suite with 203 passed and 6 skipped. Railway deployed the
-    exact clean main SHA above. Live verification returned HTTP 200/ok, three
-    valid 1200x630 OG
-    images, evidence-qualified leaderboard performers, and no horizontal pricing
-    overflow at 390px or 320px. The final production recomputation supports only
-    a modeled signal-study conclusion, not a user-account or portfolio-loss claim.
+    typecheck, unit tests, the production build, Docker build, and the Playwright
+    suite with 203 passed and 6 skipped. Railway deployed the exact clean main SHA
+    above. Live verification returned HTTP 200/ok, three valid 1200x630 OG images,
+    evidence-qualified leaderboard performers, and no horizontal pricing overflow
+    at 390px or 320px. The final production recomputation supports only a modeled
+    signal-study conclusion, not a user-account or portfolio-loss claim. The
+    separate Strategy Backtests check was later found to be a false-positive cache
+    replay and is corrected in the CI integrity follow-up below.
+
+ci_integrity_followup_2026_07_16:
+  at: 2026-07-16T23:00:41+08:00
+  agent: TradeClaw PM agent
+  status: pending_ci
+  scope: Required Strategy Backtests check failure propagation and clean-run setup
+  pull_request: 171
+  notes: >
+    The required Strategy Backtests job restored a cached output log containing
+    9 failed suites and 4 passed suites, then reported success without executing
+    tests. The original pipeline allowed tee to mask Jest's exit code, cached the
+    failed result, and did not build @tradeclaw/signals on a clean runner. Removed
+    result caching entirely, retained only npm's dependency-download cache, built
+    signals before the suite, and enabled strict bash pipe failure propagation.
+    The job now executes for every checked-out commit and uploads a per-run log and
+    snapshot artifact. A static regression test rejects result-cache and cache-hit
+    paths and requires the signals build and pipefail guard before Jest.
+  verification: >
+    A fresh detached checkout after npm ci reproduced the prior TS2307 failure:
+    9 suites failed and 4 passed. Running npm run build:signals first then the same
+    suite passed 13/13 suites, 94/94 tests, and 1/1 snapshot. The focused workflow
+    integrity test, YAML validation, and full build pass locally. Fresh required
+    GitHub checks on the corrected PR #171 head remain the merge gate.
 
 claim_verification_last_run:
   at: 2026-07-15T16:40:32+08:00
