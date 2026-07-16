@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import pkg from "../../../package.json";
+import { getBuildIdentity } from "../../../lib/build-identity";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,7 @@ export async function GET() {
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
       node: process.version,
-      build: process.env.BUILD_ID ?? "development",
+      build: getBuildIdentity(),
     });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
