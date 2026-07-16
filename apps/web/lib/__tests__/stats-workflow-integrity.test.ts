@@ -38,6 +38,35 @@ describe('statistics and automation truth boundaries', () => {
     expect(workflow).not.toContain('| Sharpe |');
   });
 
+  it('executes the required strategy backtests without trusting a result cache', () => {
+    const workflow = source('.github/workflows/ci.yml');
+    const start = workflow.indexOf('  strategy-backtests:');
+    const end = workflow.indexOf('\n  e2e:', start);
+
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+
+    const job = workflow.slice(start, end);
+    const install = job.indexOf('run: npm ci');
+    const buildSignals = job.indexOf('run: npm run build:signals');
+    const runStepStart = job.indexOf('- name: Run strategy backtests');
+    const artifactStepStart = job.indexOf('- uses: actions/upload-artifact@v4');
+    const runStep = job.slice(runStepStart, artifactStepStart);
+
+    expect(job).not.toContain('uses: actions/cache@');
+    expect(job).not.toContain('cache-hit');
+    expect(install).toBeGreaterThanOrEqual(0);
+    expect(buildSignals).toBeGreaterThan(install);
+    expect(runStepStart).toBeGreaterThan(buildSignals);
+    expect(artifactStepStart).toBeGreaterThan(runStepStart);
+    expect(runStep).toContain('shell: bash');
+    expect(runStep).toContain('set -euo pipefail');
+    expect(runStep).toContain('npm test --workspace=@tradeclaw/strategies');
+    expect(runStep.indexOf('set -euo pipefail')).toBeLessThan(
+      runStep.indexOf('npm test --workspace=@tradeclaw/strategies'),
+    );
+  });
+
   it('keeps scheduled repository and social posts evidence-bounded', () => {
     const weekly = source('.github/workflows/weekly-report.yml');
     const social = source('.github/workflows/star-milestone-social.yml');
