@@ -38,6 +38,16 @@ export interface ProofSignal {
 export interface ProofResponse {
   stats: ProofStats;
   signals: ProofSignal[];
+  methodology: {
+    population: string;
+    score: string;
+    runningPnlPct: string;
+  };
+  window: {
+    sourceRecordsLoaded: number;
+    sourceReadLimit: number;
+    potentiallyTruncatedBeforeStart: boolean;
+  };
 }
 
 export interface ProofStats {
@@ -136,7 +146,7 @@ export async function GET() {
       lastUpdated: mapped.reduce((latest, signal) => Math.max(latest, signal.timestamp), 0),
     };
 
-    return NextResponse.json({
+    const body: ProofResponse = {
       stats,
       signals: mapped.slice(0, 200),
       methodology: {
@@ -149,7 +159,9 @@ export async function GET() {
         sourceReadLimit: slice.sourceReadLimit,
         potentiallyTruncatedBeforeStart: slice.sourceWindowPotentiallyTruncated,
       },
-    });
+    };
+
+    return NextResponse.json(body);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to load proof data';
     return NextResponse.json({ error: message }, { status: 500 });

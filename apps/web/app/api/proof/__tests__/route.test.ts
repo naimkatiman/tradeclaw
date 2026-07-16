@@ -5,6 +5,7 @@ jest.mock('../../../../lib/signal-slice', () => {
 
 import { isCountedResolved, type SignalHistoryRecord } from '../../../../lib/signal-history';
 import { getResolvedSlice } from '../../../../lib/signal-slice';
+import { buildOpenApiSpec } from '../../../../lib/openapi';
 import { GET } from '../route';
 
 const mockedGetResolvedSlice = getResolvedSlice as jest.MockedFunction<typeof getResolvedSlice>;
@@ -100,5 +101,18 @@ describe('GET /api/proof', () => {
       price: null,
       pnlPct: null,
     });
+  });
+
+  it('publishes proof methodology and source-window metadata in OpenAPI', () => {
+    const spec = buildOpenApiSpec() as {
+      components: { schemas: { ProofResponse: { required: string[]; properties: Record<string, unknown> } } };
+    };
+    const schema = spec.components.schemas.ProofResponse;
+
+    expect(schema.required).toEqual(expect.arrayContaining(['stats', 'signals', 'methodology', 'window']));
+    expect(schema.properties).toEqual(expect.objectContaining({
+      methodology: expect.any(Object),
+      window: expect.any(Object),
+    }));
   });
 });
