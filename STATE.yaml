@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-15T14:31:11+08:00
+updated: 2026-07-16T22:59:59+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -91,6 +91,36 @@ product_integrity_repair:
     request, whose value is hidden. Docker Compose parsed with all seven services,
     health checks, and migration ordering intact. Docker is not installed, so the
     services could not be started locally.
+
+premium_ui_green_assets:
+  at: 2026-07-16T22:59:59+08:00
+  agent: TradeClaw PM agent
+  status: validated_pending_release
+  scope: Original emerald brand assets, SVGs, icons, and reduced-motion-safe hero motion
+  brand_color: "#10b981"
+  asset: apps/web/public/brand/tradeclaw-market-sculpture-v1.webp
+  source_commit: c70be6bfee842555f0778a01a79df4e2b108b92a
+  source_branch: release/premium-green-assets-20260716
+  notes: >
+    Corrected the premium UI interpretation after owner feedback: premium
+    references guide hierarchy, density, iconography, and motion, not
+    TradeClaw's palette. Removed the broad color remapping so feature, warning,
+    integration, and data colors remain semantic. Unified the original emerald
+    across the shared logo, generated app and Apple icons, favicon SVG,
+    navigation accent, Open Graph image, and aurora decor. Added a transparent
+    74,888-byte WebP market-claw sculpture as a low-opacity desktop watermark
+    behind the left hero atmosphere and copy, away from Cost Field controls and
+    evidence. Reveal, float, breathing, and scan motion use transform/opacity
+    only and honor reduced motion. The interactive terminal stays fixed.
+  verification: >
+    Integrated the 13-file UI source commit onto current origin/main so the
+    deployed snapshot retains production follow-up PR #169. Root npm run build
+    passed with all 324 static routes generated. Web TypeScript and focused
+    ESLint passed with zero errors; two focused Jest suites passed all four
+    tests. Focus rings meet the 3:1 adjacent-color target in light and dark
+    themes, broad palette remapping is absent, and git diff whitespace checks
+    pass. No dependency, lockfile, database, schema, trading-rule, Docker, or
+    Railway configuration change is included.
 
 ai_improvement_last_run:
   at: 2026-07-12T23:40:21+08:00
