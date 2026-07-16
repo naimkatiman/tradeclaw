@@ -1,6 +1,7 @@
 # TradeClaw loss-claim and WEEX outreach verification
 
 Date: 2026-07-15
+Last source recheck: 2026-07-16
 Reviewer: TradeClaw PM agent
 Purpose: decide what the production evidence supports for a public LinkedIn post and verify the factual claims in the WEEX outreach.
 
@@ -153,17 +154,17 @@ CI follow-up on 16 July found that the required Strategy Backtests job had repor
 
 The repaired runtime counts nonzero 24-hour OHLCV closes only when their resolver source is an approved observed provider (`market-data-hub`, `binance`, `stooq`, `kraken`, or `cryptocompare`). Legacy rows without source, synthetic or unknown sources, and missing or zero force-expiry placeholders remain stored but do not count. Public history GET is read-only, row IDs plus cost and outcome provenance are available through `?include=provenance`, and a fail-closed cost-adjusted evidence gate sits before entry-like execution and hosted alert fan-out.
 
-These changes do not retroactively alter the frozen 3,967-row response above. That historical result remains valid only for its dated, pre-repair production denominator. The 1,220-row result in this section is the current, deployed source-gated study.
+These changes do not retroactively alter the frozen 3,967-row response above. That historical result remains valid only for its dated, pre-repair production denominator. The 1,220-row result in this section is the frozen, deployed post-repair snapshot captured on 15 July; the rolling live population changes as records enter and leave the 10,000-row source window.
 
 ## LinkedIn-safe copy
 
-> We reran TradeClaw after deploying the evidence-provenance repair. In the currently available 10,000-row source window, 1,220 outcomes had approved observed-OHLCV provenance, covering 10 June through 15 July 2026 UTC.
+> We reran TradeClaw after deploying the evidence-provenance repair. In a production snapshot captured on 15 July 2026, the available 10,000-row source window contained 1,220 outcomes with approved observed-OHLCV provenance, covering 10 June through 15 July UTC.
 >
 > Average gross result was -0.0225R per signal. After our published fee-and-slippage model, average net result was -0.4253R per signal. This engine version did not demonstrate a net edge under those assumptions.
 >
 > These are OHLCV-derived signal outcomes with modeled costs, not broker fills, customer losses, or portfolio returns. The source window is capped and may omit earlier rows.
 >
-> Data: https://tradeclaw.win/api/research/cost-field?scope=pro
+> Archived data: https://github.com/naimkatiman/tradeclaw/tree/main/docs/audits/evidence/2026-07-15-b070197b
 > Method: https://tradeclaw.win/methodology
 
 Do not replace the last paragraph with "not financial advice" and remove the methodological limitations. A generic disclaimer does not repair an overbroad performance claim.
@@ -186,7 +187,7 @@ The commercial claims require qualification:
 | Better terms than Binance | Not established. The claim needs a written tier schedule and a like-for-like comparison of fees, thresholds, fills, counterparty risk, and jurisdiction access. |
 | TradFi execution | WEEX offers USDT-margined perpetual exposure to forex, commodities, stocks, and indices. These are synthetic derivatives, not the underlying shares, gold, or spot FX. Public docs do not establish that every TradFi contract is available through the broker API. |
 | Natural symbol fit | Not yet. Examples include EUR/USDT rather than EUR/USD, and synthetic/tokenized proxies may have different basis, funding, hours, and corporate-action behavior. |
-| Active TradFi campaigns now | Not supported on 15 July. WEEX says its selected-region zero-fee TradFi campaign ended on 8 July 2026. The outreach may have been timely if sent before then. Ask for a current campaign ID, terms, eligible regions, and end date. |
+| Active TradFi campaigns now | Supported only in the general sense on 16 July: WEEX's public TradFi page advertises a trading challenge from 9-23 July 2026 (UTC+8). A separate selected-region zero-fee offer ended on 8 July. The public page does not establish TradeClaw-user eligibility, broker attribution, or commission treatment; obtain the campaign ID, full terms, eligible regions, and written broker confirmation. |
 | Rebate on TradFi volume | Not publicly guaranteed. Obtain written confirmation that each TradFi product is commission-eligible. |
 | `@Weex_Illiaa` identity | Unverified. Confirm the contact through `bd@weex.com` or WEEX's published business channel before sharing credentials or announcing a partnership. |
 
@@ -194,11 +195,12 @@ Primary sources:
 
 - WEEX broker API: https://www.weex.com/api-doc/broker/intro
 - WEEX broker program: https://www.weex.com/news/detail/weex-api-broker-program-turn-your-trading-platform-into-a-revenue-engine-s25tw96lzabkau5am0yfy9zj
+- WEEX current TradFi page: https://www.weex.com/events/tradfi
 - WEEX TradFi assets: https://www.weex.com/help/articles/help_article_79108
 - WEEX TradFi overview: https://www.weex.com/help/articles/help_article_84489
 - WEEX promotion end notice: https://www.weex.com/help/articles/djgzm3mmmp14bnzyoj5p1e72
 
-These official pages were rechecked on 15 July 2026. The broker documentation still requires application and approval before a unique broker ID and initial commission rate are issued. The 50%-70% number remains WEEX marketing for trading-fee sharing and is expressly subject to partner verification and changing program terms; it is not a confirmed TradeClaw rate or a percentage of user volume.
+These official pages were last rechecked on 16 July 2026. The broker documentation still requires application and approval before a unique broker ID and initial commission rate are issued. The 50%-70% number remains WEEX marketing for trading-fee sharing and is expressly subject to partner verification and changing program terms; it is not a confirmed TradeClaw rate or a percentage of user volume. The current challenge supports only the narrow statement that a TradFi campaign is advertised; it does not validate the outreach's promised bonuses, availability, API execution coverage, or rebate economics for TradeClaw users.
 
 ## Malaysia publication risk
 

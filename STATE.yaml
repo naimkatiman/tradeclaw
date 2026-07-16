@@ -1,11 +1,47 @@
 project: tradeclaw
-updated: 2026-07-16T23:18:47+08:00
+updated: 2026-07-16T23:49:09+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
   Public mode = limited. Admin = full.
   Alpha Screener = confirmed SaaS brand for users who don't want to self-host. Tradesmart name is dropped.
   Goal: viral GitHub repo, thousands of stars.
+
+health_release_identity_2026_07_16:
+  at: 2026-07-16T23:46:46+08:00
+  agent: TradeClaw PM agent
+  status: deployed
+  scope: Truthful build identity on both public health endpoints
+  base_commit: e46b597e2779cbbafe13e07ff266e51269f1bc6e
+  source_commit: e3d01c2435262a5600a1c8b6e335a34f840d8417
+  deployment:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment: production
+    service: web
+    deployment_id: 58671ab2-54b3-41fd-ac5e-d90744f5f2af
+    status: SUCCESS
+    image_digest: sha256:3b81770a6b9274cb649e54b7cc9e94e7e7b97bd4160dae673121e937493e843b
+    build_identity: aa319b6d-8a41-4005-8c95-6d1735f2fa9e
+    live_url: https://tradeclaw.win
+  live_verification:
+    health: "HTTP 200 /api/health with status ok and real Railway build identity"
+    v1_health: "HTTP 200 /api/v1/health with status healthy and matching build identity"
+    eligible_outcomes: 1341
+    proof_wins: 477
+    proof_losses: 864
+    mean_net_r_from_published_arrays: -0.4685876212
+  notes: >
+    Final production readback found that Railway CLI releases returned
+    build: development because BUILD_ID was absent. Both health routes now use
+    explicit build overrides, Git-trigger metadata, or Railway snapshot and
+    deployment IDs in order, and report unknown rather than development when a
+    production identity is genuinely unavailable. Validation passed six focused
+    Jest cases, scoped ESLint, web TypeScript, YAML parsing, whitespace checks,
+    and the full production build with all 324 pages generated. The exact clean
+    e3d01c24 worktree deployed successfully on top of the current emerald asset
+    release. Both health routes now return the same Railway snapshot identity,
+    and the post-deploy proof and cost-field populations reconcile exactly.
 
 truth_release_2026_07_15:
   at: 2026-07-15T16:40:32+08:00
@@ -100,7 +136,7 @@ ci_integrity_followup_2026_07_16:
     full 324-page build also pass locally.
 
 claim_verification_last_run:
-  at: 2026-07-15T16:40:32+08:00
+  at: 2026-07-16T23:49:09+08:00
   agent: TradeClaw PM agent
   status: done
   scope: LinkedIn loss-claim evidence review and WEEX outreach verification
@@ -114,9 +150,12 @@ claim_verification_last_run:
     truncated. The supported claim is negative modeled signal expectancy under
     stated assumptions; actual customer, broker-fill, portfolio-loss, and
     sequential-account-return claims remain unsupported. WEEX fee sharing is not
-    a percentage of volume, the advertised TradFi campaign ended 2026-07-08, the
-    contact identity remains unverified, and Malaysian promotion remains a legal
-    review issue because WEEX is absent from the SC registered-DAX list.
+    a percentage of volume. The selected-region zero-fee offer ended 2026-07-08,
+    while the current TradFi page advertises a separate 9-23 July trading
+    challenge; TradeClaw-user eligibility, attribution, and commission treatment
+    remain unverified. The contact identity remains unverified, and Malaysian
+    promotion remains a legal review issue because WEEX is absent from the SC
+    registered-DAX list.
 
 product_integrity_repair:
   at: 2026-07-15T11:24:23+08:00

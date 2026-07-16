@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getBuildIdentity } from "../../../../lib/build-identity";
 
 export const runtime = "nodejs";
 const startTime = Date.now();
@@ -12,7 +13,7 @@ export async function GET() {
         status: "healthy",
         uptime: Math.floor((Date.now() - startTime) / 1000),
         timestamp: new Date().toISOString(),
-        build: process.env.NEXT_PUBLIC_BUILD_TIME ?? "development",
+        build: getBuildIdentity(),
         repository: "https://github.com/naimkatiman/tradeclaw",
         license: "MIT",
       },

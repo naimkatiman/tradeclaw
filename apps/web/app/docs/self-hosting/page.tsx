@@ -179,14 +179,14 @@ sudo certbot renew --dry-run`} />
         <h2 className="text-2xl font-semibold text-white mb-4">Health Monitoring</h2>
         <p className="text-zinc-400 leading-relaxed mb-4">
           TradeClaw exposes a <code className="text-emerald-400 text-sm">/api/health</code> endpoint
-          that returns uptime, version, and build status. Use it for uptime checks.
+          that returns uptime, version, and the available build identity. Use it for uptime checks.
         </p>
         <CodeBlock language="json" filename="GET /api/health" code={`{
   "status": "ok",
   "version": "0.5.0",
   "uptime": 86400,
   "node": "v22.0.0",
-  "build": "standalone",
+  "build": "<revision-or-deployment-id>",
   "timestamp": "2026-03-27T10:00:00.000Z"
 }`} />
         <p className="text-zinc-400 leading-relaxed mt-4">
