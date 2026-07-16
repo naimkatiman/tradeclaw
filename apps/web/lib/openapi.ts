@@ -180,9 +180,32 @@ export function buildOpenApiSpec(): OpenApiSpec {
         },
         ProofResponse: {
           type: "object",
+          required: ["stats", "signals", "methodology", "window"],
           properties: {
             stats: { $ref: "#/components/schemas/ProofStats" },
             signals: { type: "array", items: { type: "object" } },
+            methodology: {
+              type: "object",
+              required: ["population", "score", "runningPnlPct"],
+              properties: {
+                population: { type: "string" },
+                score: { type: "string" },
+                runningPnlPct: { type: "string" },
+              },
+            },
+            window: {
+              type: "object",
+              required: [
+                "sourceRecordsLoaded",
+                "sourceReadLimit",
+                "potentiallyTruncatedBeforeStart",
+              ],
+              properties: {
+                sourceRecordsLoaded: { type: "integer" },
+                sourceReadLimit: { type: "integer" },
+                potentiallyTruncatedBeforeStart: { type: "boolean" },
+              },
+            },
           },
         },
         DigestResponse: {

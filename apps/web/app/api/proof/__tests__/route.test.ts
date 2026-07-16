@@ -1,12 +1,14 @@
-jest.mock('../../../../lib/signal-history', () => {
-  const actual = jest.requireActual('../../../../lib/signal-history');
-  return { ...actual, readHistoryAsync: jest.fn() };
+jest.mock('../../../../lib/signal-slice', () => {
+  const actual = jest.requireActual('../../../../lib/signal-slice');
+  return { ...actual, getResolvedSlice: jest.fn() };
 });
 
-import { readHistoryAsync, type SignalHistoryRecord } from '../../../../lib/signal-history';
+import { isCountedResolved, type SignalHistoryRecord } from '../../../../lib/signal-history';
+import { getResolvedSlice } from '../../../../lib/signal-slice';
+import { buildOpenApiSpec } from '../../../../lib/openapi';
 import { GET } from '../route';
 
-const mockedHistory = readHistoryAsync as jest.MockedFunction<typeof readHistoryAsync>;
+const mockedGetResolvedSlice = getResolvedSlice as jest.MockedFunction<typeof getResolvedSlice>;
 
 function record(
   id: string,
@@ -28,11 +30,24 @@ function record(
   };
 }
 
+function setHistory(rows: SignalHistoryRecord[]) {
+  mockedGetResolvedSlice.mockResolvedValue({
+    sourceRecordsLoaded: rows.length,
+    sourceReadLimit: 10_000,
+    sourceWindowPotentiallyTruncated: false,
+    scopedRecords: rows,
+    periodFiltered: rows,
+    resolved: rows.filter(isCountedResolved),
+    cutoffTs: null,
+    earliestTimestamp: rows.length > 0 ? rows[rows.length - 1].timestamp : null,
+  });
+}
+
 describe('GET /api/proof', () => {
-  beforeEach(() => mockedHistory.mockReset());
+  beforeEach(() => mockedGetResolvedSlice.mockReset());
 
   it('derives all performance fields from the canonical 24h population', async () => {
-    mockedHistory.mockResolvedValue([
+    setHistory([
       record('tp-win', { price: 102, pnlPct: 2, hit: true, target: 'TP1', source: 'binance' }),
       record('sl-loss', { price: 99, pnlPct: -1, hit: false, target: 'SL', source: 'binance' }),
       record('drift-win', { price: 100.5, pnlPct: 0.5, hit: true, target: 'expired', source: 'binance' }),
@@ -56,6 +71,12 @@ describe('GET /api/proof', () => {
       totalLosses: 2,
     });
     expect(body.stats.totalWins + body.stats.totalLosses).toBe(body.stats.resolvedSignals);
+    expect(mockedGetResolvedSlice).toHaveBeenCalledWith({ scope: 'pro' });
+    expect(body.window).toEqual({
+      sourceRecordsLoaded: 7,
+      sourceReadLimit: 10_000,
+      potentiallyTruncatedBeforeStart: false,
+    });
     expect(body.methodology.runningPnlPct).toMatch(/not account or portfolio P&L/i);
     expect(body.signals.find((signal: { id: string }) => signal.id === 'force-expired').outcome24h).toEqual({
       resolved: false,
@@ -66,7 +87,7 @@ describe('GET /api/proof', () => {
   });
 
   it('does not publish legacy outcomes whose OHLCV source is missing', async () => {
-    mockedHistory.mockResolvedValue([
+    setHistory([
       record('legacy', { price: 102, pnlPct: 2, hit: true, target: 'TP1' }),
     ]);
 
@@ -80,5 +101,18 @@ describe('GET /api/proof', () => {
       price: null,
       pnlPct: null,
     });
+  });
+
+  it('publishes proof methodology and source-window metadata in OpenAPI', () => {
+    const spec = buildOpenApiSpec() as {
+      components: { schemas: { ProofResponse: { required: string[]; properties: Record<string, unknown> } } };
+    };
+    const schema = spec.components.schemas.ProofResponse;
+
+    expect(schema.required).toEqual(expect.arrayContaining(['stats', 'signals', 'methodology', 'window']));
+    expect(schema.properties).toEqual(expect.objectContaining({
+      methodology: expect.any(Object),
+      window: expect.any(Object),
+    }));
   });
 });
