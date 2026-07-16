@@ -4,20 +4,19 @@
 
 /* ─────────────────────────────────────────────────────────────
    Semantic design tokens (Tailwind v4 @theme).
-   Color discipline: green/red mean DIRECTION ONLY (up/down).
-   Electric cyan identifies TradeClaw and interaction. Green/red
-   stay exclusive to market direction and measured gain/loss.
-   Interactive chrome uses cyan or neutral surfaces — see --ring
-   in :root/.dark below. See docs/plans/2026-06-15-premium-uiux-pass.md.
+   Original emerald identifies TradeClaw across brand assets and
+   interaction. Premium references inform spacing, density, and motion,
+   never the brand palette. Green also carries positive/up data; rose
+   remains negative/down. Meaning must never depend on color alone.
    ───────────────────────────────────────────────────────────── */
 @theme {
-  /* Directional data — the only home for green/red */
+  /* Core brand and directional anchors */
   --color-up: #10b981;
   --color-up-soft: rgba(16, 185, 129, 0.14);
   --color-down: #f43f5e;
   --color-down-soft: rgba(244, 63, 94, 0.14);
-  /* Brand — reserved, used sparingly */
-  --color-brand: #15d8f4;
+  /* Original TradeClaw brand */
+  --color-brand: #10b981;
   /* Radius scale — converge ad-hoc rounded-* onto these */
   --radius-button: 0.5rem;
   --radius-card: 0.875rem;
@@ -42,25 +41,24 @@
   --surface-inset: #e6ecef;
   --border: #dce3e6;
   --border-strong: #c5d0d5;
-  --brand: #006b82;
-  --brand-bright: #08c8e2;
-  --brand-soft: rgba(0, 151, 178, 0.11);
-  --brand-glow: rgba(8, 200, 226, 0.14);
-  --brand-contrast: #001113;
-  --accent: #006b82;
-  --accent-muted: rgba(0, 107, 130, 0.11);
-  --accent-glow: rgba(8, 200, 226, 0.09);
+  --brand: #047857;
+  --brand-bright: #10b981;
+  --brand-soft: rgba(16, 185, 129, 0.11);
+  --brand-glow: rgba(16, 185, 129, 0.14);
+  --brand-contrast: #020806;
+  --accent: #047857;
+  --accent-muted: rgba(16, 185, 129, 0.11);
+  --accent-glow: rgba(16, 185, 129, 0.09);
   --sell: #f43f5e;
   --sell-muted: rgba(244, 63, 94, 0.12);
   --glass-bg: rgba(0, 0, 0, 0.02);
   --glass-border: rgba(0, 0, 0, 0.08);
-  /* Neutral chrome — card hover, focus rings, scrollbar (was emerald) */
-  --glass-border-accent: rgba(0, 107, 130, 0.38);
-  --ring: rgba(0, 107, 130, 0.42);
+  --glass-border-accent: rgba(4, 120, 87, 0.38);
+  --ring: rgba(4, 120, 87, 0.72);
   --scrollbar: rgba(0, 0, 0, 0.18);
   --scrollbar-hover: rgba(0, 0, 0, 0.32);
   --glass-nav-bg: rgba(244, 247, 248, 0.9);
-  --hero-grid-dot: rgba(0, 107, 130, 0.09);
+  --hero-grid-dot: rgba(16, 185, 129, 0.09);
   --glass-nav-shadow:
     0 12px 40px rgba(15, 31, 36, 0.08), inset 0 -1px 0 rgba(255, 255, 255, 0.8);
   --font-sans: var(--font-geist-sans);
@@ -81,27 +79,26 @@
   --surface-inset: #06090a;
   --border: #1b2327;
   --border-strong: #303b40;
-  --brand: #2adff7;
-  --brand-bright: #15d8f4;
-  --brand-soft: rgba(21, 216, 244, 0.11);
-  --brand-glow: rgba(21, 216, 244, 0.18);
-  --brand-contrast: #001113;
-  --accent: #2adff7;
-  --accent-muted: rgba(21, 216, 244, 0.12);
-  --accent-glow: rgba(21, 216, 244, 0.08);
+  --brand: #34d399;
+  --brand-bright: #10b981;
+  --brand-soft: rgba(16, 185, 129, 0.13);
+  --brand-glow: rgba(16, 185, 129, 0.2);
+  --brand-contrast: #020806;
+  --accent: #34d399;
+  --accent-muted: rgba(16, 185, 129, 0.13);
+  --accent-glow: rgba(16, 185, 129, 0.09);
   --sell: #f43f5e;
   --sell-muted: rgba(244, 63, 94, 0.15);
   --glass-bg: rgba(255, 255, 255, 0.025);
   --glass-border: rgba(255, 255, 255, 0.08);
-  /* Neutral chrome — card hover, focus rings, scrollbar (was emerald) */
-  --glass-border-accent: rgba(42, 223, 247, 0.34);
-  --ring: rgba(42, 223, 247, 0.42);
+  --glass-border-accent: rgba(52, 211, 153, 0.34);
+  --ring: rgba(52, 211, 153, 0.52);
   --scrollbar: rgba(255, 255, 255, 0.18);
   --scrollbar-hover: rgba(255, 255, 255, 0.30);
   --glass-nav-bg: rgba(3, 5, 6, 0.88);
   --glass-nav-shadow:
     0 18px 50px rgba(0, 0, 0, 0.46), inset 0 -1px 0 rgba(255, 255, 255, 0.025);
-  --hero-grid-dot: rgba(42, 223, 247, 0.08);
+  --hero-grid-dot: rgba(52, 211, 153, 0.08);
 }
 
 * {
@@ -121,14 +118,14 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Forced-dark navigation and footer chrome must keep the bright cyan token
+/* Forced-dark navigation and footer chrome must keep the bright emerald token
    even when the page itself is using the light theme. */
 .premium-dark-chrome {
-  --brand: #2adff7;
-  --brand-bright: #15d8f4;
-  --brand-soft: rgba(21, 216, 244, 0.11);
+  --brand: #34d399;
+  --brand-bright: #10b981;
+  --brand-soft: rgba(16, 185, 129, 0.13);
   --border-strong: #303b40;
-  --ring: rgba(42, 223, 247, 0.42);
+  --ring: rgba(52, 211, 153, 0.52);
 }
 
 ::selection {
@@ -262,7 +259,7 @@ html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
   box-shadow: var(--glass-nav-shadow);
 }
 
-/* Premium exchange primitives. Cyan is product/brand; green and red stay data. */
+/* Premium exchange primitives. Emerald is the TradeClaw brand anchor. */
 .brand-text {
   color: var(--brand);
 }
@@ -361,6 +358,95 @@ html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
   border-radius: inherit;
   background: linear-gradient(120deg, var(--brand-glow), transparent 28%);
   opacity: 0.42;
+}
+
+/* Generated brand sculpture. It is deliberately subordinate to the real
+   Cost Field: desktop-only, pointer-free, and edge-faded beneath content. */
+.hero-brand-art {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .hero-brand-art {
+    position: absolute;
+    top: 5rem;
+    left: max(-8rem, calc((100vw - 1280px) / 2 - 9rem));
+    z-index: 0;
+    display: block;
+    width: min(44vw, 520px);
+    height: min(44vw, 500px);
+    pointer-events: none;
+    isolation: isolate;
+    mask-image: radial-gradient(ellipse at 42% 48%, black 0%, black 48%, transparent 80%);
+  }
+
+  .hero-brand-art__frame {
+    position: absolute;
+    inset: 0;
+    opacity: 0.16;
+    animation: heroArtReveal 900ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+
+  html:not(.dark) .hero-brand-art__frame {
+    opacity: 0.11;
+  }
+
+  .hero-brand-art__object {
+    position: absolute;
+    inset: 1% 2% 0 2%;
+    animation: heroArtFloat 12s ease-in-out 900ms infinite;
+    will-change: transform;
+  }
+
+  .hero-brand-art__image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .hero-brand-art__halo {
+    position: absolute;
+    inset: 18% 12% 12%;
+    z-index: -1;
+    border-radius: 9999px;
+    background: radial-gradient(circle, var(--brand-glow), transparent 68%);
+    opacity: 0.55;
+    animation: heroArtBreathe 8s ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+
+  .hero-brand-art__scan {
+    position: absolute;
+    top: 12%;
+    right: 12%;
+    left: 14%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--brand), transparent);
+    opacity: 0;
+    animation: heroArtScan 7s ease-in-out 1.2s infinite;
+    will-change: transform, opacity;
+  }
+}
+
+@keyframes heroArtReveal {
+  from { opacity: 0; transform: scale(0.96); }
+}
+
+@keyframes heroArtFloat {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -6px, 0) rotate(-0.6deg); }
+}
+
+@keyframes heroArtBreathe {
+  0%, 100% { opacity: 0.38; transform: scale(0.96); }
+  50% { opacity: 0.62; transform: scale(1.04); }
+}
+
+@keyframes heroArtScan {
+  0%, 12% { opacity: 0; transform: translate3d(0, 0, 0); }
+  24% { opacity: 0.42; }
+  62% { opacity: 0.18; }
+  76%, 100% { opacity: 0; transform: translate3d(0, 330px, 0); }
 }
 
 /* Emerald glow effects */
@@ -565,6 +651,13 @@ html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
   }
 }
 
+/* The terminal contains interactive controls and real data; keep it fixed.
+   Parallax is reserved for the generated decorative sculpture. */
+.premium-terminal.parallax-drift-slow {
+  animation: none;
+  transform: none;
+}
+
 /* Load-entrance stagger helpers for the hero (pair with .animate-fade-up) */
 .fade-delay-1 { animation-delay: 90ms; }
 .fade-delay-2 { animation-delay: 180ms; }
@@ -585,7 +678,11 @@ html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
   .animate-slide-left,
   .animate-slide-right,
   .reveal,
-  .parallax-drift-slow {
+  .parallax-drift-slow,
+  .hero-brand-art__frame,
+  .hero-brand-art__object,
+  .hero-brand-art__halo,
+  .hero-brand-art__scan {
     animation: none !important;
   }
 

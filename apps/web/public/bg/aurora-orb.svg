@@ -5,12 +5,12 @@
       <stop offset="45%" stop-color="#10b981" stop-opacity="0.10" />
       <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
     </radialGradient>
-    <radialGradient id="orb-cyan" cx="75%" cy="65%" r="55%">
-      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.18" />
-      <stop offset="55%" stop-color="#06b6d4" stop-opacity="0.05" />
-      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0" />
+    <radialGradient id="orb-emerald-soft" cx="75%" cy="65%" r="55%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.16" />
+      <stop offset="55%" stop-color="#10b981" stop-opacity="0.04" />
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
     </radialGradient>
   </defs>
   <rect width="1200" height="800" fill="url(#orb-emerald)" />
-  <rect width="1200" height="800" fill="url(#orb-cyan)" />
+  <rect width="1200" height="800" fill="url(#orb-emerald-soft)" />
 </svg>
