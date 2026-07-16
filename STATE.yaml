@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-16T23:00:41+08:00
+updated: 2026-07-16T23:18:47+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -64,11 +64,22 @@ truth_release_2026_07_15:
     replay and is corrected in the CI integrity follow-up below.
 
 ci_integrity_followup_2026_07_16:
-  at: 2026-07-16T23:00:41+08:00
+  at: 2026-07-16T23:18:47+08:00
   agent: TradeClaw PM agent
-  status: pending_ci
+  status: done
   scope: Required Strategy Backtests check failure propagation and clean-run setup
   pull_request: 171
+  validation:
+    head: d3b1a33aab49b4d45f4e66bd703aa1f5cc90f319
+    github_run: 29509855334
+    strategy_job: 87660533917
+    strategy_suites_passed: 13
+    strategy_tests_passed: 94
+    strategy_snapshots_passed: 1
+    unit_tests_passed: 1530
+    unit_tests_skipped: 26
+    playwright_passed: 203
+    playwright_skipped: 6
   notes: >
     The required Strategy Backtests job restored a cached output log containing
     9 failed suites and 4 passed suites, then reported success without executing
@@ -82,9 +93,11 @@ ci_integrity_followup_2026_07_16:
   verification: >
     A fresh detached checkout after npm ci reproduced the prior TS2307 failure:
     9 suites failed and 4 passed. Running npm run build:signals first then the same
-    suite passed 13/13 suites, 94/94 tests, and 1/1 snapshot. The focused workflow
-    integrity test, YAML validation, and full build pass locally. Fresh required
-    GitHub checks on the corrected PR #171 head remain the merge gate.
+    suite passed 13/13 suites, 94/94 tests, and 1/1 snapshot. GitHub run 29509855334
+    then executed npm ci, built signals, and ran the same live suite under strict
+    pipe failure propagation on corrected head d3b1a33a. All required checks and
+    Playwright passed. The focused workflow integrity test, YAML validation, and
+    full 324-page build also pass locally.
 
 claim_verification_last_run:
   at: 2026-07-15T16:40:32+08:00
