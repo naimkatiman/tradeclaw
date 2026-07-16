@@ -3,8 +3,8 @@ import {
   isCountedResolved,
   isObservedOHLCVOutcomeSource,
   isRealOutcome,
-  readHistoryAsync,
 } from '../../../lib/signal-history';
+import { getResolvedSlice } from '../../../lib/signal-slice';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 60;
@@ -56,10 +56,11 @@ export interface ProofStats {
 
 export async function GET() {
   try {
-    const history = await readHistoryAsync();
+    const slice = await getResolvedSlice({ scope: 'pro' });
+    const history = slice.scopedRecords;
 
     const realSignals = history.filter((r) => !r.isSimulated);
-    const counted24h = history.filter(isCountedResolved);
+    const counted24h = slice.resolved;
 
     const mapped: ProofSignal[] = realSignals.map((r) => {
       const o4h = r.outcomes['4h'];
@@ -139,9 +140,14 @@ export async function GET() {
       stats,
       signals: mapped.slice(0, 200),
       methodology: {
-        population: 'non-simulated, non-gate-blocked records with approved observed-OHLCV outcome provenance',
+        population: 'public-scope, non-simulated, non-gate-blocked records with approved observed-OHLCV outcome provenance',
         score: 'mechanical rule/confluence score; not a probability or edge estimate',
         runningPnlPct: 'legacy field name for mean unsized 24h directional price move; not account or portfolio P&L',
+      },
+      window: {
+        sourceRecordsLoaded: slice.sourceRecordsLoaded,
+        sourceReadLimit: slice.sourceReadLimit,
+        potentiallyTruncatedBeforeStart: slice.sourceWindowPotentiallyTruncated,
       },
     });
   } catch (err) {
