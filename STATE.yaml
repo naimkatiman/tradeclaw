@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-17T00:06:44+08:00
+updated: 2026-07-17T00:09:31+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -8,11 +8,30 @@ description: >
   Goal: viral GitHub repo, thousands of stars.
 
 proof_population_alignment_2026_07_17:
-  at: 2026-07-17T00:06:44+08:00
+  at: 2026-07-17T00:09:31+08:00
   agent: TradeClaw PM agent
-  status: validated_pending_deploy
+  status: deployed
   scope: Align proof and cost-field to the same cached public signal slice
   discovered_after_main_merge: a57c351d72af4b52ae46c98dbd8e13edb83ba796
+  source_commit: b0b89a926e46400eb2b99dc54c78c9404e406ddc
+  canonical_branch_commit: afd2306a43a67f6b456ad4633de12b3b5b7c132f
+  deployment:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment: production
+    service: web
+    deployment_id: 40e81da2-46bb-4556-a378-75c595411101
+    status: SUCCESS
+    image_digest: sha256:c70633a11d1835ebea0566d7d58c826db4e6d9f1ff4c1e25bffbba86fd5dd279
+    build_identity: c928ce9d-d332-4bf1-b960-31e6b72e59f4
+    live_url: https://tradeclaw.win
+  live_verification:
+    eligible_outcomes: 1342
+    proof_wins: 478
+    proof_losses: 864
+    mean_net_r_from_published_arrays: -0.4683800298
+    counts_match: true
+    source_windows_match: true
   notes: >
     Final live readback caught proof advancing to 1,342 resolved outcomes while
     cost-field still exposed 1,341 from the shared 10-minute history snapshot.
@@ -22,8 +41,10 @@ proof_population_alignment_2026_07_17:
     publishes the source-window metadata. Validation passed 14 focused tests
     across proof, cost-field, and partner-strategy filtering, scoped ESLint, web
     TypeScript, YAML and whitespace checks, and the full production build with
-    all 324 pages generated. Commit, deployment, and live reconciliation remain
-    pending.
+    all 324 pages generated. Railway deployed the exact b0b89a92 source with a
+    successful Dockerfile health check. Fresh proof and cost-field requests now
+    return the same 1,342-row population and the same 10,000-row capped source
+    window; proof wins plus losses also reconcile to the shared count.
 
 health_release_identity_2026_07_16:
   at: 2026-07-16T23:46:46+08:00
