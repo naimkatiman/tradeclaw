@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-16T23:46:46+08:00
+updated: 2026-07-16T23:49:09+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -136,7 +136,7 @@ ci_integrity_followup_2026_07_16:
     full 324-page build also pass locally.
 
 claim_verification_last_run:
-  at: 2026-07-15T16:40:32+08:00
+  at: 2026-07-16T23:49:09+08:00
   agent: TradeClaw PM agent
   status: done
   scope: LinkedIn loss-claim evidence review and WEEX outreach verification
@@ -150,9 +150,12 @@ claim_verification_last_run:
     truncated. The supported claim is negative modeled signal expectancy under
     stated assumptions; actual customer, broker-fill, portfolio-loss, and
     sequential-account-return claims remain unsupported. WEEX fee sharing is not
-    a percentage of volume, the advertised TradFi campaign ended 2026-07-08, the
-    contact identity remains unverified, and Malaysian promotion remains a legal
-    review issue because WEEX is absent from the SC registered-DAX list.
+    a percentage of volume. The selected-region zero-fee offer ended 2026-07-08,
+    while the current TradFi page advertises a separate 9-23 July trading
+    challenge; TradeClaw-user eligibility, attribution, and commission treatment
+    remain unverified. The contact identity remains unverified, and Malaysian
+    promotion remains a legal review issue because WEEX is absent from the SC
+    registered-DAX list.
 
 product_integrity_repair:
   at: 2026-07-15T11:24:23+08:00
