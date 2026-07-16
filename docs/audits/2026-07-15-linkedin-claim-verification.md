@@ -154,17 +154,17 @@ CI follow-up on 16 July found that the required Strategy Backtests job had repor
 
 The repaired runtime counts nonzero 24-hour OHLCV closes only when their resolver source is an approved observed provider (`market-data-hub`, `binance`, `stooq`, `kraken`, or `cryptocompare`). Legacy rows without source, synthetic or unknown sources, and missing or zero force-expiry placeholders remain stored but do not count. Public history GET is read-only, row IDs plus cost and outcome provenance are available through `?include=provenance`, and a fail-closed cost-adjusted evidence gate sits before entry-like execution and hosted alert fan-out.
 
-These changes do not retroactively alter the frozen 3,967-row response above. That historical result remains valid only for its dated, pre-repair production denominator. The 1,220-row result in this section is the current, deployed source-gated study.
+These changes do not retroactively alter the frozen 3,967-row response above. That historical result remains valid only for its dated, pre-repair production denominator. The 1,220-row result in this section is the frozen, deployed post-repair snapshot captured on 15 July; the rolling live population changes as records enter and leave the 10,000-row source window.
 
 ## LinkedIn-safe copy
 
-> We reran TradeClaw after deploying the evidence-provenance repair. In the currently available 10,000-row source window, 1,220 outcomes had approved observed-OHLCV provenance, covering 10 June through 15 July 2026 UTC.
+> We reran TradeClaw after deploying the evidence-provenance repair. In a production snapshot captured on 15 July 2026, the available 10,000-row source window contained 1,220 outcomes with approved observed-OHLCV provenance, covering 10 June through 15 July UTC.
 >
 > Average gross result was -0.0225R per signal. After our published fee-and-slippage model, average net result was -0.4253R per signal. This engine version did not demonstrate a net edge under those assumptions.
 >
 > These are OHLCV-derived signal outcomes with modeled costs, not broker fills, customer losses, or portfolio returns. The source window is capped and may omit earlier rows.
 >
-> Data: https://tradeclaw.win/api/research/cost-field?scope=pro
+> Archived data: https://github.com/naimkatiman/tradeclaw/tree/main/docs/audits/evidence/2026-07-15-b070197b
 > Method: https://tradeclaw.win/methodology
 
 Do not replace the last paragraph with "not financial advice" and remove the methodological limitations. A generic disclaimer does not repair an overbroad performance claim.
