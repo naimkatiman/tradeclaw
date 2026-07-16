@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-16T23:43:19+08:00
+updated: 2026-07-16T23:46:46+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -8,11 +8,29 @@ description: >
   Goal: viral GitHub repo, thousands of stars.
 
 health_release_identity_2026_07_16:
-  at: 2026-07-16T23:43:19+08:00
+  at: 2026-07-16T23:46:46+08:00
   agent: TradeClaw PM agent
-  status: validated_pending_deploy
+  status: deployed
   scope: Truthful build identity on both public health endpoints
   base_commit: e46b597e2779cbbafe13e07ff266e51269f1bc6e
+  source_commit: e3d01c2435262a5600a1c8b6e335a34f840d8417
+  deployment:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment: production
+    service: web
+    deployment_id: 58671ab2-54b3-41fd-ac5e-d90744f5f2af
+    status: SUCCESS
+    image_digest: sha256:3b81770a6b9274cb649e54b7cc9e94e7e7b97bd4160dae673121e937493e843b
+    build_identity: aa319b6d-8a41-4005-8c95-6d1735f2fa9e
+    live_url: https://tradeclaw.win
+  live_verification:
+    health: "HTTP 200 /api/health with status ok and real Railway build identity"
+    v1_health: "HTTP 200 /api/v1/health with status healthy and matching build identity"
+    eligible_outcomes: 1341
+    proof_wins: 477
+    proof_losses: 864
+    mean_net_r_from_published_arrays: -0.4685876212
   notes: >
     Final production readback found that Railway CLI releases returned
     build: development because BUILD_ID was absent. Both health routes now use
@@ -20,8 +38,10 @@ health_release_identity_2026_07_16:
     deployment IDs in order, and report unknown rather than development when a
     production identity is genuinely unavailable. Validation passed six focused
     Jest cases, scoped ESLint, web TypeScript, YAML parsing, whitespace checks,
-    and the full production build with all 324 pages generated. Commit,
-    production deployment, and live readback remain pending.
+    and the full production build with all 324 pages generated. The exact clean
+    e3d01c24 worktree deployed successfully on top of the current emerald asset
+    release. Both health routes now return the same Railway snapshot identity,
+    and the post-deploy proof and cost-field populations reconcile exactly.
 
 truth_release_2026_07_15:
   at: 2026-07-15T14:31:11+08:00
