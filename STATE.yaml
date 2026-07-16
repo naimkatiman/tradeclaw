@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-16T22:59:59+08:00
+updated: 2026-07-16T23:09:39+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -93,14 +93,25 @@ product_integrity_repair:
     services could not be started locally.
 
 premium_ui_green_assets:
-  at: 2026-07-16T22:59:59+08:00
+  at: 2026-07-16T23:09:39+08:00
   agent: TradeClaw PM agent
-  status: validated_pending_release
+  status: deployed
   scope: Original emerald brand assets, SVGs, icons, and reduced-motion-safe hero motion
   brand_color: "#10b981"
   asset: apps/web/public/brand/tradeclaw-market-sculpture-v1.webp
   source_commit: c70be6bfee842555f0778a01a79df4e2b108b92a
   source_branch: release/premium-green-assets-20260716
+  deployed_commit: e46b597e2779cbbafe13e07ff266e51269f1bc6e
+  deployment:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment: production
+    service: web
+    deployment_id: 71e73f78-a21d-4da2-a55a-f0e81f7c8137
+    status: SUCCESS
+    image_digest: sha256:abcfefefe046ee4ad632e7f9cb7f3df0b4ef010e12cde4c3bc18e696b437ed90
+    live_url: https://tradeclaw.win
+    health: HTTP 200 /api/health with status ok
   notes: >
     Corrected the premium UI interpretation after owner feedback: premium
     references guide hierarchy, density, iconography, and motion, not
@@ -119,7 +130,12 @@ premium_ui_green_assets:
     ESLint passed with zero errors; two focused Jest suites passed all four
     tests. Focus rings meet the 3:1 adjacent-color target in light and dark
     themes, broad palette remapping is absent, and git diff whitespace checks
-    pass. No dependency, lockfile, database, schema, trading-rule, Docker, or
+    pass. Railway deployment 71e73f78 reached terminal SUCCESS from the clean
+    exact-commit worktree. Production returned HTTP 200/status ok, the homepage
+    returned the sculpture plus the truthful headline and CTA, icon.svg returned
+    the #10b981 signature, and the WebP returned image/webp at 74,888 bytes.
+    Startup applied 55/55 migrations with zero pending and emitted no error-level
+    logs. No dependency, lockfile, database, schema, trading-rule, Docker, or
     Railway configuration change is included.
 
 ai_improvement_last_run:
