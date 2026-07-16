@@ -35,11 +35,13 @@ proof_population_alignment_2026_07_17:
   notes: >
     Final live readback caught proof advancing to 1,342 resolved outcomes while
     cost-field still exposed 1,341 from the shared 10-minute history snapshot.
-    Proof bypassed getResolvedSlice, so public counts could temporarily disagree
-    and proof did not inherit the pending-partner tv-* exclusion. Proof now reads
+    Proof bypassed getResolvedSlice, so public counts could temporarily disagree.
+    The prior direct read already excluded pending-partner tv-* rows; the repair
+    centralizes that existing rule rather than introducing it. Proof now reads
     scopedRecords and resolved from the same canonical slice as cost-field and
-    publishes the source-window metadata. Validation passed 14 focused tests
-    across proof, cost-field, and partner-strategy filtering, scoped ESLint, web
+    publishes typed and OpenAPI-documented source-window metadata. Validation
+    passed 15 focused tests across proof, cost-field, and partner-strategy
+    filtering, scoped ESLint, web
     TypeScript, YAML and whitespace checks, and the full production build with
     all 324 pages generated. Railway deployed the exact b0b89a92 source with a
     successful Dockerfile health check. Fresh proof and cost-field requests now
