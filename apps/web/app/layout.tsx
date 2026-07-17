@@ -15,7 +15,6 @@ import { OnboardingChecklist } from "../components/onboarding";
 import { StarProgressBar } from "../components/star-progress-bar";
 import { AnalyticsProvider } from "../components/AnalyticsProvider";
 import { PostHogPageView } from "../components/PostHogPageView";
-import { GlobalClawBackdrop } from "../components/background/global-claw-backdrop";
 import { Suspense } from "react";
 
 const geistSans = Geist({
@@ -156,19 +155,16 @@ export default function RootLayout({
           </Suspense>
           <ThemeProvider>
             <LocaleProvider>
-              <GlobalClawBackdrop />
               <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
               />
               <SWRegister />
-              <div className="site-content-layer flex min-h-full flex-1 flex-col">
-                {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && <DemoBanner />}
-                <div className="flex-1 pb-16 md:pb-0">
-                  {children}
-                </div>
-                <SiteFooter />
+              {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && <DemoBanner />}
+              <div className="flex-1 pb-16 md:pb-0">
+                {children}
               </div>
+              <SiteFooter />
               {/* Product chrome and floating widgets stay off layer-1
                   marketing routes (DESIGN.md Layering). */}
               <MarketingChromeGate>

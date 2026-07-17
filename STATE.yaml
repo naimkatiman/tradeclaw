@@ -1,11 +1,42 @@
 project: tradeclaw
-updated: 2026-07-16T23:09:39+08:00
+updated: 2026-07-17T18:20:34+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
   Public mode = limited. Admin = full.
   Alpha Screener = confirmed SaaS brand for users who don't want to self-host. Tradesmart name is dropped.
   Goal: viral GitHub repo, thousands of stars.
+
+homepage_claw_refinement:
+  at: 2026-07-17T18:20:34+08:00
+  agent: TradeClaw PM agent
+  status: validated_pending_release
+  scope: Replace the site-wide three-sculpture backdrop with restrained homepage-only parallax artwork
+  source_branch: feat/remotion-claw-backgrounds
+  notes: >
+    Owner feedback is that the deployed background system uses too much imagery.
+    The clean release worktree was selected so unrelated research changes in the
+    primary checkout remain untouched. Removed the root-layout backdrop, its
+    public-route allowlist, the three-sculpture Remotion player, and the two
+    now-unused Remotion runtime dependencies. Restored one market sculpture
+    inside the root homepage hero only. Desktop receives a subtle progressive
+    CSS scroll parallax plus slow ambient motion; mobile omits the artwork and
+    reduced-motion renders it statically. The two additional generated WebPs are
+    retained as source assets but are not referenced by any runtime surface.
+  verification: >
+    Focused Jest passed 2 suites and 5 tests. Web ESLint passed with zero errors
+    and 23 pre-existing warnings; web typecheck passed. The mandatory root
+    production build passed packages/signals, packages/trading-agents, Next.js
+    16.2.6, and all 324 static pages. Playwright CLI browser QA at 1440x1000
+    confirmed one loaded decorative image on the homepage, a scroll-linked
+    transform changing from 0px to 18.42px by scrollY 500, and no artwork behind
+    the lower Explore section. Mobile computed the artwork as display:none with
+    zero visible decorative images. Reduced-motion computed animation-name:none
+    and transform:none for the frame, parallax, and object layers. /docs rendered
+    with zero hero art, global backdrop, or decorative WebPs. Both browser
+    sessions reported zero console errors. Package JSON, lockfile, STATE.yaml,
+    and git diff checks passed. Docker is unavailable locally; Compose files were
+    unchanged and the mandatory production build remains green.
 
 remotion_claw_backgrounds:
   at: 2026-07-17T13:05:48+08:00

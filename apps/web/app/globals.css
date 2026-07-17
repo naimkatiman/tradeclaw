@@ -360,143 +360,115 @@ html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
   opacity: 0.42;
 }
 
-/* Site-wide claw atmosphere. Remotion owns desktop motion; CSS only controls
-   placement, theme contrast, and the complete static/mobile fallback. */
-.site-content-layer {
-  position: relative;
-  z-index: 1;
+/* One generated sculpture, reserved for the homepage hero. It stays behind
+   the real Cost Field and copy, and gains depth only through progressive
+   scroll-linked parallax. Mobile keeps the hero visually quiet. */
+.hero-brand-art {
+  display: none;
 }
 
-.global-claw-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-  user-select: none;
-  contain: strict;
-}
-
-.global-claw-backdrop__stage {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: max(100vw, 177.778vh);
-  height: max(100vh, 56.25vw);
-  opacity: 0.17;
-  filter: saturate(0.9) contrast(1.04);
-  transform: translate(-50%, -50%);
-  mask-image: radial-gradient(ellipse 78% 92% at 48% 45%, black 0%, black 56%, transparent 92%);
-}
-
-html:not(.dark) .global-claw-backdrop__stage {
-  opacity: 0.075;
-  filter: saturate(0.72) contrast(0.92);
-  mix-blend-mode: multiply;
-}
-
-.global-claw-backdrop[data-variant='ambient'] .global-claw-backdrop__stage {
-  opacity: 0.082;
-  mask-image: linear-gradient(
-    90deg,
-    black 0%,
-    rgba(0, 0, 0, 0.88) 13%,
-    transparent 39%,
-    transparent 61%,
-    rgba(0, 0, 0, 0.88) 87%,
-    black 100%
-  );
-}
-
-html:not(.dark) .global-claw-backdrop[data-variant='ambient'] .global-claw-backdrop__stage {
-  opacity: 0.04;
-}
-
-.global-claw-backdrop__static,
-.global-claw-backdrop__remotion {
-  position: absolute;
-  inset: 0;
-}
-
-.global-claw-backdrop__static {
-  transition: opacity 180ms ease-out;
-}
-
-.global-claw-backdrop[data-motion='active'] .global-claw-backdrop__static {
-  opacity: 0;
-}
-
-.global-claw-backdrop__asset {
-  position: absolute;
-  display: block;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  filter: drop-shadow(0 0 64px rgba(16, 185, 129, 0.13));
-}
-
-.global-claw-backdrop__asset--market {
-  top: 6.5%;
-  left: -4.5%;
-  width: 41.2%;
-  height: 73.2%;
-  background-image: url('/brand/tradeclaw-market-sculpture-v1.webp');
-}
-
-.global-claw-backdrop__asset--orbit {
-  top: -7.6%;
-  right: -1.4%;
-  width: 37.5%;
-  height: 66.7%;
-  background-image: url('/brand/tradeclaw-claw-orbit-v2.webp');
-}
-
-.global-claw-backdrop__asset--shard {
-  top: 43.5%;
-  left: 35.5%;
-  width: 27.1%;
-  height: 70.4%;
-  background-image: url('/brand/tradeclaw-claw-shard-v3.webp');
-}
-
-.global-claw-backdrop__remotion > div {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-@media (max-width: 1023px) {
-  .global-claw-backdrop__stage,
-  .global-claw-backdrop[data-variant='ambient'] .global-claw-backdrop__stage {
-    top: 0;
-    right: 0;
-    left: auto;
-    width: min(90vw, 430px);
-    height: 58vh;
-    opacity: 0.075;
-    transform: none;
-    mask-image: radial-gradient(ellipse at 70% 34%, black 0%, rgba(0, 0, 0, 0.84) 46%, transparent 82%);
+@media (min-width: 1024px) {
+  .hero-brand-art {
+    position: absolute;
+    top: 4.25rem;
+    left: max(-8.5rem, calc((100vw - 1280px) / 2 - 9rem));
+    z-index: 0;
+    display: block;
+    width: min(42vw, 500px);
+    height: min(42vw, 480px);
+    overflow: hidden;
+    pointer-events: none;
+    isolation: isolate;
+    mask-image: radial-gradient(ellipse at 42% 48%, black 0%, black 46%, transparent 79%);
   }
 
-  html:not(.dark) .global-claw-backdrop__stage,
-  html:not(.dark) .global-claw-backdrop[data-variant='ambient'] .global-claw-backdrop__stage {
-    opacity: 0.035;
+  .hero-brand-art__frame,
+  .hero-brand-art__parallax,
+  .hero-brand-art__object {
+    position: absolute;
+    inset: 0;
   }
 
-  .global-claw-backdrop__asset--market {
-    top: -2%;
-    right: -30%;
-    left: auto;
-    width: 118%;
-    height: 96%;
+  .hero-brand-art__frame {
+    opacity: 0.14;
+    animation: heroArtReveal 900ms cubic-bezier(0.32, 0.72, 0, 1) both;
   }
 
-  .global-claw-backdrop__asset--orbit,
-  .global-claw-backdrop__asset--shard {
-    display: none;
+  html:not(.dark) .hero-brand-art__frame {
+    opacity: 0.085;
   }
 
-  .global-claw-backdrop__remotion {
-    display: none;
+  .hero-brand-art__object {
+    inset: 1% 2% 0;
+    animation: heroArtFloat 14s ease-in-out 900ms infinite;
+    will-change: transform;
+  }
+
+  .hero-brand-art__image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 60px rgba(16, 185, 129, 0.12));
+  }
+
+  .hero-brand-art__halo {
+    position: absolute;
+    inset: 20% 14% 14%;
+    z-index: -1;
+    border-radius: 9999px;
+    background: radial-gradient(circle, var(--brand-glow), transparent 68%);
+    opacity: 0.46;
+    animation: heroArtBreathe 10s ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+
+  .hero-brand-art__scan {
+    position: absolute;
+    top: 14%;
+    right: 14%;
+    left: 16%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--brand), transparent);
+    opacity: 0;
+    animation: heroArtScan 9s ease-in-out 1.4s infinite;
+    will-change: transform, opacity;
+  }
+}
+
+@keyframes heroArtReveal {
+  from { opacity: 0; transform: scale(0.97); }
+}
+
+@keyframes heroArtFloat {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -5px, 0) rotate(-0.45deg); }
+}
+
+@keyframes heroArtBreathe {
+  0%, 100% { opacity: 0.34; transform: scale(0.97); }
+  50% { opacity: 0.5; transform: scale(1.03); }
+}
+
+@keyframes heroArtScan {
+  0%, 15% { opacity: 0; transform: translate3d(0, 0, 0); }
+  27% { opacity: 0.34; }
+  62% { opacity: 0.14; }
+  76%, 100% { opacity: 0; transform: translate3d(0, 300px, 0); }
+}
+
+@keyframes heroArtParallax {
+  from { transform: translate3d(0, 0, 0) rotate(-0.12deg); }
+  to { transform: translate3d(0, 28px, 0) rotate(0.12deg); }
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (min-width: 1024px) {
+    .hero-brand-art__parallax {
+      animation: heroArtParallax linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0px 760px;
+      will-change: transform;
+    }
   }
 }
 
@@ -729,17 +701,18 @@ html:not(.dark) .global-claw-backdrop[data-variant='ambient'] .global-claw-backd
   .animate-slide-left,
   .animate-slide-right,
   .reveal,
-  .parallax-drift-slow {
+  .parallax-drift-slow,
+  .hero-brand-art__frame,
+  .hero-brand-art__parallax,
+  .hero-brand-art__object,
+  .hero-brand-art__halo,
+  .hero-brand-art__scan {
     animation: none !important;
   }
 
-  .global-claw-backdrop__static {
-    opacity: 1 !important;
-    transition: none;
-  }
-
-  .global-claw-backdrop__remotion {
-    display: none;
+  .hero-brand-art__parallax,
+  .hero-brand-art__object {
+    transform: none !important;
   }
 
   /* Some legacy consumers pair opacity-0 with animate-fade-up and rely on

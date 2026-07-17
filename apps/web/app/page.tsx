@@ -1,6 +1,7 @@
 import { Navbar } from "./components/navbar";
 import { ProofHero } from "../components/landing/proof-hero";
 import { ExploreStrip } from "../components/landing/explore-strip";
+import { HeroBrandArt } from "../components/landing/hero-brand-art";
 
 export const revalidate = 60;
 
@@ -16,6 +17,7 @@ export default function Home() {
       <Navbar variant="minimal" />
       <main className="pt-20 sm:pt-24 lg:pt-28">
         <div className="relative isolate overflow-hidden">
+          <HeroBrandArt />
           <ProofHero />
         </div>
         <ExploreStrip />
