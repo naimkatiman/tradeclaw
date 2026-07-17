@@ -8,11 +8,13 @@ description: >
   Goal: viral GitHub repo, thousands of stars.
 
 remotion_claw_backgrounds:
-  at: 2026-07-17T13:01:39+08:00
+  at: 2026-07-17T13:05:48+08:00
   agent: TradeClaw PM agent
-  status: validated_pending_release
+  status: deployed
   scope: Site-wide generated claw sculpture system with Remotion ambient motion
   brand_color: "#10b981"
+  source_branch: feat/remotion-claw-backgrounds
+  deployed_commit: 3a2e09c65f6e771f4c2f69c3ea7c22199d01faaf
   assets:
     - apps/web/public/brand/tradeclaw-market-sculpture-v1.webp
     - apps/web/public/brand/tradeclaw-claw-orbit-v2.webp
@@ -29,7 +31,20 @@ remotion_claw_backgrounds:
     closed with no backdrop. Web lint passed with zero errors and 23 existing
     warnings; the focused route and motion gate suite passed 29/29 tests; web
     typecheck passed; and the mandatory root production build compiled and
-    generated all 324 static pages. Commit and production release remain pending.
+    generated all 324 static pages.
+  deployment:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment: production
+    service: web
+    deployment_id: 36cb46ba-1ca8-47cb-a1f0-3ff70f3824a1
+    status: SUCCESS
+    image_digest: sha256:9da3562c3ac3c47566d173eba2fcad43e46ee6f241793b439234ee4f56f9ae62
+    live_url: https://tradeclaw.win
+    verification: >
+      HTTP 200 from / and /api/health with status ok; the server-rendered
+      homepage contains the global backdrop marker; both generated WebP asset
+      URLs return HTTP 200 with image/webp content type.
 
 truth_release_2026_07_15:
   at: 2026-07-15T14:31:11+08:00
