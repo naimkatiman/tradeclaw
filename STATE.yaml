@@ -7,6 +7,30 @@ description: >
   Alpha Screener = confirmed SaaS brand for users who don't want to self-host. Tradesmart name is dropped.
   Goal: viral GitHub repo, thousands of stars.
 
+remotion_claw_backgrounds:
+  at: 2026-07-17T13:01:39+08:00
+  agent: TradeClaw PM agent
+  status: validated_pending_release
+  scope: Site-wide generated claw sculpture system with Remotion ambient motion
+  brand_color: "#10b981"
+  assets:
+    - apps/web/public/brand/tradeclaw-market-sculpture-v1.webp
+    - apps/web/public/brand/tradeclaw-claw-orbit-v2.webp
+    - apps/web/public/brand/tradeclaw-claw-shard-v3.webp
+  notes: >
+    Locked the owner-provided screenshot as the composition reference and
+    generated two additional transparent sculptures in the existing obsidian,
+    warm-white, and original TradeClaw emerald family. The implementation uses
+    one fixed, pointer-free decorative layer across allowlisted public TradeClaw
+    pages in the root layout; desktop
+    ambient movement is rendered by Remotion, while mobile and reduced-motion
+    visitors receive a static composition. Supporting public pages use a quiet
+    edge mask; admin, product, embed, widget, badge, and EarningsEdge routes fail
+    closed with no backdrop. Web lint passed with zero errors and 23 existing
+    warnings; the focused route and motion gate suite passed 29/29 tests; web
+    typecheck passed; and the mandatory root production build compiled and
+    generated all 324 static pages. Commit and production release remain pending.
+
 truth_release_2026_07_15:
   at: 2026-07-15T14:31:11+08:00
   agent: TradeClaw PM agent

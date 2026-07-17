@@ -112,6 +112,19 @@ Premium means precise, calm, and verifiable, not glossy. Trust is built through 
 - Parallax belongs only on imagery or decoration, never standalone text. Count-up animation may animate only real values that are already server-rendered as text.
 - Every ambient, scroll, count-up, ticker, and WebGL animation must honor `prefers-reduced-motion: reduce`. The reduced-motion version shows the complete static content, removes smooth scrolling, and never leaves an element transparent or transformed offscreen.
 
+### Generated claw backdrop
+
+The site-wide claw sculpture is a decorative identity layer, not evidence or
+product data. It uses only the existing obsidian, warm-white, and original
+`#10b981` emerald family. One root-level backdrop may combine the three approved
+brand sculptures, with Remotion providing a slow deterministic drift on desktop.
+The composition is fixed, pointer-free, `aria-hidden`, and rendered behind page
+content. The homepage and localized landing pages use the screenshot-led hero
+placement; allowlisted public storytelling pages use a quieter outer-gutter
+mask. Admin, product, embed, widget, badge, and EarningsEdge routes fail closed
+with no TradeClaw backdrop. Mobile and `prefers-reduced-motion` experiences show
+the complete static fallback and do not mount the Remotion player.
+
 ## 3D / WebGL language
 
 WebGL is **data-only**. It may render a real dataset when depth or motion materially clarifies the finding; it is never a decorative hero background. A lightweight generated raster may provide subordinate brand atmosphere around the scene, but it must never resemble or replace evidence. Use one WebGL scene per page at most, lazy-loaded client-side with `next/dynamic`, no SSR, and `three` without react-three-fiber.
