@@ -112,6 +112,17 @@ Premium means precise, calm, and verifiable, not glossy. Trust is built through 
 - Parallax belongs only on imagery or decoration, never standalone text. Count-up animation may animate only real values that are already server-rendered as text.
 - Every ambient, scroll, count-up, ticker, and WebGL animation must honor `prefers-reduced-motion: reduce`. The reduced-motion version shows the complete static content, removes smooth scrolling, and never leaves an element transparent or transformed offscreen.
 
+### Homepage claw artwork
+
+Generated claw artwork is a decorative identity layer, not evidence or product
+data. Keep it restrained: one sculpture is mounted only inside the root
+homepage hero, behind the copy and real Cost Field. It uses the existing
+obsidian, warm-white, and original `#10b981` emerald family, remains pointer-free
+and `aria-hidden`, and never follows visitors onto product or supporting public
+pages. Desktop may use a subtle CSS scroll-linked parallax shift plus slow
+ambient movement. Unsupported browsers show the same static composition;
+mobile omits the artwork, and `prefers-reduced-motion` removes all movement.
+
 ## 3D / WebGL language
 
 WebGL is **data-only**. It may render a real dataset when depth or motion materially clarifies the finding; it is never a decorative hero background. A lightweight generated raster may provide subordinate brand atmosphere around the scene, but it must never resemble or replace evidence. Use one WebGL scene per page at most, lazy-loaded client-side with `next/dynamic`, no SSR, and `three` without react-three-fiber.
