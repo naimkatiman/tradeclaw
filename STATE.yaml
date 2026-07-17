@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-17T18:20:34+08:00
+updated: 2026-07-17T18:28:09+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -8,11 +8,13 @@ description: >
   Goal: viral GitHub repo, thousands of stars.
 
 homepage_claw_refinement:
-  at: 2026-07-17T18:20:34+08:00
+  at: 2026-07-17T18:28:09+08:00
   agent: TradeClaw PM agent
-  status: validated_pending_release
+  status: deployed
   scope: Replace the site-wide three-sculpture backdrop with restrained homepage-only parallax artwork
   source_branch: feat/remotion-claw-backgrounds
+  source_commit: 8ba63ad4e8de85d9833821b5d4ccab07c73cc27a
+  pull_request: https://github.com/naimkatiman/tradeclaw/pull/174
   notes: >
     Owner feedback is that the deployed background system uses too much imagery.
     The clean release worktree was selected so unrelated research changes in the
@@ -36,12 +38,31 @@ homepage_claw_refinement:
     with zero hero art, global backdrop, or decorative WebPs. Both browser
     sessions reported zero console errors. Package JSON, lockfile, STATE.yaml,
     and git diff checks passed. Docker is unavailable locally; Compose files were
-    unchanged and the mandatory production build remains green.
+    unchanged and the mandatory production build remains green. Railway
+    deployment 8e67d017 reached terminal SUCCESS; startup applied 55/55
+    migrations with zero pending. Production returned HTTP 200/status ok for
+    /api/health and HTTP 200 for / and /docs. Server HTML contains exactly one
+    homepage hero-art marker, no global backdrop, orbit, or shard references,
+    and /docs contains no brand artwork. Live Chrome at 1440x1000 confirmed one
+    visible image, no Remotion player, active scroll parallax, no lower-section
+    wallpaper, and zero console errors.
+  deployment:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment: production
+    service: web
+    deployment_id: 8e67d017-a7cb-4d1d-b152-561c68cc2641
+    status: SUCCESS
+    image_digest: sha256:f3eabbf326bcc4f900af6ad81e9cd14b239cbfd128ffcf7f9ee1527d9c7ffb4b
+    live_url: https://tradeclaw.win
+    health: HTTP 200 /api/health with status ok
 
 remotion_claw_backgrounds:
   at: 2026-07-17T13:05:48+08:00
   agent: TradeClaw PM agent
-  status: deployed
+  status: superseded
+  superseded_at: 2026-07-17T18:28:09+08:00
+  superseded_by_commit: 8ba63ad4e8de85d9833821b5d4ccab07c73cc27a
   scope: Site-wide generated claw sculpture system with Remotion ambient motion
   brand_color: "#10b981"
   source_branch: feat/remotion-claw-backgrounds
