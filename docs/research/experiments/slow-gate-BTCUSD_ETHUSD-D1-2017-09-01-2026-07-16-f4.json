@@ -1,0 +1,816 @@
+{
+  "meta": {
+    "runAt": "2026-07-17T23:49:56.734Z"
+  },
+  "spec": {
+    "symbols": [
+      "BTCUSD",
+      "ETHUSD"
+    ],
+    "from": "2017-09-01",
+    "to": "2026-07-16",
+    "emaPeriod": 200,
+    "volTargetAnn": 0.4,
+    "volLookback": 20,
+    "regimeWindowH1Bars": 329,
+    "sizingRatios": {
+      "trend": 1,
+      "volatile": 0.5333333333333333,
+      "range": 0.4
+    },
+    "costs": {
+      "spot": {
+        "feePctPerSide": 0.1,
+        "slippagePctPerSide": 0.15,
+        "fundingPctPer8h": 0
+      },
+      "perp": {
+        "feePctPerSide": 0.05,
+        "slippagePctPerSide": 0.15,
+        "fundingPctPer8h": 0.01
+      }
+    },
+    "folds": 4,
+    "variants": [
+      "buy-hold",
+      "ema200",
+      "ema200-hmm",
+      "ema200-vol"
+    ],
+    "hmmModels": {
+      "crypto_hmm.json": "3a258e86f3a406f7"
+    },
+    "caveats": [
+      "pre-registered parameters (EMA200, 40% vol target, allocator ratios 15/8/6): NO sweeps were run — these are the first and only settings tested; changing them after seeing results would be tuning",
+      "exposure decided at day close t applies to the close(t)->close(t+1) return; the classifier and indicators only see bars closed at/before t — no lookahead",
+      "folds slice the PRE-COMPUTED exposure series: trailing indicators legitimately use pre-fold history (trailing data, not future data); fold 1 still contains the EMA200 warmup (flat) so its gated numbers are conservative",
+      "spot cost model (0.10% fee + 0.15% slippage per side, no funding) is the realistic execution for a long-only gate; perp sensitivity includes the 0.01%/8h sign-agnostic funding upper bound",
+      "the HMM regime is STRUCTURAL (volatility/structure, not drift): the registry walk-forward found no directional trend premium in the states — here the HMM only scales SIZE, direction comes from the EMA gate",
+      "the two-sleeve portfolio holds half capital per symbol independently (no cross-rebalancing) — zero rebalance cost by construction, matching the quality-over-quantity brief",
+      "survivorship note: BTC and ETH are the two assets that DID survive — a 2017 investor could not have known; results generalize to \"the majors\" only, not to any 2017 altcoin pick",
+      "this is a SANDBOX study for the research registry: it does not activate anything live and does not by itself clear the deployable-edge gate"
+    ]
+  },
+  "results": {
+    "BTCUSD": {
+      "bars": 3241,
+      "firstBar": "2017-09-01",
+      "lastBar": "2026-07-16",
+      "regimeShare": {
+        "trend": 814,
+        "volatile": 1133,
+        "range": 1294,
+        "null": 0
+      },
+      "full": [
+        {
+          "variant": "buy-hold",
+          "costModel": "spot",
+          "metrics": {
+            "cagr": 0.3373487978985059,
+            "maxDrawdown": 0.8318705353076479,
+            "calmar": 0.40553040837507887,
+            "sharpe": 0.7725645311245211,
+            "years": 8.876712328767123
+          },
+          "flips": 1,
+          "avgExposure": 1,
+          "totalCostPct": 0.25
+        },
+        {
+          "variant": "ema200",
+          "costModel": "spot",
+          "metrics": {
+            "cagr": 0.28896244664100657,
+            "maxDrawdown": 0.5737342906916304,
+            "calmar": 0.5036520412483373,
+            "sharpe": 0.8060404964525434,
+            "years": 8.876712328767123
+          },
+          "flips": 86,
+          "avgExposure": 0.525,
+          "totalCostPct": 21.5
+        },
+        {
+          "variant": "ema200-hmm",
+          "costModel": "spot",
+          "metrics": {
+            "cagr": 0.08143504559561099,
+            "maxDrawdown": 0.4775282199546922,
+            "calmar": 0.1705345196213483,
+            "sharpe": 0.41313292533988655,
+            "years": 8.876712328767123
+          },
+          "flips": 995,
+          "avgExposure": 0.306,
+          "totalCostPct": 89.9
+        },
+        {
+          "variant": "ema200-vol",
+          "costModel": "spot",
+          "metrics": {
+            "cagr": 0.21900208159079626,
+            "maxDrawdown": 0.44087863658170856,
+            "calmar": 0.49674006272746296,
+            "sharpe": 0.8001237297074734,
+            "years": 8.876712328767123
+          },
+          "flips": 1264,
+          "avgExposure": 0.406,
+          "totalCostPct": 23.59
+        },
+        {
+          "variant": "buy-hold",
+          "costModel": "perp",
+          "metrics": {
+            "cagr": 0.19862218361807749,
+            "maxDrawdown": 0.849265814818648,
+            "calmar": 0.23387516623460372,
+            "sharpe": 0.6100637458332147,
+            "years": 8.876712328767123
+          },
+          "flips": 1,
+          "avgExposure": 1,
+          "totalCostPct": 97.4
+        },
+        {
+          "variant": "ema200-hmm",
+          "costModel": "perp",
+          "metrics": {
+            "cagr": 0.06717993162336322,
+            "maxDrawdown": 0.49191123711493556,
+            "calmar": 0.13656921524577117,
+            "sharpe": 0.3682169386641886,
+            "years": 8.876712328767123
+          },
+          "flips": 995,
+          "avgExposure": 0.306,
+          "totalCostPct": 101.7
+        }
+      ],
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2017-09-01",
+          "to": "2019-11-19",
+          "runs": [
+            {
+              "variant": "buy-hold",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.26449965831342315,
+                "maxDrawdown": 0.8318705353076479,
+                "calmar": 0.31795771948528523,
+                "sharpe": 0.700295001083169,
+                "years": 2.2164383561643834
+              },
+              "flips": 1,
+              "avgExposure": 1,
+              "totalCostPct": 0.25
+            },
+            {
+              "variant": "ema200",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.19893738767690605,
+                "maxDrawdown": 0.3568347020398599,
+                "calmar": 0.5575057205469998,
+                "sharpe": 0.6562469138682139,
+                "years": 2.2164383561643834
+              },
+              "flips": 8,
+              "avgExposure": 0.275,
+              "totalCostPct": 2
+            },
+            {
+              "variant": "ema200-hmm",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.1117281167443962,
+                "maxDrawdown": 0.26333243472018775,
+                "calmar": 0.42428543549189623,
+                "sharpe": 0.5073875693142877,
+                "years": 2.2164383561643834
+              },
+              "flips": 127,
+              "avgExposure": 0.166,
+              "totalCostPct": 11.2
+            },
+            {
+              "variant": "ema200-vol",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.15148155581976086,
+                "maxDrawdown": 0.2835990172423404,
+                "calmar": 0.53413991801783,
+                "sharpe": 0.7139798127777965,
+                "years": 2.2164383561643834
+              },
+              "flips": 209,
+              "avgExposure": 0.16,
+              "totalCostPct": 2.37
+            }
+          ]
+        },
+        {
+          "label": "fold2",
+          "from": "2019-11-20",
+          "to": "2022-02-06",
+          "runs": [
+            {
+              "variant": "buy-hold",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 1.1100865573065604,
+                "maxDrawdown": 0.5359790262519866,
+                "calmar": 2.0711380537951523,
+                "sharpe": 1.3728528487066647,
+                "years": 2.2164383561643834
+              },
+              "flips": 1,
+              "avgExposure": 1,
+              "totalCostPct": 0.25
+            },
+            {
+              "variant": "ema200",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.609310733716067,
+                "maxDrawdown": 0.520292093560464,
+                "calmar": 1.1710935861939213,
+                "sharpe": 1.1110980834151252,
+                "years": 2.2164383561643834
+              },
+              "flips": 24,
+              "avgExposure": 0.709,
+              "totalCostPct": 6
+            },
+            {
+              "variant": "ema200-hmm",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.16808762484899886,
+                "maxDrawdown": 0.43287809021216284,
+                "calmar": 0.38830245431598426,
+                "sharpe": 0.5926715088999392,
+                "years": 2.2164383561643834
+              },
+              "flips": 358,
+              "avgExposure": 0.428,
+              "totalCostPct": 32.43
+            },
+            {
+              "variant": "ema200-vol",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.40145849714002524,
+                "maxDrawdown": 0.36246351222402373,
+                "calmar": 1.1075832010696303,
+                "sharpe": 1.097306013390987,
+                "years": 2.2164383561643834
+              },
+              "flips": 503,
+              "avgExposure": 0.48,
+              "totalCostPct": 6.63
+            }
+          ]
+        },
+        {
+          "label": "fold3",
+          "from": "2022-02-07",
+          "to": "2024-04-26",
+          "runs": [
+            {
+              "variant": "buy-hold",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.18420483062028303,
+                "maxDrawdown": 0.6673056490171774,
+                "calmar": 0.27604266634275315,
+                "sharpe": 0.5833005052402918,
+                "years": 2.2164383561643834
+              },
+              "flips": 1,
+              "avgExposure": 1,
+              "totalCostPct": 0.25
+            },
+            {
+              "variant": "ema200",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.4379286263727806,
+                "maxDrawdown": 0.2512428309126583,
+                "calmar": 1.7430492435623826,
+                "sharpe": 1.18849005803791,
+                "years": 2.2164383561643834
+              },
+              "flips": 19,
+              "avgExposure": 0.528,
+              "totalCostPct": 4.75
+            },
+            {
+              "variant": "ema200-hmm",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.16093704163921463,
+                "maxDrawdown": 0.20426473469984185,
+                "calmar": 0.7878846139335045,
+                "sharpe": 0.7342579422435798,
+                "years": 2.2164383561643834
+              },
+              "flips": 235,
+              "avgExposure": 0.3,
+              "totalCostPct": 21.13
+            },
+            {
+              "variant": "ema200-vol",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.3456721898409334,
+                "maxDrawdown": 0.25624585423699286,
+                "calmar": 1.3489864679770907,
+                "sharpe": 1.1281532208617202,
+                "years": 2.2164383561643834
+              },
+              "flips": 299,
+              "avgExposure": 0.45,
+              "totalCostPct": 6.52
+            }
+          ]
+        },
+        {
+          "label": "fold4",
+          "from": "2024-04-27",
+          "to": "2026-07-16",
+          "runs": [
+            {
+              "variant": "buy-hold",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.00261042327262917,
+                "maxDrawdown": 0.529717659135106,
+                "calmar": 0.0049279521413186905,
+                "sharpe": 0.23445022389411704,
+                "years": 2.219178082191781
+              },
+              "flips": 1,
+              "avgExposure": 1,
+              "totalCostPct": 0.25
+            },
+            {
+              "variant": "ema200",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": -0.0016518132674990804,
+                "maxDrawdown": 0.3566869751766679,
+                "calmar": -0.00463098846455196,
+                "sharpe": 0.16208001456075968,
+                "years": 2.219178082191781
+              },
+              "flips": 36,
+              "avgExposure": 0.587,
+              "totalCostPct": 9
+            },
+            {
+              "variant": "ema200-hmm",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": -0.09151520286140702,
+                "maxDrawdown": 0.2988091087106647,
+                "calmar": -0.3062664430019793,
+                "sharpe": -0.3315514164078892,
+                "years": 2.219178082191781
+              },
+              "flips": 276,
+              "avgExposure": 0.33,
+              "totalCostPct": 25.23
+            },
+            {
+              "variant": "ema200-vol",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.019567774349608547,
+                "maxDrawdown": 0.30875842210059834,
+                "calmar": 0.06337567803489116,
+                "sharpe": 0.21319723693502848,
+                "years": 2.219178082191781
+              },
+              "flips": 253,
+              "avgExposure": 0.533,
+              "totalCostPct": 8.26
+            }
+          ]
+        }
+      ]
+    },
+    "ETHUSD": {
+      "bars": 3241,
+      "firstBar": "2017-09-01",
+      "lastBar": "2026-07-16",
+      "regimeShare": {
+        "trend": 1003,
+        "volatile": 1229,
+        "range": 1009,
+        "null": 0
+      },
+      "full": [
+        {
+          "variant": "buy-hold",
+          "costModel": "spot",
+          "metrics": {
+            "cagr": 0.1932939680166419,
+            "maxDrawdown": 0.9396550481981526,
+            "calmar": 0.20570736930248518,
+            "sharpe": 0.643987924133401,
+            "years": 8.876712328767123
+          },
+          "flips": 1,
+          "avgExposure": 1,
+          "totalCostPct": 0.25
+        },
+        {
+          "variant": "ema200",
+          "costModel": "spot",
+          "metrics": {
+            "cagr": 0.29794969165800733,
+            "maxDrawdown": 0.7457109867197733,
+            "calmar": 0.39955116253365897,
+            "sharpe": 0.749912941202629,
+            "years": 8.876712328767123
+          },
+          "flips": 64,
+          "avgExposure": 0.471,
+          "totalCostPct": 16
+        },
+        {
+          "variant": "ema200-hmm",
+          "costModel": "spot",
+          "metrics": {
+            "cagr": 0.12995021457199885,
+            "maxDrawdown": 0.6952169772577278,
+            "calmar": 0.18692036993196767,
+            "sharpe": 0.5080028283734259,
+            "years": 8.876712328767123
+          },
+          "flips": 893,
+          "avgExposure": 0.296,
+          "totalCostPct": 85.67
+        },
+        {
+          "variant": "ema200-vol",
+          "costModel": "spot",
+          "metrics": {
+            "cagr": 0.235603153969548,
+            "maxDrawdown": 0.37368847830220475,
+            "calmar": 0.6304801128468669,
+            "sharpe": 0.8324763630507946,
+            "years": 8.876712328767123
+          },
+          "flips": 1430,
+          "avgExposure": 0.289,
+          "totalCostPct": 18.21
+        },
+        {
+          "variant": "buy-hold",
+          "costModel": "perp",
+          "metrics": {
+            "cagr": 0.06951053000530472,
+            "maxDrawdown": 0.945442119134733,
+            "calmar": 0.07352171920256804,
+            "sharpe": 0.5179575190095322,
+            "years": 8.876712328767123
+          },
+          "flips": 1,
+          "avgExposure": 1,
+          "totalCostPct": 97.4
+        },
+        {
+          "variant": "ema200-hmm",
+          "costModel": "perp",
+          "metrics": {
+            "cagr": 0.11518712199148662,
+            "maxDrawdown": 0.6965939194118287,
+            "calmar": 0.16535763345270835,
+            "sharpe": 0.4782693669676673,
+            "years": 8.876712328767123
+          },
+          "flips": 893,
+          "avgExposure": 0.296,
+          "totalCostPct": 97.36
+        }
+      ],
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2017-09-01",
+          "to": "2019-11-19",
+          "runs": [
+            {
+              "variant": "buy-hold",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": -0.30047330451822674,
+                "maxDrawdown": 0.9396550481981526,
+                "calmar": -0.31976979753836593,
+                "sharpe": 0.16417318967777067,
+                "years": 2.2164383561643834
+              },
+              "flips": 1,
+              "avgExposure": 1,
+              "totalCostPct": 0.25
+            },
+            {
+              "variant": "ema200",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": -0.10839451646521658,
+                "maxDrawdown": 0.5153815666713888,
+                "calmar": -0.21031896263827718,
+                "sharpe": -0.11681773354446395,
+                "years": 2.2164383561643834
+              },
+              "flips": 18,
+              "avgExposure": 0.148,
+              "totalCostPct": 4.5
+            },
+            {
+              "variant": "ema200-hmm",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": -0.11684739740486871,
+                "maxDrawdown": 0.3998345395584877,
+                "calmar": -0.2922393786537201,
+                "sharpe": -0.31330858095226455,
+                "years": 2.2164383561643834
+              },
+              "flips": 78,
+              "avgExposure": 0.097,
+              "totalCostPct": 9.37
+            },
+            {
+              "variant": "ema200-vol",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": -0.029533390642857316,
+                "maxDrawdown": 0.30077986230126064,
+                "calmar": -0.09818938813555515,
+                "sharpe": -0.07641393416721662,
+                "years": 2.2164383561643834
+              },
+              "flips": 129,
+              "avgExposure": 0.07,
+              "totalCostPct": 2.81
+            }
+          ]
+        },
+        {
+          "label": "fold2",
+          "from": "2019-11-20",
+          "to": "2022-02-06",
+          "runs": [
+            {
+              "variant": "buy-hold",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 2.6362980920796915,
+                "maxDrawdown": 0.6218832193582323,
+                "calmar": 4.239217283914308,
+                "sharpe": 1.8004615847880796,
+                "years": 2.2164383561643834
+              },
+              "flips": 1,
+              "avgExposure": 1,
+              "totalCostPct": 0.25
+            },
+            {
+              "variant": "ema200",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 1.493543088870668,
+                "maxDrawdown": 0.6600089081364695,
+                "calmar": 2.2629135311032034,
+                "sharpe": 1.476890916804714,
+                "years": 2.2164383561643834
+              },
+              "flips": 14,
+              "avgExposure": 0.81,
+              "totalCostPct": 3.5
+            },
+            {
+              "variant": "ema200-hmm",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.956281428835615,
+                "maxDrawdown": 0.6228234919939661,
+                "calmar": 1.535397172919867,
+                "sharpe": 1.2943672074582306,
+                "years": 2.2164383561643834
+              },
+              "flips": 388,
+              "avgExposure": 0.548,
+              "totalCostPct": 37.27
+            },
+            {
+              "variant": "ema200-vol",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 1.00153214821372,
+                "maxDrawdown": 0.3327420450476488,
+                "calmar": 3.0099356637370556,
+                "sharpe": 1.8444566310492851,
+                "years": 2.2164383561643834
+              },
+              "flips": 655,
+              "avgExposure": 0.408,
+              "totalCostPct": 4.85
+            }
+          ]
+        },
+        {
+          "label": "fold3",
+          "from": "2022-02-07",
+          "to": "2024-04-26",
+          "runs": [
+            {
+              "variant": "buy-hold",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": -0.0012180124906614465,
+                "maxDrawdown": 0.7174459313270357,
+                "calmar": -0.0016977063183124192,
+                "sharpe": 0.3404903952337111,
+                "years": 2.2164383561643834
+              },
+              "flips": 1,
+              "avgExposure": 1,
+              "totalCostPct": 0.25
+            },
+            {
+              "variant": "ema200",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.21632832668459767,
+                "maxDrawdown": 0.26554566030309,
+                "calmar": 0.8146558540541902,
+                "sharpe": 0.7015348347369327,
+                "years": 2.2164383561643834
+              },
+              "flips": 15,
+              "avgExposure": 0.502,
+              "totalCostPct": 3.75
+            },
+            {
+              "variant": "ema200-hmm",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.028057338818450628,
+                "maxDrawdown": 0.23186959801901186,
+                "calmar": 0.12100481933879965,
+                "sharpe": 0.2349602456366973,
+                "years": 2.2164383561643834
+              },
+              "flips": 228,
+              "avgExposure": 0.286,
+              "totalCostPct": 19.63
+            },
+            {
+              "variant": "ema200-vol",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.23469273594072737,
+                "maxDrawdown": 0.2511980935018102,
+                "calmar": 0.9342934600697361,
+                "sharpe": 0.8398999726956036,
+                "years": 2.2164383561643834
+              },
+              "flips": 325,
+              "avgExposure": 0.405,
+              "totalCostPct": 5.3
+            }
+          ]
+        },
+        {
+          "label": "fold4",
+          "from": "2024-04-27",
+          "to": "2026-07-16",
+          "runs": [
+            {
+              "variant": "buy-hold",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": -0.22206353943928037,
+                "maxDrawdown": 0.675534501776671,
+                "calmar": -0.32872272083105786,
+                "sharpe": -0.016263392639912985,
+                "years": 2.219178082191781
+              },
+              "flips": 1,
+              "avgExposure": 1,
+              "totalCostPct": 0.25
+            },
+            {
+              "variant": "ema200",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": 0.032543835428715084,
+                "maxDrawdown": 0.3865056493625679,
+                "calmar": 0.08420015459641267,
+                "sharpe": 0.2850491742327851,
+                "years": 2.219178082191781
+              },
+              "flips": 18,
+              "avgExposure": 0.422,
+              "totalCostPct": 4.5
+            },
+            {
+              "variant": "ema200-hmm",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": -0.08789665360214227,
+                "maxDrawdown": 0.3042610109171169,
+                "calmar": -0.28888569500640365,
+                "sharpe": -0.1849901268077829,
+                "years": 2.219178082191781
+              },
+              "flips": 199,
+              "avgExposure": 0.255,
+              "totalCostPct": 19.5
+            },
+            {
+              "variant": "ema200-vol",
+              "costModel": "spot",
+              "metrics": {
+                "cagr": -0.03702850785213263,
+                "maxDrawdown": 0.32255998043741996,
+                "calmar": -0.1147957282298898,
+                "sharpe": 0.012186554468682853,
+                "years": 2.219178082191781
+              },
+              "flips": 321,
+              "avgExposure": 0.275,
+              "totalCostPct": 5.39
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "portfolio": {
+    "buy-hold": {
+      "variant": "buy-hold",
+      "costModel": "spot",
+      "metrics": {
+        "cagr": 0.28087141294666806,
+        "maxDrawdown": 0.864884221616865,
+        "calmar": 0.3247503029036542,
+        "sharpe": 0.7105656203202978,
+        "years": 8.876712328767123
+      },
+      "flips": -1,
+      "avgExposure": -1,
+      "totalCostPct": -1
+    },
+    "ema200": {
+      "variant": "ema200",
+      "costModel": "spot",
+      "metrics": {
+        "cagr": 0.29351754334288427,
+        "maxDrawdown": 0.5875994653327523,
+        "calmar": 0.4995197590533339,
+        "sharpe": 0.8019472634321729,
+        "years": 8.876712328767123
+      },
+      "flips": -1,
+      "avgExposure": -1,
+      "totalCostPct": -1
+    },
+    "ema200-hmm": {
+      "variant": "ema200-hmm",
+      "costModel": "spot",
+      "metrics": {
+        "cagr": 0.10777641978089836,
+        "maxDrawdown": 0.5018751015953067,
+        "calmar": 0.21474749282901312,
+        "sharpe": 0.4795370617347671,
+        "years": 8.876712328767123
+      },
+      "flips": -1,
+      "avgExposure": -1,
+      "totalCostPct": -1
+    },
+    "ema200-vol": {
+      "variant": "ema200-vol",
+      "costModel": "spot",
+      "metrics": {
+        "cagr": 0.22752358840859088,
+        "maxDrawdown": 0.3741605272390006,
+        "calmar": 0.6080908376079361,
+        "sharpe": 0.8713747876674449,
+        "years": 8.876712328767123
+      },
+      "flips": -1,
+      "avgExposure": -1,
+      "totalCostPct": -1
+    }
+  }
+}
