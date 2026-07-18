@@ -12,6 +12,7 @@ jest.mock('../risk-state', () => {
 
 jest.mock('../regime-filter', () => ({
   getDominantRegime: jest.fn(() => 'neutral'),
+  fetchRegimeVolMap: jest.fn(async () => new Map<string, number>()),
 }));
 
 jest.mock('@tradeclaw/signals', () => ({
@@ -179,6 +180,7 @@ describe('risk routing account gate', () => {
         positionsValue: 2_000,
         cash: 8_000,
       }),
+      undefined,
     );
   });
 });

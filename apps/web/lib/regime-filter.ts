@@ -52,6 +52,44 @@ export async function fetchRegimeMap(): Promise<Map<string, MarketRegime>> {
   return map;
 }
 
+interface RegimeVolRow {
+  symbol: string;
+  vol20d: string | null;
+}
+
+/**
+ * Fetch the latest stored daily-equivalent realized vol (features->>'vol20d',
+ * written by regime-writer) for each symbol. Feeds computeAllocation's
+ * currentVol so the volatility scaler is live (plan:
+ * docs/plans/2026-07-18-wire-vol-scaler.md).
+ *
+ * Same fail-safe contract as fetchRegimeMap: rows without a finite positive
+ * vol are skipped, any DB error yields an empty map (allocator runs
+ * unscaled), never throws.
+ */
+export async function fetchRegimeVolMap(): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+
+  try {
+    const rows = await query<RegimeVolRow>(
+      `SELECT DISTINCT ON (symbol) symbol, features->>'vol20d' AS vol20d
+       FROM market_regimes
+       ORDER BY symbol, detected_at DESC`,
+    );
+
+    for (const row of rows) {
+      const vol = row.vol20d === null ? NaN : Number(row.vol20d);
+      if (Number.isFinite(vol) && vol > 0) {
+        map.set(row.symbol.toUpperCase(), vol);
+      }
+    }
+  } catch {
+    // DB unavailable — empty map, position sizing runs unscaled
+  }
+
+  return map;
+}
+
 /**
  * Get the dominant regime across all symbols.
  * Uses simple majority vote. Falls back to 'range'.

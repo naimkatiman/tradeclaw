@@ -196,6 +196,29 @@ describe('runRegimeWriter', () => {
     }
   });
 
+  it('stores a daily-equivalent realized vol (vol20d) in features', async () => {
+    fullResult(await runRegimeWriter());
+
+    const row = insertedRow('BTCUSD');
+    const vol = row.features.vol20d;
+    expect(typeof vol).toBe('number');
+
+    // Independently recompute from the makeStoredBars fixture closes:
+    // std of all 399 hourly log returns, scaled by sqrt(24).
+    const closes: number[] = [];
+    let price = 100;
+    for (let i = 0; i < 400; i++) {
+      price = price + Math.sin(i / 9) * 0.6 + Math.sin(i / 23) * 0.4;
+      closes.push(price);
+    }
+    const rets: number[] = [];
+    for (let i = 1; i < closes.length; i++) rets.push(Math.log(closes[i] / closes[i - 1]));
+    const mean = rets.reduce((a, b) => a + b, 0) / rets.length;
+    const variance = rets.reduce((a, b) => a + (b - mean) * (b - mean), 0) / rets.length;
+    const expected = Math.sqrt(variance) * Math.sqrt(24);
+    expect(vol as number).toBeCloseTo(expected, 4);
+  });
+
   it('increments barsHeld while the persisted label is unchanged', async () => {
     mockedClassify.mockReturnValue(fixedClassification('range', 0.6));
     for (const symbol of REGIME_CANDLE_UNIVERSE) {
