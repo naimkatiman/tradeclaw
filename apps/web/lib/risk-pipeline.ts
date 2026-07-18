@@ -23,7 +23,7 @@ import {
   type VetoResult,
 } from '@tradeclaw/signals';
 import { getRiskState, type ReconstructedRiskState } from './risk-state';
-import { getDominantRegime } from './regime-filter';
+import { fetchRegimeVolMap, getDominantRegime } from './regime-filter';
 import { getPortfolio, type Portfolio } from './paper-trading';
 import { verifyRiskWithLlm, type LlmRiskVerification } from './llm-risk-verify';
 
@@ -160,6 +160,11 @@ export async function runRiskPipeline(
     drawdownPct: reconstructed.summary.drawdownFromPeakPct,
   };
 
+  // Latest stored per-symbol realized vol (regime-writer's features.vol20d).
+  // Empty map (no rows yet / DB error) leaves the allocator's vol scaler at
+  // 1.0 — identical to the pre-wire behavior.
+  const volMap = await fetchRegimeVolMap();
+
   const approved: SignalForPipeline[] = [];
   const vetoed: RiskPipelineResult['vetoed'] = [];
   const allocations: RiskReport['allocations'] = [];
@@ -172,6 +177,7 @@ export async function runRiskPipeline(
       { symbol: signal.symbol, direction: signal.direction, confidence: signal.confidence },
       symbolRegime,
       portfolioState,
+      volMap.get(signal.symbol.toUpperCase()),
     );
 
     allocations.push({

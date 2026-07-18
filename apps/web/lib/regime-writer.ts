@@ -36,6 +36,36 @@ const RECENT_BARS = 400;
 /** Trailing observation window passed to classifyRegime; recorded in features. */
 const SEQUENCE_LENGTH = 64;
 
+/**
+ * Trailing hourly-return window for the stored realized vol: 20 days of H1.
+ * With RECENT_BARS=400 the usable window is ~16.6 days — an approximation of
+ * the allocator's "approximate 20-day rolling vol" contract
+ * (plan: docs/plans/2026-07-18-wire-vol-scaler.md).
+ */
+const VOL_WINDOW_HOURS = 480;
+
+/**
+ * Daily-equivalent realized vol: std of trailing hourly log returns scaled
+ * by sqrt(24). Null when the series is too short or contains non-positive
+ * closes — the row is then written without vol20d and the allocator keeps
+ * running unscaled for that symbol.
+ */
+function computeDailyVol(closes: number[]): number | null {
+  const n = Math.min(VOL_WINDOW_HOURS, closes.length - 1);
+  if (n < 24) return null;
+  const rets: number[] = [];
+  for (let i = closes.length - n; i < closes.length; i++) {
+    const prev = closes[i - 1];
+    const cur = closes[i];
+    if (!(prev > 0) || !(cur > 0)) return null;
+    rets.push(Math.log(cur / prev));
+  }
+  const mean = rets.reduce((a, b) => a + b, 0) / rets.length;
+  const variance = rets.reduce((a, b) => a + (b - mean) * (b - mean), 0) / rets.length;
+  const dailyVol = Math.sqrt(variance) * Math.sqrt(24);
+  return Number.isFinite(dailyVol) ? Math.round(dailyVol * 1e6) / 1e6 : null;
+}
+
 export interface RegimeWriterFailure {
   symbol: string;
   stage: 'refresh' | 'data' | 'classify';
@@ -139,12 +169,14 @@ export async function runRegimeWriter(): Promise<RegimeWriterResult> {
       const posterior = classification.allProbabilities[finalRegime];
       const confidence = Math.min(1, Math.max(0, Math.round(posterior * 10_000) / 10_000));
 
+      const vol20d = computeDailyVol(bars.map((b) => b.close));
       const features = {
         ...classification.features,
         candidate: classification.regime,
         candidateConfidence: classification.confidence,
         barsHeld,
         sequenceLength: SEQUENCE_LENGTH,
+        ...(vol20d !== null ? { vol20d } : {}),
       };
 
       await execute(
