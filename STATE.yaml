@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-20T02:05:00+08:00
+updated: 2026-07-20T02:26:08+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -8,13 +8,16 @@ description: >
   Goal: viral GitHub repo, thousands of stars.
 
 dashboard_hydration_hotfix_2026_07_20:
-  at: 2026-07-20T02:01:00+08:00
+  at: 2026-07-20T02:26:08+08:00
   agent: TradeClaw PM agent
-  status: ready_for_publish
+  status: deployed
   scope: Remove the fresh-load dashboard hydration exception found during the exact-origin-main production audit
   base_commit: 08a6bfefc92659d7cec0ccacdad85be89dcfb3ed
   branch: fix/dashboard-hydration-20260720
-  current_step: All local gates passed; rebasing onto current origin/main before protected PR publication and exact-main deployment
+  code_commit: d653a0c67759cddfc4c7c201919507bbeb1805a5
+  pull_request: 180
+  merge_commit: 67e67cf15f76b4548b3696780bfda1aba717dd08
+  current_step: Complete; protected PR #180 is merged and its exact origin/main tree is deployed and verified on Railway production
   root_cause: >
     Browser-persisted UI state was read during the first client render while the
     server rendered stable defaults. OnboardingBanner and VisitStreak were two
@@ -34,6 +37,28 @@ dashboard_hydration_hotfix_2026_07_20:
     skips and one snapshot; forced runner cleanup was still required for the
     existing asynchronous open handle. The mandatory root production build
     compiled successfully and generated all 324 pages.
+  deployment_result:
+    provider: Railway
+    deployment_id: e18ada19-f173-4067-aed8-07681434d976
+    status: SUCCESS
+    created_at: 2026-07-19T18:22:05.900Z
+    image_digest: sha256:874af41ac87101bed38b04a674069df979f6a9cd5348b88b6fb9b702aa33b12e
+    application_build_id: 8500dd11-5346-4c74-b23a-99c36fb7ba0f
+    health_status: ok
+    database_status: ok
+    migrations_status: ok
+    required_migration: 053_drop_monetization.sql
+  live_verification: >
+    Railway reached terminal SUCCESS after compiling and generating 324/324
+    pages. The service started on Next.js 16.2.6 with all 55 migrations applied
+    and zero pending. Both health endpoints returned HTTP 200 with database and
+    migrations ready, and the same-origin GitHub proxy returned numeric metrics.
+    All six production localization checks passed, including fresh hard dashboard
+    loads in English, Malay, and Arabic without React hydration exceptions. A
+    separate production audit confirmed English, Spanish, Chinese, Malay, and
+    Arabic landing routes expose the correct lang and direction, no horizontal
+    overflow, no page exceptions, and computed emerald tokens --brand #34d399
+    and --brand-bright #10b981.
 
 emerald_main_sync_release_2026_07_19:
   at: 2026-07-19T23:22:41+08:00
