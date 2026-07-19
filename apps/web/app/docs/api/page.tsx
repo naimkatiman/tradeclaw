@@ -296,7 +296,7 @@ es.addEventListener('signal', (e) => {
         <h2 className="text-2xl font-semibold text-white mb-4" id="utility">Utility</h2>
         <div className="rounded-xl border border-white/6 overflow-hidden">
           {([
-            { method: 'GET', path: '/api/health', desc: 'Health check. Returns status, version, uptime, and Node version.' },
+            { method: 'GET', path: '/api/health', desc: 'Readiness check. Returns 200 only when PostgreSQL and the required schema migration are ready; otherwise 503.' },
             { method: 'GET', path: '/api/openapi', desc: 'OpenAPI 3.0 specification in JSON format.' },
             { method: 'GET', path: '/api/embed', desc: 'Generate embeddable widget script.', params: ['pair', 'theme', 'width', 'height'] },
             { method: 'GET', path: '/api/explain', desc: 'AI explanation of a signal\'s reasoning.', params: ['signalId'] },

@@ -2,6 +2,11 @@ export const PUBLISHED_SIGNAL_MIN_CONFIDENCE = 70;
 export const WATCHLIST_MIN_CONFIDENCE = 60;
 export const HIGH_CONFIDENCE_THRESHOLD = 80;
 
+/** The public high rule-score band is inclusive at exactly 80/100. */
+export function isHighRuleScore(score: number): boolean {
+  return score >= HIGH_CONFIDENCE_THRESHOLD;
+}
+
 /**
  * Lower bound of the high-confidence analytics band (confidence >= 85).
  * Formerly the tier gate PRO_PREMIUM_MIN_CONFIDENCE; the tier system is gone

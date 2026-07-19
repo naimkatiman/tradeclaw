@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { getTrackRecordTranslations } from '../product-i18n/track-record';
+import { getTrackRecordWidgetTranslations } from '../product-i18n/track-record-widgets';
 
 function source(path: string): string {
   return readFileSync(resolve(__dirname, '../..', path), 'utf8');
@@ -47,10 +49,15 @@ describe('release blocker public surfaces', () => {
     const cache = source('lib/leaderboard-cache.ts');
     const trackRecord = source('app/track-record/TrackRecordClient.tsx');
     const equityCurve = source('app/components/equity-curve.tsx');
+    const trackRecordCopy = getTrackRecordTranslations('en');
+    const equityCopy = getTrackRecordWidgetTranslations('en').equity;
 
     expect(cache).not.toContain('resolveRealOutcomes');
     expect(trackRecord).not.toContain('Outcome tracker live');
-    expect(trackRecord).toContain("text: 'unverified'");
-    expect(equityCurve).toContain('No zero-return placeholder is shown');
+    expect(trackRecord).toContain('t.status.unverified');
+    expect(trackRecordCopy.status.unverified).toBe('unverified');
+    expect(trackRecordCopy.populationBody).toMatch(/Legacy outcome values.*unverified audit rows/i);
+    expect(equityCurve).toContain('t.noEvidence');
+    expect(equityCopy.noEvidence).toContain('No zero-return placeholder is shown');
   });
 });

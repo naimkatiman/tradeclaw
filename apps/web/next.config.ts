@@ -51,6 +51,16 @@ const nextConfig: NextConfig = {
         destination: '/screener',
         permanent: true,
       },
+      {
+        source: '/fly',
+        destination: '/start',
+        permanent: false,
+      },
+      {
+        source: '/replit',
+        destination: '/start',
+        permanent: false,
+      },
     ];
   },
 

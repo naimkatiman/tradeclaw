@@ -1,6 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useLocale } from './locale-provider';
+import { formatMessage } from '@/lib/product-i18n/format';
+import { getTrackRecordWidgetTranslations } from '@/lib/product-i18n/track-record-widgets';
+import { getHtmlLanguage } from '@/lib/translations';
 
 const PUBLIC_ORIGIN = 'https://tradeclaw.win';
 
@@ -23,16 +27,26 @@ export function ShareLinkedIn({
   winRate,
   resolved,
   period = 'recent',
-  label = 'Share on LinkedIn',
+  label,
 }: ShareLinkedInProps) {
+  const { locale } = useLocale();
+  const t = getTrackRecordWidgetTranslations(locale).share;
   const href = useMemo(() => {
     const url = `${PUBLIC_ORIGIN}/track-record?utm_source=linkedin&utm_medium=share&utm_campaign=track_record&period=${encodeURIComponent(period)}`;
+    const language = getHtmlLanguage(locale);
     const text =
       typeof winRate === 'number' && typeof resolved === 'number' && resolved > 0
-        ? `TradeClaw observed a ${winRate}% win rate across ${resolved} counted signals whose outcomes were resolved against provider OHLCV. This is signal-study data, not broker fills or customer portfolio returns.\n\nInspect the population and methodology:\n${url}`
-        : `TradeClaw publishes recorded signal rows, OHLCV-resolved outcomes, and the excluded populations. It is not an execution or customer-account ledger:\n${url}`;
+        ? formatMessage(t.linkedinObserved, {
+            winRate: new Intl.NumberFormat(language, {
+              style: 'percent',
+              maximumFractionDigits: 2,
+            }).format(winRate / 100),
+            resolved: new Intl.NumberFormat(language).format(resolved),
+            url,
+          })
+        : formatMessage(t.linkedinGeneric, { url });
     return `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`;
-  }, [winRate, resolved, period]);
+  }, [winRate, resolved, period, locale, t]);
 
   return (
     <a
@@ -41,7 +55,7 @@ export function ShareLinkedIn({
       rel="noopener noreferrer"
       data-testid="share-on-linkedin"
       className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs font-semibold text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/[0.08]"
-      aria-label="Share track record on LinkedIn"
+      aria-label={t.linkedinAria}
     >
       <svg
         viewBox="0 0 24 24"
@@ -52,7 +66,7 @@ export function ShareLinkedIn({
       >
         <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
       </svg>
-      <span>{label}</span>
+      <span>{label ?? t.linkedinDefaultLabel}</span>
     </a>
   );
 }

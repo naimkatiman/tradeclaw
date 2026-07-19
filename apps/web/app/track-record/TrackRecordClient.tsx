@@ -8,7 +8,6 @@ import { EquityCurve } from '@/app/components/equity-curve';
 import { TrailingWeekBandCallout } from '@/app/components/trailing-week-band-callout';
 import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 import { InfoHint } from '@/components/InfoHint';
-import { STAT_HINTS } from '@/lib/stat-hints';
 import { isExpiredHistoricalOutcome, isPendingHistoricalOutcome } from '@/lib/signal-history-status';
 import { deriveHistoricalOutcomeStatus } from '@/lib/signal-outcome';
 import { isObservedOHLCVOutcomeSource } from '@/lib/outcome-provenance';
@@ -16,46 +15,66 @@ import { symbolsForCategory, type CategoryFilter } from '@/app/lib/symbol-config
 import { EmbedButton } from '../components/embed-button';
 import { ShareOnX } from '../components/share-on-x';
 import { ShareLinkedIn } from '../components/share-linkedin';
+import { useLocale } from '@/app/components/locale-provider';
+import { getHtmlLanguage } from '@/lib/translations';
+import {
+  getTrackRecordTranslations,
+  type TrackRecordTranslations,
+} from '@/lib/product-i18n/track-record';
+import { formatMessage } from '@/lib/product-i18n/format';
 
 type Period = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
 
-const PERIOD_OPTIONS: { value: Period; label: string; days: number | null }[] = [
-  { value: '7d',   label: '7D',  days: 7 },
-  { value: '30d',  label: '1M',  days: 30 },
-  { value: '90d',  label: '3M',  days: 90 },
-  { value: '180d', label: '6M',  days: 180 },
-  { value: '1y',   label: '1Y',  days: 365 },
-  { value: '5y',   label: '5Y',  days: 1825 },
-  { value: 'all',  label: 'All', days: null },
+const PERIOD_OPTIONS: { value: Period; days: number | null }[] = [
+  { value: '7d', days: 7 },
+  { value: '30d', days: 30 },
+  { value: '90d', days: 90 },
+  { value: '180d', days: 180 },
+  { value: '1y', days: 365 },
+  { value: '5y', days: 1825 },
+  { value: 'all', days: null },
 ];
 
-const CATEGORY_OPTIONS: { value: CategoryFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'majors', label: 'Majors' },
-  { value: 'thematic', label: 'Thematic' },
-];
+const PERIOD_CODE_LABELS: Record<Exclude<Period, 'all'>, string> = {
+  '7d': '7D',
+  '30d': '1M',
+  '90d': '3M',
+  '180d': '6M',
+  '1y': '1Y',
+  '5y': '5Y',
+};
 
-function formatHeartbeatAge(lastUpdated: number, now: number): string {
+const CATEGORY_OPTIONS: CategoryFilter[] = ['all', 'majors', 'thematic'];
+
+function formatHeartbeatAge(
+  lastUpdated: number,
+  now: number,
+  t: TrackRecordTranslations,
+): string {
   const ageMs = Math.max(0, now - lastUpdated);
   const totalMinutes = Math.max(1, Math.round(ageMs / 60_000));
 
   if (totalMinutes < 60) {
-    return `${totalMinutes}m ago`;
+    return formatMessage(t.relativeTime.minutesAgo, { count: totalMinutes });
   }
 
   const hours = Math.round(totalMinutes / 60);
   if (hours < 24) {
-    return `${hours}h ago`;
+    return formatMessage(t.relativeTime.hoursAgo, { count: hours });
   }
 
-  return `${Math.round(hours / 24)}d ago`;
+  return formatMessage(t.relativeTime.daysAgo, { count: Math.round(hours / 24) });
 }
 
-function getResolutionHeartbeat(lastUpdated: number | null | undefined, now: number) {
+function getResolutionHeartbeat(
+  lastUpdated: number | null | undefined,
+  now: number,
+  t: TrackRecordTranslations,
+) {
   if (!lastUpdated) return null;
 
   return {
-    ageLabel: formatHeartbeatAge(lastUpdated, now),
+    ageLabel: formatHeartbeatAge(lastUpdated, now, t),
   };
 }
 
@@ -143,27 +162,27 @@ interface LeaderboardData {
 
 // ── Helpers ──────────────────────────────────────────────────────
 
-function formatPrice(price: number): string {
-  if (price >= 1000) return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  if (price >= 1) return price.toFixed(4);
-  return price.toFixed(6);
+function formatPrice(price: number, locale: Parameters<typeof getHtmlLanguage>[0]): string {
+  const fractionDigits = price >= 1000 ? 2 : price >= 1 ? 4 : 6;
+  return price.toLocaleString(getHtmlLanguage(locale), {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  });
 }
 
-function formatTime(ts: number): string {
-  const d = new Date(ts);
-  const month = d.toLocaleString('en-US', { month: 'short' });
-  const day = d.getDate();
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  const tz = new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' })
-    .formatToParts(d)
-    .find(p => p.type === 'timeZoneName')?.value ?? '';
-  return `${month} ${day}, ${hh}:${mm} ${tz}`;
+function formatTime(ts: number, locale: Parameters<typeof getHtmlLanguage>[0]): string {
+  return new Intl.DateTimeFormat(getHtmlLanguage(locale), {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  }).format(new Date(ts));
 }
 
 /** Short "Mon D, YYYY" stamp for the headline "since <date>" provenance. */
-function formatDateStamp(ts: number): string {
-  return new Date(ts).toLocaleDateString('en-US', {
+function formatDateStamp(ts: number, locale: Parameters<typeof getHtmlLanguage>[0]): string {
+  return new Date(ts).toLocaleDateString(getHtmlLanguage(locale), {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -173,15 +192,22 @@ function formatDateStamp(ts: number): string {
 /** Human window descriptor for the selected period, anchored to the earliest
  * recorded signal. "All" with no data is unbounded; a fixed window shows the
  * actual span it covers given how much history exists. */
-function periodWindowLabel(period: Period, earliestTs: number | null): string {
+function periodWindowLabel(
+  period: Period,
+  earliestTs: number | null,
+  locale: Parameters<typeof getHtmlLanguage>[0],
+  t: TrackRecordTranslations,
+): string {
   const opt = PERIOD_OPTIONS.find(o => o.value === period);
   if (!opt) return '';
   if (opt.days === null) {
-    return earliestTs ? `currently stored since ${formatDateStamp(earliestTs)}` : 'current archive';
+    return earliestTs
+      ? formatMessage(t.window.storedSince, { date: formatDateStamp(earliestTs, locale) })
+      : t.window.currentArchive;
   }
   const start = Date.now() - opt.days * 86_400_000;
   const effectiveStart = earliestTs ? Math.max(start, earliestTs) : start;
-  return `${formatDateStamp(effectiveStart)} – ${formatDateStamp(Date.now())}`;
+  return `${formatDateStamp(effectiveStart, locale)} – ${formatDateStamp(Date.now(), locale)}`;
 }
 
 function HitRateBar({ value }: { value: number }) {
@@ -195,7 +221,7 @@ function HitRateBar({ value }: { value: number }) {
           style={{ width: `${Math.min(value, 100)}%` }}
         />
       </div>
-      <span className={`text-[11px] font-mono font-semibold tabular-nums w-10 text-right ${textColor}`}>
+      <span className={`text-[11px] font-mono font-semibold tabular-nums w-10 text-end ${textColor}`}>
         {value > 0 ? `${value}%` : '—'}
       </span>
     </div>
@@ -241,21 +267,22 @@ function formatOutcomeCell(
   status: ReturnType<typeof deriveHistoricalOutcomeStatus> | null,
   isPendingWindow: boolean,
   isExpiredWindow: boolean,
+  t: TrackRecordTranslations,
 ) {
   if (outcome == null) {
     return {
-      text: isPendingWindow ? '…' : isExpiredWindow ? 'expired' : '—',
+      text: isPendingWindow ? '…' : isExpiredWindow ? t.status.expired : '—',
       className: 'text-zinc-600',
     };
   }
 
   if (status === 'expired' && outcome.pnlPct === 0) {
-    return { text: 'expired', className: 'text-zinc-600' };
+    return { text: t.status.expired, className: 'text-zinc-600' };
   }
 
   if (!isObservedOHLCVOutcomeSource(outcome.source)) {
     return {
-      text: 'unverified',
+      text: t.status.unverified,
       className: 'text-amber-400/80',
     };
   }
@@ -263,13 +290,13 @@ function formatOutcomeCell(
   if (status === 'expired') {
     if (outcome.pnlPct !== 0) {
       return {
-        text: 'Close',
+        text: t.status.close,
         className: outcome.pnlPct > 0
           ? 'text-emerald-400 font-semibold'
           : 'text-red-400 font-semibold',
       };
     }
-    return { text: 'expired', className: 'text-zinc-600' };
+    return { text: t.status.expired, className: 'text-zinc-600' };
   }
 
   return outcome.hit
@@ -313,11 +340,15 @@ function CategoryBreakdownRow({
   scope,
   active,
   onSelect,
+  t,
+  language,
 }: {
   period: Period;
   scope: Scope;
   active: CategoryFilter;
   onSelect: (c: CategoryFilter) => void;
+  t: TrackRecordTranslations;
+  language: string;
 }) {
   const [data, setData] = useState<Record<CategoryFilter, CategorySnapshot | null>>({
     all: null,
@@ -363,9 +394,9 @@ function CategoryBreakdownRow({
   }, [period, scope]);
 
   const cells: { value: CategoryFilter; label: string }[] = [
-    { value: 'all', label: 'All' },
-    { value: 'majors', label: 'Majors' },
-    { value: 'thematic', label: 'Thematic' },
+    { value: 'all', label: t.categories.all },
+    { value: 'majors', label: t.categories.majors },
+    { value: 'thematic', label: t.categories.thematic },
   ];
 
   return (
@@ -382,7 +413,7 @@ function CategoryBreakdownRow({
             key={value}
             type="button"
             onClick={() => onSelect(value)}
-            className={`text-left rounded-lg px-3 py-2 transition-colors ${
+            className={`text-start rounded-lg px-3 py-2 transition-colors ${
               isActive
                 ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30'
                 : 'hover:bg-white/[0.04]'
@@ -392,7 +423,7 @@ function CategoryBreakdownRow({
               <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">{label}</span>
               {snap && (
                 <span className="text-[9px] font-mono text-zinc-600 tabular-nums">
-                  n={snap.totalSignals.toLocaleString()}
+                  n={new Intl.NumberFormat(language).format(snap.totalSignals)}
                 </span>
               )}
             </div>
@@ -418,7 +449,9 @@ function CategoryBreakdownRow({
                       : '—'}
                   </span>
                   {hasEvidence && snap.breakEvenWinRate !== null && (
-                    <span className="text-zinc-600">be {snap.breakEvenWinRate}%</span>
+                    <span className="text-zinc-600">
+                      {formatMessage(t.header.breakEven, { value: snap.breakEvenWinRate })}
+                    </span>
                   )}
                 </div>
               </>
@@ -431,6 +464,10 @@ function CategoryBreakdownRow({
 }
 
 export function TrackRecordClient() {
+  const { locale } = useLocale();
+  const t = getTrackRecordTranslations(locale);
+  const language = getHtmlLanguage(locale);
+  const numberFormatter = new Intl.NumberFormat(language);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -458,6 +495,11 @@ export function TrackRecordClient() {
   const [headlineCompoundedReturn, setHeadlineCompoundedReturn] = useState<number | null>(null);
   const [headlineMaxDrawdown, setHeadlineMaxDrawdown] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    document.title = t.documentTitle;
+  }, [t.documentTitle]);
+
   // Earliest signal we have data for in the current scope. Used to grey out
   // period buttons whose window pre-dates any recorded signal — a 5Y button
   // on 26 days of data would be a fabrication.
@@ -571,19 +613,19 @@ export function TrackRecordClient() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const pages = useMemo(() => pageNumbers(currentPage, totalPages), [currentPage, totalPages]);
   const resolutionHeartbeat = useMemo(
-    () => getResolutionHeartbeat(leaderboard?.overall.lastUpdated, now),
-    [leaderboard?.overall.lastUpdated, now],
+    () => getResolutionHeartbeat(leaderboard?.overall.lastUpdated, now, t),
+    [leaderboard?.overall.lastUpdated, now, t],
   );
   const categoryCaption = useMemo(() => {
     if (category === 'majors') {
-      return `${symbolsForCategory('majors').length} highest-liquidity instruments. The cleanest read on strategy quality.`;
+      return formatMessage(t.categoryCaption.majors, { count: symbolsForCategory('majors').length });
     }
     if (category === 'thematic') {
-      return `${symbolsForCategory('thematic').length} narrative-driven symbols. Wider coverage, more noise — useful for breadth, not for headline win rate.`;
+      return formatMessage(t.categoryCaption.thematic, { count: symbolsForCategory('thematic').length });
     }
-    if (scope === 'broadcast') return 'Gate-approved signals only — decisions recorded since 2026-06-10.';
-    return 'Eligible rows for every tracked symbol in the current archive.';
-  }, [category, scope]);
+    if (scope === 'broadcast') return t.categoryCaption.broadcast;
+    return t.categoryCaption.eligible;
+  }, [category, scope, t]);
   const hasResolvedEvidence = (stats?.resolved ?? 0) > 0;
 
   const handleCategoryChange = (nextCategory: CategoryFilter) => {
@@ -616,7 +658,7 @@ export function TrackRecordClient() {
            70% WR with giant losers. We show both so the reader can judge. */}
         <div className="mb-6">
           <div className="text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-2">
-            OHLCV-Resolved Signal Record
+            {t.header.eyebrow}
           </div>
           <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 mb-2">
             <div className="flex items-baseline gap-2">
@@ -630,13 +672,13 @@ export function TrackRecordClient() {
                   : '—'}
               </span>
               <span className="text-sm text-[var(--text-secondary)] inline-flex items-center gap-1">
-                sum of price moves · unsized
-                <InfoHint text={STAT_HINTS.totalReturnLinear} label="What the unsized price-move sum means" />
+                {t.header.priceMoveSum}
+                <InfoHint text={t.hints.priceMoveSum} label={t.header.priceMoveHelp} />
               </span>
               {/* Provenance stamp — the window this headline actually covers,
                   so a number from 26 days of data doesn't read as "all time". */}
               <span className="text-[11px] font-mono text-[var(--text-secondary)]">
-                {periodWindowLabel(period, earliestTimestamp)}
+                {periodWindowLabel(period, earliestTimestamp, locale, t)}
               </span>
             </div>
             <div className="flex items-baseline gap-1.5">
@@ -651,15 +693,15 @@ export function TrackRecordClient() {
                 {hasResolvedEvidence && stats ? `${stats.winRate}%` : '—'}
               </span>
               <span className="text-xs text-[var(--text-secondary)] inline-flex items-center gap-1">
-                win rate
-                <InfoHint text={STAT_HINTS.winRate24h} label="What win rate means" />
+                {t.header.winRate}
+                <InfoHint text={t.hints.winRate24h} label={t.header.winRateHelp} />
               </span>
               {/* Break-even win-rate at the headline (not only in sub-cards):
                   a sub-50% win-rate above break-even is still profitable. */}
               {headlineBreakEven !== null && (
                 <span className="text-[11px] font-mono text-[var(--text-secondary)] inline-flex items-center gap-1">
-                  break-even {headlineBreakEven}%
-                  <InfoHint text={STAT_HINTS.breakEvenWinRate} label="What break-even win rate means" />
+                  {formatMessage(t.header.breakEven, { value: headlineBreakEven })}
+                  <InfoHint text={t.hints.breakEven} label={t.header.breakEvenHelp} />
                 </span>
               )}
             </div>
@@ -668,8 +710,8 @@ export function TrackRecordClient() {
                 {stats ? stats.resolved : '—'}
               </span>
               <span className="text-xs text-[var(--text-secondary)] inline-flex items-center gap-1">
-                resolved signals
-                <InfoHint text={STAT_HINTS.resolved} label="What resolved signals means" />
+                {t.header.resolvedSignals}
+                <InfoHint text={t.hints.resolved} label={t.header.resolvedHelp} />
               </span>
             </div>
             {/* Modeled (position-sized) return at headline weight — a standardized 1%-risk
@@ -686,13 +728,13 @@ export function TrackRecordClient() {
                   {headlineCompoundedReturn > 0 ? '+' : ''}{headlineCompoundedReturn}%
                 </span>
                 <span className="text-xs text-[var(--text-secondary)] inline-flex items-center gap-1">
-                  sequential simulation · 1% risk
-                  <InfoHint text={STAT_HINTS.totalReturnCompounded} label="What the sequential simulation means" />
+                  {t.header.sequentialSimulation}
+                  <InfoHint text={t.hints.sequentialSimulation} label={t.header.simulationHelp} />
                 </span>
                 {headlineMaxDrawdown !== null && (
                   <span className="text-[11px] font-mono text-red-400/80 inline-flex items-center gap-1">
-                    max drawdown −{headlineMaxDrawdown}%
-                    <InfoHint text={STAT_HINTS.maxDrawdown} label="What max drawdown means" />
+                    {formatMessage(t.header.maxDrawdown, { value: headlineMaxDrawdown })}
+                    <InfoHint text={t.hints.maxDrawdown} label={t.header.maxDrawdownHelp} />
                   </span>
                 )}
               </div>
@@ -702,7 +744,7 @@ export function TrackRecordClient() {
                 className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-mono text-zinc-300"
               >
                 <span className="h-2 w-2 rounded-full bg-zinc-500" />
-                <span>Latest counted outcome</span>
+                <span>{t.header.latestOutcome}</span>
                 <span className="text-[var(--text-secondary)]">
                   {resolutionHeartbeat.ageLabel}
                 </span>
@@ -710,32 +752,26 @@ export function TrackRecordClient() {
             )}
           </div>
           <div className="mt-2 flex items-center gap-2">
-            <EmbedButton embedPath={`/embed/track-record?band=${embeddedBand}`} label="Embed this" width={600} height={360} />
+            <EmbedButton embedPath={`/embed/track-record?band=${embeddedBand}`} label={t.header.embed} width={600} height={360} />
             <ShareOnX
               winRate={stats?.winRate}
               resolved={stats?.resolved}
               period={period}
+              label={t.header.shareX}
             />
             <ShareLinkedIn
               winRate={stats?.winRate}
               resolved={stats?.resolved}
               period={period}
+              label={t.header.shareLinkedIn}
             />
           </div>
           <p className="text-sm text-[var(--text-secondary)]">
-            The headline is an arithmetic sum of per-signal OHLCV price outcomes before sizing or costs;
-            it is not a portfolio return. The equity card is a separate sequential simulation that risks 1%
-            of modeled current equity on every eligible sized signal and deducts per-asset fee/slippage
-            assumptions. It does not model broker fills, overlapping exposure, margin, leverage, latency,
-            funding, or subscriber selection. Pending, zero-value expiry placeholders, and
-            gate-blocked rows are surfaced separately instead of being folded into win-rate statistics.
+            {t.header.headlineDisclosure}
           </p>
           <p className="mt-3 rounded-md border border-zinc-600/30 bg-zinc-800/20 px-3 py-2 text-[11px] leading-relaxed text-[var(--text-secondary)]">
-            <strong className="font-semibold text-[var(--foreground)]">Risk notice:</strong> TradeClaw provides
-            educational signal analytics and historical research. Signals are not financial advice, investment
-            recommendations, or guaranteed outcomes. Trading involves substantial risk, including loss of
-            capital. Past performance does not predict future results. Always test with paper trading and
-            independent risk controls before using real funds.
+            <strong className="font-semibold text-[var(--foreground)]">{t.header.riskLabel}</strong>{' '}
+            {t.header.riskBody}
           </p>
           {rollingWinRates && (
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -757,10 +793,10 @@ export function TrackRecordClient() {
                 return (
                   <div key={window} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
                     <div className="text-[10px] uppercase tracking-wide text-[var(--text-secondary)] font-mono">
-                      Rolling win rate · {window}
+                      {formatMessage(t.rolling.title, { window })}
                       {isThinWindow && (
-                        <span className="ml-1 normal-case text-amber-400/80">
-                          (only {dataAgeDays}d of data)
+                        <span className="ms-1 normal-case text-amber-400/80">
+                          {formatMessage(t.rolling.onlyDays, { count: dataAgeDays ?? 0 })}
                         </span>
                       )}
                     </div>
@@ -768,9 +804,9 @@ export function TrackRecordClient() {
                       <div className={`text-2xl font-bold tabular-nums ${winTone}`}>
                         {snap.resolvedSignals > 0 ? `${snap.winRate}%` : '—'}
                       </div>
-                      <div className="text-right text-[10px] font-mono text-[var(--text-secondary)]">
-                        <div>{snap.resolvedSignals} resolved</div>
-                        <div>{snap.totalSignals} total</div>
+                      <div className="text-end text-[10px] font-mono text-[var(--text-secondary)]">
+                        <div>{formatMessage(t.rolling.resolved, { count: snap.resolvedSignals })}</div>
+                        <div>{formatMessage(t.rolling.total, { count: snap.totalSignals })}</div>
                       </div>
                     </div>
                   </div>
@@ -783,13 +819,14 @@ export function TrackRecordClient() {
         {/* Period Filter — buttons whose window exceeds available history are
            disabled with a tooltip explaining how much history we actually have. */}
         <div className="flex gap-1 mb-6 p-1 rounded-lg bg-white/[0.04] w-fit overflow-x-auto max-w-full">
-          {PERIOD_OPTIONS.map(({ value, label, days }) => {
+          {PERIOD_OPTIONS.map(({ value, days }) => {
             const available = isPeriodAvailable(days, earliestTimestamp);
+            const label = value === 'all' ? t.periods.all : PERIOD_CODE_LABELS[value];
             const dataAgeDays = earliestTimestamp
               ? Math.max(1, Math.floor((Date.now() - earliestTimestamp) / 86_400_000))
               : null;
             const tooltip = !available && dataAgeDays
-              ? `Only ${dataAgeDays} days of history available`
+              ? formatMessage(t.rolling.historyAvailable, { count: dataAgeDays })
               : undefined;
             return (
               <button
@@ -819,8 +856,8 @@ export function TrackRecordClient() {
         <div className="mb-3 flex items-center gap-1 p-1 rounded-lg bg-white/[0.04] w-fit">
           {(
             [
-              { value: 'pro', label: 'Eligible signal stream' },
-              { value: 'broadcast', label: 'Broadcast-approved subset' },
+              { value: 'pro', label: t.scope.eligibleLabel },
+              { value: 'broadcast', label: t.scope.broadcastLabel },
             ] as const
           ).map(({ value, label }) => (
             <button
@@ -839,16 +876,13 @@ export function TrackRecordClient() {
         </div>
         {scope === 'broadcast' && (
           <p className="mb-3 text-[11px] text-[var(--text-secondary)] max-w-xl">
-            Only signals the live gate (regime + curation + risk pipeline) approved
-            for the Telegram broadcast. Gate decisions are recorded per row
-            since 2026-06-10 — earlier signals carry no decision and are excluded
-            from this view entirely.
+            {t.scope.broadcastDetail}
           </p>
         )}
 
         {/* Category tabs — display-only segmentation over the same signal history */}
         <div className="mb-2 flex items-center gap-1 p-1 rounded-lg bg-white/[0.04] w-fit overflow-x-auto max-w-full">
-          {CATEGORY_OPTIONS.map(({ value, label }) => (
+          {CATEGORY_OPTIONS.map((value) => (
             <button
               key={value}
               onClick={() => handleCategoryChange(value)}
@@ -859,7 +893,7 @@ export function TrackRecordClient() {
                   : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
               }`}
             >
-              {label}
+              {t.categories[value]}
             </button>
           ))}
         </div>
@@ -875,6 +909,8 @@ export function TrackRecordClient() {
           scope={scope}
           active={category}
           onSelect={handleCategoryChange}
+          t={t}
+          language={language}
         />
 
         {/* Scope disclaimer — explains what the viewer is looking at */}
@@ -882,7 +918,7 @@ export function TrackRecordClient() {
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm">
             <div className="flex items-center gap-2 text-emerald-300">
               <span>
-                Eligible recorded signal stream across tracked symbols and timeframes. This is not a subscriber execution or portfolio ledger.
+                {t.scope.eligibleCaption}
               </span>
             </div>
           </div>
@@ -890,14 +926,14 @@ export function TrackRecordClient() {
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm">
             <div className="flex items-center gap-2 text-[var(--text-secondary)]">
               <span>
-                Broadcast view — only signals the live risk gate approved for the Telegram broadcast. Decisions are recorded per row since 2026-06-10; older signals are excluded.
+                {t.scope.broadcastCaption}
               </span>
             </div>
             <button
               onClick={() => setScope('pro')}
               className="shrink-0 rounded-md border border-[var(--border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-white/[0.06]"
             >
-                Show eligible stream
+                {t.scope.showEligible}
             </button>
           </div>
         )}
@@ -910,52 +946,52 @@ export function TrackRecordClient() {
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
               <StatCard
-                label="Resolved"
-                value={String(stats.resolved)}
-                hint="Usable 24h OHLCV outcome"
-                tooltip={STAT_HINTS.resolved}
+                label={t.stats.resolved}
+                value={numberFormatter.format(stats.resolved)}
+                hint={t.stats.resolvedHint}
+                tooltip={t.hints.resolved}
               />
               <StatCard
-                label="Avg P&L"
+                label={t.stats.averagePnl}
                 value={hasResolvedEvidence ? `${stats.avgPnlPct >= 0 ? '+' : ''}${stats.avgPnlPct}%` : '—'}
                 accent={hasResolvedEvidence ? (stats.avgPnlPct >= 0 ? 'emerald' : 'red') : 'default'}
-                hint="Per resolved signal"
-                tooltip={STAT_HINTS.avgPnl}
+                hint={t.stats.averagePnlHint}
+                tooltip={t.hints.averagePnl}
               />
               <StatCard
-                label="Sum of price moves"
+                label={t.stats.priceMoveSum}
                 value={hasResolvedEvidence ? `${stats.totalPnlPct >= 0 ? '+' : ''}${stats.totalPnlPct}%` : '—'}
                 accent={hasResolvedEvidence ? (stats.totalPnlPct >= 0 ? 'emerald' : 'red') : 'default'}
-                hint="Raw sum of per-signal market %"
-                tooltip={STAT_HINTS.totalReturnLinear}
+                hint={t.stats.priceMoveSumHint}
+                tooltip={t.hints.priceMoveSum}
               />
               <StatCard
-                label="Streak"
+                label={t.stats.streak}
                 value={hasResolvedEvidence ? `${stats.streak > 0 ? '+' : ''}${stats.streak}` : '—'}
                 accent={hasResolvedEvidence && stats.streak > 0 ? 'emerald' : hasResolvedEvidence && stats.streak < 0 ? 'red' : 'default'}
-                hint="Consecutive resolved"
-                tooltip={STAT_HINTS.streak}
+                hint={t.stats.streakHint}
+                tooltip={t.hints.streak}
               />
             </div>
             {(stats.expired > 0 || stats.gateBlocked > 0 || stats.pending > 0) && (
               <div className="grid grid-cols-3 gap-3 mb-8">
                 <StatCard
-                  label="No usable 24h outcome"
-                  value={String(stats.expired)}
-                  hint="Missing/zero force-expiry placeholder"
-                  tooltip={STAT_HINTS.expired}
+                  label={t.stats.unusableOutcome}
+                  value={numberFormatter.format(stats.expired)}
+                  hint={t.stats.unusableOutcomeHint}
+                  tooltip={t.hints.unusableOutcome}
                 />
                 <StatCard
-                  label="Gate-blocked"
-                  value={String(stats.gateBlocked)}
-                  hint="Risk filter declined entry"
-                  tooltip={STAT_HINTS.gateBlocked}
+                  label={t.stats.gateBlocked}
+                  value={numberFormatter.format(stats.gateBlocked)}
+                  hint={t.stats.gateBlockedHint}
+                  tooltip={t.hints.gateBlocked}
                 />
                 <StatCard
-                  label="Pending"
-                  value={String(stats.pending)}
-                  hint="Still inside 24h window"
-                  tooltip={STAT_HINTS.pending}
+                  label={t.stats.pending}
+                  value={numberFormatter.format(stats.pending)}
+                  hint={t.stats.pendingHint}
+                  tooltip={t.hints.pending}
                 />
               </div>
             )}
@@ -974,13 +1010,12 @@ export function TrackRecordClient() {
         )}
 
         {/* CTA — above the fold */}
-        <div className="glass-card rounded-2xl p-5 mb-8 border-l-2 border-emerald-500/50">
+        <div className="glass-card rounded-2xl p-5 mb-8 border-s-2 border-emerald-500/50">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold mb-0.5">Research Alerts</h3>
+              <h3 className="text-base font-bold mb-0.5">{t.alerts.title}</h3>
               <p className="text-xs text-[var(--text-secondary)]">
-                Entry-like alerts remain paused whenever the published cost-adjusted evidence gate
-                is not ready.
+                {t.alerts.detail}
               </p>
             </div>
             <div className="flex gap-2">
@@ -990,25 +1025,25 @@ export function TrackRecordClient() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 text-emerald-400 text-sm font-medium hover:bg-emerald-500/25 transition-colors"
               >
-                Open Telegram
+                {t.alerts.openTelegram}
               </a>
               <Link
                 href="/dashboard"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.06] text-[var(--foreground)] text-sm font-medium hover:bg-white/[0.1] transition-colors"
               >
-                Signal Dashboard
+                {t.alerts.signalDashboard}
               </Link>
             </div>
           </div>
         </div>
 
         {/* Strategy Leaderboard proof card — reinforces Sharpe-first ranking */}
-        <div className="glass-card rounded-2xl p-5 mb-8 border-l-2 border-emerald-500/50">
+        <div className="glass-card rounded-2xl p-5 mb-8 border-s-2 border-emerald-500/50">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold mb-0.5">Inspect Strategy Research</h3>
+              <h3 className="text-base font-bold mb-0.5">{t.research.title}</h3>
               <p className="text-xs text-[var(--text-secondary)]">
-                Review the available modeled backtests and trade logs. Fixture metrics are research diagnostics, not live or broker performance.
+                {t.research.detail}
               </p>
             </div>
             <div className="flex gap-2">
@@ -1016,13 +1051,13 @@ export function TrackRecordClient() {
                 href="/strategies/leaderboard"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 text-emerald-400 text-sm font-medium hover:bg-emerald-500/25 transition-colors"
               >
-                View Leaderboard
+                {t.research.viewLeaderboard}
               </Link>
               <Link
                 href="/strategies"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.06] text-[var(--foreground)] text-sm font-medium hover:bg-white/[0.1] transition-colors"
               >
-                Browse Strategies
+                {t.research.browseStrategies}
               </Link>
             </div>
           </div>
@@ -1050,11 +1085,11 @@ export function TrackRecordClient() {
         <section className="mb-8">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold">
-              Per-Symbol Outcomes
+              {t.sections.perSymbol}
             </h2>
             {/* Date range the hit-rates below cover, for the selected period. */}
             <span className="text-[10px] font-mono text-[var(--text-secondary)]">
-              {periodWindowLabel(period, earliestTimestamp)}
+              {periodWindowLabel(period, earliestTimestamp, locale, t)}
             </span>
           </div>
           <div className="glass-card rounded-2xl overflow-hidden">
@@ -1062,21 +1097,21 @@ export function TrackRecordClient() {
               <table className="w-full min-w-[560px] text-xs font-mono">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
-                    <th className="px-4 py-2.5 text-left font-medium">Pair</th>
-                    <th className="px-3 py-2.5 text-center font-medium">Recorded rows</th>
-                    <th className="px-3 py-2.5 text-left font-medium w-28">
-                      <span className="inline-flex items-center gap-1">4h Hit <InfoHint text={STAT_HINTS.winRate4h} label="What 4h hit means" /></span>
+                    <th className="px-4 py-2.5 text-start font-medium">{t.columns.pair}</th>
+                    <th className="px-3 py-2.5 text-center font-medium">{t.columns.recordedRows}</th>
+                    <th className="w-28 px-3 py-2.5 text-start font-medium">
+                      <span className="inline-flex items-center gap-1">{t.columns.hit4h} <InfoHint text={t.hints.winRate4h} label={formatMessage(t.aria.whatMeans, { label: t.columns.hit4h })} /></span>
                     </th>
-                    <th className="px-3 py-2.5 text-left font-medium w-28">
-                      <span className="inline-flex items-center gap-1">24h Hit <InfoHint text={STAT_HINTS.winRate24h} label="What 24h hit means" /></span>
+                    <th className="w-28 px-3 py-2.5 text-start font-medium">
+                      <span className="inline-flex items-center gap-1">{t.columns.hit24h} <InfoHint text={t.hints.winRate24h} label={formatMessage(t.aria.whatMeans, { label: t.columns.hit24h })} /></span>
                     </th>
-                    <th className="px-3 py-2.5 text-right font-medium">
-                      <span className="inline-flex items-center gap-1 justify-end">Avg P&L <InfoHint text={STAT_HINTS.avgPnl} label="What avg P&L means" /></span>
+                    <th className="px-3 py-2.5 text-end font-medium">
+                      <span className="inline-flex items-center justify-end gap-1">{t.columns.averagePnl} <InfoHint text={t.hints.averagePnl} label={formatMessage(t.aria.whatMeans, { label: t.columns.averagePnl })} /></span>
                     </th>
-                    <th className="px-3 py-2.5 text-right font-medium hidden sm:table-cell">
-                      <span className="inline-flex items-center gap-1 justify-end">Price-move sum <InfoHint text={STAT_HINTS.totalReturnLinear} label="What the price-move sum means" /></span>
+                    <th className="hidden px-3 py-2.5 text-end font-medium sm:table-cell">
+                      <span className="inline-flex items-center justify-end gap-1">{t.columns.priceMoveSum} <InfoHint text={t.hints.priceMoveSum} label={formatMessage(t.aria.whatMeans, { label: t.columns.priceMoveSum })} /></span>
                     </th>
-                    <th className="px-3 py-2.5 text-center font-medium hidden sm:table-cell">Trend</th>
+                    <th className="hidden px-3 py-2.5 text-center font-medium sm:table-cell">{t.columns.trend}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1090,14 +1125,14 @@ export function TrackRecordClient() {
                       <td className="px-3 py-2.5 text-center tabular-nums text-[var(--text-secondary)]">{asset.totalSignals}</td>
                       <td className="px-3 py-2.5"><HitRateBar value={asset.hitRate4h} /></td>
                       <td className="px-3 py-2.5"><HitRateBar value={asset.hitRate24h} /></td>
-                      <td className={`px-3 py-2.5 text-right tabular-nums font-semibold ${
+                      <td className={`px-3 py-2.5 text-end tabular-nums font-semibold ${
                         asset.resolved24h === 0 ? 'text-zinc-500' : asset.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'
                       }`}>
                         {asset.resolved24h > 0
                           ? `${asset.avgPnl >= 0 ? '+' : ''}${asset.avgPnl.toFixed(2)}%`
                           : '—'}
                       </td>
-                      <td className={`px-3 py-2.5 text-right tabular-nums font-semibold hidden sm:table-cell ${
+                      <td className={`px-3 py-2.5 text-end tabular-nums font-semibold hidden sm:table-cell ${
                         asset.resolved24h === 0 ? 'text-zinc-500' : asset.totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'
                       }`}>
                         {asset.resolved24h > 0
@@ -1113,15 +1148,15 @@ export function TrackRecordClient() {
                       <td className="px-3 py-3"><div className="h-3 w-6 bg-white/[0.06] rounded animate-pulse mx-auto" /></td>
                       <td className="px-3 py-3"><div className="h-1 w-full bg-white/[0.06] rounded animate-pulse" /></td>
                       <td className="px-3 py-3"><div className="h-1 w-full bg-white/[0.06] rounded animate-pulse" /></td>
-                      <td className="px-3 py-3"><div className="h-3 w-10 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
-                      <td className="px-3 py-3 hidden sm:table-cell"><div className="h-3 w-10 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
+                      <td className="px-3 py-3"><div className="h-3 w-10 bg-white/[0.06] rounded animate-pulse ms-auto" /></td>
+                      <td className="px-3 py-3 hidden sm:table-cell"><div className="h-3 w-10 bg-white/[0.06] rounded animate-pulse ms-auto" /></td>
                       <td className="px-3 py-3 hidden sm:table-cell"><div className="h-3 w-12 bg-white/[0.06] rounded animate-pulse mx-auto" /></td>
                     </tr>
                   ))}
                   {!loading && leaderboard?.assets.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)]">
-                        No data for this period yet.
+                        {t.table.noPeriodData}
                       </td>
                     </tr>
                   )}
@@ -1135,24 +1170,30 @@ export function TrackRecordClient() {
         <section className="mb-8">
           <div className="flex items-baseline justify-between mb-3">
             <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold">
-              Recorded Signal Rows
+              {t.sections.recordedRows}
             </h2>
             <span className="text-[10px] font-mono text-[var(--text-secondary)]">
-              {total > 0 ? `${offset + 1}–${Math.min(offset + PAGE_SIZE, total)} of ${total}` : ''}
+              {total > 0
+                ? formatMessage(t.table.range, {
+                    from: offset + 1,
+                    to: Math.min(offset + PAGE_SIZE, total),
+                    total,
+                  })
+                : ''}
             </span>
           </div>
 
           {/* Filters */}
           <div className="flex flex-wrap gap-2 mb-3">
             <div className="flex items-center gap-1 p-1 rounded-lg bg-white/[0.04]">
-              <span className="px-2 text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-mono">Pair</span>
+              <span className="px-2 text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-mono">{t.filters.pair}</span>
               <select
                 value={pairFilter}
                 onChange={e => setPairFilter(e.target.value)}
-                aria-label="Filter by pair"
+                aria-label={t.aria.filterPair}
                 className="bg-transparent text-xs font-mono text-[var(--foreground)] px-2 py-1 rounded-md hover:bg-white/[0.06] focus:outline-none focus:bg-white/[0.06] cursor-pointer"
               >
-                <option value="ALL" className="bg-[var(--background)]">All</option>
+                <option value="ALL" className="bg-[var(--background)]">{t.filters.all}</option>
                 {availablePairs.map(p => (
                   <option key={p} value={p} className="bg-[var(--background)]">{p}</option>
                 ))}
@@ -1173,7 +1214,7 @@ export function TrackRecordClient() {
                       : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                   }`}
                 >
-                  {d}
+                  {d === 'ALL' ? t.status.all : d === 'BUY' ? t.status.buy : t.status.sell}
                 </button>
               ))}
             </div>
@@ -1182,7 +1223,7 @@ export function TrackRecordClient() {
                 onClick={() => { setPairFilter('ALL'); setDirectionFilter('ALL'); }}
                 className="px-3 py-1.5 text-[11px] font-mono text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
               >
-                Clear
+                {t.filters.clear}
               </button>
             )}
           </div>
@@ -1191,21 +1232,21 @@ export function TrackRecordClient() {
               <table className="w-full min-w-[420px] text-xs font-mono">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
-                    <th className="px-4 py-2.5 text-left font-medium">
+                    <th className="px-4 py-2.5 text-start font-medium">
                       <span className="inline-flex items-center gap-1">
-                        Bar Open
+                        {t.columns.barOpen}
                         <InfoHint
-                          text="Candle bar open time (your local timezone). The signal anchors to this bar; the engine records it shortly after the bar closes (within the next 5-min cron tick), so wall-clock recording is up to one timeframe-period later than the value shown."
-                          label="What Bar Open means"
+                          text={t.table.barOpenHelp}
+                          label={formatMessage(t.aria.whatMeans, { label: t.columns.barOpen })}
                         />
                       </span>
                     </th>
-                    <th className="px-3 py-2.5 text-left font-medium">Pair</th>
-                    <th className="px-3 py-2.5 text-center font-medium">Dir</th>
-                    <th className="px-3 py-2.5 text-right font-medium hidden sm:table-cell">Entry</th>
+                    <th className="px-3 py-2.5 text-start font-medium">{t.columns.pair}</th>
+                    <th className="px-3 py-2.5 text-center font-medium">{t.columns.direction}</th>
+                    <th className="hidden px-3 py-2.5 text-end font-medium sm:table-cell">{t.columns.entry}</th>
                     <th className="px-3 py-2.5 text-center font-medium">4h</th>
                     <th className="px-3 py-2.5 text-center font-medium">24h</th>
-                    <th className="px-4 py-2.5 text-right font-medium">P&L</th>
+                    <th className="px-4 py-2.5 text-end font-medium">{t.columns.pnl}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1230,8 +1271,10 @@ export function TrackRecordClient() {
                       outcome4hStatus,
                       isPending,
                       isExpiredHistoricalOutcome(outcome4h, r.timestamp, 4 * 60 * 60 * 1000, now),
+                      t,
                     );
-                    const outcome24hCell = formatOutcomeCell(outcome24h, outcome24hStatus, isPending24h, isExpired24h);
+                    const outcome24hCell = formatOutcomeCell(outcome24h, outcome24hStatus, isPending24h, isExpired24h, t);
+                    const formattedTime = formatTime(r.timestamp, locale);
                     return (
                       <tr
                         key={r.id}
@@ -1244,15 +1287,21 @@ export function TrackRecordClient() {
                         }}
                         tabIndex={0}
                         role="link"
-                        aria-label={`View signal ${r.pair} ${r.direction} ${formatTime(r.timestamp)}`}
+                        aria-label={formatMessage(t.aria.viewSignal, {
+                          pair: r.pair,
+                          direction: r.direction === 'BUY' ? t.status.buy : t.status.sell,
+                          time: formattedTime,
+                        })}
                         className="border-b border-[var(--border)] last:border-0 hover:bg-white/[0.04] focus:bg-white/[0.04] focus:outline-none cursor-pointer transition-colors"
                       >
-                        <td className="px-4 py-2.5 text-[var(--text-secondary)] whitespace-nowrap">{formatTime(r.timestamp)}</td>
-                        <td className="px-3 py-2.5 font-semibold text-[var(--foreground)]">{r.pair}</td>
+                        <td className="whitespace-nowrap px-4 py-2.5 text-[var(--text-secondary)]"><bdi>{formattedTime}</bdi></td>
+                        <td className="px-3 py-2.5 font-semibold text-[var(--foreground)]"><bdi>{r.pair}</bdi></td>
                         <td className="px-3 py-2.5 text-center">
-                          <span className={r.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}>{r.direction}</span>
+                          <span className={r.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}>
+                            {r.direction === 'BUY' ? t.status.buy : t.status.sell}
+                          </span>
                         </td>
-                        <td className="px-3 py-2.5 text-right tabular-nums text-[var(--text-secondary)] hidden sm:table-cell">{formatPrice(r.entryPrice)}</td>
+                        <td className="hidden px-3 py-2.5 text-end tabular-nums text-[var(--text-secondary)] sm:table-cell" dir="ltr">{formatPrice(r.entryPrice, locale)}</td>
                         <td className="px-3 py-2.5 text-center">
                           <span className={outcome4hCell.className}>
                             {outcome4hCell.text}
@@ -1263,15 +1312,15 @@ export function TrackRecordClient() {
                             {outcome24hCell.text}
                           </span>
                         </td>
-                        <td className={`px-4 py-2.5 text-right tabular-nums font-semibold ${
+                        <td className={`px-4 py-2.5 text-end tabular-nums font-semibold ${
                           pnl == null ? 'text-zinc-600' : pnl >= 0 ? 'text-emerald-400' : 'text-red-400'
                         }`}>
                           {outcome24hStatus === 'expired' && outcome24h?.pnlPct === 0
-                            ? 'expired'
+                            ? t.status.expired
                             : !verified24h && !verified4h && (outcome24h || outcome4h)
-                            ? 'unverified'
+                            ? t.status.unverified
                             : pnl == null
-                            ? (isPending ? 'pending' : isExpired24h ? 'expired' : '—')
+                            ? (isPending ? t.status.pending : isExpired24h ? t.status.expired : '—')
                             : `${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}%`}
                         </td>
                       </tr>
@@ -1282,18 +1331,18 @@ export function TrackRecordClient() {
                       <td className="px-4 py-3"><div className="h-3 w-24 bg-white/[0.06] rounded animate-pulse" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-14 bg-white/[0.06] rounded animate-pulse" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-8 bg-white/[0.06] rounded animate-pulse mx-auto" /></td>
-                      <td className="px-3 py-3 hidden sm:table-cell"><div className="h-3 w-16 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
+                      <td className="px-3 py-3 hidden sm:table-cell"><div className="h-3 w-16 bg-white/[0.06] rounded animate-pulse ms-auto" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-6 bg-white/[0.06] rounded animate-pulse mx-auto" /></td>
                       <td className="px-3 py-3"><div className="h-3 w-6 bg-white/[0.06] rounded animate-pulse mx-auto" /></td>
-                      <td className="px-3 py-3"><div className="h-3 w-12 bg-white/[0.06] rounded animate-pulse ml-auto" /></td>
+                      <td className="px-3 py-3"><div className="h-3 w-12 bg-white/[0.06] rounded animate-pulse ms-auto" /></td>
                     </tr>
                   ))}
                   {!loading && records.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)]">
                         {pairFilter !== 'ALL' || directionFilter !== 'ALL'
-                          ? 'No signals match these filters.'
-                          : 'No signals for this period yet.'}
+                          ? t.table.noMatchingSignals
+                          : t.table.noPeriodSignals}
                       </td>
                     </tr>
                   )}
@@ -1305,6 +1354,7 @@ export function TrackRecordClient() {
                 <button
                   onClick={() => setOffset(0)}
                   disabled={currentPage === 1 || loading}
+                  aria-label={t.table.firstPage}
                   className="px-2 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   «
@@ -1312,6 +1362,7 @@ export function TrackRecordClient() {
                 <button
                   onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
                   disabled={currentPage === 1 || loading}
+                  aria-label={t.table.previousPage}
                   className="px-2.5 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   ‹
@@ -1337,6 +1388,7 @@ export function TrackRecordClient() {
                 <button
                   onClick={() => setOffset(offset + PAGE_SIZE)}
                   disabled={currentPage === totalPages || loading}
+                  aria-label={t.table.nextPage}
                   className="px-2.5 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   ›
@@ -1344,6 +1396,7 @@ export function TrackRecordClient() {
                 <button
                   onClick={() => setOffset((totalPages - 1) * PAGE_SIZE)}
                   disabled={currentPage === totalPages || loading}
+                  aria-label={t.table.lastPage}
                   className="px-2 py-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-[var(--foreground)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   »
@@ -1354,17 +1407,10 @@ export function TrackRecordClient() {
         </section>
 
         {/* Transparency Note */}
-        <div className="glass-card rounded-2xl p-5 border-l-2 border-emerald-500/50 mb-8">
-          <h3 className="text-sm font-semibold mb-1">Population and Limitations</h3>
+        <div className="glass-card rounded-2xl p-5 border-s-2 border-emerald-500/50 mb-8">
+          <h3 className="text-sm font-semibold mb-1">{t.sections.population}</h3>
           <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-            Stored signals carry their generation timestamp. New counted outcomes require an approved observed-OHLCV
-            source and are not broker fills. Legacy outcome values without approved source provenance remain visible
-            as unverified audit rows and do not count. Counted outcomes include source-backed TP, SL, and nonzero
-            24-hour closes; they exclude simulated, gate-blocked, pending, and zero/missing force-expiry placeholders.
-            The unsized price-move sum uses counted rows, while the sequential simulation
-            further requires a recorded stop-loss. The broadcast view
-            includes only gate approvals recorded since 2026-06-10. These populations are signal studies,
-            not customer trades or actual portfolio returns.
+            {t.populationBody}
           </p>
         </div>
       </main>
@@ -1388,6 +1434,8 @@ function StatCard({
   /** Long-form explanation surfaced via the `?` icon next to the label. */
   tooltip?: string;
 }) {
+  const { locale } = useLocale();
+  const t = getTrackRecordTranslations(locale);
   const valueColor =
     accent === 'emerald' ? 'text-emerald-400'
     : accent === 'red' ? 'text-red-400'
@@ -1398,7 +1446,9 @@ function StatCard({
     <div className="glass-card rounded-xl p-4">
       <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-1 inline-flex items-center gap-1">
         {label}
-        {tooltip && <InfoHint text={tooltip} label={`What ${label} means`} />}
+        {tooltip && (
+          <InfoHint text={tooltip} label={formatMessage(t.aria.whatMeans, { label })} />
+        )}
       </div>
       <div className={`text-xl font-bold tabular-nums ${valueColor}`}>{value}</div>
       {hint && (

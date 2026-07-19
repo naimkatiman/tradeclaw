@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # TradeClaw Docker smoke test
 # Usage: bash scripts/test-docker.sh
+# Containers are removed after the run; named volumes are preserved by default.
+# Set CLEANUP=false to keep containers or DESTROY_VOLUMES=true for a clean slate.
 # Or one-liner: curl -fsSL https://raw.githubusercontent.com/naimkatiman/tradeclaw/main/scripts/test-docker.sh | bash
 
 set -euo pipefail
@@ -17,8 +19,9 @@ FAIL="${RED}❌ FAIL${RESET}"
 
 BASE_URL="${TRADECLAW_URL:-http://localhost:3000}"
 COMPOSE_CMD="docker compose"
-CLEANUP=${CLEANUP:-true}
-TIMEOUT=${TIMEOUT:-90}
+CLEANUP="${CLEANUP:-true}"
+DESTROY_VOLUMES="${DESTROY_VOLUMES:-false}"
+TIMEOUT="${TIMEOUT:-90}"
 
 echo ""
 echo -e "${CYAN}${BOLD}  ╔══════════════════════════════╗${RESET}"
@@ -102,8 +105,13 @@ cleanup() {
   if [ "$CLEANUP" = "true" ]; then
     echo ""
     echo -e "${BOLD}Cleaning up...${RESET}"
-    $COMPOSE_CMD down --volumes --remove-orphans 2>/dev/null || true
-    echo -e "  ${GREEN}Containers removed${RESET}"
+    if [ "$DESTROY_VOLUMES" = "true" ]; then
+      $COMPOSE_CMD down --volumes --remove-orphans 2>/dev/null || true
+      echo -e "  ${GREEN}Containers and named volumes removed${RESET}"
+    else
+      $COMPOSE_CMD down --remove-orphans 2>/dev/null || true
+      echo -e "  ${GREEN}Containers removed; named volumes preserved${RESET}"
+    fi
   fi
 }
 trap cleanup EXIT
@@ -137,19 +145,24 @@ echo ""
 
 # ── API Checks ────────────────────────────────────────────────────────────────
 
-echo -e "${BOLD}4. Running API smoke tests${RESET}"
+echo -e "${BOLD}4. Verifying tracked migrations${RESET}"
+
+MIGRATION_CHECK=$($COMPOSE_CMD exec -T app node /app/scripts/run-migrations.mjs --pretend 2>&1 || true)
+if echo "$MIGRATION_CHECK" | grep -Eq 'pending: 0([[:space:]]|$)'; then
+  check "Tracked migration queue is empty after startup" "ok"
+else
+  check "Tracked migration queue" "fail" "${MIGRATION_CHECK:0:160}"
+fi
+
+echo ""
+echo -e "${BOLD}5. Running API smoke tests${RESET}"
 
 # /api/health
 HEALTH_RESP=$(curl -sf "${BASE_URL}/api/health" 2>/dev/null || echo "")
-if echo "$HEALTH_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); assert d.get('status') in ('ok','healthy','up')" 2>/dev/null; then
-  check "/api/health returns status ok" "ok"
+if echo "$HEALTH_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); c=d.get('checks',{}); assert d.get('status') == 'ok'; assert c.get('database',{}).get('status') == 'ok'; assert c.get('migrations',{}).get('status') == 'ok'" 2>/dev/null; then
+  check "/api/health confirms database and migrations are ready" "ok"
 else
-  # Try checking for any status field
-  if echo "$HEALTH_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d)" 2>/dev/null; then
-    check "/api/health returns valid JSON" "ok"
-  else
-    check "/api/health" "fail" "Response: ${HEALTH_RESP:0:100}"
-  fi
+  check "/api/health readiness" "fail" "Response: ${HEALTH_RESP:0:160}"
 fi
 
 # /api/signals

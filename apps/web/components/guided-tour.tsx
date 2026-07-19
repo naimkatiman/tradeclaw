@@ -1,6 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useLocale } from '../app/components/locale-provider';
+import {
+  getDashboardLiveTranslations,
+  type DashboardLiveTranslations,
+} from '../lib/product-i18n/dashboard-live';
+import { formatMessage } from '../lib/product-i18n/format';
+import { getHtmlLanguage } from '../lib/translations';
 
 /* ------------------------------------------------------------------ */
 /*  Storage keys                                                       */
@@ -16,57 +23,51 @@ const TOUR_VISITS_KEY = 'tc_tour_visits';
 /*  Tour steps — targeting REAL dashboard elements                     */
 /* ------------------------------------------------------------------ */
 
-interface TourStep {
+type TourStepCopyKey = keyof DashboardLiveTranslations['tour']['steps'];
+
+interface TourStepConfig {
+  copyKey: TourStepCopyKey;
   targetId: string | null;
-  title: string;
-  description: string;
   position?: 'bottom' | 'top' | 'auto';
   // Phase 1 = core interaction loop (always shown). Phase 2 = advanced steps,
   // revealed only after the user has demonstrated intent (see isPhase2Unlocked).
   phase: 1 | 2;
 }
 
-const STEPS: TourStep[] = [
+interface TourStep extends TourStepConfig {
+  title: string;
+  description: string;
+}
+
+const STEP_CONFIGS: TourStepConfig[] = [
   {
+    copyKey: 'marketSnapshot',
     targetId: 'dashboard-stats',
-    title: 'Your market snapshot',
-    description:
-      'See active signals, buy/sell ratio, average confidence, and market bias at a glance. Use this to gauge overall sentiment before diving in.',
     phase: 1,
   },
   {
+    copyKey: 'signalCard',
     targetId: 'signal-grid',
-    title: 'Reading a signal card',
-    description:
-      'Each card shows: Confidence (how many indicators agree), Entry (price now), SL (auto-calculated stop using ATR volatility), and TP1–TP3 (profit targets at 1.5×, 2.5×, 3.5× risk). Tap the "?" icons for one-line explanations of each metric.',
     phase: 1,
   },
   {
+    copyKey: 'filters',
     targetId: 'dashboard-filters',
-    title: 'Filter by what matters',
-    description:
-      'Narrow signals by timeframe, direction (BUY/SELL), or asset class. Focus on your preferred market in one click.',
     phase: 1,
   },
   {
+    copyKey: 'refresh',
     targetId: 'auto-refresh-toggle',
-    title: 'Stay in sync',
-    description:
-      'Toggle auto-refresh to get signals updated every 30 seconds. Pause it when you want to study a signal without it changing.',
     phase: 2,
   },
   {
+    copyKey: 'accuracy',
     targetId: 'accuracy-stats',
-    title: 'Track signal accuracy',
-    description:
-      'Inspect recorded signal rows and outcomes resolved against provider OHLCV, with excluded populations labeled.',
     phase: 2,
   },
   {
+    copyKey: 'deeper',
     targetId: null,
-    title: 'Ready to go deeper?',
-    description:
-      'Try the Backtest page to test strategies on historical data, or set up Telegram alerts to never miss a signal. Tap the export button on any signal to copy it for Telegram, Discord, or TradingView. Happy trading!',
     phase: 2,
   },
 ];
@@ -92,8 +93,16 @@ function isPhase2Unlocked(): boolean {
   return readVisitCount() >= 3;
 }
 
-function getUnlockedSteps(): TourStep[] {
-  return isPhase2Unlocked() ? STEPS : STEPS.filter((s) => s.phase === 1);
+function getTourSteps(t: DashboardLiveTranslations): TourStep[] {
+  return STEP_CONFIGS.map((step) => ({
+    ...step,
+    ...t.tour.steps[step.copyKey],
+  }));
+}
+
+function getUnlockedSteps(t: DashboardLiveTranslations): TourStep[] {
+  const steps = getTourSteps(t);
+  return isPhase2Unlocked() ? steps : steps.filter((step) => step.phase === 1);
 }
 
 /* ------------------------------------------------------------------ */
@@ -123,6 +132,9 @@ interface GuidedTourProps {
 /* ------------------------------------------------------------------ */
 
 export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
+  const { locale } = useLocale();
+  const t = getDashboardLiveTranslations(locale);
+  const isRtl = locale === 'ar';
   const [active, setActive] = useState(false);
   const [step, setStep] = useState(0);
   const [spotlightRect, setSpotlightRect] = useState<SpotlightRect | null>(null);
@@ -130,6 +142,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   /* ---- Helpers ---- */
 
@@ -150,11 +163,11 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
       const saved = localStorage.getItem(TOUR_STEP_KEY);
       if (saved !== null) {
         const parsed = parseInt(saved, 10);
-        if (parsed >= 0 && parsed < getUnlockedSteps().length) return parsed;
+        if (parsed >= 0 && parsed < getUnlockedSteps(t).length) return parsed;
       }
     } catch { /* ignore */ }
     return 0;
-  }, []);
+  }, [t]);
 
   const markTourDone = useCallback(() => {
     try {
@@ -217,7 +230,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
 
   /* ---- Compute spotlight + tooltip placement ---- */
   const updateSpotlight = useCallback((currentStep: number) => {
-    const targetId = getUnlockedSteps()[currentStep]?.targetId;
+    const targetId = getUnlockedSteps(t)[currentStep]?.targetId;
     if (!targetId) {
       setSpotlightRect(null);
       setPlacement('center');
@@ -277,7 +290,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
       requestAnimationFrame(() => applyRect(el));
     };
     tryFind();
-  }, []);
+  }, [t]);
 
   /* ---- Recalculate on step change ---- */
   useEffect(() => {
@@ -312,7 +325,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
   }, [step, saveTourProgress, onClose]);
 
   const next = useCallback(() => {
-    if (step < getUnlockedSteps().length - 1) {
+    if (step < getUnlockedSteps(t).length - 1) {
       setStep(s => s + 1);
     } else {
       // Tour complete
@@ -326,7 +339,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
       setActive(false);
       onClose?.();
     }
-  }, [step, dontShowAgain, markNeverShow, markTourDone, clearTourProgress, dispatchTourComplete, onClose]);
+  }, [step, t, dontShowAgain, markNeverShow, markTourDone, clearTourProgress, dispatchTourComplete, onClose]);
 
   const skip = useCallback(() => {
     // Save progress for resume
@@ -335,31 +348,70 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
     onClose?.();
   }, [step, saveTourProgress, onClose]);
 
+  /* ---- Move focus into the modal and restore it when the tour closes ---- */
+  useEffect(() => {
+    if (!active) return;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const frame = requestAnimationFrame(() => tooltipRef.current?.focus());
+    return () => {
+      cancelAnimationFrame(frame);
+      previousFocusRef.current?.focus();
+      previousFocusRef.current = null;
+    };
+  }, [active]);
+
   /* ---- Keyboard navigation ---- */
   useEffect(() => {
     if (!active) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      const isInteractive = Boolean(target?.closest('button, input, select, textarea, a[href]'));
+      if (e.key === 'Tab') {
+        const dialog = tooltipRef.current;
+        if (!dialog) return;
+        const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        )).filter((element) => !element.hasAttribute('hidden'));
+        if (focusable.length === 0) {
+          e.preventDefault();
+          dialog.focus();
+          return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      } else if (e.key === 'Escape') {
         close();
-      } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+      } else if ((e.key === 'Enter' && !isInteractive) || e.key === (isRtl ? 'ArrowLeft' : 'ArrowRight')) {
         e.preventDefault();
         next();
-      } else if (e.key === 'ArrowLeft') {
+      } else if (e.key === (isRtl ? 'ArrowRight' : 'ArrowLeft')) {
         e.preventDefault();
         if (step > 0) setStep(s => s - 1);
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  });
+  }, [active, close, isRtl, next, step]);
 
   if (!active) return null;
 
-  const unlockedSteps = getUnlockedSteps();
+  const unlockedSteps = getUnlockedSteps(t);
   const currentStep = unlockedSteps[step];
   const isLast = step === unlockedSteps.length - 1;
   const pad = 10;
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const numberFormatter = new Intl.NumberFormat(getHtmlLanguage(locale));
+  const currentStepNumber = numberFormatter.format(step + 1);
+  const totalStepCount = numberFormatter.format(unlockedSteps.length);
 
   /* ---- Tooltip style computation ---- */
   const getTooltipStyle = (): React.CSSProperties => {
@@ -370,8 +422,8 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
       return {
         position: 'fixed',
         bottom: 0,
-        left: 0,
-        right: 0,
+        insetInlineStart: 0,
+        insetInlineEnd: 0,
         width: '100%',
         maxWidth: '100%',
         zIndex: 9999,
@@ -493,9 +545,14 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
       <div
         ref={tooltipRef}
         role="dialog"
-        aria-label={`Tour step ${step + 1} of ${unlockedSteps.length}`}
+        aria-label={formatMessage(t.tour.dialogAria, {
+          current: currentStepNumber,
+          total: totalStepCount,
+        })}
         aria-modal="true"
-        className={`bg-zinc-900 border border-emerald-500/30 shadow-2xl shadow-black/40 transition-all duration-400 ${
+        tabIndex={-1}
+        dir={isRtl ? 'rtl' : 'ltr'}
+        className={`max-h-[85dvh] overflow-y-auto overscroll-contain bg-zinc-900 border border-emerald-500/30 shadow-2xl shadow-black/40 transition-all duration-400 ${
           isMobile ? 'p-6 pt-4' : 'rounded-xl p-5'
         } ${transitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
         style={getTooltipStyle()}
@@ -530,12 +587,17 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
         {/* Header row */}
         <div className="flex items-center justify-between mb-3">
           <span className="text-[11px] text-zinc-500 font-mono tabular-nums">
-            Step {step + 1} of {unlockedSteps.length}
+            <bdi dir="auto">
+              {formatMessage(t.tour.stepCount, {
+                current: currentStepNumber,
+                total: totalStepCount,
+              })}
+            </bdi>
           </span>
           <button
             onClick={skip}
-            className="text-zinc-600 hover:text-zinc-400 transition-colors p-1 -mr-1 rounded-lg hover:bg-white/5"
-            aria-label="Close tour"
+            className="text-zinc-600 hover:text-zinc-400 transition-colors p-1 -me-1 rounded-lg hover:bg-white/5"
+            aria-label={t.tour.close}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -557,13 +619,15 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
                     ? 'w-2 bg-emerald-500/40'
                     : 'w-2 bg-zinc-700'
               }`}
-              aria-label={`Go to step ${i + 1}`}
+              aria-label={formatMessage(t.tour.goToStep, { step: numberFormatter.format(i + 1) })}
             />
           ))}
         </div>
 
         <h3 className="text-sm font-semibold text-white mb-1.5">{currentStep.title}</h3>
-        <p className="text-xs text-zinc-400 leading-relaxed mb-4">{currentStep.description}</p>
+        <p className="text-xs text-zinc-400 leading-relaxed mb-4">
+          <bdi dir="auto">{currentStep.description}</bdi>
+        </p>
 
         {isLast && (
           <label className="flex items-center gap-2 mb-4 cursor-pointer select-none">
@@ -573,7 +637,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
               onChange={e => setDontShowAgain(e.target.checked)}
               className="w-3.5 h-3.5 accent-emerald-500 rounded"
             />
-            <span className="text-xs text-zinc-500">Don&apos;t show again</span>
+            <span className="text-xs text-zinc-500">{t.tour.dontShowAgain}</span>
           </label>
         )}
 
@@ -583,21 +647,21 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
               onClick={() => setStep(s => s - 1)}
               className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
             >
-              ← Back
+              {t.tour.back}
             </button>
           ) : (
             <button
               onClick={skip}
               className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
             >
-              Skip tour
+              {t.tour.skip}
             </button>
           )}
           <button
             onClick={next}
             className="text-xs px-5 py-2.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/25 transition-all duration-200 font-medium"
           >
-            {isLast ? 'Finish tour' : 'Next →'}
+            {isLast ? t.tour.finish : t.tour.next}
           </button>
         </div>
 
@@ -605,7 +669,7 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
         {!isMobile && (
           <div className="flex items-center gap-2 mt-3 pt-3 border-t border-zinc-800">
             <span className="text-[10px] text-zinc-700">
-              ← → to navigate · Esc to close
+              {t.tour.keyboardHint}
             </span>
           </div>
         )}
@@ -627,6 +691,9 @@ export function GuidedTour({ open: externalOpen, onClose }: GuidedTourProps) {
 /* ------------------------------------------------------------------ */
 
 export function TakeTourButton({ className = '' }: { className?: string }) {
+  const { locale } = useLocale();
+  const t = getDashboardLiveTranslations(locale);
+
   const handleClick = () => {
     // Reset auto-shown flag so the tour can re-trigger
     try { localStorage.removeItem(TOUR_AUTO_KEY); } catch { /* ignore */ }
@@ -642,7 +709,7 @@ export function TakeTourButton({ className = '' }: { className?: string }) {
         <circle cx="12" cy="12" r="10" />
         <path d="M12 8v4M12 16h.01" />
       </svg>
-      Tour
+      {t.tour.button}
     </button>
   );
 }

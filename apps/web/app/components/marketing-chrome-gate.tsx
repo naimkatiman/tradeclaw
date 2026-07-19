@@ -11,7 +11,7 @@
 
 import { usePathname } from 'next/navigation';
 
-const LAYER_ONE_ROUTES = new Set(['/', '/es', '/ms', '/zh']);
+const LAYER_ONE_ROUTES = new Set(['/', '/es', '/ms', '/zh', '/ar']);
 
 export function MarketingChromeGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { ShieldCheck, ShieldAlert, ShieldOff } from 'lucide-react';
+import { useLocale } from '../app/components/locale-provider';
+import { getDashboardLiveTranslations } from '../lib/product-i18n/dashboard-live';
+import { formatMessage } from '../lib/product-i18n/format';
+import { getHtmlLanguage } from '../lib/translations';
 
 interface GateSnapshot {
   mode: 'shadow' | 'active' | 'off';
@@ -44,6 +48,8 @@ export function resolveRegimeStyle(regime: string | null | undefined): RegimeSty
 }
 
 export function GateStateBadge() {
+  const { locale } = useLocale();
+  const t = getDashboardLiveTranslations(locale);
   const [snap, setSnap] = useState<GateSnapshot | null>(null);
 
   useEffect(() => {
@@ -69,6 +75,16 @@ export function GateStateBadge() {
   if (!snap) return null;
 
   const regimeStyle = resolveRegimeStyle(snap.regime);
+  const regimeLabel =
+    snap.regime === 'trend'
+      ? t.gate.regimes.trend
+      : snap.regime === 'volatile'
+        ? t.gate.regimes.volatile
+        : snap.regime === 'range'
+          ? t.gate.regimes.range
+          : snap.regime
+            ? regimeStyle.label
+            : t.gate.regimes.unknown;
   const Icon =
     snap.mode === 'off' ? ShieldOff : snap.gatesAllow ? ShieldCheck : ShieldAlert;
   const statusColor =
@@ -79,34 +95,54 @@ export function GateStateBadge() {
       : 'text-red-400';
   const statusText =
     snap.mode === 'off'
-      ? 'gates off'
+      ? t.gate.statuses.off
       : snap.gatesAllow
-      ? 'gates allow'
-      : 'GATES BLOCKED';
+      ? t.gate.statuses.allow
+      : t.gate.statuses.blocked;
 
-  const volNote = snap.volMultiplier !== 1.0 ? ` (vol×${snap.volMultiplier.toFixed(2)})` : '';
+  const language = getHtmlLanguage(locale);
+  const countFormatter = new Intl.NumberFormat(language);
+  const decimalFormatter = new Intl.NumberFormat(language, { maximumFractionDigits: 2 });
+  const thresholdFormatter = new Intl.NumberFormat(language, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+  const volNote = snap.volMultiplier !== 1.0
+    ? ` (vol×${decimalFormatter.format(snap.volMultiplier)})`
+    : '';
   const tooltip = [
-    `Mode: ${snap.mode}`,
-    `Regime: ${snap.regime}`,
-    `Streak losses: ${snap.streakLossCount}/${snap.thresholds.streakN}`,
-    `Drawdown: ${snap.currentDrawdownPct}% / ${(snap.effectiveDrawdownThreshold * 100).toFixed(1)}%${volNote}`,
-    `Lookback: ${snap.dataPoints}/${snap.thresholds.lookback} resolved signals`,
-    snap.reason ? `Reason: ${snap.reason}` : '',
+    formatMessage(t.gate.tooltip.mode, { mode: snap.mode }),
+    formatMessage(t.gate.tooltip.regime, { regime: regimeLabel }),
+    formatMessage(t.gate.tooltip.streakLosses, {
+      current: countFormatter.format(snap.streakLossCount),
+      limit: countFormatter.format(snap.thresholds.streakN),
+    }),
+    formatMessage(t.gate.tooltip.drawdown, {
+      current: decimalFormatter.format(snap.currentDrawdownPct),
+      limit: thresholdFormatter.format(snap.effectiveDrawdownThreshold * 100),
+      volatility: volNote,
+    }),
+    formatMessage(t.gate.tooltip.lookback, {
+      current: countFormatter.format(snap.dataPoints),
+      limit: countFormatter.format(snap.thresholds.lookback),
+    }),
+    snap.reason ? formatMessage(t.gate.tooltip.reason, { reason: snap.reason }) : '',
   ]
     .filter(Boolean)
     .join('\n');
+  const ariaLabel = formatMessage(t.gate.aria, { status: statusText, regime: regimeLabel });
 
   return (
     <div
       className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[10px] font-mono"
       title={tooltip}
-      aria-label={`Risk gate status: ${statusText}, regime ${snap.regime}`}
+      aria-label={ariaLabel}
     >
       <Icon className={`h-3 w-3 ${statusColor}`} aria-hidden="true" />
       <span className={statusColor}>{statusText}</span>
       <span className="text-zinc-600">|</span>
       <span className={`px-1.5 py-0.5 rounded border ${regimeStyle.className}`}>
-        {regimeStyle.label}
+        <bdi dir="auto">{regimeLabel}</bdi>
       </span>
     </div>
   );

@@ -29,16 +29,23 @@ import {
 } from 'lucide-react';
 import { TradeClawLogo } from './tradeclaw-logo';
 import { UserMenu } from './UserMenu';
+import { ProductLocaleSwitcher } from '../app/components/product-locale-switcher';
+import { useLocale } from '../app/components/locale-provider';
+import {
+  getAppShellTranslations,
+  type AppShellGroupKey,
+  type AppShellLinkKey,
+} from '../lib/product-i18n/app-shell';
 import type { LucideIcon } from 'lucide-react';
 
 interface NavLink {
   href: string;
-  label: string;
+  labelKey: AppShellLinkKey;
   icon: LucideIcon;
 }
 
 interface DropdownGroup {
-  label: string;
+  labelKey: AppShellGroupKey;
   links: NavLink[];
 }
 
@@ -51,84 +58,84 @@ interface DropdownGroup {
 //           takes them to /dashboard.
 // ---------------------------------------------------------------------------
 
-interface PrimaryLink { href: string; label: string }
+interface PrimaryLink { href: string; labelKey: AppShellLinkKey }
 
 const MEMBER_PRIMARY: PrimaryLink[] = [
-  { href: '/today', label: 'Today' },
-  { href: '/dashboard', label: 'Signals' },
-  { href: '/copilot', label: 'Copilot' },
-  { href: '/screener', label: 'Screener' },
-  { href: '/backtest', label: 'Backtest' },
-  { href: '/leaderboard', label: 'Leaderboard' },
-  { href: '/track-record', label: 'Track Record' },
+  { href: '/today', labelKey: 'today' },
+  { href: '/dashboard', labelKey: 'signals' },
+  { href: '/copilot', labelKey: 'copilot' },
+  { href: '/screener', labelKey: 'screener' },
+  { href: '/backtest', labelKey: 'backtest' },
+  { href: '/leaderboard', labelKey: 'leaderboard' },
+  { href: '/track-record', labelKey: 'trackRecord' },
 ];
 
 const MEMBER_MORE: DropdownGroup[] = [
   {
-    label: 'Trading Tools',
+    labelKey: 'tradingTools',
     links: [
-      { href: '/strategy-builder', label: 'Strategy Builder', icon: Wrench },
-      { href: '/strategy-rules', label: 'Strategy Rules', icon: GitBranch },
-      { href: '/strategies/leaderboard', label: 'Strategy Leaderboard', icon: Trophy },
-      { href: '/multi-timeframe', label: 'Multi-TF', icon: Layers },
-      { href: '/paper-trading', label: 'Paper Trading', icon: Crosshair },
+      { href: '/strategy-builder', labelKey: 'strategyBuilder', icon: Wrench },
+      { href: '/strategy-rules', labelKey: 'strategyRules', icon: GitBranch },
+      { href: '/strategies/leaderboard', labelKey: 'strategyLeaderboard', icon: Trophy },
+      { href: '/multi-timeframe', labelKey: 'multiTimeframe', icon: Layers },
+      { href: '/paper-trading', labelKey: 'paperTrading', icon: Crosshair },
     ],
   },
   {
-    label: 'Insights',
+    labelKey: 'insights',
     links: [
-      { href: '/journal', label: 'Journal', icon: NotebookPen },
-      { href: '/glossary', label: 'Glossary', icon: BookOpen },
+      { href: '/journal', labelKey: 'journal', icon: NotebookPen },
+      { href: '/glossary', labelKey: 'glossary', icon: BookOpen },
     ],
   },
   {
-    label: 'Notifications',
+    labelKey: 'notifications',
     links: [
-      { href: '/notifications', label: 'Alerts', icon: Bell },
-      { href: '/subscribe', label: 'Digest', icon: Mail },
-      { href: '/digest/preview', label: 'Daily TG', icon: Send },
+      { href: '/notifications', labelKey: 'alerts', icon: Bell },
+      { href: '/subscribe', labelKey: 'digest', icon: Mail },
+      { href: '/digest/preview', labelKey: 'dailyTelegram', icon: Send },
     ],
   },
   {
-    label: 'Community',
+    labelKey: 'community',
     links: [
-      { href: '/vote', label: 'Vote', icon: BarChart2 },
-      { href: '/badges/readme', label: 'Badges', icon: BadgeCheck },
-      { href: '/tradingview-export', label: 'TradingView Export', icon: BarChart3 },
+      { href: '/vote', labelKey: 'vote', icon: BarChart2 },
+      { href: '/badges/readme', labelKey: 'badges', icon: BadgeCheck },
+      { href: '/tradingview-export', labelKey: 'tradingViewExport', icon: BarChart3 },
     ],
   },
   {
-    label: 'Transparency',
+    labelKey: 'transparency',
     links: [
-      { href: '/research', label: 'Research', icon: FlaskConical },
-      { href: '/methodology', label: 'Methodology', icon: Ruler },
-      { href: '/why-long-term', label: 'Why Long-Term', icon: TrendingUp },
-      { href: '/open-data', label: 'Open Data', icon: Database },
-      { href: '/calibration', label: 'Calibration', icon: Target },
+      { href: '/research', labelKey: 'research', icon: FlaskConical },
+      { href: '/methodology', labelKey: 'methodology', icon: Ruler },
+      { href: '/why-long-term', labelKey: 'whyLongTerm', icon: TrendingUp },
+      { href: '/open-data', labelKey: 'openData', icon: Database },
+      { href: '/calibration', labelKey: 'calibration', icon: Target },
     ],
   },
 ];
 
 const ADMIN_PRIMARY: PrimaryLink[] = [
-  { href: '/admin', label: 'Overview' },
-  { href: '/admin/social-queue', label: 'Social Queue' },
-  { href: '/admin/executions', label: 'Executions' },
-  { href: '/dashboard', label: '↩ App' },
+  { href: '/admin', labelKey: 'overview' },
+  { href: '/admin/social-queue', labelKey: 'socialQueue' },
+  { href: '/admin/executions', labelKey: 'executions' },
+  { href: '/dashboard', labelKey: 'backToApp' },
 ];
 
 const ADMIN_MORE: DropdownGroup[] = [
   {
-    label: 'Operations',
+    labelKey: 'operations',
     links: [
-      { href: '/admin/social-queue', label: 'Social Queue', icon: Megaphone },
-      { href: '/admin/executions', label: 'Executions', icon: Activity },
+      { href: '/admin/social-queue', labelKey: 'socialQueue', icon: Megaphone },
+      { href: '/admin/executions', labelKey: 'executions', icon: Activity },
     ],
   },
   {
-    label: 'Surfaces',
+    labelKey: 'surfaces',
     links: [
-      { href: '/track-record', label: 'Public Track Record', icon: ShieldCheck },
-      { href: '/dashboard', label: 'User Dashboard', icon: BarChart2 },
+      { href: '/track-record', labelKey: 'publicTrackRecord', icon: ShieldCheck },
+      { href: '/dashboard', labelKey: 'userDashboard', icon: BarChart2 },
     ],
   },
 ];
@@ -149,6 +156,8 @@ function selectNav(pathname: string): NavSet {
 
 export function PageNavBar() {
   const pathname = usePathname();
+  const { locale, ready } = useLocale();
+  const t = getAppShellTranslations(locale);
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
@@ -206,12 +215,13 @@ export function PageNavBar() {
 
   return (
     <nav
-      className={`premium-dark-chrome sticky top-0 z-50 border-b bg-[#050608]/[0.95] text-white backdrop-blur-xl ${
+      className={`premium-dark-chrome sticky top-0 z-50 border-b bg-[#050608]/[0.95] text-white backdrop-blur-xl ${ready ? '' : 'invisible'} ${
         variant === 'admin'
           ? 'border-amber-500/30'
           : 'border-[var(--border-strong)]'
       }`}
-      aria-label={variant === 'admin' ? 'Admin navigation' : 'Member navigation'}
+      aria-hidden={!ready}
+      aria-label={variant === 'admin' ? t.aria.adminNavigation : t.aria.memberNavigation}
     >
       <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
@@ -221,14 +231,14 @@ export function PageNavBar() {
             Trade<span className="text-[var(--brand)]">Claw</span>
           </span>
           {variant === 'admin' && (
-            <span className="ml-1 rounded-sm border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-300">
-              Admin
+            <span className="ms-1 rounded-sm border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-300">
+              {t.adminBadge}
             </span>
           )}
         </Link>
 
         {/* Desktop: Primary links + More dropdown */}
-        <div className="ml-auto mr-2 hidden h-full items-center gap-0.5 md:flex">
+        <div className="ms-auto me-2 hidden h-full items-center gap-0.5 md:flex">
           {PRIMARY_LINKS.map((page) => (
             <Link
               key={page.href}
@@ -236,7 +246,7 @@ export function PageNavBar() {
               aria-current={isActive(page.href) ? 'page' : undefined}
               className={linkClasses(isActive(page.href))}
             >
-              {page.label}
+              {t.links[page.labelKey]}
             </Link>
           ))}
 
@@ -256,7 +266,7 @@ export function PageNavBar() {
                   : 'border-transparent text-white/[0.55] hover:border-white/[0.15] hover:text-white'
               }`}
             >
-              More
+              {t.more}
               <ChevronDown
                 className={`w-3 h-3 transition-transform duration-200 ${moreOpen ? 'rotate-180' : ''}`}
               />
@@ -270,12 +280,12 @@ export function PageNavBar() {
             {moreOpen && (
               <div
                 id="page-more-menu"
-                className="fixed inset-x-4 top-16 mt-px grid max-h-[calc(100vh-5rem)] grid-cols-3 origin-top-right items-start gap-5 overflow-y-auto rounded-md border border-[var(--border-strong)] bg-[#090b0e]/[0.98] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.55)] xl:absolute xl:inset-x-auto xl:right-0 xl:top-full xl:w-[680px]"
+                className="fixed inset-x-4 top-16 mt-px grid max-h-[calc(100vh-5rem)] grid-cols-3 origin-top items-start gap-5 overflow-y-auto rounded-md border border-[var(--border-strong)] bg-[#090b0e]/[0.98] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.55)] xl:absolute xl:inset-x-auto xl:end-0 xl:top-full xl:w-[680px]"
               >
                 {MORE_GROUPS.map((group) => (
-                  <div key={group.label}>
+                  <div key={group.labelKey}>
                     <span className="mb-2 block border-b border-white/[0.10] pb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/[0.50]">
-                      {group.label}
+                      {t.groups[group.labelKey]}
                     </span>
                     <div className="flex flex-col gap-0.5">
                       {group.links.map((link) => (
@@ -293,7 +303,7 @@ export function PageNavBar() {
                           }`}
                         >
                           <link.icon className="h-3.5 w-3.5 shrink-0" />
-                          {link.label}
+                          {t.links[link.labelKey]}
                         </Link>
                       ))}
                     </div>
@@ -305,7 +315,8 @@ export function PageNavBar() {
         </div>
 
         {/* Identity affordance — visible on all breakpoints. */}
-        <div className="ml-auto md:ml-0 flex items-center gap-2">
+        <div className="ms-auto flex items-center gap-2 md:ms-0">
+          <ProductLocaleSwitcher />
           <UserMenu />
         </div>
       </div>

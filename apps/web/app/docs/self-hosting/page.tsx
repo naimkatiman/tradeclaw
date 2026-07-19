@@ -179,15 +179,20 @@ sudo certbot renew --dry-run`} />
         <h2 className="text-2xl font-semibold text-white mb-4">Health Monitoring</h2>
         <p className="text-zinc-400 leading-relaxed mb-4">
           TradeClaw exposes a <code className="text-emerald-400 text-sm">/api/health</code> endpoint
-          that returns uptime, version, and the available build identity. Use it for uptime checks.
+          that returns uptime, version, the available build identity, and readiness checks. It returns
+          HTTP 200 only when PostgreSQL and the required schema migration are ready, otherwise HTTP 503.
         </p>
         <CodeBlock language="json" filename="GET /api/health" code={`{
   "status": "ok",
-  "version": "0.5.0",
+  "version": "0.1.0",
   "uptime": 86400,
   "node": "v22.0.0",
   "build": "<revision-or-deployment-id>",
-  "timestamp": "2026-03-27T10:00:00.000Z"
+  "timestamp": "2026-03-27T10:00:00.000Z",
+  "checks": {
+    "database": { "status": "ok" },
+    "migrations": { "status": "ok", "required": "053_drop_monetization.sql" }
+  }
 }`} />
         <p className="text-zinc-400 leading-relaxed mt-4">
           Pair with services like <span className="text-zinc-200">UptimeRobot</span>,{' '}

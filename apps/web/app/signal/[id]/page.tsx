@@ -15,6 +15,7 @@ import { STAT_HINTS } from '../../../lib/stat-hints';
 import { deriveHistoricalOutcomeStatus } from '../../../lib/signal-outcome';
 import { trackEvent } from '../../../lib/analytics';
 import { isExpiredHistoricalOutcome, isPendingHistoricalOutcome } from '../../../lib/signal-history-status';
+import { isHighRuleScore } from '../../../lib/signal-thresholds';
 
 const HINT_ENTRY = 'Mid-price at signal emission. Slippage and spread are applied later when computing P&L.';
 const HINT_STOP_LOSS = 'Risk anchor — sized at ATR × multiplier from entry. SL hit = -1R, TP1 hit = +1R reference for the equity card.';
@@ -307,14 +308,14 @@ export default async function SignalPage(
             </div>
             <div className="text-right shrink-0">
               <div className={`text-5xl font-bold font-mono tabular-nums ${
-                signal.confidence >= 80 ? 'text-emerald-400'
+                isHighRuleScore(signal.confidence) ? 'text-emerald-400'
                 : signal.confidence >= 65 ? 'text-zinc-400'
                 : 'text-red-400'
               }`}>
-                {signal.confidence}%
+                {signal.confidence}/100
               </div>
               <div className="text-xs text-zinc-600 mt-1 uppercase tracking-wider inline-flex items-center justify-end gap-1">
-                confidence
+                Rule score
                 <InfoHint text={STAT_HINTS.avgConfidence} label="What confidence means" />
               </div>
             </div>
@@ -326,7 +327,7 @@ export default async function SignalPage(
               className="absolute h-1.5 rounded-full transition-all duration-700"
               style={{
                 width: `${signal.confidence}%`,
-                background: signal.confidence >= 80 ? '#10B981'
+                background: isHighRuleScore(signal.confidence) ? '#10B981'
                   : signal.confidence >= 65 ? '#a1a1aa' : '#EF4444',
               }}
             />
