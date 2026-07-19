@@ -1,11 +1,102 @@
 project: tradeclaw
-updated: 2026-07-17T00:19:33+08:00
+updated: 2026-07-19T10:46:38+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
   Public mode = limited. Admin = full.
   Alpha Screener = confirmed SaaS brand for users who don't want to self-host. Tradesmart name is dropped.
   Goal: viral GitHub repo, thousands of stars.
+
+phase2_product_localization_release_2026_07_19:
+  at: 2026-07-19T10:24:44+08:00
+  agent: TradeClaw PM agent
+  status: validated_ready_to_deploy
+  scope: Commit and production deployment of the verified full-sweep debug and five-locale product repair
+  base_commit: 2506a795af09a02f553d069d36235ebe6770f900
+  release_branch: release/full-sweep-localization-20260719
+  code_commit: fe66b91e
+  current_step: Committing the validated release record, then deploying the exact clean worktree to Railway production
+  deployment_target:
+    provider: Railway
+    project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
+    environment_id: 148430a0-4280-4cc6-a730-e4edca98141e
+    service_id: b958acce-02e3-4aee-9e5f-c2f1f1897253
+    domain: https://tradeclaw.win
+  notes: >
+    Zaky explicitly authorized commit and deployment. The release was extracted
+    from the broad dirty checkout as an exact 118-file debug allowlist and ported
+    onto current origin/main. Research, billing, AI-tracking, standup,
+    generated-artifact, and unrelated market-data drift remain excluded. Merge
+    conflicts preserved main's build identity, proof schema, and cyan CTA styling
+    while applying the readiness, deployment, and localization repairs.
+  verification: >
+    On the clean origin/main-based worktree, root Jest passed 219 suites and 1,732
+    tests with 26 intentional skips and one snapshot. Web TypeScript passed; lint
+    passed with zero errors and 23 existing warnings. The required root production
+    build compiled signals, trading-agents, and Next.js 16.2.6 and generated
+    324/324 pages. WebSocket TypeScript and all 36 Vitest checks passed. Six
+    targeted Chromium Playwright checks passed across the five-locale matrix,
+    invalid and blocked storage fallback, Arabic persistence/RTL, and mobile
+    containment. STATE YAML, shell syntax, and git diff checks passed. Docker is
+    unavailable locally, so Compose runtime validation remains assigned to CI.
+    npm audit reported 62 existing lockfile advisories; the two critical findings
+    are outside the deployed web image (an Expo-mobile transitive dependency and a
+    dev-only Vitest UI dependency). Web production scope has zero critical audit
+    findings, and no package manifest or lockfile changed in this release.
+
+phase2_product_localization_2026_07_19:
+  at: 2026-07-19T07:29:34+08:00
+  agent: TradeClaw PM agent
+  status: done
+  scope: Core product localization for Spanish, Chinese, Malay, and Arabic
+  current_step: Complete; five-locale product flow and adversarial persistence/RTL checks verified locally
+  notes: >
+    The existing five-locale provider now covers the dashboard, screener, track
+    record, app and marketing navigation, identity and theme controls, and their
+    supporting live, evidence, export, chart, share, and tour widgets. Typed
+    dictionaries localize visible copy, dates, statuses, empty states, disclosures,
+    table labels, and accessible names for English, Spanish, Chinese, Malay, and
+    Arabic. Route-safe cookie/localStorage persistence, hydration-first-paint
+    suppression, localized metadata, Arabic RTL, 390px containment, keyboard sort
+    controls, live regions, guided-tour focus trapping, unknown-theme fallback,
+    rule-score units, inclusive 80/100 thresholds, unavailable star metrics, and
+    one-point chart handling are repaired. Ten localization contract suites cover
+    dictionary shape, placeholders, encoding, boundaries, and invariants.
+  verification: >
+    Final root Jest passed 217 suites and 1,743 tests with 26 intentional skips
+    and one snapshot. Web lint passed with zero errors and 23 existing warnings;
+    web TypeScript passed. The root production build compiled signals,
+    trading-agents, and Next.js 16.2.6 and generated 324/324 pages. Six targeted
+    Chromium Playwright checks passed across all five languages, localized titles,
+    invalid and blocked localStorage cookie fallback, in-place Arabic switching,
+    reload and homepage preference persistence, correct lang/RTL state, mobile
+    containment and CTA visibility, and zero uncaught page errors.
+
+full_sweep_debug_2026_07_18:
+  at: 2026-07-18T00:41:00+08:00
+  agent: TradeClaw PM agent
+  status: done
+  scope: Full application regression sweep with localization failures prioritized
+  current_step: Complete; fixes verified locally, with Docker runtime validation delegated to CI because Docker is unavailable
+  notes: >
+    Phase 1 made exact localized landing URLs authoritative, synchronized language
+    and Arabic direction, exposed the selector on mobile, removed the English-only
+    footer from translated landing pages, published complete hreflang/sitemap
+    alternates, and excluded development HMR from middleware. The deploy audit
+    repaired fresh-Compose schema ownership, safe volume defaults, LF shell
+    enforcement, admin variable forwarding, migration readiness, production-safe
+    SSE fallback, sanitized database-backed health checks, Windows-aware
+    create-tradeclaw setup, truthful no-database provider fallback, and unsupported
+    Fly/Replit promotion. Research, AI-tracking, standups, and generated assets were
+    outside the release packet.
+  verification: >
+    The completed Phase 1 packet passed the root Jest suite, web lint and typecheck,
+    signals and trading-agents builds, websocket server build and 36 websocket
+    tests, the root production build at 324/324 pages, an 89-URL production-server
+    sitemap crawl, five-language browser checks, YAML/TOML and shell syntax checks,
+    LF enforcement, CLI help tests, and diff whitespace validation. Docker was not
+    installed locally, so the repository Docker CI remains the container-runtime
+    proof.
 
 proof_population_alignment_2026_07_17:
   at: 2026-07-17T00:19:33+08:00
