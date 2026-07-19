@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-20T00:45:15+08:00
+updated: 2026-07-20T01:15:08+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -10,14 +10,26 @@ description: >
 emerald_main_sync_release_2026_07_19:
   at: 2026-07-19T23:22:41+08:00
   agent: TradeClaw PM agent
-  status: merged_pending_combined_deploy
+  status: deployed
   scope: Publish the verified localization release to origin/main and restore the favicon-matched emerald brand before production deployment
   base_commit: 2506a795af09a02f553d069d36235ebe6770f900
   release_branch: release/full-sweep-localization-20260719
   source_head: 16b00717d35aab9bf63e4b61090d5880fcc81d29
   merge_commit: c04ec4bbe71234d71af001170d36e6187f0849e4
-  current_step: PR #178 is merged and the PR #177 combined tree is locally verified; pending protected merge and one combined Railway deploy
+  combined_research_pr: 177
+  combined_main_commit: 08a6bfefc92659d7cec0ccacdad85be89dcfb3ed
+  current_step: Complete; PR #178 and PR #177 are merged and the exact combined main tree is deployed and verified on Railway production
   palette_source_commit: c70be6bf
+  deployment_result:
+    provider: Railway
+    deployment_id: f5309fa3-302b-438d-85c9-9e8ce9ae9073
+    status: SUCCESS
+    created_at: 2026-07-19T17:02:40.930Z
+    image_digest: sha256:3f9ed13f22f1435106cae342bf20c3a47b91848dcb6574353f02faaf9a88cd9c
+    application_build_id: 3358646e-3585-45ec-8fc3-494331a3bd73
+    health_status: ok
+    database_status: ok
+    migrations_status: ok
   notes: >
     The blue/cyan mix was traced to premium UI commit 80371e97. The prior emerald
     correction existed on a side branch but never reached origin/main, so the
@@ -46,7 +58,15 @@ emerald_main_sync_release_2026_07_19:
     all 16 Chromium checks, including its 390px menu context; the mandatory root
     build again generated 324/324 pages and lint passed with zero errors and the
     same 23 warnings. A local WebKit install timed out, so the protected CI mobile
-    project remains the authoritative WebKit verification before merge.
+    project remained the authoritative WebKit verification before merge. Protected
+    CI subsequently passed, including Docker Build and Playwright/WebKit. PR #178
+    merged at c04ec4bb, PR #177 merged at final main 08a6bfef, and Railway deployment
+    f5309fa3 reached terminal SUCCESS. Live health returned HTTP 200 with database
+    and migrations ready. The research and open-data pages returned HTTP 200 with
+    the committed sandbox artifact and narrow result boundary; the GitHub-stars
+    proxy returned a numeric count. Arabic, Spanish, Malay, and Chinese landing
+    routes returned HTTP 200 over IPv4 and IPv6 with the expected lang attributes
+    and Arabic RTL. Deployment logs contained no error- or warning-level entries.
 
 phase2_product_localization_release_2026_07_19:
   at: 2026-07-19T10:24:44+08:00
@@ -3923,6 +3943,9 @@ next_actions:
     publication_pr: 177
     source_commit: 999b74a550c2848a895dfb7ea65c74d9b64d8f9f
     reconciled_base: c04ec4bbe71234d71af001170d36e6187f0849e4
+    merge_commit: 08a6bfefc92659d7cec0ccacdad85be89dcfb3ed
+    deployment_id: f5309fa3-302b-438d-85c9-9e8ce9ae9073
+    deployment_status: SUCCESS
     notes: >
       Completed 2026-07-19 from merged main 2506a795 in the isolated
       feat/slow-gate-research-surface worktree, then reconciled onto localization
@@ -3940,4 +3963,8 @@ next_actions:
       lint passed with 23 pre-existing warnings and zero errors; npm run build
       generated 324/324 pages; git diff --check passed. No strategy selection, allocation, execution,
       deployment, LinkedIn, database, migration, dependency, Docker, or lockfile
-      files changed.
+      files changed. Protected CI passed before merge. Production read-back then
+      confirmed the artifact link and the exact sandbox-only, non-live,
+      no-broker-fill wording on /research and /open-data. This lane is closed;
+      strategy selection and allocation remain unchanged pending enough production
+      observations to measure the live volatility scaler's effect.
