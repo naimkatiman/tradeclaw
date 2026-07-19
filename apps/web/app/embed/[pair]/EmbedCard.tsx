@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TradeClawLogo } from '../../../components/tradeclaw-logo';
 import type { TradingSignal } from '../../lib/signals';
+import { isHighRuleScore } from '../../../lib/signal-thresholds';
 
 interface Props {
   pair: string;
@@ -102,7 +103,7 @@ export function EmbedCard({ pair, theme }: Props) {
   const accentBg = isBuy ? 'rgba(16,185,129,0.12)' : 'rgba(244,63,94,0.12)';
   const accentBorder = isBuy ? 'rgba(16,185,129,0.25)' : 'rgba(244,63,94,0.25)';
 
-  const confColor = signal.confidence >= 80 ? buyColor
+  const confColor = isHighRuleScore(signal.confidence) ? buyColor
     : signal.confidence >= 65 ? '#f59e0b'
     : sellColor;
 
@@ -166,10 +167,10 @@ export function EmbedCard({ pair, theme }: Props) {
               fontFamily: 'var(--font-geist-mono, monospace)',
               lineHeight: 1,
             }}>
-              {signal.confidence}%
+              {signal.confidence}/100
             </div>
             <div style={{ fontSize: '9px', color: textMuted, marginTop: '3px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-              confidence
+              rule score
             </div>
           </div>
         </div>

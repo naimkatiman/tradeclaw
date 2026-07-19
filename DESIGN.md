@@ -6,13 +6,13 @@ Visual system for TradeClaw. The token source of truth is `apps/web/app/globals.
 
 1. **Evidence before persuasion.** TradeClaw earns trust by showing the dataset, assumptions, costs, sample size, timestamps, and limitations behind a claim. Marketing may simplify the explanation, but it must not outrun the proof.
 2. **Null is a valid result.** No signal, insufficient data, flat performance, and failed validation are first-class outcomes. Never replace a null result with optimistic copy, an invented metric, or a positive-looking placeholder.
-3. **Brand and market direction are separate systems.** Electric cyan identifies TradeClaw and interaction. Green and red encode directional data only.
+3. **Brand authenticity before reference matching.** Premium references may influence hierarchy, density, and motion, but TradeClaw keeps its original emerald identity. Emerald also carries positive/up data and rose carries negative/down data, always reinforced by labels and shape.
 4. **Layer complexity deliberately.** Marketing establishes the product and proof; the application exposes the full terminal density one click deeper. Do not force app chrome onto the first marketing screen or dilute product screens into sparse SaaS cards.
 5. **Data earns visual weight.** Charts, terminals, and WebGL exist to explain real data. Decoration must remain subordinate to evidence.
 
 ## Theme and canvas
 
-TradeClaw uses a near-black/near-white exchange canvas with crisp contrast, quiet borders, and small amounts of cyan light. Dark mode is the signature presentation; light mode is fully supported and must preserve the same hierarchy.
+TradeClaw uses a near-black/near-white exchange canvas with crisp contrast, quiet borders, and small amounts of emerald light. Dark mode is the signature presentation; light mode is fully supported and must preserve the same hierarchy.
 
 - Dark canvas: `--background: #030506`; cards `#090c0e`; raised surface `#0e1316`; inset surface `#06090a`; borders `#1b2327` to `#303b40`.
 - Light canvas: `--background: #f4f7f8`; cards `#ffffff`; raised surface `#edf2f4`; inset surface `#e6ecef`; borders `#dce3e6` to `#c5d0d5`.
@@ -23,9 +23,9 @@ TradeClaw uses a near-black/near-white exchange canvas with crisp contrast, quie
 
 ### Brand and interaction
 
-Electric cyan is the semantic TradeClaw brand color: `--brand`, `--brand-bright`, `--brand-soft`, and `--brand-glow`. The light theme uses a darker accessible cyan for text and controls; the dark theme may use the brighter electric cyan.
+Original TradeClaw emerald is the brand color: `--brand`, `--brand-bright`, `--brand-soft`, and `--brand-glow`. The light theme uses accessible `#047857` for text and controls; the dark theme uses `#34d399`. Tints and opacity are variants of the same family, not additional accent colors.
 
-Use cyan for:
+Use emerald for:
 
 - the logo and brand wordmark accent;
 - active navigation and selected states;
@@ -33,16 +33,16 @@ Use cyan for:
 - small live/system indicators when they do not express market direction;
 - restrained grid, glow, and terminal-light cues.
 
-Cyan is not profit. Do not use it to imply a winning trade or positive return, and do not make every surface cyan. A primary CTA is deliberately neutral and high contrast: white with near-black text in dark mode, near-black with white text in light mode. Cyan belongs in its focus, hover, selected, or supporting cues rather than as the default filled CTA.
+Emerald may identify either the product or a positive/up result, so the surrounding label, sign, icon, and position must make the role explicit. Do not make every surface emerald. A primary CTA is deliberately neutral and high contrast: white with near-black text in dark mode, near-black with white text in light mode. Emerald belongs in focus, hover, selected, and supporting cues rather than becoming the default fill for every control.
 
 ### Directional data
 
-Green and red are reserved exclusively for market/trade direction and signed outcomes:
+Directional data uses the same restrained families:
 
 - Up/positive: accessible text `#047857` in light mode and `#34d399` in dark mode; canvas/WebGL mark `#10b981`.
 - Down/negative: accessible text `#be123c` in light mode and `#fb7185` in dark mode; canvas/WebGL mark `#f43f5e`.
 
-Nothing decorative, branded, selected, or merely "successful" may be green or red. Always pair directional color with a sign, label, shape, or position so meaning does not depend on color alone. Amber at low alpha is reserved for disclosure, warning, and disclaimer callouts.
+Rose is never decorative, branded, selected, or merely "important." Always pair directional color with a sign, label, shape, or position so meaning does not depend on color alone. Supporting colors may remain when they communicate a distinct warning, integration, or feature category; they must not replace emerald in TradeClaw-owned assets, SVGs, or icons. Amber at low alpha is reserved for disclosure, warning, and disclaimer callouts.
 
 ## Typography
 
@@ -71,12 +71,12 @@ Desktop product navigation lives at the top. Mobile product navigation is a fixe
 - Product shells may use the viewport more aggressively. Prioritize table width, comparison, and scanning over decorative whitespace.
 - Use restrained radii from **8px to 18px**: buttons `8px`, standard cards `14px`, and prominent terminal frames no more than `18px`. Full pills are for compact status, filter, and tag semantics only.
 - Prefer one-pixel borders and tonal surface changes. Use shadows mainly to lift navigation, menus, dialogs, and a hero terminal from the canvas.
-- `.glass-card`, `.glass-nav`, grid backgrounds, cyan glow, and terminal gradients are accents. Do not stack all effects on one surface or repeat them on every card.
+- `.glass-card`, `.glass-nav`, grid backgrounds, emerald glow, and terminal gradients are accents. Do not stack all effects on one surface or repeat them on every card.
 
 ## Components and content
 
 - **Primary CTA:** high-contrast white/black polarity via foreground and background tokens. It is singular within a visual region and uses a direct verb.
-- **Secondary actions:** bordered neutral surfaces; cyan may appear on hover, focus, or selection.
+- **Secondary actions:** bordered neutral surfaces; emerald may appear on hover, focus, or selection.
 - **Terminal frame:** dense, real product content inside a strong border and restrained 18px radius. Decorative light must never obscure values or controls.
 - **Stat display:** value, sign, unit, and cost basis stay together, for example `-0.43R / trade, after modeled cost`. A bare large number with a tiny qualifier is not acceptable.
 - **Proof block:** cite source or endpoint, time range, sample size, modeled assumptions, last-updated time, and relevant limitation close to the claim. Do not use fabricated logos, testimonials, activity, or "live" labels.
@@ -98,9 +98,9 @@ Premium means precise, calm, and verifiable, not glossy. Trust is built through 
 
 ## Interaction and accessibility
 
-- All links, buttons, inputs, selects, and text areas must retain a visible `:focus-visible` treatment: a 2px cyan semantic `--ring` with a 3px offset. Do not remove it or rely on hover alone.
-- Active and selected states require more than color: use a marker, border, weight, icon state, or label in addition to cyan.
-- Maintain WCAG text contrast in both themes. Use the darker light-theme brand token for cyan text rather than the bright decorative cyan.
+- All links, buttons, inputs, selects, and text areas must retain a visible `:focus-visible` treatment: a 2px emerald semantic `--ring` with a 3px offset. Do not remove it or rely on hover alone.
+- Active and selected states require more than color: use a marker, border, weight, icon state, or label in addition to emerald.
+- Maintain WCAG text contrast in both themes. Use the darker light-theme brand token for emerald text rather than the bright decorative emerald.
 - Touch targets should be at least 44px in either dimension even when the visible control is compact. Bottom-nav labels must not disappear on small screens.
 - Keyboard order follows visual order. Dialogs, menus, filters, tables, and chart controls must remain usable without a pointer.
 
@@ -116,6 +116,6 @@ Premium means precise, calm, and verifiable, not glossy. Trust is built through 
 
 WebGL is **data-only**. It may render a real dataset when depth or motion materially clarifies the finding; it is never a decorative hero background. Use one scene per page at most, lazy-loaded client-side with `next/dynamic`, no SSR, and `three` without react-three-fiber.
 
-For the Cost Field, each resolved sized trade is an instanced point, Y is the R multiple, and a neutral zero plane separates positive from negative. The gross-to-net interpolation applies modeled cost so the cloud visibly shifts. Green and red retain their directional meaning; cyan may identify an interactive cursor or selection but never replace the data colors.
+For the Cost Field, each resolved sized trade is an instanced point, Y is the R multiple, and a neutral zero plane separates positive from negative. The gross-to-net interpolation applies modeled cost so the cloud visibly shifts. Emerald and rose retain their directional meaning; a neutral high-contrast cursor identifies selection without inventing another hue.
 
 Cap DPR at 2, instance points, pause offscreen and on hidden tabs, and fully dispose on unmount. Target less than 200KB gzipped for the Three.js chunk and less than 100KB for the data payload. The fallback chain is: WebGL scene -> static 2D rendering of the same data -> text summary of the same numbers. Reduced motion may skip interpolation, but it must not omit the evidence.

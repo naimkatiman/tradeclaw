@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown, LogOut, ShieldCheck, User } from 'lucide-react';
 import { useUserSession, type ClientSession } from '../lib/hooks/use-user-tier';
+import { formatMessage } from '../lib/product-i18n/format';
+import { getAppShellTranslations } from '../lib/product-i18n/app-shell';
+import { useLocale } from '../app/components/locale-provider';
 
 interface UserMenuProps {
   /**
@@ -54,6 +57,8 @@ function AvatarImage({ session }: { session: ClientSession }) {
  * "I'm logged in as X" cue follows the user across surfaces.
  */
 export function UserMenu({ size = 'default' }: UserMenuProps) {
+  const { locale } = useLocale();
+  const t = getAppShellTranslations(locale).userMenu;
   const { status, session } = useUserSession();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -79,7 +84,7 @@ export function UserMenu({ size = 'default' }: UserMenuProps) {
         : 'rounded-lg bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 transition-colors';
     return (
       <Link href="/signin" className={cls} data-testid="user-menu-signin">
-        Sign in
+        {t.signIn}
       </Link>
     );
   }
@@ -103,8 +108,9 @@ export function UserMenu({ size = 'default' }: UserMenuProps) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label={t.accountMenu}
         data-testid="user-menu-trigger"
-        className="flex items-center gap-2 rounded-full pl-1 pr-2 py-1 hover:bg-white/5 transition-colors"
+        className="flex items-center gap-2 rounded-full ps-1 pe-2 py-1 hover:bg-white/5 transition-colors"
       >
         <AvatarImage session={session} />
         <ChevronDown className={`w-3 h-3 text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -113,7 +119,7 @@ export function UserMenu({ size = 'default' }: UserMenuProps) {
       {open && (
         <div
           role="menu"
-          className="absolute top-full right-0 mt-2 w-60 rounded-xl border border-[var(--border)] bg-[var(--bg-card)]/95 backdrop-blur-2xl shadow-2xl shadow-black/40 p-1.5 z-50"
+          className="absolute top-full end-0 mt-2 w-60 rounded-xl border border-[var(--border)] bg-[var(--bg-card)]/95 backdrop-blur-2xl shadow-2xl shadow-black/40 p-1.5 z-50"
         >
           <div className="px-3 py-2 border-b border-white/[0.06] mb-1">
             <p className="text-xs font-semibold text-white truncate">
@@ -122,7 +128,7 @@ export function UserMenu({ size = 'default' }: UserMenuProps) {
             <p className="text-[11px] text-zinc-500 truncate">{session.email}</p>
             {session.authProvider && (
               <p className="text-[10px] text-zinc-600 mt-0.5 uppercase tracking-wider">
-                via {session.authProvider}
+                {formatMessage(t.signedInVia, { provider: session.authProvider })}
               </p>
             )}
           </div>
@@ -134,7 +140,7 @@ export function UserMenu({ size = 'default' }: UserMenuProps) {
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-zinc-300 hover:bg-white/5 hover:text-white"
           >
             <User className="w-3.5 h-3.5" />
-            Profile & Settings
+            {t.profileSettings}
           </Link>
           {session.isAdmin && (
             <Link
@@ -144,7 +150,7 @@ export function UserMenu({ size = 'default' }: UserMenuProps) {
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-emerald-400 hover:bg-emerald-500/10"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              Admin Dashboard
+              {t.adminDashboard}
             </Link>
           )}
           <button
@@ -155,7 +161,7 @@ export function UserMenu({ size = 'default' }: UserMenuProps) {
             className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-zinc-300 hover:bg-white/5 hover:text-white"
           >
             <LogOut className="w-3.5 h-3.5" />
-            Sign out
+            {t.signOut}
           </button>
         </div>
       )}

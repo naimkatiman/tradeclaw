@@ -221,11 +221,35 @@ export function buildOpenApiSpec(): OpenApiSpec {
         },
         HealthResponse: {
           type: "object",
+          required: ["status", "version", "uptime", "timestamp", "checks"],
           properties: {
-            status: { type: "string", example: "ok" },
+            status: { type: "string", enum: ["ok", "unhealthy"], example: "ok" },
             version: { type: "string" },
             uptime: { type: "number" },
             timestamp: { type: "string", format: "date-time" },
+            node: { type: "string" },
+            build: { type: "string" },
+            checks: {
+              type: "object",
+              required: ["database", "migrations"],
+              properties: {
+                database: {
+                  type: "object",
+                  required: ["status"],
+                  properties: {
+                    status: { type: "string", enum: ["ok", "error", "unknown"] },
+                  },
+                },
+                migrations: {
+                  type: "object",
+                  required: ["status", "required"],
+                  properties: {
+                    status: { type: "string", enum: ["ok", "error", "unknown"] },
+                    required: { type: "string", example: "053_drop_monetization.sql" },
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -482,7 +506,15 @@ export function buildOpenApiSpec(): OpenApiSpec {
           summary: "Health check",
           responses: {
             "200": {
-              description: "Server health",
+              description: "The process, PostgreSQL connection, and required schema migration are ready",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/HealthResponse" },
+                },
+              },
+            },
+            "503": {
+              description: "PostgreSQL or the required schema migration is unavailable",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/HealthResponse" },

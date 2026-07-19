@@ -17,24 +17,38 @@ import { ReEngagementBanner } from '../../components/re-engagement-banner';
 import { SignalChart } from '../components/charts';
 import { generateBars } from '../lib/chart-utils';
 import { SYMBOLS } from '../lib/symbol-config';
-import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
+import { DataSourceBadge, getDataSource, shortSignalId } from '../components/data-source-badge';
 import { AccuracyStatsBar } from '../components/accuracy-stats-bar';
 import { AccuracyMeta } from '../components/accuracy-meta';
 import { SignalExportMenu } from '../components/signal-export-menu';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 import { InfoHint } from '../../components/InfoHint';
-import { STAT_HINTS } from '../../lib/stat-hints';
 import { isPendingHistoricalSignal } from '../../lib/signal-history-status';
 import type { TradingSignal } from '@tradeclaw/signals';
 import type { TFDirection } from '../lib/signal-generator';
 import { markStepDone } from '@/lib/onboarding-state';
 import { useUserSession } from '../../lib/hooks/use-user-tier';
 import { classifySignalOutcome, type OutcomeStatus } from '@/lib/signal-outcome';
+import { useLocale } from '../components/locale-provider';
+import { getDashboardTranslations, type DashboardTranslations } from '../../lib/product-i18n/dashboard';
+import { formatMessage } from '../../lib/product-i18n/format';
+import { getHtmlLanguage } from '../../lib/translations';
+import { isHighRuleScore } from '../../lib/signal-thresholds';
 
 const TICKER_PAIRS = ['BTCUSD', 'XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'ETHUSD', 'XAGUSD'];
 
+function useDashboardCopy() {
+  const { locale } = useLocale();
+  return {
+    locale,
+    language: getHtmlLanguage(locale),
+    t: getDashboardTranslations(locale),
+  };
+}
+
 function OnboardingBanner() {
+  const { t } = useDashboardCopy();
   const [visible, setVisible] = useState(() => {
     try {
       if (typeof window === 'undefined') return false;
@@ -53,14 +67,14 @@ function OnboardingBanner() {
     <div className="border-b border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
       <div className="max-w-7xl mx-auto flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-emerald-400 mb-1.5">3 steps to inspect the research output:</p>
+          <p className="text-sm font-semibold text-emerald-400 mb-1.5">{t.onboarding.title}</p>
           <ol className="text-xs text-[var(--text-secondary)] space-y-1 font-mono list-decimal list-inside">
-            <li><span className="text-emerald-400">Review signal candidates</span> — <span className="text-emerald-400">BUY</span>/<span className="text-red-400">SELL</span> research labels with indicator-confluence scores.</li>
-            <li><span className="text-emerald-400">Inspect any row</span> — check its timestamp, data-quality label, entry reference, TP/SL levels, and indicator breakdown.</li>
-            <li><span className="text-emerald-400">Self-host the stack</span> — set the required secrets, run <code className="bg-white/5 px-1.5 py-0.5 rounded text-emerald-400">docker compose up -d</code>, and audit the engine yourself.</li>
+            <li><span className="text-emerald-400">{t.onboarding.reviewTitle}</span> — {t.onboarding.reviewBody}</li>
+            <li><span className="text-emerald-400">{t.onboarding.inspectTitle}</span> — {t.onboarding.inspectBody}</li>
+            <li><span className="text-emerald-400">{t.onboarding.selfHostTitle}</span> — {t.onboarding.selfHostBeforeCommand} <code dir="ltr" className="bg-white/5 px-1.5 py-0.5 rounded text-emerald-400">docker compose up -d</code> {t.onboarding.selfHostAfterCommand}</li>
           </ol>
         </div>
-        <button onClick={dismiss} className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors shrink-0 mt-0.5">
+        <button aria-label={t.common.dismiss} onClick={dismiss} className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors shrink-0 mt-0.5">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
           </svg>
@@ -71,6 +85,7 @@ function OnboardingBanner() {
 }
 
 function ConnectTelegramButton() {
+  const { t } = useDashboardCopy();
   const { status } = useUserSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,23 +98,23 @@ function ConnectTelegramButton() {
     try {
       const res = await fetch('/api/telegram/link-token', { method: 'POST' });
       if (!res.ok) {
-        setError('Could not generate link. Try again.');
+        setError(t.telegram.generateErrorRetry);
         return;
       }
       const data = (await res.json()) as { deepLink?: string };
       if (!data.deepLink) {
-        setError('Could not generate link.');
+        setError(t.telegram.generateError);
         return;
       }
       window.open(data.deepLink, '_blank', 'noopener,noreferrer');
     } catch {
-      setError('Could not generate link.');
+      setError(t.telegram.generateError);
     } finally {
       setLoading(false);
     }
   }
 
-  const buttonLabel = loading ? 'Generating link…' : 'Connect Telegram';
+  const buttonLabel = loading ? t.telegram.generating : t.telegram.connect;
 
   return (
     <div className="flex flex-col items-center gap-1">
@@ -118,7 +133,6 @@ function ConnectTelegramButton() {
   );
 }
 
-const DEFAULT_TITLE = 'TradeClaw — Live Signals';
 const BUY_CONFIDENCE_THRESHOLD = 70;
 
 const TIMEFRAMES = ['ALL', 'M5', 'M15', 'H1', 'H4', 'D1'];
@@ -156,6 +170,34 @@ const ASSET_CLASSES = {
 
 type AssetClass = keyof typeof ASSET_CLASSES;
 
+function assetClassLabel(t: DashboardTranslations, assetClass: AssetClass): string {
+  const labels: Record<AssetClass, string> = {
+    ALL: t.common.assets.all,
+    CRYPTO: t.common.assets.crypto,
+    FOREX: t.common.assets.forex,
+    METALS: t.common.assets.metals,
+    STOCKS: t.common.assets.stocks,
+  };
+  return labels[assetClass];
+}
+
+function directionLabel(t: DashboardTranslations, direction: 'BUY' | 'SELL'): string {
+  return direction === 'BUY' ? t.common.buy : t.common.sell;
+}
+
+function formatDashboardTimestamp(iso: string, language: string): string {
+  return new Intl.DateTimeFormat(language, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'UTC',
+    timeZoneName: 'short',
+  }).format(new Date(iso));
+}
+
 function formatPrice(p: number | null | undefined): string {
   if (p == null) return '—';
   if (p >= 1000) return p.toFixed(2);
@@ -164,24 +206,26 @@ function formatPrice(p: number | null | undefined): string {
 }
 
 function DirectionBadge({ direction }: { direction: 'BUY' | 'SELL' }) {
+  const { t } = useDashboardCopy();
   return direction === 'BUY' ? (
     <span className="px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-400 font-bold text-xs border border-emerald-500/20 tracking-wider">
-      BUY
+      {t.common.buy}
     </span>
   ) : (
     <span className="px-2.5 py-1 rounded bg-red-500/15 text-red-400 font-bold text-xs border border-red-500/20 tracking-wider">
-      SELL
+      {t.common.sell}
     </span>
   );
 }
 
 function ConfidenceBar({ value, showExplainer = false }: { value: number; showExplainer?: boolean }) {
-  const color = value >= 80 ? '#10B981' : value >= 65 ? '#a1a1aa' : '#EF4444';
-  const explainer = value >= 80
-    ? 'High rule score — broad indicator agreement'
+  const { t } = useDashboardCopy();
+  const color = isHighRuleScore(value) ? '#10B981' : value >= 65 ? '#a1a1aa' : '#EF4444';
+  const explainer = isHighRuleScore(value)
+    ? t.confidence.high
     : value >= 65
-      ? 'Mid rule score — partial indicator agreement'
-      : 'Low rule score — limited indicator agreement';
+      ? t.confidence.medium
+      : t.confidence.low;
   return (
     <div>
       <div className="relative h-1 w-full rounded-full bg-[var(--glass-bg)]">
@@ -213,15 +257,17 @@ function TFBadgeInline({ tf }: { tf: TFDirection }) {
 }
 
 function LiveBadge() {
+  const { t } = useDashboardCopy();
   return (
     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
       <span className="h-1 w-1 rounded-full bg-emerald-400 pulse-dot" />
-      LIVE
+      {t.common.live}
     </span>
   );
 }
 
 function CopyValueButton({ value }: { value: string }) {
+  const { t } = useDashboardCopy();
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -236,7 +282,7 @@ function CopyValueButton({ value }: { value: string }) {
   return (
     <button
       onClick={handleCopy}
-      title={copied ? 'Copied!' : `Copy ${value}`}
+      title={copied ? t.common.copied : formatMessage(t.common.copyValue, { value })}
       className="relative inline-flex items-center justify-center w-4 h-4 rounded hover:bg-white/10 transition-colors group"
     >
       {copied ? (
@@ -251,7 +297,7 @@ function CopyValueButton({ value }: { value: string }) {
       )}
       {copied && (
         <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap pointer-events-none">
-          Copied!
+          {t.common.copied}
         </span>
       )}
     </button>
@@ -259,6 +305,7 @@ function CopyValueButton({ value }: { value: string }) {
 }
 
 function WinRateBadge({ winRate }: { winRate: { wins: number; losses: number; total: number; win_rate: number } }) {
+  const { t } = useDashboardCopy();
   if (winRate.total < 3) return null; // Not enough data
   const wr = winRate.win_rate;
   const color = wr >= 70 ? 'text-emerald-400 border-emerald-500/25 bg-emerald-500/8'
@@ -266,7 +313,7 @@ function WinRateBadge({ winRate }: { winRate: { wins: number; losses: number; to
     : 'text-red-400 border-red-500/25 bg-red-500/8';
   return (
     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono border ${color}`}>
-      <span className="opacity-60">WR</span>
+      <span className="opacity-60">{t.common.winRateShort}</span>
       <span className="font-bold">{wr}%</span>
       <span className="opacity-40 text-[10px]">{winRate.wins}/{winRate.total}</span>
     </span>
@@ -286,7 +333,7 @@ function ConfluencePills({ timeframe }: { timeframe: string }) {
     <div className="flex items-center gap-1 flex-wrap">
       <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-mono border ${color}`}>
         {'●'.repeat(count)}{'○'.repeat(4 - count)}
-        <span className="ml-0.5 opacity-60">{count}TF</span>
+        <span className="ms-0.5 opacity-60">{count}TF</span>
       </span>
       {tfs.map(tf => (
         <span key={tf} className="px-1 py-0.5 rounded text-[9px] font-mono bg-white/[0.03] border border-white/[0.06] text-zinc-400">{tf}</span>
@@ -296,32 +343,33 @@ function ConfluencePills({ timeframe }: { timeframe: string }) {
 }
 
 function SignalExplanation({ signal }: { signal: TradingSignal }) {
+  const { t } = useDashboardCopy();
   const reasons: string[] = [];
   const { rsi, macd, ema, stochastic } = signal.indicators;
 
   // Build 1-2 concise reasons from indicators
   if (signal.direction === 'BUY') {
-    if (rsi.signal === 'oversold' || rsi.value < 35) reasons.push(`RSI at ${rsi.value.toFixed(0)} (oversold condition)`);
-    else if (rsi.value < 50) reasons.push(`RSI at ${rsi.value.toFixed(0)} (below neutral)`);
-    if (macd.signal === 'bullish') reasons.push('MACD crossover bullish');
-    if (ema.trend === 'up') reasons.push('Price above EMA20 — uptrend intact');
-    if (stochastic.signal === 'oversold') reasons.push('Stochastic in oversold range');
+    if (rsi.signal === 'oversold' || rsi.value < 35) reasons.push(formatMessage(t.explanation.rsiOversold, { value: rsi.value.toFixed(0) }));
+    else if (rsi.value < 50) reasons.push(formatMessage(t.explanation.rsiBelowNeutral, { value: rsi.value.toFixed(0) }));
+    if (macd.signal === 'bullish') reasons.push(t.explanation.macdBullish);
+    if (ema.trend === 'up') reasons.push(t.explanation.priceAboveEma);
+    if (stochastic.signal === 'oversold') reasons.push(t.explanation.stochasticOversold);
   } else {
-    if (rsi.signal === 'overbought' || rsi.value > 65) reasons.push(`RSI at ${rsi.value.toFixed(0)} (overbought condition)`);
-    else if (rsi.value > 50) reasons.push(`RSI at ${rsi.value.toFixed(0)} (above neutral)`);
-    if (macd.signal === 'bearish') reasons.push('MACD crossover bearish');
-    if (ema.trend === 'down') reasons.push('Price below EMA20 — downtrend intact');
-    if (stochastic.signal === 'overbought') reasons.push('Stochastic in overbought range');
+    if (rsi.signal === 'overbought' || rsi.value > 65) reasons.push(formatMessage(t.explanation.rsiOverbought, { value: rsi.value.toFixed(0) }));
+    else if (rsi.value > 50) reasons.push(formatMessage(t.explanation.rsiAboveNeutral, { value: rsi.value.toFixed(0) }));
+    if (macd.signal === 'bearish') reasons.push(t.explanation.macdBearish);
+    if (ema.trend === 'down') reasons.push(t.explanation.priceBelowEma);
+    if (stochastic.signal === 'overbought') reasons.push(t.explanation.stochasticOverbought);
   }
 
-  if (signal.confidence >= 80) reasons.push(`Rule score ${signal.confidence}/100 — multi-indicator alignment`);
+  if (isHighRuleScore(signal.confidence)) reasons.push(formatMessage(t.explanation.multiIndicatorAlignment, { score: signal.confidence }));
 
   const display = reasons.slice(0, 2);
   if (display.length === 0) return null;
 
   return (
     <div className="mt-2 px-2.5 py-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-      <div className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] mb-1 font-semibold">Why this signal?</div>
+      <div className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] mb-1 font-semibold">{t.explanation.title}</div>
       {display.map((r, i) => (
         <div key={i} className="flex items-start gap-1.5 text-[10px] text-[var(--text-secondary)] leading-relaxed">
           <span className="text-emerald-400 mt-0.5 shrink-0">&#x25B8;</span>
@@ -332,32 +380,43 @@ function SignalExplanation({ signal }: { signal: TradingSignal }) {
   );
 }
 
-const OUTCOME_STYLE: Record<OutcomeStatus, { label: string; cls: string; icon: string }> = {
-  hit_tp3:  { label: 'TP3 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
-  hit_tp2:  { label: 'TP2 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
-  hit_tp1:  { label: 'TP1 hit',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
-  stopped:  { label: 'Stopped',  cls: 'bg-rose-500/15 text-rose-300 border-rose-500/40',          icon: '🛑' },
-  expired:  { label: 'Expired',   cls: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30',          icon: '⌛' },
-  active:   { label: 'Active',   cls: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30',          icon: '⏳' },
-  unknown:  { label: '—',         cls: 'bg-transparent text-zinc-500 border-transparent',          icon: '·' },
+const OUTCOME_STYLE: Record<OutcomeStatus, { cls: string; icon: string }> = {
+  hit_tp3:  { cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
+  hit_tp2:  { cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
+  hit_tp1:  { cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40', icon: '✅' },
+  stopped:  { cls: 'bg-rose-500/15 text-rose-300 border-rose-500/40',          icon: '🛑' },
+  expired:  { cls: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30',          icon: '⌛' },
+  active:   { cls: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30',          icon: '⏳' },
+  unknown:  { cls: 'bg-transparent text-zinc-500 border-transparent',          icon: '·' },
 };
 
 function OutcomeBadge({ status, progressPct }: { status: OutcomeStatus; progressPct: number }) {
+  const { t } = useDashboardCopy();
   const s = OUTCOME_STYLE[status];
   if (status === 'unknown') return null;
   const showPct = status === 'active';
+  const labels: Record<Exclude<OutcomeStatus, 'unknown'>, string> = {
+    hit_tp3: t.outcomes.tp3Hit,
+    hit_tp2: t.outcomes.tp2Hit,
+    hit_tp1: t.outcomes.tp1Hit,
+    stopped: t.outcomes.stopped,
+    expired: t.outcomes.expired,
+    active: t.outcomes.active,
+  };
+  const label = labels[status];
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-mono ${s.cls}`}
-      title={status === 'active' ? `Progress to TP1: ${progressPct}%` : s.label}
+      title={status === 'active' ? formatMessage(t.outcomes.progressToTp1, { progress: progressPct }) : label}
     >
       <span aria-hidden>{s.icon}</span>
-      {s.label}{showPct && progressPct !== 0 ? ` ${progressPct > 0 ? '+' : ''}${progressPct}%` : ''}
+      {label}{showPct && progressPct !== 0 ? ` ${progressPct > 0 ? '+' : ''}${progressPct}%` : ''}
     </span>
   );
 }
 
 function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onToggleFavorite }: { signal: TradingSignal; livePrice?: number | null; tfDirections?: TFDirection[]; onSelect?: (signal: TradingSignal) => void; isFavorite?: boolean; onToggleFavorite?: (id: string) => void }) {
+  const { t, language } = useDashboardCopy();
   const [expanded, setExpanded] = useState(false);
   const [chartVisible, setChartVisible] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
@@ -378,11 +437,11 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
     e.stopPropagation();
     const emoji = signal.direction === 'BUY' ? '🟢' : '🔴';
     const text = [
-      `${emoji} ${signal.direction} ${signal.symbol} — rule score ${signal.confidence}/100`,
-      `Entry: $${formatPrice(signal.entry)}`,
-      `TP1: $${formatPrice(signal.takeProfit1)} | SL: $${formatPrice(signal.stopLoss)}`,
+      `${emoji} ${formatMessage(t.share.headline, { direction: directionLabel(t, signal.direction), symbol: signal.symbol, score: signal.confidence })}`,
+      formatMessage(t.share.entry, { entry: formatPrice(signal.entry) }),
+      formatMessage(t.share.targets, { tp1: formatPrice(signal.takeProfit1), sl: formatPrice(signal.stopLoss) }),
       '',
-      `Rule-generated research candidate; not a broker order or success probability. ${signalUrl}`,
+      `${t.share.disclaimer} ${signalUrl}`,
       '#TradeClaw #TradingResearch',
     ].join('\n');
     window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank', 'width=550,height=420');
@@ -401,11 +460,11 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div>
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-sm font-semibold text-[var(--foreground)] font-mono tracking-tight">{signal.symbol}</span>
+              <bdi dir="ltr" className="text-sm font-semibold text-[var(--foreground)] font-mono tracking-tight">{signal.symbol}</bdi>
               {signal.dataQuality === 'real' && <LiveBadge />}
               <DataSourceBadge source={getDataSource(signal.symbol)} />
               {signal.dataQuality === 'synthetic' && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">DEMO</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">{t.common.demo}</span>
               )}
               {signal.atrCalibration && signal.atrCalibration.confidence !== 'low' && (
                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border ${
@@ -413,11 +472,11 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
                     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                     : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                 }`}>
-                  SL {signal.atrCalibration.multiplier}× ATR
+                  {formatMessage(t.signal.atrBadge, { multiplier: signal.atrCalibration.multiplier })}
                 </span>
               )}
             </div>
-            <div className="text-[11px] text-[var(--text-secondary)] font-mono mt-0.5">{signal.timeframe} · {formatSignalTimestamp(signal.timestamp)}</div>
+            <div dir="ltr" className="text-[11px] text-[var(--text-secondary)] font-mono mt-0.5">{signal.timeframe} · {formatDashboardTimestamp(signal.timestamp, language)}</div>
             {/* Confluence pills — show TF agreement visually */}
             <div className="mt-1.5">
               <ConfluencePills timeframe={signal.timeframe} />
@@ -437,11 +496,11 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
           </div>
           <DirectionBadge direction={signal.direction} />
         </div>
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0 ml-auto">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0 ms-auto">
           {onToggleFavorite && (
             <button
               onClick={(e) => { e.stopPropagation(); onToggleFavorite(signal.id); }}
-              title={isFavorite ? 'Remove from watchlist' : 'Add to watchlist'}
+              title={isFavorite ? t.actions.removeWatchlist : t.actions.addWatchlist}
               className={`flex items-center justify-center w-9 h-9 min-w-[36px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg transition-all duration-200 ${
                 isFavorite ? 'text-zinc-400 bg-zinc-500/10' : 'text-[var(--text-secondary)] hover:text-zinc-400 hover:bg-[var(--glass-bg)]'
               }`}
@@ -453,7 +512,7 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
           )}
           <button
             onClick={(e) => { e.stopPropagation(); setChartVisible(!chartVisible); }}
-            title={chartVisible ? 'Hide chart' : 'Show chart'}
+            title={chartVisible ? t.actions.hideChart : t.actions.showChart}
             className={`flex items-center justify-center w-9 h-9 min-w-[36px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg transition-all duration-200 ${
               chartVisible ? 'text-emerald-400 bg-emerald-500/10' : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)]'
             }`}
@@ -466,7 +525,7 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
           <div className="relative">
             <button
               onClick={handleShare}
-              title="Share signal"
+              title={t.share.title}
               className="flex items-center justify-center w-9 h-9 min-w-[36px] md:w-7 md:h-7 md:min-w-0 md:min-h-0 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--glass-bg)] transition-all duration-200"
             >
               {shareCopied ? (
@@ -483,25 +542,25 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
               )}
             </button>
             {shareMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 z-20 w-40 rounded-xl border border-[var(--border)] bg-zinc-900/95 backdrop-blur-md shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="absolute end-0 top-full mt-1 z-20 w-40 rounded-xl border border-[var(--border)] bg-zinc-900/95 backdrop-blur-md shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
                 <button onClick={handleShareX} className="flex items-center gap-2 w-full px-3 py-2.5 text-xs text-[var(--foreground)] hover:bg-white/[0.05] transition-colors">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                  Post on X
+                  {t.share.postOnX}
                 </button>
                 <button onClick={handleCopyLink} className="flex items-center gap-2 w-full px-3 py-2.5 text-xs text-[var(--foreground)] hover:bg-white/[0.05] transition-colors border-t border-white/[0.05]">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                  Copy link
+                  {t.share.copyLink}
                 </button>
               </div>
             )}
           </div>
-          <div className="text-right">
+          <div className="text-end">
             <div className={`text-sm font-bold font-mono tabular-nums ${
-              signal.confidence >= 80 ? 'text-emerald-400' : signal.confidence >= 65 ? 'text-zinc-400' : 'text-red-400'
+              isHighRuleScore(signal.confidence) ? 'text-emerald-400' : signal.confidence >= 65 ? 'text-zinc-400' : 'text-red-400'
             }`}>{signal.confidence}/100</div>
             <div className="flex items-center justify-end gap-1 mt-0.5">
-              <div className="text-[10px] text-[var(--text-secondary)]">rule score</div>
-              <HintBadge label="Mechanical indicator-agreement score (0–100), not a probability or measured edge. It combines RSI, MACD, EMA, Stochastic, and Bollinger Band rules." />
+              <div className="text-[10px] text-[var(--text-secondary)]">{t.signal.scoreHint}</div>
+              <HintBadge label={t.confidence.hint} />
             </div>
           </div>
         </div>
@@ -529,20 +588,20 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
       {/* Price levels */}
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 mt-4 text-center">
         {[
-          { label: 'Entry', value: signal.entry, color: 'text-[var(--foreground)]', hint: 'Price when the signal was generated.' },
-          { label: 'SL', value: signal.stopLoss, color: 'text-red-400', hint: 'Stop Loss = Entry ± (ATR × multiplier). ATR measures recent volatility — wider ATR means a wider stop to avoid noise.' },
-          { label: 'TP1', value: signal.takeProfit1, color: 'text-emerald-400', hint: 'Take Profit 1 — closest target at ~1.5× the risk distance. Highest probability of being hit.' },
-          { label: 'TP2', value: signal.takeProfit2, color: 'text-emerald-400', hint: 'Take Profit 2 — mid target at ~2.5× risk. Consider partial close at TP1 and let the rest run.' },
-          { label: 'TP3', value: signal.takeProfit3, color: 'text-emerald-400', hint: 'Take Profit 3 — stretch target at ~3.5× risk. Only hit in strong moves.' },
-        ].map(({ label, value, color, hint }) => (
+          { label: t.levels.entry, value: signal.entry, color: 'text-[var(--foreground)]', hint: t.levels.entryHint, copyable: false },
+          { label: t.levels.sl, value: signal.stopLoss, color: 'text-red-400', hint: t.levels.slHint, copyable: true },
+          { label: t.levels.tp1, value: signal.takeProfit1, color: 'text-emerald-400', hint: t.levels.tp1Hint, copyable: true },
+          { label: t.levels.tp2, value: signal.takeProfit2, color: 'text-emerald-400', hint: t.levels.tp2Hint, copyable: true },
+          { label: t.levels.tp3, value: signal.takeProfit3, color: 'text-emerald-400', hint: t.levels.tp3Hint, copyable: true },
+        ].map(({ label, value, color, hint, copyable }) => (
           <div key={label} className="bg-white/[0.02] rounded-lg py-1.5 px-1">
             <div className="flex items-center justify-center gap-0.5 text-[9px] text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">
               {label}
               <HintBadge label={hint} />
             </div>
             <div className={`flex items-center justify-center gap-0.5 text-[10px] font-mono font-semibold tabular-nums ${color}`}>
-              {formatPrice(value)}
-              {(label === 'SL' || label.startsWith('TP')) && (
+              <bdi dir="ltr">{formatPrice(value)}</bdi>
+              {copyable && (
                 <CopyValueButton value={formatPrice(value)} />
               )}
             </div>
@@ -556,8 +615,8 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
           const items = [
             { label: 'RSI', value: signal.indicators.rsi.value.toFixed(0), signal: signal.indicators.rsi.signal },
             { label: 'MACD', value: signal.indicators.macd.histogram > 0 ? `+${signal.indicators.macd.histogram}` : String(signal.indicators.macd.histogram), signal: signal.indicators.macd.signal },
-            { label: 'Trend', value: signal.indicators.ema.trend.toUpperCase(), signal: signal.indicators.ema.trend },
-            { label: 'Stoch', value: `${signal.indicators.stochastic.k}`, signal: signal.indicators.stochastic.signal },
+            { label: t.indicators.trend, value: signal.indicators.ema.trend === 'up' ? t.indicators.up : signal.indicators.ema.trend === 'down' ? t.indicators.down : t.indicators.flat, signal: signal.indicators.ema.trend },
+            { label: t.indicators.stochastic, value: `${signal.indicators.stochastic.k}`, signal: signal.indicators.stochastic.signal },
           ];
           return items.map(({ label, value, signal: sig }) => {
             const isBull = sig === 'bullish' || sig === 'oversold' || sig === 'up';
@@ -570,9 +629,9 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
             );
           });
         })()}
-        <div className="flex items-center gap-1.5 ml-auto">
+        <div className="flex items-center gap-1.5 ms-auto">
           <SignalExportMenu signal={signal} />
-          <span className="text-[10px] font-mono text-[var(--text-secondary)]">{expanded ? '▴' : '▾'} details</span>
+          <span className="text-[10px] font-mono text-[var(--text-secondary)]">{expanded ? '▴' : '▾'} {t.common.details}</span>
         </div>
       </div>
 
@@ -580,7 +639,7 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
       {expanded && (
         <div className="mt-4 pt-4 border-t border-[var(--border)] grid grid-cols-2 gap-4 text-xs">
           <div>
-            <div className="text-[var(--text-secondary)] mb-2 uppercase text-[10px] tracking-wider">EMA Stack</div>
+            <div className="text-[var(--text-secondary)] mb-2 uppercase text-[10px] tracking-wider">{t.indicators.emaStack}</div>
             <div className="space-y-1 font-mono">
               <div className="flex justify-between"><span className="text-[var(--text-secondary)]">EMA20</span><span className="text-[var(--foreground)]">{formatPrice(signal.indicators.ema.ema20)}</span></div>
               <div className="flex justify-between"><span className="text-[var(--text-secondary)]">EMA50</span><span className="text-[var(--foreground)]">{formatPrice(signal.indicators.ema.ema50)}</span></div>
@@ -588,7 +647,7 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
             </div>
           </div>
           <div>
-            <div className="text-[var(--text-secondary)] mb-2 uppercase text-[10px] tracking-wider">S/R Levels</div>
+            <div className="text-[var(--text-secondary)] mb-2 uppercase text-[10px] tracking-wider">{t.indicators.supportResistance}</div>
             <div className="space-y-1 font-mono">
               {signal.indicators.support.map((s, i) => (
                 <div key={i} className="flex justify-between"><span className="text-[var(--text-secondary)]">S{i + 1}</span><span className="text-emerald-400">{formatPrice(s)}</span></div>
@@ -603,12 +662,19 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
             <div className="flex items-center gap-3">
               {signal.atrCalibration && (
                 <span className={signal.atrCalibration.confidence === 'low' ? 'text-zinc-600' : 'text-blue-400'}>
-                  ATR Stop: {signal.atrCalibration.multiplier}× {signal.atrCalibration.confidence === 'low' ? '(default)' : `(${signal.atrCalibration.confidence})`}
+                  {formatMessage(t.indicators.atrStop, {
+                    multiplier: signal.atrCalibration.multiplier,
+                    confidence: signal.atrCalibration.confidence === 'low'
+                      ? t.common.defaultLabel
+                      : signal.atrCalibration.confidence === 'high'
+                        ? t.common.high
+                        : t.common.medium,
+                  })}
                 </span>
               )}
-              <span>BB Width: {signal.indicators.bollingerBands.bandwidth.toFixed(2)}%</span>
+              <span>{formatMessage(t.indicators.bbWidth, { width: signal.indicators.bollingerBands.bandwidth.toFixed(2) })}</span>
               <span className={signal.dataQuality === 'real' ? 'text-emerald-400' : 'text-zinc-400'}>
-                {signal.dataQuality === 'real' ? 'real-tracked' : 'demo-seeded'}
+                {signal.dataQuality === 'real' ? t.indicators.realTracked : t.indicators.demoSeeded}
               </span>
             </div>
           </div>
@@ -623,11 +689,11 @@ function SignalCard({ signal, livePrice, tfDirections, onSelect, isFavorite, onT
         const bars = generateBars(basePrice, signal.direction, ts, 120);
         const signalTime = bars.length > 0 ? bars[Math.min(30, bars.length - 1)]?.time : undefined;
         return (
-          <div className="mt-4 pt-4 border-t border-[var(--border)]" onClick={(e) => e.stopPropagation()}>
+          <div dir="ltr" className="mt-4 pt-4 border-t border-[var(--border)]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold">{signal.symbol} · Entry / SL / TP</span>
+              <span className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold">{formatMessage(t.indicators.chartHeading, { symbol: signal.symbol })}</span>
               <Link href={`/chart/${signal.symbol}`} className="text-[10px] text-emerald-400 hover:text-emerald-300 transition-colors font-mono">
-                Full screen →
+                {t.indicators.fullScreen}
               </Link>
             </div>
             <SignalChart
@@ -674,6 +740,7 @@ interface HistoryApiStats {
 }
 
 function SignalHistory() {
+  const { t } = useDashboardCopy();
   const [records, setRecords] = useState<HistoryRecord[]>([]);
   const [historyStats, setHistoryStats] = useState<HistoryApiStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -700,7 +767,7 @@ function SignalHistory() {
 
   return (
     <section className="mt-8">
-      <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-3">Signal Track Record</h2>
+      <h2 className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-3">{t.history.heading}</h2>
 
       {/* Stats Banner */}
       {historyStats && historyStats.resolved > 0 && (
@@ -709,29 +776,29 @@ function SignalHistory() {
             <span className={historyStats.winRate >= 55 ? 'text-emerald-400' : historyStats.winRate >= 45 ? 'text-zinc-400' : 'text-red-400'}>
               {historyStats.winRate}%
             </span>{' '}
-            win rate
-            <InfoHint text={STAT_HINTS.winRate24h} label="What win rate means" />
+            {t.history.winRate}
+            <InfoHint text={t.history.winRateHint} label={t.history.winRateAria} />
           </span>
           <span className="text-[var(--border)]">|</span>
           <span className="inline-flex items-center gap-1">
-            {historyStats.resolved} resolved
-            <InfoHint text={STAT_HINTS.resolved} label="What resolved means" />
+            <bdi dir="ltr">{historyStats.resolved}</bdi> {t.history.resolved}
+            <InfoHint text={t.history.resolvedHint} label={t.history.resolvedAria} />
           </span>
           <span className="text-[var(--border)]">|</span>
           <span className="inline-flex items-center gap-1">
             <span className={historyStats.streak > 0 ? 'text-emerald-400' : historyStats.streak < 0 ? 'text-red-400' : ''}>
               {historyStats.streak > 0 ? '+' : ''}{historyStats.streak}
             </span>{' '}
-            streak
-            <InfoHint text={STAT_HINTS.streak} label="What streak means" />
+            {t.history.streak}
+            <InfoHint text={t.history.streakHint} label={t.history.streakAria} />
           </span>
           <span className="text-[var(--border)]">|</span>
           <span className="inline-flex items-center gap-1">
             <span className={historyStats.totalPnlPct >= 0 ? 'text-emerald-400' : 'text-red-400'}>
               {historyStats.totalPnlPct >= 0 ? '+' : ''}{historyStats.totalPnlPct}%
             </span>{' '}
-            price-move sum
-            <InfoHint text={STAT_HINTS.totalReturnLinear} label="What the price-move sum means" />
+            {t.history.priceMoveSum}
+            <InfoHint text={t.history.priceMoveSumHint} label={t.history.priceMoveSumAria} />
           </span>
         </div>
       )}
@@ -741,13 +808,13 @@ function SignalHistory() {
           <table className="w-full min-w-[460px] text-xs font-mono">
             <thead>
               <tr className="border-b border-[var(--border)] text-[var(--text-secondary)]">
-                <th className="px-4 py-2.5 text-left font-medium">Pair</th>
-                <th className="px-3 py-2.5 text-center font-medium">Dir</th>
-                <th className="px-3 py-2.5 text-center font-medium">Rule score</th>
-                <th className="px-3 py-2.5 text-right font-medium hidden sm:table-cell">Entry</th>
+                <th className="px-4 py-2.5 text-start font-medium">{t.history.pair}</th>
+                <th className="px-3 py-2.5 text-center font-medium">{t.history.direction}</th>
+                <th className="px-3 py-2.5 text-center font-medium">{t.history.ruleScore}</th>
+                <th className="px-3 py-2.5 text-end font-medium hidden sm:table-cell">{t.history.entry}</th>
                 <th className="px-3 py-2.5 text-center font-medium">4h</th>
                 <th className="px-3 py-2.5 text-center font-medium">24h</th>
-                <th className="px-4 py-2.5 text-right font-medium">Directional move</th>
+                <th className="px-4 py-2.5 text-end font-medium">{t.history.directionalMove}</th>
               </tr>
             </thead>
             <tbody>
@@ -757,15 +824,15 @@ function SignalHistory() {
                 const pnl = outcome24h?.pnlPct ?? outcome4h?.pnlPct ?? null;
                 return (
                   <tr key={r.id} className="border-b border-[var(--border)] last:border-0 hover:bg-white/[0.02] transition-colors">
-                    <td className="px-4 py-2.5 text-[var(--foreground)] font-semibold">{r.pair}</td>
+                    <td dir="ltr" className="px-4 py-2.5 text-[var(--foreground)] font-semibold">{r.pair}</td>
                     <td className="px-3 py-2.5 text-center">
-                      <span className={r.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}>{r.direction}</span>
+                      <span className={r.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}>{directionLabel(t, r.direction)}</span>
                     </td>
                     <td className="px-3 py-2.5 text-center tabular-nums">{r.confidence}/100</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums text-[var(--text-secondary)] hidden sm:table-cell">{formatPrice(r.entryPrice)}</td>
+                    <td dir="ltr" className="px-3 py-2.5 text-end tabular-nums text-[var(--text-secondary)] hidden sm:table-cell">{formatPrice(r.entryPrice)}</td>
                     <td className="px-3 py-2.5 text-center">
                       {outcome4h == null ? (
-                        <span className="text-zinc-600">���</span>
+                        <span className="text-zinc-600">{t.common.pending}</span>
                       ) : outcome4h.hit ? (
                         <span className="text-emerald-400">TP</span>
                       ) : (
@@ -774,14 +841,14 @@ function SignalHistory() {
                     </td>
                     <td className="px-3 py-2.5 text-center">
                       {outcome24h == null ? (
-                        <span className="text-zinc-600">pending</span>
+                        <span className="text-zinc-600">{t.common.pending}</span>
                       ) : outcome24h.hit ? (
                         <span className="text-emerald-400">TP</span>
                       ) : (
                         <span className="text-red-400">SL</span>
                       )}
                     </td>
-                    <td className={`px-4 py-2.5 text-right tabular-nums font-semibold ${
+                    <td dir="ltr" className={`px-4 py-2.5 text-end tabular-nums font-semibold ${
                       pnl == null ? 'text-zinc-600' : pnl >= 0 ? 'text-emerald-400' : 'text-red-400'
                     }`}>
                       {pnl == null ? '—' : `${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}%`}
@@ -794,7 +861,7 @@ function SignalHistory() {
         </div>
         <div className="px-4 py-2.5 border-t border-[var(--border)]">
           <Link href="/track-record" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors font-mono">
-            View Signal Record →
+            {t.history.viewRecord}
           </Link>
         </div>
       </div>
@@ -805,7 +872,7 @@ function SignalHistory() {
 function StatCard({ value, label, color = 'text-[var(--foreground)]' }: { value: string; label: string; color?: string }) {
   return (
     <div className="glass-card rounded-2xl p-4 text-center">
-      <div className={`text-2xl font-bold font-mono tabular-nums tracking-tight ${color}`}>{value}</div>
+      <div className={`text-2xl font-bold font-mono tabular-nums tracking-tight ${color}`}><bdi dir="ltr">{value}</bdi></div>
       <div className="text-[11px] text-[var(--text-secondary)] uppercase tracking-wider mt-1">{label}</div>
     </div>
   );
@@ -833,6 +900,7 @@ function setCachedSignals(signals: TradingSignal[]) {
 }
 
 export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { initialSignals?: TradingSignal[]; initialSyntheticSymbols?: string[] }) {
+  const { language, t } = useDashboardCopy();
   const { prices, state: connectionState } = usePriceStream(TICKER_PAIRS);
   const [signals, setSignals] = useState<TradingSignal[]>(() => {
     if (initialSignals && initialSignals.length > 0) return initialSignals;
@@ -957,20 +1025,22 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [fetchSignals]);
 
-  // Update browser tab title with BUY signal count
+  // Keep the tab title in the active locale and surface the strongest BUY count.
   useEffect(() => {
     const highConfBuyCount = signals.filter(
       s => s.direction === 'BUY' && s.confidence >= BUY_CONFIDENCE_THRESHOLD
     ).length;
 
     document.title = highConfBuyCount > 0
-      ? `(${highConfBuyCount} BUY) ${DEFAULT_TITLE}`
-      : DEFAULT_TITLE;
+      ? formatMessage(t.document.titleWithBuyCount, {
+          count: new Intl.NumberFormat(language).format(highConfBuyCount),
+        })
+      : t.document.title;
 
     return () => {
-      document.title = DEFAULT_TITLE;
+      document.title = t.document.title;
     };
-  }, [signals]);
+  }, [language, signals, t.document.title, t.document.titleWithBuyCount]);
 
   const buyCount = signals.filter(s => s.direction === 'BUY').length;
   const sellCount = signals.filter(s => s.direction === 'SELL').length;
@@ -979,6 +1049,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
     : 0;
   const bias = buyCount > sellCount ? 'BULL' : buyCount < sellCount ? 'BEAR' : 'NEUTRAL';
   const biasColor = bias === 'BULL' ? 'text-emerald-400' : bias === 'BEAR' ? 'text-red-400' : 'text-[var(--text-secondary)]';
+  const biasLabel = bias === 'BULL' ? t.common.bias.bull : bias === 'BEAR' ? t.common.bias.bear : t.common.bias.neutral;
 
   return (
     <div className="premium-product-shell relative isolate min-h-[100dvh] overflow-hidden text-[var(--foreground)]">
@@ -1007,11 +1078,11 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           }`}
         >
           <span className={`h-1.5 w-1.5 rounded-full ${autoRefresh ? 'bg-emerald-400 pulse-dot' : 'bg-zinc-600'}`} />
-          {autoRefresh ? 'Auto' : 'Paused'}
+          {autoRefresh ? t.controls.auto : t.controls.paused}
         </button>
         {lastUpdate && (
           <span className="hidden sm:block text-xs text-[var(--text-secondary)] font-mono shrink-0">
-            {lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            {lastUpdate.toLocaleTimeString(language, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </span>
         )}
       </div>
@@ -1024,23 +1095,23 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
         <div className="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-mono text-[var(--text-secondary)]">
           <span className="inline-flex items-center gap-1.5 text-emerald-400">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
-            LIVE
+            {t.common.live}
           </span>
           <span>
-            Runtime quotes prefer{' '}
+            {t.transparency.providerBefore}{' '}
             <a
               href="https://twelvedata.com"
               target="_blank"
               rel="noopener noreferrer"
               className="text-emerald-400 hover:text-emerald-300 underline decoration-dotted underline-offset-2"
             >
-              Twelve Data API
+              <bdi dir="ltr">Twelve Data API</bdi>
             </a>
-            {' '}through the market-data hub. Signal candles use the hub when configured, then Binance for crypto or Stooq for forex/metals; synthetic fallback rows are suppressed from this signal list.
+            {' '}{t.transparency.providerAfter}
           </span>
           <span className="hidden md:inline text-white/20">·</span>
           <span className="italic text-[var(--text-secondary)]/80">
-            Card badges identify the expected provider lane; the real-versus-synthetic quality flag is the runtime provenance currently carried on each signal.
+            {t.transparency.provenance}
           </span>
         </div>
       </div>
@@ -1049,7 +1120,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       {syntheticSymbols.length > 0 && syntheticSymbols.length / SYMBOLS.length > 0.3 && (
         <div className="border-b border-zinc-500/20 bg-zinc-500/5 px-4 py-2">
           <p className="max-w-7xl mx-auto text-xs text-zinc-400/80 font-mono">
-            <AlertTriangle className="w-3.5 h-3.5 inline mr-1" /> {syntheticSymbols.length} of {SYMBOLS.length} symbols are using synthetic data (API unavailable) — signals suppressed for those pairs.
+            <AlertTriangle className="w-3.5 h-3.5 inline me-1" /> {formatMessage(t.warning.syntheticSymbols, { count: syntheticSymbols.length, total: SYMBOLS.length })}
           </p>
         </div>
       )}
@@ -1066,30 +1137,32 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
         const signalTime = bars.length > 0 ? bars[Math.min(30, bars.length - 1)]?.time : undefined;
         return (
           <div className="relative border-b border-[var(--border)]">
-            <div className="absolute top-3 left-4 right-4 z-10 flex flex-wrap items-center gap-2">
+            <div className="absolute top-3 inset-x-4 z-10 flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono tracking-widest">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
-                {selectedSignal ? 'SELECTED' : 'TOP SIGNAL'}
+                {selectedSignal ? t.hero.selected : t.hero.topSignal}
               </div>
-              <span className="text-xs font-mono font-semibold text-[var(--foreground)]">{topSignal.symbol}</span>
-              <span className="text-xs font-mono text-[var(--text-secondary)]">{topSignal.timeframe}</span>
+              <bdi dir="ltr" className="text-xs font-mono font-semibold text-[var(--foreground)]">{topSignal.symbol}</bdi>
+              <bdi dir="ltr" className="text-xs font-mono text-[var(--text-secondary)]">{topSignal.timeframe}</bdi>
               <DirectionBadge direction={topSignal.direction} />
-              <span className={`text-xs font-mono font-bold ${topSignal.confidence >= 80 ? 'text-emerald-400' : topSignal.confidence >= 65 ? 'text-zinc-400' : 'text-red-400'}`}>
-                {topSignal.confidence}/100 rule score
+              <span className={`text-xs font-mono font-bold ${isHighRuleScore(topSignal.confidence) ? 'text-emerald-400' : topSignal.confidence >= 65 ? 'text-zinc-400' : 'text-red-400'}`}>
+                <bdi dir="ltr">{formatMessage(t.hero.score, { score: topSignal.confidence })}</bdi>
               </span>
             </div>
-            <SignalChart
-              bars={bars}
-              direction={topSignal.direction}
-              entry={topSignal.entry}
-              stopLoss={topSignal.stopLoss}
-              takeProfit1={topSignal.takeProfit1}
-              takeProfit2={topSignal.takeProfit2}
-              takeProfit3={topSignal.takeProfit3}
-              signalTime={signalTime}
-              height={300}
-              pip={SYMBOLS.find(s => s.symbol === topSignal.symbol)?.pip ?? 0.01}
-            />
+            <div dir="ltr">
+              <SignalChart
+                bars={bars}
+                direction={topSignal.direction}
+                entry={topSignal.entry}
+                stopLoss={topSignal.stopLoss}
+                takeProfit1={topSignal.takeProfit1}
+                takeProfit2={topSignal.takeProfit2}
+                takeProfit3={topSignal.takeProfit3}
+                signalTime={signalTime}
+                height={300}
+                pip={SYMBOLS.find(s => s.symbol === topSignal.symbol)?.pip ?? 0.01}
+              />
+            </div>
           </div>
         );
       })()}
@@ -1104,14 +1177,14 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
 
         {/* Stats */}
         <div data-tour-id="dashboard-stats" className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <StatCard value={String(signals.length)} label="Active signals" />
+          <StatCard value={new Intl.NumberFormat(language).format(signals.length)} label={t.stats.activeSignals} />
           <StatCard
             value={`${buyCount} / ${sellCount}`}
-            label="Buy / Sell"
+            label={t.stats.buySell}
             color="text-[var(--foreground)]"
           />
-          <StatCard value={`${avgConfidence}/100`} label="Avg rule score" />
-          <StatCard value={bias} label="Market bias" color={biasColor} />
+          <StatCard value={`${avgConfidence}/100`} label={t.stats.averageRuleScore} />
+          <StatCard value={biasLabel} label={t.stats.marketBias} color={biasColor} />
         </div>
 
         {/* Filters */}
@@ -1127,7 +1200,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                     : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                 }`}
               >
-                {tf}
+                {tf === 'ALL' ? t.common.all : <bdi dir="ltr">{tf}</bdi>}
               </button>
             ))}
           </div>
@@ -1144,7 +1217,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                     : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                 }`}
               >
-                {d}
+                {d === 'ALL' ? t.common.all : directionLabel(t, d)}
               </button>
             ))}
           </div>
@@ -1159,7 +1232,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                     : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                 }`}
               >
-                {ac}
+                {assetClassLabel(t, ac)}
               </button>
             ))}
           </div>
@@ -1167,7 +1240,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
             onClick={fetchSignals}
             className="px-4 py-1.5 rounded-xl text-xs border border-white/8 text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:border-[var(--border)] transition-all duration-200 font-mono shrink-0"
           >
-            Refresh
+            {t.common.refresh}
           </button>
         </div>
 
@@ -1181,7 +1254,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                 : 'text-[var(--text-secondary)] border-white/[0.06] hover:text-[var(--foreground)]'
             }`}
           >
-            High Rule Score (&gt;80/100)
+            <bdi dir="auto">{t.filters.highRuleScore}</bdi>
           </button>
           <button
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
@@ -1192,7 +1265,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
             }`}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill={showFavoritesOnly ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            Watchlist {favorites.size > 0 ? `(${favorites.size})` : ''}
+            {t.filters.watchlist} {favorites.size > 0 ? `(${new Intl.NumberFormat(language).format(favorites.size)})` : ''}
           </button>
         </div>
 
@@ -1200,7 +1273,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
         <div data-tour-id="signal-grid">
         {(() => {
           let filteredSignals = signals.filter(s => ASSET_CLASSES[assetClass].includes(s.symbol));
-          if (highConfOnly) filteredSignals = filteredSignals.filter(s => s.confidence >= 80);
+          if (highConfOnly) filteredSignals = filteredSignals.filter(s => isHighRuleScore(s.confidence));
           if (showFavoritesOnly) filteredSignals = filteredSignals.filter(s => favorites.has(s.id));
           const mainSignals = filteredSignals.filter(s => s.confidence >= 70);
           const potentialSignals = filteredSignals.filter(s => s.confidence >= 50 && s.confidence < 70);
@@ -1224,6 +1297,19 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           }
           if (filteredSignals.length === 0 && signals.length > 0) {
             // Signals exist but the current asset class filter hides all
+            const emptyTitle = assetClass === 'ALL'
+              ? t.empty.noFilteredSignals
+              : formatMessage(t.empty.noAssetSignals, { asset: assetClassLabel(t, assetClass) });
+            const emptyDetail = assetClass === 'ALL'
+              ? formatMessage(t.empty.adjustFilters, { count: new Intl.NumberFormat(language).format(signals.length) })
+              : formatMessage(
+                  assetClass === 'FOREX'
+                    ? t.empty.otherCategoriesForex
+                    : assetClass === 'METALS'
+                      ? t.empty.otherCategoriesMetals
+                      : t.empty.otherCategoriesOther,
+                  { count: new Intl.NumberFormat(language).format(signals.length) },
+                );
             return (
               <div className="text-center py-16">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[var(--glass-bg)] border border-[var(--border)] mb-4">
@@ -1233,10 +1319,10 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                   </svg>
                 </div>
                 <p className="text-sm font-medium text-[var(--foreground)] mb-1">
-                  No {assetClass !== 'ALL' ? assetClass.toLowerCase() : ''} signals right now
+                  {emptyTitle}
                 </p>
                 <p className="text-xs text-[var(--text-secondary)] mb-4 max-w-md mx-auto">
-                  {signals.length} signal{signals.length !== 1 ? 's' : ''} active in other categories. Try switching asset class or check back when {assetClass === 'FOREX' ? 'forex sessions are open' : assetClass === 'METALS' ? 'metals markets are active' : 'more setups trigger'}.
+                  {emptyDetail}
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {assetClass !== 'ALL' && (
@@ -1244,11 +1330,11 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                       onClick={() => setAssetClass('ALL' as AssetClass)}
                       className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/20 transition-all duration-200"
                     >
-                      Show all assets
+                      {t.empty.showAllAssets}
                     </button>
                   )}
                   <button onClick={fetchSignals} className="px-4 py-2 rounded-xl text-xs border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-all duration-200 font-mono">
-                    Refresh
+                    {t.common.refresh}
                   </button>
                 </div>
               </div>
@@ -1259,23 +1345,23 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               <div className="text-center py-16">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/8 border border-emerald-500/20 mb-4">
                   <span className="h-2 w-2 rounded-full bg-emerald-400 pulse-dot" />
-                  <span className="text-emerald-400 text-sm font-mono">Generating signals...</span>
+                  <span className="text-emerald-400 text-sm font-mono">{t.empty.generating}</span>
                 </div>
                 <p className="text-[var(--text-secondary)] text-sm mb-1">
-                  The TA engine is analyzing live market data. This takes up to 30 seconds on first load.
+                  {t.empty.analyzing}
                 </p>
                 <p className="text-[var(--text-secondary)] text-xs mb-4">
-                  Auto-retrying every 15s. Signals appear when the market is active and setups meet the quality threshold.
+                  {t.empty.autoRetrying}
                 </p>
                 <div className="flex items-center justify-center gap-2">
                   <button onClick={fetchSignals} className="px-4 py-2 rounded-xl text-xs border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/10 transition-all duration-200 font-mono">
-                    Retry now
+                    {t.empty.retryNow}
                   </button>
                   <button
                     onClick={() => window.dispatchEvent(new CustomEvent('tc:start-tour'))}
                     className="px-4 py-2 rounded-xl text-xs border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-all duration-200 font-mono"
                   >
-                    Take the tour
+                    {t.empty.takeTour}
                   </button>
                 </div>
               </div>
@@ -1283,7 +1369,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
           }
           return (
             <>
-              {/* Main signals (70%+) */}
+              {/* Main signals (70/100+) */}
               {mainSignals.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {mainSignals.map(signal => (
@@ -1293,10 +1379,10 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               )}
               {mainSignals.length === 0 && (
                 <div className="text-center py-8 px-4">
-                  <p className="text-sm text-[var(--text-secondary)] mb-2 font-mono">No candidates with a rule score of 70/100 or higher right now</p>
+                  <p className="text-sm text-[var(--text-secondary)] mb-2 font-mono">{t.empty.noHighScoreCandidates}</p>
                   {potentialSignals.length > 0 && (
                     <p className="text-xs text-[var(--text-secondary)]">
-                      {potentialSignals.length} potential setup{potentialSignals.length !== 1 ? 's' : ''} (50-69%) below — these have partial indicator agreement and may strengthen.
+                      {formatMessage(t.empty.potentialBelow, { count: new Intl.NumberFormat(language).format(potentialSignals.length) })}
                     </p>
                   )}
                 </div>
@@ -1311,7 +1397,7 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#229ED9]/10 border border-[#229ED9]/25 text-[#229ED9] hover:bg-[#229ED9]/20 transition-all duration-200 text-sm font-medium"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                  Join free public channel
+                  {t.telegram.joinPublicChannel}
                 </a>
                 <ConnectTelegramButton />
               </div>
@@ -1320,11 +1406,11 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
               {potentialSignals.length > 0 && (
                 <section className="mt-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <h2 className="text-xs uppercase tracking-wider text-zinc-400/80 font-mono font-semibold">Potential Signals</h2>
-                    <span className="text-[10px] text-[var(--text-secondary)] font-mono px-2 py-0.5 rounded-full bg-zinc-500/8 border border-zinc-500/15">rule score 50–69/100</span>
-                    <span className="text-[10px] text-[var(--text-secondary)] font-mono">{potentialSignals.length} setup{potentialSignals.length !== 1 ? 's' : ''}</span>
+                    <h2 className="text-xs uppercase tracking-wider text-zinc-400/80 font-mono font-semibold">{t.potential.heading}</h2>
+                    <span className="text-[10px] text-[var(--text-secondary)] font-mono px-2 py-0.5 rounded-full bg-zinc-500/8 border border-zinc-500/15">{t.potential.scoreBand}</span>
+                    <span className="text-[10px] text-[var(--text-secondary)] font-mono">{formatMessage(t.potential.count, { count: new Intl.NumberFormat(language).format(potentialSignals.length) })}</span>
                   </div>
-                  <p className="text-xs text-[var(--text-secondary)] mb-3">Early-stage setups that haven&apos;t reached full confluence yet. Watch for confirmation before acting.</p>
+                  <p className="text-xs text-[var(--text-secondary)] mb-3">{t.potential.description}</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 opacity-80">
                     {potentialSignals.map(signal => (
                       <SignalCard key={signal.id} signal={signal} livePrice={prices.get(signal.symbol)?.price ?? null} tfDirections={tfMap.get(signal.symbol)} onSelect={handleSelectSignal} isFavorite={favorites.has(signal.id)} onToggleFavorite={toggleFavorite} />
@@ -1342,8 +1428,8 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
 
         {/* Footer */}
         <footer className="mt-16 pb-8 text-center">
-          <p className="text-xs text-zinc-800 font-mono">TradeClaw Signal Scanner · Open Source · Self-Hosted</p>
-          <p className="text-xs text-zinc-800 mt-1">Signal analysis is for educational purposes only. Not financial advice.</p>
+          <p className="text-xs text-zinc-800 font-mono">{t.footer.tagline}</p>
+          <p className="text-xs text-zinc-800 mt-1">{t.footer.disclaimer}</p>
         </footer>
       </div>
       {/* Signal toasts */}

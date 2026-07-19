@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { POSTS } from "./blog/posts";
+import { getLanguageAlternates, SUPPORTED_LOCALES } from "../lib/translations";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://tradeclaw.win";
@@ -7,9 +8,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const d = new Date(post.date);
     return d > latest ? d : latest;
   }, new Date(0));
+  const languageAlternates = getLanguageAlternates(base);
+  const localizedLandingEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES
+    .filter(({ href }) => href !== "/")
+    .map(({ href }) => ({
+      url: `${base}${href}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.9,
+      alternates: { languages: languageAlternates },
+    }));
 
   return [
-    { url: base, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
+    { url: base, lastModified: new Date(), changeFrequency: "daily", priority: 1, alternates: { languages: languageAlternates } },
     { url: `${base}/track-record`, lastModified: new Date(), changeFrequency: "daily", priority: 0.95 },
     { url: `${base}/research`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/methodology`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
@@ -25,8 +36,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/strategies/comparison`, lastModified: new Date(), changeFrequency: "daily", priority: 0.75 },
     { url: `${base}/strategies/leaderboard`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/compare`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/es`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${base}/zh`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    ...localizedLandingEntries,
     { url: `${base}/demo`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/backtest`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/backtest/upload`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
@@ -81,7 +91,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/digest`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/notifications`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/patterns`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/replit`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/contributors`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/notion/signals`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/badges/readme`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
@@ -89,7 +98,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/vote`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/glossary`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/pledge`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/fly`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/profile-widget`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/digest/preview`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/sms`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },

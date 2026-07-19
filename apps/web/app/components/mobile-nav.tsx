@@ -5,12 +5,25 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Trophy, BarChart3 } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
+import { ProductLocaleSwitcher } from './product-locale-switcher';
+import { useLocale } from './locale-provider';
+import {
+  getAppShellTranslations,
+  type AppShellGroupKey,
+  type AppShellLinkKey,
+} from '../../lib/product-i18n/app-shell';
 import type { ReactNode } from 'react';
 
-const MAIN_NAV = [
+interface MainNavItem {
+  href: string;
+  labelKey: AppShellLinkKey;
+  icon: ReactNode;
+}
+
+const MAIN_NAV: MainNavItem[] = [
   {
     href: '/dashboard',
-    label: 'Dashboard',
+    labelKey: 'dashboard',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -22,7 +35,7 @@ const MAIN_NAV = [
   },
   {
     href: '/screener',
-    label: 'Screener',
+    labelKey: 'screener',
     icon: (
       // Radio-tower broadcast: distinct from charts, reads as "live signal"
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -39,7 +52,7 @@ const MAIN_NAV = [
   },
   {
     href: '/copilot',
-    label: 'Copilot',
+    labelKey: 'copilot',
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 3a9 9 0 1 0 9 9" />
@@ -50,7 +63,7 @@ const MAIN_NAV = [
   },
   {
     href: '/track-record',
-    label: 'Track Record',
+    labelKey: 'trackRecord',
     icon: (
       // Trophy/award: verified live performance
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -67,22 +80,22 @@ const MAIN_NAV = [
 
 interface MenuItem {
   href: string;
-  label: string;
+  labelKey: AppShellLinkKey;
   icon: ReactNode;
 }
 
 interface MenuSection {
-  label: string;
+  labelKey: AppShellGroupKey;
   items: MenuItem[];
 }
 
 const MENU_SECTIONS: MenuSection[] = [
   {
-    label: 'Trading',
+    labelKey: 'trading',
     items: [
       {
         href: '/heatmap',
-        label: 'Heatmap',
+        labelKey: 'heatmap',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -94,7 +107,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/alerts',
-        label: 'Alerts',
+        labelKey: 'alerts',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -104,7 +117,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/multi-timeframe',
-        label: 'Multi-TF',
+        labelKey: 'multiTimeframe',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -116,7 +129,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/paper-trading',
-        label: 'Paper Trade',
+        labelKey: 'paperTrade',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="1" x2="12" y2="23" />
@@ -126,17 +139,17 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/strategies/comparison',
-        label: 'Strategy Comparison',
+        labelKey: 'strategyComparison',
         icon: <BarChart3 size={18} strokeWidth={1.6} />,
       },
       {
         href: '/strategies/leaderboard',
-        label: 'Strategy Leaderboard',
+        labelKey: 'strategyLeaderboard',
         icon: <Trophy size={18} strokeWidth={1.6} />,
       },
       {
         href: '/replay',
-        label: 'Replay',
+        labelKey: 'replay',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="5 3 19 12 5 21 5 3" />
@@ -145,7 +158,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/portfolio',
-        label: 'Portfolio',
+        labelKey: 'portfolio',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
@@ -156,11 +169,11 @@ const MENU_SECTIONS: MenuSection[] = [
     ],
   },
   {
-    label: 'Tools',
+    labelKey: 'tools',
     items: [
       {
         href: '/strategy-builder',
-        label: 'Strategy',
+        labelKey: 'strategy',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -171,12 +184,12 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/strategy-rules',
-        label: 'Rules',
+        labelKey: 'rules',
         icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16" /><path d="M4 12h10" /><path d="M4 18h16" /><path d="M14 9l4 3-4 3" /></svg>,
       },
       {
         href: '/indicators/builder',
-        label: 'Indicators',
+        labelKey: 'indicators',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
@@ -185,7 +198,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/api-usage',
-        label: 'API Usage',
+        labelKey: 'apiUsage',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="20" x2="18" y2="10" />
@@ -196,7 +209,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/api-keys',
-        label: 'API Keys',
+        labelKey: 'apiKeys',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
@@ -205,7 +218,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/strategies/marketplace',
-        label: 'Marketplace',
+        labelKey: 'marketplace',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
@@ -216,7 +229,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/plugins',
-        label: 'Plugins',
+        labelKey: 'plugins',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2v6m0 8v6M4.93 4.93l4.24 4.24m5.66 5.66l4.24 4.24M2 12h6m8 0h6M4.93 19.07l4.24-4.24m5.66-5.66l4.24-4.24" />
@@ -225,7 +238,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/chrome-extension',
-        label: 'Chrome Extension',
+        labelKey: 'chromeExtension',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="16" rx="3" />
@@ -237,7 +250,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/status',
-        label: 'Status',
+        labelKey: 'status',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
@@ -246,7 +259,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/patterns',
-        label: 'Patterns',
+        labelKey: 'patterns',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
@@ -256,7 +269,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/benchmark',
-        label: 'Benchmark',
+        labelKey: 'benchmark',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
@@ -268,7 +281,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/live',
-        label: 'Live Feed',
+        labelKey: 'liveFeed',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
@@ -277,7 +290,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/start',
-        label: 'Setup Guide',
+        labelKey: 'setupGuide',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
@@ -286,7 +299,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/pledge',
-        label: 'Pledge Wall',
+        labelKey: 'pledgeWall',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
@@ -296,7 +309,7 @@ const MENU_SECTIONS: MenuSection[] = [
       },
       {
         href: '/sms',
-        label: 'SMS Alerts',
+        labelKey: 'smsAlerts',
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
@@ -312,6 +325,8 @@ const ALL_MENU_ITEMS = MENU_SECTIONS.flatMap((s) => s.items);
 
 export function MobileNav() {
   const pathname = usePathname();
+  const { locale, ready } = useLocale();
+  const t = getAppShellTranslations(locale);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -363,8 +378,9 @@ export function MobileNav() {
     <>
       {/* Bottom nav bar */}
       <nav
-        aria-label="Primary"
-        className="premium-dark-chrome fixed inset-x-0 bottom-0 z-50 border-t border-[var(--border-strong)] bg-[#050608]/[0.95] text-white backdrop-blur-xl md:hidden"
+        aria-label={t.aria.primaryNavigation}
+        aria-hidden={!ready}
+        className={`premium-dark-chrome fixed inset-x-0 bottom-0 z-50 border-t border-[var(--border-strong)] bg-[#050608]/[0.95] text-white backdrop-blur-xl md:hidden ${ready ? '' : 'invisible'}`}
         style={{
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
@@ -376,7 +392,7 @@ export function MobileNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                aria-label={item.label}
+                aria-label={t.links[item.labelKey]}
                 aria-current={isActive ? 'page' : undefined}
                 className={`relative flex min-h-[48px] select-none flex-col items-center justify-center gap-0.5 transition-colors duration-150 active:bg-white/[0.04] ${
                   isActive ? 'text-[var(--brand)]' : 'text-white/[0.48] hover:text-white'
@@ -397,7 +413,7 @@ export function MobileNav() {
                   {item.icon}
                 </span>
                 <span className={`text-[10px] font-medium tracking-wide whitespace-nowrap ${isActive ? 'font-semibold' : ''}`}>
-                  {item.label}
+                  {t.links[item.labelKey]}
                 </span>
               </Link>
             );
@@ -408,7 +424,7 @@ export function MobileNav() {
             ref={menuButtonRef}
             type="button"
             onClick={() => setMenuOpen(true)}
-            aria-label="Open menu"
+            aria-label={t.aria.openMenu}
             aria-expanded={menuOpen}
             aria-haspopup="dialog"
             aria-controls="more-navigation-sheet"
@@ -433,7 +449,7 @@ export function MobileNav() {
               </svg>
             </span>
             <span className={`text-[10px] font-medium tracking-wide ${isMenuActive ? 'font-semibold' : ''}`}>
-              More
+              {t.more}
             </span>
           </button>
         </div>
@@ -458,7 +474,7 @@ export function MobileNav() {
             id="more-navigation-sheet"
             role="dialog"
             aria-modal="true"
-            aria-label="More navigation"
+            aria-label={t.aria.moreNavigation}
             className="premium-dark-chrome fixed inset-x-0 bottom-0 z-[70] max-h-[88vh] overflow-y-auto rounded-t-xl border-t border-[var(--border-strong)] bg-[#090b0e] text-white shadow-[0_-24px_70px_rgba(0,0,0,0.55)] animate-in slide-in-from-bottom duration-300 md:hidden"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
           >
@@ -469,7 +485,7 @@ export function MobileNav() {
                 setMenuOpen(false);
                 requestAnimationFrame(() => menuButtonRef.current?.focus());
               }}
-              aria-label="Close menu"
+              aria-label={t.aria.closeMenu}
               className="flex w-full justify-center pb-2 pt-3 transition-opacity active:opacity-60"
             >
               <div className="h-1 w-10 rounded-full bg-white/[0.20]" />
@@ -478,10 +494,11 @@ export function MobileNav() {
             {/* Header */}
             <div className="flex items-center justify-between border-b border-white/[0.10] px-5 py-3">
               <div>
-                <span className="block text-sm font-semibold">More</span>
-                <span className="mt-0.5 block text-[10px] uppercase tracking-[0.14em] text-white/[0.50]">Trading workspace</span>
+                <span className="block text-sm font-semibold">{t.more}</span>
+                <span className="mt-0.5 block text-[10px] uppercase tracking-[0.14em] text-white/[0.50]">{t.tradingWorkspace}</span>
               </div>
               <div className="flex items-center gap-1">
+                <ProductLocaleSwitcher />
                 <ThemeToggle className="text-white/[0.55] hover:bg-white/[0.06] hover:text-white" />
                 <button
                   type="button"
@@ -490,7 +507,7 @@ export function MobileNav() {
                     setMenuOpen(false);
                     requestAnimationFrame(() => menuButtonRef.current?.focus());
                   }}
-                  aria-label="Close menu"
+                  aria-label={t.aria.closeMenu}
                   className="flex h-8 w-8 items-center justify-center rounded-sm border border-white/[0.10] bg-white/[0.035] text-white/[0.60] transition-colors hover:text-white"
                 >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -504,9 +521,9 @@ export function MobileNav() {
             {/* Grouped menu items */}
             <div className="space-y-5 p-4">
               {MENU_SECTIONS.map((section) => (
-                <div key={section.label}>
+                <div key={section.labelKey}>
                   <span className="mb-2 block px-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/[0.50]">
-                    {section.label}
+                    {t.groups[section.labelKey]}
                   </span>
                   <div className="grid grid-cols-2 gap-2">
                     {section.items.map(item => {
@@ -524,7 +541,7 @@ export function MobileNav() {
                           }`}
                         >
                           <span className="shrink-0">{item.icon}</span>
-                          <span className="text-sm font-medium truncate">{item.label}</span>
+                          <span className="truncate text-sm font-medium">{t.links[item.labelKey]}</span>
                         </Link>
                       );
                     })}

@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { InfoHint } from '@/components/InfoHint';
-import { STAT_HINTS } from '@/lib/stat-hints';
 import type { CategoryFilter } from '@/app/lib/symbol-config';
+import { useLocale } from './locale-provider';
+import { formatMessage } from '@/lib/product-i18n/format';
+import { getTrackRecordWidgetTranslations } from '@/lib/product-i18n/track-record-widgets';
+import { getHtmlLanguage } from '@/lib/translations';
 
 interface EquityPoint {
   timestamp: number;
@@ -43,15 +46,15 @@ interface TooltipData {
 
 const HYPOTHETICAL_START = 10_000;
 
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString('en-US', {
+function formatDate(ts: number, language: string): string {
+  return new Date(ts).toLocaleDateString(language, {
     month: 'short',
     day: 'numeric',
   });
 }
 
-function formatDateTime(ts: number): string {
-  return new Date(ts).toLocaleDateString('en-US', {
+function formatDateTime(ts: number, language: string): string {
+  return new Date(ts).toLocaleDateString(language, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -59,10 +62,73 @@ function formatDateTime(ts: number): string {
   });
 }
 
+function TemplateMessage({
+  template,
+  values,
+  plainKeys = [],
+}: {
+  template: string;
+  values: Record<string, string>;
+  plainKeys?: string[];
+}) {
+  const plain = new Set(plainKeys);
+  return (
+    <>
+      {template.split(/(\{[A-Za-z0-9_]+\})/g).map((part, index) => {
+        const match = /^\{([A-Za-z0-9_]+)\}$/.exec(part);
+        if (!match || !(match[1] in values)) return part;
+        const key = match[1];
+        return plain.has(key)
+          ? <span key={`${key}-${index}`}>{values[key]}</span>
+          : <bdi key={`${key}-${index}`} dir="ltr">{values[key]}</bdi>;
+      })}
+    </>
+  );
+}
+
+function number(
+  language: string,
+  value: number,
+  options: Intl.NumberFormatOptions = {},
+): string {
+  return new Intl.NumberFormat(language, options).format(value);
+}
+
+function percent(
+  language: string,
+  value: number,
+  maximumFractionDigits = 2,
+  signDisplay: Intl.NumberFormatOptions['signDisplay'] = 'auto',
+): string {
+  return new Intl.NumberFormat(language, {
+    style: 'percent',
+    maximumFractionDigits,
+    signDisplay,
+  }).format(value / 100);
+}
+
+function rMultiple(
+  language: string,
+  value: number,
+  signDisplay: Intl.NumberFormatOptions['signDisplay'] = 'auto',
+): string {
+  return `${number(language, value, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    signDisplay,
+  })}R`;
+}
+
+function rCap(language: string, value: number): string {
+  return `±${number(language, value, { maximumFractionDigits: 2 })}R`;
+}
+
 function drawChart(
   canvas: HTMLCanvasElement,
   points: EquityPoint[],
   onHover: (data: TooltipData | null) => void,
+  language: string,
+  emptyState: string,
 ): (() => void) | undefined {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -101,9 +167,10 @@ function drawChart(
     ctx.font = '12px monospace';
     ctx.textAlign = 'center';
     ctx.fillText(
-      'Performance tracking will begin once signals are recorded and resolved',
+      emptyState,
       w / 2,
       midY + 24,
+      Math.max(0, w - 32),
     );
     return;
   }
@@ -145,7 +212,7 @@ function drawChart(
     ctx.moveTo(padLeft, y);
     ctx.lineTo(padLeft + chartW, y);
     ctx.stroke();
-    ctx.fillText(`${val >= 0 ? '+' : ''}${val.toFixed(1)}%`, padLeft - 6, y + 3);
+    ctx.fillText(percent(language, val, 1, 'always'), padLeft - 6, y + 3);
   }
 
   // Zero line
@@ -162,10 +229,12 @@ function drawChart(
   ctx.fillStyle = 'rgba(255,255,255,0.3)';
   const labelCount = Math.min(6, points.length);
   for (let i = 0; i < labelCount; i++) {
-    const idx = Math.round((i / (labelCount - 1)) * (points.length - 1));
+    const idx = labelCount === 1
+      ? 0
+      : Math.round((i / (labelCount - 1)) * (points.length - 1));
     const p = points[idx];
     const x = toX(p.timestamp);
-    ctx.fillText(formatDate(p.timestamp), x, h - 6);
+    ctx.fillText(formatDate(p.timestamp, language), x, h - 6);
   }
 
   // Build path segments — split into positive and negative for coloring
@@ -270,7 +339,7 @@ function drawChart(
     onHover({
       x: toX(closest.timestamp),
       y: toY(closest.cumulativePnl),
-      date: formatDateTime(closest.timestamp),
+      date: formatDateTime(closest.timestamp, language),
       signalCount: closestIdx + 1,
       cumulativePnl: closest.cumulativePnl,
       symbol: closest.symbol,
@@ -308,6 +377,9 @@ interface SmoothMeta {
 }
 
 export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', band = 'all', onBandChange }: EquityCurveProps) {
+  const { locale } = useLocale();
+  const t = getTrackRecordWidgetTranslations(locale).equity;
+  const language = getHtmlLanguage(locale);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [points, setPoints] = useState<EquityPoint[]>([]);
   const [summary, setSummary] = useState<EquitySummary | null>(null);
@@ -350,10 +422,11 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
     const canvas = canvasRef.current;
     if (!canvas || loading) return;
 
-    const cleanup = drawChart(canvas, points, handleHover);
+    let cleanup = drawChart(canvas, points, handleHover, language, t.chartEmpty);
 
     const handleResize = () => {
-      drawChart(canvas, points, handleHover);
+      cleanup?.();
+      cleanup = drawChart(canvas, points, handleHover, language, t.chartEmpty);
     };
     window.addEventListener('resize', handleResize);
 
@@ -361,7 +434,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
       cleanup?.();
       window.removeEventListener('resize', handleResize);
     };
-  }, [points, loading, handleHover]);
+  }, [points, loading, handleHover, language, t.chartEmpty]);
 
   const currentValue = summary
     ? +(HYPOTHETICAL_START * (1 + summary.totalReturn / 100)).toFixed(0)
@@ -377,7 +450,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
 
   // Date range the window actually covers — first→last sized trade.
   const rangeLabel = points.length
-    ? `${formatDate(points[0].timestamp)} – ${formatDate(points[points.length - 1].timestamp)}`
+    ? `${formatDate(points[0].timestamp, language)} – ${formatDate(points[points.length - 1].timestamp, language)}`
     : null;
 
   // Headline expectancy prefers NET (gross − modeled cost) so it agrees in sign with
@@ -388,10 +461,47 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
   const isBroadcast = scope === 'broadcast';
   const sizedTradeCount = summary?.sizedTrades ?? points.length;
   const hasSizedEvidence = sizedTradeCount > 0;
+  const broadcastSince = new Intl.DateTimeFormat(language, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(2026, 5, 10)));
+  const summaryTemplate = isBroadcast
+    ? summary
+      ? summary.hardRCap !== undefined
+        ? t.broadcastWithCap
+        : t.broadcastWithoutCap
+      : t.broadcastNoSummary
+    : summary
+      ? summary.hardRCap !== undefined
+        ? t.eligibleWithCap
+        : t.eligibleWithoutCap
+      : t.eligibleNoSummary;
+  const summaryValues: Record<string, string> = summary
+    ? {
+        date: broadcastSince,
+        risk: summary.riskPerTradePct === undefined
+          ? '—'
+          : percent(language, summary.riskPerTradePct),
+        cap: summary.hardRCap === undefined
+          ? '—'
+          : `${number(language, summary.hardRCap, { maximumFractionDigits: 2 })}R`,
+        cost: summary.roundTripCostPct === undefined
+          ? '—'
+          : percent(language, summary.roundTripCostPct),
+        costR: summary.avgCostR == null ? '—' : rMultiple(language, summary.avgCostR),
+      }
+    : { date: broadcastSince, risk: '—', cap: '—', cost: '—', costR: '—' };
+  const usd = new Intl.NumberFormat(language, {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  });
 
   return (
     <section
-      className={`glass-card rounded-2xl p-5 mb-6 border-l-2 ${
+      className={`glass-card rounded-2xl p-5 mb-6 border-s-2 ${
         isBroadcast ? 'border-cyan-500/50' : 'border-emerald-500/50'
       }`}
     >
@@ -399,7 +509,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
       <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
         <div>
           <h2 className="text-sm font-semibold text-white tracking-tight flex items-center gap-2">
-            Signal Study — Sequential Simulation
+            {t.title}
             <span
               className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider ${
                 isBroadcast
@@ -407,26 +517,30 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
                   : 'bg-emerald-500/15 text-emerald-400'
               }`}
             >
-              {isBroadcast ? 'Broadcast subset' : 'Eligible stream'}
+              {isBroadcast ? t.broadcastSubset : t.eligibleStream}
             </span>
           </h2>
           <p className="text-[11px] text-zinc-600 mt-0.5">
-            {isBroadcast
-              ? summary
-                ? `Gate-approved broadcast subset — decisions recorded since 2026-06-10. Sequential simulation at ${summary.riskPerTradePct}% modeled risk per signal${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R` : ''}, after per-asset fee/slippage assumptions (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/signal).`
-                : 'Gate-approved broadcast subset — decisions recorded since 2026-06-10.'
-              : summary
-                ? `Eligible signal stream. Sequential simulation at ${summary.riskPerTradePct}% modeled risk per signal, fixed-fractional${summary.hardRCap !== undefined ? `, capped at ${summary.hardRCap}R per signal` : ''}, after per-asset fee/slippage assumptions (avg ${summary.roundTripCostPct}% ≈ ${summary.avgCostR ?? '—'}R/signal). Outcomes require approved observed-OHLCV provenance; no broker fills.`
-                : 'Eligible signal stream. Outcomes require approved observed-OHLCV provenance; no broker fills.'}
+            <TemplateMessage
+              template={summaryTemplate}
+              values={summaryValues}
+              plainKeys={['date']}
+            />
           </p>
           {summary && summary.sizedTrades !== undefined && summary.sizedTrades > 0 && (
             <p className="text-[10px] text-zinc-600 mt-1">
-              {summary.sizedTrades.toLocaleString()} eligible sized signal{summary.sizedTrades === 1 ? '' : 's'} in this window. The simulation processes every one sequentially; it does not model overlapping exposure, account margin, or which signals a subscriber received or executed.
+              <TemplateMessage
+                template={summary.sizedTrades === 1 ? t.sizedSignalsOne : t.sizedSignalsMany}
+                values={{ count: number(language, summary.sizedTrades) }}
+              />
             </p>
           )}
           {smooth && smoothMeta?.capR !== null && smoothMeta?.capR !== undefined && (
             <p className="text-[10px] text-amber-400/80 mt-1 font-mono">
-              Outlier-smoothed: each trade&apos;s R-multiple clamped to ±{smoothMeta.capR}R (top/bottom 5% clipped). Raw drawdown is larger.
+              <TemplateMessage
+                template={t.smoothedSummary}
+                values={{ cap: rCap(language, smoothMeta.capR) }}
+              />
             </p>
           )}
         </div>
@@ -449,9 +563,9 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
                       ? 'bg-emerald-500/15 text-emerald-400'
                       : 'bg-white/[0.02] text-zinc-500 hover:text-zinc-300'
                   }`}
-                  title={value === 'premium' ? 'Premium-only: confidence ≥ 85. The high-conviction subset of eligible signals.' : 'Eligible sized signals in the selected scope.'}
+                  title={value === 'premium' ? t.bandPremiumTitle : t.bandAllTitle}
                 >
-                  {value === 'all' ? 'All' : 'Premium'}
+                  {value === 'all' ? t.bandAll : t.bandPremium}
                 </button>
               ))}
             </div>
@@ -467,9 +581,9 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
                 ? 'border-amber-500/40 bg-amber-500/10 text-amber-400'
                 : 'border-white/10 bg-white/[0.02] text-zinc-500 hover:text-zinc-300'
             }`}
-            title="Clip the top and bottom 5% of trade outcomes (P95 cap). Reveals the path without single-trade outliers in either direction."
+            title={t.smoothTitle}
           >
-            {smooth ? 'Smoothed (P95)' : 'Smooth outliers'}
+            {smooth ? t.smoothActive : t.smoothInactive}
           </button>}
         </div>
       </div>
@@ -483,10 +597,10 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
         <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-300">
           <span aria-hidden="true" className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-400" />
           <span>
-            Outlier-smoothed view (P95-clipped) — this is <strong>not</strong> the raw equity path.
-            The top and bottom 5% of trade outcomes are clamped
-            {smoothMeta?.capR != null ? ` to ±${smoothMeta.capR}R` : ''}; raw drawdown is larger.
-            Turn off &ldquo;Smoothed&rdquo; for the unmodified curve.
+            <TemplateMessage
+              template={smoothMeta?.capR != null ? t.smoothBannerWithCap : t.smoothBannerWithoutCap}
+              values={smoothMeta?.capR != null ? { cap: rCap(language, smoothMeta.capR) } : {}}
+            />
           </span>
         </div>
       )}
@@ -496,7 +610,7 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
          the path. A +308% return with -67% drawdown is not a flat ride. */}
       {summary && !loading && !hasSizedEvidence && (
         <div className="mb-4 rounded-lg border border-white/10 bg-white/[0.02] px-4 py-5 text-center text-xs text-zinc-400">
-          No approved observed-OHLCV outcomes with a recorded stop loss are available for this simulation window. No zero-return placeholder is shown.
+          {t.noEvidence}
         </div>
       )}
       {summary && !loading && hasSizedEvidence && (
@@ -504,28 +618,31 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div className="bg-white/[0.02] rounded-lg py-3 px-4 border border-white/[0.04]">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-1 inline-flex items-center gap-1">
-                Sequential simulation result
-                <InfoHint text={STAT_HINTS.totalReturnCompounded} label="What the sequential simulation means" />
+                {t.sequentialResult}
+                <InfoHint text={t.sequentialHint} label={t.sequentialHintLabel} />
               </div>
               <div className={`text-2xl font-mono font-bold tabular-nums ${
                 summary.totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'
               }`}>
-                {summary.totalReturn >= 0 ? '+' : ''}{summary.totalReturn}%
+                <bdi dir="ltr">{percent(language, summary.totalReturn, 2, 'always')}</bdi>
               </div>
               <div className="text-[10px] text-zinc-500 mt-0.5 font-mono">
-                ${HYPOTHETICAL_START.toLocaleString()} → ${currentValue.toLocaleString()}
+                <TemplateMessage
+                  template={t.hypotheticalPath}
+                  values={{ start: usd.format(HYPOTHETICAL_START), end: usd.format(currentValue) }}
+                />
               </div>
             </div>
             <div className="bg-white/[0.02] rounded-lg py-3 px-4 border border-white/[0.04]">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-1 inline-flex items-center gap-1">
-                Simulated Max Drawdown
-                <InfoHint text={STAT_HINTS.maxDrawdown} label="What max drawdown means" />
+                {t.simulatedMaxDrawdown}
+                <InfoHint text={t.maxDrawdownHint} label={t.maxDrawdownHintLabel} />
               </div>
               <div className="text-2xl font-mono font-bold text-red-400 tabular-nums">
-                -{summary.maxDrawdown}%
+                <bdi dir="ltr">{percent(language, -Math.abs(summary.maxDrawdown))}</bdi>
               </div>
               <div className="text-[10px] text-zinc-500 mt-0.5 font-mono">
-                Deepest peak-to-trough drop
+                {t.deepestDrop}
               </div>
             </div>
           </div>
@@ -536,8 +653,8 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
           <div className="grid grid-cols-3 gap-3 mb-3">
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
-                Win Rate
-                <InfoHint text={STAT_HINTS.winRate24h} label="What win rate means" />
+                {t.winRate}
+                <InfoHint text={t.winRateHint} label={t.winRateHintLabel} />
               </div>
               <div className={`text-xs font-mono font-semibold tabular-nums ${
                 summary.breakEvenWinRate !== null
@@ -548,61 +665,78 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
                     ? 'text-emerald-400'
                     : 'text-red-400'
               }`}>
-                {summary.winRate}%
+                <bdi dir="ltr">{percent(language, summary.winRate)}</bdi>
               </div>
               {summary.breakEvenWinRate !== null && (
                 <div className="text-[9px] text-zinc-600 mt-0.5 font-mono">
-                  break-even {summary.breakEvenWinRate}%
+                  <TemplateMessage
+                    template={t.breakEven}
+                    values={{ value: percent(language, summary.breakEvenWinRate) }}
+                  />
                 </div>
               )}
             </div>
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
-                Resolved Signals
-                <InfoHint text={STAT_HINTS.resolved} label="What resolved signals means" />
+                {t.resolvedSignals}
+                <InfoHint text={t.resolvedHint} label={t.resolvedHintLabel} />
               </div>
               <div className="text-xs font-mono font-semibold text-zinc-300 tabular-nums">
-                {summary.totalSignals.toLocaleString()}
+                <bdi dir="ltr">{number(language, summary.totalSignals)}</bdi>
               </div>
             </div>
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
-                Sharpe (annualized)
-                <InfoHint text={STAT_HINTS.sharpe} label="What Sharpe ratio means" />
+                {t.sharpeAnnualized}
+                <InfoHint text={t.sharpeHint} label={t.sharpeHintLabel} />
               </div>
               <div className="text-xs font-mono font-semibold text-zinc-300 tabular-nums">
-                {summary.sharpeRatio !== null ? summary.sharpeRatio.toFixed(2) : '—'}
+                <bdi dir="ltr">
+                  {summary.sharpeRatio !== null
+                    ? number(language, summary.sharpeRatio, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })
+                    : '—'}
+                </bdi>
               </div>
               <div className="text-[9px] text-zinc-600 mt-0.5 font-mono">
-                {summary.sharpeRatio !== null
-                  ? `over ${sharpeDays} trading day${sharpeDays === 1 ? '' : 's'}`
-                  : `needs ≥5 days (have ${sharpeDays})`}
+                <TemplateMessage
+                  template={summary.sharpeRatio !== null
+                    ? sharpeDays === 1 ? t.sharpeDaysOne : t.sharpeDaysMany
+                    : t.sharpeNeedsDays}
+                  values={{ count: number(language, sharpeDays) }}
+                />
               </div>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
-                Avg R per Win
-                <InfoHint text={STAT_HINTS.avgRWin} label="What avg R per win means" />
+                {t.avgRWin}
+                <InfoHint text={t.avgRWinHint} label={t.avgRWinHintLabel} />
               </div>
               <div className="text-xs font-mono font-semibold text-emerald-400 tabular-nums">
-                {summary.avgRWin !== null ? `+${summary.avgRWin.toFixed(2)}R` : '—'}
+                <bdi dir="ltr">
+                  {summary.avgRWin !== null ? rMultiple(language, summary.avgRWin, 'always') : '—'}
+                </bdi>
               </div>
             </div>
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
-                Avg R per Loss
-                <InfoHint text={STAT_HINTS.avgRLoss} label="What avg R per loss means" />
+                {t.avgRLoss}
+                <InfoHint text={t.avgRLossHint} label={t.avgRLossHintLabel} />
               </div>
               <div className="text-xs font-mono font-semibold text-red-400 tabular-nums">
-                {summary.avgRLoss !== null ? `${summary.avgRLoss.toFixed(2)}R` : '—'}
+                <bdi dir="ltr">
+                  {summary.avgRLoss !== null ? rMultiple(language, summary.avgRLoss) : '—'}
+                </bdi>
               </div>
             </div>
             <div className="bg-white/[0.02] rounded-lg py-2 px-3">
               <div className="text-[9px] text-zinc-600 uppercase tracking-wider mb-0.5 inline-flex items-center gap-1">
-                Expectancy (net)
-                <InfoHint text={STAT_HINTS.expectancyR} label="What expectancy means" />
+                {t.expectancyNet}
+                <InfoHint text={t.expectancyHint} label={t.expectancyHintLabel} />
               </div>
               <div className={`text-xs font-mono font-semibold tabular-nums ${
                 expectancyShown != null && expectancyShown > 0
@@ -612,12 +746,18 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
                     : 'text-zinc-300'
               }`}>
                 {expectancyShown != null
-                  ? `${expectancyShown >= 0 ? '+' : ''}${expectancyShown.toFixed(2)}R`
+                  ? <bdi dir="ltr">{rMultiple(language, expectancyShown, 'always')}</bdi>
                   : '—'}
               </div>
               {summary.netExpectancyR != null && summary.expectancyR !== null && summary.avgCostR != null && (
                 <div className="text-[9px] text-zinc-600 mt-0.5 font-mono">
-                  {summary.expectancyR >= 0 ? '+' : ''}{summary.expectancyR.toFixed(2)}R gross − {summary.avgCostR.toFixed(2)}R cost
+                  <TemplateMessage
+                    template={t.grossMinusCost}
+                    values={{
+                      gross: rMultiple(language, summary.expectancyR, 'always'),
+                      cost: rMultiple(language, summary.avgCostR),
+                    }}
+                  />
                 </div>
               )}
             </div>
@@ -628,11 +768,21 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
              that N so a thin R-stat isn't mistaken for a deep one. */}
           {summary.sizedTrades !== undefined && (
             <p className="text-[10px] text-zinc-600 -mt-2 mb-4 font-mono">
-              R-stats over {summary.sizedTrades.toLocaleString()} sized trade{summary.sizedTrades === 1 ? '' : 's'}
-              {summary.sizedTrades !== summary.totalSignals
-                ? ` (of ${summary.totalSignals.toLocaleString()} resolved — legacy rows without a stop are excluded)`
-                : ''}
-              {rangeLabel ? ` · ${rangeLabel}` : ''}
+              <TemplateMessage
+                template={summary.sizedTrades !== summary.totalSignals
+                  ? summary.sizedTrades === 1 ? t.rStatsExcludedOne : t.rStatsExcludedMany
+                  : summary.sizedTrades === 1 ? t.rStatsAllOne : t.rStatsAllMany}
+                values={{
+                  sized: number(language, summary.sizedTrades),
+                  resolved: number(language, summary.totalSignals),
+                }}
+              />
+              {rangeLabel && (
+                <>
+                  {' · '}
+                  <bdi dir="ltr">{formatMessage(t.dateRange, { range: rangeLabel })}</bdi>
+                </>
+              )}
             </p>
           )}
         </>
@@ -641,14 +791,23 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
       {/* Chart */}
       {(loading || hasSizedEvidence) && <div className="relative" style={{ height: 220 }}>
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-5 w-5 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin" />
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            role="status"
+            aria-label={t.loading}
+          >
+            <div
+              className="h-5 w-5 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin"
+              aria-hidden="true"
+            />
           </div>
         )}
         <canvas
           ref={canvasRef}
           className="w-full h-full"
           style={{ display: loading ? 'none' : 'block' }}
+          role="img"
+          aria-label={t.chartLabel}
         />
 
         {/* Tooltip */}
@@ -660,16 +819,24 @@ export function EquityCurve({ period = 'all', scope = 'pro', category = 'all', b
               top: Math.max(tooltip.y - 60, 4),
             }}
           >
-            <div className="text-zinc-400 mb-1">{tooltip.date}</div>
+            <div className="text-zinc-400 mb-1"><bdi dir="ltr">{tooltip.date}</bdi></div>
             <div className="flex items-center gap-2">
-              <span className="text-zinc-600">Signal #{tooltip.signalCount}</span>
-              <span className="text-zinc-500">{tooltip.symbol}</span>
+              <span className="text-zinc-600">
+                <TemplateMessage
+                  template={t.tooltipSignal}
+                  values={{ count: number(language, tooltip.signalCount) }}
+                />
+              </span>
+              <bdi dir="ltr" className="text-zinc-500">{tooltip.symbol}</bdi>
               <span className={tooltip.direction === 'BUY' ? 'text-emerald-400' : 'text-red-400'}>
-                {tooltip.direction}
+                <bdi dir="ltr">{tooltip.direction}</bdi>
               </span>
             </div>
             <div className={`font-semibold mt-0.5 ${tooltip.cumulativePnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-              {tooltip.cumulativePnl >= 0 ? '+' : ''}{tooltip.cumulativePnl}% cumulative
+              <TemplateMessage
+                template={t.tooltipCumulative}
+                values={{ value: percent(language, tooltip.cumulativePnl, 2, 'always') }}
+              />
             </div>
           </div>
         )}

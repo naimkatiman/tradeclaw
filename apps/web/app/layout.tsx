@@ -16,6 +16,35 @@ import { StarProgressBar } from "../components/star-progress-bar";
 import { AnalyticsProvider } from "../components/AnalyticsProvider";
 import { PostHogPageView } from "../components/PostHogPageView";
 import { Suspense } from "react";
+import { getLanguageAlternates } from "../lib/translations";
+
+const localeBootstrap = `
+(() => {
+  document.documentElement.dataset.tcJs = "true";
+  window.setTimeout(() => document.documentElement.removeAttribute("data-tc-js"), 3000);
+  try {
+    const routeLocales = { "/": "en", "/es": "es", "/zh": "zh", "/ms": "ms", "/ar": "ar" };
+    const supported = ["en", "es", "zh", "ms", "ar"];
+    const normalizedPath = window.location.pathname.length > 1
+      ? window.location.pathname.replace(/\\/+$/, "")
+      : window.location.pathname;
+    const cookieLocale = document.cookie
+      .split("; ")
+      .find((item) => item.startsWith("tc_locale="))
+      ?.slice("tc_locale=".length);
+    let stored = null;
+    try { stored = window.localStorage.getItem("tc_locale"); } catch {}
+    const persisted = supported.includes(stored)
+      ? stored
+      : supported.includes(cookieLocale)
+        ? cookieLocale
+        : null;
+    const routeLocale = routeLocales[normalizedPath];
+    const locale = routeLocale || persisted || "en";
+    document.documentElement.lang = locale === "zh" ? "zh-CN" : locale;
+    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
+  } catch {}
+})();`;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -113,12 +142,7 @@ export const metadata: Metadata = {
     "apple-mobile-web-app-title": "TradeClaw",
   },
   alternates: {
-    languages: {
-      "en": "https://tradeclaw.win",
-      "es": "https://tradeclaw.win/es",
-      "zh-CN": "https://tradeclaw.win/zh",
-      "x-default": "https://tradeclaw.win",
-    },
+    languages: getLanguageAlternates(),
     types: {
       'application/rss+xml': [{ url: '/feed.xml', title: 'TradeClaw Signal Archive (RSS)' }],
       'application/atom+xml': [{ url: '/atom.xml', title: 'TradeClaw Signal Archive (Atom)' }],
@@ -145,10 +169,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+        <script dangerouslySetInnerHTML={{ __html: localeBootstrap }} />
         <AnalyticsProvider>
           <Suspense fallback={null}>
             <PostHogPageView />

@@ -267,6 +267,6 @@ export const config = {
     // API routes
     "/api/:path*",
     // All page routes, excluding static assets
-    "/((?!_next/static|_next/image|favicon\\.ico|sw\\.js|manifest\\.json).*)",
+    "/((?!_next/|favicon\\.ico|sw\\.js|manifest\\.json).*)",
   ],
 };

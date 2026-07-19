@@ -16,6 +16,8 @@ import {
 import LWChart from './LWChart';
 import { useChartTheme } from './use-chart-theme';
 import type { OHLCVBar, PriceLineData } from './types';
+import { useLocale } from '../locale-provider';
+import { getDashboardEvidenceTranslations } from '../../../lib/product-i18n/dashboard-evidence';
 
 interface SignalChartProps {
   bars: OHLCVBar[];
@@ -44,6 +46,8 @@ export default function SignalChart({
   height = 400,
   pip = 0.01,
 }: SignalChartProps) {
+  const { locale } = useLocale();
+  const copy = getDashboardEvidenceTranslations(locale).chart;
   const theme = useChartTheme();
   const candleRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volumeRef = useRef<ISeriesApi<'Histogram'> | null>(null);
@@ -111,7 +115,7 @@ export default function SignalChart({
       candle.removePriceLine(pl);
     }
     const lines: PriceLineData[] = [
-      { price: entry, color: '#ffffff', title: 'Entry', lineStyle: LineStyle.Dashed, lineWidth: 1 },
+      { price: entry, color: '#ffffff', title: copy.entry, lineStyle: LineStyle.Dashed, lineWidth: 1 },
       { price: takeProfit1, color: theme.upColor, title: 'TP1', lineStyle: LineStyle.Dashed, lineWidth: 1 },
     ];
     if (stopLoss != null) lines.push({ price: stopLoss, color: theme.downColor, title: 'SL', lineStyle: LineStyle.Dashed, lineWidth: 1 });
@@ -144,7 +148,7 @@ export default function SignalChart({
     }
 
     chartApiRef.current?.timeScale().fitContent();
-  }, [bars, direction, entry, stopLoss, takeProfit1, takeProfit2, takeProfit3, signalTime, theme]);
+  }, [bars, copy.entry, direction, entry, stopLoss, takeProfit1, takeProfit2, takeProfit3, signalTime, theme]);
 
   return <LWChart theme={theme} height={height} onChartReady={onChartReady} />;
 }

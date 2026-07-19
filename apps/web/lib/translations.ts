@@ -1,5 +1,7 @@
 export type Locale = "en" | "es" | "zh" | "ms" | "ar";
 
+export const DEFAULT_LOCALE: Locale = "en";
+
 export const SUPPORTED_LOCALES: { code: Locale; label: string; href: string; dir?: "ltr" | "rtl" }[] = [
   { code: "en", label: "EN", href: "/" },
   { code: "es", label: "ES", href: "/es" },
@@ -73,11 +75,12 @@ export interface Translations {
     signals: string;
     trackRecord: string;
     language: string;
+    openApp: string;
   };
 }
 
 const en: Translations = {
-  nav: { dashboard: "Dashboard", signals: "Signals", trackRecord: "Track Record", language: "Language" },
+  nav: { dashboard: "Dashboard", signals: "Signals", trackRecord: "Track Record", language: "Language", openApp: "Open the app" },
   meta: {
     title: "TradeClaw — Open-Source AI Trading Signals",
     description: "MIT-licensed trading-signal software for forex, crypto, and metals. Self-host with Docker and review the supporting evidence before use.",
@@ -132,7 +135,7 @@ const en: Translations = {
       { question: "What does MIT-licensed mean here?", answer: "TradeClaw's source code is available under the MIT license, and its public hosted archive currently has no TradeClaw paywall. Hosting, market-data providers, brokers, and notification services may charge their own fees." },
       { question: "How do the signals work?", answer: "TradeClaw's open rule-based engine combines technical indicators with multi-timeframe confluence. BUY/SELL labels and confidence values describe weighted indicator agreement, not a probability of profit. No external AI API is required." },
       { question: "Can I use it for live trading?", answer: "Automated execution is disabled by default. If explicitly enabled, only gate-approved crypto signals can reach the implemented Binance USDT-perpetual executor, which uses testnet by default. The RoboForex bridge is still an interface scaffold, and paper-trading results are simulated." },
-      { question: "How do I deploy it?", answer: "Clone the repo, copy .env.example to .env, set DB_PASSWORD, USER_SESSION_SECRET, and AUTH_SECRET, then run `docker compose up -d`. MetaApi is not required. Docker Compose maps documented .env variables through an explicit allowlist; NEXT_PUBLIC_* changes require matching image build arguments and a rebuild." },
+      { question: "How do I deploy it?", answer: "Clone the repo, copy .env.example to .env, set DB_PASSWORD, USER_SESSION_SECRET, ADMIN_SECRET, and AUTH_SECRET, then run `docker compose up -d`. MetaApi is not required. Docker Compose maps documented .env variables through an explicit allowlist; NEXT_PUBLIC_* changes require matching image build arguments and a rebuild." },
     ],
   },
   cta: {
@@ -143,7 +146,7 @@ const en: Translations = {
 };
 
 const es: Translations = {
-  nav: { dashboard: "Panel", signals: "Señales", trackRecord: "Historial", language: "Idioma" },
+  nav: { dashboard: "Panel", signals: "Señales", trackRecord: "Historial", language: "Idioma", openApp: "Abrir la app" },
   meta: {
     title: "TradeClaw — Señales de Trading con IA de Código Abierto",
     description: "Software de señales para forex, cripto y metales con licencia MIT. Autoalójalo con Docker y revisa la evidencia antes de usarlo.",
@@ -198,7 +201,7 @@ const es: Translations = {
       { question: "¿Qué implica aquí la licencia MIT?", answer: "El código de TradeClaw está disponible bajo la licencia MIT y su archivo público alojado no tiene actualmente un muro de pago de TradeClaw. El hosting, los proveedores de datos, los brokers y los servicios de notificación pueden cobrar sus propias tarifas." },
       { question: "¿Cómo funcionan las señales?", answer: "El motor abierto y basado en reglas combina indicadores técnicos con confluencia multitemporal. Las etiquetas BUY/SELL y la confianza describen el acuerdo ponderado de indicadores, no una probabilidad de beneficio. No se requiere una API externa de IA." },
       { question: "¿Puedo usarlo para trading en vivo?", answer: "La ejecución automática está desactivada por defecto. Si un operador la habilita explícitamente, solo las señales cripto aprobadas por las compuertas pueden llegar al ejecutor Binance USDT perpetuo, que usa testnet por defecto. El puente RoboForex sigue siendo una interfaz sin implementar y el paper trading es simulado." },
-      { question: "¿Cómo lo despliego?", answer: "Clona el repo, copia .env.example a .env, configura DB_PASSWORD, USER_SESSION_SECRET y AUTH_SECRET, y ejecuta `docker compose up -d`. MetaApi no es necesario. Compose asigna las variables .env documentadas mediante una lista explícita; los cambios NEXT_PUBLIC_* requieren argumentos de compilación y reconstruir la imagen." },
+      { question: "¿Cómo lo despliego?", answer: "Clona el repo, copia .env.example a .env, configura DB_PASSWORD, USER_SESSION_SECRET, ADMIN_SECRET y AUTH_SECRET, y ejecuta `docker compose up -d`. MetaApi no es necesario. Compose asigna las variables .env documentadas mediante una lista explícita; los cambios NEXT_PUBLIC_* requieren argumentos de compilación y reconstruir la imagen." },
     ],
   },
   cta: {
@@ -209,7 +212,7 @@ const es: Translations = {
 };
 
 const zh: Translations = {
-  nav: { dashboard: "仪表板", signals: "信号", trackRecord: "战绩", language: "语言" },
+  nav: { dashboard: "仪表板", signals: "信号", trackRecord: "战绩", language: "语言", openApp: "打开应用" },
   meta: {
     title: "TradeClaw — 开源 AI 交易信号平台",
     description: "采用 MIT 许可证的外汇、加密货币和贵金属交易信号软件。可用 Docker 自托管，使用前请核查支持证据。",
@@ -264,7 +267,7 @@ const zh: Translations = {
       { question: "MIT 许可证在这里意味着什么？", answer: "TradeClaw 源代码依据 MIT 许可证提供，当前公开托管档案没有 TradeClaw 付费墙。服务器托管、行情数据、经纪商和通知服务可能收取各自的费用。" },
       { question: "信号如何工作？", answer: "开源规则引擎将技术指标与多时间框架汇合分析结合。买入/卖出标签和置信度表示指标的加权一致程度，而不是盈利概率。无需外部 AI API。" },
       { question: "可以用于实盘交易吗？", answer: "自动执行默认关闭。只有操作员明确启用后，通过风控与证据门控的加密货币信号才能进入已实现的 Binance USDT 永续合约执行器；默认使用测试网。RoboForex 桥接仍只是未实现的接口，模拟交易结果也不是经纪商成交。" },
-      { question: "如何部署？", answer: "克隆仓库，将 .env.example 复制为 .env，设置 DB_PASSWORD、USER_SESSION_SECRET 和 AUTH_SECRET，然后运行 `docker compose up -d`。无需 MetaApi。Compose 通过明确的允许列表映射文档化的 .env 变量；更改 NEXT_PUBLIC_* 需要对应的构建参数并重新构建镜像。" },
+      { question: "如何部署？", answer: "克隆仓库，将 .env.example 复制为 .env，设置 DB_PASSWORD、USER_SESSION_SECRET、ADMIN_SECRET 和 AUTH_SECRET，然后运行 `docker compose up -d`。无需 MetaApi。Compose 通过明确的允许列表映射文档化的 .env 变量；更改 NEXT_PUBLIC_* 需要对应的构建参数并重新构建镜像。" },
     ],
   },
   cta: {
@@ -276,7 +279,7 @@ const zh: Translations = {
 
 // Malay (Bahasa Malaysia) — initial translation, native-speaker review pending (#16).
 const ms: Translations = {
-  nav: { dashboard: "Papan Pemuka", signals: "Isyarat", trackRecord: "Rekod Prestasi", language: "Bahasa" },
+  nav: { dashboard: "Papan Pemuka", signals: "Isyarat", trackRecord: "Rekod Prestasi", language: "Bahasa", openApp: "Buka aplikasi" },
   meta: {
     title: "TradeClaw — Isyarat Dagangan AI Sumber Terbuka",
     description: "Perisian isyarat dagangan berlesen MIT untuk forex, kripto dan logam. Hos sendiri dengan Docker dan semak bukti sebelum digunakan.",
@@ -331,7 +334,7 @@ const ms: Translations = {
       { question: "Apakah maksud lesen MIT di sini?", answer: "Kod sumber TradeClaw tersedia di bawah lesen MIT dan arkib awam yang dihoskan kini tiada paywall TradeClaw. Hosting, pembekal data pasaran, broker dan perkhidmatan notifikasi mungkin mengenakan bayaran masing-masing." },
       { question: "Bagaimana isyarat berfungsi?", answer: "Enjin sumber terbuka berasaskan peraturan menggabungkan penunjuk teknikal dengan pertemuan pelbagai jangka masa. Label BELI/JUAL dan skor keyakinan menerangkan persetujuan penunjuk berwajaran, bukan kebarangkalian untung." },
       { question: "Bolehkah saya menggunakannya untuk dagangan langsung?", answer: "Pelaksanaan automatik dimatikan secara lalai. Jika operator mengaktifkannya secara jelas, hanya isyarat kripto yang lulus pagar bukti boleh sampai ke pelaksana Binance USDT perpetual, yang menggunakan testnet secara lalai. Jambatan RoboForex masih sekadar rangka antara muka dan hasil paper trading ialah simulasi." },
-      { question: "Bagaimana saya memasangnya?", answer: "Klon repo, salin .env.example ke .env, tetapkan DB_PASSWORD, USER_SESSION_SECRET dan AUTH_SECRET, kemudian jalankan `docker compose up -d`. MetaApi tidak diperlukan. Compose memetakan pemboleh ubah .env yang didokumenkan melalui senarai izin jelas; perubahan NEXT_PUBLIC_* memerlukan argumen binaan yang sepadan dan bina semula imej." },
+      { question: "Bagaimana saya memasangnya?", answer: "Klon repo, salin .env.example ke .env, tetapkan DB_PASSWORD, USER_SESSION_SECRET, ADMIN_SECRET dan AUTH_SECRET, kemudian jalankan `docker compose up -d`. MetaApi tidak diperlukan. Compose memetakan pemboleh ubah .env yang didokumenkan melalui senarai izin jelas; perubahan NEXT_PUBLIC_* memerlukan argumen binaan yang sepadan dan bina semula imej." },
     ],
   },
   cta: {
@@ -343,7 +346,7 @@ const ms: Translations = {
 
 // Arabic — initial translation, RTL layout. Native-speaker review pending (#16).
 const ar: Translations = {
-  nav: { dashboard: "لوحة التحكم", signals: "الإشارات", trackRecord: "سجل الأداء", language: "اللغة" },
+  nav: { dashboard: "لوحة التحكم", signals: "الإشارات", trackRecord: "سجل الأداء", language: "اللغة", openApp: "افتح التطبيق" },
   meta: {
     title: "TradeClaw — إشارات تداول بالذكاء الاصطناعي مفتوحة المصدر",
     description: "برنامج إشارات تداول مرخص بـ MIT للفوركس والعملات الرقمية والمعادن. استضفه ذاتيًا عبر Docker وراجع الأدلة قبل الاستخدام.",
@@ -398,7 +401,7 @@ const ar: Translations = {
       { question: "ماذا يعني ترخيص MIT هنا؟", answer: "كود TradeClaw متاح بموجب ترخيص MIT، والأرشيف العام المستضاف لا يفرض حاليًا رسومًا من TradeClaw. قد تفرض الاستضافة ومزودات بيانات السوق والوسطاء وخدمات الإشعارات رسومها الخاصة." },
       { question: "كيف تعمل الإشارات؟", answer: "يجمع المحرك المفتوح القائم على القواعد بين المؤشرات الفنية وتحليل الأطر الزمنية المتعددة. تعبّر إشارات الشراء والبيع ودرجة الثقة عن توافق المؤشرات، وليست احتمالًا للربح." },
       { question: "هل يمكنني استخدامه للتداول المباشر؟", answer: "التنفيذ الآلي معطل افتراضيًا. إذا فعّله المشغل صراحةً، فلا تصل إلى منفذ عقود Binance USDT الدائمة إلا إشارات العملات المشفرة التي تجتاز بوابات الأدلة، ويستخدم المنفذ شبكة الاختبار افتراضيًا. جسر RoboForex ما زال واجهة غير منفذة ونتائج التداول الورقي محاكاة." },
-      { question: "كيف أنشره؟", answer: "استنسخ المستودع، وانسخ .env.example إلى .env، واضبط DB_PASSWORD وUSER_SESSION_SECRET وAUTH_SECRET، ثم شغّل `docker compose up -d`. لا يلزم MetaApi. يمرر Compose متغيرات .env الموثقة عبر قائمة سماح صريحة؛ وتتطلب تغييرات NEXT_PUBLIC_* معاملات بناء مطابقة وإعادة بناء الصورة." },
+      { question: "كيف أنشره؟", answer: "استنسخ المستودع، وانسخ .env.example إلى .env، واضبط DB_PASSWORD وUSER_SESSION_SECRET وADMIN_SECRET وAUTH_SECRET، ثم شغّل `docker compose up -d`. لا يلزم MetaApi. يمرر Compose متغيرات .env الموثقة عبر قائمة سماح صريحة؛ وتتطلب تغييرات NEXT_PUBLIC_* معاملات بناء مطابقة وإعادة بناء الصورة." },
     ],
   },
   cta: {
@@ -412,6 +415,38 @@ const translations: Record<Locale, Translations> = { en, es, zh, ms, ar };
 
 export function getTranslations(locale: Locale): Translations {
   return translations[locale];
+}
+
+/** Returns the locale owned by an exact landing-page URL, including `/` for English. */
+export function getLandingLocale(pathname: string): Locale | null {
+  const normalizedPath = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  return SUPPORTED_LOCALES.find(({ href }) => href === normalizedPath)?.code ?? null;
+}
+
+export function getLocaleHref(locale: Locale): string {
+  return SUPPORTED_LOCALES.find(({ code }) => code === locale)?.href ?? "/";
+}
+
+export function isLocalizedLandingPath(pathname: string): boolean {
+  const locale = getLandingLocale(pathname);
+  return locale !== null && locale !== DEFAULT_LOCALE;
+}
+
+/** BCP 47 language tag used by the document and SEO metadata. */
+export function getHtmlLanguage(locale: Locale): string {
+  return locale === "zh" ? "zh-CN" : locale;
+}
+
+export function getLanguageAlternates(baseUrl = "https://tradeclaw.win"): Record<string, string> {
+  const base = baseUrl.replace(/\/$/, "");
+  const languages = Object.fromEntries(
+    SUPPORTED_LOCALES.map(({ code, href }) => [
+      getHtmlLanguage(code),
+      href === "/" ? base : `${base}${href}`,
+    ]),
+  );
+
+  return { ...languages, "x-default": base };
 }
 
 /** Returns "rtl" for Arabic, "ltr" for everything else. */

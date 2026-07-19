@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { TradeClawLogo } from '../../components/tradeclaw-logo';
+import { isLocalizedLandingPath } from '../../lib/translations';
 
 interface FooterLink {
   href: string;
@@ -96,7 +97,9 @@ export function SiteFooter() {
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 
-  if (isAppSurface) return null;
+  // Localized landing pages own all visible copy. Until the shared footer has
+  // complete dictionaries, do not append an English-only footer to them.
+  if (isAppSurface || isLocalizedLandingPath(pathname)) return null;
 
   return (
     <footer className="premium-dark-chrome mt-24 border-t border-[var(--border-strong)] bg-[#050608] py-12 text-sm text-white">
