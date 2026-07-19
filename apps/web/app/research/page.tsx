@@ -4,13 +4,13 @@ import { Navbar } from '../components/navbar';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: 'Research: What We Tested and Killed | TradeClaw',
+  title: 'Research: What We Tested and Learned | TradeClaw',
   description:
-    'TradeClaw registered research failures: frozen hypotheses, modeled cost assumptions, backtest results, pass/fail gates, and committed artifacts.',
+    'TradeClaw research record: fixed study specifications, modeled cost assumptions, benchmarked backtest results, caveats, and committed artifacts.',
   openGraph: {
-    title: 'Research: What We Tested and Killed | TradeClaw',
+    title: 'Research: What We Tested and Learned | TradeClaw',
     description:
-      'Five tested strategy families, each registered against a frozen gate and evaluated under published modeled costs, with machine-readable artifacts.',
+      'Six strategy studies, evaluated under published modeled costs and reported with machine-readable artifacts and explicit claim boundaries.',
     url: 'https://tradeclaw.win/research',
     siteName: 'TradeClaw',
     type: 'website',
@@ -23,6 +23,7 @@ const GH = 'https://github.com/naimkatiman/tradeclaw/blob/main';
 const REGISTRY_URL = `${GH}/docs/research/experiments/REGISTRY.md`;
 const VERDICT_TIMING = `${GH}/docs/research/2026-06-12-phase4.5-verdict-single-asset-timing.md`;
 const VERDICT_CARRY = `${GH}/docs/research/2026-06-13-phase5-verdict-carry-xsection.md`;
+const SLOW_GATE_PLAN = `${GH}/docs/plans/2026-07-18-slow-regime-gate-sandbox.md`;
 const experiment = (file: string) => `${GH}/docs/research/experiments/${file}`;
 
 type Tone = 'down' | 'neutral';
@@ -52,6 +53,7 @@ interface KillEntry {
   ref: string;
   family: string;
   stamp: string;
+  stampTone?: Tone;
   hypothesis: string;
   spec: SpecLine[];
   results: ResultBlock[];
@@ -254,6 +256,54 @@ const ENTRIES: KillEntry[] = [
       { label: 'Verdict: carry and cross-section', href: VERDICT_CARRY },
     ],
   },
+  {
+    ref: 'Slow-gate sandbox · parameters fixed for the 2026-07-18 run',
+    family: 'Daily long/flat risk overlay',
+    stamp: 'Mixed · sandbox',
+    stampTone: 'neutral',
+    hypothesis:
+      'A daily close-above-EMA200 long/flat gate on BTC and ETH, with size scaled by the existing HMM structural-regime classifier, can improve drawdown-adjusted return after modeled costs. Buy-and-hold remained the raw-return benchmark; absolute-return outperformance was explicitly not pre-claimed.',
+    spec: [
+      { label: 'Universe', value: 'BTCUSD and ETHUSD; 50/50 independent sleeves; D1' },
+      { label: 'Window', value: '2017-09-01 to 2026-07-16 (8.88 years); 4 folds' },
+      { label: 'Variants', value: 'buy-hold, EMA200, EMA200 + HMM sizing, EMA200 + inverse-vol' },
+      { label: 'Costs', value: 'spot: 0.10% fee + 0.15% slippage per side' },
+      { label: 'Status', value: 'Sandbox simulation only; no live activation' },
+    ],
+    results: [
+      {
+        caption: 'Full-window 50/50 BTC/ETH portfolio, modeled spot costs',
+        rows: [
+          { label: 'buy-and-hold', value: 'CAGR +28.1% · max DD 86.5% · Calmar 0.32 · Sharpe 0.71' },
+          { label: 'EMA200 gate', value: 'CAGR +29.4% · max DD 58.8% · Calmar 0.50 · Sharpe 0.80' },
+          {
+            label: 'EMA200 + HMM sizing',
+            value: 'CAGR +10.8% · max DD 50.2% · Calmar 0.21 · Sharpe 0.48',
+            tone: 'down',
+          },
+          { label: 'EMA200 + vol targeting', value: 'CAGR +22.8% · max DD 37.4% · Calmar 0.61 · Sharpe 0.87' },
+        ],
+      },
+      {
+        caption: 'Why the claims stay narrow',
+        rows: [
+          { label: 'BTC vol targeting vs hold CAGR', value: '+21.9% vs +33.7%', tone: 'down' },
+          { label: 'ETH vol targeting vs hold CAGR', value: '+23.6% vs +19.3%' },
+          { label: 'Vol-target Calmar > hold, per-symbol folds', value: 'BTC 3/4 · ETH 3/4' },
+          { label: 'HMM sizing, 50/50 Calmar', value: '0.21 vs hold 0.32', tone: 'down' },
+        ],
+      },
+    ],
+    reading:
+      'The 50/50 vol-targeted portfolio did not beat buy-and-hold on CAGR: 22.8% versus 28.1%. Vol targeting improved modeled drawdown-adjusted results over the full window: Calmar 0.61 versus 0.32, Sharpe 0.87 versus 0.71, and max drawdown 37.4% versus 86.5%. The study did not establish uniform raw-return outperformance across both assets: the BTC vol-targeted sleeve lagged hold, while the ETH sleeve exceeded it, and the plain EMA200 gate had isolated raw-CAGR wins. HMM sizing underperformed the hold benchmark on drawdown-adjusted metrics: 50/50 Calmar was 0.21 versus 0.32 for hold, and its frequent exposure changes accumulated the highest modeled cost. These are sandbox-only OHLCV outcomes with modeled spot costs, not live results, not broker fills, and not a trading recommendation.',
+    artifacts: [
+      {
+        label: 'Slow-gate sandbox JSON',
+        href: experiment('slow-gate-BTCUSD_ETHUSD-D1-2017-09-01-2026-07-16-f4.json'),
+      },
+      { label: 'Fixed-parameter sandbox plan', href: SLOW_GATE_PLAN },
+    ],
+  },
 ];
 
 function toneClass(tone: Tone | undefined): string {
@@ -291,7 +341,7 @@ function KillLedgerEntry({ entry }: { entry: KillEntry }) {
             {entry.family}
           </h2>
         </div>
-        <span className="font-display text-sm font-bold uppercase tracking-wide text-[var(--color-down)]">
+        <span className={`font-display text-sm font-bold uppercase tracking-wide ${toneClass(entry.stampTone ?? 'down')}`}>
           {entry.stamp}
         </span>
       </div>
@@ -350,20 +400,19 @@ export default function ResearchPage() {
           {/* Intro */}
           <header className="pb-14">
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
-              Negative results, registered
+              Recorded results, including failures
             </p>
             <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight">
               What we tested
               <br />
-              and killed
+              and learned
             </h1>
             <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-[var(--text-secondary)]">
-              Every hypothesis below was written down as a spec before it ran: a fixed universe, a fixed
-              cost model, and a fixed pass or fail gate, frozen in a design doc before any result was seen.
-              We then ran it on the same research pipeline used by the public signal study, and recorded
-              what the gate said. None passed. Across two final verdicts the standing conclusion is narrow
-              and blunt: no tested single-asset short-term timing candidate survived the published modeled
-              cost assumptions, and no candidate using the stated retail crypto cost structure cleared its gate.
+              Each entry records its study specification, modeled cost assumptions, benchmark, and, where
+              one was defined, its deployment gate. The first five studies did not clear their deployment
+              gates. A sixth, slow daily sandbox produced a narrower result: one vol-targeted 50/50 portfolio
+              improved modeled drawdown-adjusted metrics without establishing uniform raw-return outperformance
+              across both assets. It did not activate a live strategy.
             </p>
             <p className="mt-4 max-w-prose text-[13px] leading-relaxed text-[var(--text-secondary)]">
               Each entry links its committed machine-readable artifact and the final verdict memo. The
@@ -394,17 +443,15 @@ export default function ResearchPage() {
               What survived
             </h2>
             <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-[var(--foreground)]">
-              Nothing did. Five families of short-term edge, each pre-registered and each rejected under
-              the stated cost model. The common killer is the assumed cost denominator: roughly 0.4% per round trip against edges
-              that have compressed hard into 2024 to 2026. Funding carry is the one candidate whose raw
-              structural edge genuinely exists, and its blocker is decay rather than cost. The rest are
-              simply too small to survive the fee.
+              A narrow modeled result did. The 50/50 vol-targeted portfolio did not beat buy-and-hold on
+              CAGR: 22.8% versus 28.1%. It did improve modeled Calmar from 0.32 to 0.61 and Sharpe from
+              0.71 to 0.87, while modeled max drawdown fell from 86.5% to 37.4%. HMM sizing failed: its
+              full-window portfolio Calmar was 0.21, below buy-and-hold at 0.32.
             </p>
             <p className="mt-4 max-w-prose text-[15px] leading-relaxed text-[var(--text-secondary)]">
-              What would change our mind is exact and public: a pre-registered spec that passes its frozen
-              gate on this same pipeline under the published cost assumptions, with folds that hold out of sample.
-              Until one does, the honest default is to hold, and the durable asset is the bench that keeps
-              killing bad strategies before anyone trades them.
+              That changes the research record, not the deployment gate. The slow-gate study is a sandbox-only
+              OHLCV simulation with modeled spot costs: it is not live performance, not broker fills, and not
+              a trading recommendation. It does not change live strategy selection or allocation.
             </p>
             <nav className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-[15px]" aria-label="Related pages">
               <a href="/methodology" className="font-medium text-[var(--text-secondary)] underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]">

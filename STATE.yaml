@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-20T00:22:36+08:00
+updated: 2026-07-20T00:45:15+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -10,11 +10,13 @@ description: >
 emerald_main_sync_release_2026_07_19:
   at: 2026-07-19T23:22:41+08:00
   agent: TradeClaw PM agent
-  status: ready_for_ci_rerun
+  status: merged_pending_combined_deploy
   scope: Publish the verified localization release to origin/main and restore the favicon-matched emerald brand before production deployment
   base_commit: 2506a795af09a02f553d069d36235ebe6770f900
   release_branch: release/full-sweep-localization-20260719
-  current_step: PR #178 stale E2E locators are repaired and locally verified; ready to commit, push, and rerun protected CI before merge
+  source_head: 16b00717d35aab9bf63e4b61090d5880fcc81d29
+  merge_commit: c04ec4bbe71234d71af001170d36e6187f0849e4
+  current_step: PR #178 is merged and the PR #177 combined tree is locally verified; pending protected merge and one combined Railway deploy
   palette_source_commit: c70be6bf
   notes: >
     The blue/cyan mix was traced to premium UI commit 80371e97. The prior emerald
@@ -3913,3 +3915,29 @@ next_actions:
       focus containment, and body scroll locking. No Docker, deployment,
       dependency, lockfile, database, trading-rule, or inherited research-lane
       changes were made.
+
+  - id: TC-243
+    title: "Publish the slow-gate sandbox study on the public research and open-data surfaces"
+    status: done
+    owner: pm-tradeclaw
+    publication_pr: 177
+    source_commit: 999b74a550c2848a895dfb7ea65c74d9b64d8f9f
+    reconciled_base: c04ec4bbe71234d71af001170d36e6187f0849e4
+    notes: >
+      Completed 2026-07-19 from merged main 2506a795 in the isolated
+      feat/slow-gate-research-surface worktree, then reconciled onto localization
+      release merge c04ec4bb without a code conflict. Corrected the stale /research
+      conclusion, added the committed slow-gate JSON to the research ledger and
+      /open-data, and pinned the narrow result with focused truth-contract tests:
+      the 50/50 vol-targeted portfolio trailed buy-and-hold CAGR (22.75% versus
+      28.09%) while improving modeled Calmar (0.61 versus 0.32) and modeled max
+      drawdown (37.42% versus 86.49%); plain EMA200 had isolated raw-CAGR wins;
+      HMM sizing underperformed the hold benchmark. The public surfaces keep the
+      study sandbox-only, non-live, modeled, and outside broker fills or trading
+      recommendations.
+      Reconciled verification: 4 focused tests passed; full Jest passed (222
+      suites, 1,741 tests; 3 suites and 26 tests skipped); typecheck:web passed;
+      lint passed with 23 pre-existing warnings and zero errors; npm run build
+      generated 324/324 pages; git diff --check passed. No strategy selection, allocation, execution,
+      deployment, LinkedIn, database, migration, dependency, Docker, or lockfile
+      files changed.
