@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-19T10:46:38+08:00
+updated: 2026-07-19T11:07:15+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -10,25 +10,43 @@ description: >
 phase2_product_localization_release_2026_07_19:
   at: 2026-07-19T10:24:44+08:00
   agent: TradeClaw PM agent
-  status: validated_ready_to_deploy
+  status: deployed
   scope: Commit and production deployment of the verified full-sweep debug and five-locale product repair
   base_commit: 2506a795af09a02f553d069d36235ebe6770f900
   release_branch: release/full-sweep-localization-20260719
   code_commit: fe66b91e
-  current_step: Committing the validated release record, then deploying the exact clean worktree to Railway production
+  release_record_commit: 873689aeb3f40074ab7676a70a1c0c436086069a
+  console_hotfix_commit: 9ffd0529d41b332dcade3929ff9f4c25d40477a2
+  deployed_commit: 9ffd0529d41b332dcade3929ff9f4c25d40477a2
+  current_step: Complete; the exact clean release and live-audit hotfix are deployed and verified on Railway production
   deployment_target:
     provider: Railway
     project_id: 4265dacd-9431-446e-8d04-5e1ec8482530
     environment_id: 148430a0-4280-4cc6-a730-e4edca98141e
     service_id: b958acce-02e3-4aee-9e5f-c2f1f1897253
     domain: https://tradeclaw.win
+  deployment_result:
+    initial_deployment_id: fa40e76e-1f15-43dd-a5de-5a5006001701
+    final_deployment_id: 8a8e0c0d-6066-4397-add6-81092ea5b9ef
+    final_status: SUCCESS
+    created_at: 2026-07-19T03:02:45.253Z
+    image_digest: sha256:890bde724ab8d6f275e0e110375a4ab36d876de118f0d590bd4abd506d7ed202
+    application_build_id: 07b3ceff-ad8d-428a-b00d-00d8f562caec
+    health_status: ok
+    database_status: ok
+    migrations_status: ok
+    required_migration: 053_drop_monetization.sql
   notes: >
     Zaky explicitly authorized commit and deployment. The release was extracted
     from the broad dirty checkout as an exact 118-file debug allowlist and ported
     onto current origin/main. Research, billing, AI-tracking, standup,
     generated-artifact, and unrelated market-data drift remain excluded. Merge
     conflicts preserved main's build identity, proof schema, and cyan CTA styling
-    while applying the readiness, deployment, and localization repairs.
+    while applying the readiness, deployment, and localization repairs. The first
+    production audit exposed a non-blocking GitHub 403 console error from direct
+    client metric requests. Commit 9ffd0529 routed the main hero, localized landing,
+    and share surface through the cached same-origin endpoint; the final deployment
+    supersedes the initial successful release.
   verification: >
     On the clean origin/main-based worktree, root Jest passed 219 suites and 1,732
     tests with 26 intentional skips and one snapshot. Web TypeScript passed; lint
@@ -37,8 +55,18 @@ phase2_product_localization_release_2026_07_19:
     324/324 pages. WebSocket TypeScript and all 36 Vitest checks passed. Six
     targeted Chromium Playwright checks passed across the five-locale matrix,
     invalid and blocked storage fallback, Arabic persistence/RTL, and mobile
-    containment. STATE YAML, shell syntax, and git diff checks passed. Docker is
-    unavailable locally, so Compose runtime validation remains assigned to CI.
+    containment. The follow-up hotfix passed 14 focused Jest checks, web TypeScript,
+    lint with zero errors and the same 23 warnings, and another required 324/324
+    production build. Final live Chromium verification rendered dashboard, screener,
+    and track record in all five languages with correct titles, document language,
+    and Arabic RTL; all five landing pages rendered translated content. Desktop and
+    390px Arabic product/landing layouts had no horizontal overflow, all observed
+    GitHub metric calls returned 200 through TradeClaw, no direct browser GitHub API
+    request remained, and no console error was emitted. Health returned HTTP 200 with
+    database and migrations ready; Fly and Replit returned 307 to /start. STATE YAML,
+    shell syntax, and git diff checks passed. Docker is unavailable locally, so
+    Compose runtime validation remains assigned to CI; the Railway Dockerfile image
+    built, started, applied all 55 migrations, and passed its production healthcheck.
     npm audit reported 62 existing lockfile advisories; the two critical findings
     are outside the deployed web image (an Expo-mobile transitive dependency and a
     dev-only Vitest UI dependency). Web production scope has zero critical audit
