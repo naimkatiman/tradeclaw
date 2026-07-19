@@ -29,10 +29,10 @@ test.describe('Track Record page', () => {
     await dismissStarMilestoneModal(page);
     await page.waitForLoadState('domcontentloaded');
 
-    // The visible label rendered by TrackRecordClient (a <div>, not an <h1>).
-    // Text is "Verified Track Record" — matches /track record/i case-insensitively.
+    // Scope the localized evidence marker to main content so the hidden mobile
+    // PageNavBar link cannot win an unscoped `.first()` match.
     await expect(
-      page.getByText(/track record/i).first()
+      page.getByRole('main').getByText('OHLCV-Resolved Signal Record', { exact: true })
     ).toBeVisible({ timeout: 15_000 });
 
     // Page should load without a Next.js hard error (white-screen or 500).

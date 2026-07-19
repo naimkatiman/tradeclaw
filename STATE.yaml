@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-19T23:48:09+08:00
+updated: 2026-07-20T00:22:36+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -10,11 +10,11 @@ description: >
 emerald_main_sync_release_2026_07_19:
   at: 2026-07-19T23:22:41+08:00
   agent: TradeClaw PM agent
-  status: ready_for_publish
+  status: ready_for_ci_rerun
   scope: Publish the verified localization release to origin/main and restore the favicon-matched emerald brand before production deployment
   base_commit: 2506a795af09a02f553d069d36235ebe6770f900
   release_branch: release/full-sweep-localization-20260719
-  current_step: All local release gates passed; ready to commit, publish through GitHub, merge to origin/main, and deploy
+  current_step: PR #178 stale E2E locators are repaired and locally verified; ready to commit, push, and rerun protected CI before merge
   palette_source_commit: c70be6bf
   notes: >
     The blue/cyan mix was traced to premium UI commit 80371e97. The prior emerald
@@ -38,7 +38,13 @@ emerald_main_sync_release_2026_07_19:
     Every locale exposed dark-theme --brand #34d399 and --brand-bright #10b981,
     and visual inspection confirmed emerald-only TradeClaw brand cues. The local
     unauthenticated GitHub-stars proxy returned 502 and will be rechecked against
-    the configured production environment after deployment.
+    the configured production environment after deployment. The initial PR #178
+    E2E run passed 202 tests but exposed six failures from three stale test
+    contracts after localized accessible names changed. The focused repair passed
+    all 16 Chromium checks, including its 390px menu context; the mandatory root
+    build again generated 324/324 pages and lint passed with zero errors and the
+    same 23 warnings. A local WebKit install timed out, so the protected CI mobile
+    project remains the authoritative WebKit verification before merge.
 
 phase2_product_localization_release_2026_07_19:
   at: 2026-07-19T10:24:44+08:00

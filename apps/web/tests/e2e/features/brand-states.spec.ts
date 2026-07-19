@@ -65,7 +65,7 @@ test.describe('landing under reduced motion', () => {
 
     // Legacy menu links pair opacity-0 with animate-fade-up. Disabling the
     // animation must restore the final visible state instead of blanking nav.
-    await page.getByRole('button', { name: 'Toggle menu' }).click();
+    await page.locator('button[aria-controls="mobile-navigation"]').click();
     const firstMobileLink = page.locator('div.fixed.inset-0 a.animate-fade-up').first();
     await expect(firstMobileLink).toBeVisible();
     await expect(firstMobileLink).toHaveCSS('opacity', '1');
