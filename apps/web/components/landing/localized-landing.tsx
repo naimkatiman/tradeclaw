@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { Locale, Translations } from "../../lib/translations";
+import { parseGitHubStarCount } from "../../lib/github-star-count";
 import { LocaleSwitcher } from "./locale-switcher";
 
 const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
@@ -26,13 +27,9 @@ export function LocalizedLanding({ t, locale }: { t: Translations; locale: Local
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
 
   useEffect(() => {
-    fetch("https://api.github.com/repos/naimkatiman/tradeclaw")
-      .then((r) => r.json())
-      .then((d: unknown) => {
-        if (d && typeof d === "object" && "stargazers_count" in d) {
-          setStars((d as { stargazers_count: number }).stargazers_count);
-        }
-      })
+    fetch("/api/github-stars")
+      .then((response) => response.ok ? response.json() as Promise<unknown> : null)
+      .then((data) => setStars(parseGitHubStarCount(data)))
       .catch(() => {});
   }, []);
 

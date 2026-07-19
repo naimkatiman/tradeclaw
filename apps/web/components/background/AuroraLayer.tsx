@@ -40,7 +40,7 @@ export function AuroraLayer({
           width: "65%",
           height: "75%",
           background:
-            "radial-gradient(closest-side, rgba(6,182,212,0.22), rgba(6,182,212,0.05) 45%, transparent 70%)",
+            "radial-gradient(closest-side, rgba(52,211,153,0.18), rgba(16,185,129,0.04) 45%, transparent 70%)",
           filter: "blur(24px)",
           opacity,
         }}

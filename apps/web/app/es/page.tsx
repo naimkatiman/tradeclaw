@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Navbar } from "../components/navbar";
 import { LocalizedLanding } from "../../components/landing/localized-landing";
-import { getTranslations } from "../../lib/translations";
+import { getLanguageAlternates, getTranslations } from "../../lib/translations";
 
 const t = getTranslations("es");
 
@@ -25,12 +25,7 @@ export const metadata: Metadata = {
     images: ["/api/og"],
   },
   alternates: {
-    languages: {
-      "en": "https://tradeclaw.win",
-      "es": "https://tradeclaw.win/es",
-      "zh-CN": "https://tradeclaw.win/zh",
-      "x-default": "https://tradeclaw.win",
-    },
+    languages: getLanguageAlternates(),
   },
 };
 

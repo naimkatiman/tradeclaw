@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { isHighRuleScore } from '../../lib/signal-thresholds';
 
 interface Signal {
   symbol: string;
@@ -127,17 +128,17 @@ export function LiveDemoSection() {
                               className="h-full rounded-full transition-all duration-700"
                               style={{
                                 width: `${sig.confidence}%`,
-                                background: sig.confidence >= 80 ? '#10b981' : sig.confidence >= 70 ? '#f59e0b' : '#6b7280',
+                                background: isHighRuleScore(sig.confidence) ? '#10b981' : sig.confidence >= 70 ? '#f59e0b' : '#6b7280',
                               }}
                             />
                           </div>
                           <span
                             className="text-xs font-mono font-semibold"
                             style={{
-                              color: sig.confidence >= 80 ? '#10b981' : sig.confidence >= 70 ? '#f59e0b' : '#6b7280',
+                              color: isHighRuleScore(sig.confidence) ? '#10b981' : sig.confidence >= 70 ? '#f59e0b' : '#6b7280',
                             }}
                           >
-                            {sig.confidence}%
+                            {sig.confidence}/100
                           </span>
                         </div>
                         <span className="text-[10px] text-zinc-600">{timeAgo(sig.timestamp)}</span>

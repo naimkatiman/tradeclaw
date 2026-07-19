@@ -5,36 +5,32 @@
 // demo rows. OHLCV resolution is not execution verification.
 // ---------------------------------------------------------------------------
 
+import { useLocale } from '../app/components/locale-provider';
+import { formatMessage } from '../lib/product-i18n/format';
+import { getDashboardEvidenceTranslations } from '../lib/product-i18n/dashboard-evidence';
+
 export type DataProvenance = 'live' | 'mixed' | 'simulated' | 'empty';
 
-const PROVENANCE_CONFIG: Record<DataProvenance, { label: string; color: string; bg: string; border: string; tooltip: string }> = {
+const PROVENANCE_CONFIG: Record<DataProvenance, { color: string; bg: string; border: string }> = {
   live: {
-    label: 'Recorded / OHLCV',
     color: '#34d399',
     bg: 'rgba(16,185,129,0.08)',
     border: 'rgba(16,185,129,0.25)',
-    tooltip: 'Stats use non-synthetic recorded signals and provider OHLCV outcomes. They are not broker fills or account returns.',
   },
   mixed: {
-    label: 'Mixed data',
     color: '#fbbf24',
     bg: 'rgba(251,191,36,0.08)',
     border: 'rgba(251,191,36,0.25)',
-    tooltip: 'Stats include a mix of live-tracked and simulated signals. Simulated rows are excluded from accuracy calculations.',
   },
   simulated: {
-    label: 'Simulated',
     color: '#94a3b8',
     bg: 'rgba(148,163,184,0.08)',
     border: 'rgba(148,163,184,0.25)',
-    tooltip: 'All displayed data is simulated seed data for demonstration purposes.',
   },
   empty: {
-    label: 'No data',
     color: '#71717a',
     bg: 'rgba(113,113,122,0.08)',
     border: 'rgba(113,113,122,0.25)',
-    tooltip: 'No signal data available yet.',
   },
 };
 
@@ -54,7 +50,13 @@ export function DataProvenanceBadge({
   provenance = 'live',
   source,
 }: DataProvenanceBadgeProps) {
+  const { locale } = useLocale();
+  const copy = getDashboardEvidenceTranslations(locale).provenance;
   const cfg = PROVENANCE_CONFIG[provenance];
+  const text = copy[provenance];
+  const tooltip = source
+    ? formatMessage(copy.withSource, { tooltip: text.tooltip, source })
+    : text.tooltip;
   return (
     <span
       className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded font-mono leading-none select-none"
@@ -63,13 +65,15 @@ export function DataProvenanceBadge({
         background: cfg.bg,
         border: `1px solid ${cfg.border}`,
       }}
-      title={source ? `${cfg.tooltip} Source: ${source}` : cfg.tooltip}
+      title={tooltip}
+      aria-label={tooltip}
     >
       <span
+        aria-hidden="true"
         className="h-1.5 w-1.5 rounded-full shrink-0 animate-pulse"
         style={{ background: cfg.color }}
       />
-      {cfg.label}
+      <bdi dir="auto">{text.label}</bdi>
     </span>
   );
 }

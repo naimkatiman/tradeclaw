@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { DataSourceBadge, getDataSource, formatSignalTimestamp, shortSignalId } from '../components/data-source-badge';
 import { AccuracyMeta } from '../components/accuracy-meta';
 import { ShareButton } from '../components/share-button';
+import { isHighRuleScore } from '../../lib/signal-thresholds';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -123,7 +124,7 @@ function SignalInputs({ sig }: { sig: Signal }) {
 }
 
 function ConfidenceBar({ value }: { value: number }) {
-  const color = value >= 80 ? '#10b981' : value >= 70 ? '#a1a1aa' : '#6b7280';
+  const color = isHighRuleScore(value) ? '#10b981' : value >= 70 ? '#a1a1aa' : '#6b7280';
   return (
     <div className="mt-2">
       <div className="flex justify-between text-[10px] mb-1" style={{ color: 'var(--text-secondary)' }}>
@@ -183,7 +184,7 @@ function SignalCard({ sig, prev }: { sig: Signal; prev?: Signal }) {
             className={`text-2xl font-black transition-all duration-500 ${confChanged ? 'scale-110' : 'scale-100'}`}
             style={{ color: dirColor }}
           >
-            {sig.confidence}%
+            {sig.confidence}/100
           </div>
           <div className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Rule score</div>
         </div>

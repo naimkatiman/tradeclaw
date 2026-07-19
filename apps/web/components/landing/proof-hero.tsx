@@ -3,7 +3,7 @@
  *
  * The product claim stays tied to the live cost-adjusted equity summary. The
  * visual language borrows the restraint of a premium trading terminal: bold
- * editorial type, crisp controls, quiet cyan brand cues, and data as imagery.
+ * editorial type, crisp controls, quiet emerald brand cues, and data as imagery.
  */
 
 import { Activity, ArrowRight, Code2, Database, Server, ShieldCheck } from 'lucide-react';

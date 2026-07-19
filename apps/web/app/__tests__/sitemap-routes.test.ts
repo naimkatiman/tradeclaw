@@ -1,5 +1,6 @@
 import sitemap from '../sitemap';
 import { routeExists } from '../../test-utils/route-exists';
+import { getLanguageAlternates, SUPPORTED_LOCALES } from '../../lib/translations';
 
 const BASE = 'https://tradeclaw.win';
 
@@ -37,5 +38,22 @@ describe('sitemap', () => {
     ]) {
       expect(urls).toContain(`${BASE}${p}`);
     }
+  });
+
+  it('lists every supported localized landing page with complete alternates', () => {
+    const byUrl = new Map(entries.map((entry) => [String(entry.url), entry]));
+    const expectedAlternates = getLanguageAlternates(BASE);
+
+    for (const { href } of SUPPORTED_LOCALES) {
+      const url = href === '/' ? BASE : `${BASE}${href}`;
+      expect(byUrl.get(url)?.alternates?.languages).toEqual(expectedAlternates);
+    }
+  });
+
+  it('does not advertise unverified Fly.io or Replit deployment routes', () => {
+    const urls = entries.map((entry) => String(entry.url));
+
+    expect(urls).not.toContain(`${BASE}/fly`);
+    expect(urls).not.toContain(`${BASE}/replit`);
   });
 });
