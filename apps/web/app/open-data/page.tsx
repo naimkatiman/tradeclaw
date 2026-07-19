@@ -133,6 +133,7 @@ interface Artifact {
   file: string;
   size: string;
   desc: string;
+  labels?: string[];
 }
 
 const ARTIFACTS: Artifact[] = [
@@ -170,6 +171,12 @@ const ARTIFACTS: Artifact[] = [
     file: 'regime-routed-walkforward-BTCUSD_ETHUSD_SOLUSD-H1-2024-06-01-2026-06-01-f4.json',
     size: '52 KB',
     desc: 'Per-regime routed entries on BTC/ETH/SOL H1 walk-forward. The only non-thin routed cell is negative on all three symbols; the gate fails on paper.',
+  },
+  {
+    file: 'slow-gate-BTCUSD_ETHUSD-D1-2017-09-01-2026-07-16-f4.json',
+    size: '26 KB',
+    desc: 'Fixed-parameter BTC/ETH daily long/flat sandbox study under modeled spot costs. The 50/50 vol-targeted portfolio trailed buy-and-hold CAGR (22.75% vs 28.09%) but improved modeled Calmar (0.61 vs 0.32) and max drawdown (37.42% vs 86.49%). EMA200 had isolated raw-CAGR wins, so the study did not establish uniform raw-return outperformance across both assets; HMM sizing underperformed buy-and-hold on drawdown-adjusted metrics. This is not live performance, does not represent broker fills, and is not a recommendation.',
+    labels: ['sandbox only', 'non-live', 'modeled backtest', 'no broker fills', 'informational only'],
   },
   {
     file: 'xsection-validation-30majors-D1-lb14-rb7-top5-f4.json',
@@ -462,6 +469,14 @@ export default function OpenDataPage() {
                     <span className="font-mono text-[11px] tabular-nums text-[var(--text-secondary)]">
                       {a.size}
                     </span>
+                    {a.labels?.map((label) => (
+                      <span
+                        key={label}
+                        className="rounded-[var(--radius-pill)] border border-[var(--border)] px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[var(--text-secondary)]"
+                      >
+                        {label}
+                      </span>
+                    ))}
                   </div>
                   <p className="max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
                     {a.desc}

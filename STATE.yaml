@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-17T00:19:33+08:00
+updated: 2026-07-19T10:40:33+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -3755,3 +3755,25 @@ next_actions:
       focus containment, and body scroll locking. No Docker, deployment,
       dependency, lockfile, database, trading-rule, or inherited research-lane
       changes were made.
+
+  - id: TC-243
+    title: "Publish the slow-gate sandbox study on the public research and open-data surfaces"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Completed 2026-07-19 from merged main 2506a795 in the isolated
+      feat/slow-gate-research-surface worktree. Corrected the stale /research
+      conclusion, added the committed slow-gate JSON to the research ledger and
+      /open-data, and pinned the narrow result with focused truth-contract tests:
+      the 50/50 vol-targeted portfolio trailed buy-and-hold CAGR (22.75% versus
+      28.09%) while improving modeled Calmar (0.61 versus 0.32) and modeled max
+      drawdown (37.42% versus 86.49%); plain EMA200 had isolated raw-CAGR wins;
+      HMM sizing underperformed the hold benchmark. The public surfaces keep the
+      study sandbox-only, non-live, modeled, and outside broker fills or trading
+      recommendations.
+      Verification: 4 focused tests passed; full Jest passed (205 suites, 1,562
+      tests; 3 suites and 26 tests skipped); typecheck:web passed; lint passed
+      with 23 pre-existing warnings and zero errors; npm run build passed; git
+      diff --check passed. No strategy selection, allocation, execution,
+      deployment, LinkedIn, database, migration, dependency, Docker, or lockfile
+      files changed.
