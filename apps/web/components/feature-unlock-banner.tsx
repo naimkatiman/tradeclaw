@@ -66,8 +66,15 @@ function computeActiveUnlock(): UnlockItem | null {
 }
 
 export function FeatureUnlockBanner() {
-  const [active, setActive] = useState<UnlockItem | null>(computeActiveUnlock);
+  const [active, setActive] = useState<UnlockItem | null>(null);
   const [visible, setVisible] = useState(false);
+
+  // Returning-visitor state can only be known in the browser. Resolve it after
+  // hydration so the server and first client render both start without a toast.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setActive(computeActiveUnlock()));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   // Slide in after mount if there is an active unlock
   useEffect(() => {
