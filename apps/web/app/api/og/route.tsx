@@ -34,7 +34,7 @@ export async function GET() {
             height: "600px",
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(21,216,244,0.16) 0%, transparent 70%)",
+              "radial-gradient(circle, rgba(16,185,129,0.16) 0%, transparent 70%)",
           }}
         />
 
@@ -52,14 +52,14 @@ export async function GET() {
               width: "12px",
               height: "12px",
               borderRadius: "50%",
-              background: "#15d8f4",
-              boxShadow: "0 0 16px #15d8f4",
+              background: "#10b981",
+              boxShadow: "0 0 16px #10b981",
             }}
           />
           <span
             style={{
               fontSize: "16px",
-              color: "#15d8f4",
+              color: "#10b981",
               letterSpacing: "0.2em",
               textTransform: "uppercase",
               fontWeight: 500,
@@ -87,7 +87,7 @@ export async function GET() {
         <div
           style={{
             fontSize: "32px",
-            color: "#15d8f4",
+            color: "#10b981",
             fontWeight: 500,
             marginBottom: "48px",
             letterSpacing: "-0.01em",
