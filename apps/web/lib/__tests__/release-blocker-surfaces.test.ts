@@ -45,6 +45,19 @@ describe('release blocker public surfaces', () => {
     expect(page).toContain('does not generate or estimate missing');
   });
 
+  it('proxies client-side star metrics through the cached same-origin endpoint', () => {
+    const clients = [
+      source('components/landing/animated-hero.tsx'),
+      source('components/landing/localized-landing.tsx'),
+      source('app/share/ShareClient.tsx'),
+    ];
+
+    for (const client of clients) {
+      expect(client).toContain("/api/github-stars");
+      expect(client).not.toContain('https://api.github.com/repos/naimkatiman/tradeclaw');
+    }
+  });
+
   it('keeps public leaderboard reads side-effect free and labels legacy outcomes', () => {
     const cache = source('lib/leaderboard-cache.ts');
     const trackRecord = source('app/track-record/TrackRecordClient.tsx');
