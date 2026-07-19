@@ -1,11 +1,39 @@
 project: tradeclaw
-updated: 2026-07-20T01:15:08+08:00
+updated: 2026-07-20T02:05:00+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
   Public mode = limited. Admin = full.
   Alpha Screener = confirmed SaaS brand for users who don't want to self-host. Tradesmart name is dropped.
   Goal: viral GitHub repo, thousands of stars.
+
+dashboard_hydration_hotfix_2026_07_20:
+  at: 2026-07-20T02:01:00+08:00
+  agent: TradeClaw PM agent
+  status: ready_for_publish
+  scope: Remove the fresh-load dashboard hydration exception found during the exact-origin-main production audit
+  base_commit: 08a6bfefc92659d7cec0ccacdad85be89dcfb3ed
+  branch: fix/dashboard-hydration-20260720
+  current_step: All local gates passed; rebasing onto current origin/main before protected PR publication and exact-main deployment
+  root_cause: >
+    Browser-persisted UI state was read during the first client render while the
+    server rendered stable defaults. OnboardingBanner and VisitStreak were two
+    confirmed independent fresh-load triggers; a populated signal cache could
+    also disagree whenever server data was empty. The same unsafe pattern was
+    removed from favorites, re-engagement, and feature-unlock state. React
+    therefore no longer discards the server dashboard tree with minified error
+    418. Client navigation and locale switching were already clean, confirming
+    this was not a translation or RTL failure.
+  verification: >
+    All seven Chromium product-localization checks passed, including fresh-storage
+    hard /dashboard loads in English, Malay, and Arabic with correct LTR/RTL state
+    and zero hydration exceptions, the five-locale surface matrix, invalid and
+    blocked storage fallback, Arabic persistence, and mobile containment. Web
+    TypeScript passed. Lint passed with zero errors and the same 23 pre-existing
+    warnings. Root Jest passed 222 suites and 1,741 tests with 26 intentional
+    skips and one snapshot; forced runner cleanup was still required for the
+    existing asynchronous open handle. The mandatory root production build
+    compiled successfully and generated all 324 pages.
 
 emerald_main_sync_release_2026_07_19:
   at: 2026-07-19T23:22:41+08:00

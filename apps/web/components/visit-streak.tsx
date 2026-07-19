@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { recordVisit, type StreakData } from '../lib/visit-streak';
 import { useLocale } from '../app/components/locale-provider';
 import { formatMessage } from '../lib/product-i18n/format';
@@ -31,11 +31,13 @@ function getMilestoneLabel(
 export function VisitStreak() {
   const { locale } = useLocale();
   const copy = getDashboardEvidenceTranslations(locale).visitStreak;
-  const [streak] = useState<StreakData | null>(() => {
-    if (typeof window === 'undefined') return null;
-    return recordVisit();
-  });
+  const [streak, setStreak] = useState<StreakData | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setStreak(recordVisit()));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   if (!streak || streak.currentStreak === 0) return null;
 

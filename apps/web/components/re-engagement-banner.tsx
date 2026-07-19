@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getStreak } from '../lib/visit-streak';
 import { useLocale } from '../app/components/locale-provider';
@@ -33,12 +33,17 @@ function computeReEngagement(): { visible: boolean; daysAway: number } {
 export function ReEngagementBanner() {
   const { locale } = useLocale();
   const copy = getDashboardEvidenceTranslations(locale).reEngagement;
-  const [state] = useState(computeReEngagement);
-  const [visible, setVisible] = useState(state.visible);
+  const [state, setState] = useState({ visible: false, daysAway: 0 });
+  const visible = state.visible;
   const daysAway = state.daysAway;
 
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setState(computeReEngagement()));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   function handleDismiss() {
-    setVisible(false);
+    setState((current) => ({ ...current, visible: false }));
     try {
       const streak = getStreak();
       localStorage.setItem(DISMISS_KEY, streak.lastVisit);

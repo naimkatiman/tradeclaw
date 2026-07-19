@@ -3,6 +3,8 @@ import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 type ProductLocale = 'en' | 'es' | 'zh' | 'ms' | 'ar';
 const LOCALE_EXPECT_TIMEOUT = 30_000;
 const pageErrors = new WeakMap<Page, string[]>();
+const hydrationErrors = new WeakMap<Page, string[]>();
+const HYDRATION_ERROR = /Hydration failed|hydration-mismatch|Minified React error #418|react\.dev\/errors\/418/i;
 
 const localeCases: Array<{
   locale: ProductLocale;
@@ -68,12 +70,51 @@ async function setProductLocale(
 test.describe('product localization', () => {
   test.beforeEach(async ({ page }) => {
     const errors: string[] = [];
+    const hydration: string[] = [];
     pageErrors.set(page, errors);
+    hydrationErrors.set(page, hydration);
     page.on('pageerror', (error) => errors.push(error.message));
+    page.on('console', (message) => {
+      if (message.type() === 'error' && HYDRATION_ERROR.test(message.text())) {
+        hydration.push(message.text());
+      }
+    });
   });
 
   test.afterEach(async ({ page }) => {
     expect(pageErrors.get(page) ?? []).toEqual([]);
+    expect(hydrationErrors.get(page) ?? []).toEqual([]);
+  });
+
+  test('hard-loads the dashboard from fresh storage without hydration errors', async ({ browser, baseURL }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile', 'The fresh-storage locale matrix runs once in desktop Chromium.');
+    test.setTimeout(120_000);
+
+    for (const locale of ['en', 'ms', 'ar'] as const) {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      const errors: string[] = [];
+
+      page.on('pageerror', (error) => {
+        if (HYDRATION_ERROR.test(error.message)) errors.push(error.message);
+      });
+      page.on('console', (message) => {
+        if (message.type() === 'error' && HYDRATION_ERROR.test(message.text())) {
+          errors.push(message.text());
+        }
+      });
+
+      await setProductLocale(context, locale, baseURL);
+      await page.goto(new URL('/dashboard', baseURL ?? 'http://localhost:3000').toString(), {
+        waitUntil: 'domcontentloaded',
+      });
+      await expect(page.locator('[data-tour-id="dashboard-controls"]')).toBeVisible({ timeout: LOCALE_EXPECT_TIMEOUT });
+      await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr');
+      await page.waitForTimeout(500);
+      expect(errors, `hydration errors for ${locale}`).toEqual([]);
+
+      await context.close();
+    }
   });
 
   test('renders the core product surfaces in every supported locale', async ({ context, page, baseURL }, testInfo) => {

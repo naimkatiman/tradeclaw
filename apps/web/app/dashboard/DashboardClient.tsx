@@ -49,14 +49,23 @@ function useDashboardCopy() {
 
 function OnboardingBanner() {
   const { t } = useDashboardCopy();
-  const [visible, setVisible] = useState(() => {
-    try {
-      if (typeof window === 'undefined') return false;
-      const dismissed = localStorage.getItem('tc_onboarding_dismissed');
-      const tourDone = localStorage.getItem('tc_tour_done');
-      return !dismissed && !tourDone;
-    } catch { return false; }
-  });
+  const [visible, setVisible] = useState(false);
+
+  // Browser persistence is intentionally read after hydration. Reading it in
+  // the state initializer makes a fresh client render insert this banner where
+  // the server rendered nothing, which forces React to discard the dashboard.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      try {
+        const dismissed = localStorage.getItem('tc_onboarding_dismissed');
+        const tourDone = localStorage.getItem('tc_tour_done');
+        setVisible(!dismissed && !tourDone);
+      } catch {
+        setVisible(false);
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   if (!visible) return null;
   const dismiss = () => {
@@ -902,18 +911,11 @@ function setCachedSignals(signals: TradingSignal[]) {
 export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { initialSignals?: TradingSignal[]; initialSyntheticSymbols?: string[] }) {
   const { language, t } = useDashboardCopy();
   const { prices, state: connectionState } = usePriceStream(TICKER_PAIRS);
-  const [signals, setSignals] = useState<TradingSignal[]>(() => {
-    if (initialSignals && initialSignals.length > 0) return initialSignals;
-    if (typeof window !== 'undefined') return getCachedSignals();
-    return [];
-  });
+  const hasInitialSignals = Boolean(initialSignals && initialSignals.length > 0);
+  const [signals, setSignals] = useState<TradingSignal[]>(hasInitialSignals ? initialSignals! : []);
   const [syntheticSymbols, setSyntheticSymbols] = useState<string[]>(initialSyntheticSymbols || []);
   const [tfMap, setTfMap] = useState<Map<string, TFDirection[]>>(new Map());
-  const [loading, setLoading] = useState(() => {
-    if (initialSignals && initialSignals.length > 0) return false;
-    if (typeof window !== 'undefined' && getCachedSignals().length > 0) return false;
-    return true;
-  });
+  const [loading, setLoading] = useState(!hasInitialSignals);
   const [timeframe, setTimeframe] = useState('ALL');
   const [direction, setDirection] = useState<'ALL' | 'BUY' | 'SELL'>('ALL');
   const [assetClass, setAssetClass] = useState<AssetClass>('ALL');
@@ -927,13 +929,26 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
     markStepDone('opened-detail');
   }, []);
 
-  const [favorites, setFavorites] = useState<Set<string>>(() => {
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+
+  // Keep the first browser render identical to SSR, then restore optional
+  // cached signals and watchlist preferences once hydration is complete.
+  useEffect(() => {
+    if (!hasInitialSignals) {
+      const cachedSignals = getCachedSignals();
+      if (cachedSignals.length > 0) {
+        setSignals(cachedSignals);
+        setLoading(false);
+      }
+    }
+
     try {
-      if (typeof window === 'undefined') return new Set<string>();
       const raw = localStorage.getItem('tc_favorites');
-      return raw ? new Set(JSON.parse(raw) as string[]) : new Set<string>();
-    } catch { return new Set<string>(); }
-  });
+      if (raw) setFavorites(new Set(JSON.parse(raw) as string[]));
+    } catch {
+      setFavorites(new Set());
+    }
+  }, [hasInitialSignals]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   const toggleFavorite = useCallback((signalId: string) => {
