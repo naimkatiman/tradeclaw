@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-02T11:48:54+08:00
+updated: 2026-08-02T12:22:30+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -4073,5 +4073,13 @@ next_actions:
       authorized commit and production deployment. Release preflight confirmed
       authenticated GitHub access, exact current origin/main
       f9d6f5b487505f5f7b8a909d2d36eb8a03cb1937, and only the six intended TC-245
-      paths in this isolated lane. Commit, protected PR checks, merge, exact-source
-      Railway deployment, and live read-back are pending.
+      paths in this isolated lane. Release commit
+      13d486b6e2cc5c6610a773f75c163e03951f180f is pushed in ready PR #187. Its
+      first CI pass cleared six jobs but the new art-load assertion failed only in
+      the mobile project because off-screen lazy images were never scrolled into
+      view before checking naturalWidth; three unrelated existing cases were flaky
+      but passed their retries. The test-only per-card scroll and 10-second image-load
+      allowance passes focused lint and Chromium locally. The local WebKit browser
+      installer repeatedly stalled outside the repository, so the protected remote
+      Playwright job remains the required mobile verification after the PR update.
+      Merge, exact-source Railway deployment, and live read-back remain pending.

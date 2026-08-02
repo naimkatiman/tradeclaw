@@ -22,11 +22,15 @@ test.describe('homepage destination artwork', () => {
       const image = art.locator('img');
 
       await expect(link).toHaveAttribute('href', destination.href);
+      await art.scrollIntoViewIfNeeded();
       await expect(art).toBeVisible();
       await expect(art).toHaveAttribute('aria-hidden', 'true');
       await expect(image).toHaveAttribute('alt', '');
       await expect
-        .poll(() => image.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0))
+        .poll(
+          () => image.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0),
+          { timeout: 10_000 },
+        )
         .toBe(true);
 
       const presentation = await art.evaluate((node) => {
