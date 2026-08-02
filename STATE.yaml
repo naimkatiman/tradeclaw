@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-02T10:44:56+08:00
+updated: 2026-08-02T11:48:54+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -4045,3 +4045,33 @@ next_actions:
       Live read-back passed for /api/health (database and migration 053 healthy),
       all three route markers and source references, and all three exact WebP byte
       sizes; the bounded deployment error log was empty.
+
+  - id: TC-245
+    title: "Low-opacity generated backgrounds for homepage destination cards"
+    status: in_progress
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-02 from the owner's request for more generated imagery on
+      the homepage, clarified as low-opacity backgrounds that follow the existing
+      graphite, ivory, and emerald instrument assets. Completed in clean branch
+      agent/tc245-homepage-art based on exact origin/main
+      f9d6f5b487505f5f7b8a909d2d36eb8a03cb1937. The homepage ExploreStrip now
+      gives all five destination cards a restrained trailing-edge instrument:
+      two new transparent 1254x1254 WebPs for Live App (113,124 bytes; SHA-256
+      E214B71484E472B9852983FF336D9DB9CD9E5809BE5566C475A284FEF77BBF31)
+      and How It Works (94,642 bytes; SHA-256
+      889245C491904439B8A77588ECC903C40DF5F4C0D250F38EAC6A10EC46F4311D),
+      plus the shipped Research, Methodology, and Open Data cutouts. Responsive
+      masks, copy-side contrast, and 6.5%-17% theme/hover opacity keep the art
+      quiet on desktop and mobile. Every image is pointer-free, aria-hidden, and
+      has empty alt text; links, copy, navigation, reading order, product behavior,
+      dependencies, Docker, database, auth, billing, and trading rules are
+      unchanged. Verification passed web typecheck, focused ESLint, the required
+      production build (324/324 pages), focused Chromium E2E (11/11), and
+      Playwright visual QA at 1440px and 390px in dark and light themes with no
+      browser console errors. At 2026-08-02 11:48 MPST the owner explicitly
+      authorized commit and production deployment. Release preflight confirmed
+      authenticated GitHub access, exact current origin/main
+      f9d6f5b487505f5f7b8a909d2d36eb8a03cb1937, and only the six intended TC-245
+      paths in this isolated lane. Commit, protected PR checks, merge, exact-source
+      Railway deployment, and live read-back are pending.
