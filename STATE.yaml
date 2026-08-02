@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-02T12:22:30+08:00
+updated: 2026-08-02T12:44:51+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -4048,7 +4048,7 @@ next_actions:
 
   - id: TC-245
     title: "Low-opacity generated backgrounds for homepage destination cards"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
     notes: >
       Started 2026-08-02 from the owner's request for more generated imagery on
@@ -4074,12 +4074,19 @@ next_actions:
       authenticated GitHub access, exact current origin/main
       f9d6f5b487505f5f7b8a909d2d36eb8a03cb1937, and only the six intended TC-245
       paths in this isolated lane. Release commit
-      13d486b6e2cc5c6610a773f75c163e03951f180f is pushed in ready PR #187. Its
-      first CI pass cleared six jobs but the new art-load assertion failed only in
-      the mobile project because off-screen lazy images were never scrolled into
-      view before checking naturalWidth; three unrelated existing cases were flaky
-      but passed their retries. The test-only per-card scroll and 10-second image-load
-      allowance passes focused lint and Chromium locally. The local WebKit browser
-      installer repeatedly stalled outside the repository, so the protected remote
-      Playwright job remains the required mobile verification after the PR update.
-      Merge, exact-source Railway deployment, and live read-back remain pending.
+      13d486b6e2cc5c6610a773f75c163e03951f180f plus test-stabilization commit
+      3ce8cccf22708118ae28ceead144998494117d79 shipped through PR #187. The
+      first CI pass exposed only a new mobile lazy-image assertion sequencing issue;
+      scrolling each off-screen image into view resolved it. Final CI run
+      30732257558 passed lint/typecheck, build, unit tests, strategy backtests,
+      Docker Build, and the complete Playwright E2E matrix before PR #187 merged as
+      b635c5655d49d3085f9aa57dcb6279e6a656ea94. Exact-merge Railway deployment
+      7a3dca65-c89d-4ce1-9498-9b0370d08ac8 reached SUCCESS with image digest
+      sha256:2cb943b08f0a268b415749ab5a1fca27f10df0d6306b1ca604405c9843c8aae0.
+      Live read-back passed /api/health with database and migration 053 healthy and
+      build 39cd7e01-c9b4-4cc3-a605-1b3dd3101b2b; the homepage contained both new
+      asset references, each WebP returned its exact committed bytes and SHA-256,
+      and fresh 1440px/390px Chromium rendering showed all five backgrounds at
+      restrained opacity with no overflow, browser errors, or bounded Railway
+      error logs. The broad dirty primary checkout was excluded from Git history
+      and the Railway payload.
