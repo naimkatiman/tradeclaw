@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-02T12:44:51+08:00
+updated: 2026-08-02T14:26:56+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -4090,3 +4090,30 @@ next_actions:
       restrained opacity with no overflow, browser errors, or bounded Railway
       error logs. The broad dirty primary checkout was excluded from Git history
       and the Railway payload.
+
+  - id: TC-246
+    title: "Generated hero backgrounds for core product pages"
+    status: in_progress
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-02 after the owner clarified that the generated raster art
+      should sit behind each page's primary hero copy, using the Research page's
+      dark perspective data-field treatment as the visual reference, rather than
+      living inside homepage destination cards. The requested page family is the
+      homepage plus Today, Signals, Copilot, Screener, Backtest, Leaderboard, and
+      Track Record. Work is isolated in clean branch
+      agent/tc246-hero-backgrounds from exact origin/main
+      e905d654e2a4aa3264895ce415e68b4b5350416d. Three coordinated transparent WebP
+      panoramas are generated and validated; the shared decorative backdrop is
+      now integrated behind the primary copy on all eight routes, Today/Signals
+      reuse the existing live-signal observatory, and the superseded Explore card
+      artwork has been removed. Full lint passes with zero errors, the final
+      required npm run build passes, 11/11 Chromium desktop route checks pass,
+      11/11 Chromium mobile-fallback checks pass, and headed visual QA covers
+      dark/light desktop, 390px mobile, data-heavy pages, and Arabic RTL. The
+      environment's WebKit browser download stalled, so the normal mobile project
+      was reproduced with its 390x844 contract on installed Chromium; the failure
+      was browser availability, not an application assertion. Commit, protected
+      merge, and Railway release remain in progress. No dependency, Docker,
+      database, auth, billing, strategy, allocation, or trading-rule change is
+      authorized.

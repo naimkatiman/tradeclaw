@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowUpRight } from 'lucide-react';
 
 interface Destination {
@@ -7,10 +6,6 @@ interface Destination {
   eyebrow: string;
   title: string;
   desc: string;
-  art: {
-    src: string;
-    testId: string;
-  };
 }
 
 const DESTINATIONS: Destination[] = [
@@ -19,50 +14,30 @@ const DESTINATIONS: Destination[] = [
     eyebrow: '01 · Product',
     title: 'Live app',
     desc: 'Signals, screener, charts, and transparent engine state.',
-    art: {
-      src: '/brand/homepage/tradeclaw-live-signal-observatory-v1.webp',
-      testId: 'explore-art-live-app',
-    },
   },
   {
     href: '/how-it-works',
     eyebrow: '02 · System',
     title: 'How it works',
     desc: 'The scoring algorithm, risk model, and real implementation.',
-    art: {
-      src: '/brand/homepage/tradeclaw-scoring-engine-v1.webp',
-      testId: 'explore-art-how-it-works',
-    },
   },
   {
     href: '/research',
     eyebrow: '03 · Evidence',
     title: 'Research',
     desc: 'What survived testing, what failed, and why it was removed.',
-    art: {
-      src: '/brand/editorial/tradeclaw-research-gate-v1.webp',
-      testId: 'explore-art-research',
-    },
   },
   {
     href: '/methodology',
     eyebrow: '04 · Proof',
     title: 'Methodology',
     desc: 'How every public performance number is reproduced.',
-    art: {
-      src: '/brand/editorial/tradeclaw-methodology-calibrator-v1.webp',
-      testId: 'explore-art-methodology',
-    },
   },
   {
     href: '/open-data',
     eyebrow: '05 · API',
     title: 'Open data',
     desc: 'The endpoints behind the dashboard, ledger, and charts.',
-    art: {
-      src: '/brand/editorial/tradeclaw-open-data-aperture-v1.webp',
-      testId: 'explore-art-open-data',
-    },
   },
 ];
 
@@ -95,33 +70,19 @@ export function ExploreStrip() {
           >
             <Link
               href={destination.href}
-              className="explore-card group flex h-full min-h-44 flex-col p-5 transition-colors duration-200 hover:bg-[var(--brand-soft)] sm:p-6"
+              className="group flex h-full min-h-44 flex-col p-5 transition-colors duration-200 hover:bg-[var(--brand-soft)] sm:p-6"
             >
-              <span
-                className="explore-card-art"
-                data-testid={destination.art.testId}
-                aria-hidden="true"
-              >
-                <Image
-                  src={destination.art.src}
-                  alt=""
-                  width={1254}
-                  height={1254}
-                  sizes="(min-width: 1280px) 220px, (min-width: 768px) 38vw, 68vw"
-                  className="explore-card-art__image"
-                />
-              </span>
-              <span className="relative z-10 text-[10px] font-mono uppercase tracking-[0.12em] text-[var(--text-secondary)]">
+              <span className="text-[10px] font-mono uppercase tracking-[0.12em] text-[var(--text-secondary)]">
                 {destination.eyebrow}
               </span>
-              <span className="relative z-10 mt-8 flex items-center justify-between gap-3 text-base font-semibold">
+              <span className="mt-8 flex items-center justify-between gap-3 text-base font-semibold">
                 {destination.title}
                 <ArrowUpRight
                   className="h-4 w-4 text-[var(--text-secondary)] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[var(--brand)]"
                   aria-hidden="true"
                 />
               </span>
-              <span className="relative z-10 mt-2 text-sm leading-5 text-[var(--text-secondary)]">
+              <span className="mt-2 text-sm leading-5 text-[var(--text-secondary)]">
                 {destination.desc}
               </span>
             </Link>

@@ -259,83 +259,81 @@ html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
   box-shadow: var(--glass-nav-shadow);
 }
 
-/* Homepage destination artwork stays subordinate to the navigation copy.
-   The mask keeps each instrument concentrated on the card's trailing edge. */
-.explore-card {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-}
-
-.explore-card::before {
+/* Generated product artwork sits behind hero copy only. The local clipping
+   layer prevents wide raster crops from creating horizontal page overflow. */
+.product-hero-backdrop {
   position: absolute;
   inset: 0;
-  z-index: 1;
-  background: linear-gradient(
-    90deg,
-    var(--bg-card) 0%,
-    color-mix(in srgb, var(--bg-card) 92%, transparent) 42%,
-    color-mix(in srgb, var(--bg-card) 46%, transparent) 76%,
-    transparent 100%
-  );
-  content: "";
-  pointer-events: none;
-}
-
-.explore-card-art {
-  position: absolute;
-  right: -3.75rem;
-  bottom: -5.75rem;
   z-index: 0;
-  width: clamp(13rem, 22vw, 16rem);
-  aspect-ratio: 1;
-  opacity: 0.12;
+  display: none;
+  overflow: hidden;
+  border-radius: inherit;
+  opacity: 0.09;
   pointer-events: none;
   user-select: none;
+}
+
+.product-hero-backdrop__frame {
+  position: absolute;
+  inset-block: -38%;
+  inset-inline-start: -5%;
+  width: min(76%, 48rem);
+  min-width: 30rem;
+}
+
+.product-hero-backdrop__image {
+  object-fit: cover;
   filter: saturate(0.82) contrast(1.04);
-  -webkit-mask-image: linear-gradient(270deg, #000 0%, #000 58%, transparent 100%);
-  mask-image: linear-gradient(270deg, #000 0%, #000 58%, transparent 100%);
-  transition: opacity 200ms ease;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.62) 34%, #000 62%, #000 100%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.62) 34%, #000 62%, #000 100%);
 }
 
-.explore-card-art__image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+html[dir="rtl"] .product-hero-backdrop__image {
+  transform: scaleX(-1);
+  -webkit-mask-image: linear-gradient(to left, transparent 0%, rgba(0, 0, 0, 0.62) 34%, #000 62%, #000 100%);
+  mask-image: linear-gradient(to left, transparent 0%, rgba(0, 0, 0, 0.62) 34%, #000 62%, #000 100%);
 }
 
-.explore-card:hover .explore-card-art {
-  opacity: 0.17;
+.product-hero-backdrop--home .product-hero-backdrop__frame {
+  inset-block: -16%;
+  width: min(68%, 50rem);
 }
 
-html:not(.dark) .explore-card-art {
-  opacity: 0.075;
-  filter: saturate(0.7) contrast(0.92);
+.product-hero-backdrop--home {
+  opacity: 0.18;
 }
 
-html:not(.dark) .explore-card:hover .explore-card-art {
-  opacity: 0.11;
+.product-hero-backdrop--home .product-hero-backdrop__image {
+  filter: invert(0.16) brightness(1.25) saturate(0.82) contrast(1.06);
 }
 
-@media (max-width: 767px) {
-  .explore-card-art {
-    right: -2rem;
-    bottom: -6.25rem;
-    width: 15.5rem;
-    opacity: 0.1;
-  }
+.product-hero-backdrop--quiet {
+  opacity: 0.065;
+}
 
-  .explore-card:hover .explore-card-art {
-    opacity: 0.13;
-  }
+html:not(.dark) .product-hero-backdrop {
+  opacity: 0.055;
+}
 
-  html:not(.dark) .explore-card-art {
-    opacity: 0.065;
-  }
+html:not(.dark) .product-hero-backdrop__image {
+  filter: saturate(0.68) contrast(0.94);
+}
 
-  html:not(.dark) .explore-card:hover .explore-card-art {
-    opacity: 0.09;
+html:not(.dark) .product-hero-backdrop--home {
+  opacity: 0.07;
+}
+
+html:not(.dark) .product-hero-backdrop--home .product-hero-backdrop__image {
+  filter: saturate(0.68) contrast(0.94);
+}
+
+html:not(.dark) .product-hero-backdrop--quiet {
+  opacity: 0.04;
+}
+
+@media (min-width: 768px) {
+  .product-hero-backdrop {
+    display: block;
   }
 }
 

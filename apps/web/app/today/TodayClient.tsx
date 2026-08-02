@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, startTransition } from 'react';
 import Link from 'next/link';
 import { PageNavBar } from '../../components/PageNavBar';
+import { ProductHeroBackdrop } from '../../components/product-hero-backdrop';
 import {
   Zap,
   TrendingUp,
@@ -149,16 +150,22 @@ export function TodayClient() {
       <PageNavBar />
       {/* Header */}
       <div className="border-b" style={{ borderColor: 'var(--border)' }}>
-        <div className="max-w-4xl mx-auto px-4 py-6 md:py-10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg" style={{ background: 'var(--accent-muted)' }}>
-              <Zap size={20} className="text-emerald-500" />
+        <div className="relative isolate max-w-4xl mx-auto px-4 py-6 md:py-10">
+          <ProductHeroBackdrop
+            src="/brand/homepage/tradeclaw-live-signal-observatory-v1.webp"
+            testId="today-hero-art"
+          />
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg" style={{ background: 'var(--accent-muted)' }}>
+                <Zap size={20} className="text-emerald-500" />
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold">Signal of the Day</h1>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold">Signal of the Day</h1>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              The highest rule score among the latest available provider-backed candidates.
+            </p>
           </div>
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            The highest rule score among the latest available provider-backed candidates.
-          </p>
         </div>
       </div>
 

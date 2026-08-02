@@ -10,6 +10,7 @@ import { Activity, ArrowRight, Code2, Database, Server, ShieldCheck } from 'luci
 import { DesktopCostField } from './cost-field/DesktopCostField';
 import { AnimatedNumber } from '../motion/animated-number';
 import { Magnetic } from '../motion/magnetic';
+import { ProductHeroBackdrop } from '../product-hero-backdrop';
 import { getProofHeadline, type ProofLedgerState } from './proof-hero-copy';
 
 const GITHUB_URL = 'https://github.com/naimkatiman/tradeclaw';
@@ -155,8 +156,13 @@ export async function ProofHero() {
     >
       <div className="premium-grid-bg pointer-events-none absolute inset-x-0 top-0 -z-10 h-[640px] opacity-45" />
       <div className="pointer-events-none absolute left-[18%] top-8 -z-10 h-64 w-64 rounded-full bg-[var(--brand-glow)] blur-[110px]" />
-
-      <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(430px,0.98fr)] lg:gap-12">
+      <div className="relative isolate grid items-center gap-10 overflow-hidden lg:grid-cols-[minmax(0,1.02fr)_minmax(430px,0.98fr)] lg:gap-12">
+        <ProductHeroBackdrop
+          src="/brand/hero/tradeclaw-market-field-panorama-v1.webp"
+          testId="homepage-hero-art"
+          className="product-hero-backdrop--home"
+          priority
+        />
         <div className="relative z-10 flex flex-col justify-center py-4 sm:py-8 lg:py-14">
           <p className="animate-fade-up flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)]">
             <span className="h-2 w-2 rounded-full bg-[var(--brand)] shadow-[0_0_18px_var(--brand)]" />

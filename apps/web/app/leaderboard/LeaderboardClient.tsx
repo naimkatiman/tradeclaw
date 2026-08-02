@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { PageNavBar } from '@/components/PageNavBar';
 import { InfoHint } from '@/components/InfoHint';
+import { ProductHeroBackdrop } from '@/components/product-hero-backdrop';
 import { STAT_HINTS } from '@/lib/stat-hints';
 import type { AssetStats, LeaderboardData, SignalHistoryRecord } from '@/lib/signal-history';
 
@@ -425,8 +426,12 @@ export default function LeaderboardClient() {
 
       <div className="max-w-7xl mx-auto px-4 py-8 pb-20 md:pb-8">
         {/* Hero */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="relative isolate mb-8 py-1">
+          <ProductHeroBackdrop
+            src="/brand/hero/tradeclaw-replay-evidence-chamber-v1.webp"
+            testId="leaderboard-hero-art"
+          />
+          <div className="relative z-10 flex items-center gap-2 mb-2">
             <svg width="18" height="18" viewBox="0 0 16 16" fill="none" className="shrink-0">
               <rect x="2" y="9" width="2.5" height="5" rx="0.5" fill="#10B981"/>
               <rect x="6.5" y="6" width="2.5" height="8" rx="0.5" fill="#10B981" opacity="0.7"/>
@@ -434,20 +439,20 @@ export default function LeaderboardClient() {
             </svg>
             <h1 className="text-xl font-bold tracking-tight">Signal Outcome Table</h1>
           </div>
-          <p className="text-xs text-[var(--text-secondary)]">
+          <p className="relative z-10 text-xs text-[var(--text-secondary)]">
             {hasResolvedEvidence
               ? `Source-gated OHLCV outcomes across ${assets.length} pairs · unsized observations · ranked by hit rate`
               : `Recorded candidate coverage across ${assets.length} pairs · no performance ranking without approved outcomes`}
           </p>
           {leaderboardHeartbeat && (
-            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-mono text-zinc-300">
+            <div className="relative z-10 mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-mono text-zinc-300">
               <span className="h-2 w-2 rounded-full bg-zinc-500" />
               <span>Latest counted outcome</span>
               <span className="text-[var(--text-secondary)]">{leaderboardHeartbeat.ageLabel}</span>
             </div>
           )}
           {data && !hasResolvedEvidence && (
-            <p className="mt-3 text-[11px] text-amber-300/80">
+            <p className="relative z-10 mt-3 text-[11px] text-amber-300/80">
               No approved observed-OHLCV outcomes are available in this window, so pairs are not ranked by performance.
             </p>
           )}

@@ -161,6 +161,9 @@ export interface DashboardTranslations {
     syntheticSymbols: string;
   };
   hero: {
+    eyebrow: string;
+    title: string;
+    description: string;
     selected: string;
     topSignal: string;
     score: string;
@@ -303,7 +306,14 @@ const en: DashboardTranslations = {
   warning: {
     syntheticSymbols: '{count} of {total} symbols are using synthetic data (API unavailable) — signals suppressed for those pairs.',
   },
-  hero: { selected: 'SELECTED', topSignal: 'TOP SIGNAL', score: '{score}/100 rule score' },
+  hero: {
+    eyebrow: 'Live signal feed',
+    title: 'Signals',
+    description: 'Provider-backed, rule-generated candidates with transparent source and evidence boundaries.',
+    selected: 'SELECTED',
+    topSignal: 'TOP SIGNAL',
+    score: '{score}/100 rule score',
+  },
   stats: { activeSignals: 'Active signals', buySell: 'Buy / Sell', averageRuleScore: 'Avg rule score', marketBias: 'Market bias' },
   filters: { highRuleScore: 'High Rule Score (≥80/100)', watchlist: 'Watchlist' },
   empty: {
@@ -407,7 +417,14 @@ const es: DashboardTranslations = {
     provenance: 'Las insignias indican la ruta de proveedor esperada; la marca real o sintética es la procedencia que acompaña actualmente a cada señal.',
   },
   warning: { syntheticSymbols: '{count} de {total} símbolos usan datos sintéticos (API no disponible); las señales de esos pares están excluidas.' },
-  hero: { selected: 'SELECCIONADA', topSignal: 'SEÑAL PRINCIPAL', score: 'puntuación {score}/100' },
+  hero: {
+    eyebrow: 'Flujo de señales en vivo',
+    title: 'Señales',
+    description: 'Candidatas generadas por reglas y respaldadas por proveedores, con fuentes y límites de evidencia transparentes.',
+    selected: 'SELECCIONADA',
+    topSignal: 'SEÑAL PRINCIPAL',
+    score: 'puntuación {score}/100',
+  },
   stats: { activeSignals: 'Señales activas', buySell: 'Compra / Venta', averageRuleScore: 'Puntuación media', marketBias: 'Sesgo del mercado' },
   filters: { highRuleScore: 'Puntuación alta (≥80/100)', watchlist: 'Seguimiento' },
   empty: {
@@ -486,7 +503,14 @@ const zh: DashboardTranslations = {
     provenance: '卡片徽章标明预期的数据提供路径；每个信号当前携带的真实/合成质量标记代表运行时数据来源。',
   },
   warning: { syntheticSymbols: '{total} 个品种中有 {count} 个正在使用合成数据（API 不可用）；这些交易对的信号已被隐藏。' },
-  hero: { selected: '已选择', topSignal: '首选信号', score: '规则评分 {score}/100' },
+  hero: {
+    eyebrow: '实时信号流',
+    title: '信号',
+    description: '由规则生成、由数据提供商支持的候选信号，并清楚标示数据来源与证据边界。',
+    selected: '已选择',
+    topSignal: '首选信号',
+    score: '规则评分 {score}/100',
+  },
   stats: { activeSignals: '活跃信号', buySell: '买入 / 卖出', averageRuleScore: '平均规则评分', marketBias: '市场倾向' },
   filters: { highRuleScore: '高规则评分（≥80/100）', watchlist: '关注列表' },
   empty: {
@@ -563,7 +587,14 @@ const ms: DashboardTranslations = {
     provenance: 'Lencana kad mengenal pasti laluan penyedia yang dijangka; tanda kualiti sebenar atau sintetik ialah asal data masa jalan yang kini dibawa oleh setiap isyarat.',
   },
   warning: { syntheticSymbols: '{count} daripada {total} simbol menggunakan data sintetik (API tidak tersedia); isyarat bagi pasangan itu disekat.' },
-  hero: { selected: 'DIPILIH', topSignal: 'ISYARAT UTAMA', score: 'skor peraturan {score}/100' },
+  hero: {
+    eyebrow: 'Suapan isyarat langsung',
+    title: 'Isyarat',
+    description: 'Calon bersandarkan penyedia yang dijana oleh peraturan, dengan sumber dan batas bukti yang telus.',
+    selected: 'DIPILIH',
+    topSignal: 'ISYARAT UTAMA',
+    score: 'skor peraturan {score}/100',
+  },
   stats: { activeSignals: 'Isyarat aktif', buySell: 'Beli / Jual', averageRuleScore: 'Purata skor peraturan', marketBias: 'Kecenderungan pasaran' },
   filters: { highRuleScore: 'Skor Peraturan Tinggi (≥80/100)', watchlist: 'Senarai pantau' },
   empty: {
@@ -639,7 +670,14 @@ const ar: DashboardTranslations = {
     provenance: 'تحدد شارات البطاقات مسار المزوّد المتوقع؛ وتصنيف الجودة الحقيقي أو الاصطناعي هو مصدر بيانات وقت التشغيل المحمول حالياً مع كل إشارة.',
   },
   warning: { syntheticSymbols: 'يستخدم {count} من أصل {total} رمزاً بيانات اصطناعية (واجهة API غير متاحة)؛ لذلك حُجبت إشارات تلك الأزواج.' },
-  hero: { selected: 'المحدد', topSignal: 'الإشارة الأبرز', score: 'درجة القواعد {score}/100' },
+  hero: {
+    eyebrow: 'موجز الإشارات المباشر',
+    title: 'الإشارات',
+    description: 'إشارات مرشحة مولدة بقواعد ومدعومة ببيانات المزود، مع توضيح المصدر وحدود الأدلة.',
+    selected: 'المحدد',
+    topSignal: 'الإشارة الأبرز',
+    score: 'درجة القواعد {score}/100',
+  },
   stats: { activeSignals: 'الإشارات النشطة', buySell: 'شراء / بيع', averageRuleScore: 'متوسط درجة القواعد', marketBias: 'اتجاه السوق' },
   filters: { highRuleScore: 'درجة قواعد مرتفعة (≥80/100)', watchlist: 'قائمة المتابعة' },
   empty: {
