@@ -7,6 +7,7 @@ import { SYMBOLS } from '../lib/symbol-config';
 import { SparklineChart } from '../components/charts';
 import { PageNavBar } from '../../components/PageNavBar';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
+import { ProductHeroBackdrop } from '../../components/product-hero-backdrop';
 import { useLocale } from '../components/locale-provider';
 import { formatMessage } from '../../lib/product-i18n/format';
 import {
@@ -599,17 +600,23 @@ export default function ScreenerClient() {
         </div>
 
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-emerald-400 shrink-0">
-              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              <polyline points="16 7 22 7 22 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <h1 className="text-xl font-bold tracking-tight">{copy.title}</h1>
+        <div className="relative isolate mb-6 py-1">
+          <ProductHeroBackdrop
+            src="/brand/hero/tradeclaw-decision-lattice-v1.webp"
+            testId="screener-hero-art"
+          />
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-emerald-400 shrink-0">
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <polyline points="16 7 22 7 22 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <h1 className="text-xl font-bold tracking-tight">{copy.title}</h1>
+            </div>
+            <p className="text-xs text-[var(--text-secondary)]">
+              {formatMessage(copy.subtitle, { count: numberFormatter.format(SYMBOLS.length) })}
+            </p>
           </div>
-          <p className="text-xs text-[var(--text-secondary)]">
-            {formatMessage(copy.subtitle, { count: numberFormatter.format(SYMBOLS.length) })}
-          </p>
         </div>
 
         {/* Filter Bar */}

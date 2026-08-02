@@ -23,6 +23,7 @@ import { AccuracyMeta } from '../components/accuracy-meta';
 import { SignalExportMenu } from '../components/signal-export-menu';
 import { usePriceStream } from '../../lib/hooks/use-price-stream';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
+import { ProductHeroBackdrop } from '../../components/product-hero-backdrop';
 import { InfoHint } from '../../components/InfoHint';
 import { isPendingHistoricalSignal } from '../../lib/signal-history-status';
 import type { TradingSignal } from '@tradeclaw/signals';
@@ -1073,6 +1074,24 @@ export function DashboardClient({ initialSignals, initialSyntheticSymbols }: { i
       <PageNavBar />
       <OnboardingBanner />
       <ReEngagementBanner />
+
+      <section className="relative isolate overflow-hidden border-b border-[var(--border)]">
+        <ProductHeroBackdrop
+          src="/brand/homepage/tradeclaw-live-signal-observatory-v1.webp"
+          testId="signals-hero-art"
+        />
+        <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
+          <div>
+            <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.16em] text-emerald-400">
+              {t.hero.eyebrow}
+            </p>
+            <h1 className="mt-1 text-xl font-bold tracking-tight">{t.hero.title}</h1>
+          </div>
+          <p className="max-w-xl text-xs leading-5 text-[var(--text-secondary)] sm:text-end">
+            {t.hero.description}
+          </p>
+        </div>
+      </section>
 
       {/* Dashboard controls */}
       <div data-tour-id="dashboard-controls" className="max-w-7xl mx-auto px-4 h-12 flex items-center justify-end gap-3 border-b border-[var(--border)] bg-[var(--background)]/50 overflow-x-auto scrollbar-none">

@@ -8,6 +8,7 @@ import { EquityCurve } from '@/app/components/equity-curve';
 import { TrailingWeekBandCallout } from '@/app/components/trailing-week-band-callout';
 import { BackgroundDecor } from '@/components/background/BackgroundDecor';
 import { InfoHint } from '@/components/InfoHint';
+import { ProductHeroBackdrop } from '@/components/product-hero-backdrop';
 import { isExpiredHistoricalOutcome, isPendingHistoricalOutcome } from '@/lib/signal-history-status';
 import { deriveHistoricalOutcomeStatus } from '@/lib/signal-outcome';
 import { isObservedOHLCVOutcomeSource } from '@/lib/outcome-provenance';
@@ -656,7 +657,13 @@ export function TrackRecordClient() {
            This is a return-on-risk number, NOT compounded equity. Win rate
            alone misleads because a 35% WR with positive expectancy beats a
            70% WR with giant losers. We show both so the reader can judge. */}
-        <div className="mb-6">
+        <div className="relative isolate mb-6">
+          <ProductHeroBackdrop
+            src="/brand/hero/tradeclaw-replay-evidence-chamber-v1.webp"
+            testId="track-record-hero-art"
+            className="product-hero-backdrop--quiet"
+          />
+          <div className="relative z-10">
           <div className="text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-mono font-semibold mb-2">
             {t.header.eyebrow}
           </div>
@@ -814,6 +821,7 @@ export function TrackRecordClient() {
               })}
             </div>
           )}
+          </div>
         </div>
 
         {/* Period Filter — buttons whose window exceeds available history are

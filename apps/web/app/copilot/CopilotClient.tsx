@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, CheckCircle2, MessageSquare, RefreshCcw, Send, TrendingUp, Zap } from 'lucide-react';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
 import { PageNavBar } from '../../components/PageNavBar';
+import { ProductHeroBackdrop } from '../../components/product-hero-backdrop';
 
 type Signal = {
   id: string;
@@ -302,8 +303,12 @@ export function CopilotClient() {
 
       <div className="relative mx-auto max-w-7xl px-4 py-6">
         {/* Hero — compact with 2 CTAs */}
-        <section className="rounded-3xl border border-[var(--border)] bg-[var(--glass-bg)] p-6 shadow-xl shadow-black/10">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <section className="relative isolate overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--glass-bg)] p-6 shadow-xl shadow-black/10">
+          <ProductHeroBackdrop
+            src="/brand/hero/tradeclaw-decision-lattice-v1.webp"
+            testId="copilot-hero-art"
+          />
+          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl space-y-4">
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-400">
                 <Zap className="h-3.5 w-3.5" />

@@ -6,6 +6,7 @@ import { calculateRSI, calculateMACD, calculateEMAs } from '../lib/ta-engine';
 import { applySlippage, getSlippageConfig } from '../../lib/slippage';
 import { PageNavBar } from '../../components/PageNavBar';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
+import { ProductHeroBackdrop } from '../../components/product-hero-backdrop';
 import {
   runBacktest as runBacktestPreset,
   getPreset,
@@ -460,16 +461,22 @@ export default function BacktestPage() {
         </div>
 
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M2 12L6 8L9 11L14 4" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 14H14" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
-            </svg>
-            <h1 className="text-sm font-semibold text-[var(--foreground)] tracking-tight">Backtesting Engine</h1>
-            {drilldown && <DataSourceBadge source={drilldown.dataSource} />}
+        <div className="relative isolate mb-6 py-1">
+          <ProductHeroBackdrop
+            src="/brand/hero/tradeclaw-replay-evidence-chamber-v1.webp"
+            testId="backtest-hero-art"
+          />
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-1">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M2 12L6 8L9 11L14 4" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 14H14" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
+              </svg>
+              <h1 className="text-sm font-semibold text-[var(--foreground)] tracking-tight">Backtesting Engine</h1>
+              {drilldown && <DataSourceBadge source={drilldown.dataSource} />}
+            </div>
+            <p className="text-[11px] text-[var(--text-secondary)]">Replay strategy rules against available provider-backed candles with a modeled equity path and trade log.</p>
           </div>
-          <p className="text-[11px] text-[var(--text-secondary)]">Replay strategy rules against available provider-backed candles with a modeled equity path and trade log.</p>
         </div>
 
         {loadedStrategyName && (
