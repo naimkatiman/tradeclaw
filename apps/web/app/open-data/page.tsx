@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Navbar } from '../components/navbar';
+import { EditorialHeroArt } from '../../components/editorial-hero-art';
 
 /**
  * /open-data — the developer front door.
@@ -326,34 +327,40 @@ export default function OpenDataPage() {
       <main className="pt-28 pb-24">
         <div className="mx-auto max-w-5xl px-4">
           {/* Intro */}
-          <header>
-            <Kicker>Public evidence archive</Kicker>
-            <h1 className="mt-4 font-display text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight">
-              Every number here
-              <br />
-              is an endpoint
-              <br />
-              you can call.
-            </h1>
-            <p className="mt-6 max-w-prose text-base leading-relaxed text-[var(--text-secondary)]">
-              TradeClaw publishes the signal-study data: recorded signal rows,
-              OHLCV-resolved outcomes, modeled per-trade costs, and the sequential
-              equity simulation used by the public research charts. Backtest
-              artifacts are committed to the repo as JSON. These datasets are
-              public and untiered; call them, cache them, fork them, and audit the
-              assumptions.
-            </p>
-            <p className="mt-4 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
-              The full reference lives at{' '}
-              <a
-                href="/api-docs"
-                className="font-mono text-[var(--foreground)] underline decoration-[var(--border)] underline-offset-4 hover:decoration-[var(--foreground)]"
-              >
-                /api-docs
-              </a>
-              . Everything below runs against{' '}
-              <code className="font-mono text-[var(--foreground)]">https://tradeclaw.win</code>.
-            </p>
+          <header className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div>
+              <Kicker>Public evidence archive</Kicker>
+              <h1 className="mt-4 font-display text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight">
+                Every number here
+                <br />
+                is an endpoint
+                <br />
+                you can call.
+              </h1>
+              <p className="mt-6 max-w-prose text-base leading-relaxed text-[var(--text-secondary)]">
+                TradeClaw publishes the signal-study data: recorded signal rows,
+                OHLCV-resolved outcomes, modeled per-trade costs, and the sequential
+                equity simulation used by the public research charts. Backtest
+                artifacts are committed to the repo as JSON. These datasets are
+                public and untiered; call them, cache them, fork them, and audit the
+                assumptions.
+              </p>
+              <p className="mt-4 max-w-prose text-sm leading-relaxed text-[var(--text-secondary)]">
+                The full reference lives at{' '}
+                <a
+                  href="/api-docs"
+                  className="font-mono text-[var(--foreground)] underline decoration-[var(--border)] underline-offset-4 hover:decoration-[var(--foreground)]"
+                >
+                  /api-docs
+                </a>
+                . Everything below runs against{' '}
+                <code className="font-mono text-[var(--foreground)]">https://tradeclaw.win</code>.
+              </p>
+            </div>
+            <EditorialHeroArt
+              src="/brand/editorial/tradeclaw-open-data-aperture-v1.webp"
+              testId="open-data-hero-art"
+            />
           </header>
 
           {/* Endpoints */}
