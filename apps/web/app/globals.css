@@ -360,6 +360,47 @@ html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
   opacity: 0.42;
 }
 
+/* Generated editorial instruments. They fill the deliberate desktop whitespace
+   on text-first transparency pages without entering the mobile reading flow or
+   carrying evidence that belongs in HTML. */
+.editorial-hero-art {
+  position: relative;
+  width: min(100%, 20rem);
+  aspect-ratio: 1;
+  justify-self: end;
+  pointer-events: none;
+  user-select: none;
+  isolation: isolate;
+}
+
+.editorial-hero-art::before {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  z-index: -1;
+  border-radius: 9999px;
+  background: radial-gradient(circle, var(--brand-glow), transparent 70%);
+  opacity: 0.42;
+}
+
+.editorial-hero-art__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0.86;
+  transform: scale(0.96);
+  filter: drop-shadow(0 26px 38px rgba(0, 0, 0, 0.3));
+}
+
+html:not(.dark) .editorial-hero-art::before {
+  opacity: 0.26;
+}
+
+html:not(.dark) .editorial-hero-art__image {
+  opacity: 0.82;
+  filter: drop-shadow(0 22px 34px rgba(15, 23, 42, 0.14));
+}
+
 /* Emerald glow effects */
 .glow-emerald {
   box-shadow:

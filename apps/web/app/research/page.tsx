@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Navbar } from '../components/navbar';
+import { EditorialHeroArt } from '../../components/editorial-hero-art';
 
 export const revalidate = 3600;
 
@@ -398,36 +399,42 @@ export default function ResearchPage() {
       <main className="pt-28">
         <div className="mx-auto max-w-5xl px-4">
           {/* Intro */}
-          <header className="pb-14">
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
-              Recorded results, including failures
-            </p>
-            <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight">
-              What we tested
-              <br />
-              and learned
-            </h1>
-            <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-[var(--text-secondary)]">
-              Each entry records its study specification, modeled cost assumptions, benchmark, and, where
-              one was defined, its deployment gate. The first five studies did not clear their deployment
-              gates. A sixth, slow daily sandbox produced a narrower result: one vol-targeted 50/50 portfolio
-              improved modeled drawdown-adjusted metrics without establishing uniform raw-return outperformance
-              across both assets. It did not activate a live strategy.
-            </p>
-            <p className="mt-4 max-w-prose text-[13px] leading-relaxed text-[var(--text-secondary)]">
-              Each entry links its committed machine-readable artifact and the final verdict memo. The
-              registered experiment ledger is the{' '}
-              <ExternalLink href={REGISTRY_URL}>append-only experiment registry</ExternalLink>. The live
-              modeled-cost signal result is on the{' '}
-              <a href="/track-record" className="underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]">
-                track record
-              </a>
-              , and the per-trade cost dataset is served raw at{' '}
-              <a href="/api/research/cost-field" className="font-mono underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]">
-                /api/research/cost-field
-              </a>
-              .
-            </p>
+          <header className="grid items-center gap-8 pb-14 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
+                Recorded results, including failures
+              </p>
+              <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight">
+                What we tested
+                <br />
+                and learned
+              </h1>
+              <p className="mt-6 max-w-prose text-[15px] leading-relaxed text-[var(--text-secondary)]">
+                Each entry records its study specification, modeled cost assumptions, benchmark, and, where
+                one was defined, its deployment gate. The first five studies did not clear their deployment
+                gates. A sixth, slow daily sandbox produced a narrower result: one vol-targeted 50/50 portfolio
+                improved modeled drawdown-adjusted metrics without establishing uniform raw-return outperformance
+                across both assets. It did not activate a live strategy.
+              </p>
+              <p className="mt-4 max-w-prose text-[13px] leading-relaxed text-[var(--text-secondary)]">
+                Each entry links its committed machine-readable artifact and the final verdict memo. The
+                registered experiment ledger is the{' '}
+                <ExternalLink href={REGISTRY_URL}>append-only experiment registry</ExternalLink>. The live
+                modeled-cost signal result is on the{' '}
+                <a href="/track-record" className="underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]">
+                  track record
+                </a>
+                , and the per-trade cost dataset is served raw at{' '}
+                <a href="/api/research/cost-field" className="font-mono underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]">
+                  /api/research/cost-field
+                </a>
+                .
+              </p>
+            </div>
+            <EditorialHeroArt
+              src="/brand/editorial/tradeclaw-research-gate-v1.webp"
+              testId="research-hero-art"
+            />
           </header>
 
           {/* Kill ledger */}

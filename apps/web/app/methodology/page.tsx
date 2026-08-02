@@ -18,6 +18,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Navbar } from '../components/navbar';
+import { EditorialHeroArt } from '../../components/editorial-hero-art';
 import {
   CRYPTO_PERP_COSTS,
   METALS_COSTS,
@@ -148,28 +149,36 @@ export default function MethodologyPage() {
         <article className="mx-auto max-w-5xl px-4 pb-24">
           {/* Header */}
           <header>
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
-              Methodology
-            </p>
-            <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight text-[var(--foreground)]">
-              How the public
-              <br />
-              numbers are made
-            </h1>
-            <div className="mt-6 max-w-prose space-y-4 text-[15px] leading-relaxed">
-              <p className="text-[var(--foreground)]">
-                This page documents the public signal study. Read the steps below and you can
-                rebuild its OHLCV-resolved outcomes, modeled costs, and sequential equity simulation
-                from the published signal data.
-              </p>
-              <p className="text-[var(--text-secondary)]">
-                No live broker or customer-account results appear here. This page explains the
-                research calculation, and the{' '}
-                <a href="/track-record" className="text-[var(--foreground)] underline decoration-[var(--border)] underline-offset-4 hover:decoration-[var(--foreground)]">
-                  track record
-                </a>{' '}
-                shows the recorded-signal study it produced.
-              </p>
+            <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+              <div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
+                  Methodology
+                </p>
+                <h1 className="font-display mt-4 text-[clamp(2.25rem,5vw,3.75rem)] font-bold uppercase leading-[0.95] tracking-tight text-[var(--foreground)]">
+                  How the public
+                  <br />
+                  numbers are made
+                </h1>
+                <div className="mt-6 max-w-prose space-y-4 text-[15px] leading-relaxed">
+                  <p className="text-[var(--foreground)]">
+                    This page documents the public signal study. Read the steps below and you can
+                    rebuild its OHLCV-resolved outcomes, modeled costs, and sequential equity simulation
+                    from the published signal data.
+                  </p>
+                  <p className="text-[var(--text-secondary)]">
+                    No live broker or customer-account results appear here. This page explains the
+                    research calculation, and the{' '}
+                    <a href="/track-record" className="text-[var(--foreground)] underline decoration-[var(--border)] underline-offset-4 hover:decoration-[var(--foreground)]">
+                      track record
+                    </a>{' '}
+                    shows the recorded-signal study it produced.
+                  </p>
+                </div>
+              </div>
+              <EditorialHeroArt
+                src="/brand/editorial/tradeclaw-methodology-calibrator-v1.webp"
+                testId="methodology-hero-art"
+              />
             </div>
 
             <div className="mt-8 rounded-[var(--radius-card)] border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-[12px] leading-relaxed text-amber-700 dark:text-amber-200/90">

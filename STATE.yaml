@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-07-20T02:26:08+08:00
+updated: 2026-08-02T10:22:46+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -4021,3 +4021,22 @@ next_actions:
       no-broker-fill wording on /research and /open-data. This lane is closed;
       strategy selection and allocation remain unchanged pending enough production
       observations to measure the live volatility scaler's effect.
+
+  - id: TC-244
+    title: "Generated editorial artwork for Research, Open Data, and Methodology"
+    status: in_progress
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-02 from the owner's request to make tradeclaw.win feel less
+      plain without crowding it with images. A clean release lane based on current
+      origin/main adds one coordinated, claim-free decorative WebP to the sparse
+      desktop heroes on /research, /open-data, and /methodology while preserving
+      the published slow-gate evidence and keeping mobile text-first. Scope is
+      limited to the shared next/image component, three page integrations, shared
+      styling, three optimized assets, and focused responsive E2E coverage. No
+      dependency, lockfile, Docker, Railway configuration, database, auth, billing,
+      trading-rule, or unrelated dirty-worktree change is included. Clean release
+      verification passed web typecheck, focused ESLint, claim-integrity tests
+      (5/5), the required production build (324/324 pages), focused Chromium E2E
+      (21/21), and desktop browser QA. Commit, merge, deployment, and live
+      read-back remain pending.
