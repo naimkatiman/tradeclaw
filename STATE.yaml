@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-02T10:22:46+08:00
+updated: 2026-08-02T10:44:56+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -4024,7 +4024,7 @@ next_actions:
 
   - id: TC-244
     title: "Generated editorial artwork for Research, Open Data, and Methodology"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
     notes: >
       Started 2026-08-02 from the owner's request to make tradeclaw.win feel less
@@ -4038,5 +4038,10 @@ next_actions:
       trading-rule, or unrelated dirty-worktree change is included. Clean release
       verification passed web typecheck, focused ESLint, claim-integrity tests
       (5/5), the required production build (324/324 pages), focused Chromium E2E
-      (21/21), and desktop browser QA. Commit, merge, deployment, and live
-      read-back remain pending.
+      (21/21), and desktop browser QA. Release PR #185 passed all seven GitHub
+      checks and merged as 921cc976517abdd666f72fe6f49f5aaeafdd6a6a. Exact-source
+      Railway deployment 7a9a6a7c-6ad1-4915-9a3b-69990e79c86c reached SUCCESS
+      with image digest sha256:4fa8385b7254502e35bdf6524d719687448ca2cecad6dd4bacc4b0d4f0b4eefd.
+      Live read-back passed for /api/health (database and migration 053 healthy),
+      all three route markers and source references, and all three exact WebP byte
+      sizes; the bounded deployment error log was empty.
