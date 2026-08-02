@@ -4093,7 +4093,7 @@ next_actions:
 
   - id: TC-246
     title: "Generated hero backgrounds for core product pages"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
     notes: >
       Started 2026-08-02 after the owner clarified that the generated raster art
@@ -4101,19 +4101,33 @@ next_actions:
       dark perspective data-field treatment as the visual reference, rather than
       living inside homepage destination cards. The requested page family is the
       homepage plus Today, Signals, Copilot, Screener, Backtest, Leaderboard, and
-      Track Record. Work is isolated in clean branch
-      agent/tc246-hero-backgrounds from exact origin/main
-      e905d654e2a4aa3264895ce415e68b4b5350416d. Three coordinated transparent WebP
-      panoramas are generated and validated; the shared decorative backdrop is
-      now integrated behind the primary copy on all eight routes, Today/Signals
-      reuse the existing live-signal observatory, and the superseded Explore card
-      artwork has been removed. Full lint passes with zero errors, the final
-      required npm run build passes, 11/11 Chromium desktop route checks pass,
-      11/11 Chromium mobile-fallback checks pass, and headed visual QA covers
-      dark/light desktop, 390px mobile, data-heavy pages, and Arabic RTL. The
-      environment's WebKit browser download stalled, so the normal mobile project
-      was reproduced with its 390x844 contract on installed Chromium; the failure
-      was browser availability, not an application assertion. Commit, protected
-      merge, and Railway release remain in progress. No dependency, Docker,
-      database, auth, billing, strategy, allocation, or trading-rule change is
-      authorized.
+      Track Record. Completed in clean branch agent/tc246-hero-backgrounds from
+      exact origin/main e905d654e2a4aa3264895ce415e68b4b5350416d. Three coordinated
+      transparent WebP panoramas were generated and validated: the market field
+      (112,318 bytes), decision lattice (149,684 bytes), and replay evidence
+      chamber (95,690 bytes). A shared decorative backdrop now places restrained,
+      pointer-free, aria-hidden art behind the primary copy on all eight routes;
+      Today/Signals reuse the existing live-signal observatory and the superseded
+      Explore card artwork was removed. Homepage explicitly prioritizes its art,
+      other routes do not preload mobile-hidden decoration, and responsive masks,
+      theme-aware opacity, and RTL mirroring preserve text contrast and layout.
+      Lint passed with zero errors and 23 pre-existing warnings, the required
+      production build passed, 11/11 Chromium desktop route checks passed, 11/11
+      Chromium mobile-contract checks passed at 390x844, and headed visual QA
+      covered dark/light desktop, mobile, data-heavy pages, and Arabic RTL. GitHub
+      CI passed welcome, lint/typecheck, build, strategy backtests, unit tests,
+      Docker Build, and the full Playwright E2E suite. Release commit
+      f2943667f844e6d29f4d40a59d93e96c568244a0 shipped through PR #189 and merged
+      to protected main as 47478b3ac073a473085e37a508fffafa5f5934e2 with an identical
+      tree. Railway deployment c74bb49e-3e36-47a7-b39b-cf59a5b81fc5 reached
+      SUCCESS with image digest
+      sha256:1225db1abcebcd35d65121438c05228d8948db1de9d5d3dda0814304ad13447d.
+      Live read-back passed /api/health with database and migration 053 healthy,
+      all three assets returned HTTP 200 image/webp with exact committed byte
+      sizes, and 10/10 focused production Chromium checks passed across all eight
+      routes plus homepage destination semantics and narrow-mobile containment.
+      The environment's WebKit download stalled, so its mobile viewport contract
+      was reproduced on installed Chromium; this was browser availability, not an
+      application assertion. The broad dirty primary checkout was excluded from
+      Git history and the Railway payload. Dependencies, Docker, database, auth,
+      billing, strategy, allocation, and trading rules are unchanged.
