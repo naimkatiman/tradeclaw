@@ -162,6 +162,7 @@ export async function ProofHero() {
           testId="homepage-hero-art"
           className="product-hero-backdrop--home"
           priority
+          sizes="(min-width: 1280px) 720px, (min-width: 640px) 62vw, 1px"
         />
         <div className="relative z-10 flex flex-col justify-center py-4 sm:py-8 lg:py-14">
           <p className="animate-fade-up flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)]">

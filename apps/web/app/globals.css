@@ -331,6 +331,13 @@ html:not(.dark) .product-hero-backdrop--quiet {
   opacity: 0.04;
 }
 
+@media (min-width: 640px) and (max-width: 767px) {
+  .product-hero-backdrop--home {
+    display: block;
+    opacity: 0.12;
+  }
+}
+
 @media (min-width: 768px) {
   .product-hero-backdrop {
     display: block;

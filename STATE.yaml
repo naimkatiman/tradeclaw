@@ -4131,3 +4131,37 @@ next_actions:
       application assertion. The broad dirty primary checkout was excluded from
       Git history and the Railway payload. Dependencies, Docker, database, auth,
       billing, strategy, allocation, and trading rules are unchanged.
+
+  - id: TC-247
+    title: "Homepage hero artwork at narrow desktop widths"
+    status: in_progress
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-03 after the owner supplied a roughly 702px-wide homepage
+      screenshot where the primary proof hero still appeared on the plain grid.
+      Audit confirmed that the generated market-field asset and stacking context
+      are present, but the shared backdrop is deliberately display:none below
+      768px and its responsive image sizes fall back to 1px. Work is isolated in
+      clean branch agent/tc247-home-narrow-art from exact origin/main
+      bfa4ff80e3136fb1c5846a44f5d2e139f2ee4ad7. Scope is a homepage-only
+      640px-767px treatment at lower opacity with an accurate image-size hint;
+      phone widths below 640px, all other product heroes, copy, charts, product
+      behavior, dependencies, Docker, database, auth, billing, strategy,
+      allocation, and trading rules remain unchanged. Implementation now exposes
+      only the homepage variant from 640px through 767px at 12% dark-theme and
+      7% light-theme opacity and supplies a 640px responsive image threshold.
+      Browser QA at the owner's exact 702x717 viewport confirmed a decoded 435px
+      local WebP, hero-heading overlap, pointer-events none, empty alt text,
+      aria-hidden decoration, and no horizontal overflow; 390x844 remains hidden
+      and overflow-free. Focused ESLint, web typecheck, the required production
+      build (324/324 generated pages), and git diff whitespace validation pass.
+      Completed locally 2026-08-03 13:02 MPST (+0800); no commit, push, PR, or
+      deployment was performed, and the broad dirty primary checkout was excluded.
+      Release was explicitly authorized 2026-08-04. Fresh release audit confirms
+      the same four intended files, authenticated GitHub access, unchanged exact
+      origin/main bfa4ff80e3136fb1c5846a44f5d2e139f2ee4ad7, and no merge
+      conflict. Publication and deployment are in progress from the clean worktree
+      only; the broad dirty primary checkout remains excluded.
+      Fresh pre-commit production build (324/324 pages), web typecheck, focused
+      ESLint, and diff whitespace validation pass. Docker CLI is unavailable on
+      this host, so the protected GitHub Docker Build check will gate that path.
