@@ -4134,7 +4134,7 @@ next_actions:
 
   - id: TC-247
     title: "Homepage hero artwork at narrow desktop widths"
-    status: in_progress
+    status: done
     owner: pm-tradeclaw
     notes: >
       Started 2026-08-03 after the owner supplied a roughly 702px-wide homepage
@@ -4165,3 +4165,9 @@ next_actions:
       Fresh pre-commit production build (324/324 pages), web typecheck, focused
       ESLint, and diff whitespace validation pass. Docker CLI is unavailable on
       this host, so the protected GitHub Docker Build check will gate that path.
+      Implementation PR #192 passed Lint & Type Check, Build, Unit Tests,
+      Strategy Backtests, Docker Build, and Playwright E2E, then merged to main as
+      825c9490f9a684eb7bd8abbb4d3b523e0866e12c. This state-only closure is
+      isolated on exact post-merge main; Railway will deploy the exact final main
+      produced after this closure merges. The broad dirty primary checkout remains
+      excluded from GitHub and every deployment payload.
