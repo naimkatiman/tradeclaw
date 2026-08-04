@@ -4199,12 +4199,21 @@ next_actions:
       in dark and light themes confirmed five unique decoded images, one preserved
       homepage hero backdrop, exact source mappings, 12%/7.5% desktop and 10%/6.5%
       mobile base opacity, 17% desktop hover cap, correct z-index and mask layering,
-      readable copy, and zero horizontal overflow. Completed locally 2026-08-04;
-      no commit, push, PR, or deployment was performed, and the broad dirty primary
-      checkout remains excluded from release payloads. At 2026-08-04 15:20 MPST
+      readable copy, and zero horizontal overflow. At 2026-08-04 15:20 MPST
       (+0800) the owner explicitly authorized commit and production deployment.
-      Fresh release audit confirmed authenticated GitHub access, unchanged exact
-      origin/main d0aa57276cfe9eb72cce1f09cc627b8c10707c42, and only STATE.yaml,
-      globals.css, and explore-strip.tsx as content diffs. Publication is in
-      progress from the isolated clean branch; the broad dirty primary checkout
-      remains excluded.
+      Release commits 829972fb9aaeca8bb91c8068a5ab06c43803c3b6 and
+      900f095396b53b322312c67cafb5733ee1b2842d contain exactly STATE.yaml,
+      globals.css, and explore-strip.tsx. The follow-up restores the historical
+      selection guard, dark-theme filter, and standard plus WebKit trailing-edge
+      masks discovered during release audit. A fresh production build again
+      generated 324/324 pages, and direct 1515x900 dark/light plus 390x844 dark
+      browser QA reconfirmed five decoded unique sources, the preserved homepage
+      hero, historical opacity caps, exact masks and filters, and zero overflow.
+      Protected implementation PR #194 passed Lint & Type Check, Unit Tests,
+      Build, Strategy Backtests, Docker Build, and Playwright E2E, then squash
+      merged to main as ed380e2ac22a9503e4fb77b1bdc3b90eeb8b1fa7. This
+      state-only closure is isolated from exact post-merge main, its required
+      production build generated 324/324 pages, and STATE.yaml parses cleanly.
+      Railway will deploy the exact final main produced after the closure merges.
+      The broad dirty primary checkout remains excluded from GitHub and every
+      deployment payload.
