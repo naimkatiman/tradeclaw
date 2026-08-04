@@ -375,16 +375,27 @@ html[dir="rtl"] .product-hero-backdrop__image {
 }
 
 .product-hero-backdrop--home .product-hero-backdrop__frame {
-  inset-block: -16%;
-  width: min(68%, 50rem);
+  inset-block: -10%;
+  inset-inline: -5%;
+  width: auto;
+  min-width: 0;
 }
 
 .product-hero-backdrop--home {
-  opacity: 0.18;
+  opacity: 0.24;
 }
 
 .product-hero-backdrop--home .product-hero-backdrop__image {
-  filter: invert(0.16) brightness(1.25) saturate(0.82) contrast(1.06);
+  object-position: left center;
+  filter: brightness(0.92) saturate(0.88) contrast(1.08);
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 72%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 0%, #000 72%, transparent 100%);
+}
+
+html[dir="rtl"] .product-hero-backdrop--home .product-hero-backdrop__image {
+  object-position: right center;
+  -webkit-mask-image: linear-gradient(to left, #000 0%, #000 72%, transparent 100%);
+  mask-image: linear-gradient(to left, #000 0%, #000 72%, transparent 100%);
 }
 
 .product-hero-backdrop--quiet {
@@ -400,11 +411,11 @@ html:not(.dark) .product-hero-backdrop__image {
 }
 
 html:not(.dark) .product-hero-backdrop--home {
-  opacity: 0.07;
+  opacity: 0.11;
 }
 
 html:not(.dark) .product-hero-backdrop--home .product-hero-backdrop__image {
-  filter: saturate(0.68) contrast(0.94);
+  filter: brightness(1.08) saturate(0.58) contrast(0.9);
 }
 
 html:not(.dark) .product-hero-backdrop--quiet {
@@ -414,7 +425,7 @@ html:not(.dark) .product-hero-backdrop--quiet {
 @media (min-width: 640px) and (max-width: 767px) {
   .product-hero-backdrop--home {
     display: block;
-    opacity: 0.12;
+    opacity: 0.18;
   }
 }
 

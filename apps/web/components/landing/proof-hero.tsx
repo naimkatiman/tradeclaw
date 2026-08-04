@@ -158,11 +158,11 @@ export async function ProofHero() {
       <div className="pointer-events-none absolute left-[18%] top-8 -z-10 h-64 w-64 rounded-full bg-[var(--brand-glow)] blur-[110px]" />
       <div className="relative isolate grid items-center gap-10 overflow-hidden lg:grid-cols-[minmax(0,1.02fr)_minmax(430px,0.98fr)] lg:gap-12">
         <ProductHeroBackdrop
-          src="/brand/hero/tradeclaw-market-field-panorama-v1.webp"
+          src="/brand/hero/tradeclaw-evidence-instrument-field-v1.webp"
           testId="homepage-hero-art"
           className="product-hero-backdrop--home"
           priority
-          sizes="(min-width: 1280px) 720px, (min-width: 640px) 62vw, 1px"
+          sizes="(min-width: 1280px) 1280px, (min-width: 640px) 100vw, 1px"
         />
         <div className="relative z-10 flex flex-col justify-center py-4 sm:py-8 lg:py-14">
           <p className="animate-fade-up flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)]">
