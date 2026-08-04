@@ -4258,4 +4258,6 @@ next_actions:
       The owner's repeated commit-and-deploy authorization for this homepage-art
       correction applies to TC-249; protected GitHub publication and exact-main
       Railway deployment are now in progress from the clean isolated worktree.
-      The broad dirty primary checkout remains excluded from every release payload.
+      Release commit 1fa329c4 contains exactly the four intended paths and all
+      unrelated Windows status noise remains unstaged. The broad dirty primary
+      checkout remains excluded from every release payload.
