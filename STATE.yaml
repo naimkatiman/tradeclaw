@@ -4260,4 +4260,5 @@ next_actions:
       Railway deployment are now in progress from the clean isolated worktree.
       Release commit 1fa329c4 contains exactly the four intended paths and all
       unrelated Windows status noise remains unstaged. The broad dirty primary
-      checkout remains excluded from every release payload.
+      checkout remains excluded from every release payload. Draft implementation
+      PR #196 is open against main and protected CI will gate its merge.
