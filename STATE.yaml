@@ -4267,4 +4267,11 @@ next_actions:
       gates passed. The CSS is now aligned to 18% without changing the accepted
       asset or its placement. The required fresh production build again generated
       324/324 pages, and the focused Chromium homepage hero contract now passes at
-      the exact 18% cap. A full protected CI rerun will gate the updated commit.
+      the exact 18% cap. Protected CI run 30895297896 passed Lint & Type Check,
+      Build, Unit Tests, Strategy Backtests, Docker Build, and Playwright E2E on
+      corrected head 4adad2d3. Implementation PR #196 then squash merged to main
+      as b032defcc2f2dca6d03749f60c0e58e40ef31be8. This state-only closure is
+      isolated from exact post-merge main; its required production build generated
+      324/324 pages and STATE.yaml parses cleanly. Protected CI will gate the final
+      exact-main Railway release. The broad dirty primary checkout remains excluded
+      from GitHub and every deployment payload.
