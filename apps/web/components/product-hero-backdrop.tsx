@@ -5,20 +5,22 @@ interface ProductHeroBackdropProps {
   testId: string;
   className?: string;
   priority?: boolean;
+  sizes?: string;
 }
 
 /**
  * Quiet generated artwork for product-page hero copy.
  *
  * The host owns the stacking context (`relative isolate`). This component is
- * decorative only, stays bounded to that host, and leaves the mobile reading
- * flow image-free.
+ * decorative only, stays bounded to that host, and leaves narrow phone reading
+ * flows image-free.
  */
 export function ProductHeroBackdrop({
   src,
   testId,
   className = '',
   priority = false,
+  sizes = '(min-width: 1280px) 720px, (min-width: 768px) 62vw, 1px',
 }: ProductHeroBackdropProps) {
   return (
     <div
@@ -31,7 +33,7 @@ export function ProductHeroBackdrop({
           src={src}
           alt=""
           fill
-          sizes="(min-width: 1280px) 720px, (min-width: 768px) 62vw, 1px"
+          sizes={sizes}
           className="product-hero-backdrop__image"
           priority={priority}
         />
