@@ -4217,3 +4217,54 @@ next_actions:
       Railway will deploy the exact final main produced after the closure merges.
       The broad dirty primary checkout remains excluded from GitHub and every
       deployment payload.
+
+
+  - id: TC-249
+    title: "Place generated artwork behind the homepage headline"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-04 after the owner supplied
+      C:\Users\User\Pictures\Screenshot\2026-08-04 13_17_47-.png and clarified
+      that the homepage hero needs an actual generated image visibly behind the
+      main text. The current market-field panorama is technically present but its
+      subject is concentrated low and right, so the headline reads as image-free.
+      Work is isolated in agent/tc249-home-text-art from exact origin/main
+      df41b2910058002a9ad457ba80be12748c868f6e. Generate one new versioned wide
+      Research-themed market-evidence field, compose its focal instrument behind
+      the headline at restrained opacity, preserve copy contrast and existing
+      destination-card artwork, and verify dark/light desktop plus the established
+      responsive hero behavior. No copy, route, dependency, database, Docker,
+      auth, billing, strategy, allocation, or trading-rule change is included.
+      Built-in image generation produced a 1717x916 matte-black evidence
+      instrument field with the focal ring across the left-center headline zone.
+      The accepted result is saved non-destructively as the new 62,274-byte WebP
+      apps/web/public/brand/hero/tradeclaw-evidence-instrument-field-v1.webp;
+      existing generated assets remain unchanged.
+      The homepage now references that asset with a full-width frame, a
+      headline-first directional mask, and 18% dark / 11% light desktop opacity;
+      the 640px-767px dark treatment is 18%, while phones below 640px remain
+      image-free. The copy stays at z-10 and the decorative image remains inert.
+      Full lint passed with zero errors and 23 pre-existing warnings, web
+      typecheck passed, and the required production build generated 324/324
+      pages. Direct browser QA passed eight dark/light cases at 1515x900, the
+      owner's 762x646 screenshot size, 702x717, and 390x844: the exact new source
+      decoded, overlapped 100% of the headline bounds at visible widths, retained
+      the directional mask and theme opacity caps, preserved z-10 copy over z-0
+      inert art, stayed hidden below 640px, and produced zero horizontal overflow
+      or page errors. Visual inspection confirms the instrument is now clearly
+      behind the main text with readable contrast; the sole console entry was
+      local development HMR websocket noise. Completed locally 2026-08-04.
+      The owner's repeated commit-and-deploy authorization for this homepage-art
+      correction applies to TC-249; protected GitHub publication and exact-main
+      Railway deployment are now in progress from the clean isolated worktree.
+      Release commit 1fa329c4 contains exactly the four intended paths and all
+      unrelated Windows status noise remains unstaged. The broad dirty primary
+      checkout remains excluded from every release payload. Draft implementation
+      PR #196 is open against main, is ready for review, and protected CI will
+      gate its merge. The first CI pass found the new 24% desktop-dark opacity
+      exceeded the repository's established decorative-art cap of 18%; all other
+      gates passed. The CSS is now aligned to 18% without changing the accepted
+      asset or its placement. The required fresh production build again generated
+      324/324 pages, and the focused Chromium homepage hero contract now passes at
+      the exact 18% cap. A full protected CI rerun will gate the updated commit.
