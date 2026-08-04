@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-02T14:26:56+08:00
+updated: 2026-08-04T15:21:00+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -4171,3 +4171,40 @@ next_actions:
       isolated on exact post-merge main; Railway will deploy the exact final main
       produced after this closure merges. The broad dirty primary checkout remains
       excluded from GitHub and every deployment payload.
+
+  - id: TC-248
+    title: "Restore homepage destination-card artwork"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-04 after the owner supplied a 1515x385 homepage screenshot
+      showing that the five Explore the stack destination cards were plain. Audit
+      confirmed TC-246 removed the TC-245 card markup and styling when artwork was
+      moved behind the core page heroes, even though all five generated WebPs remain
+      tracked. The owner now wants the restrained card backgrounds restored while
+      retaining every current hero background. Work is isolated in clean branch
+      agent/tc248-explore-art from exact origin/main
+      d0aa57276cfe9eb72cce1f09cc627b8c10707c42. Scope is limited to restoring the
+      proven low-opacity, trailing-edge ExploreStrip treatment with the existing
+      assets and verifying desktop, light theme, and mobile readability. No new
+      asset, dependency, copy, route, Docker, database, auth, billing, strategy,
+      allocation, or trading-rule change is included. The exact TC-245 ExploreStrip markup
+      and styling are now restored alongside the TC-246/TC-247 hero backgrounds:
+      all five local WebPs render on the cards' trailing edge behind z-10 copy,
+      remain decorative and pointer-free, and use the original theme-aware opacity
+      caps. Full lint passed with zero errors and 23 pre-existing warnings; focused
+      ESLint, web typecheck, the required production build (324/324 pages), diff
+      whitespace validation, and the existing homepage destination plus product
+      hero Chromium suite (11/11) passed. Direct browser QA at 1515x900 and 390x844
+      in dark and light themes confirmed five unique decoded images, one preserved
+      homepage hero backdrop, exact source mappings, 12%/7.5% desktop and 10%/6.5%
+      mobile base opacity, 17% desktop hover cap, correct z-index and mask layering,
+      readable copy, and zero horizontal overflow. Completed locally 2026-08-04;
+      no commit, push, PR, or deployment was performed, and the broad dirty primary
+      checkout remains excluded from release payloads. At 2026-08-04 15:20 MPST
+      (+0800) the owner explicitly authorized commit and production deployment.
+      Fresh release audit confirmed authenticated GitHub access, unchanged exact
+      origin/main d0aa57276cfe9eb72cce1f09cc627b8c10707c42, and only STATE.yaml,
+      globals.css, and explore-strip.tsx as content diffs. Publication is in
+      progress from the isolated clean branch; the broad dirty primary checkout
+      remains excluded.
