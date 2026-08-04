@@ -4242,7 +4242,7 @@ next_actions:
       apps/web/public/brand/hero/tradeclaw-evidence-instrument-field-v1.webp;
       existing generated assets remain unchanged.
       The homepage now references that asset with a full-width frame, a
-      headline-first directional mask, and 24% dark / 11% light desktop opacity;
+      headline-first directional mask, and 18% dark / 11% light desktop opacity;
       the 640px-767px dark treatment is 18%, while phones below 640px remain
       image-free. The copy stays at z-10 and the decorative image remains inert.
       Full lint passed with zero errors and 23 pre-existing warnings, web
@@ -4262,4 +4262,9 @@ next_actions:
       unrelated Windows status noise remains unstaged. The broad dirty primary
       checkout remains excluded from every release payload. Draft implementation
       PR #196 is open against main, is ready for review, and protected CI will
-      gate its merge.
+      gate its merge. The first CI pass found the new 24% desktop-dark opacity
+      exceeded the repository's established decorative-art cap of 18%; all other
+      gates passed. The CSS is now aligned to 18% without changing the accepted
+      asset or its placement. The required fresh production build again generated
+      324/324 pages, and the focused Chromium homepage hero contract now passes at
+      the exact 18% cap. A full protected CI rerun will gate the updated commit.
