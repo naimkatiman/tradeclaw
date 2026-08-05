@@ -288,6 +288,17 @@ describe('reconcile (pre-registered gates)', () => {
     expect(small.pass).toBe(false);
     expect(small.failures.join(' ')).toContain('n');
   });
+  it('fails closed when aggregate metrics are non-finite', () => {
+    const poisoned = reconcile(Array.from({ length: 3100 }, () =>
+      trade({ rRaw: Number.NaN, rSized: Number.NaN, costR: Number.POSITIVE_INFINITY })));
+
+    expect(poisoned.pass).toBe(false);
+    expect(poisoned.failures).toEqual([
+      'gross NaN is not finite',
+      'cost Infinity is not finite',
+      'net NaN is not finite',
+    ]);
+  });
 });
 
 describe('parseCliArgs', () => {
