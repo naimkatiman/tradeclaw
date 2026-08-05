@@ -61,6 +61,25 @@ const nextConfig: NextConfig = {
         destination: '/start',
         permanent: false,
       },
+
+      // Growth-era pages removed in the IA consolidation. Nothing linked them and
+      // they were never in the sitemap, but they answered 200 for months, so they
+      // bounce to the homepage rather than 404.
+      //
+      // Redirects belong here rather than in a page.tsx calling redirect(): a
+      // redirecting page still renders the app shell and answers 200 -- observed
+      // in production on /pricing and /badges -- which search engines do not treat
+      // as a redirect at all.
+      ...['/quiz', '/readme-score', '/wrapped', '/devto', '/launch'].map((source) => ({
+        source,
+        destination: '/',
+        permanent: true,
+      })),
+      {
+        source: '/waitlist',
+        destination: '/subscribe',
+        permanent: true,
+      },
     ];
   },
 
