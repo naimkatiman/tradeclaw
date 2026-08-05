@@ -65,7 +65,7 @@ const ENDPOINTS: Endpoint[] = [
     headline: true,
     desc: 'One entry per counted 24h outcome with a valid stop: gross R from its OHLCV-resolved outcome, the stored modeled round-trip cost in R, and asset class. Net modeled R is grossR[i] minus costR[i]. costR uses fee/slippage assumptions, not broker fills. The response reports its source-read limit and potential window truncation.',
     params: [
-      { name: 'scope', values: 'pro | broadcast', note: 'eligible engine stream (default) or gate-approved rows recorded since 2026-06-10' },
+      { name: 'scope', values: 'full | broadcast', note: 'eligible engine stream (default) or gate-approved rows recorded since 2026-06-10. Nothing is paywalled — the legacy spelling scope=pro is still accepted, and is what responses echo back' },
       { name: 'period', note: 'optional window filter, same grammar as the history route' },
       { name: 'include', values: 'provenance', note: 'include per-row outcome, risk, modeled-cost source, and broadcast-decision fields' },
     ],
@@ -78,7 +78,7 @@ const ENDPOINTS: Endpoint[] = [
     desc: 'Hypothetical sequential equity simulation plus a summary block. It orders eligible sized signals by timestamp, risks 1% of current equity on every signal, caps extreme R outcomes, and deducts modeled per-asset fee/slippage assumptions. It does not model broker fills, overlapping exposure, margin, leverage, latency, funding, or subscriber selection; it is not an actual portfolio return.',
     params: [
       { name: 'summaryOnly', values: '1 | true', note: 'drop the point array, return summary and rolling win rates only' },
-      { name: 'scope', values: 'pro | broadcast', note: 'eligible engine stream (default) or gate-approved rows recorded since 2026-06-10' },
+      { name: 'scope', values: 'full | broadcast', note: 'eligible engine stream (default) or gate-approved rows recorded since 2026-06-10. Nothing is paywalled — the legacy spelling scope=pro is still accepted, and is what responses echo back' },
       { name: 'band', values: 'premium | standard | all', note: 'filter by confidence band' },
       { name: 'category', note: 'asset-category filter (e.g. crypto, fx)' },
       { name: 'period', note: 'optional window filter' },
