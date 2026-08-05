@@ -126,8 +126,8 @@ export default function ChromeExtensionPage() {
           <Link className="button button-secondary" href="/docs">
             Open docs
           </Link>
-          <Link className="button button-ghost" href="/pricing">
-            See pricing
+          <Link className="button button-ghost" href="/track-record">
+            See the track record
           </Link>
         </div>
       </section>

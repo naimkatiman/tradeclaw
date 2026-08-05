@@ -107,7 +107,6 @@ export async function GET(request: NextRequest) {
       signals,
       dashboardUrl: `${baseUrl}/dashboard`,
       trackRecordUrl: `${baseUrl}/track-record`,
-      pricingUrl: `${baseUrl}/pricing`,
       note: 'Recorded real-quality signals only; unavailable entries contain no synthetic direction, confidence, or timestamp.',
     },
     {
