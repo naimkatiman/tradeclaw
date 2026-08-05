@@ -68,3 +68,56 @@ describe('toStudyTrade', () => {
     expect(toStudyTrade({ ...baseRow, source: null })).toBeNull();
   });
 });
+
+import { adxSeries, efficiencyRatioSeries, type Bar } from '../regime-study-assembly';
+
+function bar(close: number, spreadPct = 1): Bar {
+  const half = (close * spreadPct) / 200;
+  return { timestamp: 0, open: close, high: close + half, low: close - half, close, volume: 1 };
+}
+
+describe('adxSeries (Wilder, period 14)', () => {
+  it('is null through the warmup (first 2*period-1 bars)', () => {
+    const bars = Array.from({ length: 40 }, (_, i) => bar(100 + i));
+    const adx = adxSeries(bars, 14);
+    for (let i = 0; i < 27; i++) expect(adx[i]).toBeNull();
+    expect(adx[27]).not.toBeNull();
+    expect(adx.length).toBe(40);
+  });
+  it('reads high on a persistent one-way trend', () => {
+    const bars = Array.from({ length: 60 }, (_, i) => bar(100 + 2 * i));
+    const adx = adxSeries(bars, 14);
+    expect(adx[59]!).toBeGreaterThan(60);
+  });
+  it('reads low on alternating chop', () => {
+    const bars = Array.from({ length: 60 }, (_, i) => bar(100 + (i % 2 === 0 ? 0 : 0.5)));
+    const adx = adxSeries(bars, 14);
+    expect(adx[59]!).toBeLessThan(20);
+  });
+  it('returns all nulls when there are not enough bars', () => {
+    const adx = adxSeries(Array.from({ length: 10 }, () => bar(100)), 14);
+    expect(adx.every((v) => v === null)).toBe(true);
+  });
+});
+
+describe('efficiencyRatioSeries (Kaufman, window 20)', () => {
+  it('is 1 for a perfectly straight line', () => {
+    const closes = Array.from({ length: 30 }, (_, i) => 100 + i);
+    const er = efficiencyRatioSeries(closes, 20);
+    expect(er[20]!).toBeCloseTo(1, 10);
+    expect(er[29]!).toBeCloseTo(1, 10);
+  });
+  it('is ~0 for a full round trip', () => {
+    // 10 up then 10 down: net 0, path 20
+    const closes: number[] = [100];
+    for (let i = 0; i < 10; i++) closes.push(closes[closes.length - 1] + 1);
+    for (let i = 0; i < 10; i++) closes.push(closes[closes.length - 1] - 1);
+    const er = efficiencyRatioSeries(closes, 20);
+    expect(er[20]!).toBeCloseTo(0, 10);
+  });
+  it('is null during warmup (indices 0..window-1)', () => {
+    const closes = Array.from({ length: 25 }, (_, i) => 100 + i);
+    const er = efficiencyRatioSeries(closes, 20);
+    for (let i = 0; i < 20; i++) expect(er[i]).toBeNull();
+  });
+});
