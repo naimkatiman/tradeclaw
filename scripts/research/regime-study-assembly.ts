@@ -9,8 +9,6 @@
  * rows and REQUIRES observed-OHLCV provenance. recost-segment.ts drops all
  * expired rows — do not copy that here or the reconciliation gate fails.
  */
-import { emaSeries } from './slow-gate-assembly';
-
 export const DAY_MS = 86_400_000;
 /** equity/route.ts — per-trade R cap for sizing (stat R stays uncapped). */
 export const HARD_R_CAP = 8;
@@ -208,6 +206,26 @@ export interface SymbolRegimeSeries {
   ema200: (number | null)[];
   adx14: (number | null)[];
   er20: (number | null)[];
+}
+
+/**
+ * EMA series aligned to input; null until `period-1` (seeded with SMA).
+ * Inlined from slow-gate-assembly.ts (commit 20bdb9e7) because that module is
+ * not tracked on this branch — research scripts stay self-contained.
+ */
+function emaSeries(values: number[], period: number): (number | null)[] {
+  const out: (number | null)[] = new Array(values.length).fill(null);
+  if (values.length < period) return out;
+  let sum = 0;
+  for (let i = 0; i < period; i++) sum += values[i];
+  let ema = sum / period;
+  out[period - 1] = ema;
+  const k = 2 / (period + 1);
+  for (let i = period; i < values.length; i++) {
+    ema = values[i] * k + ema * (1 - k);
+    out[i] = ema;
+  }
+  return out;
 }
 
 export function buildRegimeSeries(bars: Bar[]): SymbolRegimeSeries {
