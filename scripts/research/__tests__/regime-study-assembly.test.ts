@@ -128,6 +128,8 @@ import {
   regimeAt,
   classifyBucket,
   DAY_MS,
+  VARIANTS,
+  type RegimeSnapshot,
 } from '../regime-study-assembly';
 
 describe('lastClosedBarIndex (the lookahead gate)', () => {
@@ -183,5 +185,20 @@ describe('regimeAt + classifyBucket', () => {
   it('returns null when the signal predates every close', () => {
     const series = buildRegimeSeries(trendBars(260, 5));
     expect(regimeAt(series, 0)).toBeNull();
+  });
+});
+
+describe('classifyBucket (direct RegimeSnapshot fixtures)', () => {
+  it('returns null when the variant detector value is unavailable, under every variant', () => {
+    const regime: RegimeSnapshot = { trendSide: 'up', adx: null, er: null };
+    for (const variant of VARIANTS) {
+      expect(classifyBucket('BUY', regime, variant)).toBeNull();
+    }
+  });
+  it('returns sideways when the detector is strong but trendSide is none, under every variant', () => {
+    const regime: RegimeSnapshot = { trendSide: 'none', adx: 30, er: 0.8 };
+    for (const variant of VARIANTS) {
+      expect(classifyBucket('BUY', regime, variant)).toBe('sideways');
+    }
   });
 });
