@@ -279,3 +279,156 @@ export function classifyBucket(
     (direction === 'SELL' && regime.trendSide === 'down');
   return aligned ? 'aligned' : 'counter';
 }
+
+export interface BucketStats {
+  n: number;
+  winRatePct: number;
+  avgWinR: number;
+  avgLossR: number;
+  grossExpectancyR: number;
+  avgCostR: number;
+  netExpectancyR: number;
+  conclusive: boolean;
+}
+
+export function computeBucketStats(trades: StudyTrade[], minN: number): BucketStats {
+  const n = trades.length;
+  if (n === 0) {
+    return { n: 0, winRatePct: 0, avgWinR: 0, avgLossR: 0, grossExpectancyR: 0, avgCostR: 0, netExpectancyR: 0, conclusive: false };
+  }
+  let wins = 0;
+  let winSum = 0;
+  let lossCount = 0;
+  let lossSum = 0;
+  let grossSum = 0;
+  let netSum = 0;
+  let costSum = 0;
+  for (const t of trades) {
+    if (t.isWin) { wins++; winSum += t.rRaw; } else { lossCount++; lossSum += t.rRaw; }
+    grossSum += t.rRaw;
+    netSum += t.rSized - t.costR;
+    costSum += t.costR;
+  }
+  return {
+    n,
+    winRatePct: (wins / n) * 100,
+    avgWinR: wins > 0 ? winSum / wins : 0,
+    avgLossR: lossCount > 0 ? lossSum / lossCount : 0,
+    grossExpectancyR: grossSum / n,
+    avgCostR: costSum / n,
+    netExpectancyR: netSum / n,
+    conclusive: n >= minN,
+  };
+}
+
+/**
+ * Directional inversion approximation: flips the realized gross R and the win
+ * flag, keeps the cost. It does NOT re-simulate TP/SL geometry for the
+ * opposite position — it answers only "was the direction the problem".
+ */
+export function invertTrade(t: StudyTrade): StudyTrade {
+  return {
+    ...t,
+    direction: t.direction === 'BUY' ? 'SELL' : 'BUY',
+    rRaw: -t.rRaw,
+    rSized: Math.max(-HARD_R_CAP, Math.min(HARD_R_CAP, -t.rRaw)),
+    isWin: t.rRaw < 0,
+  };
+}
+
+/**
+ * Analytic cost curve: at stop-width multiple m, costR scales 1/m
+ * (costR = cost%_notional / riskPct). This is NOT a re-simulation — outcome
+ * distributions at wider stops are unknowable from this dataset; the curve
+ * only shows where the cost floor stops being fatal.
+ */
+export function computeCostCurve(
+  trades: StudyTrade[],
+  multiples: number[] = [1, 2, 3, 5, 8, 10],
+): Array<{ multiple: number; avgCostR: number }> {
+  const base = trades.length > 0 ? trades.reduce((s, t) => s + t.costR, 0) / trades.length : 0;
+  return multiples.map((multiple) => ({ multiple, avgCostR: base / multiple }));
+}
+
+/** Pre-registered in the spec BEFORE any results were computed. Do not tune. */
+export const RECONCILIATION_TOLERANCES = {
+  minN: 3095,
+  gross: [-0.03, 0.07] as const,
+  cost: [0.45, 0.57] as const,
+  net: [-0.55, -0.43] as const,
+};
+
+export interface ReconciliationResult {
+  n: number;
+  grossExpectancyR: number;
+  avgCostR: number;
+  netExpectancyR: number;
+  pass: boolean;
+  failures: string[];
+}
+
+export function reconcile(trades: StudyTrade[]): ReconciliationResult {
+  const s = computeBucketStats(trades, 1);
+  const t = RECONCILIATION_TOLERANCES;
+  const failures: string[] = [];
+  if (s.n < t.minN) failures.push(`n ${s.n} < ${t.minN}`);
+  if (s.grossExpectancyR < t.gross[0] || s.grossExpectancyR > t.gross[1]) {
+    failures.push(`gross ${s.grossExpectancyR.toFixed(4)} outside [${t.gross[0]}, ${t.gross[1]}]`);
+  }
+  if (s.avgCostR < t.cost[0] || s.avgCostR > t.cost[1]) {
+    failures.push(`cost ${s.avgCostR.toFixed(4)} outside [${t.cost[0]}, ${t.cost[1]}]`);
+  }
+  if (s.netExpectancyR < t.net[0] || s.netExpectancyR > t.net[1]) {
+    failures.push(`net ${s.netExpectancyR.toFixed(4)} outside [${t.net[0]}, ${t.net[1]}]`);
+  }
+  return {
+    n: s.n,
+    grossExpectancyR: s.grossExpectancyR,
+    avgCostR: s.avgCostR,
+    netExpectancyR: s.netExpectancyR,
+    pass: failures.length === 0,
+    failures,
+  };
+}
+
+export class CliInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CliInputError';
+  }
+}
+
+const MAX_DAYS = 36_500;
+
+function parsePositiveInt(name: string, value: string | undefined): number {
+  if (value === undefined) throw new CliInputError(`Missing value for ${name}.`);
+  if (!/^\d+$/.test(value)) throw new CliInputError(`Invalid ${name}: expected a positive integer, got "${value}".`);
+  const n = Number(value);
+  if (n <= 0 || n > MAX_DAYS) throw new CliInputError(`Invalid ${name}: must be in 1..${MAX_DAYS}, got ${n}.`);
+  return n;
+}
+
+export interface CliArgs {
+  days: number | null;
+  minN: number;
+  jsonPath: string | null;
+  help: boolean;
+}
+
+export function parseCliArgs(argv: string[]): CliArgs {
+  const out: CliArgs = { days: null, minN: 300, jsonPath: null, help: false };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--help' || a === '-h') { out.help = true; continue; }
+    if (a === '--days') { out.days = parsePositiveInt('--days', argv[++i]); continue; }
+    if (a === '--min-n') { out.minN = parsePositiveInt('--min-n', argv[++i]); continue; }
+    if (a === '--json') {
+      const v = argv[++i];
+      if (v === undefined) throw new CliInputError('Missing value for --json.');
+      out.jsonPath = v;
+      continue;
+    }
+    throw new CliInputError(`Unknown option: ${JSON.stringify(a)}.`);
+  }
+  return out;
+}
