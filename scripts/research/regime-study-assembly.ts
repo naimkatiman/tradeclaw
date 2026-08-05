@@ -374,13 +374,19 @@ export function reconcile(trades: StudyTrade[]): ReconciliationResult {
   const t = RECONCILIATION_TOLERANCES;
   const failures: string[] = [];
   if (s.n < t.minN) failures.push(`n ${s.n} < ${t.minN}`);
-  if (s.grossExpectancyR < t.gross[0] || s.grossExpectancyR > t.gross[1]) {
+  if (!Number.isFinite(s.grossExpectancyR)) {
+    failures.push(`gross ${String(s.grossExpectancyR)} is not finite`);
+  } else if (s.grossExpectancyR < t.gross[0] || s.grossExpectancyR > t.gross[1]) {
     failures.push(`gross ${s.grossExpectancyR.toFixed(4)} outside [${t.gross[0]}, ${t.gross[1]}]`);
   }
-  if (s.avgCostR < t.cost[0] || s.avgCostR > t.cost[1]) {
+  if (!Number.isFinite(s.avgCostR)) {
+    failures.push(`cost ${String(s.avgCostR)} is not finite`);
+  } else if (s.avgCostR < t.cost[0] || s.avgCostR > t.cost[1]) {
     failures.push(`cost ${s.avgCostR.toFixed(4)} outside [${t.cost[0]}, ${t.cost[1]}]`);
   }
-  if (s.netExpectancyR < t.net[0] || s.netExpectancyR > t.net[1]) {
+  if (!Number.isFinite(s.netExpectancyR)) {
+    failures.push(`net ${String(s.netExpectancyR)} is not finite`);
+  } else if (s.netExpectancyR < t.net[0] || s.netExpectancyR > t.net[1]) {
     failures.push(`net ${s.netExpectancyR.toFixed(4)} outside [${t.net[0]}, ${t.net[1]}]`);
   }
   return {
