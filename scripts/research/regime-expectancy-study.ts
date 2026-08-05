@@ -140,15 +140,17 @@ async function main() {
     // earliest signal through the newest signal.
     const counted = rows.filter(isCountedRow);
     const pairs = [...new Set(counted.map((r) => r.pair))];
-    const minTs = Math.min(...counted.map((r) => new Date(r.created_at).getTime()));
-    const maxTs = Math.max(...counted.map((r) => new Date(r.created_at).getTime()));
-    for (const pair of pairs) {
-      const cov = await getCoverage(client, pair, 'D1');
-      if (cov.count === 0) continue; // reported as excluded below
-      const candles = await getStoredCandles(
-        client, pair, 'D1', minTs - LOOKBACK_BARS * DAY_MS, maxTs,
-      );
-      candlesBySymbol.set(pair, candles);
+    if (counted.length > 0) {
+      const minTs = Math.min(...counted.map((r) => new Date(r.created_at).getTime()));
+      const maxTs = Math.max(...counted.map((r) => new Date(r.created_at).getTime()));
+      for (const pair of pairs) {
+        const cov = await getCoverage(client, pair, 'D1');
+        if (cov.count === 0) continue; // reported as excluded below
+        const candles = await getStoredCandles(
+          client, pair, 'D1', minTs - LOOKBACK_BARS * DAY_MS, maxTs,
+        );
+        candlesBySymbol.set(pair, candles);
+      }
     }
   } finally {
     await client.end();
