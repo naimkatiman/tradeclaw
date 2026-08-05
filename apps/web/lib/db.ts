@@ -179,51 +179,6 @@ export async function getUserByTelegramId(
 }
 
 // ---------------------------------------------------------------------------
-// Stripe webhook idempotency ledger
-//
-// Kept for the EarningsEdge webhook (Phase 3 scope), which namespaces its
-// event ids as `ee:<id>` in the shared processed_stripe_events table.
-// ---------------------------------------------------------------------------
-
-/**
- * Try to claim a Stripe event id for processing. Returns `true` when the row
- * was inserted (this caller owns the work) and `false` when another delivery
- * already recorded the event (caller should short-circuit).
- *
- * Uses INSERT … ON CONFLICT DO NOTHING and inspects rowCount to avoid an
- * unnecessary SELECT round-trip.
- */
-export async function tryClaimStripeEvent(
-  eventId: string,
-  eventType: string,
-): Promise<boolean> {
-  const client = await (await import('./db-pool')).getPool().connect();
-  try {
-    const result = await client.query(
-      `INSERT INTO processed_stripe_events (event_id, event_type)
-       VALUES ($1, $2)
-       ON CONFLICT (event_id) DO NOTHING`,
-      [eventId, eventType],
-    );
-    return (result.rowCount ?? 0) > 0;
-  } finally {
-    client.release();
-  }
-}
-
-/**
- * Release a previously-claimed event id so Stripe's next retry can re-enter
- * the handler. Used when a handler throws — without this, the dedup gate
- * would short-circuit every retry and the work would be lost.
- */
-export async function releaseStripeEvent(eventId: string): Promise<void> {
-  await execute(
-    `DELETE FROM processed_stripe_events WHERE event_id = $1`,
-    [eventId],
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Admin audit log (admin-granted actions, append-only)
 // Maps to migrations/028_admin_audit_log.sql
 // ---------------------------------------------------------------------------
