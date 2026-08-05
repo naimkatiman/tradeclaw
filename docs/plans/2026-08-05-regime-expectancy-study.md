@@ -82,6 +82,9 @@ Computed per signal from D1 candles whose close time is ≤ signal timestamp:
   both detectors reported side by side rather than committing to one.
 - Buckets: trending-aligned (BUY in uptrend / SELL in downtrend),
   trending-counter, sideways.
+- Staleness (added pre-registered before the corrected run, commit 98ced17b):
+  a signal is classifiable only if its selected D1 bar closed within 7 days
+  before the signal; older matches count as unclassified-stale.
 
 ### Metrics per bucket
 
@@ -150,8 +153,13 @@ reconciliation gate below is the proof the substitution is faithful.
 | avg modeled cost | 0.5113R | 0.51R |
 | net expectancy | -0.5019R | -0.49R |
 
-Dropped with counts: 5,552 uncounted rows (unresolved/simulated/gate-blocked/
-non-observed provenance), 0 missing-SL.
+Dropped with counts: 5,552 rows whose 24h outcome object fails the counted
+filter (force-expiry placeholders, legacy/non-observed provenance); 0
+missing-SL. Simulated, gate-blocked, and unresolved rows are excluded
+upstream in the SQL WHERE clause and are not part of this count.
+
+netR here = avg(sized R − costR), where sized R is capped at ±8 (the equity
+path's convention); gross uses uncapped R. Observed cap effect ≤0.0001R.
 
 ### Data-quality incident (fixed before interpretation)
 
@@ -171,6 +179,9 @@ USDCAD 190, NZDUSD 184, GBPUSD 132, USDJPY 132, EURUSD 112), WTIUSD 100,
 metals (XAGUSD 92, XAUUSD 81), 10 US stocks (MSFT 77, AMZN 69, AMD 68,
 TSLA 66, META 57, AAPL 55, NVDA 54, GOOGL 48, JPM 48, BAC 33). H1 verdicts
 are therefore scoped to crypto; H2–H4 use the full counted stream.
+
+EMA200 values near the window start carry residual SMA-seed influence from
+the 320-bar lookback; uniform across buckets, so no bucket bias.
 
 ### H1 — regime split at entry: REFUTED
 
@@ -227,7 +238,7 @@ Rule 1 fails: no trending-aligned bucket with N ≥ 300 is net-positive
 (adx20 aligned, n=306, is -0.87R). Rule 3 fails: inversion beats nothing.
 Branch 2 therefore governs: **the fix is horizon, not filtering.** Filtering
 the M15 stream by regime cannot save it — the stream's gross edge (+0.01R) is
-two orders of magnitude below its cost wall (0.51R), in every regime.
+≈54× below its cost wall (0.51R), in every regime.
 
 **Next build:** the D1 slow-gate strategy already validated in
 `docs/plans/2026-07-18-slow-regime-gate-sandbox.md` (EMA200 gate long-only,
