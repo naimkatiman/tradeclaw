@@ -202,3 +202,104 @@ describe('classifyBucket (direct RegimeSnapshot fixtures)', () => {
     }
   });
 });
+
+import {
+  computeBucketStats,
+  invertTrade,
+  computeCostCurve,
+  reconcile,
+  parseCliArgs,
+  type StudyTrade,
+} from '../regime-study-assembly';
+
+function trade(over: Partial<StudyTrade>): StudyTrade {
+  return {
+    ts: 0, pair: 'BTCUSD', direction: 'BUY', strategyId: 'classic', confidence: 80,
+    rRaw: 1, rSized: 1, costR: 0.5, isWin: true, ...over,
+  };
+}
+
+describe('computeBucketStats', () => {
+  it('computes exact stats on a hand-built set', () => {
+    const trades = [
+      trade({ rRaw: 2, rSized: 2, costR: 0.4, isWin: true }),
+      trade({ rRaw: -1, rSized: -1, costR: 0.6, isWin: false }),
+      trade({ rRaw: 1, rSized: 1, costR: 0.5, isWin: true }),
+    ];
+    const s = computeBucketStats(trades, 3);
+    expect(s.n).toBe(3);
+    expect(s.winRatePct).toBeCloseTo(66.7, 1);
+    expect(s.avgWinR).toBeCloseTo(1.5, 10);       // (2+1)/2 on rRaw
+    expect(s.avgLossR).toBeCloseTo(-1, 10);
+    expect(s.grossExpectancyR).toBeCloseTo((2 - 1 + 1) / 3, 10);
+    expect(s.avgCostR).toBeCloseTo(0.5, 10);
+    expect(s.netExpectancyR).toBeCloseTo((2 - 0.4 - 1 - 0.6 + 1 - 0.5) / 3, 10); // net uses rSized - costR
+    expect(s.conclusive).toBe(true);
+  });
+  it('marks small samples inconclusive', () => {
+    expect(computeBucketStats([trade({})], 300).conclusive).toBe(false);
+  });
+  it('handles the empty bucket', () => {
+    const s = computeBucketStats([], 300);
+    expect(s.n).toBe(0);
+    expect(s.netExpectancyR).toBe(0);
+  });
+});
+
+describe('invertTrade', () => {
+  it('flips gross R and win flag, keeps cost, re-caps sized R', () => {
+    const t = invertTrade(trade({ rRaw: 20, rSized: 8, costR: 0.5, isWin: true }));
+    expect(t.rRaw).toBe(-20);
+    expect(t.rSized).toBe(-8);
+    expect(t.costR).toBe(0.5);
+    expect(t.isWin).toBe(false);
+    expect(t.direction).toBe('SELL');
+  });
+});
+
+describe('computeCostCurve', () => {
+  it('scales avg cost inversely with the stop-width multiple', () => {
+    const trades = [trade({ costR: 0.4 }), trade({ costR: 0.6 })];
+    const curve = computeCostCurve(trades, [1, 2, 5]);
+    expect(curve).toEqual([
+      { multiple: 1, avgCostR: 0.5 },
+      { multiple: 2, avgCostR: 0.25 },
+      { multiple: 5, avgCostR: 0.1 },
+    ]);
+  });
+});
+
+describe('reconcile (pre-registered gates)', () => {
+  it('passes a stream matching the dashboard decomposition', () => {
+    // 3100 trades: gross +0.02, cost 0.51 -> net -0.49
+    const trades = Array.from({ length: 3100 }, () =>
+      trade({ rRaw: 0.02, rSized: 0.02, costR: 0.51 }));
+    const r = reconcile(trades);
+    expect(r.pass).toBe(true);
+    expect(r.failures).toEqual([]);
+  });
+  it('fails on wrong N, gross, cost, or net — with named failures', () => {
+    const small = reconcile(Array.from({ length: 100 }, () => trade({})));
+    expect(small.pass).toBe(false);
+    expect(small.failures.join(' ')).toContain('n');
+  });
+});
+
+describe('parseCliArgs', () => {
+  it('applies defaults (minN 300)', () => {
+    expect(parseCliArgs([])).toEqual({ days: null, minN: 300, jsonPath: null, help: false });
+  });
+  it('parses flags', () => {
+    expect(parseCliArgs(['--days', '30', '--min-n', '100', '--json', 'out.json'])).toEqual({
+      days: 30, minN: 100, jsonPath: 'out.json', help: false,
+    });
+  });
+  it('rejects unknown flags and bad integers', () => {
+    expect(() => parseCliArgs(['--nope'])).toThrow();
+    expect(() => parseCliArgs(['--days', '0'])).toThrow();
+    expect(() => parseCliArgs(['--days', 'abc'])).toThrow();
+  });
+  it('handles --help', () => {
+    expect(parseCliArgs(['--help']).help).toBe(true);
+  });
+});
