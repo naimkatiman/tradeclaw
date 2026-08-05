@@ -186,17 +186,22 @@ describe('regimeAt + classifyBucket', () => {
     const series = buildRegimeSeries(trendBars(260, 5));
     expect(regimeAt(series, 0)).toBeNull();
   });
+  it('barCloseTs reflects the close of the classified bar (bar 259 opens 259*DAY_MS, closes 260*DAY_MS)', () => {
+    const series = buildRegimeSeries(trendBars(260, 5));
+    const signalTs = 259 * DAY_MS + DAY_MS;
+    expect(regimeAt(series, signalTs)!.barCloseTs).toBe(260 * DAY_MS);
+  });
 });
 
 describe('classifyBucket (direct RegimeSnapshot fixtures)', () => {
   it('returns null when the variant detector value is unavailable, under every variant', () => {
-    const regime: RegimeSnapshot = { trendSide: 'up', adx: null, er: null };
+    const regime: RegimeSnapshot = { trendSide: 'up', adx: null, er: null, barCloseTs: 0 };
     for (const variant of VARIANTS) {
       expect(classifyBucket('BUY', regime, variant)).toBeNull();
     }
   });
   it('returns sideways when the detector is strong but trendSide is none, under every variant', () => {
-    const regime: RegimeSnapshot = { trendSide: 'none', adx: 30, er: 0.8 };
+    const regime: RegimeSnapshot = { trendSide: 'none', adx: 30, er: 0.8, barCloseTs: 0 };
     for (const variant of VARIANTS) {
       expect(classifyBucket('BUY', regime, variant)).toBe('sideways');
     }

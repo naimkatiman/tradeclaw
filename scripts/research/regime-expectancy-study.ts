@@ -64,6 +64,9 @@ Options:
 /** EMA200 + 20 slope + ADX warmup, with slack for missing bars. */
 const LOOKBACK_BARS = 320;
 
+/** Pre-registered staleness rule: a signal is classifiable only if its selected D1 bar closed within this window before the signal. */
+const MAX_BAR_STALENESS_MS = 7 * DAY_MS;
+
 function fmt(x: number, d = 4): string {
   return (x >= 0 ? '+' : '') + x.toFixed(d);
 }
@@ -180,6 +183,7 @@ async function main() {
   );
   const excludedPairs = new Map<string, number>(); // pair -> counted signals lost
   let unclassified = 0;
+  let unclassifiedStale = 0;
   const byVariant = new Map<VariantName, Map<BucketName, StudyTrade[]>>(
     VARIANTS.map((v) => [v, new Map([['aligned', []], ['counter', []], ['sideways', []]])]),
   );
@@ -193,6 +197,7 @@ async function main() {
     }
     const regime = regimeAt(series, t.ts);
     if (!regime) { unclassified++; continue; }
+    if (t.ts - regime.barCloseTs > MAX_BAR_STALENESS_MS) { unclassifiedStale++; continue; }
     classified++;
     for (const v of VARIANTS) {
       const bucket = classifyBucket(t.direction, regime, v);
@@ -201,7 +206,7 @@ async function main() {
   }
 
   console.log('── Coverage ──');
-  console.log(`classified=${classified}  unclassified(warmup/no-closed-bar)=${unclassified}`);
+  console.log(`classified=${classified}  unclassified(warmup/no-closed-bar)=${unclassified}  unclassified-stale(barClose>7d)=${unclassifiedStale}`);
   if (excludedPairs.size > 0) {
     const total = [...excludedPairs.values()].reduce((a, b) => a + b, 0);
     console.log(`EXCLUDED (no D1 candles): ${total} signals across ${excludedPairs.size} pairs:`);
@@ -264,6 +269,7 @@ async function main() {
       coverage: {
         classified,
         unclassified,
+        unclassifiedStale,
         excludedPairs: Object.fromEntries(excludedPairs),
       },
       regimeSplit: bucketJson,

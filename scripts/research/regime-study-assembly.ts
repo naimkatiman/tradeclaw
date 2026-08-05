@@ -242,6 +242,8 @@ export interface RegimeSnapshot {
   trendSide: TrendSide;
   adx: number | null;
   er: number | null;
+  /** Close time of the bar this snapshot was computed from. */
+  barCloseTs: number;
 }
 
 export function regimeAt(series: SymbolRegimeSeries, signalTs: number): RegimeSnapshot | null {
@@ -256,7 +258,7 @@ export function regimeAt(series: SymbolRegimeSeries, signalTs: number): RegimeSn
   if (close > ema && ema > emaPrev) trendSide = 'up';
   else if (close < ema && ema < emaPrev) trendSide = 'down';
 
-  return { trendSide, adx: series.adx14[i], er: series.er20[i] };
+  return { trendSide, adx: series.adx14[i], er: series.er20[i], barCloseTs: series.barTs[i] + DAY_MS };
 }
 
 /** null ⇒ unclassified (detector value unavailable at this bar). */
