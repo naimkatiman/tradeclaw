@@ -121,3 +121,67 @@ describe('efficiencyRatioSeries (Kaufman, window 20)', () => {
     for (let i = 0; i < 20; i++) expect(er[i]).toBeNull();
   });
 });
+
+import {
+  lastClosedBarIndex,
+  buildRegimeSeries,
+  regimeAt,
+  classifyBucket,
+  DAY_MS,
+} from '../regime-study-assembly';
+
+describe('lastClosedBarIndex (the lookahead gate)', () => {
+  const ts = [0, DAY_MS, 2 * DAY_MS, 3 * DAY_MS]; // D1 open times
+  it('returns the last bar whose CLOSE is at or before the signal', () => {
+    // signal exactly at close of bar 1 (open DAY_MS + DAY_MS): bar 1 usable
+    expect(lastClosedBarIndex(ts, DAY_MS, 2 * DAY_MS)).toBe(1);
+    // one ms earlier: bar 1 still open -> bar 0
+    expect(lastClosedBarIndex(ts, DAY_MS, 2 * DAY_MS - 1)).toBe(0);
+  });
+  it('returns -1 when no bar has closed yet', () => {
+    expect(lastClosedBarIndex(ts, DAY_MS, DAY_MS - 1)).toBe(-1);
+  });
+  it('returns the final bar for far-future signals', () => {
+    expect(lastClosedBarIndex(ts, DAY_MS, 100 * DAY_MS)).toBe(3);
+  });
+});
+
+function trendBars(n: number, step: number, start = 1000): Bar[] {
+  return Array.from({ length: n }, (_, i) => {
+    const close = start + step * i;
+    return { timestamp: i * DAY_MS, open: close, high: close * 1.005, low: close * 0.995, close, volume: 1 };
+  });
+}
+
+describe('regimeAt + classifyBucket', () => {
+  it('classifies an established uptrend as up/aligned for BUY, counter for SELL', () => {
+    const series = buildRegimeSeries(trendBars(260, 5));
+    const signalTs = 259 * DAY_MS + DAY_MS; // after final close
+    const regime = regimeAt(series, signalTs)!;
+    expect(regime.trendSide).toBe('up');
+    expect(classifyBucket('BUY', regime, 'adx20')).toBe('aligned');
+    expect(classifyBucket('SELL', regime, 'adx20')).toBe('counter');
+    expect(classifyBucket('BUY', regime, 'er030')).toBe('aligned');
+  });
+  it('classifies chop as sideways under every variant', () => {
+    // 220 warmup up-bars then 60 alternating bars around a flat level
+    const bars = trendBars(220, 5);
+    const last = bars[bars.length - 1].close;
+    for (let i = 0; i < 60; i++) {
+      const close = last + (i % 2 === 0 ? 0 : 3);
+      bars.push({ timestamp: (220 + i) * DAY_MS, open: close, high: close + 4, low: close - 4, close, volume: 1 });
+    }
+    const series = buildRegimeSeries(bars);
+    const regime = regimeAt(series, 280 * DAY_MS)!;
+    expect(classifyBucket('BUY', regime, 'adx20')).toBe('sideways');
+    expect(classifyBucket('BUY', regime, 'er030')).toBe('sideways');
+  });
+  it('returns null (unclassified) during warmup', () => {
+    const series = buildRegimeSeries(trendBars(50, 5));
+    expect(regimeAt(series, 49 * DAY_MS + DAY_MS)).toBeNull();
+  });
+  it('returns null when the signal predates every close', () => {
+    const series = buildRegimeSeries(trendBars(260, 5));
+    expect(regimeAt(series, 0)).toBeNull();
+  });
+});

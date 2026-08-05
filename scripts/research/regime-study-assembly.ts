@@ -9,6 +9,7 @@
  * rows and REQUIRES observed-OHLCV provenance. recost-segment.ts drops all
  * expired rows — do not copy that here or the reconciliation gate fails.
  */
+import { emaSeries } from './slow-gate-assembly';
 
 export const DAY_MS = 86_400_000;
 /** equity/route.ts — per-trade R cap for sizing (stat R stays uncapped). */
@@ -187,4 +188,94 @@ export function efficiencyRatioSeries(closes: number[], window = 20): (number | 
     out[i] = path > 0 ? Math.abs(closes[i] - closes[i - window]) / path : 0;
   }
   return out;
+}
+
+export type TrendSide = 'up' | 'down' | 'none';
+export type VariantName = 'adx20' | 'adx25' | 'er030';
+export type BucketName = 'aligned' | 'counter' | 'sideways';
+
+export const VARIANTS: VariantName[] = ['adx20', 'adx25', 'er030'];
+
+const EMA_PERIOD = 200;
+const SLOPE_LOOKBACK = 20;
+const ADX_PERIOD = 14;
+const ER_WINDOW = 20;
+const ER_TRENDING_MIN = 0.30;
+
+export interface SymbolRegimeSeries {
+  barTs: number[];
+  closes: number[];
+  ema200: (number | null)[];
+  adx14: (number | null)[];
+  er20: (number | null)[];
+}
+
+export function buildRegimeSeries(bars: Bar[]): SymbolRegimeSeries {
+  const closes = bars.map((b) => b.close);
+  return {
+    barTs: bars.map((b) => b.timestamp),
+    closes,
+    ema200: emaSeries(closes, EMA_PERIOD),
+    adx14: adxSeries(bars, ADX_PERIOD),
+    er20: efficiencyRatioSeries(closes, ER_WINDOW),
+  };
+}
+
+/** Greatest index whose bar CLOSE (open ts + barMs) is <= signalTs; -1 if none. */
+export function lastClosedBarIndex(barTimestamps: number[], barMs: number, signalTs: number): number {
+  let lo = 0;
+  let hi = barTimestamps.length - 1;
+  let ans = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (barTimestamps[mid] + barMs <= signalTs) {
+      ans = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  return ans;
+}
+
+export interface RegimeSnapshot {
+  trendSide: TrendSide;
+  adx: number | null;
+  er: number | null;
+}
+
+export function regimeAt(series: SymbolRegimeSeries, signalTs: number): RegimeSnapshot | null {
+  const i = lastClosedBarIndex(series.barTs, DAY_MS, signalTs);
+  if (i < 0) return null;
+  const ema = series.ema200[i];
+  const emaPrev = i - SLOPE_LOOKBACK >= 0 ? series.ema200[i - SLOPE_LOOKBACK] : null;
+  if (ema === null || emaPrev === null) return null; // warmup -> unclassified
+
+  const close = series.closes[i];
+  let trendSide: TrendSide = 'none';
+  if (close > ema && ema > emaPrev) trendSide = 'up';
+  else if (close < ema && ema < emaPrev) trendSide = 'down';
+
+  return { trendSide, adx: series.adx14[i], er: series.er20[i] };
+}
+
+/** null ⇒ unclassified (detector value unavailable at this bar). */
+export function classifyBucket(
+  direction: 'BUY' | 'SELL',
+  regime: RegimeSnapshot,
+  variant: VariantName,
+): BucketName | null {
+  let strong: boolean;
+  if (variant === 'adx20' || variant === 'adx25') {
+    if (regime.adx === null) return null;
+    strong = regime.adx >= (variant === 'adx20' ? 20 : 25);
+  } else {
+    if (regime.er === null) return null;
+    strong = regime.er >= ER_TRENDING_MIN;
+  }
+  if (!strong || regime.trendSide === 'none') return 'sideways';
+  const aligned =
+    (direction === 'BUY' && regime.trendSide === 'up') ||
+    (direction === 'SELL' && regime.trendSide === 'down');
+  return aligned ? 'aligned' : 'counter';
 }
