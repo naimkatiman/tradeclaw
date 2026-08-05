@@ -106,3 +106,85 @@ export function toStudyTrade(r: StudyRow): StudyTrade | null {
     isWin: !!r.hit,
   };
 }
+
+export interface Bar {
+  timestamp: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+/**
+ * Per-bar ADX with Wilder smoothing (same conventions as
+ * packages/signals/src/regime/features.ts computeAdxSeries, re-implemented
+ * here because research scripts stay off the unbuilt @tradeclaw/signals dist).
+ * Output aligned to bars; null until index 2*period-1.
+ */
+export function adxSeries(bars: Bar[], period = 14): (number | null)[] {
+  const n = bars.length;
+  const out: (number | null)[] = new Array(n).fill(null);
+  if (n < 2 * period) return out;
+
+  // tr/pdm/ndm[k] describe the move INTO bar k+1.
+  const tr: number[] = [];
+  const pdm: number[] = [];
+  const ndm: number[] = [];
+  for (let i = 1; i < n; i++) {
+    const h = bars[i].high;
+    const l = bars[i].low;
+    const pc = bars[i - 1].close;
+    tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)));
+    const up = h - bars[i - 1].high;
+    const dn = bars[i - 1].low - l;
+    pdm.push(up > dn && up > 0 ? up : 0);
+    ndm.push(dn > up && dn > 0 ? dn : 0);
+  }
+
+  let sTr = 0;
+  let sP = 0;
+  let sN = 0;
+  for (let k = 0; k < period; k++) {
+    sTr += tr[k];
+    sP += pdm[k];
+    sN += ndm[k];
+  }
+
+  // dxAt[i] for bar index i = period .. n-1
+  const dxAt = new Map<number, number>();
+  for (let i = period; i < n; i++) {
+    const pdi = sTr > 0 ? (100 * sP) / sTr : 0;
+    const ndi = sTr > 0 ? (100 * sN) / sTr : 0;
+    const sum = pdi + ndi;
+    dxAt.set(i, sum > 0 ? (100 * Math.abs(pdi - ndi)) / sum : 0);
+    if (i + 1 < n) {
+      const k = i; // tr[k] is the move into bar k+1
+      sTr = sTr - sTr / period + tr[k];
+      sP = sP - sP / period + pdm[k];
+      sN = sN - sN / period + ndm[k];
+    }
+  }
+
+  // First ADX at 2*period-1 = mean of DX over bars period..2*period-1.
+  let adx = 0;
+  for (let i = period; i < 2 * period; i++) adx += dxAt.get(i)!;
+  adx /= period;
+  out[2 * period - 1] = adx;
+  for (let i = 2 * period; i < n; i++) {
+    adx = (adx * (period - 1) + dxAt.get(i)!) / period;
+    out[i] = adx;
+  }
+  return out;
+}
+
+/** Kaufman efficiency ratio: |net change| / path length over `window` steps. Null until index `window`. */
+export function efficiencyRatioSeries(closes: number[], window = 20): (number | null)[] {
+  const out: (number | null)[] = new Array(closes.length).fill(null);
+  for (let i = window; i < closes.length; i++) {
+    let path = 0;
+    for (let j = i - window + 1; j <= i; j++) path += Math.abs(closes[j] - closes[j - 1]);
+    out[i] = path > 0 ? Math.abs(closes[i] - closes[i - window]) / path : 0;
+  }
+  return out;
+}
