@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Research: What We Tested and Learned | TradeClaw',
     description:
-      'Six strategy studies, evaluated under published modeled costs and reported with machine-readable artifacts and explicit claim boundaries.',
+      'Seven strategy studies, evaluated under published modeled costs and reported with machine-readable artifacts and explicit claim boundaries.',
     url: 'https://tradeclaw.win/research',
     siteName: 'TradeClaw',
     type: 'website',
@@ -25,6 +25,7 @@ const REGISTRY_URL = `${GH}/docs/research/experiments/REGISTRY.md`;
 const VERDICT_TIMING = `${GH}/docs/research/2026-06-12-phase4.5-verdict-single-asset-timing.md`;
 const VERDICT_CARRY = `${GH}/docs/research/2026-06-13-phase5-verdict-carry-xsection.md`;
 const SLOW_GATE_PLAN = `${GH}/docs/plans/2026-07-18-slow-regime-gate-sandbox.md`;
+const REGIME_STUDY_PLAN = `${GH}/docs/plans/2026-08-05-regime-expectancy-study.md`;
 const experiment = (file: string) => `${GH}/docs/research/experiments/${file}`;
 
 type Tone = 'down' | 'neutral';
@@ -305,6 +306,74 @@ const ENTRIES: KillEntry[] = [
       { label: 'Fixed-parameter sandbox plan', href: SLOW_GATE_PLAN },
     ],
   },
+  {
+    ref: 'Live record · registered 2026-08-05',
+    family: 'Regime filtering and directional inversion',
+    stamp: 'Refuted · live record',
+    stampTone: 'down',
+    hypothesis:
+      'Two hypotheses were written down before any query ran, both restating this project’s founder’s own brief, which the registered spec quotes: do not follow the mass, and trade the trending chart rather than the sideways one. First, that signals entered in trending regimes carry materially better net expectancy than signals entered in sideways regimes, so filtering to trending charts would turn the published record positive. Second, that the crowd loses, so inverting every signal would be profitable. The detector thresholds, the reconciliation tolerances and the decision rule were fixed in the same commit as the hypotheses, before the data was read. Publishing this entry was not pre-registered: the spec listed site publication as out of scope, to be decided once results existed.',
+    spec: [
+      {
+        label: 'Population',
+        value: '3,157 counted resolved 24h sized trades from the published record, 2026-06-10 to 2026-08-04',
+      },
+      {
+        label: 'Regime inputs',
+        value: 'Daily EMA200 side plus 20-bar slope; ADX(14) at cuts 20 and 25; Kaufman efficiency ratio(20) at cut 0.30',
+      },
+      { label: 'Costs', value: 'Per-asset modeled round-trip fee and slippage recorded at signal emission' },
+      {
+        label: 'Gate',
+        value: 'Reconciliation against the published dashboard had to pass before any split could be read',
+      },
+      { label: 'Scope', value: 'Regime buckets are crypto only: 1,162 of 3,157 trades were classifiable' },
+      { label: 'Integrity', value: 'Reconciliation PASS · lookahead PASS · 0 stale-bar classifications' },
+    ],
+    results: [
+      {
+        caption: 'Regime at entry, ADX(14) cut at 20, crypto only',
+        rows: [
+          {
+            label: 'Trend-aligned (n=306)',
+            value: 'gross +0.0979R · cost 0.9710R · net −0.8732R',
+            tone: 'down',
+          },
+          {
+            label: 'Counter-trend (n=463)',
+            value: 'gross +0.0965R · cost 0.7901R · net −0.6936R',
+            tone: 'down',
+          },
+          { label: 'Sideways (n=393)', value: 'gross +0.0325R · cost 0.8214R · net −0.7889R', tone: 'down' },
+        ],
+      },
+      {
+        caption: 'Inverting every signal, whole counted stream',
+        rows: [
+          { label: 'As published (n=3,157)', value: 'win rate 37.4% · net −0.5019R', tone: 'down' },
+          { label: 'Every signal flipped (n=3,157)', value: 'win rate 62.6% · net −0.5207R', tone: 'down' },
+        ],
+      },
+      {
+        caption: 'Gross return per trade required to break even, as stop width widens',
+        rows: [
+          { label: 'Stop width as published', value: '0.5113R', tone: 'down' },
+          { label: '3× wider', value: '0.1704R' },
+          { label: '5× wider', value: '0.1023R' },
+          { label: '10× wider', value: '0.0511R' },
+        ],
+      },
+    ],
+    reading:
+      'No regime bucket was net-positive under any detector. Trend alignment did not even improve gross expectancy over counter-trend, +0.0979R against +0.0965R at the ADX 20 cut, and under the efficiency-ratio cut the trend-aligned bucket was gross-negative at −0.0871R, on 102 trades, below this study’s 300-trade bar for a conclusive cell. Inverting every signal produced a 62.6% win rate and a worse net result, −0.5207R against −0.5019R, because flipping the direction flips the returns and keeps the cost. What the study leaves standing is the cost geometry: modeled cost per trade is round-trip cost divided by stop width, so the published stream’s gross edge of +0.0094R sits roughly 54 times below its 0.5113R cost wall, and that wall shrinks only as stop width and holding period grow. That is an analytic rescale of the cost term alone: win and loss distributions at wider stops were not simulated and are not knowable from this dataset, so the wider-stop figures are a lower bound on what a trade must clear, not a projected result. Horizon, not filtering, is the lever the data leaves open. The regime results cover crypto only, 1,162 of 3,157 trades; 1,995 trades across 20 non-crypto pairs have no daily candle coverage in this repository, so their entry context cannot be independently re-derived here, and their outcomes remain counted, resolved trades. These are observed-OHLCV outcomes under modeled cost assumptions, not broker fills, and not a trading recommendation. No strategy was activated or deactivated by this study.',
+    artifacts: [
+      {
+        label: 'Regime expectancy JSON',
+        href: experiment('regime-expectancy-live-record-crypto-D1-2026-08-05.json'),
+      },
+      { label: 'Pre-registered spec and results', href: REGIME_STUDY_PLAN },
+    ],
+  },
 ];
 
 function toneClass(tone: Tone | undefined): string {
@@ -414,7 +483,9 @@ export default function ResearchPage() {
                 one was defined, its deployment gate. The first five studies did not clear their deployment
                 gates. A sixth, slow daily sandbox produced a narrower result: one vol-targeted 50/50 portfolio
                 improved modeled drawdown-adjusted metrics without establishing uniform raw-return outperformance
-                across both assets. It did not activate a live strategy.
+                across both assets. It did not activate a live strategy. A seventh is the first study run
+                against the published record rather than a backtest: it registered two of this project’s own
+                directional hypotheses, then refuted both.
               </p>
               <p className="mt-4 max-w-prose text-[13px] leading-relaxed text-[var(--text-secondary)]">
                 Each entry links its committed machine-readable artifact and the final verdict memo. The
@@ -454,6 +525,15 @@ export default function ResearchPage() {
               CAGR: 22.8% versus 28.1%. It did improve modeled Calmar from 0.32 to 0.61 and Sharpe from
               0.71 to 0.87, while modeled max drawdown fell from 86.5% to 37.4%. HMM sizing failed: its
               full-window portfolio Calmar was 0.21, below buy-and-hold at 0.32.
+            </p>
+            <p className="mt-4 max-w-prose text-[15px] leading-relaxed text-[var(--foreground)]">
+              The live-record study added a second survivor, a mechanism rather than a strategy. Modeled cost
+              per trade is round-trip cost divided by stop width, so the gross return needed to break even
+              falls from 0.5113R at the published stop width to 0.1023R at five times wider. That rescales
+              the cost term only; it does not simulate what wins and losses look like at wider stops, and it
+              is not a claim that a wider stop is profitable. Regime filtering and signal inversion did not
+              survive: no regime bucket was net-positive, and flipping every signal produced a 62.6% win rate
+              that still lost more, −0.5207R against −0.5019R.
             </p>
             <p className="mt-4 max-w-prose text-[15px] leading-relaxed text-[var(--text-secondary)]">
               That changes the research record, not the deployment gate. The slow-gate study is a sandbox-only

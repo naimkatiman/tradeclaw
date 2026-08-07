@@ -1,0 +1,259 @@
+{
+  "study": {
+    "id": "regime-expectancy-2026-08-05",
+    "family": "Regime filtering and directional inversion on the live signal record",
+    "registeredOn": "2026-08-05",
+    "preRegistration": "The spec fixed the hypotheses, detector thresholds, reconciliation tolerances and the decision rule before any data was read.",
+    "publishDecision": "Not pre-registered. The spec listed site publication as out of scope, to be decided once results existed; this entry is that decision taken after the fact.",
+    "spec": "docs/plans/2026-08-05-regime-expectancy-study.md",
+    "runner": "scripts/research/regime-expectancy-study.ts",
+    "assembly": "scripts/research/regime-study-assembly.ts",
+    "population": "Counted resolved 24h sized trades from the production signal_history record (same filter as the public dashboard).",
+    "window": "2026-06-10 to 2026-08-04",
+    "regimeInputs": "D1 candles from the repository candle store (migration 049). Trend side: close vs EMA200 plus EMA200 slope over the trailing 20 bars. Strength: ADX(14) at cuts 20 and 25, and Kaufman efficiency ratio(20) at cut 0.30.",
+    "scope": "H1 regime buckets cover crypto only: 1,162 of 3,157 counted trades could be classified. H2 inversion, H3 cost geometry and H4 per-strategy cover the full counted stream.",
+    "claimBoundary": "Outcomes are observed-OHLCV resolutions with modeled round-trip cost assumptions, not broker fills. Not a trading recommendation.",
+    "runGeneratedAt": "2026-08-05T09:27:52.254Z",
+    "minN": 300
+  },
+  "qualityGates": {
+    "reconciliation": {
+      "status": "PASS",
+      "failures": [],
+      "preRegisteredTolerances": {
+        "minN": 3095,
+        "grossExpectancyR": [
+          -0.03,
+          0.07
+        ],
+        "avgCostR": [
+          0.45,
+          0.57
+        ],
+        "netExpectancyR": [
+          -0.55,
+          -0.43
+        ]
+      },
+      "observed": {
+        "n": 3157,
+        "grossExpectancyR": 0.009378485288831232,
+        "avgCostR": 0.5113207654923799,
+        "netExpectancyR": -0.5019422802035495
+      }
+    },
+    "lookahead": {
+      "status": "PASS",
+      "rule": "A signal may only be classified from a D1 bar whose close time is at or before the signal timestamp. Bar selection has exactly one code path (lastClosedBarIndex), boundary-tested on both sides."
+    },
+    "barStaleness": {
+      "status": "PASS",
+      "rule": "A signal is classifiable only if its selected D1 bar closed within 7 days before the signal.",
+      "unclassifiedStale": 0
+    }
+  },
+  "coverage": {
+    "countedTrades": 3157,
+    "classified": 1162,
+    "unclassifiedWarmupOrNoClosedBar": 0,
+    "unclassifiedStale": 0,
+    "excludedNoDailyCandles": 1995,
+    "excludedPairCount": 20,
+    "excludedPairs": {
+      "USDCHF": 204,
+      "AUDUSD": 193,
+      "USDCAD": 190,
+      "NZDUSD": 184,
+      "GBPUSD": 132,
+      "USDJPY": 132,
+      "EURUSD": 112,
+      "WTIUSD": 100,
+      "XAGUSD": 92,
+      "XAUUSD": 81,
+      "MSFTUSD": 77,
+      "AMZNUSD": 69,
+      "AMDUSD": 68,
+      "TSLAUSD": 66,
+      "METAUSD": 57,
+      "AAPLUSD": 55,
+      "NVDAUSD": 54,
+      "GOOGLUSD": 48,
+      "JPMUSD": 48,
+      "BACUSD": 33
+    },
+    "excludedReason": "No D1 candle coverage in the repository candle store. The FX and metals backfill path is blocked by the upstream provider, so these pairs cannot have their entry context independently re-derived. Their outcomes are still counted, resolved, real trades.",
+    "droppedRows": {
+      "outcomeFailsCountedFilter": 5552,
+      "missingStopLoss": 0,
+      "note": "Simulated, gate-blocked and unresolved rows are excluded upstream in the SQL query and are not part of these counts."
+    }
+  },
+  "regimeSplit": {
+    "adx20": {
+      "aligned": {
+        "n": 306,
+        "winRatePct": 37.254901960784316,
+        "avgWinR": 1.8891850870041074,
+        "avgLossR": -0.9657355602187551,
+        "grossExpectancyR": 0.09786232796231105,
+        "avgCostR": 0.9710484572436594,
+        "netExpectancyR": -0.8731861292813474,
+        "conclusive": true
+      },
+      "counter": {
+        "n": 463,
+        "winRatePct": 40.60475161987041,
+        "avgWinR": 1.6880965557873464,
+        "avgLossR": -0.9914970026091083,
+        "grossExpectancyR": 0.09654530619982002,
+        "avgCostR": 0.7901359694110304,
+        "netExpectancyR": -0.6935906632112112,
+        "conclusive": true
+      },
+      "sideways": {
+        "n": 393,
+        "winRatePct": 36.6412213740458,
+        "avgWinR": 1.7979169955756216,
+        "avgLossR": -0.9884455984206365,
+        "grossExpectancyR": 0.032511687929136966,
+        "avgCostR": 0.8213776500750267,
+        "netExpectancyR": -0.7888659621458899,
+        "conclusive": true
+      }
+    },
+    "adx25": {
+      "aligned": {
+        "n": 125,
+        "winRatePct": 39.2,
+        "avgWinR": 1.7984333552809726,
+        "avgLossR": -0.9996836703641229,
+        "grossExpectancyR": 0.09717820368875434,
+        "avgCostR": 0.6715751136773777,
+        "netExpectancyR": -0.5743969099886228,
+        "conclusive": false
+      },
+      "counter": {
+        "n": 222,
+        "winRatePct": 38.288288288288285,
+        "avgWinR": 1.6893765334571575,
+        "avgLossR": -0.9864389530800636,
+        "grossExpectancyR": 0.03808499446797225,
+        "avgCostR": 0.6201264868303202,
+        "netExpectancyR": -0.5820414923623478,
+        "conclusive": false
+      },
+      "sideways": {
+        "n": 815,
+        "winRatePct": 38.282208588957054,
+        "avgWinR": 1.7945803205665156,
+        "avgLossR": -0.9802937609674011,
+        "grossExpectancyR": 0.0819893230063197,
+        "avgCostR": 0.937619912818833,
+        "netExpectancyR": -0.8556305898125138,
+        "conclusive": true
+      }
+    },
+    "er030": {
+      "aligned": {
+        "n": 102,
+        "winRatePct": 32.35294117647059,
+        "avgWinR": 1.8225060049940613,
+        "avgLossR": -1.0004306241770156,
+        "grossExpectancyR": -0.08712759709225537,
+        "avgCostR": 0.679587057230963,
+        "netExpectancyR": -0.7667146543232184,
+        "conclusive": false
+      },
+      "counter": {
+        "n": 148,
+        "winRatePct": 41.891891891891895,
+        "avgWinR": 1.6670507470661635,
+        "avgLossR": -0.9798643319100229,
+        "grossExpectancyR": 0.12897847144486607,
+        "avgCostR": 0.7543995373506451,
+        "netExpectancyR": -0.6254210659057786,
+        "conclusive": false
+      },
+      "sideways": {
+        "n": 912,
+        "winRatePct": 38.48684210526316,
+        "avgWinR": 1.7895426076537682,
+        "avgLossR": -0.982010359489783,
+        "grossExpectancyR": 0.08467285483849196,
+        "avgCostR": 0.8824629241972566,
+        "netExpectancyR": -0.7977900693587666,
+        "conclusive": true
+      }
+    }
+  },
+  "inversion": {
+    "original": {
+      "n": 3157,
+      "winRatePct": 37.377256889452006,
+      "avgWinR": 1.6669474524915755,
+      "avgLossR": -0.9799646514330915,
+      "grossExpectancyR": 0.009378485288831232,
+      "avgCostR": 0.5113207654923799,
+      "netExpectancyR": -0.5019422802035495,
+      "conclusive": true
+    },
+    "inverted": {
+      "n": 3157,
+      "winRatePct": 62.62274311054799,
+      "avgWinR": 0.9799646514330915,
+      "avgLossR": -1.6669474524915755,
+      "grossExpectancyR": -0.009378485288831232,
+      "avgCostR": 0.5113207654923799,
+      "netExpectancyR": -0.5206992507812113,
+      "conclusive": true
+    }
+  },
+  "costCurve": [
+    {
+      "multiple": 1,
+      "avgCostR": 0.5113207654923799
+    },
+    {
+      "multiple": 2,
+      "avgCostR": 0.25566038274618996
+    },
+    {
+      "multiple": 3,
+      "avgCostR": 0.17044025516412664
+    },
+    {
+      "multiple": 5,
+      "avgCostR": 0.10226415309847599
+    },
+    {
+      "multiple": 8,
+      "avgCostR": 0.06391509568654749
+    },
+    {
+      "multiple": 10,
+      "avgCostR": 0.051132076549237994
+    }
+  ],
+  "perStrategy": {
+    "classic": {
+      "n": 3018,
+      "winRatePct": 37.47514910536779,
+      "avgWinR": 1.673374147385464,
+      "avgLossR": -0.9817606065474259,
+      "grossExpectancyR": 0.013255101437365843,
+      "avgCostR": 0.5174030272893789,
+      "netExpectancyR": -0.5041479258520141,
+      "conclusive": true
+    },
+    "hmm-top3": {
+      "n": 139,
+      "winRatePct": 35.25179856115108,
+      "avgWinR": 1.5186088417775472,
+      "avgLossR": -0.9423094592025516,
+      "grossExpectancyR": -0.07479149698654547,
+      "avgCostR": 0.37926129712301077,
+      "netExpectancyR": -0.454052794109556,
+      "conclusive": false
+    }
+  }
+}
