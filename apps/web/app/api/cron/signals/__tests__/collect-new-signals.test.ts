@@ -61,6 +61,9 @@ jest.mock('../../../../../lib/signal-worker', () => ({
 jest.mock('../../../../../lib/signals-live', () => ({
   readLiveSignals: jest.fn(),
 }));
+jest.mock('../../../../../lib/d1-slow-gate-paper', () => ({
+  runD1SlowGatePaperLane: jest.fn(),
+}));
 
 // preset-dispatch (same dir as route.ts)
 jest.mock('../preset-dispatch', () => ({
@@ -69,10 +72,11 @@ jest.mock('../preset-dispatch', () => ({
 
 // ── Import after mocks ────────────────────────────────────────────────────────
 
-import { collectNewSignals, resolveOldSignals } from '../route';
+import { collectNewSignals, resolveOldSignals, runD1PaperLaneSafely } from '../route';
 import { getOHLCV } from '../../../../lib/ohlcv';
 import { getSignals } from '../../../../lib/signals';
 import { readLiveSignals } from '../../../../../lib/signals-live';
+import { runD1SlowGatePaperLane } from '../../../../../lib/d1-slow-gate-paper';
 import {
   getPendingRecordsAsync,
   getRecentRecordForSymbolAsync,
@@ -90,6 +94,7 @@ const mockGetOHLCV = getOHLCV as jest.MockedFunction<typeof getOHLCV>;
 const mockGetPendingRecords = getPendingRecordsAsync as jest.MockedFunction<typeof getPendingRecordsAsync>;
 const mockResolveFromCandles = resolveFromCandles as jest.MockedFunction<typeof resolveFromCandles>;
 const mockUpdateRecords = updateRecordsAsync as jest.MockedFunction<typeof updateRecordsAsync>;
+const mockRunD1PaperLane = runD1SlowGatePaperLane as jest.MockedFunction<typeof runD1SlowGatePaperLane>;
 
 // ── Minimal signal fixture ────────────────────────────────────────────────────
 
@@ -297,6 +302,23 @@ describe('collectNewSignals — strategy attribution', () => {
       expect(candidates[0].preBoostConfidence).toBeUndefined();
       expect(candidates[0].mtfAgreement).toBeUndefined();
       expect(candidates[0].confluenceBonus).toBeUndefined();
+    });
+  });
+});
+
+describe('runD1PaperLaneSafely', () => {
+  it('turns an unexpected paper-lane throw into an isolated fail-closed result', async () => {
+    mockRunD1PaperLane.mockRejectedValueOnce(new Error('unexpected paper failure'));
+
+    await expect(runD1PaperLaneSafely()).resolves.toEqual({
+      processed: 0,
+      candidates: 0,
+      recorded: 0,
+      failures: [{
+        symbol: 'BTCUSD+ETHUSD',
+        stage: 'lane',
+        error: 'unexpected paper failure',
+      }],
     });
   });
 });
