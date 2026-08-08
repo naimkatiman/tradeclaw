@@ -144,6 +144,13 @@ describe('runD1SlowGate', () => {
     expect(maxRollingDirectionChanges(run.transitions, 365 * DAY_MS)).toBe(3);
   });
 
+  it('counts both endpoints when changes are exactly 365 days apart', () => {
+    expect(maxRollingDirectionChanges([
+      { timestamp: START },
+      { timestamp: START + 365 * DAY_MS },
+    ], 365 * DAY_MS)).toBe(2);
+  });
+
   it('is prefix-invariant: future candles cannot rewrite earlier transitions or equity', () => {
     const closes = [
       ...Array.from({ length: 199 }, () => 100),

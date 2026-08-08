@@ -166,7 +166,7 @@ export function maxRollingDirectionChanges(
   let first = 0;
   let max = 0;
   for (let last = 0; last < timestamps.length; last++) {
-    while (timestamps[last] - timestamps[first] >= windowMs) first++;
+    while (timestamps[last] - timestamps[first] > windowMs) first++;
     max = Math.max(max, last - first + 1);
   }
   return max;
