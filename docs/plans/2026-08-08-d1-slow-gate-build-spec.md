@@ -38,7 +38,12 @@ A new tracked strategy `d1-slow-gate`, shipped one layer per commit:
    gate (close above a rising EMA200 = long, else flat). ATR-based stop sized
    so the modeled cost is ≤ 0.10R at the production crypto cost model — the
    ≥5× relative-stop-width point on the study's cost curve. Hard
-   trade-frequency cap as a code-level invariant, not a hope.
+   trade-frequency cap as a code-level invariant, not a hope — the cap counts
+   DIRECTION changes (entry/exit round trips), not sizing adjustments. The
+   distinction matters: in the sandbox, vol-target sizing ran 1,264 flips on
+   BTC against the plain gate's 86 for 23.59% vs 21.5% total cost drag over
+   8.9 years, because size deltas are not round trips. A cap counting sizing
+   changes would disqualify a variant for behaviour costing ~2pp.
 2. **Emit-only registration**: signals recorded to `signal_history` as a
    simulated/paper lane, fail-closed excluded from counted-resolved (the
    existing `isCountedResolved` discipline) until §6 passes.
@@ -87,6 +92,11 @@ published to /research as a kill entry.
 1. Approve this spec (or edit it — edits before the walk-forward are free).
 2. Universe: BTC+ETH only, or all crypto pairs with D1 coverage.
 3. Sizing variant: fixed-fractional or vol-target (§4).
-4. Lane reconciliation: `feat/slow-gate-research-surface`
-   (worktree `C:/Ai/tradeclaw-slow-gate-surface`) predates this spec — decide
-   whether it is superseded, absorbed, or the base for layer 4.
+4. ~~Lane reconciliation~~ — SETTLED, no decision needed. Verified
+   2026-08-08: `feat/slow-gate-research-surface` has ZERO commits not already
+   on `main` (`git rev-list --left-right --count origin/main...` → `31 0`;
+   `git branch --merged origin/main` lists it), and its tip `702c94a0` is a
+   merge OF `main` INTO the branch. `research/slow-gate-sandbox` is likewise
+   fully merged. Nothing to absorb: layer 4 builds fresh off `main`, and the
+   stale worktrees (`C:/Ai/tradeclaw-slow-gate-surface`,
+   `C:/Ai/tradeclaw-wt-research`) are cleanup only.
