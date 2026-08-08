@@ -4311,6 +4311,8 @@ next_actions:
       backtests 14/14 suites, 103/103 tests and 1/1 snapshot; typecheck; lint with
       0 errors and 23 pre-existing warnings; production build 324/324 pages; and a
       byte-identical final artifact rerun. Docker is unavailable on this Windows
-      host, so PR #203's protected Docker Build and Playwright jobs are the
-      authoritative remaining environment gates. Merge approval is pending, and
-      any future live activation remains a separate decision outside this task.
+      host, but protected CI on implementation head b02b449c passed Lint & Type
+      Check, Unit Tests, Build, Strategy Backtests, Docker Build, and Playwright
+      E2E; the independent backtest-comment job also passed. PR #203 remains a
+      draft pending merge review. Any future live activation remains a separate
+      decision outside this task.
