@@ -6,10 +6,14 @@ import {
 } from './signal-history';
 
 /**
- * 'pro' is the full row set (name kept for URL/query-param compatibility —
- * scope=pro links exist in the wild). 'free' is accepted by parseScope and
- * mapped to the full set: the tier windows are gone, everyone gets everything.
- * 'broadcast' remains an honest segmentation (gate-approved rows only).
+ * Two row sets, and only one of them is a real distinction.
+ *
+ * 'pro' is the full row set. The name is a leftover from the paid tiers and is
+ * kept because scope=pro links exist in the wild; `scope=full` is the honest
+ * spelling and the one the docs advertise. Both resolve here, as does anything
+ * unrecognised — there are no tier windows, everyone gets everything.
+ *
+ * 'broadcast' is the one honest segmentation: gate-approved rows only.
  */
 export type SignalScope = 'pro' | 'broadcast';
 
@@ -42,6 +46,8 @@ export interface ResolvedSlice {
 
 export function parseScope(raw: string | null | undefined): SignalScope {
   if (raw === 'broadcast') return 'broadcast';
+  // 'full' is the documented spelling; 'pro' and anything else land here too.
+  // Responses keep echoing 'pro' so the published open-data contract holds.
   return 'pro';
 }
 

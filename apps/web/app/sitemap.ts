@@ -19,27 +19,38 @@ export default function sitemap(): MetadataRoute.Sitemap {
       alternates: { languages: languageAlternates },
     }));
 
+  // The sitemap is the story we tell search engines, and it has to be the same
+  // story the homepage tells: a free, open-source track record showing that
+  // short-term signals lose after costs.
+  //
+  // Everything else the app serves -- widgets, embeds, integration pages,
+  // growth-era landing pages, operator surfaces -- stays reachable and stays
+  // working. It just stops being advertised. Someone arriving from search should
+  // land on the evidence, not on a page that predates the pivot.
+  //
+  // Adding a URL here is a claim that the page carries the thesis. If it does
+  // not, leave it out; sitemap-routes.test.ts pins the set.
   return [
     { url: base, lastModified: new Date(), changeFrequency: "daily", priority: 1, alternates: { languages: languageAlternates } },
+    ...localizedLandingEntries,
+
+    // The evidence.
     { url: `${base}/track-record`, lastModified: new Date(), changeFrequency: "daily", priority: 0.95 },
     { url: `${base}/research`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/methodology`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/why-long-term`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/open-data`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/calibration`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
+
+    // The product that produces the evidence.
     { url: `${base}/today`, lastModified: new Date(), changeFrequency: "daily", priority: 0.85 },
-    { url: `${base}/performance`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${base}/dashboard`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.9 },
-    { url: `${base}/copilot`, lastModified: new Date(), changeFrequency: "daily", priority: 0.85 },
-    { url: `${base}/leaderboard`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
-    { url: `${base}/strategies`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: `${base}/strategies/comparison`, lastModified: new Date(), changeFrequency: "daily", priority: 0.75 },
-    { url: `${base}/strategies/leaderboard`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/compare`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    ...localizedLandingEntries,
-    { url: `${base}/demo`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
+    { url: `${base}/dashboard`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.8 },
+    { url: `${base}/screener`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/backtest`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
-    { url: `${base}/backtest/upload`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/compare`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/demo`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
+
+    // Reading material.
     { url: `${base}/blog`, lastModified: blogIndexLastModified, changeFrequency: "weekly", priority: 0.6 },
     ...POSTS.map((post) => ({
       url: `${base}/blog/${post.slug}`,
@@ -47,65 +58,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.5,
     })),
-    { url: `${base}/api-docs`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
+
+    // Running it yourself, and the promises we make.
+    { url: `${base}/start`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/docs`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: `${base}/chrome-extension`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/docs/api`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/how-it-works`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/star`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.5 },
-    { url: `${base}/paper-trading`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
-    { url: `${base}/exchanges`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/brokers`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/screener`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
-    { url: `${base}/heatmap`, lastModified: new Date(), changeFrequency: "daily", priority: 0.6 },
-    { url: `${base}/pine-to-tradeclaw`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/security`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: `${base}/data-freshness`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
-    { url: `${base}/sentiment`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.7 },
-    { url: `${base}/roast`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/og-preview`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: `${base}/github-action`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/strategies/marketplace`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/users`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
-    { url: `${base}/hub`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/news`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.7 },
-    { url: `${base}/consensus`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.7 },
-    { url: `${base}/demo/telegram`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/confidence`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/roadmap`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/tournament`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/portfolio`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${base}/indicators/builder`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/discord/server`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/proof`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.9 },
-    { url: `${base}/tools`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/examples`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/report`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/benchmark`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/live`, lastModified: new Date(), changeFrequency: "always", priority: 0.8 },
-    { url: `${base}/embed/live`, lastModified: new Date(), changeFrequency: "always", priority: 0.5 },
-    { url: `${base}/star-history`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${base}/producthunt`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/start`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${base}/subscribe`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/sponsors`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/digest`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/notifications`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: `${base}/patterns`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/contributors`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${base}/notion/signals`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/badges/readme`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/journal`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/vote`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${base}/glossary`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/pledge`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/profile-widget`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/digest/preview`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
-    { url: `${base}/sms`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/api-usage`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/supabase`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${base}/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${base}/glossary`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${base}/data-freshness`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${base}/security`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
+    { url: `${base}/roadmap`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.5 },
+    { url: `${base}/contributors`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.5 },
     { url: `${base}/terms`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
     { url: `${base}/privacy`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
-    { url: `${base}/tradingview-export`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
-    { url: `${base}/marketplace/providers`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
   ];
 }
