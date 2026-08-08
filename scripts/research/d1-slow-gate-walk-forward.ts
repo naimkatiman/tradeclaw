@@ -6,6 +6,8 @@ import path from 'path';
 import type { OHLCV } from '@tradeclaw/core';
 import {
   D1_SLOW_GATE_EXPECTED_SOURCE_SHA256,
+  D1_SLOW_GATE_WALK_FORWARD_END_TS,
+  D1_SLOW_GATE_WALK_FORWARD_START_TS,
   D1_SLOW_GATE_WALK_FORWARD_SYMBOLS,
   assembleD1SlowGateWalkForward,
   type D1SlowGateWalkForwardArtifact,
@@ -54,6 +56,17 @@ export function serializeWalkForwardArtifact(artifact: unknown): string {
   return `${JSON.stringify(artifact, null, 2)}\n`;
 }
 
+/** Hash identity remains the full dump; only evaluation candles are windowed. */
+export function filterFrozenWalkForwardWindow(input: WalkForwardInput): WalkForwardInput {
+  return {
+    ...input,
+    candles: input.candles.filter((candle) => (
+      candle.timestamp >= D1_SLOW_GATE_WALK_FORWARD_START_TS &&
+      candle.timestamp <= D1_SLOW_GATE_WALK_FORWARD_END_TS
+    )),
+  };
+}
+
 interface CliArgs {
   candlesDir: string;
   outPath: string;
@@ -80,11 +93,11 @@ function loadInput(candlesDir: string, symbol: D1SlowGateWalkForwardSymbol): Wal
   if (!fs.existsSync(dumpPath)) {
     throw new Error(`frozen candle dump not found: ${dumpPath}`);
   }
-  return decodeFrozenCandleDump(
+  return filterFrozenWalkForwardWindow(decodeFrozenCandleDump(
     fs.readFileSync(dumpPath),
     symbol,
     D1_SLOW_GATE_EXPECTED_SOURCE_SHA256[symbol],
-  );
+  ));
 }
 
 function qaFailureSummary(artifact: D1SlowGateWalkForwardArtifact): string {
