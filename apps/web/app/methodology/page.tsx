@@ -80,6 +80,64 @@ const COST_ROWS: CostRow[] = [
   },
 ];
 
+interface ExcludedPair {
+  pair: string;
+  trades: number;
+}
+
+interface ExcludedClass {
+  label: string;
+  pairs: ExcludedPair[];
+}
+
+// Per-pair counts copied from the committed study artifact
+// docs/research/experiments/regime-expectancy-live-record-crypto-D1-2026-08-05.json.
+// The reconstruction-coverage boundary test cross-checks every figure below
+// against that file, so this table cannot drift from the published artifact.
+const EXCLUDED_CLASSES: ExcludedClass[] = [
+  {
+    label: 'FX',
+    pairs: [
+      { pair: 'USDCHF', trades: 204 },
+      { pair: 'AUDUSD', trades: 193 },
+      { pair: 'USDCAD', trades: 190 },
+      { pair: 'NZDUSD', trades: 184 },
+      { pair: 'GBPUSD', trades: 132 },
+      { pair: 'USDJPY', trades: 132 },
+      { pair: 'EURUSD', trades: 112 },
+    ],
+  },
+  {
+    label: 'Oil',
+    pairs: [{ pair: 'WTIUSD', trades: 100 }],
+  },
+  {
+    label: 'Metals',
+    pairs: [
+      { pair: 'XAGUSD', trades: 92 },
+      { pair: 'XAUUSD', trades: 81 },
+    ],
+  },
+  {
+    label: 'US stocks',
+    pairs: [
+      { pair: 'MSFTUSD', trades: 77 },
+      { pair: 'AMZNUSD', trades: 69 },
+      { pair: 'AMDUSD', trades: 68 },
+      { pair: 'TSLAUSD', trades: 66 },
+      { pair: 'METAUSD', trades: 57 },
+      { pair: 'AAPLUSD', trades: 55 },
+      { pair: 'NVDAUSD', trades: 54 },
+      { pair: 'GOOGLUSD', trades: 48 },
+      { pair: 'JPMUSD', trades: 48 },
+      { pair: 'BACUSD', trades: 33 },
+    ],
+  },
+];
+
+const classTrades = (c: ExcludedClass): number =>
+  c.pairs.reduce((total, p) => total + p.trades, 0);
+
 interface SourceFile {
   label: string;
   path: string;
@@ -436,6 +494,87 @@ export default function MethodologyPage() {
                 GitHub
               </a>
               .
+            </p>
+          </Section>
+
+          {/* 7. Independent reconstruction coverage */}
+          <Section id="reconstruction" n="07" title="Independent reconstruction coverage">
+            <p>
+              The rebuild promise above is not uniform across the record, and this section states
+              exactly where it ends. Outcome data is published for every counted signal, but
+              re-deriving a signal&apos;s entry context — the daily chart it fired on — requires the
+              repository&apos;s own candle store to hold D1 bars for that pair. Today the store
+              covers crypto only.
+            </p>
+            <p>
+              The 2026-08-05 regime study measured this limit on its counted population, window
+              2026-06-10 to 2026-08-04: 1,162 of its 3,157 counted trades (36.8%), all crypto,
+              could have their entry context independently rebuilt from the store. The remaining
+              1,995 trades across 20 non-crypto pairs have
+              no D1 candle coverage in the repository candle store, because the daily backfill for
+              those pairs is blocked upstream. Until a licensed daily feed exists they stay
+              excluded, with the count published as of that study rather than smoothed over.
+            </p>
+
+            <div className="mt-6 overflow-x-auto rounded-[var(--radius-card)] border border-[var(--border)]">
+              <table className="w-full min-w-[680px] border-collapse text-left text-sm">
+                <caption className="sr-only">
+                  Counted trades excluded from independent entry-context reconstruction, by asset
+                  class, with every excluded pair and its trade count.
+                </caption>
+                <thead>
+                  <tr className="border-b border-[var(--border)] text-[13px] text-[var(--text-secondary)]">
+                    <th scope="col" className="px-4 py-3 font-medium">Asset class</th>
+                    <th scope="col" className="px-4 py-3 font-medium">Excluded pairs (trades)</th>
+                    <th scope="col" className="px-4 py-3 text-right font-medium">Pairs</th>
+                    <th scope="col" className="px-4 py-3 text-right font-medium">Trades</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {EXCLUDED_CLASSES.map((row) => (
+                    <tr key={row.label} className="border-b border-[var(--border)] align-top last:border-0">
+                      <td className="px-4 py-4 font-medium text-[var(--foreground)]">{row.label}</td>
+                      <td className="px-4 py-4 font-mono text-[12px] leading-relaxed text-[var(--text-secondary)]">
+                        {row.pairs.map((p) => `${p.pair} (${p.trades})`).join(' · ')}
+                      </td>
+                      <td className="px-4 py-4 text-right font-mono tabular-nums text-[var(--foreground)]">
+                        {row.pairs.length}
+                      </td>
+                      <td className="px-4 py-4 text-right font-mono font-semibold tabular-nums text-[var(--foreground)]">
+                        {classTrades(row).toLocaleString('en-US')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="mt-6">
+              Exclusion here is a statement about inputs, not outcomes. The 1,995 excluded rows are
+              still counted, resolved, real trades: their results were resolved from provider OHLCV
+              under the same rules as every other counted signal in section 02. What is missing is
+              only the candle-based independent reconstruction of their entry context, because the
+              candles themselves are not in the store.
+            </p>
+            <p>
+              The figures come from the committed study artifact{' '}
+              <a
+                href={`${GITHUB_BLOB}/docs/research/experiments/regime-expectancy-live-record-crypto-D1-2026-08-05.json`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-[13px] text-[var(--foreground)] underline decoration-[var(--border)] underline-offset-4 hover:decoration-[var(--foreground)]"
+              >
+                regime-expectancy-live-record-crypto-D1-2026-08-05.json
+              </a>{' '}
+              and the study entry on the{' '}
+              <a
+                href="/research"
+                className="text-[var(--foreground)] underline decoration-[var(--border)] underline-offset-4 hover:decoration-[var(--foreground)]"
+              >
+                research page
+              </a>
+              . When a licensed daily feed closes the gap, this section updates from the next
+              study&apos;s artifact — the number moves, the disclosure stays.
             </p>
           </Section>
         </article>
