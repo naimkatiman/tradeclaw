@@ -4275,3 +4275,22 @@ next_actions:
       324/324 pages and STATE.yaml parses cleanly. Protected CI will gate the final
       exact-main Railway release. The broad dirty primary checkout remains excluded
       from GitHub and every deployment payload.
+
+  - id: TC-250
+    title: "Build and validate the approved D1 slow-gate paper lane"
+    status: in_progress
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-08 after owner approval. PR #202 passed all six protected
+      checks and squash merged to main as 9088860f9f2d0151b43c8fa9279a7436e1a52b17.
+      Approval is recorded as BTCUSD+ETHUSD only, fixed 50/50 independent sleeves,
+      emit-only simulated signal_history rows, and no live activation. Work is
+      isolated in clean branch agent/d1-slow-gate-build from that exact main; the
+      broad dirty primary checkout remains excluded. Before any validation result,
+      the build spec was corrected to preserve the actually validated close>EMA200
+      rule (the draft's extra rising-EMA condition would have been tuning), and the
+      walk-forward plan froze ATR14x2.5 stops with a 4.0% cost-derived floor,
+      gap-aware stop exits, a 30-direction-change rolling-365-day safety ceiling,
+      four chronological folds, production crypto costs, the three standing QA
+      gates, and a fail-closed PASS/KILL rule. Strategy code, paper registration,
+      validation output, research publication, and final gates remain in progress.
