@@ -4278,7 +4278,7 @@ next_actions:
 
   - id: TC-250
     title: "Build and validate the approved D1 slow-gate paper lane"
-    status: in_progress
+    status: needs-approval
     owner: pm-tradeclaw
     notes: >
       Started 2026-08-08 after owner approval. PR #202 passed all six protected
@@ -4305,5 +4305,12 @@ next_actions:
       The new /research boundary test failed 3/3 before publication and passes 3/3
       after cross-checking every displayed result and the activation disclaimer.
       The PASS permits only the fail-closed simulated lane; live activation and
-      allocation remain separately gated and unapproved. Research publication and
-      final repository gates remain in progress.
+      allocation remain separately gated and unapproved. Draft implementation PR
+      #203 is open against main for review. Local gates passed: full Jest 232/232
+      suites with 1,835 tests passed and 26 intentionally skipped; strategy
+      backtests 14/14 suites, 103/103 tests and 1/1 snapshot; typecheck; lint with
+      0 errors and 23 pre-existing warnings; production build 324/324 pages; and a
+      byte-identical final artifact rerun. Docker is unavailable on this Windows
+      host, so PR #203's protected Docker Build and Playwright jobs are the
+      authoritative remaining environment gates. Merge approval is pending, and
+      any future live activation remains a separate decision outside this task.
