@@ -23,6 +23,10 @@ import { requireCronAuth } from '../../../../lib/cron-auth';
 import { precomputeSignals } from '../../../../lib/signal-worker';
 import { readLiveSignals } from '../../../../lib/signals-live';
 import { costModelFor } from '@tradeclaw/strategies';
+import {
+  runD1SlowGatePaperLane,
+  type D1SlowGatePaperResult,
+} from '../../../../lib/d1-slow-gate-paper';
 
 /**
  * Modeled round-trip transaction cost for a signal, as a PERCENT of notional
@@ -47,6 +51,26 @@ function hasCompleteDecisionEvidence(record: SignalHistoryRecord): boolean {
     && typeof record.costEstimatePct === 'number'
     && Number.isFinite(record.costEstimatePct)
     && record.costEstimatePct > 0;
+}
+
+/** Keep every unexpected D1 paper failure outside the production signal path. */
+export async function runD1PaperLaneSafely(): Promise<D1SlowGatePaperResult> {
+  try {
+    return await runD1SlowGatePaperLane();
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn(`[cron/signals] D1 paper lane failed closed: ${errorMessage}`);
+    return {
+      processed: 0,
+      candidates: 0,
+      recorded: 0,
+      failures: [{
+        symbol: 'BTCUSD+ETHUSD',
+        stage: 'lane',
+        error: errorMessage,
+      }],
+    };
+  }
 }
 
 // ── Record logic ──────────────────────────────────────────────
@@ -395,6 +419,10 @@ export async function GET(request: NextRequest): Promise<Response> {
       newSignals.push(sig);
     }
 
+    // Separately registered, explicitly simulated, and never allowed to abort
+    // the existing live-signal recording or resolution path.
+    const d1Paper = await runD1PaperLaneSafely();
+
     const { resolved, pending, errors } = await resolveOldSignals();
 
     const taggedSignals = newSignals.map((s) => ({ ...s, strategyId: preset.id }));
@@ -415,7 +443,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     const auditRowId = await recordSignalRun({
       runStartedAt,
       triggerSource: request.headers.get('user-agent')?.includes('GitHub') ? 'github-actions' : 'cron',
-      notes: `recorded=${taggedSignals.length} resolved=${resolved} pending=${pending}`,
+      notes: `recorded=${taggedSignals.length} resolved=${resolved} pending=${pending} d1PaperRecorded=${d1Paper.recorded} d1PaperFailures=${d1Paper.failures.length}`,
     });
 
     return NextResponse.json({
@@ -425,6 +453,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       resolved,
       pending,
       errors: errors.length > 0 ? errors : undefined,
+      d1Paper,
       // Gate-decision observability — how many of this tick's candidates
       // were evaluated and how many the risk pipeline approved.
       gate: {

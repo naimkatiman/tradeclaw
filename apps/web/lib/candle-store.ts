@@ -18,10 +18,12 @@ const BINANCE_BASE = 'https://data-api.binance.vision/api/v3/klines';
  * to bridge missed cron cycles; deeper history is the backfill script's job.
  */
 const REFRESH_KLINE_LIMIT = 48;
+const D1_REFRESH_KLINE_LIMIT = 14;
 
 const FETCH_TIMEOUT_MS = 10_000;
 
 const H1_MS = 3_600_000;
+const D1_MS = 86_400_000;
 
 // Canonical TradeClaw symbol -> Binance spot pair (market-data only).
 // Copied from scripts/research/backfill-candles.ts (BINANCE_MAP), which is
@@ -84,25 +86,51 @@ export async function getRecentCandles(
 }
 
 /**
- * Fetch the latest closed H1 klines for `symbol` from Binance and append the
- * new ones to the store. Returns the number of rows actually inserted.
- * Throws on HTTP/network failure — the caller owns per-symbol error policy.
+ * Full ascending candle stream from an inclusive boundary. The D1 paper lane
+ * uses the frozen study start so EMA state never depends on a moving LIMIT.
  */
-export async function refreshCandles(symbol: string): Promise<number> {
+export async function getCandlesSince(
+  symbol: string,
+  timeframe: string,
+  sinceTimestamp: number,
+): Promise<StoredCandle[]> {
+  const rows = await query<CandleRow>(
+    `SELECT ts, open, high, low, close, volume
+       FROM candles
+      WHERE symbol = $1 AND timeframe = $2 AND ts >= $3
+      ORDER BY ts ASC`,
+    [symbol, timeframe, sinceTimestamp],
+  );
+  return rows.map((r) => ({
+    timestamp: Number(r.ts),
+    open: Number(r.open),
+    high: Number(r.high),
+    low: Number(r.low),
+    close: Number(r.close),
+    volume: Number(r.volume),
+  }));
+}
+
+async function refreshBinanceCandles(
+  symbol: string,
+  timeframe: 'H1' | 'D1',
+  interval: '1h' | '1d',
+  durationMs: number,
+  limit: number,
+): Promise<number> {
   const pair = BINANCE_MAP[symbol];
   if (!pair) throw new Error(`no Binance mapping for ${symbol}`);
 
   // Snapshot BEFORE fetching: a bar that closes between the Binance response
   // and the filter below must still be treated as open, or a partial OHLCV
-  // gets locked into the never-overwrite store forever (same rationale as
-  // backfill-candles.ts).
+  // gets locked into the never-overwrite store forever.
   const fetchStartTs = Date.now();
 
-  const url = `${BINANCE_BASE}?symbol=${pair}&interval=1h&limit=${REFRESH_KLINE_LIMIT}`;
+  const url = `${BINANCE_BASE}?symbol=${pair}&interval=${interval}&limit=${limit}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
   if (!res.ok) {
     throw new Error(
-      `Binance ${res.status} for ${pair} 1h: ${(await res.text()).slice(0, 200)}`,
+      `Binance ${res.status} for ${pair} ${interval}: ${(await res.text()).slice(0, 200)}`,
     );
   }
   const klines = (await res.json()) as Array<
@@ -110,7 +138,7 @@ export async function refreshCandles(symbol: string): Promise<number> {
   >;
 
   // Drop any bar not provably closed BEFORE the fetch started.
-  const closed = klines.filter((k) => k[0] + H1_MS <= fetchStartTs);
+  const closed = klines.filter((k) => k[0] + durationMs <= fetchStartTs);
   if (closed.length === 0) return 0;
 
   const values: string[] = [];
@@ -118,11 +146,9 @@ export async function refreshCandles(symbol: string): Promise<number> {
   let p = 1;
   for (const k of closed) {
     values.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
-    params.push(symbol, 'H1', k[0], Number(k[1]), Number(k[2]), Number(k[3]), Number(k[4]), Number(k[5]), 'binance');
+    params.push(symbol, timeframe, k[0], Number(k[1]), Number(k[2]), Number(k[3]), Number(k[4]), Number(k[5]), 'binance');
   }
 
-  // RETURNING reports only the rows actually inserted (conflict-skipped rows
-  // are omitted), which yields the new-row count through db-pool's query API.
   const inserted = await query<{ ts: string }>(
     `INSERT INTO candles (symbol, timeframe, ts, open, high, low, close, volume, source)
      VALUES ${values.join(', ')}
@@ -131,4 +157,18 @@ export async function refreshCandles(symbol: string): Promise<number> {
     params,
   );
   return inserted.length;
+}
+
+/**
+ * Fetch the latest closed H1 klines for `symbol` from Binance and append the
+ * new ones to the store. Returns the number of rows actually inserted.
+ * Throws on HTTP/network failure — the caller owns per-symbol error policy.
+ */
+export async function refreshCandles(symbol: string): Promise<number> {
+  return refreshBinanceCandles(symbol, 'H1', '1h', H1_MS, REFRESH_KLINE_LIMIT);
+}
+
+/** Append the latest provably closed UTC-D1 bars for the slow-gate paper lane. */
+export async function refreshDailyCandles(symbol: string): Promise<number> {
+  return refreshBinanceCandles(symbol, 'D1', '1d', D1_MS, D1_REFRESH_KLINE_LIMIT);
 }

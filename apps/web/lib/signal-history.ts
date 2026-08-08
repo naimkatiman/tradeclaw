@@ -157,6 +157,8 @@ export interface TrackedSignalInput {
   atrMultiplier?: number;
   gateBlocked?: boolean;
   gateReason?: string;
+  /** Explicit paper/research row. Simulated rows never enter public or resolver scopes. */
+  isSimulated?: boolean;
 }
 
 export type LeaderboardPeriod = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
@@ -374,7 +376,9 @@ export async function readHistoryAsync(
   options: { sinceMs?: number } = {},
 ): Promise<SignalHistoryRecord[]> {
   if (!isDbEnabled()) {
-    const all = readHistoryFile().filter(r => !isDarkStrategy(r.strategyId));
+    const all = readHistoryFile().filter(
+      r => !r.isSimulated && !isDarkStrategy(r.strategyId),
+    );
     return options.sinceMs !== undefined
       ? all.filter(r => r.timestamp >= options.sinceMs!)
       : all;
@@ -460,6 +464,7 @@ export async function recordSignalAsync(
   gateReason?: string,
   broadcast?: BroadcastDecisionFields,
   calibration?: CalibrationFeatures,
+  isSimulated?: boolean,
 ): Promise<void> {
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
   const ts = timestamp ?? Date.now();
@@ -490,12 +495,13 @@ export async function recordSignalAsync(
       mtfAgreement: calibration?.mtfAgreement,
       confluenceBonus: calibration?.confluenceBonus,
       costEstimatePct: calibration?.costEstimatePct,
+      isSimulated,
     });
     return;
   }
 
   // File fallback
-  recordSignal(pair, timeframe, direction, confidence, entryPrice, sigId, tp1, sl, ts, strategyId, resolvedMode, entryAtr, atrMultiplier, gateBlocked, gateReason, broadcast, calibration);
+  recordSignal(pair, timeframe, direction, confidence, entryPrice, sigId, tp1, sl, ts, strategyId, resolvedMode, entryAtr, atrMultiplier, gateBlocked, gateReason, broadcast, calibration, isSimulated);
 }
 
 /**
@@ -530,6 +536,7 @@ interface InsertRowArgs {
   mtfAgreement?: number;
   confluenceBonus?: number;
   costEstimatePct?: number;
+  isSimulated?: boolean;
 }
 
 let atrColumnsKnownMissing = false;
@@ -572,8 +579,8 @@ async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
   ) {
     try {
       const result = await query<{ id: string }>(
-        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier, gate_blocked, gate_reason, regime, broadcast_blocked, broadcast_block_reason, allocation_pct, pre_boost_confidence, mtf_agreement, confluence_bonus, cost_estimate_pct)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier, gate_blocked, gate_reason, regime, broadcast_blocked, broadcast_block_reason, allocation_pct, is_simulated, pre_boost_confidence, mtf_agreement, confluence_bonus, cost_estimate_pct)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
          ON CONFLICT (id) DO UPDATE SET
            strategy_id = COALESCE(signal_history.strategy_id, EXCLUDED.strategy_id),
            regime = COALESCE(signal_history.regime, EXCLUDED.regime),
@@ -594,7 +601,7 @@ async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
             OR (signal_history.confluence_bonus IS NULL AND EXCLUDED.confluence_bonus IS NOT NULL)
             OR (signal_history.cost_estimate_pct IS NULL AND EXCLUDED.cost_estimate_pct IS NOT NULL)
          RETURNING id`,
-        [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null, args.gateBlocked ?? false, args.gateReason ?? null, args.regime ?? null, args.broadcastBlocked ?? null, args.broadcastBlockReason ?? null, args.allocationPct ?? null, args.preBoostConfidence ?? null, args.mtfAgreement ?? null, args.confluenceBonus ?? null, args.costEstimatePct ?? null],
+        [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null, args.gateBlocked ?? false, args.gateReason ?? null, args.regime ?? null, args.broadcastBlocked ?? null, args.broadcastBlockReason ?? null, args.allocationPct ?? null, args.isSimulated ?? false, args.preBoostConfidence ?? null, args.mtfAgreement ?? null, args.confluenceBonus ?? null, args.costEstimatePct ?? null],
       );
       return result.length > 0;
     } catch (err: unknown) {
@@ -628,8 +635,8 @@ async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
   ) {
     try {
       const result = await query<{ id: string }>(
-        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier, gate_blocked, gate_reason, regime, broadcast_blocked, broadcast_block_reason, allocation_pct)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier, gate_blocked, gate_reason, regime, broadcast_blocked, broadcast_block_reason, allocation_pct, is_simulated)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
          ON CONFLICT (id) DO UPDATE SET
            strategy_id = COALESCE(signal_history.strategy_id, EXCLUDED.strategy_id),
            regime = COALESCE(signal_history.regime, EXCLUDED.regime),
@@ -642,7 +649,7 @@ async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
             OR (signal_history.broadcast_block_reason IS NULL AND EXCLUDED.broadcast_block_reason IS NOT NULL)
             OR (signal_history.allocation_pct IS NULL AND EXCLUDED.allocation_pct IS NOT NULL)
          RETURNING id`,
-        [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null, args.gateBlocked ?? false, args.gateReason ?? null, args.regime ?? null, args.broadcastBlocked, args.broadcastBlockReason ?? null, args.allocationPct ?? null],
+        [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null, args.gateBlocked ?? false, args.gateReason ?? null, args.regime ?? null, args.broadcastBlocked, args.broadcastBlockReason ?? null, args.allocationPct ?? null, args.isSimulated ?? false],
       );
       return result.length > 0;
     } catch (err: unknown) {
@@ -663,12 +670,12 @@ async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
   if (!atrColumnsKnownMissing && !gateColumnsKnownMissing) {
     try {
       const result = await query<{ id: string }>(
-        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier, gate_blocked, gate_reason)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier, gate_blocked, gate_reason, is_simulated)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
          ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
            WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL
          RETURNING id`,
-        [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null, args.gateBlocked ?? false, args.gateReason ?? null],
+        [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null, args.gateBlocked ?? false, args.gateReason ?? null, args.isSimulated ?? false],
       );
       return result.length > 0;
     } catch (err: unknown) {
@@ -691,12 +698,12 @@ async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
   if (!atrColumnsKnownMissing) {
     try {
       const result = await query<{ id: string }>(
-        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, entry_atr, atr_multiplier, is_simulated)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
          ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
            WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL
          RETURNING id`,
-        [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null],
+        [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.entryAtr ?? null, args.atrMultiplier ?? null, args.isSimulated ?? false],
       );
       return result.length > 0;
     } catch (err: unknown) {
@@ -713,12 +720,12 @@ async function insertSignalHistoryRow(args: InsertRowArgs): Promise<boolean> {
 
   // Tier 3: pre-012 fallback. Drops ATR + gate fields on the floor.
   const result = await query<{ id: string }>(
-    `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    `INSERT INTO signal_history (id, pair, timeframe, direction, confidence, entry_price, tp1, sl, created_at, strategy_id, mode, is_simulated)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
      ON CONFLICT (id) DO UPDATE SET strategy_id = EXCLUDED.strategy_id
        WHERE signal_history.strategy_id IS NULL AND EXCLUDED.strategy_id IS NOT NULL
      RETURNING id`,
-    [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode],
+    [args.id, args.pair, args.timeframe, args.direction, args.confidence, args.entryPrice, args.tp1 ?? null, args.sl ?? null, args.createdAt, args.strategyId ?? null, args.mode, args.isSimulated ?? false],
   );
   return result.length > 0;
 }
@@ -742,6 +749,7 @@ export function recordSignal(
   gateReason?: string,
   broadcast?: BroadcastDecisionFields,
   calibration?: CalibrationFeatures,
+  isSimulated?: boolean,
 ): void {
   const records = readHistoryFile();
   const sigId = id ?? `${pair}-${timeframe}-${direction}-${Date.now()}`;
@@ -749,7 +757,7 @@ export function recordSignal(
 
   records.unshift({
     id: sigId, pair, timeframe, direction, confidence, entryPrice,
-    timestamp: timestamp ?? Date.now(), tp1, sl, isSimulated: false,
+    timestamp: timestamp ?? Date.now(), tp1, sl, isSimulated: isSimulated ?? false,
     strategyId,
     mode: mode ?? modeFromTimeframe(timeframe),
     entryAtr,
@@ -868,6 +876,7 @@ export async function recordSignalsAsync(signals: TrackedSignalInput[]): Promise
         atrMultiplier: s.atrMultiplier,
         gateBlocked: s.gateBlocked,
         gateReason: s.gateReason,
+        isSimulated: s.isSimulated,
       });
       if (result) inserted++;
     }
@@ -894,7 +903,7 @@ export function recordSignals(signals: TrackedSignalInput[]): number {
       direction: signal.direction, confidence: signal.confidence,
       entryPrice: signal.entry, timestamp,
       tp1: signal.takeProfit1, sl: signal.stopLoss,
-      isSimulated: false, strategyId: signal.strategyId,
+      isSimulated: signal.isSimulated ?? false, strategyId: signal.strategyId,
       mode: signal.mode ?? modeFromTimeframe(signal.timeframe),
       entryAtr: signal.entryAtr,
       atrMultiplier: signal.atrMultiplier,
@@ -1249,6 +1258,7 @@ export async function getRecentRecordForSymbolAsync(
     const row = await queryOne<HistoryRow>(
       `SELECT * FROM signal_history
        WHERE pair = $1 AND direction = $2 AND created_at >= $3
+         AND is_simulated = FALSE
        ORDER BY created_at DESC LIMIT 1`,
       [symbol, direction, cutoff],
     );
@@ -1271,13 +1281,15 @@ export async function getRecordByIdAsync(
   if (isDbEnabled()) {
     const row = await queryOne<HistoryRow>(
       `SELECT * FROM signal_history
-       WHERE id = $1 AND ${NOT_DARK_STRATEGY_SQL}
+       WHERE id = $1 AND is_simulated = FALSE AND ${NOT_DARK_STRATEGY_SQL}
        LIMIT 1`,
       [id],
     );
     return row ? rowToRecord(row) : undefined;
   }
-  return readHistoryFile().find(r => r.id === id && !isDarkStrategy(r.strategyId));
+  return readHistoryFile().find(
+    r => r.id === id && !r.isSimulated && !isDarkStrategy(r.strategyId),
+  );
 }
 
 export function getRecentRecordForSymbol(
@@ -1287,7 +1299,7 @@ export function getRecentRecordForSymbol(
 ): SignalHistoryRecord | undefined {
   const cutoff = Date.now() - withinMs;
   return readHistoryFile().find(
-    r => r.pair === symbol && r.direction === direction && r.timestamp >= cutoff,
+    r => !r.isSimulated && r.pair === symbol && r.direction === direction && r.timestamp >= cutoff,
   );
 }
 
@@ -1319,6 +1331,7 @@ export async function getPreviousDirectionAsync(
     const row = await queryOne<{ direction: string; created_at: string }>(
       `SELECT direction, created_at FROM signal_history
        WHERE pair = $1 AND timeframe = $2
+         AND is_simulated = FALSE
          AND created_at < $3 AND created_at >= $4
        ORDER BY created_at DESC LIMIT 1`,
       [symbol, timeframe, new Date(beforeMs).toISOString(), new Date(cutoffMs).toISOString()],
@@ -1330,7 +1343,7 @@ export async function getPreviousDirectionAsync(
     };
   }
   const prior = readHistoryFile().find(
-    r => r.pair === symbol && r.timeframe === timeframe && r.timestamp < beforeMs && r.timestamp >= cutoffMs,
+    r => !r.isSimulated && r.pair === symbol && r.timeframe === timeframe && r.timestamp < beforeMs && r.timestamp >= cutoffMs,
   );
   return prior ? { direction: prior.direction, ageMs: beforeMs - prior.timestamp } : null;
 }

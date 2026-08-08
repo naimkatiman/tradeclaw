@@ -1,8 +1,8 @@
-# D1 Slow-Gate Build Spec (2026-08-08) — propose-only, owner gate before any code
+# D1 Slow-Gate Build Spec (2026-08-08)
 
-Status: DRAFT for owner approval. This document commissions nothing by itself.
-No strategy code, no engine change, no activation. The build starts only when
-the owner approves this spec; live activation has its own, later gate (§6).
+Status: APPROVED by the owner on 2026-08-08. Implementation is commissioned
+for BTC+ETH only, fixed 50/50 independent sleeves, and an emit-only simulated
+lane. No live activation is approved; activation has its own later gate (§6).
 
 ## 1. Why this build, and why now
 
@@ -35,11 +35,19 @@ versus the M15 stream's 3,157 counted trades in under two months.
 A new tracked strategy `d1-slow-gate`, shipped one layer per commit:
 
 1. **Strategy module** (`packages/strategies`): D1 bars only. Long/flat EMA200
-   gate (close above a rising EMA200 = long, else flat). ATR-based stop sized
-   so the modeled cost is ≤ 0.10R at the production crypto cost model — the
-   ≥5× relative-stop-width point on the study's cost curve. Hard
-   trade-frequency cap as a code-level invariant, not a hope — the cap counts
-   DIRECTION changes (entry/exit round trips), not sizing adjustments. The
+   gate (close above EMA200 = long, else flat), exactly matching the validated
+   2026-07-18 sandbox. The earlier draft's extra “rising EMA” clause was removed
+   before the first walk-forward run because it contradicted the committed
+   sandbox rule and would have introduced an unvalidated tuned parameter.
+   ATR14 stops use the inherited 2.5× multiplier with a 4.0% price-distance
+   floor, derived mechanically from the production crypto round-trip cost
+   (0.40% / 0.10R). Stops are fixed at entry, gap-aware, and a stopped sleeve
+   cannot re-enter until the raw gate has first returned flat and then crossed
+   long again. A hard ceiling of 30 direction changes per rolling 365 days is
+   a code-level invariant, not a hope — the cap counts entries and exits, not
+   sizing adjustments. It was fixed before the walk-forward run as a safety
+   ceiling above the validated BTC maximum of 26 (long-run mean ≈10/year), so
+   it does not rewrite the inherited sandbox behavior. The
    distinction matters: in the sandbox, vol-target sizing ran 1,264 flips on
    BTC against the plain gate's 86 for 23.59% vs 21.5% total cost drag over
    8.9 years, because size deltas are not round trips. A cap counting sizing
@@ -66,10 +74,8 @@ a licensed daily feed exists.
 
 - Parameters are inherited, not tuned: EMA200, long/flat, no sweeps. Changing
   any parameter after seeing walk-forward results is tuning and voids the run.
-- Sizing is a single owner decision taken in §7 before the harness runs:
-  fixed-fractional (the sandbox headline) or vol-target (better Calmar 0.608
-  and 37.4% DD, at 22.8% CAGR). One variant goes forward; the other is not a
-  fallback.
+- Sizing is fixed 50/50 independent BTC and ETH sleeves, matching the sandbox
+  headline. No cross-rebalancing and no volatility-target fallback are allowed.
 - HMM sizing is dead. The sandbox refuted it; it does not return in this build.
 
 ## 5. Explicitly out of scope
@@ -87,11 +93,11 @@ in the majority of folds, frequency cap held, all three QA gates green — and
 the owner then approves activation explicitly. A failed walk-forward is
 published to /research as a kill entry.
 
-## 7. Owner decisions needed before code starts
+## 7. Owner decisions recorded before code starts
 
-1. Approve this spec (or edit it — edits before the walk-forward are free).
-2. Universe: BTC+ETH only, or all crypto pairs with D1 coverage.
-3. Sizing variant: fixed-fractional or vol-target (§4).
+1. **APPROVED** on 2026-08-08; live activation remains separately gated.
+2. **Universe:** BTCUSD and ETHUSD only.
+3. **Sizing:** fixed 50/50 independent sleeves; no vol-target fallback.
 4. ~~Lane reconciliation~~ — SETTLED, no decision needed. Verified
    2026-08-08: `feat/slow-gate-research-surface` has ZERO commits not already
    on `main` (`git rev-list --left-right --count origin/main...` → `31 0`;

@@ -1,0 +1,543 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "studyDate": "2026-08-08",
+    "preregistrationCommit": "c8785b25"
+  },
+  "spec": {
+    "universe": [
+      "BTCUSD",
+      "ETHUSD"
+    ],
+    "timeframe": "D1",
+    "from": "2017-09-01",
+    "to": "2026-07-16",
+    "gate": {
+      "rule": "close > EMA200",
+      "emaPeriod": 200,
+      "direction": "long-flat"
+    },
+    "sizing": {
+      "kind": "fixed-independent-sleeves",
+      "weights": {
+        "BTCUSD": 0.5,
+        "ETHUSD": 0.5
+      },
+      "crossRebalancing": false
+    },
+    "stop": {
+      "atrPeriod": 14,
+      "baseAtrMultiplier": 2.5,
+      "minimumDistancePct": 4,
+      "maximumModeledCostR": 0.1,
+      "gapFill": "min(stop, bar open)",
+      "reentry": "flat close then new long cross"
+    },
+    "takeProfit": null,
+    "costs": {
+      "feePctPerSide": 0.05,
+      "slippagePctPerSide": 0.15,
+      "fundingPctPer8h": 0.01
+    },
+    "folds": 4,
+    "foldMethod": "continuous-state factors assigned once, rebased to 1; no boundary restart or forced exit",
+    "benchmark": "buy-and-hold with identical entry/exit/funding costs",
+    "frequencyCeiling": {
+      "directionChanges": 30,
+      "rollingDays": 365
+    },
+    "decisionRule": "PASS iff QA passes, full 50/50 net return > 0, strategy Calmar >= benchmark in >=3/4 folds, and frequency ceilings pass"
+  },
+  "sources": {
+    "BTCUSD": {
+      "sha256": "e8ffc544670131dccb0a0717e45ac6504c2666d5e060755ebc546a711c669a91",
+      "bars": 3241,
+      "from": "2017-09-01",
+      "to": "2026-07-16"
+    },
+    "ETHUSD": {
+      "sha256": "eeee00aed94d5f51be5e315427c935e41519bab693726c62a0d1d1d209f91ed7",
+      "bars": 3241,
+      "from": "2017-09-01",
+      "to": "2026-07-16"
+    }
+  },
+  "qa": {
+    "reconciliation": {
+      "BTCUSD": {
+        "expected": 86,
+        "actual": 86,
+        "passed": true
+      },
+      "ETHUSD": {
+        "expected": 64,
+        "actual": 64,
+        "passed": true
+      }
+    },
+    "lookahead": {
+      "BTCUSD": {
+        "passed": true,
+        "checkpoints": [
+          {
+            "bars": 810,
+            "through": "2019-11-19",
+            "transitions": 8,
+            "transitionSha256": "ce0aa527f1e4fcaa3f168a721ce3fbdf8c84df37e0c91d6bf6a6a506fb20da34",
+            "equitySha256": "8ded157d8680e850d3bc7fc2db3472cb80e491a32391e40b70943384ac419b04",
+            "passed": true
+          },
+          {
+            "bars": 1620,
+            "through": "2022-02-06",
+            "transitions": 32,
+            "transitionSha256": "6af7760959b8c7753d3c63a83c83f5ecccbcc60829cc3fb94585484ba359ea51",
+            "equitySha256": "cb5bb9e2569e08309080775f62754de01912a02b94ef8f8816692ecb72d6b2bd",
+            "passed": true
+          },
+          {
+            "bars": 2430,
+            "through": "2024-04-26",
+            "transitions": 51,
+            "transitionSha256": "683e5f5cd3aa9a579028e4fd5db5fee5349cf3d14257ce2e1b0eda4ff7822b65",
+            "equitySha256": "f144a5a561b05175ebe0ababa86ed7cf9cce516ae2d9a31df73175386fd8a06e",
+            "passed": true
+          },
+          {
+            "bars": 3240,
+            "through": "2026-07-15",
+            "transitions": 86,
+            "transitionSha256": "c00ec386385beab886f547d90297263b9921206c38fbb90bd2ba3987c96465b5",
+            "equitySha256": "151b91f79f6b626d9736ca89fc0a3dfd51d12abd3a4a0eda637b3b7d0858da2d",
+            "passed": true
+          }
+        ]
+      },
+      "ETHUSD": {
+        "passed": true,
+        "checkpoints": [
+          {
+            "bars": 810,
+            "through": "2019-11-19",
+            "transitions": 18,
+            "transitionSha256": "b0bd5ba40768d8f6e33b7bdfeb215fc97c51ab8d57584ff4c135cba6386270c9",
+            "equitySha256": "d54a4e025ce2651ba308780e7d7486ee70ac7815dce9370a8aa0aff780491d5d",
+            "passed": true
+          },
+          {
+            "bars": 1620,
+            "through": "2022-02-06",
+            "transitions": 32,
+            "transitionSha256": "26218cdade920042709c5606d1366105e3ffc407952d67e48241b400a5664b38",
+            "equitySha256": "5571d5038c025d28ab83a65a3f03e3168ea147fb1b348d92db1de24235aa66ef",
+            "passed": true
+          },
+          {
+            "bars": 2430,
+            "through": "2024-04-26",
+            "transitions": 47,
+            "transitionSha256": "ea4a07bb42bd3d80a04fae0fcb6ae35bf3112aec848663f48f6696f03183e131",
+            "equitySha256": "00a88da7c592bb313599a12986180965fe0424f496d113ea286c26bd0990ecaa",
+            "passed": true
+          },
+          {
+            "bars": 3240,
+            "through": "2026-07-15",
+            "transitions": 64,
+            "transitionSha256": "1156ce8b7c04072e323ff102d7f80b5a9be5f77e6bc36d8198df30e009a73602",
+            "equitySha256": "7f2c3224c7c672eae90b5ea59c0602372c2cbe3d44d8f213a13fd546aeb78972",
+            "passed": true
+          }
+        ]
+      }
+    },
+    "cadence": {
+      "BTCUSD": {
+        "passed": true,
+        "maxGapHours": 24,
+        "utcAligned": true,
+        "endBoundaryPresent": true
+      },
+      "ETHUSD": {
+        "passed": true,
+        "maxGapHours": 24,
+        "utcAligned": true,
+        "endBoundaryPresent": true
+      }
+    },
+    "passed": true
+  },
+  "results": {
+    "symbols": {
+      "BTCUSD": {
+        "bars": 3241,
+        "from": "2017-09-01",
+        "to": "2026-07-16",
+        "full": {
+          "strategy": {
+            "totalReturn": 4.96532579,
+            "cagr": 0.22278916,
+            "maxDrawdown": 0.59244447,
+            "calmar": 0.37605071,
+            "years": 8.87945205
+          },
+          "benchmark": {
+            "totalReturn": 3.97394896,
+            "cagr": 0.19801484,
+            "maxDrawdown": 0.84926581,
+            "calmar": 0.23316003,
+            "years": 8.87945205
+          }
+        },
+        "folds": [
+          {
+            "label": "fold1",
+            "from": "2017-09-01",
+            "to": "2019-11-19",
+            "performanceDays": 810,
+            "strategy": {
+              "totalReturn": 0.40388013,
+              "cagr": 0.16517044,
+              "maxDrawdown": 0.37677962,
+              "calmar": 0.43837413,
+              "years": 2.21917808
+            },
+            "benchmark": {
+              "totalReturn": 0.31706743,
+              "cagr": 0.13213296,
+              "maxDrawdown": 0.84926581,
+              "calmar": 0.15558493,
+              "years": 2.21917808
+            }
+          },
+          {
+            "label": "fold2",
+            "from": "2019-11-20",
+            "to": "2022-02-06",
+            "performanceDays": 810,
+            "strategy": {
+              "totalReturn": 1.44585763,
+              "cagr": 0.49635211,
+              "maxDrawdown": 0.54084557,
+              "calmar": 0.91773353,
+              "years": 2.21917808
+            },
+            "benchmark": {
+              "totalReturn": 3.08634969,
+              "cagr": 0.88572499,
+              "maxDrawdown": 0.54499197,
+              "calmar": 1.62520741,
+              "years": 2.21917808
+            }
+          },
+          {
+            "label": "fold3",
+            "from": "2022-02-07",
+            "to": "2024-04-26",
+            "performanceDays": 810,
+            "strategy": {
+              "totalReturn": 0.98659208,
+              "cagr": 0.36248877,
+              "maxDrawdown": 0.2716508,
+              "calmar": 1.33439245,
+              "years": 2.21917808
+            },
+            "benchmark": {
+              "totalReturn": 0.18004135,
+              "cagr": 0.0774525,
+              "maxDrawdown": 0.69014218,
+              "calmar": 0.11222687,
+              "years": 2.21917808
+            }
+          },
+          {
+            "label": "fold4",
+            "from": "2024-04-27",
+            "to": "2026-07-16",
+            "performanceDays": 811,
+            "strategy": {
+              "totalReturn": -0.12549104,
+              "cagr": -0.05856502,
+              "maxDrawdown": 0.37130241,
+              "calmar": -0.15772864,
+              "years": 2.22191781
+            },
+            "benchmark": {
+              "totalReturn": -0.21682185,
+              "cagr": -0.10415947,
+              "maxDrawdown": 0.56821639,
+              "calmar": -0.18330951,
+              "years": 2.22191781
+            }
+          }
+        ],
+        "directionChanges": {
+          "originalNoStop": 86,
+          "withStops": 86,
+          "maxRolling365d": 26,
+          "ceiling": 30,
+          "passed": true
+        },
+        "transitionActions": {
+          "ENTER_LONG": 43,
+          "EXIT_GATE": 43,
+          "EXIT_STOP": 0
+        },
+        "stopAudit": {
+          "entries": 43,
+          "maxCostR": 0.07829084,
+          "allAtOrBelowPointOneR": true
+        },
+        "totalCostPct": {
+          "strategy": 68.23,
+          "benchmark": 97.6
+        }
+      },
+      "ETHUSD": {
+        "bars": 3241,
+        "from": "2017-09-01",
+        "to": "2026-07-16",
+        "full": {
+          "strategy": {
+            "totalReturn": 7.77124445,
+            "cagr": 0.27704776,
+            "maxDrawdown": 0.64644994,
+            "calmar": 0.42856801,
+            "years": 8.87945205
+          },
+          "benchmark": {
+            "totalReturn": 0.80854162,
+            "cagr": 0.0690062,
+            "maxDrawdown": 0.94544212,
+            "calmar": 0.07298829,
+            "years": 8.87945205
+          }
+        },
+        "folds": [
+          {
+            "label": "fold1",
+            "from": "2017-09-01",
+            "to": "2019-11-19",
+            "performanceDays": 810,
+            "strategy": {
+              "totalReturn": -0.24518339,
+              "cagr": -0.11904597,
+              "maxDrawdown": 0.51813188,
+              "calmar": -0.22975999,
+              "years": 2.21917808
+            },
+            "benchmark": {
+              "totalReturn": -0.64540734,
+              "cagr": -0.3732412,
+              "maxDrawdown": 0.94544212,
+              "calmar": -0.39477954,
+              "years": 2.21917808
+            }
+          },
+          {
+            "label": "fold2",
+            "from": "2019-11-20",
+            "to": "2022-02-06",
+            "performanceDays": 810,
+            "strategy": {
+              "totalReturn": 7.85688805,
+              "cagr": 1.67215263,
+              "maxDrawdown": 0.62864958,
+              "calmar": 2.65991211,
+              "years": 2.21917808
+            },
+            "benchmark": {
+              "totalReturn": 12.61745074,
+              "cagr": 2.24371863,
+              "maxDrawdown": 0.62493405,
+              "calmar": 3.59032866,
+              "years": 2.21917808
+            }
+          },
+          {
+            "label": "fold3",
+            "from": "2022-02-07",
+            "to": "2024-04-26",
+            "performanceDays": 810,
+            "strategy": {
+              "totalReturn": 0.29171865,
+              "cagr": 0.12226183,
+              "maxDrawdown": 0.32795633,
+              "calmar": 0.37279911,
+              "years": 2.21917808
+            },
+            "benchmark": {
+              "totalReturn": -0.19616763,
+              "cagr": -0.09371262,
+              "maxDrawdown": 0.72381622,
+              "calmar": -0.12947019,
+              "years": 2.21917808
+            }
+          },
+          {
+            "label": "fold4",
+            "from": "2024-04-27",
+            "to": "2026-07-16",
+            "performanceDays": 811,
+            "strategy": {
+              "totalReturn": 0.01571223,
+              "cagr": 0.00704117,
+              "maxDrawdown": 0.40110999,
+              "calmar": 0.0175542,
+              "years": 2.22191781
+            },
+            "benchmark": {
+              "totalReturn": -0.53405199,
+              "cagr": -0.29086093,
+              "maxDrawdown": 0.70408703,
+              "calmar": -0.41310367,
+              "years": 2.22191781
+            }
+          }
+        ],
+        "directionChanges": {
+          "originalNoStop": 64,
+          "withStops": 64,
+          "maxRolling365d": 17,
+          "ceiling": 30,
+          "passed": true
+        },
+        "transitionActions": {
+          "ENTER_LONG": 32,
+          "EXIT_GATE": 30,
+          "EXIT_STOP": 2
+        },
+        "stopAudit": {
+          "entries": 32,
+          "maxCostR": 0.05583743,
+          "allAtOrBelowPointOneR": true
+        },
+        "totalCostPct": {
+          "strategy": 58.55,
+          "benchmark": 97.6
+        }
+      }
+    },
+    "portfolio": {
+      "weights": {
+        "BTCUSD": 0.5,
+        "ETHUSD": 0.5
+      },
+      "full": {
+        "strategy": {
+          "totalReturn": 6.36828512,
+          "cagr": 0.25222516,
+          "maxDrawdown": 0.56166088,
+          "calmar": 0.4490702,
+          "years": 8.87945205
+        },
+        "benchmark": {
+          "totalReturn": 2.39124529,
+          "cagr": 0.14743692,
+          "maxDrawdown": 0.8778418,
+          "calmar": 0.16795387,
+          "years": 8.87945205
+        }
+      },
+      "folds": [
+        {
+          "label": "fold1",
+          "from": "2017-09-01",
+          "to": "2019-11-19",
+          "performanceDays": 810,
+          "strategy": {
+            "totalReturn": 0.07934837,
+            "cagr": 0.03500681,
+            "maxDrawdown": 0.43475712,
+            "calmar": 0.08052039,
+            "years": 2.21917808
+          },
+          "benchmark": {
+            "totalReturn": -0.16416996,
+            "cagr": -0.07763033,
+            "maxDrawdown": 0.8778418,
+            "calmar": -0.08843316,
+            "years": 2.21917808
+          },
+          "calmarAtLeastBenchmark": true
+        },
+        {
+          "label": "fold2",
+          "from": "2019-11-20",
+          "to": "2022-02-06",
+          "performanceDays": 810,
+          "strategy": {
+            "totalReturn": 3.68755844,
+            "cagr": 1.00604272,
+            "maxDrawdown": 0.52765698,
+            "calmar": 1.90662258,
+            "years": 2.21917808
+          },
+          "benchmark": {
+            "totalReturn": 5.10808754,
+            "cagr": 1.2601772,
+            "maxDrawdown": 0.56149014,
+            "calmar": 2.24434433,
+            "years": 2.21917808
+          },
+          "calmarAtLeastBenchmark": false
+        },
+        {
+          "label": "fold3",
+          "from": "2022-02-07",
+          "to": "2024-04-26",
+          "performanceDays": 810,
+          "strategy": {
+            "totalReturn": 0.52751039,
+            "cagr": 0.21033738,
+            "maxDrawdown": 0.30560488,
+            "calmar": 0.6882658,
+            "years": 2.21917808
+          },
+          "benchmark": {
+            "totalReturn": 0.00213089,
+            "cagr": 0.00095965,
+            "maxDrawdown": 0.69481852,
+            "calmar": 0.00138116,
+            "years": 2.21917808
+          },
+          "calmarAtLeastBenchmark": true
+        },
+        {
+          "label": "fold4",
+          "from": "2024-04-27",
+          "to": "2026-07-16",
+          "performanceDays": 811,
+          "strategy": {
+            "totalReturn": -0.04660271,
+            "cagr": -0.02124953,
+            "maxDrawdown": 0.30056,
+            "calmar": -0.07069979,
+            "years": 2.22191781
+          },
+          "benchmark": {
+            "totalReturn": -0.3371557,
+            "cagr": -0.1689557,
+            "maxDrawdown": 0.61072391,
+            "calmar": -0.27664825,
+            "years": 2.22191781
+          },
+          "calmarAtLeastBenchmark": true
+        }
+      ]
+    }
+  },
+  "decision": {
+    "conditions": {
+      "qaPassed": true,
+      "positivePortfolioNetReturn": true,
+      "calmarAtLeastBenchmarkInThreeOfFourFolds": true,
+      "frequencyCeilingPassed": true
+    },
+    "calmarFoldPasses": 3,
+    "verdict": "PASS",
+    "reasons": [],
+    "activationApproved": false,
+    "lane": "simulated"
+  }
+}
