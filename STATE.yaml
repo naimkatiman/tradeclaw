@@ -4278,7 +4278,7 @@ next_actions:
 
   - id: TC-250
     title: "Build and validate the approved D1 slow-gate paper lane"
-    status: needs-approval
+    status: complete
     owner: pm-tradeclaw
     notes: >
       Started 2026-08-08 after owner approval. PR #202 passed all six protected
@@ -4304,15 +4304,33 @@ next_actions:
       1a6b28e47f218fafd5134cb257e06f966f881bc5154be92135c06867f5026e90.
       The new /research boundary test failed 3/3 before publication and passes 3/3
       after cross-checking every displayed result and the activation disclaimer.
-      The PASS permits only the fail-closed simulated lane; live activation and
-      allocation remain separately gated and unapproved. Draft implementation PR
-      #203 is open against main for review. Local gates passed: full Jest 232/232
+      The PASS initially permitted only the fail-closed simulated lane; live
+      activation and allocation remained separately gated at this task boundary.
+      Draft implementation PR #203 opened against main. Local gates passed: full Jest 232/232
       suites with 1,835 tests passed and 26 intentionally skipped; strategy
       backtests 14/14 suites, 103/103 tests and 1/1 snapshot; typecheck; lint with
       0 errors and 23 pre-existing warnings; production build 324/324 pages; and a
       byte-identical final artifact rerun. Docker is unavailable on this Windows
       host, but protected CI on implementation head b02b449c passed Lint & Type
       Check, Unit Tests, Build, Strategy Backtests, Docker Build, and Playwright
-      E2E; the independent backtest-comment job also passed. PR #203 remains a
-      draft pending merge review. Any future live activation remains a separate
-      decision outside this task.
+      E2E; the independent backtest-comment job also passed. On 2026-08-09 the
+      owner separately approved activation, PR #203 was marked ready and squash
+      merged as 01734fbe9277897d53a179d5965ddf746ca6ff21, and that exact merge
+      deployed successfully before TC-251 began.
+
+  - id: TC-251
+    title: "Activate the approved D1 slow-gate tracked signal lane"
+    status: in-progress
+    owner: pm-tradeclaw
+    notes: >
+      Owner explicitly approved merge, deployment, and activation on 2026-08-09.
+      PR #203 was marked ready and squash merged to main as
+      01734fbe9277897d53a179d5965ddf746ca6ff21 after all seven checks passed.
+      Exact merged main deployed to Railway production web as deployment
+      f0474abc-87c3-48a1-b985-02fc58858821 (SUCCESS); /api/health and /api/status
+      returned operational with database and migrations healthy. Activation is
+      being implemented in isolated branch agent/d1-slow-gate-activation. The
+      boundary is signal tracking only: exact env value active promotes future
+      newest-bar BTC/ETH D1 transitions; missing/invalid values remain paper,
+      no historical backfill occurs, broadcast remains fail-closed without an
+      explicit decision, and broker execution stays disabled.

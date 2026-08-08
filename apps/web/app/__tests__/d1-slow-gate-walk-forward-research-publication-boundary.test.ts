@@ -67,14 +67,15 @@ describe('D1 slow-gate walk-forward research publication boundary', () => {
     );
   });
 
-  it('keeps a historical simulated PASS outside the activation boundary', () => {
-    expect(page).toContain('Passed build gate · simulated');
-    expect(page).toContain('Simulated lane only; no live activation');
-    expect(page).toContain('Activation remains separately gated and unapproved.');
+  it('separates the frozen simulated result from the later owner-approved live lane', () => {
+    expect(page).toContain('Passed build gate · live tracked lane');
+    expect(page).toContain('Live tracked lane approved 2026-08-09; broker execution remains disabled');
+    expect(page).toContain('owner separately approved promotion to a live tracked signal lane on 2026-08-09');
+    expect(page).toContain('does not enable broker order execution');
+    expect(page).toContain('does not backfill historical live rows');
+    expect(page).toContain('does not bypass the existing fail-closed broadcast evidence gate');
     expect(page).toContain('not live performance');
     expect(page).toContain('not broker fills');
     expect(page).toContain('not a trading recommendation');
-    expect(page).not.toContain('D1 slow gate is live');
-    expect(page).not.toContain('D1 slow gate was deployed');
   });
 });
