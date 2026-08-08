@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Research: What We Tested and Learned | TradeClaw',
     description:
-      'Seven strategy studies, evaluated under published modeled costs and reported with machine-readable artifacts and explicit claim boundaries.',
+      'Eight strategy studies, evaluated under published modeled costs and reported with machine-readable artifacts and explicit claim boundaries.',
     url: 'https://tradeclaw.win/research',
     siteName: 'TradeClaw',
     type: 'website',
@@ -26,6 +26,8 @@ const VERDICT_TIMING = `${GH}/docs/research/2026-06-12-phase4.5-verdict-single-a
 const VERDICT_CARRY = `${GH}/docs/research/2026-06-13-phase5-verdict-carry-xsection.md`;
 const SLOW_GATE_PLAN = `${GH}/docs/plans/2026-07-18-slow-regime-gate-sandbox.md`;
 const REGIME_STUDY_PLAN = `${GH}/docs/plans/2026-08-05-regime-expectancy-study.md`;
+const D1_SLOW_GATE_BUILD_SPEC = `${GH}/docs/plans/2026-08-08-d1-slow-gate-build-spec.md`;
+const D1_SLOW_GATE_PLAN = `${GH}/docs/plans/2026-08-08-d1-slow-gate-walk-forward.md`;
 const experiment = (file: string) => `${GH}/docs/research/experiments/${file}`;
 
 type Tone = 'down' | 'neutral';
@@ -374,6 +376,52 @@ const ENTRIES: KillEntry[] = [
       { label: 'Pre-registered spec and results', href: REGIME_STUDY_PLAN },
     ],
   },
+  {
+    ref: 'D1 slow-gate build · pre-registered 2026-08-08',
+    family: 'Daily slow-gate walk-forward',
+    stamp: 'Passed build gate · simulated',
+    stampTone: 'neutral',
+    hypothesis:
+      'The inherited close-above-EMA200 long/flat rule, paired with a deliberately wide fixed stop, can remain net-positive after modeled production crypto-perpetual costs and match or beat buy-and-hold Calmar in at least three of four continuous-state folds without breaching the registered frequency ceiling.',
+    spec: [
+      { label: 'Universe', value: 'BTCUSD and ETHUSD, D1; fixed 50/50 independent sleeves' },
+      { label: 'Window', value: '2017-09-01 to 2026-07-16; 3,241 bars each; 4 continuous-state folds' },
+      { label: 'Gate', value: 'close > EMA200, long/flat; no slope rule and no tuned parameters' },
+      { label: 'Stop', value: 'ATR14 × 2.5, floored at 4.0%; gap-aware; no take profit' },
+      { label: 'Costs', value: '0.05% fee + 0.15% slippage per side + 0.01% funding per 8h' },
+      { label: 'Decision', value: 'positive full-window net return; Calmar ≥ hold in ≥ 3/4 folds; QA and frequency gates pass' },
+      { label: 'Status', value: 'Simulated lane only; no live activation' },
+    ],
+    results: [
+      {
+        caption: 'Full-window fixed 50/50 portfolio, modeled crypto-perpetual costs',
+        rows: [
+          { label: 'D1 slow gate', value: '+636.83% · CAGR 25.22% · max DD 56.17% · Calmar 0.449' },
+          { label: 'buy-and-hold', value: '+239.12% · CAGR 14.74% · max DD 87.78% · Calmar 0.168' },
+        ],
+      },
+      {
+        caption: 'Registered build and integrity gates',
+        rows: [
+          { label: 'Calmar ≥ hold, continuous-state folds', value: '3/4' },
+          { label: 'Transition reconciliation', value: 'BTC 86/86 · ETH 64/64' },
+          { label: 'Max rolling 365d changes', value: 'BTC 26 · ETH 17 (ceiling 30)' },
+          { label: 'Max modeled cost / initial risk', value: 'BTC 0.0783R · ETH 0.0558R' },
+          { label: 'Integrity', value: 'reconciliation PASS · lookahead PASS · cadence PASS' },
+        ],
+      },
+    ],
+    reading:
+      'On the exact frozen historical sample and modeled production crypto-perpetual costs, the pre-registered rule passed its build gate. The fixed 50/50 result beat buy-and-hold on both net return and full-window Calmar, while the registered Calmar fold rule passed exactly three of four folds, not all four. The result is an OHLCV simulation with modeled fills and fixed funding, and the BTC/ETH-only universe carries survivor-selection risk. It is not live performance, not broker fills, and not a trading recommendation. PASS authorizes the fail-closed simulated paper lane only. Activation remains separately gated and unapproved.',
+    artifacts: [
+      {
+        label: 'D1 slow-gate walk-forward JSON',
+        href: experiment('d1-slow-gate-walk-forward-BTCUSD_ETHUSD-D1-2017-09-01-2026-07-16-f4.json'),
+      },
+      { label: 'Pre-registered walk-forward plan', href: D1_SLOW_GATE_PLAN },
+      { label: 'Approved build specification', href: D1_SLOW_GATE_BUILD_SPEC },
+    ],
+  },
 ];
 
 function toneClass(tone: Tone | undefined): string {
@@ -485,7 +533,8 @@ export default function ResearchPage() {
                 improved modeled drawdown-adjusted metrics without establishing uniform raw-return outperformance
                 across both assets. It did not activate a live strategy. A seventh is the first study run
                 against the published record rather than a backtest: it registered two of this project’s own
-                directional hypotheses, then refuted both.
+                directional hypotheses, then refuted both. An eighth pre-registered the exact D1 slow-gate build
+                before evaluating it; that rule passed its frozen historical build gate and remains simulated-only.
               </p>
               <p className="mt-4 max-w-prose text-[13px] leading-relaxed text-[var(--text-secondary)]">
                 Each entry links its committed machine-readable artifact and the final verdict memo. The
@@ -535,10 +584,18 @@ export default function ResearchPage() {
               survive: no regime bucket was net-positive, and flipping every signal produced a 62.6% win rate
               that still lost more, −0.5207R against −0.5019R.
             </p>
+            <p className="mt-4 max-w-prose text-[15px] leading-relaxed text-[var(--foreground)]">
+              The pre-registered D1 build validation added a third narrow result. Its fixed 50/50 BTC/ETH
+              slow-gate portfolio returned a modeled +636.83% against +239.12% for identically costed
+              buy-and-hold, with Calmar 0.449 against 0.168. It cleared the registered continuous-state fold
+              rule exactly 3/4, while transition reconciliation, lookahead, cadence, cost-risk, and frequency
+              gates all passed.
+            </p>
             <p className="mt-4 max-w-prose text-[15px] leading-relaxed text-[var(--text-secondary)]">
-              That changes the research record, not the deployment gate. The slow-gate study is a sandbox-only
-              OHLCV simulation with modeled spot costs: it is not live performance, not broker fills, and not
-              a trading recommendation. It does not change live strategy selection or allocation.
+              That changes the research record and permits a fail-closed simulated lane, not deployment. The
+              slow-gate results are historical OHLCV simulations with modeled costs: they are not live
+              performance, not broker fills, and not a trading recommendation. Activation remains separately
+              gated and unapproved. No live strategy selection or allocation changed.
             </p>
             <nav className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-[15px]" aria-label="Related pages">
               <a href="/methodology" className="font-medium text-[var(--text-secondary)] underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:text-[var(--foreground)]">

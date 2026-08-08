@@ -4293,4 +4293,17 @@ next_actions:
       gap-aware stop exits, a 30-direction-change rolling-365-day safety ceiling,
       four chronological folds, production crypto costs, the three standing QA
       gates, and a fail-closed PASS/KILL rule. Strategy code, paper registration,
-      validation output, research publication, and final gates remain in progress.
+      and the deterministic validation harness are committed. The frozen run
+      returned PASS without any post-result parameter change: the fixed 50/50
+      portfolio returned a modeled +636.83% with Calmar 0.449 versus identically
+      costed buy-and-hold at +239.12% and Calmar 0.168; the Calmar fold rule passed
+      exactly 3/4. Reconciliation passed BTC 86/86 and ETH 64/64, lookahead and
+      cadence checks passed, rolling-365-day changes peaked at BTC 26 and ETH 17
+      against the ceiling of 30, and max modeled cost/risk was 0.0783R and 0.0558R.
+      The byte-stable artifact sha256 is
+      1a6b28e47f218fafd5134cb257e06f966f881bc5154be92135c06867f5026e90.
+      The new /research boundary test failed 3/3 before publication and passes 3/3
+      after cross-checking every displayed result and the activation disclaimer.
+      The PASS permits only the fail-closed simulated lane; live activation and
+      allocation remain separately gated and unapproved. Research publication and
+      final repository gates remain in progress.
