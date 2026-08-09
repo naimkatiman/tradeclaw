@@ -22,7 +22,7 @@ Read this in other languages: [日本語](README.ja.md) · [한국어](README.ko
 
 ---
 
-TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (RSI, MACD, EMA, Bollinger Bands, Stochastic, ADX, Volume). Eligible signals and their OHLCV-derived outcomes are recorded in PostgreSQL. The [track record](https://tradeclaw.win/track-record) exposes only observed outcome counts, rates, unsized price moves, exclusions, and row-level evidence. The separate [modeled signal study](https://tradeclaw.win/track-record/study) applies fixed-fractional sizing and fee/slippage assumptions. Neither surface is a broker-fill or customer-portfolio ledger.
+TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (RSI, MACD, EMA, Bollinger Bands, Stochastic, ADX, Volume). Eligible signals and their OHLCV-derived outcomes are recorded in PostgreSQL. The [track record](https://tradeclaw.win/track-record) exposes only observed outcome counts, rates, unsized price moves, exclusions, and row-level evidence. The separate [strategy study catalog](https://tradeclaw.win/track-record/study) shows seven artifact-backed modeled studies, keeps every committed experiment on an accessible shelf, and retains the aggregate fixed-fractional signal simulation. Its default is selected by evidence tier rather than return. Neither surface is a broker-fill or customer-portfolio ledger.
 
 > Status: pre-1.0 (`0.1.0`). The signal engine, dashboard, backtester, and self-host path are usable today; APIs and schema may still change between releases.
 

@@ -84,20 +84,33 @@ test.describe('Track Record page', () => {
     await expect(page.locator('canvas')).toHaveCount(0);
   });
 
-  // Test 4: The separate study reports either a real curve or the explicit
-  // no-evidence state. A zero-return placeholder is intentionally omitted.
-  test('modeled study renders an evidence-backed state', async ({ page }) => {
+  // Test 4: The separate study defaults to the evidence-ranked strategy catalog
+  // while retaining the adverse aggregate curve or explicit no-evidence state.
+  test('modeled study renders the catalog and retained aggregate state', async ({ page }) => {
     await dismissStarMilestoneModal(page);
     await page.goto('/track-record/study');
     await dismissStarMilestoneModal(page);
 
     await expect(
       page.getByRole('heading', {
-        name: 'Signal Study — Sequential Simulation',
+        name: 'Strategy Study Catalog',
         exact: true,
         level: 1,
       })
     ).toBeVisible({ timeout: 15_000 });
+
+    await expect(page.locator('[data-study-id]')).toHaveCount(7);
+    await expect(page.locator('[data-study-id="d1-slow-gate"]')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(
+      page.getByRole('heading', {
+        name: 'Signal Study — Sequential Simulation',
+        exact: true,
+        level: 2,
+      })
+    ).toBeVisible();
 
     const canvas = page.locator('canvas').first();
     const noEvidence = page.getByText(/no approved observed-OHLCV outcomes.*no zero-return placeholder/i);
