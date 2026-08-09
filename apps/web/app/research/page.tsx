@@ -379,7 +379,7 @@ const ENTRIES: KillEntry[] = [
   {
     ref: 'D1 slow-gate build · pre-registered 2026-08-08',
     family: 'Daily slow-gate walk-forward',
-    stamp: 'Passed build gate · simulated',
+    stamp: 'Passed build gate · live tracked lane',
     stampTone: 'neutral',
     hypothesis:
       'The inherited close-above-EMA200 long/flat rule, paired with a deliberately wide fixed stop, can remain net-positive after modeled production crypto-perpetual costs and match or beat buy-and-hold Calmar in at least three of four continuous-state folds without breaching the registered frequency ceiling.',
@@ -390,7 +390,7 @@ const ENTRIES: KillEntry[] = [
       { label: 'Stop', value: 'ATR14 × 2.5, floored at 4.0%; gap-aware; no take profit' },
       { label: 'Costs', value: '0.05% fee + 0.15% slippage per side + 0.01% funding per 8h' },
       { label: 'Decision', value: 'positive full-window net return; Calmar ≥ hold in ≥ 3/4 folds; QA and frequency gates pass' },
-      { label: 'Status', value: 'Simulated lane only; no live activation' },
+      { label: 'Status', value: 'Live tracked lane approved 2026-08-09; broker execution remains disabled' },
     ],
     results: [
       {
@@ -412,7 +412,7 @@ const ENTRIES: KillEntry[] = [
       },
     ],
     reading:
-      'On the exact frozen historical sample and modeled production crypto-perpetual costs, the pre-registered rule passed its build gate. The fixed 50/50 result beat buy-and-hold on both net return and full-window Calmar, while the registered Calmar fold rule passed exactly three of four folds, not all four. The result is an OHLCV simulation with modeled fills and fixed funding, and the BTC/ETH-only universe carries survivor-selection risk. It is not live performance, not broker fills, and not a trading recommendation. PASS authorizes the fail-closed simulated paper lane only. Activation remains separately gated and unapproved.',
+      'On the exact frozen historical sample and modeled production crypto-perpetual costs, the pre-registered rule passed its build gate. The fixed 50/50 result beat buy-and-hold on both net return and full-window Calmar, while the registered Calmar fold rule passed exactly three of four folds, not all four. The result is an OHLCV simulation with modeled fills and fixed funding, and the BTC/ETH-only universe carries survivor-selection risk. It is not live performance, not broker fills, and not a trading recommendation. The owner separately approved promotion to a live tracked signal lane on 2026-08-09. That approval does not enable broker order execution, does not backfill historical live rows, and does not bypass the existing fail-closed broadcast evidence gate.',
     artifacts: [
       {
         label: 'D1 slow-gate walk-forward JSON',

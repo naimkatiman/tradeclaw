@@ -237,6 +237,7 @@ Docker Compose maps the documented `.env` variables into the relevant services t
 | `MARKET_DATA_HUB_URL` | Yes | Market data hub (primary quote/OHLCV/SSE source). Bare host accepted — `https://` is added if missing |
 | `CRON_SECRET` | Yes | Auth for `/api/cron/*` endpoints |
 | `SIGNAL_ENGINE_PRESET` | No | Strategy preset (default: `hmm-top3`) |
+| `D1_SLOW_GATE_MODE` | No | `paper` (default/fail-closed) or `active`; active records only newest-bar BTCUSD/ETHUSD D1 transitions as real tracked rows. It does not enable broker execution or bypass broadcast gates |
 | `TELEGRAM_BOT_TOKEN` | No | Telegram bot for alerts |
 | `TELEGRAM_CHANNEL_ID` | No | Private channel (Pro alerts) |
 | `TELEGRAM_PUBLIC_CHANNEL_ID` | No | Public channel (delayed free alerts) |

@@ -24,8 +24,9 @@ import { precomputeSignals } from '../../../../lib/signal-worker';
 import { readLiveSignals } from '../../../../lib/signals-live';
 import { costModelFor } from '@tradeclaw/strategies';
 import {
-  runD1SlowGatePaperLane,
-  type D1SlowGatePaperResult,
+  resolveD1SlowGateLaneMode,
+  runD1SlowGateLane,
+  type D1SlowGateLaneResult,
 } from '../../../../lib/d1-slow-gate-paper';
 
 /**
@@ -53,14 +54,16 @@ function hasCompleteDecisionEvidence(record: SignalHistoryRecord): boolean {
     && record.costEstimatePct > 0;
 }
 
-/** Keep every unexpected D1 paper failure outside the production signal path. */
-export async function runD1PaperLaneSafely(): Promise<D1SlowGatePaperResult> {
+/** Keep every unexpected D1 lane failure outside the existing signal path. */
+export async function runD1LaneSafely(): Promise<D1SlowGateLaneResult> {
+  const mode = resolveD1SlowGateLaneMode();
   try {
-    return await runD1SlowGatePaperLane();
+    return await runD1SlowGateLane({ mode });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.warn(`[cron/signals] D1 paper lane failed closed: ${errorMessage}`);
+    console.warn(`[cron/signals] D1 ${mode} lane failed closed: ${errorMessage}`);
     return {
+      mode,
       processed: 0,
       candidates: 0,
       recorded: 0,
@@ -72,6 +75,9 @@ export async function runD1PaperLaneSafely(): Promise<D1SlowGatePaperResult> {
     };
   }
 }
+
+/** @deprecated Use runD1LaneSafely; retained for internal compatibility. */
+export const runD1PaperLaneSafely = runD1LaneSafely;
 
 // ── Record logic ──────────────────────────────────────────────
 
@@ -419,9 +425,9 @@ export async function GET(request: NextRequest): Promise<Response> {
       newSignals.push(sig);
     }
 
-    // Separately registered, explicitly simulated, and never allowed to abort
-    // the existing live-signal recording or resolution path.
-    const d1Paper = await runD1PaperLaneSafely();
+    // Separately registered, operator-gated, and never allowed to abort the
+    // existing live-signal recording or resolution path.
+    const d1SlowGate = await runD1LaneSafely();
 
     const { resolved, pending, errors } = await resolveOldSignals();
 
@@ -443,7 +449,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     const auditRowId = await recordSignalRun({
       runStartedAt,
       triggerSource: request.headers.get('user-agent')?.includes('GitHub') ? 'github-actions' : 'cron',
-      notes: `recorded=${taggedSignals.length} resolved=${resolved} pending=${pending} d1PaperRecorded=${d1Paper.recorded} d1PaperFailures=${d1Paper.failures.length}`,
+      notes: `recorded=${taggedSignals.length} resolved=${resolved} pending=${pending} d1SlowGateMode=${d1SlowGate.mode} d1SlowGateRecorded=${d1SlowGate.recorded} d1SlowGateFailures=${d1SlowGate.failures.length}`,
     });
 
     return NextResponse.json({
@@ -453,7 +459,8 @@ export async function GET(request: NextRequest): Promise<Response> {
       resolved,
       pending,
       errors: errors.length > 0 ? errors : undefined,
-      d1Paper,
+      d1Paper: d1SlowGate,
+      d1SlowGate,
       // Gate-decision observability — how many of this tick's candidates
       // were evaluated and how many the risk pipeline approved.
       gate: {

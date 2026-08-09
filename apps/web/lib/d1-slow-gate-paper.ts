@@ -1,4 +1,5 @@
 import {
+  D1_SLOW_GATE_ID,
   D1_SLOW_GATE_PAPER_STRATEGY_ID,
   D1_SLOW_GATE_SYMBOLS,
   D1_SLOW_GATE_TIMEFRAME,
@@ -12,6 +13,15 @@ const DAY_MS = 86_400_000;
 const MIN_D1_BARS = 200;
 export const D1_SLOW_GATE_PAPER_START_TS = Date.UTC(2017, 8, 1);
 export const D1_SLOW_GATE_PAPER_MAX_STALENESS_MS = 48 * 60 * 60 * 1000;
+
+export type D1SlowGateLaneMode = 'paper' | 'active';
+
+/** Activation is fail-closed: only the exact operator value promotes rows. */
+export function resolveD1SlowGateLaneMode(
+  raw = process.env.D1_SLOW_GATE_MODE,
+): D1SlowGateLaneMode {
+  return raw === 'active' ? 'active' : 'paper';
+}
 
 export type D1SlowGatePaperFailureStage =
   | 'refresh'
@@ -27,7 +37,8 @@ export interface D1SlowGatePaperFailure {
   error: string;
 }
 
-export interface D1SlowGatePaperResult {
+export interface D1SlowGateLaneResult {
+  mode: D1SlowGateLaneMode;
   processed: number;
   candidates: number;
   recorded: number;
@@ -74,9 +85,11 @@ function validatePaperCandles(candles: StoredCandle[], now: number): void {
 function toTrackedSignal(
   symbol: string,
   transition: D1SlowGateTransition,
+  mode: D1SlowGateLaneMode,
 ): TrackedSignalInput {
+  const strategyId = mode === 'active' ? D1_SLOW_GATE_ID : D1_SLOW_GATE_PAPER_STRATEGY_ID;
   return {
-    id: `${D1_SLOW_GATE_PAPER_STRATEGY_ID}:${symbol}:${transition.action}:${transition.timestamp}`,
+    id: `${strategyId}:${symbol}:${transition.action}:${transition.timestamp}`,
     symbol,
     timeframe: D1_SLOW_GATE_TIMEFRAME,
     direction: transition.direction,
@@ -84,26 +97,27 @@ function toTrackedSignal(
     entry: transition.price,
     timestamp: new Date(transition.timestamp + DAY_MS).toISOString(),
     stopLoss: transition.stopLoss,
-    strategyId: D1_SLOW_GATE_PAPER_STRATEGY_ID,
+    strategyId,
     mode: 'swing',
     entryAtr: transition.entryAtr,
     atrMultiplier: transition.atrMultiplier,
-    isSimulated: true,
+    isSimulated: mode !== 'active',
   };
 }
 
 /**
- * Refreshes and evaluates the approved BTC/ETH D1 paper lane. Every failure is
+ * Refreshes and evaluates the approved BTC/ETH D1 lane. Every failure is
  * collected and fails closed; callers can report it without breaking the live
  * signal path. Only a transition on the newest closed bar is eligible, so a
- * first deployment never manufactures historical paper rows.
+ * first deployment never manufactures historical rows.
  */
-export async function runD1SlowGatePaperLane(
-  options: { now?: number } = {},
-): Promise<D1SlowGatePaperResult> {
+export async function runD1SlowGateLane(
+  options: { now?: number; mode?: D1SlowGateLaneMode } = {},
+): Promise<D1SlowGateLaneResult> {
   const now = options.now ?? Date.now();
+  const mode = options.mode ?? resolveD1SlowGateLaneMode();
   if (!Number.isSafeInteger(now) || now <= 0) {
-    throw new Error('D1 paper lane now must be a positive safe-integer timestamp');
+    throw new Error('D1 slow-gate lane now must be a positive safe-integer timestamp');
   }
 
   const failures: D1SlowGatePaperFailure[] = [];
@@ -141,7 +155,7 @@ export async function runD1SlowGatePaperLane(
 
       const latestBarIndex = candles.length - 1;
       const transition = run.transitions.findLast((item) => item.barIndex === latestBarIndex);
-      if (transition) candidates.push(toTrackedSignal(symbol, transition));
+      if (transition) candidates.push(toTrackedSignal(symbol, transition, mode));
     } catch (error) {
       failures.push({ symbol, stage: 'strategy', error: message(error) });
     }
@@ -158,5 +172,12 @@ export async function runD1SlowGatePaperLane(
     }
   }
 
-  return { processed, candidates: candidates.length, recorded, failures };
+  return { mode, processed, candidates: candidates.length, recorded, failures };
+}
+
+/** Backward-compatible explicit paper entry point for internal callers. */
+export async function runD1SlowGatePaperLane(
+  options: { now?: number } = {},
+): Promise<D1SlowGateLaneResult> {
+  return runD1SlowGateLane({ ...options, mode: 'paper' });
 }

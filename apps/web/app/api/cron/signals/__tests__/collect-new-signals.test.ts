@@ -62,7 +62,8 @@ jest.mock('../../../../../lib/signals-live', () => ({
   readLiveSignals: jest.fn(),
 }));
 jest.mock('../../../../../lib/d1-slow-gate-paper', () => ({
-  runD1SlowGatePaperLane: jest.fn(),
+  resolveD1SlowGateLaneMode: jest.fn().mockReturnValue('paper'),
+  runD1SlowGateLane: jest.fn(),
 }));
 
 // preset-dispatch (same dir as route.ts)
@@ -72,11 +73,11 @@ jest.mock('../preset-dispatch', () => ({
 
 // ── Import after mocks ────────────────────────────────────────────────────────
 
-import { collectNewSignals, resolveOldSignals, runD1PaperLaneSafely } from '../route';
+import { collectNewSignals, resolveOldSignals, runD1LaneSafely } from '../route';
 import { getOHLCV } from '../../../../lib/ohlcv';
 import { getSignals } from '../../../../lib/signals';
 import { readLiveSignals } from '../../../../../lib/signals-live';
-import { runD1SlowGatePaperLane } from '../../../../../lib/d1-slow-gate-paper';
+import { runD1SlowGateLane } from '../../../../../lib/d1-slow-gate-paper';
 import {
   getPendingRecordsAsync,
   getRecentRecordForSymbolAsync,
@@ -94,7 +95,7 @@ const mockGetOHLCV = getOHLCV as jest.MockedFunction<typeof getOHLCV>;
 const mockGetPendingRecords = getPendingRecordsAsync as jest.MockedFunction<typeof getPendingRecordsAsync>;
 const mockResolveFromCandles = resolveFromCandles as jest.MockedFunction<typeof resolveFromCandles>;
 const mockUpdateRecords = updateRecordsAsync as jest.MockedFunction<typeof updateRecordsAsync>;
-const mockRunD1PaperLane = runD1SlowGatePaperLane as jest.MockedFunction<typeof runD1SlowGatePaperLane>;
+const mockRunD1Lane = runD1SlowGateLane as jest.MockedFunction<typeof runD1SlowGateLane>;
 
 // ── Minimal signal fixture ────────────────────────────────────────────────────
 
@@ -306,11 +307,12 @@ describe('collectNewSignals — strategy attribution', () => {
   });
 });
 
-describe('runD1PaperLaneSafely', () => {
+describe('runD1LaneSafely', () => {
   it('turns an unexpected paper-lane throw into an isolated fail-closed result', async () => {
-    mockRunD1PaperLane.mockRejectedValueOnce(new Error('unexpected paper failure'));
+    mockRunD1Lane.mockRejectedValueOnce(new Error('unexpected paper failure'));
 
-    await expect(runD1PaperLaneSafely()).resolves.toEqual({
+    await expect(runD1LaneSafely()).resolves.toEqual({
+      mode: 'paper',
       processed: 0,
       candidates: 0,
       recorded: 0,
