@@ -6,7 +6,12 @@ import {
   runD1SlowGate,
   type D1SlowGateTransition,
 } from '@tradeclaw/strategies';
-import { getCandlesSince, refreshDailyCandles, type StoredCandle } from './candle-store';
+import {
+  backfillDailyCandles,
+  getCandlesSince,
+  refreshDailyCandles,
+  type StoredCandle,
+} from './candle-store';
 import { recordSignalsAsync, type TrackedSignalInput } from './signal-history';
 
 const DAY_MS = 86_400_000;
@@ -136,6 +141,14 @@ export async function runD1SlowGateLane(
     let candles: StoredCandle[];
     try {
       candles = await getCandlesSince(symbol, D1_SLOW_GATE_TIMEFRAME, D1_SLOW_GATE_PAPER_START_TS);
+      if (candles[0]?.timestamp !== D1_SLOW_GATE_PAPER_START_TS) {
+        await backfillDailyCandles(symbol, D1_SLOW_GATE_PAPER_START_TS);
+        candles = await getCandlesSince(
+          symbol,
+          D1_SLOW_GATE_TIMEFRAME,
+          D1_SLOW_GATE_PAPER_START_TS,
+        );
+      }
       validatePaperCandles(candles, now);
     } catch (error) {
       failures.push({ symbol, stage: 'data', error: message(error) });

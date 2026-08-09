@@ -4333,4 +4333,13 @@ next_actions:
       boundary is signal tracking only: exact env value active promotes future
       newest-bar BTC/ETH D1 transitions; missing/invalid values remain paper,
       no historical backfill occurs, broadcast remains fail-closed without an
-      explicit decision, and broker execution stays disabled.
+      explicit decision, and broker execution stays disabled. PR #204 passed all
+      protected checks, squash merged as c14164a8e3ab8a8170a44d8b4eae9279e1da3ed7,
+      and exact merged main deployed successfully as a5379c1b-5949-41df-a7e2-cb5f4171405c.
+      Setting D1_SLOW_GATE_MODE=active triggered successful Railway redeploy
+      12877bcf-94d8-4e25-91d9-b1d3d9cdbee8. The first authenticated tick confirmed
+      mode=active but failed closed for both symbols before emission because the
+      production D1 store lacked the exact frozen 2017-09-01 prefix. A follow-up
+      append-only paginated Binance D1 repair is in progress; activation is not
+      complete until a subsequent active tick processes both symbols without
+      failures.

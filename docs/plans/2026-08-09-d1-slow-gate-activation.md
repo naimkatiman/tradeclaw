@@ -34,3 +34,13 @@ reconciliation/lookahead/cadence QA gates passed.
 
 Set `D1_SLOW_GATE_MODE=paper` and redeploy. Previously written real rows remain
 historical records; the mode change only affects future newest-bar transitions.
+
+## Production activation check
+
+The first authenticated active tick on 2026-08-09 reported `mode=active` but
+failed closed for both symbols because production had a recent D1 prefix rather
+than the frozen 2017-09-01 boundary. No D1 row was emitted. The repair keeps the
+exact frozen-start validator and append-only store: when that prefix is absent,
+the lane paginates closed Binance D1 bars from the registered boundary, inserts
+with `ON CONFLICT DO NOTHING`, reloads the database stream, and only then runs
+the unchanged integrity and strategy gates.

@@ -3,7 +3,7 @@ jest.mock('../db-pool', () => ({
 }));
 
 import { query } from '../db-pool';
-import { refreshDailyCandles } from '../candle-store';
+import { backfillDailyCandles, refreshDailyCandles } from '../candle-store';
 
 const mockedQuery = query as jest.MockedFunction<typeof query>;
 const realFetch = global.fetch;
@@ -42,5 +42,40 @@ describe('refreshDailyCandles', () => {
       'BTCUSD', 'D1', closedOpen, 100, 110, 90, 105, 12, 'binance',
     ]);
     expect(openOpen + DAY_MS).toBeGreaterThan(now);
+  });
+
+  it('backfills paginated closed D1 history from an explicit UTC boundary', async () => {
+    const start = Date.UTC(2017, 8, 1);
+    const firstPageLast = start + 999 * DAY_MS;
+    const secondPageOpen = firstPageLast + DAY_MS;
+    jest.spyOn(Date, 'now').mockReturnValue(secondPageOpen + 2 * DAY_MS);
+    mockedQuery
+      .mockResolvedValueOnce(Array.from({ length: 1000 }, (_, index) => ({ ts: String(start + index * DAY_MS) })))
+      .mockResolvedValueOnce([{ ts: String(secondPageOpen) }]);
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => Array.from({ length: 1000 }, (_, index) => [
+          start + index * DAY_MS, '100', '110', '90', '105', '12',
+        ]),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [[secondPageOpen, '105', '115', '95', '111', '13']],
+      }) as unknown as typeof fetch;
+
+    await expect(backfillDailyCandles('BTCUSD', start)).resolves.toBe(1001);
+
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining(`startTime=${start}`),
+      expect.any(Object),
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining(`startTime=${secondPageOpen}`),
+      expect.any(Object),
+    );
+    expect(mockedQuery).toHaveBeenCalledTimes(2);
   });
 });
