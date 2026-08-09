@@ -19,6 +19,8 @@ const BINANCE_BASE = 'https://data-api.binance.vision/api/v3/klines';
  */
 const REFRESH_KLINE_LIMIT = 48;
 const D1_REFRESH_KLINE_LIMIT = 14;
+const D1_BACKFILL_KLINE_LIMIT = 1000;
+const D1_BACKFILL_MAX_PAGES = 10;
 
 const FETCH_TIMEOUT_MS = 10_000;
 
@@ -171,4 +173,75 @@ export async function refreshCandles(symbol: string): Promise<number> {
 /** Append the latest provably closed UTC-D1 bars for the slow-gate paper lane. */
 export async function refreshDailyCandles(symbol: string): Promise<number> {
   return refreshBinanceCandles(symbol, 'D1', '1d', D1_MS, D1_REFRESH_KLINE_LIMIT);
+}
+
+/**
+ * Append closed Binance D1 history from an explicit UTC boundary. This is the
+ * repair path for a production store whose recent prefix exists but whose
+ * frozen slow-gate history has not yet been loaded. Inserts remain append-only.
+ */
+export async function backfillDailyCandles(
+  symbol: string,
+  startTimestamp: number,
+): Promise<number> {
+  const pair = BINANCE_MAP[symbol];
+  if (!pair) throw new Error(`no Binance mapping for ${symbol}`);
+  if (!Number.isSafeInteger(startTimestamp) || startTimestamp <= 0 || startTimestamp % D1_MS !== 0) {
+    throw new Error('D1 backfill start must be a positive UTC-day safe integer');
+  }
+
+  const fetchStartTs = Date.now();
+  let cursor = startTimestamp;
+  let inserted = 0;
+
+  for (let page = 0; page < D1_BACKFILL_MAX_PAGES; page++) {
+    const url = `${BINANCE_BASE}?symbol=${pair}&interval=1d&startTime=${cursor}&limit=${D1_BACKFILL_KLINE_LIMIT}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+    if (!res.ok) {
+      throw new Error(
+        `Binance ${res.status} for ${pair} D1 backfill: ${(await res.text()).slice(0, 200)}`,
+      );
+    }
+    const klines = (await res.json()) as Array<
+      [number, string, string, string, string, string, ...unknown[]]
+    >;
+    const closed = klines.filter((k) => k[0] >= cursor && k[0] + D1_MS <= fetchStartTs);
+    if (closed.length === 0) break;
+
+    const values: string[] = [];
+    const params: unknown[] = [];
+    let parameter = 1;
+    for (const kline of closed) {
+      values.push(`($${parameter++}, $${parameter++}, $${parameter++}, $${parameter++}, $${parameter++}, $${parameter++}, $${parameter++}, $${parameter++}, $${parameter++})`);
+      params.push(
+        symbol,
+        'D1',
+        kline[0],
+        Number(kline[1]),
+        Number(kline[2]),
+        Number(kline[3]),
+        Number(kline[4]),
+        Number(kline[5]),
+        'binance',
+      );
+    }
+    const rows = await query<{ ts: string }>(
+      `INSERT INTO candles (symbol, timeframe, ts, open, high, low, close, volume, source)
+       VALUES ${values.join(', ')}
+       ON CONFLICT (symbol, timeframe, ts) DO NOTHING
+       RETURNING ts`,
+      params,
+    );
+    inserted += rows.length;
+
+    const nextCursor = closed[closed.length - 1][0] + D1_MS;
+    if (nextCursor <= cursor) throw new Error('Binance D1 backfill did not advance');
+    cursor = nextCursor;
+    if (klines.length < D1_BACKFILL_KLINE_LIMIT || cursor + D1_MS > fetchStartTs) break;
+  }
+
+  if (cursor + D1_MS <= fetchStartTs && inserted === 0) {
+    throw new Error(`Binance D1 backfill produced no closed rows for ${symbol}`);
+  }
+  return inserted;
 }

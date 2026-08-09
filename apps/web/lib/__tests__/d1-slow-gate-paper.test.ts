@@ -1,4 +1,5 @@
 jest.mock('../candle-store', () => ({
+  backfillDailyCandles: jest.fn(),
   getCandlesSince: jest.fn(),
   refreshDailyCandles: jest.fn(),
 }));
@@ -18,7 +19,12 @@ import {
   runD1SlowGate,
   type D1SlowGateRun,
 } from '@tradeclaw/strategies';
-import { getCandlesSince, refreshDailyCandles, type StoredCandle } from '../candle-store';
+import {
+  backfillDailyCandles,
+  getCandlesSince,
+  refreshDailyCandles,
+  type StoredCandle,
+} from '../candle-store';
 import { recordSignalsAsync } from '../signal-history';
 import {
   D1_SLOW_GATE_PAPER_START_TS,
@@ -29,6 +35,7 @@ import {
 const mockedRun = runD1SlowGate as jest.MockedFunction<typeof runD1SlowGate>;
 const mockedGetCandles = getCandlesSince as jest.MockedFunction<typeof getCandlesSince>;
 const mockedRefresh = refreshDailyCandles as jest.MockedFunction<typeof refreshDailyCandles>;
+const mockedBackfill = backfillDailyCandles as jest.MockedFunction<typeof backfillDailyCandles>;
 const mockedRecord = recordSignalsAsync as jest.MockedFunction<typeof recordSignalsAsync>;
 
 const DAY_MS = 86_400_000;
@@ -79,6 +86,7 @@ beforeEach(() => {
   mockedRun.mockReset();
   mockedGetCandles.mockReset();
   mockedRefresh.mockReset().mockResolvedValue(1);
+  mockedBackfill.mockReset().mockResolvedValue(1);
   mockedRecord.mockReset().mockResolvedValue(1);
 });
 
@@ -139,6 +147,22 @@ describe('runD1SlowGateLane', () => {
         isSimulated: false,
       }),
     ]);
+  });
+
+  it('repairs a later production prefix before evaluating the lane', async () => {
+    const bars = dailyBars();
+    mockedGetCandles
+      .mockResolvedValueOnce(bars.slice(1))
+      .mockResolvedValueOnce(bars)
+      .mockResolvedValueOnce(bars);
+    mockedRun.mockImplementation(() => runFor(bars, false));
+
+    const result = await runD1SlowGateLane({ now: NOW, mode: 'active' });
+
+    expect(result).toEqual({ mode: 'active', processed: 2, candidates: 0, recorded: 0, failures: [] });
+    expect(mockedBackfill).toHaveBeenCalledTimes(1);
+    expect(mockedBackfill).toHaveBeenCalledWith('BTCUSD', D1_SLOW_GATE_PAPER_START_TS);
+    expect(mockedGetCandles).toHaveBeenCalledTimes(3);
   });
 
   it('fails closed when the latest closed D1 bar is stale', async () => {
