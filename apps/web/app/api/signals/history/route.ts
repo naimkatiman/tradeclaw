@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isCountedResolved, isRealOutcome, type SignalHistoryRecord } from '../../../../lib/signal-history';
 import { getResolvedSlice, parseScope } from '../../../../lib/signal-slice';
+import { computeRollingWinRates } from '../../../../lib/rolling-win-rates';
 import { parseCategoryFilter, symbolsForCategory } from '../../../lib/symbol-config';
 
 const CSV_HEADERS = [
@@ -93,9 +94,13 @@ export async function GET(request: NextRequest) {
     const slice = await getResolvedSlice({ scope, period });
     let records = slice.periodFiltered;
 
-    const categorySymbols = !pair && category !== 'all'
+    const selectedCategorySymbols = category !== 'all'
       ? new Set(symbolsForCategory(category))
       : null;
+    const categorySymbols = !pair ? selectedCategorySymbols : null;
+    const rollingPopulation = selectedCategorySymbols
+      ? slice.scopedRecords.filter(r => selectedCategorySymbols.has(r.pair))
+      : slice.scopedRecords;
 
     if (pair) records = records.filter(r => r.pair === pair);
     if (categorySymbols) records = records.filter(r => categorySymbols.has(r.pair));
@@ -222,6 +227,7 @@ export async function GET(request: NextRequest) {
       category,
       earliestTimestamp: slice.earliestTimestamp,
       latestTimestamp,
+      rollingWinRates: computeRollingWinRates(rollingPopulation),
       stats: {
         available: resolved.length > 0,
         totalSignals: records.length,

@@ -134,11 +134,11 @@ const en: TrackRecordWidgetTranslations = {
   share: {
     xDefaultLabel: 'Share on X',
     xAria: 'Share the track record on X',
-    xObserved: 'TradeClaw observed a {winRate} win rate across {resolved} counted signals resolved using OHLCV. This is signal-study data only, not broker fills or portfolio returns:',
+    xObserved: 'TradeClaw observed a {winRate} win rate across {resolved} counted signals resolved using OHLCV. This is an observed outcome record, not broker fills or portfolio returns:',
     xGeneric: 'TradeClaw publishes recorded signal rows, OHLCV-resolved outcomes, and exclusions. This is not an execution ledger:',
     linkedinDefaultLabel: 'Share on LinkedIn',
     linkedinAria: 'Share the track record on LinkedIn',
-    linkedinObserved: 'TradeClaw observed a {winRate} win rate across {resolved} counted signals whose outcomes were resolved against provider OHLCV. This is signal-study data, not broker fills or customer portfolio returns.\n\nInspect the population and methodology:\n{url}',
+    linkedinObserved: 'TradeClaw observed a {winRate} win rate across {resolved} counted signals whose outcomes were resolved against provider OHLCV. This is an observed outcome record, not broker fills or customer portfolio returns.\n\nInspect the population and methodology:\n{url}',
     linkedinGeneric: 'TradeClaw publishes recorded signal rows, OHLCV-resolved outcomes, and the excluded populations. It is not an execution or customer-account ledger:\n{url}',
   },
   trailingWeek: {
@@ -243,10 +243,10 @@ const es: TrackRecordWidgetTranslations = {
   },
   share: {
     xDefaultLabel: 'Compartir en X', xAria: 'Compartir el historial en X',
-    xObserved: 'TradeClaw observó una tasa de aciertos del {winRate} en {resolved} señales contabilizadas y resueltas mediante OHLCV. Son datos de un estudio de señales, no ejecuciones de bróker ni rentabilidades de cartera:',
+    xObserved: 'TradeClaw observó una tasa de aciertos del {winRate} en {resolved} señales contabilizadas y resueltas mediante OHLCV. Es un registro observado de resultados, no ejecuciones de bróker ni rentabilidades de cartera:',
     xGeneric: 'TradeClaw publica las filas de señales registradas, los resultados resueltos mediante OHLCV y las exclusiones. No es un registro de ejecución:',
     linkedinDefaultLabel: 'Compartir en LinkedIn', linkedinAria: 'Compartir el historial en LinkedIn',
-    linkedinObserved: 'TradeClaw observó una tasa de aciertos del {winRate} en {resolved} señales contabilizadas cuyos resultados se resolvieron con OHLCV del proveedor. Son datos de un estudio de señales, no ejecuciones de bróker ni rentabilidades de carteras de clientes.\n\nConsulta la población y la metodología:\n{url}',
+    linkedinObserved: 'TradeClaw observó una tasa de aciertos del {winRate} en {resolved} señales contabilizadas cuyos resultados se resolvieron con OHLCV del proveedor. Es un registro observado de resultados, no ejecuciones de bróker ni rentabilidades de carteras de clientes.\n\nConsulta la población y la metodología:\n{url}',
     linkedinGeneric: 'TradeClaw publica las filas de señales registradas, los resultados resueltos mediante OHLCV y las poblaciones excluidas. No es un registro de ejecución ni de cuentas de clientes:\n{url}',
   },
   trailingWeek: {
@@ -332,10 +332,10 @@ const zh: TrackRecordWidgetTranslations = {
   },
   share: {
     xDefaultLabel: '分享到 X', xAria: '在 X 上分享交易记录',
-    xObserved: 'TradeClaw 在 {resolved} 条使用 OHLCV 解析的计数信号中观察到 {winRate} 胜率。这仅是信号研究数据，不是经纪商成交或投资组合收益：',
+    xObserved: 'TradeClaw 在 {resolved} 条使用 OHLCV 解析的计数信号中观察到 {winRate} 胜率。这是实测结果记录，不是经纪商成交或投资组合收益：',
     xGeneric: 'TradeClaw 公开已记录的信号行、使用 OHLCV 解析的结果和排除项。这不是执行账本：',
     linkedinDefaultLabel: '分享到 LinkedIn', linkedinAria: '在 LinkedIn 上分享交易记录',
-    linkedinObserved: 'TradeClaw 在 {resolved} 条计数信号中观察到 {winRate} 胜率，其结果由供应商 OHLCV 解析。这是信号研究数据，不是经纪商成交或客户投资组合收益。\n\n查看样本和方法：\n{url}',
+    linkedinObserved: 'TradeClaw 在 {resolved} 条计数信号中观察到 {winRate} 胜率，其结果由供应商 OHLCV 解析。这是实测结果记录，不是经纪商成交或客户投资组合收益。\n\n查看样本和方法：\n{url}',
     linkedinGeneric: 'TradeClaw 公开已记录的信号行、使用 OHLCV 解析的结果以及被排除的样本。这不是执行或客户账户账本：\n{url}',
   },
   trailingWeek: {
@@ -408,10 +408,10 @@ const ms: TrackRecordWidgetTranslations = {
   },
   share: {
     xDefaultLabel: 'Kongsi di X', xAria: 'Kongsi rekod prestasi di X',
-    xObserved: 'TradeClaw memerhatikan kadar menang {winRate} merentas {resolved} isyarat dikira yang diselesaikan menggunakan OHLCV. Ini hanyalah data kajian isyarat, bukan pengisian broker atau pulangan portfolio:',
+    xObserved: 'TradeClaw memerhatikan kadar menang {winRate} merentas {resolved} isyarat dikira yang diselesaikan menggunakan OHLCV. Ini rekod hasil diperhati, bukan pengisian broker atau pulangan portfolio:',
     xGeneric: 'TradeClaw menerbitkan baris isyarat yang direkodkan, hasil yang diselesaikan menggunakan OHLCV dan pengecualian. Ini bukan lejar pelaksanaan:',
     linkedinDefaultLabel: 'Kongsi di LinkedIn', linkedinAria: 'Kongsi rekod prestasi di LinkedIn',
-    linkedinObserved: 'TradeClaw memerhatikan kadar menang {winRate} merentas {resolved} isyarat dikira yang hasilnya diselesaikan berdasarkan OHLCV penyedia. Ini ialah data kajian isyarat, bukan pengisian broker atau pulangan portfolio pelanggan.\n\nPeriksa populasi dan metodologi:\n{url}',
+    linkedinObserved: 'TradeClaw memerhatikan kadar menang {winRate} merentas {resolved} isyarat dikira yang hasilnya diselesaikan berdasarkan OHLCV penyedia. Ini rekod hasil diperhati, bukan pengisian broker atau pulangan portfolio pelanggan.\n\nPeriksa populasi dan metodologi:\n{url}',
     linkedinGeneric: 'TradeClaw menerbitkan baris isyarat yang direkodkan, hasil yang diselesaikan menggunakan OHLCV dan populasi yang dikecualikan. Ini bukan lejar pelaksanaan atau akaun pelanggan:\n{url}',
   },
   trailingWeek: {
@@ -484,10 +484,10 @@ const ar: TrackRecordWidgetTranslations = {
   },
   share: {
     xDefaultLabel: 'مشاركة على X', xAria: 'مشاركة سجل الأداء على X',
-    xObserved: 'رصدت TradeClaw نسبة فوز {winRate} عبر {resolved} إشارة محتسبة حُسمت باستخدام OHLCV. هذه بيانات دراسة إشارات فقط، وليست تنفيذات وسيط أو عوائد محفظة:',
+    xObserved: 'رصدت TradeClaw نسبة فوز {winRate} عبر {resolved} إشارة محتسبة حُسمت باستخدام OHLCV. هذا سجل نتائج مرصود، وليس تنفيذات وسيط أو عوائد محفظة:',
     xGeneric: 'تنشر TradeClaw صفوف الإشارات المسجلة والنتائج المحسومة باستخدام OHLCV والاستبعادات. هذا ليس سجل تنفيذ:',
     linkedinDefaultLabel: 'مشاركة على LinkedIn', linkedinAria: 'مشاركة سجل الأداء على LinkedIn',
-    linkedinObserved: 'رصدت TradeClaw نسبة فوز {winRate} عبر {resolved} إشارة محتسبة، حيث حُسمت نتائجها بيانات OHLCV من المزوّد. هذه بيانات دراسة إشارات، وليست تنفيذات وسيط أو عوائد محافظ العملاء.\n\nافحص المجموعة والمنهجية:\n{url}',
+    linkedinObserved: 'رصدت TradeClaw نسبة فوز {winRate} عبر {resolved} إشارة محتسبة، حيث حُسمت نتائجها بيانات OHLCV من المزوّد. هذا سجل نتائج مرصود، وليس تنفيذات وسيط أو عوائد محافظ العملاء.\n\nافحص المجموعة والمنهجية:\n{url}',
     linkedinGeneric: 'تنشر TradeClaw صفوف الإشارات المسجلة والنتائج المحسومة باستخدام OHLCV والمجموعات المستبعدة. هذا ليس سجل تنفيذ أو حسابات عملاء:\n{url}',
   },
   trailingWeek: {

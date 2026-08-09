@@ -32,7 +32,7 @@ export default async function TrackRecordEmbedPage({ searchParams }: { searchPar
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <div style={{ fontSize: '12px', letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.7 }}>
-          {`TradeClaw — OHLCV-resolved signal study (30d, ${bandLabel})`}
+          {`TradeClaw — observed OHLCV signal record (30d, ${bandLabel})`}
         </div>
         <a href="https://tradeclaw.win/track-record" target="_blank" rel="noopener" style={{ fontSize: '11px', color: '#10b981', textDecoration: 'none' }}>
           tradeclaw.win →

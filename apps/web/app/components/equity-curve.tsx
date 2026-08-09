@@ -364,7 +364,7 @@ type EquityScope = 'pro' | 'broadcast';
 type EquityBand = 'all' | 'premium' | 'standard';
 
 interface EquityCurveProps {
-  period?: '7d' | '30d' | 'all';
+  period?: '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
   scope?: EquityScope;
   category?: CategoryFilter;
   band?: EquityBand;

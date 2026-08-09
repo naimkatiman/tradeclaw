@@ -20,7 +20,7 @@ interface ShareOnXProps {
 }
 
 /**
- * Pre-filled X share button for the public signal study.
+ * Pre-filled X share button for the public observed outcome record.
  */
 export function ShareOnX({ winRate, resolved, period = 'recent', label }: ShareOnXProps) {
   const { locale } = useLocale();

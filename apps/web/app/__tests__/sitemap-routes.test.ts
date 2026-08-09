@@ -35,6 +35,7 @@ describe('sitemap', () => {
       '/open-data',
       '/calibration',
       '/track-record',
+      '/track-record/study',
     ]) {
       expect(urls).toContain(`${BASE}${p}`);
     }

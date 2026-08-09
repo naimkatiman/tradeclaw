@@ -9,6 +9,7 @@ import {
   type TrackRecordWidgetTranslations,
 } from '@/lib/product-i18n/track-record-widgets';
 import { getHtmlLanguage } from '@/lib/translations';
+import type { CategoryFilter } from '@/app/lib/symbol-config';
 
 interface BandSummary {
   totalReturn: number;
@@ -94,7 +95,7 @@ function rMultiple(language: string, value: number): string {
  * Four parallel summary-only GETs to /api/signals/equity (7d + all-time, each
  * band=all / band=premium). summaryOnly=1 skips the point payload.
  */
-export function TrailingWeekBandCallout() {
+export function TrailingWeekBandCallout({ category = 'all' }: { category?: CategoryFilter }) {
   const { locale } = useLocale();
   const t = getTrackRecordWidgetTranslations(locale).trailingWeek;
   const language = getHtmlLanguage(locale);
@@ -105,7 +106,9 @@ export function TrailingWeekBandCallout() {
     let cancelled = false;
     async function fetchSummary(period: string, band: string): Promise<BandSummary | null> {
       try {
-        const res = await fetch(`/api/signals/equity?period=${period}&scope=pro&band=${band}&summaryOnly=1`);
+        const params = new URLSearchParams({ period, scope: 'pro', band, summaryOnly: '1' });
+        if (category !== 'all') params.set('category', category);
+        const res = await fetch(`/api/signals/equity?${params.toString()}`);
         if (!res.ok) return null;
         const json = (await res.json()) as BandResponse;
         return json.summary;
@@ -136,7 +139,7 @@ export function TrailingWeekBandCallout() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [category]);
 
   if (loading) return null;
   if (!data?.sevenDay.all || !data.sevenDay.premium) return null;
