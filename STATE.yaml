@@ -4430,7 +4430,7 @@ next_actions:
 
   - id: TC-253
     title: "Publish an anti-survivorship strategy-study catalog"
-    status: in-progress
+    status: done
     owner: pm-tradeclaw
     notes: >
       Started 2026-08-09 after the owner asked for a profitable default and at
@@ -4492,7 +4492,20 @@ next_actions:
       Screenshots are retained under ignored output/playwright. On 2026-08-10 the
       owner explicitly authorized commit, push, merge, and production deployment.
       The branch was advanced from merged implementation base 0c069e51 to exact
-      current main 528aa99d while preserving TC-252's state-only closure. Release
-      is in progress; no live claim is valid until protected CI passes, the exact
-      merged main is deployed, Railway reaches SUCCESS, and production browser,
-      health, route, artifact, and bounded-log checks pass.
+      current main 528aa99d while preserving TC-252's state-only closure. The
+      release revalidation on that exact base passed full Jest (235 suites,
+      1,852 tests), web typecheck, lint with zero errors and 23 pre-existing
+      warnings, strategy tests (14 suites, 103 tests, one snapshot), and the
+      required 325-page production build. Exact eight-file commit
+      be52fbd18f6522be357fe2259a618866a59f3912 was pushed to PR #209. Its seven
+      observed checks all passed in CI run 31324686182: Lint & Type Check, Unit
+      Tests, Build, Strategy Backtests, Docker Build, Playwright E2E, and welcome.
+      The PR was marked ready only after the exact head was green and then
+      squash-merged at 2026-08-09T17:02:26Z as
+      b90bf7430367149d796dd26d913ab54dc608b27a. A fresh fetch confirmed
+      origin/main equals that returned merge SHA. This closure is isolated in
+      state-only branch agent/strategy-study-catalog-state from the exact merge.
+      Railway production deployment remains pending until this truthful state
+      update clears the protected path and establishes the exact final-main
+      commit to deploy. No live claim is valid until Railway reaches SUCCESS and
+      production browser, health, route, artifact, and bounded-log checks pass.
