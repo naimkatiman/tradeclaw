@@ -9,6 +9,7 @@ const HERO_PAGES = [
   { path: '/backtest', testId: 'backtest-hero-art' },
   { path: '/leaderboard', testId: 'leaderboard-hero-art' },
   { path: '/track-record', testId: 'track-record-hero-art' },
+  { path: '/track-record/study', testId: 'signal-study-hero-art' },
 ] as const;
 
 const FOCUSABLE_SELECTOR = [

@@ -69,16 +69,34 @@ test.describe('Track Record page', () => {
     }
   });
 
-  // Test 3: The sequential simulation reports either a real curve or the
-  // explicit no-evidence state. A zero-return canvas is intentionally omitted.
-  test('sequential simulation renders an evidence-backed state', async ({ page }) => {
+  // Test 3: The observed record must not mix modeled equity into its evidence.
+  test('observed record links to but does not render the modeled study', async ({ page }) => {
     await dismissStarMilestoneModal(page);
     await page.goto('/track-record');
     await dismissStarMilestoneModal(page);
 
-    // Section heading from EquityCurve component h2.
+    const studyLink = page.getByRole('link', { name: /Modeled signal study/i }).first();
+    await expect(studyLink).toBeVisible({ timeout: 15_000 });
+    await expect(studyLink).toHaveAttribute('href', '/track-record/study');
     await expect(
       page.getByText(/Signal Study.*Sequential Simulation/i)
+    ).toHaveCount(0);
+    await expect(page.locator('canvas')).toHaveCount(0);
+  });
+
+  // Test 4: The separate study reports either a real curve or the explicit
+  // no-evidence state. A zero-return placeholder is intentionally omitted.
+  test('modeled study renders an evidence-backed state', async ({ page }) => {
+    await dismissStarMilestoneModal(page);
+    await page.goto('/track-record/study');
+    await dismissStarMilestoneModal(page);
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Signal Study — Sequential Simulation',
+        exact: true,
+        level: 1,
+      })
     ).toBeVisible({ timeout: 15_000 });
 
     const canvas = page.locator('canvas').first();
@@ -86,7 +104,7 @@ test.describe('Track Record page', () => {
     await expect(canvas.or(noEvidence)).toBeVisible({ timeout: 20_000 });
   });
 
-  // Test 4: Category breakdown buttons (All / Majors / Thematic) are present.
+  // Test 5: Category breakdown buttons (All / Majors / Thematic) are present.
   // No "strategy breakdown" section exists on this page. The closest equivalent
   // is CategoryBreakdownRow, which renders 3 clickable cells for category segmentation.
   test('category breakdown controls are present', async ({ page }) => {
@@ -102,7 +120,7 @@ test.describe('Track Record page', () => {
     await expect(page.getByRole('button', { name: /^Thematic$/i }).first()).toBeVisible();
   });
 
-  // Test 5: /api/leaderboard returns 200 with usable shape.
+  // Test 6: /api/leaderboard returns 200 with usable shape.
   // This is the actual endpoint consumed by TrackRecordClient (not /api/strategy-breakdown,
   // which does not appear in this page's fetch calls).
   test('GET /api/leaderboard returns 200 with usable shape', async ({ request }: { request: APIRequestContext }) => {
@@ -120,7 +138,7 @@ test.describe('Track Record page', () => {
     expect(Array.isArray(typed['assets'])).toBe(true);
   });
 
-  // Test 6: No error boundary fallback is shown at page load.
+  // Test 7: No error boundary fallback is shown at page load.
   // Made permissive — only checks top-level catastrophic failures, not async data errors.
   test('page does not show error boundary fallback', async ({ page }) => {
     await dismissStarMilestoneModal(page);

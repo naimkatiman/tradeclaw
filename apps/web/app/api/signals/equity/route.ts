@@ -3,6 +3,7 @@ import { isCountedResolved, type SignalHistoryRecord } from '../../../../lib/sig
 import { HIGH_CONFIDENCE_BAND_MIN } from '../../../../lib/signal-thresholds';
 import { getResolvedSlice, parseScope, type SignalScope } from '../../../../lib/signal-slice';
 import { modeledTradeR } from '../../../../lib/modeled-trade-cost';
+import { computeRollingWinRates } from '../../../../lib/rolling-win-rates';
 import { parseCategoryFilter, symbolsForCategory } from '../../../lib/symbol-config';
 
 export type EquityScope = SignalScope;
@@ -74,18 +75,6 @@ export interface EquitySummary {
   avgCostR: number | null;
   /** Hard R-cap applied to per-trade sizing — bounds single-trade equity contribution. */
   hardRCap: number;
-}
-
-export interface RollingWinRateSummary {
-  totalSignals: number;
-  resolvedSignals: number;
-  winRate: number;
-}
-
-export interface RollingWinRates {
-  '7d': RollingWinRateSummary;
-  '30d': RollingWinRateSummary;
-  '90d': RollingWinRateSummary;
 }
 
 function parseBand(raw: string | null): EquityBand {
@@ -285,29 +274,6 @@ function computeEquityCurve(
   };
 }
 
-function computeWinRateSummary(records: SignalHistoryRecord[]): RollingWinRateSummary {
-  const resolvedSignals = records.filter(isCountedResolved);
-  const wins = resolvedSignals.filter((record) => record.outcomes['24h']!.hit).length;
-
-  return {
-    totalSignals: records.length,
-    resolvedSignals: resolvedSignals.length,
-    winRate: resolvedSignals.length > 0 ? +((wins / resolvedSignals.length) * 100).toFixed(1) : 0,
-  };
-}
-
-function computeRollingWinRates(records: SignalHistoryRecord[]): RollingWinRates {
-  const now = Date.now();
-  const windows = [7, 30, 90] as const;
-
-  return windows.reduce((acc, days) => {
-    const cutoff = now - days * 86_400_000;
-    const key = `${days}d` as const;
-    acc[key] = computeWinRateSummary(records.filter((record) => record.timestamp >= cutoff));
-    return acc;
-  }, {} as RollingWinRates);
-}
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -340,7 +306,10 @@ export async function GET(request: NextRequest) {
     const categorySymbols = category !== 'all'
       ? new Set(symbolsForCategory(category))
       : null;
-    const rollingWinRates = computeRollingWinRates(slice.scopedRecords);
+    const rollingPopulation = categorySymbols
+      ? slice.scopedRecords.filter(r => categorySymbols.has(r.pair))
+      : slice.scopedRecords;
+    const rollingWinRates = computeRollingWinRates(rollingPopulation);
 
     // Band filter is equity-only. Apply on the resolved set, then recompute
     // counted-resolved (no-op when band='all', filters confidence otherwise).
@@ -364,6 +333,7 @@ export async function GET(request: NextRequest) {
         band,
         scope,
         category,
+        earliestTimestamp: slice.earliestTimestamp,
         // capR is in R-multiples now (under fixed-fractional sizing). Older
         // capPct field kept null/absent — UI should read capR.
         smooth: smoothMultiplier !== null

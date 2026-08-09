@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Demo](https://img.shields.io/badge/Demo-Live-10b981?style=flat-square)](https://tradeclaw.win/dashboard)
 
-**[Track Record](https://tradeclaw.win/track-record)** · **[Live Demo](https://tradeclaw.win/dashboard)** · **[API Docs](https://tradeclaw.win/api-docs)** · **[Pricing](https://tradeclaw.win/pricing)**
+**[Track Record](https://tradeclaw.win/track-record)** · **[Modeled Study](https://tradeclaw.win/track-record/study)** · **[Live Demo](https://tradeclaw.win/dashboard)** · **[API Docs](https://tradeclaw.win/api-docs)**
 
 Read this in other languages: [日本語](README.ja.md) · [한국어](README.ko.md) · [中文](README.zh.md) · [more](LANGUAGES.md)
 
@@ -22,7 +22,7 @@ Read this in other languages: [日本語](README.ja.md) · [한국어](README.ko
 
 ---
 
-TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (RSI, MACD, EMA, Bollinger Bands, Stochastic, ADX, Volume). Eligible signals and their OHLCV-derived outcomes are recorded in PostgreSQL. The [track record](https://tradeclaw.win/track-record) exposes counted wins and losses plus exclusion counters and methodology; it is not a broker-fill or customer-portfolio ledger.
+TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (RSI, MACD, EMA, Bollinger Bands, Stochastic, ADX, Volume). Eligible signals and their OHLCV-derived outcomes are recorded in PostgreSQL. The [track record](https://tradeclaw.win/track-record) exposes only observed outcome counts, rates, unsized price moves, exclusions, and row-level evidence. The separate [modeled signal study](https://tradeclaw.win/track-record/study) applies fixed-fractional sizing and fee/slippage assumptions. Neither surface is a broker-fill or customer-portfolio ledger.
 
 > Status: pre-1.0 (`0.1.0`). The signal engine, dashboard, backtester, and self-host path are usable today; APIs and schema may still change between releases.
 
@@ -33,7 +33,7 @@ TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (R
 | Public dashboard and track record | Read-only research access without authentication |
 | Signal history | Current rolling archive, capped at 10,000 source rows; CSV and provenance endpoints are public |
 | Costs | Static fee + slippage models; funding and actual broker charges are excluded |
-| Portfolio curve | Hypothetical sequential 1%-risk simulation, not concurrent account performance |
+| Modeled signal study | Separate hypothetical sequential 1%-risk simulation, not concurrent account performance |
 | Admin operations | Authentication required |
 | Signal broadcasting | Fail-closed unless the broadcast-approved 90-day cohort clears the cost-adjusted evidence gate |
 | Automated execution | Disabled by default; Binance USDT-perp testnet is implemented, while the RoboForex R StocksTrader bridge is an unimplemented interface scaffold |

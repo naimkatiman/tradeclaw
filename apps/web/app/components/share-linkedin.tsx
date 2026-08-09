@@ -21,7 +21,7 @@ interface ShareLinkedInProps {
 
 /**
  * Pre-filled LinkedIn share button for the public track-record. Opens the
- * LinkedIn feed composer with pre-filled, scope-labeled signal-study text.
+ * LinkedIn feed composer with pre-filled, scope-labeled observed-record text.
  */
 export function ShareLinkedIn({
   winRate,

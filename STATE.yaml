@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-04T15:21:00+08:00
+updated: 2026-08-09T13:45:58+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -4352,3 +4352,66 @@ next_actions:
       Broker execution remains disabled, historical rows were not backfilled into
       signal_history, and broadcast eligibility still requires a separate recorded
       gate decision.
+
+  - id: TC-252
+    title: "Separate the observed track record from the modeled signal study"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-09 after the owner asked to improve the public track record
+      and explicitly separate the study from the record. Work is isolated in clean
+      branch agent/track-record-study-separation from exact origin/main
+      ed333035fb38ecdd9eacbd02b90e69b868337390; the broad dirty primary checkout
+      remains excluded. The observed /track-record surface will retain only
+      source-backed OHLCV outcome counts, rates, unsized price moves, exclusions,
+      per-symbol summaries, and row-level audit evidence. The fixed-fractional,
+      fee/slippage-adjusted sequential equity model and premium-band comparison
+      will move to /track-record/study behind an explicit evidence-surface switcher.
+      Negative study results remain visible and linked; the split must not turn a
+      simulation into a live-performance claim or hide an adverse result. No
+      strategy, allocation, signal generation, resolver, broker execution,
+      database/schema, auth, billing, dependency, Docker, cron, or production
+      activation change is included. Implemented locally on the isolated branch.
+      /track-record now leads with the counted resolved population and contains
+      only observed/source-backed outcome statistics, exclusions, per-symbol
+      summaries, and row-level evidence. /track-record/study owns the hypothetical
+      fixed-fractional curve, drawdown, net expectancy, premium-band comparison,
+      and explicit non-broker/non-portfolio boundary. Shared period/scope/category
+      controls preserve every supported period; this fixes the prior silent
+      90d/180d/1y/5y-to-all-time mapping. Rolling observed rates moved onto the
+      history response so the record no longer fetches the equity-model endpoint.
+      SEO metadata, sitemap, README, embed/share copy, five locales, and route
+      contracts now preserve the evidence boundary. A real-browser pass caught
+      and fixed a zero-evidence +0%/-0% placeholder in the new study hero; it now
+      renders em dashes until at least one trade is sized. Verification: focused
+      separation/API/i18n/sitemap Jest 55/55; full Jest 233 suites passed with 3
+      intentionally skipped, 1,843 tests passed and 26 skipped; web typecheck;
+      lint 0 errors with 23 pre-existing warnings; final production build 325/325
+      pages; diff check clean. CLI-first Playwright verification on the final build
+      returned 200 for both routes, 0 console errors/warnings, no modeled heading
+      or canvas and no equity API request on the observed route, explicit modeled
+      boundaries on the study, and honest no-evidence placeholders. Screenshots
+      are retained under ignored output/playwright. No commit, push, PR, merge, or
+      production deployment was performed; release remains a separate owner
+      decision. The broad dirty primary checkout remained untouched. At
+      2026-08-09 13:15 MPST (+0800), the owner explicitly said "ship",
+      authorizing commit, push, protected PR review, merge after green gates,
+      exact-final-main Railway production deployment, and live verification.
+      Release is in progress from the isolated worktree only. The implementation
+      was committed as 9d8e6074056ba8e45f3e301db8aff9fbaba1ceda and pushed in
+      draft PR #207. Its first CI run 31296370571 passed lint/typecheck, build,
+      unit tests, strategy backtests, Docker build, and welcome, but correctly
+      blocked merge when Playwright E2E found two release-test defects: the
+      localization matrix conflated the retained OHLCV eyebrow with the newly
+      localized observed-record document title, and the study test's broad
+      heading regex matched both the page h1 and study-card h2. The title matrix
+      now asserts separate eyebrow/title values in all five locales, and the
+      study assertion targets the exact level-one heading. The affected Chromium
+      matrix passed locally (setup plus 14/14 browser checks); the fresh mandatory
+      production build passed all 325 pages and web TypeScript passed. Local
+      WebKit could not be verified because the required browser binary was absent and its
+      installer did not complete within a bounded wait; the protected GitHub
+      runner remains the authoritative pending desktop/mobile check. One unrelated
+      dashboard hero-art duplicate was reported flaky and passed on retry; no
+      out-of-scope product change was made for it. Merge and deploy remain blocked
+      until the replacement PR head passes every required gate.

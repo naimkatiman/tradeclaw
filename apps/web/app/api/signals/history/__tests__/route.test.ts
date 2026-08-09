@@ -247,6 +247,30 @@ describe('GET /api/signals/history category filtering', () => {
     expect(body.stats.winRate).toBe(0);
   });
 
+  it('returns category-scoped rolling observed outcomes without the equity model', async () => {
+    const now = Date.now();
+    primeSlice([
+      record({ id: 'btc-recent', pair: 'BTCUSD', timestamp: now - 60_000 }),
+      record({
+        id: 'doge-recent',
+        pair: 'DOGEUSD',
+        timestamp: now - 60_000,
+        outcomes: { '4h': null, '24h': { price: 0.18, pnlPct: -1, hit: false } },
+      }),
+    ]);
+
+    const res = await GET(makeReq('/api/signals/history?category=thematic'));
+    const body = await res.json();
+
+    expect(body.rollingWinRates['7d']).toEqual({
+      totalSignals: 1,
+      resolvedSignals: 1,
+      winRate: 0,
+    });
+    expect(body.rollingWinRates['30d']).toEqual(body.rollingWinRates['7d']);
+    expect(body.rollingWinRates['90d']).toEqual(body.rollingWinRates['7d']);
+  });
+
   it('lets pair filter win over a conflicting category', async () => {
     primeSlice([
       record({ id: 'btc-1', pair: 'BTCUSD' }),
