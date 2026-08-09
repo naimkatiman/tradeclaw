@@ -4320,7 +4320,7 @@ next_actions:
 
   - id: TC-251
     title: "Activate the approved D1 slow-gate tracked signal lane"
-    status: in-progress
+    status: complete
     owner: pm-tradeclaw
     notes: >
       Owner explicitly approved merge, deployment, and activation on 2026-08-09.
@@ -4340,6 +4340,15 @@ next_actions:
       12877bcf-94d8-4e25-91d9-b1d3d9cdbee8. The first authenticated tick confirmed
       mode=active but failed closed for both symbols before emission because the
       production D1 store lacked the exact frozen 2017-09-01 prefix. A follow-up
-      append-only paginated Binance D1 repair is in progress; activation is not
-      complete until a subsequent active tick processes both symbols without
-      failures.
+      append-only paginated Binance D1 repair shipped in PR #205 after all seven
+      protected checks passed; it squash merged as
+      9927b3bcdc8da5c89ad93f081b0d8bebb3c8f251 and exact merged main deployed to
+      Railway as 507d42de-1453-4405-9f71-c7524eb629a7 (SUCCESS). Production
+      /api/health returned ok with database and migrations healthy, and the exact
+      Railway variable remained D1_SLOW_GATE_MODE=active. The authenticated
+      verification tick (audit row 27826) returned ok, mode=active, processed=2,
+      candidates=0, recorded=0, failures=[]: both BTCUSD and ETHUSD passed the
+      frozen-history and strategy gates, with no newest-bar transition to emit.
+      Broker execution remains disabled, historical rows were not backfilled into
+      signal_history, and broadcast eligibility still requires a separate recorded
+      gate decision.
