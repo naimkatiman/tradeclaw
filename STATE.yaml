@@ -4427,3 +4427,72 @@ next_actions:
       commit. Railway production deployment remains pending until this truthful
       state update clears the protected path and establishes the exact final-main
       commit to deploy.
+
+  - id: TC-253
+    title: "Publish an anti-survivorship strategy-study catalog"
+    status: in-progress
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-09 after the owner asked for a profitable default and at
+      least seven displayed strategy records while explicitly identifying the
+      risk of survivorship bias. Work is isolated in clean stacked branch
+      agent/strategy-study-catalog from exact current main
+      528aa99df1771186ed6444a485d9acf90610fdd8; the broad dirty primary checkout
+      remains excluded. Existing experiment results had
+      already been observed before this task, so this catalog will be labeled
+      retrospective and will not claim that its display order was preregistered.
+      The frozen publication contract is: preserve every committed experiment in
+      an accessible shelf; never rank, hide, or promote by positive return; use
+      the canonical production-cost artifact when duplicate cost models exist;
+      exclude superseded zero-cost runs, structural diagnostics, invalid
+      production comparisons, and duplicate predecessor studies from the seven
+      featured cards only, with a visible reason and artifact link for each;
+      choose the default by evidence tier, then validation timestamp and stable
+      id, never by P&L; and label a green result as a modeled paper-pass rather
+      than a live or broker return. The seven fixed featured strategy records are
+      D1 slow gate, Classic H1, Regime-aware H1, VWAP+EMA+BB H1, daily momentum,
+      carry, and cross-sectional momentum. The observed /track-record remains the
+      canonical all-signal record. New strategy discovery or parameter sweeps are
+      out of scope until separately preregistered; this change catalogs existing
+      evidence and establishes prospective promotion rules without altering
+      signals, allocation, execution, database/schema, auth, billing, cron,
+      dependencies, Docker, or production activation.
+      Implemented locally on the isolated branch. /track-record/study now opens
+      on the D1 slow-gate paper-pass because it is the only pre-registered
+      frozen-gate PASS, labels +636.83% as modeled historical return rather than
+      live performance, and states that prospective tracking began without
+      backfill. Seven selectable cards remain simultaneously visible: rejected
+      and thin results retain their adverse metrics, while positive-but-failed
+      Carry and positive-but-thin Regime-aware figures use a neutral tone rather
+      than pass green. Selecting a card writes its stable id to the URL. The
+      collapsible shelf contains all 11 committed JSON artifacts in reverse
+      chronology with a disposition, exclusion reason, and direct source link;
+      a contract test fails if any committed JSON is omitted. The prior losing
+      aggregate eligible-signal simulation remains on the same page under an
+      explicit adverse-result heading. No new outcome-seeking parameter sweep
+      or backtest was run. Verification passed 12 focused catalog/separation
+      tests; full Jest with four workers (235 suites, 1,852 tests passed; 3
+      suites and 26 tests skipped); web typecheck; full lint with zero errors and
+      23 pre-existing warnings; strategy backtests (14 suites, 103 tests, one
+      snapshot); the required production build (325/325 pages); and diff check.
+      CLI-first Playwright QA on the final build passed at 1440x1000 and 390x844:
+      seven cards and 11 shelf entries rendered, D1 was the default, Carry stayed
+      neutral, the adverse aggregate section remained present, mobile had no
+      horizontal overflow, and the browser reported zero errors or warnings.
+      After PR #207 advanced, the branch was safely restacked from 9d8e6074 to
+      exact predecessor head 2e2998a4. When #207 squash-merged, its head and
+      merge trees were verified identical and this branch was aligned to exact
+      merged main 0c069e51; its release-test fixes had no runtime overlap. The
+      affected production-build Chromium E2E file was updated for
+      the catalog h1 plus retained aggregate h2 and passed 8/8. The local mobile
+      Playwright project could not launch its six browser cases because WebKit
+      2272 is not installed; setup/API checks passed, page assertions did not
+      run, and protected CI remains authoritative for that WebKit matrix. The
+      independent 390x844 Chromium browser check remains green.
+      Screenshots are retained under ignored output/playwright. On 2026-08-10 the
+      owner explicitly authorized commit, push, merge, and production deployment.
+      The branch was advanced from merged implementation base 0c069e51 to exact
+      current main 528aa99d while preserving TC-252's state-only closure. Release
+      is in progress; no live claim is valid until protected CI passes, the exact
+      merged main is deployed, Railway reaches SUCCESS, and production browser,
+      health, route, artifact, and bounded-log checks pass.
