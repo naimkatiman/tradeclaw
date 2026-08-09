@@ -92,7 +92,11 @@ test.describe('Track Record page', () => {
     await dismissStarMilestoneModal(page);
 
     await expect(
-      page.getByRole('heading', { name: /Signal Study.*Sequential Simulation/i })
+      page.getByRole('heading', {
+        name: 'Signal Study — Sequential Simulation',
+        exact: true,
+        level: 1,
+      })
     ).toBeVisible({ timeout: 15_000 });
 
     const canvas = page.locator('canvas').first();

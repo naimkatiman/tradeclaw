@@ -13,6 +13,7 @@ const localeCases: Array<{
   screenerTitle: string;
   dashboardTitle: RegExp;
   trackRecordEyebrow: string;
+  trackRecordTitle: string;
 }> = [
   {
     locale: 'en',
@@ -21,6 +22,7 @@ const localeCases: Array<{
     screenerTitle: 'Asset Screener',
     dashboardTitle: /TradeClaw — Live Signals/,
     trackRecordEyebrow: 'OHLCV-Resolved Signal Record',
+    trackRecordTitle: 'Observed Signal Track Record',
   },
   {
     locale: 'es',
@@ -29,6 +31,7 @@ const localeCases: Array<{
     screenerTitle: 'Analizador de activos',
     dashboardTitle: /TradeClaw — Señales en vivo/,
     trackRecordEyebrow: 'Registro de señales resuelto con OHLCV',
+    trackRecordTitle: 'Registro observado de señales',
   },
   {
     locale: 'zh',
@@ -37,6 +40,7 @@ const localeCases: Array<{
     screenerTitle: '资产筛选器',
     dashboardTitle: /TradeClaw — 实时信号/,
     trackRecordEyebrow: 'OHLCV 已解析信号记录',
+    trackRecordTitle: '实测信号记录',
   },
   {
     locale: 'ms',
@@ -45,6 +49,7 @@ const localeCases: Array<{
     screenerTitle: 'Penyaring Aset',
     dashboardTitle: /TradeClaw — Isyarat Langsung/,
     trackRecordEyebrow: 'Rekod Isyarat Diselesaikan OHLCV',
+    trackRecordTitle: 'Rekod Isyarat Diperhati',
   },
   {
     locale: 'ar',
@@ -53,6 +58,7 @@ const localeCases: Array<{
     screenerTitle: 'ماسح الأصول',
     dashboardTitle: /TradeClaw — إشارات مباشرة/,
     trackRecordEyebrow: 'سجل الإشارات المحسومة ببيانات OHLCV',
+    trackRecordTitle: 'سجل الإشارات المرصودة',
   },
 ];
 
@@ -135,7 +141,7 @@ test.describe('product localization', () => {
 
       await page.goto('/track-record', { waitUntil: 'domcontentloaded' });
       await expect(page.getByText(localeCase.trackRecordEyebrow, { exact: true })).toBeVisible({ timeout: LOCALE_EXPECT_TIMEOUT });
-      await expect(page).toHaveTitle(new RegExp(localeCase.trackRecordEyebrow), { timeout: LOCALE_EXPECT_TIMEOUT });
+      await expect(page).toHaveTitle(new RegExp(localeCase.trackRecordTitle), { timeout: LOCALE_EXPECT_TIMEOUT });
     }
   });
 
