@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Demo](https://img.shields.io/badge/Demo-Live-10b981?style=flat-square)](https://tradeclaw.win/dashboard)
 
-**[Track Record](https://tradeclaw.win/track-record)** · **[Modeled Study](https://tradeclaw.win/track-record/study)** · **[Live Demo](https://tradeclaw.win/dashboard)** · **[API Docs](https://tradeclaw.win/api-docs)**
+**[Track Record](https://tradeclaw.win/track-record)** · **[Prospective Alpha Ledger](https://tradeclaw.win/track-record/alpha)** · **[Modeled Studies](https://tradeclaw.win/track-record/study)** · **[Live Demo](https://tradeclaw.win/dashboard)** · **[API Docs](https://tradeclaw.win/api-docs)**
 
 Read this in other languages: [日本語](README.ja.md) · [한국어](README.ko.md) · [中文](README.zh.md) · [more](LANGUAGES.md)
 
@@ -22,7 +22,7 @@ Read this in other languages: [日本語](README.ja.md) · [한국어](README.ko
 
 ---
 
-TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (RSI, MACD, EMA, Bollinger Bands, Stochastic, ADX, Volume). Eligible signals and their OHLCV-derived outcomes are recorded in PostgreSQL. The [track record](https://tradeclaw.win/track-record) exposes only observed outcome counts, rates, unsized price moves, exclusions, and row-level evidence. The separate [strategy study catalog](https://tradeclaw.win/track-record/study) shows seven artifact-backed modeled studies, keeps every committed experiment on an accessible shelf, and retains the aggregate fixed-fractional signal simulation. Its default is selected by evidence tier rather than return. Neither surface is a broker-fill or customer-portfolio ledger.
+TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (RSI, MACD, EMA, Bollinger Bands, Stochastic, ADX, Volume). Eligible signals and their OHLCV-derived outcomes are recorded in PostgreSQL. The [track record](https://tradeclaw.win/track-record) exposes only observed outcome counts, rates, unsized price moves, exclusions, and row-level evidence. The separate [strategy study catalog](https://tradeclaw.win/track-record/study) shows seven artifact-backed modeled studies, keeps every committed experiment on an accessible shelf, and retains the aggregate fixed-fractional signal simulation. Its default is selected by evidence tier rather than return. The [prospective D1 alpha ledger](https://tradeclaw.win/track-record/alpha) starts flat at its first post-deployment snapshot and evaluates one frozen BTCUSD/ETHUSD rule against a same-cost benchmark. It remains **collecting evidence** until the predeclared 365-day, 365-snapshot, 12-closed-trade, zero-gap integrity gate is complete; passing makes it eligible for review, never automatically current. None of these surfaces is a broker-fill or customer-portfolio ledger, and the losing historical archive remains published.
 
 > Status: pre-1.0 (`0.1.0`). The signal engine, dashboard, backtester, and self-host path are usable today; APIs and schema may still change between releases.
 
@@ -237,7 +237,7 @@ Docker Compose maps the documented `.env` variables into the relevant services t
 | `MARKET_DATA_HUB_URL` | Yes | Market data hub (primary quote/OHLCV/SSE source). Bare host accepted — `https://` is added if missing |
 | `CRON_SECRET` | Yes | Auth for `/api/cron/*` endpoints |
 | `SIGNAL_ENGINE_PRESET` | No | Strategy preset (default: `hmm-top3`) |
-| `D1_SLOW_GATE_MODE` | No | `paper` (default/fail-closed) or `active`; active records only newest-bar BTCUSD/ETHUSD D1 transitions as real tracked rows. It does not enable broker execution or bypass broadcast gates |
+| `D1_SLOW_GATE_MODE` | No | `paper` (default/fail-closed) or `active`; active records only newest-bar BTCUSD/ETHUSD D1 transitions as real tracked rows. The separate prospective alpha ledger collects one common closed D1 portfolio snapshot in either mode and never changes activation, broker execution, or broadcast gates |
 | `TELEGRAM_BOT_TOKEN` | No | Telegram bot for alerts |
 | `TELEGRAM_CHANNEL_ID` | No | Private channel (Pro alerts) |
 | `TELEGRAM_PUBLIC_CHANNEL_ID` | No | Public channel (delayed free alerts) |

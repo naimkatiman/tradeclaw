@@ -316,6 +316,7 @@ describe('runD1LaneSafely', () => {
       processed: 0,
       candidates: 0,
       recorded: 0,
+      alphaLedger: null,
       failures: [{
         symbol: 'BTCUSD+ETHUSD',
         stage: 'lane',

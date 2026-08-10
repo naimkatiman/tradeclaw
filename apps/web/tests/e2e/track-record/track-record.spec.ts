@@ -117,6 +117,32 @@ test.describe('Track Record page', () => {
     await expect(canvas.or(noEvidence)).toBeVisible({ timeout: 20_000 });
   });
 
+  test('prospective alpha ledger stays separate and collecting evidence', async ({ page }) => {
+    await dismissStarMilestoneModal(page);
+    await page.goto('/track-record/alpha');
+    await dismissStarMilestoneModal(page);
+
+    await expect(page.getByRole('heading', {
+      name: 'Prospective D1 Alpha Ledger',
+      exact: true,
+      level: 1,
+    })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('collecting evidence', { exact: true })).toBeVisible();
+    await expect(page.getByText('Not the current strategy.', { exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Losing observed archive' })).toHaveAttribute(
+      'href',
+      '/track-record',
+    );
+    await expect(page.getByRole('link', { name: 'Retrospective studies' })).toHaveAttribute(
+      'href',
+      '/track-record/study',
+    );
+    await expect(page.getByText(
+      'Newest first. Each row commits both symbols as one hash-chained portfolio observation.',
+      { exact: true },
+    )).toBeVisible();
+  });
+
   // Test 5: Category breakdown buttons (All / Majors / Thematic) are present.
   // No "strategy breakdown" section exists on this page. The closest equivalent
   // is CategoryBreakdownRow, which renders 3 clickable cells for category segmentation.

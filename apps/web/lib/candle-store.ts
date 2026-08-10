@@ -48,6 +48,7 @@ export interface StoredCandle {
   low: number;
   close: number;
   volume: number;
+  source: string;
 }
 
 interface CandleRow {
@@ -57,6 +58,7 @@ interface CandleRow {
   low: number;
   close: number;
   volume: number;
+  source: string;
 }
 
 /** Latest `limit` stored bars for a symbol/timeframe, returned ascending by ts. */
@@ -66,9 +68,9 @@ export async function getRecentCandles(
   limit: number,
 ): Promise<StoredCandle[]> {
   const rows = await query<CandleRow>(
-    `SELECT ts, open, high, low, close, volume
+    `SELECT ts, open, high, low, close, volume, source
        FROM (
-         SELECT ts, open, high, low, close, volume
+         SELECT ts, open, high, low, close, volume, source
            FROM candles
           WHERE symbol = $1 AND timeframe = $2
           ORDER BY ts DESC
@@ -84,6 +86,7 @@ export async function getRecentCandles(
     low: Number(r.low),
     close: Number(r.close),
     volume: Number(r.volume),
+    source: r.source,
   }));
 }
 
@@ -97,7 +100,7 @@ export async function getCandlesSince(
   sinceTimestamp: number,
 ): Promise<StoredCandle[]> {
   const rows = await query<CandleRow>(
-    `SELECT ts, open, high, low, close, volume
+    `SELECT ts, open, high, low, close, volume, source
        FROM candles
       WHERE symbol = $1 AND timeframe = $2 AND ts >= $3
       ORDER BY ts ASC`,
@@ -110,6 +113,7 @@ export async function getCandlesSince(
     low: Number(r.low),
     close: Number(r.close),
     volume: Number(r.volume),
+    source: r.source,
   }));
 }
 

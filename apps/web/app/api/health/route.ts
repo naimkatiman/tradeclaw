@@ -5,7 +5,7 @@ import { queryOne } from "../../../lib/db-pool";
 
 export const dynamic = "force-dynamic";
 
-export const REQUIRED_MIGRATION = "053_drop_monetization.sql";
+export const REQUIRED_MIGRATION = "054_d1_alpha_ledger.sql";
 
 type CheckStatus = "ok" | "error" | "unknown";
 

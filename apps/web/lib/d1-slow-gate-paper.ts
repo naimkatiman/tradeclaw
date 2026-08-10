@@ -13,6 +13,18 @@ import {
   type StoredCandle,
 } from './candle-store';
 import { recordSignalsAsync, type TrackedSignalInput } from './signal-history';
+import {
+  appendD1AlphaSnapshot,
+  type D1AlphaWriteResult,
+} from './d1-alpha-ledger';
+import {
+  D1_ALPHA_COST_MODEL,
+  D1_ALPHA_DATA_SOURCE,
+  D1_ALPHA_FREQUENCY_WINDOW_MS,
+  D1_ALPHA_MAX_DIRECTION_CHANGES,
+  type D1AlphaSymbol,
+  type D1AlphaSymbolObservation,
+} from './d1-alpha-protocol';
 
 const DAY_MS = 86_400_000;
 const MIN_D1_BARS = 200;
@@ -34,6 +46,7 @@ export type D1SlowGatePaperFailureStage =
   | 'strategy'
   | 'frequency'
   | 'persist'
+  | 'ledger'
   | 'lane';
 
 export interface D1SlowGatePaperFailure {
@@ -47,6 +60,7 @@ export interface D1SlowGateLaneResult {
   processed: number;
   candidates: number;
   recorded: number;
+  alphaLedger: D1AlphaWriteResult | null;
   failures: D1SlowGatePaperFailure[];
 }
 
@@ -64,6 +78,9 @@ function validatePaperCandles(candles: StoredCandle[], now: number): void {
     );
   }
   for (let index = 0; index < candles.length; index++) {
+    if (candles[index].source !== D1_ALPHA_DATA_SOURCE) {
+      throw new Error(`D1 bar ${index} source must remain ${D1_ALPHA_DATA_SOURCE}`);
+    }
     const timestamp = candles[index].timestamp;
     if (timestamp % DAY_MS !== 0) {
       throw new Error(`D1 bar ${index} is not aligned to a UTC day boundary`);
@@ -127,6 +144,9 @@ export async function runD1SlowGateLane(
 
   const failures: D1SlowGatePaperFailure[] = [];
   const candidates: TrackedSignalInput[] = [];
+  const alphaObservations: Partial<
+    Record<D1AlphaSymbol, { barTimestamp: number; observation: D1AlphaSymbolObservation }>
+  > = {};
   let processed = 0;
 
   for (const symbol of D1_SLOW_GATE_SYMBOLS) {
@@ -156,7 +176,15 @@ export async function runD1SlowGateLane(
     }
 
     try {
-      const run = runD1SlowGate(candles, { symbol, timeframe: D1_SLOW_GATE_TIMEFRAME });
+      const run = runD1SlowGate(
+        candles,
+        { symbol, timeframe: D1_SLOW_GATE_TIMEFRAME },
+        {
+          costs: D1_ALPHA_COST_MODEL,
+          maxDirectionChanges: D1_ALPHA_MAX_DIRECTION_CHANGES,
+          frequencyWindowMs: D1_ALPHA_FREQUENCY_WINDOW_MS,
+        },
+      );
       if (!run.frequencyCapPassed) {
         failures.push({
           symbol,
@@ -168,6 +196,20 @@ export async function runD1SlowGateLane(
 
       const latestBarIndex = candles.length - 1;
       const transition = run.transitions.findLast((item) => item.barIndex === latestBarIndex);
+      const latest = candles[latestBarIndex];
+      const alphaSymbol = symbol as D1AlphaSymbol;
+      alphaObservations[alphaSymbol] = {
+        barTimestamp: latest.timestamp,
+        observation: {
+          symbol: alphaSymbol,
+          source: latest.source,
+          close: latest.close,
+          engineExposure: run.exposure[latestBarIndex],
+          transition: transition
+            ? { action: transition.action, price: transition.price }
+            : null,
+        },
+      };
       if (transition) candidates.push(toTrackedSignal(symbol, transition, mode));
     } catch (error) {
       failures.push({ symbol, stage: 'strategy', error: message(error) });
@@ -185,7 +227,36 @@ export async function runD1SlowGateLane(
     }
   }
 
-  return { mode, processed, candidates: candidates.length, recorded, failures };
+  let alphaLedger: D1AlphaWriteResult | null = null;
+  const btc = alphaObservations.BTCUSD;
+  const eth = alphaObservations.ETHUSD;
+  if (btc && eth) {
+    if (btc.barTimestamp !== eth.barTimestamp) {
+      failures.push({
+        symbol: 'BTCUSD+ETHUSD',
+        stage: 'ledger',
+        error: 'D1 alpha ledger requires one common closed portfolio bar',
+      });
+    } else {
+      try {
+        alphaLedger = await appendD1AlphaSnapshot({
+          barTimestamp: btc.barTimestamp,
+          symbols: { BTCUSD: btc.observation, ETHUSD: eth.observation },
+        });
+      } catch (error) {
+        failures.push({ symbol: 'BTCUSD+ETHUSD', stage: 'ledger', error: message(error) });
+      }
+    }
+  }
+
+  return {
+    mode,
+    processed,
+    candidates: candidates.length,
+    recorded,
+    alphaLedger,
+    failures,
+  };
 }
 
 /** Backward-compatible explicit paper entry point for internal callers. */

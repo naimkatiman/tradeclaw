@@ -12,7 +12,7 @@ import { formatMessage } from '@/lib/product-i18n/format';
 
 export type EvidencePeriod = '7d' | '30d' | '90d' | '180d' | '1y' | '5y' | 'all';
 export type EvidenceScope = 'pro' | 'broadcast';
-export type EvidenceSurface = 'record' | 'study';
+export type EvidenceSurface = 'record' | 'study' | 'alpha';
 
 const PERIOD_OPTIONS: { value: EvidencePeriod; days: number | null }[] = [
   { value: '7d', days: 7 },
@@ -61,12 +61,18 @@ export function EvidenceSurfaceNav({ active }: { active: EvidenceSurface }) {
       label: t.studyLabel,
       description: t.studyDescription,
     },
+    {
+      value: 'alpha' as const,
+      href: '/track-record/alpha',
+      label: 'D1 Alpha Ledger',
+      description: 'Prospective frozen-rule evidence; not current',
+    },
   ];
 
   return (
     <nav
       aria-label={t.ariaLabel}
-      className="mb-6 grid gap-2 rounded-2xl border border-white/[0.07] bg-black/20 p-2 sm:grid-cols-2"
+      className="mb-6 grid gap-2 rounded-2xl border border-white/[0.07] bg-black/20 p-2 sm:grid-cols-3"
     >
       {items.map((item) => {
         const selected = item.value === active;
