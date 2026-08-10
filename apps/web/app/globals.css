@@ -26,7 +26,10 @@
   --font-display: var(--font-geist-sans), system-ui, sans-serif;
 }
 
-/* Light theme (default) */
+/* Light theme (default).
+   Light is ink on paper: definition comes from the border tiers, not from
+   surface separation. Two near-whites can only ever differ by ~1.1:1, so the
+   panels stay close to the canvas and the lines carry the structure. */
 :root {
   --background: #f4f7f8;
   --foreground: #090d0f;
@@ -36,11 +39,16 @@
   --color-up-soft: rgba(4, 120, 87, 0.12);
   --color-down: #be123c;
   --color-down-soft: rgba(190, 18, 60, 0.12);
-  --bg-card: #ffffff;
+  /* Tinted toward the brand hue rather than pure white. */
+  --bg-card: #fdfefe;
   --surface-raised: #edf2f4;
   --surface-inset: #e6ecef;
-  --border: #dce3e6;
-  --border-strong: #c5d0d5;
+  /* Structural tiers. --border is the internal divider (~1.8:1 on card),
+     --border-strong is the component frame (~2.9:1, the WCAG 1.4.11 bar).
+     Previously 1.30 / 1.57, which left the ledger and explore grids with no
+     visible structure. */
+  --border: #b9c4c8;
+  --border-strong: #8d9a9e;
   --brand: #047857;
   --brand-bright: #10b981;
   --brand-soft: rgba(16, 185, 129, 0.11);
@@ -58,14 +66,38 @@
   --scrollbar: rgba(0, 0, 0, 0.18);
   --scrollbar-hover: rgba(0, 0, 0, 0.32);
   --glass-nav-bg: rgba(244, 247, 248, 0.9);
-  --hero-grid-dot: rgba(16, 185, 129, 0.09);
+  /* The bright decorative emerald disappears on a near-white canvas; the
+     accessible dark emerald reads as a drawn line instead of a haze. */
+  --hero-grid-dot: rgba(4, 120, 87, 0.14);
   --glass-nav-shadow:
     0 12px 40px rgba(15, 31, 36, 0.08), inset 0 -1px 0 rgba(255, 255, 255, 0.8);
+
+  /* Cost Field WebGL zero-plane grid. The dot colours stay #10b981 / #f43f5e
+     in both themes (DESIGN.md, "canvas/WebGL mark"); only the grid adapts,
+     because a mid grey at 0.14 vanishes on the light inset surface. */
+  --costfield-grid: #55666c;
+  --costfield-grid-opacity: 0.3;
+
+  /* Elevation — paper. Tight, low-alpha, tinted toward the canvas hue.
+     No white inset: on a light surface it only washes the top edge. */
+  --surface-highlight: transparent;
+  /* Light cards are flat: the border and shadow carry them. Tinting the
+     top-left would put the shading on the side the light comes from. */
+  --card-gradient-top: var(--bg-card);
+  --shadow-panel:
+    0 1px 2px rgba(15, 31, 36, 0.05), 0 8px 20px -8px rgba(15, 31, 36, 0.10);
+  --shadow-raised:
+    0 2px 4px rgba(15, 31, 36, 0.05), 0 18px 40px -16px rgba(15, 31, 36, 0.16);
+  --shadow-pop: 0 10px 24px -8px rgba(15, 31, 36, 0.22);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-/* Dark theme */
+/* Dark theme.
+   Dark is emission: definition comes from lifting the surface off the canvas,
+   so panels read without a bright wireframe edge. Borders then only need to be
+   quiet-but-present rather than doing all the structural work. */
 .dark {
   --background: #030506;
   --foreground: #f4f7f8;
@@ -74,11 +106,14 @@
   --color-up-soft: rgba(52, 211, 153, 0.14);
   --color-down: #fb7185;
   --color-down-soft: rgba(251, 113, 133, 0.14);
-  --bg-card: #090c0e;
-  --surface-raised: #0e1316;
-  --surface-inset: #06090a;
-  --border: #1b2327;
-  --border-strong: #303b40;
+  /* Lifted from #090c0e: at 1.04:1 against the canvas the panels were
+     indistinguishable from the page. Now ~1.18:1. */
+  --bg-card: #151c1f;
+  --surface-raised: #1d2529;
+  --surface-inset: #0b1013;
+  /* ~1.6:1 divider / ~2.7:1 frame on the card, up from 1.23 / 1.71. */
+  --border: #333e42;
+  --border-strong: #556165;
   --brand: #34d399;
   --brand-bright: #10b981;
   --brand-soft: rgba(16, 185, 129, 0.13);
@@ -99,6 +134,17 @@
   --glass-nav-shadow:
     0 18px 50px rgba(0, 0, 0, 0.46), inset 0 -1px 0 rgba(255, 255, 255, 0.025);
   --hero-grid-dot: rgba(52, 211, 153, 0.08);
+
+  --costfield-grid: #9ca3af;
+  --costfield-grid-opacity: 0.14;
+
+  /* Elevation — emission. Deep diffuse shadow plus a lit top edge. */
+  --surface-highlight: rgba(255, 255, 255, 0.055);
+  /* Dark cards lift toward the top-left, matching the light source. */
+  --card-gradient-top: var(--surface-raised);
+  --shadow-panel: 0 16px 40px rgba(0, 0, 0, 0.42);
+  --shadow-raised: 0 28px 72px rgba(0, 0, 0, 0.5);
+  --shadow-pop: 0 14px 34px rgba(0, 0, 0, 0.55);
 }
 
 * {
@@ -118,14 +164,34 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Forced-dark navigation and footer chrome must keep the bright emerald token
-   even when the page itself is using the light theme. */
+/* Forced-dark navigation and footer chrome. These regions stay dark on a light
+   page, so they need the whole dark palette, not just the brand tokens: any
+   descendant reading var(--text-secondary) or var(--border) would otherwise get
+   the light-theme value and render near-invisible on the dark bar (measured at
+   1.35:1 for the nav clock before this block was completed). */
 .premium-dark-chrome {
+  --foreground: #f4f7f8;
+  --text-secondary: #8d9aa0;
+  --bg-card: #151c1f;
+  --surface-raised: #1d2529;
+  --surface-inset: #0b1013;
+  --border: #333e42;
+  --border-strong: #303b40;
+  --color-up: #34d399;
+  --color-up-soft: rgba(52, 211, 153, 0.14);
+  --color-down: #fb7185;
+  --color-down-soft: rgba(251, 113, 133, 0.14);
   --brand: #34d399;
   --brand-bright: #10b981;
   --brand-soft: rgba(16, 185, 129, 0.13);
-  --border-strong: #303b40;
+  --glass-bg: rgba(255, 255, 255, 0.025);
+  --glass-border: rgba(255, 255, 255, 0.08);
   --ring: rgba(52, 211, 153, 0.52);
+  --surface-highlight: rgba(255, 255, 255, 0.055);
+  --card-gradient-top: var(--surface-raised);
+  --shadow-panel: 0 16px 40px rgba(0, 0, 0, 0.42);
+  --shadow-raised: 0 28px 72px rgba(0, 0, 0, 0.5);
+  --shadow-pop: 0 14px 34px rgba(0, 0, 0, 0.55);
 }
 
 ::selection {
@@ -232,12 +298,11 @@ html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
 }
 
 .glass-card {
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--bg-card) 96%, white 4%), var(--bg-card));
+  background: linear-gradient(145deg, var(--card-gradient-top), var(--bg-card) 62%);
   border: 1px solid var(--border);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.035),
-    0 14px 42px rgba(0, 0, 0, 0.08);
+    inset 0 1px 0 var(--surface-highlight),
+    var(--shadow-panel);
   transition:
     border-color 500ms cubic-bezier(0.32, 0.72, 0, 1),
     box-shadow 500ms cubic-bezier(0.32, 0.72, 0, 1),
@@ -247,8 +312,8 @@ html:not(.dark) .text-white\/20 { color: rgb(0 0 0 / 0.3); }
 .glass-card:hover {
   border-color: var(--glass-border-accent);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.045),
-    0 18px 48px rgba(0, 0, 0, 0.16);
+    inset 0 1px 0 var(--surface-highlight),
+    var(--shadow-raised);
   transform: translateY(-2px);
 }
 
@@ -351,6 +416,13 @@ html:not(.dark) .explore-card:hover .explore-card-art {
   opacity: 0.09;
   pointer-events: none;
   user-select: none;
+  /* The frame overhangs the section on purpose, so without a vertical fade the
+     raster terminates in a hard horizontal edge at this clip boundary — which
+     reads as a grey slab behind the hero on the light canvas. Masking the
+     clipping layer keeps each variant's horizontal mask on the image itself,
+     so neither element needs mask-composite. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 15%, #000 74%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 15%, #000 74%, transparent 100%);
 }
 
 .product-hero-backdrop__frame {
@@ -445,7 +517,10 @@ html:not(.dark) .product-hero-backdrop--quiet {
     linear-gradient(to right, var(--hero-grid-dot) 1px, transparent 1px),
     linear-gradient(to bottom, var(--hero-grid-dot) 1px, transparent 1px);
   background-size: 44px 44px;
-  mask-image: linear-gradient(to bottom, black, transparent 76%);
+  /* Fades on both axes. A bottom-only fade left the grid's rectangular extent
+     cut off hard at the shell edges, which reads as a seam now that the light
+     theme renders the grid at a visible alpha. */
+  mask-image: radial-gradient(86% 76% at 44% -6%, black 0%, black 8%, transparent 70%);
 }
 
 .premium-button-primary {
@@ -465,7 +540,7 @@ html:not(.dark) .product-hero-backdrop--quiet {
 
 .premium-button-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+  box-shadow: var(--shadow-pop);
 }
 
 .premium-button-secondary {
@@ -522,8 +597,8 @@ html:not(.dark) .product-hero-backdrop--quiet {
     linear-gradient(150deg, color-mix(in srgb, var(--surface-raised) 64%, transparent), transparent 52%),
     var(--surface-inset);
   box-shadow:
-    0 30px 90px rgba(0, 0, 0, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    var(--shadow-raised),
+    inset 0 1px 0 var(--surface-highlight);
 }
 
 .premium-terminal::after {
