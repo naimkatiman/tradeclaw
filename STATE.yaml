@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-10T16:55:28+08:00
+updated: 2026-08-10T17:14:48+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -4568,13 +4568,34 @@ next_actions:
       one ambiguous test locator was narrowed; desktop 1440x1000 and mobile
       390x844 browser QA showed no horizontal overflow, console warning, console
       error, or page error. The rendered empty-state screenshots are retained in
-      ignored apps/web/test-results. Docker and psql are unavailable locally, so
-      migration execution was not applied to any database; SQL constraints and
-      append-only behavior have static contract coverage, and protected CI plus
-      an isolated database remain required before publication. At 2026-08-10
-      16:55 MPST the owner separately authorized the TC-254 release. Publication
-      is now in progress; no live claim is valid until the protected PR, real
-      PostgreSQL migration validation, exact-final-main deployment, health,
-      first-row, route, browser, and bounded-log checks pass. Before deployment
-      the ledger remains uncommitted to main and is collecting no observations.
-      The recovery stash remains available until the release handoff is accepted.
+      ignored apps/web/test-results. At 2026-08-10 16:55 MPST the owner
+      separately authorized the TC-254 release. Implementation PR #211 exact
+      head 869e15434649583f18f09a69024a9af64e09288a passed all seven observed
+      protected checks (Lint & Type Check, Build, Unit Tests, Strategy
+      Backtests, Docker Build, Playwright E2E, and welcome) and squash-merged as
+      25c306657c7383625f9fc022898f1d3eb46ccd13 at 2026-08-10T09:13:46Z.
+      The missing real-database gate was executed before merge in disposable
+      Railway environment tc254-migration-check-20260810
+      (bbe0c752-46cd-4411-835a-36f981f4d8fa). Its first upload correctly failed
+      before migration because the duplicated web service retained stale
+      production database credentials; only the disposable environment was
+      repaired to reference its fresh Postgres instance. Replacement deployment
+      e16727c1-3b75-4b70-b330-70ae43f9cc28 reached SUCCESS with image
+      sha256:27693f9016b7b940416c5e1a280b2c9770866c3862ad195d61d785b4d555de51.
+      Startup applied all 56 migrations from an empty database, including
+      054_d1_alpha_ledger.sql. Health returned 200 with database and migration
+      054 ok; the page and raw API returned 200. One real common D1 snapshot for
+      2026-08-09T00:00:00.000Z committed at 2026-08-10T09:05:19.704Z with row
+      hash e8a963c7eeb7acc989d2a33400b84e29f15566a2572c0ff5f391f9bb9e102a72,
+      integrity PASS, zero cadence gaps, both prospective sleeves FLAT, and
+      status collecting-evidence/not-promoted. A repeated authenticated cron
+      tick processed both symbols with zero failures and returned idempotent for
+      the identical row hash. Direct PostgreSQL proof rejected UPDATE and DELETE
+      with SQLSTATE 55000 and rolled the synthetic transaction back to the
+      unchanged baseline row count. The disposable environment and database
+      were deleted after verification and the Railway link was restored to
+      production. This state-only closure starts from exact merged main 25c30665;
+      production still serves the prior release and has zero TC-254 rows until
+      the state closure establishes exact final main and that exact tree is
+      deployed and live-verified. The recovery stash remains available until
+      the release handoff is accepted.
