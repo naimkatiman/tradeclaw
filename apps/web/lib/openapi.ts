@@ -245,7 +245,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
                   required: ["status", "required"],
                   properties: {
                     status: { type: "string", enum: ["ok", "error", "unknown"] },
-                    required: { type: "string", example: "053_drop_monetization.sql" },
+                    required: { type: "string", example: "054_d1_alpha_ledger.sql" },
                   },
                 },
               },

@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-09T14:04:09+08:00
+updated: 2026-08-10T16:55:28+08:00
 
 description: >
   Open source self-hostable AI trading agent platform.
@@ -4509,3 +4509,72 @@ next_actions:
       update clears the protected path and establishes the exact final-main
       commit to deploy. No live claim is valid until Railway reaches SUCCESS and
       production browser, health, route, artifact, and bounded-log checks pass.
+
+  - id: TC-254
+    title: "Build a prospective D1 alpha ledger without backfill"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-10 after the owner explicitly directed a prospective D1
+      alpha ledger and /track-record/alpha, required the D1 rule to remain
+      frozen, required the status "collecting evidence" until a predeclared
+      minimum is met, and prohibited deletion of the losing historical archive.
+      Work is isolated in branch agent/d1-alpha-ledger from exact final main
+      5cdc54d0f9369ddf9db7e33c375e58ca317f031a after TC-253's protected merge,
+      state closure, exact-main Railway deployment, and live verification; the
+      broad dirty primary checkout remains excluded. The protocol was frozen
+      before ledger outcomes exist in
+      docs/plans/2026-08-10-d1-alpha-ledger.md. Strategy version
+      d1-slow-gate-v1-2026-08-09 retains BTCUSD+ETHUSD D1 close-above-EMA200
+      long/flat, ATR14 x 2.5 with a 4.0% stop floor, fixed 50/50 independent
+      sleeves, 0.05% fee plus 0.15% slippage per side, fixed 0.01% funding per
+      eight hours, and the 30-change rolling-365-day ceiling. The normalized
+      rule-source SHA-256 is a9c222a33f3e1e0c70e8fb5f0bfa930dc6433297d9dcb27ef2b825f08da3b171
+      and the canonical artifact SHA-256 is
+      1a6b28e47f218fafd5134cb257e06f966f881bc5154be92135c06867f5026e90.
+      The ledger epoch will be its first successfully committed post-deployment
+      snapshot; both sleeves start flat and no prior position or NAV is replayed.
+      The predeclared minimum is 365 calendar days, 365 consecutive D1
+      snapshots, 12 prospectively closed sleeve trades, zero unresolved cadence
+      gaps, and complete fingerprint/source/hash-chain integrity. Only after that
+      minimum can positive net return, positive active return, non-worse drawdown,
+      and Calmar at least the benchmark make the candidate eligible for manual
+      review. Promotion is never automatic and requires a separate owner action.
+      The local build is complete without modifying
+      packages/strategies/src/d1-slow-gate.ts or running a new parameter search.
+      Migration 054 creates one immutable common BTC/ETH portfolio row per
+      closed D1 bar, pins the version, Binance source, rule and artifact hashes,
+      rejects UPDATE/DELETE, and stores a canonical payload plus previous/row
+      SHA-256. The writer uses a transaction-scoped advisory lock, exact-repeat
+      idempotency, strict next-day cadence, no historical insertion, and
+      recomputable state/cost integrity. Its prospective sleeves start flat;
+      the benchmark starts 50/50 and pays the same entry, terminal-exit, and
+      fixed-funding assumptions. The existing D1 cron lane supplies a row only
+      when both frozen Binance histories evaluate successfully on the same
+      closed bar; ledger failure is isolated from the existing signal path.
+      /track-record/alpha and /api/track-record/alpha expose status, gate
+      progress, positions, preliminary liquidation-adjusted strategy/benchmark
+      metrics, integrity, recent rows/raw JSON, and frozen fingerprints. Empty
+      evidence is an em dash, the public label is "collecting evidence", and
+      both the losing observed archive and retrospective study catalog remain
+      directly linked. Health, sitemap, self-hosting docs, OpenAPI, README, and
+      evidence navigation are aligned with migration 054 and the new surface.
+      Verification on exact base 5cdc54d0 passed nine focused suites (54 tests),
+      full Jest (241 suites and 1,878 tests passed; three suites and 26 tests
+      skipped; the known worker-exit warning remains), web typecheck, full lint
+      with zero errors and 23 pre-existing warnings, frozen strategy tests (14
+      suites, 103 tests, one snapshot), diff check, and the required 325-page
+      production build. Production-build Chromium E2E passed the new page after
+      one ambiguous test locator was narrowed; desktop 1440x1000 and mobile
+      390x844 browser QA showed no horizontal overflow, console warning, console
+      error, or page error. The rendered empty-state screenshots are retained in
+      ignored apps/web/test-results. Docker and psql are unavailable locally, so
+      migration execution was not applied to any database; SQL constraints and
+      append-only behavior have static contract coverage, and protected CI plus
+      an isolated database remain required before publication. At 2026-08-10
+      16:55 MPST the owner separately authorized the TC-254 release. Publication
+      is now in progress; no live claim is valid until the protected PR, real
+      PostgreSQL migration validation, exact-final-main deployment, health,
+      first-row, route, browser, and bounded-log checks pass. Before deployment
+      the ledger remains uncommitted to main and is collecting no observations.
+      The recovery stash remains available until the release handoff is accepted.

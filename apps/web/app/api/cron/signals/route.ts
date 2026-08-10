@@ -67,6 +67,7 @@ export async function runD1LaneSafely(): Promise<D1SlowGateLaneResult> {
       processed: 0,
       candidates: 0,
       recorded: 0,
+      alphaLedger: null,
       failures: [{
         symbol: 'BTCUSD+ETHUSD',
         stage: 'lane',

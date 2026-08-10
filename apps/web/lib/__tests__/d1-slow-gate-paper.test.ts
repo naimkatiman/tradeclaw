@@ -8,6 +8,10 @@ jest.mock('../signal-history', () => ({
   recordSignalsAsync: jest.fn(),
 }));
 
+jest.mock('../d1-alpha-ledger', () => ({
+  appendD1AlphaSnapshot: jest.fn(),
+}));
+
 jest.mock('@tradeclaw/strategies', () => {
   const actual = jest.requireActual('@tradeclaw/strategies');
   return { ...actual, runD1SlowGate: jest.fn() };
@@ -26,6 +30,12 @@ import {
   type StoredCandle,
 } from '../candle-store';
 import { recordSignalsAsync } from '../signal-history';
+import { appendD1AlphaSnapshot } from '../d1-alpha-ledger';
+import {
+  D1_ALPHA_COST_MODEL,
+  D1_ALPHA_FREQUENCY_WINDOW_MS,
+  D1_ALPHA_MAX_DIRECTION_CHANGES,
+} from '../d1-alpha-protocol';
 import {
   D1_SLOW_GATE_PAPER_START_TS,
   resolveD1SlowGateLaneMode,
@@ -37,6 +47,7 @@ const mockedGetCandles = getCandlesSince as jest.MockedFunction<typeof getCandle
 const mockedRefresh = refreshDailyCandles as jest.MockedFunction<typeof refreshDailyCandles>;
 const mockedBackfill = backfillDailyCandles as jest.MockedFunction<typeof backfillDailyCandles>;
 const mockedRecord = recordSignalsAsync as jest.MockedFunction<typeof recordSignalsAsync>;
+const mockedAppendAlpha = appendD1AlphaSnapshot as jest.MockedFunction<typeof appendD1AlphaSnapshot>;
 
 const DAY_MS = 86_400_000;
 const NOW = Date.UTC(2026, 7, 8, 12);
@@ -45,7 +56,15 @@ function dailyBars(lastClosedOffsetDays = 0): StoredCandle[] {
   const latestOpen = Date.UTC(2026, 7, 7) - lastClosedOffsetDays * DAY_MS;
   const bars: StoredCandle[] = [];
   for (let ts = D1_SLOW_GATE_PAPER_START_TS; ts <= latestOpen; ts += DAY_MS) {
-    bars.push({ timestamp: ts, open: 100, high: 102, low: 98, close: 101, volume: 10 });
+    bars.push({
+      timestamp: ts,
+      open: 100,
+      high: 102,
+      low: 98,
+      close: 101,
+      volume: 10,
+      source: 'binance',
+    });
   }
   return bars;
 }
@@ -56,9 +75,11 @@ function runFor(
   frequencyCapPassed = true,
 ): D1SlowGateRun {
   const barIndex = latest ? bars.length - 1 : bars.length - 2;
+  const exposure: Array<0 | 1> = bars.map(() => 0);
+  exposure[barIndex] = 1;
   return {
     equity: bars.map(() => 1),
-    exposure: bars.map(() => 0),
+    exposure,
     transitions: [{
       barIndex,
       timestamp: bars[barIndex].timestamp,
@@ -88,6 +109,12 @@ beforeEach(() => {
   mockedRefresh.mockReset().mockResolvedValue(1);
   mockedBackfill.mockReset().mockResolvedValue(1);
   mockedRecord.mockReset().mockResolvedValue(1);
+  mockedAppendAlpha.mockReset().mockResolvedValue({
+    outcome: 'inserted',
+    barTimestamp: Date.UTC(2026, 7, 7),
+    rowHash: 'a'.repeat(64),
+    committedAt: '2026-08-08T12:00:00.000Z',
+  });
 });
 
 describe('runD1SlowGateLane', () => {
@@ -108,9 +135,26 @@ describe('runD1SlowGateLane', () => {
 
     const result = await runD1SlowGateLane({ now: NOW, mode: 'paper' });
 
-    expect(result).toEqual({ mode: 'paper', processed: 2, candidates: 1, recorded: 1, failures: [] });
+    expect(result).toEqual({
+      mode: 'paper',
+      processed: 2,
+      candidates: 1,
+      recorded: 1,
+      alphaLedger: expect.objectContaining({ outcome: 'inserted' }),
+      failures: [],
+    });
     expect(mockedRefresh).toHaveBeenCalledTimes(2);
     expect(mockedGetCandles).toHaveBeenCalledWith('BTCUSD', 'D1', D1_SLOW_GATE_PAPER_START_TS);
+    expect(mockedRun).toHaveBeenNthCalledWith(
+      1,
+      bars,
+      { symbol: 'BTCUSD', timeframe: 'D1' },
+      {
+        costs: D1_ALPHA_COST_MODEL,
+        maxDirectionChanges: D1_ALPHA_MAX_DIRECTION_CHANGES,
+        frequencyWindowMs: D1_ALPHA_FREQUENCY_WINDOW_MS,
+      },
+    );
     expect(mockedRecord).toHaveBeenCalledTimes(1);
     expect(mockedRecord.mock.calls[0][0]).toEqual([
       expect.objectContaining({
@@ -128,6 +172,23 @@ describe('runD1SlowGateLane', () => {
         isSimulated: true,
       }),
     ]);
+    expect(mockedAppendAlpha).toHaveBeenCalledWith({
+      barTimestamp: bars.at(-1)!.timestamp,
+      symbols: {
+        BTCUSD: expect.objectContaining({
+          symbol: 'BTCUSD',
+          source: 'binance',
+          close: 101,
+          transition: expect.objectContaining({ action: 'ENTER_LONG', price: 101 }),
+        }),
+        ETHUSD: expect.objectContaining({
+          symbol: 'ETHUSD',
+          source: 'binance',
+          close: 101,
+          transition: null,
+        }),
+      },
+    });
   });
 
   it('promotes an explicitly active newest-bar transition into the real tracked strategy', async () => {
@@ -139,7 +200,14 @@ describe('runD1SlowGateLane', () => {
 
     const result = await runD1SlowGateLane({ now: NOW, mode: 'active' });
 
-    expect(result).toEqual({ mode: 'active', processed: 2, candidates: 1, recorded: 1, failures: [] });
+    expect(result).toEqual({
+      mode: 'active',
+      processed: 2,
+      candidates: 1,
+      recorded: 1,
+      alphaLedger: expect.objectContaining({ outcome: 'inserted' }),
+      failures: [],
+    });
     expect(mockedRecord.mock.calls[0][0]).toEqual([
       expect.objectContaining({
         id: `d1-slow-gate:BTCUSD:ENTER_LONG:${bars.at(-1)!.timestamp}`,
@@ -159,7 +227,14 @@ describe('runD1SlowGateLane', () => {
 
     const result = await runD1SlowGateLane({ now: NOW, mode: 'active' });
 
-    expect(result).toEqual({ mode: 'active', processed: 2, candidates: 0, recorded: 0, failures: [] });
+    expect(result).toEqual({
+      mode: 'active',
+      processed: 2,
+      candidates: 0,
+      recorded: 0,
+      alphaLedger: expect.objectContaining({ outcome: 'inserted' }),
+      failures: [],
+    });
     expect(mockedBackfill).toHaveBeenCalledTimes(1);
     expect(mockedBackfill).toHaveBeenCalledWith('BTCUSD', D1_SLOW_GATE_PAPER_START_TS);
     expect(mockedGetCandles).toHaveBeenCalledTimes(3);
@@ -178,6 +253,20 @@ describe('runD1SlowGateLane', () => {
     expect(mockedRecord).not.toHaveBeenCalled();
   });
 
+  it('fails closed when any frozen-history candle changes provider', async () => {
+    const bars = dailyBars();
+    bars[100] = { ...bars[100], source: 'other-provider' };
+    mockedGetCandles.mockResolvedValue(bars);
+
+    const result = await runD1SlowGateLane({ now: NOW, mode: 'paper' });
+
+    expect(result.alphaLedger).toBeNull();
+    expect(result.failures).toHaveLength(2);
+    expect(result.failures.every((failure) => failure.stage === 'data')).toBe(true);
+    expect(result.failures.every((failure) => failure.error.includes('source must remain binance'))).toBe(true);
+    expect(mockedRun).not.toHaveBeenCalled();
+  });
+
   it('fails closed when the rolling direction-change ceiling is breached', async () => {
     const bars = dailyBars();
     mockedGetCandles.mockResolvedValue(bars);
@@ -189,6 +278,24 @@ describe('runD1SlowGateLane', () => {
     expect(result.failures).toHaveLength(2);
     expect(result.failures.every((failure) => failure.stage === 'frequency')).toBe(true);
     expect(mockedRecord).not.toHaveBeenCalled();
+  });
+
+  it('surfaces a ledger failure without altering the frozen signal result', async () => {
+    const bars = dailyBars();
+    mockedGetCandles.mockResolvedValue(bars);
+    mockedRun.mockImplementation(() => runFor(bars, false));
+    mockedAppendAlpha.mockRejectedValueOnce(new Error('ledger cadence gap'));
+
+    const result = await runD1SlowGateLane({ now: NOW, mode: 'paper' });
+
+    expect(result.recorded).toBe(0);
+    expect(result.alphaLedger).toBeNull();
+    expect(result.failures).toEqual([{
+      symbol: 'BTCUSD+ETHUSD',
+      stage: 'ledger',
+      error: 'ledger cadence gap',
+    }]);
+    expect(mockedRun).toHaveBeenCalledTimes(2);
   });
 
   it('isolates a refresh failure to the paper lane and the affected symbol', async () => {
@@ -206,6 +313,7 @@ describe('runD1SlowGateLane', () => {
       processed: 2,
       candidates: 0,
       recorded: 0,
+      alphaLedger: null,
       failures: [{ symbol: 'BTCUSD', stage: 'refresh', error: 'Binance unavailable' }],
     });
     expect(mockedGetCandles).toHaveBeenCalledTimes(1);

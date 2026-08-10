@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: base, lastModified: new Date(), changeFrequency: "daily", priority: 1, alternates: { languages: languageAlternates } },
     { url: `${base}/track-record`, lastModified: new Date(), changeFrequency: "daily", priority: 0.95 },
+    { url: `${base}/track-record/alpha`, lastModified: new Date(), changeFrequency: "daily", priority: 0.92 },
     { url: `${base}/track-record/study`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/research`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/methodology`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },

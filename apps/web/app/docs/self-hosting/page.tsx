@@ -191,7 +191,7 @@ sudo certbot renew --dry-run`} />
   "timestamp": "2026-03-27T10:00:00.000Z",
   "checks": {
     "database": { "status": "ok" },
-    "migrations": { "status": "ok", "required": "053_drop_monetization.sql" }
+    "migrations": { "status": "ok", "required": "054_d1_alpha_ledger.sql" }
   }
 }`} />
         <p className="text-zinc-400 leading-relaxed mt-4">
