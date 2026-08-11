@@ -154,12 +154,53 @@ export function CostFieldScene({ data, mode, onPhaseChange }: CostFieldSceneProp
     const points = new THREE.Points(geometry, material);
     scene.add(points);
 
-    const grid = new THREE.GridHelper(FIELD_WIDTH + 6, 22, 0x9ca3af, 0x9ca3af);
-    const gridMaterial = grid.material as THREE.Material;
-    gridMaterial.transparent = true;
-    gridMaterial.opacity = 0.14;
-    gridMaterial.depthWrite = false;
-    scene.add(grid);
+    // The zero-plane grid is the only themed part of the scene: a mid grey at
+    // 0.14 reads on the near-black canvas and vanishes on the light inset
+    // surface. Dot colours stay fixed in both themes (DESIGN.md). GridHelper
+    // bakes its colours into geometry vertex colours, so a theme switch
+    // rebuilds it rather than tinting the material.
+    let grid: THREE.GridHelper | null = null;
+    let appliedGridKey = '';
+
+    const disposeGrid = () => {
+      if (!grid) return;
+      scene.remove(grid);
+      grid.geometry.dispose();
+      (grid.material as THREE.Material).dispose();
+      grid = null;
+    };
+
+    const syncGrid = () => {
+      const styles = getComputedStyle(document.documentElement);
+      const color = styles.getPropertyValue('--costfield-grid').trim() || '#9ca3af';
+      const parsedOpacity = Number.parseFloat(
+        styles.getPropertyValue('--costfield-grid-opacity'),
+      );
+      const opacity = Number.isFinite(parsedOpacity) ? parsedOpacity : 0.14;
+
+      // The observer fires on any html class change, not just the theme swap.
+      // Rebuild only when the resolved tokens actually differ.
+      const key = `${color}|${opacity}`;
+      if (key === appliedGridKey) return;
+      appliedGridKey = key;
+
+      disposeGrid();
+      const gridColor = new THREE.Color(color);
+      grid = new THREE.GridHelper(FIELD_WIDTH + 6, 22, gridColor, gridColor);
+      const gridMaterial = grid.material as THREE.Material;
+      gridMaterial.transparent = true;
+      gridMaterial.opacity = opacity;
+      gridMaterial.depthWrite = false;
+      scene.add(grid);
+    };
+
+    syncGrid();
+
+    const themeObserver = new MutationObserver(syncGrid);
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
 
     const resize = () => {
       const w = container.clientWidth;
@@ -247,11 +288,12 @@ export function CostFieldScene({ data, mode, onPhaseChange }: CostFieldSceneProp
     return () => {
       stop();
       document.removeEventListener('visibilitychange', onVisibility);
+      themeObserver.disconnect();
       intersection.disconnect();
       resizeObserver.disconnect();
       geometry.dispose();
       material.dispose();
-      gridMaterial.dispose();
+      disposeGrid();
       renderer.dispose();
       container.removeChild(renderer.domElement);
     };

@@ -14,8 +14,30 @@ Visual system for TradeClaw. The token source of truth is `apps/web/app/globals.
 
 TradeClaw uses a near-black/near-white exchange canvas with crisp contrast, quiet borders, and small amounts of emerald light. Dark mode is the signature presentation; light mode is fully supported and must preserve the same hierarchy.
 
-- Dark canvas: `--background: #030506`; cards `#090c0e`; raised surface `#0e1316`; inset surface `#06090a`; borders `#1b2327` to `#303b40`.
-- Light canvas: `--background: #f4f7f8`; cards `#ffffff`; raised surface `#edf2f4`; inset surface `#e6ecef`; borders `#dce3e6` to `#c5d0d5`.
+- Dark canvas: `--background: #030506`; cards `#151c1f`; raised surface `#1d2529`; inset surface `#0b1013`; borders `#333e42` to `#556165`.
+- Light canvas: `--background: #f4f7f8`; cards `#fdfefe`; raised surface `#edf2f4`; inset surface `#e6ecef`; borders `#b9c4c8` to `#8d9a9e`.
+
+The two themes earn their definition differently, and this asymmetry is deliberate:
+
+- **Light is ink on paper.** Two near-whites can differ by at most ~1.1:1, so surfaces
+  stay close to the canvas and the border tiers carry the structure. `--border` is the
+  internal divider (~1.8:1 on a card) and `--border-strong` is the component frame
+  (~2.9:1, the WCAG 1.4.11 bar for boundaries that identify a component).
+- **Dark is emission.** Definition comes from lifting the surface off the canvas
+  (`--bg-card` sits ~1.18:1 above `--background`), so panels read without a bright
+  wireframe edge; borders stay quieter (~1.6:1 divider, ~2.7:1 frame).
+
+Never carry a dark-tuned effect onto the light canvas unchanged. Elevation is
+tokenised per theme — `--shadow-panel`, `--shadow-raised`, `--shadow-pop`,
+`--surface-highlight` — and primitives must consume those tokens rather than
+hardcoding a shadow. Light uses tight, low-alpha, hue-tinted shadows and sets
+`--surface-highlight: transparent`, because a white inset highlight only washes the
+top edge of a light surface. Dark keeps the deep diffuse shadow plus the lit top edge.
+
+`.premium-dark-chrome` marks regions that stay dark on a light page (nav, footer,
+mobile nav). It carries the whole dark palette, not just the brand tokens: a
+descendant reading `var(--text-secondary)` would otherwise get the light value and
+render near-invisible on the dark bar.
 - Prefer solid semantic surfaces and one-pixel borders. Glass, blur, glow, grids, and gradients are supporting atmosphere, never the default treatment for every panel.
 - The legacy light-mode utility remapping in `globals.css` exists for compatibility. New components must use semantic variables rather than depending on that layer.
 
@@ -116,6 +138,6 @@ Premium means precise, calm, and verifiable, not glossy. Trust is built through 
 
 WebGL is **data-only**. It may render a real dataset when depth or motion materially clarifies the finding; it is never a decorative hero background. Use one scene per page at most, lazy-loaded client-side with `next/dynamic`, no SSR, and `three` without react-three-fiber.
 
-For the Cost Field, each resolved sized trade is an instanced point, Y is the R multiple, and a neutral zero plane separates positive from negative. The gross-to-net interpolation applies modeled cost so the cloud visibly shifts. Emerald and rose retain their directional meaning; a neutral high-contrast cursor identifies selection without inventing another hue.
+For the Cost Field, each resolved sized trade is an instanced point, Y is the R multiple, and a neutral zero plane separates positive from negative. The dot colours stay fixed across themes, but the zero-plane grid reads from `--costfield-grid` / `--costfield-grid-opacity` and rebuilds on theme change: a mid grey at 0.14 that works on the near-black canvas disappears on the light inset surface. The gross-to-net interpolation applies modeled cost so the cloud visibly shifts. Emerald and rose retain their directional meaning; a neutral high-contrast cursor identifies selection without inventing another hue.
 
 Cap DPR at 2, instance points, pause offscreen and on hidden tabs, and fully dispose on unmount. Target less than 200KB gzipped for the Three.js chunk and less than 100KB for the data payload. The fallback chain is: WebGL scene -> static 2D rendering of the same data -> text summary of the same numbers. Reduced motion may skip interpolation, but it must not omit the evidence.
