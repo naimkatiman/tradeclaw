@@ -652,6 +652,103 @@ html:not(.dark) .editorial-hero-art__image {
   filter: drop-shadow(0 22px 34px rgba(15, 23, 42, 0.14));
 }
 
+/* Generated brand sculpture. Subordinate to the Cost Field and evidence
+   backdrop: desktop-only, pointer-free, and edge-faded beneath content. */
+.hero-brand-art {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .hero-brand-art {
+    position: absolute;
+    top: 5rem;
+    left: max(-8rem, calc((100vw - 1280px) / 2 - 9rem));
+    z-index: 0;
+    display: block;
+    width: min(44vw, 520px);
+    height: min(44vw, 500px);
+    pointer-events: none;
+    isolation: isolate;
+    mask-image: radial-gradient(ellipse at 42% 48%, black 0%, black 48%, transparent 80%);
+  }
+
+  .hero-brand-art__frame {
+    position: absolute;
+    inset: 0;
+    opacity: 0.16;
+    animation: heroArtReveal 900ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+
+  html:not(.dark) .hero-brand-art__frame {
+    opacity: 0.13;
+  }
+
+  html:not(.dark) .hero-brand-art__image {
+    filter: contrast(1.55) saturate(0.8) brightness(0.68);
+  }
+
+  html:not(.dark) .hero-brand-art__halo {
+    opacity: 0.28;
+  }
+
+  .hero-brand-art__object {
+    position: absolute;
+    inset: 1% 2% 0 2%;
+    animation: heroArtFloat 12s ease-in-out 900ms infinite;
+    will-change: transform;
+  }
+
+  .hero-brand-art__image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .hero-brand-art__halo {
+    position: absolute;
+    inset: 18% 12% 12%;
+    z-index: -1;
+    border-radius: 9999px;
+    background: radial-gradient(circle, var(--brand-glow), transparent 68%);
+    opacity: 0.55;
+    animation: heroArtBreathe 8s ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+
+  .hero-brand-art__scan {
+    position: absolute;
+    top: 12%;
+    right: 12%;
+    left: 14%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--brand), transparent);
+    opacity: 0;
+    animation: heroArtScan 7s ease-in-out 1.2s infinite;
+    will-change: transform, opacity;
+  }
+}
+
+@keyframes heroArtReveal {
+  from { opacity: 0; transform: scale(0.96); }
+}
+
+@keyframes heroArtFloat {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -6px, 0) rotate(-0.6deg); }
+}
+
+@keyframes heroArtBreathe {
+  0%, 100% { opacity: 0.38; transform: scale(0.96); }
+  50% { opacity: 0.62; transform: scale(1.04); }
+}
+
+@keyframes heroArtScan {
+  0%, 12% { opacity: 0; transform: translate3d(0, 0, 0); }
+  24% { opacity: 0.42; }
+  62% { opacity: 0.18; }
+  76%, 100% { opacity: 0; transform: translate3d(0, 330px, 0); }
+}
+
 /* Emerald glow effects */
 .glow-emerald {
   box-shadow:
@@ -874,7 +971,11 @@ html:not(.dark) .editorial-hero-art__image {
   .animate-slide-left,
   .animate-slide-right,
   .reveal,
-  .parallax-drift-slow {
+  .parallax-drift-slow,
+  .hero-brand-art__frame,
+  .hero-brand-art__object,
+  .hero-brand-art__halo,
+  .hero-brand-art__scan {
     animation: none !important;
   }
 
