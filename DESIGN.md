@@ -136,7 +136,7 @@ Premium means precise, calm, and verifiable, not glossy. Trust is built through 
 
 ## 3D / WebGL language
 
-WebGL is **data-only**. It may render a real dataset when depth or motion materially clarifies the finding; it is never a decorative hero background. Use one scene per page at most, lazy-loaded client-side with `next/dynamic`, no SSR, and `three` without react-three-fiber.
+WebGL is **data-only**. It may render a real dataset when depth or motion materially clarifies the finding; it is never a decorative hero background. A lightweight generated raster may provide subordinate brand atmosphere around the scene, but it must never resemble or replace evidence. Use one WebGL scene per page at most, lazy-loaded client-side with `next/dynamic`, no SSR, and `three` without react-three-fiber.
 
 For the Cost Field, each resolved sized trade is an instanced point, Y is the R multiple, and a neutral zero plane separates positive from negative. The dot colours stay fixed across themes, but the zero-plane grid reads from `--costfield-grid` / `--costfield-grid-opacity` and rebuilds on theme change: a mid grey at 0.14 that works on the near-black canvas disappears on the light inset surface. The gross-to-net interpolation applies modeled cost so the cloud visibly shifts. Emerald and rose retain their directional meaning; a neutral high-contrast cursor identifies selection without inventing another hue.
 
