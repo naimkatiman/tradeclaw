@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import marketSculpture from '../../public/brand/tradeclaw-market-sculpture-v1.webp';
 
 /**
  * Decorative brand motion for the landing hero.
@@ -15,8 +14,10 @@ export function HeroBrandArt() {
         <div className="hero-brand-art__halo" />
         <div className="hero-brand-art__object">
           <Image
-            src={marketSculpture}
+            src="/brand/tradeclaw-market-sculpture-v1.webp"
             alt=""
+            width={1254}
+            height={1254}
             className="hero-brand-art__image"
             sizes="(min-width: 1280px) 560px, (min-width: 1024px) 46vw, 1px"
             loading="eager"
