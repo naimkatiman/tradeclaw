@@ -1,3 +1,5 @@
+> 현재 제품 설명은 [English README](README.md) 가 기준입니다. 이 번역은 이전 유료 시그널 안내가 남아 있어 현행 제품 설명이 아닙니다.
+
 <div align="center">
 
 <img src="docs/assets/logo.svg" alt="TradeClaw 로고" width="88" height="88" />

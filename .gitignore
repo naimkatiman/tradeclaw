@@ -39,3 +39,9 @@ packages/strategy-audit-agent/tmp/
 # Playwright agent artifacts (screenshots, console logs, page snapshots)
 /output/
 .playwright-cli/
+.playwright-mcp/
+
+# Local generation and session scratch
+/tmp/
+/apps/web/playwright-report/
+/apps/web/test-results/
