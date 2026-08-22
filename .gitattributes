@@ -3,3 +3,13 @@
 # Container entrypoints must remain executable by POSIX shells after Windows clones.
 *.sh text eol=lf
 *.bash text eol=lf
+
+# Keep README media binary so Windows autocrlf cannot corrupt them.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.mp4 binary
+*.webm binary
+*.svg text eol=lf

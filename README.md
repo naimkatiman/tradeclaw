@@ -4,51 +4,118 @@
 
 # TradeClaw
 
-**Open-source AI trading research with an inspectable signal ledger.**
+**Open-source trading research. Our average modeled trade lost after costs.**
 
 [![Stars](https://img.shields.io/github/stars/naimkatiman/tradeclaw?style=flat-square&color=10b981)](https://github.com/naimkatiman/tradeclaw/stargazers)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Demo](https://img.shields.io/badge/Demo-Live-10b981?style=flat-square)](https://tradeclaw.win/dashboard)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+[![Live](https://img.shields.io/badge/Live-tradeclaw.win-10b981?style=flat-square)](https://tradeclaw.win)
 
-**[Track Record](https://tradeclaw.win/track-record)** · **[Prospective Alpha Ledger](https://tradeclaw.win/track-record/alpha)** · **[Modeled Studies](https://tradeclaw.win/track-record/study)** · **[Live Demo](https://tradeclaw.win/dashboard)** · **[API Docs](https://tradeclaw.win/api-docs)**
+[Track Record](https://tradeclaw.win/track-record) · [Research](https://tradeclaw.win/research) · [Methodology](https://tradeclaw.win/methodology) · [Open Data](https://tradeclaw.win/open-data) · [Live App](https://tradeclaw.win/dashboard) · [API](https://tradeclaw.win/api-docs)
 
 Read this in other languages: [日本語](README.ja.md) · [한국어](README.ko.md) · [中文](README.zh.md) · [more](LANGUAGES.md)
 
 <br />
 
-<img src="docs/assets/demo.gif" alt="TradeClaw dashboard demo" width="100%" />
+<img src="docs/assets/hero-evidence-field.jpg" alt="TradeClaw evidence instruments in a dark laboratory" width="100%" />
+
+<br />
+
+<img src="docs/assets/demo.gif" alt="TradeClaw evidence-instrument reel" width="100%" />
+
+[Full reel (mp4)](docs/assets/demo.mp4)
 
 </div>
 
 ---
 
-TradeClaw generates BUY/SELL signals using multi-timeframe technical analysis (RSI, MACD, EMA, Bollinger Bands, Stochastic, ADX, Volume). Eligible signals and their OHLCV-derived outcomes are recorded in PostgreSQL. The [track record](https://tradeclaw.win/track-record) exposes only observed outcome counts, rates, unsized price moves, exclusions, and row-level evidence. The separate [strategy study catalog](https://tradeclaw.win/track-record/study) shows seven artifact-backed modeled studies, keeps every committed experiment on an accessible shelf, and retains the aggregate fixed-fractional signal simulation. Its default is selected by evidence tier rather than return. The [prospective D1 alpha ledger](https://tradeclaw.win/track-record/alpha) starts flat at its first post-deployment snapshot and evaluates one frozen BTCUSD/ETHUSD rule against a same-cost benchmark. It remains **collecting evidence** until the predeclared 365-day, 365-snapshot, 12-closed-trade, zero-gap integrity gate is complete; passing makes it eligible for review, never automatically current. None of these surfaces is a broker-fill or customer-portfolio ledger, and the losing historical archive remains published.
+TradeClaw is a self-hostable research terminal for BUY/SELL signals, an inspectable PostgreSQL ledger, and the public record of what survived testing. It is MIT-licensed. Hosted access at [tradeclaw.win](https://tradeclaw.win) is free. Paid signal subscriptions are not for sale.
 
-> Status: pre-1.0 (`0.1.0`). The signal engine, dashboard, backtester, and self-host path are usable today; APIs and schema may still change between releases.
+The live engine still emits signals. The public claim is the cost-adjusted result, not a promise that those signals are an edge.
 
-## Current access model
+## Published finding
 
-| Surface | Current behavior |
+Fetched `2026-08-22` from [`/api/signals/equity?summaryOnly=1&scope=pro`](https://tradeclaw.win/api/signals/equity?summaryOnly=1&scope=pro). This is a hypothetical 1%-risk sequential simulation on OHLCV-resolved sized signals after modeled fee and slippage. It is not a broker-fill or customer-portfolio ledger.
+
+| Measure | Value |
 |---|---|
-| Public dashboard and track record | Read-only research access without authentication |
+| Eligible sized signals | 4,708 |
+| Gross expectancy | 0.00R / trade |
+| Modeled round-trip cost | 0.564R / trade (~0.183% of size) |
+| Net expectancy | −0.56R / trade |
+| Counted resolved win rate | 36.3% |
+| Sequential 1%-risk path | −100% modeled equity, 100% modeled drawdown |
+
+R is result divided by the planned stop distance. [Methodology](https://tradeclaw.win/methodology) defines which rows count, which rows are sized, and which costs are modeled.
+
+The [observed track record](https://tradeclaw.win/track-record) is count-first: source-backed wins, losses, exclusions, and unsized price moves. Position sizing, drawdown, and sequential equity live on the separate [modeled study](https://tradeclaw.win/track-record/study).
+
+## What this is
+
+- A Next.js + PostgreSQL monorepo you can inspect or self-host
+- A public signal ledger with CSV/JSON export
+- A research archive of pre-registered tests, including killed strategies
+- Optional paper/testnet execution that stays fail-closed unless you turn it on
+
+## What this is not
+
+- Not financial advice
+- Not a broker, wallet, or customer account ledger
+- Not a live profitability claim
+- Not an active paid Pro/Elite funnel. `/pricing` redirects to the track record.
+
+<p align="center">
+  <img src="docs/assets/instrument-gate.jpg" alt="Research gate instrument" width="49%" />
+  <img src="docs/assets/instrument-claw.jpg" alt="Claw-ring candlestick instrument" width="49%" />
+</p>
+
+## Current access
+
+| Surface | Behavior |
+|---|---|
+| Public dashboard, track record, research, methodology, open data | Read-only, no auth |
 | Signal history | Current rolling archive, capped at 10,000 source rows; CSV and provenance endpoints are public |
-| Costs | Static fee + slippage models; funding and actual broker charges are excluded |
-| Modeled signal study | Separate hypothetical sequential 1%-risk simulation, not concurrent account performance |
-| Admin operations | Authentication required |
-| Signal broadcasting | Fail-closed unless the broadcast-approved 90-day cohort clears the cost-adjusted evidence gate |
-| Automated execution | Disabled by default; Binance USDT-perp testnet is implemented, while the RoboForex R StocksTrader bridge is an unimplemented interface scaffold |
+| Costs | Static fee + slippage by asset class; funding and actual broker charges are excluded from the per-trade charge |
+| Portfolio curve | Hypothetical sequential 1%-risk simulation |
+| Broadcast / Telegram entry-like alerts | Fail-closed unless the cost-adjusted evidence gate is ready |
+| Automated execution | Disabled by default (`EXECUTION_MODE=disabled`) |
+| Billing | Paused. Stripe env vars remain in the repo as leftover wiring, not a live offer |
 
-TradeClaw is MIT-licensed, so the signal framework, backtester, dashboard, paper-trading tools, and integration code can be self-hosted. Optional Stripe, premium-source, and legacy group-bot integrations remain in the repository, but their presence is not a promise that a paid hosted tier or private feed is currently available. Alpha Screener is the separate hosted SaaS path for users who do not want to self-host; see [the integration notes](docs/ALPHA_SCREENER.md).
+## Research status
 
-## Quick start (Docker)
+The [research page](https://tradeclaw.win/research) is the verdict board. Headline tests of single-asset hourly timing, HMM regime routing, daily momentum, funding carry, and cross-sectional momentum failed their registered gates or were too thin to deploy.
 
-### One-liner (no clone required)
+Two narrow later results exist and stay labeled:
+
+1. **Sandbox slow-gate** (BTC/ETH D1, modeled spot costs): a 50/50 vol-targeted overlay did not beat buy-and-hold CAGR. It improved modeled Calmar and max drawdown. HMM sizing did not.
+2. **Pre-registered D1 slow-gate** (BTC/ETH D1, modeled crypto-perpetual costs): the frozen historical sample passed its build gate. Owner approval on 2026-08-09 opened a fail-closed simulated tracking lane. That lane is collecting evidence. It is not promoted, does not place broker orders, and does not bypass the broadcast gate.
+
+Do not read a historical simulation PASS as live performance.
+
+## Quick start
+
+### Hosted
+
+Open [tradeclaw.win](https://tradeclaw.win). No account required for the public research surfaces.
+
+### Docker Compose (self-host)
 
 ```bash
-docker run -p 3000:3000 ghcr.io/naimkatiman/tradeclaw:latest
+git clone https://github.com/naimkatiman/tradeclaw
+cd tradeclaw
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — the dashboard loads, but the web app requires a PostgreSQL `DATABASE_URL` and throws on first DB access if it is unset. There is no bundled SQLite fallback. Point `DATABASE_URL` at a PostgreSQL instance:
+Set at least `DB_PASSWORD`, `USER_SESSION_SECRET`, `ADMIN_SECRET`, and `AUTH_SECRET` in `.env`. Then:
+
+```bash
+docker compose up -d
+```
+
+Open [http://localhost:3000](http://localhost:3000). PostgreSQL is required. There is no SQLite fallback. Apply migrations in `apps/web/migrations/` in filename order against `DATABASE_URL`.
+
+Then run the [self-host smoke checklist](docs/self-host-smoke-checklist.md).
+
+A single-container preview image also exists:
 
 ```bash
 docker run -p 3000:3000 \
@@ -56,213 +123,137 @@ docker run -p 3000:3000 \
   ghcr.io/naimkatiman/tradeclaw:latest
 ```
 
-### Docker Compose (recommended for production)
-
-```bash
-git clone https://github.com/naimkatiman/tradeclaw
-cd tradeclaw
-cp .env.example .env   # edit DATABASE_URL + Telegram tokens
-docker compose up -d   # or: docker-compose up -d on the legacy CLI
-```
-
-Open [http://localhost:3000](http://localhost:3000). Requires PostgreSQL. Migrations live in `apps/web/migrations/` and should be applied in filename order against your `DATABASE_URL`.
-
-After the stack starts, run the [self-host smoke checklist](docs/self-host-smoke-checklist.md) to verify Compose config, migrations, app health, websocket health, metrics, and optional monitoring before sharing the instance.
+The app throws on first database access if `DATABASE_URL` is missing.
 
 ### Image tags
 
-| Tag | What it tracks |
+| Tag | Tracks |
 | --- | --- |
-| `ghcr.io/naimkatiman/tradeclaw:latest` | Latest push to `main` (auto-built) |
-| `ghcr.io/naimkatiman/tradeclaw:edge` | Same as `latest` — short-lived testing tag |
-| `ghcr.io/naimkatiman/tradeclaw:vX.Y.Z` | A specific release tag |
+| `ghcr.io/naimkatiman/tradeclaw:latest` | Latest `main` |
+| `ghcr.io/naimkatiman/tradeclaw:vX.Y.Z` | A release tag |
 | `ghcr.io/naimkatiman/tradeclaw:sha-<git-sha>` | A specific commit |
 
-## Monitoring (Grafana + Prometheus)
+### Local development
 
-TradeClaw exposes a Prometheus-compatible metrics endpoint at `/api/metrics` (signal direction, confidence, RSI, counts, freshness, outcomes). An opt-in monitoring stack ships with the compose file:
-
-```bash
-docker compose --profile monitoring up -d   # adds prometheus (:9090) + grafana (:3001)
-```
-
-Then open Grafana at [http://localhost:3001](http://localhost:3001) (default login `admin`/`admin`, override with `GRAFANA_ADMIN_PASSWORD`), add Prometheus (`http://prometheus:9090`) as a data source, and import `grafana/tradeclaw-dashboard.json`. The default `docker compose up` does not start these services. See [`grafana/README.md`](grafana/README.md) for the metrics reference and panel details.
-
-## Local development (from source)
-
-TradeClaw is an npm-workspaces monorepo. You need Node.js 20+, npm, and a PostgreSQL instance. The web app requires `DATABASE_URL` and throws on first DB access if it is unset — there is no bundled SQLite fallback.
+Node.js 20+, npm, and PostgreSQL:
 
 ```bash
-git clone https://github.com/naimkatiman/tradeclaw
-cd tradeclaw
-npm install            # installs all workspaces
-cp .env.example .env   # set DATABASE_URL and any optional tokens
-
-npm run dev            # start the Next.js web app (apps/web) on :3000
+npm install
+cp .env.example .env
+npm run dev
 ```
-
-Common workspace scripts (all defined in the root `package.json`):
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Run the web app (`apps/web`) in dev mode |
-| `npm run build` | Build `packages/signals`, `packages/trading-agents`, then the Next.js web app (bundle/static generation; TypeScript validation is a separate CI check) |
-| `npm run typecheck:web` | Build the shared signal package, then run the web TypeScript check used by CI |
-| `npm run build:signals` | Build the shared signal package only (also run by `typecheck:web`) |
-| `npm run build:all` | Build `signals` + `agent` + web + ws-server |
-| `npm run start` | Start the built web app |
+| `npm run dev` | Next.js app on :3000 |
+| `npm run build` | Build `packages/signals`, `packages/trading-agents`, then the web app |
+| `npm run typecheck:web` | Shared signals build + web `tsc` |
 | `npm run lint` | Lint `apps/web` |
-| `npm test` | Run the Jest unit suite |
-| `npm run test:e2e` | Run the Playwright e2e suite (`apps/web`) |
-| `npm run ws:dev` / `ws:build` / `ws:start` / `ws:test` | Develop, build, run, or test the websocket server (`apps/ws-server`) |
-| `npm run agent` | Run the trading-agent CLI (`packages/agent`) |
-| `npm run agent:start` / `agent:scan` / `agent:server` | Start the agent loop, run a one-off scan, or run the agent HTTP server |
-| `npm run resolve:outcomes` | Resolve recorded signals against configured OHLCV sources |
+| `npm test` | Jest |
+| `npm run test:e2e` | Playwright (`apps/web`) |
+| `npm run ws:dev` | Websocket server |
+| `npm run agent` | Trading-agent CLI |
 
-For the long-form TypeScript command and why `next build` is not a typecheck, see [`docs/ai-improvement/build-typecheck-parity.md`](docs/ai-improvement/build-typecheck-parity.md).
-
-The Expo/React Native client in `apps/mobile` has its own `package.json` and is run with the Expo CLI from inside that workspace.
-
-## Repository layout
-
-```
-apps/
-  web/                  Next.js app — dashboard, API routes, signal engine, broker execution
-  web/lib/execution/    Broker bridges (Binance USDT-perp, RoboForex R StocksTrader)
-  web/migrations/       Postgres migrations (apply in filename order)
-  ws-server/            Websocket server for live updates
-  mobile/               Expo / React Native client
-
-packages/
-  signals/              Signal types + build target consumed by apps/web
-  agent/                Trading-agent runtime + CLI (npm run agent)
-  strategies/           Backtest comparison framework (not in the live signal path)
-  core/                 Shared core utilities
-  cli/  tradeclaw-cli/  Command-line tooling
-  create-tradeclaw/     Project scaffolder
-  telegram-bot/         Telegram bot integration
-  tradeclaw-mcp/        MCP server integration
-  tradeclaw-js/  tradeclaw-extension/  tradeclaw-action/  tradeclaw-demo/  trading-agents/
-
-scripts/
-  launch-binance-testnet.sh   Binance testnet bootstrap
-  research/recost-segment.ts   Read-only cost-reality probe for signal-history re-costing (`npx tsx scripts/research/recost-segment.ts`)
-```
-
-> Note: the standalone `tradeclaw-discord` bot package (issue #38) remains early scaffolding. The web app's Discord webhook integration, however, is shipped and wired: when `DISCORD_WEBHOOK_URL` is set, the `/api/cron/telegram` broadcast job posts the same free-tier signals to a Discord channel (deduped via `discord_posted_at`), and per-user alert rules can target a Discord webhook channel.
+`next build` is not a typecheck. See [`docs/ai-improvement/build-typecheck-parity.md`](docs/ai-improvement/build-typecheck-parity.md).
 
 ## How it works
-
-**Signal flow:**
 
 ```
 API request → getTrackedSignals() → generateSignalsFromTA()
   → ta-engine.ts (RSI, MACD, EMA, BB, Stoch, ADX, Volume)
-  → recordSignalsAsync() → signal_history table
-  → /track-record page
+  → recordSignalsAsync() → signal_history
+  → /track-record  and  /track-record/study
 ```
 
-Signals are generated as a side effect of API requests — no external scheduler. The TA engine runs inside the Next.js process.
+Signals are generated as a side effect of API requests unless you schedule `/api/cron/*`. The TA engine runs inside the Next.js process.
 
-**Market data:**
+Market data prefers `MARKET_DATA_HUB_URL` when set. Otherwise the app uses free public fallbacks (Binance for crypto, Stooq for some FX/metals). Fallback OHLCV is not cached as a long-term source of truth.
 
-```
-/api/prices, OHLCV, SSE
-  → market-data-hub (primary, MARKET_DATA_HUB_URL)
-  → Binance (crypto fallback)
-  → Stooq CSV (forex/metals fallback)
-  → static last-known-good / synthetic (ultimate safety net)
-```
-
-The hub is the source of truth. The two fallbacks are thin survival paths — they kick in only if the hub returns empty or errors, and OHLCV results from fallbacks are not cached so a hub blip can't lock the dashboard into stale synthetic data.
-
-**Optional automated execution (disabled by default):**
+Optional execution, disabled by default:
 
 ```
-Strictly gate-approved signal → apps/web/lib/execution/executor.ts
-  → Binance USDT-perp (testnet by default); RoboForex R StocksTrader bridge scaffolded (interface only, not implemented)
-  → 90-day cost-adjusted evidence gate (fails closed on negative, stale, incomplete, or unavailable evidence)
-  → pg advisory lock (single client across full execution path)
-  → kill-switch fail-closed if any precondition missing
+Gate-approved signal → apps/web/lib/execution/executor.ts
+  → Binance USDT-perp testnet by default
+  → RoboForex R StocksTrader remains an unimplemented interface scaffold
+  → 90-day cost-adjusted evidence gate, fail-closed
 ```
-
-Order placement maps the TradeClaw pair (`BTC/USD`) to the broker contract (`BTCUSDT` perp) before submission. Bootstrap a Binance testnet account with `bash scripts/launch-binance-testnet.sh`.
 
 ## Strategy presets
 
-Five entry strategies, comparable side-by-side in the backtest UI. In live signal generation, `SIGNAL_ENGINE_PRESET` (default `hmm-top3`) currently selects the preset only as a label on emitted signals — the live engine still generates with the `classic` profile regardless of preset. Per-preset live generation is not yet wired:
+`SIGNAL_ENGINE_PRESET` defaults to `hmm-top3`. In live signal generation that value is currently a label. The live engine still scores with the `classic` profile. Per-preset live generation is not wired. Compare presets in the [backtest UI](https://tradeclaw.win/backtest).
 
 | Preset | Logic |
 |--------|-------|
-| `classic` | RSI + MACD + EMA scoring — no regime filter |
-| `regime-aware` | Classic filtered by HMM regime (backtest only; live signal path currently runs the `classic` profile) |
-| `hmm-top3` | Regime-aware, top 3 by confidence — **production default** (the wired default for the executor and signal cron; live regime filtering applies in the backtest engine) |
+| `classic` | RSI + MACD + EMA scoring, no regime filter |
+| `regime-aware` | Classic filtered by HMM regime (backtest path) |
+| `hmm-top3` | Regime-aware, top 3 by confidence |
 | `vwap-ema-bb` | Mean-reversion at BB extremes with VWAP + EMA |
 | `full-risk` | HMM top-3 with risk-weighted allocation |
 
-Compare presets in the [backtest UI](https://tradeclaw.win/backtest) with side-by-side metrics and equity curves.
-
 ## API
 
-```bash
-# Get the current public signal response
-curl https://tradeclaw.win/api/signals
+No key required on the public research routes. Cache on your side; responses already carry short `s-maxage` headers.
 
-# Get track record stats
-curl https://tradeclaw.win/api/strategy-breakdown
+```bash
+# Cost-adjusted sequential summary (the table above)
+curl 'https://tradeclaw.win/api/signals/equity?summaryOnly=1&scope=pro'
+
+# Per-trade gross R, modeled cost R, asset class
+curl https://tradeclaw.win/api/research/cost-field
+
+# Counted signal history
+curl 'https://tradeclaw.win/api/signals/history?limit=50'
 ```
 
-Public history and research responses describe their own scope and rolling-window limits. They do not establish live execution profitability.
+More endpoints: [open data](https://tradeclaw.win/open-data) and [API docs](https://tradeclaw.win/api-docs).
 
 ## Notifications
 
-TradeClaw can push signals over multiple channels, each enabled by env vars. Hosted entry-like fan-out is suppressed unless the cost-adjusted evidence gate is ready; outcome and risk-exit notifications remain available:
+Entry-like fan-out stays suppressed unless the cost-adjusted evidence gate is ready. Telegram, email, and Discord can carry gate-approved entry-like signals plus outcome and risk-exit notices once that gate is ready.
 
-- **Telegram** — configured cron/channel delivery for gate-approved entry-like signals and eligible outcome/risk-exit updates (`TELEGRAM_BOT_TOKEN` + channel IDs). Delivery is not guaranteed to be instantaneous.
-- **Email** — configured alert delivery plus an independently scheduled daily digest. Entry-like signal sends remain evidence-gated; provider and recipient settings are required. Pick a provider with `EMAIL_PROVIDER`:
-  - `resend` (default) — `RESEND_API_KEY` + `RESEND_FROM_EMAIL`
-  - `sendgrid` — `SENDGRID_API_KEY`
-  - `smtp` — `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` (requires `npm install nodemailer`)
-- **Daily digest email** — set `EMAIL_TO` (comma-separated) and the `/api/cron/daily-digest` job emails the day's top signals via the configured provider, independently of Telegram.
-- **Webhooks** — see the [webhook integration guide](docs/webhooks.md) for the signal payload schema and polling/cron patterns, plus ready-to-run forwarders in [`examples/webhooks/`](examples/webhooks/) (Slack, Discord, n8n, Zapier, Google Sheets).
+- Telegram: `TELEGRAM_BOT_TOKEN` plus channel IDs
+- Email: `EMAIL_PROVIDER` = `resend` | `sendgrid` | `smtp`
+- Discord webhook: `DISCORD_WEBHOOK_URL`
+- Generic webhooks: [`docs/webhooks.md`](docs/webhooks.md)
 
-See `.env.example` for the full list of notification env vars.
-Docker Compose maps the documented `.env` variables into the relevant services through an explicit allowlist. Variables prefixed with `NEXT_PUBLIC_` are compiled into the client bundle, so changing those values requires matching image build arguments and a rebuild rather than only restarting the container.
+Compose maps documented `.env` keys through an allowlist. `NEXT_PUBLIC_*` values are baked into the client bundle and need an image rebuild.
 
-## Environment variables
+## Environment
 
-| Variable | Required | Description |
-|----------|:--------:|-------------|
-| `DATABASE_URL` | Required | PostgreSQL connection string. The web app throws on first DB access if it is unset — there is no SQLite fallback |
-| `MARKET_DATA_HUB_URL` | Yes | Market data hub (primary quote/OHLCV/SSE source). Bare host accepted — `https://` is added if missing |
-| `CRON_SECRET` | Yes | Auth for `/api/cron/*` endpoints |
-| `SIGNAL_ENGINE_PRESET` | No | Strategy preset (default: `hmm-top3`) |
-| `D1_SLOW_GATE_MODE` | No | `paper` (default/fail-closed) or `active`; active records only newest-bar BTCUSD/ETHUSD D1 transitions as real tracked rows. The separate prospective alpha ledger collects one common closed D1 portfolio snapshot in either mode and never changes activation, broker execution, or broadcast gates |
-| `TELEGRAM_BOT_TOKEN` | No | Telegram bot for alerts |
-| `TELEGRAM_CHANNEL_ID` | No | Private channel (Pro alerts) |
-| `TELEGRAM_PUBLIC_CHANNEL_ID` | No | Public channel (delayed free alerts) |
-| `TELEGRAM_PRO_GROUP_ID` | No | Pro group chat ID — bot auto-kicks members without an active Pro tier |
-| `STRIPE_SECRET_KEY` | No | Stripe for Pro subscriptions |
-| `STRIPE_WEBHOOK_SECRET` | No | Stripe webhook signing secret |
-| `STRIPE_PRO_PRICE_ID` | No | Stripe price ID for the Pro tier |
-| `PREMIUM_SIGNAL_SOURCE_URL` | No | Hosted-only premium signal feed |
-| `PREMIUM_SIGNAL_SOURCE_KEY` | No | Bearer token for the premium feed |
-| `BINANCE_API_KEY` / `BINANCE_API_SECRET` | No | Binance USDT-perp execution (testnet by default) |
-| `ROBOFOREX_RST_*` | No | RoboForex R StocksTrader bridge credentials |
+| Variable | Required | Notes |
+|----------|:--------:|-------|
+| `DATABASE_URL` / `DB_PASSWORD` | Yes | PostgreSQL. Compose builds `DATABASE_URL` from `DB_*` |
+| `USER_SESSION_SECRET` | Yes | Session / OAuth / link-token signing |
+| `ADMIN_SECRET` | Yes | Admin login |
+| `AUTH_SECRET` | Yes | Websocket server auth |
+| `CRON_SECRET` | For cron | `/api/cron/*` |
+| `MARKET_DATA_HUB_URL` | No | Hosted hub; self-hosters can leave blank |
+| `SIGNAL_ENGINE_PRESET` | No | Default `hmm-top3` (label; live path is still `classic`) |
+| `EXECUTION_MODE` | No | Default `disabled` |
+| `STRIPE_*` | No | Leftover. Not an active checkout |
 
-See `.env.example` for the full, commented list.
+See `.env.example` for the full list.
+
+## Repository layout
+
+```
+apps/web                 Next.js app, API routes, migrations
+apps/ws-server           Websocket server
+apps/mobile              Expo client
+packages/signals         Shared signal types
+packages/agent           Trading-agent CLI
+packages/strategies      Backtest comparison (not the live signal path)
+docs/research            Pre-registered experiments and JSON artifacts
+scripts/research         Read-only recost / regime / slow-gate helpers
+```
 
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [good first issues](https://github.com/naimkatiman/tradeclaw/labels/good%20first%20issue).
 
-Before opening a PR: run `npm install`, make your change, then `npm run lint`, `npm test`, and (for web changes) `npm run test:e2e`.
-
-Hacktoberfest-friendly: PRs against this repo qualify for the `hacktoberfest-accepted` label when they pass review.
+Before a PR: `npm install`, then `npm run lint`, `npm test`, and for web changes `npm run test:e2e`.
 
 ## Contributors
-
-Thanks to everyone who has helped build TradeClaw — code, docs, bug reports, translations, or sharing the project.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -274,10 +265,10 @@ Thanks to everyone who has helped build TradeClaw — code, docs, bug reports, t
 <!-- prettier-ignore-end -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://allcontributors.org/) specification — contributions of any kind welcome.
+This project follows the [all-contributors](https://allcontributors.org/) specification.
 
 ---
 
 <div align="center">
-<sub>MIT License · <a href="https://tradeclaw.win">tradeclaw.win</a></sub>
+<sub>MIT License · <a href="https://tradeclaw.win">tradeclaw.win</a> · not financial advice</sub>
 </div>
