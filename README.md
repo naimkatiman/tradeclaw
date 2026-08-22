@@ -209,7 +209,7 @@ More endpoints: [open data](https://tradeclaw.win/open-data) and [API docs](http
 
 ## Notifications
 
-Entry-like fan-out stays suppressed unless the cost-adjusted evidence gate is ready. Outcome and risk-exit notices can still be configured.
+Entry-like fan-out stays suppressed unless the cost-adjusted evidence gate is ready. Telegram, email, and Discord can carry gate-approved entry-like signals plus outcome and risk-exit notices once that gate is ready.
 
 - Telegram: `TELEGRAM_BOT_TOKEN` plus channel IDs
 - Email: `EMAIL_PROVIDER` = `resend` | `sendgrid` | `smtp`
