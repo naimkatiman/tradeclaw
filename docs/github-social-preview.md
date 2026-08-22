@@ -1,55 +1,37 @@
 # GitHub Social Preview Setup
 
-The social preview image is shown when TradeClaw links are shared on Twitter, Slack, Discord, and other platforms that render OpenGraph previews.
+The social preview image is what GitHub, Slack, Discord, and X render when a TradeClaw link is shared.
 
-## Recommended Image
+## Ready-to-upload image
 
-Use the banner SVG converted to PNG (1280×640px):
+**`docs/assets/social-preview.png`** — 1280x640, ~125 KB.
 
-**Source:** `apps/web/public/readme-banner.svg`
+It is the TradeClaw brand card: the evidence-instrument render with the wordmark and "Open-source trading research". Text is sized to stay readable at link-preview thumbnail size, which a product screenshot does not survive. No conversion step is needed; upload it as-is.
 
-## How to Set It
+## How to set it
 
-1. Go to **https://github.com/naimkatiman/tradeclaw/settings**
-2. Scroll to **"Social preview"** section
-3. Click **"Edit"**
-4. Upload a 1280×640 PNG version of the banner
-5. Click **"Set social preview"**
+GitHub has no public API for the social preview, so this step is manual and has to be done by a repo admin:
 
-## Convert SVG to PNG
+1. Go to <https://github.com/naimkatiman/tradeclaw/settings>
+2. Scroll to **Social preview**
+3. Click **Edit** -> **Upload an image**
+4. Select `docs/assets/social-preview.png`
 
-```bash
-# Using Inkscape (recommended)
-inkscape apps/web/public/readme-banner.svg \
-  --export-type=png \
-  --export-filename=docs/assets/social-preview.png \
-  --export-width=1280 \
-  --export-height=640
+## GitHub requirements
 
-# Using ImageMagick
-convert -background none -size 1280x640 \
-  apps/web/public/readme-banner.svg \
-  docs/assets/social-preview.png
+- **Format:** PNG, JPG, or GIF
+- **Size:** 1280x640 recommended (minimum 640x320)
+- **File size:** under 1 MB
+- **Aspect ratio:** 2:1
 
-# Using Node (sharp)
-npx sharp-cli -i apps/web/public/readme-banner.svg \
-  -o docs/assets/social-preview.png \
-  resize 1280 640
-```
+`docs/assets/social-preview.png` satisfies all four.
 
-## Fallback: Use OG Image
+## Alternatives
 
-The dynamic OG image at `https://tradeclaw.win/api/og` also works as a social preview. Download it and upload directly to GitHub:
+- `docs/assets/hero-dark.png` — the live homepage capture used in the README, if you prefer a product shot over brand art. Crop it to 2:1 first; note that the headline becomes hard to read at thumbnail size.
+- `apps/web/public/social-preview.svg` — the older illustrative card. Needs an SVG-to-PNG conversion first.
+- `https://tradeclaw.win/api/og` — the dynamic OpenGraph image used by the site itself:
 
 ```bash
 curl -o docs/assets/social-preview.png https://tradeclaw.win/api/og
 ```
-
-## GitHub Requirements
-
-- **Format:** PNG, JPG, or GIF
-- **Size:** 1280×640px recommended (minimum 640×320px)
-- **File size:** Under 1MB
-- **Aspect ratio:** 2:1
-
-Once set, links shared anywhere will show the TradeClaw branding automatically.
