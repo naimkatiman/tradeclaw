@@ -32,11 +32,10 @@ $demoMp4 = Join-Path $assets "demo.mp4"
 & ffmpeg -y -hide_banner -loglevel error -f concat -safe 0 -i (Join-Path $work "concat.txt") -c copy $demoMp4
 if ($LASTEXITCODE -ne 0) { throw "concat failed" }
 
-$demoGif = Join-Path $assets "demo.gif"
-& ffmpeg -y -hide_banner -loglevel error -i $demoMp4 `
-  -vf "fps=8,scale=640:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=40:stats_mode=single[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5" `
-  $demoGif
-if ($LASTEXITCODE -ne 0) { throw "gif failed" }
+# No GIF is emitted. The reel is a full-frame 3D camera move, so GIF inter-frame
+# coding does nothing: even at 40 colors it lands ~4.4MB, and the cheapest setting
+# that clears 2.5MB (480px / 5fps / 64 colors) is visibly degraded. The README
+# inlines the static hero JPG and links demo.mp4 (783KB, 1280x720) instead.
 
 $fontBold = "C\:/Windows/Fonts/segoeuib.ttf"
 $fontReg = "C\:/Windows/Fonts/segoeui.ttf"

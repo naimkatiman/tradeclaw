@@ -20,9 +20,7 @@ Read this in other languages: [日本語](README.ja.md) · [한국어](README.ko
 
 <br />
 
-<img src="docs/assets/demo.gif" alt="TradeClaw evidence-instrument reel" width="100%" />
-
-[Full reel (mp4)](docs/assets/demo.mp4)
+[Watch the 18s reel (mp4)](docs/assets/demo.mp4)
 
 </div>
 
@@ -48,6 +46,14 @@ Fetched `2026-08-22` from [`/api/signals/equity?summaryOnly=1&scope=pro`](https:
 R is result divided by the planned stop distance. [Methodology](https://tradeclaw.win/methodology) defines which rows count, which rows are sized, and which costs are modeled.
 
 The [observed track record](https://tradeclaw.win/track-record) is count-first: source-backed wins, losses, exclusions, and unsized price moves. Position sizing, drawdown, and sequential equity live on the separate [modeled study](https://tradeclaw.win/track-record/study).
+
+That finding on the live homepage — one dot per OHLCV-resolved sized signal, after modeled costs:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/hero-dark.png" />
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/hero-light.png" />
+  <img src="docs/assets/hero-dark.png" alt="tradeclaw.win homepage: the cost-aware signal field after modeled costs, most resolved trades below zero" width="100%" />
+</picture>
 
 ## What this is
 
@@ -111,7 +117,7 @@ Set at least `DB_PASSWORD`, `USER_SESSION_SECRET`, `ADMIN_SECRET`, and `AUTH_SEC
 docker compose up -d
 ```
 
-Open [http://localhost:3000](http://localhost:3000). PostgreSQL is required. There is no SQLite fallback. Apply migrations in `apps/web/migrations/` in filename order against `DATABASE_URL`.
+Open [http://localhost:3000](http://localhost:3000). The stack ships its own PostgreSQL (`db`) service, and the `app` entrypoint applies everything in `apps/web/migrations/` before the server starts — idempotent, tracked in a `_migrations` table, and refusing to boot if any migration fails.
 
 Then run the [self-host smoke checklist](docs/self-host-smoke-checklist.md).
 
@@ -130,7 +136,7 @@ The app throws on first database access if `DATABASE_URL` is missing.
 | Tag | Tracks |
 | --- | --- |
 | `ghcr.io/naimkatiman/tradeclaw:latest` | Latest `main` |
-| `ghcr.io/naimkatiman/tradeclaw:vX.Y.Z` | A release tag |
+| `ghcr.io/naimkatiman/tradeclaw:X.Y.Z` | A release tag — the workflow strips the `v`, so tag `v0.4.0` publishes `:0.4.0` |
 | `ghcr.io/naimkatiman/tradeclaw:sha-<git-sha>` | A specific commit |
 
 ### Local development
@@ -167,13 +173,13 @@ API request → getTrackedSignals() → generateSignalsFromTA()
 
 Signals are generated as a side effect of API requests unless you schedule `/api/cron/*`. The TA engine runs inside the Next.js process.
 
-Market data prefers `MARKET_DATA_HUB_URL` when set. Otherwise the app uses free public fallbacks (Binance for crypto, Stooq for some FX/metals). Fallback OHLCV is not cached as a long-term source of truth.
+Market data prefers `MARKET_DATA_HUB_URL` when set. Otherwise the app uses free public fallbacks (Binance for crypto, Stooq for some FX/metals). Non-empty OHLCV is cached in-process for 5 minutes whichever provider served it; only empty results are left uncached, so a recovered provider is retried on the next request.
 
 Optional execution, disabled by default:
 
 ```
 Gate-approved signal → apps/web/lib/execution/executor.ts
-  → Binance USDT-perp testnet by default
+  → Binance USDT-perp, only when `EXECUTION_MODE=testnet|live` (default `disabled`)
   → RoboForex R StocksTrader remains an unimplemented interface scaffold
   → 90-day cost-adjusted evidence gate, fail-closed
 ```
@@ -242,7 +248,7 @@ apps/ws-server           Websocket server
 apps/mobile              Expo client
 packages/signals         Shared signal types
 packages/agent           Trading-agent CLI
-packages/strategies      Backtest comparison (not the live signal path)
+packages/strategies      Backtest comparison; also supplies the cost model and preset registry the live path uses
 docs/research            Pre-registered experiments and JSON artifacts
 scripts/research         Read-only recost / regime / slow-gate helpers
 ```
