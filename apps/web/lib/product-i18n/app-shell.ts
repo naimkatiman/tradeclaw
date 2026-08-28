@@ -43,6 +43,9 @@ export interface AppShellTranslations {
     tools: string;
   };
   links: {
+    evidence: string;
+    lab: string;
+    build: string;
     today: string;
     signals: string;
     copilot: string;
@@ -132,6 +135,7 @@ const en: AppShellTranslations = {
     tools: 'Tools',
   },
   links: {
+    evidence: 'Evidence', lab: 'Lab', build: 'Build',
     today: 'Today', signals: 'Signals', copilot: 'Copilot', screener: 'Screener', backtest: 'Backtest',
     leaderboard: 'Leaderboard', trackRecord: 'Track Record', strategyBuilder: 'Strategy Builder',
     strategyRules: 'Strategy Rules', strategyLeaderboard: 'Strategy Leaderboard', multiTimeframe: 'Multi-TF',
@@ -173,6 +177,7 @@ const es: AppShellTranslations = {
     trading: 'Trading', tools: 'Herramientas',
   },
   links: {
+    evidence: 'Evidencia', lab: 'Laboratorio', build: 'Construir',
     today: 'Hoy', signals: 'Señales', copilot: 'Copiloto', screener: 'Analizador', backtest: 'Backtest',
     leaderboard: 'Clasificación', trackRecord: 'Historial', strategyBuilder: 'Constructor de estrategias',
     strategyRules: 'Reglas de estrategia', strategyLeaderboard: 'Ranking de estrategias', multiTimeframe: 'Multitemporal',
@@ -212,6 +217,7 @@ const zh: AppShellTranslations = {
     operations: '运营', surfaces: '页面', trading: '交易', tools: '工具',
   },
   links: {
+    evidence: '证据', lab: '实验室', build: '构建',
     today: '今日', signals: '信号', copilot: '智能助手', screener: '资产筛选', backtest: '回测', leaderboard: '排行榜',
     trackRecord: '历史记录', strategyBuilder: '策略构建器', strategyRules: '策略规则', strategyLeaderboard: '策略排行榜',
     multiTimeframe: '多周期', paperTrading: '模拟交易', journal: '交易日志', glossary: '术语表', alerts: '提醒',
@@ -249,6 +255,7 @@ const ms: AppShellTranslations = {
     transparency: 'Ketelusan', operations: 'Operasi', surfaces: 'Paparan', trading: 'Dagangan', tools: 'Alat',
   },
   links: {
+    evidence: 'Bukti', lab: 'Makmal', build: 'Bina',
     today: 'Hari Ini', signals: 'Isyarat', copilot: 'Pembantu', screener: 'Penyaring', backtest: 'Ujian Balik',
     leaderboard: 'Papan Kedudukan', trackRecord: 'Rekod Prestasi', strategyBuilder: 'Pembina Strategi',
     strategyRules: 'Peraturan Strategi', strategyLeaderboard: 'Kedudukan Strategi', multiTimeframe: 'Berbilang TF',
@@ -288,6 +295,7 @@ const ar: AppShellTranslations = {
     transparency: 'الشفافية', operations: 'العمليات', surfaces: 'الواجهات', trading: 'التداول', tools: 'الأدوات',
   },
   links: {
+    evidence: 'الأدلة', lab: 'المختبر', build: 'البناء',
     today: 'اليوم', signals: 'الإشارات', copilot: 'المساعد', screener: 'ماسح الأصول', backtest: 'الاختبار الخلفي',
     leaderboard: 'لوحة الصدارة', trackRecord: 'السجل', strategyBuilder: 'منشئ الاستراتيجيات',
     strategyRules: 'قواعد الاستراتيجية', strategyLeaderboard: 'ترتيب الاستراتيجيات', multiTimeframe: 'أطر متعددة',

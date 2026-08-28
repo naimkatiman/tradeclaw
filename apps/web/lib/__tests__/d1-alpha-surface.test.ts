@@ -23,7 +23,7 @@ describe('prospective D1 alpha public surface', () => {
   it('publishes the route in evidence navigation and the sitemap', () => {
     expect(nav).toContain("href: '/track-record/alpha'");
     expect(nav).toContain("value: 'alpha'");
-    expect(sitemap).toContain('`${base}/track-record/alpha`');
+    expect(sitemap).toContain("{ path: '/track-record/alpha'");
   });
 
   it('states the predeclared gate, immutable epoch, and no-auto-promotion boundary', () => {

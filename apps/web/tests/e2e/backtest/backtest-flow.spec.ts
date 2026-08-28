@@ -36,7 +36,7 @@ test.describe('Backtest Single-Preset Flow', () => {
     // until the run finishes). Wait those out — mirrors the passing siblings.
     await expect(page.getByText('Configuration')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText('Preset Strategies')).toBeVisible();
-    await expect(page.getByRole('button', { name: /run backtest/i })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole('button', { name: /run modeled test/i })).toBeVisible({ timeout: 60_000 });
   });
 
   test('auto-run completes and shows metrics table', async ({ page }) => {
@@ -44,9 +44,9 @@ test.describe('Backtest Single-Preset Flow', () => {
     await page.goto('/backtest');
     await dismissStarMilestoneModal(page);
 
-    // Page auto-runs hmm-top3 on mount — wait for button to re-enable
+    // Page auto-runs the audited Classic default on mount — wait for completion.
     await expect(
-      page.getByRole('button', { name: /run backtest/i })
+      page.getByRole('button', { name: /run modeled test/i })
     ).toBeEnabled({ timeout: 60_000 });
 
     const table = page.locator('table').first();
@@ -69,7 +69,7 @@ test.describe('Backtest Single-Preset Flow', () => {
 
     // Wait for initial auto-run to finish
     await expect(
-      page.getByRole('button', { name: /run backtest/i })
+      page.getByRole('button', { name: /run modeled test/i })
     ).toBeEnabled({ timeout: 60_000 });
 
     // Ensure the Classic preset is selected (add it if not already checked)
@@ -83,11 +83,11 @@ test.describe('Backtest Single-Preset Flow', () => {
 
     // Re-run
     await dismissStarMilestoneModal(page);
-    await page.getByRole('button', { name: /run backtest/i }).click({ force: true });
+    await page.getByRole('button', { name: /run modeled test/i }).click({ force: true });
 
     // Wait for run to complete
     await expect(
-      page.getByRole('button', { name: /run backtest/i })
+      page.getByRole('button', { name: /run modeled test/i })
     ).toBeEnabled({ timeout: 60_000 });
 
     // Table should still be visible with at least one row
@@ -106,7 +106,7 @@ test.describe('Backtest Single-Preset Flow', () => {
 
     // Wait for auto-run to complete
     await expect(
-      page.getByRole('button', { name: /run backtest/i })
+      page.getByRole('button', { name: /run modeled test/i })
     ).toBeEnabled({ timeout: 60_000 });
 
     // Canvas from ComparisonChart or EquityCurveCanvas should be visible

@@ -70,14 +70,14 @@ export interface DashboardLiveTranslations {
 }
 
 const en: DashboardLiveTranslations = {
-  common: { buy: 'BUY', sell: 'SELL', live: 'LIVE', off: 'OFF', dismiss: 'Dismiss' },
+  common: { buy: 'BUY', sell: 'SELL', live: 'CONNECTED', off: 'OFF', dismiss: 'Dismiss' },
   entryStaleness: {
     unfavorable: 'Price moved {change}% — entry may be stale',
     favorable: 'Price is now {change}% from entry — the move is favorable',
   },
   ticker: { connecting: 'Connecting to market data…' },
   connection: {
-    connectedTooltip: 'Connected — live price feed (~2s crypto, ≤60s FX/metals/stocks). See /data-freshness.',
+    connectedTooltip: 'Connected to the configured price feed (~2s crypto, ≤60s FX/metals/stocks). See /data-freshness.',
     connectingTooltip: 'Connecting to price stream…',
     disconnectedTooltip: 'Disconnected — reconnecting…',
   },
@@ -137,7 +137,7 @@ const en: DashboardLiveTranslations = {
 };
 
 const es: DashboardLiveTranslations = {
-  common: { buy: 'COMPRA', sell: 'VENTA', live: 'EN VIVO', off: 'DESCONECTADO', dismiss: 'Cerrar' },
+  common: { buy: 'COMPRA', sell: 'VENTA', live: 'CONECTADO', off: 'DESCONECTADO', dismiss: 'Cerrar' },
   entryStaleness: {
     unfavorable: 'El precio se movió {change}% — la entrada puede estar desactualizada',
     favorable: 'El precio está ahora a {change}% de la entrada — el movimiento es favorable',
@@ -177,7 +177,7 @@ const es: DashboardLiveTranslations = {
 };
 
 const zh: DashboardLiveTranslations = {
-  common: { buy: '买入', sell: '卖出', live: '实时', off: '离线', dismiss: '关闭' },
+  common: { buy: '买入', sell: '卖出', live: '已连接', off: '离线', dismiss: '关闭' },
   entryStaleness: { unfavorable: '价格已变动 {change}% — 入场价可能已过时', favorable: '价格现较入场价变动 {change}% — 走势有利' },
   ticker: { connecting: '正在连接市场数据…' },
   connection: {
@@ -209,7 +209,7 @@ const zh: DashboardLiveTranslations = {
 };
 
 const ms: DashboardLiveTranslations = {
-  common: { buy: 'BELI', sell: 'JUAL', live: 'LANGSUNG', off: 'LUAR TALIAN', dismiss: 'Tutup' },
+  common: { buy: 'BELI', sell: 'JUAL', live: 'TERSAMBUNG', off: 'LUAR TALIAN', dismiss: 'Tutup' },
   entryStaleness: { unfavorable: 'Harga bergerak {change}% — kemasukan mungkin sudah lapuk', favorable: 'Harga kini {change}% daripada kemasukan — pergerakan memihak kepada isyarat' },
   ticker: { connecting: 'Menyambung ke data pasaran…' },
   connection: {
@@ -242,7 +242,7 @@ const ms: DashboardLiveTranslations = {
 };
 
 const ar: DashboardLiveTranslations = {
-  common: { buy: 'شراء', sell: 'بيع', live: 'مباشر', off: 'غير متصل', dismiss: 'إغلاق' },
+  common: { buy: 'شراء', sell: 'بيع', live: 'متصل', off: 'غير متصل', dismiss: 'إغلاق' },
   entryStaleness: { unfavorable: 'تحرك السعر بنسبة {change}% — قد يكون سعر الدخول قديماً', favorable: 'يبعد السعر الآن {change}% عن الدخول — الحركة مواتية' },
   ticker: { connecting: 'جارٍ الاتصال ببيانات السوق…' },
   connection: {

@@ -9,12 +9,9 @@ import { DemoBanner } from "./components/demo-banner";
 import { ThemeProvider } from "./components/theme-provider";
 import { LocaleProvider } from "./components/locale-provider";
 import { SiteFooter } from "./components/site-footer";
-import { MilestoneCelebrationModal } from "../components/milestone-modal";
-import { FeatureUnlockBanner } from "../components/feature-unlock-banner";
-import { OnboardingChecklist } from "../components/onboarding";
-import { StarProgressBar } from "../components/star-progress-bar";
 import { AnalyticsProvider } from "../components/AnalyticsProvider";
 import { PostHogPageView } from "../components/PostHogPageView";
+import { EvidenceActionTracker } from "../components/EvidenceActionTracker";
 import { Suspense } from "react";
 import { getLanguageAlternates } from "../lib/translations";
 
@@ -65,7 +62,7 @@ const jsonLd = [
     applicationCategory: "FinanceApplication",
     operatingSystem: "All",
     description:
-      "MIT-licensed trading-signal software for forex, crypto, and metals. Self-host with Docker and review the supporting evidence before use.",
+      "Open trading research software for testing ideas, modeling costs, inspecting evidence, and reproducing results with Docker.",
     url: "https://tradeclaw.win",
   },
   {
@@ -78,29 +75,22 @@ const jsonLd = [
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://tradeclaw.win"),
-  title: "TradeClaw — Open-Source AI Trading Signals",
+  title: "TradeClaw — Open Trading Research Lab",
   description:
-    "MIT-licensed trading-signal software for forex, crypto, and metals. Self-host with Docker and review the supporting evidence before use.",
+    "Test trading ideas, see where they fail after costs, inspect every result, and self-host the full evidence trail.",
   keywords: [
-    "trading signals",
+    "trading research",
+    "strategy backtesting",
+    "cost-adjusted track record",
     "open source",
     "self-hosted",
-    "AI trading",
-    "forex signals",
-    "crypto signals",
-    "algorithmic trading",
-    "technical analysis",
-    "open source trading bot",
-    "AI trading signals github",
-    "self-hosted trading platform",
-    "forex bot open source",
-    "crypto trading signals open source",
-    "algorithmic trading open source",
+    "reproducible research",
+    "market data",
   ],
   openGraph: {
-    title: "TradeClaw — Open-Source Trading Transparency",
+    title: "TradeClaw — Open Trading Research Lab",
     description:
-      "Inspect TradeClaw signal records and the evidence behind them. MIT-licensed software with a documented self-hosting path.",
+      "Test trading ideas, account for costs, inspect every result, and reproduce the evidence yourself.",
     url: "https://tradeclaw.win",
     siteName: "TradeClaw",
     type: "website",
@@ -109,15 +99,15 @@ export const metadata: Metadata = {
         url: "/api/og",
         width: 1200,
         height: 630,
-        alt: "TradeClaw — Open-Source AI Trading Signals",
+        alt: "TradeClaw — Open Trading Research Lab",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "TradeClaw — Open-Source AI Trading Signals",
+    title: "TradeClaw — Open Trading Research Lab",
     description:
-      "MIT-licensed trading-signal software for forex, crypto, and metals, with source and self-hosting instructions on GitHub.",
+      "Test trading ideas, account for costs, inspect every result, and self-host the evidence trail.",
     images: ["/api/og"],
   },
   icons: {
@@ -178,6 +168,7 @@ export default function RootLayout({
         <AnalyticsProvider>
           <Suspense fallback={null}>
             <PostHogPageView />
+            <EvidenceActionTracker />
           </Suspense>
           <ThemeProvider>
             <LocaleProvider>
@@ -196,10 +187,6 @@ export default function RootLayout({
               <MarketingChromeGate>
                 <MobileNav />
                 <PWAInstallPrompt />
-                <MilestoneCelebrationModal />
-                <FeatureUnlockBanner />
-                <OnboardingChecklist />
-                <StarProgressBar />
               </MarketingChromeGate>
             </LocaleProvider>
           </ThemeProvider>

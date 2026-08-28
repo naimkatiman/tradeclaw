@@ -20,45 +20,45 @@ const localeCases: Array<{
     htmlLang: 'en',
     dir: 'ltr',
     screenerTitle: 'Asset Screener',
-    dashboardTitle: /TradeClaw — Live Signals/,
+    dashboardTitle: /TradeClaw — Research Candidate Feed/,
     trackRecordEyebrow: 'OHLCV-Resolved Signal Record',
-    trackRecordTitle: 'Observed Signal Track Record',
+    trackRecordTitle: 'OHLCV-Resolved Signal Record',
   },
   {
     locale: 'es',
     htmlLang: 'es',
     dir: 'ltr',
     screenerTitle: 'Analizador de activos',
-    dashboardTitle: /TradeClaw — Señales en vivo/,
+    dashboardTitle: /TradeClaw — Candidatos de investigación/,
     trackRecordEyebrow: 'Registro de señales resuelto con OHLCV',
-    trackRecordTitle: 'Registro observado de señales',
+    trackRecordTitle: 'Registro de señales resuelto con OHLCV',
   },
   {
     locale: 'zh',
     htmlLang: 'zh-CN',
     dir: 'ltr',
     screenerTitle: '资产筛选器',
-    dashboardTitle: /TradeClaw — 实时信号/,
+    dashboardTitle: /TradeClaw — 研究候选列表/,
     trackRecordEyebrow: 'OHLCV 已解析信号记录',
-    trackRecordTitle: '实测信号记录',
+    trackRecordTitle: 'OHLCV 已解析信号记录',
   },
   {
     locale: 'ms',
     htmlLang: 'ms',
     dir: 'ltr',
     screenerTitle: 'Penyaring Aset',
-    dashboardTitle: /TradeClaw — Isyarat Langsung/,
+    dashboardTitle: /TradeClaw — Suapan Calon Penyelidikan/,
     trackRecordEyebrow: 'Rekod Isyarat Diselesaikan OHLCV',
-    trackRecordTitle: 'Rekod Isyarat Diperhati',
+    trackRecordTitle: 'Rekod Isyarat Diselesaikan OHLCV',
   },
   {
     locale: 'ar',
     htmlLang: 'ar',
     dir: 'rtl',
     screenerTitle: 'ماسح الأصول',
-    dashboardTitle: /TradeClaw — إشارات مباشرة/,
+    dashboardTitle: /TradeClaw — قائمة مرشحي البحث/,
     trackRecordEyebrow: 'سجل الإشارات المحسومة ببيانات OHLCV',
-    trackRecordTitle: 'سجل الإشارات المرصودة',
+    trackRecordTitle: 'سجل الإشارات المحسومة ببيانات OHLCV',
   },
 ];
 
@@ -193,14 +193,14 @@ test.describe('product localization', () => {
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
     await expect(page.getByRole('heading', { name: 'ماسح الأصول' })).toBeVisible();
 
-    // The shared brand link opens the English landing page without erasing
-    // the app preference. Returning to a product route must still be Arabic.
+    // The shared brand link opens the landing page without erasing the app
+    // preference. Following its evidence action must still be Arabic.
     await page.locator('nav a[href="/"]').first().click();
     await expect(page).toHaveURL(/\/$/);
-    await page.locator('nav').getByRole('link', { name: 'Open the app' }).click();
-    await expect(page).toHaveURL(/\/dashboard$/);
+    await page.locator('nav a[href="/track-record"]').first().click();
+    await expect(page).toHaveURL(/\/track-record$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
-    await expect(page).toHaveTitle(/TradeClaw — إشارات مباشرة/);
+    await expect(page).toHaveTitle(/سجل الإشارات المحسومة ببيانات OHLCV/);
 
     await page.goto('/screener', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
@@ -222,7 +222,7 @@ test.describe('product localization', () => {
     expect(overflow.content).toBeLessThanOrEqual(overflow.viewport + 1);
 
     await page.goto('/', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('nav').getByRole('link', { name: 'Open the app' })).toBeVisible();
+    await expect(page.locator('nav a[href="/track-record"]:visible')).toBeVisible();
     const landingOverflow = await page.evaluate(() => ({
       viewport: document.documentElement.clientWidth,
       content: document.documentElement.scrollWidth,

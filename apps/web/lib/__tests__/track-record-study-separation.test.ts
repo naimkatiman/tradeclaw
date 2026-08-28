@@ -19,6 +19,7 @@ describe('track-record evidence-surface separation', () => {
   it('owns simulations on a distinct, directly linked study route', () => {
     const study = source('app/track-record/study/SignalStudyClient.tsx');
     const record = source('app/track-record/TrackRecordClient.tsx');
+    const controls = source('app/track-record/evidence-controls.tsx');
 
     expect(study).toContain('<EvidenceSurfaceNav active="study" />');
     expect(study).toContain('<TrailingWeekBandCallout');
@@ -27,7 +28,8 @@ describe('track-record evidence-surface separation', () => {
     expect(study).not.toMatch(/period === ['"]7d['"][\s\S]*period === ['"]30d['"][\s\S]*['"]all['"]/);
     expect(study).toContain('const hasSizedStudy = Boolean(summary && summary.sizedTrades > 0)');
     expect(study).toContain("value={hasSizedStudy && summary ? signedPercent(language, summary.totalReturn) : '—'}");
-    expect(record).toContain('/track-record/study');
+    expect(record).toContain('<EvidenceSurfaceNav active="record" />');
+    expect(controls).toContain("href: '/track-record/study'");
   });
 
   it('keeps each route metadata inside its own evidence boundary', () => {

@@ -6,14 +6,11 @@
  * editorial type, crisp controls, quiet emerald brand cues, and data as imagery.
  */
 
-import { Activity, ArrowRight, Code2, Database, Server, ShieldCheck } from 'lucide-react';
+import { Activity, ArrowRight, Database, Server, ShieldCheck } from 'lucide-react';
 import { DesktopCostField } from './cost-field/DesktopCostField';
 import { AnimatedNumber } from '../motion/animated-number';
 import { Magnetic } from '../motion/magnetic';
-import { ProductHeroBackdrop } from '../product-hero-backdrop';
 import { getProofHeadline, type ProofLedgerState } from './proof-hero-copy';
-
-const GITHUB_URL = 'https://github.com/naimkatiman/tradeclaw';
 
 interface EquitySummary {
   totalReturn: number;
@@ -82,29 +79,28 @@ function HeroDescription({
   if (ledgerState === 'negative') {
     return (
       <>
-        TradeClaw is an open-source BUY/SELL signal engine you can inspect or self-host.
-        Across {trades.toLocaleString('en-US')} eligible sized signals, average modeled
-        net expectancy was negative after stated fee and slippage assumptions. This is an
-        OHLCV-resolved signal study, not a customer portfolio.
+        TradeClaw is an open trading research lab. Across{' '}
+        {trades.toLocaleString('en-US')} eligible sized candidates, average modeled net
+        expectancy was negative after stated fee and slippage assumptions. Inspect every
+        result, test your own idea, or self-host the complete evidence trail.
       </>
     );
   }
   if (ledgerState === 'nonnegative') {
     return (
       <>
-        TradeClaw is an open-source engine that generates BUY and SELL signals you can
-        inspect or self-host. This environment&apos;s {trades.toLocaleString('en-US')}{' '}
-        eligible sized signals remain at or above zero after modeled fees and slippage.
-        The underlying signal rows, cost assumptions, and code are public; no broker fills
-        or customer returns are claimed.
+        TradeClaw is an open trading research lab. This environment&apos;s{' '}
+        {trades.toLocaleString('en-US')} eligible sized candidates remain at or above zero
+        after modeled fees and slippage. The rows, cost assumptions, and code are public;
+        no broker fills or customer returns are claimed.
       </>
     );
   }
   if (ledgerState === 'indeterminate') {
     return (
       <>
-        TradeClaw is an open-source signal engine. This environment has{' '}
-        {trades.toLocaleString('en-US')} eligible signals, but not enough risk data to
+        TradeClaw is an open trading research lab. This environment has{' '}
+        {trades.toLocaleString('en-US')} eligible candidates, but not enough risk data to
         measure the result after costs. No placeholder result is substituted.
       </>
     );
@@ -112,17 +108,17 @@ function HeroDescription({
   if (ledgerState === 'empty') {
     return (
       <>
-        TradeClaw is an open-source signal engine. This environment does not yet have
-        the OHLCV-resolved sized signals needed to repeat the public test. No placeholder result is
-        substituted; the code and method remain public.
+        TradeClaw is an open trading research lab. This environment does not yet have the
+        OHLCV-resolved sized candidates needed to repeat the public test. No placeholder
+        result is substituted; the code and method remain public.
       </>
     );
   }
   return (
     <>
-      TradeClaw is an open-source signal engine. Its public study found that modeled fees
-      and slippage erased the observed gross expectancy. The dataset is temporarily unavailable,
-      so no replacement numbers are shown.
+      TradeClaw is an open trading research lab. Its public study found that modeled fees
+      and slippage erased the observed gross expectancy. The dataset is temporarily
+      unavailable, so no replacement numbers are shown.
     </>
   );
 }
@@ -156,47 +152,43 @@ export async function ProofHero() {
     >
       <div className="premium-grid-bg pointer-events-none absolute inset-x-0 top-0 -z-10 h-[640px] opacity-45" />
       <div className="pointer-events-none absolute left-[18%] top-8 -z-10 h-64 w-64 rounded-full bg-[var(--brand-glow)] blur-[110px]" />
-      <div className="relative isolate grid items-center gap-10 overflow-hidden lg:grid-cols-[minmax(0,1.02fr)_minmax(430px,0.98fr)] lg:gap-12">
-        <ProductHeroBackdrop
-          src="/brand/hero/tradeclaw-evidence-instrument-field-v1.webp"
-          testId="homepage-hero-art"
-          className="product-hero-backdrop--home"
-          priority
-          sizes="(min-width: 1280px) 1280px, (min-width: 640px) 100vw, 1px"
-        />
+
+      <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(430px,0.98fr)] lg:gap-12">
         <div className="relative z-10 flex flex-col justify-center py-4 sm:py-8 lg:py-14">
           <p className="animate-fade-up flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-secondary)]">
             <span className="h-2 w-2 rounded-full bg-[var(--brand)] shadow-[0_0_18px_var(--brand)]" />
-            Open-source trading test
-            {hasMeasuredTrades ? ` · ${trades.toLocaleString('en-US')} eligible sized signals` : ''}
+            Open trading research lab
+            {hasMeasuredTrades ? ` · ${trades.toLocaleString('en-US')} eligible sized candidates` : ''}
           </p>
 
           <h1 className="font-display mt-4 max-w-[720px] text-[2.05rem] font-[720] leading-[1.01] tracking-[-0.05em] sm:mt-5 sm:text-[clamp(3rem,4.6vw,4.35rem)] sm:leading-[0.98] sm:tracking-[-0.055em]">
-            <span className="animate-fade-up fade-delay-1 block">Open-source trading signals.</span>
-            <span className={`animate-fade-up fade-delay-3 mt-1 block ${outcomeColor}`}>
-              {headline.outcome}
+            <span className="animate-fade-up fade-delay-1 block">Test trading ideas.</span>
+            <span className="animate-fade-up fade-delay-3 mt-1 block text-[var(--text-secondary)]">
+              See where they fail after costs.
             </span>
           </h1>
 
-          <p className="animate-fade-up fade-delay-3 mt-4 max-w-xl text-sm leading-6 text-[var(--text-secondary)] sm:mt-5 sm:text-base sm:leading-7">
+          <p className={`animate-fade-up fade-delay-3 mt-4 text-sm font-semibold ${outcomeColor}`}>
+            Current finding: {headline.outcome}
+          </p>
+
+          <p className="animate-fade-up fade-delay-3 mt-3 max-w-xl text-sm leading-6 text-[var(--text-secondary)] sm:text-base sm:leading-7">
             <HeroDescription ledgerState={ledgerState} trades={trades} />
           </p>
 
           <div className="animate-fade-up fade-delay-4 mt-6 flex flex-wrap items-center gap-3">
             <Magnetic>
               <a href="/track-record" className="premium-button-primary group">
-                Inspect signal rows
+                Explore the evidence
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
               </a>
             </Magnetic>
             <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/start"
               className="premium-button-secondary"
             >
-              <Code2 className="h-4 w-4" aria-hidden="true" />
-              View the code
+              <Server className="h-4 w-4" aria-hidden="true" />
+              Self-host TradeClaw
             </a>
           </div>
 
@@ -223,8 +215,8 @@ export async function ProofHero() {
                 <Activity className="h-4 w-4" aria-hidden="true" />
               </span>
               <div>
-                <p className="text-xs font-semibold">Cost-aware signal field</p>
-                <p className="text-[10px] text-[var(--text-secondary)]">One dot per OHLCV-resolved sized signal</p>
+                <p className="text-xs font-semibold">Cost-aware evidence field</p>
+                <p className="text-[10px] text-[var(--text-secondary)]">One dot per OHLCV-resolved sized candidate</p>
               </div>
             </div>
             <a

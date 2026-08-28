@@ -61,8 +61,11 @@ describe('marketing navbar translations', () => {
     expect(source).not.toContain('aria-label="Main navigation"');
     expect(source).not.toContain('aria-label="Mobile navigation"');
     expect(source).toContain('copy.links[link.labelKey]');
-    expect(source).toContain('copy.actions.liveSignals');
-    expect(source).toContain('copy.actions.star');
+    expect(source).not.toContain('copy.actions.liveSignals');
+    expect(source).not.toContain('copy.actions.star');
+    expect(source).toContain("labelKey: 'evidence'");
+    expect(source).toContain("labelKey: 'lab'");
+    expect(source).toContain("labelKey: 'build'");
     expect(source).toContain('copy.aria.mobileNavigation');
     expect(source).toContain('const { locale, setLocale, ready } = useLocale()');
     expect(source.match(/disabled=\{!ready\}/g)).toHaveLength(2);

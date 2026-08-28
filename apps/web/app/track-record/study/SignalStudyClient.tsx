@@ -401,7 +401,7 @@ export function SignalStudyClient() {
               href="/research"
               className="rounded-lg bg-white/[0.06] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-white/[0.1]"
             >
-              {t.research.title}
+              {t.surfaces.researchLabel}
             </Link>
           </div>
         </section>

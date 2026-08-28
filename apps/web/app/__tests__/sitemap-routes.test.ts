@@ -14,6 +14,8 @@ describe('sitemap', () => {
 
   it('is not empty', () => {
     expect(entries.length).toBeGreaterThan(0);
+    expect(entries.length).toBeGreaterThanOrEqual(15);
+    expect(entries.length).toBeLessThanOrEqual(25);
   });
 
   it('advertises no URL that 404s', () => {
@@ -33,9 +35,9 @@ describe('sitemap', () => {
       '/methodology',
       '/why-long-term',
       '/open-data',
-      '/calibration',
       '/track-record',
       '/track-record/study',
+      '/track-record/alpha',
     ]) {
       expect(urls).toContain(`${BASE}${p}`);
     }
@@ -56,5 +58,22 @@ describe('sitemap', () => {
 
     expect(urls).not.toContain(`${BASE}/fly`);
     expect(urls).not.toContain(`${BASE}/replit`);
+  });
+
+  it('does not promote trading-action or gamification surfaces', () => {
+    const urls = entries.map((entry) => String(entry.url));
+
+    for (const path of [
+      '/alerts',
+      '/notifications',
+      '/paper-trading',
+      '/demo/telegram',
+      '/leaderboard',
+      '/star',
+      '/star-history',
+      '/subscribe',
+    ]) {
+      expect(urls).not.toContain(`${BASE}${path}`);
+    }
   });
 });

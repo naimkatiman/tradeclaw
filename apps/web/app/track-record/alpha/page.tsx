@@ -18,15 +18,21 @@ export const metadata: Metadata = {
   title: 'Prospective D1 Alpha Ledger | TradeClaw',
   description:
     'Append-only prospective evidence for the frozen BTCUSD and ETHUSD D1 slow-gate candidate, shown against a same-cost benchmark before any promotion decision.',
+  alternates: { canonical: 'https://tradeclaw.win/track-record/alpha' },
   openGraph: {
     title: 'Prospective D1 Alpha Ledger | TradeClaw',
     description:
       'A frozen-rule, append-only modeled-cost evidence ledger. Collecting evidence; not a current strategy or broker account.',
+    url: 'https://tradeclaw.win/track-record/alpha',
+    siteName: 'TradeClaw',
+    type: 'website',
+    images: [{ url: '/api/og', width: 1200, height: 630, alt: 'TradeClaw prospective evidence ledger' }],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'Prospective D1 Alpha Ledger | TradeClaw',
     description: 'Collecting evidence under a predeclared 365-day / 365-snapshot / 12-trade gate.',
+    images: ['/api/og'],
   },
 };
 

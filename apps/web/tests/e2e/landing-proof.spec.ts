@@ -6,16 +6,17 @@ test.describe('landing proof hero', () => {
     await expect(page.getByTestId('proof-hero')).toBeVisible();
   });
 
-  test('states the product in plain language and links to the signal record', async ({ page }) => {
+  test('states the research-lab value and links to the evidence', async ({ page }) => {
     await page.goto('/');
     const hero = page.getByTestId('proof-hero');
     await expect(
       hero.getByRole('heading', {
-        name: /Open-source trading signals\./i,
+        name: /Test trading ideas\. See where they fail after costs\./i,
       }),
     ).toBeVisible();
-    await expect(hero.getByRole('link', { name: /Inspect signal rows/i })).toBeVisible();
-    await expect(hero).toContainText(/TradeClaw is an open-source/i);
+    await expect(hero.getByRole('link', { name: /Explore the evidence/i })).toBeVisible();
+    await expect(hero.getByRole('link', { name: /Self-host TradeClaw/i })).toBeVisible();
+    await expect(hero).toContainText(/TradeClaw is an open trading research lab/i);
     await expect(hero).not.toContainText(/win rate vs break-even/i);
 
     // A fresh self-hosted/CI environment can truthfully have no measured
@@ -48,7 +49,7 @@ test.describe('landing proof hero', () => {
       await page.setViewportSize(viewport);
       await page.goto('/');
       const hero = page.getByTestId('proof-hero');
-      const cta = hero.getByRole('link', { name: /Inspect signal rows/i });
+      const cta = hero.getByRole('link', { name: /Explore the evidence/i });
       await expect(cta).toBeVisible();
       const box = await cta.boundingBox();
       expect(box).not.toBeNull();

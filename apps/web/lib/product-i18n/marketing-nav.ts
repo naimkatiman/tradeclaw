@@ -5,6 +5,9 @@ import { getAppShellTranslations } from './app-shell';
 export type MarketingNavGroupKey = 'trading' | 'tools' | 'community';
 
 export type MarketingNavLinkKey =
+  | 'evidence'
+  | 'lab'
+  | 'build'
   | 'dashboard'
   | 'screener'
   | 'trackRecord'
@@ -70,6 +73,9 @@ interface MarketingNavExtras {
   links: Pick<
     MarketingNavTranslations['links'],
     | 'profileWidget'
+    | 'evidence'
+    | 'lab'
+    | 'build'
     | 'supabaseSetup'
     | 'blog'
     | 'weeklyReport'
@@ -93,6 +99,9 @@ const extras = {
       starPage: 'View GitHub star page',
     },
     links: {
+      evidence: 'Evidence',
+      lab: 'Lab',
+      build: 'Build',
       profileWidget: 'Profile Widget',
       supabaseSetup: 'Supabase Setup',
       blog: 'Blog',
@@ -115,6 +124,9 @@ const extras = {
       starPage: 'Ver página de estrellas de GitHub',
     },
     links: {
+      evidence: 'Evidencia',
+      lab: 'Laboratorio',
+      build: 'Construir',
       profileWidget: 'Widget de perfil',
       supabaseSetup: 'Configuración de Supabase',
       blog: 'Blog',
@@ -137,6 +149,9 @@ const extras = {
       starPage: '查看 GitHub 星标页面',
     },
     links: {
+      evidence: '证据',
+      lab: '实验室',
+      build: '构建',
       profileWidget: '个人资料组件',
       supabaseSetup: 'Supabase 设置',
       blog: '博客',
@@ -159,6 +174,9 @@ const extras = {
       starPage: 'Lihat halaman bintang GitHub',
     },
     links: {
+      evidence: 'Bukti',
+      lab: 'Makmal',
+      build: 'Bina',
       profileWidget: 'Widget Profil',
       supabaseSetup: 'Persediaan Supabase',
       blog: 'Blog',
@@ -181,6 +199,9 @@ const extras = {
       starPage: 'عرض صفحة نجوم GitHub',
     },
     links: {
+      evidence: 'الأدلة',
+      lab: 'المختبر',
+      build: 'البناء',
       profileWidget: 'أداة الملف الشخصي',
       supabaseSetup: 'إعداد Supabase',
       blog: 'المدونة',
@@ -224,6 +245,9 @@ function buildDictionary(locale: Locale): MarketingNavTranslations {
       community: shell.groups.community,
     },
     links: {
+      evidence: extra.links.evidence,
+      lab: extra.links.lab,
+      build: extra.links.build,
       dashboard: shell.links.dashboard,
       screener: shell.links.screener,
       trackRecord: shell.links.trackRecord,

@@ -68,9 +68,9 @@ test.describe('Key Pages Load', () => {
     });
   }
 
-  test('/pricing redirects to /track-record', async ({ page }) => {
+  test('/pricing redirects to the free self-host path', async ({ page }) => {
     const res = await page.goto('/pricing');
     expect(res?.status()).toBeLessThan(500);
-    await expect(page).toHaveURL(/\/track-record/);
+    await expect(page).toHaveURL(/\/start/);
   });
 });

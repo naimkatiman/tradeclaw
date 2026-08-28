@@ -1,327 +1,102 @@
 'use client';
 
+import type { ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
-import { Trophy, BarChart3 } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { ProductLocaleSwitcher } from './product-locale-switcher';
 import { useLocale } from './locale-provider';
 import {
   getAppShellTranslations,
-  type AppShellGroupKey,
   type AppShellLinkKey,
 } from '../../lib/product-i18n/app-shell';
-import type { ReactNode } from 'react';
 
-interface MainNavItem {
+interface NavItem {
   href: string;
-  labelKey: AppShellLinkKey;
+  labelKey?: AppShellLinkKey;
+  label?: string;
   icon: ReactNode;
 }
 
-const MAIN_NAV: MainNavItem[] = [
-  {
-    href: '/dashboard',
-    labelKey: 'dashboard',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
-      </svg>
-    ),
-  },
-  {
-    href: '/screener',
-    labelKey: 'screener',
-    icon: (
-      // Radio-tower broadcast: distinct from charts, reads as "live signal"
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4.9 16.1A10 10 0 0 1 2 9" />
-        <path d="M7.8 13.3A6 6 0 0 1 6 9" />
-        <path d="M16.2 13.3A6 6 0 0 0 18 9" />
-        <path d="M19.1 16.1A10 10 0 0 0 22 9" />
-        <circle cx="12" cy="9" r="1.5" />
-        <path d="M11 13.5 9 22" />
-        <path d="M13 13.5 15 22" />
-        <path d="M9 18h6" />
-      </svg>
-    ),
-  },
-  {
-    href: '/copilot',
-    labelKey: 'copilot',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 3a9 9 0 1 0 9 9" />
-        <path d="M12 7v5l3 2" />
-        <path d="M8 18h8" />
-      </svg>
-    ),
-  },
-  {
-    href: '/track-record',
-    labelKey: 'trackRecord',
-    icon: (
-      // Trophy/award: verified live performance
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-        <path d="M4 22h16" />
-        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-      </svg>
-    ),
-  },
+interface NavSection {
+  labelKey: 'evidence' | 'lab' | 'build';
+  items: NavItem[];
+}
+
+const icons = {
+  evidence: (
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19V9" /><path d="M10 19V5" /><path d="M16 19v-7" /><path d="M22 19H2" />
+    </svg>
+  ),
+  lab: (
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 3h6" /><path d="M10 3v6l-5.5 9.2A1.8 1.8 0 0 0 6 21h12a1.8 1.8 0 0 0 1.5-2.8L14 9V3" /><path d="M7.5 16h9" />
+    </svg>
+  ),
+  build: (
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m14.7 6.3 3-3a6 6 0 0 1-7.2 7.2l-6.2 6.2a2.1 2.1 0 0 0 3 3l6.2-6.2a6 6 0 0 1 7.2-7.2l-3 3-3-3Z" />
+    </svg>
+  ),
+  record: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19V9" /><path d="M10 19V5" /><path d="M16 19v-7" /><path d="M22 19H2" /></svg>
+  ),
+  document: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2h9l4 4v16H6z" /><path d="M14 2v5h5" /><path d="M9 12h7M9 16h7" /></svg>
+  ),
+  tool: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h5l2-7 4 14 2-7h5" /></svg>
+  ),
+  code: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 5l-4 14" /></svg>
+  ),
+};
+
+const MAIN_NAV: NavItem[] = [
+  { href: '/track-record', labelKey: 'evidence', icon: icons.evidence },
+  { href: '/dashboard', labelKey: 'lab', icon: icons.lab },
+  { href: '/start', labelKey: 'build', icon: icons.build },
 ];
 
-interface MenuItem {
-  href: string;
-  labelKey: AppShellLinkKey;
-  icon: ReactNode;
-}
-
-interface MenuSection {
-  labelKey: AppShellGroupKey;
-  items: MenuItem[];
-}
-
-const MENU_SECTIONS: MenuSection[] = [
+const MENU_SECTIONS: NavSection[] = [
   {
-    labelKey: 'trading',
+    labelKey: 'evidence',
     items: [
-      {
-        href: '/heatmap',
-        labelKey: 'heatmap',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-          </svg>
-        ),
-      },
-      {
-        href: '/alerts',
-        labelKey: 'alerts',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 01-3.46 0" />
-          </svg>
-        ),
-      },
-      {
-        href: '/multi-timeframe',
-        labelKey: 'multiTimeframe',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-        ),
-      },
-      {
-        href: '/paper-trading',
-        labelKey: 'paperTrade',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="1" x2="12" y2="23" />
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-          </svg>
-        ),
-      },
-      {
-        href: '/strategies/comparison',
-        labelKey: 'strategyComparison',
-        icon: <BarChart3 size={18} strokeWidth={1.6} />,
-      },
-      {
-        href: '/strategies/leaderboard',
-        labelKey: 'strategyLeaderboard',
-        icon: <Trophy size={18} strokeWidth={1.6} />,
-      },
-      {
-        href: '/replay',
-        labelKey: 'replay',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="5 3 19 12 5 21 5 3" />
-          </svg>
-        ),
-      },
-      {
-        href: '/portfolio',
-        labelKey: 'portfolio',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-            <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
-          </svg>
-        ),
-      },
+      { href: '/track-record', labelKey: 'trackRecord', icon: icons.record },
+      { href: '/track-record/study', label: 'Studies', icon: icons.record },
+      { href: '/track-record/alpha', label: 'Prospective Ledger', icon: icons.record },
+      { href: '/research', labelKey: 'research', icon: icons.document },
+      { href: '/methodology', labelKey: 'methodology', icon: icons.document },
+      { href: '/open-data', labelKey: 'openData', icon: icons.code },
     ],
   },
   {
-    labelKey: 'tools',
+    labelKey: 'lab',
     items: [
-      {
-        href: '/strategy-builder',
-        labelKey: 'strategy',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-            <path d="M2 17l10 5 10-5" />
-            <path d="M2 12l10 5 10-5" />
-          </svg>
-        ),
-      },
-      {
-        href: '/strategy-rules',
-        labelKey: 'rules',
-        icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16" /><path d="M4 12h10" /><path d="M4 18h16" /><path d="M14 9l4 3-4 3" /></svg>,
-      },
-      {
-        href: '/indicators/builder',
-        labelKey: 'indicators',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
-          </svg>
-        ),
-      },
-      {
-        href: '/api-usage',
-        labelKey: 'apiUsage',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-        ),
-      },
-      {
-        href: '/api-keys',
-        labelKey: 'apiKeys',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-          </svg>
-        ),
-      },
-      {
-        href: '/strategies/marketplace',
-        labelKey: 'marketplace',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <path d="M16 10a4 4 0 01-8 0" />
-          </svg>
-        ),
-      },
-      {
-        href: '/plugins',
-        labelKey: 'plugins',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2v6m0 8v6M4.93 4.93l4.24 4.24m5.66 5.66l4.24 4.24M2 12h6m8 0h6M4.93 19.07l4.24-4.24m5.66-5.66l4.24-4.24" />
-          </svg>
-        ),
-      },
-      {
-        href: '/chrome-extension',
-        labelKey: 'chromeExtension',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="16" rx="3" />
-            <path d="M8 4v16" />
-            <path d="M8 9h13" />
-            <path d="M13 14h5" />
-          </svg>
-        ),
-      },
-      {
-        href: '/status',
-        labelKey: 'status',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-          </svg>
-        ),
-      },
-      {
-        href: '/patterns',
-        labelKey: 'patterns',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
-            <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
-          </svg>
-        ),
-      },
-      {
-        href: '/benchmark',
-        labelKey: 'benchmark',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
-            <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
-            <line x1="6" y1="6" x2="6.01" y2="6" />
-            <line x1="6" y1="18" x2="6.01" y2="18" />
-          </svg>
-        ),
-      },
-      {
-        href: '/live',
-        labelKey: 'liveFeed',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-          </svg>
-        ),
-      },
-      {
-        href: '/start',
-        labelKey: 'setupGuide',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
-        ),
-      },
-      {
-        href: '/pledge',
-        labelKey: 'pledgeWall',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-            <path d="M12 5 9.04 7.96a2.17 2.17 0 000 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 013.79 0l2.96 2.66" />
-          </svg>
-        ),
-      },
-      {
-        href: '/sms',
-        labelKey: 'smsAlerts',
-        icon: (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-          </svg>
-        ),
-      },
+      { href: '/dashboard', labelKey: 'dashboard', icon: icons.tool },
+      { href: '/screener', labelKey: 'screener', icon: icons.tool },
+      { href: '/backtest', labelKey: 'backtest', icon: icons.tool },
+    ],
+  },
+  {
+    labelKey: 'build',
+    items: [
+      { href: '/start', labelKey: 'setupGuide', icon: icons.build },
+      { href: '/docs', label: 'Documentation', icon: icons.document },
+      { href: '/api-docs', label: 'API', icon: icons.code },
+      { href: 'https://github.com/naimkatiman/tradeclaw', label: 'GitHub', icon: icons.code },
     ],
   },
 ];
 
-// Flat list of all menu items for active-state detection
-const ALL_MENU_ITEMS = MENU_SECTIONS.flatMap((s) => s.items);
+const ALL_MENU_ITEMS = MENU_SECTIONS.flatMap(section => section.items);
+
+function itemIsActive(pathname: string, href: string): boolean {
+  if (href.startsWith('http')) return false;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -330,42 +105,38 @@ export function MobileNav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
-
-  const isMenuActive = ALL_MENU_ITEMS.some(
-    item => pathname === item.href || pathname.startsWith(item.href + '/')
-  );
+  const isMenuActive = ALL_MENU_ITEMS.some(item => itemIsActive(pathname, item.href));
 
   useEffect(() => {
     if (!menuOpen) return;
-
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Tab') {
-        const focusable = Array.from(
-          sheetRef.current?.querySelectorAll<HTMLElement>(
-            'a[href], button:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
-          ) ?? [],
-        );
-        const first = focusable[0];
-        const last = focusable.at(-1);
-
-        if (!first || !last) return;
-        if (event.shiftKey && (document.activeElement === first || !sheetRef.current?.contains(document.activeElement))) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && (document.activeElement === last || !sheetRef.current?.contains(document.activeElement))) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMenuOpen(false);
         requestAnimationFrame(() => menuButtonRef.current?.focus());
+        return;
       }
-    }
+      if (event.key !== 'Tab') return;
+
+      const focusable = Array.from(
+        sheetRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) return;
+
+      if (event.shiftKey && (document.activeElement === first || !sheetRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !sheetRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -374,52 +145,40 @@ export function MobileNav() {
     };
   }, [menuOpen]);
 
+  const closeMenu = () => {
+    setMenuOpen(false);
+    requestAnimationFrame(() => menuButtonRef.current?.focus());
+  };
+
   return (
     <>
-      {/* Bottom nav bar */}
       <nav
         aria-label={t.aria.primaryNavigation}
         aria-hidden={!ready}
         className={`premium-dark-chrome fixed inset-x-0 bottom-0 z-50 border-t border-[var(--border-strong)] bg-[#050608]/[0.95] text-white backdrop-blur-xl md:hidden ${ready ? '' : 'invisible'}`}
-        style={{
-          paddingBottom: 'env(safe-area-inset-bottom)',
-        }}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="grid h-14 grid-cols-5">
+        <div className="grid h-14 grid-cols-4">
           {MAIN_NAV.map(item => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            const active = itemIsActive(pathname, item.href);
+            const label = item.labelKey ? t.links[item.labelKey] : item.label;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                aria-label={t.links[item.labelKey]}
-                aria-current={isActive ? 'page' : undefined}
-                className={`relative flex min-h-[48px] select-none flex-col items-center justify-center gap-0.5 transition-colors duration-150 active:bg-white/[0.04] ${
-                  isActive ? 'text-[var(--brand)]' : 'text-white/[0.48] hover:text-white'
-                }`}
+                aria-label={label}
+                aria-current={active ? 'page' : undefined}
+                className={`relative flex min-h-[48px] flex-col items-center justify-center gap-0.5 transition-colors ${active ? 'text-[var(--brand)]' : 'text-white/[0.52] hover:text-white'}`}
               >
-                {/* Active top indicator */}
-                <span
-                  className={`absolute left-1/2 top-0 h-0.5 -translate-x-1/2 bg-[var(--brand)] transition-all duration-200 ${
-                    isActive ? 'w-7 opacity-100' : 'w-0 opacity-0'
-                  }`}
-                />
-                {/* Icon with active glow pill */}
-                <span
-                  className={`flex h-7 w-9 items-center justify-center rounded-sm border transition-colors duration-150 ${
-                    isActive ? 'border-[var(--brand)]/20 bg-[var(--brand-soft)]' : 'border-transparent'
-                  }`}
-                >
+                <span className={`absolute left-1/2 top-0 h-0.5 -translate-x-1/2 bg-[var(--brand)] transition-all ${active ? 'w-7 opacity-100' : 'w-0 opacity-0'}`} />
+                <span className={`flex h-7 w-9 items-center justify-center rounded-sm border ${active ? 'border-[var(--brand)]/20 bg-[var(--brand-soft)]' : 'border-transparent'}`}>
                   {item.icon}
                 </span>
-                <span className={`text-[10px] font-medium tracking-wide whitespace-nowrap ${isActive ? 'font-semibold' : ''}`}>
-                  {t.links[item.labelKey]}
-                </span>
+                <span className="text-[10px] font-medium tracking-wide">{label}</span>
               </Link>
             );
           })}
 
-          {/* Menu button */}
           <button
             ref={menuButtonRef}
             type="button"
@@ -428,125 +187,72 @@ export function MobileNav() {
             aria-expanded={menuOpen}
             aria-haspopup="dialog"
             aria-controls="more-navigation-sheet"
-            className={`relative flex min-h-[48px] select-none flex-col items-center justify-center gap-0.5 transition-colors duration-150 active:bg-white/[0.04] ${
-              isMenuActive ? 'text-[var(--brand)]' : 'text-white/[0.48] hover:text-white'
-            }`}
+            className={`relative flex min-h-[48px] flex-col items-center justify-center gap-0.5 transition-colors ${isMenuActive ? 'text-[var(--brand)]' : 'text-white/[0.52] hover:text-white'}`}
           >
-            <span
-              className={`absolute left-1/2 top-0 h-0.5 -translate-x-1/2 bg-[var(--brand)] transition-all duration-200 ${
-                isMenuActive ? 'w-7 opacity-100' : 'w-0 opacity-0'
-              }`}
-            />
-            <span
-              className={`flex h-7 w-9 items-center justify-center rounded-sm border transition-colors duration-150 ${
-                isMenuActive ? 'border-[var(--brand)]/20 bg-[var(--brand-soft)]' : 'border-transparent'
-              }`}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="5" cy="12" r="1.25" />
-                <circle cx="12" cy="12" r="1.25" />
-                <circle cx="19" cy="12" r="1.25" />
-              </svg>
+            <span className={`absolute left-1/2 top-0 h-0.5 -translate-x-1/2 bg-[var(--brand)] transition-all ${isMenuActive ? 'w-7 opacity-100' : 'w-0 opacity-0'}`} />
+            <span className={`flex h-7 w-9 items-center justify-center rounded-sm border ${isMenuActive ? 'border-[var(--brand)]/20 bg-[var(--brand-soft)]' : 'border-transparent'}`}>
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"><circle cx="5" cy="12" r="1.25" /><circle cx="12" cy="12" r="1.25" /><circle cx="19" cy="12" r="1.25" /></svg>
             </span>
-            <span className={`text-[10px] font-medium tracking-wide ${isMenuActive ? 'font-semibold' : ''}`}>
-              {t.more}
-            </span>
+            <span className="text-[10px] font-medium tracking-wide">{t.more}</span>
           </button>
         </div>
       </nav>
 
-      {/* Slide-up menu sheet */}
       {menuOpen && (
         <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 md:hidden"
-            onClick={() => {
-              setMenuOpen(false);
-              requestAnimationFrame(() => menuButtonRef.current?.focus());
-            }}
-            aria-hidden="true"
-          />
-
-          {/* Sheet */}
+          <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm md:hidden" onClick={closeMenu} aria-hidden="true" />
           <div
             ref={sheetRef}
             id="more-navigation-sheet"
             role="dialog"
             aria-modal="true"
             aria-label={t.aria.moreNavigation}
-            className="premium-dark-chrome fixed inset-x-0 bottom-0 z-[70] max-h-[88vh] overflow-y-auto rounded-t-xl border-t border-[var(--border-strong)] bg-[#090b0e] text-white shadow-[0_-24px_70px_rgba(0,0,0,0.55)] animate-in slide-in-from-bottom duration-300 md:hidden"
+            className="premium-dark-chrome fixed inset-x-0 bottom-0 z-[70] max-h-[88vh] overflow-y-auto rounded-t-xl border-t border-[var(--border-strong)] bg-[#090b0e] text-white shadow-[0_-24px_70px_rgba(0,0,0,0.55)] md:hidden"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
           >
-            {/* Drag handle */}
-            <button
-              type="button"
-              onClick={() => {
-                setMenuOpen(false);
-                requestAnimationFrame(() => menuButtonRef.current?.focus());
-              }}
-              aria-label={t.aria.closeMenu}
-              className="flex w-full justify-center pb-2 pt-3 transition-opacity active:opacity-60"
-            >
-              <div className="h-1 w-10 rounded-full bg-white/[0.20]" />
+            <button type="button" onClick={closeMenu} aria-label={t.aria.closeMenu} className="flex w-full justify-center pb-2 pt-3">
+              <span className="h-1 w-10 rounded-full bg-white/[0.20]" />
             </button>
-
-            {/* Header */}
             <div className="flex items-center justify-between border-b border-white/[0.10] px-5 py-3">
               <div>
                 <span className="block text-sm font-semibold">{t.more}</span>
-                <span className="mt-0.5 block text-[10px] uppercase tracking-[0.14em] text-white/[0.50]">{t.tradingWorkspace}</span>
+                <span className="mt-0.5 block text-[10px] uppercase tracking-[0.14em] text-white/[0.50]">{t.links.evidence} · {t.links.lab} · {t.links.build}</span>
               </div>
               <div className="flex items-center gap-1">
                 <ProductLocaleSwitcher />
                 <ThemeToggle className="text-white/[0.55] hover:bg-white/[0.06] hover:text-white" />
-                <button
-                  type="button"
-                  autoFocus
-                  onClick={() => {
-                    setMenuOpen(false);
-                    requestAnimationFrame(() => menuButtonRef.current?.focus());
-                  }}
-                  aria-label={t.aria.closeMenu}
-                  className="flex h-8 w-8 items-center justify-center rounded-sm border border-white/[0.10] bg-white/[0.035] text-white/[0.60] transition-colors hover:text-white"
-                >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+                <button type="button" autoFocus onClick={closeMenu} aria-label={t.aria.closeMenu} className="flex h-8 w-8 items-center justify-center rounded-sm border border-white/[0.10] bg-white/[0.035] text-white/[0.60] hover:text-white">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                 </button>
               </div>
             </div>
 
-            {/* Grouped menu items */}
             <div className="space-y-5 p-4">
-              {MENU_SECTIONS.map((section) => (
-                <div key={section.labelKey}>
-                  <span className="mb-2 block px-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/[0.50]">
-                    {t.groups[section.labelKey]}
-                  </span>
+              {MENU_SECTIONS.map(section => (
+                <section key={section.labelKey}>
+                  <h2 className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/[0.50]">{t.links[section.labelKey]}</h2>
                   <div className="grid grid-cols-2 gap-2">
                     {section.items.map(item => {
-                      const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                      const active = itemIsActive(pathname, item.href);
+                      const external = item.href.startsWith('http');
+                      const label = item.labelKey ? t.links[item.labelKey] : item.label;
                       return (
                         <Link
                           key={item.href}
                           href={item.href}
+                          target={external ? '_blank' : undefined}
+                          rel={external ? 'noopener noreferrer' : undefined}
                           onClick={() => setMenuOpen(false)}
-                          aria-current={isActive ? 'page' : undefined}
-                          className={`flex min-h-[52px] items-center gap-3 rounded-sm border px-3 py-3 transition-colors duration-150 ${
-                            isActive
-                              ? 'border-[var(--brand)]/30 bg-[var(--brand-soft)] text-[var(--brand)]'
-                              : 'border-white/[0.07] bg-white/[0.025] text-white/[0.58] hover:border-white/[0.15] hover:bg-white/[0.05] hover:text-white'
-                          }`}
+                          aria-current={active ? 'page' : undefined}
+                          className={`flex min-h-[52px] items-center gap-3 rounded-sm border px-3 py-3 transition-colors ${active ? 'border-[var(--brand)]/30 bg-[var(--brand-soft)] text-[var(--brand)]' : 'border-white/[0.07] bg-white/[0.025] text-white/[0.62] hover:border-white/[0.15] hover:bg-white/[0.05] hover:text-white'}`}
                         >
                           <span className="shrink-0">{item.icon}</span>
-                          <span className="truncate text-sm font-medium">{t.links[item.labelKey]}</span>
+                          <span className="truncate text-sm font-medium">{label}</span>
                         </Link>
                       );
                     })}
                   </div>
-                </div>
+                </section>
               ))}
             </div>
           </div>

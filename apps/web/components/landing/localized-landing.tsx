@@ -1,155 +1,125 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback } from "react";
-import type { Locale, Translations } from "../../lib/translations";
-import { parseGitHubStarCount } from "../../lib/github-star-count";
-import { LocaleSwitcher } from "./locale-switcher";
-
-const GITHUB_URL = "https://github.com/naimkatiman/tradeclaw";
+import { useCallback, useState } from 'react';
+import Link from 'next/link';
+import type { Locale, Translations } from '../../lib/translations';
+import { LocaleSwitcher } from './locale-switcher';
 
 const STEP_CODES = [
-  "docker compose up -d",
-  "SYMBOLS=EURUSD,BTCUSD,XAUUSD",
-  "Signal: BUY or SELL + confidence score",
+  '/track-record → /methodology',
+  '/screener → /backtest',
+  'docker compose up -d',
 ];
 
-const STEP_NUMBERS = ["01", "02", "03"];
-
-const DEPLOY_OPTIONS = [
-  { name: "Railway", color: "text-purple-400", bg: "bg-purple-500/8 border-purple-500/20 hover:border-purple-500/40" },
-  { name: "Vercel", color: "text-white", bg: "bg-white/[0.04] border-white/12 hover:border-white/20" },
-  { name: "Docker", color: "text-blue-400", bg: "bg-blue-500/8 border-blue-500/20 hover:border-blue-500/40" },
-];
-
-/* ─── Main localized landing ─── */
 export function LocalizedLanding({ t, locale }: { t: Translations; locale: Locale }) {
-  const [stars, setStars] = useState<number | null>(null);
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
-
-  useEffect(() => {
-    fetch("/api/github-stars")
-      .then((response) => response.ok ? response.json() as Promise<unknown> : null)
-      .then((data) => setStars(parseGitHubStarCount(data)))
-      .catch(() => {});
-  }, []);
-
-  const handleFaqToggle = useCallback((i: number) => {
-    setFaqOpen((prev) => (prev === i ? null : i));
+  const handleFaqToggle = useCallback((index: number) => {
+    setFaqOpen((current) => current === index ? null : index);
   }, []);
 
   return (
     <>
-      {/* ─── Hero ─── */}
-      <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 pt-28 pb-16 text-center">
-        <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#050505]/60 via-transparent to-[#050505]/80" />
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-emerald-500/5 blur-[140px]" />
-        </div>
-
-        <div className="relative z-10 mx-auto max-w-4xl">
-          <div className="mb-6 flex justify-center">
+      <section className="relative flex min-h-[90dvh] items-center overflow-hidden px-5 pb-20 pt-28 sm:px-8">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-50"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+          }}
+        />
+        <div className="relative mx-auto grid w-full max-w-6xl items-end gap-12 lg:grid-cols-[1fr_22rem]">
+          <div>
             <LocaleSwitcher current={locale} />
+            <p className="mt-10 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-400">
+              {t.hero.badge}
+            </p>
+            <h1 className="mt-5 max-w-4xl text-5xl font-bold leading-[0.96] tracking-[-0.045em] text-white sm:text-7xl lg:text-8xl">
+              {t.hero.headline}{' '}
+              <span className="text-emerald-400">{t.hero.headlineAccent}</span>{' '}
+              {t.hero.headlineSuffix}
+            </h1>
+            <p className="mt-7 max-w-2xl text-base leading-7 text-zinc-400 sm:text-lg">
+              {t.hero.subheadline}
+            </p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/track-record"
+                className="inline-flex min-h-12 items-center justify-center rounded-sm bg-white px-6 text-sm font-semibold text-black transition-colors hover:bg-emerald-100"
+              >
+                {t.hero.ctaPrimary} →
+              </Link>
+              <Link
+                href="/dashboard"
+                className="inline-flex min-h-12 items-center justify-center rounded-sm border border-white/20 px-6 text-sm font-semibold text-white transition-colors hover:border-white/50"
+              >
+                {t.hero.ctaSecondary}
+              </Link>
+            </div>
           </div>
 
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-emerald-500/15 bg-emerald-500/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-emerald-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            {t.hero.badge}
-          </div>
+          <aside className="border-l-2 border-red-400 pl-5 text-start">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-red-400">
+              {t.hero.signalFeed}
+            </p>
+            <p className="mt-3 text-sm leading-6 text-zinc-400">
+              {t.socialProof.stats[0]?.description}
+            </p>
+          </aside>
+        </div>
+      </section>
 
-          <h1 className="text-5xl font-bold leading-[1.08] tracking-[-0.03em] sm:text-6xl lg:text-7xl text-white">
-            {t.hero.headline}
-            <br />
-            <span className="text-emerald-400" style={{ textShadow: "0 0 40px rgba(52,211,153,0.4)" }}>
-              {t.hero.headlineAccent}
-            </span>{" "}
-            {t.hero.headlineSuffix}
-          </h1>
-
-          <p className="mx-auto mt-6 max-w-2xl text-base text-zinc-400 leading-relaxed sm:text-lg">
-            {t.hero.subheadline}
+      <section id="how-it-works" className="border-y border-white/10 bg-[#090a0c] px-5 py-24 sm:px-8">
+        <div className="mx-auto max-w-6xl">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+            {t.howItWorks.badge}
           </p>
-
-          {/* CTAs */}
-          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <a href="#deploy" className="group flex items-center gap-2.5 rounded-full bg-emerald-500 px-7 py-3 text-sm font-semibold text-black transition-all duration-200 hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98]">
-              {t.hero.ctaPrimary}
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-0.5">
-                <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </a>
-            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-7 py-3 text-sm font-medium text-zinc-300 transition-all duration-200 hover:border-white/20 hover:bg-white/8 hover:text-white">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor">
-                <path d="M7.5.25A7.25 7.25 0 0 0 .25 7.5c0 3.2 2.07 5.91 4.94 6.87.36.07.49-.16.49-.35v-1.22c-2 .43-2.42-.97-2.42-.97-.33-.83-.8-1.05-.8-1.05-.65-.45.05-.44.05-.44.72.05 1.1.74 1.1.74.64 1.1 1.68.78 2.09.6.06-.46.25-.78.45-.96-1.59-.18-3.26-.8-3.26-3.55 0-.78.28-1.42.74-1.92-.07-.18-.32-.91.07-1.9 0 0 .6-.19 1.98.74a6.9 6.9 0 0 1 1.8-.24c.61 0 1.22.08 1.8.24 1.37-.93 1.97-.74 1.97-.74.39.99.14 1.72.07 1.9.46.5.74 1.14.74 1.92 0 2.76-1.68 3.37-3.27 3.55.26.22.49.66.49 1.33v1.97c0 .19.13.42.5.35A7.25 7.25 0 0 0 14.75 7.5 7.25 7.25 0 0 0 7.5.25Z" />
-              </svg>
-              {stars !== null ? `★ ${stars}` : t.hero.ctaSecondary}
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── How It Works ─── */}
-      <section id="how-it-works" className="px-6 py-24 bg-[#0a0a0a]">
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-16">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-1.5 text-xs uppercase tracking-widest text-zinc-500">
-              {t.howItWorks.badge}
-            </div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-white">
-              {t.howItWorks.title}
-              <span className="text-emerald-400">{t.howItWorks.titleAccent}</span>
+          <div className="mt-4 grid gap-5 lg:grid-cols-[1fr_1fr] lg:items-end">
+            <h2 className="text-4xl font-bold tracking-[-0.04em] text-white sm:text-5xl">
+              {t.howItWorks.title}<span className="text-emerald-400">{t.howItWorks.titleAccent}</span>
             </h2>
-            <p className="mx-auto mt-4 max-w-lg text-base text-zinc-400">{t.howItWorks.subtitle}</p>
+            <p className="max-w-xl text-sm leading-6 text-zinc-400 lg:justify-self-end">
+              {t.howItWorks.subtitle}
+            </p>
           </div>
-          <div className="relative grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div className="absolute top-10 left-1/6 right-1/6 hidden h-px bg-gradient-to-r from-transparent via-white/8 to-transparent md:block" />
-            {t.howItWorks.steps.map((step, i) => (
-              <div key={i} className="relative flex flex-col gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/8 text-emerald-400">
-                    <span className="text-sm font-bold">{STEP_NUMBERS[i]}</span>
-                  </div>
-                </div>
-                <h3 className="text-base font-semibold text-white">{step.title}</h3>
-                <p className="text-sm text-zinc-500 leading-relaxed">{step.description}</p>
-                <div className="mt-auto rounded-lg border border-white/6 bg-[#050505] px-3.5 py-2.5">
-                  <span className="text-emerald-400 font-mono text-xs">$ </span>
-                  <span className="font-mono text-xs text-zinc-400">{STEP_CODES[i]}</span>
-                </div>
-              </div>
+
+          <ol className="mt-14 grid border border-white/10 md:grid-cols-3">
+            {t.howItWorks.steps.map((step, index) => (
+              <li key={step.title} className="flex min-h-72 flex-col border-b border-white/10 p-6 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0">
+                <span className="font-mono text-xs text-emerald-400">0{index + 1}</span>
+                <h3 className="mt-9 text-xl font-semibold text-white">{step.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-zinc-500">{step.description}</p>
+                <code dir="ltr" className="mt-auto block rounded-sm border border-white/10 bg-black/30 px-3 py-2 text-start text-[11px] text-zinc-400">
+                  {STEP_CODES[index]}
+                </code>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
-      {/* ─── FAQ ─── */}
-      <section className="px-6 py-24 bg-[#0a0a0a]">
-        <div className="mx-auto max-w-3xl">
-          <div className="text-center mb-14">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-1.5 text-xs uppercase tracking-widest text-zinc-500">
-              {t.faq.badge}
-            </div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-white">
-              {t.faq.title}
-              <span className="text-emerald-400">{t.faq.titleAccent}</span>
+      <section className="bg-[#050505] px-5 py-24 sm:px-8">
+        <div className="mx-auto grid max-w-6xl gap-14 lg:grid-cols-[1fr_1.2fr]">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-500">{t.faq.badge}</p>
+            <h2 className="mt-4 text-4xl font-bold tracking-[-0.04em] text-white">
+              {t.faq.title}<span className="text-emerald-400">{t.faq.titleAccent}</span>
             </h2>
           </div>
-          <div className="space-y-2">
-            {t.faq.items.map((faq, i) => {
-              const isOpen = faqOpen === i;
+          <div className="divide-y divide-white/10 border-y border-white/10">
+            {t.faq.items.map((faq, index) => {
+              const isOpen = faqOpen === index;
               return (
-                <div key={i} className={`overflow-hidden rounded-xl border transition-colors duration-200 ${isOpen ? "border-emerald-500/20 bg-emerald-500/[0.03]" : "border-white/6 bg-[#050505]"}`}>
-                  <button className="flex w-full items-center justify-between px-6 py-4 text-left" onClick={() => handleFaqToggle(i)} aria-expanded={isOpen}>
-                    <span className={`text-sm font-medium transition-colors duration-200 ${isOpen ? "text-white" : "text-zinc-300"}`}>{faq.question}</span>
-                    <span className={`ml-4 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-all duration-200 ${isOpen ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 rotate-45" : "border-white/10 bg-white/[0.03] text-zinc-600"}`}>
-                      <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
-                        <path d="M4.5 1.5v6M1.5 4.5h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    </span>
+                <div key={faq.question}>
+                  <button
+                    type="button"
+                    className="flex min-h-16 w-full items-center justify-between gap-4 py-4 text-start text-sm font-semibold text-white"
+                    onClick={() => handleFaqToggle(index)}
+                    aria-expanded={isOpen}
+                  >
+                    {faq.question}
+                    <span aria-hidden="true" className="font-mono text-emerald-400">{isOpen ? '−' : '+'}</span>
                   </button>
-                  <div className="overflow-hidden transition-all duration-300 ease-in-out" style={{ maxHeight: isOpen ? "300px" : "0px", opacity: isOpen ? 1 : 0 }}>
-                    <p className="px-6 pb-5 text-sm text-zinc-500 leading-relaxed">{faq.answer}</p>
-                  </div>
+                  {isOpen ? <p className="pb-5 text-sm leading-6 text-zinc-500">{faq.answer}</p> : null}
                 </div>
               );
             })}
@@ -157,50 +127,29 @@ export function LocalizedLanding({ t, locale }: { t: Translations; locale: Local
         </div>
       </section>
 
-      {/* ─── Deploy ─── */}
-      <section id="deploy" className="px-6 py-28 bg-[#050505] relative overflow-hidden">
-        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          <div className="h-[500px] w-[500px] rounded-full bg-emerald-500/6 blur-[120px]" />
-        </div>
-        <div className="relative z-10 mx-auto max-w-3xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/15 bg-emerald-500/5 px-3.5 py-1.5 text-xs uppercase tracking-widest text-emerald-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
-            {t.deploy.badge}
-          </div>
-          <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
-            {t.deploy.title}
-            <br />
-            <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-              {t.deploy.titleAccent}
-            </span>
-          </h2>
-          <p className="mx-auto mt-6 max-w-xl text-base text-zinc-400">{t.deploy.subtitle}</p>
-
-          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            {DEPLOY_OPTIONS.map((opt) => (
-              <a key={opt.name} href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 rounded-xl border px-5 py-3 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${opt.color} ${opt.bg}`}>
-                {t.cta.deployOn} {opt.name}
-              </a>
-            ))}
-          </div>
-
-          <div className="mx-auto mt-10 max-w-xl overflow-hidden rounded-2xl border border-white/8 bg-[#0a0a0a]">
-            <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3 bg-[#0c0c0c]">
-              <div className="h-2.5 w-2.5 rounded-full bg-red-500/50" />
-              <div className="h-2.5 w-2.5 rounded-full bg-zinc-500/50" />
-              <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/50" />
-              <span className="ml-2 text-[10px] font-mono text-zinc-700">bash</span>
-            </div>
-            <div className="p-5 text-left space-y-1.5 font-mono text-sm">
-              <div><span className="text-emerald-400">$</span><span className="text-zinc-300"> git clone https://github.com/naimkatiman/tradeclaw.git</span></div>
-              <div><span className="text-emerald-400">$</span><span className="text-zinc-300"> cd tradeclaw</span></div>
-              <div><span className="text-emerald-400">$</span><span className="text-zinc-300"> cp .env.example .env</span></div>
-              <div><span className="text-emerald-400">$</span><span className="text-zinc-300"> docker compose up -d</span></div>
-              <div className="pt-1"><span className="text-zinc-700"># Dashboard ready at localhost:3000</span></div>
+      <section id="deploy" className="border-t border-white/10 bg-[#090a0c] px-5 py-24 sm:px-8">
+        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
+          <div>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-400">{t.deploy.badge}</p>
+            <h2 className="mt-4 text-4xl font-bold tracking-[-0.04em] text-white sm:text-5xl">
+              {t.deploy.title} <span className="text-emerald-400">{t.deploy.titleAccent}</span>
+            </h2>
+            <p className="mt-5 max-w-xl text-sm leading-6 text-zinc-400">{t.deploy.subtitle}</p>
+            <p className="mt-4 text-xs leading-5 text-zinc-600">{t.deploy.requirement}</p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link href="/start" className="rounded-sm bg-white px-4 py-3 text-sm font-semibold text-black">Docker Compose</Link>
+              <a href="https://github.com/naimkatiman/tradeclaw" target="_blank" rel="noopener noreferrer" className="rounded-sm border border-white/20 px-4 py-3 text-sm font-semibold text-white">GitHub ↗</a>
             </div>
           </div>
-
-          <p className="mt-5 text-xs text-zinc-700">{t.deploy.requirement}</p>
+          <div dir="ltr" className="overflow-hidden rounded-sm border border-white/10 bg-black/40 text-start font-mono text-xs">
+            <div className="border-b border-white/10 px-4 py-3 text-zinc-600">docker-compose.yml</div>
+            <div className="space-y-2 p-5 text-zinc-400">
+              <p><span className="text-emerald-400">$</span> git clone https://github.com/naimkatiman/tradeclaw.git</p>
+              <p><span className="text-emerald-400">$</span> cd tradeclaw</p>
+              <p><span className="text-emerald-400">$</span> cp .env.example .env</p>
+              <p><span className="text-emerald-400">$</span> docker compose up -d</p>
+            </div>
+          </div>
         </div>
       </section>
     </>

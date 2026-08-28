@@ -23,6 +23,8 @@ export interface ScreenerResult {
 
 export interface ScreenerMeta {
   totalAssets: number;
+  providerBackedAssets: number;
+  unavailableAssets: number;
   matching: number;
   strongest: { symbol: string; confidence: number; direction: 'BUY' | 'SELL' } | null;
   mostBullish: string | null;
@@ -123,6 +125,9 @@ export async function GET(request: NextRequest) {
     const strongest = deduped[0] ?? null;
     const mostBullish = deduped.filter(r => r.direction === 'BUY')[0]?.symbol ?? null;
     const mostBearish = deduped.filter(r => r.direction === 'SELL')[0]?.symbol ?? null;
+    const providerBackedAssets = Array.from(ohlcvData.values()).filter(
+      entry => entry.source !== 'synthetic' && entry.candles.length >= 100,
+    ).length;
 
     // Anonymous scans are identical for everyone within the 5-min data
     // window — let shared caches absorb them. Signed-in scans stay private.
@@ -134,6 +139,8 @@ export async function GET(request: NextRequest) {
       results: deduped,
       meta: {
         totalAssets: SYMBOLS.length,
+        providerBackedAssets,
+        unavailableAssets: Math.max(0, SYMBOLS.length - providerBackedAssets),
         matching: deduped.length,
         strongest: strongest
           ? { symbol: strongest.symbol, confidence: strongest.confidence, direction: strongest.direction }

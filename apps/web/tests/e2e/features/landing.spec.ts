@@ -26,8 +26,9 @@ test.describe('Landing Page', () => {
 
     const strip = page.getByRole('region', { name: /go deeper/i });
     await expect(strip).toBeVisible({ timeout: 10_000 });
-    await expect(strip.getByRole('link', { name: /research/i })).toHaveAttribute('href', '/research');
-    await expect(strip.getByRole('link', { name: /live app/i })).toHaveAttribute('href', '/dashboard');
+    await expect(strip.getByRole('link', { name: /see the record/i })).toHaveAttribute('href', '/track-record');
+    await expect(strip.getByRole('link', { name: /test an idea/i })).toHaveAttribute('href', '/backtest');
+    await expect(strip.getByRole('link', { name: /self-host the lab/i })).toHaveAttribute('href', '/start');
   });
 
   test('layer 1 carries no floating product chrome', async ({ page }) => {
