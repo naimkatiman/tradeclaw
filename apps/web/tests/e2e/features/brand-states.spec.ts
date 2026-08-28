@@ -28,7 +28,7 @@ test.describe('landing under reduced motion', () => {
     await page.goto('/');
     await expect(page.getByTestId('proof-hero')).toBeVisible();
     // Hero headline (staggered entrance must be disabled, not hidden)
-    await expect(page.locator('h1')).toContainText(/open-source trading signals/i);
+    await expect(page.locator('h1')).toContainText(/test trading ideas/i);
     // A below-fold reveal-wrapped section must be visible once scrolled to.
     // toBeVisible() ignores opacity — assert it explicitly, since a
     // reduced-motion regression would fail exactly there.

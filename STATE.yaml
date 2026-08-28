@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T01:04:01+08:00
+updated: 2026-08-29T01:40:34+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,13 +8,16 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 evidence_first_public_product_release_2026_08_29:
-  at: 2026-08-29T01:04:01+08:00
+  at: 2026-08-29T01:40:34+08:00
   agent: TradeClaw PM agent
-  status: ready_for_protected_pr
+  status: ci_correction_ready
   scope: Focus the hosted public product on Evidence, Lab, and Build without publishing the broad dirty feature checkout
   base_commit: 6342eb8c718d27ec5aa1b9246ac2714a90e1da0f
   branch: agent/evidence-first-public-product-20260829
-  current_step: Local gates passed; auditing and committing the exact scoped release before the protected PR
+  implementation_commit: b1f668cccdec6d8105e30cbbc6259d48c56b3fd1
+  pull_request: 221
+  ci_run: 33193116879
+  current_step: First protected E2E run exposed stale legacy contracts; corrected assertions pass locally and are ready for the protected rerun
   notes: >
     The public journey now leads from the failed cost-adjusted finding through
     evidence inspection, user-run tests, and reproducible self-hosting. Trading-
@@ -40,8 +43,20 @@ evidence_first_public_product_release_2026_08_29:
     passed 19/19 and the final localization matrix passed 7/7. Publication
     audit found no credential material; its only token-shaped match was the
     committed strategy ID "volatility-risk-premium-short-volatility-option-".
-    Protected GitHub checks, exact-merge Railway deploy, and live production
-    verification remain pending.
+    PR #221 independently reported the same 48-file scope and no package paths.
+    Its first protected run passed welcome, Lint & Type Check, Strategy
+    Backtests, Unit Tests, Build, and Docker Build. Playwright failed after
+    224 passing tests because 30 dual-project cases still asserted the retired
+    multi-preset button label, live-app homepage labels, redirected legacy
+    pages, removed decorative art, old screener empty copy, or confused an
+    evidence-navigation link with embedded modeled results. Seven E2E files
+    now assert the approved evidence-first contract. All 26 affected Chromium
+    cases passed locally, including the modeled comparison, narrow viewport,
+    redirect, zero-result, and observed-versus-modeled boundaries. The required
+    post-correction production build again generated all 325 pages. Local
+    WebKit is not installed; the protected GitHub rerun remains authoritative
+    for those matching mobile cases. Exact-merge Railway deploy and live
+    production verification remain pending.
 
 dashboard_hydration_hotfix_2026_07_20:
   at: 2026-07-20T02:26:08+08:00

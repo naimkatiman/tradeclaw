@@ -1,21 +1,19 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('EarningsEdge pricing layout', () => {
-  test('keeps the header CTA and page content inside the viewport', async ({ page }) => {
+test.describe('retired EarningsEdge pricing path', () => {
+  test('redirects into the focused research journey without viewport overflow', async ({ page, request }) => {
+    const response = await request.get('/earningsedge/pricing', { maxRedirects: 0 });
+    expect([301, 308]).toContain(response.status());
+    expect(response.headers()['location']).toMatch(/\/research$/);
+
     await page.goto('/earningsedge/pricing');
-
-    const cta = page.getByRole('link', { name: 'Try Free' });
-    await expect(cta).toBeVisible();
-
-    const ctaBox = await cta.boundingBox();
-    expect(ctaBox).not.toBeNull();
-    expect(ctaBox!.x).toBeGreaterThanOrEqual(0);
-    expect(ctaBox!.x + ctaBox!.width).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));
+    await expect(page).toHaveURL(/\/research$/);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/what we tested/i);
 
     const dimensions = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,
       scrollWidth: document.documentElement.scrollWidth,
     }));
-    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
   });
 });

@@ -79,7 +79,7 @@ test.describe('/screener page render (real signals UI)', () => {
     } else {
       await expect(
         page
-          .getByText('No assets match your filters', { exact: true })
+          .getByText('No candidates passed this scan', { exact: true })
           .filter({ visible: true })
           .first(),
       ).toBeVisible({ timeout: 10_000 });
