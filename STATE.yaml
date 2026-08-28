@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T02:00:40+08:00
+updated: 2026-08-29T02:18:15+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,18 +8,22 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 evidence_first_public_product_release_2026_08_29:
-  at: 2026-08-29T02:00:40+08:00
+  at: 2026-08-29T02:18:15+08:00
   agent: TradeClaw PM agent
-  status: ci_final_correction_ready
+  status: deployment_ready
   scope: Focus the hosted public product on Evidence, Lab, and Build without publishing the broad dirty feature checkout
   base_commit: 6342eb8c718d27ec5aa1b9246ac2714a90e1da0f
   branch: agent/evidence-first-public-product-20260829
   implementation_commit: b1f668cccdec6d8105e30cbbc6259d48c56b3fd1
   test_alignment_commit: 1e800999777382bc58f4cf71c82f62f891d483da
+  final_correction_commit: 897b4f7740a8bd777330766c2363ae684a988498
   pull_request: 221
+  merge_commit: 2e5fbd77b9a1bcbd34e8f836e243962d65fa038b
   ci_run: 33193116879
   ci_rerun: 33195850186
-  current_step: Second protected run left one real mobile overflow and one transient locator flake; both fixes pass against the rebuilt production app and are ready for the final protected rerun
+  final_ci_run: 33197416809
+  state_closure_branch: agent/evidence-first-public-product-state-20260829
+  current_step: PR #221 is protected-merged with an identical head/merge tree; state-only closure is preparing one exact final main commit for Railway production
   notes: >
     The public journey now leads from the failed cost-adjusted finding through
     evidence inspection, user-run tests, and reproducible self-hosting. Trading-
@@ -45,7 +49,7 @@ evidence_first_public_product_release_2026_08_29:
     passed 19/19 and the final localization matrix passed 7/7. Publication
     audit found no credential material; its only token-shaped match was the
     committed strategy ID "volatility-risk-premium-short-volatility-option-".
-    PR #221 independently reported the same 48-file scope and no package paths.
+    PR #221 initially reported the same 48-file scope and no package paths.
     Its first protected run passed welcome, Lint & Type Check, Strategy
     Backtests, Unit Tests, Build, and Docker Build. Playwright failed after
     224 passing tests because 30 dual-project cases still asserted the retired
@@ -67,9 +71,19 @@ evidence_first_public_product_release_2026_08_29:
     The fresh production build generated 325/325 pages; direct Chromium
     measurement now reports clientWidth=390 and scrollWidth=390; all five
     affected setup, redirect, and evidence-art checks pass. Local WebKit is not
-    installed, so the protected final rerun remains authoritative for that
-    engine. Exact-merge Railway deploy and live production verification remain
-    pending.
+    installed, so the protected final rerun remained authoritative for that
+    engine. Final protected run 33197416809 passed all six CI jobs: Lint & Type
+    Check, Unit Tests, Build, Strategy Backtests, Docker Build, and Playwright
+    E2E; Playwright completed in 8m44s. The final PR diff contained 56 files,
+    limited to STATE.yaml and apps/web. PR #221 squash-merged at
+    2026-08-29T02:15:02+08:00 as
+    2e5fbd77b9a1bcbd34e8f836e243962d65fa038b. A fresh fetch confirmed that
+    origin/main equals the returned merge SHA, and the PR head tree equals the
+    squash-merge tree at 3e48a60fa633b552d008ab7fa87bf6af9fdadc68.
+    The isolated state closure then completed a fresh npm ci and the mandatory
+    exact-main production build, again compiling and generating 325/325 pages.
+    Exact-final-main Railway deploy and live production verification remain
+    pending until this isolated state-only closure clears the protected path.
 
 dashboard_hydration_hotfix_2026_07_20:
   at: 2026-07-20T02:26:08+08:00
