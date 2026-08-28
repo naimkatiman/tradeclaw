@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 
 test.describe('retired EarningsEdge pricing path', () => {
   test('redirects into the focused research journey without viewport overflow', async ({ page, request }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+
     const response = await request.get('/earningsedge/pricing', { maxRedirects: 0 });
     expect([301, 308]).toContain(response.status());
     expect(response.headers()['location']).toMatch(/\/research$/);

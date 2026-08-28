@@ -25,7 +25,7 @@ test.describe('generated evidence hero artwork', () => {
         : { width: 1440, height: 900 });
       await page.goto(path, { waitUntil: 'domcontentloaded' });
 
-      const artwork = page.getByTestId(testId);
+      const artwork = page.getByRole('main').getByTestId(testId);
       const image = artwork.locator('img');
 
       // Keep a real decorative image in the DOM on every viewport. The mobile

@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T01:40:34+08:00
+updated: 2026-08-29T02:00:40+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,16 +8,18 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 evidence_first_public_product_release_2026_08_29:
-  at: 2026-08-29T01:40:34+08:00
+  at: 2026-08-29T02:00:40+08:00
   agent: TradeClaw PM agent
-  status: ci_correction_ready
+  status: ci_final_correction_ready
   scope: Focus the hosted public product on Evidence, Lab, and Build without publishing the broad dirty feature checkout
   base_commit: 6342eb8c718d27ec5aa1b9246ac2714a90e1da0f
   branch: agent/evidence-first-public-product-20260829
   implementation_commit: b1f668cccdec6d8105e30cbbc6259d48c56b3fd1
+  test_alignment_commit: 1e800999777382bc58f4cf71c82f62f891d483da
   pull_request: 221
   ci_run: 33193116879
-  current_step: First protected E2E run exposed stale legacy contracts; corrected assertions pass locally and are ready for the protected rerun
+  ci_rerun: 33195850186
+  current_step: Second protected run left one real mobile overflow and one transient locator flake; both fixes pass against the rebuilt production app and are ready for the final protected rerun
   notes: >
     The public journey now leads from the failed cost-adjusted finding through
     evidence inspection, user-run tests, and reproducible self-hosting. Trading-
@@ -53,10 +55,21 @@ evidence_first_public_product_release_2026_08_29:
     now assert the approved evidence-first contract. All 26 affected Chromium
     cases passed locally, including the modeled comparison, narrow viewport,
     redirect, zero-result, and observed-versus-modeled boundaries. The required
-    post-correction production build again generated all 325 pages. Local
-    WebKit is not installed; the protected GitHub rerun remains authoritative
-    for those matching mobile cases. Exact-merge Railway deploy and live
-    production verification remain pending.
+    post-correction production build again generated all 325 pages. Protected
+    rerun 33195850186 passed welcome, Lint & Type Check, Strategy Backtests,
+    Unit Tests, Build, and Docker Build; Playwright reached 241 passing tests
+    and 10 skips with one real WebKit failure plus one Chromium retry. The real
+    failure was a 507px document width at a 390px viewport after the retired
+    EarningsEdge pricing path redirected to /research. Long shrink-locked
+    research result values were the intrinsic cause; those rows now stack and
+    wrap below sm. The redirect test explicitly uses 390x844 in every project,
+    and the generated alpha-art locator is scoped to main to remove the retry.
+    The fresh production build generated 325/325 pages; direct Chromium
+    measurement now reports clientWidth=390 and scrollWidth=390; all five
+    affected setup, redirect, and evidence-art checks pass. Local WebKit is not
+    installed, so the protected final rerun remains authoritative for that
+    engine. Exact-merge Railway deploy and live production verification remain
+    pending.
 
 dashboard_hydration_hotfix_2026_07_20:
   at: 2026-07-20T02:26:08+08:00
