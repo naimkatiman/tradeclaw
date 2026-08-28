@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PageNavBar } from '@/components/PageNavBar';
 import { BackgroundDecor } from '@/components/background/BackgroundDecor';
@@ -11,9 +10,6 @@ import { isExpiredHistoricalOutcome, isPendingHistoricalOutcome } from '@/lib/si
 import { deriveHistoricalOutcomeStatus } from '@/lib/signal-outcome';
 import { isObservedOHLCVOutcomeSource } from '@/lib/outcome-provenance';
 import { symbolsForCategory, type CategoryFilter } from '@/app/lib/symbol-config';
-import { EmbedButton } from '../components/embed-button';
-import { ShareOnX } from '../components/share-on-x';
-import { ShareLinkedIn } from '../components/share-linkedin';
 import { useLocale } from '@/app/components/locale-provider';
 import { getHtmlLanguage } from '@/lib/translations';
 import {
@@ -21,6 +17,7 @@ import {
   type TrackRecordTranslations,
 } from '@/lib/product-i18n/track-record';
 import { formatMessage } from '@/lib/product-i18n/format';
+import { trackEvent } from '@/lib/analytics';
 import type { RollingWinRates } from '@/lib/rolling-win-rates';
 import {
   EvidenceFilters,
@@ -648,21 +645,6 @@ export function TrackRecordClient() {
               </div>
             )}
           </div>
-          <div className="mt-2 flex items-center gap-2">
-            <EmbedButton embedPath="/embed/track-record" label={t.header.embed} width={600} height={360} />
-            <ShareOnX
-              winRate={stats?.winRate}
-              resolved={stats?.resolved}
-              period={period}
-              label={t.header.shareX}
-            />
-            <ShareLinkedIn
-              winRate={stats?.winRate}
-              resolved={stats?.resolved}
-              period={period}
-              label={t.header.shareLinkedIn}
-            />
-          </div>
           <p className="text-sm text-[var(--text-secondary)]">
             {t.header.headlineDisclosure}
           </p>
@@ -830,66 +812,6 @@ export function TrackRecordClient() {
           </div>
         )}
 
-        {/* CTA — above the fold */}
-        <div className="glass-card rounded-2xl p-5 mb-8 border-s-2 border-emerald-500/50">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              <h3 className="text-base font-bold mb-0.5">{t.alerts.title}</h3>
-              <p className="text-xs text-[var(--text-secondary)]">
-                {t.alerts.detail}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <a
-                href="https://t.me/tradeclawwin"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 text-emerald-400 text-sm font-medium hover:bg-emerald-500/25 transition-colors"
-              >
-                {t.alerts.openTelegram}
-              </a>
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.06] text-[var(--foreground)] text-sm font-medium hover:bg-white/[0.1] transition-colors"
-              >
-                {t.alerts.signalDashboard}
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Strategy Leaderboard proof card — reinforces Sharpe-first ranking */}
-        <div className="glass-card rounded-2xl p-5 mb-8 border-s-2 border-emerald-500/50">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              <h3 className="text-base font-bold mb-0.5">{t.research.title}</h3>
-              <p className="text-xs text-[var(--text-secondary)]">
-                {t.research.detail}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/track-record/study"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 text-emerald-400 text-sm font-medium hover:bg-emerald-500/25 transition-colors"
-              >
-                {t.surfaces.studyLabel}
-              </Link>
-              <Link
-                href="/strategies/leaderboard"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.06] text-[var(--foreground)] text-sm font-medium hover:bg-white/[0.1] transition-colors"
-              >
-                {t.research.viewLeaderboard}
-              </Link>
-              <Link
-                href="/strategies"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.06] text-[var(--foreground)] text-sm font-medium hover:bg-white/[0.1] transition-colors"
-              >
-                {t.research.browseStrategies}
-              </Link>
-            </div>
-          </div>
-        </div>
-
         {/* Per-Symbol Breakdown */}
         <section className="mb-8">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
@@ -927,9 +849,7 @@ export function TrackRecordClient() {
                   {leaderboard?.assets.map(asset => (
                     <tr key={asset.pair} className="border-b border-[var(--border)] last:border-0 hover:bg-white/[0.02] transition-colors">
                       <td className="px-4 py-2.5 font-semibold text-[var(--foreground)]">
-                        <Link href={`/leaderboard?pair=${asset.pair}`} className="hover:text-emerald-400 transition-colors">
-                          {asset.pair}
-                        </Link>
+                        {asset.pair}
                       </td>
                       <td className="px-3 py-2.5 text-center tabular-nums text-[var(--text-secondary)]">{asset.totalSignals}</td>
                       <td className="px-3 py-2.5"><HitRateBar value={asset.hitRate4h} /></td>
@@ -1087,10 +1007,14 @@ export function TrackRecordClient() {
                     return (
                       <tr
                         key={r.id}
-                        onClick={() => router.push(`/signal/${r.id}`)}
+                        onClick={() => {
+                          trackEvent('record_inspected', { record_id: r.id, symbol: r.pair });
+                          router.push(`/signal/${r.id}`);
+                        }}
                         onKeyDown={e => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
+                            trackEvent('record_inspected', { record_id: r.id, symbol: r.pair });
                             router.push(`/signal/${r.id}`);
                           }
                         }}

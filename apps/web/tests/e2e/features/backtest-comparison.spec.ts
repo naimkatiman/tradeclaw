@@ -38,10 +38,10 @@ test.describe('Backtest Comparison', () => {
     // Verify the preset multi-select section is present
     await expect(page.getByText(/preset strategies/i)).toBeVisible({ timeout: 30_000 });
 
-    // The page auto-runs on mount with hmm-top3 default.
+    // The page auto-runs on mount with the reviewable Classic default.
     // Wait for any initial run to settle before interacting.
     await expect(
-      page.getByRole('button', { name: /run backtest/i })
+      page.getByRole('button', { name: /run modeled test/i })
     ).toBeEnabled({ timeout: 30_000 });
 
     // Select Classic + VWAP presets by clicking the label span (most reliable
@@ -60,11 +60,11 @@ test.describe('Backtest Comparison', () => {
 
     // Run the backtest
     await dismissStarMilestoneModal(page);
-    await page.getByRole('button', { name: /run backtest/i }).click({ force: true });
+    await page.getByRole('button', { name: /run modeled test/i }).click({ force: true });
 
     // Wait for results — button returns to enabled state when done
     await expect(
-      page.getByRole('button', { name: /run backtest/i })
+      page.getByRole('button', { name: /run modeled test/i })
     ).toBeEnabled({ timeout: 30_000 });
 
     // Comparison metrics table should appear
@@ -93,7 +93,7 @@ test.describe('Backtest Comparison', () => {
     // out — mirrors the passing sibling test in this file.
     await expect(page.getByText('Configuration')).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText('Preset Strategies')).toBeVisible();
-    await expect(page.getByRole('button', { name: /run backtest/i })).toBeVisible({ timeout: 60_000 });
-    await expect(page.getByRole('button', { name: /run backtest/i })).toBeEnabled({ timeout: 60_000 });
+    await expect(page.getByRole('button', { name: /run modeled test/i })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole('button', { name: /run modeled test/i })).toBeEnabled({ timeout: 60_000 });
   });
 });

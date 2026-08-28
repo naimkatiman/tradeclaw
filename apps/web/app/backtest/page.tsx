@@ -3,12 +3,12 @@
 import { useState, useEffect, useCallback, startTransition } from 'react';
 import dynamic from 'next/dynamic';
 import { calculateRSI, calculateMACD, calculateEMAs } from '../lib/ta-engine';
-import { applySlippage, getSlippageConfig } from '../../lib/slippage';
 import { PageNavBar } from '../../components/PageNavBar';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
-import { ProductHeroBackdrop } from '../../components/product-hero-backdrop';
 import {
   runBacktest as runBacktestPreset,
+  costModelFor,
+  FIXED_LEGACY_GEOMETRY,
   getPreset,
   listPresets,
   type BacktestResult as PresetBacktestResult,
@@ -18,6 +18,7 @@ import { MetricsTable } from './metrics-table';
 import { ComparisonChart } from './comparison-chart';
 import { InfoHint } from '../../components/InfoHint';
 import { STAT_HINTS } from '../../lib/stat-hints';
+import { trackEvent } from '../../lib/analytics';
 
 // Lazy-load heavy chart components with ssr: false for canvas
 const ChartSkeleton = () => (
@@ -79,17 +80,13 @@ interface DrilldownExtras {
 interface BacktestParams {
   symbol: string;
   timeframe: string;
-  strategy: string;
-  initialBalance: number;
-  riskPercent: number;
-  slippage: boolean;
 }
 
 // ─── Constants ───────────────────────────────────────────────
 
 const SYMBOLS = ['XAUUSD', 'BTCUSD', 'ETHUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'XAGUSD', 'AUDUSD'];
 const TIMEFRAMES = ['M15', 'H1', 'H4', 'D1'];
-const STRATEGIES = ['EMA Crossover + RSI', 'MACD Divergence', 'Bollinger Breakout', 'ATR Trend Follow'];
+const BAR_HOURS: Record<string, number> = { M15: 0.25, H1: 1, H4: 4, D1: 24 };
 
 function fmt(v: number): string {
   return v < 10 ? v.toFixed(5) : v < 100 ? v.toFixed(3) : v.toFixed(2);
@@ -152,6 +149,11 @@ function computeDrilldownExtras(
 // ─── CSV Export ──────────────────────────────────────────────
 
 function exportCSV(trades: PresetBacktestResult['trades'], symbol: string) {
+  trackEvent('artifact_downloaded', {
+    artifact: 'backtest_trade_log_csv',
+    symbol,
+    row_count: trades.length,
+  });
   const headers = ['#', 'Symbol', 'Direction', 'Entry Price', 'Exit Price', 'P&L ($)', 'P&L (%)', 'Entry Bar', 'Exit Bar', 'Result', 'Exit Reason'];
   const rows = trades.map(t => [
     t.id, symbol, t.direction, t.entry, t.exit,
@@ -256,6 +258,7 @@ function DataSourceBadge({ source }: { source: string }) {
   const labels: Record<string, { text: string; color: string }> = {
     binance: { text: 'Binance', color: 'text-yellow-400 border-yellow-500/20 bg-yellow-500/10' },
     swissquote: { text: 'Swissquote', color: 'text-cyan-400 border-cyan-500/20 bg-cyan-500/10' },
+    'market-data-hub': { text: 'Market data hub', color: 'text-cyan-400 border-cyan-500/20 bg-cyan-500/10' },
     stooq: { text: 'Stooq', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10' },
     tradingview: { text: 'TradingView', color: 'text-blue-400 border-blue-500/20 bg-blue-500/10' },
     synthetic: { text: 'Synthetic', color: 'text-[var(--text-secondary)] border-zinc-500/20 bg-zinc-500/10' },
@@ -292,12 +295,8 @@ function formatRange(from: number, to: number): string {
 
 export default function BacktestPage() {
   const [params, setParams] = useState<BacktestParams>({
-    symbol: 'XAUUSD',
-    timeframe: 'H1',
-    strategy: 'EMA Crossover + RSI',
-    initialBalance: 10000,
-    riskPercent: 1,
-    slippage: true,
+    symbol: 'BTCUSD',
+    timeframe: 'D1',
   });
 
   // Single-preset result (for drilldown metrics cards, charts, trade log)
@@ -305,7 +304,7 @@ export default function BacktestPage() {
   const [drilldown, setDrilldown] = useState<DrilldownExtras | null>(null);
 
   // Multi-preset comparison
-  const [selectedPresets, setSelectedPresets] = useState<StrategyId[]>(['hmm-top3']);
+  const [selectedPresets, setSelectedPresets] = useState<StrategyId[]>(['classic']);
   const [comparisonResults, setComparisonResults] = useState<PresetBacktestResult[]>([]);
 
   const [running, setRunning] = useState(false);
@@ -362,7 +361,12 @@ export default function BacktestPage() {
       // Run all selected presets concurrently (runBacktestPreset is sync but Promise.all keeps it uniform)
       const settled = await Promise.allSettled(
         presets.map(id =>
-          Promise.resolve(runBacktestPreset(ohlcv, getPreset(id)))
+          Promise.resolve(runBacktestPreset(ohlcv, getPreset(id), {
+            costs: costModelFor(symbol),
+            geometry: FIXED_LEGACY_GEOMETRY,
+            barHours: BAR_HOURS[timeframe] ?? 1,
+            context: { symbol, timeframe },
+          }))
         )
       );
 
@@ -382,6 +386,16 @@ export default function BacktestPage() {
         setSingleResult(primary);
         setDrilldown(computeDrilldownExtras(candles, primary, source));
         setActiveTab('equity');
+        trackEvent('backtest_completed', {
+          symbol,
+          timeframe,
+          source,
+          bars: candles.length,
+          completed_trades: primary.totalTrades,
+          preset_count: results.length,
+          period: selectedPeriod,
+          costs_applied: true,
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Backtest failed');
@@ -400,16 +414,12 @@ export default function BacktestPage() {
     if (encoded) {
       try {
         const decoded = JSON.parse(atob(encoded)) as { name?: string; symbol?: string; timeframe?: string };
-        const symbol = typeof decoded.symbol === 'string' ? decoded.symbol : 'XAUUSD';
-        const timeframe = typeof decoded.timeframe === 'string' ? decoded.timeframe : 'H1';
+        const symbol = typeof decoded.symbol === 'string' ? decoded.symbol : 'BTCUSD';
+        const timeframe = typeof decoded.timeframe === 'string' ? decoded.timeframe : 'D1';
         const strategyName = typeof decoded.name === 'string' ? decoded.name : 'Custom Strategy';
         backtestParams = {
           symbol,
           timeframe,
-          strategy: strategyName,
-          initialBalance: 10000,
-          riskPercent: 1,
-          slippage: true,
         };
         startTransition(() => {
           setParams(backtestParams);
@@ -450,6 +460,30 @@ export default function BacktestPage() {
   const displayWinRate = singleResult ? (singleResult.winRate * 100).toFixed(1) : '0';
   const displayTotalReturn = singleResult ? (singleResult.totalReturn * 100).toFixed(2) : '0';
   const displayMaxDrawdown = singleResult ? (singleResult.maxDrawdown * 100).toFixed(1) : '0';
+  const activeCosts = costModelFor(params.symbol);
+  const fixedRoundTripCost = 2 * (activeCosts.feePctPerSide + activeCosts.slippagePctPerSide);
+  const usedDays = usedRange
+    ? Math.max(1, Math.round((usedRange.to - usedRange.from) / (24 * 60 * 60 * 1000)))
+    : 0;
+  const sampleVerdict = singleResult
+    ? singleResult.totalTrades < 30
+      ? {
+          title: 'Thin sample',
+          detail: `Only ${singleResult.totalTrades} completed trades. Treat every metric as exploratory.`,
+          className: 'border-amber-500/25 bg-amber-500/[0.05] text-amber-300',
+        }
+      : usedDays < 180
+        ? {
+            title: 'Short observation window',
+            detail: `${usedDays} days is too short for a durable conclusion, even with ${singleResult.totalTrades} completed trades.`,
+            className: 'border-amber-500/25 bg-amber-500/[0.05] text-amber-300',
+          }
+        : {
+            title: 'Reviewable sample — not validation',
+            detail: `${singleResult.totalTrades} completed trades over ${usedDays} days are enough to inspect mechanics, not to claim deployable edge.`,
+            className: 'border-emerald-500/20 bg-emerald-500/[0.035] text-emerald-300',
+          }
+    : null;
 
   return (
     <div className="premium-product-shell relative isolate min-h-[100dvh] text-[var(--foreground)]">
@@ -461,22 +495,16 @@ export default function BacktestPage() {
         </div>
 
         {/* Header */}
-        <div className="relative isolate mb-6 py-1">
-          <ProductHeroBackdrop
-            src="/brand/hero/tradeclaw-replay-evidence-chamber-v1.webp"
-            testId="backtest-hero-art"
-          />
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-1">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M2 12L6 8L9 11L14 4" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 14H14" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
-              </svg>
-              <h1 className="text-sm font-semibold text-[var(--foreground)] tracking-tight">Backtesting Engine</h1>
-              {drilldown && <DataSourceBadge source={drilldown.dataSource} />}
-            </div>
-            <p className="text-[11px] text-[var(--text-secondary)]">Replay strategy rules against available provider-backed candles with a modeled equity path and trade log.</p>
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-1">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2 12L6 8L9 11L14 4" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 14H14" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
+            </svg>
+            <h1 className="text-sm font-semibold text-[var(--foreground)] tracking-tight">Backtest Lab</h1>
+            {drilldown && <DataSourceBadge source={drilldown.dataSource} />}
           </div>
+          <p className="text-[11px] text-[var(--text-secondary)]">Replay strategy rules against available provider-backed candles with a modeled equity path and trade log.</p>
         </div>
 
         {loadedStrategyName && (
@@ -486,7 +514,7 @@ export default function BacktestPage() {
               <rect x="7" y="3" width="4" height="4" rx="0.8" fill="rgba(96,165,250,0.2)"/>
               <path d="M3 5H9" stroke="rgba(96,165,250,0.4)" strokeWidth="0.8" strokeDasharray="1.5 1.5"/>
             </svg>
-            <span className="text-[11px] text-blue-400">Loaded from Strategy Builder: <span className="font-semibold">{loadedStrategyName}</span></span>
+            <span className="text-[11px] text-blue-400">Loaded symbol and timeframe from Strategy Builder: <span className="font-semibold">{loadedStrategyName}</span>. This run still uses the selected audited preset below.</span>
           </div>
         )}
 
@@ -556,20 +584,6 @@ export default function BacktestPage() {
               </div>
 
               <div>
-                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Strategy</label>
-                <select
-                  value={params.strategy}
-                  onChange={e => update('strategy', e.target.value)}
-                  className="w-full bg-[var(--glass-bg)] border border-white/8 rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30"
-                >
-                  {!STRATEGIES.includes(params.strategy) && (
-                    <option value={params.strategy}>{params.strategy}</option>
-                  )}
-                  {STRATEGIES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-
-              <div>
                 <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Preset Strategies</label>
                 <div className="space-y-1">
                   {listPresets().map(p => (
@@ -586,43 +600,9 @@ export default function BacktestPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Initial Balance ($)</label>
-                <input
-                  type="number"
-                  value={params.initialBalance}
-                  onChange={e => update('initialBalance', Number(e.target.value))}
-                  className="w-full bg-[var(--glass-bg)] border border-white/8 rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30 font-mono"
-                />
+              <div className="rounded-lg border border-[var(--border)] bg-white/[0.02] px-3 py-2 text-[10px] leading-relaxed text-[var(--text-secondary)]">
+                Cost and exit assumptions are fixed to the repository&apos;s disclosed model for the selected asset class. This prevents UI controls from implying inputs the engine does not use.
               </div>
-
-              <div>
-                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Risk per trade (%)</label>
-                <input
-                  type="number"
-                  value={params.riskPercent}
-                  step="0.1"
-                  min="0.1"
-                  max="10"
-                  onChange={e => update('riskPercent', Number(e.target.value))}
-                  className="w-full bg-[var(--glass-bg)] border border-white/8 rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30 font-mono"
-                />
-              </div>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={params.slippage}
-                  onChange={e => setParams(p => ({ ...p, slippage: e.target.checked }))}
-                  className="w-3.5 h-3.5 accent-emerald-500 rounded"
-                />
-                <span className="text-[10px] text-[var(--text-secondary)]">Realistic slippage</span>
-                {params.slippage && (
-                  <span className="text-[9px] text-[var(--text-secondary)]">
-                    ({['BTCUSD','ETHUSD','XRPUSD'].includes(params.symbol) ? '0.3%' : ['XAUUSD','XAGUSD'].includes(params.symbol) ? '0.1%' : '0.04%'} round-trip)
-                  </span>
-                )}
-              </label>
 
               <button
                 onClick={handleRun}
@@ -639,7 +619,7 @@ export default function BacktestPage() {
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                       <path d="M3 2L10 6L3 10V2Z" fill="#10B981"/>
                     </svg>
-                    Run Backtest
+                    Run modeled test
                   </>
                 )}
               </button>
@@ -649,10 +629,10 @@ export default function BacktestPage() {
             <div className="glass-card rounded-2xl p-4 space-y-1">
               <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider mb-2">Quick nav</div>
               {[
-                { label: 'Upload CSV Data', href: '/backtest/upload' },
-                { label: 'Dashboard', href: '/dashboard' },
-                { label: 'Paper Trading', href: '/paper-trading' },
-                { label: 'Leaderboard', href: '/leaderboard' },
+                { label: 'Candidate Feed', href: '/dashboard' },
+                { label: 'Screener', href: '/screener' },
+                { label: 'Methodology', href: '/methodology' },
+                { label: 'Open Data', href: '/open-data' },
               ].map(link => (
                 <a
                   key={link.href}
@@ -710,6 +690,42 @@ export default function BacktestPage() {
               </div>
             )}
 
+            {singleResult && drilldown && usedRange && sampleVerdict && !running && (
+              <section className={`rounded-2xl border p-4 ${sampleVerdict.className}`} aria-labelledby="backtest-sample-verdict">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h2 id="backtest-sample-verdict" className="text-sm font-semibold">{sampleVerdict.title}</h2>
+                    <p className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">{sampleVerdict.detail}</p>
+                  </div>
+                  <DataSourceBadge source={drilldown.dataSource} />
+                </div>
+                <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-white/[0.07] pt-3 text-[10px] sm:grid-cols-5">
+                  <div>
+                    <dt className="uppercase tracking-wider text-[var(--text-secondary)]">Range</dt>
+                    <dd className="mt-1 font-mono text-[var(--foreground)]">{formatRange(usedRange.from, usedRange.to)}</dd>
+                  </div>
+                  <div>
+                    <dt className="uppercase tracking-wider text-[var(--text-secondary)]">Sample</dt>
+                    <dd className="mt-1 font-mono text-[var(--foreground)]">{usedRange.bars} bars / {singleResult.totalTrades} trades</dd>
+                  </div>
+                  <div>
+                    <dt className="uppercase tracking-wider text-[var(--text-secondary)]">Preset</dt>
+                    <dd className="mt-1 font-mono text-[var(--foreground)]">{presetNames[singleResult.strategyId] ?? singleResult.strategyId}</dd>
+                  </div>
+                  <div>
+                    <dt className="uppercase tracking-wider text-[var(--text-secondary)]">Modeled costs</dt>
+                    <dd className="mt-1 font-mono text-[var(--foreground)]">
+                      {fixedRoundTripCost.toFixed(2)}% round trip{activeCosts.fundingPctPer8h > 0 ? ` + ${activeCosts.fundingPctPer8h.toFixed(2)}% / 8h` : ''}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="uppercase tracking-wider text-[var(--text-secondary)]">Exit geometry</dt>
+                    <dd className="mt-1 font-mono text-[var(--foreground)]">Fixed +2% / −1%</dd>
+                  </div>
+                </dl>
+              </section>
+            )}
+
             {comparisonResults.length > 0 && !running && (
               <>
                 {/* Comparison equity curve overlay */}
@@ -763,10 +779,10 @@ export default function BacktestPage() {
                     tooltip={STAT_HINTS.backtestSharpe}
                   />
                   <MetricCard
-                    label="Signals"
+                    label="Completed trades"
                     value={`${singleResult.totalTrades}`}
                     sub={`${singleResult.trades.length} trades`}
-                    tooltip="Total trades the backtest engine entered. Each is a buy → sell round-trip."
+                    tooltip="Completed modeled round trips after the disclosed entry, exit, and cost assumptions."
                   />
                 </div>
 
@@ -809,12 +825,12 @@ export default function BacktestPage() {
                     <div className="p-5">
                       <div className="flex items-center gap-4 mb-3 text-[9px] text-[var(--text-secondary)]">
                         <span className="flex items-center gap-1.5">
-                          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" /> BUY signal
+                          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" /> Up-case entry
                         </span>
                         <span className="flex items-center gap-1.5">
-                          <span className="inline-block w-2 h-2 rounded-full bg-red-400" /> SELL signal
+                          <span className="inline-block w-2 h-2 rounded-full bg-red-400" /> Down-case entry
                         </span>
-                        <span className="ml-auto font-mono">{drilldown.signals.length} signals on {drilldown.priceData.length} bars</span>
+                        <span className="ml-auto font-mono">{drilldown.signals.length} modeled entries on {drilldown.priceData.length} bars</span>
                       </div>
                       <div className="h-72">
                         <PriceChartCanvas

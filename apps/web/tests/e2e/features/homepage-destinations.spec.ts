@@ -1,15 +1,15 @@
 import { expect, test } from '@playwright/test';
 
 const DESTINATIONS = [
-  { name: 'Live app', href: '/dashboard' },
-  { name: 'How it works', href: '/how-it-works' },
-  { name: 'Research', href: '/research' },
-  { name: 'Methodology', href: '/methodology' },
-  { name: 'Open data', href: '/open-data' },
+  { name: 'See the record', href: '/track-record' },
+  { name: 'Understand the drag', href: '/why-long-term' },
+  { name: 'Inspect the studies', href: '/track-record/study' },
+  { name: 'Test an idea', href: '/backtest' },
+  { name: 'Self-host the lab', href: '/start' },
 ] as const;
 
 test.describe('homepage destinations', () => {
-  test('keeps five semantic links to the deeper product surfaces', async ({ page }) => {
+  test('keeps five semantic steps from finding to reproduction', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 

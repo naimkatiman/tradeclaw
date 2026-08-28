@@ -18,55 +18,30 @@ interface FooterColumn {
 
 const COLUMNS: FooterColumn[] = [
   {
-    heading: 'Product',
+    heading: 'Evidence',
     links: [
-      { href: '/dashboard', label: 'Dashboard' },
+      { href: '/track-record', label: 'Track record' },
+      { href: '/track-record/study', label: 'Studies' },
+      { href: '/track-record/alpha', label: 'Prospective ledger' },
+      { href: '/methodology', label: 'Methodology' },
+      { href: '/open-data', label: 'Open data' },
+    ],
+  },
+  {
+    heading: 'Lab',
+    links: [
+      { href: '/dashboard', label: 'Candidate feed' },
       { href: '/screener', label: 'Screener' },
       { href: '/backtest', label: 'Backtest' },
-      { href: '/track-record', label: 'Track record' },
-      { href: '/demo', label: 'Live demo' },
     ],
   },
   {
-    heading: 'Transparency',
+    heading: 'Build',
     links: [
-      { href: '/research', label: 'What we tested and killed' },
-      { href: '/methodology', label: 'Methodology' },
-      { href: '/why-long-term', label: 'Why long-term' },
-      { href: '/open-data', label: 'Open data' },
-      { href: '/calibration', label: 'Calibration' },
-    ],
-  },
-  {
-    heading: 'Resources',
-    links: [
-      { href: '/blog', label: 'Blog' },
-      { href: '/docs', label: 'Docs' },
-      { href: '/api-docs', label: 'API reference' },
-      { href: '/how-it-works', label: 'How it works' },
-      { href: '/faq', label: 'FAQ' },
-      { href: '/glossary', label: 'Glossary' },
-    ],
-  },
-  {
-    heading: 'Community',
-    links: [
-      { href: '/discord/server', label: 'Discord' },
-      { href: '/subscribe', label: 'Weekly digest' },
-      { href: '/contribute', label: 'Contribute' },
-      { href: '/contributors', label: 'Contributors' },
-      { href: '/sponsors', label: 'Sponsors' },
-    ],
-  },
-  {
-    heading: 'Open source',
-    links: [
-      { href: 'https://github.com/naimkatiman/tradeclaw', label: 'GitHub repo', external: true },
-      { href: '/star', label: 'Star history' },
       { href: '/start', label: 'Self-host guide' },
-      { href: '/security', label: 'Security' },
-      { href: '/data-freshness', label: 'Data freshness' },
-      { href: '/roadmap', label: 'Roadmap' },
+      { href: '/docs', label: 'Documentation' },
+      { href: '/api-docs', label: 'API reference' },
+      { href: 'https://github.com/naimkatiman/tradeclaw', label: 'GitHub', external: true },
     ],
   },
 ];
@@ -104,7 +79,7 @@ export function SiteFooter() {
   return (
     <footer className="premium-dark-chrome mt-24 border-t border-[var(--border-strong)] bg-[#050608] py-12 text-sm text-white">
       <div className="mx-auto max-w-[1440px] px-5 sm:px-6 lg:px-8">
-        <div className="grid gap-10 border-b border-white/[0.10] pb-10 sm:grid-cols-2 lg:grid-cols-[1.45fr_repeat(5,minmax(0,1fr))] lg:gap-8">
+        <div className="grid gap-10 border-b border-white/[0.10] pb-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_repeat(3,minmax(0,1fr))] lg:gap-10">
           <div className="sm:col-span-2 lg:col-span-1 lg:pr-6">
             <Link href="/" className="inline-flex items-center gap-2.5">
               <TradeClawLogo className="h-8 w-8 shrink-0" id="footer" />
@@ -113,7 +88,7 @@ export function SiteFooter() {
               </span>
             </Link>
             <p className="mt-4 max-w-[260px] text-xs leading-5 text-white/[0.48]">
-              Open-source AI market intelligence for traders who prefer evidence over noise.
+              Open trading research for testing ideas, modeling costs, and reproducing every result.
             </p>
             <div className="mt-5 inline-flex items-center gap-2 rounded-sm border border-white/[0.10] bg-white/[0.035] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/[0.60]">
               <span className="h-1.5 w-1.5 bg-[var(--brand)] shadow-[0_0_10px_var(--brand)]" aria-hidden="true" />
@@ -167,7 +142,7 @@ export function SiteFooter() {
             </Link>
             <span className="text-white/[0.15]">|</span>
             <span className="max-w-xl leading-5">
-              Trading involves risk. Signals are informational only and are not financial advice.
+              Trading involves risk. Research candidates are not trade instructions or financial advice.
             </span>
           </div>
         </div>

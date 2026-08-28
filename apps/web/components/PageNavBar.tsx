@@ -5,27 +5,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   ChevronDown,
-  Mail,
-  Bell,
-  BookOpen,
-  BadgeCheck,
-  NotebookPen,
   BarChart2,
-  BarChart3,
-  Send,
-  Wrench,
-  Layers,
-  Crosshair,
   Megaphone,
   Activity,
   ShieldCheck,
-  Trophy,
-  GitBranch,
-  FlaskConical,
-  Ruler,
-  TrendingUp,
-  Database,
-  Target,
 } from 'lucide-react';
 import { TradeClawLogo } from './tradeclaw-logo';
 import { UserMenu } from './UserMenu';
@@ -61,60 +44,12 @@ interface DropdownGroup {
 interface PrimaryLink { href: string; labelKey: AppShellLinkKey }
 
 const MEMBER_PRIMARY: PrimaryLink[] = [
-  { href: '/today', labelKey: 'today' },
-  { href: '/dashboard', labelKey: 'signals' },
-  { href: '/copilot', labelKey: 'copilot' },
-  { href: '/screener', labelKey: 'screener' },
-  { href: '/backtest', labelKey: 'backtest' },
-  { href: '/leaderboard', labelKey: 'leaderboard' },
-  { href: '/track-record', labelKey: 'trackRecord' },
+  { href: '/track-record', labelKey: 'evidence' },
+  { href: '/dashboard', labelKey: 'lab' },
+  { href: '/start', labelKey: 'build' },
 ];
 
-const MEMBER_MORE: DropdownGroup[] = [
-  {
-    labelKey: 'tradingTools',
-    links: [
-      { href: '/strategy-builder', labelKey: 'strategyBuilder', icon: Wrench },
-      { href: '/strategy-rules', labelKey: 'strategyRules', icon: GitBranch },
-      { href: '/strategies/leaderboard', labelKey: 'strategyLeaderboard', icon: Trophy },
-      { href: '/multi-timeframe', labelKey: 'multiTimeframe', icon: Layers },
-      { href: '/paper-trading', labelKey: 'paperTrading', icon: Crosshair },
-    ],
-  },
-  {
-    labelKey: 'insights',
-    links: [
-      { href: '/journal', labelKey: 'journal', icon: NotebookPen },
-      { href: '/glossary', labelKey: 'glossary', icon: BookOpen },
-    ],
-  },
-  {
-    labelKey: 'notifications',
-    links: [
-      { href: '/notifications', labelKey: 'alerts', icon: Bell },
-      { href: '/subscribe', labelKey: 'digest', icon: Mail },
-      { href: '/digest/preview', labelKey: 'dailyTelegram', icon: Send },
-    ],
-  },
-  {
-    labelKey: 'community',
-    links: [
-      { href: '/vote', labelKey: 'vote', icon: BarChart2 },
-      { href: '/badges/readme', labelKey: 'badges', icon: BadgeCheck },
-      { href: '/tradingview-export', labelKey: 'tradingViewExport', icon: BarChart3 },
-    ],
-  },
-  {
-    labelKey: 'transparency',
-    links: [
-      { href: '/research', labelKey: 'research', icon: FlaskConical },
-      { href: '/methodology', labelKey: 'methodology', icon: Ruler },
-      { href: '/why-long-term', labelKey: 'whyLongTerm', icon: TrendingUp },
-      { href: '/open-data', labelKey: 'openData', icon: Database },
-      { href: '/calibration', labelKey: 'calibration', icon: Target },
-    ],
-  },
-];
+const MEMBER_MORE: DropdownGroup[] = [];
 
 const ADMIN_PRIMARY: PrimaryLink[] = [
   { href: '/admin', labelKey: 'overview' },
@@ -250,8 +185,8 @@ export function PageNavBar() {
             </Link>
           ))}
 
-          {/* More dropdown */}
-          <div ref={moreRef} className="relative">
+          {/* Admin-only operational navigation. Public product navigation stays at three sections. */}
+          {MORE_GROUPS.length > 0 && <div ref={moreRef} className="relative">
             <button
               ref={moreButtonRef}
               onClick={() => setMoreOpen((prev) => !prev)}
@@ -311,7 +246,7 @@ export function PageNavBar() {
                 ))}
               </div>
             )}
-          </div>
+          </div>}
         </div>
 
         {/* Identity affordance — visible on all breakpoints. */}

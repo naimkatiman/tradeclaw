@@ -486,9 +486,9 @@ function KillLedgerEntry({ entry }: { entry: KillEntry }) {
                 <p className="text-[12px] font-medium text-[var(--text-secondary)]">{block.caption}</p>
                 <dl className="mt-2 divide-y divide-[var(--border)] border-y border-[var(--border)]">
                   {block.rows.map((row) => (
-                    <div key={row.label} className="flex items-baseline justify-between gap-4 py-1.5">
+                    <div key={row.label} className="flex flex-col items-start gap-1 py-1.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
                       <dt className="text-[13px] text-[var(--text-secondary)]">{row.label}</dt>
-                      <dd className={`shrink-0 font-mono text-[13px] tabular-nums ${toneClass(row.tone)}`}>{row.value}</dd>
+                      <dd className={`min-w-0 max-w-full break-words font-mono text-[13px] tabular-nums sm:shrink-0 sm:text-right ${toneClass(row.tone)}`}>{row.value}</dd>
                     </div>
                   ))}
                 </dl>

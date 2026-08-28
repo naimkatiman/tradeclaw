@@ -7,7 +7,6 @@ import { SYMBOLS } from '../lib/symbol-config';
 import { SparklineChart } from '../components/charts';
 import { PageNavBar } from '../../components/PageNavBar';
 import { BackgroundDecor } from '../../components/background/BackgroundDecor';
-import { ProductHeroBackdrop } from '../../components/product-hero-backdrop';
 import { useLocale } from '../components/locale-provider';
 import { formatMessage } from '../../lib/product-i18n/format';
 import {
@@ -16,6 +15,7 @@ import {
 } from '../../lib/product-i18n/screener';
 import { getHtmlLanguage } from '../../lib/translations';
 import { isHighRuleScore } from '../../lib/signal-thresholds';
+import { trackEvent } from '../../lib/analytics';
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -89,6 +89,16 @@ function MACDBar({ value }: { value: number }) {
     </div>
   );
 }
+
+const STARTER_FILTERS: Filters = {
+  rsiMin: 0,
+  rsiMax: 100,
+  macdFilter: 'any',
+  emaFilter: 'any',
+  minConfidence: 0,
+  timeframe: 'H1',
+  direction: 'all',
+};
 
 function SortableHeader({
   label,
@@ -164,25 +174,25 @@ function ConfidenceBar({
 
 // ─── Signal Badge ─────────────────────────────────────────────
 
-function SignalBadge({
+function DirectionCaseBadge({
   direction,
   copy,
 }: {
   direction: 'BUY' | 'SELL';
-  copy: Pick<ScreenerTranslations['options'], 'buy' | 'sell'>;
+  copy: Pick<ScreenerTranslations['options'], 'bullish' | 'bearish'>;
 }) {
   if (direction === 'BUY') {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold shadow-[0_0_8px_rgba(16,185,129,0.2)]">
         <span aria-hidden="true">▲</span>
-        <span>{copy.buy}</span>
+        <span>{copy.bullish}</span>
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-400 text-[10px] font-bold shadow-[0_0_8px_rgba(244,63,94,0.2)]">
       <span aria-hidden="true">▼</span>
-      <span>{copy.sell}</span>
+      <span>{copy.bearish}</span>
     </span>
   );
 }
@@ -297,7 +307,7 @@ function ScreenerCard({
             <bdi dir="ltr" className="text-sm font-mono font-bold text-[var(--foreground)]">{r.symbol}</bdi>
             <bdi dir="auto" className="text-[10px] text-[var(--text-secondary)] ms-1.5">{r.name}</bdi>
           </div>
-          <SignalBadge direction={r.direction} copy={copy.options} />
+          <DirectionCaseBadge direction={r.direction} copy={copy.options} />
         </div>
         <button
           onClick={() => toggleWatchlist(r.symbol)}
@@ -359,16 +369,12 @@ function ScreenerCard({
       {/* Row 6: Actions */}
       <div className="flex flex-wrap items-center gap-2">
         <Link
-          href={`/signal/${r.signalId}`}
+          href={`/track-record?symbol=${encodeURIComponent(r.symbol)}`}
+          data-evidence-event="record_inspected"
+          data-evidence-target={r.symbol}
           className="flex-1 text-center px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold transition-colors hover:bg-emerald-500/20"
         >
-          {copy.actions.viewSignal}
-        </Link>
-        <Link
-          href={`/alerts?symbol=${r.symbol}`}
-          className="px-3 py-2 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] text-xs font-medium transition-colors hover:text-[var(--foreground)]"
-        >
-          {copy.actions.alert}
+          {copy.actions.view}
         </Link>
       </div>
     </div>
@@ -398,15 +404,7 @@ export default function ScreenerClient() {
   const copy = getScreenerTranslations(locale);
   const language = getHtmlLanguage(locale);
   const numberFormatter = new Intl.NumberFormat(language);
-  const [filters, setFilters] = useState<Filters>({
-    rsiMin: 20,
-    rsiMax: 80,
-    macdFilter: 'any',
-    emaFilter: 'any',
-    minConfidence: 70,
-    timeframe: 'H1',
-    direction: 'all',
-  });
+  const [filters, setFilters] = useState<Filters>(STARTER_FILTERS);
 
   useEffect(() => {
     document.title = copy.documentTitle;
@@ -489,6 +487,13 @@ export default function ScreenerClient() {
       setResults(data.results);
       setMeta(data.meta);
       setScanError(false);
+      trackEvent('screener_scan_completed', {
+        result_count: data.results.length,
+        universe_count: data.meta.totalAssets,
+        provider_backed_count: data.meta.providerBackedAssets ?? 0,
+        timeframe: filters.timeframe,
+        minimum_rule_score: filters.minConfidence,
+      });
     } catch {
       if (seq === scanSeqRef.current) {
         // A failed scan is a server problem, not a filter problem — clear the
@@ -517,10 +522,15 @@ export default function ScreenerClient() {
 
   function exportCSV() {
     if (sorted.length === 0) return;
+    trackEvent('artifact_downloaded', {
+      artifact: 'screener_csv',
+      row_count: sorted.length,
+      timeframe: filters.timeframe,
+    });
     const headers = [
       'Symbol',
       'Name',
-      'Direction',
+      'Directional case',
       'Rule score (0-100)',
       'Price',
       'RSI',
@@ -530,7 +540,7 @@ export default function ScreenerClient() {
       'EMA50',
       'EMA Status',
       'Timeframe',
-      'Signal ID',
+      'Candidate ID',
     ];
     const escape = (v: string | number) => {
       const s = String(v);
@@ -600,23 +610,17 @@ export default function ScreenerClient() {
         </div>
 
         {/* Header */}
-        <div className="relative isolate mb-6 py-1">
-          <ProductHeroBackdrop
-            src="/brand/hero/tradeclaw-decision-lattice-v1.webp"
-            testId="screener-hero-art"
-          />
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-1">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-emerald-400 shrink-0">
-                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                <polyline points="16 7 22 7 22 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <h1 className="text-xl font-bold tracking-tight">{copy.title}</h1>
-            </div>
-            <p className="text-xs text-[var(--text-secondary)]">
-              {formatMessage(copy.subtitle, { count: numberFormatter.format(SYMBOLS.length) })}
-            </p>
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-emerald-400 shrink-0">
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <polyline points="16 7 22 7 22 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <h1 className="text-xl font-bold tracking-tight">{copy.title}</h1>
           </div>
+          <p className="text-xs text-[var(--text-secondary)]">
+            {formatMessage(copy.subtitle, { count: numberFormatter.format(SYMBOLS.length) })}
+          </p>
         </div>
 
         {/* Filter Bar */}
@@ -702,8 +706,8 @@ export default function ScreenerClient() {
                 ariaLabel={copy.filters.direction}
                 options={[
                   { value: 'all', label: copy.options.all },
-                  { value: 'BUY', label: copy.options.buy },
-                  { value: 'SELL', label: copy.options.sell },
+                  { value: 'BUY', label: copy.options.bullish },
+                  { value: 'SELL', label: copy.options.bearish },
                 ]}
                 onChange={v => patchFilter('direction', v)}
               />
@@ -773,7 +777,11 @@ export default function ScreenerClient() {
         {/* Stats Summary */}
         {meta && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <StatCard label={copy.stats.totalScanned} value={numberFormatter.format(meta.totalAssets)} sub={copy.stats.assetsTracked} />
+            <StatCard
+              label={copy.stats.totalScanned}
+              value={`${numberFormatter.format(meta.providerBackedAssets ?? 0)} / ${numberFormatter.format(meta.totalAssets)}`}
+              sub={copy.stats.assetsTracked}
+            />
             <StatCard
               label={copy.stats.matchingFilters}
               value={numberFormatter.format(meta.matching)}
@@ -785,7 +793,7 @@ export default function ScreenerClient() {
               value={meta.strongest ? `${meta.strongest.symbol}` : '—'}
               sub={meta.strongest
                 ? formatMessage(copy.stats.strongestDetail, {
-                    direction: meta.strongest.direction === 'BUY' ? copy.options.buy : copy.options.sell,
+                    direction: meta.strongest.direction === 'BUY' ? copy.options.bullish : copy.options.bearish,
                     score: numberFormatter.format(meta.strongest.confidence),
                   })
                 : copy.stats.noSignals}
@@ -890,23 +898,17 @@ export default function ScreenerClient() {
                       </p>
                       <div className="flex flex-wrap justify-center gap-2">
                         <button
-                          onClick={() => patchFilter('minConfidence', 50)}
-                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                        >
-                          {copy.empty.lowerScore}
-                        </button>
-                        <button
-                          onClick={() => { patchFilter('rsiMin', 10); patchFilter('rsiMax', 90); }}
-                          className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                        >
-                          {copy.empty.widenRsi}
-                        </button>
-                        <button
-                          onClick={() => { patchFilter('direction', 'all'); patchFilter('macdFilter', 'any'); patchFilter('emaFilter', 'any'); }}
+                          onClick={() => setFilters({ ...STARTER_FILTERS })}
                           className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                         >
                           {copy.empty.resetFilters}
                         </button>
+                        <Link href="/track-record" data-evidence-event="record_inspected" className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors">
+                          Track record
+                        </Link>
+                        <Link href="/methodology" data-evidence-event="methodology_viewed" className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors">
+                          Methodology
+                        </Link>
                       </div>
                     </>
                   )}
@@ -988,7 +990,7 @@ export default function ScreenerClient() {
 
                     {/* Signal */}
                     <td className="px-4 py-3 text-center">
-                      <SignalBadge direction={r.direction} copy={copy.options} />
+                      <DirectionCaseBadge direction={r.direction} copy={copy.options} />
                     </td>
 
                     {/* Confidence */}
@@ -1040,16 +1042,12 @@ export default function ScreenerClient() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         <Link
-                          href={`/signal/${r.signalId}`}
+                          href={`/track-record?symbol=${encodeURIComponent(r.symbol)}`}
+                          data-evidence-event="record_inspected"
+                          data-evidence-target={r.symbol}
                           className="px-2 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-[10px] text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:border-[var(--border)] transition-colors whitespace-nowrap"
                         >
                           {copy.actions.view}
-                        </Link>
-                        <Link
-                          href={`/alerts?symbol=${r.symbol}`}
-                          className="px-2 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--border)] text-[10px] text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:border-[var(--border)] transition-colors whitespace-nowrap"
-                        >
-                          {copy.actions.alert}
                         </Link>
                         <button
                           onClick={() => toggleWatchlist(r.symbol)}
@@ -1093,23 +1091,17 @@ export default function ScreenerClient() {
                           <p className="text-xs text-[var(--text-secondary)] mb-3">{copy.empty.adjustHint}</p>
                           <div className="flex justify-center gap-2">
                             <button
-                              onClick={() => patchFilter('minConfidence', 50)}
-                              className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                            >
-                              {copy.empty.lowerScore}
-                            </button>
-                            <button
-                              onClick={() => { patchFilter('rsiMin', 10); patchFilter('rsiMax', 90); }}
-                              className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                            >
-                              {copy.empty.widenRsi}
-                            </button>
-                            <button
-                              onClick={() => { patchFilter('direction', 'all'); patchFilter('macdFilter', 'any'); patchFilter('emaFilter', 'any'); }}
+                              onClick={() => setFilters({ ...STARTER_FILTERS })}
                               className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                             >
                               {copy.empty.resetFilters}
                             </button>
+                            <Link href="/track-record" data-evidence-event="record_inspected" className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-colors">
+                              Track record
+                            </Link>
+                            <Link href="/methodology" data-evidence-event="methodology_viewed" className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--glass-bg)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors">
+                              Methodology
+                            </Link>
                           </div>
                         </>
                       )}

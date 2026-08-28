@@ -172,7 +172,7 @@ describe('truth-in-labeling copy', () => {
     expect(sourceBadgeCopy).toMatch(/Runtime fallbacks may differ/i);
     expect(readme).toMatch(/gate-approved entry-like signals/i);
     expect(readme).not.toMatch(/instant per-signal alerts/i);
-    expect(localizedFaq).toMatch(/explicit allowlist/i);
+    expect(localizedFaq).toMatch(/broadcast and execution remain blocked/i);
     expect(localizedFaq).not.toMatch(/MetaApi credentials|credenciales de MetaApi|MetaApi 凭证|kelayakan MetaApi|بيانات اعتماد MetaApi/i);
   });
 

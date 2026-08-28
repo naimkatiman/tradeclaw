@@ -79,7 +79,10 @@ test.describe('Track Record page', () => {
     await expect(studyLink).toBeVisible({ timeout: 15_000 });
     await expect(studyLink).toHaveAttribute('href', '/track-record/study');
     await expect(
-      page.getByText(/Signal Study.*Sequential Simulation/i)
+      page.getByRole('main').getByRole('heading', {
+        name: /Signal Study.*Sequential Simulation/i,
+        level: 2,
+      })
     ).toHaveCount(0);
     await expect(page.locator('canvas')).toHaveCount(0);
   });
@@ -127,7 +130,9 @@ test.describe('Track Record page', () => {
       exact: true,
       level: 1,
     })).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText('collecting evidence', { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole('main').getByText('collecting evidence', { exact: true })
+    ).toBeVisible();
     await expect(page.getByText('Not the current strategy.', { exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Losing observed archive' })).toHaveAttribute(
       'href',

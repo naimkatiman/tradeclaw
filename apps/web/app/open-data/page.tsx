@@ -397,6 +397,8 @@ export default function OpenDataPage() {
             <div className="mt-6 divide-y divide-[var(--border)] border-y border-[var(--border)]">
               <a
                 href={`${REPO_ROOT_BLOB}/data/signal-log.json`}
+                data-evidence-event="artifact_downloaded"
+                data-evidence-target="data/signal-log.json"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex flex-col gap-1 py-5"
@@ -421,6 +423,8 @@ export default function OpenDataPage() {
 
               <a
                 href={`${REPO_ROOT_BLOB}/data/SIGNAL-LOG.md`}
+                data-evidence-event="artifact_downloaded"
+                data-evidence-target="data/SIGNAL-LOG.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex flex-col gap-1 py-5"
@@ -442,6 +446,8 @@ export default function OpenDataPage() {
 
               <a
                 href={`${REPO_BLOB}/REGISTRY.md`}
+                data-evidence-event="artifact_downloaded"
+                data-evidence-target="docs/research/experiments/REGISTRY.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex flex-col gap-1 py-5"
@@ -465,6 +471,8 @@ export default function OpenDataPage() {
                 <a
                   key={a.file}
                   href={`${REPO_BLOB}/${a.file}`}
+                  data-evidence-event="artifact_downloaded"
+                  data-evidence-target={a.file}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex flex-col gap-1 py-5"
@@ -570,6 +578,7 @@ export default function OpenDataPage() {
             <div className="mt-5 flex flex-wrap gap-3">
               <a
                 href="/methodology"
+                data-evidence-event="methodology_viewed"
                 className="rounded-[var(--radius-pill)] border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors duration-200 hover:text-[var(--foreground)]"
               >
                 Methodology
@@ -582,6 +591,7 @@ export default function OpenDataPage() {
               </a>
               <a
                 href="/track-record"
+                data-evidence-event="record_inspected"
                 className="rounded-[var(--radius-pill)] border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition-colors duration-200 hover:text-[var(--foreground)]"
               >
                 Signal study

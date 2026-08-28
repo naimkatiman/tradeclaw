@@ -1,15 +1,9 @@
 import { expect, test } from '@playwright/test';
 
 const HERO_PAGES = [
-  { path: '/', testId: 'homepage-hero-art' },
-  { path: '/today', testId: 'today-hero-art' },
-  { path: '/dashboard', testId: 'signals-hero-art' },
-  { path: '/copilot', testId: 'copilot-hero-art' },
-  { path: '/screener', testId: 'screener-hero-art' },
-  { path: '/backtest', testId: 'backtest-hero-art' },
-  { path: '/leaderboard', testId: 'leaderboard-hero-art' },
   { path: '/track-record', testId: 'track-record-hero-art' },
   { path: '/track-record/study', testId: 'signal-study-hero-art' },
+  { path: '/track-record/alpha', testId: 'd1-alpha-hero-art' },
 ] as const;
 
 const FOCUSABLE_SELECTOR = [
@@ -22,7 +16,7 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ');
 
-test.describe('generated product hero artwork', () => {
+test.describe('generated evidence hero artwork', () => {
   for (const { path, testId } of HERO_PAGES) {
     test(`${path} keeps its hero background decorative and responsive`, async ({ page }, testInfo) => {
       const mobile = testInfo.project.name === 'mobile';
@@ -31,7 +25,7 @@ test.describe('generated product hero artwork', () => {
         : { width: 1440, height: 900 });
       await page.goto(path, { waitUntil: 'domcontentloaded' });
 
-      const artwork = page.getByTestId(testId);
+      const artwork = page.getByRole('main').getByTestId(testId);
       const image = artwork.locator('img');
 
       // Keep a real decorative image in the DOM on every viewport. The mobile
