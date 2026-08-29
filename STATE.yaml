@@ -8,11 +8,12 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 public_research_evidence_csv_2026_08_29:
-  at: 2026-08-30T01:14:12+08:00
+  at: 2026-08-30T01:17:48+08:00
   agent: TradeClaw PM agent
-  status: verified_precommit_ready_to_commit
+  status: verified_committed_local_closing_state
   scope: Give a non-technical public reviewer one spreadsheet-ready download of every awesome-systematic-trading candidate TradeClaw has examined, without transforming JSON, downloading 55 untouched discoveries, or enabling favorable-result selection
   base_commit: bf4bec9d0908950c0052b1201fc04a59d6d112de
+  implementation_commit: b5d4cc67987c213c5df311a5eabaacc7e725f838
   branch: agent/research-intake-desk-20260829
   current_cycle_id: 2026-08-29T15:00:00.000Z/PT3H
   current_cycle_status: complete
@@ -179,10 +180,19 @@ public_research_evidence_csv_2026_08_29:
     114/114 against the final precommit tree; independent CSV parsing, the
     deterministic evidence and eight-baseline replay, STATE parse, diff
     whitespace, and exact nine-path scope all pass again.
+  implementation_commit_verification: >-
+    PASS - local commit b5d4cc67987c213c5df311a5eabaacc7e725f838 contains
+    exactly the nine verified implementation paths, has no staged remainder,
+    and was created without push, merge, deployment, publication, or activation.
+  closure_verification: >-
+    PASS - the corrected literal-path closure command exercises all 26 adjacent
+    suites and passes 114/114 after recording the exact implementation commit;
+    STATE parses, diff whitespace passes, and only STATE.yaml remains modified
+    for the local closure commit.
   admin_visual_v0_changed: false
   public_visual_changed: false
-  current_step: Create the local implementation commit without pushing, deploying, publishing, or activating anything
-  next_action: Record the implementation hash in a state-only closure commit, update shared MemoryCore, and leave the isolated branch clean; preserve the sole TC-260 receipt until exact 18:00Z
+  current_step: Create the verified state-only closure commit, save the completed increment to shared MemoryCore, and confirm a clean isolated branch
+  next_action: Preserve the sole TC-260 receipt until exact 18:00Z; at rollover, audit the next cost-first candidate before any new research or marketing handoff
   external_actions: none
   safety: No candidate stage, receipt, source data, return, preregistration, result artifact, marketing handoff, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
 
