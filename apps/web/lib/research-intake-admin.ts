@@ -21,11 +21,14 @@ import {
   type ResearchLoopWindow,
 } from './research-loop';
 import {
+  RESEARCH_LOOP_RECEIPTS,
   getResearchLoopReceiptSnapshot,
+  type ResearchLoopReceipt,
   type ResearchLoopReceiptSnapshot,
 } from './research-loop-receipts';
 import {
   getResearchLoopMarketingReview,
+  type ResearchLoopMarketingHandoff,
   type ResearchLoopMarketingReview,
 } from './research-loop-marketing';
 
@@ -94,6 +97,32 @@ export interface ResearchIntakeAdminPayload {
     hasNextPage: boolean;
   };
   records: readonly ResearchIntakeAdminRecord[];
+}
+
+export interface ResearchIntakeAdminCandidatePayload {
+  schemaVersion: 1;
+  access: ResearchIntakeAdminPayload['access'];
+  source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
+  selectionPolicy: string;
+  workflow: typeof RESEARCH_INTAKE_WORKFLOW;
+  researchLoop: ResearchIntakeAdminPayload['researchLoop'];
+  catalogSummary: ReturnType<typeof summarizeResearchIntake>;
+  record: ResearchIntakeAdminRecord;
+  candidateWorkflow: {
+    receiptCount: number;
+    receipts: readonly ResearchLoopReceipt[];
+    latestReceipt: ResearchLoopReceipt | null;
+    marketingHandoff: ResearchLoopMarketingHandoff | null;
+    controls: {
+      humanReviewRequired: boolean;
+      publicationApproved: false;
+      automaticPublication: false;
+      automaticPosting: false;
+      tradingApproved: false;
+      automaticTrading: false;
+      externalActions: 'none';
+    };
+  };
 }
 
 export class ResearchIntakeAdminQueryError extends Error {
@@ -200,24 +229,57 @@ function asIntakeFilters(query: ResearchIntakeAdminQuery): ResearchIntakeFilters
   };
 }
 
+function buildResearchIntakeAdminObservation(at: Date | string | number) {
+  const observedDate = new Date(at instanceof Date ? at.getTime() : at);
+  const observedAt = observedDate.toISOString();
+  const currentWindow = getResearchLoopWindow(observedDate);
+  const receiptSnapshot = getResearchLoopReceiptSnapshot(observedDate);
+  const marketingReview = getResearchLoopMarketingReview(observedDate);
+
+  return {
+    observedAt,
+    observedAtMs: observedDate.getTime(),
+    marketingReview,
+    researchLoop: {
+      observedAt,
+      alignment: 'UTC' as const,
+      cadence: 'PT3H' as const,
+      currentWindow,
+      nextRolloverAt: currentWindow.endsAt,
+      ...receiptSnapshot,
+    },
+  };
+}
+
+function toAdminRecord(
+  record: ResearchIntakeRecord,
+  marketingHandoffVisible: boolean,
+): ResearchIntakeAdminRecord {
+  return {
+    ...record,
+    marketingReviewDraft: marketingHandoffVisible
+      ? buildMarketingReviewDraft(record)
+      : null,
+  };
+}
+
 export function buildResearchIntakeAdminPayload(
   searchParams: URLSearchParams,
   at: Date | string | number = new Date(),
 ): ResearchIntakeAdminPayload {
   const query = parseResearchIntakeAdminQuery(searchParams);
-  const currentWindow = getResearchLoopWindow(at);
-  const receiptSnapshot = getResearchLoopReceiptSnapshot(at);
-  const marketingReview = getResearchLoopMarketingReview(at);
-  const observedAt = new Date(at instanceof Date ? at.getTime() : at).toISOString();
+  const observation = buildResearchIntakeAdminObservation(at);
+  const visibleMarketingCandidates = new Set(
+    observation.marketingReview.handoffs.map((handoff) => handoff.candidateId),
+  );
   const filtered = filterResearchIntake(
     SYSTEMATIC_RESEARCH_INTAKE,
     asIntakeFilters(query),
   );
   const start = (query.page - 1) * query.limit;
-  const records = filtered.slice(start, start + query.limit).map((record) => ({
-    ...record,
-    marketingReviewDraft: buildMarketingReviewDraft(record),
-  }));
+  const records = filtered
+    .slice(start, start + query.limit)
+    .map((record) => toAdminRecord(record, visibleMarketingCandidates.has(record.id)));
   const totalPages = Math.ceil(filtered.length / query.limit);
 
   return {
@@ -230,15 +292,8 @@ export function buildResearchIntakeAdminPayload(
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
-    researchLoop: {
-      observedAt,
-      alignment: 'UTC',
-      cadence: 'PT3H',
-      currentWindow,
-      nextRolloverAt: currentWindow.endsAt,
-      ...receiptSnapshot,
-    },
-    marketingReview,
+    researchLoop: observation.researchLoop,
+    marketingReview: observation.marketingReview,
     appliedFilters: query,
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
     filteredSummary: summarizeResearchIntake(filtered),
@@ -252,5 +307,57 @@ export function buildResearchIntakeAdminPayload(
       hasNextPage: start + records.length < filtered.length,
     },
     records,
+  };
+}
+
+/**
+ * Protected exact-ID projection for one current compiled candidate. Receipt
+ * and marketing provenance are limited to entries visible at `at`.
+ */
+export function buildResearchIntakeAdminCandidatePayload(
+  candidateId: string,
+  at: Date | string | number = new Date(),
+): ResearchIntakeAdminCandidatePayload | null {
+  const candidate = SYSTEMATIC_RESEARCH_INTAKE.find((record) => record.id === candidateId);
+  if (!candidate) return null;
+
+  const observation = buildResearchIntakeAdminObservation(at);
+  const receipts = RESEARCH_LOOP_RECEIPTS.filter(
+    (entry) =>
+      entry.candidateId === candidateId &&
+      Date.parse(entry.recordedAt) <= observation.observedAtMs,
+  );
+  const marketingHandoff = observation.marketingReview.handoffs.find(
+    (handoff) => handoff.candidateId === candidateId,
+  ) ?? null;
+
+  return {
+    schemaVersion: 1,
+    access: {
+      mode: 'admin-read-only',
+      grantsPublicationAuthority: false,
+      grantsTradingAuthority: false,
+    },
+    source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
+    selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
+    workflow: RESEARCH_INTAKE_WORKFLOW,
+    researchLoop: observation.researchLoop,
+    catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
+    record: toAdminRecord(candidate, marketingHandoff !== null),
+    candidateWorkflow: {
+      receiptCount: receipts.length,
+      receipts,
+      latestReceipt: receipts.at(-1) ?? null,
+      marketingHandoff,
+      controls: {
+        humanReviewRequired: marketingHandoff !== null,
+        publicationApproved: false,
+        automaticPublication: false,
+        automaticPosting: false,
+        tradingApproved: false,
+        automaticTrading: false,
+        externalActions: 'none',
+      },
+    },
   };
 }

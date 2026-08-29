@@ -1,11 +1,91 @@
 project: tradeclaw
-updated: 2026-08-29T23:52:14+08:00
+updated: 2026-08-30T00:10:08+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+admin_research_candidate_detail_2026_08_29:
+  at: 2026-08-30T00:10:08+08:00
+  agent: TradeClaw PM agent
+  status: verified_pending_local_commit
+  scope: Give an authenticated admin one exact candidate, its current evidence, and observation-consistent receipt and marketing provenance without filtering or paging through the complete intake
+  base_commit: 5d49a8a9e0e3955b78a4b002c2b043e97451ccb1
+  implementation_commit: pending_local_commit
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-29T15:00:00.000Z/PT3H
+  current_cycle_receipt: TC-260
+  new_research_receipt_created: false
+  return_calculated: false
+  finding: The protected whole-catalog endpoint supports filters and pagination but no canonical candidate deep link; an admin client must reconstruct exact lookup, then separately join receipt and marketing handoff state, and its record-level marketingReviewDraft is currently built without checking the handoff availability time
+  library_search: No reusable admin detail, protected detail, authenticated candidate-detail, or auth-first detail pattern exists in shared MemoryCore; reuse TradeClaw's assertAdminApi boundary, private no-store response contract, pinned intake, receipt ledger, and marketing handoff ledger
+  acceptance_gates:
+    - GET /api/admin/research-intake/{candidateId} authenticates before awaiting path parameters, reading the clock, looking up a candidate, building evidence, or exposing validation detail
+    - Authorized lookup is exact and case-sensitive and never aliases, trims, fuzzy-matches, or selects by title, task ID, source position, or upstream metric
+    - A success response returns one current compiled admin record plus pinned source, selection policy, workflow, whole-catalog summary, canonical UTC loop context, and all candidate-specific receipts plus marketing handoff visible at the server observation time
+    - Candidate workflow provenance includes receipt count, full visible receipt history, explicit latest receipt, human-review handoff or no handoff; every publication, automatic publication/posting, trading, and external-action control remains false or none
+    - Record-level marketingReviewDraft is null until its canonical handoff availability time and present only when that candidate's handoff is visible; the existing whole-catalog admin payload gains the same observation consistency
+    - TC-260 returns its exact 15:00Z no-go receipt and no draft/handoff, TC-259 returns its exact 12:00Z failed receipt and human-review-only handoff after 12:47:51Z, TC-255 retains pre-loop handoff with no invented receipt, and untouched candidates have neither
+    - Denied callers receive only the existing generic 401 body; authorized unknown, case-mutated, and whitespace-mutated IDs receive one generic non-reflective 404 and no candidate, source, receipt, marketing, or validation detail
+    - Success, denial, and not-found responses are dynamic, private, no-store, vary on Cookie and Authorization, deny CORS, ignore query filters, and expose only GET
+    - The existing whole-admin payload at a post-handoff fixed instant, protected review CSV, public JSON/CSV, receipt ledger, and marketing handoffs remain byte-identical; no visual page or OpenAPI/public contract changes
+    - Intentional RED, focused and adjacent tests, typecheck, lint, repository tests, source/YAML/hash/scope audits, and the required npm run build pass before a local commit
+  baseline_audit_at: 2026-08-29T15:59:59.999Z
+  baseline_payloads:
+    full_admin_json_bytes: 42354
+    full_admin_json_sha256: 0cd758e2cb630ada326fdaefaacf6585b71ab102f663f3c8df6638a9db10b300
+    protected_review_csv_bytes: 6350
+    protected_review_csv_sha256: 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    protected_review_csv_physical_lines: 5
+    public_json_bytes: 59873
+    public_json_sha256: ade593cd52274f7386cb4a505c2e8bf2abd7836685c927f0dfba85a0f0546dc6
+    public_csv_bytes: 36725
+    public_csv_sha256: f51787d97c5c21aef4751135899bc0e1c310155cde7c07c7961a2d332c6f54c6
+    public_csv_physical_lines: 62
+    receipt_task_ids: TC-256, TC-257, TC-258, TC-259, TC-260
+    marketing_handoff_task_ids: TC-255, TC-257, TC-258, TC-259
+  red_evidence: PASS - all three focused suites failed only at the intended absent admin candidate-payload export, absent protected dynamic route used by both mocked and real-cookie boundary suites, and the confirmed record-level TC-259 draft leak at 12:47:50.999Z before its 12:47:51.000Z handoff; no unrelated product assertion failed
+  implementation: Added an exact candidate builder with current compiled evidence plus observation-filtered receipt history/latest receipt and marketing provenance, made paginated admin record drafts follow the same handoff availability boundary, and added a dynamic auth-before-params GET route with private no-store headers and one generic 404
+  focused_verification: PASS - after receipt-history hardening, the builder, mocked route, and real signed-cookie suites pass 13/13; TC-255/259/260 and untouched states, complete visible receipt history/latest receipt, one-millisecond temporal boundaries, exact/case-sensitive lookup, query independence, auth ordering, generic denials/not-found, GET-only behavior, and every false authority control are covered
+  adjacent_verification: PASS - 19 protected/public candidate, full intake, CSV, receipt, loop, marketing, real-auth, README, and OpenAPI suites pass 92/92 after hardening
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    full_admin_json_bytes: 42354
+    full_admin_json_sha256: 0cd758e2cb630ada326fdaefaacf6585b71ab102f663f3c8df6638a9db10b300
+    full_admin_json_unchanged: true
+    tc260_admin_candidate_json_bytes: 9230
+    tc260_admin_candidate_json_sha256: df2a11b661c4821b1148a9ff1e2bef2af0331b2fdea95a9b966dfe7f806a6296
+    tc259_admin_candidate_json_bytes: 14701
+    tc259_admin_candidate_json_sha256: b8bb4c49fdbd11c7f6224a4819b206866628e958ddbbf2967368478498bf787c
+    protected_review_csv_bytes: 6350
+    protected_review_csv_sha256: 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    protected_review_csv_unchanged: true
+    public_json_bytes: 59873
+    public_json_sha256: ade593cd52274f7386cb4a505c2e8bf2abd7836685c927f0dfba85a0f0546dc6
+    public_json_unchanged: true
+    public_csv_bytes: 36725
+    public_csv_sha256: f51787d97c5c21aef4751135899bc0e1c310155cde7c07c7961a2d332c6f54c6
+    public_csv_physical_lines: 62
+    public_csv_unchanged: true
+  receipt_ledger_unchanged: TC-256, TC-257, TC-258, TC-259, TC-260
+  marketing_handoffs_unchanged: TC-255, TC-257, TC-258, TC-259
+  typecheck_verification: PASS - signals package build and web TypeScript completed without errors
+  changed_file_lint_verification: PASS - every changed TypeScript file has zero lint findings
+  lint_verification: PASS - full web lint completes with zero errors and the same 21 inherited warnings; no warning points to this increment
+  source_verification: PASS - the independent source verifier reconstructs all 61 candidates at exact commit d9c98521 and README SHA-256 67f4c496 with gross-of-trading-costs discovery-only treatment
+  repository_test_verification: PASS - all 265 runnable Jest suites and 2,031 tests pass with 3 suites and 26 tests skipped; forceExit closed the repository's inherited open handle after the complete green summary
+  build_verification: PASS - the required root build compiled signals, trading-agents, and Next.js and generated 327/327 pages; /api/admin/research-intake/{candidateId} is registered as a dynamic route and the public intake routes retain their prior static/dynamic behavior; only inherited NFT tracing, middleware deprecation, edge-static-generation, and Node url.parse warnings remain
+  state_and_scope_verification: PASS - STATE parses, diff whitespace passes, and exactly six intended paths are changed; Docker Compose, manifests, lockfiles, migrations, source catalog data, research sources/results/artifacts/scripts, public pages/API/docs, protected visual pages, database, signals, strategies, allocation, broadcast, execution, billing, and auth semantics have zero diff
+  visual_verification: No public or protected admin page, layout, copy, style, or interaction changed; this increment supplies the protected read contract for a future confirmed admin visual
+  precommit_verification: PASS pending implementation hash - nine exact protected candidate/admin/auth/receipt/marketing/review-CSV suites pass 48/48 after final STATE closure, STATE parses, and diff whitespace passes
+  admin_visual_v0_changed: false
+  public_surface_changed: false
+  current_step: Run final focused/state checks, create the verified local implementation commit, write its hash back to STATE and shared MemoryCore, create a state-only closure commit, and confirm a clean branch
+  next_action: Preserve the completed 15:00Z receipt and wait until exact 18:00Z before screening another candidate; do not publish, deploy, or activate any research state
+  external_actions: none
+  safety: No candidate stage, receipt, source data, return, preregistration, result artifact, marketing handoff, UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
 
 public_research_candidate_detail_2026_08_29:
   at: 2026-08-29T23:52:14+08:00
