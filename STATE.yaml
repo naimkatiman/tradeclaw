@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T15:31:45+08:00
+updated: 2026-08-29T15:32:54+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,13 +8,14 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_intake_desk_2026_08_29:
-  at: 2026-08-29T15:31:45+08:00
+  at: 2026-08-29T15:32:54+08:00
   agent: TradeClaw PM agent
   status: foundation_complete_source_no_go_ui_checkpoint
   scope: Turn the protected strategy-library surface into a simple cost-first research intake desk and connect evidence-complete findings to a human-reviewed three-hour research/marketing loop
   base_commit: f7936bcf627f208ac0379412453976b17218608b
+  implementation_commit: bce46c05b2c61613981616102535e2f3be666950
   branch: agent/research-intake-desk-20260829
-  current_step: The pinned intake foundation now includes one primary-source no-go and remains fully non-visual; visual v0 is paused at the required UI direction checkpoint
+  current_step: The pinned intake foundation and first primary-source no-go are committed locally; visual v0 is paused at the required UI direction checkpoint
   source: >
     Populate discovery metadata from the 61 highlighted strategies in the exact
     paperswithbacktest/awesome-systematic-trading commit
@@ -5014,6 +5015,8 @@ next_actions:
       the 325-page production build pass. The complete experiment shelf now
       retains both the canonical and superseded TC-255 artifacts, and the Windows
       boundary test is line-ending independent. The admin visual redesign and
-      featured public TC-255 card remain confirmation-gated. Commit, push, merge,
-      deployment, publication, billing, signal, allocation, broadcast, and
-      execution state remain unchanged.
+      featured public TC-255 card remain confirmation-gated. The verified
+      non-visual foundation is committed locally as
+      bce46c05b2c61613981616102535e2f3be666950. Push, PR, merge, deployment,
+      publication, billing, signal, allocation, broadcast, and execution state
+      remain unchanged.
