@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T22:57:33+08:00
+updated: 2026-08-29T22:59:20+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,9 +10,10 @@ description: >
 admin_research_review_csv_export_2026_08_29:
   at: 2026-08-29T22:47:24+08:00
   agent: TradeClaw PM agent
-  status: verified_pending_local_commit
+  status: verified_implementation_committed_local_state_closure_pending
   scope: Give authenticated admins one complete spreadsheet-ready review queue over the already verified server-owned research marketing handoffs without changing the confirmation-gated admin visual design
   base_commit: 870d53203a13980896eae742f7faf37562118fdd
+  implementation_commit: 111042e9c5b34dcacb4f6bab426a62ff24d5c8c6
   branch: agent/research-intake-desk-20260829
   finding: The protected admin read model already exposes a chronological and filter-independent four-draft handoff ledger, but an operator has no direct review artifact and would have to copy nested JSON fields manually before fact-checking or editing the drafts
   library_search: No reusable admin CSV, private export, or review-queue pattern exists in shared MemoryCore; reuse the repository's authenticated API, private no-store, CSV attachment, and formula-neutralization conventions while keeping the projection research-specific
@@ -48,8 +49,9 @@ admin_research_review_csv_export_2026_08_29:
   boundary_time_audit: The production build and first scope audit closed at 2026-08-29T14:56:30Z, before the exact 15:00:00Z next-receipt boundary; this remains a same-window product increment and no new research receipt may be created
   precommit_verification: PASS - final serializer/admin/receipt suites pass 35/35; STATE and the unchanged 12:00Z/PT3H receipt parse; diff whitespace passes; exactly the five intended state, serializer, route, and test paths are changed; public JSON/CSV, protected admin JSON, README, Docker, manifests, lockfiles, marketing ledger, UI, research inputs/artifacts/scripts, signals, strategies, execution, and database surfaces have zero diff
   verification: PASS - intentional missing-module RED 2 suites; focused 6/6; adjacent 67/67; final protected/state set 35/35; deterministic 6,350-byte CSV; independent 4x26 spreadsheet parse; repository Jest 260 suites and 2,011 tests; web typecheck; lint zero errors with 21 inherited warnings; source 61/61; YAML, diff, path, and protected-surface audits; required 327-page production build
-  current_step: Stage and commit the five verified paths locally, capture the implementation hash, update shared MemoryCore, then commit the state-only closure
-  next_action: Leave the isolated branch clean after local commits; at or after the exact 15:00Z boundary, open at most one new screened research receipt without automatic publication, posting, deployment, or trading
+  memory_update: Saved the exact protected route, 26-column schema, four-row provenance, payload hash, verification, implementation hash, unchanged receipt boundary, visual checkpoint, and no-external-action constraints to shared current-session and TradeClaw project memory
+  current_step: Shared MemoryCore updated; validate and locally commit this state-only closure, then leave the isolated branch clean
+  next_action: At or after exact 2026-08-29T15:00:00.000Z, open at most one new screened research receipt without automatic selection, publication, posting, deployment, or trading; the admin visual v0 remains confirmation-gated
   external_actions: none
   safety: No source data, result, artifact, receipt, outbound draft, UI, database, Docker, dependency, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
