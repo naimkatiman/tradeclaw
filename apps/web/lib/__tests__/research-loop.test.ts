@@ -76,12 +76,15 @@ describe('three-hour research and marketing loop', () => {
     const draft = buildMarketingReviewDraft(record);
     expect(draft).toMatchObject({
       candidateId: 'seasonality-trend-following-and-mean-reversion-in-bitcoin',
-      title: 'A spectacular Bitcoin backtest failed its post-paper holdout',
+      title: 'Bitcoin MAX10/MIN10 failed its post-paper holdout',
       evidenceBasis: 'modeled-research',
       disposition: 'human-review-draft-only',
       publishApproved: false,
     });
-    expect(draft?.summary).toContain('BTC gross +13177.69% became -65.66% net');
+    expect(draft?.summary).toBe(
+      'BTC holdout gross +56.54% became -65.66% net under frozen spot costs.',
+    );
+    expect(draft?.summary).not.toContain('+13177.69%');
     expect(draft?.body).toContain('annualized at +105.56%');
     expect(draft?.body).toContain('+56.54% gross to -14.63% with the fee alone and -65.66%');
     expect(draft?.body).toContain('ETH repeated the break: +30.27% holdout gross became -67.28% net');
@@ -110,5 +113,22 @@ describe('three-hour research and marketing loop', () => {
       tradeClawEvidence: null,
     });
     expect(buildMarketingReviewDraft(sourceNoGo)).toBeNull();
+  });
+
+  it('fails closed when a future evidence task has no explicit marketing branch', () => {
+    const record = SYSTEMATIC_RESEARCH_INTAKE.find(
+      (candidate) => candidate.tradeClawEvidence?.taskId === 'TC-255',
+    );
+    if (!record?.tradeClawEvidence) throw new Error('TC-255 intake record is missing');
+
+    const unsupported = {
+      ...record,
+      tradeClawEvidence: {
+        ...record.tradeClawEvidence,
+        taskId: 'TC-999',
+      },
+    } as unknown as Parameters<typeof buildMarketingReviewDraft>[0];
+
+    expect(buildMarketingReviewDraft(unsupported)).toBeNull();
   });
 });

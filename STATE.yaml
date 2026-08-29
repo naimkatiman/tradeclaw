@@ -1,11 +1,30 @@
 project: tradeclaw
-updated: 2026-08-29T18:49:02+08:00
+updated: 2026-08-29T18:58:01+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+marketing_review_claim_integrity_repair_2026_08_29:
+  at: 2026-08-29T18:56:25+08:00
+  agent: TradeClaw PM agent
+  status: verified_claim_window_and_future_task_fail_closed
+  scope: Repair the human-review marketing handoff so every gross-versus-net comparison uses one matching sample window and future evidence types cannot silently inherit another study's copy
+  base_commit: 03c7eb0559e3a09ae6790c7f7756152293f91ae7
+  branch: agent/research-intake-desk-20260829
+  finding: The TC-258 draft summary paired the full-history BTC gross return of 13,177.69% with the post-paper holdout net return of -65.66% as if they were comparable, and labeled the backtest spectacular. The fallback branch also rendered any unknown future evidence task as TC-255.
+  repair: The TC-258 title now leads with the tested MAX10/MIN10 rule and failed holdout; its summary compares the same holdout window at +56.54% gross and -65.66% net under frozen spot costs. Unknown future task IDs now return no draft at runtime, and the exhaustive never boundary makes TypeScript reject a newly added evidence union member until an explicit marketing branch is implemented.
+  verification: The focused test was observed failing on both the mixed-window claim and unknown-task fallback before the repair, then passed 8/8. Adjacent intake, admin API, shelf, and loop tests passed 38/38; web typecheck passed; repository Jest passed 249 suites and 1,954 tests with three suites and 26 tests skipped; full lint completed with zero errors and the same 21 inherited warnings; YAML, frozen-boundary, and diff checks passed; the required build compiled signals and trading-agents and generated all 325 Next.js pages. Existing non-blocking warning categories remain unchanged.
+  current_cycle_receipt_unchanged: 2026-08-29T09:00:00.000Z/PT3H
+  tc259_preregistration_frozen: false
+  tc259_returns_opened: false
+  tc259_catalog_stage_advanced: false
+  tc259_cycle_receipt_created: false
+  marketing_publish_approved: false
+  external_actions: none
+  safety: No study, source data, return, artifact, UI, runtime, database, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
 experiment_registry_integrity_repair_2026_08_29:
   at: 2026-08-29T18:45:20+08:00

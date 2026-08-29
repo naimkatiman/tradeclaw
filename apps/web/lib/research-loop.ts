@@ -44,6 +44,11 @@ function signedPercent(ratio: number): string {
   return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
 }
 
+function unsupportedEvidence(evidence: never): null {
+  void evidence;
+  return null;
+}
+
 export function buildMarketingReviewDraft(
   record: ResearchIntakeRecord,
 ): MarketingReviewDraft | null {
@@ -75,9 +80,9 @@ export function buildMarketingReviewDraft(
   if (evidence.taskId === 'TC-258') {
     return {
       candidateId: record.id,
-      title: 'A spectacular Bitcoin backtest failed its post-paper holdout',
+      title: 'Bitcoin MAX10/MIN10 failed its post-paper holdout',
       summary:
-        `BTC gross ${signedPercent(evidence.btc.grossCompoundedReturn)} became ${signedPercent(evidence.btc.holdoutNetCompoundedReturn)} net in the untouched post-paper holdout under frozen spot costs.`,
+        `BTC holdout gross ${signedPercent(evidence.btc.holdoutGrossCompoundedReturn)} became ${signedPercent(evidence.btc.holdoutNetCompoundedReturn)} net under frozen spot costs.`,
       body: [
         `We independently replicated “${record.title}” from hashed Gemini inputs after freezing exact MAX10/MIN10 rules, fills, costs, folds, and a 2022-2026 holdout.`,
         `The zero-cost paper-window control annualized at ${signedPercent(evidence.paperWindowGrossControl.annualizedReturn)} versus the source's ${signedPercent(evidence.paperWindowGrossControl.sourceTargetAnnualizedReturn)} audit target.`,
@@ -93,6 +98,8 @@ export function buildMarketingReviewDraft(
       artifactPath: evidence.artifactPath,
     };
   }
+
+  if (evidence.taskId !== 'TC-255') return unsupportedEvidence(evidence);
 
   return {
     candidateId: record.id,
