@@ -229,6 +229,15 @@ export interface ResearchIntakeAdminRecord extends ResearchIntakeRecord {
   marketingReviewDraft: MarketingReviewDraft | null;
 }
 
+export interface ResearchIntakeCandidateLinks {
+  adminCandidate: string;
+  publicCandidate: string;
+}
+
+export interface ResearchIntakeAdminCatalogRecord extends ResearchIntakeAdminRecord {
+  links: ResearchIntakeCandidateLinks;
+}
+
 export interface ResearchIntakeAdminFacetOption<T extends string> {
   value: T;
   label: string;
@@ -313,7 +322,7 @@ export interface ResearchIntakeAdminPayload {
       last: string;
     };
   };
-  records: readonly ResearchIntakeAdminRecord[];
+  records: readonly ResearchIntakeAdminCatalogRecord[];
 }
 
 export interface ResearchIntakeAdminCandidatePayload {
@@ -347,10 +356,7 @@ export interface ResearchIntakeAdminEvidenceItem {
   evidencePosition: number;
   record: ResearchIntakeAdminRecord;
   candidateWorkflow: ResearchIntakeAdminCandidatePayload['candidateWorkflow'];
-  links: {
-    adminCandidate: string;
-    publicCandidate: string;
-  };
+  links: ResearchIntakeCandidateLinks;
 }
 
 export interface ResearchIntakeAdminEvidencePayload {
@@ -397,10 +403,7 @@ export interface ResearchIntakeAdminReviewItem {
   >;
   handoff: ResearchLoopMarketingHandoff;
   receipt: ResearchLoopReceipt | null;
-  links: {
-    adminCandidate: string;
-    publicCandidate: string;
-  };
+  links: ResearchIntakeCandidateLinks;
   controls: ResearchIntakeAdminReviewControls;
 }
 
@@ -853,6 +856,24 @@ function toAdminRecord(
   };
 }
 
+function buildResearchIntakeCandidateLinks(candidateId: string): ResearchIntakeCandidateLinks {
+  const encodedCandidateId = encodeURIComponent(candidateId);
+  return {
+    adminCandidate: `/api/admin/research-intake/${encodedCandidateId}`,
+    publicCandidate: `/api/research/intake/${encodedCandidateId}`,
+  };
+}
+
+function toAdminCatalogRecord(
+  record: ResearchIntakeRecord,
+  marketingHandoffVisible: boolean,
+): ResearchIntakeAdminCatalogRecord {
+  return {
+    ...toAdminRecord(record, marketingHandoffVisible),
+    links: buildResearchIntakeCandidateLinks(record.id),
+  };
+}
+
 function buildResearchIntakeAdminCandidateWorkflow(
   candidate: ResearchIntakeRecord,
   observation: ReturnType<typeof buildResearchIntakeAdminObservation>,
@@ -923,7 +944,6 @@ function toAdminReviewItem(
     throw new Error(`marketing review ${handoff.taskId} has no matching cycle receipt`);
   }
 
-  const encodedCandidateId = encodeURIComponent(candidate.id);
   return {
     queuePosition,
     candidate: {
@@ -938,10 +958,7 @@ function toAdminReviewItem(
     },
     handoff,
     receipt,
-    links: {
-      adminCandidate: `/api/admin/research-intake/${encodedCandidateId}`,
-      publicCandidate: `/api/research/intake/${encodedCandidateId}`,
-    },
+    links: buildResearchIntakeCandidateLinks(candidate.id),
     controls: ADMIN_REVIEW_CONTROLS,
   };
 }
@@ -962,7 +979,10 @@ export function buildResearchIntakeAdminPayload(
   const start = (query.page - 1) * query.limit;
   const records = filtered
     .slice(start, start + query.limit)
-    .map((record) => toAdminRecord(record, visibleMarketingCandidates.has(record.id)));
+    .map((record) => toAdminCatalogRecord(
+      record,
+      visibleMarketingCandidates.has(record.id),
+    ));
   const totalPages = Math.ceil(filtered.length / query.limit);
   const hasPreviousPage = filtered.length > 0 && query.page > 1;
   const hasNextPage = start + records.length < filtered.length;
@@ -1079,8 +1099,6 @@ export function buildResearchIntakeAdminEvidencePayload(
         record,
         observation,
       );
-      const encodedCandidateId = encodeURIComponent(record.id);
-
       return {
         evidencePosition: index + 1,
         record: toAdminRecord(
@@ -1088,10 +1106,7 @@ export function buildResearchIntakeAdminEvidencePayload(
           candidateWorkflow.marketingHandoff !== null,
         ),
         candidateWorkflow,
-        links: {
-          adminCandidate: `/api/admin/research-intake/${encodedCandidateId}`,
-          publicCandidate: `/api/research/intake/${encodedCandidateId}`,
-        },
+        links: buildResearchIntakeCandidateLinks(record.id),
       };
     }),
   };

@@ -1,11 +1,177 @@
 project: tradeclaw
-updated: 2026-08-30T03:51:50+08:00
+updated: 2026-08-30T04:19:31+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+admin_research_catalog_record_links_2026_08_30:
+  at: 2026-08-30T04:19:31+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_implementation_commit
+  scope: Let an authenticated admin open the protected or public detail for any returned catalog candidate without constructing candidate URLs client-side
+  base_commit: e114f06c7a03248a307b39b314ccfe95ff0b1c06
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-256
+  current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-261
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-29T21:00:00.000Z
+  gate_observed_at: 2026-08-29T20:09:25.000Z
+  gate_decision: The 21:00Z receipt gate is closed; continue same-window product completion without creating research or marketing state
+  decision: >-
+    Add one `links` object to every protected catalog record, using the same
+    `adminCandidate` and `publicCandidate` names already exposed by evidence and
+    review items. Build all three surfaces through one canonical helper with
+    encoded candidate IDs; keep record order, filters, pagination, observation
+    visibility, candidate/evidence/review/CSV/public/auth/UI contracts unchanged.
+  frozen_catalog_record_link_shape:
+    field: links
+    fields: [adminCandidate, publicCandidate]
+    field_order: [adminCandidate, publicCandidate]
+    admin_path: /api/admin/research-intake/{encodedCandidateId}
+    public_path: /api/research/intake/{encodedCandidateId}
+    candidate_id_encoding: encodeURIComponent
+    includes_query_parameters: false
+    one_link_object_per_returned_record: true
+  frozen_behavior:
+    record_order: pinned-source-order-unchanged
+    filtering: unchanged
+    pagination: unchanged
+    marketing_draft_visibility: observation-consistent-unchanged
+    detail_links_independent_of_catalog_query: true
+    empty_catalog_links: []
+  frozen_boundaries:
+    protected_catalog_records_gain_links: true
+    protected_candidate_record_gains_links: false
+    protected_evidence_item_links_byte_identical: true
+    protected_review_item_links_byte_identical: true
+    protected_csv_changed: false
+    public_payload_changed: false
+    public_openapi_changed: false
+    rendered_ui_changed: false
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/__tests__/research-intake-admin-catalog-links.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+  red_verification: >-
+    PASS - the new catalog-link and protected-route suites run 21 assertions:
+    17 existing or sibling-boundary assertions remain green and four fail only
+    because default, filtered, paged, and query-filtered catalog records have no
+    `links` field. Existing evidence/review item links and candidate/public record
+    boundaries stay green; no product path passed the new behavior by accident.
+  focused_green_first_iteration: >-
+    The protected route and three catalog-link behavior paths pass, leaving 20/21
+    assertions green. The sole failure is test-only: a query-independence assertion
+    banned the word `bitcoin`, which legitimately appears inside the canonical
+    candidate ID. It is narrowed to actual query-parameter syntax; product link
+    shape, filtering, pagination, encoding, and sibling boundaries are green.
+  focused_verification: >-
+    PASS - the catalog-link and protected catalog-route suites pass 21/21.
+    Default, filtered, paged, and query-filtered records carry exact protected and
+    public detail links; links contain no catalog query state; existing evidence/
+    review links remain exact; candidate and public records remain link-free.
+  typecheck_verification: PASS - npm run typecheck:web rebuilt packages/signals and completed the apps/web no-emit TypeScript check
+  changed_file_lint_verification: PASS - all implementation and focused test TypeScript paths pass the authoritative apps/web ESLint configuration with zero findings
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    query_contract_unchanged: 1121 bytes / ed4a2bd3a0c8dc5e4305a400c2754ebdaa49e5c5000478add9e77af477d5b795
+    facet_contract_unchanged: 338 bytes / 0114ebd94cc22669f3437ffbb0bd8213f31f1367c12b4da2ec780d898406bcf2
+    filter_navigation_contract_unchanged: 302 bytes / c8d3e3ba0daa87e33f46fe51584c852a6842c437dbad7987bd3bdcdd71494ee8
+    default_filter_navigation_unchanged: 416 bytes / 157610711a7edbb1d1e07a89024301e0a5d1a2a2ae99f90df969dfaf24cfdfc6
+    combined_filter_navigation_unchanged: 964 bytes / 90e24f025a4d11efc0dd9d29621f2ca69b51307a5945903ff40330d84dc3bbf0
+    default_filter_facets_unchanged: 3848 bytes / e0bc160c9f08a93167969e31dc2062b157bcab07442c3b2862e06eea6955382a
+    disjunctive_filter_facets_unchanged: 4426 bytes / f4e754d314672ab3099795cf19e40c4c91f1168e8c1039091eaf8f344f41eacb
+    default_record_links: 7361 bytes / 7a09efc5ac17cdf2fb386f5d3a908273b91c83f40a86505dd4c423e01c9800b6
+    complete_record_links: 18527 bytes / 0423769d0e57426d1ff6ebe5e7a64d515f057429bb75a74ede852395bea2ca72
+    filtered_record_links: 901 bytes / c72e01661d06584ead6ef1c198655b028cb2f6c4596967c03a9f22721b45ed39
+    admin_catalog_default: 53865 bytes / b2c4052749e199102205b623fb7a3bd71aa4ed036e111b4008cac2e903784f6a
+    admin_catalog_limit_100: 107104 bytes / 966e30ab96c083b51d93a118d90d4f9859340d72a92b95c3e33ccbe6459e7c8f
+    admin_catalog_equities_page_2_limit_3: 22603 bytes / 276b9add2bd1f03ab8bd4d35b8b055d90c63c715f7cc1643380a06807ace6440
+    admin_catalog_equities_discovered_page_2_limit_3: 23181 bytes / 14032532e0b6f7b9b82214ee000653eed5bb764a1e80a05401cdf64c7852a13c
+    admin_catalog_combined_empty_page_unchanged: 20732 bytes / 2c0d1518b71fedcddae8809a6d29026c8ae6636ad073959806acdd1489f1b639
+    admin_candidate_tc260_unchanged: 9503 bytes / 6cd0ca1bc9775274f4aa02818640424d513d3a912eb5e2b47a6c895a17077ebd
+    admin_evidence_unchanged: 56502 bytes / defa5ec013c50c5c762fbb801d5dca6760646d0a3e28fdf2b441f75a3cea8098
+    admin_marketing_review_unchanged: 20279 bytes / 2cedcc9b48516de8975a481c0236e4810384ff4b7d83d376585d058cbd6baa9a
+    admin_evidence_csv_at_2026_08_29T18_00_40Z_unchanged: 14533 bytes / 49c32887d5edaf402a9108ec6351e8acb2a5d567b5367df178250482b4542053
+    admin_marketing_review_csv_unchanged: 6350 bytes / 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    public_catalog_unchanged: 63327 bytes / 602845ec6bd4d98410fcaf7fe2d0f4388a4293bddbd48699fdcedf1a18a99b43
+    public_candidate_tc260_unchanged: 5770 bytes / bb7b9225b4231c252d5a2de353e1067b7d31e6717427f59bec043b952b7321b0
+    public_evidence_unchanged: 29202 bytes / 43b0e2bc993d279249b0a2a9c7763446a9ea0f5dd6a897446386286b4a694d40
+    public_catalog_csv_unchanged: 36822 bytes / 49a715737f00100d3ef4728de0e471ce05bc669876354e9e266542863d2ede49
+    public_evidence_csv_unchanged: 5332 bytes / feab7b909b545cd1ee64690ef802c911db15cb2b8556840a06836a1f9dce2c50
+  deterministic_audit: >-
+    PASS - an apply-patch-created temporary TypeScript verifier independently
+    fingerprinted three contracts, navigation/facet states, three record-link
+    projections, five catalog shapes, and ten protected/public sibling payloads,
+    then was deleted. Only protected catalog responses that return records change;
+    the empty page and every sibling boundary remain byte-identical.
+  focused_deterministic_verification: >-
+    PASS - the catalog-link, query-contract, and protected catalog-route suites
+    pass 28/28 with exact default/complete/filtered record-link projections,
+    unchanged query-contract fingerprint, and updated default/complete protected
+    catalog fingerprints active.
+  adjacent_verification: >-
+    PASS - the exact 29-suite catalog-link/navigation/facet/query/resource,
+    protected catalog/candidate/evidence/review/CSV, real signed-cookie auth,
+    receipt, marketing, public JSON/CSV, and publication-boundary set passes 128/128.
+  source_verification: PASS - the independent verifier reconstructs all 61 pinned candidates at exact commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with gross-of-trading-costs discovery-only treatment
+  final_typecheck_verification: PASS - packages/signals rebuilds and the apps/web no-emit TypeScript check completes without errors after deterministic test locking
+  final_changed_file_lint_verification: PASS - all four changed TypeScript paths pass the authoritative apps/web ESLint configuration with zero findings
+  lint_verification: PASS - full web lint completes with zero errors and the same 21 inherited warnings; no warning points to this increment
+  repository_test_verification: >-
+    PASS - all 283 runnable Jest suites and 2,104 tests pass; three suites and 26
+    tests are skipped and one snapshot passes. Force-exit closes only the
+    repository's inherited open handle after the complete green summary.
+  build_verification: >-
+    PASS - the required root production build compiles the signals and
+    trading-agents packages, compiles Next.js successfully, generates all 329/329
+    static pages, and retains the protected catalog, candidate, evidence, evidence
+    CSV, review, and review CSV routes as dynamic server routes. Only the inherited
+    middleware, NFT trace, url.parse, and edge-runtime warnings remain.
+  preliminary_state_verification: >-
+    PASS - STATE.yaml parses, git diff --check reports no whitespace errors, the
+    temporary deterministic audit script is absent, and the exact five-file
+    manifest is intact.
+  frozen_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/__tests__/research-intake-admin-catalog-links.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+  state_and_scope_verification: >-
+    PASS - the exact five-file manifest contains only the protected catalog-record
+    link implementation, focused catalog-link/query/route coverage, and STATE.
+    Docker Compose, dependencies, lockfiles, database, auth semantics, rendered UI,
+    public OpenAPI, research receipts/artifacts, marketing drafts, and runtime
+    trading paths are untouched.
+  final_state_bound_verification: >-
+    PASS - the exact 12-suite catalog-link/navigation/facet/query/resource,
+    protected catalog/candidate/evidence/review, receipt, marketing, and
+    publication-boundary set passes 73/73 after the five-file manifest and final
+    verification evidence were frozen.
+  verification_summary: >-
+    PASS - intentional RED isolated four missing-link failures with 17 boundaries
+    green; focused 21/21; deterministic focused 28/28; adjacent 128/128; repository
+    283 runnable suites and 2,104 tests; final state-bound 73/73; pinned source 61/61;
+    web typecheck; changed-file and full lint with zero errors; YAML/hash/diff/scope
+    audits; required 329/329-page production build.
+  final_gate_observed_at: 2026-08-29T20:19:31.000Z
+  final_gate_decision: The 21:00Z research rollover remains closed; TC-261 stays the sole receipt in the complete 18:00Z window and no new research or marketing handoff is created
+  visual_ui_changed: false
+  public_contract_changed: false
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  current_step: Stage the exact five frozen paths and create the local implementation commit
+  next_action: Record the implementation hash in STATE, create a state-only closure commit, save MemoryCore, and leave the branch clean until the 21:00Z gate
+  safety: No new research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, public OpenAPI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changes are authorized
 
 admin_research_filter_actions_2026_08_30:
   at: 2026-08-30T04:05:28+08:00

@@ -224,6 +224,12 @@ describe('GET /api/admin/research-intake', () => {
     expect(body.records[0].id).toBe(
       'a-study-of-differences-in-returns-between-large-and-small-companies-in-europe',
     );
+    expect(body.records[0].links).toEqual({
+      adminCandidate:
+        '/api/admin/research-intake/a-study-of-differences-in-returns-between-large-and-small-companies-in-europe',
+      publicCandidate:
+        '/api/research/intake/a-study-of-differences-in-returns-between-large-and-small-companies-in-europe',
+    });
     expect(body.records.map((record: { sourcePosition: number }) => record.sourcePosition)).toEqual(
       Array.from({ length: 25 }, (_, index) => index),
     );
