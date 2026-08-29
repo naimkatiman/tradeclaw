@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T22:59:20+08:00
+updated: 2026-08-29T23:00:14+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,10 +10,11 @@ description: >
 admin_research_review_csv_export_2026_08_29:
   at: 2026-08-29T22:47:24+08:00
   agent: TradeClaw PM agent
-  status: verified_implementation_committed_local_state_closure_pending
+  status: verified_protected_admin_review_csv_committed_local
   scope: Give authenticated admins one complete spreadsheet-ready review queue over the already verified server-owned research marketing handoffs without changing the confirmation-gated admin visual design
   base_commit: 870d53203a13980896eae742f7faf37562118fdd
   implementation_commit: 111042e9c5b34dcacb4f6bab426a62ff24d5c8c6
+  closure_checkpoint_commit: 7217793a39bb286bbe83c6cd549b267cea772976
   branch: agent/research-intake-desk-20260829
   finding: The protected admin read model already exposes a chronological and filter-independent four-draft handoff ledger, but an operator has no direct review artifact and would have to copy nested JSON fields manually before fact-checking or editing the drafts
   library_search: No reusable admin CSV, private export, or review-queue pattern exists in shared MemoryCore; reuse the repository's authenticated API, private no-store, CSV attachment, and formula-neutralization conventions while keeping the projection research-specific
@@ -47,11 +48,12 @@ admin_research_review_csv_export_2026_08_29:
   source_verification: PASS - the independent pinned-source verifier reconstructs all 61 candidates at exact commit d9c98521 and README SHA-256 67f4c496 with gross-of-trading-costs discovery-only treatment
   build_verification: PASS - the required root production build compiled signals, trading-agents, and Next.js and generated all 327 pages; /api/admin/research-intake/review.csv is a dynamic protected route while both public intake routes remain static one-hour exports, and only inherited NFT tracing, middleware deprecation, edge-static-generation, and Node url.parse warnings remain
   boundary_time_audit: The production build and first scope audit closed at 2026-08-29T14:56:30Z, before the exact 15:00:00Z next-receipt boundary; this remains a same-window product increment and no new research receipt may be created
+  boundary_rollover_after_closure: The implementation and first state closure checkpoint committed by 2026-08-29T14:59:41Z; the exact 15:00Z boundary passed only during final status and memory bookkeeping, which creates no new receipt and grants no selection or external authority
   precommit_verification: PASS - final serializer/admin/receipt suites pass 35/35; STATE and the unchanged 12:00Z/PT3H receipt parse; diff whitespace passes; exactly the five intended state, serializer, route, and test paths are changed; public JSON/CSV, protected admin JSON, README, Docker, manifests, lockfiles, marketing ledger, UI, research inputs/artifacts/scripts, signals, strategies, execution, and database surfaces have zero diff
   verification: PASS - intentional missing-module RED 2 suites; focused 6/6; adjacent 67/67; final protected/state set 35/35; deterministic 6,350-byte CSV; independent 4x26 spreadsheet parse; repository Jest 260 suites and 2,011 tests; web typecheck; lint zero errors with 21 inherited warnings; source 61/61; YAML, diff, path, and protected-surface audits; required 327-page production build
   memory_update: Saved the exact protected route, 26-column schema, four-row provenance, payload hash, verification, implementation hash, unchanged receipt boundary, visual checkpoint, and no-external-action constraints to shared current-session and TradeClaw project memory
-  current_step: Shared MemoryCore updated; validate and locally commit this state-only closure, then leave the isolated branch clean
-  next_action: At or after exact 2026-08-29T15:00:00.000Z, open at most one new screened research receipt without automatic selection, publication, posting, deployment, or trading; the admin visual v0 remains confirmation-gated
+  current_step: Protected admin review CSV is verified and committed locally; finalize the exact closure hash in shared MemoryCore and leave the isolated branch clean
+  next_action: The 2026-08-29T15:00:00.000Z/PT3H window is now open for at most one newly screened research receipt; selection still requires cost headroom, immutable data, explicit rules, folds, and same-window benchmarks, while the admin visual v0 remains confirmation-gated
   external_actions: none
   safety: No source data, result, artifact, receipt, outbound draft, UI, database, Docker, dependency, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
