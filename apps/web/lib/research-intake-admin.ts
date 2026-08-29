@@ -19,6 +19,10 @@ import {
   type ResearchIntakeCandidateNavigation,
 } from './research-intake-candidate-navigation';
 import {
+  buildResearchIntakeEvidenceState,
+  type ResearchIntakeEvidenceState,
+} from './research-intake-evidence-state';
+import {
   buildMarketingReviewDraft,
   getResearchLoopWindow,
   type MarketingReviewDraft,
@@ -230,6 +234,7 @@ export interface ResearchIntakeAdminQuery {
 }
 
 export interface ResearchIntakeAdminRecord extends ResearchIntakeRecord {
+  evidenceState: ResearchIntakeEvidenceState;
   marketingReviewDraft: MarketingReviewDraft | null;
 }
 
@@ -926,6 +931,7 @@ function toAdminRecord(
 ): ResearchIntakeAdminRecord {
   return {
     ...record,
+    evidenceState: buildResearchIntakeEvidenceState(record),
     marketingReviewDraft: marketingHandoffVisible
       ? buildMarketingReviewDraft(record)
       : null,

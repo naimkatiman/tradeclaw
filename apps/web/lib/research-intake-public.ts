@@ -10,6 +10,10 @@ import {
   buildResearchIntakeCandidateNavigation,
   type ResearchIntakeCandidateNavigation,
 } from './research-intake-candidate-navigation';
+import {
+  buildResearchIntakeEvidenceState,
+  type ResearchIntakeEvidenceState,
+} from './research-intake-evidence-state';
 
 export type ResearchIntakePublicEvidenceBasis =
   | 'upstream-gross-discovery-only'
@@ -21,6 +25,7 @@ export type ResearchIntakePublicRecord = Omit<
   'nextAction' | 'marketingDisposition'
 > & {
   evidenceBasis: ResearchIntakePublicEvidenceBasis;
+  evidenceState: ResearchIntakeEvidenceState;
 };
 
 export interface ResearchIntakePublicPayload {
@@ -91,6 +96,7 @@ function toPublicRecord(record: ResearchIntakeRecord): ResearchIntakePublicRecor
     verdict: record.verdict,
     costStatus: record.costStatus,
     evidenceBasis: evidenceBasisFor(record),
+    evidenceState: buildResearchIntakeEvidenceState(record),
     tradeClawSourceAudit: record.tradeClawSourceAudit,
     tradeClawEvidence: record.tradeClawEvidence,
   };

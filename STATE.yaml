@@ -1,11 +1,173 @@
 project: tradeclaw
-updated: 2026-08-30T05:30:25+08:00
+updated: 2026-08-30T05:49:14+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_candidate_evidence_state_2026_08_30:
+  at: 2026-08-30T05:37:00+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_implementation_commit
+  scope: Give public users and authenticated admins one shared, plain-language, claim-safe interpretation of each candidate's current evidence without changing any research result or rendered UI
+  base_commit: 31231580338a5caf767410789b4ddb5aae905349
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-262
+  current_cycle_id: 2026-08-29T21:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-262
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T00:00:00.000Z
+  gate_observed_at: 2026-08-29T21:37:00.1156909Z
+  gate_decision: The 00:00Z receipt gate is closed; continue same-window nonvisual public/admin product completion without creating research or marketing state
+  library_search: No reusable research-intake, source-audit, preregistration, receipt, or evidence-state pattern exists in shared MemoryCore; reuse the repository's existing cost-first CSV status contract and public/admin projection boundaries
+  problem: >-
+    CSV users receive one normalized `performanceEvidenceStatus`, but public and
+    protected JSON users must infer the same decision from stage, verdict, cost,
+    source-audit, replication, and task-specific fields. That duplicates logic in
+    every client and makes source-audit no-go, QA-only, and performance failure
+    unnecessarily easy to confuse.
+  decision: >-
+    Add one deterministic `evidenceState` read model to every public and protected
+    candidate record. Derive it once from the canonical record, reuse its status
+    and paths in CSV export, and document the public shape in OpenAPI. The summary
+    supplies display-ready language while retaining the raw evidence overlay.
+  frozen_evidence_state_shape:
+    fields: [performanceEvidenceStatus, label, meaning, performanceGatesEvaluated, taskId, evidencePath, artifactPath, grantsPublicationAuthority, grantsTradingAuthority]
+    statuses: [not-tested, source-audit-only-no-local-backtest, qa-only-no-performance-result, modeled-historical-pass, modeled-historical-fail, modeled-historical-inconclusive]
+    nullable_fields: [taskId, evidencePath, artifactPath]
+    authority_fields_are_always_false: true
+  frozen_behavior:
+    discovery_only: not-tested with no task, evidence path, artifact, or evaluated performance gates
+    source_audit_only: source-audit-only-no-local-backtest with the audit task and research path but no artifact or performance conclusion
+    qa_stopped_replication: qa-only-no-performance-result with the result and artifact paths but no evaluated performance gates
+    evaluated_replication: modeled-historical verdict status with evaluated performance gates and result/artifact paths
+    raw_evidence_retained: true
+    csv_values_changed: false
+    source_order_changed: false
+  frozen_boundaries:
+    public_catalog_changed: true
+    public_evidence_changed: true
+    public_candidate_changed: true
+    protected_catalog_changed: true
+    protected_evidence_changed: true
+    protected_candidate_changed: true
+    public_openapi_changed: true
+    public_csv_schema_changed: false
+    public_csv_values_changed: false
+    protected_review_changed: false
+    protected_csv_changed: false
+    auth_semantics_changed: false
+    rendered_ui_changed: false
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-evidence-state.ts
+    - apps/web/lib/research-intake-public.ts
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/research-intake-csv.ts
+    - apps/web/lib/openapi.ts
+    - apps/web/lib/__tests__/research-intake-evidence-state.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-candidate.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-evidence.test.ts
+    - apps/web/lib/__tests__/research-intake-public-candidate.test.ts
+  red_verification: >-
+    PASS - the focused evidence-state suite ran three assertions and all three
+    failed for the intended reason: public and protected records do not yet have
+    `evidenceState`. Existing CSV statuses remained present, proving the gap is
+    the JSON interpretation layer rather than missing source evidence.
+  focused_green_first_iteration: >-
+    The shared classifier, public/protected parity, and CSV reuse pass two of three
+    focused assertions. The sole failure is test-only: TC-257's canonical result
+    and artifact filenames are the existing end-of-month/D TWEXBGS paths, not the
+    assumed shorter Treasury names. No product boundary failed.
+  focused_verification: >-
+    PASS - all three focused assertions now pass across the four distinct current
+    evidence states, exact public/protected equality for all 61 candidates, and
+    unchanged CSV columns, statuses, and evidence paths.
+  adjacent_verification_first_invocation: >-
+    TEST RUNNER ONLY - PowerShell supplied Windows backslash paths as Jest regex
+    arguments, so Jest matched zero suites and exited before executing a test.
+    Normalize selected paths to forward slashes and rerun the same scope.
+  adjacent_verification_first_iteration: >-
+    The normalized run executed 31 adjacent suites and 147 assertions. Twenty-seven
+    suites and 143 assertions passed, including every semantic, auth, route, CSV,
+    OpenAPI, publication, and no-authority boundary. Exactly four deterministic
+    payload assertions retained their pre-field byte counts and hashes: protected
+    default catalog, protected evidence, and public/protected TC-260 candidate.
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    public_catalog: 90768 bytes / 7325ab89c11cbfaf00c6dc7cf886c6f5f71c6e2820f6bfada4a0febba0dfa2eb
+    public_evidence: 37285 bytes / 6ec5f3b8ffe08072fd7357200878d777d5b7a36a68f58809c666ab8f293131be
+    public_tc260_candidate: 6645 bytes / d15d23e784ecd3eb46a92845c69b6f95d49a58a310d1d806d922b2f271ca749b
+    protected_default_catalog: 67466 bytes / 6b7b17ac521616cb771de613d7c990614859157a00f55810b057e2bcf4d6b8e4
+    protected_complete_catalog: 134773 bytes / 689d94b1d153a0e2fcbaabaf44f8a7f3401a49864e8161737e3cef4998e8e630
+    protected_evidence: 65280 bytes / aa20b804eb65f7853542cef4d63b845c21d0e231770a0c4b8d95e450e2207ce9
+    protected_tc260_candidate: 10396 bytes / e423783f1ee6ff50d9c9309369de6db0269cc4a2b0388566a6f2b7e0bce021ba
+    protected_review_unchanged: 20279 bytes / 2cedcc9b48516de8975a481c0236e4810384ff4b7d83d376585d058cbd6baa9a
+    public_catalog_csv_unchanged: 36922 bytes / 7b76a4a2c5850e4711e34d5d61dbaeee75c983ea39e264b0c90fc18e58d8b43f
+    public_evidence_csv_unchanged: 5944 bytes / 4ee1cc89f6bae3ce59be57a9e835fc4ed1c8c1c0b824c6e0d0dc176ac533a0fc
+    protected_evidence_csv_unchanged: 14540 bytes / 66b263ca150da498339159b62bce56b62dbee4097a80d70c886e96d5fd61ccdd
+    protected_review_csv_unchanged: 6350 bytes / 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    public_record_openapi: 2144 bytes / cb544c51aa0b3cb820e4c752c84a339a309dcfe9c392cc60f110093457da004b
+  deterministic_audit: >-
+    PASS - a temporary apply-patch-created verifier fingerprinted 13 updated and
+    unchanged siblings at the frozen instant, then was deleted. Only the intended
+    candidate/catalog/evidence JSON and public record schema move; the protected
+    review and every public/protected CSV surface remain exact.
+  adjacent_verification: >-
+    PASS - all 31 adjacent suites and 148 assertions pass across public/protected
+    catalog, candidate, evidence, route, auth, CSV, OpenAPI, publication, source,
+    filtering, navigation, and no-authority contracts.
+  source_verification: >-
+    PASS - the verifier reconstructs all 61 pinned candidates at upstream commit
+    d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256
+    67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a.
+  typecheck_first_iteration: >-
+    TEST ONLY - the OpenAPI assertion read `components.schemas` before narrowing
+    the deliberately loose spec type. Cast the complete spec view first; no
+    product-code error was reported.
+  changed_file_eslint_first_invocation: >-
+    TOOLING ONLY - root ESLint 9 could not discover the web workspace's legacy
+    configuration. Rerun through the configured `apps/web` lint script.
+  typecheck_verification: PASS - the web TypeScript project and signals prerequisite compile without errors after the test-only type correction
+  changed_file_eslint: PASS - all ten changed TypeScript files pass the configured web ESLint command with zero findings
+  repository_test_verification: >-
+    PASS - 285/285 runnable suites and 2122/2122 runnable tests pass; the inherited
+    3 suites / 26 tests remain skipped and the single snapshot passes. The known
+    open-handle warning appears only after the green result and forced exit.
+  lint_verification: PASS - authoritative full lint reports zero errors and the same 21 inherited warnings; changed files remain clean
+  build_verification: >-
+    PASS - signals and trading-agents compile and the Next.js production build
+    generates all 329/329 pages. The six protected research routes remain dynamic;
+    only inherited middleware, NFT trace, `url.parse`, and edge-runtime warnings appear.
+  implementation_files:
+    evidence_state_module: 3662 bytes / 106ff590fc4dc1983510d28af616fcfb624395804f5976a0c7b5f70d00016af5
+    focused_contract: 6788 bytes / 70204d418eb8f2ea1e1a8cb4d844a305c2275d98a8e268a34d5293d1cc14fbe3
+  state_and_scope_verification: >-
+    PASS - STATE.yaml parses, `git diff --check` is clean, and the worktree has
+    exactly the frozen eleven-file manifest: STATE.yaml, five product/schema
+    files, five tests, and no temporary verifier. No rendered UI path changed.
+  scope_audit:
+    changed_paths: 11
+    forbidden_surface_changes: 0
+    branch: agent/research-intake-desk-20260829
+    base_commit_confirmed: 31231580338a5caf767410789b4ddb5aae905349
+    broad_dirty_checkout_touched: false
+    rendered_ui_changed: false
+    temporary_audit_workspace_present: false
+    current_cycle_receipts_changed: false
+    next_gate_rechecked_at: 2026-08-29T21:49:14.0514573Z
+    next_gate_still_closed: true
+  current_step: Rerun the final state-bound adjacent contract and create the local implementation commit
+  visual_ui_changed: false
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  safety: No new research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state change is authorized
 
 most_diversified_portfolio_source_screen_2026_08_30:
   at: 2026-08-30T05:04:42+08:00

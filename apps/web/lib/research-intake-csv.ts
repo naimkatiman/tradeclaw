@@ -4,6 +4,9 @@ import {
   type ResearchIntakePublicPayload,
   type ResearchIntakePublicRecord,
 } from './research-intake-public';
+import type { ResearchIntakePerformanceEvidenceStatus } from './research-intake-evidence-state';
+
+export type { ResearchIntakePerformanceEvidenceStatus } from './research-intake-evidence-state';
 
 export const RESEARCH_INTAKE_CSV_COLUMNS = [
   'sourceOrder',
@@ -32,14 +35,6 @@ export const RESEARCH_INTAKE_CSV_COLUMNS = [
   'grantsPublicationAuthority',
   'grantsTradingAuthority',
 ] as const;
-
-export type ResearchIntakePerformanceEvidenceStatus =
-  | 'not-tested'
-  | 'source-audit-only-no-local-backtest'
-  | 'qa-only-no-performance-result'
-  | 'modeled-historical-pass'
-  | 'modeled-historical-fail'
-  | 'modeled-historical-inconclusive';
 
 export interface ResearchIntakeCsvRow {
   sourceOrder: number;
@@ -71,47 +66,10 @@ export interface ResearchIntakeCsvRow {
 
 type CsvCell = string | number | boolean;
 
-function performanceEvidenceStatus(
-  record: ResearchIntakePublicRecord,
-): ResearchIntakePerformanceEvidenceStatus {
-  if (!record.tradeClawEvidence) {
-    return record.tradeClawSourceAudit
-      ? 'source-audit-only-no-local-backtest'
-      : 'not-tested';
-  }
-
-  if (
-    'performanceGatesEvaluated' in record.tradeClawEvidence
-    && record.tradeClawEvidence.performanceGatesEvaluated === false
-  ) {
-    return 'qa-only-no-performance-result';
-  }
-
-  if (
-    record.verdict === 'pass'
-    || record.verdict === 'fail'
-    || record.verdict === 'inconclusive'
-  ) {
-    return `modeled-historical-${record.verdict}`;
-  }
-
-  throw new Error(`replication record ${record.id} cannot export not-tested performance`);
-}
-
-function evidencePath(record: ResearchIntakePublicRecord): string {
-  if (record.tradeClawEvidence) return record.tradeClawEvidence.resultPath;
-  if (record.tradeClawSourceAudit) return record.tradeClawSourceAudit.researchPath;
-  return '';
-}
-
 function toCsvRow(
   record: ResearchIntakePublicRecord,
   payload: ResearchIntakePublicPayload,
 ): ResearchIntakeCsvRow {
-  const taskId = record.tradeClawEvidence?.taskId
-    ?? record.tradeClawSourceAudit?.taskId
-    ?? '';
-
   return {
     sourceOrder: record.sourcePosition + 1,
     id: record.id,
@@ -119,7 +77,7 @@ function toCsvRow(
     assetClass: record.assetClass,
     sourceUrl: record.sourceUrl,
     evidenceBasis: record.evidenceBasis,
-    performanceEvidenceStatus: performanceEvidenceStatus(record),
+    performanceEvidenceStatus: record.evidenceState.performanceEvidenceStatus,
     stage: record.stage,
     verdict: record.verdict,
     costStatus: record.costStatus,
@@ -133,9 +91,9 @@ function toCsvRow(
     sourceCatalogSnapshotDate: payload.source.snapshotDate,
     upstreamPerformanceBasis: payload.source.reportedPerformanceBasis,
     tradeClawTreatment: payload.source.tradeClawTreatment,
-    tradeClawTaskId: taskId,
-    tradeClawEvidencePath: evidencePath(record),
-    tradeClawArtifactPath: record.tradeClawEvidence?.artifactPath ?? '',
+    tradeClawTaskId: record.evidenceState.taskId ?? '',
+    tradeClawEvidencePath: record.evidenceState.evidencePath ?? '',
+    tradeClawArtifactPath: record.evidenceState.artifactPath ?? '',
     grantsPublicationAuthority: payload.access.grantsPublicationAuthority,
     grantsTradingAuthority: payload.access.grantsTradingAuthority,
   };
