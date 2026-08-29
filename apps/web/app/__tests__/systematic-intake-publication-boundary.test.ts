@@ -133,4 +133,19 @@ describe('systematic research intake public boundary', () => {
       expect(resolveLocalReference(spec, reference)).toBeDefined();
     }
   });
+
+  it('keeps the complete admin evidence desk authenticated and outside public OpenAPI', () => {
+    const route = source('api/admin/research-intake/evidence/route.ts');
+    const spec = buildOpenApiSpec() as { paths: Record<string, unknown> };
+
+    expect(route).toContain('assertAdminApi');
+    expect(route.indexOf('assertAdminApi')).toBeLessThan(
+      route.indexOf('buildResearchIntakeAdminEvidencePayload'),
+    );
+    expect(route).toContain("private, no-store, max-age=0");
+    expect(route).toContain("Vary', 'Cookie, Authorization");
+    expect(route).not.toMatch(/Access-Control-Allow-Origin/i);
+    expect(route).not.toMatch(/export async function (POST|PUT|PATCH|DELETE)/);
+    expect(spec.paths).not.toHaveProperty('/api/admin/research-intake/evidence');
+  });
 });

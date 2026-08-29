@@ -1,11 +1,180 @@
 project: tradeclaw
-updated: 2026-08-30T01:14:12+08:00
+updated: 2026-08-30T01:43:38+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+admin_research_evidence_desk_2026_08_29:
+  at: 2026-08-30T01:43:38+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_commit
+  scope: Give an authenticated admin one complete observation-consistent evidence desk for every awesome-systematic-trading candidate TradeClaw has examined, without paginating and filtering the 61-row catalog or separately joining receipts and marketing handoffs
+  base_commit: d63150aac48a2287be6d0b26548bbd01386344c6
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-29T15:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-260
+  next_rollover_at: 2026-08-29T18:00:00.000Z
+  new_research_receipt_created: false
+  return_calculated: false
+  finding: >-
+    Public users have a complete six-record evidence index and spreadsheet, but
+    an admin must still request the paginated 61-row catalog and separately join
+    candidate detail, receipt, and marketing-review data to inspect every
+    examined record, including the two no-draft source no-go audits.
+  library_search: >-
+    No reusable protected evidence-desk, authenticated evidence-only read model,
+    or receipt-and-handoff join pattern exists in shared MemoryCore; reuse
+    TradeClaw's auth-before-data boundary, private no-store headers, canonical
+    observation clock, pinned source order, current compiled admin record,
+    receipt ledger, marketing handoff ledger, and false authority controls.
+  acceptance_gates:
+    - GET /api/admin/research-intake/evidence authenticates before observing the clock, reading intake or workflow state, building evidence, or interpreting query parameters; denied callers receive only the existing generic 401 body
+    - The response contains all and only the six current compiled records with a TradeClaw source-audit or replication overlay, in pinned source order with task/source pairs TC-259/22, TC-257/24, TC-255/32, TC-258/34, TC-256/37, TC-260/61; it is complete and never performance-ranked
+    - Every item carries its one-based evidence position, full current admin record, all observation-visible candidate receipts, exact latest receipt or null, observation-visible marketing handoff or null, protected/public candidate links, and repeated false publication/posting/trading/external-action controls
+    - TC-255 retains its pre-loop handoff and null receipt, TC-257/258/259 retain exact receipt-backed handoffs, and TC-256/260 retain exact receipts with no marketing handoff or draft; no-go and QA-only records remain visible rather than being dropped from an action queue
+    - At 2026-08-29T15:59:59.999Z the desk reports the canonical complete TC-260 current window, six items, receipt counts 1/1/0/1/1/1, handoffs TC-259/TC-257/TC-255/TC-258/null/null, and the exact adverse evidence summary with zero passes
+    - Observation-time tests prove a future receipt or handoff is not exposed before its canonical availability instant; current compiled evidence is not rewritten as historical state
+    - The response is filter-independent and query-independent, dynamic, private/no-store, varies on Cookie and Authorization, grants no CORS access, and exposes only GET
+    - The deterministic fixed-instant payload is exactly 51,144 UTF-8 bytes at SHA-256 de24676a5f7431a7146002f51bbbb42c6e3396f832f3463fbdd94746e2f0411a
+    - Existing evidence JSON, full public JSON, public candidate detail, full public CSV, evidence public CSV, whole-admin JSON, admin candidate detail, admin review JSON, protected review CSV, receipt ledger, and marketing handoff ledger remain byte-identical
+    - No public or protected visual page, candidate stage/result/receipt/handoff, source data, research return, preregistration, result artifact, strategy, runtime authority, Docker, dependency, database, auth semantics, billing, execution, or external state changes
+    - Intentional RED, focused and adjacent tests, deterministic payload/baseline/state/scope audits, typecheck, lint, repository tests, and the required npm run build pass before local commits
+  baseline_audit_at: 2026-08-29T15:59:59.999Z
+  design_probe:
+    projected_admin_evidence_json_bytes: 51144
+    projected_admin_evidence_json_sha256: de24676a5f7431a7146002f51bbbb42c6e3396f832f3463fbdd94746e2f0411a
+    projected_items: 6
+    projected_task_ids_in_source_order: TC-259, TC-257, TC-255, TC-258, TC-256, TC-260
+    projected_source_orders: 22, 24, 32, 34, 37, 61
+    projected_receipt_counts: 1, 1, 0, 1, 1, 1
+    projected_handoffs: TC-259, TC-257, TC-255, TC-258, null, null
+  baseline_payloads:
+    evidence_json_bytes: 24949
+    evidence_json_sha256: 54fed8532a5fdd881435083213f99ce2b2bf0167dafa98d542fa959436a92826
+    full_public_json_bytes: 59873
+    full_public_json_sha256: ade593cd52274f7386cb4a505c2e8bf2abd7836685c927f0dfba85a0f0546dc6
+    tc260_public_candidate_json_bytes: 5770
+    tc260_public_candidate_json_sha256: adba3fd308fcaac7cea5aebf078640b9ef98f8e8c1e290cb2b9d3fad83b51b3d
+    full_public_csv_bytes: 36725
+    full_public_csv_sha256: f51787d97c5c21aef4751135899bc0e1c310155cde7c07c7961a2d332c6f54c6
+    evidence_public_csv_bytes: 4492
+    evidence_public_csv_sha256: 663f5dd0b2d94205827423ee682316f6ffeb7d42a024fc7729e43f56c330286e
+    full_admin_json_bytes: 42354
+    full_admin_json_sha256: 0cd758e2cb630ada326fdaefaacf6585b71ab102f663f3c8df6638a9db10b300
+    tc260_admin_candidate_json_bytes: 9230
+    tc260_admin_candidate_json_sha256: df2a11b661c4821b1148a9ff1e2bef2af0331b2fdea95a9b966dfe7f806a6296
+    admin_review_json_bytes: 20006
+    admin_review_json_sha256: 316301ff0ffb9762ba4a7150a901b3334c01b69771a2eafe2a229235bbc82c30
+    protected_review_csv_bytes: 6350
+    protected_review_csv_sha256: 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    receipt_task_ids: TC-256, TC-257, TC-258, TC-259, TC-260
+    marketing_handoff_task_ids: TC-255, TC-257, TC-258, TC-259
+  red_evidence: >-
+    PASS - all four focused suites fail only at the frozen absent seams: four
+    builder assertions reach the missing buildResearchIntakeAdminEvidencePayload
+    export, both route suites stop at the missing evidence route module, and the
+    publication boundary reaches the absent protected route source; four existing
+    public/OpenAPI boundary assertions remain green.
+  focused_green_first_iteration: >-
+    Product code and 14/15 assertions passed. The sole verifier failure expected
+    a non-existent evidenceSummary.notTested key; the canonical summary contract
+    names that field untested. Corrected only the test key. The frozen payload,
+    bytes, hash, implementation, and existing baselines did not change.
+  implementation: >-
+    Added a complete protected evidence payload that reuses one shared
+    observation-consistent candidate-workflow join for both exact candidate
+    detail and the six-item desk, then exposed it through an authenticated,
+    dynamic, query-independent GET-only route with private no-store headers.
+  focused_verification: >-
+    PASS - all four builder, route, real-cookie auth, and public-boundary suites
+    pass 15/15. Coverage proves complete pinned ordering, adverse summary,
+    receipt/handoff/draft joins, availability instants, deterministic bytes/hash,
+    auth-before-data, query independence, private caching, no CORS, GET-only
+    behavior, and absence from the public OpenAPI contract.
+  deterministic_replay_verification: >-
+    PASS - two fixed-instant serializations are byte-identical at 51,144 UTF-8
+    bytes and SHA-256 de24676a5f7431a7146002f51bbbb42c6e3396f832f3463fbdd94746e2f0411a;
+    the exact task/source order, receipt counts, handoffs, current-window state,
+    adverse evidence summary, and false authority controls match the frozen desk.
+  baseline_replay_verification: >-
+    PASS - evidence JSON remains 24,949 bytes/54fed853, full public JSON
+    59,873/ade593cd, TC-260 public detail 5,770/adba3fd3, full public CSV
+    36,725/f51787d9, evidence public CSV 4,492/663f5dd0, full admin JSON
+    42,354/0cd758e2, TC-260 admin detail 9,230/df2a11b6, admin review JSON
+    20,006/316301ff, and protected review CSV 6,350/3ce2d5eb; receipt and
+    marketing-handoff task-ID ledgers are unchanged.
+  adjacent_verification: >-
+    PASS - all 29 adjacent public/protected intake, candidate, evidence,
+    full/evidence/review CSV, auth, receipt, loop, marketing, README, and OpenAPI
+    suites pass 125/125. Only the inherited ts-jest globals warning and
+    forceExit open-handle notice remain.
+  source_verification: >-
+    PASS - the independent source verifier reconstructs all 61 candidates at
+    exact commit d9c98521 and README SHA-256 67f4c496 with gross-of-trading-costs
+    discovery-only treatment.
+  typecheck_verification: >-
+    PASS - the signals package build and web TypeScript no-emit check complete
+    without errors.
+  changed_file_lint_first_iteration: >-
+    The first changed-file ESLint invocation ran from the repository root, where
+    ESLint 9 correctly found no local flat config. Product code was not examined
+    and did not change; rerun the same six files from the apps/web workspace that
+    owns eslint.config.mjs.
+  changed_file_lint_verification: >-
+    PASS - all six changed TypeScript files complete the authoritative web
+    workspace ESLint configuration with zero findings.
+  lint_verification: >-
+    PASS - full web lint completes with zero errors and the same 21 inherited
+    warnings; no warning points to this increment.
+  state_and_scope_verification: >-
+    PASS - STATE parses, diff whitespace passes, and exactly seven intended paths
+    are changed. No manifest, lockfile, Docker, migration, source catalog data,
+    research source/result/artifact/script, visual page, database, auth semantic,
+    strategy, signal, allocation, broadcast, execution, billing, or external-state
+    path changed.
+  repository_test_verification: >-
+    PASS - all 275 runnable Jest suites and 2,064 tests pass with 3 suites and 26
+    tests skipped and 1 snapshot passed; forceExit closed the repository's
+    inherited open handle after the complete green summary.
+  build_verification: >-
+    PASS - the required root build compiled signals, trading-agents, and Next.js,
+    generated 329/329 static pages, and registered
+    /api/admin/research-intake/evidence as a dynamic server route. Only inherited
+    NFT tracing, middleware deprecation, edge-static-generation, and Node
+    url.parse warnings remain.
+  precommit_audit_first_iteration: >-
+    Native tsx -e attempts were not evaluated because PowerShell removed embedded
+    JavaScript quotes; stdin then exposed CommonJS default-import interop, and one
+    verifier invocation used limit=100 instead of the frozen default admin query.
+    Corrected only the independent verifier transport/import/query. No product or
+    expected payload changed, and every hashable payload already matched.
+  precommit_deterministic_replay: >-
+    PASS - the protected desk repeats at exactly 51,144 bytes/de24676a and all
+    nine prior JSON/CSV payloads repeat at their complete frozen byte counts and
+    SHA-256 hashes. Task/source order, 1/1/0/1/1/1 receipt counts, four joined
+    handoffs, five-receipt ledger, and four-handoff ledger are exact and unchanged.
+  precommit_adjacent_first_iteration: >-
+    The 29-path command passed every matched test, but Jest interpreted brackets
+    in three candidate route paths as regex and ran 26 suites/114 tests. Product
+    code did not change; rerun the same list with --runTestsByPath for literal
+    coverage of all 29 suites/125 tests.
+  precommit_adjacent_verification: >-
+    PASS - literal --runTestsByPath replay covers all 29 adjacent suites and all
+    125 tests, including the three bracket-named candidate-route suites. Only the
+    inherited ts-jest globals warning and forceExit open-handle notice remain.
+  precommit_state_and_scope_verification: >-
+    PASS - STATE parses, diff whitespace passes, and the working tree contains
+    exactly the seven frozen implementation/state paths.
+  admin_visual_v0_changed: false
+  public_visual_changed: false
+  current_step: Review and stage exactly the seven frozen paths, verify the cached diff, and create the local implementation commit
+  next_action: Close every failed gate before creating local implementation and state commits; preserve the sole TC-260 receipt until exact 18:00Z
+  external_actions: none
+  safety: No candidate stage, receipt, source data, return, preregistration, result artifact, marketing handoff, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
 
 public_research_evidence_csv_2026_08_29:
   at: 2026-08-30T01:17:48+08:00

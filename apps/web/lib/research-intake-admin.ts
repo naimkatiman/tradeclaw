@@ -125,6 +125,34 @@ export interface ResearchIntakeAdminCandidatePayload {
   };
 }
 
+export interface ResearchIntakeAdminEvidenceItem {
+  evidencePosition: number;
+  record: ResearchIntakeAdminRecord;
+  candidateWorkflow: ResearchIntakeAdminCandidatePayload['candidateWorkflow'];
+  links: {
+    adminCandidate: string;
+    publicCandidate: string;
+  };
+}
+
+export interface ResearchIntakeAdminEvidencePayload {
+  schemaVersion: 1;
+  access: ResearchIntakeAdminPayload['access'];
+  source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
+  selectionPolicy: string;
+  workflow: typeof RESEARCH_INTAKE_WORKFLOW;
+  researchLoop: ResearchIntakeAdminPayload['researchLoop'];
+  catalogSummary: ReturnType<typeof summarizeResearchIntake>;
+  evidenceIndex: {
+    selection: 'all-candidates-with-tradeclaw-source-audit-or-replication';
+    order: 'pinned-source-order';
+    performanceRanked: false;
+    includesEveryAvailableOverlay: true;
+  };
+  evidenceSummary: ReturnType<typeof summarizeResearchIntake>;
+  items: readonly ResearchIntakeAdminEvidenceItem[];
+}
+
 export interface ResearchIntakeAdminReviewControls {
   humanReviewRequired: true;
   publicationApproved: false;
@@ -312,6 +340,36 @@ function toAdminRecord(
   };
 }
 
+function buildResearchIntakeAdminCandidateWorkflow(
+  candidate: ResearchIntakeRecord,
+  observation: ReturnType<typeof buildResearchIntakeAdminObservation>,
+): ResearchIntakeAdminCandidatePayload['candidateWorkflow'] {
+  const receipts = RESEARCH_LOOP_RECEIPTS.filter(
+    (entry) =>
+      entry.candidateId === candidate.id &&
+      Date.parse(entry.recordedAt) <= observation.observedAtMs,
+  );
+  const marketingHandoff = observation.marketingReview.handoffs.find(
+    (handoff) => handoff.candidateId === candidate.id,
+  ) ?? null;
+
+  return {
+    receiptCount: receipts.length,
+    receipts,
+    latestReceipt: receipts.at(-1) ?? null,
+    marketingHandoff,
+    controls: {
+      humanReviewRequired: marketingHandoff !== null,
+      publicationApproved: false,
+      automaticPublication: false,
+      automaticPosting: false,
+      tradingApproved: false,
+      automaticTrading: false,
+      externalActions: 'none',
+    },
+  };
+}
+
 const ADMIN_REVIEW_CONTROLS: ResearchIntakeAdminReviewControls = {
   humanReviewRequired: true,
   publicationApproved: false,
@@ -434,14 +492,10 @@ export function buildResearchIntakeAdminCandidatePayload(
   if (!candidate) return null;
 
   const observation = buildResearchIntakeAdminObservation(at);
-  const receipts = RESEARCH_LOOP_RECEIPTS.filter(
-    (entry) =>
-      entry.candidateId === candidateId &&
-      Date.parse(entry.recordedAt) <= observation.observedAtMs,
+  const candidateWorkflow = buildResearchIntakeAdminCandidateWorkflow(
+    candidate,
+    observation,
   );
-  const marketingHandoff = observation.marketingReview.handoffs.find(
-    (handoff) => handoff.candidateId === candidateId,
-  ) ?? null;
 
   return {
     schemaVersion: 1,
@@ -455,22 +509,64 @@ export function buildResearchIntakeAdminCandidatePayload(
     workflow: RESEARCH_INTAKE_WORKFLOW,
     researchLoop: observation.researchLoop,
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
-    record: toAdminRecord(candidate, marketingHandoff !== null),
-    candidateWorkflow: {
-      receiptCount: receipts.length,
-      receipts,
-      latestReceipt: receipts.at(-1) ?? null,
-      marketingHandoff,
-      controls: {
-        humanReviewRequired: marketingHandoff !== null,
-        publicationApproved: false,
-        automaticPublication: false,
-        automaticPosting: false,
-        tradingApproved: false,
-        automaticTrading: false,
-        externalActions: 'none',
-      },
+    record: toAdminRecord(candidate, candidateWorkflow.marketingHandoff !== null),
+    candidateWorkflow,
+  };
+}
+
+/**
+ * Protected, filter-independent desk for every current compiled candidate with
+ * a TradeClaw source-audit or replication overlay. Receipt and marketing state
+ * are limited to entries visible at `at`; the evidence records themselves are
+ * the current compiled catalog, not reconstructed historical snapshots.
+ */
+export function buildResearchIntakeAdminEvidencePayload(
+  at: Date | string | number = new Date(),
+): ResearchIntakeAdminEvidencePayload {
+  const observation = buildResearchIntakeAdminObservation(at);
+  const evidenceRecords = SYSTEMATIC_RESEARCH_INTAKE.filter(
+    (record) => record.tradeClawSourceAudit !== null || record.tradeClawEvidence !== null,
+  );
+
+  return {
+    schemaVersion: 1,
+    access: {
+      mode: 'admin-read-only',
+      grantsPublicationAuthority: false,
+      grantsTradingAuthority: false,
     },
+    source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
+    selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
+    workflow: RESEARCH_INTAKE_WORKFLOW,
+    researchLoop: observation.researchLoop,
+    catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
+    evidenceIndex: {
+      selection: 'all-candidates-with-tradeclaw-source-audit-or-replication',
+      order: 'pinned-source-order',
+      performanceRanked: false,
+      includesEveryAvailableOverlay: true,
+    },
+    evidenceSummary: summarizeResearchIntake(evidenceRecords),
+    items: evidenceRecords.map((record, index) => {
+      const candidateWorkflow = buildResearchIntakeAdminCandidateWorkflow(
+        record,
+        observation,
+      );
+      const encodedCandidateId = encodeURIComponent(record.id);
+
+      return {
+        evidencePosition: index + 1,
+        record: toAdminRecord(
+          record,
+          candidateWorkflow.marketingHandoff !== null,
+        ),
+        candidateWorkflow,
+        links: {
+          adminCandidate: `/api/admin/research-intake/${encodedCandidateId}`,
+          publicCandidate: `/api/research/intake/${encodedCandidateId}`,
+        },
+      };
+    }),
   };
 }
 
