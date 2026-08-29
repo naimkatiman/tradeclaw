@@ -1,11 +1,69 @@
 project: tradeclaw
-updated: 2026-08-29T23:32:10+08:00
+updated: 2026-08-29T23:51:16+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+public_research_candidate_detail_2026_08_29:
+  at: 2026-08-29T23:51:16+08:00
+  agent: TradeClaw PM agent
+  status: verified_pending_local_commit
+  scope: Let a public user or future visual client retrieve one pinned candidate and its complete safe evidence overlay by canonical ID without downloading and searching the whole catalog
+  base_commit: f106c6f3ff61fdfbfbaf2a37c0a998ab88c73b0a
+  implementation_commit: pending_local_commit
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-29T15:00:00.000Z/PT3H
+  current_cycle_receipt: TC-260
+  new_research_receipt_created: false
+  return_calculated: false
+  finding: The public API exposes a deterministic 59,873-byte whole-catalog JSON response and a 61-row CSV, but no candidate-level read contract; inspecting one paper requires downloading and client-searching all 61 records, and future public deep links would have to duplicate lookup and claim-boundary logic
+  documentation_drift: The OpenAPI catalog-summary examples still say 56 discovered, 1 source-audited, and 1 source no-go after TC-260 changed the authoritative counts to 55, 2, and 2
+  library_search: No reusable research-intake detail, evidence-detail, or candidate-lookup contract exists in shared MemoryCore; reuse TradeClaw's verified field-allow-listed public projection, deterministic public cache, and canonical-ID conventions
+  acceptance_gates:
+    - GET /api/research/intake/{candidateId} returns exactly one canonical source record with the same pinned source receipt, selection policy, workflow, claim boundaries, whole-catalog summary, and complete safe source-audit or replication overlay as the full public response
+    - Lookup is exact and case-sensitive; it never aliases, fuzzy-matches, trims, or selects by title, task ID, upstream metric, or catalog position
+    - Unknown, case-mutated, and whitespace-mutated IDs receive the same generic non-reflective 404 JSON body and cannot leak admin, marketing, receipt, or next-action state
+    - Success and not-found responses are deterministic, API-key-free, publicly cached for one hour, have no Cookie or Authorization cache variance, deny CORS by omission, and expose only GET
+    - The detail payload is materially smaller than the whole catalog and omits records[], nextAction, marketingDisposition, marketingReviewDraft, researchLoop, marketingReview, receipt history, and every publication or trading control except the explicit false public authority boundary
+    - OpenAPI documents the required canonical-ID path parameter, safe 200/404 responses, reusable public-record schema, and corrected 55 discovered / 2 source-audited / 2 source-no-go examples
+    - README gives one copy-paste candidate-detail example while retaining the whole-catalog and CSV examples; no public or admin visual structure changes
+    - The canonical whole-catalog JSON and CSV remain byte-identical, source reconstruction remains 61/61, the completed TC-260 receipt and all marketing handoffs remain unchanged, and no new research or external action occurs
+    - Intentional RED, focused and adjacent tests, typecheck, lint, repository tests, state/hash/scope audits, and the required npm run build pass before a local commit
+  red_evidence: PASS - all four focused suites failed only at the intended absent candidate-payload export, absent dynamic route module, missing OpenAPI record/detail schemas and detail path plus stale 56/1/1 examples, and missing README detail curl; seven pre-existing assertions in the same suites remained green
+  implementation: Added an exact canonical-ID projection over the existing field-allow-listed public record, a GET-only dynamic route with one generic non-reflective 404 and the same one-hour public cache policy, reusable OpenAPI public-record and candidate-response schemas, corrected catalog-summary examples, and one README copy-paste detail request
+  focused_verification: PASS - the four candidate builder, dynamic route, public-boundary/OpenAPI, and README suites pass 10/10 after the intentional RED; TC-260's no-backtest source audit, false authority boundary, exact/case-sensitive lookup, safe 404s, absent admin fields, public cache, GET-only surface, documentation, and corrected count examples are covered
+  adjacent_verification: PASS - 16 candidate/full-catalog/CSV/intake/receipt/loop/marketing/protected-admin/auth/README/OpenAPI suites pass 78/78; a separate OpenAPI reference audit resolves every local JSON pointer including the new nested context references
+  payload_audit:
+    public_json_bytes: 59873
+    public_json_sha256: ade593cd52274f7386cb4a505c2e8bf2abd7836685c927f0dfba85a0f0546dc6
+    public_json_unchanged: true
+    public_csv_bytes: 36725
+    public_csv_sha256: f51787d97c5c21aef4751135899bc0e1c310155cde7c07c7961a2d332c6f54c6
+    public_csv_physical_lines: 62
+    public_csv_unchanged: true
+    tc260_candidate_json_bytes: 5770
+    tc260_candidate_json_sha256: adba3fd308fcaac7cea5aebf078640b9ef98f8e8c1e290cb2b9d3fad83b51b3d
+  receipt_ledger_unchanged: TC-256 and TC-257 retain the historical 06:00Z duplicate, TC-258 remains 09:00Z, TC-259 remains 12:00Z, and TC-260 remains the sole 15:00Z receipt
+  marketing_handoffs_unchanged: TC-255, TC-257, TC-258, TC-259
+  typecheck_verification: PASS - signals package build and web TypeScript completed without errors
+  changed_file_lint_invocation_repair: The first root-level npx eslint command exited before reading code because ESLint configuration lives in apps/web; the correctly scoped web-workspace run then identified one test-only unused destructure warning, which was removed and the affected test stayed green
+  full_lint_integration_repair: Adding the nested API route caused Next's page-link rule to newly classify the existing raw-JSON anchor on /research as an app-page link; converting an API-document navigation to client routing would be incorrect, so a narrow documented rule exception preserves identical rendered behavior
+  changed_file_lint_verification: PASS - all changed TypeScript and TSX files have zero lint findings after the test cleanup and raw-JSON anchor exception
+  lint_verification: PASS - full web lint completes with zero errors and the same 21 inherited warnings; no warning points to this increment
+  source_verification: PASS - the independent source verifier reconstructs all 61 candidates at exact commit d9c98521 and README SHA-256 67f4c496 with gross-of-trading-costs discovery-only treatment
+  repository_test_verification: PASS - all 262 runnable Jest suites and 2,018 tests pass with 3 suites and 26 tests skipped; forceExit closed the repository's inherited open handle after the complete green summary
+  build_verification: PASS - the required root build compiled signals, trading-agents, and Next.js and generated 327/327 pages; /api/research/intake/{candidateId} is registered as a dynamic route, while the whole-catalog JSON and CSV retain their static one-hour exports; only inherited NFT tracing, middleware deprecation, edge-static-generation, and Node url.parse warnings remain
+  state_and_scope_verification: PASS - STATE parses, diff whitespace passes, and exactly ten intended paths are changed; Docker Compose, manifests, lockfiles, migrations, source catalog data, research sources/results/artifacts/scripts, admin/auth, database, signals, strategies, allocation, broadcast, execution, billing, and runtime behavior have zero diff
+  visual_verification: The sole public-page source change is a non-rendering lint directive preserving the existing raw-JSON anchor after Next began classifying it as an app-page link; no layout, copy, style, interaction, or protected admin UI changed
+  public_visual_structure_changed: false
+  admin_visual_v0_changed: false
+  current_step: Create the verified local implementation commit, write its hash back to STATE and shared MemoryCore, create a state-only closure commit, and confirm a clean isolated branch
+  next_action: Preserve the completed 15:00Z receipt and wait until exact 18:00Z before screening another candidate; same-window product work remains allowed but no second research receipt may be created
+  external_actions: none
+  safety: No candidate stage, receipt, source data, return, preregistration, result artifact, marketing handoff, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth, or trading state changed
 
 systematic_candidate_screen_2026_08_29_15z:
   at: 2026-08-29T23:32:10+08:00

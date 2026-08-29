@@ -41,6 +41,13 @@ export interface ResearchIntakePublicPayload {
   records: readonly ResearchIntakePublicRecord[];
 }
 
+export type ResearchIntakePublicCandidatePayload = Omit<
+  ResearchIntakePublicPayload,
+  'records'
+> & {
+  record: ResearchIntakePublicRecord;
+};
+
 function evidenceBasisFor(record: ResearchIntakeRecord): ResearchIntakePublicEvidenceBasis {
   if (record.tradeClawEvidence) return 'tradeclaw-replication-record';
   if (record.tradeClawSourceAudit) return 'tradeclaw-source-audit-only';
@@ -70,12 +77,7 @@ function toPublicRecord(record: ResearchIntakeRecord): ResearchIntakePublicRecor
   };
 }
 
-/**
- * Stable, filter-free projection of the pinned source catalog and completed
- * TradeClaw evidence overlays. Admin timing, next-action, and marketing state
- * are intentionally absent.
- */
-export function buildResearchIntakePublicPayload(): ResearchIntakePublicPayload {
+function buildResearchIntakePublicContext(): Omit<ResearchIntakePublicPayload, 'records'> {
   return {
     schemaVersion: 1,
     access: {
@@ -99,6 +101,33 @@ export function buildResearchIntakePublicPayload(): ResearchIntakePublicPayload 
         'This read-only response grants no authority to publish claims, select a strategy, allocate capital, broadcast a signal, or place a trade.',
     },
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
+  };
+}
+
+/**
+ * Stable, filter-free projection of the pinned source catalog and completed
+ * TradeClaw evidence overlays. Admin timing, next-action, and marketing state
+ * are intentionally absent.
+ */
+export function buildResearchIntakePublicPayload(): ResearchIntakePublicPayload {
+  return {
+    ...buildResearchIntakePublicContext(),
     records: SYSTEMATIC_RESEARCH_INTAKE.map(toPublicRecord),
+  };
+}
+
+/**
+ * Exact canonical-ID projection for one pinned candidate. No title, task-ID,
+ * case-insensitive, trimmed, or fuzzy aliases are accepted.
+ */
+export function buildResearchIntakePublicCandidatePayload(
+  candidateId: string,
+): ResearchIntakePublicCandidatePayload | null {
+  const candidate = SYSTEMATIC_RESEARCH_INTAKE.find((record) => record.id === candidateId);
+  if (!candidate) return null;
+
+  return {
+    ...buildResearchIntakePublicContext(),
+    record: toPublicRecord(candidate),
   };
 }

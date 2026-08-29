@@ -589,6 +589,7 @@ export default function ResearchPage() {
               they are not TradeClaw performance. A source-audit no-go is a feasibility decision, not a local performance failure.
               Completed overlays retain costs, holdouts, QA, and failure reasons without granting publication or trading authority.
             </p>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Raw JSON intentionally bypasses app-page routing. */}
             <a
               href="/api/research/intake"
               className="mt-6 inline-flex rounded-[var(--radius-pill)] border border-[var(--border)] px-5 py-2.5 font-mono text-[13px] font-semibold text-[var(--foreground)] underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:decoration-[var(--foreground)]"

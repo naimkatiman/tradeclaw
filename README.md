@@ -208,6 +208,9 @@ No key required on the public research routes. Cache on your side; responses alr
 # All 61 pinned discovery candidates, with completed TradeClaw evidence overlays
 curl https://tradeclaw.win/api/research/intake
 
+# One canonical candidate, with its complete safe evidence overlay
+curl https://tradeclaw.win/api/research/intake/a-risk-based-approach-to-tactical-asset-allocation
+
 # 25-column spreadsheet index; canonical JSON above retains complete nested evidence
 curl https://tradeclaw.win/api/research/intake.csv -o tradeclaw-systematic-research-intake-2026-08-29.csv
 

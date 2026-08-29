@@ -220,6 +220,57 @@ export function buildOpenApiSpec(): OpenApiSpec {
             stats: { type: "object" },
           },
         },
+        ResearchIntakePublicRecord: {
+          type: "object",
+          description:
+            "One field-allow-listed source candidate with its safe TradeClaw source-audit or replication overlay, when one exists.",
+          required: [
+            "id",
+            "title",
+            "sourceUrl",
+            "assetClass",
+            "upstreamGrossSharpe",
+            "upstreamTStatistic",
+            "upstreamVolatilityPct",
+            "upstreamYearsTested",
+            "sourcePosition",
+            "discoveryBasis",
+            "stage",
+            "verdict",
+            "costStatus",
+            "evidenceBasis",
+            "tradeClawSourceAudit",
+            "tradeClawEvidence",
+          ],
+          properties: {
+            id: {
+              type: "string",
+              example: "a-risk-based-approach-to-tactical-asset-allocation",
+            },
+            title: { type: "string" },
+            sourceUrl: { type: "string", format: "uri" },
+            assetClass: { type: "string" },
+            upstreamGrossSharpe: { type: "number" },
+            upstreamTStatistic: { type: "number" },
+            upstreamVolatilityPct: { type: "number" },
+            upstreamYearsTested: { type: "number" },
+            sourcePosition: { type: "integer", minimum: 0, maximum: 60 },
+            discoveryBasis: { type: "string", const: "upstream-gross-metadata" },
+            stage: { type: "string" },
+            verdict: { type: "string" },
+            costStatus: { type: "string" },
+            evidenceBasis: {
+              type: "string",
+              enum: [
+                "upstream-gross-discovery-only",
+                "tradeclaw-source-audit-only",
+                "tradeclaw-replication-record",
+              ],
+            },
+            tradeClawSourceAudit: { type: ["object", "null"] },
+            tradeClawEvidence: { type: ["object", "null"] },
+          },
+        },
         ResearchIntakeResponse: {
           type: "object",
           description:
@@ -326,8 +377,8 @@ export function buildOpenApiSpec(): OpenApiSpec {
               ],
               properties: {
                 total: { type: "integer", example: 61 },
-                discovered: { type: "integer", example: 56 },
-                sourceAudited: { type: "integer", example: 1 },
+                discovered: { type: "integer", example: 55 },
+                sourceAudited: { type: "integer", example: 2 },
                 preregistered: { type: "integer", example: 0 },
                 replicated: { type: "integer", example: 4 },
                 prospective: { type: "integer", example: 0 },
@@ -335,7 +386,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
                 failed: { type: "integer", example: 3 },
                 inconclusive: { type: "integer", example: 1 },
                 untested: { type: "integer", example: 57 },
-                sourceNoGo: { type: "integer", example: 1 },
+                sourceNoGo: { type: "integer", example: 2 },
                 byAssetClass: {
                   type: "object",
                   additionalProperties: { type: "integer" },
@@ -346,53 +397,43 @@ export function buildOpenApiSpec(): OpenApiSpec {
               type: "array",
               minItems: 61,
               maxItems: 61,
-              items: {
-                type: "object",
-                required: [
-                  "id",
-                  "title",
-                  "sourceUrl",
-                  "assetClass",
-                  "upstreamGrossSharpe",
-                  "upstreamTStatistic",
-                  "upstreamVolatilityPct",
-                  "upstreamYearsTested",
-                  "sourcePosition",
-                  "discoveryBasis",
-                  "stage",
-                  "verdict",
-                  "costStatus",
-                  "evidenceBasis",
-                  "tradeClawSourceAudit",
-                  "tradeClawEvidence",
-                ],
-                properties: {
-                  id: { type: "string" },
-                  title: { type: "string" },
-                  sourceUrl: { type: "string", format: "uri" },
-                  assetClass: { type: "string" },
-                  upstreamGrossSharpe: { type: "number" },
-                  upstreamTStatistic: { type: "number" },
-                  upstreamVolatilityPct: { type: "number" },
-                  upstreamYearsTested: { type: "number" },
-                  sourcePosition: { type: "integer", minimum: 0, maximum: 60 },
-                  discoveryBasis: { type: "string", const: "upstream-gross-metadata" },
-                  stage: { type: "string" },
-                  verdict: { type: "string" },
-                  costStatus: { type: "string" },
-                  evidenceBasis: {
-                    type: "string",
-                    enum: [
-                      "upstream-gross-discovery-only",
-                      "tradeclaw-source-audit-only",
-                      "tradeclaw-replication-record",
-                    ],
-                  },
-                  tradeClawSourceAudit: { type: ["object", "null"] },
-                  tradeClawEvidence: { type: ["object", "null"] },
-                },
-              },
+              items: { $ref: "#/components/schemas/ResearchIntakePublicRecord" },
             },
+          },
+        },
+        ResearchIntakeCandidateResponse: {
+          type: "object",
+          description:
+            "Public, deterministic projection of one exact pinned candidate. Admin timing, next-action, receipt, and marketing workflow fields are excluded.",
+          required: [
+            "schemaVersion",
+            "access",
+            "source",
+            "selectionPolicy",
+            "workflow",
+            "claimBoundary",
+            "catalogSummary",
+            "record",
+          ],
+          properties: {
+            schemaVersion: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/schemaVersion",
+            },
+            access: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/access" },
+            source: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/source" },
+            selectionPolicy: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/selectionPolicy",
+            },
+            workflow: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/workflow",
+            },
+            claimBoundary: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/claimBoundary",
+            },
+            catalogSummary: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/catalogSummary",
+            },
+            record: { $ref: "#/components/schemas/ResearchIntakePublicRecord" },
           },
         },
         HealthResponse: {
@@ -448,6 +489,49 @@ export function buildOpenApiSpec(): OpenApiSpec {
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ResearchIntakeResponse" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/api/research/intake/{candidateId}": {
+        get: {
+          tags: ["Research"],
+          operationId: "getResearchIntakeCandidate",
+          summary: "Inspect one systematic-research candidate",
+          description:
+            "Returns one canonical candidate and its complete safe evidence overlay using exact, case-sensitive ID matching. " +
+            "No API key is required. The response carries the pinned source receipt and claim boundaries, excludes admin, receipt, and marketing workflow, and grants no publication, strategy-selection, broadcast, or trading authority.",
+          security: [],
+          parameters: [
+            {
+              name: "candidateId",
+              in: "path",
+              required: true,
+              description:
+                "Exact canonical candidate ID from the full intake response; aliases, task IDs, titles, case changes, and surrounding whitespace are not accepted.",
+              schema: {
+                type: "string",
+                example: "a-risk-based-approach-to-tactical-asset-allocation",
+              },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "One pinned public research candidate and its evidence overlay",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ResearchIntakeCandidateResponse" },
+                },
+              },
+            },
+            "404": {
+              description: "No candidate has that exact canonical ID",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Error" },
+                  example: { error: "Research intake candidate not found." },
                 },
               },
             },

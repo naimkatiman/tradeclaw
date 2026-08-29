@@ -6,6 +6,27 @@ function source(path: string): string {
   return readFileSync(resolve(__dirname, '..', path), 'utf8');
 }
 
+function collectLocalReferences(value: unknown): string[] {
+  if (Array.isArray(value)) return value.flatMap(collectLocalReferences);
+  if (!value || typeof value !== 'object') return [];
+
+  const record = value as Record<string, unknown>;
+  const ownReference =
+    typeof record.$ref === 'string' && record.$ref.startsWith('#/') ? [record.$ref] : [];
+  return ownReference.concat(Object.values(record).flatMap(collectLocalReferences));
+}
+
+function resolveLocalReference(document: unknown, reference: string): unknown {
+  return reference
+    .slice(2)
+    .split('/')
+    .map((part) => part.replaceAll('~1', '/').replaceAll('~0', '~'))
+    .reduce<unknown>((current, part) => {
+      if (!current || typeof current !== 'object') return undefined;
+      return (current as Record<string, unknown>)[part];
+    }, document);
+}
+
 describe('systematic research intake public boundary', () => {
   it('publishes exact catalog counts separately from the retained study ledger', () => {
     const page = source('research/page.tsx');
@@ -41,23 +62,60 @@ describe('systematic research intake public boundary', () => {
           get?: {
             security?: unknown[];
             description?: string;
+            parameters?: Array<{ name?: string; in?: string; required?: boolean }>;
             responses?: Record<string, unknown>;
           };
         }
       >;
     };
     const operation = spec.paths['/api/research/intake']?.get;
+    const candidateOperation = spec.paths['/api/research/intake/{candidateId}']?.get;
     const csvOperation = spec.paths['/api/research/intake.csv']?.get;
+    const responseSchema = spec.components.schemas.ResearchIntakeResponse as {
+      properties?: {
+        catalogSummary?: {
+          properties?: Record<string, { example?: number }>;
+        };
+      };
+    };
+    const summaryExamples = responseSchema.properties?.catalogSummary?.properties;
 
     expect(spec.tags).toContainEqual(expect.objectContaining({ name: 'Research' }));
     expect(spec.components.schemas).toHaveProperty('ResearchIntakeResponse');
+    expect(spec.components.schemas).toHaveProperty('ResearchIntakePublicRecord');
+    expect(spec.components.schemas).toHaveProperty('ResearchIntakeCandidateResponse');
     expect(operation).toBeDefined();
     expect(operation?.security).toEqual([]);
     expect(operation?.description).toMatch(/gross discovery metadata.*modeled historical research/i);
     expect(operation?.responses).toHaveProperty('200');
+    expect(candidateOperation).toBeDefined();
+    expect(candidateOperation?.security).toEqual([]);
+    expect(candidateOperation?.description).toMatch(/one canonical candidate.*exact.*case-sensitive/i);
+    expect(candidateOperation?.parameters).toContainEqual(
+      expect.objectContaining({
+        name: 'candidateId',
+        in: 'path',
+        required: true,
+      }),
+    );
+    expect(candidateOperation?.responses).toHaveProperty('200');
+    expect(candidateOperation?.responses).toHaveProperty('404');
     expect(csvOperation).toBeDefined();
     expect(csvOperation?.security).toEqual([]);
     expect(csvOperation?.description).toMatch(/25-column spreadsheet index.*canonical JSON/i);
     expect(csvOperation?.responses).toHaveProperty('200');
+    expect(summaryExamples?.discovered?.example).toBe(55);
+    expect(summaryExamples?.sourceAudited?.example).toBe(2);
+    expect(summaryExamples?.sourceNoGo?.example).toBe(2);
+  });
+
+  it('keeps every local OpenAPI reference resolvable', () => {
+    const spec = buildOpenApiSpec();
+    const references = collectLocalReferences(spec);
+
+    expect(references.length).toBeGreaterThan(0);
+    for (const reference of references) {
+      expect(resolveLocalReference(spec, reference)).toBeDefined();
+    }
   });
 });
