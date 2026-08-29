@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T15:49:06+08:00
+updated: 2026-08-29T15:50:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_intake_desk_2026_08_29:
-  at: 2026-08-29T15:49:06+08:00
+  at: 2026-08-29T15:50:00+08:00
   agent: TradeClaw PM agent
   status: foundation_and_admin_api_complete_ui_checkpoint
   scope: Turn the protected strategy-library surface into a simple cost-first research intake desk and connect evidence-complete findings to a human-reviewed three-hour research/marketing loop
   base_commit: f7936bcf627f208ac0379412453976b17218608b
   implementation_commit: bce46c05b2c61613981616102535e2f3be666950
+  admin_api_commit: 27faeffad19ba42fcd914e956103f863ce253537
   branch: agent/research-intake-desk-20260829
   current_step: The pinned foundation, first source no-go, and protected admin read API are implemented; visual v0 is paused at the required UI direction checkpoint
   source: >
@@ -112,7 +113,8 @@ research_intake_desk_2026_08_29:
       - docs/research/2026-08-29-price-overreactions-source-audit.md
     additional_product_increment:
       route: GET /api/admin/research-intake
-      status: verified_local
+      status: verified_and_committed_local
+      commit: 27faeffad19ba42fcd914e956103f863ce253537
       access: admin-read-only
       mutations: none
       publication_authority: false
@@ -5038,6 +5040,8 @@ next_actions:
       pass. The admin visual redesign and
       featured public TC-255 card remain confirmation-gated. The verified
       non-visual foundation is committed locally as
-      bce46c05b2c61613981616102535e2f3be666950. Push, PR, merge, deployment,
+      bce46c05b2c61613981616102535e2f3be666950, and the protected admin API
+      checkpoint is committed locally as
+      27faeffad19ba42fcd914e956103f863ce253537. Push, PR, merge, deployment,
       publication, billing, signal, allocation, broadcast, and execution state
       remain unchanged.
