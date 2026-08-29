@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T15:50:00+08:00
+updated: 2026-08-29T16:40:23+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -7,16 +7,84 @@ description: >
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
+end_of_month_treasury_replication_2026_08_29:
+  at: 2026-08-29T16:29:58+08:00
+  agent: TradeClaw PM agent
+  status: verified_replicated_inconclusive_qa_only
+  scope: Independently test the catalog's lower-turnover end-of-month Treasury hypothesis with public Federal Reserve data, explicit financing and execution costs, a post-publication holdout, same-duration controls, and an external falsification market
+  base_commit: 8423a6f66c8549e7726aed0283839289377d559c
+  branch: agent/research-intake-desk-20260829
+  candidate_id: predictable-end-of-month-treasury-returns
+  source_audit: docs/research/2026-08-29-predictable-end-of-month-treasury-source-audit.md
+  source_audit_sha256: 3df7f04b4ef3d94a1fe245bf61262f7cfe41dc2582bdb748162ee1dbb086c127
+  source_audit_disposition: advance
+  preregistration: docs/plans/2026-08-29-end-of-month-treasury-replication.md
+  preregistration_sha256: 4e3d9ed5392aa9cbe8eed9865483f583a31336c6cc770e9773230f4fe829b3de
+  current_step: Verification is complete; the frozen run is retained as INCONCLUSIVE after one source-consistency comparison exceeded the preregistered tolerance, performance gates were not evaluated, and the artifact contains no return observations
+  input_receipt: >
+    Retained public-domain snapshots are the current-vintage nominal Svensson
+    curve (canonical SHA-256
+    4fab6cf297594f77f6e1ccfa4fbd099b4eb17dc407c9611a488039da33c2c41f),
+    DFF financing proxy
+    (ea8b35582a3f88cc0a0d42ae94addc3d85aaf008d4bb574246dd8a83780db600),
+    and DTWEXBGS broad-dollar control
+    (a3ac96e8eb53625936eb7fd9d14e181c10308ca1831db6ee0b58b35fdfafdb47).
+    Schema-only QA found 9,151 curve rows, 439 evaluation months, complete
+    daily financing coverage, and 243 exact matched external-control months.
+  frozen_protocol: >
+    Primary maturity is five years, bought at the third-to-last daily curve
+    close and sold at month-end, with ACT/360 DFF financing and a 5 bp round
+    trip. Stress uses 10 bp plus a 100 bp annual financing surcharge. A ten-year
+    confirmation, one-year duration control, identically costed first-window
+    placebo, paper all-other-days benchmark, and matched broad-dollar external
+    calendar control are fixed. No search or post-result retuning is allowed.
+  result: >
+    Exact hashes, schemas, 9,151 nominal rows, 13,392 consecutive financing
+    days, 439 evaluation months, 348 paper-window months, 91 holdout months,
+    17-23 curve observations per month, and 243 matched external-control months
+    passed. One of 27,453 supplied-yield reconstruction checks failed the frozen
+    0.0001 percentage-point (0.01 bp) limit: on 2013-10-16 the five-year yield
+    reconstructed from the published parameters was 1.433300717834% versus the
+    supplied 1.432999968529%, an absolute difference of 0.000300749306
+    percentage point (0.0300749306 bp). The tolerance was not relaxed and the
+    row was not removed. The canonical artifact therefore records INCONCLUSIVE,
+    results null, observations null, performanceGatesEvaluated false, and no
+    prospective eligibility. Its SHA-256 is
+    f8707913da4714c967d58f0fd2630c5f2316d6c5ede53507340ad54f35af36cf.
+  result_path: docs/research/2026-08-29-end-of-month-treasury-replication-result.md
+  result_sha256: 1d38f9ded9eddc995514a3e09c03da418f62b60956fb968f37ed0b5c379d5f6b
+  artifact_path: docs/research/experiments/end-of-month-treasury-US-NOMINAL-DTWEXBGS-1990-01-2026-07-f4.json
+  artifact_sha256: f8707913da4714c967d58f0fd2630c5f2316d6c5ede53507340ad54f35af36cf
+  verification: >
+    PASS: deterministic input preparation reproduced all three committed source
+    hashes; focused curve, financing, metric, gate, intake, loop, admin API, and
+    experiment-shelf tests passed; the broader adjacent research/API/auth set
+    passed 219/219; a separate replay was byte-identical to the canonical
+    artifact at SHA-256
+    f8707913da4714c967d58f0fd2630c5f2316d6c5ede53507340ad54f35af36cf;
+    pinned upstream reconstruction passed 61/61; web TypeScript passed; full
+    lint completed with zero errors and the same 21 inherited warnings; YAML,
+    JSON, script syntax, and git diff checks passed. Repository Jest reported
+    248 suites and 1,945 tests passed, with three suites and 26 tests skipped,
+    before requiring cleanup after the repository's known open-handle warning.
+    The required production build compiled signals and trading-agents and
+    generated all 325 Next.js pages. Existing Turbopack tracing, middleware,
+    edge-static-generation, and Node url.parse warnings remain non-blocking.
+  marketing_draft: human-review-draft-only
+  publish_approved: false
+  safety: No UI, auth, database, Docker, dependency, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment mutation is authorized
+  next_action: Under a new preregistration, obtain an original-vintage Federal Reserve curve file or define an explicit rounded-parameter reconciliation policy before attempting any performance evaluation
+
 research_intake_desk_2026_08_29:
   at: 2026-08-29T15:50:00+08:00
   agent: TradeClaw PM agent
-  status: foundation_and_admin_api_complete_ui_checkpoint
+  status: foundation_admin_api_and_second_research_cycle_complete_ui_checkpoint
   scope: Turn the protected strategy-library surface into a simple cost-first research intake desk and connect evidence-complete findings to a human-reviewed three-hour research/marketing loop
   base_commit: f7936bcf627f208ac0379412453976b17218608b
   implementation_commit: bce46c05b2c61613981616102535e2f3be666950
   admin_api_commit: 27faeffad19ba42fcd914e956103f863ce253537
   branch: agent/research-intake-desk-20260829
-  current_step: The pinned foundation, first source no-go, and protected admin read API are implemented; visual v0 is paused at the required UI direction checkpoint
+  current_step: The pinned foundation, first source no-go, protected admin read API, and TC-257 QA-only replication are implemented; visual v0 remains paused at the required UI direction checkpoint
   source: >
     Populate discovery metadata from the 61 highlighted strategies in the exact
     paperswithbacktest/awesome-systematic-trading commit
@@ -39,7 +107,8 @@ research_intake_desk_2026_08_29:
   foundation: >
     Added a strict 61-row source manifest pinned to the exact upstream commit and
     README SHA-256, a fail-closed parser and searchable intake model, a local
-    evidence overlay that marks only TC-255 as replicated/failed, deterministic
+    evidence overlays that mark TC-255 replicated/failed and TC-257
+    replicated/inconclusive without exposing performance, deterministic
     UTC-aligned three-hour cycle windows, and a factual TC-255 marketing draft
     builder whose disposition is human-review-only and publishApproved is fixed
     false. Added a read-only network verifier that reconstructs every source row
@@ -122,6 +191,56 @@ research_intake_desk_2026_08_29:
     marketing_draft: none
     external_actions: none
     next_action: Obtain owner confirmation for the protected admin v0; otherwise continue auditing a reconstructible lower-turnover candidate without changing UI code
+  cycle_2:
+    id: 2026-08-29T06:00:00.000Z/PT3H
+    started_at: 2026-08-29T06:00:00.000Z
+    ends_at: 2026-08-29T09:00:00.000Z
+    candidate_id: predictable-end-of-month-treasury-returns
+    stage_before: discovered
+    stage_after: replicated
+    verdict: inconclusive
+    outcome: implemented-qa-only-hold
+    changed_files:
+      - apps/web/lib/research-intake.ts
+      - apps/web/lib/research-loop.ts
+      - apps/web/lib/strategy-study-catalog.ts
+      - apps/web/lib/__tests__/research-intake.test.ts
+      - apps/web/lib/__tests__/research-loop.test.ts
+      - apps/web/lib/__tests__/strategy-study-catalog.test.ts
+      - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+      - docs/research/2026-08-29-predictable-end-of-month-treasury-source-audit.md
+      - docs/plans/2026-08-29-end-of-month-treasury-replication.md
+      - docs/research/2026-08-29-end-of-month-treasury-replication-result.md
+      - docs/research/data/end-of-month-treasury/fed-nominal-svensson-1989-12-01-2026-07-31.csv
+      - docs/research/data/end-of-month-treasury/DFF-1989-12-01-2026-07-31.csv
+      - docs/research/data/end-of-month-treasury/DTWEXBGS-2006-01-02-2026-07-31.csv
+      - docs/research/experiments/end-of-month-treasury-US-NOMINAL-DTWEXBGS-1990-01-2026-07-f4.json
+      - scripts/research/prepare-end-of-month-treasury-inputs.mjs
+      - scripts/research/end-of-month-treasury-assembly.ts
+      - scripts/research/end-of-month-treasury-replication.ts
+      - scripts/research/__tests__/end-of-month-treasury-assembly.test.ts
+      - package.json
+      - STATE.yaml
+    verification:
+      - deterministic source preparation reproduced 3/3 canonical input hashes
+      - frozen QA stopped on 1/27,453 reconstruction comparisons
+      - canonical QA-only artifact replay byte-identical
+      - adjacent research, intake, loop, API, and auth tests 219/219
+      - repository Jest 248 suites / 1,945 tests passed
+      - pinned source reconstruction 61/61
+      - web TypeScript
+      - full lint 0 errors / 21 inherited warnings
+      - production build 325/325 pages
+      - YAML, JSON, script syntax, and git diff checks
+    evidence_paths:
+      - docs/research/2026-08-29-predictable-end-of-month-treasury-source-audit.md
+      - docs/plans/2026-08-29-end-of-month-treasury-replication.md
+      - docs/research/2026-08-29-end-of-month-treasury-replication-result.md
+      - docs/research/experiments/end-of-month-treasury-US-NOMINAL-DTWEXBGS-1990-01-2026-07-f4.json
+    marketing_draft: human-review-only-no-performance-draft
+    publish_approved: false
+    external_actions: none
+    next_action: Create a new preregistration around an original-vintage curve source or an explicit rounded-parameter reconciliation policy; do not relax the completed run post hoc
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00
@@ -5045,3 +5164,61 @@ next_actions:
       27faeffad19ba42fcd914e956103f863ce253537. Push, PR, merge, deployment,
       publication, billing, signal, allocation, broadcast, and execution state
       remain unchanged.
+
+  - id: TC-257
+    title: "Replicate the end-of-month Treasury candidate under explicit costs"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-29 from clean intake/API checkpoint
+      8423a6f66c8549e7726aed0283839289377d559c on isolated branch
+      agent/research-intake-desk-20260829. Candidate selection followed the
+      three-hour loop's replayability, public-data rights, cost-headroom,
+      falsification, and bounded-implementation order rather than upstream
+      Sharpe. The audited Hartley-Schwarz paper specifies buying an N-year
+      zero-coupon Treasury t trading days before month-end and selling at the
+      final close, financed at GC repo. It reports a 0.13% average monthly
+      excess return for the five-year/two-day lane over 1990-2018 versus a
+      typical 2-3 bp spread. Exact GC repo history is not identified, so this is
+      preregistered as an independent current-vintage replication using DFF as
+      a disclosed proxy, a 5 bp headline round trip, and a 10 bp plus 100 bp
+      annual-financing stress. The primary five-year rule, ten-year
+      confirmation, one-year duration control, same-duration first-window
+      placebo, all-other-days benchmark, broad-dollar external falsification
+      market, four folds, 2019-2026 holdout, exact source hashes, metrics, and
+      PASS/FAIL/INCONCLUSIVE gates were frozen before any local return was
+      calculated. The source-audit canonical SHA-256 is
+      3df7f04b4ef3d94a1fe245bf61262f7cfe41dc2582bdb748162ee1dbb086c127;
+      the preregistration canonical SHA-256 is
+      4e3d9ed5392aa9cbe8eed9865483f583a31336c6cc770e9773230f4fe829b3de.
+      Input preparation is deterministic and fail-closed; schema-only QA found
+      439 evaluation months and no missing financing days. No strategy return,
+      verdict, marketing draft, live mutation, or external action existed at
+      that checkpoint. The first frozen invocation then stopped at standing QA
+      without writing a performance artifact: one of 27,453 comparisons between
+      the Svensson parameters and supplied 1/5/10-year yields exceeded the
+      preregistered 0.0001 percentage-point tolerance. The only breach is the
+      2013-10-16 five-year value, reconstructed as 1.433300717834% versus
+      supplied 1.432999968529%, a 0.000300749306 percentage-point (0.0300749306
+      bp) difference. All hashes, counts, dates, cadence, financing, and matched
+      external-control counts passed. The tolerance was not loosened and the row
+      was not deleted. A deterministic QA-only artifact now retains verdict
+      INCONCLUSIVE with results null, observations null, and performance gates
+      unevaluated; SHA-256
+      f8707913da4714c967d58f0fd2630c5f2316d6c5ede53507340ad54f35af36cf.
+      The human-readable result SHA-256 is
+      1d38f9ded9eddc995514a3e09c03da418f62b60956fb968f37ed0b5c379d5f6b.
+      A review-only no-performance marketing draft is available in the local
+      intake model with publishApproved false. Focused curve, cost, decision,
+      intake, loop, admin API, and experiment-shelf tests pass. The broader
+      adjacent research/API/auth set passed 219/219; a separate replay was
+      byte-identical; pinned-source verification passed 61/61; web TypeScript,
+      full lint with zero errors and 21 inherited warnings, YAML/JSON/script
+      syntax, and git diff checks passed. Repository Jest reported 248 suites
+      and 1,945 tests passed with three suites and 26 tests skipped before the
+      known open-handle cleanup. The required build generated 325/325 pages.
+      The artifact is shelved, not featured, and no performance metric is
+      exposed. No UI, strategy, signal, allocation, broadcast, execution,
+      billing, database, Docker, dependency, publication, push, merge, or
+      deployment state changed. Any source-consistency policy change requires a
+      fresh preregistration.

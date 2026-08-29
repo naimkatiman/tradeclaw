@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "meta": {
+    "task": "TC-257",
+    "studyDate": "2026-08-29",
+    "candidateId": "predictable-end-of-month-treasury-returns",
+    "catalogCommit": "d9c98521c76662d5eae03ab97a4fc721d010dde3",
+    "preregistrationPath": "docs/plans/2026-08-29-end-of-month-treasury-replication.md",
+    "preregistrationSha256": "4e3d9ed5392aa9cbe8eed9865483f583a31336c6cc770e9773230f4fe829b3de",
+    "sourceAuditPath": "docs/research/2026-08-29-predictable-end-of-month-treasury-source-audit.md",
+    "sourceAuditSha256": "3df7f04b4ef3d94a1fe245bf61262f7cfe41dc2582bdb748162ee1dbb086c127",
+    "evidenceBasis": "modeled-current-vintage-independent-replication"
+  },
+  "sources": {
+    "nominal": {
+      "path": "docs/research/data/end-of-month-treasury/fed-nominal-svensson-1989-12-01-2026-07-31.csv",
+      "sha256": "4fab6cf297594f77f6e1ccfa4fbd099b4eb17dc407c9611a488039da33c2c41f",
+      "completeSourceSha256": "877d0908ce3b875412eac0295715f88b40a011a94e24339e15959ec3bb04cad7"
+    },
+    "financing": {
+      "path": "docs/research/data/end-of-month-treasury/DFF-1989-12-01-2026-07-31.csv",
+      "sha256": "ea8b35582a3f88cc0a0d42ae94addc3d85aaf008d4bb574246dd8a83780db600",
+      "proxyFor": "general-collateral-repo"
+    },
+    "dollar": {
+      "path": "docs/research/data/end-of-month-treasury/DTWEXBGS-2006-01-02-2026-07-31.csv",
+      "sha256": "a3ac96e8eb53625936eb7fd9d14e181c10308ca1831db6ee0b58b35fdfafdb47",
+      "rawExportSha256": "88db7d787e99129e671015fcc581f3507d0a2c527804c285ab555c2b83cd8054"
+    }
+  },
+  "spec": {
+    "evaluationWindow": "1990-01/2026-07",
+    "paperWindow": "1990-01/2018-12",
+    "holdoutWindow": "2019-01/2026-07",
+    "maturitiesYears": [
+      1,
+      5,
+      10
+    ],
+    "finalTradingIntervals": 2,
+    "folds": 4,
+    "headlineRoundTripCostBps": 5,
+    "stressRoundTripCostBps": 10,
+    "stressFinancingSpreadBpsAnnual": 100,
+    "financingProxy": "DFF",
+    "priceModel": "Svensson continuously-compounded zero-coupon discount function"
+  },
+  "limitations": [
+    "DFF is a disclosed financing proxy because the paper does not identify a frozen historical GC-repo export.",
+    "The Federal Reserve curve is a revisable current-vintage staff research product, not the authors historical vintage.",
+    "Smoothed hypothetical zero-coupon curve closes are modeled observations, not executable CUSIP fills.",
+    "The broad-dollar index is a non-tradable calendar falsification control and carries no portfolio authority.",
+    "Historical PASS, if any, grants only prospective-review eligibility; publication and trading remain unapproved."
+  ],
+  "qa": {
+    "nominalRows": 9151,
+    "financingRows": 13392,
+    "dollarRows": 5159,
+    "evaluationMonths": 439,
+    "paperWindowMonths": 348,
+    "holdoutMonths": 91,
+    "externalControlMonths": 243,
+    "externalControlHoldoutMonths": 90,
+    "minimumCurveDaysPerMonth": 17,
+    "maximumCurveDaysPerMonth": 23,
+    "suppliedYieldChecks": 27453,
+    "suppliedYieldChecksAboveTolerance": 1,
+    "maximumSuppliedYieldErrorPct": 0.000300749306,
+    "maximumSuppliedYieldError": {
+      "date": "2013-10-16",
+      "maturityYears": 5,
+      "reconstructedYieldPct": 1.433300717834,
+      "suppliedYieldPct": 1.432999968529,
+      "absoluteErrorPct": 0.000300749306
+    },
+    "hashesPassed": true,
+    "strictDatesPassed": true,
+    "financingContinuityPassed": true,
+    "suppliedYieldReconstructionPassed": false,
+    "countsPassed": true,
+    "passed": false
+  },
+  "results": null,
+  "observations": null,
+  "decision": {
+    "verdict": "INCONCLUSIVE",
+    "performanceGatesEvaluated": false,
+    "gates": {
+      "qaPassed": false,
+      "fiveYearPaperNetPositiveAndSignificant": false,
+      "fiveYearFullAndHoldoutNetPositive": false,
+      "fiveYearPositiveFolds": false,
+      "fiveYearStressPositive": false,
+      "fiveYearBreakEvenClearsHeadlineCost": false,
+      "fiveYearSharpeBeatsAllOtherDays": false,
+      "pairedCalendarSpecificity": false,
+      "tenYearConfirmation": false,
+      "durationOrdering": false,
+      "externalDollarNotFalsified": false
+    },
+    "fiveYearPositiveFoldCount": 0,
+    "dollarPositiveFoldCount": 0,
+    "externalDollarFalsified": false,
+    "failedCoreGates": [],
+    "qaFailureReasons": [
+      "supplied-yield-reconstruction max error 0.00030074930569168323 percentage point exceeds 0.0001"
+    ],
+    "eligibleForProspectiveReview": false,
+    "activationApproved": false,
+    "publicationApproved": false,
+    "allocationApproved": false,
+    "executionApproved": false
+  }
+}

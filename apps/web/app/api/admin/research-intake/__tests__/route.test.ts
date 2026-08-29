@@ -65,11 +65,12 @@ describe('GET /api/admin/research-intake', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 59,
+        discovered: 58,
         sourceAudited: 1,
-        replicated: 1,
+        replicated: 2,
         failed: 1,
-        untested: 60,
+        inconclusive: 1,
+        untested: 59,
         sourceNoGo: 1,
       },
       pagination: {
@@ -135,6 +136,37 @@ describe('GET /api/admin/research-intake', () => {
       'seasonality-trend-following-and-mean-reversion-in-bitcoin',
     ]);
     expect(body.appliedFilters.query).toBe('bitcoin');
+  });
+
+  it('exposes the QA-only Treasury receipt without inventing performance evidence', async () => {
+    mockedAdmin.mockResolvedValue(null);
+
+    const response = await GET(
+      request('?stage=replicated&verdict=inconclusive&sourceAuditDisposition=advance&limit=100'),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.pagination).toMatchObject({ totalRecords: 1, returnedRecords: 1 });
+    expect(body.records[0]).toMatchObject({
+      id: 'predictable-end-of-month-treasury-returns',
+      stage: 'replicated',
+      verdict: 'inconclusive',
+      costStatus: 'unassessed',
+      marketingDisposition: 'human-review-draft-only',
+      tradeClawSourceAudit: { disposition: 'advance' },
+      tradeClawEvidence: {
+        taskId: 'TC-257',
+        performanceGatesEvaluated: false,
+        eligibleForProspectiveReview: false,
+        qa: {
+          suppliedYieldChecks: 27453,
+          suppliedYieldChecksAboveTolerance: 1,
+          standingQaPassed: false,
+        },
+      },
+    });
+    expect(body.records[0].tradeClawEvidence).not.toHaveProperty('btc');
   });
 
   it('paginates deterministically over the pinned order', async () => {

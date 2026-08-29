@@ -265,6 +265,13 @@ export const FEATURED_STRATEGY_STUDIES: readonly StrategyStudyRecord[] = [
 
 export const EXPERIMENT_SHELF: readonly ExperimentShelfEntry[] = [
   {
+    file: 'end-of-month-treasury-US-NOMINAL-DTWEXBGS-1990-01-2026-07-f4.json',
+    runDate: '2026-08-29',
+    label: 'End-of-month Treasury replication / reconstruction QA hold',
+    disposition: 'shelved',
+    reason: 'TC-257 stopped at the frozen source-reconstruction gate after one 0.0301 bp mismatch exceeded the 0.01 bp limit; the artifact contains no performance result and is ineligible for promotion.',
+  },
+  {
     file: 'external-multi-timeframe-BTCUSD_ETHUSD-H1-D1-2018-12-01-2026-07-17-f4.json',
     runDate: '2026-08-29',
     label: 'External D1/H1 multi-timeframe replication',

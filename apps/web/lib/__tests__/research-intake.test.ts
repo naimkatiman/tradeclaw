@@ -24,6 +24,18 @@ const priceOverreactionsAuditPath = resolve(
   root,
   'docs/research/2026-08-29-price-overreactions-source-audit.md',
 );
+const treasuryAuditPath = resolve(
+  root,
+  'docs/research/2026-08-29-predictable-end-of-month-treasury-source-audit.md',
+);
+const treasuryResultPath = resolve(
+  root,
+  'docs/research/2026-08-29-end-of-month-treasury-replication-result.md',
+);
+const treasuryArtifactPath = resolve(
+  root,
+  'docs/research/experiments/end-of-month-treasury-US-NOMINAL-DTWEXBGS-1990-01-2026-07-f4.json',
+);
 
 interface ReplicationMetrics {
   grossCompoundedReturn: number;
@@ -77,6 +89,37 @@ interface ReplicationArtifact {
   };
 }
 
+interface TreasuryArtifact {
+  meta: {
+    task: string;
+    preregistrationSha256: string;
+    sourceAuditSha256: string;
+  };
+  qa: {
+    nominalRows: number;
+    financingRows: number;
+    evaluationMonths: number;
+    holdoutMonths: number;
+    suppliedYieldChecks: number;
+    suppliedYieldChecksAboveTolerance: number;
+    maximumSuppliedYieldErrorPct: number;
+    maximumSuppliedYieldError: {
+      date: string;
+      maturityYears: number;
+    };
+    passed: boolean;
+  };
+  results: null;
+  observations: null;
+  decision: {
+    verdict: string;
+    performanceGatesEvaluated: boolean;
+    eligibleForProspectiveReview: boolean;
+    activationApproved: boolean;
+    publicationApproved: boolean;
+  };
+}
+
 function manifest(): Record<string, unknown> {
   return JSON.parse(readFileSync(manifestPath, 'utf8')) as Record<string, unknown>;
 }
@@ -120,22 +163,41 @@ describe('systematic research intake', () => {
 
   it('keeps replication evidence separate from source-audit no-go evidence', () => {
     const tested = SYSTEMATIC_RESEARCH_INTAKE.filter((record) => record.tradeClawEvidence);
-    expect(tested).toHaveLength(1);
-    expect(tested[0]).toMatchObject({
+    expect(tested).toHaveLength(2);
+    const tc255 = tested.find((record) => record.tradeClawEvidence?.taskId === 'TC-255');
+    expect(tc255).toMatchObject({
       id: 'how-to-design-a-simple-multi-timeframe-trend-strategy-on-bitcoin',
       stage: 'replicated',
       verdict: 'fail',
       costStatus: 'failed',
       marketingDisposition: 'human-review-draft-only',
     });
-    expect(tested[0].nextAction).toMatch(/without retuning or promotion/i);
-    expect(tested[0].tradeClawSourceAudit).toBeNull();
+    expect(tc255?.nextAction).toMatch(/without retuning or promotion/i);
+    expect(tc255?.tradeClawSourceAudit).toBeNull();
+
+    const tc257 = tested.find((record) => record.tradeClawEvidence?.taskId === 'TC-257');
+    expect(tc257).toMatchObject({
+      id: 'predictable-end-of-month-treasury-returns',
+      stage: 'replicated',
+      verdict: 'inconclusive',
+      costStatus: 'unassessed',
+      marketingDisposition: 'human-review-draft-only',
+      tradeClawSourceAudit: { disposition: 'advance' },
+      tradeClawEvidence: {
+        performanceGatesEvaluated: false,
+        eligibleForProspectiveReview: false,
+      },
+    });
+    expect(tc257?.nextAction).toMatch(/separately hashed protocol/i);
 
     const sourceAudited = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => record.tradeClawSourceAudit,
     );
-    expect(sourceAudited).toHaveLength(1);
-    expect(sourceAudited[0]).toMatchObject({
+    expect(sourceAudited).toHaveLength(2);
+    const noGo = sourceAudited.find(
+      (record) => record.id === 'price-overreactions-in-the-cryptocurrency-market',
+    );
+    expect(noGo).toMatchObject({
       id: 'price-overreactions-in-the-cryptocurrency-market',
       stage: 'source-audited',
       verdict: 'not-tested',
@@ -147,12 +209,12 @@ describe('systematic research intake', () => {
         tradeClawBacktestRun: false,
       },
     });
-    expect(sourceAudited[0].nextAction).toMatch(/materially new hypothesis/i);
+    expect(noGo?.nextAction).toMatch(/materially new hypothesis/i);
 
     const untouched = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => !record.tradeClawEvidence && !record.tradeClawSourceAudit,
     );
-    expect(untouched).toHaveLength(59);
+    expect(untouched).toHaveLength(58);
     expect(untouched.every((record) => record.stage === 'discovered')).toBe(true);
     expect(untouched.every((record) => record.verdict === 'not-tested')).toBe(true);
     expect(untouched.every((record) => record.costStatus === 'unassessed')).toBe(true);
@@ -164,7 +226,9 @@ describe('systematic research intake', () => {
       (candidate) => candidate.id === 'price-overreactions-in-the-cryptocurrency-market',
     );
     const audit = record?.tradeClawSourceAudit;
-    if (!audit) throw new Error('TC-256 price-overreactions source audit is missing');
+    if (!audit || audit.taskId !== 'TC-256') {
+      throw new Error('TC-256 price-overreactions source audit is missing');
+    }
 
     const canonicalAuditBytes = Buffer.from(
       readFileSync(priceOverreactionsAuditPath, 'utf8').replace(/\r\n/g, '\n'),
@@ -195,12 +259,74 @@ describe('systematic research intake', () => {
     expect(audit.blockers).toHaveLength(5);
   });
 
+  it('binds the TC-257 inconclusive overlay to its QA-only artifact and receipts', () => {
+    const record = SYSTEMATIC_RESEARCH_INTAKE.find(
+      (candidate) => candidate.id === 'predictable-end-of-month-treasury-returns',
+    );
+    const evidence = record?.tradeClawEvidence;
+    const audit = record?.tradeClawSourceAudit;
+    if (!evidence || evidence.taskId !== 'TC-257') {
+      throw new Error('TC-257 Treasury evidence is missing');
+    }
+    if (!audit || audit.taskId !== 'TC-257') {
+      throw new Error('TC-257 Treasury source audit is missing');
+    }
+
+    function canonicalHash(path: string): string {
+      const bytes = Buffer.from(readFileSync(path, 'utf8').replace(/\r\n/g, '\n'), 'utf8');
+      return createHash('sha256').update(bytes).digest('hex');
+    }
+
+    const artifact = JSON.parse(readFileSync(treasuryArtifactPath, 'utf8')) as TreasuryArtifact;
+    expect(canonicalHash(treasuryAuditPath)).toBe(audit.researchSha256);
+    expect(canonicalHash(treasuryResultPath)).toBe(evidence.resultSha256);
+    expect(canonicalHash(treasuryArtifactPath)).toBe(evidence.artifactSha256);
+    expect(artifact.meta).toMatchObject({
+      task: evidence.taskId,
+      preregistrationSha256: evidence.preregistrationSha256,
+      sourceAuditSha256: evidence.sourceAuditSha256,
+    });
+    expect(artifact.qa).toMatchObject({
+      nominalRows: evidence.qa.nominalRows,
+      financingRows: evidence.qa.financingRows,
+      evaluationMonths: evidence.qa.evaluationMonths,
+      holdoutMonths: evidence.qa.holdoutMonths,
+      suppliedYieldChecks: evidence.qa.suppliedYieldChecks,
+      suppliedYieldChecksAboveTolerance: 1,
+      maximumSuppliedYieldErrorPct: evidence.qa.maximumErrorPct,
+      maximumSuppliedYieldError: {
+        date: evidence.qa.maximumErrorDate,
+        maturityYears: evidence.qa.maximumErrorMaturityYears,
+      },
+      passed: false,
+    });
+    expect(artifact.results).toBeNull();
+    expect(artifact.observations).toBeNull();
+    expect(artifact.decision).toMatchObject({
+      verdict: 'INCONCLUSIVE',
+      performanceGatesEvaluated: false,
+      eligibleForProspectiveReview: false,
+      activationApproved: false,
+      publicationApproved: false,
+    });
+    expect(audit).toMatchObject({
+      disposition: 'advance',
+      tradeClawBacktestRunAtAuditClose: false,
+      publishedRule: { cadence: 'monthly', expectedRoundTripsPerYear: 12 },
+      publishedResult: { fiveYearMeanMonthlyExcessReturnPct: 0.13 },
+    });
+  });
+
   it('cross-checks the TC-255 overlay against the canonical artifact and artifact hash', () => {
     const artifactBytes = readFileSync(artifactPath);
     const artifact = JSON.parse(artifactBytes.toString('utf8')) as ReplicationArtifact;
-    const record = SYSTEMATIC_RESEARCH_INTAKE.find((candidate) => candidate.tradeClawEvidence);
+    const record = SYSTEMATIC_RESEARCH_INTAKE.find(
+      (candidate) => candidate.tradeClawEvidence?.taskId === 'TC-255',
+    );
     const evidence = record?.tradeClawEvidence;
-    if (!evidence) throw new Error('TC-255 evidence is missing');
+    if (!evidence || evidence.taskId !== 'TC-255') {
+      throw new Error('TC-255 evidence is missing');
+    }
 
     const btc = artifact.results.symbols.BTCUSD.configurations['d1h1-macd-negative-bar-exit'];
     const eth = artifact.results.symbols.ETHUSD.configurations['d1h1-macd-negative-bar-exit'];
@@ -267,15 +393,15 @@ describe('systematic research intake', () => {
   it('summarizes and filters by next-action evidence state rather than upstream return', () => {
     expect(summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE)).toMatchObject({
       total: 61,
-      discovered: 59,
+      discovered: 58,
       sourceAudited: 1,
       preregistered: 0,
-      replicated: 1,
+      replicated: 2,
       prospective: 0,
       passed: 0,
       failed: 1,
-      inconclusive: 0,
-      untested: 60,
+      inconclusive: 1,
+      untested: 59,
       sourceNoGo: 1,
     });
     expect(
@@ -293,6 +419,13 @@ describe('systematic research intake', () => {
         verdict: 'fail',
       }).map((record) => record.id),
     ).toEqual(['how-to-design-a-simple-multi-timeframe-trend-strategy-on-bitcoin']);
+    expect(
+      filterResearchIntake(SYSTEMATIC_RESEARCH_INTAKE, {
+        stage: 'replicated',
+        verdict: 'inconclusive',
+        sourceAuditDisposition: 'advance',
+      }).map((record) => record.id),
+    ).toEqual(['predictable-end-of-month-treasury-returns']);
     expect(
       filterResearchIntake(SYSTEMATIC_RESEARCH_INTAKE, {
         stage: 'source-audited',

@@ -197,9 +197,14 @@ describe('strategy study catalog integrity', () => {
 
     const legacy = EXPERIMENT_SHELF.find((entry) => entry.file.includes('legacy-zero'));
     const hmm = EXPERIMENT_SHELF.find((entry) => entry.file.startsWith('regime-hmm'));
+    const treasuryQaHold = EXPERIMENT_SHELF.find((entry) =>
+      entry.file.startsWith('end-of-month-treasury'),
+    );
     expect(legacy).toMatchObject({ disposition: 'shelved' });
     expect(legacy?.reason).toMatch(/zero-cost|production cost/i);
     expect(hmm).toMatchObject({ disposition: 'shelved' });
     expect(hmm?.reason).toMatch(/diagnostic|no standalone trading return/i);
+    expect(treasuryQaHold).toMatchObject({ disposition: 'shelved' });
+    expect(treasuryQaHold?.reason).toMatch(/no performance result/i);
   });
 });

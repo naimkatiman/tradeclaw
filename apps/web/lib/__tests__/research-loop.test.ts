@@ -26,7 +26,9 @@ describe('three-hour research and marketing loop', () => {
   });
 
   it('creates a factual review-only draft for completed local evidence', () => {
-    const record = SYSTEMATIC_RESEARCH_INTAKE.find((candidate) => candidate.tradeClawEvidence);
+    const record = SYSTEMATIC_RESEARCH_INTAKE.find(
+      (candidate) => candidate.tradeClawEvidence?.taskId === 'TC-255',
+    );
     if (!record) throw new Error('TC-255 intake record is missing');
     const draft = buildMarketingReviewDraft(record);
     expect(draft).toMatchObject({
@@ -43,6 +45,27 @@ describe('three-hour research and marketing loop', () => {
     expect(draft?.body).toMatch(/Verdict: FAIL/);
     expect(draft?.body).toMatch(/not live performance/i);
     expect(draft?.body).toMatch(/does not authorize promotion, allocation, broadcast, or execution/i);
+  });
+
+  it('creates a no-performance review draft for the QA-only Treasury receipt', () => {
+    const record = SYSTEMATIC_RESEARCH_INTAKE.find(
+      (candidate) => candidate.tradeClawEvidence?.taskId === 'TC-257',
+    );
+    if (!record) throw new Error('TC-257 intake record is missing');
+    const draft = buildMarketingReviewDraft(record);
+    expect(draft).toMatchObject({
+      candidateId: 'predictable-end-of-month-treasury-returns',
+      title: 'A Treasury replication stopped at its frozen data gate',
+      evidenceBasis: 'modeled-research',
+      disposition: 'human-review-draft-only',
+      publishApproved: false,
+    });
+    expect(draft?.summary).toContain('27,453 official curve checks');
+    expect(draft?.body).toContain('0.0301 bp');
+    expect(draft?.body).toMatch(/Verdict: INCONCLUSIVE/);
+    expect(draft?.body).toMatch(/Performance gates were not evaluated/i);
+    expect(draft?.body).toMatch(/does not authorize promotion, publication, allocation, broadcast, or execution/i);
+    expect(draft?.body).not.toMatch(/returned|profitable|Sharpe|holdout returned/i);
   });
 
   it('does not manufacture a marketing draft for untested upstream rows', () => {

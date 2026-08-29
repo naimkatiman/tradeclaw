@@ -104,6 +104,49 @@ export interface TradeClawReplicationEvidence {
   };
 }
 
+export interface TradeClawTreasuryReplicationEvidence {
+  taskId: 'TC-257';
+  studyDate: '2026-08-29';
+  preregistrationPath: string;
+  preregistrationSha256: string;
+  sourceAuditPath: string;
+  sourceAuditSha256: string;
+  resultPath: string;
+  resultSha256: string;
+  artifactPath: string;
+  artifactSha256: string;
+  verdict: 'inconclusive';
+  evidenceBasis: 'modeled-current-vintage-independent-replication';
+  performanceGatesEvaluated: false;
+  eligibleForProspectiveReview: false;
+  activationApproved: false;
+  publicationApproved: false;
+  costsFrozenButNotEvaluated: {
+    headlineRoundTripBps: 5;
+    stressRoundTripBps: 10;
+    stressFinancingSpreadBpsAnnual: 100;
+    financingProxy: 'DFF';
+  };
+  qa: {
+    nominalRows: 9151;
+    financingRows: 13392;
+    evaluationMonths: 439;
+    holdoutMonths: 91;
+    suppliedYieldChecks: 27453;
+    suppliedYieldChecksAboveTolerance: 1;
+    frozenTolerancePct: 0.0001;
+    maximumErrorPct: number;
+    maximumErrorDate: '2013-10-16';
+    maximumErrorMaturityYears: 5;
+    standingQaPassed: false;
+  };
+  reason: string;
+}
+
+export type TradeClawResearchEvidence =
+  | TradeClawReplicationEvidence
+  | TradeClawTreasuryReplicationEvidence;
+
 export interface TradeClawSourceAuditEvidence {
   taskId: 'TC-256';
   auditDate: '2026-08-29';
@@ -142,6 +185,45 @@ export interface TradeClawSourceAuditEvidence {
   reason: string;
 }
 
+export interface TradeClawTreasurySourceAuditEvidence {
+  taskId: 'TC-257';
+  auditDate: '2026-08-29';
+  researchPath: string;
+  researchSha256: string;
+  disposition: 'advance';
+  tradeClawBacktestRunAtAuditClose: false;
+  primarySource: {
+    title: 'Predictable End-of-Month Treasury Returns';
+    authors: readonly ['Jonathan Hartley', 'Krista Schwarz'];
+    institutionalDocumentUrl: string;
+    ssrnUrl: string;
+    documentSha256: string;
+    redistributionRightsEstablished: false;
+  };
+  publishedRule: {
+    cadence: 'monthly';
+    finalTradingIntervals: 2;
+    primaryMaturityYears: 5;
+    entry: 'third-to-last-curve-close';
+    exit: 'final-curve-close';
+    financing: 'general-collateral-repo';
+    paperSample: '1990-01/2018-12';
+    expectedRoundTripsPerYear: 12;
+  };
+  publishedResult: {
+    fiveYearMeanMonthlyExcessReturnPct: 0.13;
+    fiveYearAnnualizedSharpe: 1.07;
+    fiveYearPositiveMonthsPct: 63;
+    typicalBidAskSpreadBps: readonly [2, 3];
+  };
+  limits: readonly string[];
+  reason: string;
+}
+
+export type TradeClawResearchSourceAuditEvidence =
+  | TradeClawSourceAuditEvidence
+  | TradeClawTreasurySourceAuditEvidence;
+
 export interface ResearchIntakeRecord extends SystematicDiscoveryCandidate {
   sourcePosition: number;
   discoveryBasis: 'upstream-gross-metadata';
@@ -150,8 +232,8 @@ export interface ResearchIntakeRecord extends SystematicDiscoveryCandidate {
   costStatus: ResearchCostStatus;
   nextAction: string;
   marketingDisposition: 'none' | 'human-review-draft-only';
-  tradeClawSourceAudit: TradeClawSourceAuditEvidence | null;
-  tradeClawEvidence: TradeClawReplicationEvidence | null;
+  tradeClawSourceAudit: TradeClawResearchSourceAuditEvidence | null;
+  tradeClawEvidence: TradeClawResearchEvidence | null;
 }
 
 export interface ResearchIntakeFilters {
@@ -211,6 +293,7 @@ export const RESEARCH_INTAKE_WORKFLOW = [
 const MULTI_TIMEFRAME_BITCOIN_ID =
   'how-to-design-a-simple-multi-timeframe-trend-strategy-on-bitcoin';
 const PRICE_OVERREACTIONS_ID = 'price-overreactions-in-the-cryptocurrency-market';
+const END_OF_MONTH_TREASURY_ID = 'predictable-end-of-month-treasury-returns';
 
 const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   taskId: 'TC-256',
@@ -255,6 +338,91 @@ const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   ],
   reason:
     'The primary paper already finds the contrarian rule unprofitable and the positive continuation rule statistically indistinguishable from random after spread-aware simulation; material rule and data ambiguities also prevent an exact independent replay.',
+};
+
+const TC257_TREASURY_SOURCE_AUDIT: TradeClawTreasurySourceAuditEvidence = {
+  taskId: 'TC-257',
+  auditDate: '2026-08-29',
+  researchPath: 'docs/research/2026-08-29-predictable-end-of-month-treasury-source-audit.md',
+  researchSha256: '3df7f04b4ef3d94a1fe245bf61262f7cfe41dc2582bdb748162ee1dbb086c127',
+  disposition: 'advance',
+  tradeClawBacktestRunAtAuditClose: false,
+  primarySource: {
+    title: 'Predictable End-of-Month Treasury Returns',
+    authors: ['Jonathan Hartley', 'Krista Schwarz'],
+    institutionalDocumentUrl:
+      'https://rodneywhitecenter.wharton.upenn.edu/wp-content/uploads/2019/12/17-19.Schwarz.pdf',
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3440417',
+    documentSha256: '56403762378f606f595dcce11afcf1f1eaccf8810237c58999f653a230a32809',
+    redistributionRightsEstablished: false,
+  },
+  publishedRule: {
+    cadence: 'monthly',
+    finalTradingIntervals: 2,
+    primaryMaturityYears: 5,
+    entry: 'third-to-last-curve-close',
+    exit: 'final-curve-close',
+    financing: 'general-collateral-repo',
+    paperSample: '1990-01/2018-12',
+    expectedRoundTripsPerYear: 12,
+  },
+  publishedResult: {
+    fiveYearMeanMonthlyExcessReturnPct: 0.13,
+    fiveYearAnnualizedSharpe: 1.07,
+    fiveYearPositiveMonthsPct: 63,
+    typicalBidAskSpreadBps: [2, 3],
+  },
+  limits: [
+    'The exact historical GC-repo export is not identified.',
+    'Current Federal Reserve curve vintages can differ from the authors historical vintage.',
+    'Daily curve closes are modeled hypothetical off-the-run securities rather than executable CUSIP fills.',
+    'The paper does not freeze a complete spread, slippage, and commission model.',
+  ],
+  reason:
+    'The public monthly rule is reconstructible from hashable Federal Reserve data, has only 12 expected round trips per year, and the paper reports gross headroom above a predeclared full friction model.',
+};
+
+const TC257_TREASURY_EVIDENCE: TradeClawTreasuryReplicationEvidence = {
+  taskId: 'TC-257',
+  studyDate: '2026-08-29',
+  preregistrationPath: 'docs/plans/2026-08-29-end-of-month-treasury-replication.md',
+  preregistrationSha256:
+    '4e3d9ed5392aa9cbe8eed9865483f583a31336c6cc770e9773230f4fe829b3de',
+  sourceAuditPath: 'docs/research/2026-08-29-predictable-end-of-month-treasury-source-audit.md',
+  sourceAuditSha256:
+    '3df7f04b4ef3d94a1fe245bf61262f7cfe41dc2582bdb748162ee1dbb086c127',
+  resultPath: 'docs/research/2026-08-29-end-of-month-treasury-replication-result.md',
+  resultSha256: '1d38f9ded9eddc995514a3e09c03da418f62b60956fb968f37ed0b5c379d5f6b',
+  artifactPath:
+    'docs/research/experiments/end-of-month-treasury-US-NOMINAL-DTWEXBGS-1990-01-2026-07-f4.json',
+  artifactSha256: 'f8707913da4714c967d58f0fd2630c5f2316d6c5ede53507340ad54f35af36cf',
+  verdict: 'inconclusive',
+  evidenceBasis: 'modeled-current-vintage-independent-replication',
+  performanceGatesEvaluated: false,
+  eligibleForProspectiveReview: false,
+  activationApproved: false,
+  publicationApproved: false,
+  costsFrozenButNotEvaluated: {
+    headlineRoundTripBps: 5,
+    stressRoundTripBps: 10,
+    stressFinancingSpreadBpsAnnual: 100,
+    financingProxy: 'DFF',
+  },
+  qa: {
+    nominalRows: 9151,
+    financingRows: 13392,
+    evaluationMonths: 439,
+    holdoutMonths: 91,
+    suppliedYieldChecks: 27453,
+    suppliedYieldChecksAboveTolerance: 1,
+    frozenTolerancePct: 0.0001,
+    maximumErrorPct: 0.000300749306,
+    maximumErrorDate: '2013-10-16',
+    maximumErrorMaturityYears: 5,
+    standingQaPassed: false,
+  },
+  reason:
+    'One of 27,453 parameter-to-supplied-yield checks exceeded the preregistered 0.0001 percentage-point tolerance, so the retained artifact is QA-only and no performance gate was evaluated.',
 };
 
 const TC255_EVIDENCE: TradeClawReplicationEvidence = {
@@ -481,10 +649,33 @@ export const SYSTEMATIC_RESEARCH_INTAKE_SOURCE = parsedSnapshot.source;
 
 export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
   parsedSnapshot.candidates.map((candidate, sourcePosition) => {
-    const tradeClawEvidence = candidate.id === MULTI_TIMEFRAME_BITCOIN_ID ? TC255_EVIDENCE : null;
+    const tradeClawEvidence = candidate.id === MULTI_TIMEFRAME_BITCOIN_ID
+      ? TC255_EVIDENCE
+      : candidate.id === END_OF_MONTH_TREASURY_ID
+        ? TC257_TREASURY_EVIDENCE
+        : null;
     const tradeClawSourceAudit =
-      candidate.id === PRICE_OVERREACTIONS_ID ? TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT : null;
+      candidate.id === PRICE_OVERREACTIONS_ID
+        ? TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT
+        : candidate.id === END_OF_MONTH_TREASURY_ID
+          ? TC257_TREASURY_SOURCE_AUDIT
+          : null;
     if (tradeClawEvidence) {
+      if (tradeClawEvidence.taskId === 'TC-257') {
+        return {
+          ...candidate,
+          sourcePosition,
+          discoveryBasis: 'upstream-gross-metadata' as const,
+          stage: 'replicated' as const,
+          verdict: 'inconclusive' as const,
+          costStatus: 'unassessed' as const,
+          nextAction:
+            'Retain the frozen QA-only receipt; use a separately hashed protocol to obtain the original curve vintage or predeclare how rounded parameters and supplied yields are reconciled.',
+          marketingDisposition: 'human-review-draft-only' as const,
+          tradeClawSourceAudit,
+          tradeClawEvidence,
+        };
+      }
       return {
         ...candidate,
         sourcePosition,
@@ -495,7 +686,7 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
         nextAction:
           'Archive the failed result without retuning or promotion; use the break-even cost finding to screen lower-turnover candidates.',
         marketingDisposition: 'human-review-draft-only' as const,
-        tradeClawSourceAudit: null,
+        tradeClawSourceAudit,
         tradeClawEvidence,
       };
     }

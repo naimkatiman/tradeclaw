@@ -50,6 +50,28 @@ export function buildMarketingReviewDraft(
   const evidence = record.tradeClawEvidence;
   if (!evidence || record.marketingDisposition !== 'human-review-draft-only') return null;
 
+  if (evidence.taskId === 'TC-257') {
+    const observedBps = evidence.qa.maximumErrorPct * 100;
+    const toleranceBps = evidence.qa.frozenTolerancePct * 100;
+    return {
+      candidateId: record.id,
+      title: 'A Treasury replication stopped at its frozen data gate',
+      summary:
+        `One of ${evidence.qa.suppliedYieldChecks.toLocaleString('en-US')} official curve checks exceeded the preregistered ${toleranceBps.toFixed(2)} bp tolerance, so no performance result was published.`,
+      body: [
+        `We audited and preregistered “${record.title}” as a low-turnover, cost-aware independent replication.`,
+        `The pinned sources passed hashes, dates, counts, ${evidence.qa.evaluationMonths} evaluation months, and daily financing coverage. One five-year curve check on ${evidence.qa.maximumErrorDate} differed by ${observedBps.toFixed(4)} bp, above the frozen ${toleranceBps.toFixed(2)} bp limit.`,
+        'Verdict: INCONCLUSIVE. Performance gates were not evaluated, the artifact contains no return observations, and the tolerance was not loosened after seeing the source.',
+        'This modeled research receipt is not live performance and does not authorize promotion, publication, allocation, broadcast, or execution.',
+      ].join(' '),
+      evidenceBasis: 'modeled-research',
+      disposition: 'human-review-draft-only',
+      publishApproved: false,
+      resultPath: evidence.resultPath,
+      artifactPath: evidence.artifactPath,
+    };
+  }
+
   return {
     candidateId: record.id,
     title: 'A high-turnover Bitcoin trend idea failed after realistic costs',
