@@ -48,6 +48,20 @@ export type ResearchIntakePublicCandidatePayload = Omit<
   record: ResearchIntakePublicRecord;
 };
 
+export type ResearchIntakePublicEvidencePayload = Omit<
+  ResearchIntakePublicPayload,
+  'records'
+> & {
+  evidenceIndex: {
+    selection: 'all-candidates-with-tradeclaw-source-audit-or-replication';
+    order: 'pinned-source-order';
+    performanceRanked: false;
+    includesEveryAvailableOverlay: true;
+  };
+  evidenceSummary: ReturnType<typeof summarizeResearchIntake>;
+  records: readonly ResearchIntakePublicRecord[];
+};
+
 function evidenceBasisFor(record: ResearchIntakeRecord): ResearchIntakePublicEvidenceBasis {
   if (record.tradeClawEvidence) return 'tradeclaw-replication-record';
   if (record.tradeClawSourceAudit) return 'tradeclaw-source-audit-only';
@@ -113,6 +127,28 @@ export function buildResearchIntakePublicPayload(): ResearchIntakePublicPayload 
   return {
     ...buildResearchIntakePublicContext(),
     records: SYSTEMATIC_RESEARCH_INTAKE.map(toPublicRecord),
+  };
+}
+
+/**
+ * Complete evidence-only projection. Every available source-audit or replication
+ * overlay is retained in pinned source order, including adverse and no-go records.
+ */
+export function buildResearchIntakePublicEvidencePayload(): ResearchIntakePublicEvidencePayload {
+  const evidenceRecords = SYSTEMATIC_RESEARCH_INTAKE.filter(
+    (record) => record.tradeClawSourceAudit !== null || record.tradeClawEvidence !== null,
+  );
+
+  return {
+    ...buildResearchIntakePublicContext(),
+    evidenceIndex: {
+      selection: 'all-candidates-with-tradeclaw-source-audit-or-replication',
+      order: 'pinned-source-order',
+      performanceRanked: false,
+      includesEveryAvailableOverlay: true,
+    },
+    evidenceSummary: summarizeResearchIntake(evidenceRecords),
+    records: evidenceRecords.map(toPublicRecord),
   };
 }
 

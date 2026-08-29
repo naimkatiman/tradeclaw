@@ -1,11 +1,172 @@
 project: tradeclaw
-updated: 2026-08-30T00:35:17+08:00
+updated: 2026-08-30T00:55:49+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+public_research_evidence_index_2026_08_29:
+  at: 2026-08-30T00:55:49+08:00
+  agent: TradeClaw PM agent
+  status: verified_precommit_ready_to_commit
+  scope: Give a public user one complete evidence-only index of every awesome-systematic-trading candidate TradeClaw has source-audited or replicated, without searching all 61 discoveries or enabling performance cherry-picking
+  base_commit: 8bb66c66c4758d035f7f44df2e176e2a04c2d8a3
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-29T15:00:00.000Z/PT3H
+  current_cycle_receipt: TC-260
+  new_research_receipt_created: false
+  return_calculated: false
+  finding: Public users can fetch the complete 59,873-byte 61-row discovery catalog or one already-known canonical ID, but cannot retrieve the complete six-record set that TradeClaw has actually examined without downloading and client-filtering every upstream discovery
+  library_search: No reusable evidence-index, evidence-only public projection, or complete-adverse-result index exists in shared MemoryCore; reuse TradeClaw's field-allow-listed public record, pinned source order, one-hour public cache, claim boundaries, and OpenAPI reference contract
+  acceptance_gates:
+    - GET /api/research/intake/evidence returns all and only candidates with a TradeClaw source-audit or replication overlay; the set is complete, filter-free, API-key-free, and never selected or sorted by upstream or TradeClaw performance
+    - The records retain pinned zero-based source order, which yields task IDs TC-259, TC-257, TC-255, TC-258, TC-256, TC-260; task-number order, stage, verdict, Sharpe, return, and marketing eligibility never reorder the response
+    - The response carries the canonical source receipt, selection policy, five-stage workflow, claim boundaries, whole-catalog summary, an explicit evidence-index policy, an evidence-only summary, and the same field-allow-listed public records as the full catalog
+    - The evidence-index policy states all overlays are included, source order is retained, and performance ranking is false; the evidence summary is exactly 6 total, 0 discovered, 2 source-audited, 4 replicated, 0 passed, 3 failed, 1 inconclusive, 2 untested, and 2 source no-go
+    - TC-256 and TC-260 remain source-audit-only not-tested no-go records with no local backtest, TC-257 remains QA-only inconclusive with no performance gates, and TC-255/258/259 remain failed replications; no favorable-only or publication-ready subset is permitted
+    - The response excludes nextAction, marketingDisposition, marketing drafts/review, receipt/loop state, publication authority, strategy-selection authority, broadcast authority, and trading authority; the public access object remains false for authentication, API key, publication, and trading grants
+    - Success is deterministic and publicly cached for one hour with no Cookie or Authorization variance and no CORS grant; query parameters have no filter/sort/pagination meaning and only GET is exposed
+    - OpenAPI documents the evidence response schema, exact six-row complete adverse-inclusive selection, no-key access, source ordering, and false authority; every local JSON reference resolves
+    - README provides one copy-paste evidence-index request and describes it as all six examined records including failures, no-go audits, and the inconclusive run, while retaining full-catalog, candidate-detail, and CSV examples
+    - Existing full public JSON, public candidate detail, public CSV, whole-admin JSON, admin candidate detail, admin review JSON, protected review CSV, receipt ledger, and marketing handoff ledger remain byte-identical at the fixed audit instant
+    - No public or protected visual page, research stage/result/receipt/handoff, source data, strategy, runtime authority, Docker, dependency, database, auth semantics, billing, execution, or external state changes
+    - Intentional RED, focused and adjacent tests, deterministic payload/hash/OpenAPI/state/scope audits, typecheck, lint, repository tests, and the required npm run build pass before local commits
+  baseline_audit_at: 2026-08-29T15:59:59.999Z
+  design_probe:
+    projected_evidence_json_bytes: 24949
+    projected_evidence_json_sha256: 54fed8532a5fdd881435083213f99ce2b2bf0167dafa98d542fa959436a92826
+    projected_task_ids_in_source_order: TC-259, TC-257, TC-255, TC-258, TC-256, TC-260
+  baseline_payloads:
+    full_public_json_bytes: 59873
+    full_public_json_sha256: ade593cd52274f7386cb4a505c2e8bf2abd7836685c927f0dfba85a0f0546dc6
+    tc260_public_candidate_json_bytes: 5770
+    tc260_public_candidate_json_sha256: adba3fd308fcaac7cea5aebf078640b9ef98f8e8c1e290cb2b9d3fad83b51b3d
+    public_csv_bytes: 36725
+    public_csv_sha256: f51787d97c5c21aef4751135899bc0e1c310155cde7c07c7961a2d332c6f54c6
+    full_admin_json_bytes: 42354
+    full_admin_json_sha256: 0cd758e2cb630ada326fdaefaacf6585b71ab102f663f3c8df6638a9db10b300
+    tc260_admin_candidate_json_bytes: 9230
+    tc260_admin_candidate_json_sha256: df2a11b661c4821b1148a9ff1e2bef2af0331b2fdea95a9b966dfe7f806a6296
+    admin_review_json_bytes: 20006
+    admin_review_json_sha256: 316301ff0ffb9762ba4a7150a901b3334c01b69771a2eafe2a229235bbc82c30
+    protected_review_csv_bytes: 6350
+    protected_review_csv_sha256: 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    receipt_task_ids: TC-256, TC-257, TC-258, TC-259, TC-260
+    marketing_handoff_task_ids: TC-255, TC-257, TC-258, TC-259
+  red_evidence: >-
+    PASS - all four focused suites fail only at the frozen absent seams: three
+    builder tests reach the missing buildResearchIntakePublicEvidencePayload
+    export, the route suite stops at the missing evidence route module, the
+    OpenAPI boundary reaches the missing ResearchIntakeEvidenceResponse
+    schema/path, and the README boundary reaches the missing copy-paste evidence
+    command; the four pre-existing surrounding assertions remain green.
+  first_green_iteration: >-
+    3/4 suites and 11/12 tests passed; the sole failure was OpenAPI using the
+    singular phrase every failure while the frozen discoverability contract
+    requires the explicit plural failures, so the description was tightened
+    without changing response data or behavior.
+  implementation: >-
+    Added a complete evidence-only projection over every record with a TradeClaw
+    source audit or replication, an API-key-free one-hour-cached GET route that
+    ignores query shaping, an exact adverse-inclusive OpenAPI contract, and a
+    README copy-paste handoff; the response reuses the canonical public context
+    and field allowlist.
+  focused_verification: >-
+    PASS - the builder, route, OpenAPI publication-boundary, and README
+    discoverability suites pass 12/12; exact source order, complete overlay
+    selection, adverse/no-go/inconclusive retention, evidence counts, query
+    independence, GET-only behavior, cache/access boundaries, safe fields,
+    resolvable schema references, and copy-paste discovery are covered.
+  deterministic_replay_verification: >-
+    PASS - two independent serializations are byte-identical at the frozen
+    24,949 bytes and SHA-256
+    54fed8532a5fdd881435083213f99ce2b2bf0167dafa98d542fa959436a92826; the exact
+    task order is TC-259, TC-257, TC-255, TC-258, TC-256, TC-260 and evidence
+    counts are 6 total, 2 source-audited, 4 replicated, 0 passed, 3 failed, 1
+    inconclusive, 2 untested, and 2 source no-go.
+  baseline_replay_verification: >-
+    PASS - full public JSON remains 59,873 bytes/ade593cd, TC-260 public detail
+    5,770/adba3fd3, public CSV 36,725/f51787d9, full admin JSON 42,354/0cd758e2,
+    TC-260 admin detail 9,230/df2a11b6, admin review JSON 20,006/316301ff, and
+    protected review CSV 6,350/3ce2d5eb; receipt and handoff task-ID ledgers are
+    unchanged.
+  adjacent_test_first_iteration: >-
+    22/24 suites and 106/108 tests passed; both failures were the same STATE YAML
+    parse error caused by the colon in the unquoted RED narrative, while all
+    product, route, auth, receipt, marketing, documentation, and OpenAPI
+    assertions passed. The new narratives now use folded YAML scalars.
+  adjacent_verification: >-
+    PASS - STATE parses and all 24 adjacent suites and 108 tests pass, covering
+    the complete public/protected intake and candidate surfaces, CSV exports,
+    auth boundaries, receipt ledger, three-hour loop, marketing handoffs,
+    OpenAPI publication boundary, README discovery, and exact STATE bindings.
+  typecheck_verification: >-
+    PASS - the signals package build and web TypeScript no-emit check complete
+    without errors.
+  changed_file_lint_verification: >-
+    PASS - all seven changed TypeScript files complete the authoritative web
+    workspace ESLint configuration with zero findings.
+  lint_verification: >-
+    PASS - full web lint completes with zero errors and the same 21 inherited
+    warnings; no warning points to this increment.
+  source_verification: >-
+    PASS - the independent source verifier reconstructs all 61 candidates at
+    exact commit d9c98521 and README SHA-256 67f4c496 with gross-of-trading-costs
+    discovery-only treatment.
+  state_and_scope_verification: >-
+    PASS - STATE parses, diff whitespace passes, and exactly nine intended paths
+    are changed. No manifest, lockfile, Docker, migration, source catalog data,
+    research source/result/artifact/script, public or protected visual page,
+    database, auth semantic, strategy, signal, allocation, broadcast, execution,
+    billing, or external-state path changed.
+  repository_test_verification: >-
+    PASS - all 270 runnable Jest suites and 2,047 tests pass with 3 suites and 26
+    tests skipped and 1 snapshot passed; forceExit closed the repository's
+    inherited open handle after the complete green summary.
+  build_verification: >-
+    PASS - the required root build compiled signals, trading-agents, and Next.js
+    and generated 328/328 pages. /api/research/intake/evidence is registered as a
+    static one-hour-cached route; the one-page increase from the 327-page baseline
+    is exactly the new endpoint. Only inherited NFT tracing, middleware
+    deprecation, edge-static-generation, and Node url.parse warnings remain.
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    evidence_json_bytes: 24949
+    evidence_json_sha256: 54fed8532a5fdd881435083213f99ce2b2bf0167dafa98d542fa959436a92826
+    replay_equal: true
+    evidence_task_ids: TC-259, TC-257, TC-255, TC-258, TC-256, TC-260
+    full_public_json_unchanged: true
+    tc260_public_candidate_json_unchanged: true
+    public_csv_unchanged: true
+    full_admin_json_unchanged: true
+    tc260_admin_candidate_json_unchanged: true
+    admin_review_json_unchanged: true
+    protected_review_csv_unchanged: true
+    receipt_ledger_unchanged: true
+    marketing_handoff_ledger_unchanged: true
+  final_contract_audit: >-
+    PASS - every frozen acceptance gate is proven by intentional RED, focused and
+    adjacent GREEN, deterministic replay, baseline/source/state/scope audits,
+    static analysis, all repository tests, and the registered production route;
+    no requirement relies on a favorable-only query, client-side join, or
+    untested authority assumption.
+  visual_verification: >-
+    No public or protected admin page, layout, copy, style, or interaction changed;
+    this increment adds only the complete public evidence read contract and its
+    API documentation/README handoff while the visual work remains owner-gated.
+  precommit_verification: >-
+    PASS - the exact 24-suite public/protected intake, candidate, CSV, receipt,
+    loop, marketing, auth, README, and OpenAPI set passes 108/108 against the
+    final precommit tree; the deterministic evidence and eight-baseline replay,
+    STATE parse, diff whitespace, and exact nine-path scope all pass again.
+  admin_visual_v0_changed: false
+  public_visual_changed: false
+  current_step: Create the local implementation commit without pushing, deploying, publishing, or activating anything
+  next_action: Record the implementation hash in a state-only closure commit, update shared MemoryCore, and leave the isolated branch clean; preserve the sole TC-260 receipt until exact 18:00Z
+  external_actions: none
+  safety: No candidate stage, receipt, source data, return, preregistration, result artifact, marketing handoff, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
 
 admin_research_marketing_review_json_2026_08_29:
   at: 2026-08-30T00:35:17+08:00

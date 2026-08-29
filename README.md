@@ -208,6 +208,9 @@ No key required on the public research routes. Cache on your side; responses alr
 # All 61 pinned discovery candidates, with completed TradeClaw evidence overlays
 curl https://tradeclaw.win/api/research/intake
 
+# All six examined candidates, including failures, no-go audits, and the inconclusive run
+curl https://tradeclaw.win/api/research/intake/evidence
+
 # One canonical candidate, with its complete safe evidence overlay
 curl https://tradeclaw.win/api/research/intake/a-risk-based-approach-to-tactical-asset-allocation
 

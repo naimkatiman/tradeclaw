@@ -69,6 +69,7 @@ describe('systematic research intake public boundary', () => {
       >;
     };
     const operation = spec.paths['/api/research/intake']?.get;
+    const evidenceOperation = spec.paths['/api/research/intake/evidence']?.get;
     const candidateOperation = spec.paths['/api/research/intake/{candidateId}']?.get;
     const csvOperation = spec.paths['/api/research/intake.csv']?.get;
     const responseSchema = spec.components.schemas.ResearchIntakeResponse as {
@@ -83,11 +84,18 @@ describe('systematic research intake public boundary', () => {
     expect(spec.tags).toContainEqual(expect.objectContaining({ name: 'Research' }));
     expect(spec.components.schemas).toHaveProperty('ResearchIntakeResponse');
     expect(spec.components.schemas).toHaveProperty('ResearchIntakePublicRecord');
+    expect(spec.components.schemas).toHaveProperty('ResearchIntakeEvidenceResponse');
     expect(spec.components.schemas).toHaveProperty('ResearchIntakeCandidateResponse');
     expect(operation).toBeDefined();
     expect(operation?.security).toEqual([]);
     expect(operation?.description).toMatch(/gross discovery metadata.*modeled historical research/i);
     expect(operation?.responses).toHaveProperty('200');
+    expect(evidenceOperation).toBeDefined();
+    expect(evidenceOperation?.security).toEqual([]);
+    expect(evidenceOperation?.description).toMatch(
+      /all six.*source-audit or replication.*source order.*failures.*no-go.*inconclusive/i,
+    );
+    expect(evidenceOperation?.responses).toHaveProperty('200');
     expect(candidateOperation).toBeDefined();
     expect(candidateOperation?.security).toEqual([]);
     expect(candidateOperation?.description).toMatch(/one canonical candidate.*exact.*case-sensitive/i);

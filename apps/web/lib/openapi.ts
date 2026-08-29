@@ -401,6 +401,89 @@ export function buildOpenApiSpec(): OpenApiSpec {
             },
           },
         },
+        ResearchIntakeEvidenceResponse: {
+          type: "object",
+          description:
+            "Public, deterministic index of all six candidates with a TradeClaw source-audit or replication overlay. Records remain in pinned source order and include failures, no-go audits, and the inconclusive run.",
+          required: [
+            "schemaVersion",
+            "access",
+            "source",
+            "selectionPolicy",
+            "workflow",
+            "claimBoundary",
+            "catalogSummary",
+            "evidenceIndex",
+            "evidenceSummary",
+            "records",
+          ],
+          properties: {
+            schemaVersion: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/schemaVersion",
+            },
+            access: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/access" },
+            source: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/source" },
+            selectionPolicy: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/selectionPolicy",
+            },
+            workflow: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/workflow",
+            },
+            claimBoundary: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/claimBoundary",
+            },
+            catalogSummary: {
+              $ref: "#/components/schemas/ResearchIntakeResponse/properties/catalogSummary",
+            },
+            evidenceIndex: {
+              type: "object",
+              required: [
+                "selection",
+                "order",
+                "performanceRanked",
+                "includesEveryAvailableOverlay",
+              ],
+              properties: {
+                selection: {
+                  type: "string",
+                  const: "all-candidates-with-tradeclaw-source-audit-or-replication",
+                },
+                order: { type: "string", const: "pinned-source-order" },
+                performanceRanked: { type: "boolean", const: false },
+                includesEveryAvailableOverlay: { type: "boolean", const: true },
+              },
+            },
+            evidenceSummary: {
+              allOf: [
+                {
+                  $ref: "#/components/schemas/ResearchIntakeResponse/properties/catalogSummary",
+                },
+                {
+                  description: "Stage and verdict counts for the complete six-record index",
+                  properties: {
+                    total: { example: 6 },
+                    discovered: { example: 0 },
+                    sourceAudited: { example: 2 },
+                    preregistered: { example: 0 },
+                    replicated: { example: 4 },
+                    prospective: { example: 0 },
+                    passed: { example: 0 },
+                    failed: { example: 3 },
+                    inconclusive: { example: 1 },
+                    untested: { example: 2 },
+                    sourceNoGo: { example: 2 },
+                  },
+                },
+              ],
+            },
+            records: {
+              type: "array",
+              minItems: 6,
+              maxItems: 6,
+              items: { $ref: "#/components/schemas/ResearchIntakePublicRecord" },
+            },
+          },
+        },
         ResearchIntakeCandidateResponse: {
           type: "object",
           description:
@@ -489,6 +572,27 @@ export function buildOpenApiSpec(): OpenApiSpec {
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ResearchIntakeResponse" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/api/research/intake/evidence": {
+        get: {
+          tags: ["Research"],
+          operationId: "getResearchIntakeEvidence",
+          summary: "Inspect every examined systematic-research candidate",
+          description:
+            "Returns all six candidates with a TradeClaw source-audit or replication overlay in pinned source order, including all failures, no-go audits, and the inconclusive run. " +
+            "The complete set is filter-free and never performance-ranked. No API key is required, and the response grants no publication, strategy-selection, broadcast, or trading authority.",
+          security: [],
+          responses: {
+            "200": {
+              description: "Complete adverse-inclusive public research evidence index",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ResearchIntakeEvidenceResponse" },
                 },
               },
             },
