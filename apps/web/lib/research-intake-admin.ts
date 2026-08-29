@@ -281,6 +281,21 @@ export interface ResearchIntakeAdminFilterNavigation {
   activeFilters: readonly ResearchIntakeAdminActiveFilter[];
 }
 
+export interface ResearchIntakeAdminResultView {
+  status: 'showing-results' | 'no-matches' | 'page-out-of-range';
+  summary: string;
+  range: {
+    firstRecord: number;
+    lastRecord: number;
+    totalRecords: number;
+  } | null;
+  recoveryAction: {
+    kind: 'clear-filters' | 'last-page';
+    label: string;
+    href: string;
+  } | null;
+}
+
 export interface ResearchIntakeAdminPayload {
   schemaVersion: 1;
   access: {
@@ -322,6 +337,7 @@ export interface ResearchIntakeAdminPayload {
       last: string;
     };
   };
+  resultView: ResearchIntakeAdminResultView;
   records: readonly ResearchIntakeAdminCatalogRecord[];
 }
 
@@ -822,6 +838,61 @@ function buildResearchIntakeAdminPaginationLinks(
   };
 }
 
+function buildResearchIntakeAdminResultView(
+  query: ResearchIntakeAdminQuery,
+  totalRecords: number,
+  totalPages: number,
+  start: number,
+  returnedRecords: number,
+  clearAllHref: string,
+  lastPageHref: string,
+): ResearchIntakeAdminResultView {
+  if (totalRecords === 0) {
+    return {
+      status: 'no-matches',
+      summary: 'No candidates match the current filters.',
+      range: null,
+      recoveryAction: {
+        kind: 'clear-filters',
+        label: 'Clear all filters',
+        href: clearAllHref,
+      },
+    };
+  }
+
+  if (returnedRecords === 0) {
+    const pageNoun = totalPages === 1 ? 'page' : 'pages';
+    return {
+      status: 'page-out-of-range',
+      summary: `Page ${query.page} is outside the ${totalPages} available ${pageNoun}.`,
+      range: null,
+      recoveryAction: {
+        kind: 'last-page',
+        label: `Go to page ${totalPages}`,
+        href: lastPageHref,
+      },
+    };
+  }
+
+  const firstRecord = start + 1;
+  const lastRecord = start + returnedRecords;
+  const visibleRange = firstRecord === lastRecord
+    ? String(firstRecord)
+    : `${firstRecord}–${lastRecord}`;
+  const candidateNoun = totalRecords === 1 ? 'candidate' : 'candidates';
+
+  return {
+    status: 'showing-results',
+    summary: `Showing ${visibleRange} of ${totalRecords} ${candidateNoun}.`,
+    range: {
+      firstRecord,
+      lastRecord,
+      totalRecords,
+    },
+    recoveryAction: null,
+  };
+}
+
 function buildResearchIntakeAdminObservation(at: Date | string | number) {
   const observedDate = new Date(at instanceof Date ? at.getTime() : at);
   const observedAt = observedDate.toISOString();
@@ -986,6 +1057,13 @@ export function buildResearchIntakeAdminPayload(
   const totalPages = Math.ceil(filtered.length / query.limit);
   const hasPreviousPage = filtered.length > 0 && query.page > 1;
   const hasNextPage = start + records.length < filtered.length;
+  const filterNavigation = buildResearchIntakeAdminFilterNavigation(query);
+  const paginationLinks = buildResearchIntakeAdminPaginationLinks(
+    query,
+    totalPages,
+    hasPreviousPage,
+    hasNextPage,
+  );
 
   return {
     schemaVersion: 1,
@@ -1003,7 +1081,7 @@ export function buildResearchIntakeAdminPayload(
     marketingReview: observation.marketingReview,
     appliedFilters: query,
     filterFacets: buildResearchIntakeAdminFilterFacets(query),
-    filterNavigation: buildResearchIntakeAdminFilterNavigation(query),
+    filterNavigation,
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
     filteredSummary: summarizeResearchIntake(filtered),
     pagination: {
@@ -1014,13 +1092,17 @@ export function buildResearchIntakeAdminPayload(
       returnedRecords: records.length,
       hasPreviousPage,
       hasNextPage,
-      links: buildResearchIntakeAdminPaginationLinks(
-        query,
-        totalPages,
-        hasPreviousPage,
-        hasNextPage,
-      ),
+      links: paginationLinks,
     },
+    resultView: buildResearchIntakeAdminResultView(
+      query,
+      filtered.length,
+      totalPages,
+      start,
+      records.length,
+      filterNavigation.clearAllHref,
+      paginationLinks.last,
+    ),
     records,
   };
 }

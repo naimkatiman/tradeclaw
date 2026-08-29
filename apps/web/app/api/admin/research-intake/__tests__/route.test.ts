@@ -218,6 +218,16 @@ describe('GET /api/admin/research-intake', () => {
           last: '/api/admin/research-intake?page=3&limit=25',
         },
       },
+      resultView: {
+        status: 'showing-results',
+        summary: 'Showing 1–25 of 61 candidates.',
+        range: {
+          firstRecord: 1,
+          lastRecord: 25,
+          totalRecords: 61,
+        },
+        recoveryAction: null,
+      },
     });
     expect(body.selectionPolicy).toMatch(/never TradeClaw evidence.*default sort/i);
     expect(body.workflow).toHaveLength(5);
@@ -590,6 +600,46 @@ describe('GET /api/admin/research-intake', () => {
         previous: null,
         next: null,
         last: '/api/admin/research-intake?q=no-such-research-candidate&page=1&limit=25',
+      },
+    });
+    expect(body.resultView).toEqual({
+      status: 'no-matches',
+      summary: 'No candidates match the current filters.',
+      range: null,
+      recoveryAction: {
+        kind: 'clear-filters',
+        label: 'Clear all filters',
+        href: '/api/admin/research-intake?page=1&limit=25',
+      },
+    });
+    expect(body.records).toEqual([]);
+  });
+
+  it('returns an explicit out-of-range state with a canonical last-page recovery', async () => {
+    mockedAdmin.mockResolvedValue(null);
+
+    const response = await GET(request('?assetClass=Equities&page=99&limit=3'));
+    const body = await response.json();
+
+    expect(body.pagination).toMatchObject({
+      page: 99,
+      totalRecords: 12,
+      totalPages: 4,
+      returnedRecords: 0,
+      links: {
+        self: '/api/admin/research-intake?assetClass=Equities&page=99&limit=3',
+        previous: '/api/admin/research-intake?assetClass=Equities&page=98&limit=3',
+        last: '/api/admin/research-intake?assetClass=Equities&page=4&limit=3',
+      },
+    });
+    expect(body.resultView).toEqual({
+      status: 'page-out-of-range',
+      summary: 'Page 99 is outside the 4 available pages.',
+      range: null,
+      recoveryAction: {
+        kind: 'last-page',
+        label: 'Go to page 4',
+        href: '/api/admin/research-intake?assetClass=Equities&page=4&limit=3',
       },
     });
     expect(body.records).toEqual([]);

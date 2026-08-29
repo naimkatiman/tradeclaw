@@ -1,11 +1,178 @@
 project: tradeclaw
-updated: 2026-08-30T04:20:06+08:00
+updated: 2026-08-30T04:38:47+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+admin_research_catalog_result_view_2026_08_30:
+  at: 2026-08-30T04:24:25+08:00
+  agent: TradeClaw PM agent
+  status: verified_protected_admin_catalog_result_view_ready_for_local_commit
+  scope: Let an authenticated admin distinguish visible results, no matches, and an out-of-range page and recover through one server-authored action without reconstructing pagination state
+  base_commit: b0da7430dda905352fa2b2c04dc1754874ed2a53
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-256
+  current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-261
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-29T21:00:00.000Z
+  gate_observed_at: 2026-08-29T20:24:25.379Z
+  gate_decision: The 21:00Z receipt gate is closed; continue same-window protected product completion without creating research or marketing state
+  problem: >-
+    Pagination exposes counts and canonical links, but an empty records array can
+    mean either no filter matches or a requested page beyond the available range.
+    An admin client must currently infer that distinction and invent the correct
+    recovery action; on page 99 the compatibility pagination link points to page
+    98 even when the actual last page is 3.
+  decision: >-
+    Add one `resultView` object to the protected catalog response. Author one of
+    three explicit statuses, a human summary, a one-based structured visible
+    record range only when results are returned, and at most one canonical
+    recovery action. Preserve the existing pagination object byte-for-byte and
+    keep candidate/evidence/review/CSV/public/auth/rendered-UI contracts unchanged.
+  frozen_result_view_shape:
+    fields: [status, summary, range, recoveryAction]
+    statuses: [showing-results, no-matches, page-out-of-range]
+    range_fields: [firstRecord, lastRecord, totalRecords]
+    range_basis: one-based-position-within-complete-filtered-result
+    recovery_action_fields: [kind, label, href]
+    recovery_action_kinds: [clear-filters, last-page]
+    maximum_recovery_actions: 1
+  frozen_behavior:
+    showing_results:
+      range_present: true
+      recovery_action: null
+    no_matches:
+      range: null
+      recovery_action: clear-filters
+      recovery_href: filterNavigation.clearAllHref
+    page_out_of_range:
+      applies_when: totalRecords-is-positive-and-returnedRecords-is-zero
+      range: null
+      recovery_action: last-page
+      recovery_href: pagination.links.last
+    status_precedence: no-matches-before-page-out-of-range
+    existing_pagination_semantics_changed: false
+  frozen_boundaries:
+    protected_catalog_gains_result_view: true
+    protected_candidate_changed: false
+    protected_evidence_changed: false
+    protected_review_changed: false
+    protected_csv_changed: false
+    public_payload_changed: false
+    public_openapi_changed: false
+    rendered_ui_changed: false
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/__tests__/research-intake-admin-result-view.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+  red_verification: >-
+    PASS - the new result-view and protected-route suites ran 23 assertions. The
+    16 existing pagination, auth, record, and sibling-boundary assertions stayed
+    green; exactly seven assertions failed because normal, filtered, no-match,
+    and out-of-range responses do not yet carry `resultView`.
+  focused_verification: >-
+    PASS - the result-view and protected catalog-route suites pass 23/23. Normal
+    and filtered pages carry exact one-based ranges, zero matches clear filters,
+    out-of-range pages recover directly to the actual last page, and protected/
+    public sibling boundaries remain intact.
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    query_contract_unchanged: 1121 bytes / ed4a2bd3a0c8dc5e4305a400c2754ebdaa49e5c5000478add9e77af477d5b795
+    facet_contract_unchanged: 338 bytes / 0114ebd94cc22669f3437ffbb0bd8213f31f1367c12b4da2ec780d898406bcf2
+    filter_navigation_contract_unchanged: 302 bytes / c8d3e3ba0daa87e33f46fe51584c852a6842c437dbad7987bd3bdcdd71494ee8
+    default_result_view: 155 bytes / 48406d23c822cfad6d5cb8e5d731e646fad84e911b93c8d943d18b28cdaa5f6e
+    filtered_result_view: 153 bytes / 4f051a3fbc04565de8ff34e5b2ca77c9e337ad5ea8ee05ff8c234e2078c7350c
+    no_matches_result_view: 210 bytes / cbbb5ea966eb8e72219805139fac8be023518ab0391484ff687585c40c529fc1
+    out_of_range_result_view: 229 bytes / 8b6a57c2f009b530e4837352e72f51caca318a486890ca5bbc951adcf5ad1d07
+    admin_catalog_default: 54034 bytes / d256289492176096024926a39f0de12da933e0c24ab4f392baa5209afdc663a0
+    admin_catalog_limit_100: 107273 bytes / ed05e5d16398d4381e94e9402c3e88650487015f144e810dd993375e307c593f
+    admin_catalog_equities_page_2_limit_3: 22770 bytes / 9d7c713a677265a0edea103a39c3e32c3b7d7964aae37f69f7b48d3bc0c7d0ad
+    admin_catalog_no_matches_page_99_limit_3: 20201 bytes / e912d396dab9f86c68685fc09c57fdd51ed12be1baedd8237bb8078b62c4c3a1
+    admin_catalog_equities_out_of_range_page_99_limit_3: 19851 bytes / ff57e462a9ba0ad58b6df07bcfd9e71d8b1ee2e80c9b73331b9372526259b275
+    admin_catalog_combined_out_of_range: 21004 bytes / 5ebe2c4cf514af5dd55c77eaa633ac009e3225f8e36e9d23129f7b1f791adb32
+    admin_candidate_tc260_unchanged: 9503 bytes / 6cd0ca1bc9775274f4aa02818640424d513d3a912eb5e2b47a6c895a17077ebd
+    admin_evidence_unchanged: 56502 bytes / defa5ec013c50c5c762fbb801d5dca6760646d0a3e28fdf2b441f75a3cea8098
+    admin_marketing_review_unchanged: 20279 bytes / 2cedcc9b48516de8975a481c0236e4810384ff4b7d83d376585d058cbd6baa9a
+    admin_evidence_csv_at_2026_08_29T18_00_40Z_unchanged: 14533 bytes / 49c32887d5edaf402a9108ec6351e8acb2a5d567b5367df178250482b4542053
+    admin_marketing_review_csv_unchanged: 6350 bytes / 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    public_catalog_unchanged: 63327 bytes / 602845ec6bd4d98410fcaf7fe2d0f4388a4293bddbd48699fdcedf1a18a99b43
+    public_candidate_tc260_unchanged: 5770 bytes / bb7b9225b4231c252d5a2de353e1067b7d31e6717427f59bec043b952b7321b0
+    public_evidence_unchanged: 29202 bytes / 43b0e2bc993d279249b0a2a9c7763446a9ea0f5dd6a897446386286b4a694d40
+    public_catalog_csv_unchanged: 36822 bytes / 49a715737f00100d3ef4728de0e471ce05bc669876354e9e266542863d2ede49
+    public_evidence_csv_unchanged: 5332 bytes / feab7b909b545cd1ee64690ef802c911db15cb2b8556840a06836a1f9dce2c50
+  deterministic_audit: >-
+    PASS - an apply-patch-created temporary TypeScript verifier independently
+    fingerprinted all three contracts, four result views, six protected catalog
+    shapes, and ten protected/public sibling payloads, then was deleted. Only the
+    protected catalog gains resultView; every sibling remains byte-identical.
+  focused_deterministic_verification: >-
+    PASS - result-view, query-contract, and protected-route suites pass 30/30
+    with all four result states, two empty recovery payloads, updated protected
+    catalog hashes, and the unchanged query contract locked.
+  adjacent_verification: >-
+    PASS - the exact 37-suite protected/public intake, receipt, marketing, CSV,
+    auth, README-discoverability, and publication-boundary set passes 170/170.
+    Force-exit closes only the repository's inherited open handle after the
+    complete green summary.
+  source_verification: PASS - the independent verifier reconstructs all 61 pinned candidates at exact commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with gross-of-trading-costs discovery-only treatment
+  typecheck_verification: PASS - npm run typecheck:web rebuilt packages/signals and completed the apps/web no-emit TypeScript check
+  changed_file_lint_verification: PASS - all four changed TypeScript paths pass the authoritative apps/web ESLint configuration with zero findings
+  lint_verification: PASS - full web lint completes with zero errors and the same 21 inherited warnings; no warning points to this increment
+  repository_test_verification: >-
+    PASS - all 284 runnable Jest suites and 2,111 tests pass; three suites and 26
+    tests are skipped and one snapshot passes. Force-exit closes only the
+    repository's inherited open handle after the complete green summary.
+  build_verification: >-
+    PASS - the required root production build compiles the signals and
+    trading-agents packages, compiles Next.js successfully, generates all 329/329
+    static pages, and retains the protected catalog, candidate, evidence, evidence
+    CSV, review, and review CSV routes as dynamic server routes. Only the inherited
+    middleware, NFT trace, url.parse, and edge-runtime warnings remain.
+  preliminary_state_verification: >-
+    PASS - STATE.yaml parses with the new block, git diff --check reports no
+    whitespace errors, the temporary deterministic audit script is absent, and
+    the actual worktree manifest matches the exact five expected files.
+  frozen_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/__tests__/research-intake-admin-result-view.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+  state_and_scope_verification: >-
+    PASS - the exact five-file manifest contains only the protected result-view
+    implementation, focused behavior/hash/route coverage, and STATE. Docker
+    Compose, dependencies, lockfiles, database, auth semantics, rendered UI,
+    public OpenAPI, research receipts/artifacts, marketing drafts, and runtime
+    trading paths are untouched.
+  final_state_bound_verification: >-
+    PASS - the exact 13-suite result-view/link/navigation/facet/query/resource,
+    protected catalog/candidate/evidence/review, receipt, marketing, and
+    publication-boundary set passes 80/80 after the five-file manifest and final
+    verification evidence were frozen.
+  verification_summary: >-
+    PASS - intentional RED isolated seven missing-result-view failures with 16
+    boundaries green; focused 23/23; deterministic focused 30/30; adjacent
+    170/170; repository 284 runnable suites and 2,111 tests; final state-bound
+    80/80; pinned source 61/61; web typecheck; changed-file and full lint with
+    zero errors; YAML/hash/diff/scope audits; required 329/329-page production build.
+  final_gate_observed_at: 2026-08-29T20:38:47.770Z
+  final_gate_decision: The 21:00Z research rollover remains closed; TC-261 stays the sole receipt in the complete 18:00Z window and no new research or marketing handoff is created
+  visual_ui_changed: false
+  public_contract_changed: false
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  current_step: Create the exact five-file local implementation commit
+  next_action: Record the implementation hash in STATE, create a state-only closure commit, and save the verified outcome to shared MemoryCore
+  safety: No new research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, public OpenAPI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changes are authorized
 
 admin_research_catalog_record_links_2026_08_30:
   at: 2026-08-30T04:20:06+08:00
