@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T07:50:13+08:00
+updated: 2026-08-30T07:51:11+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_discovery_context_parity_2026_08_30:
-  at: 2026-08-30T07:50:13+08:00
+  at: 2026-08-30T07:51:11+08:00
   agent: TradeClaw PM agent
-  status: ready_to_commit
+  status: verified_admin_discovery_context_committed_local_closing_state
   scope: Give every protected research JSON projection the same whole-catalog evidence context already available on the protected catalog and every public JSON projection
   base_commit: b59e411fe98e63646f4bf34345c345d69514837b
+  implementation_commit: 2c1731692c725c06e41c705732fde3e12ba8ab12
+  committed_at: 2026-08-29T23:51:11Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-262
   time_mode: night
@@ -152,8 +154,12 @@ research_admin_discovery_context_parity_2026_08_30:
     deterministic_receipts: PASS - final focused suite passes 5/5 including all frozen JSON and CSV fingerprints
     state_yaml: PASS
     diff_check: PASS - no whitespace errors; Windows LF-to-CRLF notices are informational
-  current_step: Commit the verified ten-file implementation locally
-  next_action: Stage only the frozen manifest, inspect the index, and create the local implementation commit
+  commit_verification: >-
+    PASS - local implementation commit 2c1731692c725c06e41c705732fde3e12ba8ab12
+    contains exactly the frozen ten paths. The worktree was clean immediately
+    after commit; no push, merge, deployment, publication, or external action occurred.
+  current_step: Commit this STATE.yaml closure receipt locally and save shared MemoryCore
+  next_action: Prove the final two-commit history and clean worktree while keeping the recurring goal active
   marketing_handoff_created: false
   publish_approved: false
   trading_approved: false
