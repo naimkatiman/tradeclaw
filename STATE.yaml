@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T17:34:00+08:00
+updated: 2026-08-29T17:36:14+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,14 +8,15 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 bitcoin_seasonality_replication_2026_08_29:
-  at: 2026-08-29T17:34:00+08:00
+  at: 2026-08-29T17:36:14+08:00
   agent: TradeClaw PM agent
   status: verified_canonical_fail_integrated_review_only
   scope: Audit the catalog's Bitcoin seasonality, trend-following, and mean-reversion candidate; reject its daily two-hour lane if published gross cost headroom is insufficient, then preregister only the reconstructible lower-turnover MAX10/MIN10 composite before calculating local returns
   base_commit: bf540b882bbd2ea2131ecf955199c6f19fa27099
+  implementation_commit: 6a3c1b01afad160fb0ee4970d4dff6a78f381731
   branch: agent/research-intake-desk-20260829
   candidate_id: seasonality-trend-following-and-mean-reversion-in-bitcoin
-  current_step: The frozen FAIL is integrated into the read-only intake overlay, human-review-only draft, and experiment shelf; verification is complete and only the local implementation receipt and state-closure commits remain
+  current_step: The frozen FAIL is integrated into the read-only intake overlay, human-review-only draft, and experiment shelf; verification and the local implementation receipt are complete, and this cycle is closed without outbound action
   evidence_boundary: The pinned catalog and its live vendor backtest remain gross discovery metadata; the SSRN PDF is not vendored, source market data will remain ignored, and only independently modeled results may become TradeClaw evidence
   paper_receipt: SSRN 4081000, 16 pages, audited PDF SHA-256 a8e7f1e4bb134a2ff3dea458872583463de2b69e8b895202a7d5b57ca99596a1
   source_audit: docs/research/2026-08-29-bitcoin-seasonality-max-min-source-audit.md
@@ -152,7 +153,7 @@ end_of_month_treasury_replication_2026_08_29:
   next_action: Under a new preregistration, obtain an original-vintage Federal Reserve curve file or define an explicit rounded-parameter reconciliation policy before attempting any performance evaluation
 
 research_intake_desk_2026_08_29:
-  at: 2026-08-29T17:34:00+08:00
+  at: 2026-08-29T17:36:14+08:00
   agent: TradeClaw PM agent
   status: foundation_admin_api_and_three_research_cycles_complete_ui_checkpoint
   scope: Turn the protected strategy-library surface into a simple cost-first research intake desk and connect evidence-complete findings to a human-reviewed three-hour research/marketing loop
@@ -160,6 +161,7 @@ research_intake_desk_2026_08_29:
   implementation_commit: bce46c05b2c61613981616102535e2f3be666950
   admin_api_commit: 27faeffad19ba42fcd914e956103f863ce253537
   treasury_replication_commit: 8252a1809f33c13c429ff9b8f7cc2fb7c2749b4b
+  bitcoin_max_min_replication_commit: 6a3c1b01afad160fb0ee4970d4dff6a78f381731
   branch: agent/research-intake-desk-20260829
   current_step: The pinned foundation, first source no-go, protected admin read API, TC-257 QA-only hold, and TC-258 canonical FAIL are implemented; visual v0 remains paused at the required UI direction checkpoint
   source: >
@@ -327,6 +329,7 @@ research_intake_desk_2026_08_29:
     stage_after: replicated
     verdict: fail
     outcome: implemented-canonical-fail
+    implementation_commit: 6a3c1b01afad160fb0ee4970d4dff6a78f381731
     changed_files:
       - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
       - apps/web/lib/__tests__/research-intake.test.ts
@@ -5378,4 +5381,6 @@ next_actions:
       and human-review-only draft. Raw paper and source market-data bytes were not
       committed. No UI, strategy, signal, allocation, broadcast, execution,
       billing, database, Docker, dependency, auth, publication, push, merge, or
-      deployment state changed.
+      deployment state changed. The complete implementation and evidence package
+      was committed locally as 6a3c1b01afad160fb0ee4970d4dff6a78f381731;
+      nothing was pushed.
