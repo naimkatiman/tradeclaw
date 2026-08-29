@@ -24,6 +24,8 @@ describe('systematic research intake public boundary', () => {
 
     expect(page).toContain("import { EXPERIMENT_SHELF }");
     expect(page).toContain('/api/research/intake');
+    expect(page).toContain('/api/research/intake.csv');
+    expect(page).toMatch(/25-column spreadsheet index.*canonical JSON/i);
     expect(page).toContain('EXPERIMENT_SHELF.map');
     expect(page).toContain('all {EXPERIMENT_SHELF.length} committed JSON artifacts');
     expect(page).not.toContain('const ARTIFACTS');
@@ -45,6 +47,7 @@ describe('systematic research intake public boundary', () => {
       >;
     };
     const operation = spec.paths['/api/research/intake']?.get;
+    const csvOperation = spec.paths['/api/research/intake.csv']?.get;
 
     expect(spec.tags).toContainEqual(expect.objectContaining({ name: 'Research' }));
     expect(spec.components.schemas).toHaveProperty('ResearchIntakeResponse');
@@ -52,5 +55,9 @@ describe('systematic research intake public boundary', () => {
     expect(operation?.security).toEqual([]);
     expect(operation?.description).toMatch(/gross discovery metadata.*modeled historical research/i);
     expect(operation?.responses).toHaveProperty('200');
+    expect(csvOperation).toBeDefined();
+    expect(csvOperation?.security).toEqual([]);
+    expect(csvOperation?.description).toMatch(/25-column spreadsheet index.*canonical JSON/i);
+    expect(csvOperation?.responses).toHaveProperty('200');
   });
 });

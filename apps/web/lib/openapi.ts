@@ -454,6 +454,41 @@ export function buildOpenApiSpec(): OpenApiSpec {
           },
         },
       },
+      "/api/research/intake.csv": {
+        get: {
+          tags: ["Research"],
+          operationId: "downloadResearchIntakeCsv",
+          summary: "Download the systematic-research intake as CSV",
+          description:
+            "Returns all 61 source candidates in original order as a claim-safe 25-column spreadsheet index with the pinned source receipt and false publication/trading authority repeated on every row. " +
+            "The canonical JSON response retains complete nested TradeClaw evidence. No API key is required.",
+          security: [],
+          responses: {
+            "200": {
+              description: "Spreadsheet-ready public research intake index",
+              headers: {
+                "Content-Disposition": {
+                  description: "Deterministic snapshot-dated attachment filename",
+                  schema: {
+                    type: "string",
+                    example:
+                      'attachment; filename="tradeclaw-systematic-research-intake-2026-08-29.csv"',
+                  },
+                },
+              },
+              content: {
+                "text/csv": {
+                  schema: {
+                    type: "string",
+                    description:
+                      "Header plus 61 source-ordered rows. Canonical JSON remains authoritative for nested evidence objects.",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       "/api/v1/signals": {
         get: {
           tags: ["Signals"],

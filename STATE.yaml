@@ -1,11 +1,57 @@
 project: tradeclaw
-updated: 2026-08-29T22:25:03+08:00
+updated: 2026-08-29T22:40:24+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+public_research_intake_csv_export_2026_08_29:
+  at: 2026-08-29T22:30:27+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_commit
+  scope: Give public users a deterministic spreadsheet-ready index of the complete pinned systematic-research intake without weakening the canonical JSON evidence record or changing product layout
+  base_commit: 9c310994ddb7a1137c67404c8f97c99af6d6b5ad
+  branch: agent/research-intake-desk-20260829
+  finding: The complete 61-row intake is public as JSON, but a user who wants to sort or audit it in a spreadsheet must build and maintain a private flattening script; open data already has a proven alternate-curl slot and signal history already establishes the repository CSV download convention
+  library_search: No reusable CSV or tabular-export pattern exists in shared MemoryCore; reuse the repository's signal-history CSV escaping, attachment, and documentation conventions and keep the new projection research-specific
+  acceptance_gates:
+    - API-key-free GET /api/research/intake.csv returns exactly 61 data rows in original pinned source order with a fixed 25-column spreadsheet schema and a deterministic byte-identical body
+    - Every row carries source order, identity, asset class, source URL, workflow/evidence status, upstream figures, pinned source provenance, one canonical TradeClaw evidence path where available, artifact path where available, and explicit false publication and trading authority
+    - Evidence status counts remain exactly 56 not-tested, 1 source-audit-only-no-local-backtest, 1 qa-only-no-performance-result, and 3 modeled-historical-fail; TC-256 is never relabeled as a performance failure and TC-257 never acquires performance results
+    - Upstream figures remain labeled gross-of-trading-costs and discovery-only in every exported row and never become a TradeClaw score, sort, or performance claim
+    - Text cells quote commas, quotes, CR/LF, and neutralize spreadsheet formula prefixes without converting genuine negative numeric fields to text
+    - The response is a public one-hour-cached text/csv attachment with a deterministic snapshot-dated filename and nosniff protection; only GET is exported
+    - README, open data, and OpenAPI document the flattened CSV as a spreadsheet index and retain canonical JSON for complete nested evidence
+    - The existing JSON route, protected admin route, source ordering, Docker Compose, dependencies, database, signals, execution, billing, and owner-gated visual surfaces remain unchanged
+    - STATE parses, focused and adjacent contracts pass, full repository verification passes, and npm run build succeeds before any local commit
+  contract_refinement: Before production code, the 21-column draft was found to claim pinned provenance without carrying the catalog repository, commit, README hash, or snapshot date; all four exact receipt fields are now frozen into a 25-column self-contained export
+  csv_columns: sourceOrder,id,title,assetClass,sourceUrl,evidenceBasis,performanceEvidenceStatus,stage,verdict,costStatus,upstreamGrossSharpe,upstreamTStatistic,upstreamVolatilityPct,upstreamYearsTested,sourceCatalogRepository,sourceCatalogCommit,sourceCatalogReadmeSha256,sourceCatalogSnapshotDate,upstreamPerformanceBasis,tradeClawTreatment,tradeClawTaskId,tradeClawEvidencePath,tradeClawArtifactPath,grantsPublicationAuthority,grantsTradingAuthority
+  current_cycle_receipt_unchanged: 2026-08-29T12:00:00.000Z/PT3H
+  candidate_id: null
+  new_research_receipt_created: false
+  admin_visual_v0_changed: false
+  public_visual_structure_changed: false
+  documentation_red_evidence: The two public-documentation suites ran before implementation and failed at exactly three missing boundaries - the README download command, the open-data spreadsheet handoff, and the absent OpenAPI CSV operation - while the existing JSON claims remained green
+  implementation_red_evidence: Both focused implementation suites failed before production code at the intentional missing research-intake-csv module; no serializer or CSV route existed and zero assertions ran past module resolution
+  implementation: A field-allow-listed 25-column projection flattens only the safe public payload, derives explicit performance-evidence status, repeats the exact pinned source receipt and false authority boundaries, preserves numeric metrics, escapes structural text, and neutralizes spreadsheet formulas; a GET-only static route returns the deterministic attachment with one-hour public caching and nosniff protection
+  documentation: README and the existing open-data alternate-curl slot expose a snapshot-dated download command while stating that canonical JSON retains complete nested evidence; OpenAPI documents the API-key-free text/csv response and attachment header without changing visual structure
+  focused_verification: PASS - all four serializer, route, README, open-data, and OpenAPI suites pass 12/12 after the intentional documentation and missing-module RED runs
+  adjacent_verification: PASS - 14 public CSV/JSON, intake, admin-auth, receipt, marketing, publication, README, open-data, truth-labeling, and external-claim suites pass 72/72; web typecheck passes and independent source reconstruction remains exact at 61 candidates, commit d9c98521, and README hash 67f4c496
+  payload_audit_repair: The first shell diagnostic incorrectly split on literal backslash-r-backslash-n text and reported one physical line; that counter is discarded. The rerun used character-code CRLF and confirmed 62 physical lines.
+  payload_audit: PASS - the deterministic UTF-8 body is 36,621 bytes at SHA-256 7b63c35d95c0004ff1f7c285c81b25255afc7a7f32784af4c7e9337514c01e12 with 25 columns, 61 rows, exact first/last source IDs, and status counts 56/1/1/3
+  repository_test_verification: PASS - all 258 runnable Jest suites and 2,005 tests pass with 3 suites and 26 tests skipped; forceExit closed the repository's inherited open handle after the complete green summary
+  lint_verification: PASS - full web lint completed with zero errors and the same 21 inherited warnings; no warning points to this increment
+  boundary_time_audit: Full tests closed at 2026-08-29T14:38:04Z, still before the exact 15:00:00Z next-receipt boundary; this remains a same-window product increment and no new receipt may be created
+  build_verification: PASS - the required root production build compiled signals, trading-agents, and Next.js and generated all 327 pages; both /api/research/intake and /api/research/intake.csv are static one-hour-revalidated routes and only the inherited NFT tracing, middleware deprecation, edge-static-generation, and Node url.parse warnings remain
+  independent_spreadsheet_parse: PASS - PowerShell ConvertFrom-Csv independently parsed 61 rows and 25 properties, sourceOrder 1 through 61, the exact first and last pinned IDs, and only false values in both authority columns
+  precommit_verification: PASS - final focused/state contracts pass 17/17; STATE parses; diff whitespace passes; exactly 10 intended README, STATE, serializer, route, OpenAPI, open-data, and test paths are changed; the canonical JSON builder/route, protected admin/auth, Docker, manifests, lockfiles, migrations, research inputs/artifacts/scripts, signals, strategies, execution, and database surfaces have zero diff
+  verification: PASS - documentation RED 3 failures with 2 existing tests green; missing-module RED 2 suites; focused 12/12; adjacent 72/72; final focused/state 17/17; source 61/61; deterministic 36,621-byte payload; repository Jest 258 suites and 2,005 tests; web typecheck; lint zero errors with 21 inherited warnings; independent CSV parse; YAML/diff/path/protected-surface audits; required 327-page production build
+  current_step: Verified CSV export implementation, documentation, tests, and in-progress state are ready for a local implementation commit
+  next_action: Commit the 10 intended paths locally, save the exact implementation hash to shared MemoryCore, then close STATE in a second local state commit
+  external_actions: none
+  safety: No source data, result, artifact, candidate state, receipt, outbound draft, UI layout, database, Docker, dependency, auth, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
 readme_research_intake_discoverability_2026_08_29:
   at: 2026-08-29T22:14:41+08:00

@@ -208,6 +208,9 @@ No key required on the public research routes. Cache on your side; responses alr
 # All 61 pinned discovery candidates, with completed TradeClaw evidence overlays
 curl https://tradeclaw.win/api/research/intake
 
+# 25-column spreadsheet index; canonical JSON above retains complete nested evidence
+curl https://tradeclaw.win/api/research/intake.csv -o tradeclaw-systematic-research-intake-2026-08-29.csv
+
 # Cost-adjusted sequential summary (the table above)
 curl 'https://tradeclaw.win/api/signals/equity?summaryOnly=1&scope=pro'
 

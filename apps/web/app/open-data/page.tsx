@@ -70,6 +70,10 @@ const ENDPOINTS: Endpoint[] = [
     ],
     shape: '{ schemaVersion, access, source, selectionPolicy, workflow[], claimBoundary, catalogSummary, records[61] }',
     curl: `curl ${BASE}/api/research/intake`,
+    altCurl: {
+      label: '25-column spreadsheet index; canonical JSON retains complete nested evidence',
+      command: `curl ${BASE}/api/research/intake.csv -o tradeclaw-systematic-research-intake-2026-08-29.csv`,
+    },
     rendered: { href: '/research', label: '/research' },
   },
   {

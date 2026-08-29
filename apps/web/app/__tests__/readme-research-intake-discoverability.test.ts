@@ -39,6 +39,10 @@ describe('README systematic-research intake discoverability', () => {
     expect(api).toMatch(
       /all 61 pinned discovery candidates[\s\S]*completed TradeClaw evidence overlays/i,
     );
+    expect(api).toContain(
+      'curl https://tradeclaw.win/api/research/intake.csv -o tradeclaw-systematic-research-intake-2026-08-29.csv',
+    );
+    expect(api).toMatch(/25-column spreadsheet index[\s\S]*canonical JSON/i);
     expect(api).toContain('[research verdict board](https://tradeclaw.win/research)');
     expect(api).toContain('[open data](https://tradeclaw.win/open-data)');
     expect(api).toContain('[API docs](https://tradeclaw.win/api-docs)');
