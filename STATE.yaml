@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T02:46:36+08:00
+updated: 2026-08-30T02:47:05+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,12 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 admin_research_evidence_csv_2026_08_30:
-  at: 2026-08-30T02:46:36+08:00
+  at: 2026-08-30T02:47:05+08:00
   agent: TradeClaw PM agent
-  status: verified_protected_admin_evidence_csv_ready_for_local_commit
+  status: verified_protected_admin_evidence_csv_committed_local_closing_state
   scope: Give an authenticated admin one filter-independent spreadsheet projection of the complete evidence desk, including observation-visible receipt and marketing state, without weakening the canonical JSON, auth, publication, or trading boundaries
   base_commit: b3482f4c20b222ca2eb551f3230f5926adfd623a
+  implementation_commit: 007e01ef7be4049c1c5a310d3e43246f1e14f1ed
   branch: agent/research-intake-desk-20260829
   parent_task: TC-256
   current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
@@ -89,7 +90,7 @@ admin_research_evidence_csv_2026_08_30:
   publish_approved: false
   trading_approved: false
   external_actions: none
-  current_step: Create the verified local implementation commit, then bind its exact hash in a STATE-only closure and shared MemoryCore
+  current_step: Create the STATE-only closure commit, save both exact hashes to shared MemoryCore, and leave the isolated branch clean
   next_action: Close every failed gate before creating local implementation and state commits; preserve TC-261 as the sole 18:00Z receipt
   safety: No research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, public OpenAPI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
 
