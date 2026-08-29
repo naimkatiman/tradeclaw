@@ -336,7 +336,7 @@ export const EXPERIMENT_SHELF: readonly ExperimentShelfEntry[] = [
   },
   {
     file: 'daily-momentum-validation-BTCUSD-D1-f4.json',
-    runDate: '2026-06-12',
+    runDate: '2026-06-26',
     label: 'Daily momentum / BTC-only predecessor',
     disposition: 'shelved',
     reason: 'Superseded single-symbol predecessor; the ten-major validation is the canonical breadth test.',

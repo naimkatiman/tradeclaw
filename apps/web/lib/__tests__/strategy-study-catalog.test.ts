@@ -190,10 +190,14 @@ describe('strategy study catalog integrity', () => {
       .filter((file) => file.endsWith('.json'))
       .sort();
     const shelfFiles = EXPERIMENT_SHELF.map((entry) => entry.file).sort();
+    const registry = readFileSync(resolve(experimentDir, 'REGISTRY.md'), 'utf8');
 
     expect(shelfFiles).toEqual(committedFiles);
     expect(new Set(shelfFiles).size).toBe(shelfFiles.length);
     expect(EXPERIMENT_SHELF.every((entry) => entry.reason.length >= 40)).toBe(true);
+    for (const entry of EXPERIMENT_SHELF) {
+      expect(registry).toContain('`' + entry.file + '`');
+    }
 
     const legacy = EXPERIMENT_SHELF.find((entry) => entry.file.includes('legacy-zero'));
     const hmm = EXPERIMENT_SHELF.find((entry) => entry.file.startsWith('regime-hmm'));
@@ -206,5 +210,13 @@ describe('strategy study catalog integrity', () => {
     expect(hmm?.reason).toMatch(/diagnostic|no standalone trading return/i);
     expect(treasuryQaHold).toMatchObject({ disposition: 'shelved' });
     expect(treasuryQaHold?.reason).toMatch(/no performance result/i);
+
+    const btcOnlyPredecessor = EXPERIMENT_SHELF.find(
+      (entry) => entry.file === 'daily-momentum-validation-BTCUSD-D1-f4.json',
+    );
+    const btcOnlyArtifact = artifact<{ meta: { runAt: string } }>(
+      'daily-momentum-validation-BTCUSD-D1-f4.json',
+    );
+    expect(btcOnlyPredecessor?.runDate).toBe(btcOnlyArtifact.meta.runAt.slice(0, 10));
   });
 });

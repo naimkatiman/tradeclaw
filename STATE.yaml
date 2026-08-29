@@ -1,11 +1,29 @@
 project: tradeclaw
-updated: 2026-08-29T17:49:54+08:00
+updated: 2026-08-29T18:49:02+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+experiment_registry_integrity_repair_2026_08_29:
+  at: 2026-08-29T18:45:20+08:00
+  agent: TradeClaw PM agent
+  status: verified_registry_reconciled
+  scope: Reconcile the append-only experiment registry with every committed artifact already exposed by the product's complete experiment shelf, without running a study or opening a new research-cycle receipt
+  base_commit: 5926f4a3934d245ecd80388280957f804e406ad6
+  branch: agent/research-intake-desk-20260829
+  finding: The product shelf exposed 15 committed JSON artifacts while REGISTRY.md named only 12; the missing entries were TC-257, TC-258, and the superseded BTC-only daily-momentum predecessor. The predecessor shelf date also said 2026-06-12 even though its immutable artifact records 2026-06-26T08:53:53.999Z and Git first committed it on 2026-06-27 MPST.
+  repair: Added delayed-reconciliation ledger entries using only committed artifact facts and raw SHA-256 hashes, corrected the predecessor shelf date to the artifact's UTC date, and added a regression gate requiring every complete-shelf artifact filename to appear in the registry and the predecessor date to match its artifact timestamp
+  verification: Focused strategy-study-catalog test was observed failing on the missing registry entry before the repair, then passed 6/6 after reconciliation. Adjacent intake, loop, and catalog tests passed 23/23; repository Jest passed 249 suites and 1,953 tests with three suites and 26 tests skipped; web typecheck passed; full lint completed with zero errors and the same 21 inherited warnings; YAML, frozen-boundary, and diff checks passed; the required build compiled signals and trading-agents and generated all 325 Next.js pages. Existing non-blocking build warnings are unchanged.
+  current_cycle_receipt_unchanged: 2026-08-29T09:00:00.000Z/PT3H
+  tc259_preregistration_frozen: false
+  tc259_returns_opened: false
+  tc259_catalog_stage_advanced: false
+  tc259_cycle_receipt_created: false
+  external_actions: none
+  safety: No study was rerun, no return was calculated, and no UI, source data, strategy, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
 bitcoin_seasonality_replication_2026_08_29:
   at: 2026-08-29T17:36:14+08:00
