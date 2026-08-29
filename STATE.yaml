@@ -1,11 +1,52 @@
 project: tradeclaw
-updated: 2026-08-29T22:08:09+08:00
+updated: 2026-08-29T22:23:21+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+readme_research_intake_discoverability_2026_08_29:
+  at: 2026-08-29T22:14:41+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_commit
+  scope: Make the completed public systematic-research intake obvious and immediately usable from the repository's primary onboarding document without changing any product UI or protected admin surface
+  base_commit: 34dabc1e16bd07a398b7d62ef8fc68d787d810ff
+  branch: agent/research-intake-desk-20260829
+  finding: The public product and OpenAPI expose all 61 pinned candidates, but README research status still describes only the older study ledger and its copy-paste API examples omit GET /api/research/intake
+  library_search: No reusable research-catalog, explorer, README, or API-documentation pattern exists in shared MemoryCore; keep this increment repository-specific and reuse the verified public read-model claims
+  visual_checkpoint: The richer public catalog explorer is intentionally deferred because the selected web-design-engineer skill requires user confirmation before visual code; no public or admin UI will change in this bounded increment
+  acceptance_gates:
+    - README research status links the public research verdict board, describes the pinned 61-candidate source intake separately from the retained study ledger, and gives the exact 56 untouched, 1 source-audit no-go, 1 QA-only inconclusive, and 3 cost-or-stability-failed replication counts
+    - README says upstream figures are gross discovery metadata rather than TradeClaw performance and says the source-audit no-go is not a local performance failure
+    - README gives a copy-paste no-key GET /api/research/intake example and directs readers to the research, open-data, and API-docs surfaces
+    - README preserves the no-live-performance, no-publication-authority, and no-trading-authority boundaries and does not introduce paid-tier, signal-feed, or automatic-posting claims
+    - The contract is covered by a focused claim test that fails before the README edit and passes afterward
+    - STATE parses, changed-path and protected-surface audits pass, Docker Compose is unchanged, and the required npm run build succeeds before any local commit
+  current_cycle_receipt_unchanged: 2026-08-29T12:00:00.000Z/PT3H
+  candidate_id: null
+  new_research_receipt_created: false
+  admin_visual_v0_changed: false
+  public_ui_changed: false
+  red_evidence: The focused README contract failed 2/2 before implementation at the two intended omissions; research status lacked the pinned 61-candidate framing and API lacked the copy-paste GET /api/research/intake example, while the existing no-key boundary was already present
+  implementation: README now introduces the pinned catalog as a source-ordered discovery queue, gives the exact workflow and evidence counts, separates upstream gross metadata from TradeClaw performance, denies publication and trading authority, exposes a copy-paste no-key endpoint, and links all three canonical exploration surfaces
+  focused_verification: PASS - the new README discoverability contract passes 2/2 after the intentional 2/2 RED run
+  adjacent_verification: PASS - six README, public projection, route, truth-labeling, publication-boundary, and external-claim suites pass 24/24; the independent pinned-source verifier reconstructs all 61 candidates at exact commit d9c98521 and README hash 67f4c496 with gross-of-trading-costs discovery-only treatment
+  verification_repair: The initial YAML command used unavailable PowerShell ConvertFrom-Yaml and printed a misleading trailing marker after the non-terminating command error; that marker is discarded. A follow-up parser-search command also had a PowerShell quote error and produced no evidence. The repository-installed yaml parser was then located and accepted STATE at exit zero.
+  state_and_scope_audit: PASS - the repository-installed yaml parser accepts STATE; only README, STATE, and the new focused test are changed; Docker Compose, manifests, lockfiles, admin, auth, migrations, execution, signals, and strategies have zero diff
+  repository_test_verification: PASS - all 256 runnable Jest suites and 1,998 tests pass with 3 suites and 26 tests skipped; forceExit was used for the repository's inherited open handle after the complete green summary
+  lint_verification: PASS - full web lint completed with zero errors and the same 21 inherited warnings; no warning points to this increment
+  typecheck_repair: The first web typecheck rejected four dot-all regex flags in the new test because the configured target predates ES2018; product code and README were not implicated. Target-neutral multiline patterns replaced them, after which web typecheck and the six-suite 24/24 adjacent set passed.
+  changed_file_lint_repair: A direct ESLint command from the monorepo root could not find the web workspace config and produced no code finding; rerunning from apps/web passed with zero findings.
+  build_verification: PASS - the required root production build compiled signals, trading-agents, and Next.js and generated all 326 pages; /api/research/intake remains a static one-hour-revalidated route and only the inherited NFT tracing, middleware deprecation, edge-static-generation, and Node url.parse warnings remain
+  boundary_time_audit: The build closed at 2026-08-29T14:22:48Z, before the exact 15:00:00Z next-receipt boundary; the current 12:00Z/PT3H receipt remains unchanged and no receipt may be opened by this same-window product increment
+  precommit_verification: PASS - the final four README/publication/receipt/state suites pass 14/14; pinned source reconstruction remains 61/61; STATE parses; diff whitespace passes; only README, STATE, and the new focused test are changed; protected admin, auth, Docker, manifests, lockfiles, migrations, execution, signals, and strategies remain unchanged
+  verification: PASS - intentional RED 2/2; focused 2/2; adjacent 24/24; final focused/state 14/14; pinned source 61/61; repository Jest 256 suites and 1,998 tests; web typecheck; lint zero errors with 21 inherited warnings; YAML, diff, path, and protected-surface audits; required 326-page production build
+  current_step: Verified README, focused contract, and in-progress state are ready for a local implementation commit
+  next_action: Commit the three expected paths locally, save the exact implementation hash to shared MemoryCore, then close STATE in a second local commit
+  external_actions: none
+  safety: No source data, result, artifact, candidate state, receipt, outbound draft, UI, database, Docker, dependency, auth, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
 trading_term_premium_preregistration_2026_08_29:
   at: 2026-08-29T20:47:51+08:00

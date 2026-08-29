@@ -88,7 +88,11 @@ That finding on the live homepage — one dot per OHLCV-resolved sized signal, a
 
 ## Research status
 
-The [research page](https://tradeclaw.win/research) is the verdict board. Headline tests of single-asset hourly timing, HMM regime routing, daily momentum, funding carry, and cross-sectional momentum failed their registered gates or were too thin to deploy.
+The [research page](https://tradeclaw.win/research) is the verdict board. TradeClaw also publishes a pinned 61-candidate intake from [paperswithbacktest/awesome-systematic-trading](https://github.com/paperswithbacktest/awesome-systematic-trading) in original source order. It is a discovery queue, not a leaderboard: upstream figures are gross discovery metadata, not TradeClaw performance.
+
+The catalog currently separates 56 untouched discoveries, 1 source-audit no-go (not a local performance failure), 1 QA-only INCONCLUSIVE replication, and 3 cost- or stability-failed replications. This catalog grants neither publication nor trading authority.
+
+Separately, the retained TradeClaw study ledger records headline tests of single-asset hourly timing, HMM regime routing, daily momentum, funding carry, and cross-sectional momentum that failed their registered gates or were too thin to deploy.
 
 Two narrow later results exist and stay labeled:
 
@@ -201,6 +205,9 @@ Gate-approved signal → apps/web/lib/execution/executor.ts
 No key required on the public research routes. Cache on your side; responses already carry short `s-maxage` headers.
 
 ```bash
+# All 61 pinned discovery candidates, with completed TradeClaw evidence overlays
+curl https://tradeclaw.win/api/research/intake
+
 # Cost-adjusted sequential summary (the table above)
 curl 'https://tradeclaw.win/api/signals/equity?summaryOnly=1&scope=pro'
 
@@ -211,7 +218,7 @@ curl https://tradeclaw.win/api/research/cost-field
 curl 'https://tradeclaw.win/api/signals/history?limit=50'
 ```
 
-More endpoints: [open data](https://tradeclaw.win/open-data) and [API docs](https://tradeclaw.win/api-docs).
+Explore the [research verdict board](https://tradeclaw.win/research), download from [open data](https://tradeclaw.win/open-data), or inspect the [API docs](https://tradeclaw.win/api-docs).
 
 ## Notifications
 
