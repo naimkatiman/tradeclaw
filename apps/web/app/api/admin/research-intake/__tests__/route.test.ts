@@ -117,6 +117,34 @@ describe('GET /api/admin/research-intake', () => {
         durationHours: 3,
       },
       nextRolloverAt: '2026-08-29T12:00:00.000Z',
+      currentWindowStatus: 'complete',
+      latestReceipt: expect.objectContaining({
+        cycleId: '2026-08-29T09:00:00.000Z/PT3H',
+        taskId: 'TC-258',
+        candidateId: 'seasonality-trend-following-and-mean-reversion-in-bitcoin',
+        verdict: 'fail',
+        externalActions: 'none',
+        publicationApproved: false,
+        tradingApproved: false,
+      }),
+      currentWindowReceipts: [
+        expect.objectContaining({ taskId: 'TC-258' }),
+      ],
+      integrity: {
+        status: 'historical-conflict',
+        receiptCount: 3,
+        uniqueWindowCount: 2,
+        duplicateWindowIds: ['2026-08-29T06:00:00.000Z/PT3H'],
+        expectedLegacyDuplicateWindowIds: ['2026-08-29T06:00:00.000Z/PT3H'],
+        additionalDuplicateWindowIds: [],
+      },
+      nextAction:
+        'Screen the next lower-transition catalog candidate for primary-rule reconstructibility, immutable data, and full-cost headroom; do not select TC-258 controls post result',
+      controls: {
+        automaticCandidateSelection: false,
+        automaticPublication: false,
+        automaticTrading: false,
+      },
     });
     expect(body.access).toEqual({
       mode: 'admin-read-only',

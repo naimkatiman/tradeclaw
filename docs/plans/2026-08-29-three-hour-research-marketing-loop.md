@@ -61,6 +61,23 @@ and trading authority. Each returned candidate also carries either its
 server-authored human-review draft or explicit `null`; clients must not recreate
 research claims from raw metrics.
 
+The same payload carries an observation-time-consistent receipt projection:
+the latest recorded receipt, every receipt already visible in the current
+window, `complete` / `awaiting-receipt` / `conflict` status, one server-owned
+next action, and explicit false automatic-candidate, publication, and trading
+controls. Future-dated receipts are never exposed by an earlier observation.
+Receipt data is filter-independent so pagination cannot hide the operator's
+workflow state.
+
+The retained history contains one known contract violation: TC-256 and TC-257
+both use `2026-08-29T06:00:00.000Z/PT3H`. Neither receipt may be deleted,
+renamed, or silently selected as canonical after the fact. The ledger labels
+that window `conflict`, allowlists only this historical collision, and treats
+any additional duplicate window or third receipt in that window as invalid.
+Every future window still permits at most one receipt. Once an empty window
+opens, its next action changes from the prior receipt's boundary wait to a safe
+instruction to screen one candidate without automatic selection or authority.
+
 ## Cycle contract
 
 Three-hour windows are aligned to UTC (`00:00`, `03:00`, `06:00`, and so on),
@@ -177,11 +194,20 @@ and neither holdout cleared the `0.10%` fee alone. The artifact and all 15
 source-defined controls remain shelved; selecting a better-looking MAX-only
 lookback after the result is prohibited.
 
+TC-259 then tested the lower-transition U.S. term-spread MA40 lane on a hashed
+current-vintage Federal Reserve curve snapshot. All standing QA and full-window
+gates passed, but only 1/4 paper folds beat both frozen benchmarks and the
+42-month holdout returned `+10.35%` after modeled costs versus `+15.62%` for the
+identically costed one-month sleeve. Its `+3,917.50%` full-window headline and
+the stronger prior-only ambiguity control cannot override those failures. The
+canonical result remains FAIL and is not observed security performance.
+
 For the next catalog cycle, prefer a rule with fewer than daily position
 transitions, an immutable or append-stable source subset, a primary rule that
 does not require vendor code, and published gross headroom materially above the
 full frozen friction model. A positive full-history curve is not a selection
-advantage after TC-258; untouched-holdout cost headroom is.
+advantage after TC-258 or TC-259; chronological fold stability and an untouched
+same-window benchmark are mandatory screens.
 
 ## Marketing handoff
 
