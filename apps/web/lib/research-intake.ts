@@ -371,6 +371,76 @@ export interface TradeClawRiskBasedAllocationSourceAuditEvidence {
   reason: string;
 }
 
+export interface TradeClawCryptoFactorSourceAuditEvidence {
+  taskId: 'TC-261';
+  auditDate: '2026-08-29';
+  researchPath: string;
+  researchSha256: string;
+  disposition: 'no-go';
+  tradeClawBacktestRun: false;
+  primarySource: {
+    title: string;
+    authors: readonly ['Stefan Hubrich'];
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3055498';
+    doi: 'https://doi.org/10.2139/ssrn.3055498';
+    documentUrl: string;
+    documentSha256: null;
+    documentBytes: null;
+    documentPages: 54;
+    directSourceBytesAvailable: false;
+    redistributionRightsEstablished: false;
+  };
+  publishedRule: {
+    cadence: 'weekly';
+    holdingDays: 7;
+    rebalanceSchedules: 7;
+    grossExposurePct: 10;
+    cashPct: 90;
+    minimumCoins: 4;
+    originalUniverse: readonly [
+      'BTC',
+      'DASH',
+      'DCR',
+      'DOGE',
+      'ETC',
+      'ETH',
+      'LTC',
+      'PIVX',
+      'XEM',
+      'XMR',
+      'ZEC',
+    ];
+    factors: readonly ['momentum', 'value', 'carry'];
+    factorPortfolioShortsAllowed: true;
+    paperSample: 'approximately-four-years-through-2017-09';
+  };
+  publishedCostTreatment: {
+    marketImpactIncluded: false;
+    spreadAndFeePctOfNotional: readonly [0.2, 0.5];
+    momentumAnnualTradingVolumePct: readonly [80, 90];
+    combinedAnnualTradingVolumePct: readonly [28, 32];
+    combinedWorstCaseEstimatedCostBps: 15;
+  };
+  currentDataReceipt: {
+    archiveRepositoryUrl: 'https://github.com/coinmetrics/data';
+    archiveCommit: string;
+    archiveLicense: 'CC-BY-NC-4.0';
+    archiveStabilityGuaranteed: false;
+    communityCatalogUrl: string;
+    communityCatalogResponseBytes: 96382;
+    communityCatalogResponseSha256: string;
+    originalUniverseAssets: 11;
+    priceUsdAssetsAvailable: 10;
+    pivxPriceUsdAvailable: false;
+    pivxArchiveSha256: string;
+    pivxArchiveFirstDate: '2018-01-24';
+    pivxArchiveFirstReferenceRateDate: '2026-05-18';
+    rawBytesCommitted: false;
+  };
+  blockers: readonly string[];
+  reason: string;
+}
+
 export interface TradeClawTreasurySourceAuditEvidence {
   taskId: 'TC-257';
   auditDate: '2026-08-29';
@@ -490,6 +560,7 @@ export interface TradeClawTermPremiumSourceAuditEvidence {
 export type TradeClawResearchSourceAuditEvidence =
   | TradeClawSourceAuditEvidence
   | TradeClawRiskBasedAllocationSourceAuditEvidence
+  | TradeClawCryptoFactorSourceAuditEvidence
   | TradeClawTreasurySourceAuditEvidence
   | TradeClawBitcoinMaxMinSourceAuditEvidence
   | TradeClawTermPremiumSourceAuditEvidence;
@@ -569,6 +640,8 @@ const BITCOIN_SEASONALITY_MAX_MIN_ID =
 const TRADING_TERM_PREMIUM_ID = 'trading-the-term-premium';
 const RISK_BASED_TACTICAL_ALLOCATION_ID =
   'a-risk-based-approach-to-tactical-asset-allocation';
+const CRYPTO_FACTOR_INVESTING_ID =
+  'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space';
 
 const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   taskId: 'TC-256',
@@ -669,6 +742,92 @@ const TC260_RISK_BASED_ALLOCATION_SOURCE_AUDIT: TradeClawRiskBasedAllocationSour
   ],
   reason:
     'An exact independent replay would require invented risk-model parameters, unavailable proprietary and synthetic inputs, repaired fill timing, and a new cost model; a public-proxy study would therefore be a materially new hypothesis.',
+};
+
+const TC261_CRYPTO_FACTOR_SOURCE_AUDIT: TradeClawCryptoFactorSourceAuditEvidence = {
+  taskId: 'TC-261',
+  auditDate: '2026-08-29',
+  researchPath: 'docs/research/2026-08-29-crypto-factor-investing-source-audit.md',
+  researchSha256: 'ea924e6f15e34ec3e2240a247eef7dbe28fb12696690724ff61bb57a8b7038cd',
+  disposition: 'no-go',
+  tradeClawBacktestRun: false,
+  primarySource: {
+    title:
+      "Know When to Hodl 'Em, Know When to Fodl 'Em': An Investigation of Factor Based Investing in the Cryptocurrency Space",
+    authors: ['Stefan Hubrich'],
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3055498',
+    doi: 'https://doi.org/10.2139/ssrn.3055498',
+    documentUrl:
+      'https://assets.super.so/e46b77e7-ee08-445e-b43f-4ffd88ae0a0e/files/a2ce438a-42de-40d6-9eb7-272b28ce1cec.pdf',
+    documentSha256: null,
+    documentBytes: null,
+    documentPages: 54,
+    directSourceBytesAvailable: false,
+    redistributionRightsEstablished: false,
+  },
+  publishedRule: {
+    cadence: 'weekly',
+    holdingDays: 7,
+    rebalanceSchedules: 7,
+    grossExposurePct: 10,
+    cashPct: 90,
+    minimumCoins: 4,
+    originalUniverse: [
+      'BTC',
+      'DASH',
+      'DCR',
+      'DOGE',
+      'ETC',
+      'ETH',
+      'LTC',
+      'PIVX',
+      'XEM',
+      'XMR',
+      'ZEC',
+    ],
+    factors: ['momentum', 'value', 'carry'],
+    factorPortfolioShortsAllowed: true,
+    paperSample: 'approximately-four-years-through-2017-09',
+  },
+  publishedCostTreatment: {
+    marketImpactIncluded: false,
+    spreadAndFeePctOfNotional: [0.2, 0.5],
+    momentumAnnualTradingVolumePct: [80, 90],
+    combinedAnnualTradingVolumePct: [28, 32],
+    combinedWorstCaseEstimatedCostBps: 15,
+  },
+  currentDataReceipt: {
+    archiveRepositoryUrl: 'https://github.com/coinmetrics/data',
+    archiveCommit: 'f1a36afb962731c387bb03982758ab0103063da5',
+    archiveLicense: 'CC-BY-NC-4.0',
+    archiveStabilityGuaranteed: false,
+    communityCatalogUrl:
+      'https://community-api.coinmetrics.io/v4/catalog/assets?assets=btc,dash,dcr,doge,etc,eth,ltc,pivx,xem,xmr,zec&pretty=true',
+    communityCatalogResponseBytes: 96382,
+    communityCatalogResponseSha256:
+      '1eb632d06eceaa2a4112fd81f771c4963543f5afeb7d64e8af489c4fb9463d63',
+    originalUniverseAssets: 11,
+    priceUsdAssetsAvailable: 10,
+    pivxPriceUsdAvailable: false,
+    pivxArchiveSha256:
+      '104d69d15fc28b1e594cb8be64b39fc36433bea98d98e64aca5870ff4db94b39',
+    pivxArchiveFirstDate: '2018-01-24',
+    pivxArchiveFirstReferenceRateDate: '2026-05-18',
+    rawBytesCommitted: false,
+  },
+  blockers: [
+    'The point-in-time September 2017 Coin Metrics and CryptoCompare source bytes, extraction code, and revision rules are not supplied.',
+    'The current official Coin Metrics catalog has PriceUSD coverage for only 10 of the paper\'s 11 assets.',
+    'The pinned PIVX archive cannot reconstruct PIVX prices across the paper sample or a later holdout.',
+    'Current DCR, DOGE, and other metric start dates differ from the paper, proving that the current community catalog is not the source vintage.',
+    'Dropping PIVX or substituting another provider changes factor ranks, standardization, weights, universe entry, and all seven schedules.',
+    'The strongest factor portfolios require short positions that the paper says could not be implemented at scale.',
+    'Modern perpetual futures require new venue eligibility, funding, borrow, margin, liquidation, spread, and fill histories.',
+    'The paper supplies no chronological folds, untouched holdout, or identically timed and costed preregistration.',
+    'The cost treatment assumes away market impact and does not freeze an executable multi-venue friction ledger.',
+  ],
+  reason:
+    'An exact replay cannot recover the source data vintage or full universe, and an implementable reduced-universe or derivatives study would materially change the hypothesis and trading mechanics.',
 };
 
 const TC257_TREASURY_SOURCE_AUDIT: TradeClawTreasurySourceAuditEvidence = {
@@ -1241,7 +1400,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
               ? TC259_TERM_PREMIUM_SOURCE_AUDIT
               : candidate.id === RISK_BASED_TACTICAL_ALLOCATION_ID
                 ? TC260_RISK_BASED_ALLOCATION_SOURCE_AUDIT
-                : null;
+                : candidate.id === CRYPTO_FACTOR_INVESTING_ID
+                  ? TC261_CRYPTO_FACTOR_SOURCE_AUDIT
+                  : null;
     if (tradeClawEvidence) {
       if (tradeClawEvidence.taskId === 'TC-257') {
         return {

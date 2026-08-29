@@ -6,6 +6,8 @@ import {
 const TC255 = 'how-to-design-a-simple-multi-timeframe-trend-strategy-on-bitcoin';
 const TC259 = 'trading-the-term-premium';
 const TC260 = 'a-risk-based-approach-to-tactical-asset-allocation';
+const TC261 =
+  'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space';
 const UNTOUCHED = 'a-study-of-differences-in-returns-between-large-and-small-companies-in-europe';
 
 describe('protected research intake candidate projection', () => {
@@ -30,10 +32,10 @@ describe('protected research intake candidate projection', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 55,
-        sourceAudited: 2,
+        discovered: 54,
+        sourceAudited: 3,
         replicated: 4,
-        sourceNoGo: 2,
+        sourceNoGo: 3,
       },
       record: {
         id: TC260,
@@ -88,6 +90,72 @@ describe('protected research intake candidate projection', () => {
     ]) {
       expect(payload).not.toHaveProperty(omitted);
     }
+  });
+
+  it('keeps TC-261 source evidence visible while revealing its receipt only at 18:00:40Z', () => {
+    const before = buildResearchIntakeAdminCandidatePayload(
+      TC261,
+      '2026-08-29T18:00:39.999Z',
+    );
+    const at = buildResearchIntakeAdminCandidatePayload(
+      TC261,
+      '2026-08-29T18:00:40.000Z',
+    );
+    if (!before || !at) throw new Error('TC-261 admin candidate fixture is missing');
+
+    expect(before.record).toMatchObject({
+      id: TC261,
+      sourcePosition: 32,
+      stage: 'source-audited',
+      verdict: 'not-tested',
+      costStatus: 'unassessed',
+      marketingDisposition: 'none',
+      marketingReviewDraft: null,
+      tradeClawSourceAudit: {
+        taskId: 'TC-261',
+        disposition: 'no-go',
+        tradeClawBacktestRun: false,
+        currentDataReceipt: { pivxPriceUsdAvailable: false },
+      },
+      tradeClawEvidence: null,
+    });
+    expect(before.researchLoop).toMatchObject({
+      currentWindowStatus: 'awaiting-receipt',
+      latestReceipt: { taskId: 'TC-260' },
+      currentWindowReceipts: [],
+    });
+    expect(before.candidateWorkflow).toMatchObject({
+      receiptCount: 0,
+      receipts: [],
+      latestReceipt: null,
+      marketingHandoff: null,
+      controls: {
+        humanReviewRequired: false,
+        publicationApproved: false,
+        tradingApproved: false,
+        externalActions: 'none',
+      },
+    });
+
+    expect(at.researchLoop).toMatchObject({
+      currentWindowStatus: 'complete',
+      latestReceipt: { taskId: 'TC-261' },
+      currentWindowReceipts: [{ taskId: 'TC-261' }],
+    });
+    expect(at.candidateWorkflow).toMatchObject({
+      receiptCount: 1,
+      receipts: [{
+        taskId: 'TC-261',
+        cycleId: '2026-08-29T18:00:00.000Z/PT3H',
+        recordedAt: '2026-08-29T18:00:40.000Z',
+        marketingDraft: 'none',
+        publicationApproved: false,
+        tradingApproved: false,
+        externalActions: 'none',
+      }],
+      latestReceipt: { taskId: 'TC-261' },
+      marketingHandoff: null,
+    });
   });
 
   it('gates TC-259 receipt, handoff, and draft on their canonical availability time', () => {

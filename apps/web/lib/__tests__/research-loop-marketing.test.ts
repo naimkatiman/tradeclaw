@@ -23,7 +23,10 @@ describe('research-loop marketing review handoff', () => {
       'TC-259',
     ]);
     expect(RESEARCH_LOOP_MARKETING_HANDOFFS.some(
-      (handoff) => handoff.taskId === ('TC-256' as string) || handoff.taskId === ('TC-260' as string),
+      (handoff) =>
+        handoff.taskId === ('TC-256' as string) ||
+        handoff.taskId === ('TC-260' as string) ||
+        handoff.taskId === ('TC-261' as string),
     )).toBe(false);
     expect(
       RESEARCH_LOOP_MARKETING_HANDOFFS.map((handoff) => handoff.candidateId).sort(),

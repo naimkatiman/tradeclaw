@@ -27,18 +27,19 @@ interface StateCycle {
 }
 
 describe('research-loop receipt ledger', () => {
-  it('retains the exact five receipts and exposes only the known historical collision', () => {
+  it('retains the exact six receipts and exposes only the known historical collision', () => {
     expect(RESEARCH_LOOP_RECEIPTS.map((receipt) => receipt.taskId)).toEqual([
       'TC-256',
       'TC-257',
       'TC-258',
       'TC-259',
       'TC-260',
+      'TC-261',
     ]);
     expect(RESEARCH_LOOP_RECEIPT_LEDGER_AUDIT).toEqual({
       status: 'historical-conflict',
-      receiptCount: 5,
-      uniqueWindowCount: 4,
+      receiptCount: 6,
+      uniqueWindowCount: 5,
       duplicateWindowIds: ['2026-08-29T06:00:00.000Z/PT3H'],
       expectedLegacyDuplicateWindowIds: ['2026-08-29T06:00:00.000Z/PT3H'],
       additionalDuplicateWindowIds: [],
@@ -146,6 +147,18 @@ describe('research-loop receipt ledger', () => {
       latestReceipt: { taskId: 'TC-260' },
       currentWindowReceipts: [{ taskId: 'TC-260' }],
     });
+
+    expect(getResearchLoopReceiptSnapshot('2026-08-29T18:00:39.999Z')).toMatchObject({
+      currentWindowStatus: 'awaiting-receipt',
+      latestReceipt: { taskId: 'TC-260' },
+      currentWindowReceipts: [],
+    });
+
+    expect(getResearchLoopReceiptSnapshot('2026-08-29T18:00:40.000Z')).toMatchObject({
+      currentWindowStatus: 'complete',
+      latestReceipt: { taskId: 'TC-261' },
+      currentWindowReceipts: [{ taskId: 'TC-261' }],
+    });
   });
 
   it('binds the runtime ledger to the canonical STATE cycle receipts', () => {
@@ -153,7 +166,14 @@ describe('research-loop receipt ledger', () => {
       research_intake_desk_2026_08_29: Record<string, StateCycle>;
     };
     const desk = state.research_intake_desk_2026_08_29;
-    const cycles = [desk.cycle, desk.cycle_2, desk.cycle_3, desk.cycle_4, desk.cycle_5];
+    const cycles = [
+      desk.cycle,
+      desk.cycle_2,
+      desk.cycle_3,
+      desk.cycle_4,
+      desk.cycle_5,
+      desk.cycle_6,
+    ];
 
     expect(
       RESEARCH_LOOP_RECEIPTS.map((receipt) => ({

@@ -2,7 +2,7 @@
 
 Date: 2026-08-29
 
-Task: TC-256
+Task: TC-256 through TC-261
 
 Status: active operating contract; local-only until separately authorized
 
@@ -74,7 +74,7 @@ filters and pagination. It lists every server-authored draft whose evidence was
 available at the observation instant, plus the latest handoff and any handoff in
 the current UTC window. Each entry says whether it came from a cycle receipt or
 the explicit pre-loop TC-255 closure; TC-255 keeps a null cycle ID, so the API
-does not invent historical receipt coverage. TC-256 and TC-260 remain absent
+does not invent historical receipt coverage. TC-256, TC-260, and TC-261 remain absent
 because their source-audit no-go receipts deliberately produced no drafts. Summary counts separate
 pre-loop and receipt-backed evidence and keep publication-approved drafts at
 zero. `review-ready` means only that factual copy exists for a human to inspect;
@@ -234,12 +234,28 @@ has no preregistration, return, result artifact, or marketing draft, and is not 
 TradeClaw performance failure. Its receipt is
 `docs/research/2026-08-29-risk-based-tactical-allocation-source-audit.md`.
 
-For the next catalog cycle, prefer a rule with fewer than daily position
+TC-261 then selected Hubrich's 2017 weekly cryptocurrency factor study because
+the primary paper specifies the factor family, 11-coin universe, seven weekly
+schedules, turnover, and approximate costs, and leaves a long possible
+post-publication period. The exact replay stopped at source audit. The original
+Coin Metrics vintage is not supplied; the pinned current Community archive has
+`PriceUSD` for only 10 of 11 assets, and its PIVX file cannot reconstruct either
+the paper sample or a later holdout. The strongest reported factor portfolios
+also require shorts that the paper says were not scalable. Dropping PIVX, using
+modern perpetual futures, or retaining only a clipped long-only construction
+would be a new hypothesis. TC-261 therefore remains `not-tested`, with no
+preregistration, return, result artifact, or marketing draft. Its receipt is
+`docs/research/2026-08-29-crypto-factor-investing-source-audit.md`.
+
+At or after the exact `2026-08-29T21:00:00.000Z` boundary, the next catalog
+cycle may freeze at most one new receipt. Prefer a rule with fewer than daily position
 transitions, an immutable or append-stable source subset, a primary rule that
 does not require vendor code, and published gross headroom materially above the
 full frozen friction model. A positive full-history curve is not a selection
 advantage after TC-258 or TC-259; chronological fold stability and an untouched
-same-window benchmark are mandatory screens.
+same-window benchmark are mandatory screens. No candidate is selected, no
+marketing copy is drafted, and no external action is authorized before that
+boundary.
 
 ## Marketing handoff
 

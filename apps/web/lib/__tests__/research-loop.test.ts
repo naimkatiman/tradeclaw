@@ -137,11 +137,15 @@ describe('three-hour research and marketing loop', () => {
     expect(buildMarketingReviewDraft(untested)).toBeNull();
   });
 
-  it('does not turn either source-audit no-go into a TradeClaw result or marketing claim', () => {
+  it('does not turn any source-audit no-go into a TradeClaw result or marketing claim', () => {
     const sourceNoGos = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (candidate) => candidate.tradeClawSourceAudit?.disposition === 'no-go',
     );
-    expect(sourceNoGos).toHaveLength(2);
+    expect(sourceNoGos.map((record) => record.tradeClawSourceAudit?.taskId)).toEqual([
+      'TC-261',
+      'TC-256',
+      'TC-260',
+    ]);
     for (const sourceNoGo of sourceNoGos) {
       expect(sourceNoGo).toMatchObject({
         stage: 'source-audited',

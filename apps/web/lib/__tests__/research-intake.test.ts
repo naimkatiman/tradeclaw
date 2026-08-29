@@ -28,6 +28,10 @@ const riskBasedAllocationAuditPath = resolve(
   root,
   'docs/research/2026-08-29-risk-based-tactical-allocation-source-audit.md',
 );
+const cryptoFactorAuditPath = resolve(
+  root,
+  'docs/research/2026-08-29-crypto-factor-investing-source-audit.md',
+);
 const treasuryAuditPath = resolve(
   root,
   'docs/research/2026-08-29-predictable-end-of-month-treasury-source-audit.md',
@@ -364,7 +368,7 @@ describe('systematic research intake', () => {
     const sourceAudited = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => record.tradeClawSourceAudit,
     );
-    expect(sourceAudited).toHaveLength(5);
+    expect(sourceAudited).toHaveLength(6);
     const noGo = sourceAudited.find(
       (record) => record.id === 'price-overreactions-in-the-cryptocurrency-market',
     );
@@ -385,7 +389,7 @@ describe('systematic research intake', () => {
     const untouched = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => !record.tradeClawEvidence && !record.tradeClawSourceAudit,
     );
-    expect(untouched).toHaveLength(55);
+    expect(untouched).toHaveLength(54);
     expect(untouched.every((record) => record.stage === 'discovered')).toBe(true);
     expect(untouched.every((record) => record.verdict === 'not-tested')).toBe(true);
     expect(untouched.every((record) => record.costStatus === 'unassessed')).toBe(true);
@@ -470,6 +474,67 @@ describe('systematic research intake', () => {
     });
     expect(audit.blockers.length).toBeGreaterThanOrEqual(6);
     expect(record).toMatchObject({
+      stage: 'source-audited',
+      verdict: 'not-tested',
+      costStatus: 'unassessed',
+      marketingDisposition: 'none',
+      tradeClawEvidence: null,
+    });
+  });
+
+  it('binds the TC-261 crypto-factor no-go to the original universe and current-data receipt', () => {
+    const record = SYSTEMATIC_RESEARCH_INTAKE.find(
+      (candidate) => candidate.id ===
+        'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space',
+    );
+    const audit = record?.tradeClawSourceAudit;
+    if (!audit || audit.taskId !== 'TC-261') {
+      throw new Error('TC-261 cryptocurrency factor source audit is missing');
+    }
+
+    const canonicalAuditBytes = Buffer.from(
+      readFileSync(cryptoFactorAuditPath, 'utf8').replace(/\r\n/g, '\n'),
+      'utf8',
+    );
+    expect(createHash('sha256').update(canonicalAuditBytes).digest('hex')).toBe(
+      audit.researchSha256,
+    );
+    expect(audit).toMatchObject({
+      disposition: 'no-go',
+      tradeClawBacktestRun: false,
+      primarySource: {
+        ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3055498',
+        documentSha256: null,
+        documentPages: 54,
+        directSourceBytesAvailable: false,
+        redistributionRightsEstablished: false,
+      },
+      publishedRule: {
+        cadence: 'weekly',
+        holdingDays: 7,
+        rebalanceSchedules: 7,
+        grossExposurePct: 10,
+        cashPct: 90,
+        minimumCoins: 4,
+        factorPortfolioShortsAllowed: true,
+      },
+      currentDataReceipt: {
+        archiveCommit: 'f1a36afb962731c387bb03982758ab0103063da5',
+        communityCatalogResponseSha256:
+          '1eb632d06eceaa2a4112fd81f771c4963543f5afeb7d64e8af489c4fb9463d63',
+        originalUniverseAssets: 11,
+        priceUsdAssetsAvailable: 10,
+        pivxPriceUsdAvailable: false,
+        pivxArchiveFirstDate: '2018-01-24',
+        pivxArchiveFirstReferenceRateDate: '2026-05-18',
+      },
+    });
+    expect(audit.publishedRule.originalUniverse).toEqual([
+      'BTC', 'DASH', 'DCR', 'DOGE', 'ETC', 'ETH', 'LTC', 'PIVX', 'XEM', 'XMR', 'ZEC',
+    ]);
+    expect(audit.blockers.length).toBeGreaterThanOrEqual(7);
+    expect(record).toMatchObject({
+      sourcePosition: 32,
       stage: 'source-audited',
       verdict: 'not-tested',
       costStatus: 'unassessed',
@@ -802,8 +867,8 @@ describe('systematic research intake', () => {
   it('summarizes and filters by next-action evidence state rather than upstream return', () => {
     expect(summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE)).toMatchObject({
       total: 61,
-      discovered: 55,
-      sourceAudited: 2,
+      discovered: 54,
+      sourceAudited: 3,
       preregistered: 0,
       replicated: 4,
       prospective: 0,
@@ -811,7 +876,7 @@ describe('systematic research intake', () => {
       failed: 3,
       inconclusive: 1,
       untested: 57,
-      sourceNoGo: 2,
+      sourceNoGo: 3,
     });
     expect(
       filterResearchIntake(SYSTEMATIC_RESEARCH_INTAKE, {
@@ -845,6 +910,7 @@ describe('systematic research intake', () => {
         sourceAuditDisposition: 'no-go',
       }).map((record) => record.id),
     ).toEqual([
+      'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space',
       'price-overreactions-in-the-cryptocurrency-market',
       'a-risk-based-approach-to-tactical-asset-allocation',
     ]);

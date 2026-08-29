@@ -1,11 +1,135 @@
 project: tradeclaw
-updated: 2026-08-30T01:45:14+08:00
+updated: 2026-08-30T02:28:41+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+crypto_factor_source_audit_2026_08_29:
+  at: 2026-08-30T02:28:41+08:00
+  agent: TradeClaw PM agent
+  status: verified_source_audit_no_go_ready_for_local_commit
+  scope: Decide whether the source-defined cryptocurrency factor study can enter a cost-first preregistered TradeClaw replication without inventing data, trading mechanics, or a replacement hypothesis
+  base_commit: d86d7f565b14215ac15e861dee0877d0bb0e1114
+  branch: agent/research-intake-desk-20260829
+  current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-261
+  recorded_at: 2026-08-29T18:00:40.000Z
+  next_rollover_at: 2026-08-29T21:00:00.000Z
+  new_research_receipt_created: true
+  candidate_id: know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space
+  source_order: 33
+  stage_before: discovered
+  stage_after: source-audited
+  verdict: not-tested
+  outcome: verified-no-go
+  source_audit: docs/research/2026-08-29-crypto-factor-investing-source-audit.md
+  source_audit_bytes: 11618
+  source_audit_sha256: ea924e6f15e34ec3e2240a247eef7dbe28fb12696690724ff61bb57a8b7038cd
+  red_evidence: >-
+    PASS - the two focused suites fail only at the frozen absent seams: TC-261
+    is missing from the typed overlay and receipt ledger, the current catalog
+    still reports 55 untouched and two no-go records, and the 18:00:40Z
+    observation still exposes TC-260. Twelve existing assertions remain green.
+  focused_green_first_iteration: >-
+    The typed overlay, receipt, hash, no-return fields, and 17/18 assertions
+    passed. The sole remaining assertion retained the old two-item no-go filter
+    list; add TC-261 in pinned source order without changing product code.
+  focused_verification: >-
+    PASS - both typed intake and receipt-ledger suites pass 18/18. The canonical
+    audit hash, original universe, current Coin Metrics receipt, source-order 33,
+    54 untouched/3 source-audited counts, sole 18:00:40Z receipt, STATE binding,
+    and false return, marketing, publication, trading, and external authority are exact.
+  first_repository_gate_iteration: >-
+    The first repository Jest run proves product integration is active: 264
+    suites and 2,049 tests pass, while 11 suites and 16 assertions retain the
+    old six-record/55-untouched/two-no-go counts, task order, row count, and
+    deterministic desk baseline. Three suites and 26 tests remain skipped and
+    one snapshot passes. No behavioral failure or unrelated regression appeared.
+  adjacent_verification_first_iteration: >-
+    Fourteen of 15 updated intake, receipt, public/protected evidence, CSV,
+    README, marketing, and OpenAPI suites pass 78/79. The sole failure confirms
+    the new deterministic protected desk is exactly 56,229 bytes and reports
+    SHA-256 e75fa656; replace only the superseded six-record hash baseline.
+  adjacent_verification: >-
+    PASS - all 15 focused and immediately affected intake, receipt, marketing,
+    public/protected evidence, CSV, README, and OpenAPI suites pass 79/79. The
+    seven-item protected desk repeats at 56,229 UTF-8 bytes and SHA-256
+    e75fa656ef44aa22046cd6ad1f02855c9042ede8a18cac66391a7564a346f5d1.
+  typecheck_verification: PASS - signals package build and web TypeScript no-emit check complete without errors
+  changed_file_lint_verification: PASS - every changed TypeScript file passes the authoritative apps/web ESLint configuration with zero findings
+  lint_verification: PASS - full web lint completes with zero errors and the same 21 inherited warnings; no warning points to this increment
+  source_verification: PASS - independent reconstruction retains all 61 upstream candidates at commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with exact asset-class counts and gross discovery-only treatment
+  build_verification: >-
+    PASS - the required root production build compiles the signals and
+    trading-agents packages, compiles Next.js successfully, and generates all
+    329/329 static pages. Only the inherited middleware, trace, url.parse,
+    and edge-runtime warnings remain.
+  state_and_diff_verification: >-
+    PASS - STATE.yaml parses, git diff --check reports no whitespace errors,
+    the final manifest contains exactly 24 changed paths, and the canonical
+    source-audit remains 11,618 bytes at SHA-256
+    ea924e6f15e34ec3e2240a247eef7dbe28fb12696690724ff61bb57a8b7038cd.
+  loop_document_update: >-
+    The active three-hour operating contract now records TC-261's source-only
+    no-go, no-draft disposition, unavailable PIVX/source-vintage boundary, and
+    exact 21:00Z next-receipt gate. It grants no automatic candidate selection,
+    marketing, publication, or trading action.
+  payload_audit_first_iteration: >-
+    A PowerShell inline tsx diagnostic removed embedded JavaScript quotes and
+    failed before importing product code. A temporary apply-patch-created audit
+    script then ran successfully and was deleted immediately; it leaves no path
+    in the working tree.
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    public_json: 63327 bytes / 602845ec6bd4d98410fcaf7fe2d0f4388a4293bddbd48699fdcedf1a18a99b43
+    evidence_json: 29202 bytes / 43b0e2bc993d279249b0a2a9c7763446a9ea0f5dd6a897446386286b4a694d40
+    public_csv: 36822 bytes / 49a715737f00100d3ef4728de0e471ce05bc669876354e9e266542863d2ede49
+    evidence_csv: 5332 bytes / feab7b909b545cd1ee64690ef802c911db15cb2b8556840a06836a1f9dce2c50
+    admin_json_limit_100: 87214 bytes / 940f7568a216d7813b47881ed824e13ecb8232721402f3cfe21e5ffcaa0d6235
+    tc260_admin_candidate_json: 9230 bytes / b891b17a9176e5934f21cf0c7737072da371179933d9cc6ef72050f9c96f1eb7
+    admin_evidence_json: 56229 bytes / e75fa656ef44aa22046cd6ad1f02855c9042ede8a18cac66391a7564a346f5d1
+    receipt_ledger_json: 5026 bytes / 64114293c62706958b6e0f49711ffe9c784b480ee6070f9ffce4dd89b64ba58d
+    marketing_handoff_ledger_json: 6489 bytes / f696059e99a293123d0f5c50cc54d1f0266ca79d9ba834b8b04e77c33ff381b8
+  repository_test_first_final_iteration: >-
+    The complete force-exit run passes 274 suites and 2,066 tests. Its only
+    failure is a stale research-loop assertion that still says "either" and
+    expects two no-go records; update it to the exact pinned TC-261, TC-256,
+    TC-260 order. Three suites and 26 tests remain skipped and one snapshot passes.
+  repository_test_repair_verification: PASS - the corrected no-go marketing boundary and new TC-261 admin candidate observation-time detail pass 15/15 focused assertions
+  state_bound_verification: PASS - the final STATE-bound intake, receipt, and fail-closed marketing suites pass 22/22 after the complete verification record and 24-path manifest were frozen
+  precommit_changed_surface_verification: PASS - all 16 changed-surface suites pass 89/89, including deterministic protected-desk bytes and hash
+  repository_test_verification: >-
+    PASS - all 275 runnable Jest suites and 2,067 tests pass; three suites and 26
+    tests are skipped and one snapshot passes. Force-exit closes only the
+    repository's inherited open handle after the complete green summary.
+  source_selection: >-
+    Selected before any return calculation because the paper provides a primary
+    weekly factor specification, an explicit historical coin universe, reported
+    turnover and cost assumptions, and a long possible post-publication period.
+    Upstream gross Sharpe and t-statistic metadata were not used as promotion
+    evidence.
+  frozen_no_go_basis: >-
+    The exact 2017 Coin Metrics input vintage is not supplied; the current
+    official community archive cannot reconstruct the paper's full PIVX history
+    and differs on other first-observation dates. The strongest factor portfolios
+    require short positions that the source says could not be implemented at
+    scale, while a reduced-universe, long-only, or perpetual-futures replay would
+    be a materially new hypothesis with new venue, funding, borrow, and eligibility
+    assumptions.
+  return_calculated: false
+  preregistration_frozen: false
+  artifact_created: false
+  marketing_draft: none
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  current_step: Create the verified local implementation commit, then bind its exact hash in a STATE-only closure and shared MemoryCore
+  next_action: Archive the exact-source no-go; any reduced-universe or implementable long-only cryptocurrency factor study must start as a separately hashed hypothesis in a later UTC window
+  safety: No returns, source data, preregistration, result artifact, marketing draft, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
 
 admin_research_evidence_desk_2026_08_29:
   at: 2026-08-30T01:45:14+08:00
@@ -1858,6 +1982,69 @@ research_intake_desk_2026_08_29:
     trading_approved: false
     external_actions: none
     next_action: Archive the exact-specification no-go and screen another candidate whose complete rule, public source bytes, causal fills, full costs, folds, and holdout can be frozen before returns
+  cycle_6:
+    id: 2026-08-29T18:00:00.000Z/PT3H
+    recorded_at: 2026-08-29T18:00:40.000Z
+    task_id: TC-261
+    started_at: 2026-08-29T18:00:00.000Z
+    ends_at: 2026-08-29T21:00:00.000Z
+    candidate_id: know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space
+    stage_before: discovered
+    stage_after: source-audited
+    verdict: not-tested
+    outcome: verified-no-go
+    source_audit_sha256: ea924e6f15e34ec3e2240a247eef7dbe28fb12696690724ff61bb57a8b7038cd
+    changed_files:
+      - README.md
+      - STATE.yaml
+      - apps/web/app/__tests__/readme-research-intake-discoverability.test.ts
+      - apps/web/app/__tests__/systematic-intake-publication-boundary.test.ts
+      - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+      - apps/web/app/api/admin/research-intake/evidence/__tests__/auth-boundary.test.ts
+      - apps/web/app/api/research/intake/evidence.csv/__tests__/route.test.ts
+      - apps/web/app/api/research/intake/evidence/__tests__/route.test.ts
+      - apps/web/lib/__tests__/research-intake-admin-candidate.test.ts
+      - apps/web/lib/__tests__/research-intake-admin-evidence.test.ts
+      - apps/web/lib/__tests__/research-intake-csv.test.ts
+      - apps/web/lib/__tests__/research-intake-evidence-csv.test.ts
+      - apps/web/lib/__tests__/research-intake-public-evidence.test.ts
+      - apps/web/lib/__tests__/research-intake-public.test.ts
+      - apps/web/lib/__tests__/research-intake.test.ts
+      - apps/web/lib/__tests__/research-loop-marketing.test.ts
+      - apps/web/lib/__tests__/research-loop-receipts.test.ts
+      - apps/web/lib/__tests__/research-loop.test.ts
+      - apps/web/lib/openapi.ts
+      - apps/web/lib/research-intake.ts
+      - apps/web/lib/research-loop-marketing.ts
+      - apps/web/lib/research-loop-receipts.ts
+      - docs/plans/2026-08-29-three-hour-research-marketing-loop.md
+      - docs/research/2026-08-29-crypto-factor-investing-source-audit.md
+    verification:
+      - intentional focused RED observed: 6 absent-overlay/receipt/count failures and 12 existing assertions green
+      - canonical source-audit is 11,618 bytes at SHA-256 ea924e6f15e34ec3e2240a247eef7dbe28fb12696690724ff61bb57a8b7038cd
+      - focused typed intake and receipt ledger tests pass 18/18
+      - adjacent public/protected evidence, CSV, README, marketing, and OpenAPI tests pass 79/79
+      - repaired no-go boundary and observation-time candidate tests pass 15/15
+      - final STATE-bound intake, receipt, and fail-closed marketing tests pass 22/22
+      - all 16 changed-surface suites pass 89/89 immediately before the local implementation commit
+      - all 275 runnable repository suites and 2,067 tests pass; 3 suites and 26 tests are skipped and 1 snapshot passes
+      - pinned source verifier reconstructs 61/61 candidates at exact commit and README hash with discovery-only treatment
+      - web typecheck passes after rebuilding signals; full lint passes with zero errors and 21 inherited warnings
+      - required production build compiles successfully and generates 329/329 static pages
+      - STATE parses, git diff --check is clean, the manifest has 24 paths, and the source-audit hash and byte count repeat exactly
+    evidence_paths:
+      - docs/research/2026-08-29-crypto-factor-investing-source-audit.md
+    preregistration_frozen: false
+    returns_opened: false
+    return_calculated: false
+    artifact_created: false
+    catalog_stage_advanced: true
+    receipt_created: true
+    marketing_draft: none
+    publish_approved: false
+    trading_approved: false
+    external_actions: none
+    next_action: Archive the exact-source no-go; any reduced-universe or implementable long-only cryptocurrency factor study must start as a separately hashed hypothesis in a later UTC window
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00

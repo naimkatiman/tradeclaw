@@ -49,7 +49,15 @@ describe('GET /api/admin/research-intake/evidence real admin-cookie boundary', (
     }) => item.record.tradeClawEvidence?.taskId ?? item.record.tradeClawSourceAudit?.taskId);
 
     expect(response.status).toBe(200);
-    expect(taskIds).toEqual(['TC-259', 'TC-257', 'TC-255', 'TC-258', 'TC-256', 'TC-260']);
+    expect(taskIds).toEqual([
+      'TC-259',
+      'TC-257',
+      'TC-255',
+      'TC-261',
+      'TC-258',
+      'TC-256',
+      'TC-260',
+    ]);
     expect(body.researchLoop).toMatchObject({
       observedAt: '2026-08-29T15:59:59.999Z',
       currentWindowStatus: 'complete',

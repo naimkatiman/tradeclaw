@@ -33,6 +33,7 @@ describe('GET /api/research/intake/evidence', () => {
       'TC-259',
       'TC-257',
       'TC-255',
+      'TC-261',
       'TC-258',
       'TC-256',
       'TC-260',

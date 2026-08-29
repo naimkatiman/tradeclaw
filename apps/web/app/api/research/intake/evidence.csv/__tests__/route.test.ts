@@ -5,7 +5,7 @@ import * as route from '../route';
 const PUBLIC_CACHE = 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400';
 
 describe('GET /api/research/intake/evidence.csv', () => {
-  it('downloads the complete six-row evidence spreadsheet with public caching', async () => {
+  it('downloads the complete seven-row evidence spreadsheet with public caching', async () => {
     const response = route.GET();
     const body = await response.text();
 
@@ -20,7 +20,7 @@ describe('GET /api/research/intake/evidence.csv', () => {
     expect(response.headers.get('vary')).toBeNull();
     expect(response.headers.get('access-control-allow-origin')).toBeNull();
     expect(body).toBe(buildResearchIntakeEvidenceCsv());
-    expect(body.split('\r\n')).toHaveLength(7);
+    expect(body.split('\r\n')).toHaveLength(8);
   });
 
   it('ignores query filters and exposes only GET', async () => {

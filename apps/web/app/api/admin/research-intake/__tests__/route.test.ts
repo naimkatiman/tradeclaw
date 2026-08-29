@@ -69,13 +69,13 @@ describe('GET /api/admin/research-intake', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 55,
-        sourceAudited: 2,
+        discovered: 54,
+        sourceAudited: 3,
         replicated: 4,
         failed: 3,
         inconclusive: 1,
         untested: 57,
-        sourceNoGo: 2,
+        sourceNoGo: 3,
       },
       pagination: {
         page: 1,
@@ -191,7 +191,7 @@ describe('GET /api/admin/research-intake', () => {
     ).toBe(true);
   });
 
-  it('exposes both source-audit no-go records without relabeling either as a local failure', async () => {
+  it('exposes all three source-audit no-go records without relabeling any as a local failure', async () => {
     mockedAdmin.mockResolvedValue(null);
 
     const response = await GET(
@@ -200,24 +200,31 @@ describe('GET /api/admin/research-intake', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.pagination).toMatchObject({ totalRecords: 2, returnedRecords: 2 });
+    expect(body.pagination).toMatchObject({ totalRecords: 3, returnedRecords: 3 });
     expect(body.filteredSummary).toMatchObject({
-      sourceAudited: 2,
-      sourceNoGo: 2,
+      sourceAudited: 3,
+      sourceNoGo: 3,
       failed: 0,
-      untested: 2,
+      untested: 3,
     });
     expect(body.records.map((record: { id: string }) => record.id)).toEqual([
+      'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space',
       'price-overreactions-in-the-cryptocurrency-market',
       'a-risk-based-approach-to-tactical-asset-allocation',
     ]);
     expect(body.records[0].tradeClawSourceAudit).toMatchObject({
+      taskId: 'TC-261',
+      disposition: 'no-go',
+      tradeClawBacktestRun: false,
+      currentDataReceipt: { pivxPriceUsdAvailable: false },
+    });
+    expect(body.records[1].tradeClawSourceAudit).toMatchObject({
       taskId: 'TC-256',
       disposition: 'no-go',
       tradeClawBacktestRun: false,
       publishedResult: { conclusion: 'no-exploitable-profit' },
     });
-    expect(body.records[1].tradeClawSourceAudit).toMatchObject({
+    expect(body.records[2].tradeClawSourceAudit).toMatchObject({
       taskId: 'TC-260',
       disposition: 'no-go',
       tradeClawBacktestRun: false,

@@ -90,7 +90,7 @@ That finding on the live homepage — one dot per OHLCV-resolved sized signal, a
 
 The [research page](https://tradeclaw.win/research) is the verdict board. TradeClaw also publishes a pinned 61-candidate intake from [paperswithbacktest/awesome-systematic-trading](https://github.com/paperswithbacktest/awesome-systematic-trading) in original source order. It is a discovery queue, not a leaderboard: upstream figures are gross discovery metadata, not TradeClaw performance.
 
-The catalog currently separates 55 untouched discoveries, 2 source-audit no-go records (not local performance failures), 1 QA-only INCONCLUSIVE replication, and 3 cost- or stability-failed replications. This catalog grants neither publication nor trading authority.
+The catalog currently separates 54 untouched discoveries, 3 source-audit no-go records (not local performance failures), 1 QA-only INCONCLUSIVE replication, and 3 cost- or stability-failed replications. This catalog grants neither publication nor trading authority.
 
 Separately, the retained TradeClaw study ledger records headline tests of single-asset hourly timing, HMM regime routing, daily momentum, funding carry, and cross-sectional momentum that failed their registered gates or were too thin to deploy.
 
@@ -208,10 +208,10 @@ No key required on the public research routes. Cache on your side; responses alr
 # All 61 pinned discovery candidates, with completed TradeClaw evidence overlays
 curl https://tradeclaw.win/api/research/intake
 
-# All six examined candidates, including failures, no-go audits, and the inconclusive run
+# All seven examined candidates, including failures, no-go audits, and the inconclusive run
 curl https://tradeclaw.win/api/research/intake/evidence
 
-# Six-row evidence spreadsheet: failures, no-go audits, and the inconclusive run
+# Seven-row evidence spreadsheet: failures, no-go audits, and the inconclusive run
 curl https://tradeclaw.win/api/research/intake/evidence.csv -o tradeclaw-systematic-research-evidence-2026-08-29.csv
 
 # One canonical candidate, with its complete safe evidence overlay

@@ -5,7 +5,13 @@ export const EXPECTED_LEGACY_DUPLICATE_WINDOW_IDS = [
   '2026-08-29T06:00:00.000Z/PT3H',
 ] as const;
 
-export type ResearchLoopReceiptTaskId = 'TC-256' | 'TC-257' | 'TC-258' | 'TC-259' | 'TC-260';
+export type ResearchLoopReceiptTaskId =
+  | 'TC-256'
+  | 'TC-257'
+  | 'TC-258'
+  | 'TC-259'
+  | 'TC-260'
+  | 'TC-261';
 export type ResearchLoopReceiptOutcome =
   | 'verified-no-go'
   | 'implemented-qa-only-hold'
@@ -170,6 +176,27 @@ export const RESEARCH_LOOP_RECEIPTS: readonly ResearchLoopReceipt[] = [
     externalActions: 'none',
     nextAction:
       'Archive the exact-specification no-go and screen another candidate whose complete rule, public source bytes, causal fills, full costs, folds, and holdout can be frozen before returns',
+  },
+  {
+    cycleId: '2026-08-29T18:00:00.000Z/PT3H',
+    recordedAt: '2026-08-29T18:00:40.000Z',
+    taskId: 'TC-261',
+    candidateId:
+      'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space',
+    stageBefore: 'discovered',
+    stageAfter: 'source-audited',
+    verdict: 'not-tested',
+    outcome: 'verified-no-go',
+    evidencePaths: [
+      'docs/research/2026-08-29-crypto-factor-investing-source-audit.md',
+    ],
+    marketingDraft: 'none',
+    eligibleForProspectiveReview: false,
+    publicationApproved: false,
+    tradingApproved: false,
+    externalActions: 'none',
+    nextAction:
+      'Archive the exact-source no-go; any reduced-universe or implementable long-only cryptocurrency factor study must start as a separately hashed hypothesis in a later UTC window',
   },
 ] as const;
 
