@@ -45,6 +45,16 @@ export const RESEARCH_INTAKE_ADMIN_QUERY_KEYS = [
   'limit',
 ] as const;
 
+export const RESEARCH_INTAKE_ADMIN_RESOURCES = Object.freeze({
+  catalog: '/api/admin/research-intake',
+  evidence: '/api/admin/research-intake/evidence',
+  evidenceCsv: '/api/admin/research-intake/evidence.csv',
+  marketingReview: '/api/admin/research-intake/review',
+  marketingReviewCsv: '/api/admin/research-intake/review.csv',
+} as const);
+
+export type ResearchIntakeAdminResources = typeof RESEARCH_INTAKE_ADMIN_RESOURCES;
+
 const QUERY_KEY_SET = new Set<string>(RESEARCH_INTAKE_ADMIN_QUERY_KEYS);
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 25;
@@ -73,6 +83,7 @@ export interface ResearchIntakeAdminPayload {
     grantsPublicationAuthority: false;
     grantsTradingAuthority: false;
   };
+  resources: ResearchIntakeAdminResources;
   source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
   selectionPolicy: string;
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
@@ -102,6 +113,7 @@ export interface ResearchIntakeAdminPayload {
 export interface ResearchIntakeAdminCandidatePayload {
   schemaVersion: 1;
   access: ResearchIntakeAdminPayload['access'];
+  resources: ResearchIntakeAdminResources;
   source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
   selectionPolicy: string;
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
@@ -138,6 +150,7 @@ export interface ResearchIntakeAdminEvidenceItem {
 export interface ResearchIntakeAdminEvidencePayload {
   schemaVersion: 1;
   access: ResearchIntakeAdminPayload['access'];
+  resources: ResearchIntakeAdminResources;
   source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
   selectionPolicy: string;
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
@@ -188,6 +201,7 @@ export interface ResearchIntakeAdminReviewItem {
 export interface ResearchIntakeAdminReviewPayload {
   schemaVersion: 1;
   access: ResearchIntakeAdminPayload['access'];
+  resources: ResearchIntakeAdminResources;
   source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
   selectionPolicy: string;
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
@@ -459,6 +473,7 @@ export function buildResearchIntakeAdminPayload(
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
     },
+    resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
@@ -504,6 +519,7 @@ export function buildResearchIntakeAdminCandidatePayload(
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
     },
+    resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
@@ -535,6 +551,7 @@ export function buildResearchIntakeAdminEvidencePayload(
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
     },
+    resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
@@ -590,6 +607,7 @@ export function buildResearchIntakeAdminReviewPayload(
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
     },
+    resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,

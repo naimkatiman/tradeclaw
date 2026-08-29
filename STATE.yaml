@@ -1,11 +1,103 @@
 project: tradeclaw
-updated: 2026-08-30T02:47:05+08:00
+updated: 2026-08-30T03:00:51+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+admin_research_resource_map_2026_08_30:
+  at: 2026-08-30T03:00:51+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_implementation_commit
+  scope: Give authenticated admin clients one stable discovery map for every protected research-intake JSON, CSV, and marketing-review projection without exposing admin paths through the public contract
+  base_commit: 5f69b9aa325449c6685eac51d000a1c65d1dd06d
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-256
+  current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-261
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-29T21:00:00.000Z
+  decision: >-
+    Add one frozen, additive schema-v1 resources object to the protected catalog,
+    exact-candidate, evidence, and marketing-review JSON payloads. Keep route
+    ownership explicit, require no client path guessing, and leave rendered UI,
+    public payloads, public OpenAPI, CSV bytes, auth, and false authority controls unchanged.
+  frozen_resources:
+    catalog: /api/admin/research-intake
+    evidence: /api/admin/research-intake/evidence
+    evidence_csv: /api/admin/research-intake/evidence.csv
+    marketing_review: /api/admin/research-intake/review
+    marketing_review_csv: /api/admin/research-intake/review.csv
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/__tests__/research-intake-admin-resources.test.ts
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/__tests__/research-intake-admin-evidence.test.ts
+  red_verification: >-
+    PASS - the new focused suite runs three assertions: two fail only because the
+    shared protected resource map and payload field are absent, while the existing
+    evidence CSV remains green at its frozen 14,533-byte boundary. No product path
+    passed the new discovery contract by accident.
+  focused_green_first_iteration: >-
+    Six of seven adjacent suites pass 29/30 assertions. The shared frozen map is
+    exact across all four protected JSON projections; public payloads and public
+    OpenAPI expose no protected route; and the evidence CSV retains its exact
+    14,533-byte baseline. The sole failure is the intentionally superseded
+    protected evidence JSON baseline, now measured at 56,502 bytes.
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    admin_catalog_limit_100: 87487 bytes / 2ee4bbaaabf7a94bfffe2d08ed76bed714695697da21165f313536cd20ae55f0
+    admin_candidate_tc260: 9503 bytes / 6cd0ca1bc9775274f4aa02818640424d513d3a912eb5e2b47a6c895a17077ebd
+    admin_evidence: 56502 bytes / defa5ec013c50c5c762fbb801d5dca6760646d0a3e28fdf2b441f75a3cea8098
+    admin_marketing_review: 20279 bytes / 2cedcc9b48516de8975a481c0236e4810384ff4b7d83d376585d058cbd6baa9a
+    public_catalog_unchanged: 63327 bytes / 602845ec6bd4d98410fcaf7fe2d0f4388a4293bddbd48699fdcedf1a18a99b43
+    admin_evidence_csv_at_2026_08_29T18_00_40Z_unchanged: 14533 bytes / 49c32887d5edaf402a9108ec6351e8acb2a5d567b5367df178250482b4542053
+  deterministic_audit: >-
+    PASS - an apply-patch-created temporary TypeScript verifier independently
+    measured all four protected JSON projections plus the public catalog and
+    protected evidence CSV, then was deleted. Only the protected JSON payloads
+    gained the 273-byte route map; public and CSV bytes and hashes are unchanged.
+  focused_verification: >-
+    PASS - all seven resource-map, protected catalog/candidate/evidence/review,
+    evidence CSV, public catalog, and publication-boundary suites pass 30/30 with
+    the new exact protected evidence baseline active.
+  adjacent_verification: >-
+    PASS - all 19 protected catalog, candidate, evidence, review, CSV, real signed-cookie
+    auth, receipt, marketing, and publication-boundary suites pass 84/84.
+  typecheck_verification: PASS - signals package build and web TypeScript no-emit check complete without errors
+  source_verification: PASS - the independent verifier reconstructs all 61 pinned candidates at exact commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with discovery-only treatment
+  changed_file_lint_verification: PASS - all three changed TypeScript files pass the authoritative apps/web ESLint configuration with zero findings
+  preliminary_state_verification: PASS - STATE.yaml parses and git diff --check reports no whitespace errors
+  lint_verification: PASS - full web lint completes with zero errors and the same 21 inherited warnings; no warning points to this increment
+  repository_test_verification: >-
+    PASS - all 279 runnable Jest suites and 2,080 tests pass; three suites and 26
+    tests are skipped and one snapshot passes. Force-exit closes only the
+    repository's inherited open handle after the complete green summary.
+  build_verification: >-
+    PASS - the required root production build compiles the signals and
+    trading-agents packages, compiles Next.js successfully, generates all
+    329/329 static pages, and retains the protected catalog, candidate, evidence,
+    evidence CSV, review, and review CSV routes as dynamic server routes. Only
+    the inherited middleware, NFT trace, url.parse, and edge-runtime warnings remain.
+  state_and_scope_verification: >-
+    PASS - STATE.yaml parses, git diff --check reports no whitespace errors, the
+    temporary audit script is absent, and the exact four-file manifest contains
+    only the shared protected map, its contract test, the superseded deterministic
+    evidence JSON baseline, and STATE. Docker Compose, dependencies, lockfiles,
+    database, auth semantics, rendered UI, public OpenAPI, and runtime trading paths are untouched.
+  final_state_bound_verification: PASS - the exact eight-suite protected-resource, evidence, CSV, candidate, review, receipt, marketing, and publication-boundary set passes 36/36 after the four-file manifest was frozen
+  visual_ui_changed: false
+  public_contract_changed: false
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  current_step: Create the local implementation commit from the verified four-file manifest
+  next_action: Create a STATE-only closure commit, save the durable project context to shared MemoryCore, and leave the isolated branch clean
+  safety: No research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, public OpenAPI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changes are authorized
 
 admin_research_evidence_csv_2026_08_30:
   at: 2026-08-30T02:47:05+08:00
