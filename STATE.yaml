@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T06:31:20+08:00
+updated: 2026-08-30T06:32:30+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_evidence_status_filter_2026_08_30:
-  at: 2026-08-30T06:31:20+08:00
+  at: 2026-08-30T06:32:30+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_commit
+  status: verified_admin_evidence_status_filter_committed_local_closing_state
   scope: Let an authenticated admin find and explain candidates by the shared performance-evidence interpretation directly, without combining stage, verdict, and source-audit fields or changing pinned source order
   base_commit: c7b18b37e6e5bfca5f7fdee927f3f2d1bbc2ef1a
+  implementation_commit: 7fd747862a051de589c2acbf08555967ffda8c40
+  committed_at: 2026-08-29T22:32:30.2350429Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-262
   current_cycle_id: 2026-08-29T21:00:00.000Z/PT3H
@@ -163,8 +165,8 @@ research_admin_evidence_status_filter_2026_08_30:
     rendered_ui_changed: false
     current_window_receipt_unchanged: TC-262
     next_receipt_gate_remains: 2026-08-30T00:00:00.000Z
-  current_step: Create the verified local implementation commit without pushing
-  next_action: Record the implementation hash in a state-only closure, save MemoryCore, and prove a clean worktree
+  current_step: Persist this implementation receipt in a state-only local closure without pushing
+  next_action: Save shared MemoryCore, prove the closure head and clean worktree, and keep the recurring goal active behind the 00:00Z gate
   marketing_handoff_created: false
   publish_approved: false
   trading_approved: false
