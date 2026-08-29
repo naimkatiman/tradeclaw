@@ -913,16 +913,15 @@ html:not(.dark) .editorial-hero-art__image {
 
 /* ─────────────────────────────────────────────────────────────
    Scroll-driven motion system.
-   Progressive enhancement only: every rule that hides content
-   lives inside @supports (animation-timeline: view()), so
-   browsers without scroll-timeline support — and the reduced-
-   motion guard below — always render content static and visible.
+   Progressive enhancement only. Reveals move content without
+   changing text opacity, so intermediate scroll states retain
+   their authored contrast.
    Reveals are scrubbed by scroll position (duration is nominal).
    See docs/superpowers/specs/2026-07-13-slc-motion-polish-design.md.
    ───────────────────────────────────────────────────────────── */
 @keyframes revealUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { transform: translateY(16px); }
+  to { transform: translateY(0); }
 }
 
 @keyframes parallaxDrift {
@@ -934,9 +933,7 @@ html:not(.dark) .editorial-hero-art__image {
   .reveal {
     animation: revealUp 1ms cubic-bezier(0.32, 0.72, 0, 1) both;
     animation-timeline: view();
-    /* cover-based end always completes once the block is mostly visible,
-       including for the last section of a page (entry-only ranges can
-       leave bottom sections stuck half-faded). */
+    /* cover-based end completes once the block is mostly visible. */
     animation-range: entry 0% cover 30%;
   }
 

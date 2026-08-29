@@ -183,7 +183,7 @@ export function MobileNav() {
             ref={menuButtonRef}
             type="button"
             onClick={() => setMenuOpen(true)}
-            aria-label={t.aria.openMenu}
+            aria-label={`${t.more}: ${t.aria.openMenu}`}
             aria-expanded={menuOpen}
             aria-haspopup="dialog"
             aria-controls="more-navigation-sheet"

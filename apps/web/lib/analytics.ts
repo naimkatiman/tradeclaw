@@ -1,11 +1,10 @@
 /**
- * Analytics event tracking — thin wrapper around PostHog.
+ * Optional client analytics.
  *
- * Completely optional: if NEXT_PUBLIC_POSTHOG_KEY is not set, all
- * calls are no-ops so the app works fine without analytics.
+ * Keep PostHog out of the initial application bundle. When analytics is not
+ * configured, these helpers remain synchronous no-ops and the SDK is never
+ * requested by the browser.
  */
-
-import posthog from 'posthog-js';
 
 export type AnalyticsEvent =
   | 'signal_viewed'
@@ -17,36 +16,56 @@ export type AnalyticsEvent =
   | 'screener_scan_completed'
   | 'backtest_completed';
 
-export function trackEvent(
-  event: AnalyticsEvent,
-  properties?: Record<string, string | number | boolean | null>,
-): void {
-  if (typeof window === 'undefined') return;
-  if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) return;
-  if (!posthog.__loaded) return;
+type AnalyticsProperties = Record<string, string | number | boolean | null>;
+type PostHogClient = typeof import('posthog-js').default;
 
-  try {
-    posthog.capture(event, properties ?? {});
-  } catch {
-    // Swallow analytics errors so they never break user-facing features
+const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+let clientPromise: Promise<PostHogClient | null> | null = null;
+
+function getClient(): Promise<PostHogClient | null> {
+  if (typeof window === 'undefined' || !POSTHOG_KEY) {
+    return Promise.resolve(null);
   }
+
+  if (!clientPromise) {
+    clientPromise = import('posthog-js')
+      .then(({ default: posthog }) => {
+        if (!posthog.__loaded) {
+          posthog.init(POSTHOG_KEY, {
+            api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com',
+            capture_pageview: false,
+          });
+        }
+        return posthog;
+      })
+      .catch(() => null);
+  }
+
+  return clientPromise;
 }
 
-/**
- * Register PostHog super properties — persisted on this browser and attached
- * to EVERY subsequent event. No-op when analytics is unconfigured; never
- * throws.
- */
-export function registerSuperProperties(
-  properties: Record<string, string | number | boolean | null>,
-): void {
-  if (typeof window === 'undefined') return;
-  if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) return;
-  if (!posthog.__loaded) return;
+function withClient(action: (client: PostHogClient) => void): void {
+  void getClient().then((client) => {
+    if (!client) return;
+    try {
+      action(client);
+    } catch {
+      // Analytics must never break a user-facing action.
+    }
+  });
+}
 
-  try {
-    posthog.register(properties);
-  } catch {
-    // Swallow analytics errors so they never break user-facing features
-  }
+export function trackEvent(
+  event: AnalyticsEvent,
+  properties?: AnalyticsProperties,
+): void {
+  withClient((client) => client.capture(event, properties ?? {}));
+}
+
+export function trackPageView(currentUrl: string): void {
+  withClient((client) => client.capture('$pageview', { $current_url: currentUrl }));
+}
+
+export function registerSuperProperties(properties: AnalyticsProperties): void {
+  withClient((client) => client.register(properties));
 }

@@ -486,7 +486,7 @@ export default function BacktestPage() {
     : null;
 
   return (
-    <div className="premium-product-shell relative isolate min-h-[100dvh] text-[var(--foreground)]">
+    <main className="premium-product-shell relative isolate min-h-[100dvh] text-[var(--foreground)]">
       <BackgroundDecor variant="dashboard" />
       <PageNavBar />
       <div className="relative max-w-6xl mx-auto px-4 py-6 pb-20 md:pb-6">
@@ -525,8 +525,9 @@ export default function BacktestPage() {
               <div className="text-xs font-semibold text-[var(--foreground)] tracking-tight mb-1">Configuration</div>
 
               <div>
-                <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Symbol</label>
+                <label htmlFor="backtest-symbol" className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Symbol</label>
                 <select
+                  id="backtest-symbol"
                   value={params.symbol}
                   onChange={e => update('symbol', e.target.value)}
                   className="w-full bg-[var(--glass-bg)] border border-white/8 rounded-lg px-2 py-1.5 text-xs text-[var(--foreground)] outline-none focus:border-emerald-500/30"
@@ -587,12 +588,12 @@ export default function BacktestPage() {
                 <label className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider block mb-1">Preset Strategies</label>
                 <div className="space-y-1">
                   {listPresets().map(p => (
-                    <label key={p.id} className="flex items-center gap-2 cursor-pointer group">
+                    <label key={p.id} className="flex min-h-8 items-center gap-2 cursor-pointer group">
                       <input
                         type="checkbox"
                         checked={selectedPresets.includes(p.id)}
                         onChange={() => togglePreset(p.id)}
-                        className="w-3.5 h-3.5 accent-emerald-500 rounded"
+                        className="h-6 w-6 shrink-0 accent-emerald-500 rounded"
                       />
                       <span className="text-[10px] text-[var(--text-secondary)] group-hover:text-[var(--foreground)] transition-colors">{p.name}</span>
                     </label>
@@ -941,6 +942,6 @@ export default function BacktestPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
