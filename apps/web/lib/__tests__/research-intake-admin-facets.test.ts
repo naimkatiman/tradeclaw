@@ -94,7 +94,13 @@ describe('protected research catalog filter facets', () => {
     );
 
     expect(facets?.contract).toEqual({
-      dimensionOrder: ['assetClass', 'stage', 'verdict', 'sourceAuditDisposition'],
+      dimensionOrder: [
+        'assetClass',
+        'stage',
+        'verdict',
+        'sourceAuditDisposition',
+        'evidenceStatus',
+      ],
       countingMode: 'disjunctive',
       scope: 'complete-catalog-before-pagination',
       queryAppliedToEveryCount: true,
@@ -162,6 +168,19 @@ describe('protected research catalog filter facets', () => {
         option('no-go', 'No-go', 4),
       ],
     });
+    expect(withoutOptionHrefs(facets?.dimensions.evidenceStatus)).toEqual({
+      label: 'Evidence status',
+      selected: 'all',
+      options: [
+        option('all', 'All evidence statuses', 61, true),
+        option('not-tested', 'Not tested by TradeClaw', 53),
+        option('source-audit-only-no-local-backtest', 'Source audit only', 4),
+        option('qa-only-no-performance-result', 'QA complete; no performance result', 1),
+        option('modeled-historical-pass', 'Modeled historical pass', 0),
+        option('modeled-historical-fail', 'Modeled historical fail', 3),
+        option('modeled-historical-inconclusive', 'Modeled historical inconclusive', 0),
+      ],
+    });
   });
 
   it('replaces each facet own filter while retaining every other active filter', () => {
@@ -213,6 +232,7 @@ describe('protected research catalog filter facets', () => {
       { selected: 'discovered', selectedOptions: ['discovered'] },
       { selected: 'all', selectedOptions: ['all'] },
       { selected: 'all', selectedOptions: ['all'] },
+      { selected: 'all', selectedOptions: ['all'] },
     ]);
   });
 
@@ -240,6 +260,20 @@ describe('protected research catalog filter facets', () => {
       { value: 'advance', count: 1 },
       { value: 'hold', count: 0 },
       { value: 'no-go', count: 0 },
+    ]);
+    expect(
+      facets?.dimensions.evidenceStatus.options.map(({ value, count }) => ({
+        value,
+        count,
+      })),
+    ).toEqual([
+      { value: 'all', count: 2 },
+      { value: 'not-tested', count: 0 },
+      { value: 'source-audit-only-no-local-backtest', count: 0 },
+      { value: 'qa-only-no-performance-result', count: 0 },
+      { value: 'modeled-historical-pass', count: 0 },
+      { value: 'modeled-historical-fail', count: 2 },
+      { value: 'modeled-historical-inconclusive', count: 0 },
     ]);
   });
 
@@ -273,17 +307,17 @@ describe('protected research catalog filter facets', () => {
     const defaultBody = JSON.stringify(defaultFacets);
     const disjunctiveBody = JSON.stringify(disjunctiveFacets);
 
-    expect(Buffer.byteLength(contract, 'utf8')).toBe(338);
+    expect(Buffer.byteLength(contract, 'utf8')).toBe(355);
     expect(createHash('sha256').update(contract).digest('hex')).toBe(
-      '0114ebd94cc22669f3437ffbb0bd8213f31f1367c12b4da2ec780d898406bcf2',
+      '9e394bbb17792c06f2d536ec312d8c79113e32f48a69fe2a2db8b000254c64e6',
     );
-    expect(Buffer.byteLength(defaultBody, 'utf8')).toBe(3_848);
+    expect(Buffer.byteLength(defaultBody, 'utf8')).toBe(5_234);
     expect(createHash('sha256').update(defaultBody).digest('hex')).toBe(
-      'cb3890f778f9486da8f678eb190269b0c5821939595425c57e8eab2a373f0d5a',
+      '8052b338aedb784261069ad3eff6836fd6e3a2517faeccf2ff6f40234bc74643',
     );
-    expect(Buffer.byteLength(disjunctiveBody, 'utf8')).toBe(4_426);
+    expect(Buffer.byteLength(disjunctiveBody, 'utf8')).toBe(6_064);
     expect(createHash('sha256').update(disjunctiveBody).digest('hex')).toBe(
-      '6c56cc0555ba7e6d6f9f0caf196fc28adace7bcdb9bacddbc775bfad1d0f5785',
+      '0cbcfade4874da758c3003dd6b4adeb24229e33bb145f15e260492b1b88348c6',
     );
   });
 

@@ -1,11 +1,175 @@
 project: tradeclaw
-updated: 2026-08-30T06:10:12+08:00
+updated: 2026-08-30T06:31:20+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_evidence_status_filter_2026_08_30:
+  at: 2026-08-30T06:31:20+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_commit
+  scope: Let an authenticated admin find and explain candidates by the shared performance-evidence interpretation directly, without combining stage, verdict, and source-audit fields or changing pinned source order
+  base_commit: c7b18b37e6e5bfca5f7fdee927f3f2d1bbc2ef1a
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-262
+  current_cycle_id: 2026-08-29T21:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-262
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T00:00:00.000Z
+  gate_observed_at: 2026-08-29T22:31:20.5872293Z
+  gate_decision: The 00:00Z receipt gate is closed; complete one bounded nonvisual protected-read-model improvement without creating research or marketing state
+  pattern_decision: Reuse the repository's existing strict query parser, disjunctive facet contract, canonical filter navigation, result recovery, and shared evidence-state classifier; no new reusable architecture is being invented
+  problem: >-
+    Admin records and the complete evidence desk now expose a six-state evidence
+    interpretation, but the protected catalog can filter only by stage, verdict,
+    and source-audit disposition. QA-only `inconclusive` and evaluated modeled
+    inconclusive remain indistinguishable without client-side joins, and admins
+    cannot directly isolate source-audit-only or modeled-failure records.
+  decision: >-
+    Add a strict `evidenceStatus` enum query and fifth disjunctive facet backed by
+    `evidenceState.performanceEvidenceStatus`. Preserve canonical pinned order,
+    pagination, active-filter removal, clear-all recovery, and all unrelated
+    filters. Add full-catalog and pre-pagination filtered evidence-state summaries
+    so clients never recount or reinterpret rows.
+  frozen_query_contract:
+    parameter: evidenceStatus
+    applied_field: evidenceState.performanceEvidenceStatus
+    default: all
+    values: [all, not-tested, source-audit-only-no-local-backtest, qa-only-no-performance-result, modeled-historical-pass, modeled-historical-fail, modeled-historical-inconclusive]
+    parameter_order_after: sourceAuditDisposition
+    invalid_or_duplicate_values_rejected: true
+  frozen_facet_contract:
+    dimension_label: Evidence status
+    all_label: All evidence statuses
+    global_counts: [61, 53, 4, 1, 0, 3, 0]
+    disjunctive: true
+    includes_zero_count_options: true
+    applies_other_filters: true
+    ignores_pagination: true
+  frozen_examples:
+    qa_only_filter: 1 exact TC-257 record with no evaluated performance gates
+    modeled_inconclusive_filter: 0 records
+    crypto_modeled_fail_filter: 2 records in pinned source order
+    crypto_evidence_counts: [8, 4, 2, 0, 0, 2, 0]
+  frozen_response_additions:
+    - catalogEvidenceStateSummary over all 61 candidates
+    - filteredEvidenceStateSummary over every matched candidate before pagination
+  frozen_boundaries:
+    public_payloads_changed: false
+    protected_candidate_changed: false
+    protected_evidence_desk_changed: false
+    protected_review_changed: false
+    csv_changed: false
+    receipt_or_marketing_state_changed: false
+    auth_semantics_changed: false
+    rendered_ui_changed: false
+    source_order_changed: false
+    research_or_trading_state_changed: false
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-evidence-state.ts
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/__tests__/research-intake-admin-evidence-status-filter.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-facets.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-filter-navigation.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-result-view.test.ts
+    - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+  red_verification: >-
+    PASS - the focused contract executed four assertions and all four failed for
+    the intended absence: the query contract lacks `evidenceStatus`, default
+    applied filters/facets/summaries are undefined, and QA/combined requests fail
+    closed as unknown parameters. Existing parser and payload construction loaded
+    without any unrelated failure.
+  focused_green_first_iteration: >-
+    Two of four focused tests passed. The remaining failures were test-only:
+    evidence summaries correctly expose six classifier states without the facet's
+    synthetic `all` option, and canonical `sourcePosition` remains zero-based at
+    31/33 rather than the test's assumed one-based values.
+  focused_verification: >-
+    PASS - all four focused tests now pass across strict parsing, global ordered
+    counts, full and filtered summaries, QA-only isolation, zero modeled
+    inconclusive records, combined crypto failures in pinned order, disjunctive
+    counts, and canonical active-filter/recovery links.
+  adjacent_verification_first_iteration: >-
+    The exact ten-suite adjacent run passed 54/64 assertions. All ten failures
+    are intentional stale contracts: query/default/hash receipts lack the enum;
+    facet/navigation/route dimension arrays lack the fifth filter; result-view
+    catalog fingerprints lack the added summaries. Auth, public publication
+    boundary, protected evidence desk, resources, and all new semantics passed.
+  adjacent_verification: >-
+    PASS - the same exact ten-suite scope now passes 64/64 assertions after
+    freezing only the intended query, fifth-facet, active-navigation, catalog
+    summary, route, and protected-catalog fingerprint changes. Auth, public
+    publication boundary, protected evidence desk, resources, result recovery,
+    and the new evidence-status semantics remain green.
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    protected_default_catalog_intentional: 72736 bytes / 2a2c221a1a4571d4d4e16a92a3766bd28bf816cabd77cfcf145863158386d799
+    protected_complete_catalog_intentional: 140050 bytes / d20c778bc9007dfb4158b126beac9463a34643d83c6011b54af8f082bdc183d8
+    public_catalog_unchanged: 90768 bytes / 7325ab89c11cbfaf00c6dc7cf886c6f5f71c6e2820f6bfada4a0febba0dfa2eb
+    public_evidence_unchanged: 39042 bytes / a25e7d1f6bc9e7ee7abffd46d8ed3b9617d92db7f97d614fa559303164868f88
+    protected_evidence_unchanged: 67037 bytes / 458bdc5332343c957cb88d34bec06c461b4b09376382208e3f2548b06d5d9ae8
+    protected_review_unchanged: 20279 bytes / 2cedcc9b48516de8975a481c0236e4810384ff4b7d83d376585d058cbd6baa9a
+    public_catalog_csv_unchanged: 36922 bytes / 7b76a4a2c5850e4711e34d5d61dbaeee75c983ea39e264b0c90fc18e58d8b43f
+    public_evidence_csv_unchanged: 5944 bytes / 4ee1cc89f6bae3ce59be57a9e835fc4ed1c8c1c0b824c6e0d0dc176ac533a0fc
+    protected_evidence_csv_at_2026_08_29T18_00_40Z_unchanged: 15405 bytes / 5f144161ba0a20f2d342ee675775d03b8b76d2cd37afb074f08f5299d12a638b
+    protected_review_csv_unchanged: 6350 bytes / 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+  deterministic_audit: >-
+    PASS - a direct TypeScript verifier confirms only the protected catalog
+    contracts move. Public catalog/evidence JSON, protected evidence/review JSON,
+    and all public/protected CSV exports remain byte-identical to their latest
+    frozen receipts.
+  changed_file_eslint: PASS - all eight changed TypeScript files pass the configured web ESLint command with zero findings
+  lint_verification: PASS - authoritative full lint reports zero errors and the same 21 inherited warnings; changed files remain clean
+  source_verification: >-
+    PASS - the verifier reconstructs all 61 pinned candidates at upstream commit
+    d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256
+    67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a.
+  typecheck_verification: PASS - the signals prerequisite and web TypeScript project compile without errors
+  repository_test_verification: >-
+    PASS - 287/287 runnable suites and 2,131/2,131 runnable tests pass; the
+    inherited 3 suites / 26 tests remain skipped and the single snapshot passes.
+    The known open-handle notice appears only after the green result and forced exit.
+  build_verification: >-
+    PASS - signals and trading-agents compile and the Next.js production build
+    generates all 329/329 pages. The six protected research routes remain dynamic;
+    only inherited middleware, NFT trace, `url.parse`, and edge-runtime warnings appear.
+  implementation_files:
+    shared_evidence_state: 5938 bytes / 48a6b1367bd72f8e5b3c9ac6db12ade828b96f8bb4589166a7f6e42cd62ec94d
+    protected_catalog: 43399 bytes / c99c0b6414fc01b08edc35bea738442f82a0a4fa12f3d52e6c1353ac3c63b7b8
+    focused_contract: 8567 bytes / 057fd9a9025b816f81083decdb2e1b66f73883664364a3bfcee4a2b7d8fc7305
+    query_contract: 9308 bytes / 630d62c303c720dcc12740f0b38c63f114e32d42b2bababa17044c3cfa31e2ef
+    facet_contract: 11939 bytes / 8be6e8dc26360037df2223f3d809be6b9b41bfbbdbb3659b45696d17d30442f0
+    navigation_contract: 8409 bytes / 61b37a14aba4981671be6f013c8e12d9d5ca30573ba8266bd5d2b076c1976152
+    result_contract: 6303 bytes / f0b182569cb06dc54da69f831df24194b189f71cd552e5460ddad7303e8a2058
+    route_contract: 25908 bytes / 293641bb40f459270e79913c3b45220ddfe0f1cc8d8a2f58abadbdbeecd5a457
+  state_and_scope_verification: >-
+    PASS - STATE.yaml parses, `git diff --check` is clean, and the worktree has
+    exactly the frozen nine-path manifest: STATE, two read-model files, one new
+    focused contract, and five updated adjacent contracts. No rendered UI, raw
+    evidence, receipt, marketing, CSV, auth, Docker, manifest, dependency,
+    database, strategy, signal, allocation, execution, or trading path changed.
+  scope_audit:
+    changed_paths: 9
+    forbidden_surface_changes: 0
+    branch: agent/research-intake-desk-20260829
+    base_commit_confirmed: c7b18b37e6e5bfca5f7fdee927f3f2d1bbc2ef1a
+    broad_dirty_checkout_touched: false
+    rendered_ui_changed: false
+    current_window_receipt_unchanged: TC-262
+    next_receipt_gate_remains: 2026-08-30T00:00:00.000Z
+  current_step: Create the verified local implementation commit without pushing
+  next_action: Record the implementation hash in a state-only closure, save MemoryCore, and prove a clean worktree
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  safety: No source data, return, source audit, preregistration, artifact, receipt, marketing draft, public payload, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state change is authorized
 
 research_evidence_state_summary_2026_08_30:
   at: 2026-08-30T05:58:20+08:00

@@ -63,6 +63,19 @@ describe('GET /api/admin/research-intake', () => {
           stage: { default: 'all', values: expect.arrayContaining(['all', 'replicated']) },
           verdict: { default: 'all', values: ['all', 'not-tested', 'pass', 'fail', 'inconclusive'] },
           sourceAuditDisposition: { default: 'all', values: ['all', 'advance', 'hold', 'no-go'] },
+          evidenceStatus: {
+            default: 'all',
+            appliedField: 'evidenceState.performanceEvidenceStatus',
+            values: [
+              'all',
+              'not-tested',
+              'source-audit-only-no-local-backtest',
+              'qa-only-no-performance-result',
+              'modeled-historical-pass',
+              'modeled-historical-fail',
+              'modeled-historical-inconclusive',
+            ],
+          },
           page: { default: 1, minimum: 1, maximum: 10_000 },
           limit: { default: 25, minimum: 1, maximum: 100 },
         },
@@ -77,12 +90,19 @@ describe('GET /api/admin/research-intake', () => {
         stage: 'all',
         verdict: 'all',
         sourceAuditDisposition: 'all',
+        evidenceStatus: 'all',
         page: 1,
         limit: 25,
       },
       filterFacets: {
         contract: {
-          dimensionOrder: ['assetClass', 'stage', 'verdict', 'sourceAuditDisposition'],
+          dimensionOrder: [
+            'assetClass',
+            'stage',
+            'verdict',
+            'sourceAuditDisposition',
+            'evidenceStatus',
+          ],
           countingMode: 'disjunctive',
           scope: 'complete-catalog-before-pagination',
           queryAppliedToEveryCount: true,
@@ -175,11 +195,40 @@ describe('GET /api/admin/research-intake', () => {
               },
             ]),
           },
+          evidenceStatus: {
+            label: 'Evidence status',
+            selected: 'all',
+            options: expect.arrayContaining([
+              {
+                value: 'qa-only-no-performance-result',
+                label: 'QA complete; no performance result',
+                count: 1,
+                selected: false,
+                href:
+                  '/api/admin/research-intake?evidenceStatus=qa-only-no-performance-result&page=1&limit=25',
+              },
+              {
+                value: 'modeled-historical-fail',
+                label: 'Modeled historical fail',
+                count: 3,
+                selected: false,
+                href:
+                  '/api/admin/research-intake?evidenceStatus=modeled-historical-fail&page=1&limit=25',
+              },
+            ]),
+          },
         },
       },
       filterNavigation: {
         contract: {
-          activeParameterOrder: ['q', 'assetClass', 'stage', 'verdict', 'sourceAuditDisposition'],
+          activeParameterOrder: [
+            'q',
+            'assetClass',
+            'stage',
+            'verdict',
+            'sourceAuditDisposition',
+            'evidenceStatus',
+          ],
           facetSelectionMode: 'replace-own-dimension',
           resetPageTo: 1,
           preserveLimit: true,
@@ -201,6 +250,18 @@ describe('GET /api/admin/research-intake', () => {
         inconclusive: 1,
         untested: 57,
         sourceNoGo: 4,
+      },
+      catalogEvidenceStateSummary: {
+        totalCandidates: 61,
+        withTradeClawRecord: 8,
+        performanceGatesEvaluated: 3,
+        performanceGatesNotEvaluated: 58,
+      },
+      filteredEvidenceStateSummary: {
+        totalCandidates: 61,
+        withTradeClawRecord: 8,
+        performanceGatesEvaluated: 3,
+        performanceGatesNotEvaluated: 58,
       },
       pagination: {
         page: 1,
@@ -656,6 +717,8 @@ describe('GET /api/admin/research-intake', () => {
     ['?unknown=1', 'unknown'],
     ['?stage=live', 'stage'],
     ['?stage=discovered&stage=replicated', 'stage'],
+    ['?evidenceStatus=fail', 'evidenceStatus'],
+    ['?evidenceStatus=not-tested&evidenceStatus=modeled-historical-fail', 'evidenceStatus'],
     ['?limit=0', 'limit'],
     ['?limit=101', 'limit'],
     [`?q=${'x'.repeat(121)}`, 'q'],

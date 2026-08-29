@@ -30,6 +30,7 @@ describe('protected research catalog query and navigation contract', () => {
         'stage',
         'verdict',
         'sourceAuditDisposition',
+        'evidenceStatus',
         'page',
         'limit',
       ],
@@ -81,6 +82,20 @@ describe('protected research catalog query and navigation contract', () => {
           default: 'all',
           values: ['all', 'advance', 'hold', 'no-go'],
         },
+        evidenceStatus: {
+          type: 'enum',
+          appliedField: 'evidenceState.performanceEvidenceStatus',
+          default: 'all',
+          values: [
+            'all',
+            'not-tested',
+            'source-audit-only-no-local-backtest',
+            'qa-only-no-performance-result',
+            'modeled-historical-pass',
+            'modeled-historical-fail',
+            'modeled-historical-inconclusive',
+          ],
+        },
         page: {
           type: 'positive-integer',
           default: 1,
@@ -117,6 +132,7 @@ describe('protected research catalog query and navigation contract', () => {
       stage: parameters.stage.default,
       verdict: parameters.verdict.default,
       sourceAuditDisposition: parameters.sourceAuditDisposition.default,
+      evidenceStatus: parameters.evidenceStatus.default,
       page: parameters.page.default,
       limit: parameters.limit.default,
     });
@@ -136,6 +152,11 @@ describe('protected research catalog query and navigation contract', () => {
       expect(parseResearchIntakeAdminQuery(
         new URLSearchParams({ sourceAuditDisposition: value }),
       ).sourceAuditDisposition).toBe(value);
+    }
+    for (const value of parameters.evidenceStatus.values) {
+      expect(parseResearchIntakeAdminQuery(
+        new URLSearchParams({ evidenceStatus: value }),
+      ).evidenceStatus).toBe(value);
     }
 
     expect(parseResearchIntakeAdminQuery(new URLSearchParams({
@@ -223,17 +244,17 @@ describe('protected research catalog query and navigation contract', () => {
       DETERMINISTIC_AT,
     ));
 
-    expect(Buffer.byteLength(contract, 'utf8')).toBe(1_121);
+    expect(Buffer.byteLength(contract, 'utf8')).toBe(1_430);
     expect(createHash('sha256').update(contract).digest('hex')).toBe(
-      'ed4a2bd3a0c8dc5e4305a400c2754ebdaa49e5c5000478add9e77af477d5b795',
+      '83fc68d46e4965dfa622175c3c25a076bd2b625219e9eaa83ca5749061938c94',
     );
-    expect(Buffer.byteLength(defaultCatalog, 'utf8')).toBe(67_466);
+    expect(Buffer.byteLength(defaultCatalog, 'utf8')).toBe(72_736);
     expect(createHash('sha256').update(defaultCatalog).digest('hex')).toBe(
-      '6b7b17ac521616cb771de613d7c990614859157a00f55810b057e2bcf4d6b8e4',
+      '2a2c221a1a4571d4d4e16a92a3766bd28bf816cabd77cfcf145863158386d799',
     );
-    expect(Buffer.byteLength(completeCatalog, 'utf8')).toBe(134_773);
+    expect(Buffer.byteLength(completeCatalog, 'utf8')).toBe(140_050);
     expect(createHash('sha256').update(completeCatalog).digest('hex')).toBe(
-      '689d94b1d153a0e2fcbaabaf44f8a7f3401a49864e8161737e3cef4998e8e630',
+      'd20c778bc9007dfb4158b126beac9463a34643d83c6011b54af8f082bdc183d8',
     );
   });
 });

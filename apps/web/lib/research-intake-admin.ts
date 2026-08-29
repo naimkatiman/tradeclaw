@@ -19,9 +19,12 @@ import {
   type ResearchIntakeCandidateNavigation,
 } from './research-intake-candidate-navigation';
 import {
+  RESEARCH_INTAKE_EVIDENCE_STATUS_COPY,
+  RESEARCH_INTAKE_EVIDENCE_STATUS_ORDER,
   buildResearchIntakeEvidenceState,
   summarizeResearchIntakeEvidenceStates,
   type ResearchIntakeEvidenceState,
+  type ResearchIntakePerformanceEvidenceStatus,
 } from './research-intake-evidence-state';
 import {
   buildMarketingReviewDraft,
@@ -50,6 +53,7 @@ export const RESEARCH_INTAKE_ADMIN_QUERY_KEYS = Object.freeze([
   'stage',
   'verdict',
   'sourceAuditDisposition',
+  'evidenceStatus',
   'page',
   'limit',
 ] as const);
@@ -75,6 +79,10 @@ const ADMIN_VERDICT_VALUES = Object.freeze(['all', ...VERDICTS] as const);
 const ADMIN_SOURCE_AUDIT_DISPOSITION_VALUES = Object.freeze([
   'all',
   ...SOURCE_AUDIT_DISPOSITIONS,
+] as const);
+const ADMIN_EVIDENCE_STATUS_VALUES = Object.freeze([
+  'all',
+  ...RESEARCH_INTAKE_EVIDENCE_STATUS_ORDER,
 ] as const);
 
 export const RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT = Object.freeze({
@@ -111,6 +119,12 @@ export const RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT = Object.freeze({
       default: 'all',
       values: ADMIN_SOURCE_AUDIT_DISPOSITION_VALUES,
     } as const),
+    evidenceStatus: Object.freeze({
+      type: 'enum',
+      appliedField: 'evidenceState.performanceEvidenceStatus',
+      default: 'all',
+      values: ADMIN_EVIDENCE_STATUS_VALUES,
+    } as const),
     page: Object.freeze({
       type: 'positive-integer',
       default: DEFAULT_PAGE,
@@ -140,6 +154,7 @@ const RESEARCH_INTAKE_ADMIN_FACET_DIMENSIONS = Object.freeze([
   'stage',
   'verdict',
   'sourceAuditDisposition',
+  'evidenceStatus',
 ] as const);
 
 export const RESEARCH_INTAKE_ADMIN_FACET_CONTRACT = Object.freeze({
@@ -220,6 +235,23 @@ const RESEARCH_INTAKE_ADMIN_FACET_LABELS = Object.freeze({
       'no-go': 'No-go',
     } as const),
   } as const),
+  evidenceStatus: Object.freeze({
+    dimension: 'Evidence status',
+    options: Object.freeze({
+      all: 'All evidence statuses',
+      'not-tested': RESEARCH_INTAKE_EVIDENCE_STATUS_COPY['not-tested'].label,
+      'source-audit-only-no-local-backtest':
+        RESEARCH_INTAKE_EVIDENCE_STATUS_COPY['source-audit-only-no-local-backtest'].label,
+      'qa-only-no-performance-result':
+        RESEARCH_INTAKE_EVIDENCE_STATUS_COPY['qa-only-no-performance-result'].label,
+      'modeled-historical-pass':
+        RESEARCH_INTAKE_EVIDENCE_STATUS_COPY['modeled-historical-pass'].label,
+      'modeled-historical-fail':
+        RESEARCH_INTAKE_EVIDENCE_STATUS_COPY['modeled-historical-fail'].label,
+      'modeled-historical-inconclusive':
+        RESEARCH_INTAKE_EVIDENCE_STATUS_COPY['modeled-historical-inconclusive'].label,
+    } as const),
+  } as const),
 } as const);
 
 const QUERY_KEY_SET = new Set<string>(RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT.parameterOrder);
@@ -230,6 +262,7 @@ export interface ResearchIntakeAdminQuery {
   stage: ResearchIntakeStage | 'all';
   verdict: ResearchVerdict | 'all';
   sourceAuditDisposition: ResearchSourceAuditDisposition | 'all';
+  evidenceStatus: ResearchIntakePerformanceEvidenceStatus | 'all';
   page: number;
   limit: number;
 }
@@ -272,6 +305,9 @@ export interface ResearchIntakeAdminFilterFacets {
     verdict: ResearchIntakeAdminFacetDimension<(typeof ADMIN_VERDICT_VALUES)[number]>;
     sourceAuditDisposition: ResearchIntakeAdminFacetDimension<
       (typeof ADMIN_SOURCE_AUDIT_DISPOSITION_VALUES)[number]
+    >;
+    evidenceStatus: ResearchIntakeAdminFacetDimension<
+      (typeof ADMIN_EVIDENCE_STATUS_VALUES)[number]
     >;
   };
 }
@@ -331,6 +367,8 @@ export interface ResearchIntakeAdminPayload {
   filterNavigation: ResearchIntakeAdminFilterNavigation;
   catalogSummary: ReturnType<typeof summarizeResearchIntake>;
   filteredSummary: ReturnType<typeof summarizeResearchIntake>;
+  catalogEvidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
+  filteredEvidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
   pagination: {
     page: number;
     limit: number;
@@ -570,6 +608,12 @@ export function parseResearchIntakeAdminQuery(
       parameters.sourceAuditDisposition.values,
       parameters.sourceAuditDisposition.default,
     ),
+    evidenceStatus: parseEnum(
+      searchParams,
+      'evidenceStatus',
+      parameters.evidenceStatus.values,
+      parameters.evidenceStatus.default,
+    ),
     page: parsePositiveInteger(searchParams, 'page', parameters.page),
     limit: parsePositiveInteger(searchParams, 'limit', parameters.limit),
   };
@@ -585,6 +629,20 @@ function asIntakeFilters(query: ResearchIntakeAdminQuery): ResearchIntakeFilters
   };
 }
 
+function filterResearchIntakeForAdmin(
+  records: readonly ResearchIntakeRecord[],
+  query: ResearchIntakeAdminQuery,
+): ResearchIntakeRecord[] {
+  const filtered = filterResearchIntake(records, asIntakeFilters(query));
+  if (query.evidenceStatus === 'all') return filtered;
+
+  return filtered.filter(
+    (record) =>
+      buildResearchIntakeEvidenceState(record).performanceEvidenceStatus
+      === query.evidenceStatus,
+  );
+}
+
 type ResearchIntakeAdminFacetDimensionName =
   (typeof RESEARCH_INTAKE_ADMIN_FACET_DIMENSIONS)[number];
 
@@ -596,18 +654,19 @@ function buildResearchIntakeAdminFacetDimension<T extends string>(
   values: readonly T[],
   labels: Readonly<Record<T, string>>,
 ): ResearchIntakeAdminFacetDimension<T> {
-  const activeFilters = asIntakeFilters(query);
-
   return {
     label,
     selected,
     options: values.map((value) => ({
       value,
       label: labels[value],
-      count: filterResearchIntake(SYSTEMATIC_RESEARCH_INTAKE, {
-        ...activeFilters,
-        [dimension]: value,
-      }).length,
+      count: filterResearchIntakeForAdmin(
+        SYSTEMATIC_RESEARCH_INTAKE,
+        {
+          ...query,
+          [dimension]: value,
+        } as ResearchIntakeAdminQuery,
+      ).length,
       selected: value === selected,
       href: buildResearchIntakeAdminCatalogPath(
         {
@@ -661,6 +720,14 @@ function buildResearchIntakeAdminFilterFacets(
         parameters.sourceAuditDisposition.values,
         RESEARCH_INTAKE_ADMIN_FACET_LABELS.sourceAuditDisposition.options,
       ),
+      evidenceStatus: buildResearchIntakeAdminFacetDimension(
+        query,
+        'evidenceStatus',
+        RESEARCH_INTAKE_ADMIN_FACET_LABELS.evidenceStatus.dimension,
+        query.evidenceStatus,
+        parameters.evidenceStatus.values,
+        RESEARCH_INTAKE_ADMIN_FACET_LABELS.evidenceStatus.options,
+      ),
     },
   };
 }
@@ -699,6 +766,14 @@ function buildResearchIntakeAdminCatalogPath(
           query.sourceAuditDisposition !== parameters.sourceAuditDisposition.default
         ) {
           searchParams.set(parameter, query.sourceAuditDisposition);
+        }
+        break;
+      case 'evidenceStatus':
+        if (
+          !canonicalLinks.omitDefaultFilters
+          || query.evidenceStatus !== parameters.evidenceStatus.default
+        ) {
+          searchParams.set(parameter, query.evidenceStatus);
         }
         break;
       case 'page':
@@ -806,6 +881,22 @@ function buildResearchIntakeAdminFilterNavigation(
           });
         }
         break;
+      case 'evidenceStatus':
+        if (query.evidenceStatus !== parameters.evidenceStatus.default) {
+          activeFilters.push({
+            parameter,
+            label: RESEARCH_INTAKE_ADMIN_FACET_LABELS.evidenceStatus.dimension,
+            value: query.evidenceStatus,
+            displayValue:
+              RESEARCH_INTAKE_ADMIN_FACET_LABELS.evidenceStatus.options[
+                query.evidenceStatus
+              ],
+            removeHref: buildResearchIntakeAdminFilterActionPath(query, {
+              evidenceStatus: parameters.evidenceStatus.default,
+            }),
+          });
+        }
+        break;
       default: {
         const exhaustiveParameter: never = parameter;
         throw new Error(`Unsupported active research intake filter: ${exhaustiveParameter}`);
@@ -819,6 +910,7 @@ function buildResearchIntakeAdminFilterNavigation(
     stage: parameters.stage.default,
     verdict: parameters.verdict.default,
     sourceAuditDisposition: parameters.sourceAuditDisposition.default,
+    evidenceStatus: parameters.evidenceStatus.default,
   });
 
   return {
@@ -1056,10 +1148,7 @@ export function buildResearchIntakeAdminPayload(
   const visibleMarketingCandidates = new Set(
     observation.marketingReview.handoffs.map((handoff) => handoff.candidateId),
   );
-  const filtered = filterResearchIntake(
-    SYSTEMATIC_RESEARCH_INTAKE,
-    asIntakeFilters(query),
-  );
+  const filtered = filterResearchIntakeForAdmin(SYSTEMATIC_RESEARCH_INTAKE, query);
   const start = (query.page - 1) * query.limit;
   const records = filtered
     .slice(start, start + query.limit)
@@ -1097,6 +1186,10 @@ export function buildResearchIntakeAdminPayload(
     filterNavigation,
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
     filteredSummary: summarizeResearchIntake(filtered),
+    catalogEvidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      SYSTEMATIC_RESEARCH_INTAKE,
+    ),
+    filteredEvidenceStateSummary: summarizeResearchIntakeEvidenceStates(filtered),
     pagination: {
       page: query.page,
       limit: query.limit,

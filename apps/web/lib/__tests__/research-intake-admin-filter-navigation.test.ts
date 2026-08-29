@@ -76,7 +76,14 @@ describe('protected research catalog filter navigation', () => {
 
     expect(navigation).toEqual({
       contract: {
-        activeParameterOrder: ['q', 'assetClass', 'stage', 'verdict', 'sourceAuditDisposition'],
+        activeParameterOrder: [
+          'q',
+          'assetClass',
+          'stage',
+          'verdict',
+          'sourceAuditDisposition',
+          'evidenceStatus',
+        ],
         facetSelectionMode: 'replace-own-dimension',
         resetPageTo: 1,
         preserveLimit: true,
@@ -194,17 +201,17 @@ describe('protected research catalog filter navigation', () => {
     const defaultBody = JSON.stringify(defaultNavigation);
     const combinedBody = JSON.stringify(combinedNavigation);
 
-    expect(Buffer.byteLength(contract, 'utf8')).toBe(302);
+    expect(Buffer.byteLength(contract, 'utf8')).toBe(319);
     expect(createHash('sha256').update(contract).digest('hex')).toBe(
-      'c8d3e3ba0daa87e33f46fe51584c852a6842c437dbad7987bd3bdcdd71494ee8',
+      'ff08df4045df7fc697a5fa08800c79e1b4b5e22841b08e5489387bef085201b9',
     );
-    expect(Buffer.byteLength(defaultBody, 'utf8')).toBe(416);
+    expect(Buffer.byteLength(defaultBody, 'utf8')).toBe(433);
     expect(createHash('sha256').update(defaultBody).digest('hex')).toBe(
-      '157610711a7edbb1d1e07a89024301e0a5d1a2a2ae99f90df969dfaf24cfdfc6',
+      '72e1c1ca44bef034397fe9396a97db9eb476a6c0952eb4b3cce89123ba1b9590',
     );
-    expect(Buffer.byteLength(combinedBody, 'utf8')).toBe(964);
+    expect(Buffer.byteLength(combinedBody, 'utf8')).toBe(981);
     expect(createHash('sha256').update(combinedBody).digest('hex')).toBe(
-      '90e24f025a4d11efc0dd9d29621f2ca69b51307a5945903ff40330d84dc3bbf0',
+      'c3cdc137407808003debfbf45a59e8f6c77c9297dc6510387c07103290c6e09c',
     );
   });
 

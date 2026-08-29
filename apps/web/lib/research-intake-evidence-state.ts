@@ -47,7 +47,7 @@ export interface ResearchIntakeEvidenceStateSummary {
   grantsTradingAuthority: false;
 }
 
-const EVIDENCE_STATUS_COPY: Readonly<
+export const RESEARCH_INTAKE_EVIDENCE_STATUS_COPY: Readonly<
   Record<
     ResearchIntakePerformanceEvidenceStatus,
     Readonly<Pick<ResearchIntakeEvidenceState, 'label' | 'meaning'>>
@@ -116,7 +116,7 @@ export function buildResearchIntakeEvidenceState(
   record: ResearchIntakeRecord,
 ): ResearchIntakeEvidenceState {
   const status = performanceEvidenceStatus(record);
-  const copy = EVIDENCE_STATUS_COPY[status];
+  const copy = RESEARCH_INTAKE_EVIDENCE_STATUS_COPY[status];
   const evidence = record.tradeClawEvidence;
   const sourceAudit = record.tradeClawSourceAudit;
 
@@ -159,8 +159,8 @@ export function summarizeResearchIntakeEvidenceStates(
     performanceGatesNotEvaluated: records.length - performanceGatesEvaluated,
     statuses: RESEARCH_INTAKE_EVIDENCE_STATUS_ORDER.map((status) => ({
       performanceEvidenceStatus: status,
-      label: EVIDENCE_STATUS_COPY[status].label,
-      meaning: EVIDENCE_STATUS_COPY[status].meaning,
+      label: RESEARCH_INTAKE_EVIDENCE_STATUS_COPY[status].label,
+      meaning: RESEARCH_INTAKE_EVIDENCE_STATUS_COPY[status].meaning,
       count: counts[status],
       performanceGatesEvaluated: status.startsWith('modeled-historical-'),
     })),
