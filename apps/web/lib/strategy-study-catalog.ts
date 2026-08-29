@@ -318,7 +318,7 @@ export const EXPERIMENT_SHELF: readonly ExperimentShelfEntry[] = [
     runDate: '2026-07-17',
     label: 'Slow-gate sandbox predecessor',
     disposition: 'shelved',
-    reason: 'Predecessor sandbox with different spot-cost and sizing assumptions; superseded for the tracked lane by the frozen build artifact.',
+    reason: 'Predecessor sandbox with different spot-cost and sizing assumptions. The 50/50 vol-targeted portfolio trailed buy-and-hold CAGR (22.75% vs 28.09%) but improved modeled Calmar (0.61 vs 0.32) and max drawdown (37.42% vs 86.49%). EMA200 had isolated raw-CAGR wins, so the study did not establish uniform raw-return outperformance across both assets; HMM sizing underperformed buy-and-hold on drawdown-adjusted metrics. This is sandbox-only modeled research, not live performance, broker fills, or a trading recommendation; it was superseded for the tracked lane by the frozen build artifact.',
   },
   {
     file: 'xsection-validation-30majors-D1-lb14-rb7-top5-f4.json',

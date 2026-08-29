@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T21:40:35+08:00
+updated: 2026-08-29T22:07:04+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -156,6 +156,41 @@ research_loop_marketing_review_queue_projection_2026_08_29:
   next_action: At or after 2026-08-29T15:00:00.000Z, open at most one new receipt by screening the next lower-transition catalog candidate; do not select, publish, post, or trade automatically
   external_actions: none
   safety: The verified protected read-model increment was committed locally at 75f6774ed2f1fdae232d2c3651469ea3512c5cd2; no candidate, source data, return, artifact, outbound draft, UI, database, signal, allocation, broadcast, execution, billing, publication, push, merge, deployment, Docker, dependency, or auth state changed
+
+public_research_intake_projection_2026_08_29:
+  at: 2026-08-29T22:07:04+08:00
+  agent: TradeClaw PM agent
+  status: verified_public_research_intake_read_model
+  scope: Make the pinned awesome-systematic-trading intake and every completed TradeClaw overlay directly inspectable by public users through one safe read-only endpoint and canonical public documentation
+  base_commit: 61c2c771b61289d0b86b36147408ee1d672b9921
+  branch: agent/research-intake-desk-20260829
+  finding: The 61-candidate catalog and four completed external replications are available only through the protected admin API; the public research page still describes eight older studies, and open data manually lists only 9 of the 16 committed experiment artifacts
+  library_search: No reusable public research-catalog or read-model projection pattern exists in shared MemoryCore; reuse the repository's pinned intake, canonical experiment shelf, public cache, OpenAPI, and existing editorial page patterns
+  acceptance_gates:
+    - A public no-auth GET endpoint returns all 61 pinned candidates in exact source order with the canonical source receipt, workflow, and whole-catalog summary
+    - Upstream Sharpe, t-statistic, volatility, and years remain explicitly gross discovery metadata and never become a TradeClaw score, sort, or performance claim
+    - The public projection retains complete source-audit and replication evidence but omits nextAction, marketingDisposition, marketingReviewDraft, receipt history, marketing-review handoffs, and every admin workflow field
+    - TC-256 remains a source-audit no-go with verdict not-tested, TC-257 remains QA-only INCONCLUSIVE with no performance result, and TC-255, TC-258, and TC-259 remain cost/stability FAILs with all prospective and trading authority false
+    - The route is GET-only, deterministic, publicly cached, API-key-free, and documented in OpenAPI and the open-data developer surface
+    - The public research page reports the 61-row intake and exact stage/verdict counts without replacing or relabeling the existing eight-study ledger
+    - Open data renders every canonical experiment-shelf entry instead of maintaining a stale partial artifact list
+    - Existing admin auth/private-cache behavior, source ordering, Docker Compose, dependencies, database, signals, execution, billing, and owner-gated admin visual v0 remain unchanged
+  current_cycle_receipt_unchanged: 2026-08-29T12:00:00.000Z/PT3H
+  candidate_id: null
+  new_research_receipt_created: false
+  admin_visual_v0_changed: false
+  red_evidence: Three focused suites failed before implementation as required. The public payload and route suites could not resolve the intentionally absent modules; the publication contract separately failed on the absent research-page catalog, canonical experiment shelf, and Research OpenAPI surface.
+  implementation: A field-allow-listed public payload now returns the complete pinned catalog in source order with evidence-origin labels and explicit claim boundaries; a GET-only API-key-free route carries one-hour public caching; research reports exact whole-catalog counts beside the retained eight-study ledger; open data documents the endpoint and renders all 16 canonical experiment-shelf entries; OpenAPI describes the safe response without admin state.
+  focused_verification: The three new public-boundary suites plus the migrated slow-gate open-data contract pass 9/9 after the intentional RED run. A route assertion was corrected to expect the deliberately absent Vary header as null.
+  adjacent_verification: The 15-suite intake, loop, admin-auth, shelf, route, and public-publication set passes 84/84. The pinned-source verifier independently passes at 61 candidates with the exact commit and README hash. The widened 28-suite research set passes 297/297, and web typecheck passes after rebuilding the signals package.
+  payload_audit: The deterministic serialized public response is 57,239 bytes with exactly 61 records; evidence-origin counts are 56 upstream gross discoveries, 1 TradeClaw source-audit-only record, and 4 TradeClaw replication records. Diff whitespace checks pass.
+  repository_verification: All 255 runnable Jest suites and 1,996 tests pass with 3 suites and 26 tests skipped. The first run printed its complete green summary but stayed alive on the repository's inherited open handle; the unchanged rerun with forceExit closed at exit zero with the same counts. Lint completed with zero errors and the same 21 inherited warnings; no warning points to this increment.
+  build_verification: The required monorepo production build compiled signals, trading-agents, and Next.js, generated all 326 pages, and lists /api/research/intake as a static one-hour-revalidated route. The same inherited Turbopack trace, middleware deprecation, edge-static-generation, and Node url.parse warnings remain non-blocking.
+  final_audit: Diff whitespace and YAML parsing pass; the protected admin intake route and builder, Docker Compose, manifests, dependencies, migrations, database, billing, signals, broadcast, and execution files have no diff. The public builder is field-allow-listed and the route exposes only GET with no Cookie or Authorization cache variance.
+  current_step: Final diff and safety audit, then create the local implementation commit and record its exact hash in STATE and shared MemoryCore
+  next_action: At or after 2026-08-29T15:00:00.000Z, open at most one new research receipt by screening the next lower-transition catalog candidate; do not select, publish, post, deploy, or trade automatically
+  external_actions: none
+  safety: This increment adds only a read-only public projection, documentation, and canonical shelf rendering. Existing admin auth/private caching, source data, results, artifacts, admin UI, database, Docker, dependencies, signals, allocation, broadcast, execution, billing, publication authority, trading authority, push, merge, and deployment state remain unchanged. No new research receipt was created before the exact 15:00Z boundary.
 
 research_intake_marketing_handoff_projection_2026_08_29:
   at: 2026-08-29T19:18:24+08:00

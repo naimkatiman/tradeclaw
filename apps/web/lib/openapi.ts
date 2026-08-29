@@ -56,6 +56,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
     servers: SERVERS,
     tags: [
       { name: "Signals", description: "Rule-generated research candidates (v1 stable surface)" },
+      { name: "Research", description: "Pinned systematic-research catalog and evidence overlays" },
       { name: "Widgets", description: "Embeddable widgets and SVG cards" },
       { name: "Proof", description: "OHLCV-resolved signal-outcome study data; not broker or portfolio results" },
       { name: "Digest", description: "Daily / weekly recorded-signal digests" },
@@ -219,6 +220,181 @@ export function buildOpenApiSpec(): OpenApiSpec {
             stats: { type: "object" },
           },
         },
+        ResearchIntakeResponse: {
+          type: "object",
+          description:
+            "Public, deterministic projection of the pinned systematic-research catalog. Admin timing, next-action, and marketing workflow fields are excluded.",
+          required: [
+            "schemaVersion",
+            "access",
+            "source",
+            "selectionPolicy",
+            "workflow",
+            "claimBoundary",
+            "catalogSummary",
+            "records",
+          ],
+          properties: {
+            schemaVersion: { type: "integer", const: 1 },
+            access: {
+              type: "object",
+              required: [
+                "mode",
+                "requiresAuthentication",
+                "requiresApiKey",
+                "grantsPublicationAuthority",
+                "grantsTradingAuthority",
+              ],
+              properties: {
+                mode: { type: "string", const: "public-read-only" },
+                requiresAuthentication: { type: "boolean", const: false },
+                requiresApiKey: { type: "boolean", const: false },
+                grantsPublicationAuthority: { type: "boolean", const: false },
+                grantsTradingAuthority: { type: "boolean", const: false },
+              },
+            },
+            source: {
+              type: "object",
+              description: "Pinned awesome-systematic-trading source receipt",
+              required: [
+                "repository",
+                "commit",
+                "readmeSha256",
+                "snapshotDate",
+                "reportedPerformanceBasis",
+                "tradeClawTreatment",
+              ],
+              properties: {
+                repository: { type: "string", format: "uri" },
+                commit: { type: "string" },
+                readmeSha256: { type: "string" },
+                snapshotDate: { type: "string", format: "date" },
+                reportedPerformanceBasis: {
+                  type: "string",
+                  const: "gross-of-trading-costs",
+                },
+                tradeClawTreatment: { type: "string", const: "discovery-only" },
+              },
+            },
+            selectionPolicy: { type: "string" },
+            workflow: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["stage", "exitGate"],
+                properties: {
+                  stage: {
+                    type: "string",
+                    enum: [
+                      "discovered",
+                      "source-audited",
+                      "preregistered",
+                      "replicated",
+                      "prospective",
+                    ],
+                  },
+                  exitGate: { type: "string" },
+                },
+              },
+            },
+            claimBoundary: {
+              type: "object",
+              required: ["upstreamMetrics", "sourceAudit", "replication", "authority"],
+              properties: {
+                upstreamMetrics: { type: "string" },
+                sourceAudit: { type: "string" },
+                replication: { type: "string" },
+                authority: { type: "string" },
+              },
+            },
+            catalogSummary: {
+              type: "object",
+              description: "Whole-catalog stage and verdict counts",
+              required: [
+                "total",
+                "discovered",
+                "sourceAudited",
+                "preregistered",
+                "replicated",
+                "prospective",
+                "passed",
+                "failed",
+                "inconclusive",
+                "untested",
+                "sourceNoGo",
+                "byAssetClass",
+              ],
+              properties: {
+                total: { type: "integer", example: 61 },
+                discovered: { type: "integer", example: 56 },
+                sourceAudited: { type: "integer", example: 1 },
+                preregistered: { type: "integer", example: 0 },
+                replicated: { type: "integer", example: 4 },
+                prospective: { type: "integer", example: 0 },
+                passed: { type: "integer", example: 0 },
+                failed: { type: "integer", example: 3 },
+                inconclusive: { type: "integer", example: 1 },
+                untested: { type: "integer", example: 57 },
+                sourceNoGo: { type: "integer", example: 1 },
+                byAssetClass: {
+                  type: "object",
+                  additionalProperties: { type: "integer" },
+                },
+              },
+            },
+            records: {
+              type: "array",
+              minItems: 61,
+              maxItems: 61,
+              items: {
+                type: "object",
+                required: [
+                  "id",
+                  "title",
+                  "sourceUrl",
+                  "assetClass",
+                  "upstreamGrossSharpe",
+                  "upstreamTStatistic",
+                  "upstreamVolatilityPct",
+                  "upstreamYearsTested",
+                  "sourcePosition",
+                  "discoveryBasis",
+                  "stage",
+                  "verdict",
+                  "costStatus",
+                  "evidenceBasis",
+                  "tradeClawSourceAudit",
+                  "tradeClawEvidence",
+                ],
+                properties: {
+                  id: { type: "string" },
+                  title: { type: "string" },
+                  sourceUrl: { type: "string", format: "uri" },
+                  assetClass: { type: "string" },
+                  upstreamGrossSharpe: { type: "number" },
+                  upstreamTStatistic: { type: "number" },
+                  upstreamVolatilityPct: { type: "number" },
+                  upstreamYearsTested: { type: "number" },
+                  sourcePosition: { type: "integer", minimum: 0, maximum: 60 },
+                  discoveryBasis: { type: "string", const: "upstream-gross-metadata" },
+                  stage: { type: "string" },
+                  verdict: { type: "string" },
+                  costStatus: { type: "string" },
+                  evidenceBasis: {
+                    type: "string",
+                    enum: [
+                      "upstream-gross-discovery-only",
+                      "tradeclaw-source-audit-only",
+                      "tradeclaw-replication-record",
+                    ],
+                  },
+                  tradeClawSourceAudit: { type: ["object", "null"] },
+                  tradeClawEvidence: { type: ["object", "null"] },
+                },
+              },
+            },
+          },
+        },
         HealthResponse: {
           type: "object",
           required: ["status", "version", "uptime", "timestamp", "checks"],
@@ -257,6 +433,27 @@ export function buildOpenApiSpec(): OpenApiSpec {
     // Most endpoints are public. Security is applied explicitly only on the
     // ones that require a key, so no top-level `security` array here.
     paths: {
+      "/api/research/intake": {
+        get: {
+          tags: ["Research"],
+          operationId: "getResearchIntake",
+          summary: "Inspect the pinned systematic-research intake",
+          description:
+            "Returns all 61 source candidates in original order with upstream figures labeled as gross discovery metadata only and completed TradeClaw overlays labeled as modeled historical research. " +
+            "No API key is required. The response excludes admin and marketing workflow and grants no publication, strategy-selection, broadcast, or trading authority.",
+          security: [],
+          responses: {
+            "200": {
+              description: "Pinned public research intake and completed evidence overlays",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ResearchIntakeResponse" },
+                },
+              },
+            },
+          },
+        },
+      },
       "/api/v1/signals": {
         get: {
           tags: ["Signals"],

@@ -1,17 +1,21 @@
 import type { Metadata } from 'next';
 import { Navbar } from '../components/navbar';
 import { EditorialHeroArt } from '../../components/editorial-hero-art';
+import {
+  SYSTEMATIC_RESEARCH_INTAKE,
+  summarizeResearchIntake,
+} from '../../lib/research-intake';
 
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Research: What We Tested and Learned | TradeClaw',
   description:
-    'TradeClaw research record: fixed study specifications, modeled cost assumptions, benchmarked backtest results, caveats, and committed artifacts.',
+    'TradeClaw research record: a pinned 61-candidate systematic catalog, completed evidence overlays, fixed study specifications, modeled costs, caveats, and committed artifacts.',
   openGraph: {
     title: 'Research: What We Tested and Learned | TradeClaw',
     description:
-      'Eight strategy studies, evaluated under published modeled costs and reported with machine-readable artifacts and explicit claim boundaries.',
+      'A pinned 61-candidate systematic catalog plus retained strategy studies, machine-readable evidence, modeled costs, and explicit claim boundaries.',
     url: 'https://tradeclaw.win/research',
     siteName: 'TradeClaw',
     type: 'website',
@@ -29,6 +33,7 @@ const REGIME_STUDY_PLAN = `${GH}/docs/plans/2026-08-05-regime-expectancy-study.m
 const D1_SLOW_GATE_BUILD_SPEC = `${GH}/docs/plans/2026-08-08-d1-slow-gate-build-spec.md`;
 const D1_SLOW_GATE_PLAN = `${GH}/docs/plans/2026-08-08-d1-slow-gate-walk-forward.md`;
 const experiment = (file: string) => `${GH}/docs/research/experiments/${file}`;
+const SYSTEMATIC_INTAKE_SUMMARY = summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE);
 
 type Tone = 'down' | 'neutral';
 
@@ -557,8 +562,43 @@ export default function ResearchPage() {
             />
           </header>
 
+          <section
+            className="reveal border-y border-[var(--border)] py-10"
+            aria-labelledby="systematic-catalog-intake"
+          >
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)]">
+              Pinned external discovery source
+            </p>
+            <h2
+              id="systematic-catalog-intake"
+              className="font-display mt-3 text-2xl font-bold uppercase leading-none tracking-tight sm:text-3xl"
+            >
+              Systematic catalog intake
+            </h2>
+            <p className="mt-5 max-w-prose text-[15px] leading-relaxed text-[var(--foreground)]">
+              We pinned all {SYSTEMATIC_INTAKE_SUMMARY.total} candidates from the source catalog in its
+              original order: {SYSTEMATIC_INTAKE_SUMMARY.discovered} remain untouched discoveries,{' '}
+              {SYSTEMATIC_INTAKE_SUMMARY.sourceAudited} stopped at source audit, and{' '}
+              {SYSTEMATIC_INTAKE_SUMMARY.replicated} have a completed TradeClaw replication record.
+              Of those replications, {SYSTEMATIC_INTAKE_SUMMARY.failed} failed and{' '}
+              {SYSTEMATIC_INTAKE_SUMMARY.inconclusive} is QA-only and inconclusive. None passed into
+              prospective review.
+            </p>
+            <p className="mt-4 max-w-prose text-[14px] leading-relaxed text-[var(--text-secondary)]">
+              Upstream Sharpe, t-statistic, volatility, and years remain gross, discovery-only metadata;
+              they are not TradeClaw performance. A source-audit no-go is a feasibility decision, not a local performance failure.
+              Completed overlays retain costs, holdouts, QA, and failure reasons without granting publication or trading authority.
+            </p>
+            <a
+              href="/api/research/intake"
+              className="mt-6 inline-flex rounded-[var(--radius-pill)] border border-[var(--border)] px-5 py-2.5 font-mono text-[13px] font-semibold text-[var(--foreground)] underline decoration-[var(--border)] underline-offset-4 transition-colors duration-200 hover:decoration-[var(--foreground)]"
+            >
+              Inspect all {SYSTEMATIC_INTAKE_SUMMARY.total} records as JSON
+            </a>
+          </section>
+
           {/* Kill ledger */}
-          <div className="divide-y divide-[var(--border)] border-t border-[var(--border)]">
+          <div className="divide-y divide-[var(--border)]">
             {ENTRIES.map((entry) => (
               <KillLedgerEntry key={entry.family} entry={entry} />
             ))}

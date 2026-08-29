@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { EXPERIMENT_SHELF } from '../../lib/strategy-study-catalog';
 
 const ARTIFACT_FILE =
   'slow-gate-BTCUSD_ETHUSD-D1-2017-09-01-2026-07-16-f4.json';
@@ -28,16 +29,20 @@ describe('slow-gate open-data contract', () => {
       >;
     };
 
-    expect(page).toContain(`file: '${ARTIFACT_FILE}'`);
+    const shelfEntry = EXPERIMENT_SHELF.find((entry) => entry.file === ARTIFACT_FILE);
+
+    expect(shelfEntry).toBeDefined();
     expect(page).toContain(
       "const REPO_BLOB = 'https://github.com/naimkatiman/tradeclaw/blob/main/docs/research/experiments';",
     );
     expect(page).toContain('href={`${REPO_BLOB}/${a.file}`}');
-    expect(page).toContain("labels: ['sandbox only', 'non-live', 'modeled backtest', 'no broker fills', 'informational only']");
-    expect(page).toContain('The 50/50 vol-targeted portfolio trailed buy-and-hold CAGR (22.75% vs 28.09%)');
-    expect(page).toContain('improved modeled Calmar (0.61 vs 0.32) and max drawdown (37.42% vs 86.49%)');
-    expect(page).toContain('EMA200 had isolated raw-CAGR wins');
-    expect(page).toContain('does not represent broker fills');
+    expect(page).toContain('EXPERIMENT_SHELF.map');
+    expect(page).toContain('{a.reason}');
+    expect(shelfEntry?.reason).toContain('The 50/50 vol-targeted portfolio trailed buy-and-hold CAGR (22.75% vs 28.09%)');
+    expect(shelfEntry?.reason).toContain('improved modeled Calmar (0.61 vs 0.32) and max drawdown (37.42% vs 86.49%)');
+    expect(shelfEntry?.reason).toContain('EMA200 had isolated raw-CAGR wins');
+    expect(shelfEntry?.reason).toMatch(/sandbox-only modeled research/i);
+    expect(shelfEntry?.reason).toMatch(/not live performance, broker fills, or a trading recommendation/i);
 
     expect(artifact.spec.variants).toEqual(
       expect.arrayContaining(['buy-hold', 'ema200-hmm', 'ema200-vol']),
