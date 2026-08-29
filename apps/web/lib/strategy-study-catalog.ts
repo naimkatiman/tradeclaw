@@ -265,6 +265,20 @@ export const FEATURED_STRATEGY_STUDIES: readonly StrategyStudyRecord[] = [
 
 export const EXPERIMENT_SHELF: readonly ExperimentShelfEntry[] = [
   {
+    file: 'external-multi-timeframe-BTCUSD_ETHUSD-H1-D1-2018-12-01-2026-07-17-f4.json',
+    runDate: '2026-08-29',
+    label: 'External D1/H1 multi-timeframe replication',
+    disposition: 'shelved',
+    reason: 'Canonical TC-255 costed external replication; BTC, ETH, and the fixed 50/50 portfolio failed every performance gate and are ineligible for prospective review.',
+  },
+  {
+    file: 'external-multi-timeframe-BTCUSD_ETHUSD-H1-D1-2018-12-01-2026-07-17-f4-superseded-v1.json',
+    runDate: '2026-08-29',
+    label: 'External D1/H1 replication / superseded source-audit version',
+    disposition: 'shelved',
+    reason: 'Complete pre-erratum artifact retained for auditability; the final schema adds only an ungated ambiguous-exit sensitivity and does not change any gate input or failed verdict.',
+  },
+  {
     file: 'd1-slow-gate-walk-forward-BTCUSD_ETHUSD-D1-2017-09-01-2026-07-16-f4.json',
     runDate: '2026-08-08',
     label: 'D1 slow-gate walk-forward',

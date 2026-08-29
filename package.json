@@ -26,6 +26,7 @@
     "ws:start": "npm run start --workspace=apps/ws-server",
     "ws:test": "npm run test --workspace=apps/ws-server",
     "resolve:outcomes": "npx tsx -e \"import { resolveRealOutcomes } from './apps/web/lib/signal-history.ts'; resolveRealOutcomes().then(() => console.log('Done')).catch(e => { console.error(e); process.exit(1); })\"",
+    "verify:research-intake": "node scripts/research/verify-systematic-intake-source.mjs",
     "test": "jest",
     "test:e2e": "npm run test:e2e --workspace=apps/web"
   },
