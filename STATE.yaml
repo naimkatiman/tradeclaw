@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T10:27:40+08:00
+updated: 2026-08-29T10:47:07+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,12 +10,18 @@ description: >
 lighthouse_accessibility_trust_repair_2026_08_29:
   at: 2026-08-29T09:42:09+08:00
   agent: TradeClaw PM agent
-  status: release_authorized
+  status: deployment_ready
   release_authorized_at: 2026-08-29T10:27:40+08:00
+  implementation_commit: e6076e8c01c54773d8dace660a128594e5753fb4
+  pull_request: 223
+  ci_run: 33229041579
+  merge_commit: 9303899f77c7f4745c0aeb60a988ef305e2d8634
+  merged_at: 2026-08-29T10:44:12+08:00
+  state_closure_branch: agent/lighthouse-a11y-performance-state-20260829
   scope: Repair the homepage evidence handoff, mobile LCP and unused JavaScript, homepage contrast, Backtest accessibility, and the Cloudflare Insights CSP warning
   base_commit: ca926f91c298c92fd0643f52adf6c02f23971d70
   branch: agent/lighthouse-a11y-performance-20260829
-  current_step: Owner authorized commit, push, protected merge, exact-final-main Railway deployment, and live remeasurement
+  current_step: PR 223 is protected-merged with an identical head/merge tree; state-only closure is awaiting protected merge before exact-final-main Railway deployment
   implementation: >
     The homepage now invokes the shared equity route in-process instead of
     fetching a guessed localhost/public origin, so a healthy production ledger
@@ -58,6 +64,13 @@ lighthouse_accessibility_trust_repair_2026_08_29:
     unconfigured. Local no-database rendering truthfully showed an empty ledger,
     not a temporarily unavailable dataset. The live raw API remained HTTP 200
     with 4,954 sized trades and -0.57R net expectancy at audit time.
+  protected_ci: >
+    PR 223 passed all seven observed checks in run 33229041579: welcome, Lint
+    and Type Check, Strategy Backtests, Unit Tests, Build, Docker Build, and
+    Playwright E2E. Playwright completed in 11m48s. The implementation head and
+    squash-merge commit have the identical tree
+    0c6110668d5ccca11b437d331370f06d5ed2f232.
+  state_closure_build: Root npm run build passed from merged main and generated 325 of 325 pages
   remaining_constraint: >
     Local Best Practices is 100 and the application-owned CSP issue is fixed.
     Production Cloudflare may continue injecting deprecated Shared Storage,
