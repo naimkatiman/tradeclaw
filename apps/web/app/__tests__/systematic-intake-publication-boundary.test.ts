@@ -136,6 +136,7 @@ describe('systematic research intake public boundary', () => {
 
   it('keeps the complete admin evidence desk authenticated and outside public OpenAPI', () => {
     const route = source('api/admin/research-intake/evidence/route.ts');
+    const csvRoute = source('api/admin/research-intake/evidence.csv/route.ts');
     const spec = buildOpenApiSpec() as { paths: Record<string, unknown> };
 
     expect(route).toContain('assertAdminApi');
@@ -146,6 +147,16 @@ describe('systematic research intake public boundary', () => {
     expect(route).toContain("Vary', 'Cookie, Authorization");
     expect(route).not.toMatch(/Access-Control-Allow-Origin/i);
     expect(route).not.toMatch(/export async function (POST|PUT|PATCH|DELETE)/);
+    expect(csvRoute).toContain('assertAdminApi');
+    expect(csvRoute.indexOf('assertAdminApi')).toBeLessThan(
+      csvRoute.indexOf('buildResearchIntakeAdminEvidenceCsv'),
+    );
+    expect(csvRoute).toContain("private, no-store, max-age=0");
+    expect(csvRoute).toContain("Vary', 'Cookie, Authorization");
+    expect(csvRoute).toContain("X-Content-Type-Options': 'nosniff");
+    expect(csvRoute).not.toMatch(/Access-Control-Allow-Origin/i);
+    expect(csvRoute).not.toMatch(/export async function (POST|PUT|PATCH|DELETE)/);
     expect(spec.paths).not.toHaveProperty('/api/admin/research-intake/evidence');
+    expect(spec.paths).not.toHaveProperty('/api/admin/research-intake/evidence.csv');
   });
 });

@@ -1,11 +1,97 @@
 project: tradeclaw
-updated: 2026-08-30T02:29:44+08:00
+updated: 2026-08-30T02:46:36+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+admin_research_evidence_csv_2026_08_30:
+  at: 2026-08-30T02:46:36+08:00
+  agent: TradeClaw PM agent
+  status: verified_protected_admin_evidence_csv_ready_for_local_commit
+  scope: Give an authenticated admin one filter-independent spreadsheet projection of the complete evidence desk, including observation-visible receipt and marketing state, without weakening the canonical JSON, auth, publication, or trading boundaries
+  base_commit: b3482f4c20b222ca2eb551f3230f5926adfd623a
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-256
+  current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-261
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-29T21:00:00.000Z
+  decision: >-
+    Complete the protected evidence handoff with an authenticated GET-only CSV
+    sibling of the canonical evidence JSON. The export must authenticate before
+    observing the clock or serializing, ignore query filters, preserve pinned
+    source order, expose only receipt and marketing state visible at the
+    observation instant, neutralize spreadsheet formulas, and repeat false
+    publication, posting, trading, and external-action controls.
+  canonical_json: /api/admin/research-intake/evidence
+  planned_route: /api/admin/research-intake/evidence.csv
+  red_verification: >-
+    PASS - all four targeted suites fail only at the frozen absent seams: the
+    serializer module and route do not exist, the real-auth test cannot import
+    the route, and the public-boundary test cannot inspect it. The four existing
+    public-boundary assertions remain green; no implementation path passed by accident.
+  focused_verification: >-
+    PASS - all four serializer, route, real signed-cookie auth, and public-boundary
+    suites pass 15/15. Seven rows stay in pinned source order; receipt and handoff
+    state is observation-consistent; spreadsheet formulas are neutralized; the
+    route is GET-only, private/no-store, query-independent, and outside public OpenAPI.
+  deterministic_csv:
+    at: 2026-08-29T18:00:40.000Z
+    bytes: 14533
+    sha256: 49c32887d5edaf402a9108ec6351e8acb2a5d567b5367df178250482b4542053
+    rows: 7
+    columns: 50
+    physical_crlf_lines: 8
+    every_row_width_exact: true
+  deterministic_audit: >-
+    PASS - an apply-patch-created temporary parser independently confirmed exact
+    row width, task order, bytes, SHA-256, and physical line count, then was
+    deleted. The same byte and hash baseline is now enforced by the serializer test.
+  adjacent_verification: >-
+    PASS - 14 evidence CSV/JSON, admin auth, marketing review, receipt,
+    publication-boundary, and STATE-bound suites pass 60/60 with the exact
+    deterministic baseline active.
+  typecheck_verification: PASS - signals package build and web TypeScript no-emit check complete without errors
+  changed_file_lint_verification: PASS - every changed TypeScript file passes the authoritative apps/web ESLint configuration with zero findings
+  lint_verification: PASS - full web lint completes with zero errors and the same 21 inherited warnings; no warning points to this increment
+  source_verification: PASS - the independent verifier reconstructs all 61 pinned candidates at exact commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with discovery-only treatment
+  repository_test_verification: >-
+    PASS - all 278 runnable Jest suites and 2,077 tests pass; three suites and
+    26 tests are skipped and one snapshot passes. Force-exit closes only the
+    repository's inherited open handle after the complete green summary.
+  build_verification: >-
+    PASS - the required root production build compiles the signals and
+    trading-agents packages, compiles Next.js successfully, generates all
+    329/329 static pages, and registers the new protected dynamic CSV route.
+    Only the inherited middleware, trace, url.parse, and edge-runtime warnings remain.
+  state_and_scope_verification: >-
+    PASS - STATE.yaml parses, git diff --check reports no whitespace errors,
+    the temporary audit script is absent, and the exact seven-file manifest
+    contains only the protected route, serializer, tests, public-boundary guard,
+    and STATE. Docker Compose, dependencies, lockfiles, database, auth semantics,
+    rendered UI, public OpenAPI, and runtime trading paths are untouched.
+  final_state_bound_verification: PASS - the exact 14-suite evidence, auth, receipt, review, and publication-boundary set passes 60/60 after the seven-file manifest was frozen
+  changed_files:
+    - STATE.yaml
+    - apps/web/app/__tests__/systematic-intake-publication-boundary.test.ts
+    - apps/web/app/api/admin/research-intake/evidence.csv/__tests__/auth-boundary.test.ts
+    - apps/web/app/api/admin/research-intake/evidence.csv/__tests__/route.test.ts
+    - apps/web/app/api/admin/research-intake/evidence.csv/route.ts
+    - apps/web/lib/__tests__/research-intake-admin-evidence-csv.test.ts
+    - apps/web/lib/research-intake-admin-evidence-csv.ts
+  visual_ui_changed: false
+  public_contract_changed: false
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  current_step: Create the verified local implementation commit, then bind its exact hash in a STATE-only closure and shared MemoryCore
+  next_action: Close every failed gate before creating local implementation and state commits; preserve TC-261 as the sole 18:00Z receipt
+  safety: No research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, public OpenAPI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
 
 crypto_factor_source_audit_2026_08_29:
   at: 2026-08-30T02:29:44+08:00
