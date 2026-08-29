@@ -54,6 +54,19 @@ describe('GET /api/admin/research-intake', () => {
         grantsPublicationAuthority: false,
         grantsTradingAuthority: false,
       },
+      queryContract: {
+        unknownParameters: 'rejected',
+        duplicateParameters: 'rejected',
+        parameters: {
+          q: { maxLength: 120, default: null },
+          assetClass: { default: 'all', values: expect.arrayContaining(['all', 'Equities']) },
+          stage: { default: 'all', values: expect.arrayContaining(['all', 'replicated']) },
+          verdict: { default: 'all', values: ['all', 'not-tested', 'pass', 'fail', 'inconclusive'] },
+          sourceAuditDisposition: { default: 'all', values: ['all', 'advance', 'hold', 'no-go'] },
+          page: { default: 1, minimum: 1, maximum: 10_000 },
+          limit: { default: 25, minimum: 1, maximum: 100 },
+        },
+      },
       source: {
         commit: 'd9c98521c76662d5eae03ab97a4fc721d010dde3',
         reportedPerformanceBasis: 'gross-of-trading-costs',
@@ -85,6 +98,13 @@ describe('GET /api/admin/research-intake', () => {
         returnedRecords: 25,
         hasPreviousPage: false,
         hasNextPage: true,
+        links: {
+          self: '/api/admin/research-intake?page=1&limit=25',
+          first: '/api/admin/research-intake?page=1&limit=25',
+          previous: null,
+          next: '/api/admin/research-intake?page=2&limit=25',
+          last: '/api/admin/research-intake?page=3&limit=25',
+        },
       },
     });
     expect(body.selectionPolicy).toMatch(/never TradeClaw evidence.*default sort/i);
@@ -419,6 +439,13 @@ describe('GET /api/admin/research-intake', () => {
       returnedRecords: 10,
       hasPreviousPage: true,
       hasNextPage: true,
+      links: {
+        self: '/api/admin/research-intake?page=2&limit=10',
+        first: '/api/admin/research-intake?page=1&limit=10',
+        previous: '/api/admin/research-intake?page=1&limit=10',
+        next: '/api/admin/research-intake?page=3&limit=10',
+        last: '/api/admin/research-intake?page=7&limit=10',
+      },
     });
     expect(body.records[0].id).toBe(SYSTEMATIC_RESEARCH_INTAKE[10].id);
     expect(body.records.at(-1).id).toBe(SYSTEMATIC_RESEARCH_INTAKE[19].id);
@@ -439,6 +466,13 @@ describe('GET /api/admin/research-intake', () => {
       returnedRecords: 0,
       hasPreviousPage: false,
       hasNextPage: false,
+      links: {
+        self: '/api/admin/research-intake?q=no-such-research-candidate&page=1&limit=25',
+        first: '/api/admin/research-intake?q=no-such-research-candidate&page=1&limit=25',
+        previous: null,
+        next: null,
+        last: '/api/admin/research-intake?q=no-such-research-candidate&page=1&limit=25',
+      },
     });
     expect(body.records).toEqual([]);
   });

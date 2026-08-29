@@ -1,11 +1,140 @@
 project: tradeclaw
-updated: 2026-08-30T03:01:26+08:00
+updated: 2026-08-30T03:24:09+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+admin_research_catalog_navigation_2026_08_30:
+  at: 2026-08-30T03:24:09+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_implementation_commit
+  scope: Let an authenticated admin build and navigate the filtered research catalog without duplicating hidden server enums, defaults, validation limits, query normalization, or URL serialization
+  base_commit: 1a32b933a8fb74d19181e4847e9340dce8bbbe2b
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-256
+  current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-261
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-29T21:00:00.000Z
+  decision: >-
+    Add one deeply frozen additive schema-v1 queryContract to the protected catalog
+    payload and server-authored self/first/previous/next/last pagination links.
+    Make the contract the source of truth for parsing so accepted values and limits
+    cannot drift. Keep candidate, evidence, review, CSV, public, auth, and UI contracts unchanged.
+  frozen_query_contract:
+    parameter_order: [q, assetClass, stage, verdict, sourceAuditDisposition, page, limit]
+    unknown_parameters: rejected
+    duplicate_parameters: rejected
+    q: text / appliedField=query / default=null / trim=true / emptyMeans=null / maxLength=120 / controlCharacters=rejected
+    asset_class: enum / default=all / values=[all, Equities, Bonds, Commodities, Currencies, Cryptocurrencies, Derivatives, Multi-asset]
+    stage: enum / default=all / values=[all, discovered, source-audited, preregistered, replicated, prospective]
+    verdict: enum / default=all / values=[all, not-tested, pass, fail, inconclusive]
+    source_audit_disposition: enum / default=all / values=[all, advance, hold, no-go]
+    page: positive-integer / default=1 / minimum=1 / maximum=10000
+    limit: positive-integer / default=25 / minimum=1 / maximum=100
+  frozen_link_contract:
+    keys: [self, first, previous, next, last]
+    base_path: /api/admin/research-intake
+    parameter_order: [q, assetClass, stage, verdict, sourceAuditDisposition, page, limit]
+    omit_default_filters: true
+    always_include: [page, limit]
+    previous_and_next_nullable: true
+    empty_or_out_of_range_last_page_floor: 1
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+  red_verification: >-
+    PASS - both new library and protected-route suites run 22 assertions: 15
+    existing assertions stay green and seven fail only because queryContract and
+    pagination.links are absent. Parser rejection behavior remains intact; no
+    product path passed the new navigation contract by accident.
+  focused_verification: >-
+    PASS - both library and protected-route suites pass 22/22 on the first GREEN
+    iteration. The deeply frozen contract is parser-aligned, all declared enums
+    and limits are accepted or rejected exactly, canonical links preserve filter
+    order and omit defaults, and empty results expose no invented adjacent page.
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    query_contract: 1121 bytes / ed4a2bd3a0c8dc5e4305a400c2754ebdaa49e5c5000478add9e77af477d5b795
+    admin_catalog_default: 44000 bytes / c3c3eb0d126bd31f3f3e02225e6086b679f6e54421d508709367c2bfb7a90cc2
+    admin_catalog_limit_100: 88823 bytes / 690b3aee6020b27f4f377372288c02c9aa1033af2c364ac802e9b09777cc35fd
+    admin_catalog_equities_page_2_limit_3: 17193 bytes / e56164c16317740646b1034ba511d1c033c84c97e120e4d4ac38d0c49cd59a51
+    admin_candidate_tc260_unchanged: 9503 bytes / 6cd0ca1bc9775274f4aa02818640424d513d3a912eb5e2b47a6c895a17077ebd
+    admin_evidence_unchanged: 56502 bytes / defa5ec013c50c5c762fbb801d5dca6760646d0a3e28fdf2b441f75a3cea8098
+    admin_marketing_review_unchanged: 20279 bytes / 2cedcc9b48516de8975a481c0236e4810384ff4b7d83d376585d058cbd6baa9a
+    admin_evidence_csv_at_2026_08_29T18_00_40Z_unchanged: 14533 bytes / 49c32887d5edaf402a9108ec6351e8acb2a5d567b5367df178250482b4542053
+    admin_marketing_review_csv_unchanged: 6350 bytes / 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    public_catalog_unchanged: 63327 bytes / 602845ec6bd4d98410fcaf7fe2d0f4388a4293bddbd48699fdcedf1a18a99b43
+    public_catalog_csv_unchanged: 36822 bytes / 49a715737f00100d3ef4728de0e471ce05bc669876354e9e266542863d2ede49
+  deterministic_audit: >-
+    PASS - an apply-patch-created temporary TypeScript verifier independently
+    fingerprinted the contract, three catalog shapes, and seven protected/public
+    sibling payloads, then was deleted. Only the protected catalog changed; the
+    frozen contract plus default and complete catalog hashes now have regression coverage.
+  focused_deterministic_verification: PASS - both focused suites pass 23/23 with all three deterministic baselines active
+  adjacent_verification: >-
+    PASS - all 21 protected catalog/candidate/evidence/review/CSV, real signed-cookie
+    auth, query/resource contract, public catalog, receipt, marketing, and
+    publication-boundary suites pass 93/93.
+  typecheck_verification: PASS - signals package build and web TypeScript no-emit check complete without errors
+  source_verification: PASS - the independent verifier reconstructs all 61 pinned candidates at exact commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with discovery-only treatment
+  changed_file_lint_verification: PASS - all three changed TypeScript files pass the authoritative apps/web ESLint configuration with zero findings
+  preliminary_state_verification: PASS - STATE.yaml parses, git diff --check reports no whitespace errors, and the temporary audit script is absent
+  lint_verification: PASS - full web lint completes with zero errors and the same 21 inherited warnings; no warning points to this increment
+  repository_test_verification: >-
+    PASS - all 280 runnable Jest suites and 2,086 tests pass; three suites and 26
+    tests are skipped and one snapshot passes. Force-exit closes only the
+    repository's inherited open handle after the complete green summary.
+  final_repository_test_verification: >-
+    PASS - after the query parser was tightened to consume the contract's trim,
+    empty, and control-character policies directly, the final clean rerun again
+    passes all 280 runnable Jest suites and 2,086 tests; three suites and 26 tests
+    are skipped and one snapshot passes. Force-exit closes only the repository's
+    inherited open handle after the complete green summary.
+  final_contract_alignment_first_iteration: >-
+    The parser now consumes the contract's trim, empty, and control-character
+    policies directly. Typecheck and changed-file lint pass; the route suite and
+    22/23 focused assertions pass. The sole failure is a test-only distinction:
+    the typed object owns optional query with value undefined, which JSON omits.
+    Assert the exact undefined value instead of claiming the in-memory key is absent.
+  final_focused_verification: >-
+    PASS - after correcting the test-only optional-property expectation, both
+    focused suites pass 23/23 with parser-policy alignment and every deterministic
+    query-contract and catalog baseline active.
+  final_typecheck_verification: PASS - signals build and web TypeScript no-emit check complete without errors after the parser-policy alignment
+  final_changed_file_lint_verification: PASS - all three changed TypeScript files pass the authoritative apps/web ESLint configuration with zero findings after the parser-policy alignment
+  final_lint_verification: PASS - full web lint completes with zero errors and the same 21 inherited warnings; no warning points to this increment
+  build_verification: >-
+    PASS - the required final root production build compiles the signals and
+    trading-agents packages, compiles Next.js successfully, generates all 329/329
+    static pages, and retains the protected catalog, candidate, evidence, evidence
+    CSV, review, and review CSV routes as dynamic server routes. Only the inherited
+    middleware, NFT trace, url.parse, and edge-runtime warnings remain.
+  state_and_scope_verification: >-
+    PASS - STATE.yaml parses, git diff --check reports no whitespace errors, the
+    temporary deterministic audit script is absent, and the exact four-file
+    manifest contains only the protected query/navigation contract, its focused
+    library and route coverage, and STATE. Docker Compose, dependencies, lockfiles,
+    database, auth semantics, rendered UI, public OpenAPI, and runtime trading paths are untouched.
+  final_state_bound_verification: >-
+    PASS - the exact nine-suite query-contract, resource-map, protected catalog,
+    candidate, evidence, review, receipt, marketing, and publication-boundary set
+    passes 55/55 after the four-file manifest and final verification evidence were frozen.
+  visual_ui_changed: false
+  public_contract_changed: false
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  current_step: Create the verified local implementation commit from the exact four-file manifest
+  next_action: Record the implementation hash in STATE, create the STATE-only closure commit, and save durable MemoryCore context
+  safety: No research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, public OpenAPI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changes are authorized
 
 admin_research_resource_map_2026_08_30:
   at: 2026-08-30T03:01:26+08:00

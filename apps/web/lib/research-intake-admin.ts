@@ -32,10 +32,10 @@ import {
   type ResearchLoopMarketingReview,
 } from './research-loop-marketing';
 
-const VERDICTS = ['not-tested', 'pass', 'fail', 'inconclusive'] as const;
-const SOURCE_AUDIT_DISPOSITIONS = ['advance', 'hold', 'no-go'] as const;
+const VERDICTS = Object.freeze(['not-tested', 'pass', 'fail', 'inconclusive'] as const);
+const SOURCE_AUDIT_DISPOSITIONS = Object.freeze(['advance', 'hold', 'no-go'] as const);
 
-export const RESEARCH_INTAKE_ADMIN_QUERY_KEYS = [
+export const RESEARCH_INTAKE_ADMIN_QUERY_KEYS = Object.freeze([
   'q',
   'assetClass',
   'stage',
@@ -43,7 +43,7 @@ export const RESEARCH_INTAKE_ADMIN_QUERY_KEYS = [
   'sourceAuditDisposition',
   'page',
   'limit',
-] as const;
+] as const);
 
 export const RESEARCH_INTAKE_ADMIN_RESOURCES = Object.freeze({
   catalog: '/api/admin/research-intake',
@@ -55,12 +55,78 @@ export const RESEARCH_INTAKE_ADMIN_RESOURCES = Object.freeze({
 
 export type ResearchIntakeAdminResources = typeof RESEARCH_INTAKE_ADMIN_RESOURCES;
 
-const QUERY_KEY_SET = new Set<string>(RESEARCH_INTAKE_ADMIN_QUERY_KEYS);
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
 const MAX_PAGE = 10_000;
 const MAX_QUERY_LENGTH = 120;
+const ADMIN_ASSET_CLASS_VALUES = Object.freeze(['all', ...RESEARCH_ASSET_CLASSES] as const);
+const ADMIN_STAGE_VALUES = Object.freeze(['all', ...RESEARCH_INTAKE_STAGES] as const);
+const ADMIN_VERDICT_VALUES = Object.freeze(['all', ...VERDICTS] as const);
+const ADMIN_SOURCE_AUDIT_DISPOSITION_VALUES = Object.freeze([
+  'all',
+  ...SOURCE_AUDIT_DISPOSITIONS,
+] as const);
+
+export const RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT = Object.freeze({
+  parameterOrder: RESEARCH_INTAKE_ADMIN_QUERY_KEYS,
+  unknownParameters: 'rejected',
+  duplicateParameters: 'rejected',
+  parameters: Object.freeze({
+    q: Object.freeze({
+      type: 'text',
+      appliedField: 'query',
+      default: null,
+      trimWhitespace: true,
+      emptyMeans: null,
+      maxLength: MAX_QUERY_LENGTH,
+      controlCharacters: 'rejected',
+    } as const),
+    assetClass: Object.freeze({
+      type: 'enum',
+      default: 'all',
+      values: ADMIN_ASSET_CLASS_VALUES,
+    } as const),
+    stage: Object.freeze({
+      type: 'enum',
+      default: 'all',
+      values: ADMIN_STAGE_VALUES,
+    } as const),
+    verdict: Object.freeze({
+      type: 'enum',
+      default: 'all',
+      values: ADMIN_VERDICT_VALUES,
+    } as const),
+    sourceAuditDisposition: Object.freeze({
+      type: 'enum',
+      default: 'all',
+      values: ADMIN_SOURCE_AUDIT_DISPOSITION_VALUES,
+    } as const),
+    page: Object.freeze({
+      type: 'positive-integer',
+      default: DEFAULT_PAGE,
+      minimum: 1,
+      maximum: MAX_PAGE,
+    } as const),
+    limit: Object.freeze({
+      type: 'positive-integer',
+      default: DEFAULT_LIMIT,
+      minimum: 1,
+      maximum: MAX_LIMIT,
+    } as const),
+  }),
+  canonicalLinks: Object.freeze({
+    basePath: RESEARCH_INTAKE_ADMIN_RESOURCES.catalog,
+    omitDefaultFilters: true,
+    alwaysInclude: Object.freeze(['page', 'limit'] as const),
+    previousAndNextNullable: true,
+    lastPageFloor: 1,
+  } as const),
+} as const);
+
+export type ResearchIntakeAdminQueryContract = typeof RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT;
+
+const QUERY_KEY_SET = new Set<string>(RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT.parameterOrder);
 
 export interface ResearchIntakeAdminQuery {
   query?: string;
@@ -84,6 +150,7 @@ export interface ResearchIntakeAdminPayload {
     grantsTradingAuthority: false;
   };
   resources: ResearchIntakeAdminResources;
+  queryContract: ResearchIntakeAdminQueryContract;
   source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
   selectionPolicy: string;
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
@@ -106,6 +173,13 @@ export interface ResearchIntakeAdminPayload {
     returnedRecords: number;
     hasPreviousPage: boolean;
     hasNextPage: boolean;
+    links: {
+      self: string;
+      first: string;
+      previous: string | null;
+      next: string | null;
+      last: string;
+    };
   };
   records: readonly ResearchIntakeAdminRecord[];
 }
@@ -239,13 +313,14 @@ function parseEnum<T extends string>(
   searchParams: URLSearchParams,
   key: string,
   allowed: readonly T[],
-): T | 'all' {
+  fallback: T,
+): T {
   const raw = readSingleParameter(searchParams, key);
-  if (raw === undefined || raw === '' || raw === 'all') return 'all';
+  if (raw === undefined || raw === '') return fallback;
   if (!(allowed as readonly string[]).includes(raw)) {
     throw new ResearchIntakeAdminQueryError(
       key,
-      `${key} must be one of: all, ${allowed.join(', ')}`,
+      `${key} must be one of: ${allowed.join(', ')}`,
     );
   }
   return raw as T;
@@ -254,33 +329,42 @@ function parseEnum<T extends string>(
 function parsePositiveInteger(
   searchParams: URLSearchParams,
   key: string,
-  fallback: number,
-  maximum: number,
+  constraints: Readonly<{ default: number; minimum: number; maximum: number }>,
 ): number {
   const raw = readSingleParameter(searchParams, key);
-  if (raw === undefined || raw === '') return fallback;
+  if (raw === undefined || raw === '') return constraints.default;
   if (!/^[1-9]\d*$/.test(raw)) {
     throw new ResearchIntakeAdminQueryError(key, `${key} must be a positive integer`);
   }
   const parsed = Number(raw);
-  if (!Number.isSafeInteger(parsed) || parsed > maximum) {
-    throw new ResearchIntakeAdminQueryError(key, `${key} must not exceed ${maximum}`);
+  if (!Number.isSafeInteger(parsed) || parsed > constraints.maximum) {
+    throw new ResearchIntakeAdminQueryError(
+      key,
+      `${key} must not exceed ${constraints.maximum}`,
+    );
+  }
+  if (parsed < constraints.minimum) {
+    throw new ResearchIntakeAdminQueryError(
+      key,
+      `${key} must be at least ${constraints.minimum}`,
+    );
   }
   return parsed;
 }
 
 function parseQueryText(searchParams: URLSearchParams): string | undefined {
+  const contract = RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT.parameters.q;
   const raw = readSingleParameter(searchParams, 'q');
   if (raw === undefined) return undefined;
-  const query = raw.trim();
-  if (query.length === 0) return undefined;
-  if (query.length > MAX_QUERY_LENGTH) {
+  const query = contract.trimWhitespace ? raw.trim() : raw;
+  if (query.length === 0 && contract.emptyMeans === null) return undefined;
+  if (query.length > contract.maxLength) {
     throw new ResearchIntakeAdminQueryError(
       'q',
-      `q must not exceed ${MAX_QUERY_LENGTH} characters`,
+      `q must not exceed ${contract.maxLength} characters`,
     );
   }
-  if (/[\u0000-\u001f\u007f]/.test(query)) {
+  if (contract.controlCharacters === 'rejected' && /[\u0000-\u001f\u007f]/.test(query)) {
     throw new ResearchIntakeAdminQueryError('q', 'q must not contain control characters');
   }
   return query;
@@ -295,18 +379,36 @@ export function parseResearchIntakeAdminQuery(
     }
   }
 
+  const parameters = RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT.parameters;
+
   return {
     query: parseQueryText(searchParams),
-    assetClass: parseEnum(searchParams, 'assetClass', RESEARCH_ASSET_CLASSES),
-    stage: parseEnum(searchParams, 'stage', RESEARCH_INTAKE_STAGES),
-    verdict: parseEnum(searchParams, 'verdict', VERDICTS),
+    assetClass: parseEnum(
+      searchParams,
+      'assetClass',
+      parameters.assetClass.values,
+      parameters.assetClass.default,
+    ),
+    stage: parseEnum(
+      searchParams,
+      'stage',
+      parameters.stage.values,
+      parameters.stage.default,
+    ),
+    verdict: parseEnum(
+      searchParams,
+      'verdict',
+      parameters.verdict.values,
+      parameters.verdict.default,
+    ),
     sourceAuditDisposition: parseEnum(
       searchParams,
       'sourceAuditDisposition',
-      SOURCE_AUDIT_DISPOSITIONS,
+      parameters.sourceAuditDisposition.values,
+      parameters.sourceAuditDisposition.default,
     ),
-    page: parsePositiveInteger(searchParams, 'page', DEFAULT_PAGE, MAX_PAGE),
-    limit: parsePositiveInteger(searchParams, 'limit', DEFAULT_LIMIT, MAX_LIMIT),
+    page: parsePositiveInteger(searchParams, 'page', parameters.page),
+    limit: parsePositiveInteger(searchParams, 'limit', parameters.limit),
   };
 }
 
@@ -317,6 +419,79 @@ function asIntakeFilters(query: ResearchIntakeAdminQuery): ResearchIntakeFilters
     stage: query.stage,
     verdict: query.verdict,
     sourceAuditDisposition: query.sourceAuditDisposition,
+  };
+}
+
+function buildResearchIntakeAdminCatalogPath(
+  query: ResearchIntakeAdminQuery,
+  page: number,
+): string {
+  const { canonicalLinks, parameterOrder, parameters } =
+    RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT;
+  const searchParams = new URLSearchParams();
+
+  for (const parameter of parameterOrder) {
+    switch (parameter) {
+      case 'q':
+        if (query.query !== undefined) searchParams.set(parameter, query.query);
+        break;
+      case 'assetClass':
+        if (!canonicalLinks.omitDefaultFilters || query.assetClass !== parameters.assetClass.default) {
+          searchParams.set(parameter, query.assetClass);
+        }
+        break;
+      case 'stage':
+        if (!canonicalLinks.omitDefaultFilters || query.stage !== parameters.stage.default) {
+          searchParams.set(parameter, query.stage);
+        }
+        break;
+      case 'verdict':
+        if (!canonicalLinks.omitDefaultFilters || query.verdict !== parameters.verdict.default) {
+          searchParams.set(parameter, query.verdict);
+        }
+        break;
+      case 'sourceAuditDisposition':
+        if (
+          !canonicalLinks.omitDefaultFilters ||
+          query.sourceAuditDisposition !== parameters.sourceAuditDisposition.default
+        ) {
+          searchParams.set(parameter, query.sourceAuditDisposition);
+        }
+        break;
+      case 'page':
+        searchParams.set(parameter, String(page));
+        break;
+      case 'limit':
+        searchParams.set(parameter, String(query.limit));
+        break;
+      default: {
+        const exhaustiveParameter: never = parameter;
+        throw new Error(`Unsupported research intake query parameter: ${exhaustiveParameter}`);
+      }
+    }
+  }
+
+  return `${canonicalLinks.basePath}?${searchParams.toString()}`;
+}
+
+function buildResearchIntakeAdminPaginationLinks(
+  query: ResearchIntakeAdminQuery,
+  totalPages: number,
+  hasPreviousPage: boolean,
+  hasNextPage: boolean,
+): ResearchIntakeAdminPayload['pagination']['links'] {
+  const pathForPage = (page: number) => buildResearchIntakeAdminCatalogPath(query, page);
+  const lastPage = Math.max(
+    RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT.canonicalLinks.lastPageFloor,
+    totalPages,
+  );
+
+  return {
+    self: pathForPage(query.page),
+    first: pathForPage(1),
+    previous: hasPreviousPage ? pathForPage(query.page - 1) : null,
+    next: hasNextPage ? pathForPage(query.page + 1) : null,
+    last: pathForPage(lastPage),
   };
 }
 
@@ -465,6 +640,8 @@ export function buildResearchIntakeAdminPayload(
     .slice(start, start + query.limit)
     .map((record) => toAdminRecord(record, visibleMarketingCandidates.has(record.id)));
   const totalPages = Math.ceil(filtered.length / query.limit);
+  const hasPreviousPage = filtered.length > 0 && query.page > 1;
+  const hasNextPage = start + records.length < filtered.length;
 
   return {
     schemaVersion: 1,
@@ -474,6 +651,7 @@ export function buildResearchIntakeAdminPayload(
       grantsTradingAuthority: false,
     },
     resources: RESEARCH_INTAKE_ADMIN_RESOURCES,
+    queryContract: RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT,
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
@@ -488,8 +666,14 @@ export function buildResearchIntakeAdminPayload(
       totalRecords: filtered.length,
       totalPages,
       returnedRecords: records.length,
-      hasPreviousPage: filtered.length > 0 && query.page > 1,
-      hasNextPage: start + records.length < filtered.length,
+      hasPreviousPage,
+      hasNextPage,
+      links: buildResearchIntakeAdminPaginationLinks(
+        query,
+        totalPages,
+        hasPreviousPage,
+        hasNextPage,
+      ),
     },
     records,
   };
