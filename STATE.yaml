@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T17:36:14+08:00
+updated: 2026-08-29T17:49:54+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -153,9 +153,9 @@ end_of_month_treasury_replication_2026_08_29:
   next_action: Under a new preregistration, obtain an original-vintage Federal Reserve curve file or define an explicit rounded-parameter reconciliation policy before attempting any performance evaluation
 
 research_intake_desk_2026_08_29:
-  at: 2026-08-29T17:36:14+08:00
+  at: 2026-08-29T17:49:54+08:00
   agent: TradeClaw PM agent
-  status: foundation_admin_api_and_three_research_cycles_complete_ui_checkpoint
+  status: foundation_admin_api_and_three_research_cycles_complete_next_candidate_queued_ui_checkpoint
   scope: Turn the protected strategy-library surface into a simple cost-first research intake desk and connect evidence-complete findings to a human-reviewed three-hour research/marketing loop
   base_commit: f7936bcf627f208ac0379412453976b17218608b
   implementation_commit: bce46c05b2c61613981616102535e2f3be666950
@@ -163,7 +163,52 @@ research_intake_desk_2026_08_29:
   treasury_replication_commit: 8252a1809f33c13c429ff9b8f7cc2fb7c2749b4b
   bitcoin_max_min_replication_commit: 6a3c1b01afad160fb0ee4970d4dff6a78f381731
   branch: agent/research-intake-desk-20260829
-  current_step: The pinned foundation, first source no-go, protected admin read API, TC-257 QA-only hold, and TC-258 canonical FAIL are implemented; visual v0 remains paused at the required UI direction checkpoint
+  current_step: The pinned foundation, first source no-go, protected admin read API, TC-257 QA-only hold, and TC-258 canonical FAIL are implemented; the next-cycle term-spread candidate is queued without advancing its stage or creating a second receipt, and visual v0 remains paused at the required UI direction checkpoint
+  next_cycle_readiness:
+    at: 2026-08-29T17:49:54+08:00
+    window_status: queued_for_a_new_utc_aligned_window_only
+    candidate_id: trading-the-term-premium
+    stage: discovered
+    candidate_lane: monthly_us_moving_average_term_spread
+    primary_rule_candidate: >
+      Use the paper's simpler U.S. term-spread proxy, defined as the 10-year
+      yield minus the three-month yield. At month-end, compare the proxy with
+      its source-defined trailing moving average and hold modeled 10-year
+      duration for the following month in the high-premium regime or the
+      one-month bond otherwise. Exact cutoff timing, warm-up, input vintage,
+      return construction, costs, controls, folds, and gates are not frozen yet.
+    rationale: >
+      This lane has monthly decisions, a primary-source rule that does not
+      require vendor code, public Federal Reserve yield inputs, and a natural
+      post-2021 untouched period. The primary paper reports the simple term
+      spread strategies alongside the more complex ACM and HMM variants and
+      says their U.S. risk/return characteristics were nearly identical.
+    required_pre_return_gates: >
+      Hash-bind an exact Federal Reserve input snapshot and explicit revision
+      policy; reproduce the paper's modeled zero-coupon return construction;
+      retain the modeled-versus-tradeable boundary; calculate conservative
+      full-cost headroom from source evidence; and freeze an untouched
+      post-2021 holdout before opening any local return result.
+    source_caveat: >
+      The paper calls its backtests proof-of-concept because they use yield
+      curves rather than strictly tradeable prices and omit trading costs.
+      Federal Reserve current-vintage curve files may be revised, so public
+      availability alone is not sufficient for an immutable-data pass.
+    demoted_candidate_id: long-run-reversal-in-commodity-returns-insights-from-seven-centuries-of-evidence
+    demotion_reason: >
+      The exact 52-commodity study depends on proprietary Global Financial Data
+      chain-linked spot histories. The authors also state that short sales and
+      durable physical investment were unavailable for most of the sample, so
+      its portfolio sorts identify a phenomenon rather than an executable
+      historical strategy.
+    preregistration_frozen: false
+    returns_opened: false
+    catalog_stage_advanced: false
+    cycle_receipt_created: false
+    current_window_receipt_unchanged: 2026-08-29T09:00:00.000Z/PT3H
+    marketing_draft: none
+    external_actions: none
+    next_action: In the next new UTC-aligned window, audit and freeze this lane or record a hash-bound no-go before calculating returns
   source: >
     Populate discovery metadata from the 61 highlighted strategies in the exact
     paperswithbacktest/awesome-systematic-trading commit
