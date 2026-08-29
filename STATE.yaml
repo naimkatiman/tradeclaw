@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T12:53:34+08:00
+updated: 2026-08-29T12:55:11+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 systematic_strategy_replication_2026_08_29:
-  at: 2026-08-29T12:53:34+08:00
+  at: 2026-08-29T12:55:11+08:00
   agent: TradeClaw PM agent
   status: done
   scope: Pre-register and independently replicate one accessible systematic-trading candidate under TradeClaw costs without changing live signals or execution
   base_commit: 51f940815105cf095d9cc5ebd946acbcace46237
   branch: agent/systematic-research-intake-20260829
+  implementation_commit: ae802497d925ad44a6e0b08151a1dfbffde0368f
   current_step: Closed FAIL with both ambiguous H1 controls retained, deterministic evidence preserved, and no live mutation
   preregistration: docs/plans/2026-08-29-external-multi-timeframe-replication.md
   evidence_boundary: >
@@ -4874,3 +4875,7 @@ next_actions:
       warnings were retained. The task closes as a truthful negative result with
       no live, Docker, dependency, database, auth, billing, sponsored-access,
       signal, allocation, broadcast, or execution mutation.
+      The complete implementation/evidence package was committed locally as
+      ae802497d925ad44a6e0b08151a1dfbffde0368f on isolated branch
+      agent/systematic-research-intake-20260829; no push, PR, merge, deployment,
+      broker action, or external publication occurred.
