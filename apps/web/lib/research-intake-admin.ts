@@ -148,6 +148,25 @@ export const RESEARCH_INTAKE_ADMIN_FACET_CONTRACT = Object.freeze({
 export type ResearchIntakeAdminFacetContract =
   typeof RESEARCH_INTAKE_ADMIN_FACET_CONTRACT;
 
+const RESEARCH_INTAKE_ADMIN_ACTIVE_FILTER_PARAMETERS = Object.freeze([
+  'q',
+  ...RESEARCH_INTAKE_ADMIN_FACET_DIMENSIONS,
+] as const);
+
+export const RESEARCH_INTAKE_ADMIN_FILTER_NAVIGATION_CONTRACT = Object.freeze({
+  activeParameterOrder: RESEARCH_INTAKE_ADMIN_ACTIVE_FILTER_PARAMETERS,
+  facetSelectionMode: 'replace-own-dimension',
+  resetPageTo: 1,
+  preserveLimit: true,
+  preserveUnrelatedFilters: true,
+  removeOneFilterAtATime: true,
+  clearAllPreservesLimit: true,
+  canonicalSerialization: 'query-contract',
+} as const);
+
+export type ResearchIntakeAdminFilterNavigationContract =
+  typeof RESEARCH_INTAKE_ADMIN_FILTER_NAVIGATION_CONTRACT;
+
 const RESEARCH_INTAKE_ADMIN_FACET_LABELS = Object.freeze({
   assetClass: Object.freeze({
     dimension: 'Asset class',
@@ -215,6 +234,7 @@ export interface ResearchIntakeAdminFacetOption<T extends string> {
   label: string;
   count: number;
   selected: boolean;
+  href: string;
 }
 
 export interface ResearchIntakeAdminFacetDimension<T extends string> {
@@ -235,6 +255,21 @@ export interface ResearchIntakeAdminFilterFacets {
       (typeof ADMIN_SOURCE_AUDIT_DISPOSITION_VALUES)[number]
     >;
   };
+}
+
+export interface ResearchIntakeAdminActiveFilter {
+  parameter: (typeof RESEARCH_INTAKE_ADMIN_ACTIVE_FILTER_PARAMETERS)[number];
+  label: string;
+  value: string;
+  displayValue: string;
+  removeHref: string;
+}
+
+export interface ResearchIntakeAdminFilterNavigation {
+  contract: ResearchIntakeAdminFilterNavigationContract;
+  activeFilterCount: number;
+  clearAllHref: string;
+  activeFilters: readonly ResearchIntakeAdminActiveFilter[];
 }
 
 export interface ResearchIntakeAdminPayload {
@@ -259,6 +294,7 @@ export interface ResearchIntakeAdminPayload {
   marketingReview: ResearchLoopMarketingReview;
   appliedFilters: ResearchIntakeAdminQuery;
   filterFacets: ResearchIntakeAdminFilterFacets;
+  filterNavigation: ResearchIntakeAdminFilterNavigation;
   catalogSummary: ReturnType<typeof summarizeResearchIntake>;
   filteredSummary: ReturnType<typeof summarizeResearchIntake>;
   pagination: {
@@ -542,6 +578,14 @@ function buildResearchIntakeAdminFacetDimension<T extends string>(
         [dimension]: value,
       }).length,
       selected: value === selected,
+      href: buildResearchIntakeAdminCatalogPath(
+        {
+          ...query,
+          [dimension]: value,
+          page: RESEARCH_INTAKE_ADMIN_FILTER_NAVIGATION_CONTRACT.resetPageTo,
+        } as ResearchIntakeAdminQuery,
+        RESEARCH_INTAKE_ADMIN_FILTER_NAVIGATION_CONTRACT.resetPageTo,
+      ),
     })),
   };
 }
@@ -640,6 +684,118 @@ function buildResearchIntakeAdminCatalogPath(
   }
 
   return `${canonicalLinks.basePath}?${searchParams.toString()}`;
+}
+
+function buildResearchIntakeAdminFilterActionPath(
+  query: ResearchIntakeAdminQuery,
+  changes: Partial<ResearchIntakeAdminQuery>,
+): string {
+  const page = RESEARCH_INTAKE_ADMIN_FILTER_NAVIGATION_CONTRACT.resetPageTo;
+  return buildResearchIntakeAdminCatalogPath(
+    {
+      ...query,
+      ...changes,
+      page,
+    },
+    page,
+  );
+}
+
+function buildResearchIntakeAdminFilterNavigation(
+  query: ResearchIntakeAdminQuery,
+): ResearchIntakeAdminFilterNavigation {
+  const parameters = RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT.parameters;
+  const activeFilters: ResearchIntakeAdminActiveFilter[] = [];
+
+  for (const parameter of RESEARCH_INTAKE_ADMIN_FILTER_NAVIGATION_CONTRACT.activeParameterOrder) {
+    switch (parameter) {
+      case 'q':
+        if (query.query !== undefined) {
+          activeFilters.push({
+            parameter,
+            label: 'Search',
+            value: query.query,
+            displayValue: query.query,
+            removeHref: buildResearchIntakeAdminFilterActionPath(query, { query: undefined }),
+          });
+        }
+        break;
+      case 'assetClass':
+        if (query.assetClass !== parameters.assetClass.default) {
+          activeFilters.push({
+            parameter,
+            label: RESEARCH_INTAKE_ADMIN_FACET_LABELS.assetClass.dimension,
+            value: query.assetClass,
+            displayValue: RESEARCH_INTAKE_ADMIN_FACET_LABELS.assetClass.options[query.assetClass],
+            removeHref: buildResearchIntakeAdminFilterActionPath(query, {
+              assetClass: parameters.assetClass.default,
+            }),
+          });
+        }
+        break;
+      case 'stage':
+        if (query.stage !== parameters.stage.default) {
+          activeFilters.push({
+            parameter,
+            label: RESEARCH_INTAKE_ADMIN_FACET_LABELS.stage.dimension,
+            value: query.stage,
+            displayValue: RESEARCH_INTAKE_ADMIN_FACET_LABELS.stage.options[query.stage],
+            removeHref: buildResearchIntakeAdminFilterActionPath(query, {
+              stage: parameters.stage.default,
+            }),
+          });
+        }
+        break;
+      case 'verdict':
+        if (query.verdict !== parameters.verdict.default) {
+          activeFilters.push({
+            parameter,
+            label: RESEARCH_INTAKE_ADMIN_FACET_LABELS.verdict.dimension,
+            value: query.verdict,
+            displayValue: RESEARCH_INTAKE_ADMIN_FACET_LABELS.verdict.options[query.verdict],
+            removeHref: buildResearchIntakeAdminFilterActionPath(query, {
+              verdict: parameters.verdict.default,
+            }),
+          });
+        }
+        break;
+      case 'sourceAuditDisposition':
+        if (query.sourceAuditDisposition !== parameters.sourceAuditDisposition.default) {
+          activeFilters.push({
+            parameter,
+            label: RESEARCH_INTAKE_ADMIN_FACET_LABELS.sourceAuditDisposition.dimension,
+            value: query.sourceAuditDisposition,
+            displayValue:
+              RESEARCH_INTAKE_ADMIN_FACET_LABELS.sourceAuditDisposition.options[
+                query.sourceAuditDisposition
+              ],
+            removeHref: buildResearchIntakeAdminFilterActionPath(query, {
+              sourceAuditDisposition: parameters.sourceAuditDisposition.default,
+            }),
+          });
+        }
+        break;
+      default: {
+        const exhaustiveParameter: never = parameter;
+        throw new Error(`Unsupported active research intake filter: ${exhaustiveParameter}`);
+      }
+    }
+  }
+
+  const clearAllHref = buildResearchIntakeAdminFilterActionPath(query, {
+    query: undefined,
+    assetClass: parameters.assetClass.default,
+    stage: parameters.stage.default,
+    verdict: parameters.verdict.default,
+    sourceAuditDisposition: parameters.sourceAuditDisposition.default,
+  });
+
+  return {
+    contract: RESEARCH_INTAKE_ADMIN_FILTER_NAVIGATION_CONTRACT,
+    activeFilterCount: activeFilters.length,
+    clearAllHref,
+    activeFilters,
+  };
 }
 
 function buildResearchIntakeAdminPaginationLinks(
@@ -827,6 +983,7 @@ export function buildResearchIntakeAdminPayload(
     marketingReview: observation.marketingReview,
     appliedFilters: query,
     filterFacets: buildResearchIntakeAdminFilterFacets(query),
+    filterNavigation: buildResearchIntakeAdminFilterNavigation(query),
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
     filteredSummary: summarizeResearchIntake(filtered),
     pagination: {

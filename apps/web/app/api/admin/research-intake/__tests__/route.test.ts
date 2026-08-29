@@ -97,35 +97,100 @@ describe('GET /api/admin/research-intake', () => {
             label: 'Asset class',
             selected: 'all',
             options: expect.arrayContaining([
-              { value: 'all', label: 'All asset classes', count: 61, selected: true },
-              { value: 'Equities', label: 'Equities', count: 12, selected: false },
+              {
+                value: 'all',
+                label: 'All asset classes',
+                count: 61,
+                selected: true,
+                href: '/api/admin/research-intake?page=1&limit=25',
+              },
+              {
+                value: 'Equities',
+                label: 'Equities',
+                count: 12,
+                selected: false,
+                href: '/api/admin/research-intake?assetClass=Equities&page=1&limit=25',
+              },
             ]),
           },
           stage: {
             label: 'Research stage',
             selected: 'all',
             options: expect.arrayContaining([
-              { value: 'discovered', label: 'Discovered', count: 54, selected: false },
-              { value: 'preregistered', label: 'Preregistered', count: 0, selected: false },
+              {
+                value: 'discovered',
+                label: 'Discovered',
+                count: 54,
+                selected: false,
+                href: '/api/admin/research-intake?stage=discovered&page=1&limit=25',
+              },
+              {
+                value: 'preregistered',
+                label: 'Preregistered',
+                count: 0,
+                selected: false,
+                href: '/api/admin/research-intake?stage=preregistered&page=1&limit=25',
+              },
             ]),
           },
           verdict: {
             label: 'TradeClaw verdict',
             selected: 'all',
             options: expect.arrayContaining([
-              { value: 'fail', label: 'Fail', count: 3, selected: false },
-              { value: 'pass', label: 'Pass', count: 0, selected: false },
+              {
+                value: 'fail',
+                label: 'Fail',
+                count: 3,
+                selected: false,
+                href: '/api/admin/research-intake?verdict=fail&page=1&limit=25',
+              },
+              {
+                value: 'pass',
+                label: 'Pass',
+                count: 0,
+                selected: false,
+                href: '/api/admin/research-intake?verdict=pass&page=1&limit=25',
+              },
             ]),
           },
           sourceAuditDisposition: {
             label: 'Source-audit disposition',
             selected: 'all',
             options: expect.arrayContaining([
-              { value: 'no-go', label: 'No-go', count: 3, selected: false },
-              { value: 'hold', label: 'Hold', count: 0, selected: false },
+              {
+                value: 'no-go',
+                label: 'No-go',
+                count: 3,
+                selected: false,
+                href:
+                  '/api/admin/research-intake?sourceAuditDisposition=no-go&page=1&limit=25',
+              },
+              {
+                value: 'hold',
+                label: 'Hold',
+                count: 0,
+                selected: false,
+                href:
+                  '/api/admin/research-intake?sourceAuditDisposition=hold&page=1&limit=25',
+              },
             ]),
           },
         },
+      },
+      filterNavigation: {
+        contract: {
+          activeParameterOrder: ['q', 'assetClass', 'stage', 'verdict', 'sourceAuditDisposition'],
+          facetSelectionMode: 'replace-own-dimension',
+          resetPageTo: 1,
+          preserveLimit: true,
+          preserveUnrelatedFilters: true,
+          removeOneFilterAtATime: true,
+          clearAllPreservesLimit: true,
+          canonicalSerialization: 'query-contract',
+        },
+        activeFilterCount: 0,
+        clearAllHref: '/api/admin/research-intake?page=1&limit=25',
+        activeFilters: [],
       },
       catalogSummary: {
         total: 61,

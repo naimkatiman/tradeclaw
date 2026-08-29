@@ -1,11 +1,193 @@
 project: tradeclaw
-updated: 2026-08-30T03:44:45+08:00
+updated: 2026-08-30T03:51:50+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+admin_research_filter_actions_2026_08_30:
+  at: 2026-08-30T04:04:47+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_implementation_commit
+  scope: Let an authenticated admin apply, remove, or clear catalog filters through server-authored canonical URLs without duplicating serialization or page-reset behavior
+  base_commit: 0e107ff7b2c2e097fd09ac92ba67eb47ac170f6c
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-256
+  current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-261
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-29T21:00:00.000Z
+  decision: >-
+    Add one canonical href to every protected facet option and one additive
+    filterNavigation projection with active labeled filters, remove-one links,
+    and a clear-all link. Use the existing canonical serializer, reset every
+    filter action to page 1, preserve limit and unrelated filters, and keep
+    candidate/evidence/review/CSV/public/auth/UI contracts unchanged.
+  frozen_filter_navigation_contract:
+    active_parameter_order: [q, assetClass, stage, verdict, sourceAuditDisposition]
+    facet_selection_mode: replace-own-dimension
+    reset_page_to: 1
+    preserve_limit: true
+    preserve_unrelated_filters: true
+    remove_one_filter_at_a_time: true
+    clear_all_preserves_limit: true
+    canonical_serialization: query-contract
+  frozen_filter_navigation_shape:
+    fields: [contract, activeFilterCount, clearAllHref, activeFilters]
+    active_filter_fields: [parameter, label, value, displayValue, removeHref]
+    default_active_filter_count: 0
+    default_active_filters: []
+    default_clear_all_href: /api/admin/research-intake?page=1&limit=25
+  frozen_facet_option_extension:
+    added_field: href
+    selected_option_has_href: true
+    page_reset_to: 1
+    limit_preserved: true
+    q_and_other_enum_filters_preserved: true
+    all_option_omits_own_default_filter: true
+  frozen_combined_example:
+    query: q=bitcoin / assetClass=Cryptocurrencies / verdict=fail / page=2 / limit=3
+    active_filter_count: 3
+    active_filter_order: [q, assetClass, verdict]
+    clear_all_href: /api/admin/research-intake?page=1&limit=3
+    remove_q_href: /api/admin/research-intake?assetClass=Cryptocurrencies&verdict=fail&page=1&limit=3
+    remove_asset_class_href: /api/admin/research-intake?q=bitcoin&verdict=fail&page=1&limit=3
+    remove_verdict_href: /api/admin/research-intake?q=bitcoin&assetClass=Cryptocurrencies&page=1&limit=3
+    select_replicated_stage_href: /api/admin/research-intake?q=bitcoin&assetClass=Cryptocurrencies&stage=replicated&verdict=fail&page=1&limit=3
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/__tests__/research-intake-admin-filter-navigation.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-facets.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+  red_verification: >-
+    PASS - the new navigation and protected-route suites run 22 assertions: 18
+    existing or catalog-only assertions stay green and four fail only because
+    filterNavigation and facet-option hrefs are absent. Default state, combined
+    active filters, remove-one/clear-all URLs, and facet-selection URLs all fail
+    at the intended missing seams; no product path passed the behavior by accident.
+  focused_green_first_iteration: >-
+    The new filter-navigation suite passes 5/5 and the protected route passes
+    16/17. The sole failure is test-only: one sampled Discovered facet still
+    expects the pre-extension option shape without its now-required canonical href.
+    Product navigation, removal, clearing, page reset, preservation, and boundaries pass.
+  focused_verification: >-
+    PASS - the filter-navigation and protected catalog-route suites pass 22/22
+    assertions across two suites after aligning the sampled Discovered option
+    with the frozen href extension. No snapshot is involved.
+  typecheck_verification: PASS - npm run typecheck:web rebuilt packages/signals and completed the apps/web no-emit TypeScript check
+  changed_file_lint_first_iteration: >-
+    A root-level npx eslint invocation exited before reading code because the
+    authoritative flat configuration lives in apps/web; it produced no product finding.
+  changed_file_lint_verification: >-
+    PASS - all five implementation and test TypeScript paths pass the authoritative
+    apps/web ESLint configuration with zero findings.
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    filter_navigation_contract: 302 bytes / c8d3e3ba0daa87e33f46fe51584c852a6842c437dbad7987bd3bdcdd71494ee8
+    query_contract_unchanged: 1121 bytes / ed4a2bd3a0c8dc5e4305a400c2754ebdaa49e5c5000478add9e77af477d5b795
+    facet_contract_unchanged: 338 bytes / 0114ebd94cc22669f3437ffbb0bd8213f31f1367c12b4da2ec780d898406bcf2
+    default_filter_navigation: 416 bytes / 157610711a7edbb1d1e07a89024301e0a5d1a2a2ae99f90df969dfaf24cfdfc6
+    combined_filter_navigation: 964 bytes / 90e24f025a4d11efc0dd9d29621f2ca69b51307a5945903ff40330d84dc3bbf0
+    default_filter_facets: 3848 bytes / e0bc160c9f08a93167969e31dc2062b157bcab07442c3b2862e06eea6955382a
+    disjunctive_filter_facets: 4426 bytes / f4e754d314672ab3099795cf19e40c4c91f1168e8c1039091eaf8f344f41eacb
+    admin_catalog_default: 48300 bytes / 5ba13450a0c50f08693b5a4b9848d4393e1b6285df72e1df116971b64611d045
+    admin_catalog_limit_100: 93147 bytes / 6c65c6ecb4d4f3f9427bf95a8137baf6409eaeeb8ce4376e602a59094839facd
+    admin_catalog_equities_page_2_limit_3: 21924 bytes / b627caaf07b9de4cf608cb89dd85a551de12780d684c2c953d9c79a519410aa7
+    admin_catalog_equities_discovered_page_2_limit_3: 22502 bytes / 05701ec524d3eac48a67b99028a96c077d3e414cb5a466f140eb51a721ba5767
+    admin_catalog_combined_query: 20732 bytes / 2c0d1518b71fedcddae8809a6d29026c8ae6636ad073959806acdd1489f1b639
+    admin_candidate_tc260_unchanged: 9503 bytes / 6cd0ca1bc9775274f4aa02818640424d513d3a912eb5e2b47a6c895a17077ebd
+    admin_evidence_unchanged: 56502 bytes / defa5ec013c50c5c762fbb801d5dca6760646d0a3e28fdf2b441f75a3cea8098
+    admin_marketing_review_unchanged: 20279 bytes / 2cedcc9b48516de8975a481c0236e4810384ff4b7d83d376585d058cbd6baa9a
+    admin_evidence_csv_at_2026_08_29T18_00_40Z_unchanged: 14533 bytes / 49c32887d5edaf402a9108ec6351e8acb2a5d567b5367df178250482b4542053
+    admin_marketing_review_csv_unchanged: 6350 bytes / 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    public_catalog_unchanged: 63327 bytes / 602845ec6bd4d98410fcaf7fe2d0f4388a4293bddbd48699fdcedf1a18a99b43
+    public_candidate_tc260_unchanged: 5770 bytes / bb7b9225b4231c252d5a2de353e1067b7d31e6717427f59bec043b952b7321b0
+    public_evidence_unchanged: 29202 bytes / 43b0e2bc993d279249b0a2a9c7763446a9ea0f5dd6a897446386286b4a694d40
+    public_catalog_csv_unchanged: 36822 bytes / 49a715737f00100d3ef4728de0e471ce05bc669876354e9e266542863d2ede49
+    public_evidence_csv_unchanged: 5332 bytes / feab7b909b545cd1ee64690ef802c911db15cb2b8556840a06836a1f9dce2c50
+  deterministic_audit_first_iteration: >-
+    The temporary verifier stopped after every changed and protected-sibling
+    fingerprint passed because the immediately preceding STATE block had one
+    transcribed public-catalog hash character wrong. Older canonical STATE entries,
+    unchanged source paths, and a direct rebuild agreed on the correct bdbd segment;
+    the historical typo and verifier expectation were corrected.
+  deterministic_audit: >-
+    PASS - an apply-patch-created temporary TypeScript verifier independently
+    fingerprinted three contracts, two navigation states, two facet states, five
+    protected catalog shapes, and ten protected/public sibling payloads, then was
+    deleted. Only the protected catalog changes; all measured sibling boundaries
+    remain byte-identical.
+  focused_deterministic_first_iteration: >-
+    Three suites pass and 35/36 assertions are green. The sole failure is test-only:
+    the facet count-independence assertion compared complete objects across limit
+    values, while the newly frozen action contract intentionally preserves limit in
+    hrefs. The assertion is narrowed to contract, labels, selection, and counts;
+    link limit preservation remains covered independently.
+  focused_deterministic_verification: >-
+    PASS - the navigation, facet, query-contract, and protected catalog-route
+    suites pass 36/36 with exact navigation-contract, default/combined navigation,
+    facet-contract, default/disjunctive facet, query-contract, and default/complete
+    protected-catalog fingerprints active.
+  adjacent_verification: >-
+    PASS - the exact 28-suite navigation/facet/query/resource, protected catalog/
+    candidate/evidence/review/CSV, real signed-cookie auth, receipt, marketing,
+    public JSON/CSV, and publication-boundary set passes 123/123.
+  source_verification: PASS - the independent verifier reconstructs all 61 pinned candidates at exact commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with gross-of-trading-costs discovery-only treatment
+  final_typecheck_verification: PASS - packages/signals rebuilds and the apps/web no-emit TypeScript check completes without errors after all test-shape changes
+  final_changed_file_lint_verification: PASS - all five changed TypeScript paths pass the authoritative apps/web ESLint configuration with zero findings
+  lint_verification: PASS - full web lint completes with zero errors and the same 21 inherited warnings; no warning points to this increment
+  repository_test_verification: >-
+    PASS - all 282 runnable Jest suites and 2,099 tests pass; three suites and 26
+    tests are skipped and one snapshot passes. Force-exit closes only the
+    repository's inherited open handle after the complete green summary.
+  build_verification: >-
+    PASS - the required root production build compiles the signals and
+    trading-agents packages, compiles Next.js successfully, generates all 329/329
+    static pages, and retains the protected catalog, candidate, evidence, evidence
+    CSV, review, and review CSV routes as dynamic server routes. Only the inherited
+    middleware, NFT trace, url.parse, and edge-runtime warnings remain.
+  preliminary_state_verification: >-
+    PASS - STATE.yaml parses, git diff --check reports no whitespace errors, the
+    temporary deterministic audit script is absent, and the exact six-file manifest
+    is intact.
+  frozen_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/__tests__/research-intake-admin-filter-navigation.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-facets.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+  state_and_scope_verification: >-
+    PASS - the exact six-file manifest contains only the protected filter-action
+    implementation, focused navigation/facet/query/route coverage, and STATE.
+    Docker Compose, dependencies, lockfiles, database, auth semantics, rendered UI,
+    public OpenAPI, research receipts/artifacts, marketing drafts, and runtime trading
+    paths are untouched.
+  final_state_bound_verification: >-
+    PASS - the exact 11-suite navigation/facet/query/resource, protected catalog/
+    candidate/evidence/review, receipt, marketing, and publication-boundary set
+    passes 68/68 after the six-file manifest and final verification evidence were frozen.
+  verification_summary: >-
+    PASS - focused 22/22 before deterministic locking; deterministic focused 36/36;
+    adjacent 123/123; repository 282 runnable suites and 2,099 tests; final state-bound
+    68/68; pinned source 61/61; web typecheck; changed-file and full lint with zero
+    errors; YAML/hash/diff/scope audits; required 329/329-page production build.
+  gate_observed_at: 2026-08-29T20:04:47.000Z
+  gate_decision: The 21:00Z research rollover remains closed; TC-261 stays the sole receipt in the complete 18:00Z window and no new research or marketing handoff is created
+  visual_ui_changed: false
+  public_contract_changed: false
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  current_step: Stage the exact six frozen paths and create the local implementation commit
+  next_action: Record the implementation hash in STATE, create a state-only closure commit, save MemoryCore, and leave the branch clean until the 21:00Z gate
+  safety: No new research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, public OpenAPI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changes are authorized
 
 admin_research_catalog_facets_2026_08_30:
   at: 2026-08-30T03:44:45+08:00
@@ -96,7 +278,7 @@ admin_research_catalog_facets_2026_08_30:
     admin_marketing_review_unchanged: 20279 bytes / 2cedcc9b48516de8975a481c0236e4810384ff4b7d83d376585d058cbd6baa9a
     admin_evidence_csv_at_2026_08_29T18_00_40Z_unchanged: 14533 bytes / 49c32887d5edaf402a9108ec6351e8acb2a5d567b5367df178250482b4542053
     admin_marketing_review_csv_unchanged: 6350 bytes / 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
-    public_catalog_unchanged: 63327 bytes / 602845ec6bd4d98410fcaf7fe2d0f4388a4293bdd48699fdcedf1a18a99b43
+    public_catalog_unchanged: 63327 bytes / 602845ec6bd4d98410fcaf7fe2d0f4388a4293bddbd48699fdcedf1a18a99b43
     public_candidate_tc260_unchanged: 5770 bytes / bb7b9225b4231c252d5a2de353e1067b7d31e6717427f59bec043b952b7321b0
     public_evidence_unchanged: 29202 bytes / 43b0e2bc993d279249b0a2a9c7763446a9ea0f5dd6a897446386286b4a694d40
     public_catalog_csv_unchanged: 36822 bytes / 49a715737f00100d3ef4728de0e471ce05bc669876354e9e266542863d2ede49

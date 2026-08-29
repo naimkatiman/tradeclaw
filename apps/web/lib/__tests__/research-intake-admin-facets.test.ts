@@ -17,6 +17,7 @@ interface FacetOption {
   label: string;
   count: number;
   selected: boolean;
+  href?: string;
 }
 
 interface FacetDimension {
@@ -60,6 +61,32 @@ function option(
   return { value, label, count, selected };
 }
 
+function withoutOptionHrefs(dimension: FacetDimension | undefined): FacetDimension | undefined {
+  if (!dimension) return undefined;
+  return {
+    ...dimension,
+    options: dimension.options.map(({ value, label, count, selected }) => ({
+      value,
+      label,
+      count,
+      selected,
+    })),
+  };
+}
+
+function withoutFacetHrefs(facets: FilterFacets | undefined): FilterFacets | undefined {
+  if (!facets) return undefined;
+  return {
+    ...facets,
+    dimensions: Object.fromEntries(
+      Object.entries(facets.dimensions).map(([key, dimension]) => [
+        key,
+        withoutOptionHrefs(dimension),
+      ]),
+    ) as Record<string, FacetDimension>,
+  };
+}
+
 describe('protected research catalog filter facets', () => {
   it('publishes one explicit deeply frozen disjunctive counting contract', () => {
     const facets = readFilterFacets(
@@ -88,7 +115,7 @@ describe('protected research catalog filter facets', () => {
       buildResearchIntakeAdminPayload(new URLSearchParams(), OBSERVED_AT),
     );
 
-    expect(facets?.dimensions.assetClass).toEqual({
+    expect(withoutOptionHrefs(facets?.dimensions.assetClass)).toEqual({
       label: 'Asset class',
       selected: 'all',
       options: [
@@ -102,7 +129,7 @@ describe('protected research catalog filter facets', () => {
         option('Multi-asset', 'Multi-asset', 12),
       ],
     });
-    expect(facets?.dimensions.stage).toEqual({
+    expect(withoutOptionHrefs(facets?.dimensions.stage)).toEqual({
       label: 'Research stage',
       selected: 'all',
       options: [
@@ -114,7 +141,7 @@ describe('protected research catalog filter facets', () => {
         option('prospective', 'Prospective', 0),
       ],
     });
-    expect(facets?.dimensions.verdict).toEqual({
+    expect(withoutOptionHrefs(facets?.dimensions.verdict)).toEqual({
       label: 'TradeClaw verdict',
       selected: 'all',
       options: [
@@ -125,7 +152,7 @@ describe('protected research catalog filter facets', () => {
         option('inconclusive', 'Inconclusive', 1),
       ],
     });
-    expect(facets?.dimensions.sourceAuditDisposition).toEqual({
+    expect(withoutOptionHrefs(facets?.dimensions.sourceAuditDisposition)).toEqual({
       label: 'Source-audit disposition',
       selected: 'all',
       options: [
@@ -226,7 +253,7 @@ describe('protected research catalog filter facets', () => {
       OBSERVED_AT,
     ));
 
-    expect(paged).toEqual(complete);
+    expect(withoutFacetHrefs(paged)).toEqual(withoutFacetHrefs(complete));
   });
 
   it('serializes both frozen and disjunctive facet states deterministically', () => {
@@ -250,13 +277,13 @@ describe('protected research catalog filter facets', () => {
     expect(createHash('sha256').update(contract).digest('hex')).toBe(
       '0114ebd94cc22669f3437ffbb0bd8213f31f1367c12b4da2ec780d898406bcf2',
     );
-    expect(Buffer.byteLength(defaultBody, 'utf8')).toBe(2_249);
+    expect(Buffer.byteLength(defaultBody, 'utf8')).toBe(3_848);
     expect(createHash('sha256').update(defaultBody).digest('hex')).toBe(
-      '9ef90ebe7a35c831bd01af3658c420991f5f868ae64b5ceb2842ed5fe210179a',
+      'e0bc160c9f08a93167969e31dc2062b157bcab07442c3b2862e06eea6955382a',
     );
-    expect(Buffer.byteLength(disjunctiveBody, 'utf8')).toBe(2_261);
+    expect(Buffer.byteLength(disjunctiveBody, 'utf8')).toBe(4_426);
     expect(createHash('sha256').update(disjunctiveBody).digest('hex')).toBe(
-      '1a9d5639621649535782b005a473c30ca82d4b29fa67ea3b9c1f6a2c289092f4',
+      'f4e754d314672ab3099795cf19e40c4c91f1168e8c1039091eaf8f344f41eacb',
     );
   });
 
