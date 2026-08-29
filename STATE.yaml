@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T06:08:44+08:00
+updated: 2026-08-30T06:10:12+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,9 +10,11 @@ description: >
 research_evidence_state_summary_2026_08_30:
   at: 2026-08-30T05:58:20+08:00
   agent: TradeClaw PM agent
-  status: verified_shared_evidence_summary_ready_for_local_commit
+  status: verified_shared_evidence_summary_committed_local_closing_state
   scope: Give public users and authenticated admins one identical, ordered summary of the complete examined-candidate evidence desk so source-audit, QA-only, and evaluated performance states never need to be inferred from stage or verdict totals
   base_commit: c025a8e97b0e866deee2120e75f8629b93f043af
+  implementation_commit: db46b49d310f7819c7058efe22cce18f3b159b1e
+  committed_at: 2026-08-29T22:10:12.0882449Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-262
   current_cycle_id: 2026-08-29T21:00:00.000Z/PT3H
@@ -132,14 +134,14 @@ research_evidence_state_summary_2026_08_30:
     current_cycle_receipts_changed: false
     marketing_state_changed: false
     temporary_audit_workspace_present: false
-    next_gate_rechecked_at: 2026-08-29T22:08:44.9499362Z
+    next_gate_rechecked_at: 2026-08-29T22:10:12.0882449Z
     next_gate_still_closed: true
   final_state_bound_verification: >-
     PASS - all 18 exact evidence, route, auth, CSV, receipt, marketing, README,
     query, and publication-boundary suites pass 67/67 against the frozen
     seven-path implementation and safety state; YAML parses and diff checks pass.
-  current_step: Create the local implementation commit, then record its exact hash in a STATE-only closure
-  next_action: Record the implementation hash in a STATE-only closure commit and keep the recurring goal active until the 00:00Z receipt boundary
+  current_step: Create the local STATE-only closure commit and prove a clean branch
+  next_action: Keep the recurring goal active; preserve TC-262 as the sole 21:00Z receipt and, at or after 2026-08-30T00:00:00.000Z, open at most one new cost-first research intake decision before further product or marketing work
   marketing_handoff_created: false
   publish_approved: false
   trading_approved: false
