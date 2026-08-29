@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T02:28:41+08:00
+updated: 2026-08-30T02:29:44+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,12 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 crypto_factor_source_audit_2026_08_29:
-  at: 2026-08-30T02:28:41+08:00
+  at: 2026-08-30T02:29:44+08:00
   agent: TradeClaw PM agent
-  status: verified_source_audit_no_go_ready_for_local_commit
+  status: verified_source_audit_no_go_committed_local_closing_state
   scope: Decide whether the source-defined cryptocurrency factor study can enter a cost-first preregistered TradeClaw replication without inventing data, trading mechanics, or a replacement hypothesis
   base_commit: d86d7f565b14215ac15e861dee0877d0bb0e1114
+  implementation_commit: 097f54212b922719649e7be610c282caef653630
   branch: agent/research-intake-desk-20260829
   current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
   current_cycle_status: complete
@@ -127,7 +128,7 @@ crypto_factor_source_audit_2026_08_29:
   publish_approved: false
   trading_approved: false
   external_actions: none
-  current_step: Create the verified local implementation commit, then bind its exact hash in a STATE-only closure and shared MemoryCore
+  current_step: Create the STATE-only closure commit, save both exact hashes to shared MemoryCore, and leave the isolated branch clean
   next_action: Archive the exact-source no-go; any reduced-universe or implementable long-only cryptocurrency factor study must start as a separately hashed hypothesis in a later UTC window
   safety: No returns, source data, preregistration, result artifact, marketing draft, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
 
@@ -1986,6 +1987,7 @@ research_intake_desk_2026_08_29:
     id: 2026-08-29T18:00:00.000Z/PT3H
     recorded_at: 2026-08-29T18:00:40.000Z
     task_id: TC-261
+    implementation_commit: 097f54212b922719649e7be610c282caef653630
     started_at: 2026-08-29T18:00:00.000Z
     ends_at: 2026-08-29T21:00:00.000Z
     candidate_id: know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space
