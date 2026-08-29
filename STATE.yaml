@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T07:10:19+08:00
+updated: 2026-08-30T07:11:08+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_admin_marketing_evidence_context_2026_08_30:
-  at: 2026-08-30T07:10:19+08:00
+  at: 2026-08-30T07:11:08+08:00
   agent: TradeClaw PM agent
-  status: verified_admin_marketing_evidence_context_ready_to_commit
+  status: verified_admin_marketing_evidence_context_committed_local_closing_state
   scope: Give the authenticated marketing-review queue one explicit shared evidence interpretation in JSON and CSV so admins never infer evaluated performance from verdict or draft prose
   base_commit: cbe8fe3f0cea99edc1bddc582bdd4b4b58885dc8
+  implementation_commit: f2aa774bd58cae3c738e7b098dd8d6f12d76486b
+  committed_at: 2026-08-29T23:11:04.0000000Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-262
   time_mode: night
@@ -21,7 +23,7 @@ research_admin_marketing_evidence_context_2026_08_30:
   current_cycle_receipt: TC-262
   new_research_receipt_created: false
   next_rollover_at: 2026-08-30T00:00:00.000Z
-  gate_observed_at: 2026-08-29T23:10:19.4750858Z
+  gate_observed_at: 2026-08-29T23:11:08.9826316Z
   gate_decision: The 00:00Z receipt gate remains closed; improve only the protected review read model and create no receipt, draft, publication, or trading state
   library_search: No shared MemoryCore marketing-review, evidence-state, review-queue, or publication-authority pattern exists; reuse TradeClaw's proven shared evidence classifier and existing protected queue/export boundaries
   problem: >-
@@ -146,12 +148,12 @@ research_admin_marketing_evidence_context_2026_08_30:
     review_json_contract: 7946 bytes / b3924a188860d28fca466b0233340f25e8bee684744c7cdc2cda19dc1602b69e
     review_csv_contract: 4865 bytes / 6ed86c30ece50f54c64dc6b9c880be966aa5afeed394202377bcc7f3b025c1dc
   state_and_scope_verification: >-
-    PASS - STATE.yaml parses, `git diff --check` is clean, and the worktree has
-    exactly the frozen six-path manifest: STATE, two protected review read-model
-    files, one new focused contract, and two updated adjacent contracts. No
-    public, receipt, handoff, draft source, auth, route, rendered UI, Docker,
-    manifest, dependency, database, signal, allocation, execution, or trading
-    path changed.
+    PASS - STATE.yaml parses, `git diff --check` is clean, and the implementation
+    commit contains exactly the frozen six-path manifest: STATE, two protected
+    review read-model files, one new focused contract, and two updated adjacent
+    contracts. No public, receipt, handoff, draft source, auth, route, rendered
+    UI, Docker, manifest, dependency, database, signal, allocation, execution, or
+    trading path changed.
   scope_audit:
     changed_paths: 6
     forbidden_surface_changes: 0
@@ -162,10 +164,10 @@ research_admin_marketing_evidence_context_2026_08_30:
     current_window_receipt_unchanged: TC-262
     new_marketing_handoff_created: false
     gate_closed_at_audit: true
-    seconds_until_gate_at_audit: 2980
+    seconds_until_gate_at_audit: 2931
     next_receipt_gate_remains: 2026-08-30T00:00:00.000Z
-  current_step: Create the verified local implementation commit without pushing
-  next_action: Persist the implementation receipt in a STATE-only closure, save shared MemoryCore, and prove a clean worktree
+  current_step: Persist this implementation receipt in a STATE-only local closure without pushing
+  next_action: Save shared MemoryCore, prove the closure head and clean worktree, and keep the recurring goal active behind the 00:00Z gate
   marketing_handoff_created: false
   publish_approved: false
   trading_approved: false
