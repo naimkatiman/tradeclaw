@@ -1,11 +1,71 @@
 project: tradeclaw
-updated: 2026-08-29T19:18:24+08:00
+updated: 2026-08-29T20:10:56+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+trading_term_premium_preregistration_2026_08_29:
+  at: 2026-08-29T20:10:56+08:00
+  agent: TradeClaw PM agent
+  status: preregistered_returns_unopened
+  scope: Freeze a cost-first independent replication of the catalog's simple U.S. moving-average term-spread lane before calculating any local strategy return
+  base_commit: 177bed1096633b5ac4f2e8f35c87e82bfe00d9ce
+  branch: agent/research-intake-desk-20260829
+  task_id: TC-259
+  candidate_id: trading-the-term-premium
+  cycle_id: 2026-08-29T12:00:00.000Z/PT3H
+  source_audit: docs/research/2026-08-29-trading-term-premium-source-audit.md
+  source_audit_sha256: cef21d66d07f29fb32af67f542a482491c4ffd0e00b656ea79bdb9600e0f8965
+  source_audit_disposition: advance
+  preregistration: docs/plans/2026-08-29-trading-term-premium-replication.md
+  preregistration_sha256: 74b138499e36ea55f03490069a3c3f3823e458997c4cb00daf82903bd3f6387b
+  input_path: docs/research/data/trading-term-premium/fed-nominal-month-end-1961-06-30-2026-07-31.csv
+  input_sha256: 29442bea3f4ccef06aa741ff4afd6202c2a029cf6f43966f04e482960959f041
+  input_receipt: >
+    The exact 16,631,671-byte Federal Reserve source at SHA-256
+    877d0908ce3b875412eac0295715f88b40a011a94e24339e15959ec3bb04cad7
+    passed 381,362 available annual-yield reconstruction checks with zero above
+    the pre-return 0.05 bp tolerance. Deterministic preparation emitted 782
+    completed month ends, 223 Nelson-Siegel and 559 Svensson rows, 18,334
+    available supplied-yield checks, 311,362 bytes, and the canonical retained
+    hash above. No strategy return was calculated during preparation.
+  frozen_protocol: >
+    At decision month t use the causal include-current 40-month average of the
+    continuously compounded Federal Reserve 10y-minus-3m curve spread; hold a
+    modeled 120m-to-119m ten-year zero for the next month when strictly above
+    the average and a modeled one-month zero to redemption otherwise. The
+    prior-only average is an ungated ambiguity sensitivity. Headline cost is 5
+    bp per adverse side and stress is 12.5 bp, charged on every monthly maturity
+    reset; always-ten-year and always-one-month benchmarks are identically
+    costed. Paper comparison is 1968-01 through 2021-01 with four folds of
+    159/159/159/160, bridge is 24 months, and the untouched post-publication
+    holdout is 2023-02 through 2026-07. PASS requires every frozen full,
+    stability, and holdout gate; standing QA failure is INCONCLUSIVE.
+  modeled_boundary: >
+    The paper itself calls the study proof-of-concept and omits costs. All
+    prices are fitted current-vintage curve points, not executable securities;
+    the first 44 paper outcomes extend beyond the supplied ten-year comparison
+    field. The Federal Reserve inputs are public-domain with attribution, but
+    the SSRN paper and New York Fed PDF are hash-cited and not redistributed.
+  preregistration_frozen: true
+  returns_opened: false
+  return_calculated: false
+  artifact_created: false
+  verdict: not-run
+  catalog_stage_advanced: false
+  marketing_draft: none
+  publish_approved: false
+  activation_approved: false
+  allocation_approved: false
+  broadcast_approved: false
+  execution_approved: false
+  external_actions: none
+  current_step: Commit the fully verified frozen protocol before adding or invoking any return assembly
+  verification: PASS - deterministic input preparation reproduced the exact source and snapshot hashes; all 381,362 full-source reconstruction checks passed the frozen tolerance; the 782-row snapshot reproduced byte-for-byte; script syntax, package JSON, YAML, git diff, and the pre-return boundary passed; the required production build compiled both packages and generated all 325 pages with inherited warnings only
+  safety: No return, artifact, verdict, marketing copy, UI, auth, database, Docker, dependency, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
 research_intake_marketing_handoff_projection_2026_08_29:
   at: 2026-08-29T19:18:24+08:00
@@ -245,9 +305,9 @@ end_of_month_treasury_replication_2026_08_29:
   next_action: Under a new preregistration, obtain an original-vintage Federal Reserve curve file or define an explicit rounded-parameter reconciliation policy before attempting any performance evaluation
 
 research_intake_desk_2026_08_29:
-  at: 2026-08-29T17:49:54+08:00
+  at: 2026-08-29T20:10:56+08:00
   agent: TradeClaw PM agent
-  status: foundation_admin_api_and_three_research_cycles_complete_next_candidate_queued_ui_checkpoint
+  status: foundation_admin_api_three_completed_cycles_and_tc259_preregistered_ui_checkpoint
   scope: Turn the protected strategy-library surface into a simple cost-first research intake desk and connect evidence-complete findings to a human-reviewed three-hour research/marketing loop
   base_commit: f7936bcf627f208ac0379412453976b17218608b
   implementation_commit: bce46c05b2c61613981616102535e2f3be666950
@@ -255,20 +315,20 @@ research_intake_desk_2026_08_29:
   treasury_replication_commit: 8252a1809f33c13c429ff9b8f7cc2fb7c2749b4b
   bitcoin_max_min_replication_commit: 6a3c1b01afad160fb0ee4970d4dff6a78f381731
   branch: agent/research-intake-desk-20260829
-  current_step: The pinned foundation, first source no-go, protected admin read API, TC-257 QA-only hold, and TC-258 canonical FAIL are implemented; the next-cycle term-spread candidate is queued without advancing its stage or creating a second receipt, and visual v0 remains paused at the required UI direction checkpoint
+  current_step: TC-259 now has a hash-bound source audit, deterministic public-domain month-end snapshot, frozen costs, controls, folds, holdout, QA, and decision gates in the new 12:00Z window; the required 325-page production build and all checkpoint checks pass, returns remain unopened until the preregistration is committed, and visual v0 remains paused at the required UI direction checkpoint
   next_cycle_readiness:
-    at: 2026-08-29T17:49:54+08:00
-    window_status: queued_for_a_new_utc_aligned_window_only
+    at: 2026-08-29T20:10:56+08:00
+    window_status: new_utc_window_open_preregistration_verified_returns_closed
     candidate_id: trading-the-term-premium
-    stage: discovered
+    stage: preregistered
     candidate_lane: monthly_us_moving_average_term_spread
     primary_rule_candidate: >
-      Use the paper's simpler U.S. term-spread proxy, defined as the 10-year
-      yield minus the three-month yield. At month-end, compare the proxy with
-      its source-defined trailing moving average and hold modeled 10-year
-      duration for the following month in the high-premium regime or the
-      one-month bond otherwise. Exact cutoff timing, warm-up, input vintage,
-      return construction, costs, controls, folds, and gates are not frozen yet.
+      Frozen canonical rule: use the Federal Reserve continuously compounded
+      10-year minus three-month spread at month-end t, compare it with the
+      causal include-current mean over t-39 through t, and hold a modeled
+      ten-year zero for the following month only when strictly above the mean;
+      otherwise hold a modeled one-month zero to redemption. The prior-only
+      interpretation is visible and ungated.
     rationale: >
       This lane has monthly decisions, a primary-source rule that does not
       require vendor code, public Federal Reserve yield inputs, and a natural
@@ -276,11 +336,12 @@ research_intake_desk_2026_08_29:
       spread strategies alongside the more complex ACM and HMM variants and
       says their U.S. risk/return characteristics were nearly identical.
     required_pre_return_gates: >
-      Hash-bind an exact Federal Reserve input snapshot and explicit revision
-      policy; reproduce the paper's modeled zero-coupon return construction;
-      retain the modeled-versus-tradeable boundary; calculate conservative
-      full-cost headroom from source evidence; and freeze an untouched
-      post-2021 holdout before opening any local return result.
+      Satisfied in the frozen protocol: exact Federal Reserve source and
+      normalized-snapshot hashes, current-vintage revision policy, dual
+      Nelson-Siegel/Svensson curve math, modeled-versus-tradeable boundary,
+      5/12.5 bp per-side cost model, identically costed controls, four paper
+      folds, a disclosed bridge, untouched post-publication holdout, standing
+      QA, and PASS/FAIL/INCONCLUSIVE gates.
     source_caveat: >
       The paper calls its backtests proof-of-concept because they use yield
       curves rather than strictly tradeable prices and omit trading costs.
@@ -293,14 +354,14 @@ research_intake_desk_2026_08_29:
       durable physical investment were unavailable for most of the sample, so
       its portfolio sorts identify a phenomenon rather than an executable
       historical strategy.
-    preregistration_frozen: false
+    preregistration_frozen: true
     returns_opened: false
     catalog_stage_advanced: false
-    cycle_receipt_created: false
-    current_window_receipt_unchanged: 2026-08-29T09:00:00.000Z/PT3H
+    cycle_receipt_created: true
+    current_window_receipt: 2026-08-29T12:00:00.000Z/PT3H
     marketing_draft: none
     external_actions: none
-    next_action: In the next new UTC-aligned window, audit and freeze this lane or record a hash-bound no-go before calculating returns
+    next_action: Commit this verified preregistration-only checkpoint; only then implement and invoke the deterministic return assembly
   source: >
     Populate discovery metadata from the 61 highlighted strategies in the exact
     paperswithbacktest/awesome-systematic-trading commit
@@ -507,6 +568,41 @@ research_intake_desk_2026_08_29:
     publish_approved: false
     external_actions: none
     next_action: Screen the next lower-transition catalog candidate for primary-rule reconstructibility, immutable data, and full-cost headroom; do not select TC-258 controls post result
+  cycle_4:
+    id: 2026-08-29T12:00:00.000Z/PT3H
+    started_at: 2026-08-29T12:00:00.000Z
+    ends_at: 2026-08-29T15:00:00.000Z
+    candidate_id: trading-the-term-premium
+    stage_before: discovered
+    stage_after: preregistered
+    verdict: not-run
+    outcome: frozen-returns-unopened
+    changed_files:
+      - docs/research/2026-08-29-trading-term-premium-source-audit.md
+      - docs/plans/2026-08-29-trading-term-premium-replication.md
+      - docs/research/data/trading-term-premium/fed-nominal-month-end-1961-06-30-2026-07-31.csv
+      - scripts/research/prepare-trading-term-premium-input.mjs
+      - package.json
+      - STATE.yaml
+    verification:
+      - exact raw Federal Reserve SHA-256 reproduced
+      - full-source 381,362-check reconstruction QA passed at frozen 0.05 bp tolerance
+      - deterministic 782-row snapshot reproduced exact 311,362-byte SHA-256
+      - source-audit and preregistration canonical hashes recorded
+      - required production build compiled both packages and generated all 325 pages with inherited warnings only
+      - YAML, script syntax, package JSON, git diff, and the pre-return boundary passed
+    evidence_paths:
+      - docs/research/2026-08-29-trading-term-premium-source-audit.md
+      - docs/plans/2026-08-29-trading-term-premium-replication.md
+      - docs/research/data/trading-term-premium/fed-nominal-month-end-1961-06-30-2026-07-31.csv
+    preregistration_frozen: true
+    returns_opened: false
+    return_calculated: false
+    catalog_stage_advanced: false
+    marketing_draft: none
+    publish_approved: false
+    external_actions: none
+    next_action: Commit the verified preregistration-only checkpoint before calculating any return
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00
@@ -5521,3 +5617,36 @@ next_actions:
       deployment state changed. The complete implementation and evidence package
       was committed locally as 6a3c1b01afad160fb0ee4970d4dff6a78f381731;
       nothing was pushed.
+
+  - id: TC-259
+    title: "Audit and replicate the simple U.S. term-premium allocation under monthly roll costs"
+    status: in_progress
+    owner: pm-tradeclaw
+    notes: >
+      Opened only after the exact 2026-08-29T12:00:00.000Z/PT3H boundary from
+      clean local head 177bed1096633b5ac4f2e8f35c87e82bfe00d9ce. The official
+      SSRN paper was audited and hash-cited without redistribution. Exact
+      Federal Reserve raw bytes were deterministically reduced to 782 valid
+      month ends at SHA-256
+      29442bea3f4ccef06aa741ff4afd6202c2a029cf6f43966f04e482960959f041;
+      full-source QA made 381,362 annual-yield comparisons and found zero above
+      the pre-return 0.05 bp limit. The frozen canonical rule uses the causal
+      include-current 40-month average of the continuously compounded
+      10y-minus-3m spread, then chooses a modeled ten-year or one-month zero for
+      the following month. Prior-only timing is ungated. Headline/stress costs
+      are 5/12.5 bp per adverse side on every maturity reset, with identically
+      costed ten-year and one-month benchmarks, four paper folds, a bridge, and
+      a 42-month post-publication holdout. Source-audit SHA-256 is
+      cef21d66d07f29fb32af67f542a482491c4ffd0e00b656ea79bdb9600e0f8965;
+      preregistration SHA-256 is
+      74b138499e36ea55f03490069a3c3f3823e458997c4cb00daf82903bd3f6387b.
+      Returns, artifact, verdict, catalog overlay, marketing draft, and every
+      publication/trading authority remain unopened. The required production
+      build compiled both packages and generated all 325 pages with inherited
+      warnings only; deterministic preparation, exact source/snapshot hashes,
+      all 381,362 full-source reconstruction checks, script syntax, package JSON,
+      YAML, git diff, and the pre-return boundary pass. A separate local
+      checkpoint commit remains required before return logic is added. No push,
+      merge, deploy, UI,
+      database, Docker, dependency, signal, allocation, broadcast, execution,
+      billing, or publication action occurred.
