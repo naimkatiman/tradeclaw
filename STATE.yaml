@@ -1,11 +1,29 @@
 project: tradeclaw
-updated: 2026-08-29T19:04:53+08:00
+updated: 2026-08-29T19:12:33+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_intake_loop_observability_repair_2026_08_29:
+  at: 2026-08-29T19:12:33+08:00
+  agent: TradeClaw PM agent
+  status: verified_admin_loop_window_projection
+  scope: Give the protected research-intake read model one canonical server-side view of the active three-hour UTC window and its next rollover so an admin client never reconstructs receipt timing independently
+  base_commit: 59282a433aa9bcc062912e01f6b72f7edb5d4381
+  branch: agent/research-intake-desk-20260829
+  finding: The read-only admin payload exposed source provenance, evidence stages, filters, summaries, pagination, and authority boundaries, but not the active research-loop window. A future admin surface would therefore have to duplicate UTC alignment and rollover logic in the browser.
+  repair: The protected payload now projects its server observation time, UTC alignment, PT3H cadence, canonical current window, and explicit next rollover using getResearchLoopWindow. The builder accepts an injectable instant for deterministic verification; the route still authenticates before parsing and retains private no-store caching plus false publication and trading authority.
+  verification: The exact-window route test failed with an absent researchLoop payload before implementation, then the focused intake, loop, route, and real-cookie boundary set passed 36/36. Repository Jest passed 249 suites and 1,955 tests with three suites and 26 tests skipped; web typecheck passed; full lint completed with zero errors and the same 21 inherited warnings; git diff checks passed; the required build compiled signals and trading-agents and generated all 325 Next.js pages. Existing non-blocking warning categories remain unchanged.
+  current_cycle_receipt_unchanged: 2026-08-29T09:00:00.000Z/PT3H
+  tc259_preregistration_frozen: false
+  tc259_returns_opened: false
+  tc259_catalog_stage_advanced: false
+  tc259_cycle_receipt_created: false
+  external_actions: none
+  safety: No research candidate, source data, return, artifact, marketing draft, UI, database, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
 research_loop_utc_determinism_repair_2026_08_29:
   at: 2026-08-29T19:01:52+08:00

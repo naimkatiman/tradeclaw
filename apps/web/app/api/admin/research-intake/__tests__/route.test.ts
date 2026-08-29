@@ -18,6 +18,10 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+afterEach(() => {
+  jest.useRealTimers();
+});
+
 describe('GET /api/admin/research-intake', () => {
   it('authenticates before parsing and returns no intake detail to denied callers', async () => {
     mockedAdmin.mockResolvedValue(
@@ -91,6 +95,34 @@ describe('GET /api/admin/research-intake', () => {
     expect(body.records.map((record: { sourcePosition: number }) => record.sourcePosition)).toEqual(
       Array.from({ length: 25 }, (_, index) => index),
     );
+  });
+
+  it('exposes the canonical UTC research window and next rollover', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-08-29T19:17:23+08:00'));
+    mockedAdmin.mockResolvedValue(null);
+
+    const response = await GET(request());
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.researchLoop).toEqual({
+      observedAt: '2026-08-29T11:17:23.000Z',
+      alignment: 'UTC',
+      cadence: 'PT3H',
+      currentWindow: {
+        id: '2026-08-29T09:00:00.000Z/PT3H',
+        startAt: '2026-08-29T09:00:00.000Z',
+        endsAt: '2026-08-29T12:00:00.000Z',
+        durationHours: 3,
+      },
+      nextRolloverAt: '2026-08-29T12:00:00.000Z',
+    });
+    expect(body.access).toEqual({
+      mode: 'admin-read-only',
+      grantsPublicationAuthority: false,
+      grantsTradingAuthority: false,
+    });
   });
 
   it('exposes the source-audit no-go without relabeling it as a local failure', async () => {

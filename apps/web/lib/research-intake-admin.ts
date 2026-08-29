@@ -14,6 +14,7 @@ import {
   type ResearchSourceAuditDisposition,
   type ResearchVerdict,
 } from './research-intake';
+import { getResearchLoopWindow, type ResearchLoopWindow } from './research-loop';
 
 const VERDICTS = ['not-tested', 'pass', 'fail', 'inconclusive'] as const;
 const SOURCE_AUDIT_DISPOSITIONS = ['advance', 'hold', 'no-go'] as const;
@@ -55,6 +56,13 @@ export interface ResearchIntakeAdminPayload {
   source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
   selectionPolicy: string;
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
+  researchLoop: {
+    observedAt: string;
+    alignment: 'UTC';
+    cadence: 'PT3H';
+    currentWindow: ResearchLoopWindow;
+    nextRolloverAt: string;
+  };
   appliedFilters: ResearchIntakeAdminQuery;
   catalogSummary: ReturnType<typeof summarizeResearchIntake>;
   filteredSummary: ReturnType<typeof summarizeResearchIntake>;
@@ -176,8 +184,11 @@ function asIntakeFilters(query: ResearchIntakeAdminQuery): ResearchIntakeFilters
 
 export function buildResearchIntakeAdminPayload(
   searchParams: URLSearchParams,
+  at: Date | string | number = new Date(),
 ): ResearchIntakeAdminPayload {
   const query = parseResearchIntakeAdminQuery(searchParams);
+  const currentWindow = getResearchLoopWindow(at);
+  const observedAt = new Date(at instanceof Date ? at.getTime() : at).toISOString();
   const filtered = filterResearchIntake(
     SYSTEMATIC_RESEARCH_INTAKE,
     asIntakeFilters(query),
@@ -196,6 +207,13 @@ export function buildResearchIntakeAdminPayload(
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
+    researchLoop: {
+      observedAt,
+      alignment: 'UTC',
+      cadence: 'PT3H',
+      currentWindow,
+      nextRolloverAt: currentWindow.endsAt,
+    },
     appliedFilters: query,
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
     filteredSummary: summarizeResearchIntake(filtered),

@@ -54,8 +54,10 @@ Accepted query parameters are deliberately bounded:
 Unknown, duplicated, malformed, or out-of-range inputs fail closed with `400`.
 Results always preserve pinned source order; upstream return or Sharpe never
 changes ordering. The payload carries both whole-catalog and filtered summaries,
-the evidence workflow, source provenance, pagination, and explicit false values
-for publication and trading authority.
+the evidence workflow, source provenance, pagination, and the server-observed
+current UTC-aligned `PT3H` research window with its next rollover. That timing
+projection is informational and retains explicit false values for publication
+and trading authority.
 
 ## Cycle contract
 
