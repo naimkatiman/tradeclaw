@@ -24,21 +24,24 @@ const CANDIDATE_BASE_PATHS = Object.freeze({
   admin: '/api/admin/research-intake',
 } as const satisfies Record<ResearchIntakeCandidateNavigationSurface, string>);
 
-function candidateHref(basePath: string, candidateId: string): string {
-  return `${basePath}/${encodeURIComponent(candidateId)}`;
+export function buildResearchIntakeCandidateHref(
+  candidateId: string,
+  surface: ResearchIntakeCandidateNavigationSurface,
+): string {
+  return `${CANDIDATE_BASE_PATHS[surface]}/${encodeURIComponent(candidateId)}`;
 }
 
 function navigationItem(
   record: ResearchIntakeRecord | undefined,
   position: number,
-  basePath: string,
+  surface: ResearchIntakeCandidateNavigationSurface,
 ): ResearchIntakeCandidateNavigationItem | null {
   if (!record) return null;
   return {
     id: record.id,
     title: record.title,
     position,
-    href: candidateHref(basePath, record.id),
+    href: buildResearchIntakeCandidateHref(record.id, surface),
   };
 }
 
@@ -57,16 +60,16 @@ export function buildResearchIntakeCandidateNavigation(
     currentPosition: currentIndex + 1,
     totalCandidates: SYSTEMATIC_RESEARCH_INTAKE.length,
     catalogHref: basePath,
-    selfHref: candidateHref(basePath, candidateId),
+    selfHref: buildResearchIntakeCandidateHref(candidateId, surface),
     previous: navigationItem(
       SYSTEMATIC_RESEARCH_INTAKE[currentIndex - 1],
       currentIndex,
-      basePath,
+      surface,
     ),
     next: navigationItem(
       SYSTEMATIC_RESEARCH_INTAKE[currentIndex + 1],
       currentIndex + 2,
-      basePath,
+      surface,
     ),
   };
 }

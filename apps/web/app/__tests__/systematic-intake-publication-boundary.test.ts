@@ -75,11 +75,22 @@ describe('systematic research intake public boundary', () => {
     const candidateOperation = spec.paths['/api/research/intake/{candidateId}']?.get;
     const csvOperation = spec.paths['/api/research/intake.csv']?.get;
     const responseSchema = spec.components.schemas.ResearchIntakeResponse as {
+      required?: string[];
       properties?: {
+        resources?: { $ref?: string };
+        catalogEvidenceStateSummary?: { $ref?: string };
         catalogSummary?: {
           properties?: Record<string, { example?: number }>;
         };
       };
+    };
+    const publicRecordSchema = spec.components.schemas.ResearchIntakePublicRecord as {
+      required?: string[];
+      properties?: { links?: { $ref?: string } };
+    };
+    const publicResourcesSchema = spec.components.schemas.ResearchIntakePublicResources as {
+      required?: string[];
+      properties?: Record<string, { const?: string }>;
     };
     const candidateResponseSchema = spec.components.schemas.ResearchIntakeCandidateResponse as {
       required?: string[];
@@ -98,9 +109,32 @@ describe('systematic research intake public boundary', () => {
     expect(spec.tags).toContainEqual(expect.objectContaining({ name: 'Research' }));
     expect(spec.components.schemas).toHaveProperty('ResearchIntakeResponse');
     expect(spec.components.schemas).toHaveProperty('ResearchIntakePublicRecord');
+    expect(spec.components.schemas).toHaveProperty('ResearchIntakePublicResources');
+    expect(spec.components.schemas).toHaveProperty('ResearchIntakePublicRecordLinks');
     expect(spec.components.schemas).toHaveProperty('ResearchIntakeEvidenceResponse');
     expect(spec.components.schemas).toHaveProperty('ResearchIntakeCandidateResponse');
     expect(spec.components.schemas).toHaveProperty('ResearchIntakeCandidateNavigation');
+    expect(responseSchema.required).toEqual(expect.arrayContaining([
+      'resources',
+      'catalogEvidenceStateSummary',
+    ]));
+    expect(responseSchema.properties?.resources?.$ref).toBe(
+      '#/components/schemas/ResearchIntakePublicResources',
+    );
+    expect(responseSchema.properties?.catalogEvidenceStateSummary?.$ref).toBe(
+      '#/components/schemas/ResearchIntakeEvidenceStateSummary',
+    );
+    expect(publicRecordSchema.required).toContain('links');
+    expect(publicRecordSchema.properties?.links?.$ref).toBe(
+      '#/components/schemas/ResearchIntakePublicRecordLinks',
+    );
+    expect(publicResourcesSchema.required).toEqual([
+      'catalog',
+      'catalogCsv',
+      'evidence',
+      'evidenceCsv',
+    ]);
+    expect(publicResourcesSchema.properties?.catalog?.const).toBe('/api/research/intake');
     expect(candidateResponseSchema.required).toContain('navigation');
     expect(candidateResponseSchema.properties?.navigation?.$ref).toBe(
       '#/components/schemas/ResearchIntakeCandidateNavigation',

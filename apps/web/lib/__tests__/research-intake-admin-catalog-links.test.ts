@@ -116,7 +116,7 @@ describe('protected research catalog record links', () => {
     );
   });
 
-  it('keeps links catalog-only while existing evidence and review item links stay exact', () => {
+  it('keeps protected links catalog-only while public rows get only public detail links', () => {
     const candidate = buildResearchIntakeAdminCandidatePayload(
       TC261_CANDIDATE_ID,
       OBSERVED_AT,
@@ -133,6 +133,13 @@ describe('protected research catalog record links', () => {
     expect(review.queue.items[0].links).toEqual(
       expectedLinks(review.queue.items[0].candidate.id),
     );
-    expect(publicCatalog.records.every((record) => !('links' in record))).toBe(true);
+    expect(publicCatalog.records.every((record) => (
+      JSON.stringify(record.links) === JSON.stringify({
+        candidate: `/api/research/intake/${encodeURIComponent(record.id)}`,
+      })
+    ))).toBe(true);
+    expect(JSON.stringify(publicCatalog.records.map((record) => record.links))).not.toContain(
+      '/api/admin/research-intake',
+    );
   });
 });

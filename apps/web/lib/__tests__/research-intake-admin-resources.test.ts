@@ -8,7 +8,10 @@ import {
   buildResearchIntakeAdminReviewPayload,
 } from '../research-intake-admin';
 import { buildResearchIntakeAdminEvidenceCsv } from '../research-intake-admin-evidence-csv';
-import { buildResearchIntakePublicPayload } from '../research-intake-public';
+import {
+  RESEARCH_INTAKE_PUBLIC_RESOURCES,
+  buildResearchIntakePublicPayload,
+} from '../research-intake-public';
 
 const OBSERVED_AT = '2026-08-29T18:00:40.000Z';
 const CANDIDATE_ID =
@@ -39,11 +42,17 @@ describe('protected research intake resource discovery', () => {
     }
   });
 
-  it('does not leak protected discovery paths into public payloads or OpenAPI', () => {
+  it('keeps public discovery separate from protected resources and OpenAPI', () => {
     const publicPayload = buildResearchIntakePublicPayload();
     const publicPaths = buildOpenApiSpec().paths as Record<string, unknown>;
 
-    expect(publicPayload).not.toHaveProperty('resources');
+    expect(publicPayload.resources).toBe(RESEARCH_INTAKE_PUBLIC_RESOURCES);
+    expect(publicPayload.resources).toEqual({
+      catalog: '/api/research/intake',
+      catalogCsv: '/api/research/intake.csv',
+      evidence: '/api/research/intake/evidence',
+      evidenceCsv: '/api/research/intake/evidence.csv',
+    });
     expect(JSON.stringify(publicPayload)).not.toContain('/api/admin/research-intake');
     for (const path of Object.values(RESEARCH_INTAKE_ADMIN_RESOURCES)) {
       expect(publicPaths).not.toHaveProperty(path);

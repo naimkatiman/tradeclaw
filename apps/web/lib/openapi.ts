@@ -220,6 +220,33 @@ export function buildOpenApiSpec(): OpenApiSpec {
             stats: { type: "object" },
           },
         },
+        ResearchIntakePublicResources: {
+          type: "object",
+          description:
+            "Canonical sibling resources for the public systematic-research intake. Every path is read-only and requires no API key.",
+          required: ["catalog", "catalogCsv", "evidence", "evidenceCsv"],
+          properties: {
+            catalog: { type: "string", const: "/api/research/intake" },
+            catalogCsv: { type: "string", const: "/api/research/intake.csv" },
+            evidence: { type: "string", const: "/api/research/intake/evidence" },
+            evidenceCsv: {
+              type: "string",
+              const: "/api/research/intake/evidence.csv",
+            },
+          },
+        },
+        ResearchIntakePublicRecordLinks: {
+          type: "object",
+          description: "Canonical public detail link for one exact candidate ID.",
+          required: ["candidate"],
+          properties: {
+            candidate: {
+              type: "string",
+              example:
+                "/api/research/intake/a-risk-based-approach-to-tactical-asset-allocation",
+            },
+          },
+        },
         ResearchIntakePublicRecord: {
           type: "object",
           description:
@@ -240,6 +267,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "costStatus",
             "evidenceBasis",
             "evidenceState",
+            "links",
             "tradeClawSourceAudit",
             "tradeClawEvidence",
           ],
@@ -305,6 +333,9 @@ export function buildOpenApiSpec(): OpenApiSpec {
                 grantsTradingAuthority: { type: "boolean", const: false },
               },
             },
+            links: {
+              $ref: "#/components/schemas/ResearchIntakePublicRecordLinks",
+            },
             tradeClawSourceAudit: { type: ["object", "null"] },
             tradeClawEvidence: { type: ["object", "null"] },
           },
@@ -323,10 +354,10 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "grantsTradingAuthority",
           ],
           properties: {
-            totalCandidates: { type: "integer", minimum: 0, example: 8 },
-            withTradeClawRecord: { type: "integer", minimum: 0, example: 8 },
-            performanceGatesEvaluated: { type: "integer", minimum: 0, example: 3 },
-            performanceGatesNotEvaluated: { type: "integer", minimum: 0, example: 5 },
+            totalCandidates: { type: "integer", minimum: 0 },
+            withTradeClawRecord: { type: "integer", minimum: 0 },
+            performanceGatesEvaluated: { type: "integer", minimum: 0 },
+            performanceGatesNotEvaluated: { type: "integer", minimum: 0 },
             statuses: {
               type: "array",
               minItems: 6,
@@ -372,11 +403,13 @@ export function buildOpenApiSpec(): OpenApiSpec {
           required: [
             "schemaVersion",
             "access",
+            "resources",
             "source",
             "selectionPolicy",
             "workflow",
             "claimBoundary",
             "catalogSummary",
+            "catalogEvidenceStateSummary",
             "records",
           ],
           properties: {
@@ -397,6 +430,9 @@ export function buildOpenApiSpec(): OpenApiSpec {
                 grantsPublicationAuthority: { type: "boolean", const: false },
                 grantsTradingAuthority: { type: "boolean", const: false },
               },
+            },
+            resources: {
+              $ref: "#/components/schemas/ResearchIntakePublicResources",
             },
             source: {
               type: "object",
@@ -487,6 +523,11 @@ export function buildOpenApiSpec(): OpenApiSpec {
                 },
               },
             },
+            catalogEvidenceStateSummary: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
+              description:
+                "Whole 61-candidate interpretation: 53 untouched discoveries, four source audits, one QA-only record, and three modeled failures.",
+            },
             records: {
               type: "array",
               minItems: 61,
@@ -502,11 +543,13 @@ export function buildOpenApiSpec(): OpenApiSpec {
           required: [
             "schemaVersion",
             "access",
+            "resources",
             "source",
             "selectionPolicy",
             "workflow",
             "claimBoundary",
             "catalogSummary",
+            "catalogEvidenceStateSummary",
             "evidenceIndex",
             "evidenceSummary",
             "evidenceStateSummary",
@@ -517,6 +560,9 @@ export function buildOpenApiSpec(): OpenApiSpec {
               $ref: "#/components/schemas/ResearchIntakeResponse/properties/schemaVersion",
             },
             access: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/access" },
+            resources: {
+              $ref: "#/components/schemas/ResearchIntakePublicResources",
+            },
             source: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/source" },
             selectionPolicy: {
               $ref: "#/components/schemas/ResearchIntakeResponse/properties/selectionPolicy",
@@ -529,6 +575,11 @@ export function buildOpenApiSpec(): OpenApiSpec {
             },
             catalogSummary: {
               $ref: "#/components/schemas/ResearchIntakeResponse/properties/catalogSummary",
+            },
+            catalogEvidenceStateSummary: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
+              description:
+                "Whole 61-candidate interpretation. This is deliberately separate from the eight-record evidenceStateSummary below.",
             },
             evidenceIndex: {
               type: "object",
@@ -573,6 +624,8 @@ export function buildOpenApiSpec(): OpenApiSpec {
             },
             evidenceStateSummary: {
               $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
+              description:
+                "Interpretation of the complete eight-record evidence subset only.",
             },
             records: {
               type: "array",
@@ -633,11 +686,13 @@ export function buildOpenApiSpec(): OpenApiSpec {
           required: [
             "schemaVersion",
             "access",
+            "resources",
             "source",
             "selectionPolicy",
             "workflow",
             "claimBoundary",
             "catalogSummary",
+            "catalogEvidenceStateSummary",
             "navigation",
             "record",
           ],
@@ -646,6 +701,9 @@ export function buildOpenApiSpec(): OpenApiSpec {
               $ref: "#/components/schemas/ResearchIntakeResponse/properties/schemaVersion",
             },
             access: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/access" },
+            resources: {
+              $ref: "#/components/schemas/ResearchIntakePublicResources",
+            },
             source: { $ref: "#/components/schemas/ResearchIntakeResponse/properties/source" },
             selectionPolicy: {
               $ref: "#/components/schemas/ResearchIntakeResponse/properties/selectionPolicy",
@@ -658,6 +716,11 @@ export function buildOpenApiSpec(): OpenApiSpec {
             },
             catalogSummary: {
               $ref: "#/components/schemas/ResearchIntakeResponse/properties/catalogSummary",
+            },
+            catalogEvidenceStateSummary: {
+              $ref: "#/components/schemas/ResearchIntakeEvidenceStateSummary",
+              description:
+                "Whole 61-candidate interpretation included with the exact candidate context.",
             },
             navigation: {
               $ref: "#/components/schemas/ResearchIntakeCandidateNavigation",

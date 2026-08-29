@@ -7,6 +7,7 @@ import {
   type ResearchIntakeRecord,
 } from './research-intake';
 import {
+  buildResearchIntakeCandidateHref,
   buildResearchIntakeCandidateNavigation,
   type ResearchIntakeCandidateNavigation,
 } from './research-intake-candidate-navigation';
@@ -21,12 +22,24 @@ export type ResearchIntakePublicEvidenceBasis =
   | 'tradeclaw-source-audit-only'
   | 'tradeclaw-replication-record';
 
+export const RESEARCH_INTAKE_PUBLIC_RESOURCES = Object.freeze({
+  catalog: '/api/research/intake',
+  catalogCsv: '/api/research/intake.csv',
+  evidence: '/api/research/intake/evidence',
+  evidenceCsv: '/api/research/intake/evidence.csv',
+} as const);
+
+export interface ResearchIntakePublicRecordLinks {
+  candidate: string;
+}
+
 export type ResearchIntakePublicRecord = Omit<
   ResearchIntakeRecord,
   'nextAction' | 'marketingDisposition'
 > & {
   evidenceBasis: ResearchIntakePublicEvidenceBasis;
   evidenceState: ResearchIntakeEvidenceState;
+  links: ResearchIntakePublicRecordLinks;
 };
 
 export interface ResearchIntakePublicPayload {
@@ -38,6 +51,7 @@ export interface ResearchIntakePublicPayload {
     grantsPublicationAuthority: false;
     grantsTradingAuthority: false;
   };
+  resources: typeof RESEARCH_INTAKE_PUBLIC_RESOURCES;
   source: typeof SYSTEMATIC_RESEARCH_INTAKE_SOURCE;
   selectionPolicy: string;
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
@@ -48,6 +62,7 @@ export interface ResearchIntakePublicPayload {
     authority: string;
   };
   catalogSummary: ReturnType<typeof summarizeResearchIntake>;
+  catalogEvidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
   records: readonly ResearchIntakePublicRecord[];
 }
 
@@ -99,6 +114,9 @@ function toPublicRecord(record: ResearchIntakeRecord): ResearchIntakePublicRecor
     costStatus: record.costStatus,
     evidenceBasis: evidenceBasisFor(record),
     evidenceState: buildResearchIntakeEvidenceState(record),
+    links: {
+      candidate: buildResearchIntakeCandidateHref(record.id, 'public'),
+    },
     tradeClawSourceAudit: record.tradeClawSourceAudit,
     tradeClawEvidence: record.tradeClawEvidence,
   };
@@ -114,6 +132,7 @@ function buildResearchIntakePublicContext(): Omit<ResearchIntakePublicPayload, '
       grantsPublicationAuthority: false,
       grantsTradingAuthority: false,
     },
+    resources: RESEARCH_INTAKE_PUBLIC_RESOURCES,
     source: SYSTEMATIC_RESEARCH_INTAKE_SOURCE,
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
@@ -128,6 +147,9 @@ function buildResearchIntakePublicContext(): Omit<ResearchIntakePublicPayload, '
         'This read-only response grants no authority to publish claims, select a strategy, allocate capital, broadcast a signal, or place a trade.',
     },
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
+    catalogEvidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      SYSTEMATIC_RESEARCH_INTAKE,
+    ),
   };
 }
 

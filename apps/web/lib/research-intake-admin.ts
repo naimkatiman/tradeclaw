@@ -15,6 +15,7 @@ import {
   type ResearchVerdict,
 } from './research-intake';
 import {
+  buildResearchIntakeCandidateHref,
   buildResearchIntakeCandidateNavigation,
   type ResearchIntakeCandidateNavigation,
 } from './research-intake-candidate-navigation';
@@ -1033,10 +1034,9 @@ function toAdminRecord(
 }
 
 function buildResearchIntakeCandidateLinks(candidateId: string): ResearchIntakeCandidateLinks {
-  const encodedCandidateId = encodeURIComponent(candidateId);
   return {
-    adminCandidate: `/api/admin/research-intake/${encodedCandidateId}`,
-    publicCandidate: `/api/research/intake/${encodedCandidateId}`,
+    adminCandidate: buildResearchIntakeCandidateHref(candidateId, 'admin'),
+    publicCandidate: buildResearchIntakeCandidateHref(candidateId, 'public'),
   };
 }
 
