@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T22:07:04+08:00
+updated: 2026-08-29T22:08:09+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -158,11 +158,12 @@ research_loop_marketing_review_queue_projection_2026_08_29:
   safety: The verified protected read-model increment was committed locally at 75f6774ed2f1fdae232d2c3651469ea3512c5cd2; no candidate, source data, return, artifact, outbound draft, UI, database, signal, allocation, broadcast, execution, billing, publication, push, merge, deployment, Docker, dependency, or auth state changed
 
 public_research_intake_projection_2026_08_29:
-  at: 2026-08-29T22:07:04+08:00
+  at: 2026-08-29T22:08:09+08:00
   agent: TradeClaw PM agent
-  status: verified_public_research_intake_read_model
+  status: verified_public_read_model_committed_local
   scope: Make the pinned awesome-systematic-trading intake and every completed TradeClaw overlay directly inspectable by public users through one safe read-only endpoint and canonical public documentation
   base_commit: 61c2c771b61289d0b86b36147408ee1d672b9921
+  implementation_commit: 5c2f995224141af482c3c0c18bbc21a60ace4574
   branch: agent/research-intake-desk-20260829
   finding: The 61-candidate catalog and four completed external replications are available only through the protected admin API; the public research page still describes eight older studies, and open data manually lists only 9 of the 16 committed experiment artifacts
   library_search: No reusable public research-catalog or read-model projection pattern exists in shared MemoryCore; reuse the repository's pinned intake, canonical experiment shelf, public cache, OpenAPI, and existing editorial page patterns
@@ -187,7 +188,7 @@ public_research_intake_projection_2026_08_29:
   repository_verification: All 255 runnable Jest suites and 1,996 tests pass with 3 suites and 26 tests skipped. The first run printed its complete green summary but stayed alive on the repository's inherited open handle; the unchanged rerun with forceExit closed at exit zero with the same counts. Lint completed with zero errors and the same 21 inherited warnings; no warning points to this increment.
   build_verification: The required monorepo production build compiled signals, trading-agents, and Next.js, generated all 326 pages, and lists /api/research/intake as a static one-hour-revalidated route. The same inherited Turbopack trace, middleware deprecation, edge-static-generation, and Node url.parse warnings remain non-blocking.
   final_audit: Diff whitespace and YAML parsing pass; the protected admin intake route and builder, Docker Compose, manifests, dependencies, migrations, database, billing, signals, broadcast, and execution files have no diff. The public builder is field-allow-listed and the route exposes only GET with no Cookie or Authorization cache variance.
-  current_step: Final diff and safety audit, then create the local implementation commit and record its exact hash in STATE and shared MemoryCore
+  current_step: Implementation committed locally; persist the exact verified closure in shared MemoryCore and leave the isolated worktree clean
   next_action: At or after 2026-08-29T15:00:00.000Z, open at most one new research receipt by screening the next lower-transition catalog candidate; do not select, publish, post, deploy, or trade automatically
   external_actions: none
   safety: This increment adds only a read-only public projection, documentation, and canonical shelf rendering. Existing admin auth/private caching, source data, results, artifacts, admin UI, database, Docker, dependencies, signals, allocation, broadcast, execution, billing, publication authority, trading authority, push, merge, and deployment state remain unchanged. No new research receipt was created before the exact 15:00Z boundary.
