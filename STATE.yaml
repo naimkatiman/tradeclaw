@@ -1,11 +1,86 @@
 project: tradeclaw
-updated: 2026-08-29T16:45:08+08:00
+updated: 2026-08-29T17:34:00+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+bitcoin_seasonality_replication_2026_08_29:
+  at: 2026-08-29T17:34:00+08:00
+  agent: TradeClaw PM agent
+  status: verified_canonical_fail_integrated_review_only
+  scope: Audit the catalog's Bitcoin seasonality, trend-following, and mean-reversion candidate; reject its daily two-hour lane if published gross cost headroom is insufficient, then preregister only the reconstructible lower-turnover MAX10/MIN10 composite before calculating local returns
+  base_commit: bf540b882bbd2ea2131ecf955199c6f19fa27099
+  branch: agent/research-intake-desk-20260829
+  candidate_id: seasonality-trend-following-and-mean-reversion-in-bitcoin
+  current_step: The frozen FAIL is integrated into the read-only intake overlay, human-review-only draft, and experiment shelf; verification is complete and only the local implementation receipt and state-closure commits remain
+  evidence_boundary: The pinned catalog and its live vendor backtest remain gross discovery metadata; the SSRN PDF is not vendored, source market data will remain ignored, and only independently modeled results may become TradeClaw evidence
+  paper_receipt: SSRN 4081000, 16 pages, audited PDF SHA-256 a8e7f1e4bb134a2ff3dea458872583463de2b69e8b895202a7d5b57ca99596a1
+  source_audit: docs/research/2026-08-29-bitcoin-seasonality-max-min-source-audit.md
+  source_audit_sha256: 834008ed2e8107d8f613c15096edaf9f225d8c43487efa123fb78f4056cafd82
+  source_audit_disposition: advance-max-min-only
+  preregistration: docs/plans/2026-08-29-bitcoin-max-min-replication.md
+  preregistration_sha256: 52b16a106559213c3fd42d42b25fd552dbab19bc250a61922ce7fb7fcc0f8e8a
+  input_receipt: >
+    The deterministic preparer downloaded the CC BY-NC-SA 4.0 Gemini H1
+    archives, retained no source bytes in git, cropped observations before
+    2026-08-01 UTC, and aggregated only observed hours. BTCUSD contains 3,901
+    UTC days from 2015-11-26 with canonical input SHA-256
+    ab1e468e9065a77ed744314116e6c3bb41cbd88f492cc60a6e6fc4fdc87e9c68;
+    ETHUSD contains 3,735 UTC days from 2016-05-10 with canonical input SHA-256
+    6f5bc428c67da5534829f3b567d0c1e7b2e7b1294d6dde1fc56019deeccc20e4.
+    Each series has the same three observed 23-hour days (2019-11-13,
+    2019-11-20, and 2019-12-17); downstream evaluation must skip any affected
+    signal or return day rather than invent a candle.
+  preliminary_cost_screen: The paper's two-hour lane trades every day; its reported 33% annualized gross result implies only about 0.0390% break-even cost per side, below the 0.05% fee alone and far below the frozen 0.25% spot side cost, so that lane will not be promoted into a local return search
+  frozen_protocol: >
+    Headline is exact MAX10 OR MIN10 on prior daily closes, entered at the next
+    UTC day's first observed Gemini H1 open, held continuously across adjacent
+    event days, and exited at the last observed H1 close. Headline spot friction
+    is 0.10% fee plus 0.15% slippage per side with no funding. All 15 published
+    components/lookbacks remain visible controls; four folds, a 2022-02-04
+    holdout, costed spot benchmarks, minimum episode counts, BTC gates, and
+    separate ETH confirmation gates are fixed with no parameter search.
+  result: >
+    Standing QA passed for both source files. BTCUSD composite-10 returned
+    13,177.69% gross and 339.03% net across 681 episodes, but its net episode
+    t-statistic was 1.73, only 2/4 folds were positive, and the untouched
+    holdout was -65.66% net across 303 episodes despite +56.54% gross. Its
+    holdout break-even cost was only 0.0739% per side, below the 0.10% fee.
+    ETHUSD returned 45,660.44% gross and 1,892.72% net across 626 episodes, but
+    also had only 2/4 positive folds and a -67.28% net holdout despite +30.27%
+    gross; its holdout break-even cost was 0.0479% per side. BTC and ETH both
+    failed holdout, stability, and risk-adjusted benchmark gates. The BTC
+    paper-window gross control annualized at 105.56% versus the source's 98.43%
+    audit target. No tuning or gate change followed the result.
+  artifact_path: docs/research/experiments/bitcoin-max-min-BTCUSD_ETHUSD-D1-2015-11-26-2026-07-31-f4.json
+  artifact_sha256: 90778b74e93028278d434ea6269db9aa0bd960962413c99e9d8c3f58eba022dc
+  result_path: docs/research/2026-08-29-bitcoin-max-min-replication-result.md
+  result_sha256: f231a521dc677082804561fe70ca98b453571f4cd78bdeacf7d6cbf49b33e07e
+  verdict: fail
+  eligible_for_prospective_review: false
+  return_calculated: true
+  verification: >
+    PASS: deterministic input preparation reproduced both canonical daily-input
+    hashes and both cropped H1 subset hashes; five focused assembly tests,
+    42 combined intake/loop/admin/shelf tests, all 193 research tests, and 57
+    adjacent admin/auth/intake/loop/shelf tests passed. A separate canonical run
+    was byte-identical at SHA-256
+    90778b74e93028278d434ea6269db9aa0bd960962413c99e9d8c3f58eba022dc;
+    pinned upstream reconstruction passed 61/61; web TypeScript and targeted
+    ESLint passed; full lint completed with zero errors and the same 21 inherited
+    warnings. Repository Jest passed 249 suites and 1,953 tests, with three
+    suites and 26 tests skipped, then force-exited after the known open-handle
+    warning. The required production build compiled signals, trading-agents,
+    and all 325 Next.js pages. Existing Turbopack tracing, middleware,
+    edge-static-generation, and Node url.parse warnings remain non-blocking.
+  marketing_draft: human-review-draft-only
+  publish_approved: false
+  external_actions: none
+  safety: No UI, auth, database, Docker, dependency, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment mutation is authorized
+  next_action: In the next UTC-aligned three-hour cycle, screen the remaining pinned catalog for a lower-transition rule with immutable data and cost headroom materially above the full frozen friction model; do not retune or promote any TC-258 control
 
 end_of_month_treasury_replication_2026_08_29:
   at: 2026-08-29T16:29:58+08:00
@@ -77,16 +152,16 @@ end_of_month_treasury_replication_2026_08_29:
   next_action: Under a new preregistration, obtain an original-vintage Federal Reserve curve file or define an explicit rounded-parameter reconciliation policy before attempting any performance evaluation
 
 research_intake_desk_2026_08_29:
-  at: 2026-08-29T15:50:00+08:00
+  at: 2026-08-29T17:34:00+08:00
   agent: TradeClaw PM agent
-  status: foundation_admin_api_and_second_research_cycle_complete_ui_checkpoint
+  status: foundation_admin_api_and_three_research_cycles_complete_ui_checkpoint
   scope: Turn the protected strategy-library surface into a simple cost-first research intake desk and connect evidence-complete findings to a human-reviewed three-hour research/marketing loop
   base_commit: f7936bcf627f208ac0379412453976b17218608b
   implementation_commit: bce46c05b2c61613981616102535e2f3be666950
   admin_api_commit: 27faeffad19ba42fcd914e956103f863ce253537
   treasury_replication_commit: 8252a1809f33c13c429ff9b8f7cc2fb7c2749b4b
   branch: agent/research-intake-desk-20260829
-  current_step: The pinned foundation, first source no-go, protected admin read API, and TC-257 QA-only replication are implemented; visual v0 remains paused at the required UI direction checkpoint
+  current_step: The pinned foundation, first source no-go, protected admin read API, TC-257 QA-only hold, and TC-258 canonical FAIL are implemented; visual v0 remains paused at the required UI direction checkpoint
   source: >
     Populate discovery metadata from the 61 highlighted strategies in the exact
     paperswithbacktest/awesome-systematic-trading commit
@@ -109,8 +184,8 @@ research_intake_desk_2026_08_29:
   foundation: >
     Added a strict 61-row source manifest pinned to the exact upstream commit and
     README SHA-256, a fail-closed parser and searchable intake model, a local
-    evidence overlays that mark TC-255 replicated/failed and TC-257
-    replicated/inconclusive without exposing performance, deterministic
+    evidence overlays that mark TC-255 and TC-258 replicated/failed and TC-257
+    replicated/inconclusive without promoting performance, deterministic
     UTC-aligned three-hour cycle windows, and a factual TC-255 marketing draft
     builder whose disposition is human-review-only and publishApproved is fixed
     false. Added a read-only network verifier that reconstructs every source row
@@ -243,6 +318,55 @@ research_intake_desk_2026_08_29:
     publish_approved: false
     external_actions: none
     next_action: Create a new preregistration around an original-vintage curve source or an explicit rounded-parameter reconciliation policy; do not relax the completed run post hoc
+  cycle_3:
+    id: 2026-08-29T09:00:00.000Z/PT3H
+    started_at: 2026-08-29T09:00:00.000Z
+    ends_at: 2026-08-29T12:00:00.000Z
+    candidate_id: seasonality-trend-following-and-mean-reversion-in-bitcoin
+    stage_before: discovered
+    stage_after: replicated
+    verdict: fail
+    outcome: implemented-canonical-fail
+    changed_files:
+      - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+      - apps/web/lib/__tests__/research-intake.test.ts
+      - apps/web/lib/__tests__/research-loop.test.ts
+      - apps/web/lib/research-intake.ts
+      - apps/web/lib/research-loop.ts
+      - apps/web/lib/strategy-study-catalog.ts
+      - docs/plans/2026-08-29-bitcoin-max-min-replication.md
+      - docs/plans/2026-08-29-three-hour-research-marketing-loop.md
+      - docs/research/2026-08-29-bitcoin-seasonality-max-min-source-audit.md
+      - docs/research/2026-08-29-bitcoin-max-min-replication-result.md
+      - docs/research/experiments/bitcoin-max-min-BTCUSD_ETHUSD-D1-2015-11-26-2026-07-31-f4.json
+      - package.json
+      - scripts/research/prepare-bitcoin-seasonality-inputs.mjs
+      - scripts/research/bitcoin-max-min-assembly.ts
+      - scripts/research/bitcoin-max-min-replication.ts
+      - scripts/research/__tests__/bitcoin-max-min-assembly.test.ts
+      - STATE.yaml
+    verification:
+      - deterministic source preparation reproduced 2/2 canonical input hashes and 2/2 cropped H1 subset hashes
+      - focused assembly tests 5/5
+      - combined intake, loop, admin API, shelf, and assembly tests 42/42
+      - complete research suite 193/193
+      - adjacent admin, auth, intake, loop, middleware, and shelf tests 57/57
+      - canonical artifact replay byte-identical
+      - pinned source reconstruction 61/61
+      - repository Jest 249 suites / 1,953 tests passed
+      - web TypeScript and targeted ESLint
+      - full lint 0 errors / 21 inherited warnings
+      - production build 325/325 pages
+      - YAML, JSON, script syntax, and git diff checks
+    evidence_paths:
+      - docs/research/2026-08-29-bitcoin-seasonality-max-min-source-audit.md
+      - docs/plans/2026-08-29-bitcoin-max-min-replication.md
+      - docs/research/2026-08-29-bitcoin-max-min-replication-result.md
+      - docs/research/experiments/bitcoin-max-min-BTCUSD_ETHUSD-D1-2015-11-26-2026-07-31-f4.json
+    marketing_draft: human-review-only-holdout-failure-draft
+    publish_approved: false
+    external_actions: none
+    next_action: Screen the next lower-transition catalog candidate for primary-rule reconstructibility, immutable data, and full-cost headroom; do not select TC-258 controls post result
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00
@@ -5226,3 +5350,32 @@ next_actions:
       fresh preregistration. The complete implementation and evidence package
       was committed locally as 8252a1809f33c13c429ff9b8f7cc2fb7c2749b4b
       on the isolated research-intake branch; nothing was pushed.
+
+  - id: TC-258
+    title: "Audit and replicate the Bitcoin MAX10/MIN10 candidate under spot costs"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Completed 2026-08-29 from clean verified checkpoint
+      bf540b882bbd2ea2131ecf955199c6f19fa27099 on isolated branch
+      agent/research-intake-desk-20260829. The primary SSRN paper, author article,
+      source rules, and later out-of-sample caveat were audited before local
+      returns. The paper's 21:00-23:00 UTC daily lane was rejected at the cost
+      screen because its reported 33% annualized gross result implies only
+      0.0390% break-even cost per side. The separate MAX10 OR MIN10 daily-close
+      composite was preregistered with exact Gemini H1-to-D1 preparation,
+      0.25% headline spot cost per side, four folds, an untouched 2022-02-04
+      through 2026-07-31 holdout, costed spot benchmarks, and ETH confirmation.
+      BTC returned 13,177.69% gross and 339.03% net over the full history, yet
+      lost 65.66% net in holdout, cleared only 2/4 folds, and had holdout
+      break-even cost of 0.0739% per side, below the fee alone. ETH independently
+      lost 67.28% net in holdout and also cleared only 2/4 folds. The canonical
+      verdict is FAIL. All 15 source-defined controls remain visible without
+      post-result selection. Deterministic inputs and a byte-identical replay,
+      193/193 research tests, 249 repository suites and 1,953 tests, pinned
+      inventory reconstruction, TypeScript, lint, and the 325-page build passed.
+      The result is wired only to the read-only intake overlay, shelved artifact,
+      and human-review-only draft. Raw paper and source market-data bytes were not
+      committed. No UI, strategy, signal, allocation, broadcast, execution,
+      billing, database, Docker, dependency, auth, publication, push, merge, or
+      deployment state changed.

@@ -151,6 +151,29 @@ cost, and data-provenance choices remain unspecified. Its receipt is retained at
 `docs/research/2026-08-29-price-overreactions-source-audit.md`; no TradeClaw
 backtest or marketing draft was created.
 
+TC-257 then advanced the lower-turnover end-of-month Treasury rule, but its
+frozen run stopped at standing source QA. One of 27,453 curve-reconstruction
+checks exceeded the preregistered tolerance, so its artifact remains
+INCONCLUSIVE with no return observations or performance gate evaluation.
+
+TC-258 applied the cost screen before implementation to two distinct lanes in
+one primary paper. The daily `21:00-23:00 UTC` Bitcoin lane was rejected without
+a local return search: the paper's 33% annualized gross result supports only
+`0.039031%` break-even cost per side, below the fee alone. The event-driven
+`MAX10 OR MIN10` composite had enough published headroom to preregister. Its
+independent Gemini replication retained large full-history gross and positive
+full-history net results, but failed honestly on post-paper evidence: BTC and
+ETH holdouts were `-65.66%` and `-67.28%` net, both had only 2/4 positive folds,
+and neither holdout cleared the `0.10%` fee alone. The artifact and all 15
+source-defined controls remain shelved; selecting a better-looking MAX-only
+lookback after the result is prohibited.
+
+For the next catalog cycle, prefer a rule with fewer than daily position
+transitions, an immutable or append-stable source subset, a primary rule that
+does not require vendor code, and published gross headroom materially above the
+full frozen friction model. A positive full-history curve is not a selection
+advantage after TC-258; untouched-holdout cost headroom is.
+
 ## Marketing handoff
 
 Marketing begins only after the research receipt exists. The allowed artifact

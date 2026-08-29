@@ -65,12 +65,12 @@ describe('GET /api/admin/research-intake', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 58,
+        discovered: 57,
         sourceAudited: 1,
-        replicated: 2,
-        failed: 1,
+        replicated: 3,
+        failed: 2,
         inconclusive: 1,
-        untested: 59,
+        untested: 58,
         sourceNoGo: 1,
       },
       pagination: {
@@ -167,6 +167,37 @@ describe('GET /api/admin/research-intake', () => {
       },
     });
     expect(body.records[0].tradeClawEvidence).not.toHaveProperty('btc');
+  });
+
+  it('exposes the failed MAX10/MIN10 receipt with its holdout and no authority', async () => {
+    mockedAdmin.mockResolvedValue(null);
+
+    const response = await GET(
+      request('?stage=replicated&verdict=fail&sourceAuditDisposition=advance&limit=100'),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.pagination).toMatchObject({ totalRecords: 1, returnedRecords: 1 });
+    expect(body.records[0]).toMatchObject({
+      id: 'seasonality-trend-following-and-mean-reversion-in-bitcoin',
+      stage: 'replicated',
+      verdict: 'fail',
+      costStatus: 'failed',
+      tradeClawSourceAudit: {
+        disposition: 'advance',
+        intradayCostScreen: { disposition: 'no-go' },
+      },
+      tradeClawEvidence: {
+        taskId: 'TC-258',
+        performanceGatesEvaluated: true,
+        eligibleForProspectiveReview: false,
+        activationApproved: false,
+        publicationApproved: false,
+        btc: { holdoutNetCompoundedReturn: -0.65656935 },
+        eth: { holdoutNetCompoundedReturn: -0.67282522 },
+      },
+    });
   });
 
   it('paginates deterministically over the pinned order', async () => {

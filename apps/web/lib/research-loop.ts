@@ -72,6 +72,28 @@ export function buildMarketingReviewDraft(
     };
   }
 
+  if (evidence.taskId === 'TC-258') {
+    return {
+      candidateId: record.id,
+      title: 'A spectacular Bitcoin backtest failed its post-paper holdout',
+      summary:
+        `BTC gross ${signedPercent(evidence.btc.grossCompoundedReturn)} became ${signedPercent(evidence.btc.holdoutNetCompoundedReturn)} net in the untouched post-paper holdout under frozen spot costs.`,
+      body: [
+        `We independently replicated “${record.title}” from hashed Gemini inputs after freezing exact MAX10/MIN10 rules, fills, costs, folds, and a 2022-2026 holdout.`,
+        `The zero-cost paper-window control annualized at ${signedPercent(evidence.paperWindowGrossControl.annualizedReturn)} versus the source's ${signedPercent(evidence.paperWindowGrossControl.sourceTargetAnnualizedReturn)} audit target.`,
+        `BTC returned ${signedPercent(evidence.btc.grossCompoundedReturn)} gross and ${signedPercent(evidence.btc.netCompoundedReturn)} net over the full history, but its holdout moved from ${signedPercent(evidence.btc.holdoutGrossCompoundedReturn)} gross to ${signedPercent(evidence.btc.holdoutFeeOnlyCompoundedReturn)} with the fee alone and ${signedPercent(evidence.btc.holdoutNetCompoundedReturn)} under the ${evidence.costs.headlineTotalPctPerSide.toFixed(2)}%-per-side headline cost.`,
+        `ETH repeated the break: ${signedPercent(evidence.eth.holdoutGrossCompoundedReturn)} holdout gross became ${signedPercent(evidence.eth.holdoutNetCompoundedReturn)} net. Both assets had ${evidence.btc.positiveFolds} of ${evidence.btc.totalFolds} positive chronological folds.`,
+        `The separate daily two-hour lane was not backtested because its published-result break-even cost was only ${evidence.intradayCostNoGo.breakEvenCostPctPerSide.toFixed(4)}% per side, below the fee alone.`,
+        'Verdict: FAIL. The adverse artifact remains visible, no better-looking MAX-only control was selected after the result, and this modeled research does not authorize promotion, publication, allocation, broadcast, or execution.',
+      ].join(' '),
+      evidenceBasis: 'modeled-research',
+      disposition: 'human-review-draft-only',
+      publishApproved: false,
+      resultPath: evidence.resultPath,
+      artifactPath: evidence.artifactPath,
+    };
+  }
+
   return {
     candidateId: record.id,
     title: 'A high-turnover Bitcoin trend idea failed after realistic costs',

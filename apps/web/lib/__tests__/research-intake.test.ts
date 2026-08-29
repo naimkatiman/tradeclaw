@@ -36,6 +36,18 @@ const treasuryArtifactPath = resolve(
   root,
   'docs/research/experiments/end-of-month-treasury-US-NOMINAL-DTWEXBGS-1990-01-2026-07-f4.json',
 );
+const bitcoinMaxMinAuditPath = resolve(
+  root,
+  'docs/research/2026-08-29-bitcoin-seasonality-max-min-source-audit.md',
+);
+const bitcoinMaxMinResultPath = resolve(
+  root,
+  'docs/research/2026-08-29-bitcoin-max-min-replication-result.md',
+);
+const bitcoinMaxMinArtifactPath = resolve(
+  root,
+  'docs/research/experiments/bitcoin-max-min-BTCUSD_ETHUSD-D1-2015-11-26-2026-07-31-f4.json',
+);
 
 interface ReplicationMetrics {
   grossCompoundedReturn: number;
@@ -120,6 +132,62 @@ interface TreasuryArtifact {
   };
 }
 
+interface BitcoinMaxMinArtifact {
+  meta: {
+    task: string;
+    preregistrationSha256: string;
+    sourceAuditSha256: string;
+  };
+  spec: {
+    costsPctPerSide: { headline: number };
+    intradayCostScreen: {
+      publishedGrossAnnualizedReturn: number;
+      breakEvenCostPctPerSide: number;
+      feeOnlyImpliedAnnualizedNet: number;
+      headlineImpliedAnnualizedNet: number;
+    };
+  };
+  qa: {
+    passed: boolean;
+    series: Record<'BTCUSD' | 'ETHUSD', { bars: number; incompleteDays: unknown[] }>;
+  };
+  results: {
+    symbols: Record<
+      'BTCUSD' | 'ETHUSD',
+      {
+        configurations: {
+          'composite-10': {
+            full: Record<'gross' | 'headline', BitcoinMaxMinMetrics>;
+            holdout: Record<'gross' | 'fee-only' | 'headline', BitcoinMaxMinMetrics>;
+            folds: Array<{ readings: { headline: BitcoinMaxMinMetrics } }>;
+          };
+        };
+        benchmarks: { full: { headline: BitcoinMaxMinMetrics } };
+        paperWindowGrossControl: BitcoinMaxMinMetrics | null;
+      }
+    >;
+  };
+  decision: {
+    verdict: string;
+    btcReplicationPassed: boolean;
+    crossAssetConfirmationPassed: boolean;
+    eligibleForProspectiveReview: boolean;
+    activationApproved: boolean;
+    publicationApproved: boolean;
+  };
+}
+
+interface BitcoinMaxMinMetrics {
+  compoundedReturn: number;
+  annualizedReturn: number;
+  completedEpisodes: number;
+  meanEpisodeReturn: number | null;
+  episodeReturnTStatistic: number | null;
+  maximumDrawdown: number;
+  calmar: number | null;
+  breakEvenSideCostPct: number | null;
+}
+
 function manifest(): Record<string, unknown> {
   return JSON.parse(readFileSync(manifestPath, 'utf8')) as Record<string, unknown>;
 }
@@ -163,7 +231,7 @@ describe('systematic research intake', () => {
 
   it('keeps replication evidence separate from source-audit no-go evidence', () => {
     const tested = SYSTEMATIC_RESEARCH_INTAKE.filter((record) => record.tradeClawEvidence);
-    expect(tested).toHaveLength(2);
+    expect(tested).toHaveLength(3);
     const tc255 = tested.find((record) => record.tradeClawEvidence?.taskId === 'TC-255');
     expect(tc255).toMatchObject({
       id: 'how-to-design-a-simple-multi-timeframe-trend-strategy-on-bitcoin',
@@ -190,10 +258,25 @@ describe('systematic research intake', () => {
     });
     expect(tc257?.nextAction).toMatch(/separately hashed protocol/i);
 
+    const tc258 = tested.find((record) => record.tradeClawEvidence?.taskId === 'TC-258');
+    expect(tc258).toMatchObject({
+      id: 'seasonality-trend-following-and-mean-reversion-in-bitcoin',
+      stage: 'replicated',
+      verdict: 'fail',
+      costStatus: 'failed',
+      marketingDisposition: 'human-review-draft-only',
+      tradeClawSourceAudit: { disposition: 'advance' },
+      tradeClawEvidence: {
+        performanceGatesEvaluated: true,
+        eligibleForProspectiveReview: false,
+      },
+    });
+    expect(tc258?.nextAction).toMatch(/without selecting.*MAX-only/i);
+
     const sourceAudited = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => record.tradeClawSourceAudit,
     );
-    expect(sourceAudited).toHaveLength(2);
+    expect(sourceAudited).toHaveLength(3);
     const noGo = sourceAudited.find(
       (record) => record.id === 'price-overreactions-in-the-cryptocurrency-market',
     );
@@ -214,7 +297,7 @@ describe('systematic research intake', () => {
     const untouched = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => !record.tradeClawEvidence && !record.tradeClawSourceAudit,
     );
-    expect(untouched).toHaveLength(58);
+    expect(untouched).toHaveLength(57);
     expect(untouched.every((record) => record.stage === 'discovered')).toBe(true);
     expect(untouched.every((record) => record.verdict === 'not-tested')).toBe(true);
     expect(untouched.every((record) => record.costStatus === 'unassessed')).toBe(true);
@@ -390,18 +473,105 @@ describe('systematic research intake', () => {
     });
   });
 
+  it('binds TC-258 to its audited source, failed artifact, costs, and holdout fields', () => {
+    const record = SYSTEMATIC_RESEARCH_INTAKE.find(
+      (candidate) => candidate.tradeClawEvidence?.taskId === 'TC-258',
+    );
+    const evidence = record?.tradeClawEvidence;
+    const audit = record?.tradeClawSourceAudit;
+    if (!evidence || evidence.taskId !== 'TC-258') {
+      throw new Error('TC-258 Bitcoin MAX/MIN evidence is missing');
+    }
+    if (!audit || audit.taskId !== 'TC-258') {
+      throw new Error('TC-258 Bitcoin MAX/MIN source audit is missing');
+    }
+
+    function canonicalHash(path: string): string {
+      const bytes = Buffer.from(readFileSync(path, 'utf8').replace(/\r\n/g, '\n'), 'utf8');
+      return createHash('sha256').update(bytes).digest('hex');
+    }
+
+    const artifact = JSON.parse(
+      readFileSync(bitcoinMaxMinArtifactPath, 'utf8'),
+    ) as BitcoinMaxMinArtifact;
+    expect(canonicalHash(bitcoinMaxMinAuditPath)).toBe(audit.researchSha256);
+    expect(canonicalHash(bitcoinMaxMinResultPath)).toBe(evidence.resultSha256);
+    expect(canonicalHash(bitcoinMaxMinArtifactPath)).toBe(evidence.artifactSha256);
+    expect(artifact.meta).toMatchObject({
+      task: evidence.taskId,
+      preregistrationSha256: evidence.preregistrationSha256,
+      sourceAuditSha256: evidence.sourceAuditSha256,
+    });
+    expect(artifact.qa).toMatchObject({
+      passed: true,
+      series: {
+        BTCUSD: { bars: evidence.qa.btcDays },
+        ETHUSD: { bars: evidence.qa.ethDays },
+      },
+    });
+    expect(artifact.qa.series.BTCUSD.incompleteDays).toHaveLength(
+      evidence.qa.incompleteDaysPerSymbol,
+    );
+    expect(artifact.qa.series.ETHUSD.incompleteDays).toHaveLength(
+      evidence.qa.incompleteDaysPerSymbol,
+    );
+    expect(artifact.spec.costsPctPerSide.headline).toBe(evidence.costs.headlineTotalPctPerSide);
+    expect(artifact.spec.intradayCostScreen).toMatchObject(evidence.intradayCostNoGo);
+
+    for (const symbol of ['BTCUSD', 'ETHUSD'] as const) {
+      const overlay = evidence[symbol === 'BTCUSD' ? 'btc' : 'eth'];
+      const result = artifact.results.symbols[symbol].configurations['composite-10'];
+      expect(overlay).toMatchObject({
+        grossCompoundedReturn: result.full.gross.compoundedReturn,
+        netCompoundedReturn: result.full.headline.compoundedReturn,
+        completedEpisodes: result.full.headline.completedEpisodes,
+        meanNetEpisodeReturn: result.full.headline.meanEpisodeReturn,
+        netEpisodeTStatistic: result.full.headline.episodeReturnTStatistic,
+        holdoutGrossCompoundedReturn: result.holdout.gross.compoundedReturn,
+        holdoutFeeOnlyCompoundedReturn: result.holdout['fee-only'].compoundedReturn,
+        holdoutNetCompoundedReturn: result.holdout.headline.compoundedReturn,
+        holdoutMeanNetEpisodeReturn: result.holdout.headline.meanEpisodeReturn,
+        holdoutBreakEvenCostPctPerSide: result.holdout.headline.breakEvenSideCostPct,
+        maximumDrawdown: result.full.headline.maximumDrawdown,
+        calmar: result.full.headline.calmar,
+        spotCalmar: artifact.results.symbols[symbol].benchmarks.full.headline.calmar,
+      });
+      expect(overlay.positiveFolds).toBe(
+        result.folds.filter((fold) => fold.readings.headline.compoundedReturn > 0).length,
+      );
+    }
+    expect(artifact.results.symbols.BTCUSD.paperWindowGrossControl?.annualizedReturn).toBe(
+      evidence.paperWindowGrossControl.annualizedReturn,
+    );
+    expect(artifact.decision).toMatchObject({
+      verdict: 'FAIL',
+      btcReplicationPassed: false,
+      crossAssetConfirmationPassed: false,
+      eligibleForProspectiveReview: false,
+      activationApproved: false,
+      publicationApproved: false,
+    });
+    expect(audit).toMatchObject({
+      disposition: 'advance',
+      tradeClawBacktestRunAtAuditClose: false,
+      publishedRule: { headline: 'MAX10-or-MIN10' },
+      intradayCostScreen: { disposition: 'no-go' },
+      data: { rawBytesCommitted: false },
+    });
+  });
+
   it('summarizes and filters by next-action evidence state rather than upstream return', () => {
     expect(summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE)).toMatchObject({
       total: 61,
-      discovered: 58,
+      discovered: 57,
       sourceAudited: 1,
       preregistered: 0,
-      replicated: 2,
+      replicated: 3,
       prospective: 0,
       passed: 0,
-      failed: 1,
+      failed: 2,
       inconclusive: 1,
-      untested: 59,
+      untested: 58,
       sourceNoGo: 1,
     });
     expect(
@@ -418,7 +588,10 @@ describe('systematic research intake', () => {
         stage: 'replicated',
         verdict: 'fail',
       }).map((record) => record.id),
-    ).toEqual(['how-to-design-a-simple-multi-timeframe-trend-strategy-on-bitcoin']);
+    ).toEqual([
+      'how-to-design-a-simple-multi-timeframe-trend-strategy-on-bitcoin',
+      'seasonality-trend-following-and-mean-reversion-in-bitcoin',
+    ]);
     expect(
       filterResearchIntake(SYSTEMATIC_RESEARCH_INTAKE, {
         stage: 'replicated',

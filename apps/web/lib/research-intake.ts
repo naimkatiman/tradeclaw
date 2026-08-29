@@ -143,9 +143,86 @@ export interface TradeClawTreasuryReplicationEvidence {
   reason: string;
 }
 
+export interface TradeClawBitcoinMaxMinReplicationEvidence {
+  taskId: 'TC-258';
+  studyDate: '2026-08-29';
+  preregistrationPath: string;
+  preregistrationSha256: string;
+  sourceAuditPath: string;
+  sourceAuditSha256: string;
+  resultPath: string;
+  resultSha256: string;
+  artifactPath: string;
+  artifactSha256: string;
+  verdict: 'fail';
+  evidenceBasis: 'modeled-independent-gemini-replication';
+  performanceGatesEvaluated: true;
+  eligibleForProspectiveReview: false;
+  activationApproved: false;
+  publicationApproved: false;
+  costs: {
+    feePctPerSide: 0.1;
+    slippagePctPerSide: 0.15;
+    headlineTotalPctPerSide: 0.25;
+    fundingPctPer8h: 0;
+  };
+  qa: {
+    standingQaPassed: true;
+    btcDays: 3901;
+    ethDays: 3735;
+    incompleteDaysPerSymbol: 3;
+  };
+  paperWindowGrossControl: {
+    annualizedReturn: number;
+    sourceTargetAnnualizedReturn: 0.9843;
+  };
+  intradayCostNoGo: {
+    publishedGrossAnnualizedReturn: 0.33;
+    breakEvenCostPctPerSide: number;
+    feeOnlyImpliedAnnualizedNet: number;
+    headlineImpliedAnnualizedNet: number;
+  };
+  btc: {
+    grossCompoundedReturn: number;
+    netCompoundedReturn: number;
+    completedEpisodes: number;
+    meanNetEpisodeReturn: number;
+    netEpisodeTStatistic: number;
+    positiveFolds: number;
+    totalFolds: 4;
+    holdoutGrossCompoundedReturn: number;
+    holdoutFeeOnlyCompoundedReturn: number;
+    holdoutNetCompoundedReturn: number;
+    holdoutMeanNetEpisodeReturn: number;
+    holdoutBreakEvenCostPctPerSide: number;
+    maximumDrawdown: number;
+    calmar: number;
+    spotCalmar: number;
+  };
+  eth: {
+    grossCompoundedReturn: number;
+    netCompoundedReturn: number;
+    completedEpisodes: number;
+    meanNetEpisodeReturn: number;
+    netEpisodeTStatistic: number;
+    positiveFolds: number;
+    totalFolds: 4;
+    holdoutGrossCompoundedReturn: number;
+    holdoutFeeOnlyCompoundedReturn: number;
+    holdoutNetCompoundedReturn: number;
+    holdoutMeanNetEpisodeReturn: number;
+    holdoutBreakEvenCostPctPerSide: number;
+    maximumDrawdown: number;
+    calmar: number;
+    spotCalmar: number;
+  };
+  reason: string;
+}
+
 export type TradeClawResearchEvidence =
   | TradeClawReplicationEvidence
-  | TradeClawTreasuryReplicationEvidence;
+  | TradeClawTreasuryReplicationEvidence
+  | TradeClawBitcoinMaxMinReplicationEvidence;
 
 export interface TradeClawSourceAuditEvidence {
   taskId: 'TC-256';
@@ -220,9 +297,50 @@ export interface TradeClawTreasurySourceAuditEvidence {
   reason: string;
 }
 
+export interface TradeClawBitcoinMaxMinSourceAuditEvidence {
+  taskId: 'TC-258';
+  auditDate: '2026-08-29';
+  researchPath: string;
+  researchSha256: string;
+  disposition: 'advance';
+  tradeClawBacktestRunAtAuditClose: false;
+  primarySource: {
+    title: 'Seasonality, Trend-following, and Mean reversion in Bitcoin';
+    authors: readonly ['Matúš Padyšák', 'Radovan Vojtko'];
+    ssrnUrl: string;
+    doi: 'https://doi.org/10.2139/ssrn.4081000';
+    documentSha256: string;
+    redistributionRightsEstablished: false;
+  };
+  publishedRule: {
+    cadence: 'daily';
+    lookbacks: readonly [10, 20, 30, 40, 50];
+    headline: 'MAX10-or-MIN10';
+    entry: 'next-day-first-observed-open';
+    exit: 'last-observed-close-when-next-event-is-false';
+    paperSample: '2015-11-26/2022-02-03';
+  };
+  intradayCostScreen: {
+    rule: 'buy-21:00-UTC-sell-23:00-UTC-daily';
+    publishedGrossAnnualizedReturn: 0.33;
+    breakEvenCostPctPerSide: number;
+    disposition: 'no-go';
+  };
+  data: {
+    source: 'CryptoDataDownload Gemini H1';
+    license: 'CC-BY-NC-SA-4.0';
+    rawBytesCommitted: false;
+    btcCanonicalSha256: string;
+    ethCanonicalSha256: string;
+  };
+  limits: readonly string[];
+  reason: string;
+}
+
 export type TradeClawResearchSourceAuditEvidence =
   | TradeClawSourceAuditEvidence
-  | TradeClawTreasurySourceAuditEvidence;
+  | TradeClawTreasurySourceAuditEvidence
+  | TradeClawBitcoinMaxMinSourceAuditEvidence;
 
 export interface ResearchIntakeRecord extends SystematicDiscoveryCandidate {
   sourcePosition: number;
@@ -294,6 +412,8 @@ const MULTI_TIMEFRAME_BITCOIN_ID =
   'how-to-design-a-simple-multi-timeframe-trend-strategy-on-bitcoin';
 const PRICE_OVERREACTIONS_ID = 'price-overreactions-in-the-cryptocurrency-market';
 const END_OF_MONTH_TREASURY_ID = 'predictable-end-of-month-treasury-returns';
+const BITCOIN_SEASONALITY_MAX_MIN_ID =
+  'seasonality-trend-following-and-mean-reversion-in-bitcoin';
 
 const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   taskId: 'TC-256',
@@ -423,6 +543,132 @@ const TC257_TREASURY_EVIDENCE: TradeClawTreasuryReplicationEvidence = {
   },
   reason:
     'One of 27,453 parameter-to-supplied-yield checks exceeded the preregistered 0.0001 percentage-point tolerance, so the retained artifact is QA-only and no performance gate was evaluated.',
+};
+
+const TC258_BITCOIN_MAX_MIN_SOURCE_AUDIT: TradeClawBitcoinMaxMinSourceAuditEvidence = {
+  taskId: 'TC-258',
+  auditDate: '2026-08-29',
+  researchPath: 'docs/research/2026-08-29-bitcoin-seasonality-max-min-source-audit.md',
+  researchSha256: '834008ed2e8107d8f613c15096edaf9f225d8c43487efa123fb78f4056cafd82',
+  disposition: 'advance',
+  tradeClawBacktestRunAtAuditClose: false,
+  primarySource: {
+    title: 'Seasonality, Trend-following, and Mean reversion in Bitcoin',
+    authors: ['Matúš Padyšák', 'Radovan Vojtko'],
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4081000',
+    doi: 'https://doi.org/10.2139/ssrn.4081000',
+    documentSha256: 'a8e7f1e4bb134a2ff3dea458872583463de2b69e8b895202a7d5b57ca99596a1',
+    redistributionRightsEstablished: false,
+  },
+  publishedRule: {
+    cadence: 'daily',
+    lookbacks: [10, 20, 30, 40, 50],
+    headline: 'MAX10-or-MIN10',
+    entry: 'next-day-first-observed-open',
+    exit: 'last-observed-close-when-next-event-is-false',
+    paperSample: '2015-11-26/2022-02-03',
+  },
+  intradayCostScreen: {
+    rule: 'buy-21:00-UTC-sell-23:00-UTC-daily',
+    publishedGrossAnnualizedReturn: 0.33,
+    breakEvenCostPctPerSide: 0.03903125,
+    disposition: 'no-go',
+  },
+  data: {
+    source: 'CryptoDataDownload Gemini H1',
+    license: 'CC-BY-NC-SA-4.0',
+    rawBytesCommitted: false,
+    btcCanonicalSha256: 'ab1e468e9065a77ed744314116e6c3bb41cbd88f492cc60a6e6fc4fdc87e9c68',
+    ethCanonicalSha256: '6f5bc428c67da5534829f3b567d0c1e7b2e7b1294d6dde1fc56019deeccc20e4',
+  },
+  limits: [
+    'The paper does not pin its data vintage, daily session boundary, executable close fill, or transaction-cost model.',
+    'Three one-hour source gaps per asset remain observed gaps and are never filled or interpolated.',
+    'The 10-day headline was selected after comparing five lookbacks on the paper sample.',
+    'Raw source bytes are not distributed; any commercial market-data use requires a separate rights review.',
+  ],
+  reason:
+    'The daily two-hour lane is cost-infeasible on its own published gross result, while the distinct event-driven MAX10/MIN10 rule is reconstructible, hashable, and testable under a post-paper holdout and ETH falsification market.',
+};
+
+const TC258_BITCOIN_MAX_MIN_EVIDENCE: TradeClawBitcoinMaxMinReplicationEvidence = {
+  taskId: 'TC-258',
+  studyDate: '2026-08-29',
+  preregistrationPath: 'docs/plans/2026-08-29-bitcoin-max-min-replication.md',
+  preregistrationSha256:
+    '52b16a106559213c3fd42d42b25fd552dbab19bc250a61922ce7fb7fcc0f8e8a',
+  sourceAuditPath: 'docs/research/2026-08-29-bitcoin-seasonality-max-min-source-audit.md',
+  sourceAuditSha256:
+    '834008ed2e8107d8f613c15096edaf9f225d8c43487efa123fb78f4056cafd82',
+  resultPath: 'docs/research/2026-08-29-bitcoin-max-min-replication-result.md',
+  resultSha256: 'f231a521dc677082804561fe70ca98b453571f4cd78bdeacf7d6cbf49b33e07e',
+  artifactPath:
+    'docs/research/experiments/bitcoin-max-min-BTCUSD_ETHUSD-D1-2015-11-26-2026-07-31-f4.json',
+  artifactSha256: '90778b74e93028278d434ea6269db9aa0bd960962413c99e9d8c3f58eba022dc',
+  verdict: 'fail',
+  evidenceBasis: 'modeled-independent-gemini-replication',
+  performanceGatesEvaluated: true,
+  eligibleForProspectiveReview: false,
+  activationApproved: false,
+  publicationApproved: false,
+  costs: {
+    feePctPerSide: 0.1,
+    slippagePctPerSide: 0.15,
+    headlineTotalPctPerSide: 0.25,
+    fundingPctPer8h: 0,
+  },
+  qa: {
+    standingQaPassed: true,
+    btcDays: 3901,
+    ethDays: 3735,
+    incompleteDaysPerSymbol: 3,
+  },
+  paperWindowGrossControl: {
+    annualizedReturn: 1.05563585,
+    sourceTargetAnnualizedReturn: 0.9843,
+  },
+  intradayCostNoGo: {
+    publishedGrossAnnualizedReturn: 0.33,
+    breakEvenCostPctPerSide: 0.03903125,
+    feeOnlyImpliedAnnualizedNet: -0.07703356,
+    headlineImpliedAnnualizedNet: -0.78633752,
+  },
+  btc: {
+    grossCompoundedReturn: 131.7769195,
+    netCompoundedReturn: 3.39034173,
+    completedEpisodes: 681,
+    meanNetEpisodeReturn: 0.00347343,
+    netEpisodeTStatistic: 1.7301533,
+    positiveFolds: 2,
+    totalFolds: 4,
+    holdoutGrossCompoundedReturn: 0.56537722,
+    holdoutFeeOnlyCompoundedReturn: -0.1463008,
+    holdoutNetCompoundedReturn: -0.65656935,
+    holdoutMeanNetEpisodeReturn: -0.00275981,
+    holdoutBreakEvenCostPctPerSide: 0.07392099,
+    maximumDrawdown: 0.77302474,
+    calmar: 0.19272055,
+    spotCalmar: 0.73161814,
+  },
+  eth: {
+    grossCompoundedReturn: 456.60438224,
+    netCompoundedReturn: 18.92720699,
+    completedEpisodes: 626,
+    meanNetEpisodeReturn: 0.00788293,
+    netEpisodeTStatistic: 2.31191184,
+    positiveFolds: 2,
+    totalFolds: 4,
+    holdoutGrossCompoundedReturn: 0.3027366,
+    holdoutFeeOnlyCompoundedReturn: -0.25009523,
+    holdoutNetCompoundedReturn: -0.67282522,
+    holdoutMeanNetEpisodeReturn: -0.00283627,
+    holdoutBreakEvenCostPctPerSide: 0.04789924,
+    maximumDrawdown: 0.79909692,
+    calmar: 0.42668048,
+    spotCalmar: 0.64773174,
+  },
+  reason:
+    'BTC and ETH retained spectacular full-history gross and positive full-history net returns, but both failed post-paper holdout, fold-stability, and Calmar gates; neither holdout cleared the fee alone.',
 };
 
 const TC255_EVIDENCE: TradeClawReplicationEvidence = {
@@ -653,13 +899,17 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
       ? TC255_EVIDENCE
       : candidate.id === END_OF_MONTH_TREASURY_ID
         ? TC257_TREASURY_EVIDENCE
-        : null;
+        : candidate.id === BITCOIN_SEASONALITY_MAX_MIN_ID
+          ? TC258_BITCOIN_MAX_MIN_EVIDENCE
+          : null;
     const tradeClawSourceAudit =
       candidate.id === PRICE_OVERREACTIONS_ID
         ? TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT
         : candidate.id === END_OF_MONTH_TREASURY_ID
           ? TC257_TREASURY_SOURCE_AUDIT
-          : null;
+          : candidate.id === BITCOIN_SEASONALITY_MAX_MIN_ID
+            ? TC258_BITCOIN_MAX_MIN_SOURCE_AUDIT
+            : null;
     if (tradeClawEvidence) {
       if (tradeClawEvidence.taskId === 'TC-257') {
         return {
@@ -676,6 +926,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
           tradeClawEvidence,
         };
       }
+      const nextAction = tradeClawEvidence.taskId === 'TC-258'
+        ? 'Archive the failed composite without selecting a better-looking MAX-only control; use the post-paper fee-only failure to screen the next candidate.'
+        : 'Archive the failed result without retuning or promotion; use the break-even cost finding to screen lower-turnover candidates.';
       return {
         ...candidate,
         sourcePosition,
@@ -683,8 +936,7 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
         stage: 'replicated' as const,
         verdict: 'fail' as const,
         costStatus: 'failed' as const,
-        nextAction:
-          'Archive the failed result without retuning or promotion; use the break-even cost finding to screen lower-turnover candidates.',
+        nextAction,
         marketingDisposition: 'human-review-draft-only' as const,
         tradeClawSourceAudit,
         tradeClawEvidence,

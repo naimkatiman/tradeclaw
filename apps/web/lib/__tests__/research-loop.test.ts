@@ -68,6 +68,30 @@ describe('three-hour research and marketing loop', () => {
     expect(draft?.body).not.toMatch(/returned|profitable|Sharpe|holdout returned/i);
   });
 
+  it('creates a review-only decay-and-cost draft for the failed MAX10/MIN10 receipt', () => {
+    const record = SYSTEMATIC_RESEARCH_INTAKE.find(
+      (candidate) => candidate.tradeClawEvidence?.taskId === 'TC-258',
+    );
+    if (!record) throw new Error('TC-258 intake record is missing');
+    const draft = buildMarketingReviewDraft(record);
+    expect(draft).toMatchObject({
+      candidateId: 'seasonality-trend-following-and-mean-reversion-in-bitcoin',
+      title: 'A spectacular Bitcoin backtest failed its post-paper holdout',
+      evidenceBasis: 'modeled-research',
+      disposition: 'human-review-draft-only',
+      publishApproved: false,
+    });
+    expect(draft?.summary).toContain('BTC gross +13177.69% became -65.66% net');
+    expect(draft?.body).toContain('annualized at +105.56%');
+    expect(draft?.body).toContain('+56.54% gross to -14.63% with the fee alone and -65.66%');
+    expect(draft?.body).toContain('ETH repeated the break: +30.27% holdout gross became -67.28% net');
+    expect(draft?.body).toContain('2 of 4 positive chronological folds');
+    expect(draft?.body).toContain('0.0390% per side, below the fee alone');
+    expect(draft?.body).toMatch(/Verdict: FAIL/);
+    expect(draft?.body).toMatch(/no better-looking MAX-only control was selected/i);
+    expect(draft?.body).toMatch(/does not authorize promotion, publication, allocation, broadcast, or execution/i);
+  });
+
   it('does not manufacture a marketing draft for untested upstream rows', () => {
     const untested = SYSTEMATIC_RESEARCH_INTAKE.find((candidate) => !candidate.tradeClawEvidence);
     if (!untested) throw new Error('untested intake record is missing');

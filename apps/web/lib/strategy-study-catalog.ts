@@ -265,6 +265,13 @@ export const FEATURED_STRATEGY_STUDIES: readonly StrategyStudyRecord[] = [
 
 export const EXPERIMENT_SHELF: readonly ExperimentShelfEntry[] = [
   {
+    file: 'bitcoin-max-min-BTCUSD_ETHUSD-D1-2015-11-26-2026-07-31-f4.json',
+    runDate: '2026-08-29',
+    label: 'Bitcoin MAX10/MIN10 external replication',
+    disposition: 'shelved',
+    reason: 'TC-258 reproduced a large early gross effect but failed its frozen post-paper holdout, fold-stability, and risk-adjusted benchmark gates on BTC and ETH; no control is eligible for promotion.',
+  },
+  {
     file: 'end-of-month-treasury-US-NOMINAL-DTWEXBGS-1990-01-2026-07-f4.json',
     runDate: '2026-08-29',
     label: 'End-of-month Treasury replication / reconstruction QA hold',
