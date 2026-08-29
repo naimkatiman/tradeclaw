@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T22:40:24+08:00
+updated: 2026-08-29T22:41:40+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -10,9 +10,10 @@ description: >
 public_research_intake_csv_export_2026_08_29:
   at: 2026-08-29T22:30:27+08:00
   agent: TradeClaw PM agent
-  status: verified_ready_for_local_commit
+  status: verified_public_csv_export_committed_local
   scope: Give public users a deterministic spreadsheet-ready index of the complete pinned systematic-research intake without weakening the canonical JSON evidence record or changing product layout
   base_commit: 9c310994ddb7a1137c67404c8f97c99af6d6b5ad
+  implementation_commit: e01d1224e9cec83c8f5556987adff9a2805de3e3
   branch: agent/research-intake-desk-20260829
   finding: The complete 61-row intake is public as JSON, but a user who wants to sort or audit it in a spreadsheet must build and maintain a private flattening script; open data already has a proven alternate-curl slot and signal history already establishes the repository CSV download convention
   library_search: No reusable CSV or tabular-export pattern exists in shared MemoryCore; reuse the repository's signal-history CSV escaping, attachment, and documentation conventions and keep the new projection research-specific
@@ -48,8 +49,9 @@ public_research_intake_csv_export_2026_08_29:
   independent_spreadsheet_parse: PASS - PowerShell ConvertFrom-Csv independently parsed 61 rows and 25 properties, sourceOrder 1 through 61, the exact first and last pinned IDs, and only false values in both authority columns
   precommit_verification: PASS - final focused/state contracts pass 17/17; STATE parses; diff whitespace passes; exactly 10 intended README, STATE, serializer, route, OpenAPI, open-data, and test paths are changed; the canonical JSON builder/route, protected admin/auth, Docker, manifests, lockfiles, migrations, research inputs/artifacts/scripts, signals, strategies, execution, and database surfaces have zero diff
   verification: PASS - documentation RED 3 failures with 2 existing tests green; missing-module RED 2 suites; focused 12/12; adjacent 72/72; final focused/state 17/17; source 61/61; deterministic 36,621-byte payload; repository Jest 258 suites and 2,005 tests; web typecheck; lint zero errors with 21 inherited warnings; independent CSV parse; YAML/diff/path/protected-surface audits; required 327-page production build
-  current_step: Verified CSV export implementation, documentation, tests, and in-progress state are ready for a local implementation commit
-  next_action: Commit the 10 intended paths locally, save the exact implementation hash to shared MemoryCore, then close STATE in a second local state commit
+  memory_update: Saved the exact schema, source receipt, payload hash, evidence counts, verification, implementation hash, unchanged cycle receipt, and no-external-action boundaries to shared current-session and TradeClaw project memory
+  current_step: Implementation committed locally and shared MemoryCore updated; validate and commit this state-only closure, then leave the isolated worktree clean
+  next_action: At or after 2026-08-29T15:00:00.000Z, open at most one new research receipt by screening the next lower-transition catalog candidate; do not automatically select, publish, post, deploy, or trade. Public catalog explorer and protected admin visual work remain user-confirmation gated.
   external_actions: none
   safety: No source data, result, artifact, candidate state, receipt, outbound draft, UI layout, database, Docker, dependency, auth, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
