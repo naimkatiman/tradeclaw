@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T00:10:08+08:00
+updated: 2026-08-30T00:11:11+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,12 +8,12 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 admin_research_candidate_detail_2026_08_29:
-  at: 2026-08-30T00:10:08+08:00
+  at: 2026-08-30T00:11:11+08:00
   agent: TradeClaw PM agent
-  status: verified_pending_local_commit
+  status: verified_committed_local_closing_state
   scope: Give an authenticated admin one exact candidate, its current evidence, and observation-consistent receipt and marketing provenance without filtering or paging through the complete intake
   base_commit: 5d49a8a9e0e3955b78a4b002c2b043e97451ccb1
-  implementation_commit: pending_local_commit
+  implementation_commit: 3980d0f7c902a604143544ba2d720ecbe6646c79
   branch: agent/research-intake-desk-20260829
   current_cycle_id: 2026-08-29T15:00:00.000Z/PT3H
   current_cycle_receipt: TC-260
@@ -79,10 +79,10 @@ admin_research_candidate_detail_2026_08_29:
   build_verification: PASS - the required root build compiled signals, trading-agents, and Next.js and generated 327/327 pages; /api/admin/research-intake/{candidateId} is registered as a dynamic route and the public intake routes retain their prior static/dynamic behavior; only inherited NFT tracing, middleware deprecation, edge-static-generation, and Node url.parse warnings remain
   state_and_scope_verification: PASS - STATE parses, diff whitespace passes, and exactly six intended paths are changed; Docker Compose, manifests, lockfiles, migrations, source catalog data, research sources/results/artifacts/scripts, public pages/API/docs, protected visual pages, database, signals, strategies, allocation, broadcast, execution, billing, and auth semantics have zero diff
   visual_verification: No public or protected admin page, layout, copy, style, or interaction changed; this increment supplies the protected read contract for a future confirmed admin visual
-  precommit_verification: PASS pending implementation hash - nine exact protected candidate/admin/auth/receipt/marketing/review-CSV suites pass 48/48 after final STATE closure, STATE parses, and diff whitespace passes
+  precommit_verification: PASS - nine exact protected candidate/admin/auth/receipt/marketing/review-CSV suites pass 48/48 after final STATE closure, STATE parses, diff whitespace passes, and the verified implementation is committed locally at 3980d0f7c902a604143544ba2d720ecbe6646c79
   admin_visual_v0_changed: false
   public_surface_changed: false
-  current_step: Run final focused/state checks, create the verified local implementation commit, write its hash back to STATE and shared MemoryCore, create a state-only closure commit, and confirm a clean branch
+  current_step: Create the state-only closure commit, save the exact implementation and closure hashes to shared MemoryCore, and confirm a clean isolated branch
   next_action: Preserve the completed 15:00Z receipt and wait until exact 18:00Z before screening another candidate; do not publish, deploy, or activate any research state
   external_actions: none
   safety: No candidate stage, receipt, source data, return, preregistration, result artifact, marketing handoff, UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
