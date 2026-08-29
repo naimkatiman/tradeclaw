@@ -50,6 +50,14 @@ describe('protected research evidence desk projection', () => {
         untested: 4,
         sourceNoGo: 4,
       },
+      catalogEvidenceStateSummary: {
+        totalCandidates: 61,
+        withTradeClawRecord: 8,
+        performanceGatesEvaluated: 3,
+        performanceGatesNotEvaluated: 58,
+        plainLanguageSummary:
+          '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+      },
       evidenceStateSummary: {
         totalCandidates: 8,
         performanceGatesEvaluated: 3,
@@ -295,9 +303,9 @@ describe('protected research evidence desk projection', () => {
     const second = JSON.stringify(buildResearchIntakeAdminEvidencePayload(AUDIT_AT));
 
     expect(second).toBe(first);
-    expect(Buffer.byteLength(first, 'utf8')).toBe(67_271);
+    expect(Buffer.byteLength(first, 'utf8')).toBe(69_302);
     expect(createHash('sha256').update(first).digest('hex')).toBe(
-      '132df89372e82d3dfc82e0f8a41e43d629c08c3c4287f4fb6ada356faac7cd0c',
+      'c9dce00f1fef0130b68f5f06e64ae146b67b8f1cd30990531f4d11f702613b6d',
     );
   });
 });

@@ -48,6 +48,11 @@ interface ReviewQueueView {
   }[];
 }
 
+interface ReviewPayloadView {
+  catalogEvidenceStateSummary?: EvidenceStateSummaryView;
+  queue: ReviewQueueView;
+}
+
 interface ReviewCsvEvidenceView {
   taskId: string;
   performanceEvidenceStatus?: string;
@@ -66,7 +71,8 @@ function fingerprint(value: unknown): { bytes: number; sha256: string } {
 
 describe('protected marketing-review evidence context', () => {
   it('summarizes the complete observation-consistent review queue', () => {
-    const queue = buildResearchIntakeAdminReviewPayload(OBSERVED_AT).queue as ReviewQueueView;
+    const payload = buildResearchIntakeAdminReviewPayload(OBSERVED_AT) as ReviewPayloadView;
+    const queue = payload.queue;
     const emptyQueue = buildResearchIntakeAdminReviewPayload(
       '2026-08-29T04:55:26.999Z',
     ).queue as ReviewQueueView;
@@ -83,6 +89,15 @@ describe('protected marketing-review evidence context', () => {
     });
     expect(queue.evidenceStateSummary?.statuses.map((status) => status.count)).toEqual([
       0, 0, 1, 0, 3, 0,
+    ]);
+    expect(payload.catalogEvidenceStateSummary).toMatchObject({
+      totalCandidates: 61,
+      withTradeClawRecord: 8,
+      performanceGatesEvaluated: 3,
+      performanceGatesNotEvaluated: 58,
+    });
+    expect(payload.catalogEvidenceStateSummary?.statuses.map((status) => status.count)).toEqual([
+      53, 4, 1, 0, 3, 0,
     ]);
     expect(emptyQueue.evidenceStateSummary).toMatchObject({
       totalCandidates: 0,
@@ -176,16 +191,16 @@ describe('protected marketing-review evidence context', () => {
         sha256: '2985e40077e7cbe64fc22afcea84ef4985c65c8968c2319b05d0e544b0a73ca0',
       },
       protectedCandidate: {
-        bytes: 10_396,
-        sha256: 'e423783f1ee6ff50d9c9309369de6db0269cc4a2b0388566a6f2b7e0bce021ba',
+        bytes: 12_427,
+        sha256: '2be5d9b62d0b256dfd305fd9c1fdfe4662190d31440d7b70b231d3d9adaa3b4b',
       },
       protectedEvidence: {
-        bytes: 67_271,
-        sha256: '132df89372e82d3dfc82e0f8a41e43d629c08c3c4287f4fb6ada356faac7cd0c',
+        bytes: 69_302,
+        sha256: 'c9dce00f1fef0130b68f5f06e64ae146b67b8f1cd30990531f4d11f702613b6d',
       },
       protectedReview: {
-        bytes: 24_904,
-        sha256: '9667ea7ca3b01d85ef0df5b03e7813c09f4eb91779cc81ad4ded8502b5bd0979',
+        bytes: 26_935,
+        sha256: '2ce5ab2151953d6efa4d33cf3ed035689d457592eb1155f05899713ccae73f6d',
       },
       publicCatalog: {
         bytes: 99_744,

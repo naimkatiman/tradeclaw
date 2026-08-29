@@ -37,8 +37,18 @@ describe('protected research intake resource discovery', () => {
       marketingReviewCsv: '/api/admin/research-intake/review.csv',
     });
     expect(Object.isFrozen(RESEARCH_INTAKE_ADMIN_RESOURCES)).toBe(true);
+    const catalogEvidenceStateSummary = payloads[0].catalogEvidenceStateSummary;
+    expect(catalogEvidenceStateSummary).toMatchObject({
+      totalCandidates: 61,
+      withTradeClawRecord: 8,
+      performanceGatesEvaluated: 3,
+      performanceGatesNotEvaluated: 58,
+      plainLanguageSummary:
+        '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.',
+    });
     for (const payload of payloads) {
       expect(payload.resources).toBe(RESEARCH_INTAKE_ADMIN_RESOURCES);
+      expect(payload.catalogEvidenceStateSummary).toEqual(catalogEvidenceStateSummary);
     }
   });
 

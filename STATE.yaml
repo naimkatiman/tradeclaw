@@ -1,11 +1,164 @@
 project: tradeclaw
-updated: 2026-08-30T07:32:14+08:00
+updated: 2026-08-30T07:50:13+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_discovery_context_parity_2026_08_30:
+  at: 2026-08-30T07:50:13+08:00
+  agent: TradeClaw PM agent
+  status: ready_to_commit
+  scope: Give every protected research JSON projection the same whole-catalog evidence context already available on the protected catalog and every public JSON projection
+  base_commit: b59e411fe98e63646f4bf34345c345d69514837b
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-262
+  time_mode: night
+  current_cycle_id: 2026-08-29T21:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-262
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T00:00:00.000Z
+  gate_observed_at: 2026-08-29T23:38:39.0719863Z
+  gate_decision: The 00:00Z receipt gate remains closed by 1280 seconds; improve only derived protected read-model context and create no research or marketing state
+  library_search: No shared MemoryCore discovery-context, catalog-context, cross-projection, projection-parity, shared-context, or whole-catalog pattern exists; extend TradeClaw's proven read-model contract locally
+  problem: >-
+    The protected catalog exposes the complete 61-candidate evidence-state summary,
+    but protected exact-candidate, evidence-desk, and marketing-review responses do
+    not. Admin clients therefore lose the same global evidence context when they
+    traverse away from the catalog, even though all public JSON projections already
+    preserve it.
+  decision: >-
+    Add required `catalogEvidenceStateSummary` to protected candidate, evidence, and
+    marketing-review JSON. Derive it directly from the immutable pinned catalog with
+    the existing shared classifier, keep the evidence subset, filtered subset, and
+    review-queue summaries separate, and change no route, auth, source, receipt,
+    handoff, draft, CSV, authority, or rendered-UI semantics.
+  frozen_contract:
+    field: catalogEvidenceStateSummary
+    protected_catalog_present_before: true
+    protected_candidate_present_before: false
+    protected_evidence_present_before: false
+    protected_review_present_before: false
+    totalCandidates: 61
+    withTradeClawRecord: 8
+    performanceGatesEvaluated: 3
+    performanceGatesNotEvaluated: 58
+    status_order: [not-tested, source-audit-only-no-local-backtest, qa-only-no-performance-result, modeled-historical-pass, modeled-historical-fail, modeled-historical-inconclusive]
+    status_counts: [53, 4, 1, 0, 3, 0]
+    plainLanguageSummary: '61 candidates: 53 not tested by TradeClaw, 4 source-audit-only records, 1 QA-only record with no performance result, and 3 modeled historical failures. Performance gates were evaluated for 3 candidates and not evaluated for 58 candidates.'
+    grantsPublicationAuthority: false
+    grantsTradingAuthority: false
+    same_scope_deep_equal_across_projections: true
+    subset_and_queue_summaries_replaced: false
+  frozen_baseline_receipts:
+    protected_catalog_unchanged: 73264 bytes / 2985e40077e7cbe64fc22afcea84ef4985c65c8968c2319b05d0e544b0a73ca0
+    protected_candidate_before: 10396 bytes / e423783f1ee6ff50d9c9309369de6db0269cc4a2b0388566a6f2b7e0bce021ba
+    protected_evidence_before: 67271 bytes / 132df89372e82d3dfc82e0f8a41e43d629c08c3c4287f4fb6ada356faac7cd0c
+    protected_review_before: 24904 bytes / 9667ea7ca3b01d85ef0df5b03e7813c09f4eb91779cc81ad4ded8502b5bd0979
+    public_catalog_unchanged: 99744 bytes / 445166bc45322718cc46cc5acc15ed202fabec3faf0d4f7d4886190f112e84cb
+    public_candidate_unchanged: 8952 bytes / ee3554123ea0f3beba4f6aad21c275657c9f43f3cae8b3fd793bff01f8256696
+    public_evidence_unchanged: 42295 bytes / 7362469bcc23c9b6a9ebb75905a2cd184472eb22c7d053558d1206b8d7466b79
+    public_catalog_csv_unchanged: 36922 bytes / 7b76a4a2c5850e4711e34d5d61dbaeee75c983ea39e264b0c90fc18e58d8b43f
+    public_evidence_csv_unchanged: 5944 bytes / 4ee1cc89f6bae3ce59be57a9e835fc4ed1c8c1c0b824c6e0d0dc176ac533a0fc
+    protected_evidence_csv_unchanged: 15405 bytes / 5f144161ba0a20f2d342ee675775d03b8b76d2cd37afb074f08f5299d12a638b
+    protected_review_csv_unchanged: 7094 bytes / c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+  audited_json_receipts_after:
+    protected_catalog_unchanged: 73264 bytes / 2985e40077e7cbe64fc22afcea84ef4985c65c8968c2319b05d0e544b0a73ca0
+    protected_candidate: 12427 bytes / 2be5d9b62d0b256dfd305fd9c1fdfe4662190d31440d7b70b231d3d9adaa3b4b
+    protected_evidence: 69302 bytes / c9dce00f1fef0130b68f5f06e64ae146b67b8f1cd30990531f4d11f702613b6d
+    protected_review: 26935 bytes / 2ce5ab2151953d6efa4d33cf3ed035689d457592eb1155f05899713ccae73f6d
+  receipt_audit: >-
+    PASS - the protected catalog is byte-identical. Candidate, evidence, and
+    review move only by the required shared whole-catalog summary serialized at
+    the frozen observation instant; the focused boundary keeps public JSON and
+    all CSV exports byte-identical.
+  frozen_boundaries:
+    protected_candidate_json_changed: true
+    protected_evidence_json_changed: true
+    protected_review_json_changed: true
+    protected_catalog_json_changed: false
+    public_json_changed: false
+    csv_changed: false
+    source_records_or_counts_changed: false
+    receipts_handoffs_or_drafts_changed: false
+    auth_or_route_semantics_changed: false
+    rendered_ui_changed: false
+    research_or_trading_state_changed: false
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/__tests__/research-intake-admin-discovery-context.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-resources.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-candidate.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-evidence.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-review.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-review-evidence-context.test.ts
+    - apps/web/lib/__tests__/research-intake-public-discovery-context.test.ts
+    - apps/web/app/api/admin/research-intake/[candidateId]/__tests__/route.test.ts
+  red_verification: >-
+    PASS - the focused suite executed five assertions. Three failed one-to-one for
+    missing whole-catalog context on protected candidate, evidence, and review
+    projections. Existing public/protected catalog parity and all eight frozen
+    public, protected-catalog, and CSV receipts passed byte-for-byte. No source,
+    receipt, draft, authority, route, auth, or unrelated boundary failed.
+  focused_green_verification: >-
+    PASS - 1 suite / 5 tests. Candidate, evidence, and review projections now
+    carry the exact protected/public catalog interpretation; subset and queue
+    summaries remain distinct; and all eight frozen unrelated JSON/CSV receipts
+    remain byte-identical.
+  adjacent_red_verification: >-
+    EXPECTED RED - six matched adjacent suites / 32 tests produced four failing
+    suites and four failing assertions, limited to the audited candidate,
+    evidence, and review JSON fingerprints. The other 28 assertions passed,
+    including protected resource sharing, review semantics, public discovery,
+    candidate navigation, evidence timing, and all unchanged boundaries. The
+    bracketed route path did not match Jest's regex invocation and will run by
+    exact path after its integration assertion is added.
+  adjacent_green_verification: >-
+    PASS - exact-path focused and adjacent coverage passed 8 suites / 42 tests,
+    including the bracketed protected candidate route. All four protected JSON
+    projections now share the exact whole-catalog interpretation; candidate,
+    evidence, review, resource, route, public-boundary, timing, subset, queue,
+    navigation, authority, and deterministic receipt assertions pass.
+  static_verification: >-
+    PASS - all nine changed TypeScript files pass configured workspace ESLint;
+    the signals prerequisite and complete web TypeScript graph compile; STATE.yaml
+    parses; `git diff --check` is clean; actual and frozen path manifests match at
+    exactly ten with no missing or unexpected files; and the source verifier still
+    reconstructs 61 pinned candidates at the frozen upstream commit with gross
+    discovery-only treatment.
+  repository_verification: >-
+    PASS - repository-wide lint reports zero errors and the same 21 inherited
+    warnings. Jest passes all 291 runnable suites and 2,153 runnable tests; the
+    inherited 3 suites / 26 tests remain skipped and the single snapshot passes.
+    The known open-handle notice appears only after the green result and forced exit.
+  build_verification: >-
+    PASS - the mandatory build compiles signals, trading-agents, and the Next.js
+    production app, then generates all 329/329 static pages. Only the inherited
+    middleware convention, broad NFT trace, edge-runtime static-generation, and
+    `url.parse` deprecation warnings appear.
+  closure_audit:
+    observed_at: 2026-08-29T23:50:13.4594924Z
+    branch: agent/research-intake-desk-20260829
+    head_before_commit: b59e411fe98e63646f4bf34345c345d69514837b
+    next_rollover_at: 2026-08-30T00:00:00.000Z
+    seconds_to_rollover: 586
+    receipt_gate: closed
+    new_receipt_created: false
+    frozen_file_manifest: PASS - expected 10, actual 10, no missing or unexpected paths
+    deterministic_receipts: PASS - final focused suite passes 5/5 including all frozen JSON and CSV fingerprints
+    state_yaml: PASS
+    diff_check: PASS - no whitespace errors; Windows LF-to-CRLF notices are informational
+  current_step: Commit the verified ten-file implementation locally
+  next_action: Stage only the frozen manifest, inspect the index, and create the local implementation commit
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  safety: No candidate source, source audit, preregistration, result, receipt, marketing handoff or draft, publication, posting, visual UI, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state change is authorized
 
 research_evidence_summary_interpretation_2026_08_30:
   at: 2026-08-30T07:32:14+08:00

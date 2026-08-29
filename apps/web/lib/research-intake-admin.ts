@@ -399,6 +399,7 @@ export interface ResearchIntakeAdminCandidatePayload {
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
   researchLoop: ResearchIntakeAdminPayload['researchLoop'];
   catalogSummary: ReturnType<typeof summarizeResearchIntake>;
+  catalogEvidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
   navigation: ResearchIntakeCandidateNavigation;
   record: ResearchIntakeAdminRecord;
   candidateWorkflow: {
@@ -434,6 +435,7 @@ export interface ResearchIntakeAdminEvidencePayload {
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
   researchLoop: ResearchIntakeAdminPayload['researchLoop'];
   catalogSummary: ReturnType<typeof summarizeResearchIntake>;
+  catalogEvidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
   evidenceIndex: {
     selection: 'all-candidates-with-tradeclaw-source-audit-or-replication';
     order: 'pinned-source-order';
@@ -484,6 +486,7 @@ export interface ResearchIntakeAdminReviewPayload {
   selectionPolicy: string;
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
   researchLoop: ResearchIntakeAdminPayload['researchLoop'];
+  catalogEvidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
   queue: {
     status: ResearchLoopMarketingReview['status'];
     summary: ResearchLoopMarketingReview['summary'];
@@ -1256,6 +1259,9 @@ export function buildResearchIntakeAdminCandidatePayload(
     workflow: RESEARCH_INTAKE_WORKFLOW,
     researchLoop: observation.researchLoop,
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
+    catalogEvidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      SYSTEMATIC_RESEARCH_INTAKE,
+    ),
     navigation,
     record: toAdminRecord(candidate, candidateWorkflow.marketingHandoff !== null),
     candidateWorkflow,
@@ -1289,6 +1295,9 @@ export function buildResearchIntakeAdminEvidencePayload(
     workflow: RESEARCH_INTAKE_WORKFLOW,
     researchLoop: observation.researchLoop,
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
+    catalogEvidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      SYSTEMATIC_RESEARCH_INTAKE,
+    ),
     evidenceIndex: {
       selection: 'all-candidates-with-tradeclaw-source-audit-or-replication',
       order: 'pinned-source-order',
@@ -1348,6 +1357,9 @@ export function buildResearchIntakeAdminReviewPayload(
     selectionPolicy: RESEARCH_INTAKE_SELECTION_POLICY,
     workflow: RESEARCH_INTAKE_WORKFLOW,
     researchLoop: observation.researchLoop,
+    catalogEvidenceStateSummary: summarizeResearchIntakeEvidenceStates(
+      SYSTEMATIC_RESEARCH_INTAKE,
+    ),
     queue: {
       status: observation.marketingReview.status,
       summary: observation.marketingReview.summary,
