@@ -80,6 +80,53 @@ describe('GET /api/admin/research-intake', () => {
         page: 1,
         limit: 25,
       },
+      filterFacets: {
+        contract: {
+          dimensionOrder: ['assetClass', 'stage', 'verdict', 'sourceAuditDisposition'],
+          countingMode: 'disjunctive',
+          scope: 'complete-catalog-before-pagination',
+          queryAppliedToEveryCount: true,
+          otherActiveFiltersApplied: true,
+          ownDimensionReplaced: true,
+          zeroCountOptionsIncluded: true,
+          optionOrder: 'query-contract',
+          paginationAffectsCounts: false,
+        },
+        dimensions: {
+          assetClass: {
+            label: 'Asset class',
+            selected: 'all',
+            options: expect.arrayContaining([
+              { value: 'all', label: 'All asset classes', count: 61, selected: true },
+              { value: 'Equities', label: 'Equities', count: 12, selected: false },
+            ]),
+          },
+          stage: {
+            label: 'Research stage',
+            selected: 'all',
+            options: expect.arrayContaining([
+              { value: 'discovered', label: 'Discovered', count: 54, selected: false },
+              { value: 'preregistered', label: 'Preregistered', count: 0, selected: false },
+            ]),
+          },
+          verdict: {
+            label: 'TradeClaw verdict',
+            selected: 'all',
+            options: expect.arrayContaining([
+              { value: 'fail', label: 'Fail', count: 3, selected: false },
+              { value: 'pass', label: 'Pass', count: 0, selected: false },
+            ]),
+          },
+          sourceAuditDisposition: {
+            label: 'Source-audit disposition',
+            selected: 'all',
+            options: expect.arrayContaining([
+              { value: 'no-go', label: 'No-go', count: 3, selected: false },
+              { value: 'hold', label: 'Hold', count: 0, selected: false },
+            ]),
+          },
+        },
+      },
       catalogSummary: {
         total: 61,
         discovered: 54,

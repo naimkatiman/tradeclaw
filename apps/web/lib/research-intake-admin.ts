@@ -126,6 +126,74 @@ export const RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT = Object.freeze({
 
 export type ResearchIntakeAdminQueryContract = typeof RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT;
 
+const RESEARCH_INTAKE_ADMIN_FACET_DIMENSIONS = Object.freeze([
+  'assetClass',
+  'stage',
+  'verdict',
+  'sourceAuditDisposition',
+] as const);
+
+export const RESEARCH_INTAKE_ADMIN_FACET_CONTRACT = Object.freeze({
+  dimensionOrder: RESEARCH_INTAKE_ADMIN_FACET_DIMENSIONS,
+  countingMode: 'disjunctive',
+  scope: 'complete-catalog-before-pagination',
+  queryAppliedToEveryCount: true,
+  otherActiveFiltersApplied: true,
+  ownDimensionReplaced: true,
+  zeroCountOptionsIncluded: true,
+  optionOrder: 'query-contract',
+  paginationAffectsCounts: false,
+} as const);
+
+export type ResearchIntakeAdminFacetContract =
+  typeof RESEARCH_INTAKE_ADMIN_FACET_CONTRACT;
+
+const RESEARCH_INTAKE_ADMIN_FACET_LABELS = Object.freeze({
+  assetClass: Object.freeze({
+    dimension: 'Asset class',
+    options: Object.freeze({
+      all: 'All asset classes',
+      Equities: 'Equities',
+      Bonds: 'Bonds',
+      Commodities: 'Commodities',
+      Currencies: 'Currencies',
+      Cryptocurrencies: 'Cryptocurrencies',
+      Derivatives: 'Derivatives',
+      'Multi-asset': 'Multi-asset',
+    } as const),
+  } as const),
+  stage: Object.freeze({
+    dimension: 'Research stage',
+    options: Object.freeze({
+      all: 'All stages',
+      discovered: 'Discovered',
+      'source-audited': 'Source audited',
+      preregistered: 'Preregistered',
+      replicated: 'Replicated',
+      prospective: 'Prospective',
+    } as const),
+  } as const),
+  verdict: Object.freeze({
+    dimension: 'TradeClaw verdict',
+    options: Object.freeze({
+      all: 'All verdicts',
+      'not-tested': 'Not tested',
+      pass: 'Pass',
+      fail: 'Fail',
+      inconclusive: 'Inconclusive',
+    } as const),
+  } as const),
+  sourceAuditDisposition: Object.freeze({
+    dimension: 'Source-audit disposition',
+    options: Object.freeze({
+      all: 'All records',
+      advance: 'Advance',
+      hold: 'Hold',
+      'no-go': 'No-go',
+    } as const),
+  } as const),
+} as const);
+
 const QUERY_KEY_SET = new Set<string>(RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT.parameterOrder);
 
 export interface ResearchIntakeAdminQuery {
@@ -140,6 +208,33 @@ export interface ResearchIntakeAdminQuery {
 
 export interface ResearchIntakeAdminRecord extends ResearchIntakeRecord {
   marketingReviewDraft: MarketingReviewDraft | null;
+}
+
+export interface ResearchIntakeAdminFacetOption<T extends string> {
+  value: T;
+  label: string;
+  count: number;
+  selected: boolean;
+}
+
+export interface ResearchIntakeAdminFacetDimension<T extends string> {
+  label: string;
+  selected: T;
+  options: readonly ResearchIntakeAdminFacetOption<T>[];
+}
+
+export interface ResearchIntakeAdminFilterFacets {
+  contract: ResearchIntakeAdminFacetContract;
+  dimensions: {
+    assetClass: ResearchIntakeAdminFacetDimension<
+      (typeof ADMIN_ASSET_CLASS_VALUES)[number]
+    >;
+    stage: ResearchIntakeAdminFacetDimension<(typeof ADMIN_STAGE_VALUES)[number]>;
+    verdict: ResearchIntakeAdminFacetDimension<(typeof ADMIN_VERDICT_VALUES)[number]>;
+    sourceAuditDisposition: ResearchIntakeAdminFacetDimension<
+      (typeof ADMIN_SOURCE_AUDIT_DISPOSITION_VALUES)[number]
+    >;
+  };
 }
 
 export interface ResearchIntakeAdminPayload {
@@ -163,6 +258,7 @@ export interface ResearchIntakeAdminPayload {
   } & ResearchLoopReceiptSnapshot;
   marketingReview: ResearchLoopMarketingReview;
   appliedFilters: ResearchIntakeAdminQuery;
+  filterFacets: ResearchIntakeAdminFilterFacets;
   catalogSummary: ReturnType<typeof summarizeResearchIntake>;
   filteredSummary: ReturnType<typeof summarizeResearchIntake>;
   pagination: {
@@ -422,6 +518,78 @@ function asIntakeFilters(query: ResearchIntakeAdminQuery): ResearchIntakeFilters
   };
 }
 
+type ResearchIntakeAdminFacetDimensionName =
+  (typeof RESEARCH_INTAKE_ADMIN_FACET_DIMENSIONS)[number];
+
+function buildResearchIntakeAdminFacetDimension<T extends string>(
+  query: ResearchIntakeAdminQuery,
+  dimension: ResearchIntakeAdminFacetDimensionName,
+  label: string,
+  selected: T,
+  values: readonly T[],
+  labels: Readonly<Record<T, string>>,
+): ResearchIntakeAdminFacetDimension<T> {
+  const activeFilters = asIntakeFilters(query);
+
+  return {
+    label,
+    selected,
+    options: values.map((value) => ({
+      value,
+      label: labels[value],
+      count: filterResearchIntake(SYSTEMATIC_RESEARCH_INTAKE, {
+        ...activeFilters,
+        [dimension]: value,
+      }).length,
+      selected: value === selected,
+    })),
+  };
+}
+
+function buildResearchIntakeAdminFilterFacets(
+  query: ResearchIntakeAdminQuery,
+): ResearchIntakeAdminFilterFacets {
+  const parameters = RESEARCH_INTAKE_ADMIN_QUERY_CONTRACT.parameters;
+
+  return {
+    contract: RESEARCH_INTAKE_ADMIN_FACET_CONTRACT,
+    dimensions: {
+      assetClass: buildResearchIntakeAdminFacetDimension(
+        query,
+        'assetClass',
+        RESEARCH_INTAKE_ADMIN_FACET_LABELS.assetClass.dimension,
+        query.assetClass,
+        parameters.assetClass.values,
+        RESEARCH_INTAKE_ADMIN_FACET_LABELS.assetClass.options,
+      ),
+      stage: buildResearchIntakeAdminFacetDimension(
+        query,
+        'stage',
+        RESEARCH_INTAKE_ADMIN_FACET_LABELS.stage.dimension,
+        query.stage,
+        parameters.stage.values,
+        RESEARCH_INTAKE_ADMIN_FACET_LABELS.stage.options,
+      ),
+      verdict: buildResearchIntakeAdminFacetDimension(
+        query,
+        'verdict',
+        RESEARCH_INTAKE_ADMIN_FACET_LABELS.verdict.dimension,
+        query.verdict,
+        parameters.verdict.values,
+        RESEARCH_INTAKE_ADMIN_FACET_LABELS.verdict.options,
+      ),
+      sourceAuditDisposition: buildResearchIntakeAdminFacetDimension(
+        query,
+        'sourceAuditDisposition',
+        RESEARCH_INTAKE_ADMIN_FACET_LABELS.sourceAuditDisposition.dimension,
+        query.sourceAuditDisposition,
+        parameters.sourceAuditDisposition.values,
+        RESEARCH_INTAKE_ADMIN_FACET_LABELS.sourceAuditDisposition.options,
+      ),
+    },
+  };
+}
+
 function buildResearchIntakeAdminCatalogPath(
   query: ResearchIntakeAdminQuery,
   page: number,
@@ -658,6 +826,7 @@ export function buildResearchIntakeAdminPayload(
     researchLoop: observation.researchLoop,
     marketingReview: observation.marketingReview,
     appliedFilters: query,
+    filterFacets: buildResearchIntakeAdminFilterFacets(query),
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
     filteredSummary: summarizeResearchIntake(filtered),
     pagination: {

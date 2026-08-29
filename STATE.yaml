@@ -1,11 +1,153 @@
 project: tradeclaw
-updated: 2026-08-30T03:25:03+08:00
+updated: 2026-08-30T03:44:12+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+admin_research_catalog_facets_2026_08_30:
+  at: 2026-08-30T03:44:12+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_implementation_commit
+  scope: Give an authenticated admin server-owned filter labels, selected state, and disjunctive option counts without downloading or recomputing the complete research catalog
+  base_commit: 9937ac1917a61f14b16849ac58876e60810bd430
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-256
+  current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-261
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-29T21:00:00.000Z
+  decision: >-
+    Add one additive schema-v1 filterFacets projection to the protected catalog.
+    Compute each option against the complete pinned catalog before pagination,
+    with q and every other active enum filter applied while replacing the facet's
+    own filter. Source dimension values and order from the frozen query contract,
+    include zero-count options, and keep every sibling/public/auth/UI contract unchanged.
+  frozen_facet_contract:
+    dimension_order: [assetClass, stage, verdict, sourceAuditDisposition]
+    counting_mode: disjunctive
+    scope: complete-catalog-before-pagination
+    query_applied_to_every_count: true
+    other_active_filters_applied: true
+    own_dimension_replaced: true
+    zero_count_options_included: true
+    option_order: frozen-query-contract
+    pagination_affects_counts: false
+  frozen_dimension_shape:
+    fields: [label, selected, options]
+    option_fields: [value, label, count, selected]
+    exactly_one_selected_option: true
+    asset_class_label: Asset class
+    asset_class_all_label: All asset classes
+    stage_label: Research stage
+    stage_all_label: All stages
+    verdict_label: TradeClaw verdict
+    verdict_all_label: All verdicts
+    source_audit_disposition_label: Source-audit disposition
+    source_audit_disposition_all_label: All records
+  frozen_option_labels:
+    asset_class: identity
+    stage: {all: All stages, discovered: Discovered, source-audited: Source audited, preregistered: Preregistered, replicated: Replicated, prospective: Prospective}
+    verdict: {all: All verdicts, not-tested: Not tested, pass: Pass, fail: Fail, inconclusive: Inconclusive}
+    source_audit_disposition: {all: All records, advance: Advance, hold: Hold, no-go: No-go}
+  frozen_default_counts:
+    asset_class: {all: 61, Equities: 12, Bonds: 12, Commodities: 3, Currencies: 4, Cryptocurrencies: 8, Derivatives: 10, Multi-asset: 12}
+    stage: {all: 61, discovered: 54, source-audited: 3, preregistered: 0, replicated: 4, prospective: 0}
+    verdict: {all: 61, not-tested: 57, pass: 0, fail: 3, inconclusive: 1}
+    source_audit_disposition: {all: 61, advance: 3, hold: 0, no-go: 3}
+  frozen_disjunctive_example:
+    filters: assetClass=Equities / stage=discovered
+    filtered_total: 12
+    asset_class_counts: {all: 54, Equities: 12, Bonds: 10, Commodities: 3, Currencies: 4, Cryptocurrencies: 4, Derivatives: 10, Multi-asset: 11}
+    stage_counts: {all: 12, discovered: 12, source-audited: 0, preregistered: 0, replicated: 0, prospective: 0}
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/__tests__/research-intake-admin-facets.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+    - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+  red_verification: >-
+    PASS - the new facet and protected-route suites run 23 assertions: 18 existing
+    or boundary assertions stay green and five fail only because the protected
+    catalog has no filterFacets projection. Exact contract, global counts,
+    disjunctive replacement, q application, and route exposure all fail at that
+    absent seam; no product path passed the new behavior by accident.
+  focused_green_first_iteration: >-
+    PASS - both facet and protected-route suites pass 23/23 on the first GREEN
+    iteration. The response publishes exact labels and default counts, replaces
+    each own dimension while retaining q and all other filters, includes zero-count
+    options, stays pagination-independent, and remains catalog-only.
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    facet_contract: 338 bytes / 0114ebd94cc22669f3437ffbb0bd8213f31f1367c12b4da2ec780d898406bcf2
+    query_contract_unchanged: 1121 bytes / ed4a2bd3a0c8dc5e4305a400c2754ebdaa49e5c5000478add9e77af477d5b795
+    default_filter_facets: 2249 bytes / 9ef90ebe7a35c831bd01af3658c420991f5f868ae64b5ceb2842ed5fe210179a
+    disjunctive_filter_facets: 2261 bytes / 1a9d5639621649535782b005a473c30ca82d4b29fa67ea3b9c1f6a2c289092f4
+    admin_catalog_default: 46265 bytes / 06980a83ba4ee7d0ea88f1534d638f149d11ce8fc977fc845b19740efc4f86d8
+    admin_catalog_limit_100: 91088 bytes / 3127888708549a762e98606dd552179c9ad2d6eb8c7ad21d4fb11e06a07518cd
+    admin_catalog_equities_page_2_limit_3: 19463 bytes / a2d4b3f2fb0ef12fd4c50a7421dc38c87259c5c47ffc1b46d51c3796696b2356
+    admin_catalog_equities_discovered_page_2_limit_3: 19562 bytes / 1f7d2986cc0c53eca91bda417201f709c1ec5784a9b3edb4a2116ee631bef6bd
+    admin_candidate_tc260_unchanged: 9503 bytes / 6cd0ca1bc9775274f4aa02818640424d513d3a912eb5e2b47a6c895a17077ebd
+    admin_evidence_unchanged: 56502 bytes / defa5ec013c50c5c762fbb801d5dca6760646d0a3e28fdf2b441f75a3cea8098
+    admin_marketing_review_unchanged: 20279 bytes / 2cedcc9b48516de8975a481c0236e4810384ff4b7d83d376585d058cbd6baa9a
+    admin_evidence_csv_at_2026_08_29T18_00_40Z_unchanged: 14533 bytes / 49c32887d5edaf402a9108ec6351e8acb2a5d567b5367df178250482b4542053
+    admin_marketing_review_csv_unchanged: 6350 bytes / 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    public_catalog_unchanged: 63327 bytes / 602845ec6bd4d98410fcaf7fe2d0f4388a4293bdd48699fdcedf1a18a99b43
+    public_candidate_tc260_unchanged: 5770 bytes / bb7b9225b4231c252d5a2de353e1067b7d31e6717427f59bec043b952b7321b0
+    public_evidence_unchanged: 29202 bytes / 43b0e2bc993d279249b0a2a9c7763446a9ea0f5dd6a897446386286b4a694d40
+    public_catalog_csv_unchanged: 36822 bytes / 49a715737f00100d3ef4728de0e471ce05bc669876354e9e266542863d2ede49
+    public_evidence_csv_unchanged: 5332 bytes / feab7b909b545cd1ee64690ef802c911db15cb2b8556840a06836a1f9dce2c50
+  deterministic_audit: >-
+    PASS - an apply-patch-created temporary TypeScript verifier independently
+    fingerprinted both contracts, two facet states, four catalog shapes, and ten
+    protected/public sibling payloads, then was deleted. Only the protected catalog
+    changes; query contract, candidate, evidence, review, both protected CSVs, and
+    every measured public JSON/CSV remain byte-identical.
+  focused_deterministic_verification: >-
+    PASS - the facet, query-contract, and protected-route suites pass 30/30 with
+    exact facet-contract, default/disjunctive facet, query-contract, and intentionally
+    superseded default/complete protected-catalog fingerprints active.
+  adjacent_verification: >-
+    PASS - the exact 27-suite facet/query/resource, protected catalog/candidate/
+    evidence/review/CSV, real signed-cookie auth, receipt, marketing, public JSON/CSV,
+    and publication-boundary set passes 117/117.
+  typecheck_verification: PASS - signals package build and web TypeScript no-emit check complete without errors
+  source_verification: PASS - the independent verifier reconstructs all 61 pinned candidates at exact commit d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256 67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a with discovery-only treatment
+  changed_file_lint_verification: PASS - all four changed TypeScript files pass the authoritative apps/web ESLint configuration with zero findings
+  preliminary_state_verification: PASS - STATE.yaml parses, git diff --check reports no whitespace errors, the exact five-file manifest is intact, and the temporary audit script is absent
+  lint_verification: PASS - full web lint completes with zero errors and the same 21 inherited warnings; no warning points to this increment
+  repository_test_verification: >-
+    PASS - all 281 runnable Jest suites and 2,093 tests pass; three suites and 26
+    tests are skipped and one snapshot passes. Force-exit closes only the
+    repository's inherited open handle after the complete green summary.
+  build_verification: >-
+    PASS - the required root production build compiles the signals and
+    trading-agents packages, compiles Next.js successfully, generates all 329/329
+    static pages, and retains the protected catalog, candidate, evidence, evidence
+    CSV, review, and review CSV routes as dynamic server routes. Only the inherited
+    middleware, NFT trace, url.parse, and edge-runtime warnings remain.
+  state_and_scope_verification: >-
+    PASS - STATE.yaml parses, git diff --check reports no whitespace errors, the
+    temporary deterministic audit script is absent, and the exact five-file
+    manifest contains only the protected facet implementation, its focused facet/
+    query/route coverage, and STATE. Docker Compose, dependencies, lockfiles,
+    database, auth semantics, rendered UI, public OpenAPI, and runtime trading paths are untouched.
+  final_state_bound_verification: >-
+    PASS - the exact ten-suite facet/query/resource, protected catalog/candidate/
+    evidence/review, receipt, marketing, and publication-boundary set passes 62/62
+    after the five-file manifest and final verification evidence were frozen.
+  visual_ui_changed: false
+  public_contract_changed: false
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  current_step: Create the verified local implementation commit from the exact five-file manifest
+  next_action: Record the implementation hash in STATE, create the STATE-only closure commit, and save durable MemoryCore context
+  safety: No new research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, public OpenAPI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changes are authorized
 
 admin_research_catalog_navigation_2026_08_30:
   at: 2026-08-30T03:25:03+08:00
