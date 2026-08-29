@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T07:31:00+08:00
+updated: 2026-08-30T07:32:14+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,13 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_evidence_summary_interpretation_2026_08_30:
-  at: 2026-08-30T07:31:00+08:00
+  at: 2026-08-30T07:32:14+08:00
   agent: TradeClaw PM agent
-  status: ready_to_commit
+  status: verified_plain_language_summary_committed_local_closing_state
   scope: Give every public and authenticated evidence-state summary one deterministic presentation-ready plain-language interpretation without changing its counts, ordering, authority, or source records
   base_commit: f06c39d425ccd0676bd245f888028dc4d5c17970
+  implementation_commit: 37b3cd96aa4709d2ec3b10e527d32698fe7432e5
+  committed_at: 2026-08-29T23:32:14.1207406Z
   branch: agent/research-intake-desk-20260829
   parent_task: TC-262
   time_mode: night
@@ -167,8 +169,8 @@ research_evidence_summary_interpretation_2026_08_30:
     facet, filter-navigation, publication-boundary, review semantics, README, and
     evidence-status-filter boundaries. No CSV, source, count, authority, route,
     or receipt expectation moved.
-  current_step: Create the local implementation commit from the exact audited 18-file scope
-  next_action: Record the implementation hash in STATE.yaml, create a state-only closure commit, then save shared MemoryCore
+  current_step: Persist the immutable implementation receipt in a STATE-only local closure commit
+  next_action: Save shared MemoryCore, prove the closure head and clean worktree, and keep the recurring goal active behind the 00:00Z gate
   marketing_handoff_created: false
   publish_approved: false
   trading_approved: false
