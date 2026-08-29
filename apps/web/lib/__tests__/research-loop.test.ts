@@ -15,6 +15,9 @@ describe('three-hour research and marketing loop', () => {
       durationHours: 3,
     });
     expect(Date.parse(window.endsAt) - Date.parse(window.startAt)).toBe(RESEARCH_LOOP_DURATION_MS);
+    expect(getResearchLoopWindow('2026-08-29T14:44:38.000+08:00')).toEqual(window);
+    expect(getResearchLoopWindow(new Date('2026-08-29T06:44:38.000Z'))).toEqual(window);
+    expect(getResearchLoopWindow(Date.parse('2026-08-29T06:44:38.000Z'))).toEqual(window);
     expect(getResearchLoopWindow('2026-08-29T08:59:59.999Z').id).toBe(window.id);
     expect(getResearchLoopWindow('2026-08-29T09:00:00.000Z').id).toBe(
       '2026-08-29T09:00:00.000Z/PT3H',
@@ -23,6 +26,11 @@ describe('three-hour research and marketing loop', () => {
 
   it('fails closed on invalid cycle time', () => {
     expect(() => getResearchLoopWindow('not-a-time')).toThrow(/valid instant/i);
+    expect(() => getResearchLoopWindow('2026-08-29T06:44:38.000')).toThrow(
+      /explicit UTC offset/i,
+    );
+    expect(() => getResearchLoopWindow('2026-08-29')).toThrow(/explicit UTC offset/i);
+    expect(() => getResearchLoopWindow(8_640_000_000_000_000)).toThrow(/valid instant/i);
   });
 
   it('creates a factual review-only draft for completed local evidence', () => {

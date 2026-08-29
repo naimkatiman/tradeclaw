@@ -2,6 +2,7 @@ import type { ResearchIntakeRecord } from './research-intake';
 
 export const RESEARCH_LOOP_DURATION_HOURS = 3;
 export const RESEARCH_LOOP_DURATION_MS = RESEARCH_LOOP_DURATION_HOURS * 60 * 60 * 1000;
+const EXPLICIT_UTC_OFFSET = /(?:Z|[+-]\d{2}:\d{2})$/;
 
 export interface ResearchLoopWindow {
   id: string;
@@ -22,14 +23,34 @@ export interface MarketingReviewDraft {
   artifactPath: string;
 }
 
-export function getResearchLoopWindow(at: Date | string | number): ResearchLoopWindow {
+function researchLoopTimestamp(at: Date | string | number): number {
+  if (typeof at === 'string') {
+    const timestamp = Date.parse(at);
+    if (!Number.isFinite(timestamp)) {
+      throw new Error('research loop time must be a valid instant');
+    }
+    if (!EXPLICIT_UTC_OFFSET.test(at)) {
+      throw new Error('research loop time string must include an explicit UTC offset or Z suffix');
+    }
+    return timestamp;
+  }
+
   const timestamp = at instanceof Date ? at.getTime() : new Date(at).getTime();
   if (!Number.isFinite(timestamp)) throw new Error('research loop time must be a valid instant');
+  return timestamp;
+}
 
+export function getResearchLoopWindow(at: Date | string | number): ResearchLoopWindow {
+  const timestamp = researchLoopTimestamp(at);
   const startMs = Math.floor(timestamp / RESEARCH_LOOP_DURATION_MS) * RESEARCH_LOOP_DURATION_MS;
   const endMs = startMs + RESEARCH_LOOP_DURATION_MS;
-  const startAt = new Date(startMs).toISOString();
-  const endsAt = new Date(endMs).toISOString();
+  const start = new Date(startMs);
+  const end = new Date(endMs);
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) {
+    throw new Error('research loop time must be a valid instant');
+  }
+  const startAt = start.toISOString();
+  const endsAt = end.toISOString();
 
   return {
     id: `${startAt}/PT3H`,

@@ -64,6 +64,11 @@ which maps to `08:00`, `11:00`, `14:00`, and so on in Malaysia. Each window has
 one stable identifier and one receipt in `STATE.yaml` when meaningful progress
 occurs.
 
+Programmatic string inputs must identify an instant with `Z` or an explicit
+signed `HH:MM` offset. Date-only and timezone-less strings fail closed so a
+developer laptop and a deployment host cannot assign the same text to different
+UTC receipt windows.
+
 | Time | Work | Required output |
 |---|---|---|
 | 00:00-00:15 | Reconcile state | Exact worktree, base SHA, dirty-file boundary, previous receipt, and one next action |
