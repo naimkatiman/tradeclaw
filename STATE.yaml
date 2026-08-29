@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-30T00:55:49+08:00
+updated: 2026-08-30T00:57:09+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,11 +8,12 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 public_research_evidence_index_2026_08_29:
-  at: 2026-08-30T00:55:49+08:00
+  at: 2026-08-30T00:57:09+08:00
   agent: TradeClaw PM agent
-  status: verified_precommit_ready_to_commit
+  status: verified_committed_local_closing_state
   scope: Give a public user one complete evidence-only index of every awesome-systematic-trading candidate TradeClaw has source-audited or replicated, without searching all 61 discoveries or enabling performance cherry-picking
   base_commit: 8bb66c66c4758d035f7f44df2e176e2a04c2d8a3
+  implementation_commit: a7babea67847c2b9e736b49fac8278808b6d0021
   branch: agent/research-intake-desk-20260829
   current_cycle_id: 2026-08-29T15:00:00.000Z/PT3H
   current_cycle_receipt: TC-260
@@ -161,10 +162,18 @@ public_research_evidence_index_2026_08_29:
     loop, marketing, auth, README, and OpenAPI set passes 108/108 against the
     final precommit tree; the deterministic evidence and eight-baseline replay,
     STATE parse, diff whitespace, and exact nine-path scope all pass again.
+  implementation_commit_verification: >-
+    PASS - the exact nine-path verified implementation is committed locally at
+    a7babea67847c2b9e736b49fac8278808b6d0021; no push, merge, deployment,
+    publication, posting, activation, billing, execution, or external action ran.
+  closure_verification: >-
+    PASS - the same 24 adjacent suites pass 108/108 after recording the exact
+    implementation commit; STATE parses, diff whitespace passes, and only
+    STATE.yaml remains modified for the local closure commit.
   admin_visual_v0_changed: false
   public_visual_changed: false
-  current_step: Create the local implementation commit without pushing, deploying, publishing, or activating anything
-  next_action: Record the implementation hash in a state-only closure commit, update shared MemoryCore, and leave the isolated branch clean; preserve the sole TC-260 receipt until exact 18:00Z
+  current_step: Verify and create the state-only closure commit, then save the completed increment to shared MemoryCore and confirm a clean isolated branch
+  next_action: Preserve the sole TC-260 receipt and wait until exact 18:00Z before screening another source candidate; do not publish, deploy, or activate any research state
   external_actions: none
   safety: No candidate stage, receipt, source data, return, preregistration, result artifact, marketing handoff, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changed
 
