@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T21:12:39+08:00
+updated: 2026-08-29T21:14:23+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -76,9 +76,10 @@ trading_term_premium_preregistration_2026_08_29:
 research_loop_receipt_projection_2026_08_29:
   at: 2026-08-29T21:03:51+08:00
   agent: TradeClaw PM agent
-  status: verified_commit_pending
+  status: complete_local_verified_memory_saved
   scope: Make the protected research-intake read model tell an admin whether the current UTC window already has its one receipt, which completed receipt is latest, and the exact server-owned next action without reading STATE.yaml in the browser
   base_commit: 43bd7009e35ab088f05140ee8f36967c5bd1c061
+  implementation_commit: 050f4ebfc77efcacd511262cefc62ead19e9a0c7
   branch: agent/research-intake-desk-20260829
   finding: The protected payload exposes the canonical PT3H clock and candidate records but no receipt history, current-window completion state, or filter-independent next action; the audit also found that TC-256 and TC-257 both retain the exact 2026-08-29T06:00:00.000Z/PT3H ID, a historical conflict with the one-receipt-per-window contract that must remain visible rather than be rewritten
   acceptance_gates:
@@ -99,7 +100,9 @@ research_loop_receipt_projection_2026_08_29:
   build_verification: PASS - the required root production build compiled packages/signals, packages/trading-agents, and the web app, then generated 325/325 pages; only the repository's inherited middleware, NFT tracing, edge-runtime, and url.parse deprecation warnings remained
   closure_verification: PASS - supported scoped web ESLint, root typecheck:web, STATE YAML parse, diff check, and expected-path status audit passed after the build. A mistaken workspace-local typecheck alias lookup reported that apps/web has no such script; the manifest-defined root typecheck:web command then passed
   verification: PASS - focused receipt/API tests passed 21/21; adjacent admin/research/auth tests passed 66/66 before review hardening and the subsequent full run covered the hardened paths; source reconstruction passed 61/61; all research tests passed 213/213; repository Jest passed 251 suites and 1,983 tests with three suites and 26 tests skipped; web typecheck passed; full lint passed with zero errors and 21 inherited warnings; final changed-file ESLint passed; YAML and diff checks passed; the required production build generated 325/325 pages
-  current_step: Commit the verified implementation locally, record its exact hash in STATE, update shared MemoryCore, and leave the worktree clean
+  current_step: Implementation committed locally and shared MemoryCore updated; wait until the exact 2026-08-29T15:00:00.000Z boundary before opening another research receipt
+  memory_update: Saved the receipt projection, legacy-conflict boundary, verification evidence, implementation hash, and next-window safety gate to shared current-session and TradeClaw project memory
+  next_action: At or after 2026-08-29T15:00:00.000Z, open at most one new receipt by screening the next lower-transition catalog candidate; do not select, publish, or trade automatically
   external_actions: none
   safety: No UI, source data, return, artifact, strategy, signal, allocation, broadcast, execution, billing, publication, push, merge, deployment, database, Docker, dependency, or auth state changed during the audit
 
