@@ -1,11 +1,57 @@
 project: tradeclaw
-updated: 2026-08-29T22:41:40+08:00
+updated: 2026-08-29T22:57:33+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+admin_research_review_csv_export_2026_08_29:
+  at: 2026-08-29T22:47:24+08:00
+  agent: TradeClaw PM agent
+  status: verified_pending_local_commit
+  scope: Give authenticated admins one complete spreadsheet-ready review queue over the already verified server-owned research marketing handoffs without changing the confirmation-gated admin visual design
+  base_commit: 870d53203a13980896eae742f7faf37562118fdd
+  branch: agent/research-intake-desk-20260829
+  finding: The protected admin read model already exposes a chronological and filter-independent four-draft handoff ledger, but an operator has no direct review artifact and would have to copy nested JSON fields manually before fact-checking or editing the drafts
+  library_search: No reusable admin CSV, private export, or review-queue pattern exists in shared MemoryCore; reuse the repository's authenticated API, private no-store, CSV attachment, and formula-neutralization conventions while keeping the projection research-specific
+  acceptance_gates:
+    - Authenticated GET /api/admin/research-intake/review.csv returns the complete available marketing-review queue as a text/csv attachment; the route has no filter or pagination semantics and does not expose a partial or cherry-picked queue
+    - Authentication completes before observation-time selection, research lookup, or serialization; denied callers receive only the existing generic 401 body with private no-store headers and no queue, candidate, source, or validation detail
+    - The currently available export contains exactly four rows in strictly chronological order for TC-255, TC-257, TC-258, and TC-259; TC-256 remains absent because its source-audit no-go has no marketing draft
+    - TC-255 retains pre-loop-closure provenance and a blank cycle ID; TC-257 through TC-259 retain their exact cycle-receipt IDs and no receipt is invented or rewritten
+    - The fixed 26-column schema carries queue position, task/candidate identity, candidate title and source URL, availability provenance, evidence state, complete server-authored draft copy, result/artifact paths, and all human-review/publication/posting/trading/external-action controls
+    - Every row remains human-review-required with handoff publicationApproved false, draft publishApproved false, automatic publication false, automatic posting false, grantsTradingAuthority false, and externalActions none
+    - Text cells quote commas, quotes, CR/LF, and neutralize spreadsheet formula prefixes while numeric queue positions remain numeric
+    - The response is GET-only, dynamic, private, no-store, varies on Cookie and Authorization, denies CORS, uses a stable review-queue filename, and applies nosniff protection
+    - The public research JSON and CSV, protected admin JSON, UI, Docker Compose, dependencies, database, signals, execution, billing, and three-hour receipt ledger remain unchanged
+    - STATE parses, intentional missing-module and missing-route RED evidence is retained, focused and adjacent contracts pass, full repository verification passes, and npm run build succeeds before any local commit
+  csv_columns: queuePosition,taskId,candidateId,candidateTitle,sourceUrl,availableAt,availabilityBasis,cycleId,workflowState,stage,verdict,costStatus,draftTitle,draftSummary,draftBody,evidenceBasis,draftDisposition,resultPath,artifactPath,humanReviewRequired,publicationApproved,publishApproved,automaticPublication,automaticPosting,grantsTradingAuthority,externalActions
+  current_cycle_receipt_unchanged: 2026-08-29T12:00:00.000Z/PT3H
+  candidate_id: null
+  new_research_receipt_created: false
+  admin_visual_v0_changed: false
+  public_surface_changed: false
+  red_evidence: PASS - both focused suites failed before production code solely at the intentional missing research-marketing-review-csv module boundary; the serializer and nested review.csv route did not exist, so zero assertions ran past module resolution
+  focused_test_repair: The first implementation run passed the protected route suite and five of six assertions but exposed two copied test-fixture times from later observation checkpoints; the immutable TC-257 and TC-258 receipt timestamps are 08:29:58Z and 09:36:14Z, so only those expectations were corrected and production code was unchanged
+  implementation: Added a field-allow-listed 26-column projection over the complete observation-time marketing handoff ledger and a nested auth-first GET route that returns a stable private no-store CSV attachment; no query parameter is interpreted, every authority control is repeated per row, and structural/formula text is spreadsheet-safe
+  focused_verification: PASS - after the intentional missing-module RED and receipt-time fixture correction, the serializer and protected route suites pass 6/6; the exact four rows, order, provenance, evidence links, authority controls, deterministic serialization, formula safety, auth-first denial, response headers, and filter-independent route behavior are covered
+  adjacent_verification: PASS - 12 serializer, intake, loop, receipt, marketing, protected admin JSON/CSV, auth-boundary, and public JSON/CSV suites pass 67/67; web typecheck and changed-file ESLint pass
+  payload_audit_repair: The first shell counter split on literal backslash-r-backslash-n text and incorrectly reported one line; that physical-line field is discarded, while its byte/hash values matched the corrected rerun
+  payload_audit: PASS - at the fixed 2026-08-29T14:59:59.999Z observation the deterministic body is 6,350 UTF-8 bytes at SHA-256 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739, with 26 columns, 4 rows, and 5 physical CRLF lines
+  independent_spreadsheet_parse: PASS - PowerShell ConvertFrom-Csv independently parsed 4 rows and 26 properties, TC-255 first and TC-259 last, a blank pre-loop cycle, only true human-review values, and only false publication, draft-publish, and trading-authority values
+  repository_test_verification: PASS - all 260 runnable Jest suites and 2,011 tests pass with 3 suites and 26 tests skipped; forceExit closed the repository's inherited open handle after the complete green summary
+  lint_verification: PASS - full web lint completed with zero errors and the same 21 inherited warnings; no warning points to this increment
+  source_verification: PASS - the independent pinned-source verifier reconstructs all 61 candidates at exact commit d9c98521 and README SHA-256 67f4c496 with gross-of-trading-costs discovery-only treatment
+  build_verification: PASS - the required root production build compiled signals, trading-agents, and Next.js and generated all 327 pages; /api/admin/research-intake/review.csv is a dynamic protected route while both public intake routes remain static one-hour exports, and only inherited NFT tracing, middleware deprecation, edge-static-generation, and Node url.parse warnings remain
+  boundary_time_audit: The production build and first scope audit closed at 2026-08-29T14:56:30Z, before the exact 15:00:00Z next-receipt boundary; this remains a same-window product increment and no new research receipt may be created
+  precommit_verification: PASS - final serializer/admin/receipt suites pass 35/35; STATE and the unchanged 12:00Z/PT3H receipt parse; diff whitespace passes; exactly the five intended state, serializer, route, and test paths are changed; public JSON/CSV, protected admin JSON, README, Docker, manifests, lockfiles, marketing ledger, UI, research inputs/artifacts/scripts, signals, strategies, execution, and database surfaces have zero diff
+  verification: PASS - intentional missing-module RED 2 suites; focused 6/6; adjacent 67/67; final protected/state set 35/35; deterministic 6,350-byte CSV; independent 4x26 spreadsheet parse; repository Jest 260 suites and 2,011 tests; web typecheck; lint zero errors with 21 inherited warnings; source 61/61; YAML, diff, path, and protected-surface audits; required 327-page production build
+  current_step: Stage and commit the five verified paths locally, capture the implementation hash, update shared MemoryCore, then commit the state-only closure
+  next_action: Leave the isolated branch clean after local commits; at or after the exact 15:00Z boundary, open at most one new screened research receipt without automatic publication, posting, deployment, or trading
+  external_actions: none
+  safety: No source data, result, artifact, receipt, outbound draft, UI, database, Docker, dependency, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
 public_research_intake_csv_export_2026_08_29:
   at: 2026-08-29T22:30:27+08:00
