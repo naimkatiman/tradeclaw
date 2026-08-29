@@ -69,6 +69,17 @@ controls. Future-dated receipts are never exposed by an earlier observation.
 Receipt data is filter-independent so pagination cannot hide the operator's
 workflow state.
 
+The sibling `marketingReview` projection is also independent of candidate
+filters and pagination. It lists every server-authored draft whose evidence was
+available at the observation instant, plus the latest handoff and any handoff in
+the current UTC window. Each entry says whether it came from a cycle receipt or
+the explicit pre-loop TC-255 closure; TC-255 keeps a null cycle ID, so the API
+does not invent historical receipt coverage. TC-256 remains absent because its
+source-audit no-go deliberately produced no draft. Summary counts separate
+pre-loop and receipt-backed evidence and keep publication-approved drafts at
+zero. `review-ready` means only that factual copy exists for a human to inspect;
+automatic publication and posting remain false.
+
 The retained history contains one known contract violation: TC-256 and TC-257
 both use `2026-08-29T06:00:00.000Z/PT3H`. Neither receipt may be deleted,
 renamed, or silently selected as canonical after the fact. The ledger labels
@@ -231,6 +242,13 @@ work, lead with the missing evidence. For a historical PASS, say
 Drafts may later be placed in `/admin/social-queue` only through an explicitly
 approved integration. Approval in that queue must still not auto-post until a
 separate outbound publication action is authorized.
+
+The protected intake API is the canonical discovery surface for those drafts.
+An admin does not need to guess a candidate filter or page through all 61 source
+rows: the filter-independent `marketingReview.handoffs` list contains the full
+review-ready set visible at the server observation time. This is a read-only
+handoff, not a review decision, queue mutation, publication approval, or social
+post.
 
 ## Cycle receipt
 

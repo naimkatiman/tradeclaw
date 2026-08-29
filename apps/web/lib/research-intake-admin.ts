@@ -24,6 +24,10 @@ import {
   getResearchLoopReceiptSnapshot,
   type ResearchLoopReceiptSnapshot,
 } from './research-loop-receipts';
+import {
+  getResearchLoopMarketingReview,
+  type ResearchLoopMarketingReview,
+} from './research-loop-marketing';
 
 const VERDICTS = ['not-tested', 'pass', 'fail', 'inconclusive'] as const;
 const SOURCE_AUDIT_DISPOSITIONS = ['advance', 'hold', 'no-go'] as const;
@@ -76,6 +80,7 @@ export interface ResearchIntakeAdminPayload {
     currentWindow: ResearchLoopWindow;
     nextRolloverAt: string;
   } & ResearchLoopReceiptSnapshot;
+  marketingReview: ResearchLoopMarketingReview;
   appliedFilters: ResearchIntakeAdminQuery;
   catalogSummary: ReturnType<typeof summarizeResearchIntake>;
   filteredSummary: ReturnType<typeof summarizeResearchIntake>;
@@ -202,6 +207,7 @@ export function buildResearchIntakeAdminPayload(
   const query = parseResearchIntakeAdminQuery(searchParams);
   const currentWindow = getResearchLoopWindow(at);
   const receiptSnapshot = getResearchLoopReceiptSnapshot(at);
+  const marketingReview = getResearchLoopMarketingReview(at);
   const observedAt = new Date(at instanceof Date ? at.getTime() : at).toISOString();
   const filtered = filterResearchIntake(
     SYSTEMATIC_RESEARCH_INTAKE,
@@ -232,6 +238,7 @@ export function buildResearchIntakeAdminPayload(
       nextRolloverAt: currentWindow.endsAt,
       ...receiptSnapshot,
     },
+    marketingReview,
     appliedFilters: query,
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
     filteredSummary: summarizeResearchIntake(filtered),

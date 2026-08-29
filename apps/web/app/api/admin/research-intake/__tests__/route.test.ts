@@ -153,6 +153,44 @@ describe('GET /api/admin/research-intake', () => {
     });
   });
 
+  it('exposes review-ready drafts independently of filters without leaking future evidence', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-08-29T19:17:23+08:00'));
+    mockedAdmin.mockResolvedValue(null);
+
+    const response = await GET(request('?q=no-such-research-candidate'));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.records).toEqual([]);
+    expect(body.marketingReview).toMatchObject({
+      status: 'review-ready',
+      summary: {
+        availableDrafts: 3,
+        receiptBackedDrafts: 2,
+        preLoopDrafts: 1,
+        publicationApprovedDrafts: 0,
+      },
+      latestHandoff: { taskId: 'TC-258' },
+      currentWindowHandoffs: [{ taskId: 'TC-258' }],
+      controls: {
+        humanReviewRequired: true,
+        automaticPublication: false,
+        automaticPosting: false,
+      },
+    });
+    expect(
+      body.marketingReview.handoffs.map((handoff: { taskId: string }) => handoff.taskId),
+    ).toEqual(['TC-255', 'TC-257', 'TC-258']);
+    expect(JSON.stringify(body.marketingReview)).not.toContain('TC-259');
+    expect(
+      body.marketingReview.handoffs.every(
+        (handoff: { draft: { publishApproved: boolean }; publicationApproved: boolean }) =>
+          handoff.publicationApproved === false && handoff.draft.publishApproved === false,
+      ),
+    ).toBe(true);
+  });
+
   it('exposes the source-audit no-go without relabeling it as a local failure', async () => {
     mockedAdmin.mockResolvedValue(null);
 

@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T21:14:23+08:00
+updated: 2026-08-29T21:39:13+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -105,6 +105,54 @@ research_loop_receipt_projection_2026_08_29:
   next_action: At or after 2026-08-29T15:00:00.000Z, open at most one new receipt by screening the next lower-transition catalog candidate; do not select, publish, or trade automatically
   external_actions: none
   safety: No UI, source data, return, artifact, strategy, signal, allocation, broadcast, execution, billing, publication, push, merge, deployment, database, Docker, dependency, or auth state changed during the audit
+
+research_loop_marketing_review_queue_projection_2026_08_29:
+  at: 2026-08-29T21:39:13+08:00
+  agent: TradeClaw PM agent
+  status: verified_ready_for_local_commit
+  scope: Give the protected research-intake read model one filter-independent, observation-time-consistent handoff of every server-authored marketing draft that is actually available for human review
+  base_commit: ac29dc716b7269ff2641c2c6737516195ffb48b9
+  branch: agent/research-intake-desk-20260829
+  finding: Candidate-level marketingReviewDraft values are returned only inside the filtered and paginated records collection, so an admin client must search or page through the catalog to discover review-ready copy and can accidentally miss a completed evidence handoff
+  acceptance_gates:
+    - The protected payload exposes one chronological marketing-review projection independent of candidate filters and pagination
+    - Every eligible server-authored draft is bound to its exact task and candidate; the TC-255 pre-loop closure stays explicitly distinct from receipt-backed TC-257, TC-258, and TC-259 handoffs, and TC-256 produces no draft
+    - Handoff selection is observation-time consistent and never exposes evidence completed after the requested observation instant
+    - The projection identifies its latest and current-window handoffs without inventing a cycle receipt for TC-255
+    - Counts distinguish pre-loop and receipt-backed drafts and prove that zero drafts have publication approval
+    - Human review remains mandatory; automatic publication and posting remain false; auth-before-parse, private no-store caching, source ordering, filters, pagination, Docker, and runtime behavior remain unchanged
+  current_cycle_receipt_unchanged: 2026-08-29T12:00:00.000Z/PT3H
+  candidate_id: null
+  new_research_receipt_created: false
+  visual_ui_changed: false
+  pre_loop_handoff:
+    task_id: TC-255
+    candidate_id: how-to-design-a-simple-multi-timeframe-trend-strategy-on-bitcoin
+    available_at: 2026-08-29T04:55:27.000Z
+    basis: pre-loop-closure
+    cycle_id: null
+    closure_commit: f7936bcf627f208ac0379412453976b17218608b
+  red_evidence: >
+    Focused Jest failed exactly at the missing boundary: the new
+    research-loop-marketing module could not be resolved, and the protected
+    route returned undefined instead of marketingReview; the remaining 16
+    route tests passed.
+  implementation: Added a typed chronological handoff ledger over the exact four eligible server-authored drafts, explicit pre-loop versus cycle-receipt provenance, observation-time selection, latest and current-window handoffs, filter-independent counts, and false automatic publication/posting controls; TC-256 remains a no-draft receipt and TC-255 does not acquire an invented cycle receipt
+  focused_verification: PASS - the two intended missing boundaries were observed RED, then the new ledger and protected route suites passed 21/21; the exact 11:17Z view retained TC-255, TC-257, and TC-258 while hiding future TC-259, and the conservative TC-255 availability boundary is bound to its canonical closure commit in STATE
+  verification_repair: The first web typecheck rejected the broad receipt task union because TC-256 cannot own replication evidence; the builder now fails explicitly if the no-draft TC-256 receipt ever acquires a marketing handoff, which also narrows receipt-backed handoffs to TC-257 through TC-259. Changed-file ESLint already passed.
+  adjacent_verification_repair: The first six-suite adjacent run found that the colon in the newly written red-evidence scalar made STATE invalid YAML; five suites and 47 tests passed, while the receipt-to-STATE test failed on parse. The evidence is now a block scalar and will be rerun before broader verification.
+  adjacent_verification: PASS - STATE parses and the six intake, loop, receipt, marketing, route, and real-cookie boundary suites pass 48/48 after the YAML repair
+  research_verification: PASS - pinned awesome-systematic-trading reconstruction retained the exact commit and README hash across 61/61 candidates, and all 13 research suites passed 213/213
+  full_test_verification: PASS - the final repository tree passed 252 Jest suites and 1,988 tests with three suites and 26 tests skipped; the inherited post-summary open handle was cleaned with Ctrl-C only after the complete pass summary
+  lint_verification: PASS - full web lint completed with zero errors and the same 21 inherited warnings; changed-file ESLint passed with zero findings
+  build_verification: PASS - the required root production build compiled signals, trading-agents, and the web app, then generated 325/325 pages; only the inherited middleware, NFT tracing, edge-runtime, and url.parse deprecation warnings remained
+  closing_build_refresh: PASS - the same required root build passed again against the exact final production and test tree and generated 325/325 pages
+  precommit_verification: PASS - web typecheck, STATE YAML parse, git diff check, and expected-path worktree audit passed; no build-generated tracked file appeared
+  closure_verification: PASS - after the closing build, the four direct handoff-ledger contracts passed again, STATE parsed, diff checks passed, and only the six expected implementation, test, documentation, and state paths remained changed
+  current_step: Create the local implementation commit, then record its exact hash in STATE and shared MemoryCore before a state-only closure commit
+  next_action: Implement only the protected server-side projection, then run focused, adjacent, source, research, full-suite, typecheck, lint, parse, diff, and production-build verification
+  external_actions: none
+  safety: No candidate, source data, return, artifact, outbound draft, UI, database, signal, allocation, broadcast, execution, billing, publication, push, merge, deployment, Docker, dependency, or auth state changed while freezing the acceptance gates
 
 research_intake_marketing_handoff_projection_2026_08_29:
   at: 2026-08-29T19:18:24+08:00
