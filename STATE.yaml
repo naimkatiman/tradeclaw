@@ -1,11 +1,78 @@
 project: tradeclaw
-updated: 2026-08-29T10:47:07+08:00
+updated: 2026-08-29T12:53:34+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+systematic_strategy_replication_2026_08_29:
+  at: 2026-08-29T12:53:34+08:00
+  agent: TradeClaw PM agent
+  status: done
+  scope: Pre-register and independently replicate one accessible systematic-trading candidate under TradeClaw costs without changing live signals or execution
+  base_commit: 51f940815105cf095d9cc5ebd946acbcace46237
+  branch: agent/systematic-research-intake-20260829
+  current_step: Closed FAIL with both ambiguous H1 controls retained, deterministic evidence preserved, and no live mutation
+  preregistration: docs/plans/2026-08-29-external-multi-timeframe-replication.md
+  evidence_boundary: >
+    The owner-supplied VGPER sponsored-access approval concerns optional access
+    eligibility and creates no trading edge, profitability representation, or
+    execution authority. The linked awesome-systematic-trading repository is an
+    idea catalog whose highlighted results are gross of trading costs. This lane
+    therefore reimplements one public rule from its primary source and treats all
+    output as modeled research only.
+  safety: >
+    No live preset, signal generation, allocation, prospective D1 rule, database,
+    broker, broadcast, execution, Docker, dependency, authentication, billing, or
+    sponsored-access behavior will change. The broad dirty primary checkout is
+    excluded.
+  implementation: >
+    Added a pure deterministic D1/H1 MACD simulator, fail-closed candle/source
+    validation, causal completed-D1 mapping, prefix-invariance QA, next-open
+    fills, wall-clock funding, full/fold/holdout metrics, costed spot and
+    perpetual benchmarks, fixed 50/50 sleeves, explicit preregistered gates, a
+    thin artifact-writing CLI, and focused tests. The first test command did not
+    execute because the clean worktree had no node_modules/ts-jest; no research
+    result was calculated. npm ci then restored the package-lock environment;
+    the initial focused suite passed 10/10 tests. The still-unopened preregistration is
+    byte-pinned as SHA-256
+    8679c1aa033b5e52f1cc6c9097ed14d34aa101a6fd592188d8edb20f8a23cb8f.
+  result: >
+    The frozen run completed with standing QA PASS but BTC_REPLICATION_FAIL and
+    PORTFOLIO_CANDIDATE_FAIL. The final D1/H1 negative-bar-exit stage produced
+    BTCUSD gross +69.43% but net -99.21%, mean net -0.3570% per trade,
+    t=-12.30, 1,334 trades, zero of four positive folds, and holdout net
+    -33.30%; ETHUSD gross -12.75%, net -99.55%, mean net -0.4068%, t=-13.95,
+    1,308 trades, zero of four positive folds, and holdout net -25.75%. The
+    fixed 50/50 sleeves returned -99.38% net with -29.53% holdout, 99.39%
+    drawdown, and -0.490 Calmar. A separate initial replay was byte-identical.
+    The canonical schema-v2 artifact SHA-256 is
+    762bb52991db266f79b08a104c811b7309668bf3f12b96f70f0fa15bd67f2c53.
+    No prospective review, preset, allocation, broadcast, or execution change
+    is eligible.
+  verification: >
+    PASS on final schema v2: focused TC-255 suite 12/12; complete
+    scripts/research test directory 170/170 across 10 suites; byte-identical
+    canonical artifact replay; git diff --check;
+    npm run build including signals, trading-agents, and the 325-page Next.js
+    production build. The build retained pre-existing Turbopack NFT tracing,
+    middleware-deprecation, edge-static-generation, and Node url.parse warnings;
+    none was introduced by or blocks this research-only change. Docker,
+    dependencies, database, auth, billing, signals, and execution were not
+    changed.
+  source_audit_erratum: >
+    A post-result read found contradictory primary-article baseline wording: the
+    methodology says bearish-MACD-crossover exit, while the D1 section says its
+    one-bar hold remains from the baseline. Retain the preregistered one-bar
+    control and add the cross-exit interpretation only as an ungated sensitivity.
+    The D1-filtered one-bar stage, final negative-candle exit, every gate input,
+    and the FAIL verdict are unaffected. The complete initial artifact is kept
+    as a superseded-v1 file with hash
+    98303cfb62bba1d4609125425e3333e49722ddc724002a6bab46a8f6e5d34759
+    rather than hidden or overwritten. Final schema-v2 verification and a
+    separate deterministic replay passed before closure.
 
 lighthouse_accessibility_trust_repair_2026_08_29:
   at: 2026-08-29T09:42:09+08:00
@@ -4748,3 +4815,62 @@ next_actions:
       the state closure establishes exact final main and that exact tree is
       deployed and live-verified. The recovery stash remains available until
       the release handoff is accepted.
+
+  - id: TC-255
+    title: "Replicate an external multi-timeframe trend candidate under real costs"
+    status: done
+    owner: pm-tradeclaw
+    notes: >
+      Started 2026-08-29 after the owner asked whether there is a genuine route
+      to a profitable portfolio and requested implementation review of
+      paperswithbacktest/awesome-systematic-trading. Work is isolated in clean
+      branch agent/systematic-research-intake-20260829 from exact production main
+      51f940815105cf095d9cc5ebd946acbcace46237; the broad dirty primary checkout
+      remains excluded. The linked repository is treated as an idea index, not
+      proof: its highlighted strategy table is gross of trading costs and its
+      current Bitcoin summary conflicts with its own detail page. Before reading
+      any local result, freeze a clean-room replication of the publicly described
+      Quantpedia D1/H1 Bitcoin rule: MACD(12,26,9) H1 upward cross, admission only
+      when MACD(12,26,9) on the last fully closed D1 candle is bullish, next-H1-
+      open entry, and exit at the close of the first negative H1 candle. Run the
+      preregistered pure-H1 one-bar and D1/H1 one-bar stages as fixed controls;
+      do not optimize parameters. Headline costs are TradeClaw crypto-perpetual fee, slippage,
+      and time-proportional funding. Use Binance BTCUSD as the replication market,
+      ETHUSD as a fixed external falsification market, four chronological
+      stability folds, a post-publication holdout beginning 2025-11-14, and
+      identically costed buy-and-hold plus flat benchmarks. The pass gate and
+      implementation must remain research-only and cannot modify live presets,
+      the frozen D1 slow gate, signals, allocation, broadcast, or execution. The
+      exact protocol, four input hashes, fill timing, indicator seeding, metrics,
+      and BTC/portfolio gates were frozen in
+      docs/plans/2026-08-29-external-multi-timeframe-replication.md before any
+      local trade return or verdict was computed. The preregistration SHA-256 is
+      8679c1aa033b5e52f1cc6c9097ed14d34aa101a6fd592188d8edb20f8a23cb8f.
+      Implementation and the initial focused suite are complete (10/10 tests). The
+      canonical run passed source, cadence, completed-D1 causality, and prefix-
+      invariance QA but failed both preregistered performance gates: final BTC
+      gross +69.43% / net -99.21% / mean net -0.3570% / t=-12.30 / 1,334 trades
+      / 0 of 4 positive folds / holdout -33.30%; ETH gross -12.75% / net -99.55%
+      / mean net -0.4068% / t=-13.95 / 1,308 trades / 0 of 4 positive folds /
+      holdout -25.75%; fixed 50/50 net -99.38% / holdout -29.53% / DD 99.39% /
+      Calmar -0.490. A second initial output was byte-identical. The initial
+      artifact is retained as superseded-v1 with SHA-256
+      98303cfb62bba1d4609125425e3333e49722ddc724002a6bab46a8f6e5d34759;
+      the canonical schema-v2 artifact adds only an ungated H1 cross-exit
+      interpretation and has SHA-256
+      762bb52991db266f79b08a104c811b7309668bf3f12b96f70f0fa15bd67f2c53.
+      The candidate is ineligible for prospective review and must not alter any
+      live or sponsored-access behavior. Initial verification passed before the
+      source audit and is superseded by the final verification below.
+      A subsequent exact-primary-source audit found contradictory ungated H1
+      control wording: bearish-MACD exit in the methodology but a later statement
+      that the one-bar hold remains. The preregistered one-bar control stays; a
+      bearish-cross interpretation is added only as an ungated sensitivity. This
+      does not affect the D1 one-bar stage, final negative-candle stage, gate
+      inputs, or failed verdict. Final verification passed: focused TC-255 tests
+      12/12, complete research suite 170/170 across 10 suites, byte-identical
+      schema-v2 artifact replay, STATE parse, git diff --check, and npm run build
+      through the 325-page Next.js production build. Existing non-blocking build
+      warnings were retained. The task closes as a truthful negative result with
+      no live, Docker, dependency, database, auth, billing, sponsored-access,
+      signal, allocation, broadcast, or execution mutation.
