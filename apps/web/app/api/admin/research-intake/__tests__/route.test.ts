@@ -153,6 +153,7 @@ describe('GET /api/admin/research-intake', () => {
         publishedResult: { conclusion: 'no-exploitable-profit' },
       },
     });
+    expect(body.records[0].marketingReviewDraft).toBeNull();
   });
 
   it('combines filters without changing pinned source order', async () => {
@@ -198,6 +199,15 @@ describe('GET /api/admin/research-intake', () => {
         },
       },
     });
+    expect(body.records[0].marketingReviewDraft).toMatchObject({
+      candidateId: 'predictable-end-of-month-treasury-returns',
+      title: 'A Treasury replication stopped at its frozen data gate',
+      disposition: 'human-review-draft-only',
+      publishApproved: false,
+    });
+    expect(body.records[0].marketingReviewDraft.summary).toMatch(
+      /no performance result was published/i,
+    );
     expect(body.records[0].tradeClawEvidence).not.toHaveProperty('btc');
   });
 
@@ -229,6 +239,13 @@ describe('GET /api/admin/research-intake', () => {
         btc: { holdoutNetCompoundedReturn: -0.65656935 },
         eth: { holdoutNetCompoundedReturn: -0.67282522 },
       },
+    });
+    expect(body.records[0].marketingReviewDraft).toMatchObject({
+      candidateId: 'seasonality-trend-following-and-mean-reversion-in-bitcoin',
+      title: 'Bitcoin MAX10/MIN10 failed its post-paper holdout',
+      summary: 'BTC holdout gross +56.54% became -65.66% net under frozen spot costs.',
+      disposition: 'human-review-draft-only',
+      publishApproved: false,
     });
   });
 

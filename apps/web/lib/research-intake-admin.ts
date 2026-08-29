@@ -14,7 +14,12 @@ import {
   type ResearchSourceAuditDisposition,
   type ResearchVerdict,
 } from './research-intake';
-import { getResearchLoopWindow, type ResearchLoopWindow } from './research-loop';
+import {
+  buildMarketingReviewDraft,
+  getResearchLoopWindow,
+  type MarketingReviewDraft,
+  type ResearchLoopWindow,
+} from './research-loop';
 
 const VERDICTS = ['not-tested', 'pass', 'fail', 'inconclusive'] as const;
 const SOURCE_AUDIT_DISPOSITIONS = ['advance', 'hold', 'no-go'] as const;
@@ -46,6 +51,10 @@ export interface ResearchIntakeAdminQuery {
   limit: number;
 }
 
+export interface ResearchIntakeAdminRecord extends ResearchIntakeRecord {
+  marketingReviewDraft: MarketingReviewDraft | null;
+}
+
 export interface ResearchIntakeAdminPayload {
   schemaVersion: 1;
   access: {
@@ -75,7 +84,7 @@ export interface ResearchIntakeAdminPayload {
     hasPreviousPage: boolean;
     hasNextPage: boolean;
   };
-  records: readonly ResearchIntakeRecord[];
+  records: readonly ResearchIntakeAdminRecord[];
 }
 
 export class ResearchIntakeAdminQueryError extends Error {
@@ -194,7 +203,10 @@ export function buildResearchIntakeAdminPayload(
     asIntakeFilters(query),
   );
   const start = (query.page - 1) * query.limit;
-  const records = filtered.slice(start, start + query.limit);
+  const records = filtered.slice(start, start + query.limit).map((record) => ({
+    ...record,
+    marketingReviewDraft: buildMarketingReviewDraft(record),
+  }));
   const totalPages = Math.ceil(filtered.length / query.limit);
 
   return {

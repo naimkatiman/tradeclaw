@@ -1,11 +1,30 @@
 project: tradeclaw
-updated: 2026-08-29T19:12:33+08:00
+updated: 2026-08-29T19:18:24+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_intake_marketing_handoff_projection_2026_08_29:
+  at: 2026-08-29T19:18:24+08:00
+  agent: TradeClaw PM agent
+  status: verified_server_authored_review_drafts
+  scope: Make the protected research-intake read model complete enough for an admin client to review marketing handoffs without rebuilding claims from raw study metrics
+  base_commit: 190c8c398fc2fe5276b17acd3fb3e525c6d25524
+  branch: agent/research-intake-desk-20260829
+  finding: Evidence-complete TC-255, TC-257, and TC-258 records carried only a human-review-draft-only disposition through the protected API even though the server already owned tested factual draft builders. A future client would have had to duplicate claim selection, sample-window pairing, and no-performance wording.
+  repair: Every returned admin record now includes its server-authored marketingReviewDraft or explicit null. Eligible drafts remain human-review-only with publishApproved false; untouched discoveries and the source-audit no-go cannot acquire draft copy. The protected route keeps auth-before-parse, private no-store caching, pinned source ordering, and false publication and trading authority.
+  verification: Three route assertions were observed failing on absent draft projections before implementation. The focused intake, loop, route, and real-cookie boundary set then passed 36/36. Repository Jest passed 249 suites and 1,955 tests with three suites and 26 tests skipped; web typecheck passed; full lint completed with zero errors and the same 21 inherited warnings; diff checks passed; the required build compiled signals and trading-agents and generated all 325 Next.js pages. Existing non-blocking warning categories remain unchanged.
+  current_cycle_receipt_unchanged: 2026-08-29T09:00:00.000Z/PT3H
+  tc259_preregistration_frozen: false
+  tc259_returns_opened: false
+  tc259_catalog_stage_advanced: false
+  tc259_cycle_receipt_created: false
+  marketing_publish_approved: false
+  external_actions: none
+  safety: No research candidate, source data, return, artifact, outbound draft, UI, database, signal, allocation, broadcast, execution, billing, publication, push, merge, or deployment state changed
 
 research_intake_loop_observability_repair_2026_08_29:
   at: 2026-08-29T19:12:33+08:00
