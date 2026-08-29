@@ -1,11 +1,176 @@
 project: tradeclaw
-updated: 2026-08-30T06:50:01+08:00
+updated: 2026-08-30T07:10:19+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_admin_marketing_evidence_context_2026_08_30:
+  at: 2026-08-30T07:10:19+08:00
+  agent: TradeClaw PM agent
+  status: verified_admin_marketing_evidence_context_ready_to_commit
+  scope: Give the authenticated marketing-review queue one explicit shared evidence interpretation in JSON and CSV so admins never infer evaluated performance from verdict or draft prose
+  base_commit: cbe8fe3f0cea99edc1bddc582bdd4b4b58885dc8
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-262
+  time_mode: night
+  current_cycle_id: 2026-08-29T21:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-262
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-30T00:00:00.000Z
+  gate_observed_at: 2026-08-29T23:10:19.4750858Z
+  gate_decision: The 00:00Z receipt gate remains closed; improve only the protected review read model and create no receipt, draft, publication, or trading state
+  library_search: No shared MemoryCore marketing-review, evidence-state, review-queue, or publication-authority pattern exists; reuse TradeClaw's proven shared evidence classifier and existing protected queue/export boundaries
+  problem: >-
+    The authenticated marketing-review JSON and CSV expose stage, verdict, cost
+    status, and full draft prose, but they omit the shared performance-evidence
+    interpretation. The QA-only TC-257 INCONCLUSIVE draft therefore looks like an
+    evaluated inconclusive result unless an admin parses the body, and the queue
+    cannot summarize its three modeled failures versus one no-result QA hold.
+  decision: >-
+    Add the complete shared `evidenceState` to every queue candidate, add one
+    deterministic `evidenceStateSummary` over the complete available queue, and
+    add explicit status, label, meaning, and evaluated-gate columns to the
+    protected review CSV. Derive all values from the existing classifier and keep
+    handoff, receipt, draft, order, timing, and authority bytes semantically intact.
+  frozen_json_contract:
+    item_field: candidate.evidenceState
+    queue_field: evidenceStateSummary
+    queue_scope: complete available review queue at the same observation instant
+    queue_totalCandidates: 4
+    queue_withTradeClawRecord: 4
+    queue_performanceGatesEvaluated: 3
+    queue_performanceGatesNotEvaluated: 1
+    status_order: [not-tested, source-audit-only-no-local-backtest, qa-only-no-performance-result, modeled-historical-pass, modeled-historical-fail, modeled-historical-inconclusive]
+    status_counts: [0, 0, 1, 0, 3, 0]
+    tc257_status: qa-only-no-performance-result
+    tc257_performanceGatesEvaluated: false
+  frozen_csv_contract:
+    columns_after_costStatus: [performanceEvidenceStatus, performanceEvidenceLabel, performanceEvidenceMeaning, performanceGatesEvaluated]
+    row_order_unchanged: [TC-255, TC-257, TC-258, TC-259]
+    status_order_by_row: [modeled-historical-fail, qa-only-no-performance-result, modeled-historical-fail, modeled-historical-fail]
+    gates_evaluated_by_row: [true, false, true, true]
+  frozen_baseline_receipts:
+    protected_catalog_unchanged: 72736 bytes / 2a2c221a1a4571d4d4e16a92a3766bd28bf816cabd77cfcf145863158386d799
+    protected_candidate_unchanged: 10396 bytes / e423783f1ee6ff50d9c9309369de6db0269cc4a2b0388566a6f2b7e0bce021ba
+    protected_evidence_unchanged: 67037 bytes / 458bdc5332343c957cb88d34bec06c461b4b09376382208e3f2548b06d5d9ae8
+    protected_review_before: 20279 bytes / 2cedcc9b48516de8975a481c0236e4810384ff4b7d83d376585d058cbd6baa9a
+    protected_review_csv_before: 6350 bytes / 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+    public_catalog_unchanged: 99480 bytes / 461274b219b635308a0863cd537eafde41744cb888e07b054203b0ddfdc9c51a
+    public_evidence_unchanged: 41797 bytes / 747b63bbf052437fe8cec9bc322cd8f59bb2b892644894419381426ff92d40b4
+    public_candidate_unchanged: 8688 bytes / 1525f5cf551aea663b53a9256fb099c3f808d81623aa502a6e62f137a8cdec6f
+  frozen_boundaries:
+    protected_review_json_changed: true
+    protected_review_csv_changed: true
+    public_payloads_changed: false
+    protected_catalog_changed: false
+    protected_candidate_changed: false
+    protected_evidence_changed: false
+    receipts_or_handoffs_changed: false
+    drafts_or_authority_changed: false
+    auth_or_route_semantics_changed: false
+    rendered_ui_changed: false
+    source_order_changed: false
+    research_or_trading_state_changed: false
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/research-marketing-review-csv.ts
+    - apps/web/lib/__tests__/research-intake-admin-review-evidence-context.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-review.test.ts
+    - apps/web/lib/__tests__/research-marketing-review-csv.test.ts
+  red_verification: >-
+    PASS - the focused suite executed five assertions. Four failed one-to-one for
+    the intended absence: queue `evidenceStateSummary`, item
+    `candidate.evidenceState`, the four evidence CSV columns, and their row
+    values. The fifth passed and froze every unrelated public and protected JSON
+    projection byte-for-byte. No receipt, draft, source, auth, or unrelated
+    boundary failed.
+  focused_verification: >-
+    PASS - all five focused assertions pass. The complete and empty queue summaries
+    are exact, every available review candidate carries the shared record-local
+    evidence state, CSV columns and values expose the same classifier result, and
+    public catalog/evidence/candidate plus protected catalog/candidate/evidence
+    payloads remain byte-identical.
+  adjacent_verification: >-
+    PASS - the exact adjacent scope passes 11/11 suites and 44/44 assertions across
+    protected review JSON/CSV builders and routes, observation timing, auth/cache
+    boundaries, shared evidence states and summaries, protected resources/links,
+    public discovery context, and the public OpenAPI publication boundary.
+  bounded_verification_first_iteration: >-
+    Changed-file lint, pinned-source reconstruction, deterministic payload hashes,
+    exact six-path scope, and diff hygiene passed. Typecheck rejected only the new
+    focused test's local view because it described the production summary and item
+    arrays as mutable instead of readonly; no implementation type or runtime
+    contract failed.
+  bounded_verification: >-
+    PASS - after correcting only the focused test's readonly view, typecheck is
+    green, the exact adjacent scope again passes 11 suites / 44 assertions, and
+    the changed test remains lint-clean.
+  deterministic_payload_audit:
+    protected_review_intentional: 24701 bytes / 5b41d72a5fe9daf29982141c6b8536ac8df1e6e9aee81948bef8e08142b49967
+    protected_review_csv_intentional: 7094 bytes / c007eb7245cf91c631e4291d3a9fe8f8e35c816395f1ae9642c7b7928a5efe4d
+    protected_catalog_unchanged: 72736 bytes / 2a2c221a1a4571d4d4e16a92a3766bd28bf816cabd77cfcf145863158386d799
+    protected_candidate_unchanged: 10396 bytes / e423783f1ee6ff50d9c9309369de6db0269cc4a2b0388566a6f2b7e0bce021ba
+    protected_evidence_unchanged: 67037 bytes / 458bdc5332343c957cb88d34bec06c461b4b09376382208e3f2548b06d5d9ae8
+    public_catalog_unchanged: 99480 bytes / 461274b219b635308a0863cd537eafde41744cb888e07b054203b0ddfdc9c51a
+    public_evidence_unchanged: 41797 bytes / 747b63bbf052437fe8cec9bc322cd8f59bb2b892644894419381426ff92d40b4
+    public_candidate_unchanged: 8688 bytes / 1525f5cf551aea663b53a9256fb099c3f808d81623aa502a6e62f137a8cdec6f
+  deterministic_audit: >-
+    PASS - only the protected review JSON and review CSV move intentionally.
+    Public catalog/evidence/candidate and protected catalog/candidate/evidence
+    remain byte-identical to their frozen receipts.
+  changed_file_eslint: PASS - all five changed TypeScript files pass the configured web ESLint command with zero findings
+  typecheck_verification: PASS - the signals prerequisite and web TypeScript project compile without errors
+  source_verification: >-
+    PASS - the verifier reconstructs all 61 pinned candidates at upstream commit
+    d9c98521c76662d5eae03ab97a4fc721d010dde3 and README SHA-256
+    67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a.
+  preliminary_scope_verification: PASS - exactly the frozen six paths are changed and `git diff --check` is clean
+  lint_verification: PASS - authoritative full lint reports zero errors and the same 21 inherited warnings; changed files remain clean
+  repository_test_verification: >-
+    PASS - 289/289 runnable suites and 2,142/2,142 runnable tests pass; the
+    inherited 3 suites / 26 tests remain skipped and the single snapshot passes.
+    The known open-handle notice appears only after the green result and forced exit.
+  build_verification: >-
+    PASS - signals and trading-agents compile and the Next.js production build
+    generates all 329/329 pages. Protected review JSON/CSV routes remain dynamic;
+    only inherited middleware, NFT trace, `url.parse`, and edge-runtime warnings appear.
+  implementation_files:
+    protected_review_json: 43996 bytes / ff2081d8423357890177e782b570ff2937c2fe6403e90b55387f612a8482178f
+    protected_review_csv: 5837 bytes / 9851518d3a43621866388549435b86b29ede429eae09b988e214baab9e2f8803
+    focused_contract: 7161 bytes / 165b7db190d499b17387a8a695dafcab8ea9811e6c700fc90eb3470b242cfe19
+    review_json_contract: 7946 bytes / b3924a188860d28fca466b0233340f25e8bee684744c7cdc2cda19dc1602b69e
+    review_csv_contract: 4865 bytes / 6ed86c30ece50f54c64dc6b9c880be966aa5afeed394202377bcc7f3b025c1dc
+  state_and_scope_verification: >-
+    PASS - STATE.yaml parses, `git diff --check` is clean, and the worktree has
+    exactly the frozen six-path manifest: STATE, two protected review read-model
+    files, one new focused contract, and two updated adjacent contracts. No
+    public, receipt, handoff, draft source, auth, route, rendered UI, Docker,
+    manifest, dependency, database, signal, allocation, execution, or trading
+    path changed.
+  scope_audit:
+    changed_paths: 6
+    forbidden_surface_changes: 0
+    branch: agent/research-intake-desk-20260829
+    base_commit_confirmed: cbe8fe3f0cea99edc1bddc582bdd4b4b58885dc8
+    broad_dirty_checkout_touched: false
+    rendered_ui_changed: false
+    current_window_receipt_unchanged: TC-262
+    new_marketing_handoff_created: false
+    gate_closed_at_audit: true
+    seconds_until_gate_at_audit: 2980
+    next_receipt_gate_remains: 2026-08-30T00:00:00.000Z
+  current_step: Create the verified local implementation commit without pushing
+  next_action: Persist the implementation receipt in a STATE-only closure, save shared MemoryCore, and prove a clean worktree
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  safety: No candidate source, source audit, preregistration, result, receipt, marketing draft, publication, posting, public payload, visual UI, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state change is authorized
 
 research_public_discovery_context_2026_08_30:
   at: 2026-08-30T06:56:30+08:00

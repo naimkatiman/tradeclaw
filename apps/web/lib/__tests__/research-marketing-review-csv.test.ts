@@ -24,6 +24,10 @@ describe('admin research marketing-review CSV projection', () => {
       'stage',
       'verdict',
       'costStatus',
+      'performanceEvidenceStatus',
+      'performanceEvidenceLabel',
+      'performanceEvidenceMeaning',
+      'performanceGatesEvaluated',
       'draftTitle',
       'draftSummary',
       'draftBody',
@@ -58,6 +62,18 @@ describe('admin research marketing-review CSV projection', () => {
       'inconclusive',
       'fail',
       'fail',
+    ]);
+    expect(rows.map((row) => row.performanceEvidenceStatus)).toEqual([
+      'modeled-historical-fail',
+      'qa-only-no-performance-result',
+      'modeled-historical-fail',
+      'modeled-historical-fail',
+    ]);
+    expect(rows.map((row) => row.performanceGatesEvaluated)).toEqual([
+      true,
+      false,
+      true,
+      true,
     ]);
     expect(rows.some((row) => row.taskId === ('TC-256' as string))).toBe(false);
   });
@@ -94,6 +110,8 @@ describe('admin research marketing-review CSV projection', () => {
       expect(row.draftTitle).not.toBe('');
       expect(row.draftSummary).not.toBe('');
       expect(row.draftBody).not.toBe('');
+      expect(row.performanceEvidenceLabel).not.toBe('');
+      expect(row.performanceEvidenceMeaning).not.toBe('');
       expect(row.resultPath).toMatch(/^docs\/research\//);
       expect(row.artifactPath).toMatch(/^docs\/research\/experiments\//);
     }

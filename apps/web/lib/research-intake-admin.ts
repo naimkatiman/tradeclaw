@@ -467,7 +467,9 @@ export interface ResearchIntakeAdminReviewItem {
     | 'stage'
     | 'verdict'
     | 'costStatus'
-  >;
+  > & {
+    evidenceState: ResearchIntakeEvidenceState;
+  };
   handoff: ResearchLoopMarketingHandoff;
   receipt: ResearchLoopReceipt | null;
   links: ResearchIntakeCandidateLinks;
@@ -485,6 +487,7 @@ export interface ResearchIntakeAdminReviewPayload {
   queue: {
     status: ResearchLoopMarketingReview['status'];
     summary: ResearchLoopMarketingReview['summary'];
+    evidenceStateSummary: ReturnType<typeof summarizeResearchIntakeEvidenceStates>;
     latestItem: ResearchIntakeAdminReviewItem | null;
     currentWindowItems: readonly ResearchIntakeAdminReviewItem[];
     items: readonly ResearchIntakeAdminReviewItem[];
@@ -1090,17 +1093,24 @@ const ADMIN_REVIEW_CONTROLS: ResearchIntakeAdminReviewControls = {
   externalActions: 'none',
 };
 
-function toAdminReviewItem(
+function recordForAdminReviewHandoff(
   handoff: ResearchLoopMarketingHandoff,
-  queuePosition: number,
-  observedAtMs: number,
-): ResearchIntakeAdminReviewItem {
+): ResearchIntakeRecord {
   const candidate = SYSTEMATIC_RESEARCH_INTAKE.find(
     (record) => record.id === handoff.candidateId,
   );
   if (!candidate || candidate.tradeClawEvidence?.taskId !== handoff.taskId) {
     throw new Error(`marketing review ${handoff.taskId} has no matching evidence record`);
   }
+  return candidate;
+}
+
+function toAdminReviewItem(
+  handoff: ResearchLoopMarketingHandoff,
+  candidate: ResearchIntakeRecord,
+  queuePosition: number,
+  observedAtMs: number,
+): ResearchIntakeAdminReviewItem {
 
   const receipt = RESEARCH_LOOP_RECEIPTS.find(
     (entry) =>
@@ -1131,6 +1141,7 @@ function toAdminReviewItem(
       stage: candidate.stage,
       verdict: candidate.verdict,
       costStatus: candidate.costStatus,
+      evidenceState: buildResearchIntakeEvidenceState(candidate),
     },
     handoff,
     receipt,
@@ -1313,8 +1324,16 @@ export function buildResearchIntakeAdminReviewPayload(
   at: Date | string | number = new Date(),
 ): ResearchIntakeAdminReviewPayload {
   const observation = buildResearchIntakeAdminObservation(at);
+  const reviewRecords = observation.marketingReview.handoffs.map(
+    recordForAdminReviewHandoff,
+  );
   const items = observation.marketingReview.handoffs.map((handoff, index) => (
-    toAdminReviewItem(handoff, index + 1, observation.observedAtMs)
+    toAdminReviewItem(
+      handoff,
+      reviewRecords[index],
+      index + 1,
+      observation.observedAtMs,
+    )
   ));
 
   return {
@@ -1332,6 +1351,7 @@ export function buildResearchIntakeAdminReviewPayload(
     queue: {
       status: observation.marketingReview.status,
       summary: observation.marketingReview.summary,
+      evidenceStateSummary: summarizeResearchIntakeEvidenceStates(reviewRecords),
       latestItem: items.at(-1) ?? null,
       currentWindowItems: items.filter(
         (item) => item.handoff.cycleId === observation.researchLoop.currentWindow.id,

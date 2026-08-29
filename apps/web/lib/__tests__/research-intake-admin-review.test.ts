@@ -36,6 +36,12 @@ describe('protected research marketing-review JSON projection', () => {
           preLoopDrafts: 1,
           publicationApprovedDrafts: 0,
         },
+        evidenceStateSummary: {
+          totalCandidates: 4,
+          withTradeClawRecord: 4,
+          performanceGatesEvaluated: 3,
+          performanceGatesNotEvaluated: 1,
+        },
         latestItem: {
           queuePosition: 4,
           handoff: { taskId: 'TC-259' },
@@ -88,6 +94,13 @@ describe('protected research marketing-review JSON projection', () => {
         stage: 'replicated',
         verdict: 'fail',
         costStatus: 'failed',
+        evidenceState: {
+          performanceEvidenceStatus: 'modeled-historical-fail',
+          performanceGatesEvaluated: true,
+          taskId: 'TC-255',
+          grantsPublicationAuthority: false,
+          grantsTradingAuthority: false,
+        },
       },
       handoff: {
         taskId: 'TC-255',
@@ -126,6 +139,11 @@ describe('protected research marketing-review JSON projection', () => {
         stage: 'replicated',
         verdict: 'fail',
         costStatus: 'failed',
+        evidenceState: {
+          performanceEvidenceStatus: 'modeled-historical-fail',
+          performanceGatesEvaluated: true,
+          taskId: 'TC-259',
+        },
       },
       handoff: {
         taskId: 'TC-259',
@@ -148,6 +166,9 @@ describe('protected research marketing-review JSON projection', () => {
     for (const item of payload.queue.items) {
       expect(item.candidate).not.toHaveProperty('upstreamGrossSharpe');
       expect(item.candidate).not.toHaveProperty('tradeClawEvidence');
+      expect(item.candidate.evidenceState.taskId).toBe(item.handoff.taskId);
+      expect(item.candidate.evidenceState.grantsPublicationAuthority).toBe(false);
+      expect(item.candidate.evidenceState.grantsTradingAuthority).toBe(false);
       expect(item.handoff.draft.publishApproved).toBe(false);
       expect(item.controls).toEqual(payload.queue.controls);
     }
@@ -164,6 +185,12 @@ describe('protected research marketing-review JSON projection', () => {
     expect(before.queue).toMatchObject({
       status: 'empty',
       summary: { availableDrafts: 0 },
+      evidenceStateSummary: {
+        totalCandidates: 0,
+        withTradeClawRecord: 0,
+        performanceGatesEvaluated: 0,
+        performanceGatesNotEvaluated: 0,
+      },
       latestItem: null,
       currentWindowItems: [],
       items: [],

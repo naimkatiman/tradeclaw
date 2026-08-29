@@ -7,6 +7,10 @@ import {
   type ResearchLoopMarketingHandoff,
   type ResearchLoopMarketingTaskId,
 } from './research-loop-marketing';
+import {
+  buildResearchIntakeEvidenceState,
+  type ResearchIntakeEvidenceState,
+} from './research-intake-evidence-state';
 
 export const RESEARCH_MARKETING_REVIEW_CSV_COLUMNS = [
   'queuePosition',
@@ -21,6 +25,10 @@ export const RESEARCH_MARKETING_REVIEW_CSV_COLUMNS = [
   'stage',
   'verdict',
   'costStatus',
+  'performanceEvidenceStatus',
+  'performanceEvidenceLabel',
+  'performanceEvidenceMeaning',
+  'performanceGatesEvaluated',
   'draftTitle',
   'draftSummary',
   'draftBody',
@@ -50,6 +58,10 @@ export interface ResearchMarketingReviewCsvRow {
   stage: ResearchIntakeRecord['stage'];
   verdict: ResearchIntakeRecord['verdict'];
   costStatus: ResearchIntakeRecord['costStatus'];
+  performanceEvidenceStatus: ResearchIntakeEvidenceState['performanceEvidenceStatus'];
+  performanceEvidenceLabel: ResearchIntakeEvidenceState['label'];
+  performanceEvidenceMeaning: ResearchIntakeEvidenceState['meaning'];
+  performanceGatesEvaluated: ResearchIntakeEvidenceState['performanceGatesEvaluated'];
   draftTitle: string;
   draftSummary: string;
   draftBody: string;
@@ -84,6 +96,7 @@ function toCsvRow(
   controls: ReturnType<typeof getResearchLoopMarketingReview>['controls'],
 ): ResearchMarketingReviewCsvRow {
   const record = recordForHandoff(handoff);
+  const evidenceState = buildResearchIntakeEvidenceState(record);
 
   return {
     queuePosition,
@@ -98,6 +111,10 @@ function toCsvRow(
     stage: record.stage,
     verdict: record.verdict,
     costStatus: record.costStatus,
+    performanceEvidenceStatus: evidenceState.performanceEvidenceStatus,
+    performanceEvidenceLabel: evidenceState.label,
+    performanceEvidenceMeaning: evidenceState.meaning,
+    performanceGatesEvaluated: evidenceState.performanceGatesEvaluated,
     draftTitle: handoff.draft.title,
     draftSummary: handoff.draft.summary,
     draftBody: handoff.draft.body,
