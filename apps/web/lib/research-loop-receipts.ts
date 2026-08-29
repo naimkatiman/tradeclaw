@@ -11,7 +11,8 @@ export type ResearchLoopReceiptTaskId =
   | 'TC-258'
   | 'TC-259'
   | 'TC-260'
-  | 'TC-261';
+  | 'TC-261'
+  | 'TC-262';
 export type ResearchLoopReceiptOutcome =
   | 'verified-no-go'
   | 'implemented-qa-only-hold'
@@ -197,6 +198,26 @@ export const RESEARCH_LOOP_RECEIPTS: readonly ResearchLoopReceipt[] = [
     externalActions: 'none',
     nextAction:
       'Archive the exact-source no-go; any reduced-universe or implementable long-only cryptocurrency factor study must start as a separately hashed hypothesis in a later UTC window',
+  },
+  {
+    cycleId: '2026-08-29T21:00:00.000Z/PT3H',
+    recordedAt: '2026-08-29T21:09:39.110Z',
+    taskId: 'TC-262',
+    candidateId: 'properties-of-the-most-diversified-portfolio',
+    stageBefore: 'discovered',
+    stageAfter: 'source-audited',
+    verdict: 'not-tested',
+    outcome: 'verified-no-go',
+    evidencePaths: [
+      'docs/research/2026-08-30-most-diversified-portfolio-source-audit.md',
+    ],
+    marketingDraft: 'none',
+    eligibleForProspectiveReview: false,
+    publicationApproved: false,
+    tradingApproved: false,
+    externalActions: 'none',
+    nextAction:
+      'Archive the exact-source no-go; any public-universe MDP implementation must begin as a separately hashed hypothesis in a later UTC window before returns',
   },
 ] as const;
 

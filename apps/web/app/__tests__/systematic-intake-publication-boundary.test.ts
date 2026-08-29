@@ -129,13 +129,13 @@ describe('systematic research intake public boundary', () => {
     expect(evidenceOperation).toBeDefined();
     expect(evidenceOperation?.security).toEqual([]);
     expect(evidenceOperation?.description).toMatch(
-      /all seven.*source-audit or replication.*source order.*failures.*no-go.*inconclusive/i,
+      /all eight.*source-audit or replication.*source order.*failures.*no-go.*inconclusive/i,
     );
     expect(evidenceOperation?.responses).toHaveProperty('200');
     expect(evidenceCsvOperation).toBeDefined();
     expect(evidenceCsvOperation?.security).toEqual([]);
     expect(evidenceCsvOperation?.description).toMatch(
-      /all seven.*25-column.*source order.*failures.*no-go.*inconclusive.*no API key/i,
+      /all eight.*25-column.*source order.*failures.*no-go.*inconclusive.*no API key/i,
     );
     expect(evidenceCsvOperation?.responses).toHaveProperty('200');
     expect(candidateOperation).toBeDefined();
@@ -154,9 +154,9 @@ describe('systematic research intake public boundary', () => {
     expect(csvOperation?.security).toEqual([]);
     expect(csvOperation?.description).toMatch(/25-column spreadsheet index.*canonical JSON/i);
     expect(csvOperation?.responses).toHaveProperty('200');
-    expect(summaryExamples?.discovered?.example).toBe(54);
-    expect(summaryExamples?.sourceAudited?.example).toBe(3);
-    expect(summaryExamples?.sourceNoGo?.example).toBe(3);
+    expect(summaryExamples?.discovered?.example).toBe(53);
+    expect(summaryExamples?.sourceAudited?.example).toBe(4);
+    expect(summaryExamples?.sourceNoGo?.example).toBe(4);
   });
 
   it('keeps every local OpenAPI reference resolvable', () => {

@@ -441,6 +441,68 @@ export interface TradeClawCryptoFactorSourceAuditEvidence {
   reason: string;
 }
 
+export interface TradeClawMostDiversifiedPortfolioSourceAuditEvidence {
+  taskId: 'TC-262';
+  auditDate: '2026-08-30';
+  researchPath: 'docs/research/2026-08-30-most-diversified-portfolio-source-audit.md';
+  researchSha256: string;
+  disposition: 'no-go';
+  tradeClawBacktestRun: false;
+  primarySource: {
+    title: 'Properties of the Most Diversified Portfolio';
+    authors: readonly ['Yves Choueifaty', 'Tristan Froidure', 'Julien Reynier'];
+    discoveryUrl: 'https://paperswithbacktest.com/strategies/properties-of-the-most-diversified-portfolio';
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1895459';
+    doi: 'https://doi.org/10.21314/JOIS.2013.033';
+    documentUrl: 'https://www.tobam.fr/wp-content/uploads/2021/12/2013-choueifatyfroidurereynier-properties-of-the-most-diversified-portfolio-jis.pdf';
+    documentSha256: string;
+    documentBytes: 171320;
+    documentPages: 22;
+    redistributionRightsEstablished: false;
+  };
+  publishedRule: {
+    cadence: 'semiannual';
+    rebalanceMonths: readonly [5, 11];
+    covarianceWindowMarketDays: 252;
+    paperSample: '1999-01/2010-12';
+    pointInTimeUniverse: 'MSCI-World';
+    minimumPriceHistoryMonths: 6;
+    retainedMarketCapRankFraction: 0.5;
+    averageEligibleStocks: 793;
+    averageEligibleCapitalizationPct: 90;
+    averageMdpHoldings: 137;
+    maximumStockWeightPct: 1.5;
+    maximumRegionOverweightPctPoints: 5;
+    turnoverPenaltyTrackingErrorPct: 1.5;
+    longOnly: true;
+  };
+  sourceCloneMismatch: {
+    primaryCadence: 'semiannual-end-May-end-November';
+    cloneCadence: 'quarterly';
+    primarySample: '1999-2010';
+    cloneSample: '1990-2026';
+    primaryAverageHoldings: 137;
+    cloneCurrentLongPositions: 56;
+  };
+  publishedCostTreatment: {
+    mdpOneWayAnnualTurnoverPct: 82;
+    marketOneWayAnnualTurnoverPct: 14;
+    mdpClaimedBreakEvenAllInTradingCostPct: 3.4;
+    deterministicTradeLedgerSupplied: false;
+  };
+  inputProvenance: {
+    exactSourceBytesSupplied: false;
+    pointInTimeMsciMembershipPublic: false;
+    bloombergTotalReturnsPublic: false;
+    bloombergMarketCapitalizationsPublic: false;
+    msciOfficialFxPublic: false;
+    plesiochronousEstimatorExecutable: false;
+    turnoverPenaltyExecutable: false;
+  };
+  blockers: readonly string[];
+  reason: string;
+}
+
 export interface TradeClawTreasurySourceAuditEvidence {
   taskId: 'TC-257';
   auditDate: '2026-08-29';
@@ -561,6 +623,7 @@ export type TradeClawResearchSourceAuditEvidence =
   | TradeClawSourceAuditEvidence
   | TradeClawRiskBasedAllocationSourceAuditEvidence
   | TradeClawCryptoFactorSourceAuditEvidence
+  | TradeClawMostDiversifiedPortfolioSourceAuditEvidence
   | TradeClawTreasurySourceAuditEvidence
   | TradeClawBitcoinMaxMinSourceAuditEvidence
   | TradeClawTermPremiumSourceAuditEvidence;
@@ -642,6 +705,7 @@ const RISK_BASED_TACTICAL_ALLOCATION_ID =
   'a-risk-based-approach-to-tactical-asset-allocation';
 const CRYPTO_FACTOR_INVESTING_ID =
   'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space';
+const MOST_DIVERSIFIED_PORTFOLIO_ID = 'properties-of-the-most-diversified-portfolio';
 
 const TC256_PRICE_OVERREACTIONS_SOURCE_AUDIT: TradeClawSourceAuditEvidence = {
   taskId: 'TC-256',
@@ -828,6 +892,82 @@ const TC261_CRYPTO_FACTOR_SOURCE_AUDIT: TradeClawCryptoFactorSourceAuditEvidence
   ],
   reason:
     'An exact replay cannot recover the source data vintage or full universe, and an implementable reduced-universe or derivatives study would materially change the hypothesis and trading mechanics.',
+};
+
+const TC262_MOST_DIVERSIFIED_PORTFOLIO_SOURCE_AUDIT: TradeClawMostDiversifiedPortfolioSourceAuditEvidence = {
+  taskId: 'TC-262',
+  auditDate: '2026-08-30',
+  researchPath: 'docs/research/2026-08-30-most-diversified-portfolio-source-audit.md',
+  researchSha256: '669ff00c6ab39654e1641757af3dc99709b2a4e2458d104520c3fbfe5e9a23e6',
+  disposition: 'no-go',
+  tradeClawBacktestRun: false,
+  primarySource: {
+    title: 'Properties of the Most Diversified Portfolio',
+    authors: ['Yves Choueifaty', 'Tristan Froidure', 'Julien Reynier'],
+    discoveryUrl:
+      'https://paperswithbacktest.com/strategies/properties-of-the-most-diversified-portfolio',
+    ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1895459',
+    doi: 'https://doi.org/10.21314/JOIS.2013.033',
+    documentUrl:
+      'https://www.tobam.fr/wp-content/uploads/2021/12/2013-choueifatyfroidurereynier-properties-of-the-most-diversified-portfolio-jis.pdf',
+    documentSha256: 'bef4ce6719f3355d30c51ea2e7bc0005e8ece43cd422c3d612056a50147d7916',
+    documentBytes: 171320,
+    documentPages: 22,
+    redistributionRightsEstablished: false,
+  },
+  publishedRule: {
+    cadence: 'semiannual',
+    rebalanceMonths: [5, 11],
+    covarianceWindowMarketDays: 252,
+    paperSample: '1999-01/2010-12',
+    pointInTimeUniverse: 'MSCI-World',
+    minimumPriceHistoryMonths: 6,
+    retainedMarketCapRankFraction: 0.5,
+    averageEligibleStocks: 793,
+    averageEligibleCapitalizationPct: 90,
+    averageMdpHoldings: 137,
+    maximumStockWeightPct: 1.5,
+    maximumRegionOverweightPctPoints: 5,
+    turnoverPenaltyTrackingErrorPct: 1.5,
+    longOnly: true,
+  },
+  sourceCloneMismatch: {
+    primaryCadence: 'semiannual-end-May-end-November',
+    cloneCadence: 'quarterly',
+    primarySample: '1999-2010',
+    cloneSample: '1990-2026',
+    primaryAverageHoldings: 137,
+    cloneCurrentLongPositions: 56,
+  },
+  publishedCostTreatment: {
+    mdpOneWayAnnualTurnoverPct: 82,
+    marketOneWayAnnualTurnoverPct: 14,
+    mdpClaimedBreakEvenAllInTradingCostPct: 3.4,
+    deterministicTradeLedgerSupplied: false,
+  },
+  inputProvenance: {
+    exactSourceBytesSupplied: false,
+    pointInTimeMsciMembershipPublic: false,
+    bloombergTotalReturnsPublic: false,
+    bloombergMarketCapitalizationsPublic: false,
+    msciOfficialFxPublic: false,
+    plesiochronousEstimatorExecutable: false,
+    turnoverPenaltyExecutable: false,
+  },
+  blockers: [
+    'Exact point-in-time MSCI World membership, region weights, official FX, and Bloomberg total-return and capitalization histories are not supplied as immutable public bytes.',
+    'A current-constituent or US-only universe would introduce survivorship, geography, currency, liquidity, and benchmark changes.',
+    'The author-developed plesiochronous correlation estimator is not executable from the paper description.',
+    'The turnover penalty lacks its objective term, calibration, solver, convergence tolerance, and tie-breaking rules.',
+    'Missing returns, corporate actions, market holidays, time-zone cutoffs, and rebalance information availability are not frozen.',
+    'The paper does not specify a causal next-session or next-common-market fill convention.',
+    'The stock cap and region constraints require contemporaneous classifications and benchmark weights unavailable in the source package.',
+    'The cost discussion is a break-even sensitivity rather than a deterministic friction ledger tied to realized trades.',
+    'No chronological folds, immutable post-publication holdout, identically costed external market, or replay artifact is supplied.',
+    'The dynamic clone contradicts the primary cadence and sample while its pseudo-code is subscription-only.',
+  ],
+  reason:
+    'The mathematical MDP objective is clear, but exact empirical replay would require proprietary point-in-time inputs plus invented estimator, penalty, fill, and friction choices; a public-universe implementation would be a materially new hypothesis.',
 };
 
 const TC257_TREASURY_SOURCE_AUDIT: TradeClawTreasurySourceAuditEvidence = {
@@ -1402,7 +1542,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
                 ? TC260_RISK_BASED_ALLOCATION_SOURCE_AUDIT
                 : candidate.id === CRYPTO_FACTOR_INVESTING_ID
                   ? TC261_CRYPTO_FACTOR_SOURCE_AUDIT
-                  : null;
+                  : candidate.id === MOST_DIVERSIFIED_PORTFOLIO_ID
+                    ? TC262_MOST_DIVERSIFIED_PORTFOLIO_SOURCE_AUDIT
+                    : null;
     if (tradeClawEvidence) {
       if (tradeClawEvidence.taskId === 'TC-257') {
         return {
@@ -1446,8 +1588,9 @@ export const SYSTEMATIC_RESEARCH_INTAKE: readonly ResearchIntakeRecord[] =
         stage: 'source-audited' as const,
         verdict: 'not-tested' as const,
         costStatus: 'unassessed' as const,
-        nextAction:
-          'Archive the published specification as a source-audited no-go; preregister only a materially new hypothesis with explicit rules, data, costs, and holdout.',
+        nextAction: tradeClawSourceAudit.taskId === 'TC-262'
+          ? 'Archive the exact-source no-go; any public-universe MDP implementation must begin as a separately hashed hypothesis in a later UTC window before returns.'
+          : 'Archive the published specification as a source-audited no-go; preregister only a materially new hypothesis with explicit rules, data, costs, and holdout.',
         marketingDisposition: 'none' as const,
         tradeClawSourceAudit,
         tradeClawEvidence: null,

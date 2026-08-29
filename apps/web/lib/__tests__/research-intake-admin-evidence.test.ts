@@ -2,7 +2,9 @@ import { createHash } from 'node:crypto';
 import { buildResearchIntakeAdminEvidencePayload } from '../research-intake-admin';
 
 const AUDIT_AT = '2026-08-29T15:59:59.999Z';
-const TASK_ORDER = ['TC-259', 'TC-257', 'TC-255', 'TC-261', 'TC-258', 'TC-256', 'TC-260'];
+const TASK_ORDER = [
+  'TC-262', 'TC-259', 'TC-257', 'TC-255', 'TC-261', 'TC-258', 'TC-256', 'TC-260',
+];
 
 function taskIdOf(item: ReturnType<typeof buildResearchIntakeAdminEvidencePayload>['items'][number]) {
   return item.record.tradeClawEvidence?.taskId ?? item.record.tradeClawSourceAudit?.taskId;
@@ -38,25 +40,27 @@ describe('protected research evidence desk projection', () => {
         includesEveryAvailableOverlay: true,
       },
       evidenceSummary: {
-        total: 7,
+        total: 8,
         discovered: 0,
-        sourceAudited: 3,
+        sourceAudited: 4,
         replicated: 4,
         passed: 0,
         failed: 3,
         inconclusive: 1,
-        untested: 3,
-        sourceNoGo: 3,
+        untested: 4,
+        sourceNoGo: 4,
       },
     });
     expect(payload.selectionPolicy).toMatch(/gross discovery metadata/i);
     expect(payload.workflow).toHaveLength(5);
-    expect(payload.items).toHaveLength(7);
+    expect(payload.items).toHaveLength(8);
     expect(payload.items.map(taskIdOf)).toEqual(TASK_ORDER);
     expect(payload.items.map((item) => item.record.sourcePosition + 1)).toEqual([
-      22, 24, 32, 33, 34, 37, 61,
+      7, 22, 24, 32, 33, 34, 37, 61,
     ]);
-    expect(payload.items.map((item) => item.evidencePosition)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(payload.items.map((item) => item.evidencePosition)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8,
+    ]);
     for (const omitted of ['records', 'appliedFilters', 'filteredSummary', 'pagination', 'marketingReview']) {
       expect(payload).not.toHaveProperty(omitted);
     }
@@ -69,13 +73,33 @@ describe('protected research evidence desk projection', () => {
     const tc259 = byTask.get('TC-259');
     const tc260 = byTask.get('TC-260');
     const tc261 = byTask.get('TC-261');
-    if (!tc255 || !tc259 || !tc260 || !tc261) throw new Error('Evidence fixture is incomplete');
+    const tc262 = byTask.get('TC-262');
+    if (!tc255 || !tc259 || !tc260 || !tc261 || !tc262) {
+      throw new Error('Evidence fixture is incomplete');
+    }
 
     expect(payload.items.map((item) => item.candidateWorkflow.receiptCount)).toEqual([
-      1, 1, 0, 0, 1, 1, 1,
+      0, 1, 1, 0, 0, 1, 1, 1,
     ]);
     expect(payload.items.map((item) => item.candidateWorkflow.marketingHandoff?.taskId ?? null))
-      .toEqual(['TC-259', 'TC-257', 'TC-255', null, 'TC-258', null, null]);
+      .toEqual([null, 'TC-259', 'TC-257', 'TC-255', null, 'TC-258', null, null]);
+
+    expect(tc262).toMatchObject({
+      record: {
+        id: 'properties-of-the-most-diversified-portfolio',
+        sourcePosition: 6,
+        stage: 'source-audited',
+        verdict: 'not-tested',
+        marketingReviewDraft: null,
+        tradeClawSourceAudit: { taskId: 'TC-262', disposition: 'no-go' },
+      },
+      candidateWorkflow: {
+        receiptCount: 0,
+        receipts: [],
+        latestReceipt: null,
+        marketingHandoff: null,
+      },
+    });
 
     expect(tc255).toMatchObject({
       record: {
@@ -228,14 +252,45 @@ describe('protected research evidence desk projection', () => {
     });
   });
 
+  it('does not expose the TC-262 receipt before 21:09:39.110Z', () => {
+    const before = buildResearchIntakeAdminEvidencePayload('2026-08-29T21:09:39.109Z');
+    const at = buildResearchIntakeAdminEvidencePayload('2026-08-29T21:09:39.110Z');
+    const beforeTc262 = before.items.find((item) => taskIdOf(item) === 'TC-262');
+    const atTc262 = at.items.find((item) => taskIdOf(item) === 'TC-262');
+    if (!beforeTc262 || !atTc262) throw new Error('TC-262 evidence fixture is missing');
+
+    expect(before.researchLoop).toMatchObject({
+      currentWindowStatus: 'awaiting-receipt',
+      latestReceipt: { taskId: 'TC-261' },
+      currentWindowReceipts: [],
+    });
+    expect(beforeTc262.candidateWorkflow).toMatchObject({
+      receiptCount: 0,
+      receipts: [],
+      latestReceipt: null,
+      marketingHandoff: null,
+    });
+    expect(at.researchLoop).toMatchObject({
+      currentWindowStatus: 'complete',
+      latestReceipt: { taskId: 'TC-262' },
+      currentWindowReceipts: [{ taskId: 'TC-262' }],
+    });
+    expect(atTc262.candidateWorkflow).toMatchObject({
+      receiptCount: 1,
+      receipts: [{ taskId: 'TC-262' }],
+      latestReceipt: { taskId: 'TC-262' },
+      marketingHandoff: null,
+    });
+  });
+
   it('serializes deterministically at the frozen audit instant', () => {
     const first = JSON.stringify(buildResearchIntakeAdminEvidencePayload(AUDIT_AT));
     const second = JSON.stringify(buildResearchIntakeAdminEvidencePayload(AUDIT_AT));
 
     expect(second).toBe(first);
-    expect(Buffer.byteLength(first, 'utf8')).toBe(56_502);
+    expect(Buffer.byteLength(first, 'utf8')).toBe(61_331);
     expect(createHash('sha256').update(first).digest('hex')).toBe(
-      'defa5ec013c50c5c762fbb801d5dca6760646d0a3e28fdf2b441f75a3cea8098',
+      'ed04cd637deed430d2a795f44373a9ac8ecea92cd4962aeb85668d7983273878',
     );
   });
 });

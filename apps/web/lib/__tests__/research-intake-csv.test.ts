@@ -54,8 +54,8 @@ describe('public research intake CSV projection', () => {
     }, {});
 
     expect(counts).toEqual({
-      'not-tested': 54,
-      'source-audit-only-no-local-backtest': 3,
+      'not-tested': 53,
+      'source-audit-only-no-local-backtest': 4,
       'modeled-historical-fail': 3,
       'qa-only-no-performance-result': 1,
     });
@@ -66,6 +66,7 @@ describe('public research intake CSV projection', () => {
     const sourceNoGo = rows.find((row) => row.tradeClawTaskId === 'TC-256');
     const riskBasedSourceNoGo = rows.find((row) => row.tradeClawTaskId === 'TC-260');
     const cryptoFactorSourceNoGo = rows.find((row) => row.tradeClawTaskId === 'TC-261');
+    const mdpSourceNoGo = rows.find((row) => row.tradeClawTaskId === 'TC-262');
     const qaOnly = rows.find((row) => row.tradeClawTaskId === 'TC-257');
 
     expect(sourceNoGo).toEqual(expect.objectContaining({
@@ -74,7 +75,7 @@ describe('public research intake CSV projection', () => {
       verdict: 'not-tested',
       tradeClawArtifactPath: '',
     }));
-    expect(sourceNoGos).toHaveLength(3);
+    expect(sourceNoGos).toHaveLength(4);
     expect(riskBasedSourceNoGo).toEqual(expect.objectContaining({
       evidenceBasis: 'tradeclaw-source-audit-only',
       performanceEvidenceStatus: 'source-audit-only-no-local-backtest',
@@ -87,6 +88,15 @@ describe('public research intake CSV projection', () => {
       performanceEvidenceStatus: 'source-audit-only-no-local-backtest',
       verdict: 'not-tested',
       tradeClawEvidencePath: 'docs/research/2026-08-29-crypto-factor-investing-source-audit.md',
+      tradeClawArtifactPath: '',
+    }));
+    expect(mdpSourceNoGo).toEqual(expect.objectContaining({
+      sourceOrder: 7,
+      evidenceBasis: 'tradeclaw-source-audit-only',
+      performanceEvidenceStatus: 'source-audit-only-no-local-backtest',
+      verdict: 'not-tested',
+      tradeClawEvidencePath:
+        'docs/research/2026-08-30-most-diversified-portfolio-source-audit.md',
       tradeClawArtifactPath: '',
     }));
     expect(qaOnly).toEqual(expect.objectContaining({

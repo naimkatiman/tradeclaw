@@ -34,8 +34,8 @@ describe('public research intake projection', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 54,
-        sourceAudited: 3,
+        discovered: 53,
+        sourceAudited: 4,
         preregistered: 0,
         replicated: 4,
         prospective: 0,
@@ -43,7 +43,7 @@ describe('public research intake projection', () => {
         failed: 3,
         inconclusive: 1,
         untested: 57,
-        sourceNoGo: 3,
+        sourceNoGo: 4,
       },
     });
     expect(payload.workflow).toHaveLength(5);
@@ -65,8 +65,8 @@ describe('public research intake projection', () => {
     }, {});
 
     expect(basisCounts).toEqual({
-      'upstream-gross-discovery-only': 54,
-      'tradeclaw-source-audit-only': 3,
+      'upstream-gross-discovery-only': 53,
+      'tradeclaw-source-audit-only': 4,
       'tradeclaw-replication-record': 4,
     });
     for (const record of payload.records) {
@@ -173,6 +173,22 @@ describe('public research intake projection', () => {
         disposition: 'no-go',
         tradeClawBacktestRun: false,
         currentDataReceipt: { pivxPriceUsdAvailable: false },
+      },
+      tradeClawEvidence: null,
+    });
+
+    const tc262 = recordByTask(buildResearchIntakePublicPayload(), 'TC-262');
+    expect(tc262).toMatchObject({
+      sourcePosition: 6,
+      stage: 'source-audited',
+      verdict: 'not-tested',
+      costStatus: 'unassessed',
+      evidenceBasis: 'tradeclaw-source-audit-only',
+      tradeClawSourceAudit: {
+        taskId: 'TC-262',
+        disposition: 'no-go',
+        tradeClawBacktestRun: false,
+        publishedRule: { cadence: 'semiannual', rebalanceMonths: [5, 11] },
       },
       tradeClawEvidence: null,
     });

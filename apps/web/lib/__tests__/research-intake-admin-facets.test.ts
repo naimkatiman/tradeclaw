@@ -134,8 +134,8 @@ describe('protected research catalog filter facets', () => {
       selected: 'all',
       options: [
         option('all', 'All stages', 61, true),
-        option('discovered', 'Discovered', 54),
-        option('source-audited', 'Source audited', 3),
+        option('discovered', 'Discovered', 53),
+        option('source-audited', 'Source audited', 4),
         option('preregistered', 'Preregistered', 0),
         option('replicated', 'Replicated', 4),
         option('prospective', 'Prospective', 0),
@@ -159,7 +159,7 @@ describe('protected research catalog filter facets', () => {
         option('all', 'All records', 61, true),
         option('advance', 'Advance', 3),
         option('hold', 'Hold', 0),
-        option('no-go', 'No-go', 3),
+        option('no-go', 'No-go', 4),
       ],
     });
   });
@@ -174,7 +174,7 @@ describe('protected research catalog filter facets', () => {
     expect(payload.pagination).toMatchObject({
       page: 2,
       limit: 3,
-      totalRecords: 12,
+      totalRecords: 11,
       returnedRecords: 3,
     });
     expect(facets?.dimensions.assetClass.options.map(({ value, count, selected }) => ({
@@ -182,8 +182,8 @@ describe('protected research catalog filter facets', () => {
       count,
       selected,
     }))).toEqual([
-      { value: 'all', count: 54, selected: false },
-      { value: 'Equities', count: 12, selected: true },
+      { value: 'all', count: 53, selected: false },
+      { value: 'Equities', count: 11, selected: true },
       { value: 'Bonds', count: 10, selected: false },
       { value: 'Commodities', count: 3, selected: false },
       { value: 'Currencies', count: 4, selected: false },
@@ -197,8 +197,8 @@ describe('protected research catalog filter facets', () => {
       selected,
     }))).toEqual([
       { value: 'all', count: 12, selected: false },
-      { value: 'discovered', count: 12, selected: true },
-      { value: 'source-audited', count: 0, selected: false },
+      { value: 'discovered', count: 11, selected: true },
+      { value: 'source-audited', count: 1, selected: false },
       { value: 'preregistered', count: 0, selected: false },
       { value: 'replicated', count: 0, selected: false },
       { value: 'prospective', count: 0, selected: false },
@@ -279,11 +279,11 @@ describe('protected research catalog filter facets', () => {
     );
     expect(Buffer.byteLength(defaultBody, 'utf8')).toBe(3_848);
     expect(createHash('sha256').update(defaultBody).digest('hex')).toBe(
-      'e0bc160c9f08a93167969e31dc2062b157bcab07442c3b2862e06eea6955382a',
+      'cb3890f778f9486da8f678eb190269b0c5821939595425c57e8eab2a373f0d5a',
     );
     expect(Buffer.byteLength(disjunctiveBody, 'utf8')).toBe(4_426);
     expect(createHash('sha256').update(disjunctiveBody).digest('hex')).toBe(
-      'f4e754d314672ab3099795cf19e40c4c91f1168e8c1039091eaf8f344f41eacb',
+      '6c56cc0555ba7e6d6f9f0caf196fc28adace7bcdb9bacddbc775bfad1d0f5785',
     );
   });
 

@@ -377,8 +377,8 @@ export function buildOpenApiSpec(): OpenApiSpec {
               ],
               properties: {
                 total: { type: "integer", example: 61 },
-                discovered: { type: "integer", example: 54 },
-                sourceAudited: { type: "integer", example: 3 },
+                discovered: { type: "integer", example: 53 },
+                sourceAudited: { type: "integer", example: 4 },
                 preregistered: { type: "integer", example: 0 },
                 replicated: { type: "integer", example: 4 },
                 prospective: { type: "integer", example: 0 },
@@ -386,7 +386,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
                 failed: { type: "integer", example: 3 },
                 inconclusive: { type: "integer", example: 1 },
                 untested: { type: "integer", example: 57 },
-                sourceNoGo: { type: "integer", example: 3 },
+                sourceNoGo: { type: "integer", example: 4 },
                 byAssetClass: {
                   type: "object",
                   additionalProperties: { type: "integer" },
@@ -404,7 +404,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
         ResearchIntakeEvidenceResponse: {
           type: "object",
           description:
-            "Public, deterministic index of all seven candidates with a TradeClaw source-audit or replication overlay. Records remain in pinned source order and include failures, no-go audits, and the inconclusive run.",
+            "Public, deterministic index of all eight candidates with a TradeClaw source-audit or replication overlay. Records remain in pinned source order and include failures, no-go audits, and the inconclusive run.",
           required: [
             "schemaVersion",
             "access",
@@ -459,27 +459,27 @@ export function buildOpenApiSpec(): OpenApiSpec {
                   $ref: "#/components/schemas/ResearchIntakeResponse/properties/catalogSummary",
                 },
                 {
-                  description: "Stage and verdict counts for the complete seven-record index",
+                  description: "Stage and verdict counts for the complete eight-record index",
                   properties: {
-                    total: { example: 7 },
+                    total: { example: 8 },
                     discovered: { example: 0 },
-                    sourceAudited: { example: 3 },
+                    sourceAudited: { example: 4 },
                     preregistered: { example: 0 },
                     replicated: { example: 4 },
                     prospective: { example: 0 },
                     passed: { example: 0 },
                     failed: { example: 3 },
                     inconclusive: { example: 1 },
-                    untested: { example: 3 },
-                    sourceNoGo: { example: 3 },
+                    untested: { example: 4 },
+                    sourceNoGo: { example: 4 },
                   },
                 },
               ],
             },
             records: {
               type: "array",
-              minItems: 7,
-              maxItems: 7,
+              minItems: 8,
+              maxItems: 8,
               items: { $ref: "#/components/schemas/ResearchIntakePublicRecord" },
             },
           },
@@ -632,7 +632,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
           operationId: "getResearchIntakeEvidence",
           summary: "Inspect every examined systematic-research candidate",
           description:
-            "Returns all seven candidates with a TradeClaw source-audit or replication overlay in pinned source order, including all failures, no-go audits, and the inconclusive run. " +
+            "Returns all eight candidates with a TradeClaw source-audit or replication overlay in pinned source order, including all failures, no-go audits, and the inconclusive run. " +
             "The complete set is filter-free and never performance-ranked. No API key is required, and the response grants no publication, strategy-selection, broadcast, or trading authority.",
           security: [],
           responses: {
@@ -653,7 +653,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
           operationId: "downloadResearchIntakeEvidenceCsv",
           summary: "Download every examined research candidate as CSV",
           description:
-            "Returns all seven examined candidates as a claim-safe 25-column spreadsheet in pinned source order, including all failures, no-go audits, and the inconclusive run. " +
+            "Returns all eight examined candidates as a claim-safe 25-column spreadsheet in pinned source order, including all failures, no-go audits, and the inconclusive run. " +
             "No API key is required. Every row repeats the pinned source receipt and false publication/trading authority; the canonical evidence JSON retains complete nested research records.",
           security: [],
           responses: {

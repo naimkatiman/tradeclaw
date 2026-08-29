@@ -32,6 +32,10 @@ const cryptoFactorAuditPath = resolve(
   root,
   'docs/research/2026-08-29-crypto-factor-investing-source-audit.md',
 );
+const mostDiversifiedPortfolioAuditPath = resolve(
+  root,
+  'docs/research/2026-08-30-most-diversified-portfolio-source-audit.md',
+);
 const treasuryAuditPath = resolve(
   root,
   'docs/research/2026-08-29-predictable-end-of-month-treasury-source-audit.md',
@@ -368,7 +372,7 @@ describe('systematic research intake', () => {
     const sourceAudited = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => record.tradeClawSourceAudit,
     );
-    expect(sourceAudited).toHaveLength(6);
+    expect(sourceAudited).toHaveLength(7);
     const noGo = sourceAudited.find(
       (record) => record.id === 'price-overreactions-in-the-cryptocurrency-market',
     );
@@ -389,7 +393,7 @@ describe('systematic research intake', () => {
     const untouched = SYSTEMATIC_RESEARCH_INTAKE.filter(
       (record) => !record.tradeClawEvidence && !record.tradeClawSourceAudit,
     );
-    expect(untouched).toHaveLength(54);
+    expect(untouched).toHaveLength(53);
     expect(untouched.every((record) => record.stage === 'discovered')).toBe(true);
     expect(untouched.every((record) => record.verdict === 'not-tested')).toBe(true);
     expect(untouched.every((record) => record.costStatus === 'unassessed')).toBe(true);
@@ -535,6 +539,76 @@ describe('systematic research intake', () => {
     expect(audit.blockers.length).toBeGreaterThanOrEqual(7);
     expect(record).toMatchObject({
       sourcePosition: 32,
+      stage: 'source-audited',
+      verdict: 'not-tested',
+      costStatus: 'unassessed',
+      marketingDisposition: 'none',
+      tradeClawEvidence: null,
+    });
+  });
+
+  it('binds the TC-262 MDP no-go to its primary cadence, source mismatch, and unavailable inputs', () => {
+    const record = SYSTEMATIC_RESEARCH_INTAKE.find(
+      (candidate) => candidate.id === 'properties-of-the-most-diversified-portfolio',
+    );
+    const audit = record?.tradeClawSourceAudit;
+    if (!audit || audit.taskId !== 'TC-262') {
+      throw new Error('TC-262 most-diversified-portfolio source audit is missing');
+    }
+
+    const canonicalAuditBytes = Buffer.from(
+      readFileSync(mostDiversifiedPortfolioAuditPath, 'utf8').replace(/\r\n/g, '\n'),
+      'utf8',
+    );
+    expect(createHash('sha256').update(canonicalAuditBytes).digest('hex')).toBe(
+      audit.researchSha256,
+    );
+    expect(audit).toMatchObject({
+      taskId: 'TC-262',
+      disposition: 'no-go',
+      tradeClawBacktestRun: false,
+      primarySource: {
+        ssrnUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1895459',
+        doi: 'https://doi.org/10.21314/JOIS.2013.033',
+        documentSha256: 'bef4ce6719f3355d30c51ea2e7bc0005e8ece43cd422c3d612056a50147d7916',
+        documentBytes: 171320,
+        documentPages: 22,
+        redistributionRightsEstablished: false,
+      },
+      publishedRule: {
+        cadence: 'semiannual',
+        rebalanceMonths: [5, 11],
+        covarianceWindowMarketDays: 252,
+        paperSample: '1999-01/2010-12',
+        averageEligibleStocks: 793,
+        averageMdpHoldings: 137,
+        maximumStockWeightPct: 1.5,
+        maximumRegionOverweightPctPoints: 5,
+        turnoverPenaltyTrackingErrorPct: 1.5,
+      },
+      sourceCloneMismatch: {
+        primaryCadence: 'semiannual-end-May-end-November',
+        cloneCadence: 'quarterly',
+        primarySample: '1999-2010',
+        cloneSample: '1990-2026',
+      },
+      publishedCostTreatment: {
+        mdpOneWayAnnualTurnoverPct: 82,
+        marketOneWayAnnualTurnoverPct: 14,
+        mdpClaimedBreakEvenAllInTradingCostPct: 3.4,
+        deterministicTradeLedgerSupplied: false,
+      },
+      inputProvenance: {
+        exactSourceBytesSupplied: false,
+        pointInTimeMsciMembershipPublic: false,
+        bloombergTotalReturnsPublic: false,
+        msciOfficialFxPublic: false,
+        plesiochronousEstimatorExecutable: false,
+      },
+    });
+    expect(audit.blockers.length).toBeGreaterThanOrEqual(8);
+    expect(record).toMatchObject({
+      sourcePosition: 6,
       stage: 'source-audited',
       verdict: 'not-tested',
       costStatus: 'unassessed',
@@ -867,8 +941,8 @@ describe('systematic research intake', () => {
   it('summarizes and filters by next-action evidence state rather than upstream return', () => {
     expect(summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE)).toMatchObject({
       total: 61,
-      discovered: 54,
-      sourceAudited: 3,
+      discovered: 53,
+      sourceAudited: 4,
       preregistered: 0,
       replicated: 4,
       prospective: 0,
@@ -876,7 +950,7 @@ describe('systematic research intake', () => {
       failed: 3,
       inconclusive: 1,
       untested: 57,
-      sourceNoGo: 3,
+      sourceNoGo: 4,
     });
     expect(
       filterResearchIntake(SYSTEMATIC_RESEARCH_INTAKE, {
@@ -910,6 +984,7 @@ describe('systematic research intake', () => {
         sourceAuditDisposition: 'no-go',
       }).map((record) => record.id),
     ).toEqual([
+      'properties-of-the-most-diversified-portfolio',
       'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space',
       'price-overreactions-in-the-cryptocurrency-market',
       'a-risk-based-approach-to-tactical-asset-allocation',

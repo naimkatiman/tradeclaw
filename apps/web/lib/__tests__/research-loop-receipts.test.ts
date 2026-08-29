@@ -27,7 +27,7 @@ interface StateCycle {
 }
 
 describe('research-loop receipt ledger', () => {
-  it('retains the exact six receipts and exposes only the known historical collision', () => {
+  it('retains the exact seven receipts and exposes only the known historical collision', () => {
     expect(RESEARCH_LOOP_RECEIPTS.map((receipt) => receipt.taskId)).toEqual([
       'TC-256',
       'TC-257',
@@ -35,11 +35,12 @@ describe('research-loop receipt ledger', () => {
       'TC-259',
       'TC-260',
       'TC-261',
+      'TC-262',
     ]);
     expect(RESEARCH_LOOP_RECEIPT_LEDGER_AUDIT).toEqual({
       status: 'historical-conflict',
-      receiptCount: 6,
-      uniqueWindowCount: 5,
+      receiptCount: 7,
+      uniqueWindowCount: 6,
       duplicateWindowIds: ['2026-08-29T06:00:00.000Z/PT3H'],
       expectedLegacyDuplicateWindowIds: ['2026-08-29T06:00:00.000Z/PT3H'],
       additionalDuplicateWindowIds: [],
@@ -159,6 +160,18 @@ describe('research-loop receipt ledger', () => {
       latestReceipt: { taskId: 'TC-261' },
       currentWindowReceipts: [{ taskId: 'TC-261' }],
     });
+
+    expect(getResearchLoopReceiptSnapshot('2026-08-29T21:09:39.109Z')).toMatchObject({
+      currentWindowStatus: 'awaiting-receipt',
+      latestReceipt: { taskId: 'TC-261' },
+      currentWindowReceipts: [],
+    });
+
+    expect(getResearchLoopReceiptSnapshot('2026-08-29T21:09:39.110Z')).toMatchObject({
+      currentWindowStatus: 'complete',
+      latestReceipt: { taskId: 'TC-262' },
+      currentWindowReceipts: [{ taskId: 'TC-262' }],
+    });
   });
 
   it('binds the runtime ledger to the canonical STATE cycle receipts', () => {
@@ -173,6 +186,7 @@ describe('research-loop receipt ledger', () => {
       desk.cycle_4,
       desk.cycle_5,
       desk.cycle_6,
+      desk.cycle_7,
     ];
 
     expect(

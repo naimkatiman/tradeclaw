@@ -9,6 +9,7 @@ const TC259 = 'trading-the-term-premium';
 const TC260 = 'a-risk-based-approach-to-tactical-asset-allocation';
 const TC261 =
   'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space';
+const TC262 = 'properties-of-the-most-diversified-portfolio';
 const UNTOUCHED = 'a-study-of-differences-in-returns-between-large-and-small-companies-in-europe';
 
 interface CandidateNavigation {
@@ -55,10 +56,10 @@ describe('protected research intake candidate projection', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 54,
-        sourceAudited: 3,
+        discovered: 53,
+        sourceAudited: 4,
         replicated: 4,
-        sourceNoGo: 3,
+        sourceNoGo: 4,
       },
       navigation: {
         order: 'pinned-source-order',
@@ -266,6 +267,56 @@ describe('protected research intake candidate projection', () => {
     });
   });
 
+  it('keeps TC-262 source evidence visible while revealing only its canonical no-draft receipt', () => {
+    const before = buildResearchIntakeAdminCandidatePayload(
+      TC262,
+      '2026-08-29T21:09:39.109Z',
+    );
+    const at = buildResearchIntakeAdminCandidatePayload(
+      TC262,
+      '2026-08-29T21:09:39.110Z',
+    );
+    if (!before || !at) throw new Error('TC-262 admin candidate fixture is missing');
+
+    expect(before.record).toMatchObject({
+      id: TC262,
+      sourcePosition: 6,
+      stage: 'source-audited',
+      verdict: 'not-tested',
+      marketingDisposition: 'none',
+      marketingReviewDraft: null,
+      tradeClawSourceAudit: {
+        taskId: 'TC-262',
+        disposition: 'no-go',
+        tradeClawBacktestRun: false,
+        publishedRule: { cadence: 'semiannual', rebalanceMonths: [5, 11] },
+      },
+      tradeClawEvidence: null,
+    });
+    expect(before.candidateWorkflow).toMatchObject({
+      receiptCount: 0,
+      receipts: [],
+      latestReceipt: null,
+      marketingHandoff: null,
+    });
+    expect(at.researchLoop).toMatchObject({
+      currentWindowStatus: 'complete',
+      latestReceipt: { taskId: 'TC-262' },
+      currentWindowReceipts: [{ taskId: 'TC-262' }],
+    });
+    expect(at.candidateWorkflow).toMatchObject({
+      receiptCount: 1,
+      receipts: [{
+        taskId: 'TC-262',
+        cycleId: '2026-08-29T21:00:00.000Z/PT3H',
+        recordedAt: '2026-08-29T21:09:39.110Z',
+        marketingDraft: 'none',
+      }],
+      latestReceipt: { taskId: 'TC-262' },
+      marketingHandoff: null,
+    });
+  });
+
   it('distinguishes pre-loop handoffs and untouched candidates without inventing receipts', () => {
     const at = '2026-08-29T15:59:59.999Z';
     const preLoop = buildResearchIntakeAdminCandidatePayload(TC255, at);
@@ -342,7 +393,7 @@ describe('protected research intake candidate projection', () => {
       },
       lastPayload: {
         bytes: 9_939,
-        sha256: '1014c43ae6784ba4ba158b00762c107881d555188d3020005330237784050757',
+        sha256: '08664efe2f0efa73a63490064dc0d567b9a6a199f4ec07f0e996266f2ac95358',
       },
     });
   });

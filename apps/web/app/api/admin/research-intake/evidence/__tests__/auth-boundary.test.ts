@@ -50,6 +50,7 @@ describe('GET /api/admin/research-intake/evidence real admin-cookie boundary', (
 
     expect(response.status).toBe(200);
     expect(taskIds).toEqual([
+      'TC-262',
       'TC-259',
       'TC-257',
       'TC-255',

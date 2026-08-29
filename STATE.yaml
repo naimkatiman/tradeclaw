@@ -1,11 +1,131 @@
 project: tradeclaw
-updated: 2026-08-30T04:57:29+08:00
+updated: 2026-08-30T05:28:57+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+most_diversified_portfolio_source_screen_2026_08_30:
+  at: 2026-08-30T05:04:42+08:00
+  agent: TradeClaw PM agent
+  status: all_verification_green_preparing_local_implementation_commit
+  scope: Select and audit at most one untouched candidate for the new UTC window using primary-rule reconstructibility, public immutable data, complete costs, chronological falsification, and bounded verification rather than upstream performance or catalog order
+  base_commit: 0787a586dde1d7950723e0fe6e852a7c092db7d4
+  branch: agent/research-intake-desk-20260829
+  task_id: TC-262
+  cycle_id: 2026-08-29T21:00:00.000Z/PT3H
+  started_at: 2026-08-29T21:01:00.2866180Z
+  ends_at: 2026-08-30T00:00:00.000Z
+  candidate_id: properties-of-the-most-diversified-portfolio
+  candidate_title: Properties of the Most Diversified Portfolio
+  one_based_catalog_position: 7
+  stage_before: discovered
+  stage_after: source-audited
+  candidate_frozen: true
+  receipt_created: true
+  return_calculated: false
+  preregistration_created: false
+  marketing_draft: none
+  library_search: No reusable research-intake, preregistration, source-audit, candidate-screen, cost-screen, or receipt-ledger pattern exists in shared MemoryCore; reuse the repository's verified three-hour loop and prior source-audit contracts
+  selection_policy:
+    - Never use upstream Sharpe, t-statistic, full-period return, volatility, years, current positions, or catalog position as a selection score
+    - Require an accessible primary source and a rule that can be stated without paid clone pseudo-code or hidden vendor implementation
+    - Require legally accessible append-stable or immutable point-in-time inputs that can be independently hashed before returns
+    - Prefer fewer-than-daily transitions with published gross headroom materially above a complete frozen friction model
+    - Require chronological folds, a genuinely untouched holdout where possible, and an identically timed and costed benchmark plus external falsification
+    - Keep implementation bounded enough for deterministic replay, focused and adjacent tests, typecheck, lint, and the required production build
+  screened_shortlist:
+    - properties-of-the-most-diversified-portfolio
+    - risk-parity-portfolios-with-risk-factors
+    - are-bond-returns-predictable-with-real-time-macro-data
+    - cryptocurrency-as-money-a-trading-strategy-solution
+  selection_reason: >-
+    The MDP candidate has the shortlist's clearest source-defined optimization
+    objective, infrequent scheduled rebalancing, an accessible older primary paper,
+    published turnover/cost discussion, and a long possible post-publication window.
+    It is selected for source feasibility, not the upstream clone's return or rank.
+  preliminary_findings:
+    - The primary paper specifies semiannual rebalancing at the end of May and November, while Papers With Backtest labels the clone quarterly; the clone is not accepted as the source rule
+    - The empirical universe is point-in-time MSCI World membership, filtered at each rebalance to the top half by market capitalization after a six-month history requirement
+    - The paper uses one year of daily returns, a proprietary author-developed plesiochronous correlation estimator, Bloomberg total returns and market capitalizations, and MSCI official FX data
+    - The constrained MDP adds a 1.5 percent maximum stock weight, time-zone caps relative to MSCI World, and a turnover penalty tied to tracking error, so exact public reconstruction is not yet established
+    - The paper reports semiannual long-only construction and one-way annual turnover, but no local returns, source substitutions, or cost conclusions have been calculated
+  primary_sources:
+    papers_with_backtest_url: https://paperswithbacktest.com/strategies/properties-of-the-most-diversified-portfolio
+    ssrn_url: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1895459
+    journal_pdf_url: https://www.tobam.fr/wp-content/uploads/2021/12/2013-choueifatyfroidurereynier-properties-of-the-most-diversified-portfolio-jis.pdf
+  source_audit:
+    disposition: no-go
+    research_path: docs/research/2026-08-30-most-diversified-portfolio-source-audit.md
+    research_bytes: 9593
+    research_sha256: 669ff00c6ab39654e1641757af3dc99709b2a4e2458d104520c3fbfe5e9a23e6
+    primary_pdf_bytes: 171320
+    primary_pdf_pages: 22
+    primary_pdf_sha256: bef4ce6719f3355d30c51ea2e7bc0005e8ece43cd422c3d612056a50147d7916
+    discovery_html_bytes: 237452
+    discovery_html_sha256: cf875317e7ea4631195152ed0d924fff627157bdecb99f80a4b65b761e44e6d3
+    return_calculated: false
+    proxy_substitution_made: false
+    reason: The mathematical MDP objective is clear, but the empirical result depends on unavailable point-in-time MSCI/Bloomberg/MSCI-FX inputs, an undisclosed author estimator and turnover penalty, ambiguous causal fills, and a non-replayable cost sensitivity; the Papers With Backtest clone also contradicts the primary cadence and sample
+  source_gate:
+    rule_clarity: fail-complete-empirical-rule
+    data_provenance_and_rights: fail
+    turnover: hold
+    cost_evidence: hold-gross-headroom-fail-replayable-friction
+    chronological_falsification: new-hypothesis-only
+    bounded_implementation: fail
+    preregistration_permitted: false
+    exact_replication_permitted: false
+  red_verification: >-
+    PASS - the six focused intake, receipt-ledger, loop, marketing, public-evidence,
+    and README suites ran 37 assertions. Twenty-seven existing boundaries stayed
+    green; exactly ten failed because the TC-262 source-audit overlay, sole cycle
+    receipt/state cycle, adverse-inclusive counts, task order, and copy are absent.
+    No unrelated failure was observed.
+  focused_verification: >-
+    PASS - all 37 assertions across the six focused intake, receipt-ledger, loop,
+    marketing, public-evidence, and README suites pass after integrating TC-262.
+  adjacent_verification: >-
+    PASS - all 175 assertions across 37 public/protected intake, receipt, loop,
+    JSON, CSV, candidate, facet, navigation, review, auth, OpenAPI, and README
+    suites pass. TC-262 is first in evidence source order and its protected
+    receipt remains hidden until exactly 2026-08-29T21:09:39.110Z.
+  deterministic_payload_audit:
+    public_tc260_candidate: 6188 bytes / 61efcd663493f46de16f452dde99ddcdc0566e2be87341d8418aebfe912e0c3b
+    protected_tc260_candidate: 9939 bytes / 08664efe2f0efa73a63490064dc0d567b9a6a199f4ec07f0e996266f2ac95358
+    protected_default_catalog: 57657 bytes / 7abb677cf77b49c9a561c903fbafbc2825ffaf3d848aca9949aa6c38590ca244
+    protected_complete_catalog: 110896 bytes / 712e8e2886dd6356dd4e085be86e386611134cd31811ccf76362a0bc646bb193
+    protected_evidence: 61331 bytes / ed04cd637deed430d2a795f44373a9ac8ecea92cd4962aeb85668d7983273878
+    protected_evidence_csv: 15405 bytes / 5f144161ba0a20f2d342ee675775d03b8b76d2cd37afb074f08f5299d12a638b
+  static_verification:
+    pinned_source_reconstruction: PASS - 61/61 exact candidates at the frozen commit and README hash
+    typecheck_first_iteration: One test-only discriminant was converted through String, preventing TypeScript from narrowing TC-262 to its blockers field; no product error was reported
+    typecheck: PASS after preserving the direct taskId discriminant
+    changed_file_eslint: PASS with zero findings
+    state_yaml: PASS
+    diff_check: PASS
+  scope_audit:
+    changed_paths: 31
+    forbidden_surface_changes: 0
+    branch: agent/research-intake-desk-20260829
+    base_commit_confirmed: 0787a586dde1d7950723e0fe6e852a7c092db7d4
+    broad_dirty_checkout_touched: false
+    rendered_ui_changed: false
+    source_audit_recheck: 9593 bytes / 669ff00c6ab39654e1641757af3dc99709b2a4e2458d104520c3fbfe5e9a23e6
+    temporary_audit_workspace_removed: true
+  repository_verification:
+    jest: PASS - 284 runnable suites / 2118 tests / 1 snapshot; 3 suites and 26 tests skipped; known open-handle forced-exit warning only
+    lint: PASS - zero errors and 21 inherited warnings
+    production_build: PASS - signals and trading-agents compiled and Next.js generated 329/329 pages; inherited warnings only
+  current_step: Re-run the final state-bound contracts and exact manifest checks, then create the local implementation commit
+  next_action: Integrate exactly one TC-262 no-go receipt and public/protected evidence overlay without calculating returns or changing marketing, UI, runtime, or trading authority
+  visual_ui_changed: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  safety: No return, source substitution, preregistration, result artifact, marketing draft, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth, or trading state change is authorized before the source gate closes
 
 research_candidate_detail_navigation_2026_08_30:
   at: 2026-08-30T04:44:16+08:00
@@ -3174,6 +3294,74 @@ research_intake_desk_2026_08_29:
     trading_approved: false
     external_actions: none
     next_action: Archive the exact-source no-go; any reduced-universe or implementable long-only cryptocurrency factor study must start as a separately hashed hypothesis in a later UTC window
+  cycle_7:
+    id: 2026-08-29T21:00:00.000Z/PT3H
+    recorded_at: 2026-08-29T21:09:39.110Z
+    task_id: TC-262
+    started_at: 2026-08-29T21:00:00.000Z
+    ends_at: 2026-08-30T00:00:00.000Z
+    candidate_id: properties-of-the-most-diversified-portfolio
+    stage_before: discovered
+    stage_after: source-audited
+    verdict: not-tested
+    outcome: verified-no-go
+    source_audit_sha256: 669ff00c6ab39654e1641757af3dc99709b2a4e2458d104520c3fbfe5e9a23e6
+    changed_files:
+      - README.md
+      - STATE.yaml
+      - apps/web/app/__tests__/readme-research-intake-discoverability.test.ts
+      - apps/web/app/__tests__/systematic-intake-publication-boundary.test.ts
+      - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+      - apps/web/app/api/admin/research-intake/evidence.csv/__tests__/auth-boundary.test.ts
+      - apps/web/app/api/admin/research-intake/evidence/__tests__/auth-boundary.test.ts
+      - apps/web/app/api/research/intake/evidence.csv/__tests__/route.test.ts
+      - apps/web/app/api/research/intake/evidence/__tests__/route.test.ts
+      - apps/web/lib/__tests__/research-intake-admin-candidate.test.ts
+      - apps/web/lib/__tests__/research-intake-admin-evidence-csv.test.ts
+      - apps/web/lib/__tests__/research-intake-admin-evidence.test.ts
+      - apps/web/lib/__tests__/research-intake-admin-facets.test.ts
+      - apps/web/lib/__tests__/research-intake-admin-query-contract.test.ts
+      - apps/web/lib/__tests__/research-intake-admin-resources.test.ts
+      - apps/web/lib/__tests__/research-intake-admin-result-view.test.ts
+      - apps/web/lib/__tests__/research-intake-csv.test.ts
+      - apps/web/lib/__tests__/research-intake-evidence-csv.test.ts
+      - apps/web/lib/__tests__/research-intake-public-candidate.test.ts
+      - apps/web/lib/__tests__/research-intake-public-evidence.test.ts
+      - apps/web/lib/__tests__/research-intake-public.test.ts
+      - apps/web/lib/__tests__/research-intake.test.ts
+      - apps/web/lib/__tests__/research-loop-marketing.test.ts
+      - apps/web/lib/__tests__/research-loop-receipts.test.ts
+      - apps/web/lib/__tests__/research-loop.test.ts
+      - apps/web/lib/openapi.ts
+      - apps/web/lib/research-intake.ts
+      - apps/web/lib/research-loop-marketing.ts
+      - apps/web/lib/research-loop-receipts.ts
+      - docs/plans/2026-08-29-three-hour-research-marketing-loop.md
+      - docs/research/2026-08-30-most-diversified-portfolio-source-audit.md
+    verification:
+      - intentional focused RED observed: 10 missing-overlay/receipt/count failures and 27 existing assertions green
+      - focused TC-262 intake, receipt, loop, no-draft, public-evidence, and README tests pass 37/37
+      - adjacent public/protected JSON, CSV, candidate, facet, navigation, review, auth, OpenAPI, and README tests pass 175/175
+      - exact source audit is 9593 bytes at SHA-256 669ff00c6ab39654e1641757af3dc99709b2a4e2458d104520c3fbfe5e9a23e6
+      - pinned source verifier reconstructs 61/61 candidates at the exact commit and README hash
+      - web TypeScript and changed-file ESLint pass
+      - all 284 runnable repository suites and 2118 tests pass; 3 suites and 26 tests are skipped and 1 snapshot passes
+      - full lint passes with zero errors and 21 inherited warnings
+      - required production build compiles shared packages and generates 329/329 pages
+      - STATE parses, git diff --check is clean, and the exact manifest has 31 intended paths with zero forbidden-surface changes
+    evidence_paths:
+      - docs/research/2026-08-30-most-diversified-portfolio-source-audit.md
+    preregistration_frozen: false
+    returns_opened: false
+    return_calculated: false
+    artifact_created: false
+    catalog_stage_advanced: true
+    receipt_created: true
+    marketing_draft: none
+    publish_approved: false
+    trading_approved: false
+    external_actions: none
+    next_action: Archive the exact-source no-go; any public-universe MDP implementation must begin as a separately hashed hypothesis in a later UTC window before returns
 
 systematic_strategy_replication_2026_08_29:
   at: 2026-08-29T12:55:11+08:00

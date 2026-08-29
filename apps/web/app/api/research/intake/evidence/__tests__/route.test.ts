@@ -30,6 +30,7 @@ describe('GET /api/research/intake/evidence', () => {
       tradeClawEvidence: { taskId: string } | null;
       tradeClawSourceAudit: { taskId: string } | null;
     }) => record.tradeClawEvidence?.taskId ?? record.tradeClawSourceAudit?.taskId)).toEqual([
+      'TC-262',
       'TC-259',
       'TC-257',
       'TC-255',

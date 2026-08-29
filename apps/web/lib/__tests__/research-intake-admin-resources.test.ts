@@ -50,12 +50,12 @@ describe('protected research intake resource discovery', () => {
     }
   });
 
-  it('leaves the protected evidence CSV byte-for-byte unchanged', () => {
+  it('pins the protected adverse-inclusive evidence CSV byte-for-byte', () => {
     const csv = buildResearchIntakeAdminEvidenceCsv(OBSERVED_AT);
 
-    expect(Buffer.byteLength(csv, 'utf8')).toBe(14_533);
+    expect(Buffer.byteLength(csv, 'utf8')).toBe(15_405);
     expect(createHash('sha256').update(csv).digest('hex')).toBe(
-      '49c32887d5edaf402a9108ec6351e8acb2a5d567b5367df178250482b4542053',
+      '5f144161ba0a20f2d342ee675775d03b8b76d2cd37afb074f08f5299d12a638b',
     );
     expect(csv).not.toContain('marketingReviewCsv');
   });

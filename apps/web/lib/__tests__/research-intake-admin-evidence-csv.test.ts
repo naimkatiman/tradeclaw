@@ -7,7 +7,9 @@ import {
 } from '../research-intake-admin-evidence-csv';
 
 const RECEIPT_AVAILABLE_AT = '2026-08-29T18:00:40.000Z';
-const TASK_ORDER = ['TC-259', 'TC-257', 'TC-255', 'TC-261', 'TC-258', 'TC-256', 'TC-260'];
+const TASK_ORDER = [
+  'TC-262', 'TC-259', 'TC-257', 'TC-255', 'TC-261', 'TC-258', 'TC-256', 'TC-260',
+];
 
 describe('protected research evidence CSV projection', () => {
   it('exports every examined candidate in pinned source order with the public evidence fields', () => {
@@ -65,11 +67,12 @@ describe('protected research evidence CSV projection', () => {
       'automaticTrading',
       'externalActions',
     ]);
-    expect(rows).toHaveLength(7);
-    expect(rows.map((row) => row.evidencePosition)).toEqual([1, 2, 3, 4, 5, 6, 7]);
-    expect(rows.map((row) => row.sourceOrder)).toEqual([22, 24, 32, 33, 34, 37, 61]);
+    expect(rows).toHaveLength(8);
+    expect(rows.map((row) => row.evidencePosition)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(rows.map((row) => row.sourceOrder)).toEqual([7, 22, 24, 32, 33, 34, 37, 61]);
     expect(rows.map((row) => row.tradeClawTaskId)).toEqual(TASK_ORDER);
     expect(rows.map((row) => row.performanceEvidenceStatus)).toEqual([
+      'source-audit-only-no-local-backtest',
       'modeled-historical-fail',
       'qa-only-no-performance-result',
       'modeled-historical-fail',
@@ -87,14 +90,14 @@ describe('protected research evidence CSV projection', () => {
     const tc261 = byTask.get('TC-261');
     if (!tc255 || !tc261) throw new Error('Evidence CSV fixture is incomplete');
 
-    expect(rows.map((row) => row.observedAt)).toEqual(Array(7).fill(RECEIPT_AVAILABLE_AT));
+    expect(rows.map((row) => row.observedAt)).toEqual(Array(8).fill(RECEIPT_AVAILABLE_AT));
     expect(rows.map((row) => row.currentWindowId)).toEqual(
-      Array(7).fill('2026-08-29T18:00:00.000Z/PT3H'),
+      Array(8).fill('2026-08-29T18:00:00.000Z/PT3H'),
     );
-    expect(rows.map((row) => row.currentWindowStatus)).toEqual(Array(7).fill('complete'));
-    expect(rows.map((row) => row.receiptCount)).toEqual([1, 1, 0, 1, 1, 1, 1]);
+    expect(rows.map((row) => row.currentWindowStatus)).toEqual(Array(8).fill('complete'));
+    expect(rows.map((row) => row.receiptCount)).toEqual([0, 1, 1, 0, 1, 1, 1, 1]);
     expect(rows.map((row) => row.marketingHandoffTaskId)).toEqual([
-      'TC-259', 'TC-257', 'TC-255', '', 'TC-258', '', '',
+      '', 'TC-259', 'TC-257', 'TC-255', '', 'TC-258', '', '',
     ]);
 
     expect(tc255).toMatchObject({
@@ -170,6 +173,28 @@ describe('protected research evidence CSV projection', () => {
     });
   });
 
+  it('does not expose the TC-262 receipt before its exact availability instant', () => {
+    const before = buildResearchIntakeAdminEvidenceCsvRows('2026-08-29T21:09:39.109Z');
+    const at = buildResearchIntakeAdminEvidenceCsvRows('2026-08-29T21:09:39.110Z');
+    const beforeTc262 = before.find((row) => row.tradeClawTaskId === 'TC-262');
+    const atTc262 = at.find((row) => row.tradeClawTaskId === 'TC-262');
+    if (!beforeTc262 || !atTc262) throw new Error('TC-262 CSV fixture is missing');
+
+    expect(beforeTc262).toMatchObject({
+      currentWindowStatus: 'awaiting-receipt',
+      receiptCount: 0,
+      receiptsJson: '[]',
+      latestReceiptTaskId: '',
+      marketingHandoffTaskId: '',
+    });
+    expect(atTc262).toMatchObject({
+      currentWindowStatus: 'complete',
+      receiptCount: 1,
+      latestReceiptTaskId: 'TC-262',
+      marketingHandoffTaskId: '',
+    });
+  });
+
   it('serializes deterministically and neutralizes formulas without stringifying numbers', () => {
     const first = buildResearchIntakeAdminEvidenceCsv(RECEIPT_AVAILABLE_AT);
     const second = buildResearchIntakeAdminEvidenceCsv(RECEIPT_AVAILABLE_AT);
@@ -184,11 +209,11 @@ describe('protected research evidence CSV projection', () => {
 
     expect(second).toBe(first);
     expect(RESEARCH_INTAKE_ADMIN_EVIDENCE_CSV_COLUMNS).toHaveLength(50);
-    expect(Buffer.byteLength(first, 'utf8')).toBe(14_533);
+    expect(Buffer.byteLength(first, 'utf8')).toBe(15_405);
     expect(createHash('sha256').update(first).digest('hex')).toBe(
-      '49c32887d5edaf402a9108ec6351e8acb2a5d567b5367df178250482b4542053',
+      '5f144161ba0a20f2d342ee675775d03b8b76d2cd37afb074f08f5299d12a638b',
     );
-    expect(first.split('\r\n')).toHaveLength(8);
+    expect(first.split('\r\n')).toHaveLength(9);
     expect(first.startsWith(`${RESEARCH_INTAKE_ADMIN_EVIDENCE_CSV_COLUMNS.join(',')}\r\n`))
       .toBe(true);
     expect(hostile.split('\r\n')[1].startsWith('-1,')).toBe(true);

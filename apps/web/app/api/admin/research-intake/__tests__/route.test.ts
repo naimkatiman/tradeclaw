@@ -120,7 +120,7 @@ describe('GET /api/admin/research-intake', () => {
               {
                 value: 'discovered',
                 label: 'Discovered',
-                count: 54,
+                count: 53,
                 selected: false,
                 href: '/api/admin/research-intake?stage=discovered&page=1&limit=25',
               },
@@ -160,7 +160,7 @@ describe('GET /api/admin/research-intake', () => {
               {
                 value: 'no-go',
                 label: 'No-go',
-                count: 3,
+                count: 4,
                 selected: false,
                 href:
                   '/api/admin/research-intake?sourceAuditDisposition=no-go&page=1&limit=25',
@@ -194,13 +194,13 @@ describe('GET /api/admin/research-intake', () => {
       },
       catalogSummary: {
         total: 61,
-        discovered: 54,
-        sourceAudited: 3,
+        discovered: 53,
+        sourceAudited: 4,
         replicated: 4,
         failed: 3,
         inconclusive: 1,
         untested: 57,
-        sourceNoGo: 3,
+        sourceNoGo: 4,
       },
       pagination: {
         page: 1,
@@ -339,7 +339,7 @@ describe('GET /api/admin/research-intake', () => {
     ).toBe(true);
   });
 
-  it('exposes all three source-audit no-go records without relabeling any as a local failure', async () => {
+  it('exposes all four source-audit no-go records without relabeling any as a local failure', async () => {
     mockedAdmin.mockResolvedValue(null);
 
     const response = await GET(
@@ -348,31 +348,38 @@ describe('GET /api/admin/research-intake', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.pagination).toMatchObject({ totalRecords: 3, returnedRecords: 3 });
+    expect(body.pagination).toMatchObject({ totalRecords: 4, returnedRecords: 4 });
     expect(body.filteredSummary).toMatchObject({
-      sourceAudited: 3,
-      sourceNoGo: 3,
+      sourceAudited: 4,
+      sourceNoGo: 4,
       failed: 0,
-      untested: 3,
+      untested: 4,
     });
     expect(body.records.map((record: { id: string }) => record.id)).toEqual([
+      'properties-of-the-most-diversified-portfolio',
       'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space',
       'price-overreactions-in-the-cryptocurrency-market',
       'a-risk-based-approach-to-tactical-asset-allocation',
     ]);
     expect(body.records[0].tradeClawSourceAudit).toMatchObject({
+      taskId: 'TC-262',
+      disposition: 'no-go',
+      tradeClawBacktestRun: false,
+      publishedRule: { cadence: 'semiannual', rebalanceMonths: [5, 11] },
+    });
+    expect(body.records[1].tradeClawSourceAudit).toMatchObject({
       taskId: 'TC-261',
       disposition: 'no-go',
       tradeClawBacktestRun: false,
       currentDataReceipt: { pivxPriceUsdAvailable: false },
     });
-    expect(body.records[1].tradeClawSourceAudit).toMatchObject({
+    expect(body.records[2].tradeClawSourceAudit).toMatchObject({
       taskId: 'TC-256',
       disposition: 'no-go',
       tradeClawBacktestRun: false,
       publishedResult: { conclusion: 'no-exploitable-profit' },
     });
-    expect(body.records[2].tradeClawSourceAudit).toMatchObject({
+    expect(body.records[3].tradeClawSourceAudit).toMatchObject({
       taskId: 'TC-260',
       disposition: 'no-go',
       tradeClawBacktestRun: false,

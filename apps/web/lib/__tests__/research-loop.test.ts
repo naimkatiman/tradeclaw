@@ -142,6 +142,7 @@ describe('three-hour research and marketing loop', () => {
       (candidate) => candidate.tradeClawSourceAudit?.disposition === 'no-go',
     );
     expect(sourceNoGos.map((record) => record.tradeClawSourceAudit?.taskId)).toEqual([
+      'TC-262',
       'TC-261',
       'TC-256',
       'TC-260',

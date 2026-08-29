@@ -2,7 +2,7 @@
 
 Date: 2026-08-29
 
-Task: TC-256 through TC-261
+Task: TC-256 through TC-262
 
 Status: active operating contract; local-only until separately authorized
 
@@ -74,7 +74,7 @@ filters and pagination. It lists every server-authored draft whose evidence was
 available at the observation instant, plus the latest handoff and any handoff in
 the current UTC window. Each entry says whether it came from a cycle receipt or
 the explicit pre-loop TC-255 closure; TC-255 keeps a null cycle ID, so the API
-does not invent historical receipt coverage. TC-256, TC-260, and TC-261 remain absent
+does not invent historical receipt coverage. TC-256, TC-260, TC-261, and TC-262 remain absent
 because their source-audit no-go receipts deliberately produced no drafts. Summary counts separate
 pre-loop and receipt-backed evidence and keep publication-approved drafts at
 zero. `review-ready` means only that factual copy exists for a human to inspect;
@@ -247,7 +247,19 @@ would be a new hypothesis. TC-261 therefore remains `not-tested`, with no
 preregistration, return, result artifact, or marketing draft. Its receipt is
 `docs/research/2026-08-29-crypto-factor-investing-source-audit.md`.
 
-At or after the exact `2026-08-29T21:00:00.000Z` boundary, the next catalog
+TC-262 then selected the primary paper's semiannual long-only Most Diversified
+Portfolio for source feasibility rather than its upstream clone result. The
+mathematical objective is clear, but the empirical study requires point-in-time
+MSCI World membership and region weights, Bloomberg total returns and market
+capitalizations, MSCI FX, an undisclosed plesiochronous correlation estimator,
+and an undisclosed turnover penalty. The clone also says quarterly over
+`1990-2026`, while the paper rebalances at the end of May and November over
+`1999-2010`. Exact replay therefore stopped at source audit. TC-262 remains
+`not-tested`, with no preregistration, return, result artifact, or marketing
+draft. Its receipt is
+`docs/research/2026-08-30-most-diversified-portfolio-source-audit.md`.
+
+At or after the exact `2026-08-30T00:00:00.000Z` boundary, the next catalog
 cycle may freeze at most one new receipt. Prefer a rule with fewer than daily position
 transitions, an immutable or append-stable source subset, a primary rule that
 does not require vendor code, and published gross headroom materially above the
