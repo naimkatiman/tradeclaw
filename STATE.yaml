@@ -1,5 +1,5 @@
 project: tradeclaw
-updated: 2026-08-29T15:32:54+08:00
+updated: 2026-08-29T15:49:06+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
@@ -8,14 +8,14 @@ description: >
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
 
 research_intake_desk_2026_08_29:
-  at: 2026-08-29T15:32:54+08:00
+  at: 2026-08-29T15:49:06+08:00
   agent: TradeClaw PM agent
-  status: foundation_complete_source_no_go_ui_checkpoint
+  status: foundation_and_admin_api_complete_ui_checkpoint
   scope: Turn the protected strategy-library surface into a simple cost-first research intake desk and connect evidence-complete findings to a human-reviewed three-hour research/marketing loop
   base_commit: f7936bcf627f208ac0379412453976b17218608b
   implementation_commit: bce46c05b2c61613981616102535e2f3be666950
   branch: agent/research-intake-desk-20260829
-  current_step: The pinned intake foundation and first primary-source no-go are committed locally; visual v0 is paused at the required UI direction checkpoint
+  current_step: The pinned foundation, first source no-go, and protected admin read API are implemented; visual v0 is paused at the required UI direction checkpoint
   source: >
     Populate discovery metadata from the 61 highlighted strategies in the exact
     paperswithbacktest/awesome-systematic-trading commit
@@ -48,28 +48,31 @@ research_intake_desk_2026_08_29:
     paper's spread-aware contrarian rule loses, its positive continuation rule
     is statistically indistinguishable from random, and exact sign, fill, cost,
     and source-series choices cannot be replayed without invention.
+  admin_read_api: >
+    Added GET /api/admin/research-intake as an explicitly protected, read-only,
+    private/no-store projection for the future admin desk. Authentication runs
+    before query parsing; unauthorized callers receive no catalog or validation
+    detail. Exact bounded query parsing rejects unknown, duplicate, malformed,
+    and out-of-range inputs. Filtering and pagination preserve pinned source
+    order, return whole-catalog and filtered summaries, and explicitly grant no
+    publication or trading authority. No POST, mutation, database, or runtime
+    scheduling path was added.
   verification: >
-    PASS: live pinned-source reconstruction 61/61 with exact category
-    counts and README hash; focused intake/loop Jest 11/11 after correcting a
-    Jest-matcher compatibility issue and canonicalizing the committed artifact's
-    LF bytes on Windows; adjacent research Jest 181/181; final repository Jest
-    245 suites / 1,907 tests passed with three suites / 26 tests skipped and the
-    known forced-exit/open-handle warning; web TypeScript; focused ESLint; full
-    lint with zero errors and 21 pre-existing warnings; verifier syntax; JSON and
-    YAML parse; git diff --check; and the required 325-page production build.
-    The first full Jest run correctly exposed two inherited branch gaps: the two
-    TC-255 JSON artifacts were absent from the complete experiment shelf and one
-    boundary assertion assumed LF-only checkout bytes. Both were repaired, the
-    five affected suites passed 25/25, and the final full run passed. npm ci
-    restored the lockfile environment and reported the repository's existing 72
-    dependency advisories; no dependency or lockfile changed. For the added
-    source-audit boundary, the live source verifier remains 61/61, focused
-    intake/loop Jest passes 13/13, adjacent research Jest passes 183/183, web
-    TypeScript passes, targeted ESLint passes, and the audited receipt hash is
-    enforced from canonical LF bytes. The refreshed repository Jest run passes
-    245 suites / 1,909 tests with three suites / 26 tests skipped and the known
-    forced-exit warning; full lint has zero errors and the same 21 inherited
-    warnings; the refreshed production build generates all 325 pages.
+    PASS: live pinned-source reconstruction 61/61 with exact category counts and
+    README hash; canonical source-audit receipt hash; 42/42 focused
+    API/intake/loop/middleware/auth tests including real signed-cookie acceptance
+    and missing/malformed-cookie denial; 195/195 adjacent research/API tests plus
+    the separate 3/3 real-auth boundary; repository Jest 247 suites / 1,924 tests
+    passed with three suites / 26 tests skipped and the known forced-exit warning;
+    web TypeScript; targeted ESLint; full lint with zero errors and the same 21
+    inherited warnings; verifier syntax; JSON and YAML parse; git diff --check;
+    and the required 325-page production build, whose route inventory includes
+    /api/admin/research-intake. The first full foundation run correctly exposed
+    two inherited branch gaps: the two TC-255 JSON artifacts were absent from the
+    complete experiment shelf and one boundary assertion assumed LF-only checkout
+    bytes. Both were repaired. npm ci restored the lockfile environment and
+    reported the repository's existing 72 dependency advisories; no dependency
+    or lockfile changed. Existing non-blocking build warnings remain unchanged.
   cycle:
     id: 2026-08-29T06:00:00.000Z/PT3H
     started_at: 2026-08-29T06:00:00.000Z
@@ -86,6 +89,10 @@ research_intake_desk_2026_08_29:
       - apps/web/lib/__tests__/research-loop.test.ts
       - apps/web/lib/research-loop.ts
       - apps/web/lib/strategy-study-catalog.ts
+      - apps/web/lib/research-intake-admin.ts
+      - apps/web/app/api/admin/research-intake/route.ts
+      - apps/web/app/api/admin/research-intake/__tests__/route.test.ts
+      - apps/web/app/api/admin/research-intake/__tests__/auth-boundary.test.ts
       - docs/research/2026-08-29-price-overreactions-source-audit.md
       - docs/plans/2026-08-29-three-hour-research-marketing-loop.md
       - package.json
@@ -93,16 +100,23 @@ research_intake_desk_2026_08_29:
       - STATE.yaml
     verification:
       - pinned source reconstruction 61/61
-      - focused intake and loop Jest 13/13
-      - adjacent research Jest 183/183
+      - canonical source-audit receipt hash
+      - admin API/intake/loop/middleware/auth 42/42
+      - adjacent research and API 195/195 plus real auth 3/3
+      - repository Jest 247 suites / 1,924 tests passed
       - web TypeScript
       - targeted ESLint
-      - canonical source-audit receipt hash
-      - repository Jest 245 suites / 1,909 tests passed
       - full lint 0 errors / 21 inherited warnings
-      - production build 325/325 pages
+      - production build 325/325 pages including /api/admin/research-intake
     evidence_paths:
       - docs/research/2026-08-29-price-overreactions-source-audit.md
+    additional_product_increment:
+      route: GET /api/admin/research-intake
+      status: verified_local
+      access: admin-read-only
+      mutations: none
+      publication_authority: false
+      trading_authority: false
     marketing_draft: none
     external_actions: none
     next_action: Obtain owner confirmation for the protected admin v0; otherwise continue auditing a reconstructible lower-turnover candidate without changing UI code
@@ -5010,11 +5024,18 @@ next_actions:
       statistically indistinguishable from random, while exact sign, fill, cost,
       and data-series choices remain underspecified. No TradeClaw backtest or
       marketing draft was manufactured for that no-go. The pinned-source
-      verifier, 13 focused tests, web typecheck, focused lint,
+      verifier, 13 focused intake/loop tests, web typecheck, focused lint,
       full research and repository tests, JSON/YAML/diff checks, full lint, and
       the 325-page production build pass. The complete experiment shelf now
       retains both the canonical and superseded TC-255 artifacts, and the Windows
-      boundary test is line-ending independent. The admin visual redesign and
+      boundary test is line-ending independent. A new protected read-only
+      /api/admin/research-intake endpoint now supplies bounded search, evidence
+      filters, summaries, and pagination in pinned source order. It authenticates
+      before parsing, returns private/no-store responses, rejects ambiguous query
+      input, and grants neither publication nor trading authority. Its focused
+      API/intake/loop/middleware/auth suite, adjacent research suite, repository
+      Jest, typecheck, targeted/full lint, source verifier, and 325-page build
+      pass. The admin visual redesign and
       featured public TC-255 card remain confirmation-gated. The verified
       non-visual foundation is committed locally as
       bce46c05b2c61613981616102535e2f3be666950. Push, PR, merge, deployment,

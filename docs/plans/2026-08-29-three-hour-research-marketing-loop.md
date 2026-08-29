@@ -26,12 +26,36 @@ change, or trading activation.
 - Source README SHA-256:
   `67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a`
 - Local evidence overlay: `apps/web/lib/research-intake.ts`
+- Protected admin read model: `GET /api/admin/research-intake`
 - Canonical project state: `STATE.yaml`
 
 The 61 upstream rows are discovery metadata only. Their Sharpe ratios,
 t-statistics, volatility, and years are upstream gross-of-cost readings. They
 are never TradeClaw evidence, default ordering, a candidate score, or a reason
 to promote a strategy.
+
+## Protected admin read contract
+
+`GET /api/admin/research-intake` is the non-visual data boundary for the future
+intake desk. It authenticates before parsing query parameters, returns no catalog
+or validation detail to unauthorized callers, sets `private, no-store` caching,
+and exposes no mutation method.
+
+Accepted query parameters are deliberately bounded:
+
+- `q`: trimmed text, at most 120 characters;
+- `assetClass`: one exact supported asset class or `all`;
+- `stage`: one evidence-ladder stage or `all`;
+- `verdict`: `not-tested`, `pass`, `fail`, `inconclusive`, or `all`;
+- `sourceAuditDisposition`: `advance`, `hold`, `no-go`, or `all`;
+- `page`: a positive integer no greater than 10,000;
+- `limit`: a positive integer no greater than 100.
+
+Unknown, duplicated, malformed, or out-of-range inputs fail closed with `400`.
+Results always preserve pinned source order; upstream return or Sharpe never
+changes ordering. The payload carries both whole-catalog and filtered summaries,
+the evidence workflow, source provenance, pagination, and explicit false values
+for publication and trading authority.
 
 ## Cycle contract
 
