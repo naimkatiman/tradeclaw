@@ -15,6 +15,10 @@ import {
   type ResearchVerdict,
 } from './research-intake';
 import {
+  buildResearchIntakeCandidateNavigation,
+  type ResearchIntakeCandidateNavigation,
+} from './research-intake-candidate-navigation';
+import {
   buildMarketingReviewDraft,
   getResearchLoopWindow,
   type MarketingReviewDraft,
@@ -350,6 +354,7 @@ export interface ResearchIntakeAdminCandidatePayload {
   workflow: typeof RESEARCH_INTAKE_WORKFLOW;
   researchLoop: ResearchIntakeAdminPayload['researchLoop'];
   catalogSummary: ReturnType<typeof summarizeResearchIntake>;
+  navigation: ResearchIntakeCandidateNavigation;
   record: ResearchIntakeAdminRecord;
   candidateWorkflow: {
     receiptCount: number;
@@ -1117,6 +1122,8 @@ export function buildResearchIntakeAdminCandidatePayload(
 ): ResearchIntakeAdminCandidatePayload | null {
   const candidate = SYSTEMATIC_RESEARCH_INTAKE.find((record) => record.id === candidateId);
   if (!candidate) return null;
+  const navigation = buildResearchIntakeCandidateNavigation(candidateId, 'admin');
+  if (!navigation) return null;
 
   const observation = buildResearchIntakeAdminObservation(at);
   const candidateWorkflow = buildResearchIntakeAdminCandidateWorkflow(
@@ -1137,6 +1144,7 @@ export function buildResearchIntakeAdminCandidatePayload(
     workflow: RESEARCH_INTAKE_WORKFLOW,
     researchLoop: observation.researchLoop,
     catalogSummary: summarizeResearchIntake(SYSTEMATIC_RESEARCH_INTAKE),
+    navigation,
     record: toAdminRecord(candidate, candidateWorkflow.marketingHandoff !== null),
     candidateWorkflow,
   };

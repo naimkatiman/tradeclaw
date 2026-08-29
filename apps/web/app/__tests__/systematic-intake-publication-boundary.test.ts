@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { buildOpenApiSpec } from '../../lib/openapi';
@@ -80,6 +81,18 @@ describe('systematic research intake public boundary', () => {
         };
       };
     };
+    const candidateResponseSchema = spec.components.schemas.ResearchIntakeCandidateResponse as {
+      required?: string[];
+      properties?: { navigation?: { $ref?: string } };
+    };
+    const candidateNavigationSchema = spec.components.schemas.ResearchIntakeCandidateNavigation as {
+      required?: string[];
+      properties?: {
+        order?: { enum?: string[] };
+        previous?: { nullable?: boolean };
+        next?: { nullable?: boolean };
+      };
+    };
     const summaryExamples = responseSchema.properties?.catalogSummary?.properties;
 
     expect(spec.tags).toContainEqual(expect.objectContaining({ name: 'Research' }));
@@ -87,6 +100,28 @@ describe('systematic research intake public boundary', () => {
     expect(spec.components.schemas).toHaveProperty('ResearchIntakePublicRecord');
     expect(spec.components.schemas).toHaveProperty('ResearchIntakeEvidenceResponse');
     expect(spec.components.schemas).toHaveProperty('ResearchIntakeCandidateResponse');
+    expect(spec.components.schemas).toHaveProperty('ResearchIntakeCandidateNavigation');
+    expect(candidateResponseSchema.required).toContain('navigation');
+    expect(candidateResponseSchema.properties?.navigation?.$ref).toBe(
+      '#/components/schemas/ResearchIntakeCandidateNavigation',
+    );
+    expect(candidateNavigationSchema.required).toEqual([
+      'order',
+      'currentPosition',
+      'totalCandidates',
+      'catalogHref',
+      'selfHref',
+      'previous',
+      'next',
+    ]);
+    expect(candidateNavigationSchema.properties?.order?.enum).toEqual(['pinned-source-order']);
+    expect(candidateNavigationSchema.properties?.previous?.nullable).toBe(true);
+    expect(candidateNavigationSchema.properties?.next?.nullable).toBe(true);
+    const navigationSchemaJson = JSON.stringify(candidateNavigationSchema);
+    expect(Buffer.byteLength(navigationSchemaJson, 'utf8')).toBe(815);
+    expect(createHash('sha256').update(navigationSchemaJson).digest('hex')).toBe(
+      '44dd07627e028eff006189e7fe13094e5c06f8608d8f57d788494be8fe1414d5',
+    );
     expect(operation).toBeDefined();
     expect(operation?.security).toEqual([]);
     expect(operation?.description).toMatch(/gross discovery metadata.*modeled historical research/i);

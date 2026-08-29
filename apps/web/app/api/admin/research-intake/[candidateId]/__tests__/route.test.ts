@@ -75,6 +75,18 @@ describe('GET /api/admin/research-intake/[candidateId]', () => {
       verdict: 'not-tested',
       marketingReviewDraft: null,
     });
+    expect(body.navigation).toMatchObject({
+      order: 'pinned-source-order',
+      currentPosition: 61,
+      totalCandidates: 61,
+      catalogHref: '/api/admin/research-intake',
+      selfHref: `/api/admin/research-intake/${TC260}`,
+      previous: {
+        id: 'risk-parity-portfolios-with-risk-factors',
+        position: 60,
+      },
+      next: null,
+    });
     expect(body.candidateWorkflow).toMatchObject({
       receiptCount: 1,
       receipts: [{ taskId: 'TC-260', cycleId: '2026-08-29T15:00:00.000Z/PT3H' }],

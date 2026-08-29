@@ -27,6 +27,18 @@ describe('GET /api/research/intake/[candidateId]', () => {
       evidenceBasis: 'tradeclaw-source-audit-only',
       tradeClawSourceAudit: { taskId: 'TC-260', tradeClawBacktestRun: false },
     });
+    expect(body.navigation).toMatchObject({
+      order: 'pinned-source-order',
+      currentPosition: 61,
+      totalCandidates: 61,
+      catalogHref: '/api/research/intake',
+      selfHref: `/api/research/intake/${CANDIDATE_ID}`,
+      previous: {
+        id: 'risk-parity-portfolios-with-risk-factors',
+        position: 60,
+      },
+      next: null,
+    });
     expect(body).not.toHaveProperty('records');
     expect(body.access).toMatchObject({
       requiresAuthentication: false,

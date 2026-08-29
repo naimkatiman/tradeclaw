@@ -1,11 +1,156 @@
 project: tradeclaw
-updated: 2026-08-30T04:39:33+08:00
+updated: 2026-08-30T04:56:27+08:00
 
 description: >
   Open-source, self-hostable trading research platform. The public claim is the
   cost-adjusted evidence record, not a paid signal feed. Hosted access is free
   while billing is paused; public mode is read-only and admin mode stays behind
   authentication. Docker Compose with PostgreSQL is the supported self-host path.
+
+research_candidate_detail_navigation_2026_08_30:
+  at: 2026-08-30T04:44:16+08:00
+  agent: TradeClaw PM agent
+  status: verified_shared_candidate_detail_navigation_ready_for_local_commit
+  scope: Let public users and authenticated admins return from an exact candidate to the correct catalog or move through pinned source order without guessing IDs or URLs
+  base_commit: 9bb94bfe2b7f3a506bb10bf7b7ae275af803f5cc
+  branch: agent/research-intake-desk-20260829
+  parent_task: TC-256
+  current_cycle_id: 2026-08-29T18:00:00.000Z/PT3H
+  current_cycle_status: complete
+  current_cycle_receipt: TC-261
+  new_research_receipt_created: false
+  next_rollover_at: 2026-08-29T21:00:00.000Z
+  gate_observed_at: 2026-08-29T20:44:16.337Z
+  gate_decision: The 21:00Z receipt gate is closed; continue same-window public/admin product completion without creating research or marketing state
+  problem: >-
+    Exact public and protected candidate responses expose the record and catalog
+    context but no canonical self link, catalog return, or pinned previous/next
+    candidate. A client must fetch the full catalog and rebuild order and URLs.
+  decision: >-
+    Add one shared `navigation` projection to public and protected exact-candidate
+    payloads. Navigation is strictly pinned-source-order, never performance-ranked,
+    uses one-based positions, encodes canonical IDs, and authors surface-correct
+    catalog/self/previous/next paths. Document the public shape in OpenAPI.
+  frozen_navigation_shape:
+    fields: [order, currentPosition, totalCandidates, catalogHref, selfHref, previous, next]
+    order_value: pinned-source-order
+    position_basis: one-based
+    neighbor_fields: [id, title, position, href]
+    previous_nullable: true
+    next_nullable: true
+  frozen_paths:
+    public_base: /api/research/intake
+    protected_base: /api/admin/research-intake
+    catalog_href_is_base_path: true
+    self_and_neighbor_ids_encoded_with: encodeURIComponent
+    query_parameters_in_navigation: false
+  frozen_behavior:
+    first_candidate_previous: null
+    last_candidate_next: null
+    middle_candidate_has_both_neighbors: true
+    order_derived_from: exact-pinned-61-candidate-array
+    performance_ranked: false
+    exact_id_miss_returns_null_unchanged: true
+  frozen_boundaries:
+    public_candidate_changed: true
+    protected_candidate_changed: true
+    public_openapi_changed: true
+    public_catalog_changed: false
+    public_evidence_changed: false
+    public_csv_changed: false
+    protected_catalog_changed: false
+    protected_evidence_changed: false
+    protected_review_changed: false
+    protected_csv_changed: false
+    auth_semantics_changed: false
+    rendered_ui_changed: false
+  expected_changed_files:
+    - STATE.yaml
+    - apps/web/lib/research-intake-candidate-navigation.ts
+    - apps/web/lib/research-intake-public.ts
+    - apps/web/lib/research-intake-admin.ts
+    - apps/web/lib/__tests__/research-intake-public-candidate.test.ts
+    - apps/web/lib/__tests__/research-intake-admin-candidate.test.ts
+    - apps/web/app/api/research/intake/[candidateId]/__tests__/route.test.ts
+    - apps/web/app/api/admin/research-intake/[candidateId]/__tests__/route.test.ts
+    - apps/web/lib/openapi.ts
+    - apps/web/app/__tests__/systematic-intake-publication-boundary.test.ts
+  red_verification: >-
+    PASS - the five public/protected candidate builder, route, and OpenAPI suites
+    ran 22 assertions. Fifteen exact-ID, evidence, auth, caching, method, and
+    no-authority boundaries stayed green; exactly seven failed because navigation
+    and its public schema are absent.
+  focused_green_first_iteration: >-
+    The shared builder, both payloads, both routes, and OpenAPI pass 21/22. The
+    sole failure is test-only: pinned source position 2 is `the-investment-capm-1`,
+    not the assumed dual-momentum record. All product navigation boundaries are green.
+  focused_verification: >-
+    PASS - the five public/protected candidate builder, route, and OpenAPI suites
+    pass 24/24 across exact first/middle/last navigation, surface-specific paths,
+    exact-ID misses, auth/caching/method boundaries, and public schema references.
+  deterministic_payload_audit:
+    at: 2026-08-29T15:59:59.999Z
+    public_first_navigation: 370 bytes / 0e0d7d43b7bb7b52fd621b3b4476f783c0134edda9ffaa27ca5c2b768fc42084
+    public_middle_navigation: 772 bytes / 06d0dec8346bf2376e37b660e87d56e4e1576e4ee2a8d2b0a2f8c94b459a9fd6
+    public_last_navigation: 404 bytes / 1757114bbad313f06440291ec13e4bec61b4644ecf42e204774e4dec9c7512f7
+    protected_first_navigation: 388 bytes / b2d76e6a6dabca7ce6387e65692d030023f191b64012f8b3a89664aedaf0b5e5
+    protected_middle_navigation: 796 bytes / 33e9a532758a23bb8bc152ced9f64d644c4a0348fa9920b2310ac15678c7a0c2
+    protected_last_navigation: 422 bytes / 5fc6e26af7a462ede7ec2c071cb14cd35017aa25abefa42db649abfde01c4607
+    public_tc260_candidate: 6188 bytes / 03215c72f4bec6cc78fa8411df282ab091a00e92ed26d31002e842aef4ef586e
+    protected_tc260_candidate: 9939 bytes / 1014c43ae6784ba4ba158b00762c107881d555188d3020005330237784050757
+    public_openapi_navigation_schema: 815 bytes / 44dd07627e028eff006189e7fe13094e5c06f8608d8f57d788494be8fe1414d5
+    public_catalog_unchanged: 63327 bytes / 602845ec6bd4d98410fcaf7fe2d0f4388a4293bddbd48699fdcedf1a18a99b43
+    public_evidence_unchanged: 29202 bytes / 43b0e2bc993d279249b0a2a9c7763446a9ea0f5dd6a897446386286b4a694d40
+    public_catalog_csv_unchanged: 36822 bytes / 49a715737f00100d3ef4728de0e471ce05bc669876354e9e266542863d2ede49
+    public_evidence_csv_unchanged: 5332 bytes / feab7b909b545cd1ee64690ef802c911db15cb2b8556840a06836a1f9dce2c50
+    protected_catalog_unchanged: 54034 bytes / d256289492176096024926a39f0de12da933e0c24ab4f392baa5209afdc663a0
+    protected_evidence_unchanged: 56502 bytes / defa5ec013c50c5c762fbb801d5dca6760646d0a3e28fdf2b441f75a3cea8098
+    protected_review_unchanged: 20279 bytes / 2cedcc9b48516de8975a481c0236e4810384ff4b7d83d376585d058cbd6baa9a
+    protected_evidence_csv_unchanged: 14533 bytes / 49c32887d5edaf402a9108ec6351e8acb2a5d567b5367df178250482b4542053
+    protected_review_csv_unchanged: 6350 bytes / 3ce2d5ebbbd3e88379e9eceb3d179e09b030631cde364b769a9ae864880b3739
+  deterministic_audit: >-
+    PASS - an apply-patch-created temporary verifier fingerprinted six navigation
+    boundaries, both updated candidate payloads, three public OpenAPI fragments,
+    and nine protected/public siblings, then was deleted. Only exact candidate
+    responses and public OpenAPI change; every catalog/evidence/CSV sibling is exact.
+  adjacent_verification: >-
+    PASS - 37 exact intake suites pass 173/173 across public and protected catalog,
+    candidate, evidence, review, CSV, auth, cache, publication, loop, and marketing
+    boundaries. Jest force-exit ran only after the green result.
+  source_verification: >-
+    PASS - the pinned awesome-systematic-trading verifier reconfirms upstream commit
+    d9c98521c76662d5eae03ab97a4fc721d010dde3, README SHA-256
+    67f4c4963ce10ab5ebdc7a0b1eb578c179cf151e1ddaad990cd428a231b2b29a,
+    and the exact 61-candidate source-order catalog.
+  typecheck_verification: PASS - `npm run typecheck` completed with no TypeScript errors
+  lint_verification: >-
+    PASS - the authoritative full lint has zero errors and the same 21 inherited
+    warnings; direct ESLint on all nine changed TypeScript files is clean.
+  repository_test_verification: >-
+    PASS - 284/284 runnable suites and 2114/2114 runnable tests pass; the inherited
+    3 suites / 26 tests remain skipped and the single snapshot passes. Jest
+    force-exit ran only after the green result.
+  build_verification: >-
+    PASS - `npm run build` completed the signals and trading-agents packages and
+    the production web build generated all 329/329 pages. The six protected
+    research routes remain dynamic. Only inherited middleware, NFT trace,
+    `url.parse`, and edge-runtime warnings were emitted.
+  final_state_bound_verification: >-
+    PASS - 15 candidate, catalog, auth, result-view, public contract,
+    publication-boundary, receipt, loop, and marketing suites pass 83/83 against
+    the completed implementation and current cycle state.
+  state_and_scope_verification: >-
+    PASS - STATE.yaml parses, `git diff --check` is clean, the temporary audit is
+    absent, and the working tree contains exactly the frozen ten-file manifest:
+    one shared helper, eight existing TypeScript files, and STATE.yaml.
+  visual_ui_changed: false
+  marketing_handoff_created: false
+  publish_approved: false
+  trading_approved: false
+  external_actions: none
+  current_step: Stage the exact ten-file manifest and create the local implementation commit
+  next_action: Record the implementation hash in STATE.yaml, rerun state-bound closure checks, create a state-only closure commit, and prove a clean tree
+  safety: No new research receipt, return, source audit, preregistration, artifact, marketing draft, visual UI, publication, posting, signal, allocation, broadcast, execution, billing, push, merge, deployment, Docker, dependency, database, auth semantics, or trading state changes are authorized
 
 admin_research_catalog_result_view_2026_08_30:
   at: 2026-08-30T04:24:25+08:00

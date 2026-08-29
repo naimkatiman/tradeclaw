@@ -484,6 +484,50 @@ export function buildOpenApiSpec(): OpenApiSpec {
             },
           },
         },
+        ResearchIntakeCandidateNavigationItem: {
+          type: "object",
+          description: "One adjacent candidate in the immutable pinned source order.",
+          required: ["id", "title", "position", "href"],
+          properties: {
+            id: { type: "string" },
+            title: { type: "string" },
+            position: { type: "integer", minimum: 1, maximum: 61 },
+            href: { type: "string" },
+          },
+        },
+        ResearchIntakeCandidateNavigation: {
+          type: "object",
+          description:
+            "Canonical candidate-detail navigation in pinned source order. It is never sorted or ranked by performance.",
+          required: [
+            "order",
+            "currentPosition",
+            "totalCandidates",
+            "catalogHref",
+            "selfHref",
+            "previous",
+            "next",
+          ],
+          properties: {
+            order: { type: "string", enum: ["pinned-source-order"] },
+            currentPosition: { type: "integer", minimum: 1, maximum: 61 },
+            totalCandidates: { type: "integer", enum: [61] },
+            catalogHref: { type: "string", example: "/api/research/intake" },
+            selfHref: {
+              type: "string",
+              example:
+                "/api/research/intake/a-risk-based-approach-to-tactical-asset-allocation",
+            },
+            previous: {
+              allOf: [{ $ref: "#/components/schemas/ResearchIntakeCandidateNavigationItem" }],
+              nullable: true,
+            },
+            next: {
+              allOf: [{ $ref: "#/components/schemas/ResearchIntakeCandidateNavigationItem" }],
+              nullable: true,
+            },
+          },
+        },
         ResearchIntakeCandidateResponse: {
           type: "object",
           description:
@@ -496,6 +540,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
             "workflow",
             "claimBoundary",
             "catalogSummary",
+            "navigation",
             "record",
           ],
           properties: {
@@ -515,6 +560,9 @@ export function buildOpenApiSpec(): OpenApiSpec {
             },
             catalogSummary: {
               $ref: "#/components/schemas/ResearchIntakeResponse/properties/catalogSummary",
+            },
+            navigation: {
+              $ref: "#/components/schemas/ResearchIntakeCandidateNavigation",
             },
             record: { $ref: "#/components/schemas/ResearchIntakePublicRecord" },
           },
@@ -641,7 +689,7 @@ export function buildOpenApiSpec(): OpenApiSpec {
           summary: "Inspect one systematic-research candidate",
           description:
             "Returns one canonical candidate and its complete safe evidence overlay using exact, case-sensitive ID matching. " +
-            "No API key is required. The response carries the pinned source receipt and claim boundaries, excludes admin, receipt, and marketing workflow, and grants no publication, strategy-selection, broadcast, or trading authority.",
+            "No API key is required. The response carries pinned-order catalog, self, previous, and next navigation plus the source receipt and claim boundaries, excludes admin, receipt, and marketing workflow, and grants no publication, strategy-selection, broadcast, or trading authority.",
           security: [],
           parameters: [
             {

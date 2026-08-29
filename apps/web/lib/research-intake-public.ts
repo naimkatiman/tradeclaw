@@ -6,6 +6,10 @@ import {
   summarizeResearchIntake,
   type ResearchIntakeRecord,
 } from './research-intake';
+import {
+  buildResearchIntakeCandidateNavigation,
+  type ResearchIntakeCandidateNavigation,
+} from './research-intake-candidate-navigation';
 
 export type ResearchIntakePublicEvidenceBasis =
   | 'upstream-gross-discovery-only'
@@ -45,6 +49,7 @@ export type ResearchIntakePublicCandidatePayload = Omit<
   ResearchIntakePublicPayload,
   'records'
 > & {
+  navigation: ResearchIntakeCandidateNavigation;
   record: ResearchIntakePublicRecord;
 };
 
@@ -161,9 +166,12 @@ export function buildResearchIntakePublicCandidatePayload(
 ): ResearchIntakePublicCandidatePayload | null {
   const candidate = SYSTEMATIC_RESEARCH_INTAKE.find((record) => record.id === candidateId);
   if (!candidate) return null;
+  const navigation = buildResearchIntakeCandidateNavigation(candidateId, 'public');
+  if (!navigation) return null;
 
   return {
     ...buildResearchIntakePublicContext(),
+    navigation,
     record: toPublicRecord(candidate),
   };
 }

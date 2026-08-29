@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import {
   buildResearchIntakeAdminCandidatePayload,
   buildResearchIntakeAdminPayload,
@@ -9,6 +10,28 @@ const TC260 = 'a-risk-based-approach-to-tactical-asset-allocation';
 const TC261 =
   'know-when-to-hodl-em-know-when-to-fodl-em-an-investigation-of-factor-based-investing-in-the-cryptocurrency-space';
 const UNTOUCHED = 'a-study-of-differences-in-returns-between-large-and-small-companies-in-europe';
+
+interface CandidateNavigation {
+  order: 'pinned-source-order';
+  currentPosition: number;
+  totalCandidates: number;
+  catalogHref: string;
+  selfHref: string;
+  previous: { id: string; title: string; position: number; href: string } | null;
+  next: { id: string; title: string; position: number; href: string } | null;
+}
+
+function navigation(payload: unknown): CandidateNavigation | undefined {
+  return (payload as { navigation?: CandidateNavigation }).navigation;
+}
+
+function fingerprint(value: unknown): { bytes: number; sha256: string } {
+  const serialized = JSON.stringify(value);
+  return {
+    bytes: Buffer.byteLength(serialized, 'utf8'),
+    sha256: createHash('sha256').update(serialized).digest('hex'),
+  };
+}
 
 describe('protected research intake candidate projection', () => {
   it('returns TC-260 with its exact visible receipt and no invented marketing handoff', () => {
@@ -36,6 +59,19 @@ describe('protected research intake candidate projection', () => {
         sourceAudited: 3,
         replicated: 4,
         sourceNoGo: 3,
+      },
+      navigation: {
+        order: 'pinned-source-order',
+        currentPosition: 61,
+        totalCandidates: 61,
+        catalogHref: '/api/admin/research-intake',
+        selfHref: `/api/admin/research-intake/${TC260}`,
+        previous: {
+          id: 'risk-parity-portfolios-with-risk-factors',
+          position: 60,
+          href: '/api/admin/research-intake/risk-parity-portfolios-with-risk-factors',
+        },
+        next: null,
       },
       record: {
         id: TC260,
@@ -134,6 +170,26 @@ describe('protected research intake candidate projection', () => {
         publicationApproved: false,
         tradingApproved: false,
         externalActions: 'none',
+      },
+    });
+    expect(navigation(before)).toEqual({
+      order: 'pinned-source-order',
+      currentPosition: 33,
+      totalCandidates: 61,
+      catalogHref: '/api/admin/research-intake',
+      selfHref: `/api/admin/research-intake/${TC261}`,
+      previous: {
+        id: TC255,
+        title: 'How to Design a Simple Multi-Timeframe Trend Strategy on Bitcoin',
+        position: 32,
+        href: `/api/admin/research-intake/${TC255}`,
+      },
+      next: {
+        id: 'seasonality-trend-following-and-mean-reversion-in-bitcoin',
+        title: 'Seasonality, Trend-following, and Mean reversion in Bitcoin',
+        position: 34,
+        href:
+          '/api/admin/research-intake/seasonality-trend-following-and-mean-reversion-in-bitcoin',
       },
     });
 
@@ -257,6 +313,38 @@ describe('protected research intake candidate projection', () => {
         ),
       ).toBeNull();
     }
+  });
+
+  it('serializes protected first, middle, and last navigation deterministically', () => {
+    const at = '2026-08-29T15:59:59.999Z';
+    const first = buildResearchIntakeAdminCandidatePayload(UNTOUCHED, at);
+    const middle = buildResearchIntakeAdminCandidatePayload(TC261, at);
+    const last = buildResearchIntakeAdminCandidatePayload(TC260, at);
+    if (!first || !middle || !last) throw new Error('Admin navigation fixture is missing');
+
+    expect({
+      first: fingerprint(first.navigation),
+      middle: fingerprint(middle.navigation),
+      last: fingerprint(last.navigation),
+      lastPayload: fingerprint(last),
+    }).toEqual({
+      first: {
+        bytes: 388,
+        sha256: 'b2d76e6a6dabca7ce6387e65692d030023f191b64012f8b3a89664aedaf0b5e5',
+      },
+      middle: {
+        bytes: 796,
+        sha256: '33e9a532758a23bb8bc152ced9f64d644c4a0348fa9920b2310ac15678c7a0c2',
+      },
+      last: {
+        bytes: 422,
+        sha256: '5fc6e26af7a462ede7ec2c071cb14cd35017aa25abefa42db649abfde01c4607',
+      },
+      lastPayload: {
+        bytes: 9_939,
+        sha256: '1014c43ae6784ba4ba158b00762c107881d555188d3020005330237784050757',
+      },
+    });
   });
 
   it('keeps paginated admin record drafts observation-consistent', () => {
